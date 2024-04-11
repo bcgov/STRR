@@ -1,0 +1,55 @@
+{
+  "businessIdentifier": "12345",
+  "folioNumber": "67890",
+  "effectiveDate": "2022-01-01----",
+  "significantIndividuals": [
+    {
+      "controlType": {
+        "directControl": true,
+        "indirectControl": false,
+        "significantInfluence": false,
+        "inConcertControl": true
+      },
+      "percentOfShares": 100,
+      "percentOfVotes": 85,
+      "profile": {
+        "address": {
+          "country": {
+            "alpha_2": "US",
+            "name": "United States",
+            "numericCode": "840"
+          },
+          "line1": "123 Main St",
+          "city": "Los Angeles",
+          "region": "CA",
+          "postalCode": "90001"
+        },
+        "competency": {
+          "decisionMaking": true,
+          "financialAffairs": false
+        },
+        "birthDate": "1980-01-01",
+        "citizenshipCA": "citizen",
+        "citizenshipsExCA": [
+          {
+            "name": "Germany",
+            "alpha_2": "DE"
+          },
+          {
+            "name": "France",
+            "alpha_2": "FR"
+          }
+        ],
+        "email": "test@example.com",
+        "hasTaxNumber": true,
+        "isTaxResident": false,
+        "fullName": "John Doe",
+        "preferredName": "John",
+        "taxNumber": "987654321",
+        "uuid": "e2dd8f31-a097-4c8a-9f92-76e6f92f63f4"
+      },
+      "startDate": "2022-01-01"
+    }
+  ],
+  "certified": true
+}

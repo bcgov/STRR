@@ -1,0 +1,195 @@
+name: STR UI CI
+
+on:
+  pull_request:
+    types: [assigned, synchronize]
+    paths:
+      - "str-web/**"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  setup-job:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v3
+      - run: "true"
+
+  linting:
+    needs: setup-job
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        project: ["str-main-app", "str-common-components", "str-layouts"]
+      fail-fast: false
+
+    defaults:
+      run:
+        working-directory: str-web/${{ matrix.project }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run linting
+        run: pnpm run lint
+
+
+  unit-testing:
+    needs: setup-job
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        project: ["str-main-app", "str-common-components", "str-layouts"]
+      fail-fast: false
+
+    defaults:
+      run:
+        working-directory: str-web/${{ matrix.project }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Set basic env
+        run: |
+          cp .env.example .env
+
+      - name: Run unit tests
+        run: pnpm test:cov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./str-web/str-main-app/coverage/clover.xml
+          flags: str-ui
+          name: codecov-str-ui
+          fail_ci_if_error: false
+
+  cypress-e2e-test:
+    needs: setup-job
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        project: ["str-main-app", "str-common-components", "str-layouts"]
+      fail-fast: false
+
+    defaults:
+      run:
+        working-directory: str-web/${{ matrix.project }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Set basic env
+        working-directory: str-web/${{ matrix.project }}
+        run: |
+          cp .env.example .env
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: str-web/${{ matrix.project }}
+          build: pnpm run build:local
+          start: pnpm start
+
+  build-check:
+    needs: setup-job
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        project: ["str-main-app", "str-common-components", "str-layouts"]
+      fail-fast: false
+
+    defaults:
+      run:
+        working-directory: str-web/${{ matrix.project }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Check
+        run: pnpm build
+
+  build-check-for-deployment:
+    needs: setup-job
+    runs-on: ubuntu-20.04
+
+    defaults:
+      run:
+        working-directory: str-web
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Check
+        run: pnpm build:str-main-app

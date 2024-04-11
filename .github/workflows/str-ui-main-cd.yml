@@ -1,0 +1,35 @@
+name: STR UI Main CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "str-web/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment"
+        required: true
+        type: choice
+        options:
+        - dev
+        - test
+        - prod
+      tagname:
+        description: "Specify a previous version (git tag) to deploy"
+        required: false
+        default: ""
+
+jobs:
+  str-ui-main-cd:
+    uses: bcgov/bcregistry-sre/.github/workflows/ui-cd-pnpm.yaml@main
+    with:
+        environment: ${{ inputs.environment }}
+        tagname: ${{ inputs.tagname }}
+        working_directory: "./str-web"
+        package_name: "str-main-app"
+    secrets:
+        APP_NAME: "str-ui"
+        OP_CONNECT_URL: ${{ secrets.OP_CONNECT_URL }}
+        OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}

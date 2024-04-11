@@ -1,0 +1,114 @@
+name: STR API CI
+
+on:
+  pull_request:
+    types: [assigned, synchronize]
+    paths:
+      - "str-api/**"
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./str-api
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run linters
+        run: |
+          poetry run pylint --rcfile=setup.cfg src/str_api
+          poetry run flake8 src/str_api
+
+  unit-testing:
+    env:
+      DATABASE_TEST_USERNAME: postgres
+      DATABASE_TEST_PASSWORD: postgres
+      DATABASE_TEST_NAME: str
+      DATABASE_TEST_HOST: localhost
+      DATABASE_TEST_PORT: 5432
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+
+    runs-on: ubuntu-20.04
+
+    services:
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: str
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Update db
+        run: |
+          poetry run flask db upgrade
+          poetry run flask db migrate
+
+      - name: Run tests
+        run: poetry run pytest --cov=./src --cov-report=xml
+
+      - name: Check coverage
+        run: poetry run coverage report --fail-under=80
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./str-api/coverage.xml
+          flags: str-api
+          name: codecov-str-api
+          fail_ci_if_error: false
+
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Build the project
+        run: poetry build

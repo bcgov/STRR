@@ -1,0 +1,123 @@
+{
+  "businessIdentifier": "12345",
+  "effectiveDate": "2023-03-01",
+  "entityStatement": {
+    "statementID": "bd4061d6-1a24-4356-93f3-c489b56610a2",
+    "statementType": "entityStatement",
+    "statementDate": "2023-02-28",
+    "isComponent": false,
+    "entityType": "registeredEntity",
+    "name": "Your Entity",
+    "identifiers": [],
+    "publicationDetails": {
+      "publicationDate": "2022-12-31",
+      "bodsVersion": "1.0",
+      "publisher": {
+        "uri": "http://publisher.uri",
+        "name": "Publisher Name",
+        "source": {
+          "url": "http://source.url"
+        }
+      }
+    }
+  },
+  "personStatements": [
+    {
+      "statementID": "bd4061d6-1a24-4356-93f3-c489b56610a4",
+      "statementType": "personStatement",
+      "statementDate": "2023-02-28",
+      "isComponent": false,
+      "personType": "knownPerson",
+      "names": [
+        {
+          "type": "individual",
+          "fullName": "Full Name"
+        }
+      ],
+      "publicationDetails": {
+        "publicationDate": "2022-12-31",
+        "bodsVersion": "1.0",
+        "publisher": {
+          "uri": "http://publisher.uri",
+          "name": "Publisher Name",
+          "source": {
+            "url": "http://source.url"
+          }
+        }
+      },
+      "hasTaxNumber": true,
+      "email": "test@test.gov.bc.ca",
+      "nationalities": [
+        {
+          "name": "Canada",
+          "code": "CA"
+        }
+      ],
+      "source": {
+        "description": "The description",
+        "url": "https://yourwebsite.com",
+        "metadata": "Metadata",
+        "retrievedAt": "2023-02-28T23:17:17Z",
+        "asserted": "2023-02-18"
+      }
+    }
+  ],
+  "ownershipOrControlStatements": [
+    {
+      "statementID": "bd4061d6-1a24-4356-93f3-c489b56610a3",
+      "statementType": "ownershipOrControlStatement",
+      "statementDate": "2023-02-28",
+      "isComponent": false,
+      "subject": {
+        "describedByEntityStatement": "bd4061d6-1a24-4356-93f3-c489b56610a2"
+      },
+      "interestedParty": {
+        "describedByPersonStatement": "bd4061d6-1a24-4356-93f3-c489b56610a4"
+      },
+      "publicationDetails": {
+        "publicationDate": "2022-12-31",
+        "bodsVersion": "1.0",
+        "publisher": {
+          "uri": "http://publisher.uri",
+          "name": "Publisher Name",
+          "source": {
+            "url": "http://source.url"
+          }
+        }
+      },
+      "source": {
+        "description": "The description",
+        "url": "https://yourwebsite.com",
+        "metadata": "Metadata",
+        "retrievedAt": "2023-02-28T23:17:17Z",
+        "asserted": "2023-02-18"
+      },
+      "interests": [
+        {
+          "type": "otherInfluenceOrControl",
+          "directOrIndirect": "direct",
+          "beneficialOwnershipOrControl": true,
+          "details": "",
+          "share": {
+            "exact": 27
+          },
+          "startDate": "2023-03-01"
+        },
+        {
+          "type": "shareholding",
+          "directOrIndirect": "unknown",
+          "beneficialOwnershipOrControl": true,
+          "details": "SharesThroughRightsOrExercisedInConcert",
+          "startDate": "2023-03-01"
+        },
+        {
+          "type": "appointmentOfBoard",
+          "directOrIndirect": "direct",
+          "beneficialOwnershipOrControl": true,
+          "details": "",
+          "startDate": "2023-01-01"
+        }
+      ]
+    }
+  ]
+}
