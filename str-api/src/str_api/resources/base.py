@@ -39,21 +39,24 @@ This module provides a simple flask blueprint with a single 'home' route that re
 from flask import Blueprint
 from flask import jsonify
 from flask import request
+from flask_restx import Api, Resource
 
 
 bp = Blueprint("base", __name__)
+api = Api(bp, description="Short Term Rental API", default="Endpoints")
 
 
-@bp.route("/", methods=("GET",))
-def home():
-    """
-    Handle GET request to the home route.
+@api.route("/hello", methods=("GET",))
+class HelloWorld(Resource):
+    def get(self):
+        """
+        Handle GET request to the home route.
 
-    Returns:
-        Union[Response, Tuple[Dict[str, Any], int]]: The JSON response and status code.
+        Returns:
+            Union[Response, Tuple[Dict[str, Any], int]]: The JSON response and status code.
 
-    """
-    if request.method == "POST":
-        return {}, 201
+        """
+        if request.method == "POST":
+            return {}, 201
 
-    return jsonify(name="world")
+        return jsonify(name="world")
