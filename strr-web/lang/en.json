@@ -89,7 +89,8 @@
       "warning": "Email will be default method of communication. Notices sent to your email address will be deemed received on the third day after the email is sent.",
       "dateOfBirth": "Date of Birth",
       "contactDetails": "Contact Details",
-      "mailingAddress": "Mailing Address"
+      "mailingAddress": "Mailing Address",
+      "preferred": "Preferred Name"
     },
     "property-form": {
       "subtitle": "Rental Unit Information",

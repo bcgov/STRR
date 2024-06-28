@@ -4,6 +4,10 @@
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between w-full mb-[24px] mobile:flex-col">
           <BcrosFormSectionReviewItem
+            :title="tContact('preferred')"
+            :content="state.preferredName ? state.preferredName: '-'"
+          />
+          <BcrosFormSectionReviewItem
             :title="tContact('fullName')"
             :content="getNames()"
           />
@@ -11,12 +15,12 @@
             :title="tContact('phoneNumber')"
             :content="state.phoneNumber?.toString() ?? '-'"
           />
+        </div>
+        <div class="flex flex-row justify-between w-full mb-[24px] mobile:flex-col">
           <BcrosFormSectionReviewItem
             :title="tContact('emailAddress')"
             :content="state.emailAddress ?? '-'"
           />
-        </div>
-        <div class="flex flex-row justify-between w-full mobile:flex-col">
           <BcrosFormSectionReviewItem
             :title="tContact('dateOfBirth')"
             :content="getDateOfBirth()"
@@ -25,6 +29,8 @@
             :title="tContact('faxNumberReview')"
             :content="state?.faxNumber === '' ? '-': state.faxNumber"
           />
+        </div>
+        <div class="flex flex-row justify-between w-full mobile:flex-col">
           <BcrosFormSectionReviewItem :title="tContact('mailingAddress')">
             <p>{{ state.address }}</p>
             <p v-if="state.addressLineTwo">
@@ -33,6 +39,8 @@
             <p>{{ `${state.city ?? '-'} ${state.province ?? '-'} ${state.postalCode ?? '-'}` }}</p>
             <p>{{ `${state.country ? regionNamesInEnglish.of(state.country) : '-'}` }}</p>
           </BcrosFormSectionReviewItem>
+          <div />
+          <div />
         </div>
       </div>
     </div>

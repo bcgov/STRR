@@ -53,12 +53,16 @@ const numbersRegex = /^[0-9]+$/
 const phoneRegex = /^[0-9*#+() -]+$/
 const httpRegex = /^(https?:\/\/)([\w-]+(\.[\w-]+)+\.?(:\d+)?(\/.*)?)$/i
 const emailRegex = /^\S+@\S+\.\S+$/
+const pidRegex = /^\d{3}(-)\d{3}(-)\d{3}$/
 const phoneError = { message: 'Valid characters are "()- 123457890" ' }
 const emailError = { message: 'Email must contain @ symbol and domain' }
 const requiredPhone = z.string().regex(phoneRegex, phoneError)
 const requiredEmail = z.string().regex(emailRegex, emailError)
 const requiredNumber = z.string().regex(numbersRegex, { message: 'Must be a number' })
 const optionalNumber = z.string().regex(numbersRegex, { message: 'Must be a number' }).optional()
+const optionalPID = z
+  .string()
+  .regex(pidRegex, { message: 'If provided this value must be in the format 111-111-111' }).or(z.literal(''))
 const optionalExtension = optionalNumber
 const optionalOrEmptyString = z.string().optional().transform(e => e === '' ? undefined : e)
 const requiredNonEmptyString = z.string().refine(e => e !== '', 'Field cannot be empty')
@@ -184,7 +188,7 @@ export const propertyDetailsSchema = z.object({
   listingDetails: listingDetailsSchema,
   nickname: optionalOrEmptyString,
   ownershipType: requiredNonEmptyString,
-  parcelIdentifier: optionalOrEmptyString,
+  parcelIdentifier: optionalNumber,
   postalCode: requiredNonEmptyString,
   propertyType: requiredNonEmptyString,
   province: requiredNonEmptyString
