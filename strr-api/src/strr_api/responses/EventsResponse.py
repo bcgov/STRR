@@ -6,11 +6,11 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from strr_api.common.lookups import EVENT_MESSAGES
-from strr_api.models import Events
+from strr_api.models import Events as EventsModel
 
 
-class EventRecord(BaseModel):
-    """EventRecord response object."""
+class Events(BaseModel):
+    """Events response object."""
 
     event_type: str
     event_name: str
@@ -18,8 +18,8 @@ class EventRecord(BaseModel):
     created_date: datetime
 
     @classmethod
-    def from_db(cls, source: Events):
-        """Return an EventRecord object from a database model."""
+    def from_db(cls, source: EventsModel):
+        """Return an Events object from a database model."""
         return cls(
             event_type=source.event_type,
             event_name=source.event_name,

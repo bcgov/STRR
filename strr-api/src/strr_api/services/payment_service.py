@@ -69,7 +69,7 @@ class PayService:
         self.svc_url = app.config.get("PAYMENT_SVC_URL")
         self.timeout = app.config.get("PAY_API_TIMEOUT", 20)
 
-    def create_invoice(self, user_jwt: JwtManager, account_id, registration=None):
+    def create_invoice(self, user_jwt: JwtManager, account_id, registration=None, application=None):
         """Create the invoice via the pay-api."""
         payload = deepcopy(self.default_invoice_payload)
 
@@ -89,7 +89,12 @@ class PayService:
                 error = f"{resp.status_code} - {str(resp.json())}"
                 self.app.logger.debug("Invalid response from pay-api: %s", error)
                 raise ExternalServiceException(error=error, status_code=HTTPStatus.PAYMENT_REQUIRED)
-            if not registration:
+            if application:
+                EventsService.save_event(
+                    event_type=Events.EventType.APPLICATION,
+                    event_name=Events.EventName.INVOICE_GENERATED,
+                    application_id=application.id,
+                )
                 return resp.json()
             else:
                 invoice_id = resp.json()["id"]

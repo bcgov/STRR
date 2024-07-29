@@ -273,12 +273,12 @@ def test_get_registration_autoapproval_403(client):
 @patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
 @patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
 def test_get_registration_history_200(client):
-    rv = client.get("/registrations/1/history")
+    rv = client.get("/registrations/1/events")
     assert rv.status_code == HTTPStatus.OK
 
 
 def test_get_registration_history_401(client):
-    rv = client.get("/registrations/1/history")
+    rv = client.get("/registrations/1/events")
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
 
 
@@ -286,7 +286,7 @@ def test_get_registration_history_401(client):
 @patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
 @patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
 def test_get_registration_history_403(client):
-    rv = client.get("/registrations/1/history")
+    rv = client.get("/registrations/1/events")
     assert rv.status_code == HTTPStatus.FORBIDDEN
 
 

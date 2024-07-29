@@ -356,13 +356,11 @@ class ApprovalService:
         registration.status = RegistrationStatus.ISSUED
         registration.save()
 
-        # EventRecordsService.save_event_record(
-        #     EventRecordType.CERTIFICATE_ISSUED,
-        #     EventRecordType.CERTIFICATE_ISSUED.value,
-        #     False,
-        #     registration.user_id,
-        #     registration.id,
-        # )
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.CERTIFICATE_ISSUED,
+            registration_id=registration.id,
+        )
 
         return certificate
 

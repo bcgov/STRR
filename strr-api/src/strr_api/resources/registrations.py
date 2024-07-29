@@ -56,7 +56,7 @@ from strr_api.exceptions import (
 )
 from strr_api.models import Application, User
 from strr_api.requests import RegistrationRequest
-from strr_api.responses import AutoApprovalRecord, Document, EventRecord, Invoice, LTSARecord, Pagination, Registration
+from strr_api.responses import AutoApprovalRecord, Document, Events, Invoice, LTSARecord, Pagination, Registration
 from strr_api.schemas.utils import validate
 from strr_api.services import (
     ApprovalService,
@@ -631,13 +631,13 @@ def get_registration_invoice_status(registration_id, invoice_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/history", methods=("GET",))
+@bp.route("/<registration_id>/events", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_registration_history(registration_id):
+def get_registration_events(registration_id):
     """
-    Get registration supporting documents for given registration id.
+    Get events for given registration id.
     ---
     tags:
       - registration
@@ -668,7 +668,7 @@ def get_registration_history(registration_id):
 
         records = EventsService.fetch_registration_events(registration_id, only_show_visible_to_user)
         return (
-            jsonify([EventRecord.from_db(record).model_dump(mode="json") for record in records]),
+            jsonify([Events.from_db(record).model_dump(mode="json") for record in records]),
             HTTPStatus.OK,
         )
     except AuthException as auth_exception:

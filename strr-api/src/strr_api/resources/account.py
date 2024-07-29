@@ -49,7 +49,7 @@ from strr_api.exceptions import AuthException, ExternalServiceException, Validat
 from strr_api.requests import SBCAccountCreationRequest, UpdateUserRequest
 from strr_api.responses import Account, SBCAccount
 from strr_api.schemas.utils import validate
-from strr_api.services import AuthService, RegistrationService, UserService
+from strr_api.services import AuthService, UserService
 
 logger = logging.getLogger("api")
 bp = Blueprint("account", __name__)

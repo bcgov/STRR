@@ -40,7 +40,7 @@ import logging
 from http import HTTPStatus
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
@@ -54,9 +54,9 @@ from strr_api.exceptions import (
 )
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.requests import RegistrationRequest
-from strr_api.responses import AutoApprovalRecord, LTSARecord
+from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
-from strr_api.services import ApplicationService, ApprovalService, LtsaService, strr_pay
+from strr_api.services import ApplicationService, ApprovalService, EventsService, LtsaService, UserService, strr_pay
 from strr_api.validators.RegistrationRequestValidator import validate_registration_request
 
 logger = logging.getLogger("api")
@@ -103,7 +103,7 @@ def create_application():
         validate_registration_request(registration_request)
 
         application = ApplicationService.save_application(account_id, json_input)
-        invoice_details = strr_pay.create_invoice(jwt, account_id)
+        invoice_details = strr_pay.create_invoice(jwt, account_id, application=application)
         application = ApplicationService.update_application_payment_details_and_status(application, invoice_details)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.CREATED
     except ValidationException as validation_exception:
@@ -276,6 +276,51 @@ def get_application_auto_approval_records(application_id):
         records = ApprovalService.get_approval_records_for_application(application_id)
         return (
             jsonify([AutoApprovalRecord.from_db(record).model_dump(mode="json") for record in records]),
+            HTTPStatus.OK,
+        )
+    except Exception as exception:
+        return exception_response(exception)
+
+
+@bp.route("/<application_id>/events", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def get_application_events(application_id):
+    """
+    Get application events.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application Id
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+    """
+
+    try:
+        account_id = request.headers.get("Account-Id", None)
+        applicant_visible_events_only = True
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if user.is_examiner:
+            account_id = None
+            applicant_visible_events_only = False
+        application = ApplicationService.get_application(application_id, account_id)
+        if not application:
+            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+
+        records = EventsService.fetch_application_events(application_id, applicant_visible_events_only)
+        return (
+            jsonify([Events.from_db(record).model_dump(mode="json") for record in records]),
             HTTPStatus.OK,
         )
     except Exception as exception:

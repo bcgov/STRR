@@ -112,20 +112,32 @@ class ApplicationService:
         """
         if application.payment_status_code == "COMPLETED":
             return application
+
         application.invoice_id = invoice_details["id"]
         application.payment_account = invoice_details.get("paymentAccount").get("accountId")
         application.payment_status_code = invoice_details.get("statusCode")
-        if application.payment_status_code == PaymentStatus.COMPLETED.value:
-            application.status = Application.Status.PAID
-            application.payment_completion_date = datetime.fromisoformat(invoice_details.get("paymentDate"))
-        elif application.payment_status_code == PaymentStatus.APPROVED.value:
-            application.payment_status_code = PaymentStatus.COMPLETED.value
-            application.status = Application.Status.PAID
-            application.payment_completion_date = datetime.now(timezone.utc)
+
+        if (
+            application.status == Application.Status.DRAFT
+            and application.payment_status_code == PaymentStatus.CREATED.value
+        ):
+            application.status = Application.Status.SUBMITTED
+            EventsService.save_event(
+                event_type=Events.EventType.APPLICATION,
+                event_name=Events.EventName.APPLICATION_SUBMITTED,
+                application_id=application.id,
+            )
         else:
-            if application.status == Application.Status.DRAFT:
-                application.status = Application.Status.SUBMITTED
+            if application.payment_status_code == PaymentStatus.COMPLETED.value:
+                application.status = Application.Status.PAID
+                application.payment_completion_date = datetime.fromisoformat(invoice_details.get("paymentDate"))
+            elif application.payment_status_code == PaymentStatus.APPROVED.value:
+                application.payment_status_code = PaymentStatus.COMPLETED.value
+                application.status = Application.Status.PAID
+                application.payment_completion_date = datetime.now(timezone.utc)
+
         application.save()
+
         if application.payment_status_code == PaymentStatus.COMPLETED.value:
             EventsService.save_event(
                 event_type=Events.EventType.APPLICATION,

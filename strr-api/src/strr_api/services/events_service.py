@@ -46,7 +46,7 @@ class EventsService:
         cls,
         event_type: str,
         event_name: str,
-        details: str,
+        details: str = None,
         visible_to_applicant: bool = False,
         user_id: int = None,
         registration_id: int = None,
