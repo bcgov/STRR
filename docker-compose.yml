@@ -4,6 +4,8 @@ services:
   webui:
     build:
       context: strr-web
+      args:
+        - DOT_ENV_FILE=.env.local
     ports:
       - "8000:80"
     env_file:

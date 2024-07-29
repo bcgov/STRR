@@ -7,7 +7,6 @@ Short Term Rental Registry
 Run the following:
 
 - `make docker` to create and run docker containers for db / api / web
-- `make migrate` to update the database to latest (db must be running)
 
 
 Envrionment will now be running with:

@@ -1,5 +1,4 @@
 .PHONY: docker
-.PHONY: migrate
 
 #################################################################################
 # COMMANDS - CI                                                                 #
@@ -7,8 +6,6 @@
 docker: ## Run entire environment locally using docker-compose
 	docker compose up --build
 
-migrate: ## Update postgres db with migration changes
-	cd strr-api && dotenv -f .env.local run flask db upgrade
 #################################################################################
 # Self Documenting Commands                                                     #
 #################################################################################
