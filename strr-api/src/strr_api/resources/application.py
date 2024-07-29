@@ -158,7 +158,7 @@ def update_application_payment_details(application_id):
     Updates the invoice status of a STRR Application.
     ---
     tags:
-      - pay
+      - application
     parameters:
       - in: path
         name: application_id
@@ -291,7 +291,7 @@ def get_application_events(application_id):
     Get application events.
     ---
     tags:
-      - examiner
+      - application
     parameters:
       - in: path
         name: application_id

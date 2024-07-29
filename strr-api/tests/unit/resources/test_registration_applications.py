@@ -132,5 +132,5 @@ def test_get_application_events(session, client, jwt):
         rv = client.get(f"/applications/{application_id}/events", headers=headers)
         assert HTTPStatus.OK == rv.status_code
         events_response = rv.json
-        assert events_response[0].get("event_name") == Events.EventName.APPLICATION_SUBMITTED
-        assert events_response[0].get("event_type") == Events.EventType.APPLICATION
+        assert events_response[0].get("eventName") == Events.EventName.APPLICATION_SUBMITTED
+        assert events_response[0].get("eventType") == Events.EventType.APPLICATION

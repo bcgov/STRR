@@ -12,17 +12,17 @@ from strr_api.models import Events as EventsModel
 class Events(BaseModel):
     """Events response object."""
 
-    event_type: str
-    event_name: str
+    eventType: str
+    eventName: str
     message: str
-    created_date: datetime
+    createdDate: datetime
 
     @classmethod
     def from_db(cls, source: EventsModel):
         """Return an Events object from a database model."""
         return cls(
-            event_type=source.event_type,
-            event_name=source.event_name,
+            eventType=source.event_type,
+            eventName=source.event_name,
             message=EVENT_MESSAGES.get(source.event_name, ""),
-            created_date=source.created_date,
+            createdDate=source.created_date,
         )
