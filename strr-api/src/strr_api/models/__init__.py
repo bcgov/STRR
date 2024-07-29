@@ -37,7 +37,7 @@ from .auto_approval_record import AutoApprovalRecord
 from .certificate import Certificate
 from .db import db  # noqa: I001
 from .dss import DSSOrganization
-from .event_record import EventRecord
+from .events import Events
 from .invoice import Invoice
 from .ltsa import LTSARecord
 from .rental import Address, Document, Eligibility, PropertyManager, Registration, RentalPlatform, RentalProperty
@@ -55,7 +55,7 @@ __all__ = (
     "Contact",
     "Eligibility",
     "Document",
-    "EventRecord",
+    "Events",
     "Invoice",
     "DSSOrganization",
     "AutoApprovalRecord",

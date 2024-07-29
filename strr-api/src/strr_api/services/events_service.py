@@ -34,36 +34,44 @@
 
 # pylint: disable=C0121
 
-"""Logs Event Records to the Database."""
-from strr_api import models
-from strr_api.models import db
+"""Events Service."""
+from strr_api.models import Events
 
 
-class EventRecordsService:
-    """Service to save event records into the database."""
+class EventsService:
+    """Service to interact with the event model."""
 
     @classmethod
-    def save_event_record(
-        cls, event_type: str, message: str, visible_to_end_user: bool, user_id: int = None, registration_id: int = None
+    def save_event(
+        cls,
+        event_type: str,
+        event_name: str,
+        details: str,
+        visible_to_applicant: bool = False,
+        user_id: int = None,
+        registration_id: int = None,
+        application_id: int = None,
     ):  # pylint: disable=R0913
-        """Save STRR event record."""
+        """Saves STRR event."""
 
-        event_record = models.EventRecord(
+        event = Events(
             user_id=user_id,
-            event_type=event_type.name,
-            message=message,
-            visible_to_end_user=visible_to_end_user,
+            event_type=event_type,
+            event_name=event_name,
+            details=details,
+            visible_to_applicant=visible_to_applicant,
+            application_id=application_id,
             registration_id=registration_id,
         )
-        db.session.add(event_record)
-        db.session.commit()
-        db.session.refresh(event_record)
-        return event_record
+        event.save()
+        return event
 
     @classmethod
-    def fetch_event_records_for_registration(cls, registration_id, only_show_visible_to_user: bool = True):
-        """Get event records for a given registration by id."""
-        query = models.EventRecord.query.filter(models.EventRecord.registration_id == registration_id)
-        if only_show_visible_to_user:
-            query = query.filter(models.EventRecord.visible_to_end_user == True)  # noqa
-        return query.order_by(models.EventRecord.created_date).all()
+    def fetch_registration_events(cls, registration_id: int, applicant_visible_events_only: bool = True):
+        """Get events for a given registration."""
+        return Events.fetch_registration_events(registration_id, applicant_visible_events_only)
+
+    @classmethod
+    def fetch_application_events(cls, application_id: int, applicant_visible_events_only: bool = True):
+        """Get events for a given application id."""
+        return Events.fetch_application_events(application_id, applicant_visible_events_only)

@@ -1,4 +1,4 @@
-# Copyright © 2023 Province of British Columbia
+# Copyright © 2024 Province of British Columbia
 #
 # Licensed under the BSD 3 Clause License, (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ from strr_api.responses import AutoApprovalRecord, Document, EventRecord, Invoic
 from strr_api.schemas.utils import validate
 from strr_api.services import (
     ApprovalService,
-    EventRecordsService,
+    EventsService,
     GCPStorageService,
     LtsaService,
     RegistrationService,
@@ -666,7 +666,7 @@ def get_registration_history(registration_id):
         if not registration:
             raise AuthException()
 
-        records = EventRecordsService.fetch_event_records_for_registration(registration_id, only_show_visible_to_user)
+        records = EventsService.fetch_registration_events(registration_id, only_show_visible_to_user)
         return (
             jsonify([EventRecord.from_db(record).model_dump(mode="json") for record in records]),
             HTTPStatus.OK,

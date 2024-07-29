@@ -3,6 +3,8 @@ Model  for LTSA details of an application/registration.
 """
 from __future__ import annotations
 
+from typing import List, Optional
+
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import text
 
@@ -23,11 +25,11 @@ class LTSARecord(BaseModel):
     creation_date = db.Column(db.DateTime, nullable=False, server_default=text("(NOW())"))
 
     @classmethod
-    def get_registration_ltsa_records(cls, registration_id: int) -> LTSARecord:
+    def get_registration_ltsa_records(cls, registration_id: int) -> Optional[List[LTSARecord]]:
         """Gets LTSA records for a given registration."""
         return cls.query.filter_by(registration_id=registration_id).all()
 
     @classmethod
-    def get_application_ltsa_records(cls, application_id: int) -> LTSARecord:
+    def get_application_ltsa_records(cls, application_id: int) -> Optional[List[LTSARecord]]:
         """Get LTSA records for a given application."""
         return cls.query.filter_by(application_id=application_id).all()

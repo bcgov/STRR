@@ -40,11 +40,10 @@ import requests
 from flask import Flask
 from flask_jwt_oidc import JwtManager
 
-from strr_api import models
-from strr_api.enums.enum import EventRecordType, PaymentStatus
+from strr_api.enums.enum import PaymentStatus
 from strr_api.exceptions import ExternalServiceException
-from strr_api.models import db
-from strr_api.services.event_records_service import EventRecordsService
+from strr_api.models import Events, Invoice, db
+from strr_api.services.events_service import EventsService
 
 
 class PayService:
@@ -94,7 +93,7 @@ class PayService:
                 return resp.json()
             else:
                 invoice_id = resp.json()["id"]
-                invoice = models.Invoice(
+                invoice = Invoice(
                     registration_id=registration.id,
                     invoice_id=invoice_id,
                     payment_status_code=PaymentStatus.CREATED,
@@ -105,13 +104,6 @@ class PayService:
                 db.session.commit()
                 db.session.refresh(invoice)
                 db.session.refresh(registration)
-
-                EventRecordsService.save_event_record(
-                    EventRecordType.INVOICE_GENERATED,
-                    EventRecordType.INVOICE_GENERATED.value,
-                    True,
-                    registration_id=registration.id,
-                )
 
                 return invoice
         except ExternalServiceException as exc:
@@ -140,8 +132,8 @@ class PayService:
     def get_invoice_by_id(self, registration_id, invoice_id):
         """Get invoice by invoice id."""
         return (
-            models.Invoice.query.filter(models.Invoice.invoice_id == invoice_id)
-            .filter(models.Invoice.registration_id == registration_id)
+            Invoice.query.filter(Invoice.invoice_id == invoice_id)
+            .filter(Invoice.registration_id == registration_id)
             .one_or_none()
         )
 
@@ -150,24 +142,14 @@ class PayService:
         payment_details = self.get_payment_details_by_invoice_id(
             user_jwt, registration.sbc_account_id, invoice.invoice_id
         )
-        invoice_paid = False
         status = payment_details.get("statusCode")
         if status in (PaymentStatus.COMPLETED.name, PaymentStatus.PAID.name, PaymentStatus.APPROVED.name):
             invoice.payment_status_code = PaymentStatus.COMPLETED
             invoice.payment_completion_date = datetime.now(timezone.utc)
-            invoice_paid = True
         else:
             if status in (code.value for code in PaymentStatus):
                 invoice.payment_status_code = PaymentStatus[status]
 
         db.session.commit()
         db.session.refresh(invoice)
-
-        if invoice_paid:
-            EventRecordsService.save_event_record(
-                EventRecordType.INVOICE_PAYED,
-                EventRecordType.INVOICE_PAYED.value,
-                True,
-                registration_id=registration.id,
-            )
         return invoice

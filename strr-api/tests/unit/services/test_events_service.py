@@ -31,20 +31,21 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""Tests to assure the evennt record service."""
+"""Tests to ensure the events service works as expected."""
 
-from strr_api.enums.enum import EventRecordType
-from strr_api.services import EventRecordsService
+from strr_api.models import Events
+from strr_api.services import EventsService
 
 
 def test_event_record(app):
-    """Assure the event records are saved as expected."""
+    """Ensure that the event records are saved as expected."""
 
-    name = "Test User"
     user_id = 1
-    record = EventRecordsService.save_event_record(
-        EventRecordType.SBC_ACCOUNT_CREATE, f'SBC Account Created: "{name}"', False, user_id
+    event = EventsService.save_event(
+        event_type=Events.EventType.APPLICATION,
+        event_name=Events.EventName.PAYMENT_COMPLETE,
+        details="Test",
+        user_id=user_id,
     )
 
-    assert record.user_id == user_id
-    assert record.event_type == EventRecordType.SBC_ACCOUNT_CREATE
+    assert event.id

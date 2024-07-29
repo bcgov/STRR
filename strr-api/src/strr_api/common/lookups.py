@@ -31,23 +31,22 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""This module wraps helper services used by the API."""
-from .user_service import UserService  # isort: skip
-from .application_service import ApplicationService
-from .auth_service import AuthService
-from .events_service import EventsService
-from .gcp_storage_service import GCPStorageService
-from .geocoder_service import GeoCoderService
-from .payment_service import PayService
-from .registration_service import RegistrationService
-from .rest_service import RestService
-
-from .ltsa_service import LtsaService  # isort: skip
-from .approval_service import ApprovalService  # isort: skip
-
-PAYMENT_REQUEST_TEMPLATE = {
-    "filingInfo": {"filingTypes": [{"filingTypeCode": "RENTAL_FEE"}]},
-    "businessInfo": {"corpType": "STRR"},
-    "paymentInfo": {"methodOfPayment": "DIRECT_PAY"},
+"""Look ups.
+"""
+EVENT_MESSAGES = {
+    "APPLICATION_SUBMITTED": "Application submitted.",
+    "INVOICE_GENERATED": "Invoice generated.",
+    "PAYMENT_COMPLETE": "Payment completed.",
+    "PENDING_AUTO_APPROVAL_PROCESSING": "Pending Auto Approval processing.",
+    "AUTO_APPROVAL_FULL_REVIEW": "Application marked for full review by the auto approval process.",
+    "AUTO_APPROVAL_PROVISIONAL": "Application conditionally approved by the auto approval process.",
+    "AUTO_APPROVAL_APPROVED": "Application approved by the auto approval process.",
+    "FULL_REVIEW_IN_PROGRESS": "Full Review in progress.",
+    "MANUALLY_APPROVED": "Application approved by staff.",
+    "MANUALLY_DENIED": "Application rejected by staff.",
+    "MORE_INFORMATION_REQUESTED": "Additional information requested from the applicant.",
+    "REGISTRATION_CREATED": "Registration created.",
+    "CERTIFICATE_ISSUED": "Certificate issued for the registration.",
+    "EXPIRED": "Registration expired.",
+    "NON_COMPLIANCE_SUSPENDED": "Registration suspended due to non compliance.",
 }
-strr_pay = PayService(default_invoice_payload=PAYMENT_REQUEST_TEMPLATE)

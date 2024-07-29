@@ -44,12 +44,12 @@ from flask import current_app, render_template
 from weasyprint import HTML
 
 from strr_api.common.utils import compare_addresses
-from strr_api.enums.enum import EventRecordType, OwnershipType, RegistrationStatus
+from strr_api.enums.enum import OwnershipType, RegistrationStatus
 from strr_api.models import Address, Application, AutoApprovalRecord, Certificate, DSSOrganization, Registration
 from strr_api.requests import RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
-from strr_api.services import AuthService, EventRecordsService, LtsaService
+from strr_api.services import AuthService, EventsService, LtsaService
 from strr_api.services.geocoder_service import GeoCoderService
 
 
@@ -294,13 +294,13 @@ class ApprovalService:
         registration.start_date = datetime.now(timezone.utc)
         registration.expiry_date = registration.start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD
         registration.save()
-        EventRecordsService.save_event_record(
-            EventRecordType.MANUALLY_APPROVED,
-            EventRecordType.MANUALLY_APPROVED.value,
-            False,
-            registration.user_id,
-            registration.id,
-        )
+        # EventRecordsService.save_event_record(
+        #     EventRecordType.MANUALLY_APPROVED,
+        #     EventRecordType.MANUALLY_APPROVED.value,
+        #     False,
+        #     registration.user_id,
+        #     registration.id,
+        # )
 
     @classmethod
     def process_manual_denial(cls, registration: Registration):
@@ -310,13 +310,13 @@ class ApprovalService:
         application.save()
         registration.status = RegistrationStatus.DENIED
         registration.save()
-        EventRecordsService.save_event_record(
-            EventRecordType.MANUALLY_DENIED,
-            EventRecordType.MANUALLY_DENIED.value,
-            False,
-            registration.user_id,
-            registration.id,
-        )
+        # EventRecordsService.save_event_record(
+        #     EventRecordType.MANUALLY_DENIED,
+        #     EventRecordType.MANUALLY_DENIED.value,
+        #     False,
+        #     registration.user_id,
+        #     registration.id,
+        # )
 
     @classmethod
     def generate_registration_certificate(cls, registration: Registration):
@@ -356,13 +356,13 @@ class ApprovalService:
         registration.status = RegistrationStatus.ISSUED
         registration.save()
 
-        EventRecordsService.save_event_record(
-            EventRecordType.CERTIFICATE_ISSUED,
-            EventRecordType.CERTIFICATE_ISSUED.value,
-            False,
-            registration.user_id,
-            registration.id,
-        )
+        # EventRecordsService.save_event_record(
+        #     EventRecordType.CERTIFICATE_ISSUED,
+        #     EventRecordType.CERTIFICATE_ISSUED.value,
+        #     False,
+        #     registration.user_id,
+        #     registration.id,
+        # )
 
         return certificate
 

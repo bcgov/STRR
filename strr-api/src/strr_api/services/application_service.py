@@ -34,9 +34,10 @@
 """Service to interact with the applications model."""
 from datetime import datetime, timezone
 
-from strr_api.enums.enum import ApplicationType
-from strr_api.models import Application, User
+from strr_api.enums.enum import ApplicationType, PaymentStatus
+from strr_api.models import Application, Events, User
 from strr_api.models.application import ApplicationSerializer
+from strr_api.services.events_service import EventsService
 from strr_api.utils.user_context import UserContext, user_context
 
 
@@ -109,18 +110,26 @@ class ApplicationService:
         Updates the invoice details in the application. This method also updates the application status based on
         the invoice status.
         """
+        if application.payment_status_code == "COMPLETED":
+            return application
         application.invoice_id = invoice_details["id"]
         application.payment_account = invoice_details.get("paymentAccount").get("accountId")
         application.payment_status_code = invoice_details.get("statusCode")
-        if application.payment_status_code == "COMPLETED":
+        if application.payment_status_code == PaymentStatus.COMPLETED.value:
             application.status = Application.Status.PAID
             application.payment_completion_date = datetime.fromisoformat(invoice_details.get("paymentDate"))
-        elif application.payment_status_code == "APPROVED":
-            application.payment_status_code = "COMPLETED"
+        elif application.payment_status_code == PaymentStatus.APPROVED.value:
+            application.payment_status_code = PaymentStatus.COMPLETED.value
             application.status = Application.Status.PAID
             application.payment_completion_date = datetime.now(timezone.utc)
         else:
             if application.status == Application.Status.DRAFT:
                 application.status = Application.Status.SUBMITTED
         application.save()
+        if application.payment_status_code == PaymentStatus.COMPLETED.value:
+            EventsService.save_event(
+                event_type=Events.EventType.APPLICATION,
+                event_name=Events.EventName.PAYMENT_COMPLETE,
+                application_id=application.id,
+            )
         return application

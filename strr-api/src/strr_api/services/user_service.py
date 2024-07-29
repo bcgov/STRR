@@ -31,23 +31,18 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""This module wraps helper services used by the API."""
-from .user_service import UserService  # isort: skip
-from .application_service import ApplicationService
-from .auth_service import AuthService
-from .events_service import EventsService
-from .gcp_storage_service import GCPStorageService
-from .geocoder_service import GeoCoderService
-from .payment_service import PayService
-from .registration_service import RegistrationService
-from .rest_service import RestService
+# pylint: disable=R0913
+# pylint: disable=E1102
+"""Manages user model interactions."""
 
-from .ltsa_service import LtsaService  # isort: skip
-from .approval_service import ApprovalService  # isort: skip
+from strr_api.models import User
 
-PAYMENT_REQUEST_TEMPLATE = {
-    "filingInfo": {"filingTypes": [{"filingTypeCode": "RENTAL_FEE"}]},
-    "businessInfo": {"corpType": "STRR"},
-    "paymentInfo": {"methodOfPayment": "DIRECT_PAY"},
-}
-strr_pay = PayService(default_invoice_payload=PAYMENT_REQUEST_TEMPLATE)
+
+class UserService:
+    """Service to save and load user details."""
+
+    @classmethod
+    def get_or_create_user_by_jwt(cls, token) -> User:
+        """Get or create user matching the token"""
+        user = User.get_or_create_user_by_jwt(token)
+        return user
