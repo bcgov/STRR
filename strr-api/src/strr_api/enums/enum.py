@@ -141,3 +141,9 @@ class ApplicationType(Enum):
     """STRR Application Types."""
 
     REGISTRATION = "registration"
+
+
+class ErrorMessage(Enum):
+    """STRR Error Messages."""
+
+    APPLICATION_NOT_FOUND = "Application not found"

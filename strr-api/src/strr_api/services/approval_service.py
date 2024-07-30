@@ -43,10 +43,9 @@ from datetime import datetime, timezone
 from flask import current_app, render_template
 from weasyprint import HTML
 
-from strr_api import models
 from strr_api.common.utils import compare_addresses
 from strr_api.enums.enum import EventRecordType, OwnershipType, RegistrationStatus
-from strr_api.models import db
+from strr_api.models import AutoApprovalRecord, Certificate, DSSOrganization, Registration
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
 from strr_api.services import AuthService, EventRecordsService, LtsaService
@@ -89,7 +88,7 @@ class ApprovalService:
         return False
 
     @classmethod
-    def process_auto_approval(cls, token, registration: models.Registration):
+    def process_auto_approval(cls, token, registration: Registration):
         """Process approval logic and produce output JSON to store in the DB and providing to FE"""
         pid = registration.rental_property.parcel_identifier
         owner_name = (
@@ -170,7 +169,7 @@ class ApprovalService:
                         auto_approval.address_match = True
                         geocode_response = GeoCoderService.get_geocode_by_address(address)
                         longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
-                        organization = models.DSSOrganization.lookup_by_geocode(longitude, latitude)
+                        organization = DSSOrganization.lookup_by_geocode(longitude, latitude)
                         if organization["is_business_licence_required"]:
                             auto_approval.business_license_required = True
                             if bl_provided:
@@ -224,7 +223,7 @@ class ApprovalService:
                 else:
                     geocode_response = GeoCoderService.get_geocode_by_address(address)
                     longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
-                    organization = models.DSSOrganization.lookup_by_geocode(longitude, latitude)
+                    organization = DSSOrganization.lookup_by_geocode(longitude, latitude)
                     if organization["is_principal_residence_required"]:
                         auto_approval.pr_exempt = False
                         registration.status = RegistrationStatus.UNDER_REVIEW
@@ -250,28 +249,29 @@ class ApprovalService:
                         cls.generate_registration_certificate(registration)
                     return auto_approval
         except Exception as default_exception:  # noqa: B902; log error
-            current_app.logger.error("error in approval logoic:" + repr(default_exception))
+            current_app.logger.error("Error in auto approval process:" + repr(default_exception))
             current_app.logger.error(auto_approval)
             return auto_approval
 
     @classmethod
     def save_approval_record(cls, registration_id, approval: AutoApproval):
-        """Save approval record."""
-
-        record = models.AutoApprovalRecord(registration_id=registration_id, record=approval.model_dump(mode="json"))
-        db.session.add(record)
-        db.session.commit()
-        db.session.refresh(record)
+        """Saves approval record."""
+        record = AutoApprovalRecord(registration_id=registration_id, record=approval.model_dump(mode="json"))
+        record.save()
         return record
 
     @classmethod
-    def fetch_approval_records_for_registration(cls, registration_id):
+    def get_approval_records_for_registration(cls, registration_id):
         """Get approval records for a given registration by id."""
-        query = models.AutoApprovalRecord.query.filter(models.AutoApprovalRecord.registration_id == registration_id)
-        return query.all()
+        return AutoApprovalRecord.get_registration_auto_approval_records(registration_id=registration_id)
 
     @classmethod
-    def process_manual_approval(cls, registration: models.Registration):
+    def get_approval_records_for_application(cls, application_id):
+        """Get approval records for a given application by id."""
+        return AutoApprovalRecord.get_application_auto_approval_records(application_id=application_id)
+
+    @classmethod
+    def process_manual_approval(cls, registration: Registration):
         """Manually approve a given registration."""
         registration.status = RegistrationStatus.APPROVED
         registration.save()
@@ -284,7 +284,7 @@ class ApprovalService:
         )
 
     @classmethod
-    def process_manual_denial(cls, registration: models.Registration):
+    def process_manual_denial(cls, registration: Registration):
         """Manually approve a given registration."""
         registration.status = RegistrationStatus.DENIED
         registration.save()
@@ -297,19 +297,14 @@ class ApprovalService:
         )
 
     @classmethod
-    def generate_registration_certificate(cls, registration: models.Registration):
+    def generate_registration_certificate(cls, registration: Registration):
         """Generate registration PDF certificate."""
 
         registration_number_prefix = f'BCH{datetime.now(timezone.utc).strftime("%y")}'
         while True:
             random_digits = "".join(random.choices("0123456789", k=9))
             registration_number = f"{registration_number_prefix}{random_digits}"
-            if (
-                models.Certificate.query.filter(
-                    models.Certificate.registration_number == registration_number
-                ).one_or_none()
-                is None
-            ):
+            if Certificate.query.filter(Certificate.registration_number == registration_number).one_or_none() is None:
                 creation_date = datetime.now(timezone.utc)
                 expiry_date = creation_date.replace(year=creation_date.year + 1)
                 data = {
@@ -325,7 +320,7 @@ class ApprovalService:
                 rendered_template = render_template("certificate.html", **data)
                 pdf_binary = HTML(string=rendered_template).render().write_pdf()
 
-                certificate = models.Certificate(
+                certificate = Certificate(
                     registration_id=registration.id,
                     registration_number=registration_number,
                     creation_date=creation_date,
@@ -334,9 +329,7 @@ class ApprovalService:
                 )
                 break
 
-        db.session.add(certificate)
-        db.session.commit()
-        db.session.refresh(certificate)
+        certificate.save()
 
         registration.status = RegistrationStatus.ISSUED
         registration.save()
@@ -352,8 +345,8 @@ class ApprovalService:
         return certificate
 
     @classmethod
-    def get_latest_certificate(cls, registration: models.Registration):
+    def get_latest_certificate(cls, registration: Registration):
         """Get latest PDF certificate for a given registration."""
 
-        query = models.Certificate.query.filter(models.Certificate.registration_id == registration.id)
-        return query.order_by(models.Certificate.creation_date.desc()).limit(1).one_or_none()
+        query = Certificate.query.filter(Certificate.registration_id == registration.id)
+        return query.order_by(Certificate.creation_date.desc()).limit(1).one_or_none()

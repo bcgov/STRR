@@ -79,7 +79,7 @@
       <div
         class="
           flex flex-row justify-between border-[#E9ECEF]
-          border-t-[1px] h-[67px] justify-center px-[24px]
+          border-t-[1px] h-[67px] px-[24px]
         "
       >
         <div v-if="totalResults !== 0" class="flex items-center">

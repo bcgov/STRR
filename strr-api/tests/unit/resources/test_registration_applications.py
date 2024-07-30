@@ -3,7 +3,8 @@ import os
 from http import HTTPStatus
 from unittest.mock import patch
 
-from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
+from strr_api.models import Application
+from tests.unit.utils.auth_helpers import PUBLIC_USER, STAFF_ROLE, create_header
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/registration_use_sbc_account.json"
@@ -67,3 +68,51 @@ def test_create_application_invalid_request(session, client, jwt):
     response_json = rv.json
     assert response_json.get("message") == "Invalid request"
     assert response_json.get("details", [])[0].get("message") == "'registration' is a required property"
+
+
+def test_get_application_ltsa_unauthorized(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+    rv = client.get("/applications/1/ltsa", headers=headers)
+    assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+
+def test_get_application_ltsa_invalid_application(session, client, jwt):
+    headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+    rv = client.get("/applications/100/ltsa", headers=headers)
+    assert HTTPStatus.NOT_FOUND == rv.status_code
+
+
+def test_get_application_ltsa(session, client, jwt):
+    with open(CREATE_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        application = Application(type="registration", application_json=json_data)
+        application.save()
+        headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        rv = client.get(f"/applications/{application.id}/ltsa", headers=headers)
+
+        assert HTTPStatus.OK == rv.status_code
+
+
+def test_get_application_auto_approval_unauthorized(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+    rv = client.get("/applications/1/auto-approval-records", headers=headers)
+    assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+
+def test_get_application_auto_approval_invalid_application(session, client, jwt):
+    headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+    rv = client.get("/applications/100/auto-approval-records", headers=headers)
+    assert HTTPStatus.NOT_FOUND == rv.status_code
+
+
+def test_get_application_auto_approval(session, client, jwt):
+    with open(CREATE_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        application = Application(type="registration", application_json=json_data)
+        application.save()
+        headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        rv = client.get(f"/applications/{application.id}/auto-approval-records", headers=headers)
+
+        assert HTTPStatus.OK == rv.status_code

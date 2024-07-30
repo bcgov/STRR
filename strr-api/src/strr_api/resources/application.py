@@ -44,6 +44,7 @@ from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
+from strr_api.enums.enum import ErrorMessage, Role
 from strr_api.exceptions import (
     AuthException,
     ExternalServiceException,
@@ -53,8 +54,9 @@ from strr_api.exceptions import (
 )
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.requests import RegistrationRequest
+from strr_api.responses import AutoApprovalRecord, LTSARecord
 from strr_api.schemas.utils import validate
-from strr_api.services import ApplicationService, strr_pay
+from strr_api.services import ApplicationService, ApprovalService, LtsaService, strr_pay
 from strr_api.validators.RegistrationRequestValidator import validate_registration_request
 
 logger = logging.getLogger("api")
@@ -147,7 +149,7 @@ def get_applications():
         return exception_response(service_exception)
 
 
-@bp.route("/<application_id>/updatePayment", methods=("PUT",))
+@bp.route("/<application_id>/update-payment", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -186,7 +188,7 @@ def update_application_payment_details(application_id):
                 "Account Id is missing.",
                 HTTPStatus.BAD_REQUEST,
             )
-        application = ApplicationService.get_application(account_id, application_id)
+        application = ApplicationService.get_application(application_id, account_id)
         if not application:
             raise AuthException()
         invoice_details = strr_pay.get_payment_details_by_invoice_id(
@@ -198,3 +200,83 @@ def update_application_payment_details(application_id):
         return exception_response(service_exception)
     except AuthException as auth_exception:
         return exception_response(auth_exception)
+
+
+@bp.route("/<application_id>/ltsa", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STAFF.value])
+def get_application_ltsa(application_id):
+    """
+    Get application LTSA records
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application Id
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+    """
+
+    try:
+        application = ApplicationService.get_application(application_id)
+        if not application:
+            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+
+        records = LtsaService.get_application_ltsa_records(application_id=application_id)
+        return (
+            jsonify([LTSARecord.from_db(record).model_dump(mode="json") for record in records]),
+            HTTPStatus.OK,
+        )
+    except Exception as exception:
+        return exception_response(exception)
+
+
+@bp.route("/<application_id>/auto-approval-records", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STAFF.value])
+def get_application_auto_approval_records(application_id):
+    """
+    Get application auto approval records
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application Id
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+    """
+
+    try:
+        application = ApplicationService.get_application(application_id)
+        if not application:
+            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+
+        records = ApprovalService.get_approval_records_for_application(application_id)
+        return (
+            jsonify([AutoApprovalRecord.from_db(record).model_dump(mode="json") for record in records]),
+            HTTPStatus.OK,
+        )
+    except Exception as exception:
+        return exception_response(exception)

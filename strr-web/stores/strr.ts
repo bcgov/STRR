@@ -9,7 +9,6 @@ import {
 
 const apiURL = useRuntimeConfig().public.strrApiURL
 const axiosInstance = addAxiosInterceptors(axios.create())
-const fileAxiosInstance = addAxiosInterceptors(axios.create(), 'multipart/form-data')
 const { handlePaymentRedirect } = useFees()
 
 export const submitCreateAccountForm = (
@@ -39,20 +38,7 @@ export const submitCreateAccountForm = (
     })
     .then((data) => {
       const { invoices } = data
-      if (formState.supportingDocuments.length === 0) {
-        handlePaymentRedirect(invoices[0].invoice_id, data.id)
-      }
-      formState.supportingDocuments.forEach((file: File, fileIndex: number) => {
-        fileAxiosInstance.post<File>(`${apiURL}/registrations/${data.id}/documents`, { file })
-          .then(() => {
-            if (fileIndex === formState.supportingDocuments.length - 1) {
-              handlePaymentRedirect(invoices[0].invoice_id, data.id)
-            }
-          })
-          .catch(() => {
-            handlePaymentRedirect(invoices[0].invoice_id, data.id)
-          })
-      })
+      handlePaymentRedirect(invoices[0].invoice_id, data.id)
       return data
     })
     .catch((error: string) => {
@@ -188,23 +174,14 @@ const secondaryContact: SecondaryContactInformationI = {
 }
 
 // If any listing details exist must follow httpRegex otherwise can be blank
-const listingDetailsSchema =
-  z
-    .array(
-      z
-        .object({
-          url:
-            z
-              .string()
-              .refine(value => httpRegex
-                .test(value ?? ''), 'Invalid URL format')
-              .or(
-                z
-                  .string()
-                  .refine(value => value === '')
-              )
-        })
-    )
+const listingDetailsSchema = z.array(
+  z.object({
+    url: z
+      .string()
+      .refine(value => httpRegex.test(value ?? ''), 'Invalid URL format')
+      .or(z.string().refine(value => value === ''))
+  })
+)
 
 export const propertyDetailsSchema = z.object({
   address: requiredNonEmptyString,
@@ -274,7 +251,9 @@ const primaryContactAPI: ContactAPII = {
     postalCode: '',
     province: '',
     country: ''
-  }
+  },
+  socialInsuranceNumber: '',
+  businessNumber: ''
 }
 
 const secondaryContactAPI: ContactAPII = {
@@ -298,7 +277,9 @@ const secondaryContactAPI: ContactAPII = {
     postalCode: '',
     province: '',
     country: ''
-  }
+  },
+  socialInsuranceNumber: '',
+  businessNumber: ''
 }
 
 export const formDataForAPI: CreateAccountFormAPII = {
@@ -314,7 +295,8 @@ export const formDataForAPI: CreateAccountFormAPII = {
       city: '',
       postalCode: '',
       province: '',
-      country: ''
+      country: '',
+      nickname: ''
     },
     unitDetails: {
       parcelIdentifier: '',

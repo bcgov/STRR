@@ -6,10 +6,12 @@ from __future__ import annotations
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text
 
+from strr_api.models.base_model import BaseModel
+
 from .db import db
 
 
-class Certificate(db.Model):
+class Certificate(BaseModel):
     """Certificate Record"""
 
     __tablename__ = "certificates"

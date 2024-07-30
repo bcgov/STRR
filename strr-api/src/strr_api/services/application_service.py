@@ -83,7 +83,7 @@ class ApplicationService:
 
     @staticmethod
     @user_context
-    def get_application(account_id, application_id, **kwargs):
+    def get_application(application_id, account_id=None, **kwargs):
         """Get the application with the specified id."""
         usr_context: UserContext = kwargs["user_context"]
         user = User.get_or_create_user_by_jwt(usr_context.token_info)

@@ -35,8 +35,7 @@
 import requests
 from flask import current_app
 
-from strr_api import models
-from strr_api.models import db
+from strr_api.models import LTSARecord
 from strr_api.responses import LtsaResponse, TitleSummaries
 
 
@@ -86,7 +85,7 @@ class LtsaService:
                 }
             }
             title_order = requests.post(
-                url=svc_url + "/titledirect/search/api/orders", headers=headers, json=data, timeout=timeout
+                url=f"{svc_url}/titledirect/search/api/orders", headers=headers, json=data, timeout=timeout
             ).json()
             try:
                 return title_order
@@ -109,15 +108,16 @@ class LtsaService:
     @classmethod
     def save_ltsa_record(cls, registration_id, ltsa: LtsaResponse):
         """Save ltsa record."""
-
-        record = models.LTSARecord(registration_id=registration_id, record=ltsa.model_dump(mode="json"))
-        db.session.add(record)
-        db.session.commit()
-        db.session.refresh(record)
+        record = LTSARecord(registration_id=registration_id, record=ltsa.model_dump(mode="json"))
+        record.save()
         return record
 
     @classmethod
-    def fetch_ltsa_records_for_registration(cls, registration_id):
-        """Get ltsa records for a given registration by id."""
-        query = models.LTSARecord.query.filter(models.LTSARecord.registration_id == registration_id)
-        return query.all()
+    def get_registration_ltsa_records(cls, registration_id):
+        """Get ltsa records for a given registration."""
+        return LTSARecord.get_registration_ltsa_records(registration_id=registration_id)
+
+    @classmethod
+    def get_application_ltsa_records(cls, application_id):
+        """Get ltsa records for a given application."""
+        return LTSARecord.get_application_ltsa_records(application_id=application_id)
