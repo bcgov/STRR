@@ -46,7 +46,7 @@ from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import PaymentStatus, RegistrationSortBy, RegistrationStatus
+from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus
 from strr_api.exceptions import (
     AuthException,
     ExternalServiceException,
@@ -54,20 +54,16 @@ from strr_api.exceptions import (
     error_response,
     exception_response,
 )
-from strr_api.models import Application, User
-from strr_api.requests import RegistrationRequest
-from strr_api.responses import AutoApprovalRecord, Document, Events, Invoice, LTSARecord, Pagination, Registration
-from strr_api.schemas.utils import validate
+from strr_api.models import User
+from strr_api.responses import AutoApprovalRecord, Document, Events, LTSARecord, Pagination, Registration
 from strr_api.services import (
     ApprovalService,
     EventsService,
     GCPStorageService,
     LtsaService,
     RegistrationService,
-    strr_pay,
 )
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
-from strr_api.validators.RegistrationRequestValidator import validate_registration_request
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
@@ -235,57 +231,6 @@ def get_registration(registration_id):
 
     except AuthException as auth_exception:
         return exception_response(auth_exception)
-
-
-@bp.route("", methods=("POST",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def create_registration():
-    """
-    Create a STRR registration.
-    ---
-    tags:
-      - registration
-    parameters:
-      - in: body
-        name: body
-        schema:
-          type: object
-    responses:
-      201:
-        description:
-      400:
-        description:
-      401:
-        description:
-      502:
-        description:
-    """
-
-    try:
-        json_input = request.get_json()
-        [valid, errors] = validate(json_input, "registration")
-        if not valid:
-            raise ValidationException(message=errors)
-
-        registration_request = RegistrationRequest(**json_input)
-        selected_account = registration_request.selectedAccount
-
-        # SBC Account lookup
-        sbc_account_id = selected_account.sbc_account_id
-        validate_registration_request(registration_request)
-
-        registration = RegistrationService.save_registration(
-            g.jwt_oidc_token_info, sbc_account_id, registration_request.registration
-        )
-
-        strr_pay.create_invoice(jwt, sbc_account_id, registration)
-        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.CREATED
-    except ValidationException as auth_exception:
-        return exception_response(auth_exception)
-    except ExternalServiceException as service_exception:
-        return exception_response(service_exception)
 
 
 @bp.route("/<registration_id>/documents", methods=("POST",))
@@ -533,104 +478,6 @@ def delete_registration_supporting_document_by_id(registration_id, document_id):
         return exception_response(external_exception)
 
 
-@bp.route("/<registration_id>/invoice/<invoice_id>/paid", methods=("POST",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def mark_registration_invoice_paid(registration_id, invoice_id):
-    """
-    Mark an invoice as paid for a STRR registration.
-    ---
-    tags:
-      - pay
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-      - in: path
-        name: invoice_id
-        type: integer
-        required: true
-        description: ID of the invoice
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-      404:
-        description:
-    """
-
-    try:
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            raise AuthException()
-
-        invoice = strr_pay.get_invoice_by_id(registration.id, invoice_id)
-        if not invoice:
-            return error_response(HTTPStatus.NOT_FOUND, "Invoice not found")
-
-        invoice = strr_pay.update_invoice_payment_status(jwt, registration, invoice)
-
-        return jsonify(Invoice.from_db(invoice).model_dump(mode="json")), HTTPStatus.OK
-    except ValidationException as auth_exception:
-        return exception_response(auth_exception)
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
-@bp.route("/<registration_id>/invoice/<invoice_id>", methods=("GET",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def get_registration_invoice_status(registration_id, invoice_id):
-    """
-    Get invoice status for a STRR registration.
-    ---
-    tags:
-      - pay
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-      - in: path
-        name: invoice_id
-        type: integer
-        required: true
-        description: ID of the invoice
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-      404:
-        description:
-    """
-
-    try:
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            raise AuthException()
-
-        invoice = strr_pay.get_invoice_by_id(registration.id, invoice_id)
-        if not invoice:
-            return error_response(HTTPStatus.NOT_FOUND, "Invoice not found")
-
-        return jsonify(Invoice.from_db(invoice).model_dump(mode="json")), HTTPStatus.OK
-    except ValidationException as auth_exception:
-        return exception_response(auth_exception)
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
 @bp.route("/<registration_id>/events", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
@@ -761,54 +608,6 @@ def get_registration_auto_approval(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/approve", methods=("POST",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def approve_registration(registration_id):
-    """
-    Manually approve a STRR registration.
-    ---
-    tags:
-      - examiner
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-      404:
-        description:
-    """
-
-    try:
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user or not user.is_examiner():
-            raise AuthException()
-
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
-
-        if registration.status == RegistrationStatus.APPROVED:
-            return error_response(HTTPStatus.BAD_REQUEST, "Registration has already been approved.")
-
-        if registration.status == RegistrationStatus.ISSUED:
-            return error_response(HTTPStatus.BAD_REQUEST, "Registration has already been issued a certificate.")
-
-        ApprovalService.process_manual_approval(registration)
-        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.OK
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
 @bp.route("/<registration_id>/issue", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
@@ -852,48 +651,6 @@ def issue_registration_certificate(registration_id):
             return error_response(HTTPStatus.BAD_REQUEST, "Registration must be approved before issuing a certificate.")
 
         ApprovalService.generate_registration_certificate(registration)
-        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.OK
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
-@bp.route("/<registration_id>/deny", methods=("POST",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def deny_registration(registration_id):
-    """
-    Manually deny a STRR registration.
-    ---
-    tags:
-      - examiner
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-      404:
-        description:
-    """
-
-    try:
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user or not user.is_examiner():
-            raise AuthException()
-
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
-
-        ApprovalService.process_manual_denial(registration)
         return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.OK
     except AuthException as auth_exception:
         return exception_response(auth_exception)

@@ -46,17 +46,8 @@ class RegistrationService:
     """Service to save and load regristration details from the database."""
 
     @classmethod
-    def save_registration(cls, jwt_oidc_token_info, sbc_account_id, registration_request: requests.Registration):
+    def save_registration(cls, user_id, sbc_account_id, registration_request: requests.Registration):
         """Save STRR property registration to database."""
-
-        # TODO: FUTURE SPRINT - handle the other cases where jwt doesn't have the info
-        user = models.User.get_or_create_user_by_jwt(jwt_oidc_token_info)
-        user.email = registration_request.primaryContact.details.emailAddress
-
-        db.session.add(user)
-        db.session.flush()
-        db.session.refresh(user)
-
         primary_contact = models.Contact(
             firstname=registration_request.primaryContact.name.firstName,
             lastname=registration_request.primaryContact.name.lastName,
@@ -119,7 +110,7 @@ class RegistrationService:
         db.session.refresh(property_manager)
 
         registration = models.Registration(
-            user_id=user.id,
+            user_id=user_id,
             sbc_account_id=sbc_account_id,
             status=RegistrationStatus.PENDING,
             rental_property=models.RentalProperty(

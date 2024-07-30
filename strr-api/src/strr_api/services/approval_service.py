@@ -294,13 +294,6 @@ class ApprovalService:
         registration.start_date = datetime.now(timezone.utc)
         registration.expiry_date = registration.start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD
         registration.save()
-        # EventRecordsService.save_event_record(
-        #     EventRecordType.MANUALLY_APPROVED,
-        #     EventRecordType.MANUALLY_APPROVED.value,
-        #     False,
-        #     registration.user_id,
-        #     registration.id,
-        # )
 
     @classmethod
     def process_manual_denial(cls, registration: Registration):
@@ -310,13 +303,6 @@ class ApprovalService:
         application.save()
         registration.status = RegistrationStatus.DENIED
         registration.save()
-        # EventRecordsService.save_event_record(
-        #     EventRecordType.MANUALLY_DENIED,
-        #     EventRecordType.MANUALLY_DENIED.value,
-        #     False,
-        #     registration.user_id,
-        #     registration.id,
-        # )
 
     @classmethod
     def generate_registration_certificate(cls, registration: Registration):

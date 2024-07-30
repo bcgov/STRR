@@ -38,7 +38,17 @@ from strr_api.enums.enum import ApplicationType, PaymentStatus
 from strr_api.models import Application, Events, User
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services.events_service import EventsService
+from strr_api.services.registration_service import RegistrationService
 from strr_api.utils.user_context import UserContext, user_context
+from strr_api.requests import RegistrationRequest
+
+APPLICATION_TERMINAL_STATES = [Application.Status.APPROVED, Application.Status.REJECTED]
+APPLICATION_STATES_STAFF_ACTION = [
+    Application.Status.APPROVED,
+    Application.Status.REJECTED,
+    Application.Status.PROVISIONAL,
+    Application.Status.ADDITIONAL_INFO_REQUESTED,
+]
 
 
 class ApplicationService:
@@ -145,3 +155,17 @@ class ApplicationService:
                 application_id=application.id,
             )
         return application
+
+    @staticmethod
+    def update_application_status(application: Application, application_status: Application.Status, reviewer: User):
+        """Updates the application status. If the application status is approved, a new registration is created."""
+        application.status = application_status
+        if application.status in [Application.Status.APPROVED, Application.Status.REJECTED]:
+            application.decision_date = datetime.utcnow()
+            application.reviewer_id = reviewer.id
+        application.save()
+        if application.status == Application.Status.APPROVED:
+            registration_request = RegistrationRequest(**application.application_json)
+            RegistrationService.save_registration(
+                application.submitter_id, application.payment_account, registration_request
+            )

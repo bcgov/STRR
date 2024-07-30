@@ -57,6 +57,7 @@ from strr_api.requests import RegistrationRequest
 from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
 from strr_api.services import ApplicationService, ApprovalService, EventsService, LtsaService, UserService, strr_pay
+from strr_api.services.application_service import APPLICATION_STATES_STAFF_ACTION, APPLICATION_TERMINAL_STATES
 from strr_api.validators.RegistrationRequestValidator import validate_registration_request
 
 logger = logging.getLogger("api")
@@ -325,3 +326,54 @@ def get_application_events(application_id):
         )
     except Exception as exception:
         return exception_response(exception)
+
+
+@bp.route("/<application_id>/status", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STAFF.value])
+def update_application_status(application_id):
+    """
+    Update application status.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+      404:
+        description:
+    """
+
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        json_input = request.get_json()
+        status = json_input.get("status")
+        if not status or status.upper() not in APPLICATION_STATES_STAFF_ACTION:
+            return error_response(
+                "Invalid status.",
+                HTTPStatus.BAD_REQUEST,
+            )
+        application = ApplicationService.get_application(application_id)
+        if not application:
+            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+        if application.status in APPLICATION_TERMINAL_STATES:
+            return error_response(
+                "Application has reached the final state.",
+                HTTPStatus.BAD_REQUEST,
+            )
+        application = ApplicationService.update_application_status(application, status.upper(), user)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
