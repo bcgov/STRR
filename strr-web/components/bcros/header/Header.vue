@@ -15,7 +15,7 @@
         <a id="bcros-main-header__container__actions__home-redirect" class="flex no-underline" @click="goToBcrosHome()">
           <picture class="mobile:w-[60px] mobile:h-[60px]">
             <source media="(max-width:1024px)" srcset="@/assets/images/gov_bc_logo_vert.png">
-            <img src="@/assets/images/gov_bc_logo_horiz.png" alt="Government of British Columbia">
+            <img src="@/assets/images/gov_bc_logo_horiz.png" alt="Government of British Columbia" width="100%" height="100%">
           </picture>
           <span
             data-cy="strr-title"
