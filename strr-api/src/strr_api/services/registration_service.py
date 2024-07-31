@@ -34,6 +34,7 @@
 # pylint: disable=R0913
 # pylint: disable=E1102
 """Manages registration model interactions."""
+from datetime import datetime
 from sqlalchemy import func
 
 from strr_api import models, requests
@@ -109,10 +110,13 @@ class RegistrationService:
         db.session.flush()
         db.session.refresh(property_manager)
 
+        start_date = datetime.utcnow()
         registration = models.Registration(
             user_id=user_id,
             sbc_account_id=sbc_account_id,
             status=RegistrationStatus.PENDING,
+            start_date=start_date,
+            expiry_date=start_date + models.Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
             rental_property=models.RentalProperty(
                 property_manager_id=property_manager.id,
                 address=models.Address(

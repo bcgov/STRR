@@ -167,6 +167,6 @@ class ApplicationService:
         if application.status == Application.Status.APPROVED:
             registration_request = RegistrationRequest(**application.application_json)
             RegistrationService.save_registration(
-                application.submitter_id, application.payment_account, registration_request
+                application.submitter_id, application.payment_account, registration_request.registration
             )
         return application
