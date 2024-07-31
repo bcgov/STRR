@@ -37,10 +37,10 @@ from datetime import datetime, timezone
 from strr_api.enums.enum import ApplicationType, PaymentStatus
 from strr_api.models import Application, Events, User
 from strr_api.models.application import ApplicationSerializer
+from strr_api.requests import RegistrationRequest
 from strr_api.services.events_service import EventsService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.utils.user_context import UserContext, user_context
-from strr_api.requests import RegistrationRequest
 
 APPLICATION_TERMINAL_STATES = [Application.Status.APPROVED, Application.Status.REJECTED]
 APPLICATION_STATES_STAFF_ACTION = [
@@ -169,3 +169,4 @@ class ApplicationService:
             RegistrationService.save_registration(
                 application.submitter_id, application.payment_account, registration_request
             )
+        return application

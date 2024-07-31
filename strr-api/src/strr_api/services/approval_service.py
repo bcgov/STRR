@@ -192,7 +192,7 @@ class ApprovalService:
 
                         if pid:
                             ltsa_data = LtsaService.get_title_details_from_pid(pid)
-                            ltsa_response = LtsaService.build_ltsa_response(registration.id, ltsa_data)
+                            ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
                             owner_title_match = cls.check_full_name_exists_in_ownership_groups(
                                 ltsa_response, owner_name
                             )

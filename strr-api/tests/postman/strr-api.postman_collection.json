@@ -205,6 +205,35 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get application events",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_id}}/events",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_id}}",
+								"events"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

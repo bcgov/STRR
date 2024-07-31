@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests to assure the ltsa service."""
 import json
+
 import pytest
 
 from strr_api.services import LtsaService

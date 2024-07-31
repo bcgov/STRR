@@ -56,12 +56,7 @@ from strr_api.exceptions import (
 )
 from strr_api.models import User
 from strr_api.responses import Document, Events, Pagination, Registration
-from strr_api.services import (
-    ApprovalService,
-    EventsService,
-    GCPStorageService,
-    RegistrationService,
-)
+from strr_api.services import ApprovalService, EventsService, GCPStorageService, RegistrationService
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
 
 logger = logging.getLogger("api")

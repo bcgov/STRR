@@ -131,3 +131,6 @@ class ErrorMessage(Enum):
     """STRR Error Messages."""
 
     APPLICATION_NOT_FOUND = "Application not found"
+    INVALID_APPLICATION_STATUS = "Invalid application status."
+    APPLICATION_TERMINAL_STATE = "Application has reached the final state."
+    PROCESSING_ERROR = "An error occurred while processing the request."

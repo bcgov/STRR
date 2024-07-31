@@ -232,7 +232,7 @@ def get_application_ltsa(application_id):
     try:
         application = ApplicationService.get_application(application_id)
         if not application:
-            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
 
         records = LtsaService.get_application_ltsa_records(application_id=application_id)
         return (
@@ -325,8 +325,8 @@ def get_application_events(application_id):
             HTTPStatus.OK,
         )
     except Exception as exception:
-        logger.error("An error occured while retrieving application events.", exception)
-        return error_response("An error occured while processing the request", HTTPStatus.INTERNAL_SERVER_ERROR)
+        logger.error(exception)
+        return error_response("ErrorMessage.PROCESSING_ERROR.value", HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @bp.route("/<application_id>/status", methods=("PUT",))
@@ -363,19 +363,19 @@ def update_application_status(application_id):
         status = json_input.get("status")
         if not status or status.upper() not in APPLICATION_STATES_STAFF_ACTION:
             return error_response(
-                "Invalid status.",
-                HTTPStatus.BAD_REQUEST,
+                message=ErrorMessage.INVALID_APPLICATION_STATUS.value,
+                http_status=HTTPStatus.BAD_REQUEST,
             )
         application = ApplicationService.get_application(application_id)
         if not application:
-            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
         if application.status in APPLICATION_TERMINAL_STATES:
             return error_response(
-                "Application has reached the final state.",
-                HTTPStatus.BAD_REQUEST,
+                message=ErrorMessage.APPLICATION_TERMINAL_STATE.value,
+                http_status=HTTPStatus.BAD_REQUEST,
             )
         application = ApplicationService.update_application_status(application, status.upper(), user)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:
-        logger.error("An error occurred while updating the application status", exception)
-        return error_response("An error occurred while processing the request", HTTPStatus.INTERNAL_SERVER_ERROR)
+        logger.error(exception)
+        return error_response(ErrorMessage.PROCESSING_ERROR.value, HTTPStatus.INTERNAL_SERVER_ERROR)

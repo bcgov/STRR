@@ -1,8 +1,8 @@
 import os
-import pytest
 from http import HTTPStatus
 from unittest.mock import patch
 
+import pytest
 from flask import g
 
 from tests.unit.utils.mocks import (
