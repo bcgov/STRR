@@ -35,6 +35,7 @@
 # pylint: disable=E1102
 """Manages registration model interactions."""
 from datetime import datetime
+
 from sqlalchemy import func
 
 from strr_api import models, requests
