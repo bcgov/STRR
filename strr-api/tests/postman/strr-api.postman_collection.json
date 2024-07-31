@@ -77,7 +77,7 @@
 									"var jsonData = pm.response.json();",
 									"",
 									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",			
+									"    pm.response.to.have.status(200);",
 									"});"
 								],
 								"type": "text/javascript",
@@ -117,7 +117,36 @@
 					"response": []
 				},
 				{
-					"name": "Get Application LTSA",
+					"name": "Get application events",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_id}}/events",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_id}}",
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Staff - Get Application LTSA",
 					"event": [
 						{
 							"listen": "test",
@@ -162,7 +191,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Application Auto Approval Records",
+					"name": "Staff - Get Application Auto Approval Records",
 					"event": [
 						{
 							"listen": "test",
@@ -207,29 +236,76 @@
 					"response": []
 				},
 				{
-					"name": "Get application events",
+					"name": "Staff - Reject Application",
 					"request": {
 						"auth": {
 							"type": "bearer",
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{staff_token}}",
 									"type": "string"
 								}
 							]
 						},
-						"method": "GET",
+						"method": "PUT",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"status\": \"REJECTED\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/events",
+							"raw": "{{api_url}}/applications/{{application_id}}/status",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
 								"{{application_id}}",
-								"events"
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Staff - Approve Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"status\": \"APPROVED\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_id}}/status",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_id}}",
+								"status"
 							]
 						}
 					},
