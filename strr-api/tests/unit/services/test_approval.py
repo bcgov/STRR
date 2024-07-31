@@ -85,7 +85,7 @@ def app_context(app):
         (OwnershipType.OWN, False, None, Application.Status.APPROVED),
     ],
 )
-@patch("strr_api.services.EventRecordsService.save_event_record", new=no_op)
+@patch("strr_api.services.EventsService.save_event", new=no_op)
 @patch("strr_api.models.Application.save", new=no_op)
 @patch("strr_api.services.AuthService.get_sbc_accounts_mailing_address")
 @patch("strr_api.services.GeoCoderService.get_geocode_by_address")

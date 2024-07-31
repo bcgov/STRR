@@ -55,12 +55,11 @@ from strr_api.exceptions import (
     exception_response,
 )
 from strr_api.models import User
-from strr_api.responses import AutoApprovalRecord, Document, Events, LTSARecord, Pagination, Registration
+from strr_api.responses import Document, Events, Pagination, Registration
 from strr_api.services import (
     ApprovalService,
     EventsService,
     GCPStorageService,
-    LtsaService,
     RegistrationService,
 )
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
@@ -516,92 +515,6 @@ def get_registration_events(registration_id):
         records = EventsService.fetch_registration_events(registration_id, only_show_visible_to_user)
         return (
             jsonify([Events.from_db(record).model_dump(mode="json") for record in records]),
-            HTTPStatus.OK,
-        )
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
-@bp.route("/<registration_id>/ltsa", methods=("GET",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def get_registration_ltsa(registration_id):
-    """
-    Get registration ltsa records
-    ---
-    tags:
-      - examiner
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-    """
-
-    try:
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user or not user.is_examiner():
-            raise AuthException()
-
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
-
-        records = LtsaService.get_registration_ltsa_records(registration_id)
-        return (
-            jsonify([LTSARecord.from_db(record).model_dump(mode="json") for record in records]),
-            HTTPStatus.OK,
-        )
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
-@bp.route("/<registration_id>/auto_approval", methods=("GET",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def get_registration_auto_approval(registration_id):
-    """
-    Get registration auto approval records
-    ---
-    tags:
-      - examiner
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-    """
-
-    try:
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user or not user.is_examiner():
-            raise AuthException()
-
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
-
-        records = ApprovalService.get_approval_records_for_registration(registration_id)
-        return (
-            jsonify([AutoApprovalRecord.from_db(record).model_dump(mode="json") for record in records]),
             HTTPStatus.OK,
         )
     except AuthException as auth_exception:

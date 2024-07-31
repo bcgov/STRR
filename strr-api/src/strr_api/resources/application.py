@@ -325,7 +325,8 @@ def get_application_events(application_id):
             HTTPStatus.OK,
         )
     except Exception as exception:
-        return exception_response(exception)
+        logger.error("An error occured while retrieving application events.", exception)
+        return error_response("An error occured while processing the request", HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @bp.route("/<application_id>/status", methods=("PUT",))
@@ -375,5 +376,6 @@ def update_application_status(application_id):
             )
         application = ApplicationService.update_application_status(application, status.upper(), user)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
+    except Exception as exception:
+        logger.error("An error occurred while updating the application status", exception)
+        return error_response("An error occurred while processing the request", HTTPStatus.INTERNAL_SERVER_ERROR)
