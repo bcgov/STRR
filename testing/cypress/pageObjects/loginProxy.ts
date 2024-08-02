@@ -2,7 +2,8 @@
  * Represents the Login Proxy page object.
  */
 class LoginProxy {
-  path = "/";
+  authurls = Cypress.env('authurls');
+  path = this.authurls["loginproxy"];
 
   idirButton = "#social-idir"; // Define the IDIR button selector
   azidirButton = "#social-azureidir";

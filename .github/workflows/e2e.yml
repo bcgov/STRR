@@ -23,8 +23,8 @@ env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
   CYPRESS_BASE_URL: ${{ inputs.url_parameter || secrets.CYPRESS_BASEURL }}
   CYPRESS_ENVIRONMENT: ${{ github.base_ref }}
-  CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
-  CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
+  CYPRESS_authurls: ${{ secrets.CYPRESS_AUTHURLS }}
+  CYPRESS_creditcard: ${{ secrets.CYPRESS_CREDITCARD }}
   CYPRESS_smoketest: ${{inputs.smoketest}}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
