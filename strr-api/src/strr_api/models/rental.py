@@ -9,11 +9,12 @@ from sqlalchemy import Enum
 from sqlalchemy.orm import relationship
 
 from strr_api.enums.enum import OwnershipType, PropertyType, RegistrationStatus
+from strr_api.models.base_model import BaseModel
 
 from .db import db
 
 
-class RentalProperty(db.Model):
+class RentalProperty(BaseModel):
     """Rental Property"""
 
     __tablename__ = "rental_properties"
@@ -34,7 +35,7 @@ class RentalProperty(db.Model):
     address = relationship("Address", foreign_keys=[address_id], back_populates="rental_properties_address")
 
 
-class Address(db.Model):
+class Address(BaseModel):
     """Address"""
 
     __tablename__ = "addresses"
@@ -60,7 +61,7 @@ class Address(db.Model):
         return f"{unit}{self.street_address}, {self.city}, {self.province}, {self.country}, {self.postal_code}"
 
 
-class PropertyManager(db.Model):
+class PropertyManager(BaseModel):
     """Property Manager"""
 
     __tablename__ = "property_managers"
@@ -73,7 +74,7 @@ class PropertyManager(db.Model):
     secondary_contact = relationship("Contact", foreign_keys=[secondary_contact_id])
 
 
-class RentalPlatform(db.Model):
+class RentalPlatform(BaseModel):
     """Rental Platform"""
 
     __tablename__ = "rental_platforms"
@@ -87,7 +88,7 @@ class RentalPlatform(db.Model):
     property = relationship("RentalProperty", back_populates="rental_platforms")
 
 
-class Registration(db.Model):
+class Registration(BaseModel):
     """Registration"""
 
     DEFAULT_REGISTRATION_RENEWAL_PERIOD = timedelta(days=365)
@@ -100,7 +101,8 @@ class Registration(db.Model):
     rental_property_id = db.Column(db.Integer, db.ForeignKey("rental_properties.id"), nullable=False)
     submission_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
     updated_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
-    status = db.Column(Enum(RegistrationStatus), nullable=False)  # Enum: pending, approved, more info needed, denied
+    status = db.Column(Enum(RegistrationStatus), nullable=False)
+    registration_number = db.Column(db.String, unique=True, index=True)
 
     # start_date is nullable as it will take effect when the correct status is set
     start_date = db.Column(db.DateTime, nullable=True)
@@ -109,7 +111,6 @@ class Registration(db.Model):
     user = relationship("User", back_populates="registrations")
     rental_property = relationship("RentalProperty", back_populates="registrations")
     eligibility = relationship("Eligibility", back_populates="registrations", uselist=False)
-    invoices = relationship("Invoice", back_populates="registration")
     certificates = relationship("Certificate", back_populates="registration")
 
     def save(self):
@@ -118,7 +119,7 @@ class Registration(db.Model):
         db.session.commit()
 
 
-class Document(db.Model):
+class Document(BaseModel):
     """Document model to store supporting files for eligibility criteria."""
 
     __tablename__ = "documents"
@@ -132,7 +133,7 @@ class Document(db.Model):
     eligibility = relationship("Eligibility", back_populates="documents")
 
 
-class Eligibility(db.Model):
+class Eligibility(BaseModel):
     """Eligibility criteria for a rental property."""
 
     __tablename__ = "eligibilities"

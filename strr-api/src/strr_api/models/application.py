@@ -121,6 +121,7 @@ class Application(BaseModel):
             query = query.filter_by(submitter_id=user_id).filter_by(payment_account=account_id)
         if filter_criteria.status:
             query = query.filter_by(status=filter_criteria.status.upper())
+        query = query.order_by(Application.id.desc())
 
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
         return paginated_result
@@ -176,5 +177,12 @@ class ApplicationSerializer:
             if application.reviewer.lastname:
                 reviewer_display_name = f"{reviewer_display_name} {application.reviewer.lastname}"
             application_dict["header"]["reviewer"]["displayName"] = reviewer_display_name
+
+        if application.registration_id:
+            application_dict["header"]["registrationId"] = application.registration_id
+            application_dict["header"]["registrationStartDate"] = application.registration.start_date.isoformat()
+            application_dict["header"]["registrationEndDate"] = application.registration.expiry_date.isoformat()
+            application_dict["header"]["registrationStatus"] = application.registration.status.value
+            application_dict["header"]["registrationNumber"] = application.registration.registration_number
 
         return application_dict

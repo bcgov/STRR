@@ -56,7 +56,7 @@ from strr_api.exceptions import (
 )
 from strr_api.models import User
 from strr_api.responses import Document, Events, Pagination, Registration
-from strr_api.services import ApprovalService, EventsService, GCPStorageService, RegistrationService
+from strr_api.services import EventsService, GCPStorageService, RegistrationService
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
 
 logger = logging.getLogger("api")
@@ -516,7 +516,7 @@ def get_registration_events(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/issue", methods=("POST",))
+@bp.route("/<registration_id>/certificate", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -544,21 +544,16 @@ def issue_registration_certificate(registration_id):
     """
 
     try:
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user or not user.is_examiner():
-            raise AuthException()
-
         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
         if not registration:
             return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
 
-        if registration.status == RegistrationStatus.ISSUED:
-            return error_response(HTTPStatus.BAD_REQUEST, "Registration has already been issued a certificate.")
+        # TODO: Throw error if a certificate has been issued already; replace messages with enums
 
         if registration.status != RegistrationStatus.APPROVED:
             return error_response(HTTPStatus.BAD_REQUEST, "Registration must be approved before issuing a certificate.")
 
-        ApprovalService.generate_registration_certificate(registration)
+        RegistrationService.generate_registration_certificate(registration)
         return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.OK
     except AuthException as auth_exception:
         return exception_response(auth_exception)
@@ -570,7 +565,7 @@ def issue_registration_certificate(registration_id):
 @jwt.requires_auth
 def get_registration_certificate(registration_id):
     """
-    Get latested certificate PDF for a given registration.
+    Get latest certificate PDF for a given registration.
     ---
     tags:
       - registration
@@ -597,7 +592,7 @@ def get_registration_certificate(registration_id):
         if not registration:
             raise AuthException()
 
-        certificate = ApprovalService.get_latest_certificate(registration)
+        certificate = RegistrationService.get_latest_certificate(registration)
         if not certificate:
             return error_response(HTTPStatus.NOT_FOUND, "Certificate not found")
 

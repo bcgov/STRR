@@ -9,7 +9,6 @@ from strr_api.models import (
     Contact,
     Document,
     Eligibility,
-    Invoice,
     PropertyManager,
     Registration,
     RentalProperty,

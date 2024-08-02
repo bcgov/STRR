@@ -34,23 +34,41 @@
 # pylint: disable=R0913
 # pylint: disable=E1102
 """Manages registration model interactions."""
-from datetime import datetime
+import random
+from datetime import datetime, timezone
 
+from flask import render_template
 from sqlalchemy import func
+from weasyprint import HTML
 
-from strr_api import models, requests
+from strr_api import requests
 from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus
-from strr_api.models import db
+from strr_api.models import (
+    Address,
+    Certificate,
+    Contact,
+    Document,
+    Eligibility,
+    Events,
+    PropertyManager,
+    Registration,
+    RentalPlatform,
+    RentalProperty,
+    User,
+    db,
+)
+from strr_api.services.events_service import EventsService
 from strr_api.services.gcp_storage_service import GCPStorageService
+from strr_api.utils.user_context import UserContext, user_context
 
 
 class RegistrationService:
-    """Service to save and load regristration details from the database."""
+    """Service to save and load registration details from the database."""
 
     @classmethod
-    def save_registration(cls, user_id, sbc_account_id, registration_request: requests.Registration):
-        """Save STRR property registration to database."""
-        primary_contact = models.Contact(
+    def create_registration(cls, user_id, sbc_account_id, registration_request: requests.Registration):
+        """Creates registration from an application."""
+        primary_contact = Contact(
             firstname=registration_request.primaryContact.name.firstName,
             lastname=registration_request.primaryContact.name.lastName,
             middlename=registration_request.primaryContact.name.middleName,
@@ -62,7 +80,7 @@ class RegistrationService:
             date_of_birth=registration_request.primaryContact.dateOfBirth,
             social_insurance_number=registration_request.primaryContact.socialInsuranceNumber,
             business_number=registration_request.primaryContact.businessNumber,
-            address=models.Address(
+            address=Address(
                 country=registration_request.primaryContact.mailingAddress.country,
                 street_address=registration_request.primaryContact.mailingAddress.address,
                 street_address_additional=registration_request.primaryContact.mailingAddress.addressLineTwo,
@@ -77,7 +95,7 @@ class RegistrationService:
 
         secondary_contact = None
         if registration_request.secondaryContact:
-            secondary_contact = models.Contact(
+            secondary_contact = Contact(
                 firstname=registration_request.secondaryContact.name.firstName,
                 lastname=registration_request.secondaryContact.name.lastName,
                 middlename=registration_request.secondaryContact.name.middleName,
@@ -89,7 +107,7 @@ class RegistrationService:
                 date_of_birth=registration_request.secondaryContact.dateOfBirth,
                 social_insurance_number=registration_request.secondaryContact.socialInsuranceNumber,
                 business_number=registration_request.secondaryContact.businessNumber,
-                address=models.Address(
+                address=Address(
                     country=registration_request.primaryContact.mailingAddress.country,
                     street_address=registration_request.primaryContact.mailingAddress.address,
                     street_address_additional=registration_request.primaryContact.mailingAddress.addressLineTwo,
@@ -102,7 +120,7 @@ class RegistrationService:
             db.session.flush()
             db.session.refresh(secondary_contact)
 
-        property_manager = models.PropertyManager(primary_contact_id=primary_contact.id)
+        property_manager = PropertyManager(primary_contact_id=primary_contact.id)
 
         if secondary_contact:
             property_manager.secondary_contact_id = secondary_contact.id
@@ -112,15 +130,17 @@ class RegistrationService:
         db.session.refresh(property_manager)
 
         start_date = datetime.utcnow()
-        registration = models.Registration(
+        registration_number = RegistrationService._get_registration_number()
+        registration = Registration(
             user_id=user_id,
             sbc_account_id=sbc_account_id,
             status=RegistrationStatus.PENDING,
+            registration_number=registration_number,
             start_date=start_date,
-            expiry_date=start_date + models.Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
-            rental_property=models.RentalProperty(
+            expiry_date=start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
+            rental_property=RentalProperty(
                 property_manager_id=property_manager.id,
-                address=models.Address(
+                address=Address(
                     country=registration_request.unitAddress.country,
                     street_address=registration_request.unitAddress.address,
                     street_address_additional=registration_request.unitAddress.addressLineTwo,
@@ -133,11 +153,9 @@ class RegistrationService:
                 local_business_licence=registration_request.unitDetails.businessLicense,
                 property_type=registration_request.unitDetails.propertyType,
                 ownership_type=registration_request.unitDetails.ownershipType,
-                rental_platforms=[
-                    models.RentalPlatform(url=listing.url) for listing in registration_request.listingDetails
-                ],
+                rental_platforms=[RentalPlatform(url=listing.url) for listing in registration_request.listingDetails],
             ),
-            eligibility=models.Eligibility(
+            eligibility=Eligibility(
                 is_principal_residence=registration_request.principalResidence.isPrincipalResidence,
                 agreed_to_rental_act=registration_request.principalResidence.agreedToRentalAct,
                 non_principal_option=registration_request.principalResidence.nonPrincipalOption,
@@ -145,10 +163,7 @@ class RegistrationService:
                 agreed_to_submit=registration_request.principalResidence.agreedToSubmit,
             ),
         )
-        db.session.add(registration)
-        db.session.commit()
-        db.session.refresh(registration)
-
+        registration.save()
         return registration
 
     @classmethod
@@ -164,76 +179,81 @@ class RegistrationService:
         limit: int = 100,
     ):
         """List all registrations for current user."""
-        user = models.User.get_or_create_user_by_jwt(jwt_oidc_token_info)
+        user = User.get_or_create_user_by_jwt(jwt_oidc_token_info)
         if not user:
             return [], 0
         query = (
-            models.Registration.query.join(
-                models.RentalProperty, models.Registration.rental_property_id == models.RentalProperty.id
-            )
-            .join(models.Address, models.RentalProperty.address_id == models.Address.id)
-            .join(models.PropertyManager, models.RentalProperty.property_manager_id == models.PropertyManager.id)
-            .join(models.Contact, models.PropertyManager.primary_contact_id == models.Contact.id)
+            Registration.query.join(RentalProperty, Registration.rental_property_id == RentalProperty.id)
+            .join(Address, RentalProperty.address_id == Address.id)
+            .join(PropertyManager, RentalProperty.property_manager_id == PropertyManager.id)
+            .join(Contact, PropertyManager.primary_contact_id == Contact.id)
         )
 
         certificates_subquery = db.session.query(
-            models.Certificate,
+            Certificate,
             func.row_number()
-            .over(partition_by=models.Certificate.registration_id, order_by=models.Certificate.creation_date.desc())
+            .over(partition_by=Certificate.registration_id, order_by=Certificate.issued_date.desc())
             .label("rank"),
         ).subquery()
 
         query = query.join(
             certificates_subquery,
-            (models.Registration.id == certificates_subquery.c.registration_id) & (certificates_subquery.c.rank == 1),
+            (Registration.id == certificates_subquery.c.registration_id) & (certificates_subquery.c.rank == 1),
             isouter=True,
         )
 
         if search and len(search) >= 3:
             query = query.filter(
-                func.concat(models.Contact.firstname, " ", models.Contact.lastname).ilike(f"%{search}%")
-                | models.Address.city.ilike(f"%{search}%")
-                | models.Address.street_address.ilike(f"%{search}%")
-                | models.Address.postal_code.ilike(f"%{search}%")
-                | certificates_subquery.c.registration_number.ilike(f"%{search}%")
+                func.concat(Contact.firstname, " ", Contact.lastname).ilike(f"%{search}%")
+                | Address.city.ilike(f"%{search}%")
+                | Address.street_address.ilike(f"%{search}%")
+                | Address.postal_code.ilike(f"%{search}%")
             )
 
         if not user.is_examiner():
-            query = query.filter(models.Registration.user_id == user.id)
+            query = query.filter(Registration.user_id == user.id)
             if account_id:
-                query = query.filter(models.Registration.sbc_account_id == account_id)
+                query = query.filter(Registration.sbc_account_id == account_id)
         if filter_by_status is not None:
-            query = query.filter(models.Registration.status == filter_by_status)
+            query = query.filter(Registration.status == filter_by_status)
 
         count = query.count()
         sort_column = {
-            RegistrationSortBy.ID: models.Registration.id,
-            RegistrationSortBy.REGISTRATION_NUMBER: certificates_subquery.c.registration_number,
-            RegistrationSortBy.LOCATION: models.Address.city,
-            RegistrationSortBy.ADDRESS: models.Address.street_address,
-            RegistrationSortBy.NAME: func.concat(models.Contact.firstname, " ", models.Contact.lastname),
-            RegistrationSortBy.STATUS: models.Registration.status,
-            RegistrationSortBy.SUBMISSION_DATE: models.Registration.submission_date,
+            RegistrationSortBy.ID: Registration.id,
+            RegistrationSortBy.LOCATION: Address.city,
+            RegistrationSortBy.ADDRESS: Address.street_address,
+            RegistrationSortBy.NAME: func.concat(Contact.firstname, " ", Contact.lastname),
+            RegistrationSortBy.STATUS: Registration.status,
+            RegistrationSortBy.SUBMISSION_DATE: Registration.submission_date,
         }
         query = query.order_by(sort_column[sort_by].desc() if sort_desc else sort_column[sort_by].asc())
         return query.offset(offset).limit(limit).all(), count
 
     @classmethod
+    def _get_registration_number(cls):
+        registration_number_prefix = f'BCH{datetime.now(timezone.utc).strftime("%y")}'
+        while True:
+            random_digits = "".join(random.choices("0123456789", k=9))
+            registration_number = f"{registration_number_prefix}{random_digits}"
+            if Registration.query.filter(Registration.registration_number == registration_number).one_or_none() is None:
+                return registration_number
+
+    @classmethod
     def get_registration_counts_by_status(cls):
         """Return all registration counts by status type."""
 
-        query = models.Registration.query.with_entities(
-            models.Registration.status.label("status"),
+        query = Registration.query.with_entities(
+            Registration.status.label("status"),
             func.count().label("count"),
-        ).group_by(models.Registration.status)
+        ).group_by(Registration.status)
 
         return query.all()
 
     @classmethod
     def get_registration(cls, jwt_oidc_token_info, registration_id):
         """Get registration by id for current user. Examiners are exempted from user_id check."""
-        user = models.User.get_or_create_user_by_jwt(jwt_oidc_token_info)
-        query = models.Registration.query.filter_by(id=registration_id)
+        user = User.get_or_create_user_by_jwt(jwt_oidc_token_info)
+        query = Registration.query.filter_by(id=registration_id)
         if not user.is_examiner():
             query = query.filter_by(user_id=user.id)
         return query.one_or_none()
@@ -245,7 +265,7 @@ class RegistrationService:
         blob_name = GCPStorageService.upload_registration_document(file_type, file_contents)
         path = blob_name
 
-        registration_document = models.Document(
+        registration_document = Document(
             eligibility_id=eligibility_id,
             file_name=file_name,
             file_type=file_type,
@@ -260,8 +280,8 @@ class RegistrationService:
     def get_registration_documents(cls, registration_id):
         """Get registration documents by registration id."""
         return (
-            models.Document.query.join(models.Eligibility, models.Eligibility.id == models.Document.eligibility_id)
-            .filter(models.Eligibility.registration_id == registration_id)
+            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
+            .filter(Eligibility.registration_id == registration_id)
             .all()
         )
 
@@ -269,9 +289,9 @@ class RegistrationService:
     def get_registration_document(cls, registration_id, document_id):
         """Get registration document by id."""
         return (
-            models.Document.query.join(models.Eligibility, models.Eligibility.id == models.Document.eligibility_id)
-            .filter(models.Eligibility.registration_id == registration_id)
-            .filter(models.Document.id == document_id)
+            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
+            .filter(Eligibility.registration_id == registration_id)
+            .filter(Document.id == document_id)
             .one_or_none()
         )
 
@@ -285,3 +305,47 @@ class RegistrationService:
         db.session.delete(document)
         db.session.commit()
         return True
+
+    @classmethod
+    @user_context
+    def generate_registration_certificate(cls, registration: Registration, **kwargs):
+        """Generate registration PDF certificate."""
+        usr_context: UserContext = kwargs["user_context"]
+        user = User.get_or_create_user_by_jwt(usr_context.token_info)
+        issued_date = datetime.now(timezone.utc)
+        data = {
+            "registration_number": f"{registration.registration_number}",
+            "creation_date": f'{registration.start_date.strftime("%B %d, %Y")}',
+            "expiry_date": f'{registration.expiry_date.strftime("%B %d, %Y")}',
+            "issued_date": f'{issued_date.strftime("%B %d, %Y")}',
+            "rental_address": registration.rental_property.address.to_oneline_address(),
+            "rental_type": registration.rental_property.property_type.value,
+            "registrant": registration.rental_property.property_manager.primary_contact.full_name(),
+            "host": registration.rental_property.property_manager.primary_contact.full_name(),
+        }
+        rendered_template = render_template("certificate.html", **data)
+        pdf_binary = HTML(string=rendered_template).render().write_pdf()
+
+        certificate = Certificate(
+            registration_id=registration.id,
+            issued_date=issued_date,
+            issued_by=user.id,
+            certificate=pdf_binary,
+        )
+
+        certificate.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.CERTIFICATE_ISSUED,
+            registration_id=registration.id,
+        )
+
+        return certificate
+
+    @classmethod
+    def get_latest_certificate(cls, registration: Registration):
+        """Get latest PDF certificate for a given registration."""
+
+        query = Certificate.query.filter(Certificate.registration_id == registration.id)
+        return query.order_by(Certificate.creation_date.desc()).limit(1).one_or_none()

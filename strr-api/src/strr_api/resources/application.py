@@ -150,7 +150,7 @@ def get_applications():
         return exception_response(service_exception)
 
 
-@bp.route("/<application_id>/update-payment", methods=("PUT",))
+@bp.route("/<application_id>/payment-details", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth

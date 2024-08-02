@@ -84,27 +84,6 @@ class Contact(BaseModel):
     mailingAddress: MailingAddress
 
 
-class Invoice(BaseModel):
-    """Invoice response object."""
-
-    registration_id: int
-    invoice_id: int
-    payment_status_code: str
-    payment_completion_date: Optional[datetime] = None
-    payment_account: Optional[str] = None
-
-    @classmethod
-    def from_db(cls, source: models.Invoice):
-        """Return a Invoice object from a database model."""
-        return cls(
-            registration_id=source.registration_id,
-            invoice_id=source.invoice_id,
-            payment_status_code=source.payment_status_code.name,
-            payment_completion_date=source.payment_completion_date,
-            payment_account=source.payment_account,
-        )
-
-
 class Registration(BaseModel):
     """Registration response object."""
 
@@ -123,7 +102,6 @@ class Registration(BaseModel):
     unitDetails: UnitDetails
     listingDetails: List[ListingDetails]
     principalResidence: PrincipalResidence
-    invoices: List[Invoice]
 
     @classmethod
     def from_db(cls, source: models.Registration):
@@ -222,5 +200,4 @@ class Registration(BaseModel):
                 nonPrincipalOption=source.eligibility.non_principal_option,
                 specifiedServiceProvider=source.eligibility.specified_service_provider,
             ),
-            invoices=[Invoice.from_db(invoice) for invoice in source.invoices],
         )
