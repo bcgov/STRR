@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { testParsedToken } from '../utils/mockedData'
+import { testParsedToken } from '../utils/test-utils/mockedData'
 import { useBcrosKeycloak } from '@/stores/keycloak'
 
 describe('Keycloak Store Tests', () => {
@@ -8,7 +8,7 @@ describe('Keycloak Store Tests', () => {
   const testToken = 'qjduwe'
   const testTokenRefresh = 'qjduwwewvwe'
   const testTokenId = '12322frwr'
-  const mockLogout = vi.fn().mockImplementation(() => {})
+  const mockLogout = vi.fn().mockImplementation(() => { })
 
   beforeEach(() => {
     setActivePinia(createPinia())

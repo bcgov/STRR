@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="form-section-contact-info">
+  <div data-cy="form-section-address">
     <BcrosFormSection :title="t('create-account.property-form.rentalUnitAddress')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="nickname" class="d:pr-[16px] flex-grow">

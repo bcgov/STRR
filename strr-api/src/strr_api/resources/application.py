@@ -40,7 +40,7 @@ import logging
 from http import HTTPStatus
 
 from flasgger import swag_from
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
@@ -54,9 +54,10 @@ from strr_api.exceptions import (
 )
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.requests import RegistrationRequest
-from strr_api.responses import AutoApprovalRecord, LTSARecord
+from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
-from strr_api.services import ApplicationService, ApprovalService, LtsaService, strr_pay
+from strr_api.services import ApplicationService, ApprovalService, EventsService, LtsaService, UserService, strr_pay
+from strr_api.services.application_service import APPLICATION_STATES_STAFF_ACTION, APPLICATION_TERMINAL_STATES
 from strr_api.validators.RegistrationRequestValidator import validate_registration_request
 
 logger = logging.getLogger("api")
@@ -103,7 +104,7 @@ def create_application():
         validate_registration_request(registration_request)
 
         application = ApplicationService.save_application(account_id, json_input)
-        invoice_details = strr_pay.create_invoice(jwt, account_id)
+        invoice_details = strr_pay.create_invoice(jwt, account_id, application=application)
         application = ApplicationService.update_application_payment_details_and_status(application, invoice_details)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.CREATED
     except ValidationException as validation_exception:
@@ -158,7 +159,7 @@ def update_application_payment_details(application_id):
     Updates the invoice status of a STRR Application.
     ---
     tags:
-      - pay
+      - application
     parameters:
       - in: path
         name: application_id
@@ -231,7 +232,7 @@ def get_application_ltsa(application_id):
     try:
         application = ApplicationService.get_application(application_id)
         if not application:
-            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
 
         records = LtsaService.get_application_ltsa_records(application_id=application_id)
         return (
@@ -280,3 +281,101 @@ def get_application_auto_approval_records(application_id):
         )
     except Exception as exception:
         return exception_response(exception)
+
+
+@bp.route("/<application_id>/events", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def get_application_events(application_id):
+    """
+    Get application events.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application Id
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+    """
+
+    try:
+        account_id = request.headers.get("Account-Id", None)
+        applicant_visible_events_only = True
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if user.is_examiner:
+            account_id = None
+            applicant_visible_events_only = False
+        application = ApplicationService.get_application(application_id, account_id)
+        if not application:
+            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+
+        records = EventsService.fetch_application_events(application_id, applicant_visible_events_only)
+        return (
+            jsonify([Events.from_db(record).model_dump(mode="json") for record in records]),
+            HTTPStatus.OK,
+        )
+    except Exception as exception:
+        logger.error(exception)
+        return error_response("ErrorMessage.PROCESSING_ERROR.value", HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<application_id>/status", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STAFF.value])
+def update_application_status(application_id):
+    """
+    Update application status.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+      404:
+        description:
+    """
+
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        json_input = request.get_json()
+        status = json_input.get("status")
+        if not status or status.upper() not in APPLICATION_STATES_STAFF_ACTION:
+            return error_response(
+                message=ErrorMessage.INVALID_APPLICATION_STATUS.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        application = ApplicationService.get_application(application_id)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        if application.status in APPLICATION_TERMINAL_STATES:
+            return error_response(
+                message=ErrorMessage.APPLICATION_TERMINAL_STATE.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        application = ApplicationService.update_application_status(application, status.upper(), user)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
+        return error_response(ErrorMessage.PROCESSING_ERROR.value, HTTPStatus.INTERNAL_SERVER_ERROR)

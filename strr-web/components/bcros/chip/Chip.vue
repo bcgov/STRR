@@ -3,9 +3,10 @@
     :class="
       `
         ${flavourClass}
-        font-bold px-[12px] py-[4px] flex-shrink flex h-fit w-fit rounded
+        font-bold px-3 py-1 flex-shrink flex h-fit w-fit rounded text-sm
       `
     "
+    data-cy="chip"
   >
     {{ flavour.text }}
   </div>

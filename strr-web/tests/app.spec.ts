@@ -1,7 +1,7 @@
 import { expect, describe, test } from 'vitest'
 import { VueWrapper } from '@vue/test-utils'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { mockedI18n } from '@/tests/unit/utils/mockedi18n'
+import { mockedI18n } from '~/tests/unit/utils/test-utils/mockedi18n'
 import app from '~/app.vue'
 
 describe('App level test', () => {

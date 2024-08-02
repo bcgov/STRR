@@ -4,7 +4,7 @@
       <div class="shrink w-full flex flex-row mobile:flex-col mobile:justify-between max-w-[1360px] justify-center">
         <div class="grow pr-[24px] mobile:pr-[0px]">
           <div class="mobile:px-[8px]">
-            <BcrosTypographyH1 text="create-account.title" data-cy="accountPageTitle" class="mobile:pb-[20px]" />
+            <BcrosTypographyH1 text="create-account.title" data-cy="accountPageTitle" class-name="mobile:pb-[20px]" />
             <BcrosStepper
               :key="headerUpdateKey"
               :active-step="activeStepIndex"

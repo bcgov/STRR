@@ -33,13 +33,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0913
 # pylint: disable=E1102
-"""Manages Auth service interactions."""
+"""Manages registration model interactions."""
+from datetime import datetime
+
 from sqlalchemy import func
 
 from strr_api import models, requests
-from strr_api.enums.enum import EventRecordType, RegistrationSortBy, RegistrationStatus
+from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus
 from strr_api.models import db
-from strr_api.services.event_records_service import EventRecordsService
 from strr_api.services.gcp_storage_service import GCPStorageService
 
 
@@ -47,17 +48,8 @@ class RegistrationService:
     """Service to save and load regristration details from the database."""
 
     @classmethod
-    def save_registration(cls, jwt_oidc_token_info, sbc_account_id, registration_request: requests.Registration):
+    def save_registration(cls, user_id, sbc_account_id, registration_request: requests.Registration):
         """Save STRR property registration to database."""
-
-        # TODO: FUTURE SPRINT - handle the other cases where jwt doesn't have the info
-        user = models.User.get_or_create_user_by_jwt(jwt_oidc_token_info)
-        user.email = registration_request.primaryContact.details.emailAddress
-
-        db.session.add(user)
-        db.session.flush()
-        db.session.refresh(user)
-
         primary_contact = models.Contact(
             firstname=registration_request.primaryContact.name.firstName,
             lastname=registration_request.primaryContact.name.lastName,
@@ -119,10 +111,13 @@ class RegistrationService:
         db.session.flush()
         db.session.refresh(property_manager)
 
+        start_date = datetime.utcnow()
         registration = models.Registration(
-            user_id=user.id,
+            user_id=user_id,
             sbc_account_id=sbc_account_id,
             status=RegistrationStatus.PENDING,
+            start_date=start_date,
+            expiry_date=start_date + models.Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
             rental_property=models.RentalProperty(
                 property_manager_id=property_manager.id,
                 address=models.Address(
@@ -153,14 +148,6 @@ class RegistrationService:
         db.session.add(registration)
         db.session.commit()
         db.session.refresh(registration)
-
-        EventRecordsService.save_event_record(
-            EventRecordType.SUBMITTED,
-            EventRecordType.SUBMITTED.value,
-            True,
-            registration.user_id,
-            registration.id,
-        )
 
         return registration
 
@@ -298,8 +285,3 @@ class RegistrationService:
         db.session.delete(document)
         db.session.commit()
         return True
-
-    @classmethod
-    def get_or_create_user(cls, jwt_oidc_token_info):
-        """Get STRR User"""
-        return models.User.get_or_create_user_by_jwt(jwt_oidc_token_info)

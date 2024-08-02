@@ -3,7 +3,7 @@
     <BcrosTypographyH1
       :text="tRegistrationStatus('title')"
       data-cy="accountPageTitle"
-      class="mobile:pb-[20px] mobile:mx-[8px] pb-[32px] mobile:pb-[24px]"
+      class-name="mobile:mx-[8px] pb-[32px] mobile:pb-[24px]"
     />
     <div>
       <div class="px-[8px] flex flex-row justify-between">

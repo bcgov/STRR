@@ -13,7 +13,10 @@ export default defineVitestConfig({
         "interfaces/*",
         "*.d.ts",
         ".nuxt/*",
-        "public/"
+        "public/",
+        "**/middleware/",
+        "**/layouts/",
+        "**/page-data"
       ],
       reportsDirectory: 'coverage',
     },

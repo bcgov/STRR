@@ -94,6 +94,7 @@ class Application(BaseModel):
         backref=backref("reviewer", uselist=False),
         foreign_keys=[reviewer_id],
     )
+    # Currently this relects a one-to-one, although the RFC depicted a many-to-one relationship
     registration = db.relationship(
         "Registration",
         backref=backref("registration", uselist=False),
@@ -123,6 +124,11 @@ class Application(BaseModel):
 
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
         return paginated_result
+
+    @classmethod
+    def get_by_registration_id(cls, registration_id: int) -> Application | None:
+        """Return the application associated with a given registration_id."""
+        return cls.query.filter_by(registration_id=registration_id).one_or_none()
 
 
 class ApplicationSerializer:

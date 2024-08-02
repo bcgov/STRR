@@ -3,7 +3,7 @@ import os
 from http import HTTPStatus
 from unittest.mock import patch
 
-from strr_api.models import Application
+from strr_api.models import Application, Events
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STAFF_ROLE, create_header
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
@@ -116,3 +116,21 @@ def test_get_application_auto_approval(session, client, jwt):
         rv = client.get(f"/applications/{application.id}/auto-approval-records", headers=headers)
 
         assert HTTPStatus.OK == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_get_application_events(session, client, jwt):
+    with open(CREATE_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.CREATED == rv.status_code
+        response_json = rv.json
+        application_id = response_json.get("header").get("id")
+
+        rv = client.get(f"/applications/{application_id}/events", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        events_response = rv.json
+        assert events_response[0].get("eventName") == Events.EventName.APPLICATION_SUBMITTED
+        assert events_response[0].get("eventType") == Events.EventType.APPLICATION

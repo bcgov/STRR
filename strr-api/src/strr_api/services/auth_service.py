@@ -38,11 +38,9 @@ from http import HTTPStatus
 import requests
 from flask import current_app
 
-from strr_api.enums.enum import EventRecordType
 from strr_api.exceptions import ExternalServiceException
 from strr_api.requests import SBCMailingAddress
 from strr_api.requests.SBCAccountCreationRequest import SBCAccountCreationRequest
-from strr_api.services.event_records_service import EventRecordsService
 from strr_api.services.rest_service import RestService
 
 
@@ -172,9 +170,6 @@ class AuthService:
             generate_token=False,
         ).json()
 
-        EventRecordsService.save_event_record(
-            EventRecordType.SBC_ACCOUNT_CREATE, EventRecordType.SBC_ACCOUNT_CREATE.value, False, user_id
-        )
         return new_user_account
 
     @classmethod
@@ -195,11 +190,4 @@ class AuthService:
             token=bearer_token,
             generate_token=False,
         ).json()
-
-        EventRecordsService.save_event_record(
-            EventRecordType.SBC_ACCOUNT_ADDED_CONTACT,
-            EventRecordType.SBC_ACCOUNT_ADDED_CONTACT.value,
-            False,
-            user_id,
-        )
         return contact_info

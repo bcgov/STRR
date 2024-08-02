@@ -1,9 +1,11 @@
+import json
 import os
 
 from strr_api.enums.enum import OwnershipType, PaymentStatus, PropertyType, RegistrationStatus
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import (
     Address,
+    Application,
     Contact,
     Document,
     Eligibility,
@@ -12,6 +14,10 @@ from strr_api.models import (
     Registration,
     RentalProperty,
     User,
+)
+
+CREATE_REGISTRATION_REQUEST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/registration_use_sbc_account.json"
 )
 
 
@@ -106,6 +112,80 @@ def fake_registration_pending(*args, **kwargs):
     )
 
 
+def fake_application(ownership_type="rent", is_principal_residence=True, specified_service_provider=None):
+    json_data = {
+        "selectedAccount": {"sbc_account_id": 3299},
+        "registration": {
+            "primaryContact": {
+                "name": {"firstName": "The", "middleName": "First", "lastName": "Guy"},
+                "dateOfBirth": "1986-10-23",
+                "details": {
+                    "preferredName": "Mickey",
+                    "phoneNumber": "604-999-9999",
+                    "extension": "x64",
+                    "faxNumber": "604-777-7777",
+                    "emailAddress": "test@test.test",
+                },
+                "mailingAddress": {
+                    "country": "CA",
+                    "address": "12766 227st",
+                    "addressLineTwo": "",
+                    "city": "MAPLE RIDGE",
+                    "province": "BC",
+                    "postalCode": "V2X 6K6",
+                },
+            },
+            "secondaryContact": {
+                "name": {"firstName": "The", "middleName": "Other", "lastName": "Guy"},
+                "dateOfBirth": "1986-10-23",
+                "details": {
+                    "preferredName": "Mouse",
+                    "phoneNumber": "604-888-8888",
+                    "extension": "",
+                    "faxNumber": "",
+                    "emailAddress": "test2@test.test",
+                },
+                "mailingAddress": {
+                    "country": "CA",
+                    "address": "12766 227st",
+                    "addressLineTwo": "",
+                    "city": "MAPLE RIDGE",
+                    "province": "BC",
+                    "postalCode": "V2X 6K6",
+                },
+            },
+            "unitDetails": {
+                "parcelIdentifier": "000-460-991",
+                "businessLicense": "",
+                "propertyType": "PRIMARY",
+                "ownershipType": ownership_type,
+            },
+            "unitAddress": {
+                "nickname": "My Rental Property",
+                "country": "CA",
+                "address": "12166 GREENWELL ST MAPLE RIDGE",
+                "addressLineTwo": "",
+                "city": "MAPLE RIDGE",
+                "province": "BC",
+                "postalCode": "V2X 7N1",
+            },
+            "listingDetails": [{"url": "https://www.airbnb.ca/rooms/26359027"}],
+            "principalResidence": {
+                "isPrincipalResidence": is_principal_residence,
+                "agreedToRentalAct": True,
+                "nonPrincipalOption": "n/a" if is_principal_residence else "OTHER",
+                "specifiedServiceProvider": specified_service_provider,
+                "agreedToSubmit": True,
+            },
+        },
+    }
+
+    return Application(
+        application_json=json_data,
+        type="registration",
+    )
+
+
 def fake_registration(*args, **kwargs):
     return Registration(
         id=1,
@@ -114,6 +194,8 @@ def fake_registration(*args, **kwargs):
         status=RegistrationStatus.APPROVED,
         submission_date="2021-01-01T00:00:00Z",
         updated_date="2021-01-01T00:00:00Z",
+        start_date="2024-07-29T00:00:00Z",
+        expiry_date="2025-07-29T00:00:00Z",
         eligibility=Eligibility(
             id=1,
             registration_id=1,

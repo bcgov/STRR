@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="form-section-contact-info">
+  <div data-cy="form-section-mailing">
     <BcrosFormSection :title="t('create-account.contact-form.mailingAddress')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="country" class="flex-grow">

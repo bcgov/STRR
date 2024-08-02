@@ -33,10 +33,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests to assure the approval service."""
 import json
+from unittest.mock import MagicMock, patch
 
+import pytest
+
+from strr_api.enums.enum import OwnershipType
+from strr_api.models import Application
 from strr_api.responses.LTSAResponse import LtsaResponse
 from strr_api.services import ApprovalService
-from tests.unit.utils.mocks import mock_json_file
+from tests.unit.utils.mocks import fake_application, mock_json_file, no_op
 
 MOCK_GEOCODER_RESPONSE = mock_json_file("geocoder_address")
 MOCK_LTSA_RESPONSE = mock_json_file("ltsa_title_order")
@@ -63,3 +68,88 @@ def test_check_full_name_exists_in_ownership_groups():
     fielded_data = data.get("order", {}).get("orderedProduct", {}).get("fieldedData", {})
     result = ApprovalService.check_full_name_exists_in_ownership_groups(LtsaResponse(**fielded_data), "FIRST LAST")
     assert result
+
+
+@pytest.fixture(autouse=True)
+def app_context(app):
+    with app.app_context():
+        yield
+
+
+@pytest.mark.parametrize(
+    "ownership_type, is_principal_residence, specified_service_provider, expected_status",
+    [
+        (OwnershipType.RENT, True, None, Application.Status.UNDER_REVIEW),
+        (OwnershipType.OWN, True, "some_provider", Application.Status.UNDER_REVIEW),
+        (OwnershipType.OWN, True, None, Application.Status.PROVISIONAL),
+        (OwnershipType.OWN, False, None, Application.Status.APPROVED),
+    ],
+)
+@patch("strr_api.services.EventsService.save_event", new=no_op)
+@patch("strr_api.models.Application.save", new=no_op)
+@patch("strr_api.services.AuthService.get_sbc_accounts_mailing_address")
+@patch("strr_api.services.GeoCoderService.get_geocode_by_address")
+@patch("strr_api.models.DSSOrganization.lookup_by_geocode")
+@patch("strr_api.services.LtsaService.get_title_details_from_pid")
+@patch("strr_api.services.LtsaService.build_ltsa_response")
+def test_process_auto_approval(
+    mock_build_ltsa,
+    mock_get_title,
+    mock_lookup_geocode,
+    mock_get_geocode,
+    mock_get_address,
+    ownership_type,
+    is_principal_residence,
+    specified_service_provider,
+    expected_status,
+    app_context,
+):
+    """Test the auto-approval process for various scenarios."""
+    mock_get_address.return_value = MagicMock(
+        street="123 Main St",
+        city="Vancouver",
+        region="BC",
+        postalCode="V41B35",
+        country="Canada",
+    )
+    mock_get_geocode.return_value = {"features": [{"geometry": {"coordinates": [-123.1207, 49.2827]}}]}
+    mock_lookup_geocode.return_value = {"is_business_licence_required": False, "is_principal_residence_required": False}
+    mock_get_title.return_value = {"some": "data"}
+
+    mock_ltsa_response = MagicMock(spec=LtsaResponse)
+    mock_ltsa_response.ownershipGroups = [
+        MagicMock(titleOwners=[MagicMock(lastNameOrCorpName1="GUY", givenName="THE FIRST")])
+    ]
+    mock_build_ltsa.return_value = mock_ltsa_response
+
+    sample_token = "token"
+    application = fake_application(ownership_type, is_principal_residence, specified_service_provider)
+
+    if ownership_type == OwnershipType.OWN and is_principal_residence and not specified_service_provider:
+        mock_get_address.return_value = MagicMock(
+            street="456 Different St",
+            city="Victoria",
+            region="BC",
+            postalCode="V41B35",
+            country="Canada",
+        )
+        expected_status = Application.Status.UNDER_REVIEW
+
+    approval_record = ApprovalService.process_auto_approval(token=sample_token, application=application)
+
+    assert approval_record is not None
+    assert application.status == expected_status
+
+    if ownership_type == OwnershipType.RENT:
+        assert approval_record.renting
+    elif specified_service_provider:
+        assert approval_record.service_provider
+    elif ownership_type == OwnershipType.OWN and is_principal_residence:
+        if expected_status == Application.Status.PROVISIONAL:
+            assert approval_record.title_check
+            assert approval_record.address_match
+            assert approval_record.business_license_not_required_not_provided
+        else:
+            assert not approval_record.address_match
+    elif not is_principal_residence:
+        assert approval_record.pr_exempt

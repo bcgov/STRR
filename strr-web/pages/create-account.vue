@@ -1,10 +1,12 @@
 <template>
   <div data-cy="create-account-page" class="relative h-full">
     <div class="w-full flex flex-col justify-between desktop:justify-center items-center">
-      <div class="shrink w-full flex flex-row mobile:flex-col mobile:justify-between max-w-[1360px] justify-center">
+      <div
+        class="shrink w-full flex flex-row mobile:flex-col mobile:justify-between px-4 max-w-[1360px] justify-center"
+      >
         <div class="grow pr-[24px] mobile:pr-[0px]">
           <div class="mobile:px-[8px]">
-            <BcrosTypographyH1 text="create-account.title" data-cy="accountPageTitle" class="mobile:pb-[20px]" />
+            <BcrosTypographyH1 text="create-account.title" data-cy="accountPageTitle" class-name="mobile:pb-[20px]" />
             <BcrosStepper
               :key="headerUpdateKey"
               :active-step="activeStepIndex"
@@ -91,7 +93,7 @@ const {
 } = useBcrosAccount()
 
 onMounted(() => {
-  // if no SBC acccounts exist redirect to SBC account creation
+  // if no SBC accounts exist redirect to SBC account creation
   if (!me?.settings.length) {
     navigateTo('/finalization')
   }

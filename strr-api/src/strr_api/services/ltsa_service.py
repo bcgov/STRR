@@ -95,27 +95,22 @@ class LtsaService:
             return None
 
     @classmethod
-    def build_ltsa_response(cls, registration_id, ltsa):
+    def build_ltsa_response(cls, application_id, ltsa):
         """Build ltsa response."""
         fielded_data = ltsa.get("order", {}).get("orderedProduct", {}).get("fieldedData", {})
         if fielded_data:
             ltsa_response = LtsaResponse(**fielded_data)
-            cls.save_ltsa_record(registration_id, ltsa_response)
+            cls.save_ltsa_record(application_id, ltsa_response)
             return ltsa_response
         else:
             return None
 
     @classmethod
-    def save_ltsa_record(cls, registration_id, ltsa: LtsaResponse):
+    def save_ltsa_record(cls, application_id, ltsa: LtsaResponse):
         """Save ltsa record."""
-        record = LTSARecord(registration_id=registration_id, record=ltsa.model_dump(mode="json"))
+        record = LTSARecord(application_id=application_id, record=ltsa.model_dump(mode="json"))
         record.save()
         return record
-
-    @classmethod
-    def get_registration_ltsa_records(cls, registration_id):
-        """Get ltsa records for a given registration."""
-        return LTSARecord.get_registration_ltsa_records(registration_id=registration_id)
 
     @classmethod
     def get_application_ltsa_records(cls, application_id):

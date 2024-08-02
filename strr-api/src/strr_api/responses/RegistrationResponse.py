@@ -113,6 +113,8 @@ class Registration(BaseModel):
     sbc_account_id: Optional[int] = None
     submissionDate: datetime
     updatedDate: datetime
+    startDate: Optional[datetime]
+    expiryDate: Optional[datetime]
     status: str
     registration_number: Optional[str] = None
     primaryContact: Contact
@@ -139,6 +141,8 @@ class Registration(BaseModel):
             sbc_account_id=source.sbc_account_id,
             submissionDate=source.submission_date,
             updatedDate=source.updated_date,
+            startDate=source.start_date if source.start_date else None,
+            expiryDate=source.expiry_date if source.expiry_date else None,
             status=source.status.name,
             registration_number=registration_number,
             primaryContact=Contact(

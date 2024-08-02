@@ -32,9 +32,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """This module wraps helper services used by the API."""
+from .user_service import UserService  # isort: skip
 from .application_service import ApplicationService
 from .auth_service import AuthService
-from .event_records_service import EventRecordsService
+from .events_service import EventsService
 from .gcp_storage_service import GCPStorageService
 from .geocoder_service import GeoCoderService
 from .payment_service import PayService

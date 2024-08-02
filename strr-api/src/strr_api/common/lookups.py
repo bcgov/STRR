@@ -31,39 +31,22 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
-# pylint: disable=C0121
-
-"""Logs Event Records to the Database."""
-from strr_api import models
-from strr_api.models import db
-
-
-class EventRecordsService:
-    """Service to save event records into the database."""
-
-    @classmethod
-    def save_event_record(
-        cls, event_type: str, message: str, visible_to_end_user: bool, user_id: int = None, registration_id: int = None
-    ):  # pylint: disable=R0913
-        """Save STRR event record."""
-
-        event_record = models.EventRecord(
-            user_id=user_id,
-            event_type=event_type.name,
-            message=message,
-            visible_to_end_user=visible_to_end_user,
-            registration_id=registration_id,
-        )
-        db.session.add(event_record)
-        db.session.commit()
-        db.session.refresh(event_record)
-        return event_record
-
-    @classmethod
-    def fetch_event_records_for_registration(cls, registration_id, only_show_visible_to_user: bool = True):
-        """Get event records for a given registration by id."""
-        query = models.EventRecord.query.filter(models.EventRecord.registration_id == registration_id)
-        if only_show_visible_to_user:
-            query = query.filter(models.EventRecord.visible_to_end_user == True)  # noqa
-        return query.order_by(models.EventRecord.created_date).all()
+"""Look ups.
+"""
+EVENT_MESSAGES = {
+    "APPLICATION_SUBMITTED": "Application submitted.",
+    "INVOICE_GENERATED": "Invoice generated.",
+    "PAYMENT_COMPLETE": "Payment completed.",
+    "PENDING_AUTO_APPROVAL_PROCESSING": "Pending Auto Approval processing.",
+    "AUTO_APPROVAL_FULL_REVIEW": "Application marked for full review by the auto approval process.",
+    "AUTO_APPROVAL_PROVISIONAL": "Application conditionally approved by the auto approval process.",
+    "AUTO_APPROVAL_APPROVED": "Application approved by the auto approval process.",
+    "FULL_REVIEW_IN_PROGRESS": "Full Review in progress.",
+    "MANUALLY_APPROVED": "Application approved by staff.",
+    "MANUALLY_DENIED": "Application rejected by staff.",
+    "MORE_INFORMATION_REQUESTED": "Additional information requested from the applicant.",
+    "REGISTRATION_CREATED": "Registration created.",
+    "CERTIFICATE_ISSUED": "Certificate issued for the registration.",
+    "EXPIRED": "Registration expired.",
+    "NON_COMPLIANCE_SUSPENDED": "Registration suspended due to non compliance.",
+}

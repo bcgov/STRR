@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="create-account-page" class="relative h-full">
+  <div data-cy="principal-residence-form" class="relative h-full">
     <div class="desktop:mb-[180px] mobile:mb-[32px] rounded-[4px]">
       <div class="mb-[32px] mx-[8px]">
         <p class="text-[18px] mb-[8px] font-bold">

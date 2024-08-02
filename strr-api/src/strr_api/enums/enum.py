@@ -109,22 +109,6 @@ class OwnershipType(Enum):
     CO_OWN = "co-own"
 
 
-class EventRecordType(Enum):
-    """STRR Event Record Type."""
-
-    SBC_ACCOUNT_CREATE = "SBC Account Created"
-    SBC_ACCOUNT_ADDED_CONTACT = "SBC Account Contact Info Changed"
-    INVOICE_GENERATED = "Payment Required"
-    INVOICE_PAYED = "Payment Confirmed"
-    SUBMITTED = "Registration Submitted"
-    AUTO_APPROVAL_FULL_REVIEW = "Full Review Required"
-    AUTO_APPROVAL_PROVISIONAL = "Conditional Approval"
-    AUTO_APPROVAL_APPROVED = "Automatic Approval"
-    MANUALLY_APPROVED = "Manual Approval"
-    MANUALLY_DENIED = "Denied"
-    CERTIFICATE_ISSUED = "Certificate Issued"
-
-
 class PaymentStatus(Enum):
     """Payment status codes."""
 
@@ -147,3 +131,6 @@ class ErrorMessage(Enum):
     """STRR Error Messages."""
 
     APPLICATION_NOT_FOUND = "Application not found"
+    INVALID_APPLICATION_STATUS = "Invalid application status."
+    APPLICATION_TERMINAL_STATE = "Application has reached the final state."
+    PROCESSING_ERROR = "An error occurred while processing the request."

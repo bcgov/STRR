@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="form-section-contact-info">
+  <div data-cy="form-section-cra-info">
     <BcrosFormSection :title="t('create-account.contact-form.cra')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:flex-col mobile:mb-[16px]">
         <UFormGroup name="socialInsuranceNumber" class="flex-grow">

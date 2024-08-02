@@ -49,7 +49,7 @@ from strr_api.exceptions import AuthException, ExternalServiceException, Validat
 from strr_api.requests import SBCAccountCreationRequest, UpdateUserRequest
 from strr_api.responses import Account, SBCAccount
 from strr_api.schemas.utils import validate
-from strr_api.services import AuthService, RegistrationService
+from strr_api.services import AuthService, UserService
 
 logger = logging.getLogger("api")
 bp = Blueprint("account", __name__)
@@ -121,7 +121,7 @@ def create_sbc_account():
             raise ValidationException(message=errors)
 
         sbc_account_creation_request = SBCAccountCreationRequest(**json_input)
-        user = RegistrationService.get_or_create_user(g.jwt_oidc_token_info)
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         AuthService.update_user_tos(
             token, sbc_account_creation_request.acceptTermsAndConditions, sbc_account_creation_request.termsVersion
         )

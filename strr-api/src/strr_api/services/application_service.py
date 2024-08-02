@@ -34,10 +34,21 @@
 """Service to interact with the applications model."""
 from datetime import datetime, timezone
 
-from strr_api.enums.enum import ApplicationType
-from strr_api.models import Application, User
+from strr_api.enums.enum import ApplicationType, PaymentStatus
+from strr_api.models import Application, Events, User
 from strr_api.models.application import ApplicationSerializer
+from strr_api.requests import RegistrationRequest
+from strr_api.services.events_service import EventsService
+from strr_api.services.registration_service import RegistrationService
 from strr_api.utils.user_context import UserContext, user_context
+
+APPLICATION_TERMINAL_STATES = [Application.Status.APPROVED, Application.Status.REJECTED]
+APPLICATION_STATES_STAFF_ACTION = [
+    Application.Status.APPROVED,
+    Application.Status.REJECTED,
+    Application.Status.PROVISIONAL,
+    Application.Status.ADDITIONAL_INFO_REQUESTED,
+]
 
 
 class ApplicationService:
@@ -109,18 +120,53 @@ class ApplicationService:
         Updates the invoice details in the application. This method also updates the application status based on
         the invoice status.
         """
+        if application.payment_status_code == "COMPLETED":
+            return application
+
         application.invoice_id = invoice_details["id"]
         application.payment_account = invoice_details.get("paymentAccount").get("accountId")
         application.payment_status_code = invoice_details.get("statusCode")
-        if application.payment_status_code == "COMPLETED":
-            application.status = Application.Status.PAID
-            application.payment_completion_date = datetime.fromisoformat(invoice_details.get("paymentDate"))
-        elif application.payment_status_code == "APPROVED":
-            application.payment_status_code = "COMPLETED"
-            application.status = Application.Status.PAID
-            application.payment_completion_date = datetime.now(timezone.utc)
+
+        if (
+            application.status == Application.Status.DRAFT
+            and application.payment_status_code == PaymentStatus.CREATED.value
+        ):
+            application.status = Application.Status.SUBMITTED
+            EventsService.save_event(
+                event_type=Events.EventType.APPLICATION,
+                event_name=Events.EventName.APPLICATION_SUBMITTED,
+                application_id=application.id,
+            )
         else:
-            if application.status == Application.Status.DRAFT:
-                application.status = Application.Status.SUBMITTED
+            if application.payment_status_code == PaymentStatus.COMPLETED.value:
+                application.status = Application.Status.PAID
+                application.payment_completion_date = datetime.fromisoformat(invoice_details.get("paymentDate"))
+            elif application.payment_status_code == PaymentStatus.APPROVED.value:
+                application.payment_status_code = PaymentStatus.COMPLETED.value
+                application.status = Application.Status.PAID
+                application.payment_completion_date = datetime.now(timezone.utc)
+
         application.save()
+
+        if application.payment_status_code == PaymentStatus.COMPLETED.value:
+            EventsService.save_event(
+                event_type=Events.EventType.APPLICATION,
+                event_name=Events.EventName.PAYMENT_COMPLETE,
+                application_id=application.id,
+            )
+        return application
+
+    @staticmethod
+    def update_application_status(application: Application, application_status: Application.Status, reviewer: User):
+        """Updates the application status. If the application status is approved, a new registration is created."""
+        application.status = application_status
+        if application.status in [Application.Status.APPROVED, Application.Status.REJECTED]:
+            application.decision_date = datetime.utcnow()
+            application.reviewer_id = reviewer.id
+        application.save()
+        if application.status == Application.Status.APPROVED:
+            registration_request = RegistrationRequest(**application.application_json)
+            RegistrationService.save_registration(
+                application.submitter_id, application.payment_account, registration_request.registration
+            )
         return application

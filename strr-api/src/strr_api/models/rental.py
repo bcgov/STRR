@@ -3,7 +3,7 @@
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import Enum
 from sqlalchemy.orm import relationship
@@ -90,6 +90,8 @@ class RentalPlatform(db.Model):
 class Registration(db.Model):
     """Registration"""
 
+    DEFAULT_REGISTRATION_RENEWAL_PERIOD = timedelta(days=365)
+
     __tablename__ = "registrations"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -99,6 +101,10 @@ class Registration(db.Model):
     submission_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
     updated_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
     status = db.Column(Enum(RegistrationStatus), nullable=False)  # Enum: pending, approved, more info needed, denied
+
+    # start_date is nullable as it will take effect when the correct status is set
+    start_date = db.Column(db.DateTime, nullable=True)
+    expiry_date = db.Column(db.DateTime, nullable=True)
 
     user = relationship("User", back_populates="registrations")
     rental_property = relationship("RentalProperty", back_populates="registrations")

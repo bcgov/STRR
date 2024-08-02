@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="create-account-page" class="relative h-full">
+  <div data-cy="review-form" class="relative h-full">
     <div class="desktop:mb-[180px] mobile:mb-[32px] rounded-[4px]">
       <div class="bg-white px-[30px] py-[22px] mobile:px-[8px]">
         <p>{{ tReview('review-instructions') }}</p>

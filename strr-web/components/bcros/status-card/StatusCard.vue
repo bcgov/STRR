@@ -1,5 +1,6 @@
 <template>
   <div
+    data-cy="status-card"
     :class="
       `
         ${single ? 'flex-1': ''}
@@ -11,18 +12,14 @@
     "
   >
     <div class="flex justify-between">
-      <BcrosChip :flavour="flavour" class="mobile:hidden mb-[24px]">
-        {{ flavour.text }}
-      </BcrosChip>
+      <BcrosChip :flavour="flavour" class="mobile:hidden mb-[24px]" />
       <p class="font-bold">
         {{ registrationNumber }}
       </p>
     </div>
     <div class="flex w-full justify-between">
       <slot />
-      <BcrosChip :flavour="flavour" class="desktop:hidden mb-[24px]">
-        {{ flavour.text }}
-      </BcrosChip>
+      <BcrosChip :flavour="flavour" class="desktop:hidden mb-[24px]" />
     </div>
     <div class="flex flex-row text-bcGovColor-activeBlue justify-start">
       <p
@@ -37,9 +34,6 @@
         @click="() => downloadCertificate(applicationId.toString())"
       >
         {{ tRegistrationStatus('download') }}
-      </p>
-      <p class="cursor-pointer">
-        {{ tRegistrationStatus('renewal') }}
       </p>
     </div>
   </div>
