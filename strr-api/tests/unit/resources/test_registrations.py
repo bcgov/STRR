@@ -9,7 +9,6 @@ from tests.unit.utils.mocks import (
     fake_document,
     fake_examiner_from_token,
     fake_get_token_auth_header,
-    fake_invoice,
     fake_registration,
     fake_registration_pending,
     fake_user_from_token,

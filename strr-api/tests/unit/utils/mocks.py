@@ -237,17 +237,6 @@ def fake_registration(*args, **kwargs):
     )
 
 
-def fake_invoice(*args, **kwargs):
-    return Invoice(
-        id=1,
-        registration_id=1,
-        invoice_id=1,
-        payment_status_code=PaymentStatus.CREATED,
-        payment_completion_date=None,
-        payment_account="3299",
-    )
-
-
 def fake_invoice_details(*args, **kwargs):
     return {"statusCode": "COMPLETED"}
 
