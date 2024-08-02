@@ -108,10 +108,10 @@ class Registration(BaseModel):
         """Return a Registration object from a database model."""
         latest_certificate = None
         for certificate in source.certificates:
-            if latest_certificate is None or certificate.creation_date > latest_certificate.creation_date:
+            if latest_certificate is None or certificate.issued_date > latest_certificate.issued_date:
                 latest_certificate = certificate
 
-        registration_number = latest_certificate.registration_number if latest_certificate else None
+        registration_number = source.registration_number
 
         return cls(
             id=source.id,

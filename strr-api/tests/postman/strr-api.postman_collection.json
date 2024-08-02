@@ -310,6 +310,85 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Staff - Issue Certificate",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"status\": \"APPROVED\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_id}}/status",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_id}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Certificate",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"status\": \"APPROVED\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/certificate",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"certificate"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

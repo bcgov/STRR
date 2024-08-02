@@ -329,7 +329,7 @@ class RegistrationService:
         certificate = Certificate(
             registration_id=registration.id,
             issued_date=issued_date,
-            issued_by=user.id,
+            issuer_id=user.id,
             certificate=pdf_binary,
         )
 
@@ -340,12 +340,10 @@ class RegistrationService:
             event_name=Events.EventName.CERTIFICATE_ISSUED,
             registration_id=registration.id,
         )
-
         return certificate
 
     @classmethod
     def get_latest_certificate(cls, registration: Registration):
         """Get latest PDF certificate for a given registration."""
-
         query = Certificate.query.filter(Certificate.registration_id == registration.id)
-        return query.order_by(Certificate.creation_date.desc()).limit(1).one_or_none()
+        return query.order_by(Certificate.issued_date.desc()).limit(1).one_or_none()

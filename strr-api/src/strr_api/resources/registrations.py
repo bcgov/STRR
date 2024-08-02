@@ -550,11 +550,8 @@ def issue_registration_certificate(registration_id):
 
         # TODO: Throw error if a certificate has been issued already; replace messages with enums
 
-        if registration.status != RegistrationStatus.APPROVED:
-            return error_response(HTTPStatus.BAD_REQUEST, "Registration must be approved before issuing a certificate.")
-
         RegistrationService.generate_registration_certificate(registration)
-        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.OK
+        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.CREATED
     except AuthException as auth_exception:
         return exception_response(auth_exception)
 
