@@ -47,6 +47,7 @@ from strr_api.models import (
     Address,
     Certificate,
     Contact,
+    Document,
     Eligibility,
     Events,
     PropertyManager,
