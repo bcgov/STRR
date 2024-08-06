@@ -47,6 +47,7 @@ from strr_api.models import (
     Address,
     Certificate,
     Contact,
+    Document,
     Eligibility,
     Events,
     PropertyManager,
@@ -127,6 +128,21 @@ class RegistrationService:
         db.session.flush()
         db.session.refresh(property_manager)
 
+        eligibility = Eligibility(
+            is_principal_residence=registration_request.principalResidence.isPrincipalResidence,
+            agreed_to_rental_act=registration_request.principalResidence.agreedToRentalAct,
+            non_principal_option=registration_request.principalResidence.nonPrincipalOption,
+            specified_service_provider=registration_request.principalResidence.specifiedServiceProvider,
+            agreed_to_submit=registration_request.principalResidence.agreedToSubmit,
+        )
+
+        documents = []
+        for doc in registration_request.documents:
+            document = Document(file_name=doc.fileName, file_type=doc.fileType, path=doc.fileKey)
+            documents.append(document)
+        if documents:
+            eligibility.documents = documents
+
         start_date = datetime.utcnow()
         registration_number = RegistrationService._get_registration_number()
         registration = Registration(
@@ -153,13 +169,7 @@ class RegistrationService:
                 ownership_type=registration_request.unitDetails.ownershipType,
                 rental_platforms=[RentalPlatform(url=listing.url) for listing in registration_request.listingDetails],
             ),
-            eligibility=Eligibility(
-                is_principal_residence=registration_request.principalResidence.isPrincipalResidence,
-                agreed_to_rental_act=registration_request.principalResidence.agreedToRentalAct,
-                non_principal_option=registration_request.principalResidence.nonPrincipalOption,
-                specified_service_provider=registration_request.principalResidence.specifiedServiceProvider,
-                agreed_to_submit=registration_request.principalResidence.agreedToSubmit,
-            ),
+            eligibility=eligibility,
         )
         registration.save()
         return registration
