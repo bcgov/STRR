@@ -1,9 +1,12 @@
 import json
 import os
+from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
+from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
+from strr_api.services.payment_service import PayService as PaymentService
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STAFF_ROLE, create_header
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
@@ -16,6 +19,13 @@ CREATE_REGISTRATION_MINIMUM_FIELDS_REQUEST = os.path.join(
 ACCOUNT_ID = 1234
 
 MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": ACCOUNT_ID}}
+MOCK_PAYMENT_COMPLETED_RESPONSE = {
+    "id": 123,
+    "statusCode": "COMPLETED",
+    "paymentAccount": {"accountId": ACCOUNT_ID},
+    "paymentDate": datetime.now().isoformat(),
+}
+MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -134,3 +144,96 @@ def test_get_application_events(session, client, jwt):
         events_response = rv.json
         assert events_response[0].get("eventName") == Events.EventName.APPLICATION_SUBMITTED
         assert events_response[0].get("eventType") == Events.EventType.APPLICATION
+
+
+def test_update_application_payment(session, client, jwt):
+    with open(CREATE_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
+            json_data = json.load(f)
+            rv = client.post("/applications", json=json_data, headers=headers)
+            response_json = rv.json
+            application_id = response_json.get("header").get("id")
+        with patch(
+            "strr_api.services.strr_pay.get_payment_details_by_invoice_id", return_value=MOCK_PAYMENT_COMPLETED_RESPONSE
+        ):
+            rv = client.put(f"/applications/{application_id}/payment-details", json={}, headers=headers)
+            assert HTTPStatus.OK == rv.status_code
+            response_json = rv.json
+            assert response_json.get("header").get("status") == Application.Status.PAID
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_reject_application(session, client, jwt):
+    with open(CREATE_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_id = response_json.get("header").get("id")
+
+        application = Application.find_by_id(application_id=application_id)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        status_update_request = {"status": "rejected"}
+        rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.REJECTED
+        assert response_json.get("header").get("reviewer").get("username") is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_approve_application(session, client, jwt):
+    with open(CREATE_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_id = response_json.get("header").get("id")
+
+        application = Application.find_by_id(application_id=application_id)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        status_update_request = {"status": "approved"}
+        rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.APPROVED
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("registrationId") is not None
+        assert response_json.get("header").get("registrationNumber") is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_post_and_delete_registration_documents(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    with open(CREATE_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_id = response_json.get("header").get("id")
+
+        with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+            data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}
+            rv = client.post(
+                f"/applications/{application_id}/documents",
+                content_type="multipart/form-data",
+                data=data,
+                headers=headers,
+            )
+
+            assert rv.status_code == HTTPStatus.CREATED
+            fileKey = rv.json.get("fileKey")
+
+            rv = client.delete(f"/applications/{application_id}/documents/{fileKey}", headers=headers)
+            assert rv.status_code == HTTPStatus.NO_CONTENT

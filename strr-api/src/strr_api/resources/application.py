@@ -42,6 +42,7 @@ from http import HTTPStatus
 from flasgger import swag_from
 from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
+from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
 from strr_api.enums.enum import ErrorMessage, Role
@@ -56,8 +57,17 @@ from strr_api.models.dataclass import ApplicationSearch
 from strr_api.requests import RegistrationRequest
 from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
-from strr_api.services import ApplicationService, ApprovalService, EventsService, LtsaService, UserService, strr_pay
+from strr_api.services import (
+    ApplicationService,
+    ApprovalService,
+    DocumentService,
+    EventsService,
+    LtsaService,
+    UserService,
+    strr_pay,
+)
 from strr_api.services.application_service import APPLICATION_STATES_STAFF_ACTION, APPLICATION_TERMINAL_STATES
+from strr_api.validators.DocumentUploadValidator import validate_document_upload
 from strr_api.validators.RegistrationRequestValidator import validate_registration_request
 
 logger = logging.getLogger("api")
@@ -193,7 +203,7 @@ def update_application_payment_details(application_id):
         if not application:
             raise AuthException()
         invoice_details = strr_pay.get_payment_details_by_invoice_id(
-            jwt, application.paymentAccount, application.invoice_id
+            jwt, application.payment_account, application.invoice_id
         )
         application = ApplicationService.update_application_payment_details_and_status(application, invoice_details)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
@@ -379,3 +389,106 @@ def update_application_status(application_id):
     except Exception as exception:
         logger.error(exception)
         return error_response(ErrorMessage.PROCESSING_ERROR.value, HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<application_id>/documents", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def upload_registration_supporting_document(application_id):
+    """
+    Upload a supporting document for a STRR application.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application ID
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: The file to upload
+    consumes:
+      - multipart/form-data
+    responses:
+      201:
+        description:
+      400:
+        description:
+      401:
+        description:
+      403:
+        description:
+      502:
+        description:
+    """
+
+    try:
+        account_id = request.headers.get("Account-Id", None)
+        file = validate_document_upload(request.files)
+
+        # only allow upload for registrations that belong to the user
+        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
+        if not application:
+            raise AuthException()
+
+        filename = secure_filename(file.filename)
+
+        document = DocumentService.upload_document(filename, file.content_type, file.read())
+        return document, HTTPStatus.CREATED
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except ValidationException as auth_exception:
+        return exception_response(auth_exception)
+    except ExternalServiceException as service_exception:
+        return exception_response(service_exception)
+
+
+@bp.route("/<application_id>/documents/<document_key>", methods=("DELETE",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def delete_document(application_id, document_key):
+    """
+    Delete document.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application Id
+      - in: path
+        name: file_key
+        type: string
+        required: true
+        description: File key from the upload document response
+    responses:
+      204:
+        description:
+      401:
+        description:
+      403:
+        description:
+      502:
+        description:
+    """
+
+    try:
+        # only allow upload for registrations that belong to the user
+        application = ApplicationService.get_application(application_id=application_id)
+        if not application:
+            raise AuthException()
+
+        DocumentService.delete_document(document_key)
+        return "", HTTPStatus.NO_CONTENT
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except ExternalServiceException as external_exception:
+        return exception_response(external_exception)

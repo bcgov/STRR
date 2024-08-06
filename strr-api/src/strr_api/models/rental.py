@@ -128,7 +128,7 @@ class Document(BaseModel):
     eligibility_id = db.Column(db.Integer, db.ForeignKey("eligibilities.id"), nullable=False)
     file_name = db.Column(db.String, nullable=False)
     file_type = db.Column(db.String, nullable=False)  # e.g., 'pdf', 'jpeg', etc.
-    path = db.Column(db.String, nullable=False)  # e.g., 'pdf', 'jpeg', etc.
+    path = db.Column(db.String, nullable=False)
 
     eligibility = relationship("Eligibility", back_populates="documents")
 

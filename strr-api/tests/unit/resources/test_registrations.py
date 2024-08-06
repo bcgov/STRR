@@ -24,7 +24,6 @@ MOCK_ACCOUNT_REQUEST = os.path.join(
 MOCK_ACCOUNT_MINIMUM_FIELDS_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), f"../../mocks/json/{REGISTRATION_MINIMUM_FIELDS}.json"
 )
-MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 
 @patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
@@ -55,102 +54,7 @@ def test_get_registration_documents_401(client):
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
 
 
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_get_registration_documents_403(client):
-    rv = client.get("/registrations/1/documents")
-    assert rv.status_code == HTTPStatus.FORBIDDEN
-
-
-@patch("strr_api.services.registration_service.RegistrationService.save_registration_document", new=fake_document)
-@patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_post_registration_documents_201(client):
-    with open(MOCK_DOCUMENT_UPLOAD, "rb") as f:
-        data = {"file": (f, MOCK_DOCUMENT_UPLOAD)}
-        rv = client.post("/registrations/1/documents", content_type="multipart/form-data", data=data)
-        assert rv.status_code == HTTPStatus.CREATED
-
-
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_post_registration_documents_400(client):
-    rv = client.post("/registrations/1/documents", content_type="multipart/form-data", data={})
-    assert rv.status_code == HTTPStatus.BAD_REQUEST
-
-
-def test_post_registration_documents_401(client):
-    with open(MOCK_DOCUMENT_UPLOAD, "rb") as f:
-        data = {"file": (f, MOCK_DOCUMENT_UPLOAD)}
-        rv = client.post("/registrations/1/documents", content_type="multipart/form-data", data=data)
-        assert rv.status_code == HTTPStatus.UNAUTHORIZED
-
-
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_post_registration_documents_403(client):
-    with open(MOCK_DOCUMENT_UPLOAD, "rb") as f:
-        data = {"file": (f, MOCK_DOCUMENT_UPLOAD)}
-        rv = client.post("/registrations/1/documents", content_type="multipart/form-data", data=data)
-        assert rv.status_code == HTTPStatus.FORBIDDEN
-
-
-@patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
-@patch(
-    "strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket",
-    new=throw_external_service_exception,
-)
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_post_registration_documents_502(client):
-    with open(MOCK_DOCUMENT_UPLOAD, "rb") as f:
-        data = {"file": (f, MOCK_DOCUMENT_UPLOAD)}
-        rv = client.post("/registrations/1/documents", content_type="multipart/form-data", data=data)
-        assert rv.status_code == HTTPStatus.BAD_GATEWAY
-
-
-@patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_delete_registration_documents_204(client):
-    rv = client.delete("/registrations/1/documents/1")
-    assert rv.status_code == HTTPStatus.NO_CONTENT
-
-
-def test_delete_registration_documents_401(client):
-    rv = client.delete("/registrations/1/documents/1")
-    assert rv.status_code == HTTPStatus.UNAUTHORIZED
-
-
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_delete_registration_documents_403(client):
-    rv = client.delete("/registrations/1/documents/1")
-    assert rv.status_code == HTTPStatus.FORBIDDEN
-
-
-@patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
-@patch("strr_api.services.registration_service.RegistrationService.get_registration_document", new=fake_document)
-@patch(
-    "strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket",
-    new=throw_external_service_exception,
-)
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_delete_registration_documents_502(client):
-    rv = client.delete("/registrations/1/documents/1")
-    assert rv.status_code == HTTPStatus.BAD_GATEWAY
-
-
-@patch("strr_api.services.registration_service.RegistrationService.get_registration_document", new=fake_document)
+@patch("strr_api.services.DocumentService.get_registration_document", new=fake_document)
 @patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
 @patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
 @patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)

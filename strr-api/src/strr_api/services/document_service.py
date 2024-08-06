@@ -31,24 +31,50 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""This module wraps helper services used by the API."""
-from .user_service import UserService  # isort: skip
-from .application_service import ApplicationService
-from .auth_service import AuthService
-from .document_service import DocumentService
-from .events_service import EventsService
-from .gcp_storage_service import GCPStorageService
-from .geocoder_service import GeoCoderService
-from .payment_service import PayService
-from .registration_service import RegistrationService
-from .rest_service import RestService
+# pylint: disable=R0913
+# pylint: disable=E1102
+"""Manages registration model interactions."""
+from strr_api.models import Document, Eligibility
+from strr_api.services.gcp_storage_service import GCPStorageService
 
-from .ltsa_service import LtsaService  # isort: skip
-from .approval_service import ApprovalService  # isort: skip
 
-PAYMENT_REQUEST_TEMPLATE = {
-    "filingInfo": {"filingTypes": [{"filingTypeCode": "RENTAL_FEE"}]},
-    "businessInfo": {"corpType": "STRR"},
-    "paymentInfo": {"methodOfPayment": "DIRECT_PAY"},
-}
-strr_pay = PayService(default_invoice_payload=PAYMENT_REQUEST_TEMPLATE)
+class DocumentService:
+    """Service to manage documents."""
+
+    @classmethod
+    def upload_document(cls, file_name, file_type, file_contents):
+        """Uploads the document to GCP."""
+
+        blob_name = GCPStorageService.upload_registration_document(file_type, file_contents)
+        file_key = blob_name
+        response = {
+            "fileName": file_name,
+            "fileType": file_type,
+            "fileKey": file_key,
+        }
+        return response
+
+    @classmethod
+    def delete_document(cls, document_path):
+        """Delete document using document path."""
+        GCPStorageService.delete_registration_document(document_path)
+        return True
+
+    @classmethod
+    def get_registration_documents(cls, registration_id):
+        """Get registration documents by registration id."""
+        return (
+            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
+            .filter(Eligibility.registration_id == registration_id)
+            .all()
+        )
+
+    @classmethod
+    def get_registration_document(cls, registration_id, document_id):
+        """Get registration document by id."""
+        return (
+            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
+            .filter(Eligibility.registration_id == registration_id)
+            .filter(Document.id == document_id)
+            .one_or_none()
+        )
