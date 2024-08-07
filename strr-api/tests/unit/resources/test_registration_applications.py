@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
-from strr_api.services.payment_service import PayService as PaymentService
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STAFF_ROLE, create_header
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
@@ -212,28 +211,34 @@ def test_examiner_approve_application(session, client, jwt):
         assert response_json.get("header").get("registrationNumber") is not None
 
 
-@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_post_and_delete_registration_documents(session, client, jwt):
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = ACCOUNT_ID
+    with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        with open(CREATE_REGISTRATION_REQUEST) as f:
+            json_data = json.load(f)
+            rv = client.post("/applications", json=json_data, headers=headers)
+            response_json = rv.json
+            application_id = response_json.get("header").get("id")
+            with patch(
+                "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
+                return_value="Test Key",
+            ):
+                with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+                    data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}
+                    rv = client.post(
+                        f"/applications/{application_id}/documents",
+                        content_type="multipart/form-data",
+                        data=data,
+                        headers=headers,
+                    )
 
-    with open(CREATE_REGISTRATION_REQUEST) as f:
-        json_data = json.load(f)
-        rv = client.post("/applications", json=json_data, headers=headers)
-        response_json = rv.json
-        application_id = response_json.get("header").get("id")
-
-        with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
-            data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}
-            rv = client.post(
-                f"/applications/{application_id}/documents",
-                content_type="multipart/form-data",
-                data=data,
-                headers=headers,
-            )
-
-            assert rv.status_code == HTTPStatus.CREATED
-            fileKey = rv.json.get("fileKey")
-
-            rv = client.delete(f"/applications/{application_id}/documents/{fileKey}", headers=headers)
-            assert rv.status_code == HTTPStatus.NO_CONTENT
+                    assert rv.status_code == HTTPStatus.CREATED
+                    fileKey = rv.json.get("fileKey")
+                    assert fileKey == "Test Key"
+                    with patch(
+                        "strr_api.services.gcp_storage_service.GCPStorageService.delete_registration_document",
+                        return_value="Test Key",
+                    ):
+                        rv = client.delete(f"/applications/{application_id}/documents/{fileKey}", headers=headers)
+                        assert rv.status_code == HTTPStatus.NO_CONTENT
