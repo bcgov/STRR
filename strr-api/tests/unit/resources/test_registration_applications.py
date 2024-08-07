@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
-from strr_api.services.payment_service import PayService as PaymentService
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STAFF_ROLE, create_header
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
