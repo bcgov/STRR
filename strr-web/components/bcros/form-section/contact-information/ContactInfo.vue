@@ -1,18 +1,18 @@
 <template>
   <div data-cy="form-section-contact">
-    <BcrosFormSection :title="t('create-account.contact-form.dateOfBirth')" :optional="!isPrimary">
+    <BcrosFormSection :title="t('createAccount.contactForm.dateOfBirth')" :optional="!isPrimary">
       <div class="flex flex-row justify-between w-full mobile:flex-col">
         <UFormGroup name="birthDay" class="desktop:pr-[16px] flex-grow mobile:mb-[16px]">
           <UInput
             v-model="day"
-            :placeholder="t('create-account.contact-form.day')"
+            :placeholder="t('createAccount.contactForm.day')"
             aria-label="birth day"
           />
         </UFormGroup>
         <UFormGroup name="month" class="desktop:pr-[16px] flex-grow mobile:mb-[16px]" :error="monthError">
           <USelect
             v-model="month"
-            :placeholder="t('create-account.contact-form.month')"
+            :placeholder="t('createAccount.contactForm.month')"
             :options="getMonths()"
             option-attribute="key"
             class="w-full"
@@ -23,7 +23,7 @@
           />
         </UFormGroup>
         <UFormGroup name="birthYear">
-          <UInput v-model="year" :placeholder="t('create-account.contact-form.year')" aria-label="birth year" />
+          <UInput v-model="year" :placeholder="t('createAccount.contactForm.year')" aria-label="birth year" />
         </UFormGroup>
       </div>
     </BcrosFormSection>

@@ -37,15 +37,11 @@
 # pylint: disable=R0915
 # pylint: disable=R1702
 """For a successfully paid registration, this service determines its auto-approval state."""
-import random
-from datetime import datetime, timezone
-
-from flask import current_app, render_template
-from weasyprint import HTML
+from flask import current_app
 
 from strr_api.common.utils import compare_addresses
-from strr_api.enums.enum import OwnershipType, RegistrationStatus
-from strr_api.models import Address, Application, AutoApprovalRecord, Certificate, DSSOrganization, Events, Registration
+from strr_api.enums.enum import OwnershipType
+from strr_api.models import Address, Application, AutoApprovalRecord, DSSOrganization, Events
 from strr_api.requests import RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
@@ -260,56 +256,3 @@ class ApprovalService:
     def get_approval_records_for_application(cls, application_id):
         """Get approval records for a given application by id."""
         return AutoApprovalRecord.get_application_auto_approval_records(application_id=application_id)
-
-    @classmethod
-    def generate_registration_certificate(cls, registration: Registration):
-        """Generate registration PDF certificate."""
-
-        registration_number_prefix = f'BCH{datetime.now(timezone.utc).strftime("%y")}'
-        while True:
-            random_digits = "".join(random.choices("0123456789", k=9))
-            registration_number = f"{registration_number_prefix}{random_digits}"
-            if Certificate.query.filter(Certificate.registration_number == registration_number).one_or_none() is None:
-                creation_date = datetime.now(timezone.utc)
-                expiry_date = creation_date.replace(year=creation_date.year + 1)
-                data = {
-                    "registration_number": f"{registration_number}",
-                    "creation_date": f'{creation_date.strftime("%B %d, %Y")}',
-                    "expiry_date": f'{expiry_date.strftime("%B %d, %Y")}',
-                    "issued_date": f'{creation_date.strftime("%B %d, %Y")}',
-                    "rental_address": registration.rental_property.address.to_oneline_address(),
-                    "rental_type": registration.rental_property.property_type.value,
-                    "registrant": registration.rental_property.property_manager.primary_contact.full_name(),
-                    "host": registration.rental_property.property_manager.primary_contact.full_name(),
-                }
-                rendered_template = render_template("certificate.html", **data)
-                pdf_binary = HTML(string=rendered_template).render().write_pdf()
-
-                certificate = Certificate(
-                    registration_id=registration.id,
-                    registration_number=registration_number,
-                    creation_date=creation_date,
-                    expiry_date=expiry_date,
-                    certificate=pdf_binary,
-                )
-                break
-
-        certificate.save()
-
-        registration.status = RegistrationStatus.ISSUED
-        registration.save()
-
-        EventsService.save_event(
-            event_type=Events.EventType.REGISTRATION,
-            event_name=Events.EventName.CERTIFICATE_ISSUED,
-            registration_id=registration.id,
-        )
-
-        return certificate
-
-    @classmethod
-    def get_latest_certificate(cls, registration: Registration):
-        """Get latest PDF certificate for a given registration."""
-
-        query = Certificate.query.filter(Certificate.registration_id == registration.id)
-        return query.order_by(Certificate.creation_date.desc()).limit(1).one_or_none()

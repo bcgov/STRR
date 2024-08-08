@@ -27,7 +27,7 @@
           />
           <BcrosFormSectionReviewItem
             :title="tContact('faxNumberReview')"
-            :content="state?.faxNumber === '' ? '-': state.faxNumber"
+            :content="state?.faxNumber ?? '-'"
           />
         </div>
         <div class="flex flex-row justify-between w-full mobile:flex-col">
@@ -60,7 +60,7 @@
 <script setup lang="ts">
 
 const t = useNuxtApp().$i18n.t
-const tContact = (translationKey: string) => t(`create-account.contact-form.${translationKey}`)
+const tContact = (translationKey: string) => t(`createAccount.contactForm.${translationKey}`)
 
 const { state, primary } = defineProps<{
   state: PrimaryContactInformationI | SecondaryContactInformationI

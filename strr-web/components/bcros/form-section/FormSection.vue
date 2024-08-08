@@ -3,7 +3,7 @@
     <div class="flex flex-row mobile:flex-col">
       <div v-if="title" class="w-[200px]">
         <p class="desktop:font-bold mobile:mb-[8px]">
-          {{ t(title) }}
+          {{ title }}
         </p>
         <p v-if="optional">
           {{ t('general.optional') }}

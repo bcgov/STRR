@@ -106,7 +106,7 @@ import { PaginatedRegistrationsI } from '~/interfaces/paginated-registrations-i'
 import { PaginationI } from '~/interfaces/pagination-i'
 
 const t = useNuxtApp().$i18n.t
-const tRegistryDashboard = (translationKey: string) => t(`registry-dashboard.${translationKey}`)
+const tRegistryDashboard = (translationKey: string) => t(`registryDashboard.${translationKey}`)
 const { getChipFlavour } = useChipFlavour()
 
 const { getPaginatedRegistrations, getCountsByStatus } = useRegistrations()

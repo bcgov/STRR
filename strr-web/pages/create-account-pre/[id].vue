@@ -4,7 +4,11 @@
       <div class="shrink w-full flex flex-row mobile:flex-col mobile:justify-between max-w-[1360px] justify-center">
         <div class="grow pr-[24px] mobile:pr-[0px]">
           <div class="mobile:px-[8px]">
-            <BcrosTypographyH1 text="create-account.title" data-cy="accountPageTitle" class-name="mobile:pb-[20px]" />
+            <BcrosTypographyH1
+              :text="t('createAccount.title')"
+              data-cy="accountPageTitle"
+              class-name="mobile:pb-[20px]"
+            />
             <BcrosStepper
               :key="headerUpdateKey"
               :active-step="activeStepIndex"
@@ -24,7 +28,7 @@
                 :id="id.toString()"
                 ref="contactForm"
                 :full-name="userFullName"
-                :add-secondary-contact="addSecondaryContact"
+                :has-secondary-contact="hasSecondaryContact"
                 :toggle-add-secondary="toggleAddSecondary"
                 :is-complete="activeStep.step.complete"
                 :second-form-is-complete="activeStep.step.complete"
@@ -38,16 +42,14 @@
             </div>
             <div v-if="activeStepIndex === 3" :key="activeStepIndex">
               <BcrosFormSectionReviewForm
-                :secondary-contact="addSecondaryContact"
+                :secondary-contact="hasSecondaryContact"
                 :is-complete="steps[activeStepIndex].step.complete"
               />
             </div>
           </div>
         </div>
         <div class="shrink mobile:grow">
-          <BcrosFeeWidget
-            :fee="fee"
-          />
+          <BcrosFeeWidget :fee="fee" />
         </div>
       </div>
       <BcrosStepperFooter
@@ -66,10 +68,10 @@
 import steps from '../../page-data/create-account/steps'
 import { FormPageI } from '~/interfaces/form/form-page-i'
 
-const addSecondaryContact: Ref<boolean> = ref(false)
+const hasSecondaryContact: Ref<boolean> = ref(false)
 const activeStepIndex: Ref<number> = ref(0)
 const activeStep: Ref<FormPageI> = ref(steps[activeStepIndex.value])
-const tPrincipalResidence = (translationKey: string) => t(`create-account.principal-residence.${translationKey}`)
+const tPrincipalResidence = (translationKey: string) => t(`createAccount.principalResidence.${translationKey}`)
 const contactForm = ref()
 const fee = ref<string>()
 const headerUpdateKey = ref(0)
@@ -88,17 +90,14 @@ onMounted(() => {
 })
 
 const t = useNuxtApp().$i18n.t
-const {
-  currentAccount,
-  userFullName,
-  userFirstName,
-  userLastName
-} = useBcrosAccount()
+const { userFullName, userFirstName, userLastName } = useBcrosAccount()
 
-const toggleAddSecondary = () => { addSecondaryContact.value = !addSecondaryContact.value }
+const toggleAddSecondary = () => {
+  hasSecondaryContact.value = !hasSecondaryContact.value
+}
 
 const propertyToApiType = (type: string | undefined): string => {
-  const tPropertyForm = (translationKey: string) => t(`create-account.property-form.${translationKey}`)
+  const tPropertyForm = (translationKey: string) => t(`createAccount.propertyForm.${translationKey}`)
   for (const key in propertyTypeMap) {
     const propertyKey = propertyTypeMap[key as keyof PropertyTypeMapI]
     if (type && tPropertyForm(propertyKey) === type) {
@@ -110,11 +109,11 @@ const propertyToApiType = (type: string | undefined): string => {
 
 const ownershipToApiType = (type: string | undefined): string => {
   switch (type) {
-    case (t('create-account.property-form.rent')):
+    case t('createAccount.propertyForm.rent'):
       return 'RENT'
-    case (t('create-account.property-form.own')):
+    case t('createAccount.propertyForm.own'):
       return 'OWN'
-    case (t('create-account.property-form.other')):
+    case t('createAccount.propertyForm.other'):
       return 'CO_OWN'
   }
   return ''
@@ -131,12 +130,11 @@ const submit = () => {
     ? submitCreateAccountForm(
       userFirstName,
       userLastName,
-      currentAccount.id,
-      addSecondaryContact.value,
+      hasSecondaryContact.value,
       propertyToApiType(formState.propertyDetails.propertyType),
       ownershipToApiType(formState.propertyDetails.ownershipType)
     )
-    : steps[3].step.complete = true
+    : (steps[3].step.complete = true)
 }
 
 const setActiveStep = (newStep: number) => {
@@ -166,20 +164,15 @@ watch(formState.propertyDetails, () => {
 })
 
 const validateProofPage = () => {
-  if (formState.principal.isPrincipal &&
-    formState.principal.declaration &&
-    formState.supportingDocuments.length > 0
-  ) {
+  if (formState.principal.isPrincipal && formState.principal.declaration && formState.supportingDocuments.length > 0) {
     setStepValid(2, true)
-  } else if (!formState.principal.isPrincipal &&
+  } else if (
+    !formState.principal.isPrincipal &&
     formState.principal.reason &&
     formState.principal.reason !== tPrincipalResidence('other')
   ) {
     setStepValid(2, true)
-  } else if (!formState.principal.isPrincipal &&
-    formState.principal.reason &&
-    formState.principal.otherReason
-  ) {
+  } else if (!formState.principal.isPrincipal && formState.principal.reason && formState.principal.otherReason) {
     setStepValid(2, true)
   } else {
     setStepValid(2, false)
@@ -215,5 +208,4 @@ const setPreviousStep = () => {
 definePageMeta({
   layout: 'wide'
 })
-
 </script>

@@ -17,7 +17,7 @@ it('can mount status card component', async () => {
     {
       global: { plugins: [i18n] },
       props: {
-        single: true,
+        isSingle: true,
         applicationId,
         flavour,
         registrationNumber

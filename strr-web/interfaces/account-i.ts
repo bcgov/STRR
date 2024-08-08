@@ -213,9 +213,6 @@ export interface SelectedAccountMailingAPII {
 }
 
 export interface CreateAccountFormAPII {
-  selectedAccount: {
-    sbc_account_id: string
-  },
   registration: {
     principalResidence: {
       isPrincipalResidence: boolean,

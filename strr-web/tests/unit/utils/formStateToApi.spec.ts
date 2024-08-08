@@ -6,7 +6,7 @@ it('begins with empty address', () => {
   const firstName = 'first'
   const lastName = 'last'
   const selectedAccountId = '1'
-  const addSecondaryContact = true
+  const hasSecondaryContact = true
   const propertyType = 'propertyType'
   const ownershipType = 'ownershipType'
 
@@ -81,7 +81,7 @@ it('begins with empty address', () => {
     firstName,
     lastName,
     selectedAccountId,
-    addSecondaryContact,
+    hasSecondaryContact,
     propertyType,
     ownershipType
   )

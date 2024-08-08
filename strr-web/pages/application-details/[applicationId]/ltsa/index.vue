@@ -5,10 +5,7 @@
         <div class="flex items-center m:justify-between">
           <BcrosTypographyH1
             :text="
-              `${
-                application?.unitAddress.nickname
-                  ? application?.unitAddress.nickname + ' '
-                  : ''}${tApplicationDetails('registration')} #${applicationId}
+              `${application?.unitAddress.nickname ?? ''} ${tApplicationDetails('registration')} #${applicationId}
                 `
             "
             class-name="mobile:text-[24px]"
@@ -23,7 +20,7 @@
     <div class="mt-[104px] m:mt-[74px]">
       <div>
         <p class="font-bold mb-[24px] mobile:mx-[8px]">
-          {{ tLtsa('ltsa-general') }}
+          {{ tLtsa('ltsaGeneralInfo') }}
         </p>
         <div
           v-if="data.length > 0"
@@ -77,7 +74,7 @@
         </div>
         <div class="mt-[40px]">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
-            {{ tLtsa('title-owners') }}
+            {{ tLtsa('titleOwners') }}
           </p>
           <div
             v-if="ownerRows.length > 0"
@@ -129,8 +126,8 @@ import { LtsaDataI } from '~/interfaces/ltsa-data-i'
 
 const route = useRoute()
 const t = useNuxtApp().$i18n.t
-const tRegistrationStatus = (translationKey: string) => t(`registration-status.${translationKey}`)
-const tApplicationDetails = (translationKey: string) => t(`application-details.${translationKey}`)
+const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
+const tApplicationDetails = (translationKey: string) => t(`applicationDetails.${translationKey}`)
 const tLtsa = (translationKey: string) => t(`ltsa.${translationKey}`)
 
 const { applicationId } = route.params
@@ -157,7 +154,7 @@ const getFlavour = (status: string, invoices: RegistrationI['invoices']):
   }
   if (status === 'PENDING' && invoices[0].payment_status_code !== 'COMPLETED') {
     return {
-      text: tRegistrationStatus('payment-due'),
+      text: tRegistrationStatus('provisional'),
       alert: AlertsFlavourE.WARNING
     }
   }

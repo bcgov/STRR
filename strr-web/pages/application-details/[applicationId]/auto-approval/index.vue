@@ -5,11 +5,7 @@
         <div class="flex items-center m:justify-between">
           <BcrosTypographyH1
             :text="
-              `${
-                application?.unitAddress.nickname
-                  ? application?.unitAddress.nickname + ' '
-                  : ''}${tApplicationDetails('registration')} #${applicationId}
-                `
+              `${application?.unitAddress.nickname ?? ''} ${tApplicationDetails('registration')} #${applicationId}`
             "
             class-name="mobile:text-[24px]"
             no-spacing
@@ -23,7 +19,7 @@
     <div class="mt-[104px] m:mt-[74px]">
       <div>
         <p class="font-bold mb-[24px] mobile:mx-[8px]">
-          {{ tAutoApproval('automatic-logic') }}
+          {{ tAutoApproval('automaticLogic') }}
         </p>
         <div class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
           <div class="flex flex-col justify-between w-full mobile:flex-col">
@@ -34,7 +30,7 @@
       <div class="mt-[40px]">
         <div>
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
-            {{ tAutoApproval('provisional-logic') }}
+            {{ tAutoApproval('provisionalLogic') }}
           </p>
           <div class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
             <div class="flex flex-col justify-between w-full mobile:flex-col">
@@ -53,9 +49,9 @@ import { AutoApprovalDataI } from '~/interfaces/auto-approval-data-i'
 
 const route = useRoute()
 const t = useNuxtApp().$i18n.t
-const tRegistrationStatus = (translationKey: string) => t(`registration-status.${translationKey}`)
-const tApplicationDetails = (translationKey: string) => t(`application-details.${translationKey}`)
-const tAutoApproval = (translationKey: string) => t(`auto-approval.${translationKey}`)
+const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
+const tApplicationDetails = (translationKey: string) => t(`applicationDetails.${translationKey}`)
+const tAutoApproval = (translationKey: string) => t(`autoApproval.${translationKey}`)
 const automaticRows = ref<{ [key: string]: string }[]>([])
 const provisionalRows = ref<{ [key: string]: string }[]>([])
 
@@ -76,18 +72,18 @@ const buildAutomaticRows = (rowsData: AutoApprovalDataI[]) => {
   }
   if (rowsData[0].record.service_provider !== null) {
     automaticRows.value.push({
-      criteria: tAutoApproval('accomodation-selected'),
+      criteria: tAutoApproval('accommodationSelected'),
       outcome: rowsData[0].record.service_provider ? tAutoApproval('yes') : tAutoApproval('no')
     })
   }
   if (rowsData[0].record.pr_exempt !== null) {
     automaticRows.value.push({
-      criteria: tAutoApproval('pr-exempt'),
+      criteria: tAutoApproval('prExempt'),
       outcome: rowsData[0].record.pr_exempt
         ? tAutoApproval('exempt')
         : rowsData[0].record.pr_exempt === false
-          ? tAutoApproval('not-exempt')
-          : tAutoApproval('lookup-failed')
+          ? tAutoApproval('notExempt')
+          : tAutoApproval('lookupFailed')
     })
   }
 }
@@ -95,8 +91,8 @@ const buildAutomaticRows = (rowsData: AutoApprovalDataI[]) => {
 const buildProvisionalRows = (rowsData: AutoApprovalDataI[]) => {
   if (rowsData[0].record.address_match !== null) {
     provisionalRows.value.push({
-      criteria: tAutoApproval('do-addresses-match'),
-      outcome: rowsData[0].record.address_match ? tAutoApproval('do') : tAutoApproval('do-not')
+      criteria: tAutoApproval('addrMatchQuestion'),
+      outcome: rowsData[0].record.address_match ? tAutoApproval('addrDoMatch') : tAutoApproval('addrDoNotMatch')
     })
   }
 
@@ -107,18 +103,18 @@ const buildProvisionalRows = (rowsData: AutoApprovalDataI[]) => {
 
   if (!licenseNull) {
     provisionalRows.value.push({
-      criteria: tAutoApproval('do-addresses-match'),
+      criteria: tAutoApproval('addrMatchQuestion'),
       outcome: rowsData[0].record.business_license_required_provided
-        ? tAutoApproval('required-provided')
+        ? tAutoApproval('requiredProvided')
         : rowsData[0].record.business_license_not_required_not_provided
-          ? tAutoApproval('not-required-not-provided')
-          : tAutoApproval('required-not-provided')
+          ? tAutoApproval('notRequiredNotProvided')
+          : tAutoApproval('requiredNotProvided')
     })
   }
   if (rowsData[0].record.title_check !== null) {
     provisionalRows.value.push({
-      criteria: tAutoApproval('title-check'),
-      outcome: rowsData[0].record.title_check ? tAutoApproval('passed') : tAutoApproval('did-not-pass')
+      criteria: tAutoApproval('titleCheck'),
+      outcome: rowsData[0].record.title_check ? tAutoApproval('ltsaPassed') : tAutoApproval('ltsaNotPassed')
     })
   }
 }
@@ -142,7 +138,7 @@ const getFlavour = (status: string, invoices: RegistrationI['invoices']):
   }
   if (status === 'PENDING' && invoices[0].payment_status_code !== 'COMPLETED') {
     return {
-      text: tRegistrationStatus('payment-due'),
+      text: tRegistrationStatus('provisional'),
       alert: AlertsFlavourE.WARNING
     }
   }

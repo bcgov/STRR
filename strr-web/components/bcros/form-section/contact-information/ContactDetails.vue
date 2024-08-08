@@ -1,6 +1,6 @@
 <template>
   <div data-cy="form-section-contact-info">
-    <BcrosFormSection :title="t('create-account.contact-form.contactDetails')">
+    <BcrosFormSection :title="t('createAccount.contactForm.contactDetails')">
       <div v-if="!isPrimary" class="flex flex-row justify-between w-full mb-[40px] mobile:flex-col mobile:mb-[16px]">
         <UFormGroup name="firstName" class="d:pr-[16px] flex-grow mobile:mb-[16px]">
           <UInput v-model="firstName" placeholder="First Name" aria-label="firstName" />
@@ -22,7 +22,7 @@
             v-model="preferredName"
             type="name"
             aria-label="preferred name"
-            :placeholder="t('create-account.contact-form.preferredName')"
+            :placeholder="t('createAccount.contactForm.preferredName')"
           />
         </UFormGroup>
       </div>
@@ -32,13 +32,13 @@
             v-model="phoneNumber"
             type="tel"
             aria-label="phone number"
-            :placeholder="t('create-account.contact-form.phoneNumber')"
+            :placeholder="t('createAccount.contactForm.phoneNumber')"
           />
         </UFormGroup>
         <UFormGroup name="extension" class="flex-grow">
           <UInput
             v-model="extension"
-            :placeholder="t('create-account.contact-form.extension')"
+            :placeholder="t('createAccount.contactForm.extension')"
             aria-label="extension"
           />
         </UFormGroup>
@@ -47,7 +47,7 @@
         <UFormGroup name="faxNumber" class="flex-grow">
           <UInput
             v-model="faxNumber"
-            :placeholder="t('create-account.contact-form.faxNumber')"
+            :placeholder="t('createAccount.contactForm.faxNumber')"
             aria-label="fax number"
           />
         </UFormGroup>
@@ -60,15 +60,15 @@
         >
           <UInput
             v-model="emailAddress"
-            :placeholder="t('create-account.contact-form.emailAddress')"
+            :placeholder="t('createAccount.contactForm.emailAddress')"
             aria-label="email address"
           />
         </UFormGroup>
       </div>
       <BcrosAlertsMessage :flavour="AlertsFlavourE.INFO">
         <p>
-          <b>{{ t('create-account.contact-form.bold-warning') }}</b>
-          {{ t('create-account.contact-form.warning') }}
+          <b>{{ t('createAccount.contactForm.boldWarning') }}</b>
+          {{ t('createAccount.contactForm.warning') }}
         </p>
       </BcrosAlertsMessage>
     </BcrosFormSection>

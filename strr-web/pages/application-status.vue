@@ -7,9 +7,9 @@
     />
     <div>
       <div class="px-[8px] flex flex-row justify-between">
-        <BcrosTypographyH2 :text="tRegistrationStatus('my-app')" class-name="mobile:pt-[0px]" />
+        <BcrosTypographyH2 :text="tRegistrationStatus('myRegApplication')" class-name="mobile:pt-[0px]" />
         <BcrosButtonsPrimary
-          :text="tRegistrationStatus('create')"
+          :label="tRegistrationStatus('create')"
           :action="() => navigateTo('/create-account')"
           icon="i-mdi-plus"
           class-name="mobile:hidden"
@@ -17,11 +17,11 @@
       </div>
       <div class="flex flex-row mobile:flex-col flex-wrap desktop:justify-between">
         <div
-          v-for="registration in registrations"
-          :key="registration?.id"
+          v-for="application in applications"
+          :key="application?.header.id"
           :class="`
             ${
-            registrations && registrations?.length > 1
+            applications && applications?.length > 1
               ? 'desktop:w-[calc(33%-24px)]'
               : 'desktop:w-full flex-grow flex-1'
           }
@@ -29,38 +29,39 @@
           `"
         >
           <BcrosStatusCard
-            v-if="registration"
-            :application-id="registration.id.toString()"
-            :flavour="getChipFlavour(registration.status)"
-            :status="registration.status"
-            :single="!(registrations && registrations?.length > 1)"
-            :registration-number="registration.registration_number ?? ''"
+            v-if="application"
+            :application-id="application.header.id.toString()"
+            :flavour="getChipFlavour(application.header.status)"
+            :status="application.header.status"
+            :is-single="!(applications && applications?.length > 1)"
+            :registration-number="application.header?.registrationId?.toString() ?? ''"
           >
-            <div class="mb-[24px]">
+            <div>
               <p class="font-bold">
                 {{
-                  registration.unitAddress.nickname
-                    ? registration.unitAddress.nickname
-                    : registration.unitAddress.address
+                  application.registration.unitAddress.nickname ||
+                    application.registration.unitAddress.address
                 }}
               </p>
               <p>
                 {{
-                  registration.unitAddress.nickname
-                    ? registration.unitAddress.address
-                    : registration.unitAddress.addressLineTwo
+                  application.registration.unitAddress.nickname
+                    ? application.registration.unitAddress.address
+                    : application.registration.unitAddress.addressLineTwo
                 }}
               </p>
               <p>
-                {{ registration.unitAddress.nickname ? registration.unitAddress.addressLineTwo : "" }}
+                {{ application.registration.unitAddress.nickname
+                  ? application.registration.unitAddress.addressLineTwo
+                  : "" }}
               </p>
               <p>
                 {{
                   `
-                    ${registration.unitAddress.city}
-                    ${registration.unitAddress.province}
-                    ${registration.unitAddress.postalCode},
-                    ${registration.unitAddress.country}
+                    ${application.registration.unitAddress.city}
+                    ${application.registration.unitAddress.province}
+                    ${application.registration.unitAddress.postalCode},
+                    ${application.registration.unitAddress.country}
                   `
                 }}
               </p>
@@ -71,7 +72,7 @@
     </div>
     <div class="w-full h-[120px] bg-white desktop:hidden flex justify-center items-center p-[8px]">
       <BcrosButtonsPrimary
-        :text="tRegistrationStatus('create')"
+        :label="tRegistrationStatus('create')"
         :action="() => navigateTo('/create-account')"
         icon="i-mdi-plus"
       />
@@ -80,31 +81,17 @@
 </template>
 
 <script setup lang="ts">
+import { ApplicationI } from '~/interfaces/application-i'
+
 definePageMeta({
   layout: 'wide-gutters'
 })
 
-const t = useNuxtApp().$i18n.t
-const tRegistrationStatus = (translationKey: string) => t(`registration-status.${translationKey}`)
+const tRegistrationStatus = (translationKey: string) => useTranslation().t(`registrationStatus.${translationKey}`)
 
-const { getRegistrations } = useRegistrations()
+const { getApplications } = useApplications()
 const { getChipFlavour } = useChipFlavour()
-const registrations = ref<(RegistrationI | undefined)[]>()
-const fetchedRegistrations = await getRegistrations()
-
-const addSpacingToRegistrations = (): (RegistrationI | undefined)[] => {
-  const spacedRegistrations: (RegistrationI | undefined)[] =
-    [...fetchedRegistrations.filter(reg => reg.invoices.length !== 0)]
-  while (spacedRegistrations.length % 3 !== 0) {
-    spacedRegistrations.push(undefined)
-  }
-  return spacedRegistrations
-}
-
-registrations.value =
-  fetchedRegistrations.length % 3 === 0 &&
-  fetchedRegistrations.length !== 1
-    ? fetchedRegistrations
-    : addSpacingToRegistrations()
+const applications = ref<(ApplicationI | undefined)[]>()
+applications.value = await getApplications()
 
 </script>

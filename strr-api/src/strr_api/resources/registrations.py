@@ -43,21 +43,13 @@ from io import BytesIO
 from flasgger import swag_from
 from flask import Blueprint, current_app, g, jsonify, request, send_file
 from flask_cors import cross_origin
-from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus
-from strr_api.exceptions import (
-    AuthException,
-    ExternalServiceException,
-    ValidationException,
-    error_response,
-    exception_response,
-)
+from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, Role
+from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
 from strr_api.responses import Document, Events, Pagination, Registration
-from strr_api.services import ApprovalService, EventsService, GCPStorageService, RegistrationService
-from strr_api.validators.DocumentUploadValidator import validate_document_upload
+from strr_api.services import DocumentService, EventsService, GCPStorageService, RegistrationService
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
@@ -227,69 +219,11 @@ def get_registration(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/documents", methods=("POST",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def upload_registration_supporting_document(registration_id):
-    """
-    Upload a supporting document for a STRR registration.
-    ---
-    tags:
-      - registration
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-      - name: file
-        in: formData
-        type: file
-        required: true
-        description: The file to upload
-    consumes:
-      - multipart/form-data
-    responses:
-      201:
-        description:
-      400:
-        description:
-      401:
-        description:
-      403:
-        description:
-      502:
-        description:
-    """
-
-    try:
-        file = validate_document_upload(request.files)
-
-        # only allow upload for registrations that belong to the user
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            raise AuthException()
-
-        filename = secure_filename(file.filename)
-
-        document = RegistrationService.save_registration_document(
-            registration.eligibility.id, filename, file.content_type, file.read()
-        )
-        return jsonify(Document.from_db(document).model_dump(mode="json")), HTTPStatus.CREATED
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-    except ValidationException as auth_exception:
-        return exception_response(auth_exception)
-    except ExternalServiceException as service_exception:
-        return exception_response(service_exception)
-
-
 @bp.route("/<registration_id>/documents", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_registration_supporting_documents(registration_id):
+def get_registration_documents(registration_id):
     """
     Get registration supporting documents for given registration id.
     ---
@@ -316,7 +250,7 @@ def get_registration_supporting_documents(registration_id):
         if not registration:
             raise AuthException()
 
-        documents = RegistrationService.get_registration_documents(registration_id)
+        documents = DocumentService.get_registration_documents(registration_id)
         return (
             jsonify([Document.from_db(document).model_dump(mode="json") for document in documents]),
             HTTPStatus.OK,
@@ -363,7 +297,7 @@ def get_registration_supporting_document_by_id(registration_id, document_id):
         if not registration:
             raise AuthException()
 
-        document = RegistrationService.get_registration_document(registration_id, document_id)
+        document = DocumentService.get_registration_document(registration_id, document_id)
         if not document:
             return error_response(HTTPStatus.NOT_FOUND, "Document not found")
 
@@ -412,7 +346,7 @@ def get_registration_file_by_id(registration_id, document_id):
         if not registration:
             raise AuthException()
 
-        document = RegistrationService.get_registration_document(registration_id, document_id)
+        document = DocumentService.get_registration_document(registration_id, document_id)
         if not document:
             return error_response(HTTPStatus.NOT_FOUND, "Document not found")
 
@@ -420,52 +354,6 @@ def get_registration_file_by_id(registration_id, document_id):
         return send_file(
             BytesIO(file_bytes), as_attachment=True, download_name=document.file_name, mimetype=document.file_type
         )
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-    except ExternalServiceException as external_exception:
-        return exception_response(external_exception)
-
-
-@bp.route("/<registration_id>/documents/<document_id>", methods=("DELETE",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def delete_registration_supporting_document_by_id(registration_id, document_id):
-    """
-    Delete registration supporting document for given registration id and document id.
-    ---
-    tags:
-      - registration
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-      - in: path
-        name: document_id
-        type: integer
-        required: true
-        description: ID of the document
-    responses:
-      204:
-        description:
-      401:
-        description:
-      403:
-        description:
-      502:
-        description:
-    """
-
-    try:
-        # only allow upload for registrations that belong to the user
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            raise AuthException()
-
-        RegistrationService.delete_registration_document(registration_id, document_id)
-        return "", HTTPStatus.NO_CONTENT
     except AuthException as auth_exception:
         return exception_response(auth_exception)
     except ExternalServiceException as external_exception:
@@ -516,10 +404,11 @@ def get_registration_events(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/issue", methods=("POST",))
+@bp.route("/<registration_id>/certificate", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
+@jwt.has_one_of_roles([Role.STAFF.value])
 def issue_registration_certificate(registration_id):
     """
     Manually generate and issue a STRR registration certificate.
@@ -544,22 +433,14 @@ def issue_registration_certificate(registration_id):
     """
 
     try:
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user or not user.is_examiner():
-            raise AuthException()
-
         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
         if not registration:
             return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
 
-        if registration.status == RegistrationStatus.ISSUED:
-            return error_response(HTTPStatus.BAD_REQUEST, "Registration has already been issued a certificate.")
+        # TODO: Throw error if a certificate has been issued already; replace messages with enums
 
-        if registration.status != RegistrationStatus.APPROVED:
-            return error_response(HTTPStatus.BAD_REQUEST, "Registration must be approved before issuing a certificate.")
-
-        ApprovalService.generate_registration_certificate(registration)
-        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.OK
+        RegistrationService.generate_registration_certificate(registration)
+        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.CREATED
     except AuthException as auth_exception:
         return exception_response(auth_exception)
 
@@ -570,7 +451,7 @@ def issue_registration_certificate(registration_id):
 @jwt.requires_auth
 def get_registration_certificate(registration_id):
     """
-    Get latested certificate PDF for a given registration.
+    Get latest certificate PDF for a given registration.
     ---
     tags:
       - registration
@@ -597,7 +478,7 @@ def get_registration_certificate(registration_id):
         if not registration:
             raise AuthException()
 
-        certificate = ApprovalService.get_latest_certificate(registration)
+        certificate = RegistrationService.get_latest_certificate(registration)
         if not certificate:
             return error_response(HTTPStatus.NOT_FOUND, "Certificate not found")
 

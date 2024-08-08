@@ -1,7 +1,7 @@
 <template>
   <div data-cy="listing-details-section">
     <BcrosFormSection
-      :title="t('create-account.property-form.internetListingDetails')"
+      :title="t('createAccount.propertyForm.internetListingDetails')"
       class="desktop:pb-[40px] mobile:pb-[20px]"
     >
       <div v-for="(listing, index) in listingDetails" :key="index">
@@ -28,7 +28,7 @@
           >
             <div v-if="index > 0" class="flex flex-row justify-center items-center">
               <p class="mr-[4px]">
-                {{ t('create-account.contact.remove') }}
+                {{ t('createAccount.contact.remove') }}
               </p>
               <UIcon class="h-[20px] w-[20px]" name="i-mdi-remove" alt="remove icon" />
             </div>
@@ -37,7 +37,7 @@
       </div>
       <BcrosButtonsPrimary
         :action="addPlatform"
-        :text="t('create-account.contact.addPlatform')"
+        :label="t('createAccount.contact.addPlatform')"
         variant="outline"
         icon=""
         class-name="mb-[40px] mobile:mb-[20px] mobile:w-full mobile:mx-[0px]"

@@ -52,7 +52,7 @@
 const t = useNuxtApp().$i18n.t
 const version = useRuntimeConfig().public.version
 
-const { extraSpace } = defineProps<{ extraSpace: boolean }>()
+const { extraSpace } = defineProps<{ extraSpace?: boolean }>()
 
 const links = [
   { text: 'home', href: '/', newTab: false },

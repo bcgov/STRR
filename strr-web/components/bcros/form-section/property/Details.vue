@@ -1,12 +1,12 @@
 <template>
   <div data-cy="property-details">
-    <BcrosFormSection :title="t('create-account.property-form.rentalUnitDetails')">
+    <BcrosFormSection :title="t('createAccount.propertyForm.rentalUnitDetails')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="parcelIdentifier" class="d:pr-[16px] flex-grow">
           <UInput
             v-model="parcelIdentifier"
             aria-label="parcel identifier"
-            :placeholder="t('create-account.property-form.parcelIdentifier')"
+            :placeholder="t('createAccount.propertyForm.parcelIdentifier')"
           />
         </UFormGroup>
       </div>
@@ -15,7 +15,7 @@
           <UInput
             v-model="businessLicense"
             aria-label="business license"
-            :placeholder="t('create-account.property-form.businessLicense')"
+            :placeholder="t('createAccount.propertyForm.businessLicense')"
           />
         </UFormGroup>
       </div>
@@ -24,7 +24,7 @@
           <USelect
             v-model="propertyType"
             aria-label="property types"
-            :placeholder="t('create-account.property-form.propertyType')"
+            :placeholder="t('createAccount.propertyForm.propertyType')"
             :options="propertyTypes"
             option-attribute="name"
             class="w-full"
@@ -39,7 +39,7 @@
           <USelect
             v-model="ownershipType"
             aria-label="ownership types"
-            :placeholder="t('create-account.property-form.ownershipType')"
+            :placeholder="t('createAccount.propertyForm.ownershipType')"
             :options="ownershipTypes"
             option-attribute="name"
             class="w-full"

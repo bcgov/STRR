@@ -3,58 +3,58 @@ import { FormPageI } from '~/interfaces/form/form-page-i'
 const steps: FormPageI[] = [
   {
     step: {
-      label: 'create-account.step-title.contact',
+      label: 'createAccount.stepTitle.contact',
       inactiveIconPath: '/icons/create-account/add_person.svg',
       activeIconPath: '/icons/create-account/add_person_active.svg',
       complete: false,
       isValid: false,
       alt: 'Add contacts'
     },
-    title: 'create-account.contact.title',
-    subtitle: 'create-account.contact.subtitle',
-    formTitle: 'create-account.contact.primary',
+    title: 'createAccount.contact.title',
+    subtitle: 'createAccount.contact.subtitle',
+    formTitle: 'createAccount.contact.primary',
     sections: []
   },
   {
     step: {
-      label: 'create-account.step-title.property',
+      label: 'createAccount.stepTitle.property',
       inactiveIconPath: '/icons/create-account/add_location.svg',
       activeIconPath: '/icons/create-account/add_location_active.svg',
       complete: false,
       isValid: false,
       alt: 'Add properties'
     },
-    title: 'create-account.details.title',
-    subtitle: 'create-account.details.subtitle',
-    formTitle: 'create-account.details.primary',
+    title: 'createAccount.details.title',
+    subtitle: 'createAccount.details.subtitle',
+    formTitle: 'createAccount.details.primary',
     sections: []
   },
   {
     step: {
-      label: 'create-account.step-title.eligibility',
+      label: 'createAccount.stepTitle.eligibility',
       inactiveIconPath: '/icons/create-account/upload_file.svg',
       activeIconPath: '/icons/create-account/upload_file_active.svg',
       complete: false,
       isValid: false,
       alt: 'Upload documents'
     },
-    title: 'create-account.eligibility.title',
+    title: 'createAccount.eligibility.title',
     subtitle: '',
-    formTitle: 'create-account.eligibility.primary',
+    formTitle: 'createAccount.eligibility.primary',
     sections: []
   },
   {
     step: {
-      label: 'create-account.step-title.review',
+      label: 'createAccount.stepTitle.review',
       inactiveIconPath: '/icons/create-account/check.svg',
       activeIconPath: '/icons/create-account/check_active.svg',
       complete: false,
       isValid: false,
       alt: 'Check and verify'
     },
-    title: 'create-account.confirm.title',
+    title: 'createAccount.confirm.title',
     subtitle: '',
-    formTitle: 'create-account.confirm.primary',
+    formTitle: 'createAccount.confirm.primary',
     sections: []
   }
 ]

@@ -5,7 +5,7 @@ from .AccountResponse import Account
 from .DocumentResponse import Document
 from .EventsResponse import Events
 from .Pagination import Pagination
-from .RegistrationResponse import Invoice, Registration
+from .RegistrationResponse import Registration
 from .SBCAccountResponse import SBCAccount
 
 from .AutoApprovalResponse import AutoApproval  # isort: skip

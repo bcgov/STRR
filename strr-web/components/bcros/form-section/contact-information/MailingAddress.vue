@@ -1,6 +1,6 @@
 <template>
   <div data-cy="form-section-mailing">
-    <BcrosFormSection :title="t('create-account.contact-form.mailingAddress')">
+    <BcrosFormSection :title="t('createAccount.contactForm.mailingAddress')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="country" class="flex-grow">
           <USelect
@@ -18,7 +18,7 @@
             :id="id"
             v-model="address"
             aria-label="address"
-            :placeholder="t('create-account.contact-form.address')"
+            :placeholder="t('createAccount.contactForm.address')"
             @keypress.once="addressComplete()"
             @click="addressComplete()"
           />
@@ -28,22 +28,22 @@
         <UFormGroup name="addressLineTwo" class="flex-grow">
           <UInput
             v-model="addressLineTwo"
-            :placeholder="t('create-account.contact-form.addressLineTwo')"
+            :placeholder="t('createAccount.contactForm.addressLineTwo')"
             aria-label="address line two"
           />
         </UFormGroup>
       </div>
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:flex-col mobile:mb-[16px]">
         <UFormGroup name="city" class="d:pr-[16px] flex-grow mobile:mb-[16px]">
-          <UInput v-model="city" :placeholder="t('create-account.contact-form.city')" aria-label="city" />
+          <UInput v-model="city" :placeholder="t('createAccount.contactForm.city')" aria-label="city" />
         </UFormGroup>
         <UFormGroup name="province" class="d:pr-[16px] flex-grow mobile:mb-[16px]">
-          <UInput v-model="province" :placeholder="t('create-account.contact-form.province')" aria-label="province" />
+          <UInput v-model="province" :placeholder="t('createAccount.contactForm.province')" aria-label="province" />
         </UFormGroup>
         <UFormGroup name="postalCode" class="flex-grow mobile:mb-[16px]">
           <UInput
             v-model="postalCode"
-            :placeholder="t('create-account.contact-form.postalCode')"
+            :placeholder="t('createAccount.contactForm.postalCode')"
             aria-label="postal code"
           />
         </UFormGroup>

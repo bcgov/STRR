@@ -14,8 +14,7 @@ const { handlePaymentRedirect } = useFees()
 export const submitCreateAccountForm = (
   userFirstName: string,
   userLastName: string,
-  selectedAccountId: string,
-  addSecondaryContact: boolean,
+  hasSecondaryContact: boolean,
   propertyType: string,
   ownershipType: string
 ) => {
@@ -23,8 +22,7 @@ export const submitCreateAccountForm = (
     formState,
     userFirstName,
     userLastName,
-    selectedAccountId,
-    addSecondaryContact,
+    hasSecondaryContact,
     propertyType,
     ownershipType
   )
@@ -59,17 +57,30 @@ const emailError = { message: 'Email must contain @ symbol and domain' }
 const requiredPhone = z.string().regex(phoneRegex, phoneError)
 const requiredEmail = z.string().regex(emailRegex, emailError)
 const requiredNumber = z.string().regex(numbersRegex, { message: 'Must be a number' })
-const optionalNumber = z.string().refine(val => val === '' ||
-  numbersRegex.test(val), { message: 'Must be a number' }).optional()
-const optionalPID = z.string().refine(val => val === '' ||
-  pidRegex.test(val), { message: 'If provided this value must be in the format 111-111-111' }).optional()
+const optionalNumber = z
+  .string()
+  .refine(val => val === '' || numbersRegex.test(val), { message: 'Must be a number' })
+  .optional()
+const optionalPID = z
+  .string()
+  .refine(val => val === '' || pidRegex.test(val), {
+    message: 'If provided this value must be in the format 111-111-111'
+  })
+  .optional()
 const requiredSin = z
   .string()
   .regex(sinRegex, { message: 'Social Insurance Number must be provided in the format 111 111 111' })
-const optionalSin = z.string().refine(val => val === '' ||
-  sinRegex.test(val), { message: 'Social Insurance Number must be provided in the format 111 111 111' }).optional()
+const optionalSin = z
+  .string()
+  .refine(val => val === '' || sinRegex.test(val), {
+    message: 'Social Insurance Number must be provided in the format 111 111 111'
+  })
+  .optional()
 const optionalExtension = optionalNumber
-const optionalOrEmptyString = z.string().optional().transform(e => e === '' ? undefined : e)
+const optionalOrEmptyString = z
+  .string()
+  .optional()
+  .transform(e => (e === '' ? undefined : e))
 const requiredNonEmptyString = z.string().refine(e => e !== '', 'Field cannot be empty')
 
 export const finalizationSchema = z.object({
@@ -195,8 +206,7 @@ export const propertyDetailsSchema = z.object({
   parcelIdentifier: optionalPID,
   postalCode: requiredNonEmptyString,
   propertyType: requiredNonEmptyString,
-  province: requiredNonEmptyString
-    .refine(province => province === 'BC', { message: 'Province must be set to BC' }),
+  province: requiredNonEmptyString.refine(province => province === 'BC', { message: 'Province must be set to BC' }),
   useMailing: z.boolean()
 })
 
@@ -283,9 +293,6 @@ const secondaryContactAPI: ContactAPII = {
 }
 
 export const formDataForAPI: CreateAccountFormAPII = {
-  selectedAccount: {
-    sbc_account_id: ''
-  },
   registration: {
     primaryContact: primaryContactAPI,
     secondaryContact: secondaryContactAPI,

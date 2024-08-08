@@ -1,6 +1,6 @@
 export const useChipFlavour = () => {
   const t = useNuxtApp().$i18n.t
-  const tRegistryDashboardStatus = (translationKey: string) => t(`registry-dashboard.statusChip.${translationKey}`)
+  const tRegistryDashboardStatus = (translationKey: string) => t(`registryDashboard.statusChip.${translationKey}`)
 
   const getChipFlavour = (status: string): StatusChipFlavoursI['flavour'] => {
     switch (status) {
@@ -33,6 +33,11 @@ export const useChipFlavour = () => {
         return {
           alert: AlertsFlavourE.APPLIED,
           text: tRegistryDashboardStatus('underReview')
+        }
+      case 'SUBMITTED':
+        return {
+          alert: AlertsFlavourE.APPLIED,
+          text: tRegistryDashboardStatus('submitted')
         }
       default:
         return {

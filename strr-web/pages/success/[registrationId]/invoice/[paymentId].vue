@@ -9,11 +9,11 @@
       <img
         class="self-start mr-[10px] mt-[2px] mobile:[mb-8px]"
         src="/icons/create-account/check_circle.svg"
-        :alt="tApplicationConfirm('confirm-alt')"
+        :alt="tApplicationConfirm('altTextConfirm')"
       >
       <div>
         <p class="mb-[24px] mobile:[mb-8px]">
-          {{ tApplicationConfirm('submitted-for') }}
+          {{ tApplicationConfirm('submittedForProperty') }}
         </p>
         <p class="mb-[24px] font-bold">
           {{
@@ -22,7 +22,7 @@
               : '-' }}
         </p>
         <p class="mobile:mb-[24px]">
-          {{ tApplicationConfirm('will-review') }}
+          {{ tApplicationConfirm('teamWillReview') }}
         </p>
       </div>
     </div>
@@ -34,13 +34,13 @@
       </p>
       <p class="mb-[24px]">
         <!-- eslint-disable-next-line max-len -->
-        <a @click="goToAccountInfo">{{ tApplicationConfirm('bc-reg-link') }}</a> {{ tApplicationConfirm('update') }}
+        <a @click="goToAccountInfo">{{ tApplicationConfirm('bcrosLink') }}</a> {{ tApplicationConfirm('update') }}
       </p>
       <p class="mb-[24px]">
-        {{ tApplicationConfirm('have-another') }}
+        {{ tApplicationConfirm('haveAnotherProperty') }}
       </p>
       <BcrosButtonsPrimary
-        :text="tApplicationConfirm('start-new')"
+        :label="tApplicationConfirm('startNewApplication')"
         :action="() => navigateTo('/create-account')"
         class-name="font-bold"
       />
@@ -53,7 +53,7 @@
 const route = useRoute()
 const fetchedRegistration = ref()
 const t = useNuxtApp().$i18n.t
-const tApplicationConfirm = (translationKey: string) => t(`create-account.application-confirm.${translationKey}`)
+const tApplicationConfirm = (translationKey: string) => t(`createAccount.applicationConfirm.${translationKey}`)
 
 const { goToAccountInfo } = useBcrosNavigate()
 const { getRegistration } = useRegistrations()

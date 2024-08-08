@@ -15,19 +15,19 @@
       <div v-if="!hideButtons">
         <div class="mobile:hidden">
           <BcrosButtonsPrimary
-            :text="tBanner('approve')"
+            :label="tBanner('approve')"
             :action="() => approveRegistration(applicationId.toString())"
             variant="outline"
             class-name="ml-[16px]"
           />
           <BcrosButtonsPrimary
-            :text="tBanner('reject')"
+            :label="tBanner('reject')"
             :action="() => denyRegistration(applicationId.toString())"
             variant="outline"
             class-name="ml-[16px]"
           />
           <BcrosButtonsPrimary
-            :text="tBanner('issue')"
+            :label="tBanner('issue')"
             :action="() => issueRegistration(applicationId.toString())"
             variant="outline"
             class-name="ml-[16px]"

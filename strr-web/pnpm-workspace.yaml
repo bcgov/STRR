@@ -1,5 +1,0 @@
-# pnpm-workspace.yaml
-packages:
-  - 'strr-layouts/**'
-  - 'strr-main-app/**'
-  - 'strr-common-components/**'

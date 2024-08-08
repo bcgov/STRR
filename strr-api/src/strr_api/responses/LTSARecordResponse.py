@@ -13,16 +13,16 @@ class LTSARecord(BaseModel):
     """LTSARecord response object."""
 
     id: int
-    registration_id: int
+    applicationId: int
     record: LtsaResponse
-    creation_date: datetime
+    creationDate: datetime
 
     @classmethod
     def from_db(cls, source: models.LTSARecord):
         """Return an LTSARecord object from a database model."""
         return cls(
             id=source.id,
-            registration_id=source.registration_id,
+            applicationId=source.application_id,
             record=LtsaResponse(**source.record),
-            creation_date=source.creation_date,
+            creationDate=source.creation_date,
         )

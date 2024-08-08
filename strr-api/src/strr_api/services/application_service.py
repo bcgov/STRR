@@ -46,7 +46,6 @@ APPLICATION_TERMINAL_STATES = [Application.Status.APPROVED, Application.Status.R
 APPLICATION_STATES_STAFF_ACTION = [
     Application.Status.APPROVED,
     Application.Status.REJECTED,
-    Application.Status.PROVISIONAL,
     Application.Status.ADDITIONAL_INFO_REQUESTED,
 ]
 
@@ -160,13 +159,33 @@ class ApplicationService:
     def update_application_status(application: Application, application_status: Application.Status, reviewer: User):
         """Updates the application status. If the application status is approved, a new registration is created."""
         application.status = application_status
-        if application.status in [Application.Status.APPROVED, Application.Status.REJECTED]:
-            application.decision_date = datetime.utcnow()
-            application.reviewer_id = reviewer.id
-        application.save()
+
         if application.status == Application.Status.APPROVED:
             registration_request = RegistrationRequest(**application.application_json)
-            RegistrationService.save_registration(
+            registration = RegistrationService.create_registration(
                 application.submitter_id, application.payment_account, registration_request.registration
             )
+            application.registration_id = registration.id
+
+        if application.status in APPLICATION_TERMINAL_STATES:
+            application.decision_date = datetime.utcnow()
+            application.reviewer_id = reviewer.id
+
+        application.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=ApplicationService._get_event_name(application.status),
+            application_id=application.id,
+        )
         return application
+
+    @staticmethod
+    def _get_event_name(application_status: Application.Status) -> str:
+        if application_status == Application.Status.APPROVED:
+            event_name = Events.EventName.MANUALLY_APPROVED
+        elif application_status == Application.Status.REJECTED:
+            event_name = Events.EventName.MANUALLY_DENIED
+        elif application_status == Application.Status.ADDITIONAL_INFO_REQUESTED:
+            event_name = Events.EventName.MORE_INFORMATION_REQUESTED
+        return event_name

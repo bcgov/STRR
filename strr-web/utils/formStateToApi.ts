@@ -2,8 +2,7 @@ export const formStateToApi = (
   formState: CreateAccountFormStateI,
   firstName: string,
   lastName: string,
-  selectedAccountId: string,
-  addSecondaryContact: boolean,
+  hasSecondaryContact: boolean,
   propertyType: string,
   ownershipType: string
 ): CreateAccountFormAPII => {
@@ -54,7 +53,7 @@ export const formStateToApi = (
   }
 
   formData.registration.primaryContact = transformContactData(true)
-  if (addSecondaryContact) {
+  if (hasSecondaryContact) {
     formData.registration.secondaryContact = transformContactData(false)
   } else {
     delete formData.registration.secondaryContact
@@ -79,7 +78,6 @@ export const formStateToApi = (
     ownershipType,
     businessLicense: formState.propertyDetails.businessLicense
   }
-  formData.selectedAccount.sbc_account_id = selectedAccountId
   if (formState.principal.isPrincipal) {
     formData.registration.principalResidence = {
       isPrincipalResidence: formState.principal.isPrincipal ?? false,

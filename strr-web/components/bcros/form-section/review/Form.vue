@@ -2,13 +2,13 @@
   <div data-cy="review-form" class="relative h-full">
     <div class="desktop:mb-[180px] mobile:mb-[32px] rounded-[4px]">
       <div class="bg-white px-[30px] py-[22px] mobile:px-[8px]">
-        <p>{{ tReview('review-instructions') }}</p>
-        <p>{{ tReview('review-instructions-continued') }}</p>
+        <p>{{ tReview('reviewInstructions') }}</p>
+        <p>{{ tReview('reviewInstructionsContinued') }}</p>
       </div>
       <div>
         <div class="mt-[48px]">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
-            {{ tReview('primary-contact') }}
+            {{ tReview('primaryContact') }}
           </p>
           <BcrosFormSectionReviewSubsection
             :state="formState.primaryContact"
@@ -17,7 +17,7 @@
         </div>
         <div v-if="secondaryContact" class="mt-[48px]">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
-            {{ tReview('secondary-contact') }}
+            {{ tReview('secondaryContact') }}
           </p>
           <BcrosFormSectionReviewSubsection
             :state="formState.secondaryContact"
@@ -26,20 +26,20 @@
         </div>
         <div class="mt-[48px]">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
-            {{ tReview('rental-unit') }}
+            {{ tReview('rentalUnitInfo') }}
           </p>
           <div class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
             <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
               <BcrosFormSectionReviewItem
                 :title="tReview('nickname')"
-                :content="formState.propertyDetails.nickname === '' ? '-': formState.propertyDetails.nickname"
+                :content="formState.propertyDetails.nickname ?? '-'"
               />
               <BcrosFormSectionReviewItem
-                :title="tReview('business-license')"
+                :title="tReview('businessLicense')"
                 :content="formState.propertyDetails.businessLicense ?? '-'"
               />
               <BcrosFormSectionReviewItem
-                :title="tReview('ownership-type')"
+                :title="tReview('ownershipType')"
                 :content="formState.propertyDetails.ownershipType ?? '-'"
               />
             </div>
@@ -63,7 +63,7 @@
                 </p>
               </BcrosFormSectionReviewItem>
               <BcrosFormSectionReviewItem
-                :title="tReview('property-type')"
+                :title="tReview('propertyType')"
                 :content="formState.propertyDetails.propertyType ?? '-'"
               />
               <div class="flex-1" />
@@ -170,7 +170,7 @@ const { secondaryContact, isComplete } = defineProps<{ secondaryContact: boolean
 
 const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
-const tReview = (translationKey: string) => t(`create-account.review.${translationKey}`)
-const tPrincipal = (translationKey: string) => t(`create-account.principal-residence.${translationKey}`)
+const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
+const tPrincipal = (translationKey: string) => t(`createAccount.principalResidence.${translationKey}`)
 
 </script>

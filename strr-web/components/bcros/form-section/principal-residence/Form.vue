@@ -17,20 +17,20 @@
       </div>
       <div class="bg-white py-[22px] px-[30px] mobile:px-[8px] text-bcGovColor-midGray text-[16px]">
         <p class="text-[16px] mb-[16px]">
-          {{ tPrincipalResidence('provincial-rules') }}
+          {{ tPrincipalResidence('provincialRules') }}
           <a
             class="text-bcGovColor-activeBlue underline"
             target="_blank"
             href="https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/straa-definitions#PRdef"
           >
-            {{ tPrincipalResidence('provincial-rules-link') }}
+            {{ tPrincipalResidence('provincialRulesLink') }}
           </a>
-          {{ tPrincipalResidence('provincial-rules-continued') }}
+          {{ tPrincipalResidence('provincialRulesContinued') }}
         </p>
         <URadioGroup
           id="primary-residence-radio"
           v-model="formState.principal.isPrincipal"
-          :legend="tPrincipalResidence('radio-legend')"
+          :legend="tPrincipalResidence('radioLegend')"
           :options="primaryResidenceRadioOptions"
         />
         <UFormGroup
@@ -50,7 +50,7 @@
             @change="(reason: string) => validateReason(reason)"
           />
           <p class="ml-[18px] text-bcGovColor-midGray text-[12px]">
-            {{ tPrincipalResidence('reason-hint') }}
+            {{ tPrincipalResidence('reasonHint') }}
           </p>
         </UFormGroup>
         <UFormGroup
@@ -70,29 +70,29 @@
             @change="(reason: string) => validateOtherReason(reason)"
           />
           <p class="ml-[18px] text-bcGovColor-midGray text-[12px]">
-            {{ tPrincipalResidence('service-hint') }}
+            {{ tPrincipalResidence('serviceHint') }}
           </p>
         </UFormGroup>
       </div>
       <div v-if="formState.principal.isPrincipal">
         <div class="mt-[40px] mobile:mx-[8px]">
-          <p>{{ tPrincipalResidence('required-docs') }}</p>
+          <p>{{ tPrincipalResidence('requiredDocs') }}</p>
           <div class="p-[16px] flex flex-row text-blue-500 text-[16px]">
             <img alt="Information icon" class="mr-[4px]" src="/icons/create-account/info.svg">
-            <p>{{ tPrincipalResidence('doc-requirements') }}</p>
+            <p>{{ tPrincipalResidence('docRequirements') }}</p>
           </div>
         </div>
         <div class="mb-[40px] bg-white rounded-[4px] pb-[40px]">
           <div class="bg-bcGovColor-gray2 rounded-t-[4px]">
             <p class="px-[40px] py-[15px] font-bold">
-              {{ tPrincipalResidence('doc-details') }}
+              {{ tPrincipalResidence('docDetails') }}
             </p>
           </div>
           <BcrosFormSection
-            :title="tPrincipalResidence('file-upload')"
+            :title="tPrincipalResidence('fileUpload')"
           >
             <p class="mb-[16px]">
-              {{ tPrincipalResidence('upload-multiple') }}
+              {{ tPrincipalResidence('uploadMultiple') }}
             </p>
             <div class="flex flex-row items-center">
               <img class="mr-[4px]" src="/icons/create-account/attach.svg" alt="Paperclip icon">
@@ -108,7 +108,7 @@
               </UFormGroup>
             </div>
             <p class="text-[12px] ml-[58px] mt-[4px] mb-[12px] text-bcGovColor-midGray">
-              {{ tPrincipalResidence('file-reqs') }}
+              {{ tPrincipalResidence('fileRequirements') }}
             </p>
             <div v-for="(supportingDocument, index) in formState.supportingDocuments" :key="supportingDocument.name">
               <div class="flex flex-row items-center">
@@ -153,7 +153,7 @@
 
 <script setup lang="ts">
 const t = useNuxtApp().$i18n.t
-const tPrincipalResidence = (translationKey: string) => t(`create-account.principal-residence.${translationKey}`)
+const tPrincipalResidence = (translationKey: string) => t(`createAccount.principalResidence.${translationKey}`)
 
 const reasonError = ref()
 const otherReasonError = ref()
@@ -210,7 +210,7 @@ const primaryResidenceRadioOptions = [{
 }]
 
 const exemptionReasons: string[] = [
-  tPrincipalResidence('exempt-community'),
+  tPrincipalResidence('exemptCommunity'),
   tPrincipalResidence('eligible'),
   tPrincipalResidence('farm'),
   tPrincipalResidence('other')
@@ -222,7 +222,7 @@ const otherExemptionReasons: string[] = [
   tPrincipalResidence('exchange'),
   tPrincipalResidence('lodge'),
   tPrincipalResidence('institution'),
-  tPrincipalResidence('strata-guest')
+  tPrincipalResidence('strataGuest')
 ]
 
 </script>

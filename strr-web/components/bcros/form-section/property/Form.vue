@@ -3,7 +3,7 @@
     <div class="desktop:mb-[180px] mobile:mb-[32px] bg-white rounded-[4px]">
       <div class="bg-bcGovColor-gray2 rounded-t-[4px]">
         <p class="px-[40px] py-[15px] font-bold">
-          {{ t('create-account.property-form.subtitle') }}
+          {{ t('createAccount.propertyForm.subtitle') }}
         </p>
       </div>
       <UForm ref="form" :schema="propertyDetailsSchema" :state="formState.propertyDetails">
@@ -145,17 +145,17 @@ defineEmits<{
 }>()
 
 const propertyTypes: string[] = [
-  t('create-account.property-form.primaryDwelling'),
-  t('create-account.property-form.secondarySuite'),
-  t('create-account.property-form.accessory'),
-  t('create-account.property-form.float'),
-  t('create-account.property-form.other')
+  t('createAccount.propertyForm.primaryDwelling'),
+  t('createAccount.propertyForm.secondarySuite'),
+  t('createAccount.propertyForm.accessory'),
+  t('createAccount.propertyForm.float'),
+  t('createAccount.propertyForm.other')
 ]
 
 const ownershipTypes: string[] = [
-  t('create-account.property-form.rent'),
-  t('create-account.property-form.own'),
-  t('create-account.property-form.other')
+  t('createAccount.propertyForm.rent'),
+  t('createAccount.propertyForm.own'),
+  t('createAccount.propertyForm.other')
 ]
 
 const propertyTypeError = ref('')

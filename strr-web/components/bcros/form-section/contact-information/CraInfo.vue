@@ -1,6 +1,6 @@
 <template>
   <div data-cy="form-section-cra-info">
-    <BcrosFormSection :title="t('create-account.contact-form.cra')">
+    <BcrosFormSection :title="t('createAccount.contactForm.cra')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:flex-col mobile:mb-[16px]">
         <UFormGroup name="socialInsuranceNumber" class="flex-grow">
           <UInput
@@ -9,8 +9,8 @@
             aria-label="social insurance number"
             :placeholder="
               `${isPrimary
-                ? t('create-account.contact-form.socialInsuranceNumber')
-                : t('create-account.contact-form.socialInsuranceNumberOptional')}`
+                ? t('createAccount.contactForm.socialInsuranceNumber')
+                : t('createAccount.contactForm.socialInsuranceNumberOptional')}`
             "
           />
         </UFormGroup>
@@ -21,7 +21,7 @@
             v-model="businessNumber"
             type="text"
             aria-label="business number"
-            :placeholder="t('create-account.contact-form.businessNumber')"
+            :placeholder="t('createAccount.contactForm.businessNumber')"
           />
         </UFormGroup>
       </div>

@@ -24,7 +24,14 @@ class Registration:
     """Registration payload object."""
 
     def __init__(
-        self, primaryContact, unitAddress, unitDetails, listingDetails, principalResidence, secondaryContact=None
+        self,
+        primaryContact,
+        unitAddress,
+        unitDetails,
+        listingDetails,
+        principalResidence,
+        secondaryContact=None,
+        documents=[],
     ):
         self.primaryContact = Contact(**primaryContact)
         self.secondaryContact = None
@@ -34,6 +41,7 @@ class Registration:
         self.unitDetails = UnitDetails(**unitDetails)
         self.listingDetails = [ListingDetails(**item) for item in listingDetails]
         self.principalResidence = PrincipalResidence(**principalResidence)
+        self.documents = [Document(**document) for document in documents]
 
 
 class PrincipalResidence:
@@ -121,3 +129,10 @@ class Contact:
         self.businessNumber = businessNumber
         self.details = ContactDetails(**details)
         self.mailingAddress = MailingAddress(**mailingAddress)
+
+
+class Document:
+    def __init__(self, fileName: str, fileType: str, fileKey: str):
+        self.fileName = fileName
+        self.fileKey = fileKey
+        self.fileType = fileType

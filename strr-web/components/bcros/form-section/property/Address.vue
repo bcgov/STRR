@@ -1,9 +1,9 @@
 <template>
   <div data-cy="form-section-address">
-    <BcrosFormSection :title="t('create-account.property-form.rentalUnitAddress')">
+    <BcrosFormSection :title="t('createAccount.propertyForm.rentalUnitAddress')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="nickname" class="d:pr-[16px] flex-grow">
-          <UInput v-model="nickname" aria-label="nickname" :placeholder="t('create-account.property-form.nickname')" />
+          <UInput v-model="nickname" aria-label="nickname" :placeholder="t('createAccount.propertyForm.nickname')" />
         </UFormGroup>
       </div>
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
@@ -11,7 +11,7 @@
           <UCheckbox
             v-model="useMailing"
             aria-label="use mailing address"
-            :label="t('create-account.property-form.useMailing')"
+            :label="t('createAccount.propertyForm.useMailing')"
           />
         </UFormGroup>
       </div>
@@ -31,7 +31,7 @@
           <UInput
             :id="id"
             v-model="address"
-            :placeholder="t('create-account.contact-form.address')"
+            :placeholder="t('createAccount.contactForm.address')"
             aria-label="address"
             @keypress.once="addressComplete()"
             @click="addressComplete()"
@@ -43,13 +43,13 @@
           <UInput
             v-model="addressLineTwo"
             aria-label="address line two"
-            :placeholder="t('create-account.contact-form.addressLineTwo')"
+            :placeholder="t('createAccount.contactForm.addressLineTwo')"
           />
         </UFormGroup>
       </div>
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:flex-col mobile:mb-[16px]">
         <UFormGroup name="city" class="d:pr-[16px] flex-grow mobile:mb-[16px]">
-          <UInput v-model="city" aria-label="city" :placeholder="t('create-account.contact-form.city')" />
+          <UInput v-model="city" aria-label="city" :placeholder="t('createAccount.contactForm.city')" />
         </UFormGroup>
         <UFormGroup
           name="province"
@@ -59,7 +59,7 @@
           <UInput
             v-model="province"
             aria-label="province"
-            :placeholder="t('create-account.contact-form.province')"
+            :placeholder="t('createAccount.contactForm.province')"
             disabled
           />
         </UFormGroup>
@@ -67,7 +67,7 @@
           <UInput
             v-model="postalCode"
             aria-label="postal code"
-            :placeholder="t('create-account.contact-form.postalCode')"
+            :placeholder="t('createAccount.contactForm.postalCode')"
           />
         </UFormGroup>
       </div>

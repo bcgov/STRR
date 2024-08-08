@@ -36,10 +36,9 @@
           <BcrosButtonsPrimary
             :action="() => chooseButtonAction(account)"
             icon="i-mdi-chevron-right"
-            :label="buttonText"
-            :text="buttonText"
+            :label="useAccountButton"
             :trailing="true"
-            class="mobile:grow"
+            class-name="mobile:grow"
           />
         </div>
       </div>
@@ -49,11 +48,10 @@
     <BcrosButtonsPrimary
       :action="createButtonAction"
       icon="i-mdi-chevron-right"
-      :label="buttonText"
-      :text="createAccountButtonText"
+      :label="createAccountButtonText"
       :trailing="true"
       variant="outline"
-      class="mobile:grow px-[8px]"
+      class-name="mobile:grow px-[8px]"
     />
   </div>
 </template>
@@ -66,8 +64,6 @@ const t = useNuxtApp().$i18n.t
 const { goToCreateAccount, goToCreateSbcAccount } = useBcrosNavigate()
 const { switchCurrentAccount } = useBcrosAccount()
 
-const buttonText = t('account.existing-account-section.use-account-button')
-
 const createButtonAction = () => {
   goToCreateSbcAccount()
 }
@@ -78,6 +74,7 @@ const chooseButtonAction = (account: OrgI) => {
   goToCreateAccount()
 }
 
-const createAccountButtonText = t('account.existing-account-section.create-account-button')
+const useAccountButton = t('account.existingAccountSection.useAccountButton')
+const createAccountButtonText = t('account.existingAccountSection.createAccountButton')
 
 </script>

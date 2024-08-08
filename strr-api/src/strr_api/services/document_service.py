@@ -31,56 +31,50 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""Application Specific Exceptions, to manage api errors."""
-from dataclasses import dataclass
-from http import HTTPStatus
+# pylint: disable=R0913
+# pylint: disable=E1102
+"""Manages registration model interactions."""
+from strr_api.models import Document, Eligibility
+from strr_api.services.gcp_storage_service import GCPStorageService
 
 
-@dataclass
-class BaseExceptionE(Exception):
-    """Base exception class for custom exceptions."""
+class DocumentService:
+    """Service to manage documents."""
 
-    error: str = None
-    message: str = None
-    status_code: HTTPStatus = None
+    @classmethod
+    def upload_document(cls, file_name, file_type, file_contents):
+        """Uploads the document to GCP."""
 
+        blob_name = GCPStorageService.upload_registration_document(file_type, file_contents)
+        file_key = blob_name
+        response = {
+            "fileName": file_name,
+            "fileType": file_type,
+            "fileKey": file_key,
+        }
+        return response
 
-@dataclass
-class ValidationException(BaseExceptionE):
-    """Request validation exception."""
+    @classmethod
+    def delete_document(cls, document_path):
+        """Delete document using document path."""
+        GCPStorageService.delete_registration_document(document_path)
+        return True
 
-    error = None
+    @classmethod
+    def get_registration_documents(cls, registration_id):
+        """Get registration documents by registration id."""
+        return (
+            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
+            .filter(Eligibility.registration_id == registration_id)
+            .all()
+        )
 
-    def __post_init__(self):
-        """Return a valid ValidationException."""
-        self.error = "Validation Error"
-        if not self.message:
-            self.message = "Invalid request."
-        if not self.status_code:
-            self.status_code = HTTPStatus.BAD_REQUEST
-
-
-@dataclass
-class AuthException(BaseExceptionE):
-    """Authorization/Authentication exception."""
-
-    def __post_init__(self):
-        """Return a valid AuthorizationException."""
-        self.error = f"{self.error}, {self.status_code}"
-        if not self.message:
-            self.message = "Unauthorized access."
-        if not self.status_code:
-            self.status_code = HTTPStatus.FORBIDDEN
-
-
-@dataclass
-class ExternalServiceException(BaseExceptionE):
-    """3rd party service exception."""
-
-    def __post_init__(self):
-        """Return a valid ExternalServiceException."""
-        if not self.message:
-            self.message = "3rd party service error while processing request."
-        self.error = f"{repr(self.error)}, {self.status_code}"
-        if not self.status_code:
-            self.status_code = HTTPStatus.BAD_GATEWAY
+    @classmethod
+    def get_registration_document(cls, registration_id, document_id):
+        """Get registration document by id."""
+        return (
+            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
+            .filter(Eligibility.registration_id == registration_id)
+            .filter(Document.id == document_id)
+            .one_or_none()
+        )

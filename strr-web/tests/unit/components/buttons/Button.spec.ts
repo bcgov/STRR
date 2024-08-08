@@ -18,7 +18,7 @@ it('can mount Button component', async () => {
       props: {
         action: mockFn,
         icon: 'i-mdi-hamburger',
-        text: buttonText
+        label: buttonText
       }
     })
   expect(button.find('[data-cy="button"]').exists()).toBe(true)

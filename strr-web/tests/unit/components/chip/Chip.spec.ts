@@ -11,7 +11,7 @@ const i18n = createI18n({
 it('can mount Chip component', async () => {
   const t = useNuxtApp().$i18n.t
   const { getChipFlavour } = useChipFlavour()
-  const tRegistryDashboardStatus = (translationKey: string) => t(`registry-dashboard.statusChip.${translationKey}`)
+  const tRegistryDashboardStatus = (translationKey: string) => t(`registryDashboard.statusChip.${translationKey}`)
 
   const chip = await mountSuspended(BcrosChip,
     {

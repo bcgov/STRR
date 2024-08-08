@@ -38,7 +38,6 @@ from .certificate import Certificate
 from .db import db  # noqa: I001
 from .dss import DSSOrganization
 from .events import Events
-from .invoice import Invoice
 from .ltsa import LTSARecord
 from .rental import Address, Document, Eligibility, PropertyManager, Registration, RentalPlatform, RentalProperty
 from .user import Contact, User
@@ -56,8 +55,8 @@ __all__ = (
     "Eligibility",
     "Document",
     "Events",
-    "Invoice",
     "DSSOrganization",
     "AutoApprovalRecord",
     "LTSARecord",
+    "Certificate",
 )
