@@ -38,9 +38,10 @@ STRR Application Resource.
 
 import logging
 from http import HTTPStatus
+from io import BytesIO
 
 from flasgger import swag_from
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
@@ -446,6 +447,64 @@ def upload_registration_supporting_document(application_id):
         return exception_response(auth_exception)
     except ExternalServiceException as service_exception:
         return exception_response(service_exception)
+
+
+@bp.route("/<application_id>/documents/<document_key>", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def get_document(application_id, document_key):
+    """
+    Get document.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application Id
+      - in: path
+        name: file_key
+        type: string
+        required: true
+        description: File key from the upload document response
+    responses:
+      204:
+        description:
+      401:
+        description:
+      403:
+        description:
+      502:
+        description:
+    """
+
+    try:
+        # only allow fetch for applications that belong to the user
+        application = ApplicationService.get_application(application_id=application_id)
+        if not application:
+            raise AuthException()
+        application_documents = [
+            doc
+            for doc in application.application_json.get("registration").get("documents", [])
+            if doc.get("fileKey") == document_key
+        ]
+        if not application_documents:
+            return error_response(ErrorMessage.DOCUMENT_NOT_FOUND.value, HTTPStatus.BAD_REQUEST)
+        document = application_documents[0]
+        file_content = DocumentService.get_document_by_key(document_key)
+        return send_file(
+            BytesIO(file_content),
+            as_attachment=True,
+            download_name=document.get("fileName"),
+            mimetype=document.get("fileType"),
+        )
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except ExternalServiceException as external_exception:
+        return exception_response(external_exception)
 
 
 @bp.route("/<application_id>/documents/<document_key>", methods=("DELETE",))

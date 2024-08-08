@@ -78,3 +78,8 @@ class DocumentService:
             .filter(Document.id == document_id)
             .one_or_none()
         )
+
+    @classmethod
+    def get_document_by_key(cls, file_key: str):
+        """Get registration document by file_key."""
+        return GCPStorageService.fetch_registration_document(blob_name=file_key)

@@ -23,7 +23,7 @@ class SelectedAccount:
 class Registration:
     """Registration payload object."""
 
-    def __init__(
+    def __init__(  # pylint: disable=W0102
         self,
         primaryContact,
         unitAddress,
@@ -31,7 +31,7 @@ class Registration:
         listingDetails,
         principalResidence,
         secondaryContact=None,
-        documents=[],
+        documents=[],  # pylint: disable=W0102
     ):
         self.primaryContact = Contact(**primaryContact)
         self.secondaryContact = None
@@ -132,6 +132,7 @@ class Contact:
 
 
 class Document:
+    """Document object."""
     def __init__(self, fileName: str, fileType: str, fileKey: str):
         self.fileName = fileName
         self.fileKey = fileKey
