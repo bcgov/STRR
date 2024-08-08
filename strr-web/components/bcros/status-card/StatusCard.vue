@@ -20,7 +20,7 @@
       <BcrosButtonsPrimary
         :action="() => navigateTo(`/application-details/${applicationId}`, { open: { target: '_blank' } })"
         :label="tRegistrationStatus('view')"
-        class-name="px-4 py-1"
+        class-name="px-4 py-1 mobile:grow-0"
         variant="ghost"
       />
 
@@ -28,7 +28,7 @@
         v-if="isCertificateIssued"
         :action="() => downloadCertificate(applicationId.toString())"
         :label="tRegistrationStatus('download')"
-        class-name="px-4 py-1"
+        class-name="px-4 py-1 mobile:grow-0"
         variant="ghost"
       />
     </div>
