@@ -3,11 +3,14 @@
     <BcrosTypographyH1
       :text="tRegistrationStatus('title')"
       data-cy="accountPageTitle"
-      class-name="mobile:mx-[8px] pb-[32px] mobile:pb-[24px]"
+      class-name="pb-[32px] mobile:pb-[24px]"
     />
     <div>
-      <div class="px-[8px] flex flex-row justify-between">
-        <BcrosTypographyH2 :text="tRegistrationStatus('myRegApplication')" class-name="mobile:pt-[0px]" />
+      <div class="flex flex-row justify-between">
+        <BcrosTypographyH2
+          :text="`${tRegistrationStatus('myRegApplication')} (${applicationsCount})`"
+          class-name="mobile:pt-[0px]"
+        />
         <BcrosButtonsPrimary
           :label="tRegistrationStatus('create')"
           :action="() => navigateTo('/create-account')"
@@ -70,7 +73,7 @@
         </div>
       </div>
     </div>
-    <div class="w-full h-[120px] bg-white desktop:hidden flex justify-center items-center p-[8px]">
+    <div class="w-full h-[120px] desktop:hidden flex justify-center items-center">
       <BcrosButtonsPrimary
         :label="tRegistrationStatus('create')"
         :action="() => navigateTo('/create-account')"
@@ -84,7 +87,7 @@
 import { ApplicationI } from '~/interfaces/application-i'
 
 definePageMeta({
-  layout: 'wide-gutters'
+  layout: 'wide-no-space'
 })
 
 const tRegistrationStatus = (translationKey: string) => useTranslation().t(`registrationStatus.${translationKey}`)
@@ -93,5 +96,5 @@ const { getApplications } = useApplications()
 const { getChipFlavour } = useChipFlavour()
 const applications = ref<(ApplicationI | undefined)[]>()
 applications.value = await getApplications()
-
+const applicationsCount = applications.value?.length || 0
 </script>
