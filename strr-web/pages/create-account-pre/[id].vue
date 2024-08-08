@@ -89,7 +89,7 @@ onMounted(() => {
   updateFees()
 })
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const { userFullName, userFirstName, userLastName } = useBcrosAccount()
 
 const toggleAddSecondary = () => {

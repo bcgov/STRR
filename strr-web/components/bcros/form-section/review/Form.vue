@@ -164,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 const { secondaryContact, isComplete } = defineProps<{ secondaryContact: boolean, isComplete: boolean }>()
 

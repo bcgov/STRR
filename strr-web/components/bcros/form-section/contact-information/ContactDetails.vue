@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 const { isPrimary } = defineProps<{
   isPrimary: boolean

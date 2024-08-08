@@ -103,7 +103,7 @@
 <script setup lang="ts">
 import { SbcCreationResponseE } from '~/enums/sbc-creation-response-e'
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tFinalization = (translationKey: string) => t(`finalization.${translationKey}`)
 const { userFullName } = useBcrosAccount()
 const { createSbcRegistration } = useRegistrations()

@@ -229,7 +229,7 @@
 import { propertyTypeMap } from '~/utils/propertyTypeMap'
 
 const route = useRoute()
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
 const tApplicationDetails = (translationKey: string) => t(`applicationDetails.${translationKey}`)
 const tPropertyForm = (translationKey: string) => t(`createAccount.propertyForm.${translationKey}`)

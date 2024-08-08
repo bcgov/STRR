@@ -48,7 +48,7 @@ import { AlertsFlavourE } from '#imports'
 import { AutoApprovalDataI } from '~/interfaces/auto-approval-data-i'
 
 const route = useRoute()
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
 const tApplicationDetails = (translationKey: string) => t(`applicationDetails.${translationKey}`)
 const tAutoApproval = (translationKey: string) => t(`autoApproval.${translationKey}`)

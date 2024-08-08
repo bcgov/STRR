@@ -152,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tPrincipalResidence = (translationKey: string) => t(`createAccount.principalResidence.${translationKey}`)
 
 const reasonError = ref()

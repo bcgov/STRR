@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
 

@@ -84,7 +84,7 @@ import hamburgerIcon from '~/assets/icons/hamburger.svg'
 
 const props = defineProps<{ personMode?: boolean }>()
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const {
   goToAccountInfo,
   goToBcrosHome,

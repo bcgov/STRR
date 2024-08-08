@@ -92,6 +92,6 @@ const emit = defineEmits<{
   changeStep: [stepIndex: number] // named tuple syntax
 }>()
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 </script>

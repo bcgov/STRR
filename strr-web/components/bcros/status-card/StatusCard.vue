@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import { AlertsFlavourE, RegistrationStatusE, ApplicationStatusE } from '#imports'
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
 
 const { getCertificate } = useRegistrations()

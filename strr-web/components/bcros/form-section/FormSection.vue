@@ -26,6 +26,6 @@ const { title, optional, divider, className } = defineProps<{
   className?: string
 }>()
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 </script>

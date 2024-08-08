@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 const propertyType = defineModel<string>('propertyType')
 const ownershipType = defineModel<string>('ownershipType')

@@ -9,7 +9,7 @@ const i18n = createI18n({
 })
 
 it('can mount Chip component', async () => {
-  const t = useNuxtApp().$i18n.t
+  const { t } = useTranslation()
   const { getChipFlavour } = useChipFlavour()
   const tRegistryDashboardStatus = (translationKey: string) => t(`registryDashboard.statusChip.${translationKey}`)
 

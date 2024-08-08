@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tTos = (translationKey: string) => t(`tos.${translationKey}`)
 
 const { updateTosAcceptance, acceptTos } = useBcrosAccount()

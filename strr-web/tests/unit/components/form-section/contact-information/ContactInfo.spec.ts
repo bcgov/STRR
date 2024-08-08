@@ -10,7 +10,7 @@ const i18n = createI18n({
 })
 
 it('can mount primary Contact Form Section component', async () => {
-  const t = useNuxtApp().$i18n.t
+  const { t } = useTranslation()
   const contactDetails = await mountSuspended(BcrosFormSectionContactInformationContactInfo,
     {
       global: { plugins: [i18n] },
@@ -21,7 +21,7 @@ it('can mount primary Contact Form Section component', async () => {
 })
 
 it('can mount secondary Contact Form Section component', async () => {
-  const t = useNuxtApp().$i18n.t
+  const { t } = useTranslation()
   const contactDetails = await mountSuspended(BcrosFormSectionContactInformationContactInfo,
     {
       global: { plugins: [i18n] },

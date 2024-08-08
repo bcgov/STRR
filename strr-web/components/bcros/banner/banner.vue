@@ -61,7 +61,7 @@
 <script setup lang="ts">
 
 const { hideButtons = true } = defineProps<{ hideButtons?: boolean }>()
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tBanner = (text: string) => t(`banner.${text}`)
 const {
   issueRegistration,

@@ -53,7 +53,7 @@
 
 import useScreenSize from '../../../composables/useScreenSize'
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const folded = ref(false)
 const isMobile = ref(false)
 

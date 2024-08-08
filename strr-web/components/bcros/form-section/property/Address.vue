@@ -78,7 +78,7 @@
 <script setup lang="ts">
 import { CountryItem } from '@/interfaces/address-i'
 import countries from '@/utils/countries.json'
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 const country = defineModel<string>('country')
 const address = defineModel<string>('address')
