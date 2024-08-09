@@ -133,6 +133,7 @@ class Contact:
 
 class Document:
     """Document object."""
+
     def __init__(self, fileName: str, fileType: str, fileKey: str):
         self.fileName = fileName
         self.fileKey = fileKey
