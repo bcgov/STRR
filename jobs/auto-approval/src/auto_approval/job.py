@@ -14,10 +14,16 @@
 """Auto Approval Job."""
 import logging
 import os
+from datetime import datetime, timedelta, timezone
 
 import sentry_sdk
 from flask import Flask
+from pg8000.dbapi import ProgrammingError
 from sentry_sdk.integrations.logging import LoggingIntegration
+from sqlalchemy.exc import SQLAlchemyError
+from strr_api.models import db
+from strr_api.models.application import Application
+from strr_api.services import ApprovalService, AuthService
 
 from auto_approval.config import CONFIGURATION
 from auto_approval.utils.logging import setup_logging
@@ -35,9 +41,7 @@ def create_app(run_mode=os.getenv("FLASK_ENV", "production")):
     # Configure Sentry
     if app.config.get("SENTRY_DSN", None):
         sentry_sdk.init(dsn=app.config.get("SENTRY_DSN"), integrations=[SENTRY_LOGGING])
-
     register_shellcontext(app)
-
     return app
 
 
@@ -51,13 +55,34 @@ def register_shellcontext(app):
     app.shell_context_processor(shell_context)
 
 
+def get_submitted_applications(app):
+    """Retrieve submitted applications for processing."""
+    time_delta = timedelta(
+        minutes=app.config.get("AUTO_APPROVAL_APPLICATION_PROCESSING_DELAY")
+    )
+    cutoff_time = datetime.now(timezone.utc) - time_delta
+    return Application.query.filter(
+        Application.application_date <= cutoff_time,
+        Application.status == Application.Status.PAID,
+    ).all()
+
+
+def process_applications(app, applications):
+    """Process auto-approval for submitted applications."""
+    token = AuthService.get_service_client_token()
+    for application in applications:
+        app.logger.info(f"Auto processing application {str(application.id)}")
+        ApprovalService.process_auto_approval(token=token, application=application)
+
 
 def run():
-    """Applies auto approval logic against STRR applications and updates the application status."""
-    application = create_app()
-    with application.app_context():
+    """Run the auto-approval job."""
+    app = create_app()
+    with app.app_context():
         try:
-            print("Running auto approval job")
-
+            applications = get_submitted_applications(app)
+            process_applications(app, applications)
+        except (SQLAlchemyError, ProgrammingError) as e:
+            app.logger.error(f"Database error: {str(e)}")
         except Exception as err:
-            application.logger.error(err)
+            app.logger.error(f"Unexpected error: {str(err)}")

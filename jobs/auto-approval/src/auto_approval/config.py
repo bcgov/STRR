@@ -48,13 +48,27 @@ class _Config(object):  # pylint: disable=too-few-public-methods
 
     SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 
+    # SVC
+    KEYCLOAK_AUTH_TOKEN_URL = os.getenv("KEYCLOAK_AUTH_TOKEN_URL")
+    STRR_SERVICE_ACCOUNT_CLIENT_ID = os.getenv("STRR_SERVICE_ACCOUNT_CLIENT_ID")
+    STRR_SERVICE_ACCOUNT_SECRET = os.getenv("STRR_SERVICE_ACCOUNT_SECRET")
+
+    # AUTH API
     AUTH_SVC_URL = os.getenv("AUTH_SVC_URL")
+    if not AUTH_SVC_URL:
+        AUTH_SVC_URL = os.getenv("AUTH_API_URL", "") + os.getenv("AUTH_API_VERSION", "")
+
+    # AUTO APPROVAL JOB
+    AUTO_APPROVAL_APPLICATION_PROCESSING_DELAY = int(
+        os.getenv("AUTO_APPROVAL_APPLICATION_PROCESSING_DELAY") or "60"
+    )
 
     DB_USER = os.getenv("DATABASE_USERNAME", "")
     DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
     DB_NAME = os.getenv("DATABASE_NAME", "")
     DB_HOST = os.getenv("DATABASE_HOST", "")
     DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
+
     # POSTGRESQL
     if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
         SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
