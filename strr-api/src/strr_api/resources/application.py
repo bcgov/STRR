@@ -581,7 +581,6 @@ def get_payment_receipt(application_id):
     """
 
     try:
-        # Check whether user is authorized to access the application.
         application = ApplicationService.get_application(application_id=application_id)
         if not application:
             raise AuthException()
