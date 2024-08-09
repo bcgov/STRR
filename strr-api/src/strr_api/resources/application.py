@@ -581,7 +581,7 @@ def get_payment_receipt(application_id):
     """
 
     try:
-        # only allow upload for registrations that belong to the user
+        # Check whether user is authorized to access the application.
         application = ApplicationService.get_application(application_id=application_id)
         if not application:
             raise AuthException()
