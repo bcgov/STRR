@@ -71,6 +71,6 @@ const emitValidate = (index: number) => {
 
 const listingDetails = defineModel<{ url: string }[]>('listingDetails')
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 </script>

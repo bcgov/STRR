@@ -1,4 +1,6 @@
-*Issue:*https://github.com/bcgov/entity/issues/
+*Issue:*
+
+- bcgov/entity/issues/
 
 *Description of changes:*
 

@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import { AlertsFlavourE } from '#imports'
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 const alertFlavour: AlertsFlavourE = AlertsFlavourE.INFO
 

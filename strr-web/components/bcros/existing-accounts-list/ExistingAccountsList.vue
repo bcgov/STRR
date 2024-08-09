@@ -60,7 +60,7 @@
 import { formState } from '@/stores/strr'
 
 const { accounts } = defineProps<{ accounts: OrgI[] }>()
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const { goToCreateAccount, goToCreateSbcAccount } = useBcrosNavigate()
 const { switchCurrentAccount } = useBcrosAccount()
 

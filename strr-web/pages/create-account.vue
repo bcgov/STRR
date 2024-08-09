@@ -83,7 +83,7 @@ const updateFees = async () => {
   fee.value = await getFeeAmount()
 }
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const { userFullName, userFirstName, userLastName, updateTosAcceptance, me } = useBcrosAccount()
 
 const { createApplication } = useApplications()

@@ -9,7 +9,7 @@ const i18n = createI18n({
 })
 
 it('can mount primary CRA Details Form Section component', async () => {
-  const t = useNuxtApp().$i18n.t
+  const { t } = useTranslation()
   const craInfo = await mountSuspended(BcrosFormSectionContactInformationCraInfo,
     {
       global: { plugins: [i18n] },
@@ -20,7 +20,7 @@ it('can mount primary CRA Details Form Section component', async () => {
 })
 
 it('can mount secondary CRA Details Form Section component', async () => {
-  const t = useNuxtApp().$i18n.t
+  const { t } = useTranslation()
   const craInfo = await mountSuspended(BcrosFormSectionContactInformationCraInfo,
     {
       global: { plugins: [i18n] },

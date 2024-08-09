@@ -50,7 +50,7 @@ import axios from 'axios'
 
 const route = useRoute()
 const fetchedRegistration = ref()
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tApplicationConfirm = (translationKey: string) => t(`createAccount.applicationConfirm.${translationKey}`)
 
 const {

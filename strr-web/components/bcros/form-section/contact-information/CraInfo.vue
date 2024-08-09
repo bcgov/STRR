@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 const socialInsuranceNumber = defineModel<string>('socialInsuranceNumber')
 const businessNumber = defineModel<string>('businessNumber')

@@ -125,7 +125,7 @@ import { AlertsFlavourE } from '#imports'
 import { LtsaDataI } from '~/interfaces/ltsa-data-i'
 
 const route = useRoute()
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
 const tApplicationDetails = (translationKey: string) => t(`applicationDetails.${translationKey}`)
 const tLtsa = (translationKey: string) => t(`ltsa.${translationKey}`)

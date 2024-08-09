@@ -118,7 +118,7 @@
 
 <script setup lang="ts">
 import { formState } from '@/stores/strr'
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const monthError = ref('')
 
 const {

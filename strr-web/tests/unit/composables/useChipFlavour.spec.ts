@@ -2,7 +2,7 @@
 import { it, expect } from 'vitest'
 
 const { getChipFlavour } = useChipFlavour()
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 const tRegistryDashboardStatus = (translationKey: string) => t(`registryDashboard.statusChip.${translationKey}`)
 
 it('returns correct value for denied status', () => {

@@ -1,5 +1,5 @@
 export const useChipFlavour = () => {
-  const t = useNuxtApp().$i18n.t
+  const { t } = useTranslation()
   const tRegistryDashboardStatus = (translationKey: string) => t(`registryDashboard.statusChip.${translationKey}`)
 
   const getChipFlavour = (status: string): StatusChipFlavoursI['flavour'] => {

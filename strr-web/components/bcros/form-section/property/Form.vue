@@ -73,7 +73,7 @@ watch(canadaPostAddress, (newAddress) => {
   }
 })
 
-const t = useNuxtApp().$i18n.t
+const { t } = useTranslation()
 
 const isValid = ref(false)
 const listingURLErrors = ref<(({
