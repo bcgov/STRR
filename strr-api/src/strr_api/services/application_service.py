@@ -48,6 +48,7 @@ APPLICATION_STATES_STAFF_ACTION = [
     Application.Status.REJECTED,
     Application.Status.ADDITIONAL_INFO_REQUESTED,
 ]
+APPLICATION_UNPAID_STATES = [Application.Status.DRAFT, Application.Status.SUBMITTED]
 
 
 class ApplicationService:

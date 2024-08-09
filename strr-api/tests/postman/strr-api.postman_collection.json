@@ -497,6 +497,36 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Payment Receipt",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_id}}/payment/receipt",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_id}}",
+								"payment",
+								"receipt"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

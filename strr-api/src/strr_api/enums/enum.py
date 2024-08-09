@@ -135,3 +135,4 @@ class ErrorMessage(Enum):
     APPLICATION_TERMINAL_STATE = "Application has reached the final state."
     PROCESSING_ERROR = "An error occurred while processing the request."
     DOCUMENT_NOT_FOUND = "Document not found."
+    APPLICATION_NOT_PAID = "Application does not have a payment record."

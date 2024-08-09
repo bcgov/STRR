@@ -40,7 +40,7 @@ from flask import Flask
 from flask_jwt_oidc import JwtManager
 
 from strr_api.exceptions import ExternalServiceException
-from strr_api.models import Events
+from strr_api.models import Application, Events
 from strr_api.services.events_service import EventsService
 
 
@@ -115,3 +115,31 @@ class PayService:
             url=self.svc_url + f"/payment-requests/{invoice_id}", headers=headers, timeout=self.timeout
         ).json()
         return payment_details
+
+    def get_payment_receipt(self, user_jwt: JwtManager, application: Application):
+        """Gets the payment receipt of an application."""
+        token = user_jwt.get_token_auth_header()
+        url = f"{self.svc_url}/payment-requests/{application.invoice_id}/receipts"
+        headers = {
+            "Accept": "application/pdf",
+            "Authorization": f"Bearer {token}",
+            "Account-Id": str(application.payment_account),
+        }
+        payload = {
+            "filingDateTime": application.application_date.isoformat(),
+            "effectiveDateTime": "",
+            "filingIdentifier": str(application.id),
+        }
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers,
+        )
+        if response.status_code != HTTPStatus.CREATED:
+            self.app.logger.error("Failed to get receipt pdf for filing: %s", application.id)
+
+        return self.app.response_class(
+            response=response.content,
+            status=response.status_code,
+            mimetype="application/pdf",
+        )

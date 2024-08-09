@@ -67,7 +67,11 @@ from strr_api.services import (
     UserService,
     strr_pay,
 )
-from strr_api.services.application_service import APPLICATION_STATES_STAFF_ACTION, APPLICATION_TERMINAL_STATES
+from strr_api.services.application_service import (
+    APPLICATION_STATES_STAFF_ACTION,
+    APPLICATION_TERMINAL_STATES,
+    APPLICATION_UNPAID_STATES,
+)
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
 from strr_api.validators.RegistrationRequestValidator import validate_registration_request
 
@@ -547,6 +551,44 @@ def delete_document(application_id, document_key):
 
         DocumentService.delete_document(document_key)
         return "", HTTPStatus.NO_CONTENT
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except ExternalServiceException as external_exception:
+        return exception_response(external_exception)
+
+
+@bp.route("/<application_id>/payment/receipt", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def get_payment_receipt(application_id):
+    """
+    Get application payment receipt.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application Id
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+
+    try:
+        # only allow upload for registrations that belong to the user
+        application = ApplicationService.get_application(application_id=application_id)
+        if not application:
+            raise AuthException()
+
+        if application.status in APPLICATION_UNPAID_STATES:
+            return error_response(ErrorMessage.APPLICATION_NOT_PAID.value, HTTPStatus.BAD_REQUEST)
+        return strr_pay.get_payment_receipt(jwt, application)
     except AuthException as auth_exception:
         return exception_response(auth_exception)
     except ExternalServiceException as external_exception:
