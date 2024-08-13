@@ -242,3 +242,25 @@ def test_post_and_delete_registration_documents(session, client, jwt):
                     ):
                         rv = client.delete(f"/applications/{application_id}/documents/{fileKey}", headers=headers)
                         assert rv.status_code == HTTPStatus.NO_CONTENT
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_applications(session, client, jwt):
+    with open(CREATE_REGISTRATION_MINIMUM_FIELDS_REQUEST) as f:
+        json_data = json.load(f)
+        json_data["registration"]["unitAddress"]["address"] = "12144 GREENWELL ST MAPLE RIDGE"
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.CREATED == rv.status_code
+
+        headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        rv = client.get("/applications/search?text=12177 GREENWELL ST", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        applications = rv.json
+        assert len(applications.get("applications")) == 0
+
+        rv = client.get("/applications/search?text=12144 GREENWELL", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        applications = rv.json
+        assert len(applications.get("applications")) == 1

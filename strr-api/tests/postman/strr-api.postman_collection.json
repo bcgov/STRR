@@ -714,6 +714,54 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Search Applications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"search"
+							],
+							"query": [
+								{
+									"key": "text",
+									"value": "018-851-570"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

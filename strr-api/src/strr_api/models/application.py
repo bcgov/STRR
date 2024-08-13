@@ -39,6 +39,7 @@ import copy
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import backref
+from sqlalchemy_utils.types.ts_vector import TSVectorType
 
 from strr_api.common.enum import BaseEnum, auto
 from strr_api.models.base_model import BaseModel
@@ -83,6 +84,16 @@ class Application(BaseModel):
     registration_id = db.Column("registration_id", db.Integer, db.ForeignKey("registrations.id"), nullable=True)
     submitter_id = db.Column("submitter_id", db.Integer, db.ForeignKey("users.id"))
     reviewer_id = db.Column("reviewer_id", db.Integer, db.ForeignKey("users.id"), nullable=True)
+
+    application_tsv = db.Column(
+        TSVectorType("application_json", regconfig="english"),
+        db.Computed("jsonb_to_tsvector('english', \"application_json\", '[\"string\"]')", persisted=True),
+    )
+
+    __table_args__ = (
+        # Indexing the application_tsv column
+        db.Index("idx_application_tsv", application_tsv, postgresql_using="gin"),
+    )
 
     submitter = db.relationship(
         "User",
@@ -130,6 +141,18 @@ class Application(BaseModel):
     def get_by_registration_id(cls, registration_id: int) -> Application | None:
         """Return the application associated with a given registration_id."""
         return cls.query.filter_by(registration_id=registration_id).one_or_none()
+
+    @classmethod
+    def search_applications(cls, filter_criteria: ApplicationSearch):
+        """Returns the applications matching the search criteria."""
+        query = cls.query
+        if filter_criteria.search_text:
+            query = query.filter(Application.application_tsv.match(filter_criteria.search_text))
+        if filter_criteria.status:
+            query = query.filter_by(status=filter_criteria.status.upper())
+        query = query.order_by(Application.id.desc())
+        paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        return paginated_result
 
 
 class ApplicationSerializer:

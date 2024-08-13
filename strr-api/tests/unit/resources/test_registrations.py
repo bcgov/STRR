@@ -126,28 +126,6 @@ def test_get_registration_by_id_401(client):
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
 
 
-@patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_examiner_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_get_registration_counts_by_status_200(client):
-    rv = client.get("/registrations/counts_by_status")
-    assert rv.status_code == HTTPStatus.OK
-
-
-def test_get_registration_counts_by_status_401(client):
-    rv = client.get("/registrations/counts_by_status")
-    assert rv.status_code == HTTPStatus.UNAUTHORIZED
-
-
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_get_registration_counts_by_status_403(client):
-    rv = client.get("/registrations/counts_by_status")
-    assert rv.status_code == HTTPStatus.FORBIDDEN
-
-
 @pytest.mark.skip(reason="Skipping till issue certificate is rewritten")
 @patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
 @patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)

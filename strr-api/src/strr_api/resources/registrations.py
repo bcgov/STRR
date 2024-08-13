@@ -140,43 +140,6 @@ def get_registrations():
     )
 
 
-@bp.route("/counts_by_status", methods=("GET",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def get_registration_counts_by_status():
-    """
-    Get registrations counts by status.
-    ---
-    tags:
-      - examiner
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-    """
-    try:
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user or not user.is_examiner():
-            raise AuthException()
-
-        counts = RegistrationService.get_registration_counts_by_status()
-        results = {}
-        for row in counts:
-            results[row.status.name] = row.count
-
-        for status in RegistrationStatus:
-            if results.get(status.name) is None:
-                results[status.name] = 0
-
-        return jsonify(results), HTTPStatus.OK
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
 @bp.route("/<registration_id>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")

@@ -37,6 +37,7 @@ from datetime import datetime, timezone
 from strr_api.enums.enum import ApplicationType, PaymentStatus
 from strr_api.models import Application, Events, User
 from strr_api.models.application import ApplicationSerializer
+from strr_api.models.dataclass import ApplicationSearch
 from strr_api.requests import RegistrationRequest
 from strr_api.services.events_service import EventsService
 from strr_api.services.registration_service import RegistrationService
@@ -190,3 +191,18 @@ class ApplicationService:
         elif application_status == Application.Status.ADDITIONAL_INFO_REQUESTED:
             event_name = Events.EventName.MORE_INFORMATION_REQUESTED
         return event_name
+
+    @staticmethod
+    def search_applications(filter_criteria: ApplicationSearch) -> dict:
+        """List all applications matching the search criteria."""
+        paginated_result = Application.search_applications(filter_criteria)
+        search_results = []
+        for item in paginated_result.items:
+            search_results.append(ApplicationService.serialize(item))
+
+        return {
+            "page": filter_criteria.page,
+            "limit": filter_criteria.limit,
+            "applications": search_results,
+            "total": paginated_result.total,
+        }

@@ -38,6 +38,7 @@ from dataclasses import dataclass
 class ApplicationSearch:
     """Used for searching applications."""
 
-    status: str
     page: int
     limit: int
+    status: str
+    search_text: str = None
