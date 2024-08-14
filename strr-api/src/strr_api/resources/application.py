@@ -165,6 +165,40 @@ def get_applications():
         return exception_response(service_exception)
 
 
+@bp.route("/<application_id>", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def get_application_details(application_id):
+    """
+    Get application details
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_id
+        type: integer
+        required: true
+        description: Application Id
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+    """
+
+    try:
+        application = ApplicationService.get_application(application_id)
+        if not application:
+            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+
+
 @bp.route("/<application_id>/payment-details", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")

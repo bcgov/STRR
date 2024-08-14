@@ -48,6 +48,29 @@ def test_get_applications(session, client, jwt):
     assert len(response_json.get("applications")) == 1
 
 
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_get_application_details(session, client, jwt):
+    with open(CREATE_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+
+        assert HTTPStatus.CREATED == rv.status_code
+        application_id = rv.json.get("header").get("id")
+
+        rv = client.get(f"/applications/{application_id}", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert (response_json.get("header").get("id")) == application_id
+
+        rv = client.get(f"/applications/{application_id}")
+        assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+        rv = client.get(f"/applications/{application_id + 1}", headers=headers)
+        assert HTTPStatus.NOT_FOUND == rv.status_code
+
+
 def test_get_applications_invalid_account(session, client, jwt):
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = 456
