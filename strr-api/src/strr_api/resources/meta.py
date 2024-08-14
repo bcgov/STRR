@@ -45,6 +45,15 @@ bp = Blueprint("META", __name__, url_prefix="/meta")
 
 @bp.route("/info")
 def info():
-    """Return a JSON object with meta information about the Service."""
+    """
+    Returns the version of the service.
+
+    ---
+    tags:
+      - ops
+    responses:
+      200:
+        description:
+    """
     version = get_run_version()
     return jsonify(API=f"{__name__[: __name__.find('.')]}/{version}", FrameWork=f"{framework_version}")
