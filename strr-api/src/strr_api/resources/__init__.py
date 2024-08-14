@@ -42,6 +42,7 @@ from flask import Flask
 from .account import bp as account_endpoint
 from .application import bp as application_endpoint
 from .base import bp as base_endpoint
+from .meta import bp as meta_endpoint
 from .ops import bp as ops_endpoint
 from .registrations import bp as registrations_endpoint
 
@@ -83,8 +84,10 @@ def register_endpoints(app: Flask):
         blueprint=application_endpoint,
     )
 
+    app.register_blueprint(meta_endpoint)
+
     app.config["SWAGGER"] = {
-        "title": "STRR API",
+        "title": "Short Term Rental Registry API",
         "specs_route": "/",
         "uiversion": 3,
         "securityDefinitions": {
