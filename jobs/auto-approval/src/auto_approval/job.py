@@ -23,7 +23,6 @@ from flask import Flask
 from pg8000.dbapi import ProgrammingError
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sqlalchemy.exc import SQLAlchemyError
-from strr_api.enums.enum import RegistrationStatus
 from strr_api.models import db
 from strr_api.models.application import Application
 from strr_api.services import ApprovalService, AuthService
