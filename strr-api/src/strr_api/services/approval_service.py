@@ -42,7 +42,7 @@ from typing import Any, Tuple
 from flask import current_app
 
 from strr_api.common.utils import compare_addresses
-from strr_api.enums.enum import OwnershipType, RegistrationStatus
+from strr_api.enums.enum import OwnershipType
 from strr_api.models import Address, Application, AutoApprovalRecord, DSSOrganization, Events
 from strr_api.requests import RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
@@ -213,8 +213,6 @@ class ApprovalService:
                             registration = RegistrationService.create_registration(
                                 application.submitter_id, application.payment_account, registration_request.registration
                             )
-                            registration.status = RegistrationStatus.ACTIVE
-                            registration.save()
                             registration_ident = registration.id
                             EventsService.save_event(
                                 event_type=Events.EventType.REGISTRATION,
@@ -262,8 +260,6 @@ class ApprovalService:
                         registration = RegistrationService.create_registration(
                             application.submitter_id, application.payment_account, registration_request.registration
                         )
-                        registration.status = RegistrationStatus.ACTIVE
-                        registration.save()
                         registration_ident = registration.id
                         EventsService.save_event(
                             event_type=Events.EventType.REGISTRATION,
