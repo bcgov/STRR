@@ -190,7 +190,7 @@ def fake_registration(*args, **kwargs):
         id=1,
         user_id=1,
         sbc_account_id=1000,
-        status=RegistrationStatus.APPROVED,
+        status=RegistrationStatus.ACTIVE,
         submission_date="2021-01-01T00:00:00Z",
         updated_date="2021-01-01T00:00:00Z",
         start_date="2024-07-29T00:00:00Z",

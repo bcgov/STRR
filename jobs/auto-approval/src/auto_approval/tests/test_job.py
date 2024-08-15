@@ -2,8 +2,12 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import ANY, MagicMock, patch
 
-from auto_approval.job import (create_app, get_submitted_applications,
-                               process_applications, run)
+from auto_approval.job import (
+    create_app,
+    get_submitted_applications,
+    process_applications,
+    run,
+)
 
 
 class TestAutoApprovalJob(unittest.TestCase):

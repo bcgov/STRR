@@ -114,7 +114,6 @@ class ApprovalService:
         bcsc_address = AuthService.get_sbc_accounts_mailing_address(token, selected_account.sbc_account_id)
         # Status setting just temporary for visibility
         auto_approval = AutoApproval()
-        registration_status = None
         registration_ident = None
 
         try:
@@ -129,7 +128,7 @@ class ApprovalService:
                     visible_to_applicant=False,
                 )
                 cls.save_approval_record_by_application(application.id, auto_approval)
-                return registration_status, registration_ident
+                return application.status, registration_ident
             else:
                 auto_approval.renting = False
                 if other_service_provider:
@@ -143,7 +142,7 @@ class ApprovalService:
                         visible_to_applicant=False,
                     )
                     cls.save_approval_record_by_application(application.id, auto_approval)
-                    return registration_status, registration_ident
+                    return application.status, registration_ident
                 else:
                     auto_approval.service_provider = False
 
@@ -168,7 +167,7 @@ class ApprovalService:
                             visible_to_applicant=False,
                         )
                         cls.save_approval_record_by_application(application.id, auto_approval)
-                        return registration_status, registration_ident
+                        return application.status, registration_ident
                     else:
                         auto_approval.address_match = True
                         geocode_response = GeoCoderService.get_geocode_by_address(address)
@@ -189,7 +188,7 @@ class ApprovalService:
                                     visible_to_applicant=False,
                                 )
                                 cls.save_approval_record_by_application(application.id, auto_approval)
-                                return registration_status, registration_ident
+                                return application.status, registration_ident
                         else:
                             auto_approval.business_license_not_required_not_provided = True
 
@@ -214,8 +213,7 @@ class ApprovalService:
                             registration = RegistrationService.create_registration(
                                 application.submitter_id, application.payment_account, registration_request.registration
                             )
-                            registration_status = RegistrationStatus.PROVISIONAL
-                            registration.status = registration_status
+                            registration.status = RegistrationStatus.ACTIVE
                             registration.save()
                             registration_ident = registration.id
                             EventsService.save_event(
@@ -236,7 +234,7 @@ class ApprovalService:
                                 visible_to_applicant=False,
                             )
                         cls.save_approval_record_by_application(application.id, auto_approval)
-                        return registration_status, registration_ident
+                        return application.status, registration_ident
                 else:
                     geocode_response = GeoCoderService.get_geocode_by_address(address)
                     longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
@@ -264,8 +262,7 @@ class ApprovalService:
                         registration = RegistrationService.create_registration(
                             application.submitter_id, application.payment_account, registration_request.registration
                         )
-                        registration_status = RegistrationStatus.APPROVED
-                        registration.status = registration_status
+                        registration.status = RegistrationStatus.ACTIVE
                         registration.save()
                         registration_ident = registration.id
                         EventsService.save_event(
@@ -276,7 +273,7 @@ class ApprovalService:
                             visible_to_applicant=False,
                         )
                     cls.save_approval_record_by_application(application.id, auto_approval)
-                    return registration_status, registration_ident
+                    return application.status, registration_ident
         except Exception as default_exception:  # noqa: B902; log error
             current_app.logger.error("Error in auto approval process:" + repr(default_exception))
             current_app.logger.error(auto_approval)

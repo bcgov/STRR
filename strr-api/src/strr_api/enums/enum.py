@@ -70,13 +70,9 @@ class Role(Enum):
 class RegistrationStatus(Enum):
     """STRR Registration Status."""
 
-    PENDING = "pending"
-    APPROVED = "approved"
-    ISSUED = "issued"
-    UNDER_REVIEW = "under review"
-    MORE_INFO_NEEDED = "more info needed"
-    PROVISIONAL = "provisional"
-    DENIED = "denied"
+    ACTIVE = "ACTIVE"
+    EXPIRED = "EXPIRED"
+    SUSPENDED = "SUSPENDED"
 
 
 class RegistrationSortBy(Enum):

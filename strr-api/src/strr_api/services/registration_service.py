@@ -148,7 +148,7 @@ class RegistrationService:
         registration = Registration(
             user_id=user_id,
             sbc_account_id=sbc_account_id,
-            status=RegistrationStatus.PENDING,
+            status=RegistrationStatus.ACTIVE,
             registration_number=registration_number,
             start_date=start_date,
             expiry_date=start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
