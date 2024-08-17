@@ -18,11 +18,8 @@ from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 
 import requests
-import sentry_sdk
 from flask import Flask
-from pg8000.dbapi import ProgrammingError
 from sentry_sdk.integrations.logging import LoggingIntegration
-from sqlalchemy.exc import SQLAlchemyError
 from strr_api.models import db
 from strr_api.models.application import Application
 from strr_api.services import ApprovalService, AuthService
@@ -40,9 +37,6 @@ def create_app(run_mode=os.getenv("FLASK_ENV", "production")):
     app = Flask(__name__)
     app.config.from_object(CONFIGURATION[run_mode])
     db.init_app(app)
-    # Configure Sentry
-    if app.config.get("SENTRY_DSN", None):
-        sentry_sdk.init(dsn=app.config.get("SENTRY_DSN"), integrations=[SENTRY_LOGGING])
     register_shellcontext(app)
     return app
 
@@ -98,18 +92,17 @@ def process_applications(app, applications):
                         f"Unexpected response error: Status Code: {response.status_code}, "
                         f"URL: {url}"
                     )
-            except requests.RequestException as e:
-                app.logger.error(f"Request failed: {str(e)}")
+            except Exception as e:
+                app.logger.error(f"Request failed:", e)
 
 
 def run():
     """Run the auto-approval job."""
-    app = create_app()
-    with app.app_context():
-        try:
+    try:
+        app = create_app()
+        with app.app_context():
+            app.logger.info("Starting auto approval job")
             applications = get_submitted_applications(app)
             process_applications(app, applications)
-        except (SQLAlchemyError, ProgrammingError) as e:
-            app.logger.error(f"Database error: {str(e)}")
-        except Exception as err:
-            app.logger.error(f"Unexpected error: {str(err)}")
+    except Exception as err:
+        app.logger.error(f"Unexpected error:", err)

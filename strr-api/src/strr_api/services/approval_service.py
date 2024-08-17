@@ -271,7 +271,7 @@ class ApprovalService:
                     cls.save_approval_record_by_application(application.id, auto_approval)
                     return application.status, registration_ident
         except Exception as default_exception:  # noqa: B902; log error
-            current_app.logger.error("Error in auto approval process:" + repr(default_exception))
+            current_app.logger.error("Error in auto approval process:", default_exception)
             current_app.logger.error(auto_approval)
             return None, None
 
