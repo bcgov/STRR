@@ -37,6 +37,7 @@
 # pylint: disable=R0915
 # pylint: disable=R1702
 """For a successfully paid registration, this service determines its auto-approval state."""
+from datetime import datetime
 from typing import Any, Tuple
 
 from flask import current_app
@@ -250,17 +251,20 @@ class ApprovalService:
                     else:
                         auto_approval.pr_exempt = True
                         application.status = Application.Status.APPROVED
+                        registration = RegistrationService.create_registration(
+                            application.submitter_id, application.payment_account, registration_request.registration
+                        )
+                        registration_ident = registration.id
+                        application.registration_id = registration.id
+                        application.decision_date = datetime.utcnow()
                         application.save()
+
                         EventsService.save_event(
                             event_type=Events.EventType.APPLICATION,
                             event_name=Events.EventName.AUTO_APPROVAL_APPROVED,
                             application_id=application.id,
                             visible_to_applicant=False,
                         )
-                        registration = RegistrationService.create_registration(
-                            application.submitter_id, application.payment_account, registration_request.registration
-                        )
-                        registration_ident = registration.id
                         EventsService.save_event(
                             event_type=Events.EventType.REGISTRATION,
                             event_name=Events.EventName.REGISTRATION_CREATED,
