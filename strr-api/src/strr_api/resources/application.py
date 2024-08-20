@@ -645,7 +645,7 @@ def search_applications():
         enum: [SUBMITTED, PAID, APPROVED, ADDITIONAL_INFO_REQUESTED, UNDER_REVIEW, PROVISIONAL, REJECTED]
         description: Application Status Filter.
       - in: query
-        name: search
+        name: text
         type: string
         minLength: 3
         description: Search text.
