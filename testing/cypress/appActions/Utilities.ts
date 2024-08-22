@@ -29,6 +29,7 @@ class Utilities {
     } else if (isSmokeTest) {
       // If only smoketest is set, check the smoketest data property
       return data.smoketest
+
     }
 
     // Default return should never be reached due to logic above covering all cases,
