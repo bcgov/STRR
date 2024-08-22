@@ -23,7 +23,7 @@ export default defineConfig({
   e2e: {
     // baseUrl: '',
     // baseUrl: '',
-    baseUrl: 'http://localhost:8000',
+    baseUrl: 'https://strr-ui-dev.web.app',
     projectId: '',
     setupNodeEvents(on, config) {
       on('task', {
