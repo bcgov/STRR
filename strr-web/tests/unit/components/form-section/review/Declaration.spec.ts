@@ -13,5 +13,5 @@ it('can mount declaration component', async () => {
     {
       global: { plugins: [i18n] }
     })
-  expect(addressSection.find('[data-cy="declaration"]').exists()).toBe(true)
+  expect(addressSection.find('[data-test-id="declaration"]').exists()).toBe(true)
 })

@@ -13,5 +13,5 @@ it('can mount Property Details Form Section component', async () => {
     {
       global: { plugins: [i18n] }
     })
-  expect(addressSection.find('[data-cy="contact-information"]').exists()).toBe(true)
+  expect(addressSection.find('[data-test-id="contact-information"]').exists()).toBe(true)
 })

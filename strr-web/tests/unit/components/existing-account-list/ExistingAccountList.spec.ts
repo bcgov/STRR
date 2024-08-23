@@ -12,6 +12,6 @@ describe('Existing Accounts List tests', () => {
   afterEach(() => { wrapper.unmount() })
 
   test('Contains all the expected elements', () => {
-    expect(wrapper.find('[data-cy="existing-accounts-list"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id="existing-accounts-list"]').exists()).toBe(true)
   })
 })

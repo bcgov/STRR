@@ -13,5 +13,5 @@ it('can mount form review component', async () => {
     {
       global: { plugins: [i18n] }
     })
-  expect(addressSection.find('[data-cy="form-item"]').exists()).toBe(true)
+  expect(addressSection.find('[data-test-id="form-item"]').exists()).toBe(true)
 })

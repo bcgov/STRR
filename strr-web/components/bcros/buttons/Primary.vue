@@ -9,7 +9,7 @@
       :loading="loading"
       :trailing="trailing"
       :variant="variant"
-      data-cy="button"
+      data-test-id="button"
       :disabled="disabled"
       @click="action()"
     />

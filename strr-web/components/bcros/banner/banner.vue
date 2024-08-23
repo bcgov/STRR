@@ -1,6 +1,6 @@
 <template>
   <div
-    data-cy="banner"
+    data-test-id="banner"
     :class="
       `
         flex justify-center bg-white absolute w-full top-0 left-0 h-[104px] shadow-md

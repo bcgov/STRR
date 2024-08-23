@@ -15,7 +15,7 @@ it('can mount primary CRA Details Form Section component', async () => {
       global: { plugins: [i18n] },
       props: { isPrimary: true }
     })
-  expect(craInfo.find('[data-cy="form-section-cra-info"]').exists()).toBe(true)
+  expect(craInfo.find('[data-test-id="form-section-cra-info"]').exists()).toBe(true)
   expect(craInfo.find(`[placeholder="${t('createAccount.contactForm.socialInsuranceNumber')}"]`).exists()).toBe(true)
 })
 
@@ -26,7 +26,7 @@ it('can mount secondary CRA Details Form Section component', async () => {
       global: { plugins: [i18n] },
       props: { isPrimary: false }
     })
-  expect(craInfo.find('[data-cy="form-section-cra-info"]').exists()).toBe(true)
+  expect(craInfo.find('[data-test-id="form-section-cra-info"]').exists()).toBe(true)
   expect(craInfo.find(`[placeholder="${t('createAccount.contactForm.socialInsuranceNumberOptional')}"]`)
     .exists()).toBe(true)
 })

@@ -36,5 +36,5 @@ it('can mount form subsection component', async () => {
         primary: true
       }
     })
-  expect(addressSection.find('[data-cy="form-subsection"]').exists()).toBe(true)
+  expect(addressSection.find('[data-test-id="form-subsection"]').exists()).toBe(true)
 })

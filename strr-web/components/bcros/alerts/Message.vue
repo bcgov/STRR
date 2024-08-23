@@ -3,7 +3,7 @@
     class="flex py-[22px] px-[30px] mobile:px-[8px] mobile:py-[22px] flex-row"
     :class="flavourContainerClass"
     :role="flavourRole"
-    :data-cy="'alertsMessage:' + flavour"
+    :data-test-id="'alertsMessage:' + flavour"
   >
     <div class="flex">
       <div class="mobile:hidden">

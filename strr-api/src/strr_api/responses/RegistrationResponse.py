@@ -84,6 +84,14 @@ class Contact(BaseModel):
     mailingAddress: MailingAddress
 
 
+class Document(BaseModel):
+    """Document response object."""
+
+    fileName: str
+    fileType: str
+    fileKey: str
+
+
 class Registration(BaseModel):
     """Registration response object."""
 
@@ -102,6 +110,7 @@ class Registration(BaseModel):
     unitDetails: UnitDetails
     listingDetails: List[ListingDetails]
     principalResidence: PrincipalResidence
+    documents: List[Document]
 
     @classmethod
     def from_db(cls, source: models.Registration):
@@ -112,6 +121,11 @@ class Registration(BaseModel):
                 latest_certificate = certificate
 
         registration_number = source.registration_number
+
+        documents = []
+        if source.eligibility and source.eligibility.documents:
+            for doc in source.eligibility.documents:
+                documents.append(Document(fileKey=doc.path, fileName=doc.file_name, fileType=doc.file_type))
 
         return cls(
             id=source.id,
@@ -200,4 +214,5 @@ class Registration(BaseModel):
                 nonPrincipalOption=source.eligibility.non_principal_option,
                 specifiedServiceProvider=source.eligibility.specified_service_provider,
             ),
+            documents=documents,
         )

@@ -31,7 +31,7 @@ it('can mount Stepper component', async () => {
         setActiveStep: mockFn
       }
     })
-  expect(stepper.find('[data-cy="stepper"]').exists()).toBe(true)
+  expect(stepper.find('[data-test-id="stepper"]').exists()).toBe(true)
 })
 
 it('can mount Stepper Footer component', async () => {
@@ -45,5 +45,5 @@ it('can mount Stepper Footer component', async () => {
         setPreviousStep: mockFn
       }
     })
-  expect(stepper.find('[data-cy="stepper-footer"]').exists()).toBe(true)
+  expect(stepper.find('[data-test-id="stepper-footer"]').exists()).toBe(true)
 })

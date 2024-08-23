@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="default-layout">
+  <div data-test-id="default-layout">
     <div class="flex justify-between flex-col min-h-screen">
       <BcrosHeader />
       <div class="flex grow justify-center relative">

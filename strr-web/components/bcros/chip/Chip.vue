@@ -6,7 +6,7 @@
         font-bold px-3 py-1 flex-shrink flex h-fit w-fit rounded text-sm
       `
     "
-    data-cy="chip"
+    data-test-id="chip"
   >
     {{ flavour.text }}
   </div>

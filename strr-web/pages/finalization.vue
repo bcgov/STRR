@@ -1,8 +1,8 @@
 <template>
-  <div data-cy="finalization-page" class="relative h-full">
+  <div data-test-id="finalization-page" class="relative h-full">
     <div>
       <BcrosTypographyH1
-        data-cy="finalization-title"
+        data-test-id="finalization-title"
         :text="tFinalization('title')"
         class="mobile:pb-[20px] mobile:px-[8px]"
       />

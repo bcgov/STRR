@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="create-account-page" class="relative h-full">
+  <div data-test-id="create-account-page" class="relative h-full">
     <div class="w-full flex flex-col justify-between desktop:justify-center items-center">
       <div
         class="shrink w-full flex flex-row mobile:flex-col mobile:justify-between px-4 max-w-[1360px] justify-center"
@@ -8,7 +8,7 @@
           <div class="mobile:px-[8px]">
             <BcrosTypographyH1
               :text="t('createAccount.title')"
-              data-cy="accountPageTitle"
+              data-test-id="accountPageTitle"
               class-name="mobile:pb-[20px]"
             />
             <BcrosStepper

@@ -21,7 +21,7 @@ it('can mount h2 component', async () => {
         className
       }
     })
-  expect(typography.find('[data-cy="h2"]').exists()).toBe(true)
+  expect(typography.find('[data-test-id="h2"]').exists()).toBe(true)
   expect(typography.text()).toContain(text)
   expect(typography.classes()).toContain(className)
 })

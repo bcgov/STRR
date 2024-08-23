@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="property-form-section" class="relative h-full">
+  <div data-test-id="property-form-section" class="relative h-full">
     <div class="desktop:mb-[180px] mobile:mb-[32px] bg-white rounded-[4px]">
       <div class="bg-bcGovColor-gray2 rounded-t-[4px]">
         <p class="px-[40px] py-[15px] font-bold">

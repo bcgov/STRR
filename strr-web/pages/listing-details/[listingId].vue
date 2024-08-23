@@ -1,8 +1,8 @@
 <template>
-  <div data-cy="account-select-page">
+  <div data-test-id="account-select-page">
     <BcrosTypographyH1
       :text="tApplicationConfirm('submitted')"
-      data-cy="accountPageTitle"
+      data-test-id="accountPageTitle"
       class-name="mobile:pb-[20px] mobile:mx-[8px] pb-[32px]"
     />
     <div class="bg-white py-[22px] px-[30px] flex flex-row mobile:px-[8px] mobile:[py-16px] mobile:flex-col">

@@ -43,12 +43,12 @@ describe('Menu tests', () => {
     // verify items
     const menuItems = wrapper.findComponent(MenuItems)
     expect(menuItems.exists()).toBe(true)
-    expect(menuItems.findAll('[data-cy=menu-list]').length).toBe(testProps.menuLists.length)
+    expect(menuItems.findAll('[data-test-id=menu-list]').length).toBe(testProps.menuLists.length)
 
     for (let i = 0; i < testProps.menuLists.length; i++) {
-      const menuList = menuItems.findAll('[data-cy=menu-list]').at(i)
+      const menuList = menuItems.findAll('[data-test-id=menu-list]').at(i)
       expect(menuList?.exists()).toBe(true)
-      expect(menuList?.find('[data-cy=menu-list-header]').text()).toBe(testProps.menuLists[i].header)
+      expect(menuList?.find('[data-test-id=menu-list-header]').text()).toBe(testProps.menuLists[i].header)
       expect(menuList?.findAllComponents(BcrosHeaderMenuItem).length).toBe(testProps.menuLists[i].items.length)
     }
   })

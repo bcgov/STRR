@@ -10,13 +10,13 @@ describe('Account Label tests', () => {
   afterEach(() => { wrapper.unmount() })
 
   it('renders with default props', () => {
-    expect(wrapper.find('[data-cy=al-avatar]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id=al-avatar]').exists()).toBe(true)
     // NB: avatar displays first letter of username
-    expect(wrapper.find('[data-cy=al-avatar]').text()).toBe('N')
-    expect(wrapper.find('[data-cy=al-username]').exists()).toBe(true)
-    expect(wrapper.find('[data-cy=al-username]').text()).toBe('N/A')
-    expect(wrapper.find('[data-cy=al-account-name]').exists()).toBe(true)
-    expect(wrapper.find('[data-cy=al-account-name]').text()).toBe('N/A')
+    expect(wrapper.find('[data-test-id=al-avatar]').text()).toBe('N')
+    expect(wrapper.find('[data-test-id=al-username]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id=al-username]').text()).toBe('N/A')
+    expect(wrapper.find('[data-test-id=al-account-name]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id=al-account-name]').text()).toBe('N/A')
   })
 
   it('displays updated props properly', async () => {
@@ -26,8 +26,8 @@ describe('Account Label tests', () => {
 
     await wrapper.setProps({ avatarClasses: avatarClass, accountName, username })
 
-    expect(wrapper.find('[data-cy=al-avatar]').text()).toBe(username.charAt(0))
-    expect(wrapper.find('[data-cy=al-username]').text()).toBe(username)
-    expect(wrapper.find('[data-cy=al-account-name]').text()).toBe(accountName)
+    expect(wrapper.find('[data-test-id=al-avatar]').text()).toBe(username.charAt(0))
+    expect(wrapper.find('[data-test-id=al-username]').text()).toBe(username)
+    expect(wrapper.find('[data-test-id=al-account-name]').text()).toBe(accountName)
   })
 })

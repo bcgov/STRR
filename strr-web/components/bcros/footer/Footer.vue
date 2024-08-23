@@ -7,7 +7,7 @@
       h-[54px] flex-[0_0_54px] flex items-center border-t-2
       border-bcGovColor-navDivider bg-bcGovColor-footer text-sm  flex-col
     `"
-    data-cy="footer"
+    data-test-id="footer"
   >
     <div class="m-auto px-4 w-full max-w-[1360px] flex-shrink">
       <nav class="flex flex-grow">

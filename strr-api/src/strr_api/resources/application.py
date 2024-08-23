@@ -487,11 +487,11 @@ def upload_registration_supporting_document(application_id):
         return exception_response(service_exception)
 
 
-@bp.route("/<application_id>/documents/<document_key>", methods=("GET",))
+@bp.route("/<application_id>/documents/<file_key>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_document(application_id, document_key):
+def get_document(application_id, file_key):
     """
     Get document.
     ---
@@ -527,12 +527,12 @@ def get_document(application_id, document_key):
         application_documents = [
             doc
             for doc in application.application_json.get("registration").get("documents", [])
-            if doc.get("fileKey") == document_key
+            if doc.get("fileKey") == file_key
         ]
         if not application_documents:
             return error_response(ErrorMessage.DOCUMENT_NOT_FOUND.value, HTTPStatus.BAD_REQUEST)
         document = application_documents[0]
-        file_content = DocumentService.get_document_by_key(document_key)
+        file_content = DocumentService.get_document_by_key(file_key)
         return send_file(
             BytesIO(file_content),
             as_attachment=True,
@@ -545,11 +545,11 @@ def get_document(application_id, document_key):
         return exception_response(external_exception)
 
 
-@bp.route("/<application_id>/documents/<document_key>", methods=("DELETE",))
+@bp.route("/<application_id>/documents/<file_key>", methods=("DELETE",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def delete_document(application_id, document_key):
+def delete_document(application_id, file_key):
     """
     Delete document.
     ---
@@ -583,7 +583,7 @@ def delete_document(application_id, document_key):
         if not application:
             raise AuthException()
 
-        DocumentService.delete_document(document_key)
+        DocumentService.delete_document(file_key)
         return "", HTTPStatus.NO_CONTENT
     except AuthException as auth_exception:
         return exception_response(auth_exception)

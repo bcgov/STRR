@@ -20,7 +20,7 @@ it('can mount status card component', async () => {
         applicationHeader
       }
     })
-  expect(addressSection.find('[data-cy="status-card"]').exists()).toBe(true)
+  expect(addressSection.find('[data-test-id="status-card"]').exists()).toBe(true)
   expect(addressSection.classes()).toContain('flex-1')
   expect(addressSection.text()).toContain(applicationHeader.registrationNumber)
 })
@@ -36,6 +36,6 @@ it('can mount one of many status card components', async () => {
         applicationHeader
       }
     })
-  expect(addressSection.find('[data-cy="status-card"]').exists()).toBe(true)
+  expect(addressSection.find('[data-test-id="status-card"]').exists()).toBe(true)
   expect(addressSection.classes()).not.toContain('flex-1')
 })

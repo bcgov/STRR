@@ -1,6 +1,6 @@
 <template>
   <div
-    data-cy="status-card"
+    data-test-id="status-card"
     :class="`${isSingle ? 'flex-1': ''}`"
     class="w-full mb-[42px] mobile:mb-6 justify-between flex-col
     bg-white px-[30px] mobile:px-[8px] py-[22px]

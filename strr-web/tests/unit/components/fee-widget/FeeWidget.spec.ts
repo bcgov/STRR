@@ -5,5 +5,5 @@ import { BcrosFeeWidget } from '#components'
 
 it('can mount Fee Widget component', async () => {
   const container = await mountSuspended(BcrosFeeWidget)
-  expect(container.find('[data-cy="fee-widget"]').exists()).toBe(true)
+  expect(container.find('[data-test-id="fee-widget"]').exists()).toBe(true)
 })

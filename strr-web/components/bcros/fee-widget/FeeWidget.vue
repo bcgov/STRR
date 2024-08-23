@@ -1,6 +1,6 @@
 <template>
   <div
-    data-cy="fee-widget"
+    data-test-id="fee-widget"
     role="complementary"
     class="
       desktop:w-[280px]

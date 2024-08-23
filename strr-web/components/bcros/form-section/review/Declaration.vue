@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="declaration">
+  <div data-test-id="declaration">
     <p class="mb-[4px]">
       {{ tReview('declarationPartOne') }}
     </p>

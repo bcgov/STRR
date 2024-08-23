@@ -2,7 +2,7 @@
   <header
     id="bcros-main-header"
     class="bg-bcGovColor-header border-b-2 border-bcGovColor-navDivider"
-    data-cy="header"
+    data-test-id="header"
   >
     <div
       id="bcros-main-header__container"
@@ -18,7 +18,7 @@
             <img src="@/assets/images/gov_bc_logo_horiz.png" alt="Government of British Columbia">
           </picture>
           <span
-            data-cy="strr-title"
+            data-test-id="strr-title"
             class="flex flex-wrap content-center font-bold ml-5 text-white text-lg
             mobile:ml-[10px] mobile:leading-[20px] mobile:text-[14px] mobile:w-[130px]"
             style="letter-spacing: -.03rem;"
@@ -35,7 +35,7 @@
             <BcrosMobileIcon :icon-path="hamburgerIcon" alt-text="Menu Icon" />
           </div>
           <div v-if="authenticated" class="flex flex-wrap self-center text-sm mobile:hidden">
-            <BcrosHeaderMenu data-cy="logged-in-menu" :menu-lists="loggedInMenuOptions">
+            <BcrosHeaderMenu data-test-id="logged-in-menu" :menu-lists="loggedInMenuOptions">
               <template #menu-button-text>
                 <BcrosHeaderAccountLabel
                   :account-name="!personMode ? currentAccountName : ''"
@@ -55,13 +55,13 @@
           </div>
           <div v-else class="flex flex-wrap self-center text-sm h-[36px] mobile:hidden">
             <BcrosHeaderMenu
-              data-cy="logged-out-menu"
+              data-test-id="logged-out-menu"
               :menu-button-text="'Log in'"
               :menu-lists="loggedOutMenuOptions"
             />
             <button
               class="text-white ml-2 p-2 hover:bg-bcGovColor-activeBlue/[0.2]"
-              data-cy="logged-out-create-accnt"
+              data-test-id="logged-out-create-accnt"
               @click="createAccount()"
             >
               {{ t('header.buttons.createAccount') }}

@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="form-item" class="flex flex-col flex-1 mobile:mb-[24px]">
+  <div data-test-id="form-item" class="flex flex-col flex-1 mobile:mb-[24px]">
     <p class="font-bold">
       {{ title }}
     </p>

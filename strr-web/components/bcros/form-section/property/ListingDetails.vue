@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="listing-details-section">
+  <div data-test-id="listing-details-section">
     <BcrosFormSection
       :title="t('createAccount.propertyForm.internetListingDetails')"
       class="desktop:pb-[40px] mobile:pb-[20px]"

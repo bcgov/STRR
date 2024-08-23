@@ -16,5 +16,5 @@ it('can mount Form Section component', async () => {
         title: ''
       }
     })
-  expect(button.find('[data-cy="form-section"]').exists()).toBe(true)
+  expect(button.find('[data-test-id="form-section"]').exists()).toBe(true)
 })

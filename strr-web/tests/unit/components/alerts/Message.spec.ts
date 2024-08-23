@@ -12,17 +12,17 @@ const i18n = createI18n({
 it('can mount AlertsMessage component', async () => {
   const alert = await mountSuspended(BcrosAlertsMessage,
     { global: { plugins: [i18n] }, props: { flavour: AlertsFlavourE.ALERT } })
-  expect(alert.find('[data-cy="alertsMessage:alert"]').exists()).toBe(true)
+  expect(alert.find('[data-test-id="alertsMessage:alert"]').exists()).toBe(true)
   const success = await mountSuspended(BcrosAlertsMessage,
     { global: { plugins: [i18n] }, props: { flavour: AlertsFlavourE.SUCCESS } })
-  expect(success.find('[data-cy="alertsMessage:success"]').exists()).toBe(true)
+  expect(success.find('[data-test-id="alertsMessage:success"]').exists()).toBe(true)
   const warning = await mountSuspended(BcrosAlertsMessage,
     { global: { plugins: [i18n] }, props: { flavour: AlertsFlavourE.WARNING } })
-  expect(warning.find('[data-cy="alertsMessage:warning"]').exists()).toBe(true)
+  expect(warning.find('[data-test-id="alertsMessage:warning"]').exists()).toBe(true)
   const message = await mountSuspended(BcrosAlertsMessage,
     { global: { plugins: [i18n] }, props: { flavour: AlertsFlavourE.MESSAGE } })
-  expect(message.find('[data-cy="alertsMessage:message"]').exists()).toBe(true)
+  expect(message.find('[data-test-id="alertsMessage:message"]').exists()).toBe(true)
   const info = await mountSuspended(BcrosAlertsMessage,
     { global: { plugins: [i18n] }, props: { flavour: AlertsFlavourE.INFO } })
-  expect(info.find('[data-cy="alertsMessage:info"]').exists()).toBe(true)
+  expect(info.find('[data-test-id="alertsMessage:info"]').exists()).toBe(true)
 })

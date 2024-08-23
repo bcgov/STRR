@@ -14,5 +14,5 @@ it('can mount Principal Residence Form Section component', async () => {
       global: { plugins: [i18n] },
       props: { isComplete: true }
     })
-  expect(principalResidence.find('[data-cy="principal-residence-form"]').exists()).toBe(true)
+  expect(principalResidence.find('[data-test-id="principal-residence-form"]').exists()).toBe(true)
 })

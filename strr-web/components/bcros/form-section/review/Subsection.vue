@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="form-subsection" class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
+  <div data-test-id="form-subsection" class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
     <div class="flex flex-row justify-between w-full desktop:mb-[40px]">
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between w-full mb-[24px] mobile:flex-col">

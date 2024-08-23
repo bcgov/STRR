@@ -5,5 +5,5 @@ import { BcrosContainer } from '#components'
 
 it('can mount Container component', async () => {
   const container = await mountSuspended(BcrosContainer)
-  expect(container.find('[data-cy="container"]').exists()).toBe(true)
+  expect(container.find('[data-test-id="container"]').exists()).toBe(true)
 })

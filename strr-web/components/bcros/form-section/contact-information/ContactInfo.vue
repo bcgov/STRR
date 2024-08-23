@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="form-section-contact">
+  <div data-test-id="form-section-contact">
     <BcrosFormSection :title="t('createAccount.contactForm.dateOfBirth')" :optional="!isPrimary">
       <div class="flex flex-row justify-between w-full mobile:flex-col">
         <UFormGroup name="birthDay" class="desktop:pr-[16px] flex-grow mobile:mb-[16px]">

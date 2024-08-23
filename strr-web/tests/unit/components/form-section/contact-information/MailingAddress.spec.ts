@@ -19,7 +19,7 @@ it('can mount primary CRA Details Form Section component', async () => {
         enableAddressComplete: mockFn
       }
     })
-  expect(mailingAddress.find('[data-cy="form-section-mailing"]').exists()).toBe(true)
+  expect(mailingAddress.find('[data-test-id="form-section-mailing"]').exists()).toBe(true)
   expect(mailingAddress.findComponent(USelect).text()).toContain('Canada')
 })
 
@@ -33,6 +33,6 @@ it('can mount secondary CRA Details Form Section component', async () => {
         enableAddressComplete: mockFn
       }
     })
-  expect(mailingAddress.find('[data-cy="form-section-mailing"]').exists()).toBe(true)
+  expect(mailingAddress.find('[data-test-id="form-section-mailing"]').exists()).toBe(true)
   expect(mailingAddress.findComponent(USelect).text()).toContain('Canada')
 })

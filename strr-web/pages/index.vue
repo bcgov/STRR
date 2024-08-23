@@ -1,3 +1,3 @@
 <template>
-  <div data-cy="test-page" />
+  <div data-test-id="test-page" />
 </template>

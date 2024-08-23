@@ -14,7 +14,7 @@ it('can mount Banner component with buttons', async () => {
       global: { plugins: [i18n] },
       props: { applicationId: '1' }
     })
-  expect(banner.find('[data-cy="banner"]').exists()).toBe(true)
+  expect(banner.find('[data-test-id="banner"]').exists()).toBe(true)
   expect(banner.findComponent(BcrosButtonsPrimary).exists()).toBe(true)
 })
 
@@ -24,6 +24,6 @@ it('can mount Banner component with hidden buttons', async () => {
       global: { plugins: [i18n] },
       props: { hideButtons: true, applicationId: '1' }
     })
-  expect(banner.find('[data-cy="banner"]').exists()).toBe(true)
+  expect(banner.find('[data-test-id="banner"]').exists()).toBe(true)
   expect(banner.findComponent(BcrosButtonsPrimary).exists()).toBe(false)
 })

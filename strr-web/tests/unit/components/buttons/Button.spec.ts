@@ -21,6 +21,6 @@ it('can mount Button component', async () => {
         label: buttonText
       }
     })
-  expect(button.find('[data-cy="button"]').exists()).toBe(true)
+  expect(button.find('[data-test-id="button"]').exists()).toBe(true)
   expect(button.text()).toEqual(buttonText)
 })

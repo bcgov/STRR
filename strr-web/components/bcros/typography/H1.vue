@@ -1,5 +1,5 @@
 <template>
-  <h1 :class="`${noSpacing ? '' : 'pb-[25px]'} ${className} font-bold text-[32px]`" data-cy="h1">
+  <h1 :class="`${noSpacing ? '' : 'pb-[25px]'} ${className} font-bold text-[32px]`" data-test-id="h1">
     {{ text }}
   </h1>
 </template>

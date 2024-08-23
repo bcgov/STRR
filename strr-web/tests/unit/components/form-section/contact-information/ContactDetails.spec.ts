@@ -15,7 +15,7 @@ it('can mount primary Contact Details Form Section component', async () => {
       global: { plugins: [i18n] },
       props: { isPrimary: true }
     })
-  expect(contactDetails.find('[data-cy="form-section-contact-info"]').exists()).toBe(true)
+  expect(contactDetails.find('[data-test-id="form-section-contact-info"]').exists()).toBe(true)
   expect(contactDetails.find('[name="firstName"]').exists()).toBe(false)
 })
 
@@ -25,6 +25,6 @@ it('can mount secondary Contact Details Form Section component', async () => {
       global: { plugins: [i18n] },
       props: { isPrimary: false }
     })
-  expect(contactDetails.find('[data-cy="form-section-contact-info"]').exists()).toBe(true)
+  expect(contactDetails.find('[data-test-id="form-section-contact-info"]').exists()).toBe(true)
   expect(contactDetails.find('[name="firstName"]').exists()).toBe(true)
 })

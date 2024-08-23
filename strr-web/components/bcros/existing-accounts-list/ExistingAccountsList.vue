@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-lg flex flex-col justify-center mb-[32px]" data-cy="existing-accounts-list">
+  <div class="rounded-lg flex flex-col justify-center mb-[32px]" data-test-id="existing-accounts-list">
     <div
       v-for="(account, index) in accounts"
       :key="account.id"

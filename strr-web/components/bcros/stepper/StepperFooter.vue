@@ -6,7 +6,7 @@
       m:relative m:px-[8px]
       justify-center
     "
-    data-cy="stepper-footer"
+    data-test-id="stepper-footer"
   >
     <div class="w-full max-w-[1360px] flex">
       <BcrosButtonsPrimary

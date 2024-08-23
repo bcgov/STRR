@@ -34,12 +34,12 @@ describe('Menu Item tests', () => {
   afterEach(() => { wrapper.unmount() })
 
   it('renders with required props', async () => {
-    expect(wrapper.find('[data-cy=menu-item]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id=menu-item]').exists()).toBe(true)
     // has label text
-    expect(wrapper.find('[data-cy=menu-item]').text()).toBe(testItemInfo.label)
+    expect(wrapper.find('[data-test-id=menu-item]').text()).toBe(testItemInfo.label)
     // icon is there
-    expect(wrapper.find('[data-cy=menu-item-icon]').exists()).toBe(true)
-    expect(wrapper.find('[data-cy=menu-item-no-icon]').exists()).toBe(false)
+    expect(wrapper.find('[data-test-id=menu-item-icon]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id=menu-item-no-icon]').exists()).toBe(false)
     // active classes are NOT set
     expect(wrapper.find('.text-bcGovColor-activeBlue.bg-bcGovColor-gray1').exists()).toBe(false)
     // updating icon, has expected result
@@ -52,14 +52,14 @@ describe('Menu Item tests', () => {
         items: [itemInfoNoIcon]
       }]
     })
-    expect(wrapper.find('[data-cy=menu-item-icon]').exists()).toBe(false)
-    expect(wrapper.find('[data-cy=menu-item-no-icon]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id=menu-item-icon]').exists()).toBe(false)
+    expect(wrapper.find('[data-test-id=menu-item-no-icon]').exists()).toBe(true)
   })
 
   it('triggers item action when clicked', async () => {
     expect(testItemInfo.action).not.toHaveBeenCalled()
     // clicking item activates action
-    await wrapper.find('[data-cy=menu-item]').trigger('click')
+    await wrapper.find('[data-test-id=menu-item]').trigger('click')
     expect(testItemInfo.action).toHaveBeenCalledTimes(1)
     expect(testItemInfo.action).toHaveBeenCalledWith(testItemInfo.args)
   })

@@ -202,6 +202,24 @@
             "agreedToRentalAct",
             "agreedToSubmit"
           ]
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fileName": {
+                "type": "string"
+              },
+              "fileType": {
+                "type": "string"
+              },
+              "fileKey": {
+                "type": "string"
+              }
+            },
+            "required": ["fileName", "fileType", "fileKey"]
+          }
         }
       },
       "required": [

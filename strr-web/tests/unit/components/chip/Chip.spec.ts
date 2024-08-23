@@ -20,6 +20,6 @@ it('can mount Chip component', async () => {
         flavour: getChipFlavour('APPROVED')
       }
     })
-  expect(chip.find('[data-cy="chip"]').exists()).toBe(true)
+  expect(chip.find('[data-test-id="chip"]').exists()).toBe(true)
   expect(chip.text()).toEqual(tRegistryDashboardStatus('approved'))
 })

@@ -1,8 +1,8 @@
 <template>
-  <div data-cy="account-select-page">
+  <div data-test-id="account-select-page">
     <BcrosTypographyH1
       :text="tRegistrationStatus('title')"
-      data-cy="accountPageTitle"
+      data-test-id="accountPageTitle"
       class-name="pb-[32px] mobile:pb-[24px]"
     />
     <div>

@@ -16,5 +16,5 @@ it('can mount Header component', async () => {
         title: ''
       }
     })
-  expect(button.find('[data-cy="header"]').exists()).toBe(true)
+  expect(button.find('[data-test-id="header"]').exists()).toBe(true)
 })

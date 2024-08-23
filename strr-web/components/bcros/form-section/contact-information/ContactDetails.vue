@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="form-section-contact-info">
+  <div data-test-id="form-section-contact-info">
     <BcrosFormSection :title="t('createAccount.contactForm.contactDetails')">
       <div v-if="!isPrimary" class="flex flex-row justify-between w-full mb-[40px] mobile:flex-col mobile:mb-[16px]">
         <UFormGroup name="firstName" class="d:pr-[16px] flex-grow mobile:mb-[16px]">

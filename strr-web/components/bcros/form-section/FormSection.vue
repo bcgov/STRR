@@ -1,5 +1,8 @@
 <template>
-  <div data-cy="form-section" :class="`${className} mt-[40px] mobile:mt-[20px] ml-[40px] mr-[20px] mobile:mx-[8px]`">
+  <div
+    data-test-id="form-section"
+    :class="`${className} mt-[40px] mobile:mt-[20px] ml-[40px] mr-[20px] mobile:mx-[8px]`"
+  >
     <div class="flex flex-row mobile:flex-col">
       <div v-if="title" class="w-[200px]">
         <p class="desktop:font-bold mobile:mb-[8px]">
@@ -18,14 +21,12 @@
 </template>
 
 <script setup lang="ts">
-
 const { title, optional, divider, className } = defineProps<{
-  title?: string,
+  title?: string
   optional?: boolean
   divider?: boolean
   className?: string
 }>()
 
 const { t } = useTranslation()
-
 </script>

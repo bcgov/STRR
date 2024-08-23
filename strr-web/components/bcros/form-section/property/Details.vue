@@ -1,5 +1,5 @@
 <template>
-  <div data-cy="property-details">
+  <div data-test-id="property-details">
     <BcrosFormSection :title="t('createAccount.propertyForm.rentalUnitDetails')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="parcelIdentifier" class="d:pr-[16px] flex-grow">
