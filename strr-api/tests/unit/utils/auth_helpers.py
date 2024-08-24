@@ -40,6 +40,8 @@ BASIC_USER = "basic"
 COLIN_SVC_ROLE = "colin"
 PUBLIC_USER = "public_user"
 ACCOUNT_IDENTITY = "account_identity"
+STRR_EXAMINER = "strr_examiner"
+STRR_INVESTIGATOR = "strr_investigator"
 
 
 def create_jwt(

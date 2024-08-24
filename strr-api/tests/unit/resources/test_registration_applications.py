@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
-from tests.unit.utils.auth_helpers import PUBLIC_USER, STAFF_ROLE, create_header
+from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/registration_use_sbc_account.json"
@@ -110,7 +110,7 @@ def test_get_application_ltsa_unauthorized(session, client, jwt):
 
 
 def test_get_application_ltsa_invalid_application(session, client, jwt):
-    headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+    headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     rv = client.get("/applications/100/ltsa", headers=headers)
     assert HTTPStatus.NOT_FOUND == rv.status_code
 
@@ -120,7 +120,7 @@ def test_get_application_ltsa(session, client, jwt):
         json_data = json.load(f)
         application = Application(type="registration", application_json=json_data)
         application.save()
-        headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.get(f"/applications/{application.id}/ltsa", headers=headers)
 
         assert HTTPStatus.OK == rv.status_code
@@ -134,7 +134,7 @@ def test_get_application_auto_approval_unauthorized(session, client, jwt):
 
 
 def test_get_application_auto_approval_invalid_application(session, client, jwt):
-    headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+    headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     rv = client.get("/applications/100/auto-approval-records", headers=headers)
     assert HTTPStatus.NOT_FOUND == rv.status_code
 
@@ -144,7 +144,7 @@ def test_get_application_auto_approval(session, client, jwt):
         json_data = json.load(f)
         application = Application(type="registration", application_json=json_data)
         application.save()
-        headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.get(f"/applications/{application.id}/auto-approval-records", headers=headers)
 
         assert HTTPStatus.OK == rv.status_code
@@ -200,7 +200,7 @@ def test_examiner_reject_application(session, client, jwt):
         application.payment_status = PaymentStatus.COMPLETED.value
         application.save()
 
-        staff_headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         status_update_request = {"status": "rejected"}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
@@ -223,7 +223,7 @@ def test_examiner_approve_application(session, client, jwt):
         application.payment_status = PaymentStatus.COMPLETED.value
         application.save()
 
-        staff_headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         status_update_request = {"status": "approved"}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
@@ -277,7 +277,7 @@ def test_search_applications(session, client, jwt):
         rv = client.post("/applications", json=json_data, headers=headers)
         assert HTTPStatus.CREATED == rv.status_code
 
-        headers = create_header(jwt, [STAFF_ROLE], "Account-Id")
+        headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.get("/applications/search?text=12177 GREENWELL ST", headers=headers)
         assert HTTPStatus.OK == rv.status_code
         applications = rv.json

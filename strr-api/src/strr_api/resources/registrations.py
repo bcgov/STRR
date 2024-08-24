@@ -371,7 +371,7 @@ def get_registration_events(registration_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value, Role.SYSTEM.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.SYSTEM.value])
 def issue_registration_certificate(registration_id):
     """
     Manually generate and issue a STRR registration certificate.

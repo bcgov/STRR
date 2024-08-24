@@ -256,7 +256,7 @@ def update_application_payment_details(application_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
 def get_application_ltsa(application_id):
     """
     Get application LTSA records
@@ -296,7 +296,7 @@ def get_application_ltsa(application_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
 def get_application_auto_approval_records(application_id):
     """
     Get application auto approval records
@@ -382,7 +382,7 @@ def get_application_events(application_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value])
 def update_application_status(application_id):
     """
     Update application status.
@@ -632,7 +632,7 @@ def get_payment_receipt(application_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
 def search_applications():
     """
     Search Applications.

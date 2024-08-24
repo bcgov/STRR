@@ -66,6 +66,9 @@ class Role(Enum):
     STAFF_MANAGE_BUSINESS = "manage_business"
     STAFF_SUSPEND_ACCOUNTS = "suspend_accounts"
 
+    STRR_EXAMINER = "strr_examiner"
+    STRR_INVESTIGATOR = "strr_investigator"
+
 
 class RegistrationStatus(Enum):
     """STRR Registration Status."""
