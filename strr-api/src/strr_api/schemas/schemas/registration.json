@@ -6,36 +6,41 @@
   "properties": {
     "registration": {
       "type": "object",
-      "registrationType": {
-        "type": "string",
-        "default": "HOST",
-        "enum": [
-          "HOST",
-          "PLATFORM"
-        ]
-      },
-      "if": {
-        "properties": {
+      "allOf": [
+        {
           "registrationType": {
-            "const": "HOST"
-          }
-        }
-      },
-      "then": {
-        "$ref": "https://strr.gov.bc.ca/.well_known/schemas/host_registration"
-      },
-      "else": {
-        "if": {
-          "properties": {
-            "registrationType": {
-              "const": "PLATFORM"
-            }
+            "type": "string",
+            "enum": [
+              "HOST",
+              "PLATFORM"
+            ]
           }
         },
-        "then": {
-          "$ref": "https://strr.co/.well_known/schemas/platform_registration"
+        {
+          "if": {
+            "properties": {
+              "registrationType": {
+                "const": "HOST"
+              }
+            }
+          },
+          "then": {
+            "$ref": "https://strr.gov.bc.ca/.well_known/schemas/host_registration"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "registrationType": {
+                "const": "PLATFORM"
+              }
+            }
+          },
+          "then": {
+            "$ref": "https://strr.gov.bc.ca/.well_known/schemas/platform_registration"
+          }
         }
-      }
+      ]
     }
   },
   "required": [

@@ -1,38 +1,37 @@
 {
-  "selectedAccount": {
-    "sbc_account_id": 3299
-  },
   "registration": {
+    "registrationType": "HOST",
     "primaryContact": {
       "name": {
-        "firstName": "The",
-        "lastName": "Guy"
+        "firstName": "Tyler",
+        "lastName": "Zale"
       },
       "dateOfBirth": "1986-10-23",
       "socialInsuranceNumber": "666666666",
-      "businessNumber": "123456789",
       "details": {
         "phoneNumber": "604-999-9999",
         "emailAddress": "test@test.test"
       },
       "mailingAddress": {
         "country": "CA",
-        "address": "12766 227st",
+        "address": "12766 228st",
         "city": "MAPLE RIDGE",
         "province": "BC",
-        "postalCode": "V2X 6K6"
+        "postalCode": "V2X 6N2"
       }
     },
     "unitDetails": {
+      "parcelIdentifier": "018-850-570",
+      "businessLicense": "7777777",
       "propertyType": "PRIMARY",
       "ownershipType": "OWN"
     },
     "unitAddress": {
       "country": "CA",
-      "address": "12166 GREENWELL ST MAPLE RIDGE",
-      "city": "MAPLE RIDGE",
+      "address": "12766 228st",
+      "city": "Maple Ridge",
       "province": "BC",
-      "postalCode": "V2X 7N1"
+      "postalCode": "V2X 6N2"
     },
     "listingDetails": [
     ],

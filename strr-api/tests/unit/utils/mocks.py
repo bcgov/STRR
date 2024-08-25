@@ -16,7 +16,7 @@ from strr_api.models import (
 )
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/registration_use_sbc_account.json"
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
 )
 
 

@@ -9,10 +9,10 @@ from strr_api.models import Application, Events
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/registration_use_sbc_account.json"
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
 )
 CREATE_REGISTRATION_MINIMUM_FIELDS_REQUEST = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/registration_use_sbc_account_minimum.json"
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration_minimum.json"
 )
 
 ACCOUNT_ID = 1234

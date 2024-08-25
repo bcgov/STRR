@@ -4,47 +4,6 @@
   "type": "object",
   "title": "Host Registration",
   "definitions": {
-    "mailingAddress": {
-      "title": "Address",
-      "description": "A free text address string, providing as much address data as is relevant, suitable for processing using address parsing algorithms. For some uses (for example, Place of Birth) only a town and country are required.",
-      "type": "object",
-      "properties": {
-        "address": {
-          "type": "string",
-          "description": "Street address and name."
-        },
-        "addressLineTwo": {
-          "type": "string",
-          "description": "Additional street address information."
-        },
-        "city": {
-          "type": "string",
-          "description": "City, Town, or Village."
-        },
-        "postalCode": {
-          "type": "string",
-          "maxLength": 15,
-          "description": "Postal Code in A1A 1A1 format for Canada, or zip code for US addresses."
-        },
-        "province": {
-          "type": "string",
-          "maxLength": 2,
-          "description": "The 2-letter province code (ISO 3166-2) for this address."
-        },
-        "country": {
-          "type": "string",
-          "maxLength": 2,
-          "description": "The 2-letter country code (ISO 3166-1) for this address."
-        }
-      },
-      "required": [
-        "address",
-        "city",
-        "postalCode",
-        "province",
-        "country"
-      ]
-    },
     "contactName": {
       "type": "object",
       "properties": {
@@ -106,7 +65,7 @@
           ]
         },
         "mailingAddress": {
-          "$ref": "#/definitions/mailingAddress"
+          "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
         }
       },
       "required": [
@@ -128,7 +87,7 @@
       "nickname": {
         "type": "string"
       },
-      "$ref": "#/definitions/mailingAddress"
+      "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
     },
     "unitDetails": {
       "type": "object",

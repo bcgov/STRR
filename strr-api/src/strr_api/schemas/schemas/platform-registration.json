@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://strr.co/.well_known/schemas/platform_registration",
+  "$id": "https://strr.gov.bc.ca/.well_known/schemas/platform_registration",
   "type": "object",
   "title": "Platform Registration",
   "definitions": {
@@ -46,10 +46,13 @@
           "type": "string"
         },
         "aliases": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "mailingAddress": {
-          "type": "string"
+          "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
         }
       },
       "required": [
@@ -74,57 +77,41 @@
       ]
     }
   },
-  "platformRegistration": {
-    "type": "object",
-    "properties": {
-      "registrant": {
+  "properties": {
+    "registrant": {
+      "$ref": "#/definitions/contact"
+    },
+    "platformRepresentatives": {
+      "type": "array",
+      "items": {
         "$ref": "#/definitions/contact"
-      },
-      "representatives": {
-        "type": "array",
-        "items": {
-          "properties": {
-            "allOf": [
-              {
-                "$ref": "#/definitions/contact"
-              }
-            ],
-            "jobTitle": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "firstName",
-          "lastName",
-          "emailAddress",
-          "jobTitle"
-        ]
-      },
-      "businessDetails": {
-        "$ref": "#/definitions/businessDetails"
-      },
-      "platformDetails": {
-        "type": "object",
-        "properties": {
-          "providers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/platformProvider"
-            }
-          },
-          "hasMoreThanThousandListings": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "providers",
-          "hasMoreThanThousandListings"
-        ]
       }
     },
-    "required": [
-      "representatives"
-    ]
-  }
+    "businessDetails": {
+      "$ref": "#/definitions/businessDetails"
+    },
+    "platformDetails": {
+      "type": "object",
+      "properties": {
+        "providers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/platformProvider"
+          }
+        },
+        "hasMoreThanThousandListings": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "providers",
+        "hasMoreThanThousandListings"
+      ]
+    }
+  },
+  "required": [
+    "platformRepresentatives",
+    "platformDetails",
+    "businessDetails"
+  ]
 }

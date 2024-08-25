@@ -32,6 +32,7 @@ class Registration:
         principalResidence,
         secondaryContact=None,
         documents=[],  # pylint: disable=W0102
+        registrationType=None,
     ):
         self.primaryContact = Contact(**primaryContact)
         self.secondaryContact = None
@@ -42,6 +43,7 @@ class Registration:
         self.listingDetails = [ListingDetails(**item) for item in listingDetails]
         self.principalResidence = PrincipalResidence(**principalResidence)
         self.documents = [Document(**document) for document in documents]
+        self.registrationType = registrationType
 
 
 class PrincipalResidence:
