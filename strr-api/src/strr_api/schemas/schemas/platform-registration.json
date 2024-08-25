@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://strr.co/.well_known/schemas/platform_registration",
+  "type": "object",
+  "title": "Platform Registration",
+  "definitions": {
+    "contact": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "extension": {
+          "type": "string"
+        },
+        "faxNumber": {
+          "type": "string"
+        },
+        "emailAddress": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName",
+        "emailAddress"
+      ]
+    },
+    "businessDetails": {
+      "type": "object",
+      "properties": {
+        "legalName": {
+          "type": "string"
+        },
+        "placeOfIncorporation": {
+          "type": "string"
+        },
+        "businessNumber": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "string"
+        },
+        "mailingAddress": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "legalName",
+        "placeOfIncorporation",
+        "mailingAddress"
+      ]
+    },
+    "platformProvider": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "website": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "website"
+      ]
+    }
+  },
+  "platformRegistration": {
+    "type": "object",
+    "properties": {
+      "registrant": {
+        "$ref": "#/definitions/contact"
+      },
+      "representatives": {
+        "type": "array",
+        "items": {
+          "properties": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/contact"
+              }
+            ],
+            "jobTitle": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "emailAddress",
+          "jobTitle"
+        ]
+      },
+      "businessDetails": {
+        "$ref": "#/definitions/businessDetails"
+      },
+      "platformDetails": {
+        "type": "object",
+        "properties": {
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/platformProvider"
+            }
+          },
+          "hasMoreThanThousandListings": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "providers",
+          "hasMoreThanThousandListings"
+        ]
+      }
+    },
+    "required": [
+      "representatives"
+    ]
+  }
+}
