@@ -126,6 +126,13 @@ class ApplicationType(Enum):
     REGISTRATION = "registration"
 
 
+class RegistrationType(Enum):
+    """STRR Registration Types."""
+
+    HOST = "HOST"
+    PLATFORM = "PLATFORM"
+
+
 class ErrorMessage(Enum):
     """STRR Error Messages."""
 

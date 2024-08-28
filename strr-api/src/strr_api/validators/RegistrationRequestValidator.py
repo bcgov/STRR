@@ -1,11 +1,25 @@
 """Validator for registration requests."""
 import re
 
+from strr_api.enums.enum import RegistrationType
 from strr_api.exceptions import ValidationException
 from strr_api.requests import RegistrationRequest
 
 
-def validate_registration_request(registration_request: RegistrationRequest):
+def validate_request(registration_request: dict):
+    """Validates a registration request."""
+    if registration_request.get("registrationType") == RegistrationType.HOST.value:
+        registration_request = RegistrationRequest(**registration_request)
+        _validate_host_registration_request(registration_request)
+    elif registration_request.get("registrationType") == RegistrationType.PLATFORM.value:
+        _validate_platform_registration_request(registration_request)
+
+
+def _validate_platform_registration_request(registration_request: dict) -> None:
+    pass
+
+
+def _validate_host_registration_request(registration_request: RegistrationRequest) -> None:
     """Validate the registration request."""
     # DO POSTAL CODE VALIDATION IF COUNTRY IS CANADA
     registration_request.registration.unitAddress.postalCode = validate_and_format_canadian_postal_code(

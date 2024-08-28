@@ -8,16 +8,8 @@ Registration request payload objects.
 class RegistrationRequest:
     """RegistrationRequest payload object."""
 
-    def __init__(self, selectedAccount, registration):
-        self.selectedAccount = SelectedAccount(**selectedAccount)
+    def __init__(self, registration):
         self.registration = Registration(**registration)
-
-
-class SelectedAccount:
-    """SelectedAccount payload object."""
-
-    def __init__(self, sbc_account_id):
-        self.sbc_account_id = sbc_account_id
 
 
 class Registration:

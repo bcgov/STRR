@@ -55,7 +55,6 @@ from strr_api.exceptions import (
     exception_response,
 )
 from strr_api.models.dataclass import ApplicationSearch
-from strr_api.requests import RegistrationRequest
 from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
 from strr_api.services import (
@@ -73,7 +72,7 @@ from strr_api.services.application_service import (
     APPLICATION_UNPAID_STATES,
 )
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
-from strr_api.validators.RegistrationRequestValidator import validate_registration_request
+from strr_api.validators.RegistrationRequestValidator import validate_request
 
 logger = logging.getLogger("api")
 bp = Blueprint("applications", __name__)
@@ -108,16 +107,10 @@ def create_application():
     try:
         account_id = request.headers.get("Account-Id", None)
         json_input = request.get_json()
-        json_input["selectedAccount"] = {}
-        json_input["selectedAccount"]["sbc_account_id"] = account_id
         [valid, errors] = validate(json_input, "registration")
         if not valid:
             return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
-
-        registration_request = RegistrationRequest(**json_input)
-
-        validate_registration_request(registration_request)
-
+        validate_request(json_input)
         application = ApplicationService.save_application(account_id, json_input)
         invoice_details = strr_pay.create_invoice(jwt, account_id, application=application)
         application = ApplicationService.update_application_payment_details_and_status(application, invoice_details)
