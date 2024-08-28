@@ -8,11 +8,14 @@ from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
-CREATE_REGISTRATION_REQUEST = os.path.join(
+CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
 )
-CREATE_REGISTRATION_MINIMUM_FIELDS_REQUEST = os.path.join(
+CREATE_HOST_REGISTRATION_MINIMUM_FIELDS_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration_minimum.json"
+)
+CREATE_PLATFORM_REGISTRATION_REQUEST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/platform_registration.json"
 )
 
 ACCOUNT_ID = 1234
@@ -28,8 +31,8 @@ MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)),
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_create_application(session, client, jwt):
-    with open(CREATE_REGISTRATION_REQUEST) as f:
+def test_create_host_registration_application(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -50,7 +53,7 @@ def test_get_applications(session, client, jwt):
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_get_application_details(session, client, jwt):
-    with open(CREATE_REGISTRATION_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -83,7 +86,7 @@ def test_get_applications_invalid_account(session, client, jwt):
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_create_application_with_minimum_fields(session, client, jwt):
-    with open(CREATE_REGISTRATION_MINIMUM_FIELDS_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_MINIMUM_FIELDS_REQUEST) as f:
         json_data = json.load(f)
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -116,7 +119,7 @@ def test_get_application_ltsa_invalid_application(session, client, jwt):
 
 
 def test_get_application_ltsa(session, client, jwt):
-    with open(CREATE_REGISTRATION_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
         application = Application(type="registration", application_json=json_data)
         application.save()
@@ -140,7 +143,7 @@ def test_get_application_auto_approval_invalid_application(session, client, jwt)
 
 
 def test_get_application_auto_approval(session, client, jwt):
-    with open(CREATE_REGISTRATION_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
         application = Application(type="registration", application_json=json_data)
         application.save()
@@ -152,7 +155,7 @@ def test_get_application_auto_approval(session, client, jwt):
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_get_application_events(session, client, jwt):
-    with open(CREATE_REGISTRATION_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -169,7 +172,7 @@ def test_get_application_events(session, client, jwt):
 
 
 def test_update_application_payment(session, client, jwt):
-    with open(CREATE_REGISTRATION_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
@@ -188,7 +191,7 @@ def test_update_application_payment(session, client, jwt):
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_examiner_reject_application(session, client, jwt):
-    with open(CREATE_REGISTRATION_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         json_data = json.load(f)
@@ -211,7 +214,7 @@ def test_examiner_reject_application(session, client, jwt):
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_examiner_approve_application(session, client, jwt):
-    with open(CREATE_REGISTRATION_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         json_data = json.load(f)
@@ -238,7 +241,7 @@ def test_post_and_delete_registration_documents(session, client, jwt):
     with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
-        with open(CREATE_REGISTRATION_REQUEST) as f:
+        with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
             json_data = json.load(f)
             rv = client.post("/applications", json=json_data, headers=headers)
             response_json = rv.json
@@ -269,7 +272,7 @@ def test_post_and_delete_registration_documents(session, client, jwt):
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_search_applications(session, client, jwt):
-    with open(CREATE_REGISTRATION_MINIMUM_FIELDS_REQUEST) as f:
+    with open(CREATE_HOST_REGISTRATION_MINIMUM_FIELDS_REQUEST) as f:
         json_data = json.load(f)
         json_data["registration"]["unitAddress"]["address"] = "12144 GREENWELL ST MAPLE RIDGE"
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -287,3 +290,14 @@ def test_search_applications(session, client, jwt):
         assert HTTPStatus.OK == rv.status_code
         applications = rv.json
         assert len(applications.get("applications")) == 1
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_create_platform_registration_application(session, client, jwt):
+    with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+
+    assert HTTPStatus.CREATED == rv.status_code

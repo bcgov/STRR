@@ -178,11 +178,7 @@ def fake_application(ownership_type="rent", is_principal_residence=True, specifi
         },
     }
 
-    return Application(
-        application_json=json_data,
-        type="registration",
-        payment_account="123"
-    )
+    return Application(application_json=json_data, type="registration", payment_account="123")
 
 
 def fake_registration(*args, **kwargs):
