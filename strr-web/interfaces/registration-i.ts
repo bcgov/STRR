@@ -33,5 +33,6 @@ export interface RegistrationI {
     ownershipType: string
   },
   updatedDate: string,
-  user_id: number
+  user_id: number,
+  documents?: DocumentUploadI[]
 }

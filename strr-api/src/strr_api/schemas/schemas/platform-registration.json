@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://strr.gov.bc.ca/.well_known/schemas/platform_registration",
+  "type": "object",
+  "title": "Platform Registration",
+  "definitions": {
+    "contact": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "extension": {
+          "type": "string"
+        },
+        "faxNumber": {
+          "type": "string"
+        },
+        "emailAddress": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName",
+        "emailAddress"
+      ]
+    },
+    "businessDetails": {
+      "type": "object",
+      "properties": {
+        "legalName": {
+          "type": "string"
+        },
+        "placeOfIncorporation": {
+          "type": "string"
+        },
+        "businessNumber": {
+          "type": "string"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mailingAddress": {
+          "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
+        }
+      },
+      "required": [
+        "legalName",
+        "placeOfIncorporation",
+        "mailingAddress"
+      ]
+    },
+    "platformProvider": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "website": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "website"
+      ]
+    }
+  },
+  "properties": {
+    "registrant": {
+      "$ref": "#/definitions/contact"
+    },
+    "platformRepresentatives": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/contact"
+      }
+    },
+    "businessDetails": {
+      "$ref": "#/definitions/businessDetails"
+    },
+    "platformDetails": {
+      "type": "object",
+      "properties": {
+        "providers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/platformProvider"
+          }
+        },
+        "hasMoreThanThousandListings": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "providers",
+        "hasMoreThanThousandListings"
+      ]
+    }
+  },
+  "required": [
+    "platformRepresentatives",
+    "platformDetails",
+    "businessDetails"
+  ]
+}

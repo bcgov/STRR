@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://strr.gov.bc.ca/.well_known/schemas/host_registration",
+  "type": "object",
+  "title": "Host Registration",
+  "definitions": {
+    "contactName": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "firstName",
+        "lastName"
+      ]
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/contactName"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "format": "date",
+          "description": "YYYY-MM-DD"
+        },
+        "socialInsuranceNumber": {
+          "type": "string"
+        },
+        "businessNumber": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "preferredName": {
+              "type": "string"
+            },
+            "phoneNumber": {
+              "type": "string"
+            },
+            "extension": {
+              "type": "string"
+            },
+            "faxNumber": {
+              "type": "string"
+            },
+            "emailAddress": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "required": [
+            "phoneNumber",
+            "emailAddress"
+          ]
+        },
+        "mailingAddress": {
+          "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
+        }
+      },
+      "required": [
+        "name",
+        "dateOfBirth",
+        "details",
+        "mailingAddress"
+      ]
+    }
+  },
+  "properties": {
+    "primaryContact": {
+      "$ref": "#/definitions/contact"
+    },
+    "secondaryContact": {
+      "$ref": "#/definitions/contact"
+    },
+    "unitAddress": {
+      "nickname": {
+        "type": "string"
+      },
+      "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
+    },
+    "unitDetails": {
+      "type": "object",
+      "properties": {
+        "parcelIdentifier": {
+          "type": "string"
+        },
+        "businessLicense": {
+          "type": "string"
+        },
+        "propertyType": {
+          "type": "string",
+          "enum": [
+            "PRIMARY",
+            "SECONDARY",
+            "ACCESSORY",
+            "FLOAT_HOME",
+            "OTHER"
+          ]
+        },
+        "ownershipType": {
+          "type": "string",
+          "enum": [
+            "OWN",
+            "RENT",
+            "CO_OWN"
+          ]
+        }
+      },
+      "required": [
+        "propertyType",
+        "ownershipType"
+      ]
+    },
+    "listingDetails": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "principalResidence": {
+      "type": "object",
+      "properties": {
+        "isPrincipalResidence": {
+          "type": "boolean"
+        },
+        "agreedToRentalAct": {
+          "type": "boolean"
+        },
+        "nonPrincipalOption": {
+          "type": "string"
+        },
+        "specifiedServiceProvider": {
+          "type": "string"
+        },
+        "agreedToSubmit": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "isPrincipalResidence",
+        "agreedToRentalAct",
+        "agreedToSubmit"
+      ]
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "fileType": {
+            "type": "string"
+          },
+          "fileKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fileName",
+          "fileType",
+          "fileKey"
+        ]
+      }
+    }
+  },
+  "required": [
+    "primaryContact",
+    "unitAddress",
+    "unitDetails",
+    "listingDetails",
+    "principalResidence"
+  ]
+}

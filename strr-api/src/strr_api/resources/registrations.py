@@ -48,8 +48,8 @@ from strr_api.common.auth import jwt
 from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
-from strr_api.responses import Document, Events, Pagination, Registration
-from strr_api.services import DocumentService, EventsService, GCPStorageService, RegistrationService
+from strr_api.responses import Events, Pagination, Registration
+from strr_api.services import DocumentService, EventsService, RegistrationService
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
@@ -182,98 +182,99 @@ def get_registration(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/documents", methods=("GET",))
+# TODO Delete this
+# @bp.route("/<registration_id>/documents", methods=("GET",))
+# @swag_from({"security": [{"Bearer": []}]})
+# @cross_origin(origin="*")
+# @jwt.requires_auth
+# def get_registration_documents(registration_id):
+#     """
+#     Get registration supporting documents for given registration id.
+#     ---
+#     tags:
+#       - registration
+#     parameters:
+#       - in: path
+#         name: registration_id
+#         type: integer
+#         required: true
+#         description: ID of the registration
+#     responses:
+#       200:
+#         description:
+#       401:
+#         description:
+#       403:
+#         description:
+#     """
+
+#     try:
+#         # only allow upload for registrations that belong to the user
+#         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
+#         if not registration:
+#             raise AuthException()
+
+#         documents = DocumentService.get_registration_documents(registration_id)
+#         return (
+#             jsonify([Document.from_db(document).model_dump(mode="json") for document in documents]),
+#             HTTPStatus.OK,
+#         )
+#     except AuthException as auth_exception:
+#         return exception_response(auth_exception)
+
+# TODO Delete this
+# @bp.route("/<registration_id>/documents/<document_id>", methods=("GET",))
+# @swag_from({"security": [{"Bearer": []}]})
+# @cross_origin(origin="*")
+# @jwt.requires_auth
+# def get_registration_supporting_document_by_id(registration_id, document_id):
+#     """
+#     Get registration supporting document metadata for given registration id and document id.
+#     ---
+#     tags:
+#       - registration
+#     parameters:
+#       - in: path
+#         name: registration_id
+#         type: integer
+#         required: true
+#         description: ID of the registration
+#       - in: path
+#         name: document_id
+#         type: integer
+#         required: true
+#         description: ID of the document
+#     responses:
+#       200:
+#         description:
+#       401:
+#         description:
+#       403:
+#         description:
+#       404:
+#         description:
+#     """
+
+#     try:
+#         # only allow upload for registrations that belong to the user
+#         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
+#         if not registration:
+#             raise AuthException()
+
+#         document = DocumentService.get_registration_document(registration_id, document_id)
+#         if not document:
+#             return error_response(HTTPStatus.NOT_FOUND, "Document not found")
+
+#         return jsonify(Document.from_db(document).model_dump(mode="json")), HTTPStatus.OK
+#     except AuthException as auth_exception:
+#         return exception_response(auth_exception)
+
+
+@bp.route("/<registration_id>/documents/<file_key>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_registration_documents(registration_id):
-    """
-    Get registration supporting documents for given registration id.
-    ---
-    tags:
-      - registration
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-    """
-
-    try:
-        # only allow upload for registrations that belong to the user
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            raise AuthException()
-
-        documents = DocumentService.get_registration_documents(registration_id)
-        return (
-            jsonify([Document.from_db(document).model_dump(mode="json") for document in documents]),
-            HTTPStatus.OK,
-        )
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
-@bp.route("/<registration_id>/documents/<document_id>", methods=("GET",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def get_registration_supporting_document_by_id(registration_id, document_id):
-    """
-    Get registration supporting document metadata for given registration id and document id.
-    ---
-    tags:
-      - registration
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-      - in: path
-        name: document_id
-        type: integer
-        required: true
-        description: ID of the document
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-      404:
-        description:
-    """
-
-    try:
-        # only allow upload for registrations that belong to the user
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            raise AuthException()
-
-        document = DocumentService.get_registration_document(registration_id, document_id)
-        if not document:
-            return error_response(HTTPStatus.NOT_FOUND, "Document not found")
-
-        return jsonify(Document.from_db(document).model_dump(mode="json")), HTTPStatus.OK
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
-@bp.route("/<registration_id>/documents/<document_id>/file", methods=("GET",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def get_registration_file_by_id(registration_id, document_id):
+def get_registration_file_by_id(registration_id, file_key):
     """
     Get registration file contents for given registration id and document id.
     ---
@@ -286,10 +287,10 @@ def get_registration_file_by_id(registration_id, document_id):
         required: true
         description: ID of the registration
       - in: path
-        name: document_id
-        type: integer
+        name: file_key
+        type: string
         required: true
-        description: ID of the document
+        description: File key from the upload document response
     responses:
       200:
         description:
@@ -309,13 +310,12 @@ def get_registration_file_by_id(registration_id, document_id):
         if not registration:
             raise AuthException()
 
-        document = DocumentService.get_registration_document(registration_id, document_id)
+        document = DocumentService.get_registration_document_by_key(registration_id, file_key)
         if not document:
             return error_response(HTTPStatus.NOT_FOUND, "Document not found")
-
-        file_bytes = GCPStorageService.fetch_registration_document(document.path)
+        file_content = DocumentService.get_file_by_key(file_key)
         return send_file(
-            BytesIO(file_bytes), as_attachment=True, download_name=document.file_name, mimetype=document.file_type
+            BytesIO(file_content), as_attachment=True, download_name=document.file_name, mimetype=document.file_type
         )
     except AuthException as auth_exception:
         return exception_response(auth_exception)
@@ -371,7 +371,7 @@ def get_registration_events(registration_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value, Role.SYSTEM.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.SYSTEM.value])
 def issue_registration_certificate(registration_id):
     """
     Manually generate and issue a STRR registration certificate.

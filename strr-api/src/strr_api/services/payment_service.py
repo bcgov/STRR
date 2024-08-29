@@ -32,13 +32,13 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Manages filing type codes and payment service interactions."""
-from copy import deepcopy
 from http import HTTPStatus
 
 import requests
 from flask import Flask
 from flask_jwt_oidc import JwtManager
 
+from strr_api.enums.enum import RegistrationType
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events
 from strr_api.services.events_service import EventsService
@@ -54,12 +54,10 @@ class PayService:
     svc_url: str = None
     timeout: int = None
 
-    def __init__(self, app: Flask = None, default_invoice_payload: dict = None):
+    def __init__(self, app: Flask = None):
         """Initialize the pay service."""
         if app:
             self.init_app(app)
-        if default_invoice_payload:
-            self.default_invoice_payload = default_invoice_payload
 
     def init_app(self, app: Flask):
         """Initialize app dependent variables."""
@@ -69,7 +67,14 @@ class PayService:
 
     def create_invoice(self, user_jwt: JwtManager, account_id, application=None):
         """Create the invoice via the pay-api."""
-        payload = deepcopy(self.default_invoice_payload)
+        application_json = application.application_json
+        filing_type = self._get_filing_type(application_json)
+
+        payload = {
+            "filingInfo": {"filingTypes": [{"filingTypeCode": filing_type}]},
+            "businessInfo": {"corpType": "STRR"},
+            "paymentInfo": {"methodOfPayment": "DIRECT_PAY"},
+        }
 
         try:
             token = user_jwt.get_token_auth_header()
@@ -102,6 +107,19 @@ class PayService:
         except Exception as err:
             self.app.logger.debug("Pay-api integration (create invoice) failure:", repr(err))
             raise ExternalServiceException(error=repr(err), status_code=HTTPStatus.PAYMENT_REQUIRED) from err
+
+    def _get_filing_type(self, application_json):
+        filing_type = None
+        registration_json = application_json.get("registration", {})
+        registration_type = registration_json.get("registrationType")
+        if registration_type == RegistrationType.HOST.value:
+            filing_type = "RENTAL_FEE"
+        if registration_type == RegistrationType.PLATFORM.value:
+            if registration_json.get("platformDetails").get("hasMoreThanThousandListings"):
+                filing_type = "PLATREG_LG"
+            else:
+                filing_type = "PLATREG_SM"
+        return filing_type
 
     def get_payment_details_by_invoice_id(self, user_jwt: JwtManager, account_id, invoice_id: int):
         """Get payment details by invoice id."""

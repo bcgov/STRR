@@ -55,7 +55,6 @@ from strr_api.exceptions import (
     exception_response,
 )
 from strr_api.models.dataclass import ApplicationSearch
-from strr_api.requests import RegistrationRequest
 from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
 from strr_api.services import (
@@ -73,7 +72,7 @@ from strr_api.services.application_service import (
     APPLICATION_UNPAID_STATES,
 )
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
-from strr_api.validators.RegistrationRequestValidator import validate_registration_request
+from strr_api.validators.RegistrationRequestValidator import validate_request
 
 logger = logging.getLogger("api")
 bp = Blueprint("applications", __name__)
@@ -108,16 +107,10 @@ def create_application():
     try:
         account_id = request.headers.get("Account-Id", None)
         json_input = request.get_json()
-        json_input["selectedAccount"] = {}
-        json_input["selectedAccount"]["sbc_account_id"] = account_id
         [valid, errors] = validate(json_input, "registration")
         if not valid:
             return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
-
-        registration_request = RegistrationRequest(**json_input)
-
-        validate_registration_request(registration_request)
-
+        validate_request(json_input)
         application = ApplicationService.save_application(account_id, json_input)
         invoice_details = strr_pay.create_invoice(jwt, account_id, application=application)
         application = ApplicationService.update_application_payment_details_and_status(application, invoice_details)
@@ -256,7 +249,7 @@ def update_application_payment_details(application_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
 def get_application_ltsa(application_id):
     """
     Get application LTSA records
@@ -296,7 +289,7 @@ def get_application_ltsa(application_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
 def get_application_auto_approval_records(application_id):
     """
     Get application auto approval records
@@ -382,7 +375,7 @@ def get_application_events(application_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value])
 def update_application_status(application_id):
     """
     Update application status.
@@ -532,7 +525,7 @@ def get_document(application_id, file_key):
         if not application_documents:
             return error_response(ErrorMessage.DOCUMENT_NOT_FOUND.value, HTTPStatus.BAD_REQUEST)
         document = application_documents[0]
-        file_content = DocumentService.get_document_by_key(file_key)
+        file_content = DocumentService.get_file_by_key(file_key)
         return send_file(
             BytesIO(file_content),
             as_attachment=True,
@@ -632,7 +625,7 @@ def get_payment_receipt(application_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-@jwt.has_one_of_roles([Role.STAFF.value])
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
 def search_applications():
     """
     Search Applications.

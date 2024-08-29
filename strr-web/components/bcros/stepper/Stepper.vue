@@ -1,8 +1,8 @@
 <template>
   <div
     class="
-      rounded-[4px] w-full flex flex-row justify-between bg-white px-[20px] pt-[20px]
-      mobile:bg-transparent mobile:px-[0px] mobile:pt-[0px]
+      rounded-[4px] w-full flex flex-row justify-between bg-white px-5 pt-5
+      mobile:bg-transparent mobile:px-0 mobile:pt-0
     "
     data-test-id="stepper"
   >
@@ -19,7 +19,7 @@
         tabindex="0"
         :class="`
           ${index == activeStep.valueOf() ? 'border-b-[3px] border-blue-500' : ''}
-          pb-[20px] flex flex-col cursor-pointer
+          pb-5 flex flex-col cursor-pointer
           mobile:border-b-0
         `"
         @click="() => emit('changeStep', index)"
@@ -35,24 +35,20 @@
           >
             <div v-if="step.complete">
               <img
-                :src="
-                  `${step.isValid
-                    ? '/icons/create-account/valid_step.svg'
-                    : '/icons/create-account/invalid_step.svg'
-                  }`
+                :src="step.isValid
+                  ? '/icons/create-account/valid_step.svg'
+                  : '/icons/create-account/invalid_step.svg'
                 "
-                :alt="
-                  `${step.isValid
-                    ? 'Step successfully validated'
-                    : 'Step did not pass validation'
-                  }`
+                :alt="step.isValid
+                  ? 'Step successfully validated'
+                  : 'Step did not pass validation'
                 "
                 class="absolute top-[-10px] right-[-10px]"
               >
             </div>
             <img
               :src="`${index == activeStep.valueOf() ? `${step.activeIconPath}`: step.inactiveIconPath}`"
-              class="mobile:w-[20px] mobile:h-[20px]"
+              class="mobile:w-5 mobile:h-5"
               :alt="step.alt"
             >
           </div>
@@ -60,7 +56,7 @@
         <p
           :class="`
             ${index == activeStep.valueOf() ? 'font-bold text-black' : 'text-blue-500'}
-            mt-[8px] leading-[20px] text-[14px] max-w-[95px] text-center
+            mt-2 leading-5 text-[14px] max-w-[95px] text-center
             mobile:hidden
           `"
         >

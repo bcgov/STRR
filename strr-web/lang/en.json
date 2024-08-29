@@ -314,6 +314,23 @@
       "title": "Step 4 - Review and Confirm"
     }
   },
+  "platformApplication": {
+    "header": "Short-Term Rental Platform Application",
+    "stepper": {
+      "step1": {
+        "label": "Contact Information"
+      },
+      "step2": {
+        "label": "Business Details"
+      },
+      "step3": {
+        "label": "Platform Information"
+      },
+      "step4": {
+        "label": "Review and Confirm"
+      }
+    }
+  },
   "account": {
     "logIn": "Please Log In",
     "title": "Existing Account Found",

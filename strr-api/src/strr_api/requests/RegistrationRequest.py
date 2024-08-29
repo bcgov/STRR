@@ -8,16 +8,8 @@ Registration request payload objects.
 class RegistrationRequest:
     """RegistrationRequest payload object."""
 
-    def __init__(self, selectedAccount, registration):
-        self.selectedAccount = SelectedAccount(**selectedAccount)
+    def __init__(self, registration):
         self.registration = Registration(**registration)
-
-
-class SelectedAccount:
-    """SelectedAccount payload object."""
-
-    def __init__(self, sbc_account_id):
-        self.sbc_account_id = sbc_account_id
 
 
 class Registration:
@@ -32,6 +24,7 @@ class Registration:
         principalResidence,
         secondaryContact=None,
         documents=[],  # pylint: disable=W0102
+        registrationType=None,
     ):
         self.primaryContact = Contact(**primaryContact)
         self.secondaryContact = None
@@ -42,6 +35,7 @@ class Registration:
         self.listingDetails = [ListingDetails(**item) for item in listingDetails]
         self.principalResidence = PrincipalResidence(**principalResidence)
         self.documents = [Document(**document) for document in documents]
+        self.registrationType = registrationType
 
 
 class PrincipalResidence:

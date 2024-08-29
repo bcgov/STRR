@@ -1,6 +1,6 @@
 {
   "name": "strr-web",
-  "version": "0.1.12",
+  "version": "0.1.16",
   "description": "Short Term Rental Registration UI - Mono repo workspace",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -14,6 +14,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "test": "vitest run --coverage && cp ./coverage/cobertura-coverage.xml ./coverage.xml",
+    "test:unit": "vitest run",
     "test:cov": "vitest run --coverage && cp ./coverage/cobertura-coverage.xml ./coverage.xml",
     "start": "nuxt start"
   },

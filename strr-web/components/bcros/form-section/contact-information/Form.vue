@@ -174,8 +174,8 @@ const { me, currentAccount } = useBcrosAccount()
 onMounted(() => {
   if (isComplete) { validateMonths() }
   if (currentAccount && me) {
-    const currentAccountInfo = me?.orgs.find(({ id }) => id === currentAccount.id)?.mailingAddress
-    if (currentAccountInfo) {
+    const currentAccountInfo = me?.orgs.find(({ id }) => id === currentAccount.id)?.mailingAddress as AddressI[]
+    if (currentAccountInfo && currentAccountInfo.length > 0) {
       if (!formState.primaryContact.emailAddress) {
         formState.primaryContact.emailAddress = currentAccountInfo[0].email
       }

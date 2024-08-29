@@ -1,5 +1,6 @@
 import axios from 'axios'
-import { ApplicationI, ApplicationStatusE } from '#imports'
+import { ApplicationI, ApplicationStatusE, RegistrationTypeE } from '#imports'
+const fileAxiosInstance = addAxiosInterceptors(axios.create(), 'multipart/form-data')
 
 export const useApplications = () => {
   const apiURL = useRuntimeConfig().public.strrApiURL
@@ -14,7 +15,8 @@ export const useApplications = () => {
     userLastName: string,
     hasSecondaryContact: boolean,
     propertyType: string,
-    ownershipType: string
+    ownershipType: string,
+    registrationType: RegistrationTypeE = RegistrationTypeE.HOST
   ) => {
     const formData: CreateAccountFormAPII = formStateToApi(
       formState,
@@ -26,21 +28,38 @@ export const useApplications = () => {
     )
 
     try {
-      const response = await axiosInstance.post(`${apiURL}/applications`, { ...formData })
-      const data = response?.data
+      // add registration type to payload
+      formData.registration.registrationType = registrationType
+
+      if (formState.supportingDocuments.length) {
+        // upload all document and add its info to the application data
+        const documents: DocumentUploadI[] = await uploadSupportingDocuments()
+        formData.registration.documents = documents
+      }
+
+      const { data } = await axiosInstance.post(`${apiURL}/applications`, formData)
 
       if (!data) {
         throw new Error('Invalid AUTH API response')
       }
 
-      const { header } = data
-      handlePaymentRedirect(header.paymentToken, header.id)
+      const { paymentToken, id } = data.header
+      handlePaymentRedirect(paymentToken, id)
 
       return data
     } catch (error) {
       console.warn('Error creating account.')
       console.error(error)
     }
+  }
+
+  const uploadSupportingDocuments = async (): Promise<DocumentUploadI[]> => {
+    const uploadDocuments = formState.supportingDocuments.map((file: File) =>
+      fileAxiosInstance.post<DocumentUploadI>(`${apiURL}/documents`, { file })
+    )
+
+    const results = await Promise.all(uploadDocuments)
+    return results.map(res => res.data)
   }
 
   /**
@@ -89,17 +108,18 @@ export const useApplications = () => {
     return data
   }
 
-  // TODO: this will be replaced with documents data from GET /applications call
-  const getDocumentsForApplication = async (id: string): Promise<ApplicationI[]> => {
-    const res = await axiosInstance.get(`${apiURL}/applications/${id}/documents`)
-    return res.data
-  }
-
-  const getFile = async (id: string, documentId: string): Promise<Blob> => {
-    const response = await axiosInstance.get(`${apiURL}/applications/${id}/documents/${documentId}/file`, {
+  /**
+   * Get/Download Supporting Document file for Application.
+   *
+   * @param {string} applicationId - The id of the application to which the document belongs.
+   * @param {string} fileKey - The key of the document to be retrieved.
+   * @returns The file/document
+   */
+  const getDocument = async (applicationId: string, fileKey: string): Promise<Blob> => {
+    const { data } = await axiosInstance.get<Blob>(`${apiURL}/applications/${applicationId}/documents/${fileKey}`, {
       responseType: 'blob'
     })
-    return response.data
+    return data
   }
 
   /**
@@ -161,8 +181,7 @@ export const useApplications = () => {
     getPaginatedApplications,
     createApplication,
     getApplicationHistory,
-    getDocumentsForApplication,
-    getFile,
+    getDocument,
     approveApplication,
     rejectApplication,
     getLtsa,

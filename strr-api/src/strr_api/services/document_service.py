@@ -80,6 +80,16 @@ class DocumentService:
         )
 
     @classmethod
-    def get_document_by_key(cls, file_key: str):
-        """Get registration document by file_key."""
+    def get_registration_document_by_key(cls, registration_id, file_key):
+        """Get registration document by key."""
+        return (
+            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
+            .filter(Eligibility.registration_id == registration_id)
+            .filter(Document.path == file_key)
+            .one_or_none()
+        )
+
+    @classmethod
+    def get_file_by_key(cls, file_key: str):
+        """Get registration supporting document by file_key."""
         return GCPStorageService.fetch_registration_document(blob_name=file_key)

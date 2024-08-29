@@ -128,25 +128,19 @@
           <div class="bg-white py-[22px] px-[30px] mobile:px-2">
             <div class="flex flex-row justify-between w-full mobile:flex-col">
               <BcrosFormSectionReviewItem :title="tApplicationDetails('proof')">
-                <div v-for="(supportingDocument) in documents" :key="supportingDocument.file_name">
-                  <a
-                    class="flex flex-row items-center cursor-pointer no-underline text-black"
-                    role="button"
-                    @click.prevent="
-                      downloadItem(
-                        registrationId,
-                        supportingDocument.document_id.toString(),
-                        supportingDocument.file_name
-                      )
-                    "
+                <div v-for="document in documents" :key="document.fileKey">
+                  <UButton
+                    class="px-0 underline"
+                    variant="link"
+                    @click="downloadDocument(document)"
                   >
                     <img
-                      class="mr-[4px] h-[18px] w-[18px]"
+                      class="h-6"
                       src="/icons/create-account/attach_dark.svg"
                       alt="Attach icon"
                     >
-                    <p>{{ supportingDocument.file_name }}</p>
-                  </a>
+                    <span class="text-base">{{ document.fileName }}</span>
+                  </UButton>
                 </div>
               </BcrosFormSectionReviewItem>
             </div>
@@ -242,9 +236,8 @@ const downloadEventTypes = ['CERTIFICATE_ISSUED']
 
 const {
   getRegistration,
-  getDocumentsForRegistration,
   getRegistrationHistory,
-  getFile,
+  getDocument,
   getCertificate
 } = useRegistrations()
 
@@ -273,20 +266,24 @@ const downloadCertificate = async (id: string) => {
   URL.revokeObjectURL(link.href)
 }
 
-const downloadItem = async (id: string, fileId: string, fileName: string) => {
-  const file = await getFile(id, fileId)
+const downloadDocument = async (supportingDocument: DocumentUploadI) => {
+  const file = await getDocument(registrationId, supportingDocument.fileKey)
   const link = document.createElement('a')
+
   link.href = URL.createObjectURL(file)
-  link.download = fileName
-  link.target = '_blank'
+  link.download = supportingDocument.fileName
   link.click()
+
   URL.revokeObjectURL(link.href)
 }
-const [application, documents, history]: [RegistrationI, DocumentI[], FilingHistoryEventI[]] = await Promise.all([
+
+const [application, history]: [RegistrationI, FilingHistoryEventI[]] = await Promise.all([
   getRegistration(registrationId),
-  getDocumentsForRegistration(registrationId),
   getRegistrationHistory(registrationId)
 ])
+
+// Get Supporting Documents from the Application response
+const documents: DocumentUploadI[] = application.documents || []
 
 const flavour = application ? getChipFlavour(application.status) : null
 

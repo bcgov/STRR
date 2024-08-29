@@ -1,4 +1,4 @@
-import { RegistrationStatusE, ApplicationStatusE } from '#imports'
+import { RegistrationStatusE, ApplicationStatusE, RegistrationTypeE } from '#imports'
 export interface ApplicationHeaderI {
   applicationDateTime: string
   decisionDate: string | null
@@ -28,17 +28,19 @@ interface ListingDetailsI {
 }
 
 export interface ApplicationDetailsI {
+  registrationType: RegistrationTypeE,
   listingDetails: ListingDetailsI[]
   primaryContact: ContactI
   secondaryContact?: ContactI
   principalResidence: PrincipalResidenceI
   unitAddress: RegistrationAddressI
   unitDetails: {
-    parcelIdentifier?: string,
-    businessLicense?: string,
-    propertyType: string,
+    parcelIdentifier?: string
+    businessLicense?: string
+    propertyType: string
     ownershipType: string
   }
+  documents?: DocumentUploadI[]
 }
 
 export interface ApplicationI {

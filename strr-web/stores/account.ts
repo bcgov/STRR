@@ -147,8 +147,17 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
       // try getting id from existing session storage
       currentAccountId = JSON.parse(sessionStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT) || '{}').id
     }
+
+    // Retrieve the user session from session storage
+    const storedUserProfile: MeI = JSON.parse(sessionStorage.getItem(SessionStorageKeyE.USER_PROFILE) || 'null')
+
     if (user.value?.keycloakGuid) {
-      userAccounts.value = await getUserAccounts(user.value?.keycloakGuid) || []
+      // Set user accounts from stored user profile settings or fetch from API if not available
+      userAccounts.value =
+        (storedUserProfile?.settings?.filter(settings => settings.type === UserSettingsTypeE.ACCOUNT) as AccountI[]) ||
+        (await getUserAccounts(user.value?.keycloakGuid)) ||
+        []
+
       if (userAccounts && userAccounts.value.length > 0) {
         currentAccount.value = userAccounts.value[0]
         if (currentAccountId) {
@@ -158,11 +167,16 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
         sessionStorage.setItem(SessionStorageKeyE.CURRENT_ACCOUNT, JSON.stringify(currentAccount.value))
       }
 
-      // retrieve and use the orgs from the STRR api
-      // TODO: TC - move this call elsewhere?
-      const me = await getMe()
-      if (me && me.orgs) {
-        userOrgs.value = me.orgs || []
+      // Set Me and UserOrgs refs from stored user profile or fetch from the API
+      if (storedUserProfile) {
+        me.value = storedUserProfile
+        userOrgs.value = storedUserProfile.orgs
+      } else {
+        const myUserProfile = await getMe()
+        if (myUserProfile) {
+          userOrgs.value = myUserProfile.orgs || []
+          sessionStorage.setItem(SessionStorageKeyE.USER_PROFILE, JSON.stringify(myUserProfile))
+        }
       }
     }
   }

@@ -1,17 +1,16 @@
 <template>
-  <div
+  <aside
     data-test-id="fee-widget"
-    role="complementary"
     class="
       desktop:w-[280px]
-      mobile:w-[calc(100%-8px)] mobile:fixed mobile:bottom-[4px] mobile:mx-[4px] mobile:left-[0px]
-      rounded-[4px] font-bold text-black bg-white z-10
+      mobile:w-[calc(100%-8px)] mobile:fixed mobile:bottom-1 mobile:mx-[4px] mobile:left-[0px]
+      rounded-1 font-bold text-black bg-white z-10
       shadow-md
     "
   >
     <div
       :class="`
-        ${isMobile && folded ? 'rounded-[4px]' : 'rounded-t-[4px]'}
+        ${isMobile && folded ? 'rounded-1' : 'rounded-t-1'}
         px-[15px] py-[10px] pt-[10px] text-white bg-blue-550 rounded-t-[4px] flex flex-row justify-between
         mobile:cursor-pointer
         `
@@ -36,29 +35,29 @@
         <p>{{ t("feeWidget.serviceFee") }}</p>
         <p>{{ fee?.serviceFees ? `$${fee.serviceFees.toFixed(2)}`: '-' }}</p>
       </div>
-      <div class="py-[10px] text-[14px] font-bold flex-row flex justify-between items-end" aria-label="null">
+      <div class="py-[10px] text-sm font-bold flex-row flex justify-between items-end" aria-label="null">
         <p>{{ t("feeWidget.total") }}</p>
-        <p class="font-normal text-[14px] text-bcGovGray-700 flex items-end">
+        <p class="font-normal text-sm text-bcGovGray-700 flex items-end">
           {{ t("feeWidget.cad") }}
-          <b class="text-black text-[24px] ml-[5px] mb-[-4px] flex items-end">
+          <b class="text-black text-2xl ml-[5px] mb-[-4px] flex items-end">
             {{ fee?.total ? `$${fee.total.toFixed(2)}` : '-' }}
           </b>
         </p>
       </div>
     </div>
-  </div>
+  </aside>
 </template>
 
 <script setup lang="ts">
 
-import useScreenSize from '../../../composables/useScreenSize'
+import useScreenSize from '../composables/useScreenSize'
 
 const { t } = useTranslation()
 const folded = ref(false)
 const isMobile = ref(false)
 
 const { fee } = defineProps<{
-  fee: FeeI
+  fee: FeeI | undefined
 }>()
 
 const toggleFolded = () => {

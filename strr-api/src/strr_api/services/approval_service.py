@@ -36,6 +36,8 @@
 # pylint: disable=R0912
 # pylint: disable=R0915
 # pylint: disable=R1702
+# pylint: disable=C0103
+
 """For a successfully paid registration, this service determines its auto-approval state."""
 from datetime import datetime
 from typing import Any, Tuple
@@ -93,7 +95,6 @@ class ApprovalService:
         application_json = application.application_json
         registration_request = RegistrationRequest(**application_json)
         registration = registration_request.registration
-        selected_account = registration_request.selectedAccount
         pid = registration.unitDetails.parcelIdentifier
         owner_name = registration.primaryContact.name.firstName + " " + registration.primaryContact.name.lastName
         address = (
@@ -112,7 +113,7 @@ class ApprovalService:
         )
         pr_exempt = not registration.principalResidence.isPrincipalResidence
         bl_provided = registration.unitDetails.businessLicense is not None
-        bcsc_address = AuthService.get_sbc_accounts_mailing_address(token, selected_account.sbc_account_id)
+        bcsc_address = AuthService.get_sbc_accounts_mailing_address(token, int(application.payment_account))
         # Status setting just temporary for visibility
         auto_approval = AutoApproval()
         registration_ident = None
