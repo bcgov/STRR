@@ -213,9 +213,10 @@ if (isComplete) {
 }
 
 const uploadFile = (file: FileList) => {
-  const extension = file[0].name.substring(file[0].name.length - 3)
+  const newFile = file[0]
+  const extension = newFile.name.substring(newFile.name.length - 3)
   const validType = ['pdf', 'jpg', 'doc', 'png']
-  const fileSize = file[0].size / 1024 / 1024 // in MiB
+  const fileSize = newFile.size / 1024 / 1024 // in MiB
   const validFileType = validType.includes(extension)
   const validFileSize = fileSize <= 50
   if (!validFileSize) {
@@ -224,7 +225,12 @@ const uploadFile = (file: FileList) => {
     fileError.value = tPrincipalResidence('fileTypeError')
   } else {
     fileError.value = null
-    formState.supportingDocuments.push(file[0])
+    const existingIndex = formState.supportingDocuments.findIndex(doc => doc.name === newFile.name)
+    if (existingIndex !== -1) {
+      formState.supportingDocuments.splice(existingIndex, 1, newFile)
+    } else {
+      formState.supportingDocuments.push(newFile)
+    }
     fileInputKey.value++
   }
 }
