@@ -15,9 +15,9 @@ describe("Create Account", () => {
     cy.login();
   });
 
-  /*   afterEach(() => {
+  afterEach(() => {
     cy.logout();
-  }); */
+  }); 
 
   /* ==== Test Created with Cypress Studio ==== */
   it("create", function () {

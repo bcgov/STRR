@@ -74,5 +74,8 @@ class createAccount {
   declaration: string = 'input[name="declaration"][type="checkbox"]';
   confirmation: string = 'input[type="checkbox"]';
 
+  startAccount() {
+    cy.visit(this.path);
+  }
 }
 export default createAccount;
