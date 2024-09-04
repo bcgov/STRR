@@ -26,18 +26,6 @@ from strr_api.services import AuthService
 bp = Blueprint("users", __name__)
 
 
-@bp.route("/", methods=["POST"])
-@cross_origin(origin="*")
-@_jwt.requires_auth
-def update_user_profile():
-    """Update user profile. This will add necessary roles for the user."""
-    try:
-        user_details = AuthService.update_user_profile()
-        return user_details, HTTPStatus.OK
-    except ExternalServiceException as service_exception:
-        return error_response(service_exception.message, service_exception.status_code)
-
-
 @bp.route("/tos", methods=["GET"])
 @cross_origin(origin="*")
 @_jwt.requires_auth
