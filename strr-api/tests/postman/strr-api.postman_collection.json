@@ -1143,6 +1143,82 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get User Terms of Service Copy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/users/tos",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"users",
+								"tos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Terms of Service Copy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"istermsaccepted\": true,\n    \"termsversion\": \"5\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/users/tos",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"users",
+								"tos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

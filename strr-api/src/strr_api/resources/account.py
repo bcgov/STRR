@@ -43,11 +43,10 @@ from flasgger import swag_from
 from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
 
-from strr_api import models
 from strr_api.common.auth import jwt
 from strr_api.exceptions import AuthException, ExternalServiceException, ValidationException, exception_response
-from strr_api.requests import SBCAccountCreationRequest, UpdateUserRequest
-from strr_api.responses import Account, SBCAccount
+from strr_api.requests import SBCAccountCreationRequest
+from strr_api.responses import SBCAccount
 from strr_api.schemas.utils import validate
 from strr_api.services import AuthService, UserService
 
@@ -122,9 +121,6 @@ def create_sbc_account():
 
         sbc_account_creation_request = SBCAccountCreationRequest(**json_input)
         user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        AuthService.update_user_tos(
-            token, sbc_account_creation_request.acceptTermsAndConditions, sbc_account_creation_request.termsVersion
-        )
         new_account = AuthService.create_user_account(token, sbc_account_creation_request, user.id)
         sbc_account_id = new_account.get("id")
 
@@ -138,48 +134,3 @@ def create_sbc_account():
         return exception_response(auth_exception)
     except ExternalServiceException as service_exception:
         return exception_response(service_exception)
-
-
-@bp.route("", methods=("PATCH",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def update_account():
-    """
-    Update an account for the current user.
-    ---
-    tags:
-      - users
-    parameters:
-          - in: body
-            name: body
-            schema:
-              type: object
-    responses:
-      200:
-        description:
-      400:
-        description:
-      401:
-        description:
-    """
-
-    try:
-        token = jwt.get_token_auth_header()
-        json_input = request.get_json()
-        [valid, errors] = validate(json_input, "update_account")
-        if not valid:
-            raise ValidationException(message=errors)
-
-        sbc_account_creation_request = UpdateUserRequest(**json_input)
-        user = models.User.find_by_jwt_token(g.jwt_oidc_token_info)
-        AuthService.update_user_tos(
-            token, sbc_account_creation_request.acceptTermsAndConditions, sbc_account_creation_request.termsVersion
-        )
-
-        return (
-            jsonify(Account.from_db(user).model_dump(mode="json")),
-            HTTPStatus.OK,
-        )
-    except ValidationException as auth_exception:
-        return exception_response(auth_exception)

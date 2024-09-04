@@ -42,6 +42,7 @@ from strr_api.exceptions import ExternalServiceException
 from strr_api.requests import SBCMailingAddress
 from strr_api.requests.SBCAccountCreationRequest import SBCAccountCreationRequest
 from strr_api.services.rest_service import RestService
+from strr_api.utils.user_context import UserContext, user_context
 
 
 class AuthService:
@@ -104,15 +105,32 @@ class AuthService:
         return SBCMailingAddress(**user_account_details["mailingAddress"])
 
     @classmethod
-    def update_user_tos(cls, bearer_token, is_terms_accepted, terms_version):
-        """Update user terms of service."""
+    @user_context
+    def get_user_tos(cls, **kwargs):
+        """Gets the latest user ToS if the latest version is not accepted."""
+
+        user: UserContext = kwargs["user_context"]
+        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/users/@me"
+        user_details = RestService.get(endpoint=endpoint, token=user.bearer_token).json()
+        res = user_details.get("userTerms")
+        if not res.get("isTermsOfUseAccepted"):
+            tos_document_response = RestService.get(
+                endpoint=f"{current_app.config.get('AUTH_SVC_URL')}/documents/termsofuse",
+                token=user.bearer_token,
+            ).json()
+            res["termsOfUseCurrentVersion"] = tos_document_response.get("versionId")
+            res["termsOfUse"] = tos_document_response.get("content")
+        return res
+
+    @classmethod
+    @user_context
+    def update_user_tos(cls, request_json: dict, **kwargs):
+        """Updates whether a user accepted a specific ToS version."""
+
+        user: UserContext = kwargs["user_context"]
         endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/users/@me"
 
-        user_details = RestService.patch(
-            endpoint=endpoint,
-            token=bearer_token,
-            data={"istermsaccepted": is_terms_accepted, "termsversion": terms_version},
-        ).json()
+        user_details = RestService.patch(endpoint=endpoint, token=user.bearer_token, data=request_json).json()
         res = user_details.get("userTerms")
         return res
 
