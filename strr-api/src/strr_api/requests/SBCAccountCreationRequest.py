@@ -42,9 +42,11 @@ class SBCAccountCreationRequest:
         phone,
         phoneExtension=None,
         mailingAddress=None,
+        roles=[],
     ):
         self.name = name
         self.email = email
         self.phone = phone
         self.phoneExtension = phoneExtension
         self.mailingAddress = SBCMailingAddress(**mailingAddress) if mailingAddress else None
+        self.roles = roles

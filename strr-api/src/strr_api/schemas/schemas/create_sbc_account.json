@@ -4,94 +4,92 @@
   "type": "object",
   "title": "Create SBC Account",
   "properties": {
-      "name": {
-        "description": "Account Name",
-        "type": "string"
-      },
-      "mailingAddress": {
-        "title": "Address",
-        "description": "A free text address string, providing as much address data as is relevant, suitable for processing using address parsing algorithms. For some uses (for example, Place of Birth) only a town and country are required.",
-        "type": "object",
-        "properties": {
-          "street": {
-            "type": "string",
-            "maxLength": 50,
-            "description": "Street address and name."
-          },
-          "streetAdditional": {
-            "type": "string",
-            "maxLength": 50,
-            "description": "Additional street address information."
-          },
-          "city": {
-            "type": "string",
-            "maxLength": 40,
-            "description": "City, Town, or Village."
-          },
-          "region": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "For Canada or USA, 2 character province or state code."
-          },
-          "postalCode": {
-            "type": "string",
-            "maxLength": 15,
-            "description": "Postal Code in A1A 1A1 format for Canada, or zip code for US addresses."
-          },
-          "country": {
-            "type": "string",
-            "maxLength": 2,
-            "description": "The 2-letter country code (ISO 3166-1) for this address."
-          }
+    "name": {
+      "description": "Account Name",
+      "type": "string"
+    },
+    "mailingAddress": {
+      "title": "Address",
+      "description": "A free text address string, providing as much address data as is relevant, suitable for processing using address parsing algorithms. For some uses (for example, Place of Birth) only a town and country are required.",
+      "type": "object",
+      "properties": {
+        "street": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Street address and name."
         },
-        "required": [
-          "street",
-          "city",
-          "region",
-          "postalCode",
-          "country"
-        ]
+        "streetAdditional": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Additional street address information."
+        },
+        "city": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "City, Town, or Village."
+        },
+        "region": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "For Canada or USA, 2 character province or state code."
+        },
+        "postalCode": {
+          "type": "string",
+          "maxLength": 15,
+          "description": "Postal Code in A1A 1A1 format for Canada, or zip code for US addresses."
+        },
+        "country": {
+          "type": "string",
+          "maxLength": 2,
+          "description": "The 2-letter country code (ISO 3166-1) for this address."
+        }
       },
-      "phone": {
-        "$id": "#/properties/phone",
-        "type": "string",
-        "title": "Phone",
-        "default": "",
-        "examples": [
-          "111-222-3333"
-        ],
-        "pattern": "^(.*)$"
-      },
-      "phoneExtension": {
-        "$id": "#/properties/phone_extension",
-        "type": "string",
-        "title": "Phone Extension",
-        "default": "",
-        "examples": [
-          "123"
-        ],
-        "pattern": "^(.*)$"
-      },
-      "email": {
-        "$id": "#/properties/email",
-        "type": "string",
-        "title": "Email",
-        "default": "",
-        "examples": [
-          "abc123@mail.com"
-        ],
-        "pattern": "(^[a-zA-Z0-9!#$%&'*+-/=?^_`{|.]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)"
-      },
-      "acceptTermsAndConditions": {
-        "description": "Terms of use accepted",
-        "type": "boolean"
-      },
-      "termsVersion": {
-        "description": "Version of the Terms of Service accepted",
+      "required": [
+        "street",
+        "city",
+        "region",
+        "postalCode",
+        "country"
+      ]
+    },
+    "phone": {
+      "$id": "#/properties/phone",
+      "type": "string",
+      "title": "Phone",
+      "default": "",
+      "examples": [
+        "111-222-3333"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "phoneExtension": {
+      "$id": "#/properties/phone_extension",
+      "type": "string",
+      "title": "Phone Extension",
+      "default": "",
+      "examples": [
+        "123"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "email": {
+      "$id": "#/properties/email",
+      "type": "string",
+      "title": "Email",
+      "default": "",
+      "examples": [
+        "abc123@mail.com"
+      ],
+      "pattern": "(^[a-zA-Z0-9!#$%&'*+-/=?^_`{|.]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
         "type": "string"
       }
+    }
   },
   "required": [
     "name",
