@@ -139,7 +139,7 @@
                       src="/icons/create-account/attach_dark.svg"
                       alt="Attach icon"
                     >
-                    <span class="text-base">{{ document.fileName }}</span>
+                    <span class="text-base text-left">{{ document.fileName }}</span>
                   </UButton>
                 </div>
               </BcrosFormSectionReviewItem>

@@ -46,6 +46,7 @@ from .documents import bp as documents_endpoint
 from .meta import bp as meta_endpoint
 from .ops import bp as ops_endpoint
 from .registrations import bp as registrations_endpoint
+from .users import bp as users_endpoint
 
 
 def register_endpoints(app: Flask):
@@ -88,6 +89,11 @@ def register_endpoints(app: Flask):
     app.register_blueprint(
         url_prefix="/documents",
         blueprint=documents_endpoint,
+    )
+
+    app.register_blueprint(
+        url_prefix="/users",
+        blueprint=users_endpoint,
     )
 
     app.register_blueprint(meta_endpoint)

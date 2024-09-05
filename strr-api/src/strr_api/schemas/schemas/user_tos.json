@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://strr.gov.bc.ca/.well_known/schemas/user_tos",
+    "title": "Terms of Service",
+    "description": "Schema for terms of Service.",
+    "type": "object",
+    "properties": {
+        "termsversion": {
+            "title": "Terms Version",
+            "type": "string"
+        },
+        "istermsaccepted": {
+            "title": "Is terms accepted",
+            "type": "boolean"
+        }
+    },
+    "required": [
+        "termsversion",
+        "istermsaccepted"
+    ]
+}

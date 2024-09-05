@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { version } from './package.json'
+
 export default defineNuxtConfig({
   ssr: false,
   ui: {
@@ -74,7 +76,7 @@ export default defineNuxtConfig({
       payApiURL: `${process.env.VUE_APP_PAY_API_URL || ''}${process.env.VUE_APP_PAY_API_VERSION || ''}`,
       registryHomeURL: process.env.VUE_APP_REGISTRY_HOME_URL || '',
       appEnv: `${process.env.VUE_APP_POD_NAMESPACE || 'unknown'}`,
-      version: '0.1.0'
+      version
     }
   },
   css: ['~/./assets/scss/global.scss'],

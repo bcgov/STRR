@@ -37,6 +37,7 @@
     "decline": "Decline"
   },
   "ltsa": {
+    "ltsaDetails": "LTSA Details",
     "ltsaGeneralInfo": "LTSA General Information",
     "tax": "Tax Authority",
     "date": "Date",
@@ -47,7 +48,7 @@
     "joint": "Joint Tenancy",
     "numerator": "Interest Fraction Numerator",
     "denominator": "Interest Fraction Denominator",
-    "titleOwners": "LTSA Title Owner(s)",
+    "titleOwners": "LTSA Title Owners",
     "given": "Given Name",
     "last": "Last Name",
     "address": "Address",
@@ -184,7 +185,6 @@
       "yourName": "Your Name",
       "addSecondaryContact": "Add Another Contact",
       "remove": "Remove",
-      "useMailing": "Use my mailing address for the rental property address",
       "addPlatform": "Add another platform"
     },
     "contactForm": {
@@ -226,7 +226,6 @@
       "businessLicense": "Local Government Business License (Optional)",
       "propertyType": "Type of Property",
       "ownershipType": "Ownership Type",
-      "useMailing": "Use my mailing address for the rental property address",
       "rentalUnitDetails": "Rental Unit Details",
       "internetListingDetails": "Internet Listing Details",
       "rentalUnitAddress": "Rental Unit Address",
@@ -253,6 +252,8 @@
       "docDetails": "Documentation Details",
       "fileUpload": "File Upload",
       "uploadMultiple": "Upload one or more supporting documents",
+      "chooseSupportDocs": "Choose Supporting Documents",
+      "removeSupportDoc": "Remove",
       "supporting": "Supporting Documents",
       "fileRequirements": "File must be a .pdf, .jpg, .doc, or .png. Maximum file size 50 MB.",
       "declaration": "Declaration",

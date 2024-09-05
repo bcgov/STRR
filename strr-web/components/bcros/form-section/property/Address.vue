@@ -7,15 +7,6 @@
         </UFormGroup>
       </div>
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="useMailing" class="d:pr-[16px] flex-grow mobile:text-[16px]">
-          <UCheckbox
-            v-model="useMailing"
-            aria-label="use mailing address"
-            :label="t('createAccount.propertyForm.useMailing')"
-          />
-        </UFormGroup>
-      </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="country" class="d:pr-[16px] flex-grow">
           <USelect
             v-model="country"
@@ -86,7 +77,6 @@ const addressLineTwo = defineModel<string>('addressLineTwo')
 const city = defineModel<string>('city')
 const province = defineModel<string>('province')
 const postalCode = defineModel<string>('postalCode')
-const useMailing = defineModel<string>('useMailing')
 const nickname = defineModel<string>('nickname')
 const countryItems = ref<CountryItem[]>([])
 

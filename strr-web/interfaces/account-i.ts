@@ -155,7 +155,6 @@ export interface CreateAccountFormStateI {
     businessLicense: string | undefined
     propertyType: string | undefined
     ownershipType: string | undefined
-    useMailing: boolean
     nickname: string | undefined
     country: string | undefined
     address: string | undefined

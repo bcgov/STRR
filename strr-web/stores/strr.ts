@@ -206,8 +206,7 @@ export const propertyDetailsSchema = z.object({
   parcelIdentifier: optionalPID,
   postalCode: requiredNonEmptyString,
   propertyType: requiredNonEmptyString,
-  province: requiredNonEmptyString.refine(province => province === 'BC', { message: 'Province must be set to BC' }),
-  useMailing: z.boolean()
+  province: requiredNonEmptyString.refine(province => province === 'BC', { message: 'Province must be set to BC' })
 })
 
 export const formState: CreateAccountFormStateI = reactive({
@@ -220,7 +219,6 @@ export const formState: CreateAccountFormStateI = reactive({
     ownershipType: undefined,
     primaryResidence: undefined,
     whichPlatform: undefined,
-    useMailing: false,
     nickname: '',
     country: 'CAN',
     address: undefined,

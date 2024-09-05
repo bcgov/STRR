@@ -60,7 +60,6 @@ it('begins with empty address', () => {
       businessLicense: 'businessLicense',
       propertyType: 'propertyType',
       ownershipType: 'ownershipType',
-      useMailing: false,
       nickname: 'nickname',
       country: 'country',
       address: 'address',

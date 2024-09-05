@@ -7,12 +7,8 @@
       >
         <div class="flex flex-col m:justify-between">
           <BcrosTypographyH1
-            :text="
-              `${applicationDetails?.unitAddress.nickname ?? ''} ${tApplicationDetails(
-                'registration'
-              )} #${applicationId}`
-            "
-            class-name="mobile:text-[24px]"
+            :text="tLtsa('ltsaDetails')"
+            class-name="mobile:text-6 mb-4"
             no-spacing
           />
           <p class="flex-shrink-0">
@@ -23,9 +19,10 @@
     </div>
     <div class="mt-[104px] m:mt-[74px]">
       <div>
-        <p class="font-bold mb-[24px] mobile:mx-[8px]">
-          {{ tLtsa('ltsaGeneralInfo') }}
-        </p>
+        <BcrosTypographyH2
+          class="font-bold mb-6 mobile:mx-2"
+          :text="tLtsa('ltsaGeneralInfo')"
+        />
         <div
           v-if="data.length > 0"
           class="bg-white py-[22px] px-[30px] mobile:px-[8px] flex d:flex-row m:flex-col"
@@ -81,9 +78,10 @@
           </div>
         </div>
         <div class="mt-[40px]">
-          <p class="font-bold mb-[24px] mobile:mx-[8px]">
-            {{ tLtsa('titleOwners') }}
-          </p>
+          <BcrosTypographyH2
+            class="font-bold mb-6 mobile:mx-2"
+            :text="tLtsa('titleOwners')"
+          />
           <div
             v-if="ownerRows.length > 0"
             class="bg-white py-[22px] px-[30px] mobile:px-[8px]"
@@ -133,7 +131,6 @@ import { LtsaDataI } from '~/interfaces/ltsa-data-i'
 
 const route = useRoute()
 const { t } = useTranslation()
-const tApplicationDetails = (translationKey: string) => t(`applicationDetails.${translationKey}`)
 const tLtsa = (translationKey: string) => t(`ltsa.${translationKey}`)
 
 const applicationId = route.params.id.toString()
@@ -176,6 +173,7 @@ const headerLabel =
   }, ` +
   `${applicationDetails.unitAddress.city} ` +
   `${applicationDetails.unitAddress.province} ` +
-  `${applicationDetails.unitAddress.postalCode}`
+  `${applicationDetails.unitAddress.postalCode}` +
+  `, Application #${applicationId}`
 
 </script>

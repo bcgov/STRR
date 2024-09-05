@@ -3,7 +3,7 @@
     data-test-id="banner"
     :class="
       `
-        flex justify-center bg-white absolute w-full top-0 left-0 h-[104px] shadow-md
+        flex justify-center bg-white absolute w-full top-0 left-0 min-h-[104px] shadow-md
         py-[30px] px-[70px]
         m:flex-col m:h-[116px] m:pt-[16px] m:pb-[6px] m:px-[8px]
         ${hideButtons ? 'm:h-[70px]': ''}
