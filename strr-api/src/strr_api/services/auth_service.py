@@ -200,7 +200,7 @@ class AuthService:
             "phone": str(request.phone),
             "phoneExtension": str(request.phoneExtension) if request.phoneExtension else "",
         }
-        contact_info = RestService.put(
+        contact_info = RestService.post(
             data=create_account_contact_payload,
             endpoint=endpoint,
             token=bearer_token,
