@@ -125,23 +125,29 @@ const ownershipToApiType = (type: string | undefined): string => {
 
 const submit = () => {
   validateStep(primaryContactSchema, formState.primaryContact, 0)
-  validateStep(secondaryContactSchema, formState.secondaryContact, 0)
+  if (hasSecondaryContact.value) {
+    validateStep(secondaryContactSchema, formState.secondaryContact, 0)
+  }
   validateStep(propertyDetailsSchema, formState.propertyDetails, 1)
-  steps[1].step.complete = true
-  steps[2].step.complete = true
+  validateProofPage()
+  validateReviewPage()
   headerUpdateKey.value++
-  formState.principal.agreeToSubmit
-    ? createApplication(
+  const allStepsCheck = steps.every(step => step.step.isValid && step.step.complete)
+  if (allStepsCheck) {
+    createApplication(
       userFirstName,
       userLastName,
       hasSecondaryContact.value,
       propertyToApiType(formState.propertyDetails.propertyType),
       ownershipToApiType(formState.propertyDetails.ownershipType)
     )
-    : (steps[3].step.complete = true)
+  } else {
+    scrollToTop()
+  }
 }
 
 const setActiveStep = (newStep: number) => {
+  validateSteps()
   activeStep.value.step.complete = true
   activeStepIndex.value = newStep
   activeStep.value = steps[activeStepIndex.value]
@@ -183,6 +189,11 @@ const validateProofPage = () => {
   }
 }
 
+const validateReviewPage = () => {
+  setStepValid(3, formState.principal.agreeToSubmit)
+  steps[3].step.complete = true
+}
+
 watch(formState.supportingDocuments, () => {
   validateProofPage()
 })
@@ -190,6 +201,21 @@ watch(formState.supportingDocuments, () => {
 watch(formState.principal, () => {
   validateProofPage()
 })
+
+const validateSteps = () => {
+  if (activeStepIndex.value === 0) {
+    validateStep(primaryContactSchema, formState.primaryContact, 0)
+    if (hasSecondaryContact.value) {
+      validateStep(secondaryContactSchema, formState.secondaryContact, 0)
+    }
+  } else if (activeStepIndex.value === 1) {
+    validateStep(propertyDetailsSchema, formState.propertyDetails, 1)
+  } else if (activeStepIndex.value === 2) {
+    validateProofPage()
+  } else if (activeStepIndex.value === 3) {
+    validateReviewPage()
+  }
+}
 
 const setNextStep = () => {
   if (activeStepIndex.value < steps.length - 1) {

@@ -111,7 +111,10 @@
     "PROVISIONAL": "Provisional",
     "SUBMITTED": "Submitted",
     "PAID": "Paid",
-    "REJECTED": "Rejected"
+    "REJECTED": "Rejected",
+    "coOwner": "Co-own",
+    "owner": "Own",
+    "rent": "Rent"
   },
   "banner": {
     "approve": "Approve",
@@ -273,7 +276,8 @@
       "strataGuest": "Strata corporation guest suite",
       "service": "Service Provider",
       "fileSizeError": "File must be less than 50MB in size",
-      "fileTypeError": "File must be of type pdf, doc, jpg, png"
+      "fileTypeError": "File must be of type pdf, doc, jpg, png",
+      "fileRequiredError": "Please upload a supporting document"
     },
     "review": {
       "reviewInstructions": "Please review all of the information entered below.",
@@ -301,7 +305,10 @@
       "declaration": "Declaration",
       "proof": "Proof of Principal Residence",
       "listing": "Internet Listings",
-      "confirm": "I confirm that the information contained in the application for registration is accurate and true. I understand that, if I have provided inaccurate or false information, I may be the subject of enforcement action under Part 4 of the Short-Term Rental Accommodations Act. Enforcement action may include being ordered to pay an administrative penalty."
+      "confirm": "I confirm that the information contained in the application for registration is accurate and true. I understand that, if I have provided inaccurate or false information, I may be the subject of enforcement action under Part 4 of the Short-Term Rental Accommodations Act. Enforcement action may include being ordered to pay an administrative penalty.",
+      "coOwner": "Co-own",
+      "owner": "Own",
+      "rent": "Rent"
     },
     "details": {
       "title": "Step 2 - Add Your Short Term Rental Property Details",

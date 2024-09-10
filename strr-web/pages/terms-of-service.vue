@@ -9,11 +9,11 @@
       <div class="flex flex-row justify-center">
         <BcrosButtonsPrimary
           :label="tTos('accept')"
-          :action="() => handleAcceptTermsOfService(true, tos?.versionId)"
+          :action="() => handleAcceptTermsOfService(true, tos.versionId)"
         />
         <BcrosButtonsPrimary
           :label="tTos('decline')"
-          :action="() => handleAcceptTermsOfService(false)"
+          :action="() => handleAcceptTermsOfService(false, tos.versionId)"
           variant="outline"
           class-name="ml-[4px]"
         />
@@ -31,7 +31,7 @@ const { updateTosAcceptance, acceptTos } = useBcrosAccount()
 
 const tos = await updateTosAcceptance()
 
-const handleAcceptTermsOfService = (acceptance: boolean, versionId?: string) => {
+const handleAcceptTermsOfService = (acceptance: boolean, versionId: string) => {
   // remove User Profile from the session to get updated User Profile after accepting the terms
   sessionStorage.removeItem(SessionStorageKeyE.USER_PROFILE)
   // accept or decline the Terms

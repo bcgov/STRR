@@ -40,7 +40,7 @@
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('ownershipType')"
-                :content="formState.propertyDetails.ownershipType ?? '-'"
+                :content="getOwnershipTypeDisplay(formState.propertyDetails.ownershipType, tReview)"
               />
             </div>
             <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
@@ -165,6 +165,8 @@
 </template>
 
 <script setup lang="ts">
+import { getOwnershipTypeDisplay } from '@/utils/common'
+
 const { t } = useTranslation()
 
 const { secondaryContact, isComplete } = defineProps<{ secondaryContact: boolean, isComplete: boolean }>()

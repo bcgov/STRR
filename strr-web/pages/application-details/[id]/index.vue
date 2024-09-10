@@ -47,7 +47,7 @@
               <p>{{ applicationDetails?.unitDetails.businessLicense ?? '-' }}</p>
             </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem :title="tApplicationDetails('ownership')">
-              <p>{{ applicationDetails?.unitDetails.ownershipType ?? '-' }}</p>
+              <p>{{ getOwnershipTypeDisplay(applicationDetails?.unitDetails.ownershipType, tApplicationDetails) }}</p>
             </BcrosFormSectionReviewItem>
           </div>
           <div class="flex flex-row justify-between w-full mobile:flex-col">
@@ -211,6 +211,7 @@
 <script setup lang="ts">
 import FilingHistory from '~/components/FilingHistory.vue'
 import { propertyTypeMap } from '~/utils/propertyTypeMap'
+import { getOwnershipTypeDisplay } from '@/utils/common'
 
 const route = useRoute()
 const { t } = useTranslation()

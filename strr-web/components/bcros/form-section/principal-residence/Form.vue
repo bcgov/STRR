@@ -104,6 +104,7 @@
               <UFormGroup :error="fileError">
                 <UInput
                   :key="fileInputKey"
+                  required
                   aria-label="Supporting document file upload"
                   accept=".pdf,.jpg,.png,.doc"
                   type="file"
@@ -192,6 +193,14 @@ const fileInputKey = ref(0)
 
 const { isComplete } = defineProps<{ isComplete: boolean }>()
 
+watch(() => formState.principal.declaration, (ticked) => {
+  if (ticked && formState.supportingDocuments.length === 0) {
+    fileError.value = tPrincipalResidence('fileRequiredError')
+  } else {
+    fileError.value = ''
+  }
+})
+
 const validateReason = (reason: string, event?: any) => {
   reasonError.value = reason || event?.target?.value ? undefined : 'Reason required'
   if (reason !== tPrincipalResidence('other') && event === undefined) {
@@ -231,6 +240,9 @@ const uploadFile = (file: FileList) => {
 
 const removeFile = (index: number) => {
   formState.supportingDocuments.splice(index, 1)
+  if (formState.principal.declaration && formState.supportingDocuments.length === 0) {
+    fileError.value = tPrincipalResidence('fileRequiredError')
+  }
 }
 
 const primaryResidenceRadioOptions = [{
