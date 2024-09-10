@@ -105,7 +105,7 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
   // TODO: TC - move this to an STRR store
   async function getMe () {
     const apiURL = useRuntimeConfig().public.strrApiURL
-    return await axiosInstance.get(`${apiURL}/account/me`)
+    return await axiosInstance.get(`${apiURL}/accounts`)
       .then((response) => {
         const data = response?.data as MeI
         if (!data) { throw new Error('Invalid STRR API response') }

@@ -1006,14 +1006,14 @@
 			"name": "Account",
 			"item": [
 				{
-					"name": "/account/me",
+					"name": "Get User Accounts",
 					"request": {
 						"auth": {
 							"type": "bearer",
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token\n}}",
+									"value": "{{token}}",
 									"type": "string"
 								}
 							]
@@ -1021,27 +1021,26 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_url}}/account/me",
+							"raw": "{{api_url}}/accounts",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
-								"account",
-								"me"
+								"accounts"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "/account",
+					"name": "Create Account",
 					"request": {
 						"auth": {
 							"type": "bearer",
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token\n}}",
+									"value": "{{token}}",
 									"type": "string"
 								}
 							]
@@ -1050,7 +1049,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"test\"\n}",
+							"raw": "{\n    \"name\": \"Test_test_B\",\n    \"mailingAddress\": {\n        \"city\": \"Victoria\",\n        \"country\": \"CA\",\n        \"region\": \"BC\",\n        \"postalCode\": \"V8W 2C3\",\n        \"street\": \"200-1012 Douglas St\",\n        \"streetAdditional\": \"\"\n    },\n    \"email\": \"test@abc.com\",\n    \"phone\": \"(123) 456-7895\",\n    \"phoneExtension\": \"123\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1058,12 +1057,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{api_url}}/account",
+							"raw": "{{api_url}}/accounts",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
-								"account"
+								"accounts"
 							]
 						}
 					},

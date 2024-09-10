@@ -11,7 +11,7 @@ const axiosRequestMocks = vi.hoisted(() => ({
       return new Promise(resolve => resolve({ data: { ...testDetailsForDev2 } }))
     } else if (url.includes('settings')) {
       return new Promise(resolve => resolve({ data: [...testUserSettings] }))
-    } else if (url.includes('me')) {
+    } else if (url.includes('accounts')) {
       return new Promise(resolve => resolve({ data: { ...testMe } }))
     } else if (url.includes('users/orgs')) {
       return new Promise(resolve => resolve({ data: { ...testDetailsForDev1 } }))

@@ -198,14 +198,11 @@ class AuthService:
         create_account_contact_payload = {
             "email": str(request.email),
             "phone": str(request.phone),
+            "phoneExtension": str(request.phoneExtension) if request.phoneExtension else "",
         }
-        if request.phoneExtension:
-            create_account_contact_payload["phoneExtension"] = str(request.phoneExtension)
-
         contact_info = RestService.post(
             data=create_account_contact_payload,
             endpoint=endpoint,
             token=bearer_token,
-            generate_token=False,
         ).json()
         return contact_info

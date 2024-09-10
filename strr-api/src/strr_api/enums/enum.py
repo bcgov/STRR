@@ -142,3 +142,9 @@ class ErrorMessage(Enum):
     PROCESSING_ERROR = "An error occurred while processing the request."
     DOCUMENT_NOT_FOUND = "Document not found."
     APPLICATION_NOT_PAID = "Application does not have a payment record."
+
+
+class ApplicationRole(Enum):
+    """STRR Application Roles."""
+
+    HOST = "HOST"

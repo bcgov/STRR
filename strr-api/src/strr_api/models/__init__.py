@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """This exports all of the models and schemas used by the application."""
+from .account_roles import AccountRoles
 from .application import Application
 from .auto_approval_record import AutoApprovalRecord
 from .certificate import Certificate
@@ -44,6 +45,7 @@ from .user import Contact, User
 
 __all__ = (
     "db",
+    "AccountRoles",
     "Application",
     "User",
     "RentalProperty",

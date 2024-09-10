@@ -72,7 +72,7 @@ def register_endpoints(app: Flask):
     )
 
     app.register_blueprint(
-        url_prefix="/account",
+        url_prefix="/accounts",
         blueprint=account_endpoint,
     )
 

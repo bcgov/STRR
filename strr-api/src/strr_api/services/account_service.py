@@ -31,20 +31,33 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""This module wraps helper services used by the API."""
-from .user_service import UserService  # isort: skip
-from .account_service import AccountService
-from .application_service import ApplicationService
-from .auth_service import AuthService
-from .document_service import DocumentService
-from .events_service import EventsService
-from .gcp_storage_service import GCPStorageService
-from .geocoder_service import GeoCoderService
-from .payment_service import PayService
-from .registration_service import RegistrationService
-from .rest_service import RestService
+"""Service to interact with the account roles model."""
+from typing import List
 
-from .ltsa_service import LtsaService  # isort: skip
-from .approval_service import ApprovalService  # isort: skip
+from strr_api.models import AccountRoles, User
+from strr_api.utils.user_context import UserContext, user_context
 
-strr_pay = PayService()
+
+class AccountService:
+    """Service to interact with the account roles model."""
+
+    @staticmethod
+    @user_context
+    def create_account_roles(account_id: int, roles: List[str], **kwargs):
+        """Saves an account role."""
+        usr_context: UserContext = kwargs["user_context"]
+        User.get_or_create_user_by_jwt(usr_context.token_info)
+        for role in roles:
+            account_roles = AccountRoles()
+            account_roles.account_id = account_id
+            account_roles.role = role
+            account_roles.save()
+        return account_roles
+
+    @staticmethod
+    @user_context
+    def list_account_roles(account_id, **kwargs):
+        """List all roles assigned to the account."""
+        usr_context: UserContext = kwargs["user_context"]
+        User.get_or_create_user_by_jwt(usr_context.token_info)
+        return AccountRoles.get_account_roles(account_id)

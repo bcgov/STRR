@@ -35,16 +35,18 @@ class SBCMailingAddress:
 class SBCAccountCreationRequest:
     """SBCAccountCreationRequest payload object."""
 
-    def __init__(
+    def __init__(  # pylint: disable=W0102
         self,
         name,
         email,
         phone,
         phoneExtension=None,
         mailingAddress=None,
+        roles=None,
     ):
         self.name = name
         self.email = email
         self.phone = phone
         self.phoneExtension = phoneExtension
         self.mailingAddress = SBCMailingAddress(**mailingAddress) if mailingAddress else None
+        self.roles = roles or []

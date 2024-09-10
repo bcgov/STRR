@@ -98,7 +98,7 @@ export const useRegistrations = () => {
     axiosInstance
       .post<{
         sbc_account_id: string, id: string
-      }>(`${apiURL}/account/sbc`,
+      }>(`${apiURL}/accounts`,
         registration
       )
       .then((res) => {

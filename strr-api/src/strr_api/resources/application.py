@@ -46,7 +46,7 @@ from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ErrorMessage, Role
+from strr_api.enums.enum import ApplicationRole, ErrorMessage, Role
 from strr_api.exceptions import (
     AuthException,
     ExternalServiceException,
@@ -58,6 +58,7 @@ from strr_api.models.dataclass import ApplicationSearch
 from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
 from strr_api.services import (
+    AccountService,
     ApplicationService,
     ApprovalService,
     DocumentService,
@@ -111,6 +112,9 @@ def create_application():
         if not valid:
             return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
         validate_request(json_input)
+        roles = AccountService.list_account_roles(account_id=account_id)
+        if not roles:
+            AccountService.create_account_roles(account_id, [ApplicationRole.HOST.value])
         application = ApplicationService.save_application(account_id, json_input)
         invoice_details = strr_pay.create_invoice(jwt, account_id, application=application)
         application = ApplicationService.update_application_payment_details_and_status(application, invoice_details)
