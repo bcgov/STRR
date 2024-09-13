@@ -204,11 +204,11 @@ def test_examiner_reject_application(session, client, jwt):
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        status_update_request = {"status": "rejected"}
+        status_update_request = {"status": "DECLINED"}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert response_json.get("header").get("status") == Application.Status.REJECTED
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
         assert response_json.get("header").get("reviewer").get("username") is not None
 
 
@@ -227,11 +227,11 @@ def test_examiner_approve_application(session, client, jwt):
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        status_update_request = {"status": "approved"}
+        status_update_request = {"status": "FULL_REVIEW_APPROVED"}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert response_json.get("header").get("status") == Application.Status.APPROVED
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("reviewer").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None

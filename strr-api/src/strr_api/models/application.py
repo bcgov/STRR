@@ -55,12 +55,15 @@ class Application(BaseModel):
         """Enum of the application statuses."""
 
         DRAFT = auto()  # pylint: disable=invalid-name
-        SUBMITTED = auto()  # pylint: disable=invalid-name
+        PAYMENT_DUE = auto()  # pylint: disable=invalid-name
         PAID = auto()  # pylint: disable=invalid-name
-        APPROVED = auto()  # pylint: disable=invalid-name
+        AUTO_APPROVED = auto()  # pylint: disable=invalid-name
+        PROVISIONALLY_APPROVED = auto()  # pylint: disable=invalid-name
+        FULL_REVIEW_APPROVED = auto()  # pylint: disable=invalid-name
+        PROVISIONAL_REVIEW = auto()  # pylint: disable=invalid-name
         ADDITIONAL_INFO_REQUESTED = auto()  # pylint: disable=invalid-name
-        UNDER_REVIEW = auto()  # pylint: disable=invalid-name
-        REJECTED = auto()  # pylint: disable=invalid-name
+        FULL_REVIEW = auto()  # pylint: disable=invalid-name
+        DECLINED = auto()  # pylint: disable=invalid-name
         PROVISIONAL = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "application"
@@ -158,6 +161,30 @@ class Application(BaseModel):
 class ApplicationSerializer:
     """Serializer for application. Can convert to dict, string from application model."""
 
+    HOST_STATUSES = {
+        Application.Status.DRAFT: "Draft",
+        Application.Status.PAYMENT_DUE: "Payment Due",
+        Application.Status.PAID: "Pending Review",
+        Application.Status.AUTO_APPROVED: "Approved",
+        Application.Status.PROVISIONALLY_APPROVED: "Provisionally Approved",
+        Application.Status.FULL_REVIEW_APPROVED: "Approved",
+        Application.Status.PROVISIONAL_REVIEW: "Provisionally Approved",
+        Application.Status.FULL_REVIEW: "Pending Review",
+        Application.Status.DECLINED: "Declined",
+    }
+
+    EXAMINER_STATUSES = {
+        Application.Status.DRAFT: "Draft",
+        Application.Status.PAYMENT_DUE: "Payment Due",
+        Application.Status.PAID: "Paid",
+        Application.Status.AUTO_APPROVED: "Automatic Approval",
+        Application.Status.PROVISIONALLY_APPROVED: "Provisional Approval",
+        Application.Status.FULL_REVIEW_APPROVED: "Full Review Approval",
+        Application.Status.PROVISIONAL_REVIEW: "Provisional Review",
+        Application.Status.FULL_REVIEW: "Full Review",
+        Application.Status.DECLINED: "Declined",
+    }
+
     @staticmethod
     def to_str(application: Application):
         """Return string representation of application model."""
@@ -175,6 +202,10 @@ class ApplicationSerializer:
         application_dict["header"]["paymentStatus"] = application.payment_status_code
         application_dict["header"]["paymentAccount"] = application.payment_account
         application_dict["header"]["status"] = application.status
+        application_dict["header"]["hostStatus"] = ApplicationSerializer.HOST_STATUSES.get(application.status, "")
+        application_dict["header"]["examinerStatus"] = ApplicationSerializer.EXAMINER_STATUSES.get(
+            application.status, ""
+        )
         application_dict["header"]["applicationDateTime"] = application.application_date.isoformat()
         application_dict["header"]["decisionDate"] = (
             application.decision_date.isoformat() if application.decision_date else None

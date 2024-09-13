@@ -639,7 +639,7 @@ def search_applications():
     parameters:
       - in: query
         name: status
-        enum: [SUBMITTED, PAID, APPROVED, ADDITIONAL_INFO_REQUESTED, UNDER_REVIEW, PROVISIONAL, REJECTED]
+        enum: [PAYMENT_DUE, PAID, AUTO_APPROVED, PROVISIONALLY_APPROVED, FULL_REVIEW_APPROVED, PROVISIONAL_REVIEW, DECLINED]
         description: Application Status Filter.
       - in: query
         name: text

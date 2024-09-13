@@ -43,13 +43,19 @@ from strr_api.services.events_service import EventsService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.utils.user_context import UserContext, user_context
 
-APPLICATION_TERMINAL_STATES = [Application.Status.APPROVED, Application.Status.REJECTED]
+APPLICATION_TERMINAL_STATES = [
+    Application.Status.FULL_REVIEW_APPROVED,
+    Application.Status.PROVISIONALLY_APPROVED,
+    Application.Status.AUTO_APPROVED,
+    Application.Status.DECLINED,
+]
 APPLICATION_STATES_STAFF_ACTION = [
-    Application.Status.APPROVED,
-    Application.Status.REJECTED,
+    Application.Status.FULL_REVIEW_APPROVED,
+    Application.Status.PROVISIONALLY_APPROVED,
+    Application.Status.DECLINED,
     Application.Status.ADDITIONAL_INFO_REQUESTED,
 ]
-APPLICATION_UNPAID_STATES = [Application.Status.DRAFT, Application.Status.SUBMITTED]
+APPLICATION_UNPAID_STATES = [Application.Status.DRAFT, Application.Status.PAYMENT_DUE]
 
 
 class ApplicationService:
@@ -132,7 +138,7 @@ class ApplicationService:
             application.status == Application.Status.DRAFT
             and application.payment_status_code == PaymentStatus.CREATED.value
         ):
-            application.status = Application.Status.SUBMITTED
+            application.status = Application.Status.PAYMENT_DUE
             EventsService.save_event(
                 event_type=Events.EventType.APPLICATION,
                 event_name=Events.EventName.APPLICATION_SUBMITTED,
@@ -162,7 +168,7 @@ class ApplicationService:
         """Updates the application status. If the application status is approved, a new registration is created."""
         application.status = application_status
 
-        if application.status == Application.Status.APPROVED:
+        if application.status == Application.Status.FULL_REVIEW_APPROVED:
             registration_request = RegistrationRequest(**application.application_json)
             registration = RegistrationService.create_registration(
                 application.submitter_id, application.payment_account, registration_request.registration
@@ -190,9 +196,9 @@ class ApplicationService:
 
     @staticmethod
     def _get_event_name(application_status: Application.Status) -> str:
-        if application_status == Application.Status.APPROVED:
+        if application_status == Application.Status.FULL_REVIEW_APPROVED:
             event_name = Events.EventName.MANUALLY_APPROVED
-        elif application_status == Application.Status.REJECTED:
+        elif application_status == Application.Status.DECLINED:
             event_name = Events.EventName.MANUALLY_DENIED
         elif application_status == Application.Status.ADDITIONAL_INFO_REQUESTED:
             event_name = Events.EventName.MORE_INFORMATION_REQUESTED

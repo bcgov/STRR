@@ -121,7 +121,7 @@ class ApprovalService:
         try:
             if renting:
                 auto_approval.renting = True
-                application.status = Application.Status.UNDER_REVIEW
+                application.status = Application.Status.FULL_REVIEW
                 application.save()
                 EventsService.save_event(
                     event_type=Events.EventType.APPLICATION,
@@ -135,7 +135,7 @@ class ApprovalService:
                 auto_approval.renting = False
                 if other_service_provider:
                     auto_approval.serviceProvider = True
-                    application.status = Application.Status.UNDER_REVIEW
+                    application.status = Application.Status.FULL_REVIEW
                     application.save()
                     EventsService.save_event(
                         event_type=Events.EventType.APPLICATION,
@@ -160,7 +160,7 @@ class ApprovalService:
                     )
                     if not compare_addresses(rental_address, bcsc_address):
                         auto_approval.addressMatch = False
-                        application.status = Application.Status.UNDER_REVIEW
+                        application.status = Application.Status.FULL_REVIEW
                         application.save()
                         EventsService.save_event(
                             event_type=Events.EventType.APPLICATION,
@@ -181,7 +181,7 @@ class ApprovalService:
                                 auto_approval.businessLicenseRequiredProvided = True
                             else:
                                 auto_approval.businessLicenseRequiredNotProvided = True
-                                application.status = Application.Status.UNDER_REVIEW
+                                application.status = Application.Status.FULL_REVIEW
                                 application.save()
                                 EventsService.save_event(
                                     event_type=Events.EventType.APPLICATION,
@@ -204,7 +204,7 @@ class ApprovalService:
                             owner_title_match = False
                         if owner_title_match:
                             auto_approval.titleCheck = True
-                            application.status = Application.Status.PROVISIONAL
+                            application.status = Application.Status.PROVISIONALLY_APPROVED
                             application.save()
                             EventsService.save_event(
                                 event_type=Events.EventType.APPLICATION,
@@ -225,7 +225,7 @@ class ApprovalService:
                             )
                         else:
                             auto_approval.titleCheck = False
-                            application.status = Application.Status.UNDER_REVIEW
+                            application.status = Application.Status.FULL_REVIEW
                             application.save()
                             EventsService.save_event(
                                 event_type=Events.EventType.APPLICATION,
@@ -241,7 +241,7 @@ class ApprovalService:
                     organization = DSSOrganization.lookup_by_geocode(longitude, latitude)
                     if organization["is_principal_residence_required"]:
                         auto_approval.prExempt = False
-                        application.status = Application.Status.UNDER_REVIEW
+                        application.status = Application.Status.FULL_REVIEW
                         application.save()
                         EventsService.save_event(
                             event_type=Events.EventType.APPLICATION,
@@ -251,7 +251,7 @@ class ApprovalService:
                         )
                     else:
                         auto_approval.prExempt = True
-                        application.status = Application.Status.APPROVED
+                        application.status = Application.Status.AUTO_APPROVED
                         registration = RegistrationService.create_registration(
                             application.submitter_id, application.payment_account, registration_request.registration
                         )

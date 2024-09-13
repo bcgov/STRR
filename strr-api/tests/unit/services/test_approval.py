@@ -79,11 +79,11 @@ def app_context(app):
 @pytest.mark.parametrize(
     "ownership_type, is_principal_residence, specified_service_provider, expected_status",
     [
-        (OwnershipType.RENT, True, None, Application.Status.UNDER_REVIEW),
-        (OwnershipType.OWN, True, "some_provider", Application.Status.UNDER_REVIEW),
-        (OwnershipType.OWN, True, None, Application.Status.PROVISIONAL),
-        (OwnershipType.OWN, False, None, Application.Status.APPROVED),
-        (OwnershipType.OWN, True, None, Application.Status.APPROVED),
+        (OwnershipType.RENT, True, None, Application.Status.FULL_REVIEW),
+        (OwnershipType.OWN, True, "some_provider", Application.Status.FULL_REVIEW),
+        (OwnershipType.OWN, True, None, Application.Status.PROVISIONAL_REVIEW),
+        (OwnershipType.OWN, False, None, Application.Status.AUTO_APPROVED),
+        (OwnershipType.OWN, True, None, Application.Status.AUTO_APPROVED),
     ],
 )
 @patch("strr_api.services.EventsService.save_event", new=no_op)
@@ -136,14 +136,14 @@ def test_process_auto_approval(
             postalCode="V41B35",
             country="Canada",
         )
-        expected_status = Application.Status.UNDER_REVIEW
+        expected_status = Application.Status.FULL_REVIEW
 
     registration_status, _ = ApprovalService.process_auto_approval(token=sample_token, application=application)
 
     assert application.status == expected_status
 
-    if expected_status == Application.Status.PROVISIONAL:
-        assert registration_status == "provisional"
+    if expected_status == Application.Status.PROVISIONAL_REVIEW:
+        assert registration_status == "PROVISIONAL_REVIEW"
 
-    if expected_status == Application.Status.APPROVED and is_principal_residence:
-        assert registration_status == "approved"
+    if expected_status == Application.Status.AUTO_APPROVED and is_principal_residence:
+        assert registration_status == "AUTO_APPROVED"
