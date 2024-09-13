@@ -39,6 +39,9 @@ def test_create_host_registration_application(session, client, jwt):
         rv = client.post("/applications", json=json_data, headers=headers)
 
     assert HTTPStatus.CREATED == rv.status_code
+    response_json = rv.json
+    assert response_json.get("header").get("hostStatus") == "Payment Due"
+    assert response_json.get("header").get("examinerStatus") == "Payment Due"
 
 
 def test_get_applications(session, client, jwt):
@@ -235,6 +238,8 @@ def test_update_application_payment(session, client, jwt):
             assert HTTPStatus.OK == rv.status_code
             response_json = rv.json
             assert response_json.get("header").get("status") == Application.Status.PAID
+            assert response_json.get("header").get("hostStatus") == "Pending Review"
+            assert response_json.get("header").get("examinerStatus") == "Paid"
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -252,11 +257,13 @@ def test_examiner_reject_application(session, client, jwt):
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        status_update_request = {"status": "rejected"}
+        status_update_request = {"status": "DECLINED"}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert response_json.get("header").get("status") == Application.Status.REJECTED
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("hostStatus") == "Declined"
+        assert response_json.get("header").get("examinerStatus") == "Declined"
         assert response_json.get("header").get("reviewer").get("username") is not None
 
 
@@ -275,14 +282,16 @@ def test_examiner_approve_application(session, client, jwt):
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        status_update_request = {"status": "approved"}
+        status_update_request = {"status": "FULL_REVIEW_APPROVED"}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert response_json.get("header").get("status") == Application.Status.APPROVED
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("reviewer").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
+        assert response_json.get("header").get("hostStatus") == "Approved"
+        assert response_json.get("header").get("examinerStatus") == "Full Review Approval"
 
 
 def test_post_and_delete_registration_documents(session, client, jwt):
