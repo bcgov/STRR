@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { axiosDefaultMock } from '../utils/test-utils/mockedAxios'
-import { testParsedToken, testUserSettings } from '../utils/test-utils/mockedData'
+import { testParsedToken, mockUserSettings } from '~/tests/mocks/mockData'
+import { mockAxiosDefault } from '~/tests/mocks/mockAxios'
 import { useBcrosAuth } from '@/composables/useBcrosAuth'
 import { useBcrosAccount } from '@/stores/account'
 import { useBcrosKeycloak } from '@/stores/keycloak'
@@ -17,7 +17,7 @@ describe('useBcrosAuth Tests', () => {
   const testTokenRefresh = 'qjduwwewvwe'
   const testTokenId = '12322frwr'
   // axios mock
-  vi.mock('axios', () => { return { default: { ...axiosDefaultMock } } })
+  vi.mock('axios', () => { return { default: { ...mockAxiosDefault } } })
 
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -40,7 +40,7 @@ describe('useBcrosAuth Tests', () => {
     account.userLastName = ref(account.user.lastName)
   })
 
-  afterEach(() => vi.clearAllMocks())
+  afterEach(async () => await vi.clearAllMocks())
 
   it('auth setup flow works as expected', async () => {
     // verify setup
@@ -54,11 +54,11 @@ describe('useBcrosAuth Tests', () => {
     expect(keycloak.kcUser).not.toEqual({})
     expect(account.user).toEqual(keycloak.kcUser)
     expect(account.userAccounts.length).toBe(2)
-    expect(account.currentAccount).toEqual(testUserSettings[0])
+    expect(account.currentAccount).toEqual(mockUserSettings[0])
     expect(sessionStorage.getItem(SessionStorageKeyE.KEYCLOAK_TOKEN)).toBe(testToken)
     expect(sessionStorage.getItem(SessionStorageKeyE.KEYCLOAK_TOKEN_ID)).toBe(testTokenId)
     expect(sessionStorage.getItem(SessionStorageKeyE.KEYCLOAK_TOKEN_REFRESH)).toBe(testTokenRefresh)
     expect(sessionStorage.getItem(SessionStorageKeyE.KEYCLOAK_SYNCED)).toBe('true')
-    expect(sessionStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT)).toBe(JSON.stringify(testUserSettings[0]))
+    expect(sessionStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT)).toBe(JSON.stringify(mockUserSettings[0]))
   })
 })

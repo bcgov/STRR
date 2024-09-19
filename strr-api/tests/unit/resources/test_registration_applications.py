@@ -121,7 +121,11 @@ def test_get_application_ltsa_invalid_application(session, client, jwt):
 def test_get_application_ltsa(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
-        application = Application(type="registration", application_json=json_data)
+        application = Application(
+            type="registration",
+            application_json=json_data,
+            application_number=Application.generate_unique_application_number(),
+        )
         application.save()
         headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.get(f"/applications/{application.id}/ltsa", headers=headers)
@@ -145,7 +149,11 @@ def test_get_application_auto_approval_invalid_application(session, client, jwt)
 def test_get_application_auto_approval(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
-        application = Application(type="registration", application_json=json_data)
+        application = Application(
+            type="registration",
+            application_json=json_data,
+            application_number=Application.generate_unique_application_number(),
+        )
         application.save()
         headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.get(f"/applications/{application.id}/auto-approval-records", headers=headers)

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import steps from '../page-data/platform-application-steps'
-import { FormPageI } from '@/interfaces/form/form-page-i'
+import type { FormPageI } from '~/interfaces/form/form-page-i'
 
 const { t } = useTranslation()
 
@@ -101,5 +101,3 @@ definePageMeta({
     </div>
   </div>
 </template>
-
-<style scoped></style>

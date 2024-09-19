@@ -1,17 +1,13 @@
-import { describe, expect } from 'vitest'
-import { VueWrapper, mount } from '@vue/test-utils'
+import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { BcrosExistingAccountsList } from '#components'
+import { mockAccounts } from '~/tests/mocks/mockAccounts'
 
-describe('Existing Accounts List tests', () => {
-  let wrapper: VueWrapper<any>
-
-  // TODO: TC - use the mocked data
-  // inject empty existingAccountList
-  // Check for existance of fields per row, or not per row
-  beforeEach(() => { wrapper = mount(BcrosExistingAccountsList) })
-  afterEach(() => { wrapper.unmount() })
-
-  test('Contains all the expected elements', () => {
-    expect(wrapper.find('[data-test-id="existing-accounts-list"]').exists()).toBe(true)
+test('Contains all the expected elements', async () => {
+  const wrapper = await mountSuspended(BcrosExistingAccountsList, {
+    props: {
+      accounts: mockAccounts
+    }
   })
+
+  expect(wrapper.find('[data-test-id="existing-accounts-list"]').exists()).toBe(true)
 })

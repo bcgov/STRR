@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { VueWrapper, mount } from '@vue/test-utils'
+import { VueWrapper } from '@vue/test-utils'
 import { MenuButton } from '@headlessui/vue'
+import { mountSuspended } from '@nuxt/test-utils/runtime'
 
 import { BcrosHeaderMenu, BcrosHeaderMenuItem } from '#components'
 
@@ -17,7 +18,7 @@ describe('Menu Item tests', () => {
   }
 
   beforeEach(async () => {
-    wrapper = mount(
+    wrapper = await mountSuspended(
       BcrosHeaderMenu,
       {
         props: {

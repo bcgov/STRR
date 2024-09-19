@@ -8,7 +8,7 @@
         <div class="flex flex-col m:justify-between">
           <BcrosTypographyH1
             :text="tLtsa('ltsaDetails')"
-            class-name="mobile:text-6 mb-4"
+            class="mobile:text-6 mb-4"
             no-spacing
           />
           <p class="flex-shrink-0">
@@ -17,10 +17,10 @@
         </div>
       </BcrosBanner>
     </div>
-    <div class="mt-[104px] m:mt-[74px]">
+    <div class="mt-[104px] m:mt-[152px]">
       <div>
         <BcrosTypographyH2
-          class="font-bold mb-6 mobile:mx-2"
+          class="mobile:mx-2"
           :text="tLtsa('ltsaGeneralInfo')"
         />
         <div
@@ -42,7 +42,7 @@
           </div>
           <div class="flex flex-col justify-between w-full mobile:flex-col mr-[40px]">
             <BcrosFormSectionReviewItem
-              :title="tLtsa('date')"
+              :title="tLtsa('description')"
             >
               <p>
                 {{ data[0].record.descriptionsOfLand[0].fullLegalDescription }}
@@ -65,9 +65,9 @@
           </div>
           <div class="flex flex-col justify-between w-full mobile:flex-col">
             <BcrosFormSectionReviewItem
-              :title="tLtsa('parcel')"
+              :title="tLtsa('ownership')"
             >
-              <p>{{ `${tLtsa('parcel')}: ${data[0].record.ownershipGroups[0].jointTenancyIndication}` }}</p>
+              <p>{{ `${tLtsa('joint')}: ${data[0].record.ownershipGroups[0].jointTenancyIndication}` }}</p>
               <p>
                 {{ `${tLtsa('numerator')}: ${data[0].record.ownershipGroups[0].interestFractionNumerator}` }}
               </p>
@@ -79,7 +79,7 @@
         </div>
         <div class="mt-[40px]">
           <BcrosTypographyH2
-            class="font-bold mb-6 mobile:mx-2"
+            class="mobile:mx-2"
             :text="tLtsa('titleOwners')"
           />
           <div
@@ -136,17 +136,20 @@ const tLtsa = (translationKey: string) => t(`ltsa.${translationKey}`)
 const applicationId = route.params.id.toString()
 
 const { getLtsa, getApplication } = useApplications()
+const { setupBreadcrumbData } = useBreadcrumb()
 
 const application = await getApplication(applicationId)
 const formatDate = (date: Date) => date.toLocaleDateString('en-US')
 const data: LtsaDataI[] = await getLtsa(applicationId) || {} as LtsaDataI[]
 const applicationDetails: ApplicationDetailsI = application.registration
 
+setupBreadcrumbData(application)
+
 const ownerRows = data.length > 0
   ? [{
-      givenName: data[0].record.ownershipGroups[0].titleOwners[0].givenName,
-      lastName: data[0].record.ownershipGroups[0].titleOwners[0].lastNameOrCorpName1,
-      address: `
+      'Given Name': data[0].record.ownershipGroups[0].titleOwners[0].givenName,
+      'Last Name': data[0].record.ownershipGroups[0].titleOwners[0].lastNameOrCorpName1,
+      Address: `
     ${data[0].record.ownershipGroups[0].titleOwners[0].address.addressLine1}
     ${data[0].record.ownershipGroups[0].titleOwners[0].address.addressLine2
       ? `${data[0].record.ownershipGroups[0].titleOwners[0].address.addressLine2} , `
@@ -155,7 +158,7 @@ const ownerRows = data.length > 0
     ${data[0].record.ownershipGroups[0].titleOwners[0].address.country}
     ${data[0].record.ownershipGroups[0].titleOwners[0].address.postalCode}
   `,
-      occupation: data[0].record.ownershipGroups[0].titleOwners[0].occupationDescription
+      Occupation: data[0].record.ownershipGroups[0].titleOwners[0].occupationDescription
     }]
   : []
 

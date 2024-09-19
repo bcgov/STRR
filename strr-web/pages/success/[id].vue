@@ -3,7 +3,7 @@
     <BcrosTypographyH1
       :text="tApplicationConfirm('submitted')"
       data-test-id="accountPageTitle"
-      class-name="mobile:pb-[20px] mobile:mx-[8px] pb-[32px]"
+      class="mobile:pb-[20px] mobile:mx-[8px] pb-[32px]"
     />
     <div class="bg-white py-[22px] px-[30px] flex flex-row mobile:px-[8px] mobile:[py-16px] mobile:flex-col">
       <img
@@ -30,10 +30,6 @@
         <a @click="navigateTo('/application-status')">{{ tApplicationConfirm('status') }}</a> {{ tApplicationConfirm('dashboard') }}
       </p>
       <p class="mb-[24px]">
-        <!-- eslint-disable-next-line max-len -->
-        <a @click="goToAccountInfo">{{ tApplicationConfirm('bcrosLink') }}</a> {{ tApplicationConfirm('update') }}
-      </p>
-      <p class="mb-[24px]">
         {{ tApplicationConfirm('haveAnotherProperty') }}
       </p>
       <BcrosButtonsPrimary
@@ -52,10 +48,6 @@ const route = useRoute()
 const fetchedRegistration = ref()
 const { t } = useTranslation()
 const tApplicationConfirm = (translationKey: string) => t(`createAccount.applicationConfirm.${translationKey}`)
-
-const {
-  goToAccountInfo
-} = useBcrosNavigate()
 
 const id = route.params.id
 

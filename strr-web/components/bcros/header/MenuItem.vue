@@ -31,5 +31,3 @@ const executeAction = () => {
   }
 }
 </script>
-
-<style scoped></style>

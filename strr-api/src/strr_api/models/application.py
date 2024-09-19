@@ -35,7 +35,9 @@
 from __future__ import annotations
 
 import copy
+import datetime
 
+from nanoid import generate
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import backref
@@ -67,6 +69,7 @@ class Application(BaseModel):
 
     id = db.Column(db.Integer, primary_key=True)
     application_json = db.Column("application_json", JSONB, nullable=False)
+    application_number = db.Column(db.String(14), unique=True, nullable=False)
     application_date = db.Column(
         "application_date", db.DateTime(timezone=True), server_default=func.now()  # pylint:disable=not-callable
     )  # pylint:disable=not-callable
@@ -123,6 +126,20 @@ class Application(BaseModel):
         return cls.query.filter_by(invoice_id=invoice_id).one_or_none()
 
     @classmethod
+    def generate_unique_application_number(cls):
+        """Generate a unique application number."""
+        date_part = datetime.date.today().strftime("%Y%m%d")
+        number_part = generate(alphabet="0123456789", size=5)
+        new_number = f"{date_part}-{number_part}"
+        if not cls.query.filter_by(application_number=new_number).first():
+            return new_number
+
+    @classmethod
+    def find_by_application_number(cls, application_number: str) -> Application | None:
+        """Return the application by application number."""
+        return cls.query.filter_by(application_number=application_number).one_or_none()
+
+    @classmethod
     def find_by_user_and_account(
         cls, user_id: int, account_id: int, filter_criteria: ApplicationSearch, is_examiner: bool
     ) -> Application | None:
@@ -170,6 +187,7 @@ class ApplicationSerializer:
         if not application_dict.get("header", None):
             application_dict["header"] = {}
         application_dict["header"]["id"] = application.id
+        application_dict["header"]["applicationNumber"] = application.application_number
         application_dict["header"]["name"] = application.type
         application_dict["header"]["paymentToken"] = application.invoice_id
         application_dict["header"]["paymentStatus"] = application.payment_status_code

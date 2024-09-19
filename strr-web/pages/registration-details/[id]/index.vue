@@ -10,7 +10,7 @@
             `${application?.unitAddress.nickname ?? ''} ${tApplicationDetails('registration')}
               #${application?.registration_number ?? '-'}`
           "
-          class-name="mobile:text-6"
+          class="mobile:text-6"
           no-spacing
         />
         <BcrosChip v-if="flavour" :flavour="flavour" class="ml-4">
@@ -232,6 +232,11 @@ const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
 const registrationId = route.params.id.toString()
 
+const {
+  setRegistrationNumber,
+  setApplicationNickname
+} = useStrrStore()
+
 const downloadEventTypes = ['CERTIFICATE_ISSUED']
 
 const {
@@ -281,6 +286,9 @@ const [application, history]: [RegistrationI, FilingHistoryEventI[]] = await Pro
   getRegistration(registrationId),
   getRegistrationHistory(registrationId)
 ])
+
+setApplicationNickname(application.unitAddress.nickname)
+setRegistrationNumber(application.registration_number || '')
 
 // Get Supporting Documents from the Application response
 const documents: DocumentUploadI[] = application.documents || []

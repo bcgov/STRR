@@ -1,4 +1,11 @@
 {
+  "common": {
+    "breadcrumb": {
+      "hostDashboard": "My STR Registry Dashboard",
+      "examinerDashboard": "My CEU STR Registry Dashboard",
+      "rentalRegistration": "Short-Term Rental Registration"
+    }
+  },
   "registryDashboard": {
     "applicationNumber": "Application #",
     "registrationNumber": "Registration #",
@@ -55,7 +62,9 @@
     "occupation": "Occupation"
   },
   "autoApproval": {
+    "autoApprovalDetails": "Automatic Approval Details",
     "automaticLogic": "Automatic Approval Logic",
+    "automaticDetails": "Automatic Approval Details",
     "provisionalLogic": "Provisional Approval Logic",
     "renting": "Renting",
     "accommodationSelected": "Accommodation Service Provider Selected",
@@ -86,6 +95,7 @@
     "unitInfo": "Rental Unit Information",
     "nickname": "Nickname",
     "businessLicense": "Business License",
+    "platformUrl": "Platform URL",
     "ownership": "Ownership Type",
     "address": "Address",
     "propertyType": "Type of Property",
@@ -95,6 +105,11 @@
     "email": "Email Address",
     "phone": "Phone Number",
     "documents": "Documents",
+    "principalResidence": "Principal Residence",
+    "principalResidenceReason": "Reason",
+    "principalResidenceServiceProvider": "Service Provider",
+    "principalResidenceNotApplies": "Principal residence does not apply or my property is exempt",
+    "principalResidenceApplies": "Pincipal residence does apply",
     "proof": "Proof of Principal Residence",
     "ltsaInfo": "LTSA Information",
     "ltsaDetails": "View LTSA Details",
@@ -174,8 +189,6 @@
       "links": "Helpful Links",
       "status": "View your application status",
       "dashboard": "in your dashboard",
-      "bcrosLink": "Visit your BC Registries Online Services profile page",
-      "update": "to update your profile information",
       "haveAnotherProperty": "Have another rental property?",
       "startNewApplication": "Start a new application"
     },

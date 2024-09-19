@@ -2,7 +2,7 @@
 import { it, expect } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { createI18n } from 'vue-i18n'
-import { mockApplicationApproved } from '../../utils/test-utils/mockedApplication'
+import { mockApplicationApproved } from '~/tests/mocks/mockApplication'
 import { BcrosStatusCard } from '#components'
 
 const i18n = createI18n({

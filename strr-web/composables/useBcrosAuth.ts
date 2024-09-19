@@ -6,6 +6,7 @@ export const useBcrosAuth = () => {
   const keycloak = useBcrosKeycloak()
   const account = useBcrosAccount()
   const { redirect, goToSetupAccount, goToCreateAccount } = useBcrosNavigate()
+  const { checkTermsOfService } = useTermsOfService()
 
   /** redirect to the correct creation screen based on auth state */
   function createAccount () {
@@ -55,6 +56,9 @@ export const useBcrosAuth = () => {
           // verify account status
           verifyAccountStatus()
           console.info('Auth setup complete.')
+
+          console.info('Checking Terms of Service acceptance...')
+          checkTermsOfService()
         }
       } catch (error) {
         console.warn('Keycloak initialization failed:', error)

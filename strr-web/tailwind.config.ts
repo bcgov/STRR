@@ -50,7 +50,7 @@ export default <Partial<Config>>{
           lightBlue: '#E4EDF7',
           // LINES
           hairlinesOnWhite: '#DEE2E6',
-          specialityDottedLines: '#899EB2',
+          specialtyDottedLines: '#899EB2',
           formFieldLines: '#6F7780',
           // RESULT COLOURS
           caution: '#F8661A', // use on Caution Icon or Large 19px bold+ text only (on white backgrounds only). Not for small text.

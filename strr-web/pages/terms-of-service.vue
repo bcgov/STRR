@@ -1,19 +1,19 @@
 <template>
   <div>
     <BcrosTypographyH1 :text="tTos('tosTitle')" />
-    <div class="bg-white flex flex-col pb-[20px]">
+    <div v-if="tos" class="bg-white flex flex-col pb-[20px]">
       <div class="px-[20px] py-[25px]">
         <!-- eslint-disable-next-line -->
-        <span v-html="tos?.content" />
+        <span v-html="tos?.termsOfUse" />
       </div>
       <div class="flex flex-row justify-center">
         <BcrosButtonsPrimary
           :label="tTos('accept')"
-          :action="() => handleAcceptTermsOfService(true, tos.versionId)"
+          :action="() => handleAcceptTermsOfService(true)"
         />
         <BcrosButtonsPrimary
           :label="tTos('decline')"
-          :action="() => handleAcceptTermsOfService(false, tos.versionId)"
+          :action="() => handleAcceptTermsOfService(false)"
           variant="outline"
           class-name="ml-[4px]"
         />
@@ -23,19 +23,22 @@
 </template>
 
 <script setup lang="ts">
-
 const { t } = useTranslation()
 const tTos = (translationKey: string) => t(`tos.${translationKey}`)
 
-const { updateTosAcceptance, acceptTos } = useBcrosAccount()
+const { acceptTermsOfService } = useTermsOfService()
+const { tos, isTosAccepted } = storeToRefs(useBcrosAccount())
 
-const tos = await updateTosAcceptance()
+watch(isTosAccepted, (isAccepted) => {
+  if (isAccepted) {
+    navigateTo('/create-account')
+  }
+})
 
-const handleAcceptTermsOfService = (acceptance: boolean, versionId: string) => {
-  // remove User Profile from the session to get updated User Profile after accepting the terms
+const handleAcceptTermsOfService = (isAccepted: boolean) => {
+  // remove User Profile from the session to get updated User Profile after accepting the Terms
   sessionStorage.removeItem(SessionStorageKeyE.USER_PROFILE)
   // accept or decline the Terms
-  acceptTos(acceptance, versionId)
+  acceptTermsOfService(isAccepted, tos.value?.termsOfUseCurrentVersion || 'n/a')
 }
-
 </script>

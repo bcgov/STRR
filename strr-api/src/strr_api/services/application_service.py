@@ -71,6 +71,7 @@ class ApplicationService:
         application.submitter_id = user.id
         application.type = ApplicationType.REGISTRATION.value
         application.application_json = request_json
+        application.application_number = Application.generate_unique_application_number()
         application.save()
         return application
 

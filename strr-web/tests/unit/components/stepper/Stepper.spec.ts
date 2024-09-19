@@ -20,15 +20,15 @@ it('can mount Stepper component', async () => {
             inactiveIconPath: '',
             activeIconPath: '',
             complete: false,
-            error: false
+            isValid: false,
+            alt: ''
           },
           title: '',
           subtitle: '',
           formTitle: '',
           sections: []
         }],
-        activeStep: 0,
-        setActiveStep: mockFn
+        activeStep: 0
       }
     })
   expect(stepper.find('[data-test-id="stepper"]').exists()).toBe(true)
@@ -42,7 +42,8 @@ it('can mount Stepper Footer component', async () => {
         isFirstStep: true,
         isLastStep: false,
         setNextStep: mockFn,
-        setPreviousStep: mockFn
+        setPreviousStep: mockFn,
+        submit: mockFn
       }
     })
   expect(stepper.find('[data-test-id="stepper-footer"]').exists()).toBe(true)

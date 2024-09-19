@@ -12,7 +12,7 @@ it('can mount Banner component with buttons', async () => {
   const banner = await mountSuspended(BcrosBanner,
     {
       global: { plugins: [i18n] },
-      props: { applicationId: '1' }
+      props: { applicationId: '1', hideButtons: false }
     })
   expect(banner.find('[data-test-id="banner"]').exists()).toBe(true)
   expect(banner.findComponent(BcrosButtonsPrimary).exists()).toBe(true)

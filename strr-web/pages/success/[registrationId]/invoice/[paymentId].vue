@@ -3,7 +3,7 @@
     <BcrosTypographyH1
       :text="tApplicationConfirm('submitted')"
       data-test-id="accountPageTitle"
-      class-name="mobile:pb-5 mobile:mx-2 pb-8"
+      class="mobile:pb-5 mobile:mx-2 pb-8"
     />
     <div class="bg-white py-[22px] px-[30px] flex flex-row mobile:px-2 mobile:[py-16px] mobile:flex-col">
       <img

@@ -2,6 +2,7 @@
 import { it, expect } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { createI18n } from 'vue-i18n'
+import { mockFn } from '@nuxt/test-utils'
 import { BcrosFormSectionContactInformationForm } from '#components'
 
 const i18n = createI18n({
@@ -11,7 +12,14 @@ const i18n = createI18n({
 it('can mount Property Details Form Section component', async () => {
   const addressSection = await mountSuspended(BcrosFormSectionContactInformationForm,
     {
-      global: { plugins: [i18n] }
+      global: { plugins: [i18n] },
+      props: {
+        fullName: '',
+        hasSecondaryContact: false,
+        isComplete: false,
+        secondFormIsComplete: false,
+        toggleAddSecondary: mockFn
+      }
     })
   expect(addressSection.find('[data-test-id="contact-information"]').exists()).toBe(true)
 })

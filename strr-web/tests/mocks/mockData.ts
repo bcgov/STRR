@@ -1,3 +1,5 @@
+import type { ProfileI } from '~/interfaces/account-i'
+
 export const testParsedToken = {
   firstname: 'First',
   lastname: 'Last',
@@ -11,7 +13,7 @@ export const testParsedToken = {
 
 export const testProfile = { firstName: 'Test', lastName: 'TEST' }
 
-export const testUserSettings: AccountI[] = [
+export const mockUserSettings: AccountI[] = [
   {
     accountStatus: AccountStatusE.ACTIVE,
     accountType: AccountTypeE.PREMIUM,
@@ -58,7 +60,7 @@ export const testUserSettings: AccountI[] = [
   }
 ]
 
-export const testUserSettingsBlank = [
+export const mockUserSettingsBlank = [
   {
     id: 125,
     label: 'USER PROFILE',
@@ -71,7 +73,7 @@ export const testUserSettingsBlank = [
   }
 ]
 
-export const existingAccountList: AccountI[] = [
+export const mockExistingAccountList: AccountI[] = [
   {
     accountStatus: AccountStatusE.ACTIVE,
     accountType: AccountTypeE.PREMIUM,
@@ -89,7 +91,7 @@ export const existingAccountList: AccountI[] = [
         phone: '',
         email: '',
         phoneExtension: ''
-      }
+      } as AddressI
     ],
     accessType: '',
     urlpath: '',
@@ -113,7 +115,7 @@ export const existingAccountList: AccountI[] = [
         phone: '',
         email: '',
         phoneExtension: ''
-      }
+      } as AddressI
     ],
     accessType: '',
     urlpath: '',
@@ -122,31 +124,37 @@ export const existingAccountList: AccountI[] = [
   }
 ]
 
-export const testDetailsForDev1 = {
+export const mockMailingAddress: AddressI = {
+  city: 'Victoria',
+  country: 'CA',
+  postalCode: 'V8V8V8',
+  region: 'BC',
+  street: '9999 Smith Street',
+  streetAdditional: '9999 Smith Street',
+  phone: '123-555-6677',
+  email: 'john.doe@example.com',
+  phoneExtension: '987-654-3210'
+}
+
+export const testDetailsForDev1: OrgI = {
   accessType: 'REGULAR',
   branchName: '',
-  businessName: 'Test Dev 1',
-  businessSize: '0-1',
-  businessType: 'BIZAC',
+  // businessName: 'Test Dev 1',
+  // businessSize: '0-1',
+  // businessType: 'BIZAC',
   created: '2022-01-06T00:11:11+00:00',
   createdBy: 'BCREGTEST HARRIETT FORTY',
-  hasApiAccess: false,
-  id: 123,
+  // hasApiAccess: false,
+  id: '123',
   isBusinessAccount: true,
-  mailingAddress: {
-    city: 'Victoria',
-    country: 'CA',
-    postalCode: 'V8V8V8',
-    region: 'BC',
-    street: '8888 Smith Street',
-    streetAdditional: '8888 Smith Street'
-  },
-  modified: '2022-01-06T00:11:11+00:00',
+  mailingAddress: [mockMailingAddress],
+  // modified: '2022-01-06T00:11:11+00:00',
   name: 'Test Dev 1',
   orgStatus: AccountStatusE.ACTIVE,
   orgType: AccountTypeE.PREMIUM,
   statusCode: AccountStatusE.ACTIVE,
-  uuid: '2b2251d6-679b-4b1d-b997-38edf4eb1904'
+  uuid: '2b2251d6-679b-4b1d-b997-38edf4eb1904',
+  modifiedBy: ''
 }
 
 export const testDetailsForDev2 = {
@@ -176,34 +184,56 @@ export const testDetailsForDev2 = {
   uuid: '2b2251d6-679b-4b1d-b997-38edf4eb1904'
 }
 
-export const testMe = {
-  orgs: [testDetailsForDev1],
-  profile: {
-    contacts: [
-      {
-        email: '',
-        phone: '',
-        phoneExtension: ''
-      }
-    ],
-    created: '',
-    firstname: '',
-    id: 0,
-    idpUserid: '',
-    keycloakGuid: '',
-    lastname: '',
-    loginSource: '',
-    loginTime: '',
-    modified: '',
-    modifiedBy: '',
-    type: '',
-    userStatus: 0,
-    userTerms: {
-      isTermsOfUseAccepted: true,
-      termsOfUseAcceptedVersion: ''
-    },
-    username: '',
-    verified: true
+export const mockContact: ContactI = {
+  socialInsuranceNumber: '123-456-789',
+  businessNumber: 'BN123456789',
+  dateOfBirth: '1990-01-01',
+  details: {
+    emailAddress: 'john.doe@example.com',
+    extension: '123',
+    faxNumber: '123-456-7890',
+    phoneNumber: '987-654-3210',
+    preferredName: 'John'
   },
-  settings: testUserSettings
+  mailingAddress: {
+    address: '123 Main St',
+    addressLineTwo: 'Apt 4B',
+    city: 'Victoria',
+    country: 'Canada',
+    postalCode: 'V8V 2V2',
+    province: 'BC'
+  },
+  name: {
+    firstName: 'John',
+    lastName: 'Doe',
+    middleName: 'Michael'
+  }
+}
+
+export const mockProfile: ProfileI = {
+  contacts: [mockContact],
+  created: '',
+  firstname: '',
+  id: 0,
+  idpUserid: '',
+  keycloakGuid: '',
+  lastname: '',
+  loginSource: '',
+  loginTime: '',
+  modified: '',
+  modifiedBy: '',
+  type: '',
+  userStatus: 0,
+  userTerms: {
+    isTermsOfUseAccepted: true,
+    termsOfUseAcceptedVersion: ''
+  },
+  username: '',
+  verified: true
+}
+
+export const testMe: MeI = {
+  orgs: [testDetailsForDev1],
+  profile: mockProfile,
+  settings: mockUserSettings
 }

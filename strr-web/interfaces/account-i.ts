@@ -82,7 +82,7 @@ interface UserTermsI {
   termsOfUseAcceptedVersion: string
 }
 
-interface ProfileI {
+export interface ProfileI {
   contacts: ContactI[]
   created: string
   firstname: string

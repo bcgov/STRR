@@ -1,5 +1,6 @@
 export const mockApplicationApproved: ApplicationI = {
   header: {
+    applicationNumber: '',
     applicationDateTime: '2024-08-14T22:24:42.006030+00:00',
     decisionDate: '2024-08-16T11:08:40.948148+00:00',
     id: 1,
@@ -66,7 +67,8 @@ export const mockApplicationApproved: ApplicationI = {
     unitDetails: {
       ownershipType: 'OWN',
       propertyType: 'SECONDARY'
-    }
+    },
+    registrationType: RegistrationTypeE.HOST
   },
   selectedAccount: {
     sbc_account_id: '12345'

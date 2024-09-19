@@ -11,7 +11,12 @@ const i18n = createI18n({
 it('can mount address section component', async () => {
   const addressSection = await mountSuspended(BcrosFormSectionPropertyAddress,
     {
-      global: { plugins: [i18n] }
+      global: { plugins: [i18n] },
+      props: {
+        id: '123',
+        defaultCountryIso2: 'CA',
+        enableAddressComplete: () => {}
+      }
     })
   expect(addressSection.find('[data-test-id="form-section-address"]').exists()).toBe(true)
 })

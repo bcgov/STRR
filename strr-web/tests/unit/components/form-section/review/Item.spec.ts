@@ -9,9 +9,15 @@ const i18n = createI18n({
 })
 
 it('can mount form review component', async () => {
+  const FORM_TITLE = 'Test Title'
+
   const addressSection = await mountSuspended(BcrosFormSectionReviewItem,
     {
-      global: { plugins: [i18n] }
+      global: { plugins: [i18n] },
+      props: {
+        title: FORM_TITLE
+      }
     })
   expect(addressSection.find('[data-test-id="form-item"]').exists()).toBe(true)
+  expect(addressSection.text()).toContain(FORM_TITLE)
 })

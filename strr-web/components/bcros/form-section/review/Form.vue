@@ -166,6 +166,7 @@
 
 <script setup lang="ts">
 import { getOwnershipTypeDisplay } from '@/utils/common'
+import { formState } from '@/stores/strr'
 
 const { t } = useTranslation()
 

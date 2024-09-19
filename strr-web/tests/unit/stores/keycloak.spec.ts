@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { testParsedToken } from '../utils/test-utils/mockedData'
+import { testParsedToken } from '~/tests/mocks/mockData'
 import { useBcrosKeycloak } from '@/stores/keycloak'
 
 describe('Keycloak Store Tests', () => {

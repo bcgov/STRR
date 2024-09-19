@@ -3,6 +3,7 @@ export interface ApplicationHeaderI {
   applicationDateTime: string
   decisionDate: string | null
   id: number
+  applicationNumber: string
   name: string
   paymentAccount: string
   paymentStatus: string

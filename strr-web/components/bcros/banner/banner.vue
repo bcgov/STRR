@@ -5,8 +5,8 @@
       `
         flex justify-center bg-white absolute w-full top-0 left-0 min-h-[104px] shadow-md
         py-[30px] px-[70px]
-        m:flex-col m:h-[116px] m:pt-[16px] m:pb-[6px] m:px-[8px]
-        ${hideButtons ? 'm:h-[70px]': ''}
+        m:flex-col m:min-h-[116px] m:px-[8px]
+        ${hideButtons ? 'm:min-h-[70px]': ''}
       `
     "
   >

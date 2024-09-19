@@ -3,13 +3,13 @@
     <BcrosTypographyH1
       :text="tRegistrationStatus('title')"
       data-test-id="accountPageTitle"
-      class-name="pb-[32px] mobile:pb-[24px]"
+      class="pb-[32px] mobile:pb-[24px]"
     />
     <div>
       <div class="flex flex-row justify-between">
         <BcrosTypographyH2
+          class="mobile:pt-[0px]"
           :text="`${tRegistrationStatus('myRegApplication')} (${applicationsCount})`"
-          class-name="mobile:pt-[0px]"
         />
         <BcrosButtonsPrimary
           :label="tRegistrationStatus('create')"

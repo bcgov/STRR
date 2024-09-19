@@ -87,6 +87,10 @@ export default defineAppConfig({
         ring: 'before:ring-1 before:ring-gray-700',
         background: 'before:bg-gray-700'
       }
+    },
+    breadcrumb: {
+      label: 'text-white font-normal text-decoration-line',
+      base: 'text-white font-normal hover:text-white'
     }
   }
 })

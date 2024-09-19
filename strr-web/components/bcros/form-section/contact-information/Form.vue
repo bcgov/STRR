@@ -24,8 +24,8 @@
           @validate-months="validateMonths"
         />
         <BcrosFormSectionContactInformationCraInfo
-          v-model:socialInsuranceNumber="formState.primaryContact.socialInsuranceNumber"
-          v-model:businessNumber="formState.primaryContact.businessNumber"
+          v-model:social-insurance-number="formState.primaryContact.socialInsuranceNumber"
+          v-model:business-number="formState.primaryContact.businessNumber"
           :is-primary="true"
         />
         <BcrosFormSectionContactInformationContactDetails
@@ -83,8 +83,8 @@
             :is-primary="false"
           />
           <BcrosFormSectionContactInformationCraInfo
-            v-model:socialInsuranceNumber="formState.secondaryContact.socialInsuranceNumber"
-            v-model:businessNumber="formState.secondaryContact.businessNumber"
+            v-model:social-insurance-number="formState.secondaryContact.socialInsuranceNumber"
+            v-model:business-number="formState.secondaryContact.businessNumber"
             :is-primary="false"
           />
           <BcrosFormSectionContactInformationContactDetails

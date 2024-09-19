@@ -10,18 +10,20 @@ const i18n = createI18n({
 
 it('can mount h2 component', async () => {
   const text = 'Test Text'
-  const className = 'TestClass'
+  const cssClass = 'TestClass'
   const typography = await mountSuspended(BcrosTypographyH2,
     {
       global: {
         plugins: [i18n]
       },
       props: {
-        text,
-        className
+        text
+      },
+      attrs: {
+        class: cssClass
       }
     })
   expect(typography.find('[data-test-id="h2"]').exists()).toBe(true)
   expect(typography.text()).toContain(text)
-  expect(typography.classes()).toContain(className)
+  expect(typography.classes()).toContain(cssClass)
 })

@@ -46,6 +46,8 @@
 </template>
 
 <script setup lang="ts">
+import { sanitizeUrl } from '@braintree/sanitize-url'
+
 const { isComplete } = defineProps<{
   isComplete: boolean
 }>()
@@ -120,6 +122,10 @@ const validateField = (index: number) => {
   } else {
     listingURLErrors.value = undefined
   }
+
+  formState.propertyDetails.listingDetails[index].url = sanitizeUrl(
+    formState.propertyDetails.listingDetails[index].url
+  )
 }
 
 const validateAllPropertyListingUrls = () => {

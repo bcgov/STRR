@@ -2,7 +2,7 @@
   <div data-test-id="account-select-page">
     <div v-if="userOrgs.length > 0">
       <div class="mobile:px-[8px]">
-        <BcrosTypographyH1 :text="t('account.title')" data-test-id="accountPageTitle" class-name="mobile:pb-[20px]" />
+        <BcrosTypographyH1 :text="t('account.title')" data-test-id="accountPageTitle" class="mobile:pb-[20px]" />
         <BcrosAlertsMessage :flavour="alertFlavour">
           <b>{{ t('general.note') }} </b>{{ t('account.existingAccountWarning') }}
         </BcrosAlertsMessage>
@@ -12,7 +12,7 @@
       <BcrosExistingAccountsList :accounts="userOrgs" />
     </div>
     <div v-else>
-      <BcrosTypographyH1 :text="t('account.logIn')" data-test-id="accountPageTitle" class-name="mobile:pb-[20px]" />
+      <BcrosTypographyH1 :text="t('account.logIn')" data-test-id="accountPageTitle" class="mobile:pb-[20px]" />
     </div>
   </div>
 </template>
@@ -24,22 +24,14 @@ const { t } = useTranslation()
 
 const alertFlavour: AlertsFlavourE = AlertsFlavourE.INFO
 
-const { userOrgs, me, updateTosAcceptance } = useBcrosAccount()
+const { userOrgs, me } = useBcrosAccount()
 
 const existingAccountsTitle = `${t('account.existingAccountSection.title')} (${userOrgs.length})`
 
-onMounted(async () => {
+onMounted(() => {
   // if no sbc accounts navigate to sbc account creation
   if (!me?.settings.length) {
     navigateTo('/finalization')
-  }
-  const tos = await updateTosAcceptance()
-
-  const { isTermsOfUseAccepted, termsOfUseAcceptedVersion } = me?.profile.userTerms || {}
-  const currentTosAccepted = isTermsOfUseAccepted && termsOfUseAcceptedVersion === tos?.versionId
-
-  if (!currentTosAccepted) {
-    navigateTo('/terms-of-service')
   }
 })
 </script>

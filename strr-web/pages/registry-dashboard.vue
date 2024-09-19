@@ -50,23 +50,23 @@
         @update:sort="sort"
       >
         <!-- Only way to do row clicks in NuxtUI currently -->
-        <template #registration-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.registration)">
-            {{ row.registration }}
+        <template #application-data="{ row }">
+          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationId)">
+            {{ row.applicationNumber }}
           </div>
         </template>
         <template #location-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.registration)">
+          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationId)">
             {{ row.location }}
           </div>
         </template>
         <template #address-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.registration)">
+          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationId)">
             {{ row.address }}
           </div>
         </template>
         <template #owner-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.registration)">
+          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationId)">
             {{ row.owner }}
           </div>
         </template>
@@ -79,7 +79,7 @@
         <template #submission-data="{ row }">
           <div
             class="cursor-pointer w-full"
-            @click="navigateToDetails(row.registration)"
+            @click="navigateToDetails(row.applicationId)"
           >
             {{ new Date(row.submissionDate).toLocaleDateString('en-US', { dateStyle: 'medium'}) }}
           </div>
@@ -201,8 +201,9 @@ const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<
   applications.applications.forEach((application: ApplicationI) => {
     const { header, registration: { unitAddress, primaryContact } } = application
 
-    rows.push({
-      registration: header.id.toString(),
+    const row = {
+      applicationId: header.id.toString(),
+      applicationNumber: header.applicationNumber,
       location: unitAddress.city,
       address: unitAddress.address,
       owner: `
@@ -212,7 +213,8 @@ const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<
       `,
       status: header.status,
       submissionDate: header.applicationDateTime
-    })
+    }
+    rows.push(row)
   })
   return rows
 }
@@ -239,7 +241,7 @@ watch(currentPage, () => {
 const selectedColumns = ref<{ key: string; label: string; }[]>([])
 
 const columns = [
-  { key: 'registration', label: tRegistryDashboard('registrationNumber'), sortable: true },
+  { key: 'application', label: tRegistryDashboard('applicationNumber'), sortable: true },
   { key: 'location', label: tRegistryDashboard('location'), sortable: true },
   { key: 'address', label: tRegistryDashboard('address'), sortable: true },
   { key: 'owner', label: tRegistryDashboard('owner'), sortable: true },

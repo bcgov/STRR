@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { axiosRequestMocks, axiosDefaultMock } from '../utils/test-utils/mockedAxios'
-import { testParsedToken, testUserSettings } from '../utils/test-utils/mockedData'
+import { mockAxiosDefault, mockAxiosRequest } from '~/tests/mocks/mockAxios'
+import { testParsedToken, mockUserSettings } from '~/tests/mocks/mockData'
 import { useBcrosAccount } from '@/stores/account'
 import { useBcrosKeycloak } from '@/stores/keycloak'
 
@@ -12,7 +12,7 @@ describe('Account Store Tests', () => {
   let apiURL: string
 
   // axios mocks
-  vi.mock('axios', () => { return { default: { ...axiosDefaultMock } } })
+  vi.mock('axios', () => { return { default: { ...mockAxiosDefault } } })
 
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -44,21 +44,21 @@ describe('Account Store Tests', () => {
     keycloak.kc.tokenParsed.loginSource = LoginSourceE.BCEID
     account.user.value = keycloak.kcUser
     expect(account.user.loginSource).toBe(LoginSourceE.BCEID)
-    expect(axiosRequestMocks.get).not.toHaveBeenCalled()
+    expect(mockAxiosRequest.get).not.toHaveBeenCalled()
   })
 
   it('sets account values as expected when setAccountInfo is called', async () => {
-    expect(axiosRequestMocks.get).not.toHaveBeenCalled()
+    expect(mockAxiosRequest.get).not.toHaveBeenCalled()
     expect(sessionStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT)).toBeNull()
     await account.setAccountInfo()
-    expect(axiosRequestMocks.get).toHaveBeenCalled()
-    expect(axiosRequestMocks.get).toHaveBeenCalledWith(`${apiURL}/users/${account.user.keycloakGuid}/settings`)
-    expect(account.currentAccount).toEqual(testUserSettings[0])
-    expect(sessionStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT)).toBe(JSON.stringify(testUserSettings[0]))
+    expect(mockAxiosRequest.get).toHaveBeenCalled()
+    expect(mockAxiosRequest.get).toHaveBeenCalledWith(`${apiURL}/users/${account.user.keycloakGuid}/settings`)
+    expect(account.currentAccount).toEqual(mockUserSettings[0])
+    expect(sessionStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT)).toBe(JSON.stringify(mockUserSettings[0]))
     // test setting the current account to the 2nd value
-    sessionStorage.setItem(SessionStorageKeyE.CURRENT_ACCOUNT, JSON.stringify(testUserSettings[1]))
+    sessionStorage.setItem(SessionStorageKeyE.CURRENT_ACCOUNT, JSON.stringify(mockUserSettings[1]))
     await account.setAccountInfo()
-    expect(account.currentAccount).toEqual(testUserSettings[1])
+    expect(account.currentAccount).toEqual(mockUserSettings[1])
   })
 
   // TODO: TC - add api calls to use mock data to

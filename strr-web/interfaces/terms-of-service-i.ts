@@ -1,5 +1,6 @@
 export interface TermsOfServiceI {
-  content: string,
-  contentType: string,
-  versionId: string
+  isTermsOfUseAccepted: boolean
+  termsOfUseAcceptedVersion: string
+  termsOfUseCurrentVersion?: string
+  termsOfUse?: string
 }
