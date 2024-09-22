@@ -518,6 +518,7 @@ def get_document(application_id, file_key):
     """
 
     try:
+        account_id = request.headers.get("Account-Id", None)
         # only allow fetch for applications that belong to the user
         account_id = request.headers.get("Account-Id", None)
         application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
@@ -577,6 +578,7 @@ def delete_document(application_id, file_key):
     """
 
     try:
+        account_id = request.headers.get("Account-Id", None)
         # only allow upload for registrations that belong to the user
         account_id = request.headers.get("Account-Id", None)
         application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
@@ -615,7 +617,8 @@ def get_payment_receipt(application_id):
     """
 
     try:
-        application = ApplicationService.get_application(application_id=application_id)
+        account_id = request.headers.get("Account-Id", None)
+        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
         if not application:
             raise AuthException()
 
