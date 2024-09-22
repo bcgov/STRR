@@ -25,6 +25,7 @@ class Registration:
         secondaryContact=None,
         documents=[],  # pylint: disable=W0102
         registrationType=None,
+        applicationNumber=None,
     ):
         self.primaryContact = Contact(**primaryContact)
         self.secondaryContact = None
@@ -36,6 +37,7 @@ class Registration:
         self.principalResidence = PrincipalResidence(**principalResidence)
         self.documents = [Document(**document) for document in documents]
         self.registrationType = registrationType
+        self.applicationNumber = applicationNumber
 
 
 class PrincipalResidence:
