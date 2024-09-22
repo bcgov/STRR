@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """Service to interact with the applications model."""
 from datetime import datetime, timezone
+from typing import Optional
 
 from strr_api.enums.enum import ApplicationType, PaymentStatus
 from strr_api.models import Application, Events, User
@@ -41,7 +42,7 @@ from strr_api.models.dataclass import ApplicationSearch
 from strr_api.requests import RegistrationRequest
 from strr_api.services.events_service import EventsService
 from strr_api.services.registration_service import RegistrationService
-from strr_api.utils.user_context import UserContext, user_context
+from strr_api.services.user_service import UserService
 
 APPLICATION_TERMINAL_STATES = [Application.Status.APPROVED, Application.Status.REJECTED]
 APPLICATION_STATES_STAFF_ACTION = [
@@ -61,11 +62,9 @@ class ApplicationService:
         return ApplicationSerializer.to_dict(application)
 
     @staticmethod
-    @user_context
-    def save_application(account_id, request_json: dict, **kwargs):
+    def save_application(account_id: int, request_json: dict) -> Application:
         """Saves an application to db."""
-        usr_context: UserContext = kwargs["user_context"]
-        user = User.get_or_create_user_by_jwt(usr_context.token_info)
+        user = UserService.get_or_create_user_in_context()
         application = Application()
         application.payment_account = account_id
         application.submitter_id = user.id
@@ -76,12 +75,10 @@ class ApplicationService:
         return application
 
     @staticmethod
-    @user_context
-    def list_applications(account_id, filter_criteria, **kwargs):
+    def list_applications(account_id: int, filter_criteria: ApplicationSearch) -> dict:
         """List all applications matching the search criteria."""
-        usr_context: UserContext = kwargs["user_context"]
-        user = User.get_or_create_user_by_jwt(usr_context.token_info)
-        is_examiner = usr_context.is_examiner()
+        user = UserService.get_or_create_user_in_context()
+        is_examiner = UserService.is_examiner()
         paginated_result = Application.find_by_user_and_account(user.id, account_id, filter_criteria, is_examiner)
         search_results = []
         for item in paginated_result.items:
@@ -95,23 +92,21 @@ class ApplicationService:
         }
 
     @staticmethod
-    @user_context
-    def get_application(application_id, account_id=None, **kwargs):
+    def get_application(application_id: int, account_id: Optional[int] = None) -> Application:
         """Get the application with the specified id."""
-        usr_context: UserContext = kwargs["user_context"]
-        user = User.get_or_create_user_by_jwt(usr_context.token_info)
+        user = UserService.get_or_create_user_in_context()
         if ApplicationService.is_user_authorized_for_application(user.id, account_id, application_id):
             return Application.find_by_id(application_id)
         return None
 
     @staticmethod
-    @user_context
-    def is_user_authorized_for_application(user_id: int, account_id: int, application_id: int, **kwargs) -> bool:
+    def is_user_authorized_for_application(user_id: int, account_id: int, application_id: int) -> bool:
         """Check the user authorization for an application."""
-        usr_context: UserContext = kwargs["user_context"]
-        if usr_context.is_examiner() or usr_context.is_system():
+        if UserService.is_strr_staff_or_system():
             return True
-        application = Application.find_by_id_and_user(application_id, user_id)
+        application = Application.get_application_by_user_and_account(
+            user_id=user_id, account_id=account_id, application_id=application_id
+        )
         if application:
             return True
         return False
@@ -138,6 +133,7 @@ class ApplicationService:
                 event_type=Events.EventType.APPLICATION,
                 event_name=Events.EventName.APPLICATION_SUBMITTED,
                 application_id=application.id,
+                visible_to_applicant=True,
             )
         else:
             if application.payment_status_code == PaymentStatus.COMPLETED.value:
@@ -159,7 +155,9 @@ class ApplicationService:
         return application
 
     @staticmethod
-    def update_application_status(application: Application, application_status: Application.Status, reviewer: User):
+    def update_application_status(
+        application: Application, application_status: Application.Status, reviewer: User
+    ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
         application.status = application_status
 

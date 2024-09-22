@@ -58,6 +58,7 @@ from strr_api.models import (
     db,
 )
 from strr_api.services.events_service import EventsService
+from strr_api.services.user_service import UserService
 from strr_api.utils.user_context import UserContext, user_context
 
 
@@ -218,7 +219,7 @@ class RegistrationService:
                 | Address.postal_code.ilike(f"%{search}%")
             )
 
-        if not user.is_examiner():
+        if not UserService.is_examiner():
             query = query.filter(Registration.user_id == user.id)
             if account_id:
                 query = query.filter(Registration.sbc_account_id == account_id)
@@ -262,7 +263,7 @@ class RegistrationService:
         """Get registration by id for current user. Examiners are exempted from user_id check."""
         user = User.get_or_create_user_by_jwt(jwt_oidc_token_info)
         query = Registration.query.filter_by(id=registration_id)
-        if not user.is_examiner() and not user.is_system():
+        if not UserService.is_examiner() and not UserService.is_system():
             query = query.filter_by(user_id=user.id)
         return query.one_or_none()
 

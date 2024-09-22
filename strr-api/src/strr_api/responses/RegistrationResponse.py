@@ -1,6 +1,7 @@
 """
 Registration response objects.
 """
+
 from datetime import date, datetime
 from typing import List, Optional
 
@@ -162,33 +163,35 @@ class Registration(BaseModel):
                     country=source.rental_property.property_manager.primary_contact.address.country,
                 ),
             ),
-            secondaryContact=Contact(
-                name=ContactName(
-                    firstName=source.rental_property.property_manager.secondary_contact.firstname,
-                    middleName=source.rental_property.property_manager.secondary_contact.middlename,
-                    lastName=source.rental_property.property_manager.secondary_contact.lastname,
-                ),
-                dateOfBirth=source.rental_property.property_manager.secondary_contact.date_of_birth,
-                socialInsuranceNumber=source.rental_property.property_manager.secondary_contact.social_insurance_number,
-                businessNumber=source.rental_property.property_manager.secondary_contact.business_number,
-                details=ContactDetails(
-                    preferredName=source.rental_property.property_manager.secondary_contact.preferredname,
-                    phoneNumber=source.rental_property.property_manager.secondary_contact.phone_number,
-                    extension=source.rental_property.property_manager.secondary_contact.phone_extension,
-                    faxNumber=source.rental_property.property_manager.secondary_contact.fax_number,
-                    emailAddress=source.rental_property.property_manager.secondary_contact.email,
-                ),
-                mailingAddress=MailingAddress(
-                    address=source.rental_property.property_manager.secondary_contact.address.street_address,
-                    addressLineTwo=source.rental_property.property_manager.secondary_contact.address.street_address_additional,  # noqa: E501
-                    city=source.rental_property.property_manager.secondary_contact.address.city,
-                    postalCode=source.rental_property.property_manager.secondary_contact.address.postal_code,
-                    province=source.rental_property.property_manager.secondary_contact.address.province,
-                    country=source.rental_property.property_manager.secondary_contact.address.country,
-                ),
-            )
-            if source.rental_property.property_manager.secondary_contact
-            else None,
+            secondaryContact=(
+                Contact(
+                    name=ContactName(
+                        firstName=source.rental_property.property_manager.secondary_contact.firstname,
+                        middleName=source.rental_property.property_manager.secondary_contact.middlename,
+                        lastName=source.rental_property.property_manager.secondary_contact.lastname,
+                    ),
+                    dateOfBirth=source.rental_property.property_manager.secondary_contact.date_of_birth,
+                    socialInsuranceNumber=source.rental_property.property_manager.secondary_contact.social_insurance_number,  # noqa: E501
+                    businessNumber=source.rental_property.property_manager.secondary_contact.business_number,
+                    details=ContactDetails(
+                        preferredName=source.rental_property.property_manager.secondary_contact.preferredname,
+                        phoneNumber=source.rental_property.property_manager.secondary_contact.phone_number,
+                        extension=source.rental_property.property_manager.secondary_contact.phone_extension,
+                        faxNumber=source.rental_property.property_manager.secondary_contact.fax_number,
+                        emailAddress=source.rental_property.property_manager.secondary_contact.email,
+                    ),
+                    mailingAddress=MailingAddress(
+                        address=source.rental_property.property_manager.secondary_contact.address.street_address,
+                        addressLineTwo=source.rental_property.property_manager.secondary_contact.address.street_address_additional,  # noqa: E501
+                        city=source.rental_property.property_manager.secondary_contact.address.city,
+                        postalCode=source.rental_property.property_manager.secondary_contact.address.postal_code,
+                        province=source.rental_property.property_manager.secondary_contact.address.province,
+                        country=source.rental_property.property_manager.secondary_contact.address.country,
+                    ),
+                )
+                if source.rental_property.property_manager.secondary_contact
+                else None
+            ),
             unitAddress=UnitAddress(
                 {
                     "address": source.rental_property.address.street_address,

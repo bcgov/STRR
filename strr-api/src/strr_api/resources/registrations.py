@@ -49,7 +49,7 @@ from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
 from strr_api.responses import Events, Pagination, Registration
-from strr_api.services import DocumentService, EventsService, RegistrationService
+from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
@@ -353,7 +353,7 @@ def get_registration_events(registration_id):
         if not user:
             raise AuthException()
 
-        only_show_visible_to_user = not user.is_examiner()
+        only_show_visible_to_user = not UserService.is_examiner()
         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
         if not registration:
             raise AuthException()

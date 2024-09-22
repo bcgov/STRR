@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
-from tests.unit.utils.auth_helpers import PUBLIC_USER, STAFF_ROLE, STRR_EXAMINER, create_header
+from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
@@ -84,6 +84,46 @@ def test_get_applications_invalid_account(session, client, jwt):
     assert len(response_json.get("applications")) == 0
 
 
+def test_get_application_details_with_multiple_accounts(session, client, jwt):
+    secondary_account = 456
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+
+        with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
+            headers["Account-Id"] = ACCOUNT_ID
+            rv = client.post("/applications", json=json_data, headers=headers)
+            assert HTTPStatus.CREATED == rv.status_code
+            print(rv.json)
+            application_id = rv.json.get("header").get("id")
+
+        mock_invoice_response_2 = {
+            "id": 123,
+            "statusCode": "CREATED",
+            "paymentAccount": {"accountId": secondary_account},
+        }
+        with patch("strr_api.services.strr_pay.create_invoice", return_value=mock_invoice_response_2):
+            headers["Account-Id"] = secondary_account
+            rv = client.post("/applications", json=json_data, headers=headers)
+            assert HTTPStatus.CREATED == rv.status_code
+            print(rv.json)
+            application_id_2 = rv.json.get("header").get("id")
+
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.get(f"/applications/{application_id}", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.get(f"/applications/{application_id_2}", headers=headers)
+        assert HTTPStatus.NOT_FOUND == rv.status_code
+
+        headers["Account-Id"] = secondary_account
+        rv = client.get(f"/applications/{application_id}", headers=headers)
+        assert HTTPStatus.NOT_FOUND == rv.status_code
+
+        rv = client.get(f"/applications/{application_id_2}", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_create_application_with_minimum_fields(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_MINIMUM_FIELDS_REQUEST) as f:
@@ -127,7 +167,7 @@ def test_get_application_ltsa(session, client, jwt):
             application_number=Application.generate_unique_application_number(),
         )
         application.save()
-        headers = create_header(jwt, [STRR_EXAMINER, STAFF_ROLE], "Account-Id")
+        headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.get(f"/applications/{application.id}/ltsa", headers=headers)
 
         assert HTTPStatus.OK == rv.status_code
@@ -155,14 +195,14 @@ def test_get_application_auto_approval(session, client, jwt):
             application_number=Application.generate_unique_application_number(),
         )
         application.save()
-        headers = create_header(jwt, [STRR_EXAMINER, STAFF_ROLE], "Account-Id")
+        headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.get(f"/applications/{application.id}/auto-approval-records", headers=headers)
 
         assert HTTPStatus.OK == rv.status_code
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_application_events(session, client, jwt):
+def test_get_application_events_user(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")

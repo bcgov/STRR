@@ -117,14 +117,6 @@ class User(db.Model):
         """Return a User if they exist and match the provided submitter id."""
         return cls.query.filter_by(id=submitter_id).one_or_none()
 
-    def is_examiner(self) -> bool:
-        """Return True if User is an examiner."""
-        return self.login_source == "IDIR"
-
-    def is_system(self) -> bool:
-        """Return True if User is a system."""
-        return self.login_source == "SYSTEM"
-
     @classmethod
     def find_by_jwt_token(cls, token: dict) -> User | None:
         """Return a User if they exist and match the provided JWT."""

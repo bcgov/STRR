@@ -188,7 +188,8 @@ def get_application_details(application_id):
     """
 
     try:
-        application = ApplicationService.get_application(application_id)
+        account_id = request.headers.get("Account-Id", None)
+        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
         if not application:
             return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
@@ -357,11 +358,11 @@ def get_application_events(application_id):
     try:
         account_id = request.headers.get("Account-Id", None)
         applicant_visible_events_only = True
-        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if user.is_examiner:
+        UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if UserService.is_strr_staff_or_system():
             account_id = None
             applicant_visible_events_only = False
-        application = ApplicationService.get_application(application_id, account_id)
+        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
         if not application:
             return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
 
@@ -518,7 +519,8 @@ def get_document(application_id, file_key):
 
     try:
         # only allow fetch for applications that belong to the user
-        application = ApplicationService.get_application(application_id=application_id)
+        account_id = request.headers.get("Account-Id", None)
+        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
         if not application:
             raise AuthException()
         application_documents = [
@@ -576,7 +578,8 @@ def delete_document(application_id, file_key):
 
     try:
         # only allow upload for registrations that belong to the user
-        application = ApplicationService.get_application(application_id=application_id)
+        account_id = request.headers.get("Account-Id", None)
+        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
         if not application:
             raise AuthException()
 
