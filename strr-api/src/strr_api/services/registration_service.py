@@ -302,6 +302,7 @@ class RegistrationService:
             event_type=Events.EventType.REGISTRATION,
             event_name=Events.EventName.CERTIFICATE_ISSUED,
             registration_id=registration.id,
+            visible_to_applicant=True,
         )
         return certificate
 

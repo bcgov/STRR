@@ -171,6 +171,7 @@ class ApplicationService:
                 event_name=Events.EventName.REGISTRATION_CREATED,
                 application_id=application.id,
                 registration_id=registration.id,
+                visible_to_applicant=True,
             )
             application.registration_id = registration.id
 
