@@ -140,9 +140,7 @@ class Application(BaseModel):
             new_number = _generate_application_number()
             if not cls.query.filter_by(application_number=new_number).first():
                 return new_number
-        raise Exception(  # pylint: disable=broad-exception-raised
-            "Failed to generate a unique application number"
-        )
+        raise ValueError("Failed to generate a unique application number")
 
     @classmethod
     def find_by_application_number(cls, application_number: str) -> Application | None:
