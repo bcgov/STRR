@@ -21,7 +21,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 UPDATE application
-    SET application_number = generate_unique_application_number()
+    SET application_number = generate_unique_application_number(application_date::date)
     WHERE application_number IS NULL;
 
-DROP FUNCTION generate_unique_application_number();
+DROP FUNCTION generate_unique_application_number(date);

@@ -50,6 +50,13 @@ from strr_api.models.dataclass import ApplicationSearch
 from .db import db
 
 
+def _generate_application_number() -> str:
+    """Generate an application number."""
+    date_part = datetime.date.today().strftime("%Y%m%d")
+    number_part = generate(alphabet="0123456789", size=5)
+    return f"{date_part}-{number_part}"
+
+
 class Application(BaseModel):
     """Stores the STRR Applications."""
 
@@ -126,13 +133,16 @@ class Application(BaseModel):
         return cls.query.filter_by(invoice_id=invoice_id).one_or_none()
 
     @classmethod
-    def generate_unique_application_number(cls):
+    def generate_unique_application_number(cls):  # pylint: disable=inconsistent-return-statements
         """Generate a unique application number."""
-        date_part = datetime.date.today().strftime("%Y%m%d")
-        number_part = generate(alphabet="0123456789", size=5)
-        new_number = f"{date_part}-{number_part}"
-        if not cls.query.filter_by(application_number=new_number).first():
-            return new_number
+        max_attempts = 10
+        for _ in range(max_attempts):
+            new_number = _generate_application_number()
+            if not cls.query.filter_by(application_number=new_number).first():
+                return new_number
+        raise Exception(  # pylint: disable=broad-exception-raised
+            "Failed to generate a unique application number"
+        )
 
     @classmethod
     def find_by_application_number(cls, application_number: str) -> Application | None:
