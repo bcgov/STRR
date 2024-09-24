@@ -186,6 +186,7 @@ class Application(BaseModel):
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
         return paginated_result
 
+
 class ApplicationSerializer:
     """Serializer for application. Can convert to dict, string from application model."""
 
