@@ -148,11 +148,6 @@ class Application(BaseModel):
         return cls.query.filter_by(application_number=application_number).one_or_none()
 
     @classmethod
-    def find_by_id_user_account(cls, application_id: int, user_id: int, account_id: int) -> Application | None:
-        """Return the application by application_id, submitter user_id and payment_account."""
-        return cls.query.filter_by(submitter_id=user_id, id=application_id, payment_account=account_id).one_or_none()
-
-    @classmethod
     def get_application_by_user_and_account(
         cls, user_id: int, account_id: int, application_id: int
     ) -> Application | None:
@@ -190,7 +185,6 @@ class Application(BaseModel):
         query = query.order_by(Application.id.desc())
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
         return paginated_result
-
 
 class ApplicationSerializer:
     """Serializer for application. Can convert to dict, string from application model."""
