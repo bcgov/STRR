@@ -52,9 +52,7 @@ from .db import db
 
 def _generate_application_number() -> str:
     """Generate an application number."""
-    date_part = datetime.date.today().strftime("%Y%m%d")
-    number_part = generate(alphabet="0123456789", size=5)
-    return f"{date_part}-{number_part}"
+    return generate(alphabet="0123456789", size=14)
 
 
 class Application(BaseModel):
