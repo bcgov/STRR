@@ -178,8 +178,7 @@ class RegistrationService:
     @classmethod
     def list_registrations(
         cls,
-        jwt_oidc_token_info,
-        account_id: int = None,
+        account_id: int,
         search: str = None,
         filter_by_status: RegistrationStatus = None,
         sort_by: RegistrationSortBy = RegistrationSortBy.ID,
@@ -188,9 +187,6 @@ class RegistrationService:
         limit: int = 100,
     ):
         """List all registrations for current user."""
-        user = User.get_or_create_user_by_jwt(jwt_oidc_token_info)
-        if not user:
-            return [], 0
         query = (
             Registration.query.join(RentalProperty, Registration.rental_property_id == RentalProperty.id)
             .join(Address, RentalProperty.address_id == Address.id)
@@ -219,10 +215,8 @@ class RegistrationService:
                 | Address.postal_code.ilike(f"%{search}%")
             )
 
-        if not UserService.is_examiner():
-            query = query.filter(Registration.user_id == user.id)
-            if account_id:
-                query = query.filter(Registration.sbc_account_id == account_id)
+        if not UserService.is_strr_staff_or_system():
+            query = query.filter(Registration.sbc_account_id == account_id)
         if filter_by_status is not None:
             query = query.filter(Registration.status == filter_by_status)
 
@@ -248,23 +242,11 @@ class RegistrationService:
                 return registration_number
 
     @classmethod
-    def get_registration_counts_by_status(cls):
-        """Return all registration counts by status type."""
-
-        query = Registration.query.with_entities(
-            Registration.status.label("status"),
-            func.count().label("count"),
-        ).group_by(Registration.status)
-
-        return query.all()
-
-    @classmethod
-    def get_registration(cls, jwt_oidc_token_info, registration_id):
+    def get_registration(cls, account_id, registration_id):
         """Get registration by id for current user. Examiners are exempted from user_id check."""
-        user = User.get_or_create_user_by_jwt(jwt_oidc_token_info)
         query = Registration.query.filter_by(id=registration_id)
-        if not UserService.is_examiner() and not UserService.is_system():
-            query = query.filter_by(user_id=user.id)
+        if not UserService.is_strr_staff_or_system():
+            query = query.filter_by(sbc_account_id=account_id)
         return query.one_or_none()
 
     @classmethod

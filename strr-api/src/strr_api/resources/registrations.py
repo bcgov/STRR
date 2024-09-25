@@ -130,7 +130,7 @@ def get_registrations():
     limit: int = request.args.get("limit", 100)
 
     registrations, count = RegistrationService.list_registrations(
-        g.jwt_oidc_token_info, account_id, search, filter_by_status, sort_by_column, sort_desc, offset, limit
+        account_id, search, filter_by_status, sort_by_column, sort_desc, offset, limit
     )
 
     pagination = Pagination(count=count, results=[Registration.from_db(registration) for registration in registrations])
@@ -168,11 +168,12 @@ def get_registration(registration_id):
     """
 
     try:
+        account_id = request.headers.get("Account-Id")
         user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         if not user:
             raise AuthException()
 
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
+        registration = RegistrationService.get_registration(account_id, registration_id)
         if not registration:
             return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
 
@@ -180,94 +181,6 @@ def get_registration(registration_id):
 
     except AuthException as auth_exception:
         return exception_response(auth_exception)
-
-
-# TODO Delete this
-# @bp.route("/<registration_id>/documents", methods=("GET",))
-# @swag_from({"security": [{"Bearer": []}]})
-# @cross_origin(origin="*")
-# @jwt.requires_auth
-# def get_registration_documents(registration_id):
-#     """
-#     Get registration supporting documents for given registration id.
-#     ---
-#     tags:
-#       - registration
-#     parameters:
-#       - in: path
-#         name: registration_id
-#         type: integer
-#         required: true
-#         description: ID of the registration
-#     responses:
-#       200:
-#         description:
-#       401:
-#         description:
-#       403:
-#         description:
-#     """
-
-#     try:
-#         # only allow upload for registrations that belong to the user
-#         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-#         if not registration:
-#             raise AuthException()
-
-#         documents = DocumentService.get_registration_documents(registration_id)
-#         return (
-#             jsonify([Document.from_db(document).model_dump(mode="json") for document in documents]),
-#             HTTPStatus.OK,
-#         )
-#     except AuthException as auth_exception:
-#         return exception_response(auth_exception)
-
-# TODO Delete this
-# @bp.route("/<registration_id>/documents/<document_id>", methods=("GET",))
-# @swag_from({"security": [{"Bearer": []}]})
-# @cross_origin(origin="*")
-# @jwt.requires_auth
-# def get_registration_supporting_document_by_id(registration_id, document_id):
-#     """
-#     Get registration supporting document metadata for given registration id and document id.
-#     ---
-#     tags:
-#       - registration
-#     parameters:
-#       - in: path
-#         name: registration_id
-#         type: integer
-#         required: true
-#         description: ID of the registration
-#       - in: path
-#         name: document_id
-#         type: integer
-#         required: true
-#         description: ID of the document
-#     responses:
-#       200:
-#         description:
-#       401:
-#         description:
-#       403:
-#         description:
-#       404:
-#         description:
-#     """
-
-#     try:
-#         # only allow upload for registrations that belong to the user
-#         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-#         if not registration:
-#             raise AuthException()
-
-#         document = DocumentService.get_registration_document(registration_id, document_id)
-#         if not document:
-#             return error_response(HTTPStatus.NOT_FOUND, "Document not found")
-
-#         return jsonify(Document.from_db(document).model_dump(mode="json")), HTTPStatus.OK
-#     except AuthException as auth_exception:
-#         return exception_response(auth_exception)
 
 
 @bp.route("/<registration_id>/documents/<file_key>", methods=("GET",))
@@ -349,12 +262,13 @@ def get_registration_events(registration_id):
     """
 
     try:
+        account_id = request.headers.get("Account-Id")
         user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         if not user:
             raise AuthException()
 
-        only_show_visible_to_user = not UserService.is_examiner()
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
+        only_show_visible_to_user = not UserService.is_strr_staff_or_system()
+        registration = RegistrationService.get_registration(account_id, registration_id)
         if not registration:
             raise AuthException()
 
@@ -436,8 +350,8 @@ def get_registration_certificate(registration_id):
     """
 
     try:
-        # only allow upload for registrations that belong to the user
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
+        account_id = request.headers.get("Account-Id")
+        registration = RegistrationService.get_registration(account_id, registration_id)
         if not registration:
             raise AuthException()
 

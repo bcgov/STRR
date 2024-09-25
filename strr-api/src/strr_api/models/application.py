@@ -140,25 +140,18 @@ class Application(BaseModel):
         return cls.query.filter_by(application_number=application_number).one_or_none()
 
     @classmethod
-    def find_by_id_and_user(cls, application_id: int, user_id: int) -> Application | None:
-        """Return the application by application_id and submitter user_id."""
-        return cls.query.filter_by(submitter_id=user_id, id=application_id).one_or_none()
-
-    @classmethod
-    def get_application_by_user_and_account(
-        cls, user_id: int, account_id: int, application_id: int
-    ) -> Application | None:
+    def get_application_by_user_and_account(cls, account_id: int, application_id: int) -> Application | None:
         """Return the application by application_id,submitter user_id and account_id."""
-        return cls.query.filter_by(submitter_id=user_id, id=application_id, payment_account=account_id).one_or_none()
+        return cls.query.filter_by(id=application_id, payment_account=account_id).one_or_none()
 
     @classmethod
     def find_by_user_and_account(
-        cls, user_id: int, account_id: int, filter_criteria: ApplicationSearch, is_examiner: bool
+        cls, account_id: int, filter_criteria: ApplicationSearch, is_examiner: bool
     ) -> Application | None:
         """Return the application by user,account, filter criteria."""
         query = cls.query
         if not is_examiner:
-            query = query.filter_by(submitter_id=user_id).filter_by(payment_account=account_id)
+            query = query.filter_by(payment_account=account_id)
         if filter_criteria.status:
             query = query.filter_by(status=filter_criteria.status.upper())
         query = query.order_by(Application.id.desc())

@@ -42,12 +42,10 @@ MOCK_PAYMENT_COMPLETED_RESPONSE = {
 }
 
 
-@patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
-@patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
-@patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-def test_get_registrations_200(client):
-    g.jwt_oidc_token_info = None
-    rv = client.get("/registrations")
+def test_get_registrations_200(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+    rv = client.get("/registrations", headers=headers)
     assert rv.status_code == HTTPStatus.OK
 
 
