@@ -79,7 +79,7 @@ class ApplicationService:
         """List all applications matching the search criteria."""
         UserService.get_or_create_user_in_context()
         is_examiner = UserService.is_strr_staff_or_system()
-        paginated_result = Application.find_by_user_and_account(account_id, filter_criteria, is_examiner)
+        paginated_result = Application.find_by_account(account_id, filter_criteria, is_examiner)
         search_results = []
         for item in paginated_result.items:
             search_results.append(ApplicationService.serialize(item))
@@ -104,9 +104,7 @@ class ApplicationService:
         """Check the user authorization for an application."""
         if UserService.is_strr_staff_or_system():
             return True
-        application = Application.get_application_by_user_and_account(
-            account_id=account_id, application_id=application_id
-        )
+        application = Application.get_application_by_account(account_id=account_id, application_id=application_id)
         if application:
             return True
         return False
