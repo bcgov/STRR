@@ -124,7 +124,7 @@ class Registration(BaseModel):
         registration_number = source.registration_number
 
         documents = []
-        if source.eligibility and source.eligibility.documents:
+        if source.documents:
             for doc in source.eligibility.documents:
                 documents.append(Document(fileKey=doc.path, fileName=doc.file_name, fileType=doc.file_type))
 

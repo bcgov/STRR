@@ -69,22 +69,13 @@ def get_registrations():
       - in: header
         name: Account-Id
         type: integer
-        description: Optionally filters results based on SBC Account ID.
+        description: SBC Account Id.
       - in: query
-        name: filter_by_status
-        enum: [PENDING,APPROVED,ISSUED,UNDER_REVIEW,MORE_INFO_NEEDED,PROVISIONAL,DENIED]
-        description: Filters affect pagination count returned.
-      - in: query
-        name: search
-        type: string
-        minLength: 3
-        description: >
-          Search for wildcard term: %<search-text>% in Registration#, Location, Address, and Applicant Name.
-          Affects pagination count returned. Minimum length of 3 characters.
+        name: status
+        enum: [ACTIVE, EXPIRED, SUSPENDED]
       - in: query
         name: sort_by
-        enum: [REGISTRATION_NUMBER,LOCATION,ADDRESS,NAME,STATUS,SUBMISSION_DATE]
-        description: Filters affect pagination count returned.
+        enum: [REGISTRATION_NUMBER, STATUS, SUBMISSION_DATE]
       - in: query
         name: sort_desc
         type: boolean
@@ -98,46 +89,19 @@ def get_registrations():
         type: integer
         default: 100
     responses:
-      201:
+      200:
         description:
       401:
         description:
     """
     account_id = request.headers.get("Account-Id")
-    filter_by_status: RegistrationStatus = None
-    status_value = request.args.get("filter_by_status", None)
-    search = request.args.get("search", None)
-
-    if search and len(search) < 3:
-        return error_response(HTTPStatus.BAD_REQUEST, "Search term must be at least 3 characters long.")
-
-    try:
-        if status_value is not None:
-            filter_by_status = RegistrationStatus[status_value.upper()]
-    except ValueError as e:
-        current_app.logger.error(f"filter_by_status: {str(e)}")
-
-    sort_by_column: RegistrationSortBy = RegistrationSortBy.ID
+    status = request.args.get("status", None)
     sort_by = request.args.get("sort_by", None)
-    try:
-        if sort_by is not None:
-            sort_by_column = RegistrationSortBy[sort_by.upper()]
-    except ValueError as e:
-        current_app.logger.error(f"sort_by: {str(e)}")
-
     sort_desc: bool = request.args.get("sort_desc", "false").lower() == "true"
     offset: int = request.args.get("offset", 0)
     limit: int = request.args.get("limit", 100)
 
-    registrations, count = RegistrationService.list_registrations(
-        account_id, search, filter_by_status, sort_by_column, sort_desc, offset, limit
-    )
-
-    pagination = Pagination(count=count, results=[Registration.from_db(registration) for registration in registrations])
-    return (
-        jsonify(pagination.model_dump(mode="json")),
-        HTTPStatus.OK,
-    )
+    return RegistrationService.list_registrations(account_id, status, sort_by, sort_desc, offset, limit), HTTPStatus.OK
 
 
 @bp.route("/<registration_id>", methods=("GET",))
@@ -160,8 +124,6 @@ def get_registration(registration_id):
       200:
         description:
       401:
-        description:
-      403:
         description:
       404:
         description:

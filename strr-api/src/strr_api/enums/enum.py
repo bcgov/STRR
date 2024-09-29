@@ -131,6 +131,7 @@ class RegistrationType(Enum):
 
     HOST = "HOST"
     PLATFORM = "PLATFORM"
+    STRATA_HOTEL = "STRATA_HOTEL"
 
 
 class ErrorMessage(Enum):
