@@ -48,7 +48,7 @@ from strr_api.common.auth import jwt
 from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
-from strr_api.responses import Events, Pagination, Registration
+from strr_api.responses import Events
 from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
 
 logger = logging.getLogger("api")
@@ -139,7 +139,7 @@ def get_registration(registration_id):
         if not registration:
             return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
 
-        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.OK
+        return RegistrationService.serialize(registration), HTTPStatus.OK
 
     except AuthException as auth_exception:
         return exception_response(auth_exception)
@@ -279,7 +279,7 @@ def issue_registration_certificate(registration_id):
         # TODO: Throw error if a certificate has been issued already; replace messages with enums
 
         RegistrationService.generate_registration_certificate(registration)
-        return jsonify(Registration.from_db(registration).model_dump(mode="json")), HTTPStatus.CREATED
+        return RegistrationService.serialize(registration), HTTPStatus.CREATED
     except AuthException as auth_exception:
         return exception_response(auth_exception)
 

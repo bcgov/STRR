@@ -49,12 +49,13 @@ from strr_api.models import (
     Document,
     Events,
     PropertyContact,
-    Registration,
     PropertyListing,
+    Registration,
     RentalProperty,
     User,
     db,
 )
+from strr_api.responses import RegistrationSerializer
 from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
 
@@ -264,3 +265,8 @@ class RegistrationService:
         """Get latest PDF certificate for a given registration."""
         query = Certificate.query.filter(Certificate.registration_id == registration.id)
         return query.order_by(Certificate.issued_date.desc()).limit(1).one_or_none()
+
+    @classmethod
+    def serialize(cls, registration: Registration) -> dict:
+        """Returns registration JSON."""
+        return RegistrationSerializer.serialize(registration=registration)
