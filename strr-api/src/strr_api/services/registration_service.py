@@ -176,7 +176,7 @@ class RegistrationService:
         status: str = None,
         sort_by: str = RegistrationSortBy.ID,
         sort_desc: bool = False,
-        offset: int = 0,
+        offset: int = 1,
         limit: int = 50,
     ):
         """List registrations for current user in a paginated manner."""
@@ -188,18 +188,14 @@ class RegistrationService:
         if status:
             query = query.filter(Registration.status == status.upper())
 
-        sort_column_meta = {
-            RegistrationSortBy.ID: Registration.id,
-            RegistrationSortBy.STATUS: Registration.status,
-            RegistrationSortBy.SUBMISSION_DATE: Registration.submission_date,
-        }
-        sort_column = sort_column_meta[sort_by.upper()] or sort_column_meta[RegistrationSortBy.ID]
+        sort_column_meta = {RegistrationSortBy.ID: Registration.id, RegistrationSortBy.STATUS: Registration.status}
+        sort_column = sort_column_meta[sort_by.upper()] if sort_by else sort_column_meta[RegistrationSortBy.ID]
         query = query.order_by(sort_column.desc() if sort_desc else sort_column.asc())
         paginated_result = query.paginate(per_page=limit, page=offset)
 
         search_results = []
         for registration in paginated_result.items:
-            search_results.append(Registration.from_db(registration))
+            search_results.append(RegistrationService.serialize(registration))
 
         return {
             "page": offset,
@@ -231,6 +227,9 @@ class RegistrationService:
         """Generate registration PDF certificate."""
         user = UserService.get_or_create_user_in_context()
         issued_date = datetime.now(timezone.utc)
+        primary_property_contact = list(filter(lambda x: x.is_primary is True, registration.rental_property.contacts))[
+            0
+        ]
         data = {
             "registration_number": f"{registration.registration_number}",
             "creation_date": f'{registration.start_date.strftime("%B %d, %Y")}',
@@ -238,8 +237,8 @@ class RegistrationService:
             "issued_date": f'{issued_date.strftime("%B %d, %Y")}',
             "rental_address": registration.rental_property.address.to_oneline_address(),
             "rental_type": registration.rental_property.property_type.value,
-            "registrant": registration.rental_property.property_manager.primary_contact.full_name(),
-            "host": registration.rental_property.property_manager.primary_contact.full_name(),
+            "registrant": primary_property_contact.contact.full_name(),
+            "host": primary_property_contact.contact.full_name(),
         }
         rendered_template = render_template("certificate.html", **data)
         pdf_binary = HTML(string=rendered_template).render().write_pdf()
@@ -257,6 +256,7 @@ class RegistrationService:
             event_type=Events.EventType.REGISTRATION,
             event_name=Events.EventName.CERTIFICATE_ISSUED,
             registration_id=registration.id,
+            visible_to_applicant=True,
         )
         return certificate
 

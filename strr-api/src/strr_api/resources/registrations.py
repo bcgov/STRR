@@ -75,7 +75,7 @@ def get_registrations():
         enum: [ACTIVE, EXPIRED, SUSPENDED]
       - in: query
         name: sort_by
-        enum: [REGISTRATION_NUMBER, STATUS, SUBMISSION_DATE]
+        enum: [REGISTRATION_NUMBER, STATUS]
       - in: query
         name: sort_desc
         type: boolean
@@ -98,8 +98,8 @@ def get_registrations():
     status = request.args.get("status", None)
     sort_by = request.args.get("sort_by", None)
     sort_desc: bool = request.args.get("sort_desc", "false").lower() == "true"
-    offset: int = request.args.get("offset", 0)
-    limit: int = request.args.get("limit", 100)
+    offset: int = request.args.get("offset", 1)
+    limit: int = request.args.get("limit", 50)
 
     return RegistrationService.list_registrations(account_id, status, sort_by, sort_desc, offset, limit), HTTPStatus.OK
 
@@ -131,10 +131,6 @@ def get_registration(registration_id):
 
     try:
         account_id = request.headers.get("Account-Id")
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user:
-            raise AuthException()
-
         registration = RegistrationService.get_registration(account_id, registration_id)
         if not registration:
             return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
