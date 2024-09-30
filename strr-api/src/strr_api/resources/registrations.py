@@ -41,11 +41,11 @@ from http import HTTPStatus
 from io import BytesIO
 
 from flasgger import swag_from
-from flask import Blueprint, current_app, g, jsonify, request, send_file
+from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, Role
+from strr_api.enums.enum import Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
 from strr_api.responses import Events

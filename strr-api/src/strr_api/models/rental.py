@@ -11,12 +11,14 @@ from sqlalchemy.orm import relationship
 from strr_api.common.enum import BaseEnum, auto
 from strr_api.enums.enum import OwnershipType, PropertyType, RegistrationStatus
 from strr_api.models.base_model import BaseModel
-from strr_api.models.platforms import Platform
+from strr_api.models.platforms import Platform  # pylint: disable=W0611
 
 from .db import db
 
 
 class Registration(BaseModel):
+    """Registration model"""
+
     class RegistrationType(BaseEnum):
         """Enum of the registration types."""
 

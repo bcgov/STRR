@@ -52,8 +52,6 @@ from strr_api.models import (
     PropertyListing,
     Registration,
     RentalProperty,
-    User,
-    db,
 )
 from strr_api.responses import RegistrationSerializer
 from strr_api.services.events_service import EventsService
@@ -87,7 +85,7 @@ class RegistrationService:
             registration.documents = documents
 
         if registration_request.registrationType == RegistrationType.HOST.value:
-            registration.rental_property = cls.create_host_registration(registration_request)
+            registration.rental_property = cls._create_host_registration(registration_request)
         elif registration_request.registrationType == RegistrationType.PLATFORM.value:
             pass
 
@@ -95,7 +93,7 @@ class RegistrationService:
         return registration
 
     @classmethod
-    def create_host_registration(cls, registration_request) -> RentalProperty:
+    def _create_host_registration(cls, registration_request) -> RentalProperty:
         rental_property = RentalProperty(
             address=Address(
                 country=registration_request.unitAddress.country,
