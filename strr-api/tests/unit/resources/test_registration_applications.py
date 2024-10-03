@@ -238,7 +238,7 @@ def test_update_application_payment(session, client, jwt):
             assert HTTPStatus.OK == rv.status_code
             response_json = rv.json
             assert response_json.get("header").get("status") == Application.Status.PAID
-            assert response_json.get("header").get("hostStatus") == "Pending Review"
+            assert response_json.get("header").get("hostStatus") == "Pending Approval"
             assert response_json.get("header").get("examinerStatus") == "Paid"
 
 
@@ -282,7 +282,7 @@ def test_examiner_approve_application(session, client, jwt):
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        status_update_request = {"status": "FULL_REVIEW_APPROVED"}
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
@@ -291,7 +291,7 @@ def test_examiner_approve_application(session, client, jwt):
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
         assert response_json.get("header").get("hostStatus") == "Approved"
-        assert response_json.get("header").get("examinerStatus") == "Full Review Approval"
+        assert response_json.get("header").get("examinerStatus") == "Approved – Examined"
 
 
 def test_post_and_delete_registration_documents(session, client, jwt):

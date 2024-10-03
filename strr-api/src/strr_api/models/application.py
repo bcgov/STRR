@@ -197,12 +197,12 @@ class ApplicationSerializer:
     HOST_STATUSES = {
         Application.Status.DRAFT: "Draft",
         Application.Status.PAYMENT_DUE: "Payment Due",
-        Application.Status.PAID: "Pending Review",
+        Application.Status.PAID: "Pending Approval",
         Application.Status.AUTO_APPROVED: "Approved",
-        Application.Status.PROVISIONALLY_APPROVED: "Provisionally Approved",
+        Application.Status.PROVISIONALLY_APPROVED: "Approved",
         Application.Status.FULL_REVIEW_APPROVED: "Approved",
-        Application.Status.PROVISIONAL_REVIEW: "Provisionally Approved",
-        Application.Status.FULL_REVIEW: "Pending Review",
+        Application.Status.PROVISIONAL_REVIEW: "Approved – Provisional",
+        Application.Status.FULL_REVIEW: "Pending Approval",
         Application.Status.DECLINED: "Declined",
     }
 
@@ -210,11 +210,11 @@ class ApplicationSerializer:
         Application.Status.DRAFT: "Draft",
         Application.Status.PAYMENT_DUE: "Payment Due",
         Application.Status.PAID: "Paid",
-        Application.Status.AUTO_APPROVED: "Automatic Approval",
-        Application.Status.PROVISIONALLY_APPROVED: "Provisional Approval",
-        Application.Status.FULL_REVIEW_APPROVED: "Full Review Approval",
-        Application.Status.PROVISIONAL_REVIEW: "Provisional Review",
-        Application.Status.FULL_REVIEW: "Full Review",
+        Application.Status.AUTO_APPROVED: "Approved – Automatic",
+        Application.Status.PROVISIONALLY_APPROVED: "Approved – Provisional",
+        Application.Status.FULL_REVIEW_APPROVED: "Approved – Examined",
+        Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
+        Application.Status.FULL_REVIEW: "Full Examination",
         Application.Status.DECLINED: "Declined",
     }
 
