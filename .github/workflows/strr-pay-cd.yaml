@@ -1,0 +1,30 @@
+name: STRR PAY CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "queue_services/strr-pay/**"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deploy To"
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - sandbox
+          - prod
+
+jobs:
+  strr-pay-cd:
+    uses: bcgov/bcregistry-sre/.github/workflows/frontend-cd.yaml@main
+    with:
+      target: ${{ inputs.target }}
+      app_name: "strr-pay"
+      working_directory: "queue_services/strr-pay"
+    secrets:
+      WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
