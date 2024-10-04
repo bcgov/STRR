@@ -11,6 +11,39 @@
               data-test-id="create-application-title"
               class="mobile:pb-[20px]"
             />
+            <div class="flex flex-row items-center mb-6">
+              <InfoModal
+                :header="t('createAccount.modal.contactInfo.header')"
+                :open-button-label="t('createAccount.modal.contactInfo.openButtonLabel')"
+                :hide-contact-info="false"
+                class="mb-6"
+              >
+                <p class="mb-10">
+                  {{ t('createAccount.modal.contactInfo.contactUsFirstPart') }}
+                  <a :href="`${t('createAccount.modal.contactInfo.informationPageLink')}`">
+                    {{ t('createAccount.modal.contactInfo.informationPageLabel') }}
+                  </a>
+                  {{ t('createAccount.modal.contactInfo.contactUsSecondPart') }}
+                </p>
+              </InfoModal>
+              <div class="self-stretch w-px bg-gray-300 mx-4" />
+              <InfoModal
+                :header="t('createAccount.modal.bcrosFoippaNotice.header')"
+                :open-button-label="t('createAccount.modal.bcrosFoippaNotice.openButtonLabel')"
+                :open-button-icon="'i-mdi-info-circle-outline'"
+                :hide-contact-info="true"
+                class="mb-6"
+              >
+                <p class="mb-10">
+                  {{ $t('createAccount.modal.bcrosFoippaNotice.noticeTextFirstPart') }}
+                  <i>{{ $t('createAccount.modal.bcrosFoippaNotice.actName') }}</i>
+                  {{ $t('createAccount.modal.bcrosFoippaNotice.noticeTextSecondPart') }}
+                  <a :href="`mailto:${t('createAccount.modal.bcrosFoippaNotice.email')}`">
+                    {{ t('createAccount.modal.bcrosFoippaNotice.email') }}
+                  </a>.
+                </p>
+              </InfoModal>
+            </div>
             <BcrosStepper
               :key="headerUpdateKey"
               :active-step="activeStepIndex"
@@ -68,6 +101,7 @@
 <script setup lang="ts">
 import steps from '../page-data/create-account/steps'
 import { FormPageI } from '~/interfaces/form/form-page-i'
+import InfoModal from '~/components/common/InfoModal.vue'
 
 const hasSecondaryContact: Ref<boolean> = ref(false)
 const activeStepIndex: Ref<number> = ref(0)

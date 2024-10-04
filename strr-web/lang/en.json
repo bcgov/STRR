@@ -4,6 +4,9 @@
       "hostDashboard": "My STR Registry Dashboard",
       "examinerDashboard": "My CEU STR Registry Dashboard",
       "rentalRegistration": "Short-Term Rental Registration"
+    },
+    "baseModal": {
+      "closeButtonLabel": "Close" 
     }
   },
   "registryDashboard": {
@@ -36,6 +39,16 @@
       "pending": "APPLIED",
       "submitted": "SUBMITTED",
       "paid": "PAID"
+    },
+    "modal":{
+      "contactInfo": {
+        "header": "Need Help?",
+        "openButtonLabel": "Help with using this dashboard",
+        "contactUsFirstPart": "For information about the Short-Term Rental Registry, visit the short-term ",
+        "contactUsSecondPart": ". If you need help with registering your rental unit, using the My STR Registry Dashboard, or resolving a technical issue, you can also contact us directly.",
+        "informationPageLabel": "Information Page",
+        "informationPageLink": "https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry"
+      }
     }
   },
   "tos": {
@@ -164,7 +177,17 @@
     "view": "View",
     "download": "Download Certificate",
     "renewal": "Renewal",
-    "strrCertificate": "Short Term Rental Registry Certificate"
+    "strrCertificate": "Short Term Rental Registry Certificate",
+    "modal":{
+      "contactInfo": {
+        "header": "Need Help?",
+        "openButtonLabel": "Help with using this dashboard",
+        "contactUsFirstPart": "For information about the Short-Term Rental Registry, visit the short-term ",
+        "contactUsSecondPart": ". If you need help with registering your rental unit, using the My STR Registry Dashboard, or resolving a technical issue, you can also contact us directly.",
+        "informationPageLabel": "Information Page",
+        "informationPageLink": "https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry"
+      }
+    }
   },
   "feeWidget": {
     "summary": "Fee Summary",
@@ -180,6 +203,24 @@
       "property": "Property Details",
       "eligibility": "Principal Residence",
       "review": "Review and Confirm"
+    },
+    "modal":{
+      "bcrosFoippaNotice": {
+        "header": "Information Collection Notice",
+        "openButtonLabel": "Information collection notice",
+        "noticeTextFirstPart": "Any personal information required is collected to support the administration and enforcement of the ",
+        "noticeTextSecondPart": ", under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at",
+        "email": "strbranch{'@'}gov.bc.ca",
+        "actName": "Short-Term Rental Accommodations Act"
+      },
+      "contactInfo": {
+        "header": "Need Help?",
+        "openButtonLabel": "Help with registering a rental unit",
+        "contactUsFirstPart": "For information about the Short-Term Rental Registry, visit the short-term ",
+        "contactUsSecondPart": ". If you need help with registering your rental unit, using the My STR Registry Dashboard, or resolving a technical issue, you can also contact us directly.",
+        "informationPageLabel": "Information Page",
+        "informationPageLink": "https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry"
+      }
     },
     "applicationConfirm": {
       "submitted": "Application Submitted",
@@ -361,6 +402,11 @@
       "subTitle": "Select an account below or create a new one",
       "useAccountButton": "Use this account",
       "createAccountButton": "Create account"
+    },
+    "helpModal": {
+      "header": "Need Help?",
+      "openButtonLabel": "Help with setting up an account",
+      "contactUs": "If you need help with setting up your BC Registries and Online Services account, please contact us."
     }
   },
   "header": {
@@ -419,6 +465,20 @@
       "bcsc": "BC Services Card",
       "bceid": "BCeID",
       "idir": "IDIR"
+    }
+  },
+  "bcrosContactInfo": {
+    "tollFree": {
+      "label": "Canada and U.S. Toll Free:",
+      "value": "1-877-370-1033"
+    },
+    "local": {
+      "label": "Victoria Office:",
+      "value": "250-370-1033"
+    },
+    "email": {
+      "label": "Email:",
+      "value": "BCRegistries{'@'}gov.bc.ca" 
     }
   }
 }

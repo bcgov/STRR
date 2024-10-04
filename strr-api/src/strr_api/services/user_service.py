@@ -36,6 +36,7 @@
 """Manages user model interactions."""
 
 from strr_api.models import User
+from strr_api.utils.user_context import UserContext, user_context
 
 
 class UserService:
@@ -45,4 +46,48 @@ class UserService:
     def get_or_create_user_by_jwt(cls, token) -> User:
         """Get or create user matching the token"""
         user = User.get_or_create_user_by_jwt(token)
+        return user
+
+    @classmethod
+    @user_context
+    def is_strr_staff_or_system(cls, **kwargs) -> bool:
+        """Method to check whether the user has staff or system roles."""
+        usr_context: UserContext = kwargs["user_context"]
+        if usr_context.is_examiner() or usr_context.is_investigator() or usr_context.is_system():
+            return True
+        return False
+
+    @classmethod
+    @user_context
+    def is_examiner(cls, **kwargs) -> bool:
+        """Method to check whether the user has examiner role."""
+        usr_context: UserContext = kwargs["user_context"]
+        if usr_context.is_examiner():
+            return True
+        return False
+
+    @classmethod
+    @user_context
+    def is_investigator(cls, **kwargs) -> bool:
+        """Method to check whether the user has investigator role."""
+        usr_context: UserContext = kwargs["user_context"]
+        if usr_context.is_investigator():
+            return True
+        return False
+
+    @classmethod
+    @user_context
+    def is_system(cls, **kwargs) -> bool:
+        """Method to check whether the user has system role."""
+        usr_context: UserContext = kwargs["user_context"]
+        if usr_context.is_system():
+            return True
+        return False
+
+    @classmethod
+    @user_context
+    def get_or_create_user_in_context(cls, **kwargs) -> User:
+        """Get or create user in context"""
+        usr_context: UserContext = kwargs["user_context"]
+        user = UserService.get_or_create_user_by_jwt(usr_context.token_info)
         return user

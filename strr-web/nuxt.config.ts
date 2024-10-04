@@ -51,7 +51,8 @@ export default defineNuxtConfig({
     langDir: './lang',
     locales: [
       { code: 'en', file: 'en.json' }
-    ]
+    ],
+    strategy: 'no_prefix' // routes won't have a locale prefix __en
   },
   eslint: {
     /* module options */

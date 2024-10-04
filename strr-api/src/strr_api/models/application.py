@@ -35,7 +35,6 @@
 from __future__ import annotations
 
 import copy
-import datetime
 
 from nanoid import generate
 from sqlalchemy import func
@@ -50,6 +49,11 @@ from strr_api.models.dataclass import ApplicationSearch
 from .db import db
 
 
+def _generate_application_number() -> str:
+    """Generate an application number."""
+    return generate(alphabet="0123456789", size=14)
+
+
 class Application(BaseModel):
     """Stores the STRR Applications."""
 
@@ -57,12 +61,15 @@ class Application(BaseModel):
         """Enum of the application statuses."""
 
         DRAFT = auto()  # pylint: disable=invalid-name
-        SUBMITTED = auto()  # pylint: disable=invalid-name
+        PAYMENT_DUE = auto()  # pylint: disable=invalid-name
         PAID = auto()  # pylint: disable=invalid-name
-        APPROVED = auto()  # pylint: disable=invalid-name
+        AUTO_APPROVED = auto()  # pylint: disable=invalid-name
+        PROVISIONALLY_APPROVED = auto()  # pylint: disable=invalid-name
+        FULL_REVIEW_APPROVED = auto()  # pylint: disable=invalid-name
+        PROVISIONAL_REVIEW = auto()  # pylint: disable=invalid-name
         ADDITIONAL_INFO_REQUESTED = auto()  # pylint: disable=invalid-name
-        UNDER_REVIEW = auto()  # pylint: disable=invalid-name
-        REJECTED = auto()  # pylint: disable=invalid-name
+        FULL_REVIEW = auto()  # pylint: disable=invalid-name
+        DECLINED = auto()  # pylint: disable=invalid-name
         PROVISIONAL = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "application"
@@ -126,13 +133,14 @@ class Application(BaseModel):
         return cls.query.filter_by(invoice_id=invoice_id).one_or_none()
 
     @classmethod
-    def generate_unique_application_number(cls):
+    def generate_unique_application_number(cls):  # pylint: disable=inconsistent-return-statements
         """Generate a unique application number."""
-        date_part = datetime.date.today().strftime("%Y%m%d")
-        number_part = generate(alphabet="0123456789", size=5)
-        new_number = f"{date_part}-{number_part}"
-        if not cls.query.filter_by(application_number=new_number).first():
-            return new_number
+        max_attempts = 10
+        for _ in range(max_attempts):
+            new_number = _generate_application_number()
+            if not cls.query.filter_by(application_number=new_number).first():
+                return new_number
+        raise ValueError("Failed to generate a unique application number")
 
     @classmethod
     def find_by_application_number(cls, application_number: str) -> Application | None:
@@ -140,13 +148,18 @@ class Application(BaseModel):
         return cls.query.filter_by(application_number=application_number).one_or_none()
 
     @classmethod
-    def find_by_user_and_account(
-        cls, user_id: int, account_id: int, filter_criteria: ApplicationSearch, is_examiner: bool
+    def get_application_by_account(cls, account_id: int, application_id: int) -> Application | None:
+        """Return the application by application_id and account_id."""
+        return cls.query.filter_by(id=application_id, payment_account=account_id).one_or_none()
+
+    @classmethod
+    def find_by_account(
+        cls, account_id: int, filter_criteria: ApplicationSearch, is_examiner: bool
     ) -> Application | None:
-        """Return the application by user,account, filter criteria."""
+        """Return the application by account, filter criteria."""
         query = cls.query
         if not is_examiner:
-            query = query.filter_by(submitter_id=user_id).filter_by(payment_account=account_id)
+            query = query.filter_by(payment_account=account_id)
         if filter_criteria.status:
             query = query.filter_by(status=filter_criteria.status.upper())
         query = query.order_by(Application.id.desc())
@@ -164,7 +177,12 @@ class Application(BaseModel):
         """Returns the applications matching the search criteria."""
         query = cls.query
         if filter_criteria.search_text:
-            query = query.filter(Application.application_tsv.match(filter_criteria.search_text))
+            query = query.filter(
+                db.or_(
+                    Application.application_tsv.match(filter_criteria.search_text),
+                    Application.application_number.ilike(f"%{filter_criteria.search_text}%"),
+                )
+            )
         if filter_criteria.status:
             query = query.filter_by(status=filter_criteria.status.upper())
         query = query.order_by(Application.id.desc())
@@ -174,6 +192,30 @@ class Application(BaseModel):
 
 class ApplicationSerializer:
     """Serializer for application. Can convert to dict, string from application model."""
+
+    HOST_STATUSES = {
+        Application.Status.DRAFT: "Draft",
+        Application.Status.PAYMENT_DUE: "Payment Due",
+        Application.Status.PAID: "Pending Approval",
+        Application.Status.AUTO_APPROVED: "Approved",
+        Application.Status.PROVISIONALLY_APPROVED: "Approved",
+        Application.Status.FULL_REVIEW_APPROVED: "Approved",
+        Application.Status.PROVISIONAL_REVIEW: "Approved – Provisional",
+        Application.Status.FULL_REVIEW: "Pending Approval",
+        Application.Status.DECLINED: "Declined",
+    }
+
+    EXAMINER_STATUSES = {
+        Application.Status.DRAFT: "Draft",
+        Application.Status.PAYMENT_DUE: "Payment Due",
+        Application.Status.PAID: "Paid",
+        Application.Status.AUTO_APPROVED: "Approved – Automatic",
+        Application.Status.PROVISIONALLY_APPROVED: "Approved – Provisional",
+        Application.Status.FULL_REVIEW_APPROVED: "Approved – Examined",
+        Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
+        Application.Status.FULL_REVIEW: "Full Examination",
+        Application.Status.DECLINED: "Declined",
+    }
 
     @staticmethod
     def to_str(application: Application):
@@ -193,6 +235,10 @@ class ApplicationSerializer:
         application_dict["header"]["paymentStatus"] = application.payment_status_code
         application_dict["header"]["paymentAccount"] = application.payment_account
         application_dict["header"]["status"] = application.status
+        application_dict["header"]["hostStatus"] = ApplicationSerializer.HOST_STATUSES.get(application.status, "")
+        application_dict["header"]["examinerStatus"] = ApplicationSerializer.EXAMINER_STATUSES.get(
+            application.status, ""
+        )
         application_dict["header"]["applicationDateTime"] = application.application_date.isoformat()
         application_dict["header"]["decisionDate"] = (
             application.decision_date.isoformat() if application.decision_date else None

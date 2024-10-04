@@ -95,8 +95,12 @@ class UserContext:  # pylint: disable=too-many-instance-attributes
         return self._login_source == LoginSource.BCEID.value
 
     def is_examiner(self) -> bool:
-        """Return True if the user is staff user."""
-        return Role.STAFF.value in self._roles if self._roles else False
+        """Return True if the user is staff user with strr_examiner role."""
+        return Role.STRR_EXAMINER.value in self._roles if self._roles else False
+
+    def is_investigator(self) -> bool:
+        """Return True if the user is staff user with strr_investigator role."""
+        return Role.STRR_INVESTIGATOR.value in self._roles if self._roles else False
 
     @property
     def name(self) -> str:

@@ -42,7 +42,6 @@ from tests.unit.utils.mocks import mock_json_file
 MOCK_LTSA_RESPONSE = mock_json_file("ltsa_title_order")
 
 
-@pytest.mark.skip(reason="Skipping until auto approval is rewritten")
 def test_build_ltsa_response():
     """Assure the lat and log are extracted as expected."""
 

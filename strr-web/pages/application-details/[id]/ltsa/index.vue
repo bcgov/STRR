@@ -3,7 +3,6 @@
     <div>
       <BcrosBanner
         hide-buttons
-        :application-id="applicationId"
       >
         <div class="flex flex-col m:justify-between">
           <BcrosTypographyH1

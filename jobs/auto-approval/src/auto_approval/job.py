@@ -73,7 +73,7 @@ def process_applications(app, applications):
         )
         if (
             application_status
-            and application_status == Application.Status.APPROVED
+            and application_status == Application.Status.AUTO_APPROVED
             and registration_id
         ):
             url = (
@@ -105,4 +105,4 @@ def run():
             applications = get_submitted_applications(app)
             process_applications(app, applications)
     except Exception as err:
-        app.logger.error(f"Unexpected error:", err)
+        app.logger.error(f"Unexpected error: {str(err)}")

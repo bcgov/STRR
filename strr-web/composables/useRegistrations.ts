@@ -45,8 +45,8 @@ export const useRegistrations = () => {
     axiosInstance.post(`${apiURL}/registrations/${id}/approve`)
       .then(() => window.location.reload())
 
-  const issueRegistration = (id: string): Promise<any> =>
-    axiosInstance.post(`${apiURL}/registrations/${id}/issue`)
+  const issueCertificate = (id: string): Promise<any> =>
+    axiosInstance.post(`${apiURL}/registrations/${id}/certificate`)
       .then(() => window.location.reload())
 
   const denyRegistration = (id: string): Promise<any> =>
@@ -119,7 +119,7 @@ export const useRegistrations = () => {
     getDocument,
     denyRegistration,
     approveRegistration,
-    issueRegistration,
+    issueCertificate,
     getCountsByStatus,
     createSbcRegistration,
     getRegistrations,

@@ -27,9 +27,9 @@ export const useBreadcrumb = () => {
     setRegistrationNumber(application?.header.registrationNumber)
   }
 
-  // Remove '-id' suffix and language codes (e.g., '___en') from route names to match RouteNamesE enum values
+  // Remove '-id' suffix from route names to match RouteNamesE enum values
   const cleanupRoute = (routeName: string) => {
-    return routeName?.replace(/(-id|___\w{2}$)/g, '') as RouteNamesE
+    return routeName?.replace(/(-id)/g, '') as RouteNamesE
   }
 
   /**

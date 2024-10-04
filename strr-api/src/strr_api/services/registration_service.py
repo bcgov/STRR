@@ -38,27 +38,24 @@ import random
 from datetime import datetime, timezone
 
 from flask import render_template
-from sqlalchemy import func
 from weasyprint import HTML
 
 from strr_api import requests
-from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus
+from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, RegistrationType
 from strr_api.models import (
     Address,
     Certificate,
     Contact,
     Document,
-    Eligibility,
     Events,
-    PropertyManager,
+    PropertyContact,
+    PropertyListing,
     Registration,
-    RentalPlatform,
     RentalProperty,
-    User,
-    db,
 )
+from strr_api.responses import RegistrationSerializer
 from strr_api.services.events_service import EventsService
-from strr_api.utils.user_context import UserContext, user_context
+from strr_api.services.user_service import UserService
 
 
 class RegistrationService:
@@ -67,7 +64,60 @@ class RegistrationService:
     @classmethod
     def create_registration(cls, user_id, sbc_account_id, registration_request: requests.Registration):
         """Creates registration from an application."""
-        primary_contact = Contact(
+        start_date = datetime.utcnow()
+        registration_number = RegistrationService._get_registration_number()
+
+        registration = Registration(
+            user_id=user_id,
+            sbc_account_id=sbc_account_id,
+            status=RegistrationStatus.ACTIVE,
+            registration_number=registration_number,
+            start_date=start_date,
+            expiry_date=start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
+            registration_type=registration_request.registrationType,
+        )
+
+        documents = []
+        for doc in registration_request.documents:
+            document = Document(file_name=doc.fileName, file_type=doc.fileType, path=doc.fileKey)
+            documents.append(document)
+        if documents:
+            registration.documents = documents
+
+        if registration_request.registrationType == RegistrationType.HOST.value:
+            registration.rental_property = cls._create_host_registration(registration_request)
+        elif registration_request.registrationType == RegistrationType.PLATFORM.value:
+            pass
+
+        registration.save()
+        return registration
+
+    @classmethod
+    def _create_host_registration(cls, registration_request) -> RentalProperty:
+        rental_property = RentalProperty(
+            address=Address(
+                country=registration_request.unitAddress.country,
+                street_address=registration_request.unitAddress.address,
+                street_address_additional=registration_request.unitAddress.addressLineTwo,
+                city=registration_request.unitAddress.city,
+                province=registration_request.unitAddress.province,
+                postal_code=registration_request.unitAddress.postalCode,
+            ),
+            nickname=registration_request.unitAddress.nickname,
+            parcel_identifier=registration_request.unitDetails.parcelIdentifier,
+            local_business_licence=registration_request.unitDetails.businessLicense,
+            property_type=registration_request.unitDetails.propertyType,
+            ownership_type=registration_request.unitDetails.ownershipType,
+            is_principal_residence=registration_request.principalResidence.isPrincipalResidence,
+            rental_act_accepted=registration_request.principalResidence.agreedToRentalAct,
+            pr_exempt_reason=registration_request.principalResidence.nonPrincipalOption,
+            service_provider=registration_request.principalResidence.specifiedServiceProvider,
+            property_listings=[PropertyListing(url=listing.url) for listing in registration_request.listingDetails],
+        )
+
+        primary_property_contact = PropertyContact()
+        primary_property_contact.is_primary = True
+        primary_property_contact.contact = Contact(
             firstname=registration_request.primaryContact.name.firstName,
             lastname=registration_request.primaryContact.name.lastName,
             middlename=registration_request.primaryContact.name.middleName,
@@ -88,13 +138,11 @@ class RegistrationService:
                 postal_code=registration_request.primaryContact.mailingAddress.postalCode,
             ),
         )
-        db.session.add(primary_contact)
-        db.session.flush()
-        db.session.refresh(primary_contact)
-
-        secondary_contact = None
+        rental_property.contacts.append(primary_property_contact)
         if registration_request.secondaryContact:
-            secondary_contact = Contact(
+            secondary_property_contact = PropertyContact()
+            secondary_property_contact.is_primary = False
+            secondary_property_contact.contact = Contact(
                 firstname=registration_request.secondaryContact.name.firstName,
                 lastname=registration_request.secondaryContact.name.lastName,
                 middlename=registration_request.secondaryContact.name.middleName,
@@ -115,127 +163,44 @@ class RegistrationService:
                     postal_code=registration_request.primaryContact.mailingAddress.postalCode,
                 ),
             )
-            db.session.add(secondary_contact)
-            db.session.flush()
-            db.session.refresh(secondary_contact)
+            rental_property.contacts.append(secondary_property_contact)
 
-        property_manager = PropertyManager(primary_contact_id=primary_contact.id)
-
-        if secondary_contact:
-            property_manager.secondary_contact_id = secondary_contact.id
-
-        db.session.add(property_manager)
-        db.session.flush()
-        db.session.refresh(property_manager)
-
-        eligibility = Eligibility(
-            is_principal_residence=registration_request.principalResidence.isPrincipalResidence,
-            agreed_to_rental_act=registration_request.principalResidence.agreedToRentalAct,
-            non_principal_option=registration_request.principalResidence.nonPrincipalOption,
-            specified_service_provider=registration_request.principalResidence.specifiedServiceProvider,
-            agreed_to_submit=registration_request.principalResidence.agreedToSubmit,
-        )
-
-        documents = []
-        for doc in registration_request.documents:
-            document = Document(file_name=doc.fileName, file_type=doc.fileType, path=doc.fileKey)
-            documents.append(document)
-        if documents:
-            eligibility.documents = documents
-
-        start_date = datetime.utcnow()
-        registration_number = RegistrationService._get_registration_number()
-        registration = Registration(
-            user_id=user_id,
-            sbc_account_id=sbc_account_id,
-            status=RegistrationStatus.ACTIVE,
-            registration_number=registration_number,
-            start_date=start_date,
-            expiry_date=start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
-            rental_property=RentalProperty(
-                property_manager_id=property_manager.id,
-                address=Address(
-                    country=registration_request.unitAddress.country,
-                    street_address=registration_request.unitAddress.address,
-                    street_address_additional=registration_request.unitAddress.addressLineTwo,
-                    city=registration_request.unitAddress.city,
-                    province=registration_request.unitAddress.province,
-                    postal_code=registration_request.unitAddress.postalCode,
-                ),
-                nickname=registration_request.unitAddress.nickname,
-                parcel_identifier=registration_request.unitDetails.parcelIdentifier,
-                local_business_licence=registration_request.unitDetails.businessLicense,
-                property_type=registration_request.unitDetails.propertyType,
-                ownership_type=registration_request.unitDetails.ownershipType,
-                rental_platforms=[RentalPlatform(url=listing.url) for listing in registration_request.listingDetails],
-            ),
-            eligibility=eligibility,
-        )
-        registration.save()
-        return registration
+        return rental_property
 
     @classmethod
     def list_registrations(
         cls,
-        jwt_oidc_token_info,
         account_id: int = None,
-        search: str = None,
-        filter_by_status: RegistrationStatus = None,
-        sort_by: RegistrationSortBy = RegistrationSortBy.ID,
+        status: str = None,
+        sort_by: str = RegistrationSortBy.ID,
         sort_desc: bool = False,
-        offset: int = 0,
-        limit: int = 100,
+        offset: int = 1,
+        limit: int = 50,
     ):
-        """List all registrations for current user."""
-        user = User.get_or_create_user_by_jwt(jwt_oidc_token_info)
-        if not user:
-            return [], 0
-        query = (
-            Registration.query.join(RentalProperty, Registration.rental_property_id == RentalProperty.id)
-            .join(Address, RentalProperty.address_id == Address.id)
-            .join(PropertyManager, RentalProperty.property_manager_id == PropertyManager.id)
-            .join(Contact, PropertyManager.primary_contact_id == Contact.id)
-        )
+        """List registrations for current user in a paginated manner."""
+        UserService.get_or_create_user_in_context()
+        query = Registration.query
 
-        certificates_subquery = db.session.query(
-            Certificate,
-            func.row_number()
-            .over(partition_by=Certificate.registration_id, order_by=Certificate.issued_date.desc())
-            .label("rank"),
-        ).subquery()
+        if not UserService.is_strr_staff_or_system():
+            query = query.filter(Registration.sbc_account_id == account_id)
+        if status:
+            query = query.filter(Registration.status == status.upper())
 
-        query = query.join(
-            certificates_subquery,
-            (Registration.id == certificates_subquery.c.registration_id) & (certificates_subquery.c.rank == 1),
-            isouter=True,
-        )
+        sort_column_meta = {RegistrationSortBy.ID: Registration.id, RegistrationSortBy.STATUS: Registration.status}
+        sort_column = sort_column_meta[sort_by.upper()] if sort_by else sort_column_meta[RegistrationSortBy.ID]
+        query = query.order_by(sort_column.desc() if sort_desc else sort_column.asc())
+        paginated_result = query.paginate(per_page=limit, page=offset)
 
-        if search and len(search) >= 3:
-            query = query.filter(
-                func.concat(Contact.firstname, " ", Contact.lastname).ilike(f"%{search}%")
-                | Address.city.ilike(f"%{search}%")
-                | Address.street_address.ilike(f"%{search}%")
-                | Address.postal_code.ilike(f"%{search}%")
-            )
+        search_results = []
+        for registration in paginated_result.items:
+            search_results.append(RegistrationService.serialize(registration))
 
-        if not user.is_examiner():
-            query = query.filter(Registration.user_id == user.id)
-            if account_id:
-                query = query.filter(Registration.sbc_account_id == account_id)
-        if filter_by_status is not None:
-            query = query.filter(Registration.status == filter_by_status)
-
-        count = query.count()
-        sort_column = {
-            RegistrationSortBy.ID: Registration.id,
-            RegistrationSortBy.LOCATION: Address.city,
-            RegistrationSortBy.ADDRESS: Address.street_address,
-            RegistrationSortBy.NAME: func.concat(Contact.firstname, " ", Contact.lastname),
-            RegistrationSortBy.STATUS: Registration.status,
-            RegistrationSortBy.SUBMISSION_DATE: Registration.submission_date,
+        return {
+            "page": offset,
+            "limit": limit,
+            "registrations": search_results,
+            "total": paginated_result.total,
         }
-        query = query.order_by(sort_column[sort_by].desc() if sort_desc else sort_column[sort_by].asc())
-        return query.offset(offset).limit(limit).all(), count
 
     @classmethod
     def _get_registration_number(cls):
@@ -247,34 +212,22 @@ class RegistrationService:
                 return registration_number
 
     @classmethod
-    def get_registration_counts_by_status(cls):
-        """Return all registration counts by status type."""
-
-        query = Registration.query.with_entities(
-            Registration.status.label("status"),
-            func.count().label("count"),
-        ).group_by(Registration.status)
-
-        return query.all()
-
-    @classmethod
-    def get_registration(cls, jwt_oidc_token_info, registration_id):
+    def get_registration(cls, account_id, registration_id):
         """Get registration by id for current user. Examiners are exempted from user_id check."""
-        user = User.get_or_create_user_by_jwt(jwt_oidc_token_info)
+        UserService.get_or_create_user_in_context()
         query = Registration.query.filter_by(id=registration_id)
-        if not user.is_examiner() and not user.is_system():
-            query = query.filter_by(user_id=user.id)
+        if not UserService.is_strr_staff_or_system():
+            query = query.filter_by(sbc_account_id=account_id)
         return query.one_or_none()
 
     @classmethod
-    @user_context
-    def generate_registration_certificate(cls, registration: Registration, **kwargs):
+    def generate_registration_certificate(cls, registration: Registration):
         """Generate registration PDF certificate."""
-        usr_context: UserContext = kwargs["user_context"]
-        user = None
-        if usr_context and usr_context.token_info != {}:
-            user = User.get_or_create_user_by_jwt(usr_context.token_info)
+        user = UserService.get_or_create_user_in_context()
         issued_date = datetime.now(timezone.utc)
+        primary_property_contact = list(filter(lambda x: x.is_primary is True, registration.rental_property.contacts))[
+            0
+        ]
         data = {
             "registration_number": f"{registration.registration_number}",
             "creation_date": f'{registration.start_date.strftime("%B %d, %Y")}',
@@ -282,8 +235,8 @@ class RegistrationService:
             "issued_date": f'{issued_date.strftime("%B %d, %Y")}',
             "rental_address": registration.rental_property.address.to_oneline_address(),
             "rental_type": registration.rental_property.property_type.value,
-            "registrant": registration.rental_property.property_manager.primary_contact.full_name(),
-            "host": registration.rental_property.property_manager.primary_contact.full_name(),
+            "registrant": primary_property_contact.contact.full_name(),
+            "host": primary_property_contact.contact.full_name(),
         }
         rendered_template = render_template("certificate.html", **data)
         pdf_binary = HTML(string=rendered_template).render().write_pdf()
@@ -301,6 +254,7 @@ class RegistrationService:
             event_type=Events.EventType.REGISTRATION,
             event_name=Events.EventName.CERTIFICATE_ISSUED,
             registration_id=registration.id,
+            visible_to_applicant=True,
         )
         return certificate
 
@@ -309,3 +263,8 @@ class RegistrationService:
         """Get latest PDF certificate for a given registration."""
         query = Certificate.query.filter(Certificate.registration_id == registration.id)
         return query.order_by(Certificate.issued_date.desc()).limit(1).one_or_none()
+
+    @classmethod
+    def serialize(cls, registration: Registration) -> dict:
+        """Returns registration JSON."""
+        return RegistrationSerializer.serialize(registration=registration)

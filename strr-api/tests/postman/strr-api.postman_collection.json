@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "08729482-7f4d-446b-9dd2-4d2f57880016",
+		"_postman_id": "b0818c03-b1d3-4756-bfa0-f832a5bb6806",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -50,7 +50,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"registration\": {\n        \"primaryContact\": {\n            \"name\": {\n                \"firstName\": \"BCREGTEST HARRIETT\",\n                \"lastName\": \"FORTY\"\n            },\n            \"dateOfBirth\": \"1990-05-06\",\n            \"details\": {\n                \"preferredName\": \"contact A\",\n                \"phoneNumber\": \"(555) 555-5555\",\n                \"extension\": \"123\",\n                \"faxNumber\": \"1234\",\n                \"emailAddress\": \"bcg@gov.bc.ca\"\n            },\n            \"mailingAddress\": {\n                \"address\": \"9874 Hidden Valley Dr NW\",\n                \"addressLineTwo\": \"\",\n                \"city\": \"Calgary\",\n                \"postalCode\": \"T3A 5K5\",\n                \"province\": \"AB\",\n                \"country\": \"CA\"\n            },\n            \"socialInsuranceNumber\": \"123 456 789\",\n            \"businessNumber\": \"456\"\n        },\n        \"secondaryContact\": {\n            \"name\": {\n                \"firstName\": \"mickey\",\n                \"lastName\": \"mouse\"\n            },\n            \"dateOfBirth\": \"1991-03-05\",\n            \"details\": {\n                \"preferredName\": \"mikey\",\n                \"phoneNumber\": \"5567869456\",\n                \"extension\": \"\",\n                \"faxNumber\": \"\",\n                \"emailAddress\": \"test@email.com\"\n            },\n            \"mailingAddress\": {\n                \"address\": \"9874 Hidden Valley Dr NW\",\n                \"city\": \"Calgary\",\n                \"postalCode\": \"T3A 5K5\",\n                \"province\": \"AB\",\n                \"country\": \"CA\"\n            },\n            \"socialInsuranceNumber\": \"345 678 789\",\n            \"businessNumber\": \"3456\"\n        },\n        \"unitAddress\": {\n            \"address\": \"12166 GREENWELL ST MAPLE RIDGE\",\n            \"city\": \"MAPLE RIDGE\",\n            \"postalCode\": \"V2X 7N1\",\n            \"province\": \"BC\",\n            \"country\": \"CA\",\n            \"nickname\": \"RU1\"\n        },\n        \"unitDetails\": {\n            \"parcelIdentifier\": \"018-850-570\",\n            \"propertyType\": \"PRIMARY\",\n            \"ownershipType\": \"OWN\",\n            \"businessLicense\": \"7777777\"\n        },\n        \"principalResidence\": {\n            \"isPrincipalResidence\": true,\n            \"agreedToRentalAct\": true,\n            \"agreedToSubmit\": true\n        },\n        \"listingDetails\": [\n            {\n                \"url\": \"http://abc.com\"\n            }\n        ],\n        \"documents\": [\n            {\n                \"fileKey\": \"809bf24f-a2b9-4740-af84-8297bc346f1d\",\n                \"fileName\": \"Test_test\",\n                \"fileType\": \"application/octet-stream\"\n            }\n        ]\n    }\n}",
+							"raw": "{\n    \"registration\": {\n        \"registrationType\": \"HOST\",\n        \"primaryContact\": {\n            \"name\": {\n                \"firstName\": \"BCREGTEST HARRIETT\",\n                \"lastName\": \"FORTY\"\n            },\n            \"dateOfBirth\": \"1990-05-06\",\n            \"details\": {\n                \"preferredName\": \"contact A\",\n                \"phoneNumber\": \"(555) 555-5555\",\n                \"extension\": \"123\",\n                \"faxNumber\": \"1234\",\n                \"emailAddress\": \"bcg@gov.bc.ca\"\n            },\n            \"mailingAddress\": {\n                \"address\": \"9874 Hidden Valley Dr NW\",\n                \"addressLineTwo\": \"\",\n                \"city\": \"Calgary\",\n                \"postalCode\": \"T3A 5K5\",\n                \"province\": \"AB\",\n                \"country\": \"CA\"\n            },\n            \"socialInsuranceNumber\": \"123 456 789\",\n            \"businessNumber\": \"456\"\n        },\n        \"secondaryContact\": {\n            \"name\": {\n                \"firstName\": \"mickey\",\n                \"lastName\": \"mouse\"\n            },\n            \"dateOfBirth\": \"1991-03-05\",\n            \"details\": {\n                \"preferredName\": \"mikey\",\n                \"phoneNumber\": \"5567869456\",\n                \"extension\": \"\",\n                \"faxNumber\": \"\",\n                \"emailAddress\": \"test@email.com\"\n            },\n            \"mailingAddress\": {\n                \"address\": \"9874 Hidden Valley Dr NW\",\n                \"city\": \"Calgary\",\n                \"postalCode\": \"T3A 5K5\",\n                \"province\": \"AB\",\n                \"country\": \"CA\"\n            },\n            \"socialInsuranceNumber\": \"345 678 789\",\n            \"businessNumber\": \"3456\"\n        },\n        \"unitAddress\": {\n            \"address\": \"12166 GREENWELL ST MAPLE RIDGE\",\n            \"city\": \"MAPLE RIDGE\",\n            \"postalCode\": \"V2X 7N1\",\n            \"province\": \"BC\",\n            \"country\": \"CA\",\n            \"nickname\": \"RU1\"\n        },\n        \"unitDetails\": {\n            \"parcelIdentifier\": \"018-850-570\",\n            \"propertyType\": \"PRIMARY\",\n            \"ownershipType\": \"OWN\",\n            \"businessLicense\": \"7777777\"\n        },\n        \"principalResidence\": {\n            \"isPrincipalResidence\": true,\n            \"agreedToRentalAct\": true,\n            \"agreedToSubmit\": true\n        },\n        \"listingDetails\": [\n            {\n                \"url\": \"http://abc.com\"\n            }\n        ],\n        \"documents\": [\n            {\n                \"fileKey\": \"809bf24f-a2b9-4740-af84-8297bc346f1d\",\n                \"fileName\": \"Test_test\",\n                \"fileType\": \"application/octet-stream\"\n            }\n        ]\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -399,7 +399,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\"status\": \"REJECTED\"}",
+							"raw": "{\"status\": \"DECLINED\"}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -437,7 +437,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\"status\": \"APPROVED\"}",
+							"raw": "{\"status\": \"FULL_REVIEW_APPROVED\"}",
 							"options": {
 								"raw": {
 									"language": "json"

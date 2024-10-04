@@ -1,10 +1,24 @@
 <template>
-  <div data-test-id="account-select-page">
+  <div data-test-id="application-status-page">
     <BcrosTypographyH1
       :text="tRegistrationStatus('title')"
-      data-test-id="accountPageTitle"
+      data-test-id="account-page-title"
       class="pb-[32px] mobile:pb-[24px]"
     />
+    <InfoModal
+      :header="tRegistrationStatus('modal.contactInfo.header')"
+      :open-button-label="tRegistrationStatus('modal.contactInfo.openButtonLabel')"
+      :hide-contact-info="false"
+      class="mb-6"
+    >
+      <p class="mb-10">
+        {{ tRegistrationStatus('modal.contactInfo.contactUsFirstPart') }}
+        <a :href="`${tRegistrationStatus('modal.contactInfo.informationPageLink')}`">
+          {{ tRegistrationStatus('modal.contactInfo.informationPageLabel') }}
+        </a>
+        {{ tRegistrationStatus('modal.contactInfo.contactUsSecondPart') }}
+      </p>
+    </InfoModal>
     <div>
       <div class="flex flex-row justify-between">
         <BcrosTypographyH2
@@ -79,6 +93,7 @@
 
 <script setup lang="ts">
 import { ApplicationI } from '~/interfaces/application-i'
+import InfoModal from '~/components/common/InfoModal.vue'
 
 definePageMeta({
   layout: 'wide-no-space'

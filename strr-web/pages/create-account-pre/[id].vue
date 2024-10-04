@@ -6,7 +6,7 @@
           <div class="mobile:px-[8px]">
             <BcrosTypographyH1
               :text="t('createAccount.title')"
-              data-test-id="accountPageTitle"
+              data-test-id="account-page-title"
               class="mobile:pb-[20px]"
             />
             <BcrosStepper

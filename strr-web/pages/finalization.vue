@@ -9,6 +9,16 @@
       <p class="mb-[20px] mobile:px-[8px]">
         {{ tFinalization('subtitle') }}
       </p>
+      <InfoModal
+        :header="t('account.helpModal.header')"
+        :open-button-label="t('account.helpModal.openButtonLabel')"
+        :hide-contact-info="false"
+        class="mb-6"
+      >
+        <p class="mb-10">
+          {{ t('account.helpModal.contactUs') }}
+        </p>
+      </InfoModal>
       <div class="desktop:mb-[132px] mobile:mb-[40px] pb-[32px] bg-white rounded-[4px] padding-[40px]">
         <div class="bg-bcGovColor-gray2 rounded-t-[4px]">
           <p class="px-[40px] mobile:px-[8px] py-[15px] font-bold">
@@ -102,6 +112,7 @@
 
 <script setup lang="ts">
 import { SbcCreationResponseE } from '~/enums/sbc-creation-response-e'
+import InfoModal from '~/components/common/InfoModal.vue'
 
 const { t } = useTranslation()
 const tFinalization = (translationKey: string) => t(`finalization.${translationKey}`)
