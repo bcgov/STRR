@@ -21,9 +21,10 @@ gunicorn = "^21.2.0"
 flask-cors = "^4.0.0"
 pg8000 = "^1.31.2"
 protobuf = "3.19.5"
-gcp-queue = { git = "https://github.com/thorwolpert/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
-structured-logging = { git = "https://github.com/thorwolpert/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
-strr-api = {git = "https://github.com/kris-daxiom/STRR.git", rev = "main", subdirectory = "strr-api"}
+gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue"}
+structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging"}
+strr-api = {git = "https://github.com/bcgov/STRR.git", subdirectory = "strr-api"}
+nanoid = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"

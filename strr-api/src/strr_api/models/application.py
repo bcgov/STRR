@@ -81,7 +81,7 @@ class Application(BaseModel):
         "application_date", db.DateTime(timezone=True), server_default=func.now()  # pylint:disable=not-callable
     )  # pylint:disable=not-callable
     type = db.Column("type", db.String(50), nullable=False, index=True)
-    status = db.Column("status", db.String(20), default=Status.DRAFT, index=True)
+    status = db.Column("status", db.String(50), default=Status.DRAFT, index=True)
     decision_date = db.Column("decision_date", db.DateTime(timezone=True))
 
     # maps to invoice id created by the pay-api (used for getting receipt)
