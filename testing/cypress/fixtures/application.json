@@ -1,35 +1,67 @@
 [
   {
-    "contact": {
-      "BirthDay": "01",
-      "BirthMonth": "January",
-      "BirthYear": "1980",
-      "SocialInsuranceNumber": "111 111 111",
-      "BusinessNumber": "711 111 111",
-      "PreferredName": "e2e Owner",
-      "PhoneNumber": "604-111-2222",
-      "Extension": "111",
-      "FaxNumber": "604-222-1111",
-      "EmailAddress": "e2e@email.com",
-      "Country": "CA",
-      "Address": "111 Hugh St",
-      "City": "Port Moody",
-      "Province": "BC",
-      "PostalCode": "V3H 0H9"
-    },
+    "test_id": "00000",
+    "id": "",
+    "contact": [
+      {
+        "birthday": "01",
+        "birthmonth": "January",
+        "birthyear": "1980",
+        "socialinsurancenumber": "111111111",
+        "businessnumber": "711111111",
+        "preferredname": "e2e Owner",
+        "phonenumber": "6041112222",
+        "extension": "111",
+        "faxnumber": "6042221111",
+        "emailaddress": "e2e@email.com",
+        "country": "CA",
+        "address": "111 Hugh St",
+        "addresslinetwo": "Apt 111",
+        "city": "Port Moody",
+        "province": "BC",
+        "postalcode": "V3H 0H9"
+      },
+      {
+        "birthday": "01",
+        "birthmonth": "January",
+        "birthyear": "1980",
+        "socialinsurancenumber": "111 111 111",
+        "businessnumber": "711 111 111",
+        "preferredname": "e2e Owner",
+        "phonenumber": "604-111-2222",
+        "extension": "111",
+        "faxnumber": "604-222-1111",
+        "emailaddress": "e2e@email.com",
+        "country": "CA",
+        "address": "111 Hugh St",
+        "addresslinetwo": "Apt 111",
+        "city": "Port Moody",
+        "province": "BC",
+        "postalcode": "V3H 0H9"
+      }
+    ],
     "unit": {
-      "Nickname": "e2e pad",
-      "Country": "CA",
-      "Address": "111 Hugh St",
-      "City": "Port Moody",
-      "Province": "BC",
-      "PostalCode": "V3H 0H9",
-      "ParcelIdentifier": "111-111-111",
-      "PropertyType": "Secondary suite",
-      "OwnershipType": "Own",
-      "Url": "https://www.airbnb.ca",
-      "isPrincipalResidence": true,
-      "agreedToRentalAct": true
-    }
+      "nickname": "e2e pad",
+      "usemailingaddress": false,
+      "country": "CA",
+      "address": "111 Hugh St",
+      "addresslinetwo": "Apt 111",
+      "city": "Port Moody",
+      "province": "BC",
+      "postalcode": "V3H 0H9",
+      "parcelidentifier": "111-111-111",
+      "businesslicence": "111111111",
+      "propertytype": "Secondary suite",
+      "ownershiptype": "Own",
+      "platforms": [
+        { "url": "https://www.airbnb.ca" },
+        { "url": "https://www.booking.com" }
+      ],
+      "principalresidencerequired": true,
+      "agreedtorentalact": true
+    },
+    "smoketest": false,
+    "localtest": false,
+    "delete": true
   }
 ]
