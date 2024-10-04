@@ -158,7 +158,7 @@ class ApprovalService:
                         postal_code=registration.unitAddress.postalCode,
                         country=registration.unitAddress.country,
                     )
-                    if not compare_addresses(rental_address, bcsc_address):
+                    if not bcsc_address or not compare_addresses(rental_address, bcsc_address):
                         auto_approval.addressMatch = False
                         application.status = Application.Status.FULL_REVIEW
                         application.save()
