@@ -4,8 +4,6 @@ from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
-from flask import g
-
 from strr_api.enums.enum import PaymentStatus
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events
@@ -177,6 +175,11 @@ def test_issue_certificate_examiner(session, client, jwt):
         registration_id = response_json.get("header").get("registrationId")
         rv = client.post(f"/registrations/{registration_id}/certificate", headers=staff_headers)
         assert rv.status_code == HTTPStatus.CREATED
+        rv = client.get(f"/applications/{application_id}", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("examinerActions") == []
+        assert response_json.get("header").get("hostActions") == []
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

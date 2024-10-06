@@ -205,6 +205,8 @@ class ApplicationSerializer:
         Application.Status.DECLINED: "Declined",
     }
 
+    HOST_ACTIONS = {Application.Status.PAYMENT_DUE: ["SUBMIT_PAYMENT"]}
+
     EXAMINER_STATUSES = {
         Application.Status.DRAFT: "Draft",
         Application.Status.PAYMENT_DUE: "Payment Due",
@@ -215,6 +217,11 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
         Application.Status.FULL_REVIEW: "Full Examination",
         Application.Status.DECLINED: "Declined",
+    }
+
+    EXAMINER_ACTIONS = {
+        Application.Status.FULL_REVIEW_APPROVED: ["ISSUE_CERTIFICATE"],
+        Application.Status.FULL_REVIEW: ["APPROVE", "REJECT"],
     }
 
     @staticmethod
@@ -239,6 +246,14 @@ class ApplicationSerializer:
         application_dict["header"]["examinerStatus"] = ApplicationSerializer.EXAMINER_STATUSES.get(
             application.status, ""
         )
+        application_dict["header"]["hostActions"] = ApplicationSerializer.HOST_ACTIONS.get(application.status, [])
+        application_dict["header"]["examinerActions"] = ApplicationSerializer.EXAMINER_ACTIONS.get(
+            application.status, []
+        )
+        if application.status == Application.Status.FULL_REVIEW_APPROVED:
+            certificates = application.registration.certificates
+            if certificates:
+                application_dict["header"]["examinerActions"] = []
         application_dict["header"]["applicationDateTime"] = application.application_date.isoformat()
         application_dict["header"]["decisionDate"] = (
             application.decision_date.isoformat() if application.decision_date else None
