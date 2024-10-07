@@ -58,6 +58,7 @@ class RentalProperty(BaseModel):
     nickname = db.Column(db.String, nullable=True)
     parcel_identifier = db.Column(db.String, nullable=True)
     local_business_licence = db.Column(db.String, nullable=True)
+    local_business_licence_expiry_date = db.Column(db.Date, nullable=True)
     # Enum: All or part of primary dwelling; Secondary suite; Accessory dwelling unit; Float home; Other
     property_type = db.Column(Enum(PropertyType), nullable=False)
     ownership_type = db.Column(Enum(OwnershipType), nullable=False)  # Enum: own, rent, co-own

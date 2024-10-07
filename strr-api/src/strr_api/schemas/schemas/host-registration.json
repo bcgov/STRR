@@ -98,6 +98,10 @@
         "businessLicense": {
           "type": "string"
         },
+        "businessLicenseExpiryDate": {
+          "type": "string",
+          "format": "date"
+        },
         "propertyType": {
           "type": "string",
           "enum": [
