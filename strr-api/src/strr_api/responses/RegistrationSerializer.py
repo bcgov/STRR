@@ -112,7 +112,11 @@ class RegistrationSerializer:
         registration_data["unitDetails"] = {
             "parcelIdentifier": registration.rental_property.parcel_identifier,
             "businessLicense": registration.rental_property.local_business_licence,
-            "businessLicenseExpiryDate": registration.rental_property.local_business_licence_expiry_date,
+            "businessLicenseExpiryDate": registration.rental_property.local_business_licence_expiry_date.strftime(
+                "%Y-%m-%d"
+            )
+            if registration.rental_property.local_business_licence_expiry_date
+            else None,
             "propertyType": registration.rental_property.property_type.name,
             "ownershipType": registration.rental_property.ownership_type.name,
         }
