@@ -59,6 +59,25 @@ profile = "google"
 line_length = 100
 known_first_party = ["strr_pay"]
 
+[tool.flake8]
+max-line-length = 100
+extend-ignore = [
+    "E203",
+    "W503",
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    ".eggs",
+    "*.egg",
+    ".pytest_cache",
+]
+import-order-style = "google"
+application-import-names = ["strr_pay"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
