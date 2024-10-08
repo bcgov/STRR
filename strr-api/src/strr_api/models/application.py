@@ -35,7 +35,6 @@
 from __future__ import annotations
 
 import copy
-import datetime
 
 from nanoid import generate
 from sqlalchemy import func
@@ -62,12 +61,15 @@ class Application(BaseModel):
         """Enum of the application statuses."""
 
         DRAFT = auto()  # pylint: disable=invalid-name
-        SUBMITTED = auto()  # pylint: disable=invalid-name
+        PAYMENT_DUE = auto()  # pylint: disable=invalid-name
         PAID = auto()  # pylint: disable=invalid-name
-        APPROVED = auto()  # pylint: disable=invalid-name
+        AUTO_APPROVED = auto()  # pylint: disable=invalid-name
+        PROVISIONALLY_APPROVED = auto()  # pylint: disable=invalid-name
+        FULL_REVIEW_APPROVED = auto()  # pylint: disable=invalid-name
+        PROVISIONAL_REVIEW = auto()  # pylint: disable=invalid-name
         ADDITIONAL_INFO_REQUESTED = auto()  # pylint: disable=invalid-name
-        UNDER_REVIEW = auto()  # pylint: disable=invalid-name
-        REJECTED = auto()  # pylint: disable=invalid-name
+        FULL_REVIEW = auto()  # pylint: disable=invalid-name
+        DECLINED = auto()  # pylint: disable=invalid-name
         PROVISIONAL = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "application"
@@ -79,7 +81,7 @@ class Application(BaseModel):
         "application_date", db.DateTime(timezone=True), server_default=func.now()  # pylint:disable=not-callable
     )  # pylint:disable=not-callable
     type = db.Column("type", db.String(50), nullable=False, index=True)
-    status = db.Column("status", db.String(20), default=Status.DRAFT, index=True)
+    status = db.Column("status", db.String(50), default=Status.DRAFT, index=True)
     decision_date = db.Column("decision_date", db.DateTime(timezone=True))
 
     # maps to invoice id created by the pay-api (used for getting receipt)
@@ -191,6 +193,37 @@ class Application(BaseModel):
 class ApplicationSerializer:
     """Serializer for application. Can convert to dict, string from application model."""
 
+    HOST_STATUSES = {
+        Application.Status.DRAFT: "Draft",
+        Application.Status.PAYMENT_DUE: "Payment Due",
+        Application.Status.PAID: "Pending Approval",
+        Application.Status.AUTO_APPROVED: "Approved",
+        Application.Status.PROVISIONALLY_APPROVED: "Approved",
+        Application.Status.FULL_REVIEW_APPROVED: "Approved",
+        Application.Status.PROVISIONAL_REVIEW: "Approved – Provisional",
+        Application.Status.FULL_REVIEW: "Pending Approval",
+        Application.Status.DECLINED: "Declined",
+    }
+
+    HOST_ACTIONS = {Application.Status.PAYMENT_DUE: ["SUBMIT_PAYMENT"]}
+
+    EXAMINER_STATUSES = {
+        Application.Status.DRAFT: "Draft",
+        Application.Status.PAYMENT_DUE: "Payment Due",
+        Application.Status.PAID: "Paid",
+        Application.Status.AUTO_APPROVED: "Approved – Automatic",
+        Application.Status.PROVISIONALLY_APPROVED: "Approved – Provisional",
+        Application.Status.FULL_REVIEW_APPROVED: "Approved – Examined",
+        Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
+        Application.Status.FULL_REVIEW: "Full Examination",
+        Application.Status.DECLINED: "Declined",
+    }
+
+    EXAMINER_ACTIONS = {
+        Application.Status.FULL_REVIEW_APPROVED: ["ISSUE_CERTIFICATE"],
+        Application.Status.FULL_REVIEW: ["APPROVE", "REJECT"],
+    }
+
     @staticmethod
     def to_str(application: Application):
         """Return string representation of application model."""
@@ -209,6 +242,18 @@ class ApplicationSerializer:
         application_dict["header"]["paymentStatus"] = application.payment_status_code
         application_dict["header"]["paymentAccount"] = application.payment_account
         application_dict["header"]["status"] = application.status
+        application_dict["header"]["hostStatus"] = ApplicationSerializer.HOST_STATUSES.get(application.status, "")
+        application_dict["header"]["examinerStatus"] = ApplicationSerializer.EXAMINER_STATUSES.get(
+            application.status, ""
+        )
+        application_dict["header"]["hostActions"] = ApplicationSerializer.HOST_ACTIONS.get(application.status, [])
+        application_dict["header"]["examinerActions"] = ApplicationSerializer.EXAMINER_ACTIONS.get(
+            application.status, []
+        )
+        if application.status == Application.Status.FULL_REVIEW_APPROVED:
+            certificates = application.registration.certificates
+            if certificates:
+                application_dict["header"]["examinerActions"] = []
         application_dict["header"]["applicationDateTime"] = application.application_date.isoformat()
         application_dict["header"]["decisionDate"] = (
             application.decision_date.isoformat() if application.decision_date else None

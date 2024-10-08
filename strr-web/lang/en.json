@@ -6,7 +6,7 @@
       "rentalRegistration": "Short-Term Rental Registration"
     },
     "baseModal": {
-      "closeButtonLabel": "Close" 
+      "closeButtonLabel": "Close"
     }
   },
   "registryDashboard": {
@@ -40,7 +40,7 @@
       "submitted": "SUBMITTED",
       "paid": "PAID"
     },
-    "modal":{
+    "modal": {
       "contactInfo": {
         "header": "Need Help?",
         "openButtonLabel": "Help with using this dashboard",
@@ -108,7 +108,9 @@
     "unitInfo": "Rental Unit Information",
     "nickname": "Nickname",
     "businessLicense": "Business License",
-    "platformUrl": "Platform URL",
+    "listingLink": "Listing Link",
+    "listingLinkOptional": "Listing Link (Optional)",
+    "listingLinkHelp": "e.g., https://www.airbnb.ca/your_listing123",
     "ownership": "Ownership Type",
     "address": "Address",
     "propertyType": "Type of Property",
@@ -122,7 +124,7 @@
     "principalResidenceReason": "Reason",
     "principalResidenceServiceProvider": "Service Provider",
     "principalResidenceNotApplies": "Principal residence does not apply or my property is exempt",
-    "principalResidenceApplies": "Pincipal residence does apply",
+    "principalResidenceApplies": "Principal residence does apply",
     "proof": "Proof of Principal Residence",
     "ltsaInfo": "LTSA Information",
     "ltsaDetails": "View LTSA Details",
@@ -178,7 +180,7 @@
     "download": "Download Certificate",
     "renewal": "Renewal",
     "strrCertificate": "Short Term Rental Registry Certificate",
-    "modal":{
+    "modal": {
       "contactInfo": {
         "header": "Need Help?",
         "openButtonLabel": "Help with using this dashboard",
@@ -204,7 +206,7 @@
       "eligibility": "Principal Residence",
       "review": "Review and Confirm"
     },
-    "modal":{
+    "modal": {
       "bcrosFoippaNotice": {
         "header": "Information Collection Notice",
         "openButtonLabel": "Information collection notice",
@@ -279,12 +281,17 @@
     "propertyForm": {
       "subtitle": "Rental Unit Information",
       "nickname": "Nickname (Optional)",
+      "nicknameHelp": "This is only to help you identify your rental unit, especially if you manage multiple properties (e.g., My Guest Suite)",
       "parcelIdentifier": "Parcel Identifier (Optional)",
-      "businessLicense": "Local Government Business License (Optional)",
+      "parcelIdentifierHelp": "This is a nine-digit number that identifies the parcel in the land title of your property.",
+      "parcelIdentifierTooltip": "You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under 'Legal Description and Parcel ID'.",
+      "businessLicense": "Local Government Business Licence (Optional)",
+      "businessLicenseHelp": "This is the business licence to operate a short-term rental as provided by your local government.",
       "propertyType": "Type of Property",
       "ownershipType": "Ownership Type",
       "rentalUnitDetails": "Rental Unit Details",
-      "internetListingDetails": "Internet Listing Details",
+      "onlineListingDetails": "Online Listing Details",
+      "webLinkInfo": "Add the web link for your listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).",
       "rentalUnitAddress": "Rental Unit Address",
       "primaryDwelling": "All or part of primary dwelling",
       "secondarySuite": "Secondary suite",
@@ -358,7 +365,7 @@
       "declarationPartTwo": "I understand that if the property host does not comply with the requirement to provide the short-term rental accommodation services in the principal residence, I may be subject to enforcement action under Part 4 of the Act, including being ordered to pay an administrative penalty.",
       "declaration": "Declaration",
       "proof": "Proof of Principal Residence",
-      "listing": "Internet Listings",
+      "listing": "Online Listing Details",
       "confirm": "I confirm that the information contained in the application for registration is accurate and true. I understand that, if I have provided inaccurate or false information, I may be the subject of enforcement action under Part 4 of the Short-Term Rental Accommodations Act. Enforcement action may include being ordered to pay an administrative penalty.",
       "coOwner": "Co-own",
       "owner": "Own",
@@ -478,7 +485,7 @@
     },
     "email": {
       "label": "Email:",
-      "value": "BCRegistries{'@'}gov.bc.ca" 
+      "value": "BCRegistries{'@'}gov.bc.ca"
     }
   }
 }

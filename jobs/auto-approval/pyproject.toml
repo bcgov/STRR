@@ -19,6 +19,7 @@ flask-babel = "^4.0.0"
 gunicorn = "^21.2.0"
 pg8000 = "^1.31.2"
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
+nanoid = "^2.0.0"
 
 [tool.poetry.group.test.dependencies]
 freezegun = "^1.4.0"

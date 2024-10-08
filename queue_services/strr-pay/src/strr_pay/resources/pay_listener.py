@@ -97,7 +97,7 @@ def worker():
         # The payment token might not be there yet, put back on Q
         return {}, HTTPStatus.NOT_FOUND
 
-    if application.status != Application.Status.SUBMITTED.value:
+    if application.status != Application.Status.PAYMENT_DUE.value:
         # Already processed, so don't do anything but remove from Q
         logger.debug(f"Application not in submitted state: {str(ce)}")
         return {}, HTTPStatus.OK

@@ -81,7 +81,7 @@
             <div class="flex-1 max-w-[33.33%]">
               <template v-if="applicationDetails?.listingDetails && applicationDetails.listingDetails.length > 0">
                 <BcrosFormSectionReviewItem
-                  :title="tApplicationDetails('platformUrl')"
+                  :title="tApplicationDetails('listingLink')"
                 >
                   <a
                     :href="applicationDetails?.listingDetails[0].url"
@@ -107,7 +107,7 @@
                     :class="{ 'desktop:mt-6 mobile:mt-2': index > 1 }"
                   >
                     <BcrosFormSectionReviewItem
-                      :title="tApplicationDetails('platformUrl') + (` ${index + 2}`)"
+                      :title="tApplicationDetails('listingLink') + (` ${index + 2}`)"
                     >
                       <a
                         :href="listingDetail.url"
