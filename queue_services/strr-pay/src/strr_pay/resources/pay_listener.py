@@ -34,13 +34,15 @@
 #
 """This Module processes simple cloud event messages for possible strr application payments.
 """
-import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone
 from http import HTTPStatus
+import re
 from typing import Optional
 
-from flask import Blueprint, request
+from flask import Blueprint
+from flask import request
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.models import Application
 from structured_logging import StructuredLogging
