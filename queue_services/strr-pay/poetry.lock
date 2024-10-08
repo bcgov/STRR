@@ -610,6 +610,22 @@ files = [
 tests = ["coverage", "coveralls", "dill", "mock", "nose"]
 
 [[package]]
+name = "flake8"
+version = "7.1.1"
+description = "the modular source code checker: pep8 pyflakes and co"
+optional = false
+python-versions = ">=3.8.1"
+files = [
+    {file = "flake8-7.1.1-py2.py3-none-any.whl", hash = "sha256:597477df7860daa5aa0fdd84bf5208a043ab96b8e96ab708770ae0364dd03213"},
+    {file = "flake8-7.1.1.tar.gz", hash = "sha256:049d058491e228e03e67b390f311bbf88fce2dbaa8fa673e7aea87b7198b8d38"},
+]
+
+[package.dependencies]
+mccabe = ">=0.7.0,<0.8.0"
+pycodestyle = ">=2.12.0,<2.13.0"
+pyflakes = ">=3.2.0,<3.3.0"
+
+[[package]]
 name = "flake8-import-order"
 version = "0.18.2"
 description = "Flake8 and pylama plugin that checks the ordering of import statements."
@@ -623,6 +639,22 @@ files = [
 [package.dependencies]
 pycodestyle = "*"
 setuptools = "*"
+
+[[package]]
+name = "flake8-pyproject"
+version = "1.2.3"
+description = "Flake8 plug-in loading the configuration from pyproject.toml"
+optional = false
+python-versions = ">= 3.6"
+files = [
+    {file = "flake8_pyproject-1.2.3-py3-none-any.whl", hash = "sha256:6249fe53545205af5e76837644dc80b4c10037e73a0e5db87ff562d75fb5bd4a"},
+]
+
+[package.dependencies]
+Flake8 = ">=5"
+
+[package.extras]
+dev = ["pyTest", "pyTest-cov"]
 
 [[package]]
 name = "flasgger"
@@ -3181,4 +3213,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12.2"
-content-hash = "87cbce9a24947669b372dde705fbf0465e3a265f83e273eba1cdb5853627386e"
+content-hash = "9af1eff601e97a6a4070c7332512da6db8eb82b85aee1f2f457cd5a01c08c354"

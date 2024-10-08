@@ -85,10 +85,7 @@ def worker():
     logger.info(f"received ce: {str(ce)}")
 
     # 2. Get payment information
-    if (
-        not (payment_token := get_payment_token(ce))
-        or payment_token.status_code != "COMPLETED"
-    ):
+    if not (payment_token := get_payment_token(ce)) or payment_token.status_code != "COMPLETED":
         # no payment info, or not a payment COMPLETED token, take off Q
         return {}, HTTPStatus.OK
 
@@ -129,11 +126,7 @@ def get_payment_token(ce: SimpleCloudEvent):
     """Return a PaymentToken if enclosed in the cloud event."""
     # pylint: disable=fixme
     # TODO move to common enums for ce.type = bc.registry.payment
-    if (
-        (ce.type == "bc.registry.payment")
-        and (data := ce.data)
-        and isinstance(data, dict)
-    ):
+    if (ce.type == "bc.registry.payment") and (data := ce.data) and isinstance(data, dict):
         converted = dict_keys_to_snake_case(data)
         pt = PaymentToken(**converted)
         return pt
