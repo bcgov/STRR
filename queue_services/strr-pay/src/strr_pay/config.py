@@ -106,10 +106,8 @@ class Config:  # pylint: disable=too-few-public-methods
         SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{
             DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
     else:
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{
+        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{
                 DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        )
 
 
 class DevConfig(Config):  # pylint: disable=too-few-public-methods
