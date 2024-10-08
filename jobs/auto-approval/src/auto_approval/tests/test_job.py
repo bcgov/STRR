@@ -67,8 +67,7 @@ class TestAutoApprovalJob(unittest.TestCase):
     @patch("auto_approval.job.Flask")
     @patch("auto_approval.job.CONFIGURATION")
     @patch("auto_approval.job.db")
-    @patch("auto_approval.job.sentry_sdk")
-    def test_create_app(self, mock_sentry_sdk, mock_db, mock_configuration, mock_flask):
+    def test_create_app(self, mock_db, mock_configuration, mock_flask):
         mock_app = MagicMock()
         mock_flask.return_value = mock_app
         mock_configuration.__getitem__.return_value = MagicMock()
@@ -80,7 +79,6 @@ class TestAutoApprovalJob(unittest.TestCase):
         mock_flask.assert_called_once_with("auto_approval.job")
         mock_app.config.from_object.assert_called_once()
         mock_db.init_app.assert_called_once_with(mock_app)
-        mock_sentry_sdk.init.assert_called_once()
 
     @patch("auto_approval.job.Application")
     @patch("auto_approval.job.datetime")

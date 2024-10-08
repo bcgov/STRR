@@ -2,7 +2,11 @@
   <div data-test-id="form-section-address">
     <BcrosFormSection :title="t('createAccount.propertyForm.rentalUnitAddress')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="nickname" class="d:pr-[16px] flex-grow">
+        <UFormGroup
+          name="nickname"
+          class="d:pr-[16px] flex-grow"
+          :help="t('createAccount.propertyForm.nicknameHelp')"
+        >
           <UInput v-model="nickname" aria-label="nickname" :placeholder="t('createAccount.propertyForm.nickname')" />
         </UFormGroup>
       </div>

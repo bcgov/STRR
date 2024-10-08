@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
+from strr_api.models.application import ApplicationSerializer
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
@@ -39,6 +40,13 @@ def test_create_host_registration_application(session, client, jwt):
         rv = client.post("/applications", json=json_data, headers=headers)
 
     assert HTTPStatus.CREATED == rv.status_code
+    response_json = rv.json
+    assert response_json.get("header").get("hostStatus") == "Payment Due"
+    assert response_json.get("header").get("examinerStatus") == "Payment Due"
+    assert response_json.get("header").get("examinerActions") == []
+    assert response_json.get("header").get("hostActions") == ApplicationSerializer.HOST_ACTIONS.get(
+        Application.Status.PAYMENT_DUE
+    )
 
 
 def test_get_applications(session, client, jwt):
@@ -235,6 +243,10 @@ def test_update_application_payment(session, client, jwt):
             assert HTTPStatus.OK == rv.status_code
             response_json = rv.json
             assert response_json.get("header").get("status") == Application.Status.PAID
+            assert response_json.get("header").get("hostStatus") == "Pending Approval"
+            assert response_json.get("header").get("examinerStatus") == "Paid"
+            assert response_json.get("header").get("examinerActions") == []
+            assert response_json.get("header").get("hostActions") == []
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -252,12 +264,16 @@ def test_examiner_reject_application(session, client, jwt):
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        status_update_request = {"status": "rejected"}
+        status_update_request = {"status": "DECLINED"}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert response_json.get("header").get("status") == Application.Status.REJECTED
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("hostStatus") == "Declined"
+        assert response_json.get("header").get("examinerStatus") == "Declined"
         assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("examinerActions") == []
+        assert response_json.get("header").get("hostActions") == []
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -275,14 +291,20 @@ def test_examiner_approve_application(session, client, jwt):
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        status_update_request = {"status": "approved"}
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
         rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert response_json.get("header").get("status") == Application.Status.APPROVED
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("reviewer").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
+        assert response_json.get("header").get("hostStatus") == "Approved"
+        assert response_json.get("header").get("examinerStatus") == "Approved – Examined"
+        assert response_json.get("header").get("examinerActions") == ApplicationSerializer.EXAMINER_ACTIONS.get(
+            Application.Status.FULL_REVIEW_APPROVED
+        )
+        assert response_json.get("header").get("hostActions") == []
 
 
 def test_post_and_delete_registration_documents(session, client, jwt):
@@ -349,3 +371,29 @@ def test_create_platform_registration_application(session, client, jwt):
         rv = client.post("/applications", json=json_data, headers=headers)
 
     assert HTTPStatus.CREATED == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_actions_for_application_in_full_review(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_id = response_json.get("header").get("id")
+
+        application = Application.find_by_id(application_id=application_id)
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        rv = client.get(f"/applications/{application_id}", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW
+        assert response_json.get("header").get("hostStatus") == "Pending Approval"
+        assert response_json.get("header").get("examinerStatus") == "Full Examination"
+        assert response_json.get("header").get("examinerActions") == ApplicationSerializer.EXAMINER_ACTIONS.get(
+            Application.Status.FULL_REVIEW
+        )
+        assert response_json.get("header").get("hostActions") == []

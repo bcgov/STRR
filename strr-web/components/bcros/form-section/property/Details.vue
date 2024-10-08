@@ -2,12 +2,30 @@
   <div data-test-id="property-details">
     <BcrosFormSection :title="t('createAccount.propertyForm.rentalUnitDetails')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="parcelIdentifier" class="d:pr-[16px] flex-grow">
+        <UFormGroup
+          name="parcelIdentifier"
+          class="d:pr-[16px] flex-grow"
+        >
           <UInput
             v-model="parcelIdentifier"
             aria-label="parcel identifier"
             :placeholder="t('createAccount.propertyForm.parcelIdentifier')"
           />
+          <template #help>
+            <div class="flex">
+              {{ t('createAccount.propertyForm.parcelIdentifierHelp') }}
+              <BcrosTooltip
+                class="ml-1"
+                :text="t('createAccount.propertyForm.parcelIdentifierTooltip')"
+                :popper="{
+                  placement: 'right',
+                  arrow: true
+                }"
+              >
+                <UIcon class="text-xl bg-bcGovColor-activeBlue" name="i-mdi-information-outline" />
+              </BcrosTooltip>
+            </div>
+          </template>
         </UFormGroup>
       </div>
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
@@ -17,6 +35,9 @@
             aria-label="business license"
             :placeholder="t('createAccount.propertyForm.businessLicense')"
           />
+          <template #help>
+            {{ t('createAccount.propertyForm.businessLicenseHelp') }}
+          </template>
         </UFormGroup>
       </div>
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">

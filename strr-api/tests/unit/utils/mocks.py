@@ -3,17 +3,7 @@ import os
 
 from strr_api.enums.enum import OwnershipType, PaymentStatus, PropertyType, RegistrationStatus
 from strr_api.exceptions import ExternalServiceException
-from strr_api.models import (
-    Address,
-    Application,
-    Contact,
-    Document,
-    Eligibility,
-    PropertyManager,
-    Registration,
-    RentalProperty,
-    User,
-)
+from strr_api.models import Address, Application, Contact, Document, PropertyContact, Registration, RentalProperty, User
 
 CREATE_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
@@ -67,19 +57,14 @@ def fake_registration_pending(*args, **kwargs):
         user_id=1,
         sbc_account_id=1000,
         status=RegistrationStatus.PENDING,
-        submission_date="2021-01-01T00:00:00Z",
         updated_date="2021-01-01T00:00:00Z",
-        eligibility=Eligibility(
-            id=1,
-            registration_id=1,
-            is_principal_residence=True,
-            agreed_to_rental_act=True,
-            agreed_to_submit=True,
-        ),
         rental_property=RentalProperty(
             id=1,
             property_type=PropertyType.PRIMARY,
             ownership_type=OwnershipType.OWN,
+            registration_id=1,
+            is_principal_residence=True,
+            rental_act_accepted=True,
             address=Address(
                 id=1,
                 street_address="123 Fake St",
@@ -88,25 +73,29 @@ def fake_registration_pending(*args, **kwargs):
                 province="BC",
                 postal_code="V8V 8V8",
             ),
-            property_manager=PropertyManager(
-                id=1,
-                primary_contact=Contact(
+            contacts=[
+                PropertyContact(
                     id=1,
-                    firstname="First",
-                    lastname="Last",
-                    email="first.last@bc.gov.ca",
-                    phone_number="123-456-7890",
-                    date_of_birth="1970-01-01",
-                    address=Address(
+                    is_primary=True,
+                    property_id=1,
+                    contact=Contact(
                         id=1,
-                        street_address="123 Fake St",
-                        country="CA",
-                        city="Victoria",
-                        province="BC",
-                        postal_code="V8V 8V8",
+                        firstname="First",
+                        lastname="Last",
+                        email="first.last@bc.gov.ca",
+                        phone_number="123-456-7890",
+                        date_of_birth="1970-01-01",
+                        address=Address(
+                            id=1,
+                            street_address="123 Fake St",
+                            country="CA",
+                            city="Victoria",
+                            province="BC",
+                            postal_code="V8V 8V8",
+                        ),
                     ),
-                ),
-            ),
+                )
+            ],
         ),
     )
 
@@ -187,21 +176,16 @@ def fake_registration(*args, **kwargs):
         user_id=1,
         sbc_account_id=1000,
         status=RegistrationStatus.ACTIVE,
-        submission_date="2021-01-01T00:00:00Z",
         updated_date="2021-01-01T00:00:00Z",
         start_date="2024-07-29T00:00:00Z",
         expiry_date="2025-07-29T00:00:00Z",
-        eligibility=Eligibility(
-            id=1,
-            registration_id=1,
-            is_principal_residence=True,
-            agreed_to_rental_act=True,
-            agreed_to_submit=True,
-        ),
         rental_property=RentalProperty(
             id=1,
             property_type=PropertyType.PRIMARY,
             ownership_type=OwnershipType.OWN,
+            registration_id=1,
+            is_principal_residence=True,
+            rental_act_accepted=True,
             address=Address(
                 id=1,
                 street_address="123 Fake St",
@@ -210,25 +194,29 @@ def fake_registration(*args, **kwargs):
                 province="BC",
                 postal_code="V8V 8V8",
             ),
-            property_manager=PropertyManager(
-                id=1,
-                primary_contact=Contact(
+            contacts=[
+                PropertyContact(
                     id=1,
-                    firstname="First",
-                    lastname="Last",
-                    email="first.last@bc.gov.ca",
-                    phone_number="123-456-7890",
-                    date_of_birth="1970-01-01",
-                    address=Address(
+                    is_primary=True,
+                    property_id=1,
+                    contact=Contact(
                         id=1,
-                        street_address="123 Fake St",
-                        country="CA",
-                        city="Victoria",
-                        province="BC",
-                        postal_code="V8V 8V8",
+                        firstname="First",
+                        lastname="Last",
+                        email="first.last@bc.gov.ca",
+                        phone_number="123-456-7890",
+                        date_of_birth="1970-01-01",
+                        address=Address(
+                            id=1,
+                            street_address="123 Fake St",
+                            country="CA",
+                            city="Victoria",
+                            province="BC",
+                            postal_code="V8V 8V8",
+                        ),
                     ),
-                ),
-            ),
+                )
+            ],
         ),
     )
 
@@ -240,11 +228,10 @@ def fake_invoice_details(*args, **kwargs):
 def fake_document(*args, **kwargs):
     return Document(
         id=1,
-        eligibility_id=1,
         file_name="file_name",
         file_type="file_type",
         path="path",
-        eligibility=Eligibility(id=1, registration_id=1),
+        registration_id=1,
     )
 
 

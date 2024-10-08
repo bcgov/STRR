@@ -66,11 +66,14 @@ class ListingDetails:
 class UnitDetails:
     """UnitDetails payload object."""
 
-    def __init__(self, propertyType, ownershipType, parcelIdentifier=None, businessLicense=None):
+    def __init__(
+        self, propertyType, ownershipType, parcelIdentifier=None, businessLicense=None, businessLicenseExpiryDate=None
+    ):
         self.propertyType = propertyType
         self.ownershipType = ownershipType
         self.parcelIdentifier = parcelIdentifier
         self.businessLicense = businessLicense
+        self.businessLicenseExpiryDate = businessLicenseExpiryDate
 
 
 class MailingAddress:
