@@ -49,7 +49,7 @@ load_dotenv(find_dotenv())
 
 CONFIGURATION = {
     "development": "strr_pay.config.DevConfig",
-    "testing": "strr_pay.config.TestConfig",
+    "test": "strr_pay.config.TestConfig",
     "production": "strr_pay.config.ProdConfig",
     "default": "strr_pay.config.ProdConfig",
 }

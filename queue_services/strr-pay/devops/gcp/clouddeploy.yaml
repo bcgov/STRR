@@ -26,7 +26,7 @@ serialPipeline:
       verify: false
    deployParameters:
    - values:
-      deploy-env: "testing"
+      deploy-env: "test"
       deploy-project-id: "bcrbk9-test"
       service-name: "strr-pay-test"
       container-name: "strr-pay-test"
