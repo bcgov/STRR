@@ -127,6 +127,7 @@ class PaymentToken:
 
 def get_payment_token(ce: SimpleCloudEvent):
     """Return a PaymentToken if enclosed in the cloud event."""
+    # pylint: disable=fixme
     # TODO move to common enums for ce.type = bc.registry.payment
     if (
         (ce.type == "bc.registry.payment")

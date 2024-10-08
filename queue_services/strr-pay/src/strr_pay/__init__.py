@@ -47,7 +47,7 @@ from .resources import register_endpoints
 from .services import gcp_queue
 
 
-def create_app(environment: Config = ProdConfig, **kwargs) -> Flask:
+def create_app(environment: Config = ProdConfig, **_kwargs) -> Flask:
     """Return a configured Flask App using the Factory method."""
     app = Flask(__name__)
     app.config.from_object(environment)
