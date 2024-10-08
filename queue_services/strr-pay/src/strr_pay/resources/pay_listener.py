@@ -43,8 +43,9 @@ from typing import Optional
 from flask import Blueprint, request
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.models import Application
-from strr_pay.services import gcp_queue
 from structured_logging import StructuredLogging
+
+from strr_pay.services import gcp_queue
 
 bp = Blueprint("worker", __name__)
 

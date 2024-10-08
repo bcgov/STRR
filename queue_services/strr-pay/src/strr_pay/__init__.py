@@ -38,9 +38,9 @@ This module applied payments against applications and updates the application st
 from __future__ import annotations
 
 import sentry_sdk
-from strr_api import db
 from flask import Flask
 from sentry_sdk.integrations.flask import FlaskIntegration
+from strr_api import db
 
 from .config import Config, ProdConfig
 from .resources import register_endpoints
