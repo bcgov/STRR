@@ -20,7 +20,7 @@ serialPipeline:
       service-account: "sa-api@bcrbk9-dev.iam.gserviceaccount.com"
 
  - targetId: bcrbk9-test
-   profiles: [testing]
+   profiles: [test]
    strategy:
     standard:
       verify: false
@@ -34,8 +34,7 @@ serialPipeline:
       service-account: "sa-api@bcrbk9-test.iam.gserviceaccount.com"
 
  - targetId: bcrbk9-sandbox
-   profiles: [staging]
-   strategy:
+   profiles: [sandbox]
     standard:
       verify: false
    deployParameters:
