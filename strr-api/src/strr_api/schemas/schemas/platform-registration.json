@@ -79,7 +79,9 @@
       "required": [
         "legalName",
         "homeJurisdiction",
-        "mailingAddress"
+        "mailingAddress",
+        "noticeOfNonComplianceEmail",
+        "takeDownRequestEmail"
       ]
     },
     "brand": {
