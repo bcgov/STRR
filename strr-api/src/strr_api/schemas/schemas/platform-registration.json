@@ -45,6 +45,25 @@
         "businessNumber": {
           "type": "string"
         },
+        "consumerProtectionBCLicenceNumber": {
+          "type": "string"
+        },
+        "noticeOfNonComplianceEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "noticeOfNonComplianceOptionalEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "takeDownRequestEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "takeDownRequestOptionalEmail": {
+          "type": "string",
+          "format": "email"
+        },
         "mailingAddress": {
           "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
         },

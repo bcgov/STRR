@@ -33,6 +33,11 @@
             "legalName": "Test Business",
             "homeJurisdiction": "Vancouver",
             "businessNumber": "BN12345",
+            "consumerProtectionBCLicenceNumber": "1234",
+            "noticeOfNonComplianceEmail": "test@test.test",
+            "noticeOfNonComplianceOptionalEmail": "test@test.test",
+            "takeDownRequestEmail": "test@test.test",
+            "takeDownRequestOptionalEmail": "test@test.test",
             "mailingAddress": {
                 "country": "CA",
                 "address": "12766 227st",
