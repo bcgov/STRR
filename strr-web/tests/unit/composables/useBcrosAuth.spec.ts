@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { flushPromises } from '@vue/test-utils'
 import { testParsedToken, mockUserSettings } from '~/tests/mocks/mockData'
 import { mockAxiosDefault } from '~/tests/mocks/mockAxios'
 import { useBcrosAuth } from '@/composables/useBcrosAuth'
@@ -49,6 +50,7 @@ describe('useBcrosAuth Tests', () => {
     const { setupAuth } = useBcrosAuth()
     // execute setupAuth
     await setupAuth({ url: 'kcurl', realm: 'realm', clientId: 'id' })
+    await flushPromises()
     // verify things are setup
     expect(keycloak.kc.tokenParsed).toEqual(testParsedToken)
     expect(keycloak.kcUser).not.toEqual({})

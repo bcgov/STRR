@@ -13,10 +13,13 @@
     >
       <p class="mb-10">
         {{ tRegistrationStatus('modal.contactInfo.contactUsFirstPart') }}
-        <a :href="`${tRegistrationStatus('modal.contactInfo.informationPageLink')}`">
+        <a
+          :href="`${tRegistrationStatus('modal.contactInfo.informationPageLink')}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {{ tRegistrationStatus('modal.contactInfo.informationPageLabel') }}
-        </a>
-        {{ tRegistrationStatus('modal.contactInfo.contactUsSecondPart') }}
+        </a>{{ tRegistrationStatus('modal.contactInfo.contactUsSecondPart') }}
       </p>
     </InfoModal>
     <div>

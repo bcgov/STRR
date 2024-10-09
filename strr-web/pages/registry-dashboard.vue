@@ -10,10 +10,13 @@
     >
       <p class="mb-10">
         {{ tRegistryDashboard('modal.contactInfo.contactUsFirstPart') }}
-        <a :href="`${tRegistryDashboard('modal.contactInfo.informationPageLink')}`">
+        <a
+          :href="`${tRegistryDashboard('modal.contactInfo.informationPageLink')}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {{ tRegistryDashboard('modal.contactInfo.informationPageLabel') }}
-        </a>
-        {{ tRegistryDashboard('modal.contactInfo.contactUsSecondPart') }}
+        </a>{{ tRegistryDashboard('modal.contactInfo.contactUsSecondPart') }}
       </p>
     </InfoModal>
     <UTabs

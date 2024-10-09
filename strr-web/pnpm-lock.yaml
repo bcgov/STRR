@@ -11,6 +11,9 @@ importers:
       '@braintree/sanitize-url':
         specifier: ^6.0.4
         version: 6.0.4
+      '@iconify/json':
+        specifier: ^2.2.191
+        version: 2.2.250
       axios:
         specifier: ^1.6.7
         version: 1.7.7
@@ -33,9 +36,6 @@ importers:
         specifier: ^3.22.4
         version: 3.23.8
     devDependencies:
-      '@iconify/json':
-        specifier: ^2.2.191
-        version: 2.2.250
       '@nuxt/devtools':
         specifier: ^1.0.8
         version: 1.4.2(rollup@4.21.3)(vite@5.4.6(@types/node@22.5.5)(sass@1.79.1)(terser@5.33.0))(vue@3.5.6(typescript@5.3.3))(webpack-sources@3.2.3)
