@@ -40,7 +40,6 @@ from datetime import datetime, timezone
 from flask import render_template
 from weasyprint import HTML
 
-from strr_api import requests
 from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, RegistrationType
 from strr_api.models import (
     Address,
@@ -48,11 +47,17 @@ from strr_api.models import (
     Contact,
     Document,
     Events,
+    Platform,
+    PlatformBrand,
+    PlatformBusinessDetails,
+    PlatformRegistration,
+    PlatformRepresentative,
     PropertyContact,
     PropertyListing,
     Registration,
     RentalProperty,
 )
+from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
 from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
@@ -62,10 +67,12 @@ class RegistrationService:
     """Service to save and load registration details from the database."""
 
     @classmethod
-    def create_registration(cls, user_id, sbc_account_id, registration_request: requests.Registration):
+    def create_registration(cls, user_id, sbc_account_id, registration_request: dict):
         """Creates registration from an application."""
         start_date = datetime.utcnow()
         registration_number = RegistrationService._get_registration_number()
+        registration_details = registration_request.get("registration")
+        registration_type = registration_details.get("registrationType")
 
         registration = Registration(
             user_id=user_id,
@@ -74,26 +81,86 @@ class RegistrationService:
             registration_number=registration_number,
             start_date=start_date,
             expiry_date=start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
-            registration_type=registration_request.registrationType,
+            registration_type=registration_type,
         )
 
         documents = []
-        for doc in registration_request.documents:
-            document = Document(file_name=doc.fileName, file_type=doc.fileType, path=doc.fileKey)
+        for doc in registration_details.get("documents", []):
+            document = Document(file_name=doc.get("fileName"), file_type=doc.get("fileType"), path=doc.get("fileKey"))
             documents.append(document)
         if documents:
             registration.documents = documents
 
-        if registration_request.registrationType == RegistrationType.HOST.value:
+        if registration_type == RegistrationType.HOST.value:
             registration.rental_property = cls._create_host_registration(registration_request)
-        elif registration_request.registrationType == RegistrationType.PLATFORM.value:
-            pass
+        elif registration_type == RegistrationType.PLATFORM.value:
+            registration.platform_registration = cls._create_platform_registration(registration_details)
 
         registration.save()
         return registration
 
     @classmethod
-    def _create_host_registration(cls, registration_request) -> RentalProperty:
+    def _create_platform_registration(cls, registration_request: dict) -> PlatformRegistration:
+        business_details_dict = registration_request.get("businessDetails")
+        mailing_address = business_details_dict.get("mailingAddress")
+
+        business_details = PlatformBusinessDetails(
+            home_jurisdiction=business_details_dict.get("homeJurisdiction"),
+            business_number=business_details_dict.get("businessNumber"),
+            cpbc_licence_number=business_details_dict.get("consumerProtectionBCLicenceNumber"),
+            primary_non_compliance_notice_email=business_details_dict.get("noticeOfNonComplianceEmail"),
+            secondary_non_compliance_notice_email=business_details_dict.get("noticeOfNonComplianceOptionalEmail"),
+            primary_take_down_request_email=business_details_dict.get("takeDownRequestEmail"),
+            secondary_take_down_request_email=business_details_dict.get("takeDownRequestOptionalEmail"),
+            attorney_name=business_details_dict.get("legalName"),
+            mailingAddress=Address(
+                country=mailing_address.get("country"),
+                street_address=mailing_address.get("address"),
+                street_address_additional=mailing_address.get("addressLineTwo"),
+                city=mailing_address.get("city"),
+                province=mailing_address.get("province"),
+                postal_code=mailing_address.get("postalCode"),
+            ),
+        )
+
+        # TODO:
+        attorney_details = None
+
+        representatives = [
+            PlatformRepresentative(
+                contact=Contact(
+                    firstname=representative.get("firstName"),
+                    lastname=representative.get("lastName"),
+                    middlename=representative.get("middleName"),
+                    email=representative.get("emailAddress"),
+                    phone_extension=representative.get("extension"),
+                    fax_number=representative.get("faxNumber"),
+                    phone_number=representative.get("phoneNumber"),
+                    job_title=representative.get("jobTitle"),
+                )
+            )
+            for representative in registration_request.get("platformRepresentatives")
+        ]
+
+        platform_brands = [
+            PlatformBrand(name=brand.get("name"), website=brand.get("website"))
+            for brand in registration_request.get("platformDetails").get("brands")
+        ]
+
+        platform_registration = PlatformRegistration(
+            platform=Platform(
+                legal_name=business_details_dict.get("legalName"),
+                business_details=business_details,
+                brands=platform_brands,
+                representatives=representatives,
+            )
+        )
+        return platform_registration
+
+    @classmethod
+    def _create_host_registration(cls, registration_request: dict) -> RentalProperty:
+        registration_request = RegistrationRequest(**registration_request).registration
+
         rental_property = RentalProperty(
             address=Address(
                 country=registration_request.unitAddress.country,

@@ -11,7 +11,6 @@ from sqlalchemy.orm import relationship
 from strr_api.common.enum import BaseEnum, auto
 from strr_api.enums.enum import OwnershipType, PropertyType, RegistrationStatus
 from strr_api.models.base_model import BaseModel
-from strr_api.models.platforms import Platform  # pylint: disable=W0611
 
 from .db import db
 
@@ -45,7 +44,7 @@ class Registration(BaseModel):
 
     certificates = relationship("Certificate", back_populates="registration")
     rental_property = relationship("RentalProperty", back_populates="registration", uselist=False)
-    platform = relationship("Platform", back_populates="registration", uselist=False)
+    platform_registration = relationship("PlatformRegistration", back_populates="registration", uselist=False)
     documents = relationship("Document", back_populates="registration")
 
 
@@ -75,32 +74,6 @@ class RentalProperty(BaseModel):
 
     contacts = relationship("PropertyContact")
     property_listings = relationship("PropertyListing")
-
-
-class Address(BaseModel):
-    """Address"""
-
-    __tablename__ = "addresses"
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    country = db.Column(db.String, nullable=False)
-    street_address = db.Column(db.String, nullable=False)
-    street_address_additional = db.Column(db.String, nullable=True)
-    city = db.Column(db.String, nullable=False)
-    province = db.Column(db.String, nullable=False)
-    postal_code = db.Column(db.String, nullable=False)
-
-    contact = relationship("Contact", back_populates="address", foreign_keys="Contact.address_id")
-    rental_properties_address = relationship(
-        "RentalProperty", back_populates="address", foreign_keys="RentalProperty.address_id"
-    )
-
-    def to_oneline_address(self):
-        """Convert object to one line address."""
-        unit = ""
-        if self.street_address_additional:
-            unit = f"{self.street_address_additional} "
-        return f"{unit}{self.street_address}, {self.city}, {self.province}, {self.country}, {self.postal_code}"
 
 
 class PropertyContact(BaseModel):

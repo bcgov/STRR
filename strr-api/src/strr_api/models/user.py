@@ -55,7 +55,7 @@ class Contact(db.Model):
     firstname = db.Column(db.String(1000), nullable=False)
     lastname = db.Column(db.String(1000), nullable=False)
     middlename = db.Column(db.String(1000))
-    address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
+    address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=True)
     email = db.Column(db.String(255), nullable=True)
     preferredname = db.Column(db.String, nullable=True)
     phone_extension = db.Column(db.String, nullable=True)
@@ -64,6 +64,7 @@ class Contact(db.Model):
     date_of_birth = db.Column(db.Date, nullable=True)
     social_insurance_number = db.Column(db.String, nullable=True)
     business_number = db.Column(db.String, nullable=True)
+    job_title = db.Column(db.String, nullable=True)
 
     address = relationship("Address", back_populates="contact")
 

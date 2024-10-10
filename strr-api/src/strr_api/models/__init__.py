@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """This exports all of the models and schemas used by the application."""
 from .account_roles import AccountRoles
+from .address import Address
 from .application import Application
 from .auto_approval_record import AutoApprovalRecord
 from .certificate import Certificate
@@ -40,13 +41,14 @@ from .db import db  # noqa: I001
 from .dss import DSSOrganization
 from .events import Events
 from .ltsa import LTSARecord
-from .platforms import Platform
-from .rental import Address, Document, PropertyContact, PropertyListing, Registration, RentalProperty
+from .platforms import Platform, PlatformBrand, PlatformBusinessDetails, PlatformRegistration, PlatformRepresentative
+from .rental import Document, PropertyContact, PropertyListing, Registration, RentalProperty
 from .user import Contact, User
 
 __all__ = (
     "db",
     "AccountRoles",
+    "Address",
     "Application",
     "User",
     "RentalProperty",
@@ -62,4 +64,8 @@ __all__ = (
     "LTSARecord",
     "Certificate",
     "Platform",
+    "PlatformBrand",
+    "PlatformBusinessDetails",
+    "PlatformRegistration",
+    "PlatformRepresentative",
 )
