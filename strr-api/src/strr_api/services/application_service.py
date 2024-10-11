@@ -98,11 +98,12 @@ class ApplicationService:
         }
 
     @staticmethod
-    def get_application(application_id: int, account_id: Optional[int] = None) -> Application:
-        """Get the application with the specified id."""
+    def get_application(application_number: str, account_id: Optional[int] = None) -> Application:
+        """Get the application with the specified number."""
         UserService.get_or_create_user_in_context()
-        if ApplicationService.is_user_authorized_for_application(account_id, application_id):
-            return Application.find_by_id(application_id)
+        application = Application.find_by_application_number(application_number)
+        if application and ApplicationService.is_user_authorized_for_application(account_id, application.id):
+            return application
         return None
 
     @staticmethod

@@ -138,11 +138,11 @@ export interface SecondaryContactInformationI extends ContactInformationI {
 }
 
 export interface PrincipalResidenceI {
-  isPrincipal: boolean | undefined
-  reason?: string
-  otherReason?: string
-  declaration: boolean
-  agreeToSubmit: boolean
+  agreedToRentalAct: boolean
+  agreedToSubmit: boolean
+  isPrincipalResidence: boolean
+  nonPrincipalOption: string
+  specifiedServiceProvider: string
 }
 
 export interface CreateAccountFormStateI {

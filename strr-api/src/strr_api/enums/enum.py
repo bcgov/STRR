@@ -76,6 +76,7 @@ class RegistrationStatus(Enum):
     ACTIVE = "ACTIVE"
     EXPIRED = "EXPIRED"
     SUSPENDED = "SUSPENDED"
+    CANCELLED = "CANCELLED"
 
 
 class RegistrationSortBy(Enum):

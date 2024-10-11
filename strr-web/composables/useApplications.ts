@@ -43,8 +43,8 @@ export const useApplications = () => {
         throw new Error('Invalid AUTH API response')
       }
 
-      const { paymentToken, id } = data.header
-      handlePaymentRedirect(paymentToken, id)
+      const { paymentToken, applicationNumber } = data.header
+      handlePaymentRedirect(paymentToken, applicationNumber)
 
       return data
     } catch (error) {
@@ -65,10 +65,10 @@ export const useApplications = () => {
   /**
    * Retrieves STR Application by Id.
    *
-   * @param {string} id - The Id of the application to retrieve.
+   * @param {string} appNum - The application number to retrieve.
    */
-  const getApplication = async (id: string): Promise<ApplicationI> => {
-    const { data } = await axiosInstance.get(`${apiURL}/applications/${id}`)
+  const getApplication = async (appNum: string): Promise<ApplicationI> => {
+    const { data } = await axiosInstance.get(`${apiURL}/applications/${appNum}`)
     return data
   }
 
@@ -103,20 +103,20 @@ export const useApplications = () => {
     return data
   }
 
-  const getApplicationHistory = async (id: string): Promise<FilingHistoryEventI[]> => {
-    const { data } = await axiosInstance.get(`${apiURL}/applications/${id}/events`)
+  const getApplicationHistory = async (appNum: string): Promise<FilingHistoryEventI[]> => {
+    const { data } = await axiosInstance.get(`${apiURL}/applications/${appNum}/events`)
     return data
   }
 
   /**
    * Get/Download Supporting Document file for Application.
    *
-   * @param {string} applicationId - The id of the application to which the document belongs.
+   * @param {string} applicationNumber - The application number to which the document belongs.
    * @param {string} fileKey - The key of the document to be retrieved.
    * @returns The file/document
    */
-  const getDocument = async (applicationId: string, fileKey: string): Promise<Blob> => {
-    const { data } = await axiosInstance.get<Blob>(`${apiURL}/applications/${applicationId}/documents/${fileKey}`, {
+  const getDocument = async (applicationNumber: string, fileKey: string): Promise<Blob> => {
+    const { data } = await axiosInstance.get<Blob>(`${apiURL}/applications/${applicationNumber}/documents/${fileKey}`, {
       responseType: 'blob'
     })
     return data
@@ -124,11 +124,11 @@ export const useApplications = () => {
 
   /**
    * Approve an Application by setting its status to APPROVED.
-   * @param id - The id of the Application to approve.
+   * @param appNum - The application number.
    */
-  const approveApplication = async (id: string) => {
+  const approveApplication = async (appNum: string) => {
     try {
-      await updateApplicationStatus(id, ApplicationStatusE.APPROVED)
+      await updateApplicationStatus(appNum, ApplicationStatusE.FULL_REVIEW_APPROVED)
     } catch (error) {
       console.error(error)
     }
@@ -136,11 +136,11 @@ export const useApplications = () => {
 
   /**
    * Reject an application by setting its status to REJECTED.
-   * @param id - The id of the Application to reject.
+   * @param appNum - The application number.
    */
-  const rejectApplication = async (id: string) => {
+  const rejectApplication = async (appNum: string) => {
     try {
-      await updateApplicationStatus(id, ApplicationStatusE.REJECTED)
+      await updateApplicationStatus(appNum, ApplicationStatusE.DECLINED)
     } catch (error) {
       console.error(error)
     }
@@ -148,29 +148,29 @@ export const useApplications = () => {
 
   /**
    * Update the status of an application.
-   * @param id - The id of the Application.
+   * @param appNum - The application number.
    * @param status - The status to set for the Application.
    */
-  const updateApplicationStatus = async (id: string, status: ApplicationStatusE) => {
-    await axiosInstance.put(`${apiURL}/applications/${id}/status`, { status: `${status}` })
+  const updateApplicationStatus = async (appNum: string, status: ApplicationStatusE) => {
+    await axiosInstance.put(`${apiURL}/applications/${appNum}/status`, { status: `${status}` })
     window.location.reload()
   }
 
   /**
    * Get LTSA records application.
-   * @param id - The id of the Application.
+   * @param appNum - The application number.
    */
-  const getLtsa = async (id: string): Promise<LtsaDataI[]> => {
-    const res = await axiosInstance.get(`${apiURL}/applications/${id}/ltsa`)
+  const getLtsa = async (appNum: string): Promise<LtsaDataI[]> => {
+    const res = await axiosInstance.get(`${apiURL}/applications/${appNum}/ltsa`)
     return res.data
   }
 
   /**
    * Update the status of an application.
-   * @param id - The id of the Application.
+   * @param appNum - The application number.
    */
-  const getAutoApproval = async (id: string): Promise<AutoApprovalDataI[]> => {
-    const res = await axiosInstance.get(`${apiURL}/applications/${id}/auto-approval-records`)
+  const getAutoApproval = async (appNum: string): Promise<AutoApprovalDataI[]> => {
+    const res = await axiosInstance.get(`${apiURL}/applications/${appNum}/auto-approval-records`)
     return res.data
   }
 

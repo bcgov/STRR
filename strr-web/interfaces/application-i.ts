@@ -1,8 +1,13 @@
-import { RegistrationStatusE, ApplicationStatusE, RegistrationTypeE } from '#imports'
+import {
+  RegistrationStatusE,
+  ApplicationStatusE,
+  HostApplicationStatusE,
+  ExaminerApplicationStatusE,
+  RegistrationTypeE
+} from '#imports'
 export interface ApplicationHeaderI {
   applicationDateTime: string
   decisionDate: string | null
-  id: number
   applicationNumber: string
   name: string
   paymentAccount: string
@@ -17,7 +22,9 @@ export interface ApplicationHeaderI {
     displayName: string
     username: string
   }
-  status: ApplicationStatusE
+  status: ApplicationStatusE,
+  hostStatus: HostApplicationStatusE,
+  examinerStatus: ExaminerApplicationStatusE,
   submitter: {
     displayName: string
     username: string

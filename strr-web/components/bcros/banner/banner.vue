@@ -13,16 +13,16 @@
       <div v-if="!hideButtons">
         <div class="mobile:hidden">
           <BcrosButtonsPrimary
-            v-if="applicationId"
+            v-if="applicationNumber"
             :label="tBanner('approve')"
-            :action="() => applicationId && approveApplication(applicationId)"
+            :action="() => applicationNumber && approveApplication(applicationNumber)"
             variant="outline"
             class-name="ml-[16px]"
           />
           <BcrosButtonsPrimary
-            v-if="applicationId"
+            v-if="applicationNumber"
             :label="tBanner('reject')"
-            :action="() => applicationId && rejectApplication(applicationId)"
+            :action="() => applicationNumber && rejectApplication(applicationNumber)"
             variant="outline"
             class-name="ml-[16px]"
           />
@@ -36,16 +36,16 @@
         </div>
         <div class="desktop:hidden flex">
           <a
-            v-if="applicationId"
+            v-if="applicationNumber"
             class="mr-[16px] py-[10px]"
-            :on-click="() => applicationId && approveApplication(applicationId)"
+            :on-click="() => applicationNumber && approveApplication(applicationNumber)"
           >
             {{ tBanner('approve') }}
           </a>
           <a
-            v-if="applicationId"
+            v-if="applicationNumber"
             class="mr-[16px] py-[10px]"
-            :on-click="() => applicationId && rejectApplication(applicationId)"
+            :on-click="() => applicationNumber && rejectApplication(applicationNumber)"
           >
             {{ tBanner('reject') }}
           </a>
@@ -65,7 +65,7 @@
 <script setup lang="ts">
 const { hideButtons = true } = defineProps<{
   hideButtons?: boolean
-  applicationId?: string
+  applicationNumber?: string
   registrationId?: string
 }>()
 const { t } = useTranslation()

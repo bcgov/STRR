@@ -2,7 +2,7 @@
   <div data-test-id="reg-details">
     <BcrosBanner
       :hide-buttons="!isExaminer"
-      :application-id="registrationId"
+      :application-number="registrationId"
       :registration-id="registrationId"
     >
       <div data-test-id="reg-details-header" class="flex items-center m:mb-2 m:justify-between">
@@ -27,7 +27,7 @@
         <div class="bg-white py-[22px] px-[30px] mobile:px-2">
           <div class="flex flex-row justify-between w-full mobile:flex-col">
             <BcrosFormSectionReviewItem :title="tApplicationDetails('status')">
-              <p>{{ tApplicationDetails(application?.status ?? '-' ) }}</p>
+              <p>{{ displayRegistrationStatus() }}</p>
             </BcrosFormSectionReviewItem>
           </div>
         </div>
@@ -220,11 +220,13 @@
 <script setup lang="ts">
 import { propertyTypeMap } from '~/utils/propertyTypeMap'
 import { formatLongDate, formatTimeString } from '~/utils/format-helper'
+import { RegistrationStatusE } from '#imports'
 
 const route = useRoute()
 const t = useNuxtApp().$i18n.t
 const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
 const tApplicationDetails = (translationKey: string) => t(`applicationDetails.${translationKey}`)
+const tStatuses = (translationKey: string) => t(`statuses.${translationKey}`)
 const tPropertyForm = (translationKey: string) => t(`createAccount.propertyForm.${translationKey}`)
 const { isExaminer } = useBcrosKeycloak()
 const { getChipFlavour } = useChipFlavour()
@@ -296,6 +298,21 @@ const documents: DocumentUploadI[] = application.documents || []
 
 const flavour = application ? getChipFlavour(application.status) : null
 
+const displayRegistrationStatus = () => {
+  const commonStatusMap = {
+    [RegistrationStatusE.ACTIVE]: 'active',
+    [RegistrationStatusE.SUSPENDED]: 'suspended',
+    [RegistrationStatusE.EXPIRED]: 'expired',
+    [RegistrationStatusE.CANCELLED]: 'cancelled'
+  }
+  if (!application?.status) {
+    return '-'
+  }
+  const statusTranslation = (application?.status && application.status in commonStatusMap)
+    ? commonStatusMap[application.status as keyof typeof commonStatusMap]
+    : '-'
+  return tStatuses(statusTranslation)
+}
 const getContactRows = (contactBlock: ContactI) => [{
   name: `
       ${contactBlock.name.firstName}

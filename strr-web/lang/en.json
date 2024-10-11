@@ -27,19 +27,6 @@
     "results": "Results",
     "location": "Location",
     "approved": "Approved",
-    "statusChip": {
-      "active": "ACTIVE",
-      "approved": "APPROVED",
-      "rejected": "REJECTED",
-      "provisional": "PROVISIONAL",
-      "underReview": "UNDER REVIEW",
-      "moreInfoNeeded": "MORE INFO NEEDED",
-      "denied": "DENIED",
-      "issued": "ISSUED",
-      "pending": "APPLIED",
-      "submitted": "SUBMITTED",
-      "paid": "PAID"
-    },
     "modal": {
       "contactInfo": {
         "header": "Need Help?",
@@ -73,6 +60,33 @@
     "last": "Last Name",
     "address": "Address",
     "occupation": "Occupation"
+  },
+  "statuses": {
+    "examinerStatuses": {
+      "paid": "Paid",
+      "autoApproved": "Approved - Automatic",
+      "provisionalApproved": "Approved - Provisional",
+      "provisionalReview": "Provisional Examination",
+      "fullReviewApproved": "Approved - Examined",
+      "fullReview": "Full Examination"
+    },
+    "hostStatuses": {
+      "paid": "Pending Approval",
+      "autoApproved": "Approved",
+      "provisionalApproved": "Approved",
+      "provisionalReview": "Approved - Provisional",
+      "fullReviewApproved": "Approved",
+      "fullReview": "Pending Approval"
+    },
+    "draft": "Draft",
+    "paymentDue": "Payment Due",
+    "declined": "Declined",
+    "additionalInfoRequested": "ADDITIONAL INFO REQUESTED",
+    "active": "Active",
+    "expired": "Expired",
+    "suspended": "Suspended",
+    "cancelled": "Registration Cancelled",
+    "provisional": "Provisional"
   },
   "autoApproval": {
     "autoApprovalDetails": "Automatic Approval Details",
@@ -131,17 +145,6 @@
     "autoApprovalLogic": "Auto-Approval Logic",
     "autoApprovalDetails": "View Auto-Approval Details",
     "filing": "Filing History",
-    "ACTIVE": "Active",
-    "PENDING": "Pending",
-    "APPROVED": "Approved",
-    "MORE_INFO_NEEDED": "Provisional",
-    "DENIED": "Denied",
-    "ISSUED": "Issued",
-    "UNDER_REVIEW": "Under Review",
-    "PROVISIONAL": "Provisional",
-    "SUBMITTED": "Submitted",
-    "PAID": "Paid",
-    "REJECTED": "Rejected",
     "coOwner": "Co-own",
     "owner": "Own",
     "rent": "Rent"
@@ -165,14 +168,6 @@
     "accountName": "Account Name"
   },
   "registrationStatus": {
-    "PENDING": "PENDING",
-    "approved": "APPROVED",
-    "denied": "DENIED",
-    "APPROVED": "APPROVED",
-    "MORE_INFO_NEEDED": "PROVISIONAL",
-    "DENIED": "DENIED",
-    "applied": "APPLIED",
-    "provisional": "PROVISIONAL",
     "create": "Create New Registration",
     "myRegApplication": "My Registration Applications",
     "title": "My STR Registry Dashboard",
@@ -212,7 +207,7 @@
         "openButtonLabel": "Information collection notice",
         "noticeTextFirstPart": "Any personal information required is collected to support the administration and enforcement of the ",
         "noticeTextSecondPart": ", under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at",
-        "email": "strbranch{'@'}gov.bc.ca",
+        "email": "STRBranch{'@'}gov.bc.ca",
         "actName": "Short-Term Rental Accommodations Act"
       },
       "contactInfo": {
@@ -485,7 +480,7 @@
     },
     "email": {
       "label": "Email:",
-      "value": "BCRegistries{'@'}gov.bc.ca"
+      "value": "STRBranch{'@'}gov.bc.ca"
     }
   }
 }

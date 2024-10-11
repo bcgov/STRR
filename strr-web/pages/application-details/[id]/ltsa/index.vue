@@ -132,14 +132,14 @@ const route = useRoute()
 const { t } = useTranslation()
 const tLtsa = (translationKey: string) => t(`ltsa.${translationKey}`)
 
-const applicationId = route.params.id.toString()
+const applicationNumber = route.params.id.toString()
 
 const { getLtsa, getApplication } = useApplications()
 const { setupBreadcrumbData } = useBreadcrumb()
 
-const application = await getApplication(applicationId)
+const application = await getApplication(applicationNumber)
 const formatDate = (date: Date) => date.toLocaleDateString('en-US')
-const data: LtsaDataI[] = await getLtsa(applicationId) || {} as LtsaDataI[]
+const data: LtsaDataI[] = await getLtsa(applicationNumber) || {} as LtsaDataI[]
 const applicationDetails: ApplicationDetailsI = application.registration
 
 setupBreadcrumbData(application)
@@ -176,6 +176,6 @@ const headerLabel =
   `${applicationDetails.unitAddress.city} ` +
   `${applicationDetails.unitAddress.province} ` +
   `${applicationDetails.unitAddress.postalCode}` +
-  `, Application #${applicationId}`
+  `, Application #${applicationNumber}`
 
 </script>

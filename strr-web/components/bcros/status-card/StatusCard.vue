@@ -24,7 +24,7 @@
     </div>
     <div class="flex flex-row text-bcGovColor-activeBlue justify-start">
       <BcrosButtonsPrimary
-        :action="() => navigateTo(`/application-details/${applicationId}`, { open: { target: '_blank' } })"
+        :action="() => navigateTo(`/application-details/${applicationNumber}`, { open: { target: '_blank' } })"
         :label="tRegistrationStatus('view')"
         class-name="px-4 py-1 mobile:grow-0"
         variant="ghost"
@@ -42,13 +42,14 @@
 </template>
 
 <script setup lang="ts">
-import { RegistrationStatusE, ApplicationStatusE } from '#imports'
+import { RegistrationStatusE, HostApplicationStatusE, ExaminerApplicationStatusE } from '#imports'
 
 const { t } = useTranslation()
 const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
 
 const { getCertificate } = useRegistrations()
 const { getChipFlavour } = useChipFlavour()
+const { isExaminer } = useBcrosKeycloak()
 
 const downloadCertificate = async (id: string) => {
   const file = await getCertificate(id)
@@ -70,11 +71,30 @@ const {
   isSingle: boolean,
 }>()
 
-const { registrationId, registrationNumber, status, registrationStatus } = applicationHeader
-const applicationId = applicationHeader.id.toString()
-const flavour = getChipFlavour(status)
+const { registrationId, registrationNumber, status, hostStatus, examinerStatus, registrationStatus } = applicationHeader
+const applicationNumber = applicationHeader.applicationNumber
+const flavour = computed(() => {
+  if (isExaminer) {
+    return getChipFlavour(examinerStatus || status)
+  } else {
+    return getChipFlavour(hostStatus || status)
+  }
+})
 
 const isCertificateIssued: boolean = registrationStatus === RegistrationStatusE.ACTIVE
-const isApproved: boolean = status === ApplicationStatusE.APPROVED
-
+const isApproved = computed(() => {
+  if (isExaminer) {
+    return [
+      ExaminerApplicationStatusE.AUTO_APPROVED,
+      ExaminerApplicationStatusE.PROVISIONALLY_APPROVED,
+      ExaminerApplicationStatusE.FULL_REVIEW_APPROVED
+    ].includes(examinerStatus)
+  } else {
+    return [
+      HostApplicationStatusE.AUTO_APPROVED,
+      HostApplicationStatusE.PROVISIONALLY_APPROVED,
+      HostApplicationStatusE.FULL_REVIEW_APPROVED
+    ].includes(hostStatus)
+  }
+})
 </script>

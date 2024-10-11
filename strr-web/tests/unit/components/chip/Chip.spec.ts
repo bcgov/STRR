@@ -11,15 +11,15 @@ const i18n = createI18n({
 it('can mount Chip component', async () => {
   const { t } = useTranslation()
   const { getChipFlavour } = useChipFlavour()
-  const tRegistryDashboardStatus = (translationKey: string) => t(`registryDashboard.statusChip.${translationKey}`)
+  const tStatuses = (translationKey: string) => t(`statuses.${translationKey}`)
 
   const chip = await mountSuspended(BcrosChip,
     {
       global: { plugins: [i18n] },
       props: {
-        flavour: getChipFlavour('APPROVED')
+        flavour: getChipFlavour('ACTIVE')
       }
     })
   expect(chip.find('[data-test-id="chip"]').exists()).toBe(true)
-  expect(chip.text()).toEqual(tRegistryDashboardStatus('approved'))
+  expect(chip.text()).toEqual(tStatuses('active'))
 })
