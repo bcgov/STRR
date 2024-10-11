@@ -69,9 +69,9 @@ class RegistrationService:
     def create_registration(cls, user_id, sbc_account_id, registration_request: dict):
         """Creates registration from an application."""
         start_date = datetime.utcnow()
-        registration_number = RegistrationService._get_registration_number()
         registration_details = registration_request.get("registration")
         registration_type = registration_details.get("registrationType")
+        registration_number = RegistrationService._get_registration_number(registration_type)
 
         registration = Registration(
             user_id=user_id,
@@ -280,8 +280,13 @@ class RegistrationService:
         }
 
     @classmethod
-    def _get_registration_number(cls):
-        registration_number_prefix = f'BCH{datetime.now(timezone.utc).strftime("%y")}'
+    def _get_registration_number(cls, registration_type: str):
+        registration_code = None
+        if registration_type == RegistrationType.HOST.value:
+            registration_code = "BCH"
+        elif registration_type == RegistrationType.PLATFORM.value:
+            registration_code = "BCP"
+        registration_number_prefix = f'{registration_code}{datetime.now(timezone.utc).strftime("%y")}'
         while True:
             random_digits = "".join(random.choices("0123456789", k=9))
             registration_number = f"{registration_number_prefix}{random_digits}"
