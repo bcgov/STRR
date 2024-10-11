@@ -50,7 +50,7 @@ load_dotenv(find_dotenv())
 CONFIGURATION = {
     "development": "strr_pay.config.DevConfig",
     "unittest": "strr_pay.config.UnitTestConfig",  # Renamed unit test config
-    "test": "strr_pay.config.TestConfig",          # GCP test config
+    "test": "strr_pay.config.TestConfig",  # GCP test config
     "production": "strr_pay.config.ProdConfig",
     "default": "strr_pay.config.ProdConfig",
 }
@@ -63,7 +63,7 @@ def get_named_config(config_name: str = "production"):
     """
     if config_name in ["production", "staging", "default"]:
         app_config = ProdConfig()
-     elif config_name == "unittest":
+    elif config_name == "unittest":
         app_config = UnitTestConfig()
     elif config_name == "test":
         app_config = TestConfig()
@@ -118,6 +118,7 @@ class DevConfig(Config):  # pylint: disable=too-few-public-methods
     TESTING = False
     DEBUG = True
 
+
 class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
     """In support of unit testing only.
 
@@ -127,6 +128,7 @@ class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
     DEBUG = True
     TESTING = True
 
+
 class TestConfig(Config):  # pylint: disable=too-few-public-methods
     """In support of testing only.
 
@@ -134,7 +136,7 @@ class TestConfig(Config):  # pylint: disable=too-few-public-methods
     """
 
     DEBUG = True
-    TESTING = False # False for GCP test environments
+    TESTING = False  # False for GCP test environments
 
 
 class ProdConfig(Config):  # pylint: disable=too-few-public-methods
