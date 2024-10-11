@@ -134,6 +134,7 @@ class RegistrationService:
             primary_take_down_request_email=business_details_dict.get("takeDownRequestEmail"),
             secondary_take_down_request_email=business_details_dict.get("takeDownRequestOptionalEmail"),
             attorney_name=business_details_dict.get("legalName"),
+            listing_size=registration_request.get("platformDetails").get("listingSize"),
             mailingAddress=Address(
                 country=mailing_address.get("country"),
                 street_address=mailing_address.get("address"),
@@ -146,8 +147,17 @@ class RegistrationService:
             representatives=representatives,
         )
 
-        # TODO:
-        attorney_details = None
+        if attorney_details_dict := business_details_dict.get("registeredOfficeOrAttorneyForServiceDetails"):
+            platform.attorney_name = attorney_details_dict.get("attorneyName")
+            if attorney_mailing_address_dict := attorney_details_dict.get("mailingAddress"):
+                platform.registered_office_attorney_mailing_address = Address(
+                    country=attorney_mailing_address_dict.get("country"),
+                    street_address=attorney_mailing_address_dict.get("address"),
+                    street_address_additional=attorney_mailing_address_dict.get("addressLineTwo"),
+                    city=attorney_mailing_address_dict.get("city"),
+                    province=attorney_mailing_address_dict.get("province"),
+                    postal_code=attorney_mailing_address_dict.get("postalCode"),
+                )
 
         platform_registration = PlatformRegistration(platform=platform)
         return platform_registration

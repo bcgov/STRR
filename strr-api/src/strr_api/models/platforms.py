@@ -45,7 +45,7 @@ class Platform(Versioned, BaseModel):
     registered_office_attorney_mailing_address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=True)
 
     mailingAddress = relationship("Address", foreign_keys=[mailing_address_id])
-    registeredOfficeOrAttorneyMailingAddress = relationship(
+    registered_office_attorney_mailing_address = relationship(
         "Address", foreign_keys=[registered_office_attorney_mailing_address_id]
     )
 
