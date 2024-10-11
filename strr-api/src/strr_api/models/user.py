@@ -41,12 +41,16 @@ from __future__ import annotations
 from datetime import datetime
 
 from flask import current_app
+from sql_versioning import Versioned
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import relationship
+
+from strr_api.utils.user_context import UserContext, user_context
 
 from .db import db
 
 
-class Contact(db.Model):
+class Contact(Versioned, db.Model):
     """Contact model for storing information about non-registered users."""
 
     __tablename__ = "contacts"
@@ -89,8 +93,6 @@ class User(db.Model):
     idp_userid = db.Column(db.String(256), index=True)
     login_source = db.Column(db.String(200), nullable=True)
     creation_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
-
-    registrations = relationship("Registration")
 
     @property
     def display_name(self):
@@ -191,3 +193,12 @@ class User(db.Model):
         """Cannot delete User records."""
         return self
         # need to intercept the ORM and stop Users from being deleted
+
+    @classmethod
+    @user_context
+    def find_user_in_context(cls, **kwargs) -> User:
+        """Find the user in context."""
+        usr_context: UserContext = kwargs["user_context"]
+        if usr_context and usr_context.token_info:
+            return User.find_by_jwt_token(usr_context.token_info)
+        return None

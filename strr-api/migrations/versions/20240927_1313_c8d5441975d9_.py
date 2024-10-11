@@ -52,7 +52,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('documents', schema=None) as batch_op:
-        batch_op.drop_constraint('documents_eligibility_id_fkey', type_='foreignkey')
         batch_op.drop_column('eligibility_id')
 
     with op.batch_alter_table('registrations', schema=None) as batch_op:
@@ -76,7 +75,6 @@ def upgrade():
         batch_op.drop_index('ix_registrations_submission_date')
         batch_op.create_index(batch_op.f('ix_registrations_registration_type'), ['registration_type'], unique=False)
         batch_op.create_index(batch_op.f('ix_registrations_sbc_account_id'), ['sbc_account_id'], unique=False)
-        batch_op.drop_constraint('registrations_rental_property_id_fkey', type_='foreignkey')
         batch_op.drop_column('rental_property_id')
         batch_op.drop_column('submission_date')
 
@@ -96,7 +94,6 @@ def upgrade():
                type_=ownershiptype,
                existing_nullable=False,
                postgresql_using="ownership_type::ownershiptype")
-        batch_op.drop_constraint('rental_properties_property_manager_id_fkey', type_='foreignkey')
         batch_op.create_foreign_key(None, 'registrations', ['registration_id'], ['id'])
         batch_op.drop_column('property_manager_id')
 
@@ -148,7 +145,6 @@ def downgrade():
     with op.batch_alter_table('rental_properties', schema=None) as batch_op:
         batch_op.add_column(sa.Column('property_manager_id', sa.INTEGER(), autoincrement=False, nullable=False))
         batch_op.drop_constraint(None, type_='foreignkey')
-        batch_op.create_foreign_key('rental_properties_property_manager_id_fkey', 'property_managers', ['property_manager_id'], ['id'])
         batch_op.alter_column('ownership_type',
                existing_type=ownershiptype,
                type_=sa.VARCHAR(),
@@ -168,7 +164,6 @@ def downgrade():
     with op.batch_alter_table('registrations', schema=None) as batch_op:
         batch_op.add_column(sa.Column('submission_date', postgresql.TIMESTAMP(), autoincrement=False, nullable=False))
         batch_op.add_column(sa.Column('rental_property_id', sa.INTEGER(), autoincrement=False, nullable=False))
-        batch_op.create_foreign_key('registrations_rental_property_id_fkey', 'rental_properties', ['rental_property_id'], ['id'])
         batch_op.drop_index(batch_op.f('ix_registrations_sbc_account_id'))
         batch_op.drop_index(batch_op.f('ix_registrations_registration_type'))
         batch_op.create_index('ix_registrations_submission_date', ['submission_date'], unique=False)
@@ -191,7 +186,6 @@ def downgrade():
 
     with op.batch_alter_table('documents', schema=None) as batch_op:
         batch_op.add_column(sa.Column('eligibility_id', sa.INTEGER(), autoincrement=False, nullable=False))
-        batch_op.create_foreign_key('documents_eligibility_id_fkey', 'eligibilities', ['eligibility_id'], ['id'])
 
     op.drop_table('property_listings')
     op.drop_table('property_contacts')

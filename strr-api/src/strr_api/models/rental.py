@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
+from sql_versioning import Versioned
 from sqlalchemy import Enum
 from sqlalchemy.orm import relationship
 
@@ -15,7 +16,7 @@ from strr_api.models.base_model import BaseModel
 from .db import db
 
 
-class Registration(BaseModel):
+class Registration(Versioned, BaseModel):
     """Registration model"""
 
     class RegistrationType(BaseEnum):
@@ -39,8 +40,7 @@ class Registration(BaseModel):
     updated_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-
-    user = relationship("User", back_populates="registrations")
+    user = relationship("User", foreign_keys=[user_id])
 
     certificates = relationship("Certificate", back_populates="registration")
     rental_property = relationship("RentalProperty", back_populates="registration", uselist=False)
@@ -48,7 +48,7 @@ class Registration(BaseModel):
     documents = relationship("Document", back_populates="registration")
 
 
-class RentalProperty(BaseModel):
+class RentalProperty(Versioned, BaseModel):
     """Rental Property"""
 
     __tablename__ = "rental_properties"
@@ -76,7 +76,7 @@ class RentalProperty(BaseModel):
     property_listings = relationship("PropertyListing")
 
 
-class PropertyContact(BaseModel):
+class PropertyContact(Versioned, BaseModel):
     """Property Contacts"""
 
     __tablename__ = "property_contacts"
@@ -91,7 +91,7 @@ class PropertyContact(BaseModel):
     property = relationship("RentalProperty", back_populates="contacts")
 
 
-class PropertyListing(BaseModel):
+class PropertyListing(Versioned, BaseModel):
     """Platform Listings"""
 
     __tablename__ = "property_listings"
@@ -106,7 +106,7 @@ class PropertyListing(BaseModel):
     property = relationship("RentalProperty", back_populates="property_listings")
 
 
-class Document(BaseModel):
+class Document(Versioned, BaseModel):
     """Document model."""
 
     __tablename__ = "documents"

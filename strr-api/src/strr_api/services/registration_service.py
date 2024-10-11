@@ -49,7 +49,6 @@ from strr_api.models import (
     Events,
     Platform,
     PlatformBrand,
-    PlatformBusinessDetails,
     PlatformRegistration,
     PlatformRepresentative,
     PropertyContact,
@@ -104,28 +103,6 @@ class RegistrationService:
         business_details_dict = registration_request.get("businessDetails")
         mailing_address = business_details_dict.get("mailingAddress")
 
-        business_details = PlatformBusinessDetails(
-            home_jurisdiction=business_details_dict.get("homeJurisdiction"),
-            business_number=business_details_dict.get("businessNumber"),
-            cpbc_licence_number=business_details_dict.get("consumerProtectionBCLicenceNumber"),
-            primary_non_compliance_notice_email=business_details_dict.get("noticeOfNonComplianceEmail"),
-            secondary_non_compliance_notice_email=business_details_dict.get("noticeOfNonComplianceOptionalEmail"),
-            primary_take_down_request_email=business_details_dict.get("takeDownRequestEmail"),
-            secondary_take_down_request_email=business_details_dict.get("takeDownRequestOptionalEmail"),
-            attorney_name=business_details_dict.get("legalName"),
-            mailingAddress=Address(
-                country=mailing_address.get("country"),
-                street_address=mailing_address.get("address"),
-                street_address_additional=mailing_address.get("addressLineTwo"),
-                city=mailing_address.get("city"),
-                province=mailing_address.get("province"),
-                postal_code=mailing_address.get("postalCode"),
-            ),
-        )
-
-        # TODO:
-        attorney_details = None
-
         representatives = [
             PlatformRepresentative(
                 contact=Contact(
@@ -147,14 +124,32 @@ class RegistrationService:
             for brand in registration_request.get("platformDetails").get("brands")
         ]
 
-        platform_registration = PlatformRegistration(
-            platform=Platform(
-                legal_name=business_details_dict.get("legalName"),
-                business_details=business_details,
-                brands=platform_brands,
-                representatives=representatives,
-            )
+        platform = Platform(
+            legal_name=business_details_dict.get("legalName"),
+            home_jurisdiction=business_details_dict.get("homeJurisdiction"),
+            business_number=business_details_dict.get("businessNumber"),
+            cpbc_licence_number=business_details_dict.get("consumerProtectionBCLicenceNumber"),
+            primary_non_compliance_notice_email=business_details_dict.get("noticeOfNonComplianceEmail"),
+            secondary_non_compliance_notice_email=business_details_dict.get("noticeOfNonComplianceOptionalEmail"),
+            primary_take_down_request_email=business_details_dict.get("takeDownRequestEmail"),
+            secondary_take_down_request_email=business_details_dict.get("takeDownRequestOptionalEmail"),
+            attorney_name=business_details_dict.get("legalName"),
+            mailingAddress=Address(
+                country=mailing_address.get("country"),
+                street_address=mailing_address.get("address"),
+                street_address_additional=mailing_address.get("addressLineTwo"),
+                city=mailing_address.get("city"),
+                province=mailing_address.get("province"),
+                postal_code=mailing_address.get("postalCode"),
+            ),
+            brands=platform_brands,
+            representatives=representatives,
         )
+
+        # TODO:
+        attorney_details = None
+
+        platform_registration = PlatformRegistration(platform=platform)
         return platform_registration
 
     @classmethod

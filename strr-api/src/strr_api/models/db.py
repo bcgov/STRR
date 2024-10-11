@@ -37,8 +37,16 @@ These will get initialized by the application using the models
 """
 from flask_sqlalchemy import SQLAlchemy
 from sql_versioning import versioned_session
+from sqlalchemy import MetaData
 
 # by convention in the Flask community these are lower case,
 # whereas pylint wants them upper case
-db = SQLAlchemy()
+
+metadata = MetaData(
+    naming_convention={
+        "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    }
+)
+
+db = SQLAlchemy(metadata=metadata)
 versioned_session(db.session)

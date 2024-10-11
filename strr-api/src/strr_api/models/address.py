@@ -1,8 +1,10 @@
 """Registration model.
 
 """
+
 from __future__ import annotations
 
+from sql_versioning import Versioned
 from sqlalchemy.orm import relationship
 
 from strr_api.models.base_model import BaseModel
@@ -10,7 +12,7 @@ from strr_api.models.base_model import BaseModel
 from .db import db
 
 
-class Address(BaseModel):
+class Address(Versioned, BaseModel):
     """Address"""
 
     __tablename__ = "addresses"

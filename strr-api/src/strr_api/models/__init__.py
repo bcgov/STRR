@@ -41,7 +41,7 @@ from .db import db  # noqa: I001
 from .dss import DSSOrganization
 from .events import Events
 from .ltsa import LTSARecord
-from .platforms import Platform, PlatformBrand, PlatformBusinessDetails, PlatformRegistration, PlatformRepresentative
+from .platforms import Platform, PlatformBrand, PlatformRegistration, PlatformRepresentative
 from .rental import Document, PropertyContact, PropertyListing, Registration, RentalProperty
 from .user import Contact, User
 
@@ -65,7 +65,6 @@ __all__ = (
     "Certificate",
     "Platform",
     "PlatformBrand",
-    "PlatformBusinessDetails",
     "PlatformRegistration",
     "PlatformRepresentative",
 )
