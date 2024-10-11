@@ -42,7 +42,6 @@ from datetime import datetime
 
 from flask import current_app
 from sql_versioning import Versioned
-from sqlalchemy import and_, or_
 from sqlalchemy.orm import relationship
 
 from strr_api.utils.user_context import UserContext, user_context

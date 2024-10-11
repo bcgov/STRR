@@ -28,6 +28,9 @@ MOCK_ACCOUNT_MINIMUM_FIELDS_REQUEST = os.path.join(
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
 )
+CREATE_PLATFORM_REGISTRATION_REQUEST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/platform_registration.json"
+)
 
 ACCOUNT_ID = 1234
 
@@ -248,7 +251,7 @@ def test_get_registration_certificate_401(client):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_registration_by_id(session, client, jwt):
+def test_get_host_registration_by_id(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -270,6 +273,36 @@ def test_get_registration_by_id(session, client, jwt):
         assert response_json.get("header").get("reviewer").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
+        assert response_json.get("header").get("registrationNumber").startswith("BCH")
+        registration_id = response_json.get("header").get("registrationId")
+        rv = client.get(f"/registrations/{registration_id}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_get_platform_registration_by_id(session, client, jwt):
+    with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_id = response_json.get("header").get("id")
+
+        application = Application.find_by_id(application_id=application_id)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("registrationId") is not None
+        assert response_json.get("header").get("registrationNumber") is not None
+        assert response_json.get("header").get("registrationNumber").startswith("BCP")
         registration_id = response_json.get("header").get("registrationId")
         rv = client.get(f"/registrations/{registration_id}", headers=headers)
         assert rv.status_code == HTTPStatus.OK
