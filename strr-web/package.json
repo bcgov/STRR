@@ -1,6 +1,6 @@
 {
   "name": "strr-web",
-  "version": "0.1.28",
+  "version": "0.1.30",
   "description": "Short Term Rental Registration UI - Mono repo workspace",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -22,7 +22,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@iconify/json": "^2.2.191",
     "@nuxt/devtools": "^1.0.8",
     "@nuxt/kit": "3.13.2",
     "@nuxt/test-utils": "^3.14.1",
@@ -51,6 +50,7 @@
   },
   "dependencies": {
     "axios": "^1.6.7",
+    "@iconify/json": "^2.2.191",
     "@braintree/sanitize-url": "^6.0.4",
     "http-status-codes": "^2.3.0",
     "keycloak-js": "^24.0.3",

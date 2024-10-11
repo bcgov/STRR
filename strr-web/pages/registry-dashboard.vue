@@ -10,10 +10,13 @@
     >
       <p class="mb-10">
         {{ tRegistryDashboard('modal.contactInfo.contactUsFirstPart') }}
-        <a :href="`${tRegistryDashboard('modal.contactInfo.informationPageLink')}`">
+        <a
+          :href="`${tRegistryDashboard('modal.contactInfo.informationPageLink')}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {{ tRegistryDashboard('modal.contactInfo.informationPageLabel') }}
-        </a>
-        {{ tRegistryDashboard('modal.contactInfo.contactUsSecondPart') }}
+        </a>{{ tRegistryDashboard('modal.contactInfo.contactUsSecondPart') }}
       </p>
     </InfoModal>
     <UTabs
@@ -65,22 +68,22 @@
       >
         <!-- Only way to do row clicks in NuxtUI currently -->
         <template #application-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationId)">
+          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationNumber)">
             {{ row.applicationNumber }}
           </div>
         </template>
         <template #location-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationId)">
+          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationNumber)">
             {{ row.location }}
           </div>
         </template>
         <template #address-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationId)">
+          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationNumber)">
             {{ row.address }}
           </div>
         </template>
         <template #owner-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationId)">
+          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationNumber)">
             {{ row.owner }}
           </div>
         </template>
@@ -93,7 +96,7 @@
         <template #submission-data="{ row }">
           <div
             class="cursor-pointer w-full"
-            @click="navigateToDetails(row.applicationId)"
+            @click="navigateToDetails(row.applicationNumber)"
           >
             {{ new Date(row.submissionDate).toLocaleDateString('en-US', { dateStyle: 'medium'}) }}
           </div>
@@ -146,7 +149,7 @@ const sortBy = ref<string>('')
 const filterOptions = ref()
 const searchAppInput = ref<string>('')
 
-const DEFAULT_STATUS: ApplicationStatusE = ApplicationStatusE.UNDER_REVIEW
+const DEFAULT_STATUS: ApplicationStatusE = ApplicationStatusE.FULL_REVIEW
 
 const sort = ({ column, direction }: { column: string, direction: string }) => {
   sortBy.value = column.replace(' ', '_').toLocaleUpperCase()
@@ -158,7 +161,7 @@ const sort = ({ column, direction }: { column: string, direction: string }) => {
 const onTabChange = (index: number) => {
   switch (index) {
     case 1:
-      statusFilter.value = ApplicationStatusE.PROVISIONAL
+      statusFilter.value = ApplicationStatusE.PROVISIONALLY_APPROVED
       break
     case 2:
       statusFilter.value = ''
@@ -170,15 +173,15 @@ const onTabChange = (index: number) => {
 }
 
 const updateFilterOptions = async () => {
-  const [applications, underReview, provisionalApproval] = await Promise.all([
+  const [applications, fullReview, provisionalApproval] = await Promise.all([
     getApplications(),
-    getApplicationsByStatus(ApplicationStatusE.UNDER_REVIEW),
-    getApplicationsByStatus(ApplicationStatusE.PROVISIONAL)
+    getApplicationsByStatus(ApplicationStatusE.FULL_REVIEW),
+    getApplicationsByStatus(ApplicationStatusE.PROVISIONALLY_APPROVED)
   ])
 
   filterOptions.value = [
     {
-      label: `${tRegistryDashboard('fullReview')} (${underReview.total})`
+      label: `${tRegistryDashboard('fullReview')} (${fullReview.total})`
     },
     {
       label: `${tRegistryDashboard('provisionalApproval')} (${provisionalApproval.total})`
@@ -217,7 +220,6 @@ const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<
     const { header, registration: { unitAddress, primaryContact } } = application
 
     const row = {
-      applicationId: header.id.toString(),
       applicationNumber: header.applicationNumber,
       location: unitAddress.city,
       address: unitAddress.address,
@@ -226,7 +228,7 @@ const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<
         ${primaryContact.name.middleName ?? ''}
         ${primaryContact.name.lastName}
       `,
-      status: header.status,
+      status: header.examinerStatus || header.status,
       submissionDate: header.applicationDateTime
     }
     rows.push(row)

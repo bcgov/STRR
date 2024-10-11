@@ -1565,6 +1565,17 @@ files = [
 ]
 
 [[package]]
+name = "nanoid"
+version = "2.0.0"
+description = "A tiny, secure, URL-friendly, unique string ID generator for Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "nanoid-2.0.0-py3-none-any.whl", hash = "sha256:90aefa650e328cffb0893bbd4c236cfd44c48bc1f2d0b525ecc53c3187b653bb"},
+    {file = "nanoid-2.0.0.tar.gz", hash = "sha256:5a80cad5e9c6e9ae3a41fa2fb34ae189f7cb420b2a5d8f82bd9d23466e4efa68"},
+]
+
+[[package]]
 name = "nodeenv"
 version = "1.9.1"
 description = "Node.js virtual environment builder"
@@ -2740,7 +2751,7 @@ url = ["furl (>=0.4.1)"]
 
 [[package]]
 name = "strr-api"
-version = "0.0.6"
+version = "0.0.9"
 description = ""
 optional = false
 python-versions = "^3.11"
@@ -2777,7 +2788,7 @@ weasyprint = "^62.3"
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
 reference = "main"
-resolved_reference = "1513feb0ed2a3c51120b9f13e063f68fe7b299e0"
+resolved_reference = "0ae00409f1d51fc657e4039fa439096e829618c2"
 subdirectory = "strr-api"
 
 [[package]]
@@ -3015,4 +3026,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12.2"
-content-hash = "b557ea6273a649a9f4e5036ed95b18c2c9dd43ace4fbde5f70578b3eb41bd2e4"
+content-hash = "4abbc03d85f8e660eef7add1f455d192b62fc97f60232ca195f3816748d5af7e"

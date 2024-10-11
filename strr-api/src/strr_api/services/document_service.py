@@ -33,8 +33,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0913
 # pylint: disable=E1102
-"""Manages registration model interactions."""
-from strr_api.models import Document, Eligibility
+"""Manages document model interactions."""
+from strr_api.models import Document
 from strr_api.services.gcp_storage_service import GCPStorageService
 
 
@@ -63,18 +63,13 @@ class DocumentService:
     @classmethod
     def get_registration_documents(cls, registration_id):
         """Get registration documents by registration id."""
-        return (
-            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
-            .filter(Eligibility.registration_id == registration_id)
-            .all()
-        )
+        return Document.query.filter(Document.registration_id == registration_id).all()
 
     @classmethod
     def get_registration_document(cls, registration_id, document_id):
         """Get registration document by id."""
         return (
-            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
-            .filter(Eligibility.registration_id == registration_id)
+            Document.query.filter(Document.registration_id == registration_id)
             .filter(Document.id == document_id)
             .one_or_none()
         )
@@ -83,8 +78,7 @@ class DocumentService:
     def get_registration_document_by_key(cls, registration_id, file_key):
         """Get registration document by key."""
         return (
-            Document.query.join(Eligibility, Eligibility.id == Document.eligibility_id)
-            .filter(Eligibility.registration_id == registration_id)
+            Document.query.filter(Document.registration_id == registration_id)
             .filter(Document.path == file_key)
             .one_or_none()
         )

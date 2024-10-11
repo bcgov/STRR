@@ -4,8 +4,8 @@ export const useStrrStore = defineStore('strrStore', () => {
   const state = ref({ ...strrStateModel })
 
   // Getters
-  const getApplicationId = computed((): string => {
-    return state.value.applicationId
+  const getApplicationNumber = computed((): string => {
+    return state.value.applicationNumber
   })
 
   const getRegistrationId = computed((): string => {
@@ -21,8 +21,8 @@ export const useStrrStore = defineStore('strrStore', () => {
   })
 
   // Setters
-  function setApplicationId (appNum: string) {
-    state.value.applicationId = appNum
+  function setApplicationNumber (appNum: string) {
+    state.value.applicationNumber = appNum
   }
 
   function setApplicationNickname (appNickname: string) {
@@ -34,11 +34,11 @@ export const useStrrStore = defineStore('strrStore', () => {
   }
 
   return {
-    getApplicationId,
+    getApplicationNumber,
     getApplicationNickname,
     getRegistrationId,
     getRegistrationNumber,
-    setApplicationId,
+    setApplicationNumber,
     setApplicationNickname,
     setRegistrationNumber
   }

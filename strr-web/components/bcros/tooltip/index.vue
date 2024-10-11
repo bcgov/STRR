@@ -4,6 +4,10 @@
     :text="text"
     :popper="popper"
     tabindex="0"
+    :ui="{
+      base: 'whitespace-normal text-xs p-4',
+      rounded: 'rounded'
+    }"
     @focus="showTooltipPopup"
     @blur="closeTooltipPopup"
   >

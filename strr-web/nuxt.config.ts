@@ -4,7 +4,7 @@ import { version } from './package.json'
 export default defineNuxtConfig({
   ssr: false,
   ui: {
-    icons: ['mdi'] // add here more icon sets from iconifiy if needed.
+    icons: ['mdi'] // add here more icon sets from iconify if needed.
   },
   colorMode: {
     preference: 'light'

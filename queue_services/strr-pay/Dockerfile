@@ -35,7 +35,9 @@ ENV APP_ENV=${APP_ENV} \
   POETRY_NO_INTERACTION=1 \
   POETRY_VIRTUALENVS_CREATE=false \
   POETRY_CACHE_DIR='/var/cache/pypoetry' \
-  POETRY_HOME='/usr/local'
+  POETRY_HOME='/usr/local' \
+  POETRY_INSTALLER_PARALLEL=false \
+  POETRY_INSTALLER_MODERN-INSTALLATION=false
 
 SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 

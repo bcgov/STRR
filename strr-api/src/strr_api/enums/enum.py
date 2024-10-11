@@ -76,6 +76,7 @@ class RegistrationStatus(Enum):
     ACTIVE = "ACTIVE"
     EXPIRED = "EXPIRED"
     SUSPENDED = "SUSPENDED"
+    CANCELLED = "CANCELLED"
 
 
 class RegistrationSortBy(Enum):
@@ -131,6 +132,7 @@ class RegistrationType(Enum):
 
     HOST = "HOST"
     PLATFORM = "PLATFORM"
+    STRATA_HOTEL = "STRATA_HOTEL"
 
 
 class ErrorMessage(Enum):

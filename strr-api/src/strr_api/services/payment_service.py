@@ -115,7 +115,7 @@ class PayService:
         if registration_type == RegistrationType.HOST.value:
             filing_type = "RENTAL_FEE"
         if registration_type == RegistrationType.PLATFORM.value:
-            if registration_json.get("platformDetails").get("hasMoreThanThousandListings"):
+            if registration_json.get("platformDetails").get("listingSize") == "GREATER_THAN_THOUSAND":
                 filing_type = "PLATREG_LG"
             else:
                 filing_type = "PLATREG_SM"

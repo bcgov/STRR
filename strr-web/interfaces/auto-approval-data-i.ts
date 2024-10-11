@@ -1,7 +1,7 @@
 export interface AutoApprovalDataI {
   record: {
     id: number,
-    applicationId: number,
+    applicationNumber: string,
     creationDate: string,
     record: {
       renting?: boolean,

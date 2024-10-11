@@ -40,7 +40,8 @@ from .db import db  # noqa: I001
 from .dss import DSSOrganization
 from .events import Events
 from .ltsa import LTSARecord
-from .rental import Address, Document, Eligibility, PropertyManager, Registration, RentalPlatform, RentalProperty
+from .platforms import Platform
+from .rental import Address, Document, PropertyContact, PropertyListing, Registration, RentalProperty
 from .user import Contact, User
 
 __all__ = (
@@ -50,15 +51,15 @@ __all__ = (
     "User",
     "RentalProperty",
     "Address",
-    "PropertyManager",
-    "RentalPlatform",
+    "PropertyContact",
+    "PropertyListing",
     "Registration",
     "Contact",
-    "Eligibility",
     "Document",
     "Events",
     "DSSOrganization",
     "AutoApprovalRecord",
     "LTSARecord",
     "Certificate",
+    "Platform",
 )
