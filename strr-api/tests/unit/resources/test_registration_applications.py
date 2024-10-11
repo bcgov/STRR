@@ -315,15 +315,15 @@ def test_examiner_approve_platform_registration_application(session, client, jwt
         json_data = json.load(f)
         rv = client.post("/applications", json=json_data, headers=headers)
         response_json = rv.json
-        application_id = response_json.get("header").get("id")
+        application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_id(application_id=application_id)
+        application = Application.find_by_application_number(application_number=application_number)
         application.payment_status = PaymentStatus.COMPLETED.value
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_id}/status", json=status_update_request, headers=staff_headers)
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
