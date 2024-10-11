@@ -82,7 +82,7 @@ class Config:  # pylint: disable=too-few-public-methods
 
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-    PAYMENT_SVC_URL = os.getenv("PAYMENT_SVC_URL", "")
+    PAYMENT_SVC_URL = os.getenv("PAY_API_URL", "") + os.getenv("PAY_API_VERSION", "")
 
     SENTRY_DSN = os.getenv("SENTRY_DSN", None)
 
@@ -92,8 +92,8 @@ class Config:  # pylint: disable=too-few-public-methods
     PUBLISHER_AUDIENCE = os.getenv(
         "PUBLISHER_AUDIENCE", "https://pubsub.googleapis.com/google.pubsub.v1.Publisher"
     )
-    SUB_AUDIENCE = os.getenv("SUB_AUDIENCE", "")
-    SUB_SERVICE_ACCOUNT = os.getenv("SUB_SERVICE_ACCOUNT", "")
+    # SUB_AUDIENCE = os.getenv("SUB_AUDIENCE", "")
+    # SUB_SERVICE_ACCOUNT = os.getenv("SUB_SERVICE_ACCOUNT", "")
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
