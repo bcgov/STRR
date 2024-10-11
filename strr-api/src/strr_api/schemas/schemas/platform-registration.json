@@ -39,29 +39,52 @@
         "legalName": {
           "type": "string"
         },
-        "placeOfIncorporation": {
+        "homeJurisdiction": {
           "type": "string"
         },
         "businessNumber": {
           "type": "string"
         },
-        "aliases": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "consumerProtectionBCLicenceNumber": {
+          "type": "string"
+        },
+        "noticeOfNonComplianceEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "noticeOfNonComplianceOptionalEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "takeDownRequestEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "takeDownRequestOptionalEmail": {
+          "type": "string",
+          "format": "email"
         },
         "mailingAddress": {
           "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
+        },
+        "registeredOfficeOrAttorneyForServiceDetails": {
+          "attorneyName": {
+            "type": "string"
+          },
+          "mailingAddress": {
+            "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
+          }
         }
       },
       "required": [
         "legalName",
-        "placeOfIncorporation",
-        "mailingAddress"
+        "homeJurisdiction",
+        "mailingAddress",
+        "noticeOfNonComplianceEmail",
+        "takeDownRequestEmail"
       ]
     },
-    "platformProvider": {
+    "brand": {
       "type": "object",
       "properties": {
         "name": {
@@ -78,7 +101,7 @@
     }
   },
   "properties": {
-    "registrant": {
+    "completingParty": {
       "$ref": "#/definitions/contact"
     },
     "platformRepresentatives": {
@@ -93,19 +116,23 @@
     "platformDetails": {
       "type": "object",
       "properties": {
-        "providers": {
+        "brands": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/platformProvider"
+            "$ref": "#/definitions/brand"
           }
         },
-        "hasMoreThanThousandListings": {
-          "type": "boolean"
+        "listingSize": {
+          "type": "string",
+          "enum": [
+            "GREATER_THAN_THOUSAND",
+            "LESS_THAN_THOUSAND"
+          ]
         }
       },
       "required": [
-        "providers",
-        "hasMoreThanThousandListings"
+        "brands",
+        "listingSize"
       ]
     }
   },

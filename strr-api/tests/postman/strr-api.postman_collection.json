@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "aed175e2-ba6d-40a9-a291-a494fcbbf991",
+		"_postman_id": "bfb9867f-e6b8-4175-a215-6f7087c19144",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -22,7 +22,7 @@
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.environment.set(\"application_id\",jsonData.header.id)"
+									"pm.environment.set(\"application_number\",jsonData.header.applicationNumber)"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -82,7 +82,7 @@
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.environment.set(\"application_id\",jsonData.header.id)"
+									"pm.environment.set(\"application_number\",jsonData.header.applicationNumber)"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -110,7 +110,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"registration\": {\n    \"registrationType\": \"PLATFORM\",\n    \"registrant\": {\n      \"firstName\": \"Test\",\n      \"lastName\": \"Test\",\n      \"phoneNumber\": \"604-999-9999\",\n      \"extension\": \"x64\",\n      \"faxNumber\": \"604-777-7777\",\n      \"emailAddress\": \"test@test.test\"\n    },\n    \"platformRepresentatives\": [\n      {\n        \"firstName\": \"Test\",\n        \"lastName\": \"Test\",\n        \"phoneNumber\": \"123-456-8970\",\n        \"extension\": \"x64\",\n        \"faxNumber\": \"604-777-7777\",\n        \"emailAddress\": \"test@test.test\",\n        \"jobTitle\": \"Sales Manager\"\n      },\n      {\n        \"firstName\": \"Test\",\n        \"lastName\": \"Test\",\n        \"phoneNumber\": \"604-999-9999\",\n        \"extension\": \"x64\",\n        \"faxNumber\": \"604-777-7777\",\n        \"emailAddress\": \"test@test.test\",\n        \"jobTitle\": \"Sales Manager\"\n      }\n    ],\n    \"businessDetails\": {\n      \"legalName\": \"Test Business\",\n      \"placeOfIncorporation\": \"Vancouver\",\n      \"businessNumber\": \"BN12345\",\n      \"aliases\": [\n        \"Business A\",\n        \"Business B\"\n      ],\n      \"mailingAddress\": {\n        \"country\": \"CA\",\n        \"address\": \"12766 227st\",\n        \"addressLineTwo\": \"\",\n        \"city\": \"MAPLE RIDGE\",\n        \"province\": \"BC\",\n        \"postalCode\": \"V2X 6K6\"\n      }\n    },\n    \"platformDetails\": {\n      \"providers\": [\n        {\n          \"name\": \"Provider A\",\n          \"website\": \"http://abc.com\"\n        },\n        {\n          \"name\": \"Provider B\",\n          \"website\": \"http://xyz.com\"\n        }\n      ],\n      \"hasMoreThanThousandListings\": true\n    }\n  }\n}",
+							"raw": "{\n    \"registration\": {\n        \"registrationType\": \"PLATFORM\",\n        \"completingParty\": {\n            \"firstName\": \"Test\",\n            \"lastName\": \"Test\",\n            \"phoneNumber\": \"604-999-9999\",\n            \"extension\": \"x64\",\n            \"faxNumber\": \"604-777-7777\",\n            \"emailAddress\": \"test@test.test\"\n        },\n        \"platformRepresentatives\": [\n            {\n                \"firstName\": \"Test\",\n                \"lastName\": \"Test\",\n                \"phoneNumber\": \"123-456-8970\",\n                \"extension\": \"x64\",\n                \"faxNumber\": \"604-777-7777\",\n                \"emailAddress\": \"test@test.test\",\n                \"jobTitle\": \"Sales Manager\"\n            },\n            {\n                \"firstName\": \"Test\",\n                \"lastName\": \"Test\",\n                \"phoneNumber\": \"604-999-9999\",\n                \"extension\": \"x64\",\n                \"faxNumber\": \"604-777-7777\",\n                \"emailAddress\": \"test@test.test\",\n                \"jobTitle\": \"Sales Manager\"\n            }\n        ],\n        \"businessDetails\": {\n            \"legalName\": \"Test Business\",\n            \"homeJurisdiction\": \"Vancouver\",\n            \"businessNumber\": \"BN12345\",\n            \"consumerProtectionBCLicenceNumber\": \"1234\",\n            \"noticeOfNonComplianceEmail\": \"test@test.test\",\n            \"noticeOfNonComplianceOptionalEmail\": \"test@test.test\",\n            \"takeDownRequestEmail\": \"test@test.test\",\n            \"takeDownRequestOptionalEmail\": \"test@test.test\",\n            \"mailingAddress\": {\n                \"country\": \"CA\",\n                \"address\": \"12766 227st\",\n                \"addressLineTwo\": \"\",\n                \"city\": \"MAPLE RIDGE\",\n                \"province\": \"BC\",\n                \"postalCode\": \"V2X 6K6\"\n            },\n            \"registeredOfficeOrAttorneyForServiceDetails\": {\n                \"attorneyName\": \"Test\",\n                \"mailingAddress\": {\n                    \"country\": \"CA\",\n                    \"address\": \"12766 227st\",\n                    \"addressLineTwo\": \"\",\n                    \"city\": \"MAPLE RIDGE\",\n                    \"province\": \"BC\",\n                    \"postalCode\": \"V2X 6K6\"\n                }\n            }\n        },\n        \"platformDetails\": {\n            \"brands\": [\n                {\n                    \"name\": \"Provider A\",\n                    \"website\": \"http://abc.com\"\n                },\n                {\n                    \"name\": \"Provider B\",\n                    \"website\": \"http://xyz.com\"\n                }\n            ],\n            \"listingSize\": \"GREATER_THAN_THOUSAND\"\n        }\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -151,13 +151,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/payment-details",
+							"raw": "{{api_url}}/applications/{{application_number}}/payment-details",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"payment-details"
 							]
 						}
@@ -251,13 +251,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}",
+							"raw": "{{api_url}}/applications/{{application_number}}",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}"
+								"{{application_number}}"
 							]
 						}
 					},
@@ -279,13 +279,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/events",
+							"raw": "{{api_url}}/applications/{{application_number}}/events",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"events"
 							]
 						}
@@ -324,13 +324,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/ltsa",
+							"raw": "{{api_url}}/applications/{{application_number}}/ltsa",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"ltsa"
 							]
 						}
@@ -369,13 +369,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/auto-approval-records",
+							"raw": "{{api_url}}/applications/{{application_number}}/auto-approval-records",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"auto-approval-records"
 							]
 						}
@@ -407,13 +407,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/status",
+							"raw": "{{api_url}}/applications/{{application_number}}/status",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"status"
 							]
 						}
@@ -445,13 +445,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/status",
+							"raw": "{{api_url}}/applications/{{application_number}}/status",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"status"
 							]
 						}
@@ -508,13 +508,13 @@
 							]
 						},
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/documents",
+							"raw": "{{api_url}}/applications/{{application_number}}/documents",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"documents"
 							]
 						}
@@ -544,13 +544,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/documents/{{file_key}}",
+							"raw": "{{api_url}}/applications/{{application_number}}/documents/{{file_key}}",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"documents",
 								"{{file_key}}"
 							]
@@ -594,13 +594,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/documents/{{file_key}}",
+							"raw": "{{api_url}}/applications/{{application_number}}/documents/{{file_key}}",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"documents",
 								"{{file_key}}"
 							]
@@ -721,13 +721,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/payment/receipt",
+							"raw": "{{api_url}}/applications/{{application_number}}/payment/receipt",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"payment",
 								"receipt"
 							]
@@ -765,13 +765,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_id}}/status",
+							"raw": "{{api_url}}/applications/{{application_number}}/status",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"{{application_id}}",
+								"{{application_number}}",
 								"status"
 							]
 						}

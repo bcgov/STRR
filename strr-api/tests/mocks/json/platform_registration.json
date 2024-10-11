@@ -1,63 +1,75 @@
 {
-  "registration": {
-    "registrationType": "PLATFORM",
-    "registrant": {
-      "firstName": "Test",
-      "lastName": "Test",
-      "phoneNumber": "604-999-9999",
-      "extension": "x64",
-      "faxNumber": "604-777-7777",
-      "emailAddress": "test@test.test"
-    },
-    "platformRepresentatives": [
-      {
-        "firstName": "Test",
-        "lastName": "Test",
-        "phoneNumber": "123-456-8970",
-        "extension": "x64",
-        "faxNumber": "604-777-7777",
-        "emailAddress": "test@test.test",
-        "jobTitle": "Sales Manager"
-      },
-      {
-        "firstName": "Test",
-        "lastName": "Test",
-        "phoneNumber": "604-999-9999",
-        "extension": "x64",
-        "faxNumber": "604-777-7777",
-        "emailAddress": "test@test.test",
-        "jobTitle": "Sales Manager"
-      }
-    ],
-    "businessDetails": {
-      "legalName": "Test Business",
-      "placeOfIncorporation": "Vancouver",
-      "businessNumber": "BN12345",
-      "aliases": [
-        "Business A",
-        "Business B"
-      ],
-      "mailingAddress": {
-        "country": "CA",
-        "address": "12766 227st",
-        "addressLineTwo": "",
-        "city": "MAPLE RIDGE",
-        "province": "BC",
-        "postalCode": "V2X 6K6"
-      }
-    },
-    "platformDetails": {
-      "providers": [
-        {
-          "name": "Provider A",
-          "website": "http://abc.com"
+    "registration": {
+        "registrationType": "PLATFORM",
+        "completingParty": {
+            "firstName": "Test",
+            "lastName": "Test",
+            "phoneNumber": "604-999-9999",
+            "extension": "x64",
+            "faxNumber": "604-777-7777",
+            "emailAddress": "test@test.test"
         },
-        {
-          "name": "Provider B",
-          "website": "http://xyz.com"
+        "platformRepresentatives": [
+            {
+                "firstName": "Test",
+                "lastName": "Test",
+                "phoneNumber": "123-456-8970",
+                "extension": "x64",
+                "faxNumber": "604-777-7777",
+                "emailAddress": "test@test.test",
+                "jobTitle": "Sales Manager"
+            },
+            {
+                "firstName": "Test",
+                "lastName": "Test",
+                "phoneNumber": "604-999-9999",
+                "extension": "x64",
+                "faxNumber": "604-777-7777",
+                "emailAddress": "test@test.test",
+                "jobTitle": "Sales Manager"
+            }
+        ],
+        "businessDetails": {
+            "legalName": "Test Business",
+            "homeJurisdiction": "Vancouver",
+            "businessNumber": "BN12345",
+            "consumerProtectionBCLicenceNumber": "1234",
+            "noticeOfNonComplianceEmail": "test@test.test",
+            "noticeOfNonComplianceOptionalEmail": "test@test.test",
+            "takeDownRequestEmail": "test@test.test",
+            "takeDownRequestOptionalEmail": "test@test.test",
+            "mailingAddress": {
+                "country": "CA",
+                "address": "12766 227st",
+                "addressLineTwo": "",
+                "city": "MAPLE RIDGE",
+                "province": "BC",
+                "postalCode": "V2X 6K6"
+            },
+            "registeredOfficeOrAttorneyForServiceDetails": {
+                "attorneyName": "Test",
+                "mailingAddress": {
+                    "country": "CA",
+                    "address": "12766 227st",
+                    "addressLineTwo": "",
+                    "city": "MAPLE RIDGE",
+                    "province": "BC",
+                    "postalCode": "V2X 6K6"
+                }
+            }
+        },
+        "platformDetails": {
+            "brands": [
+                {
+                    "name": "Provider A",
+                    "website": "http://abc.com"
+                },
+                {
+                    "name": "Provider B",
+                    "website": "http://xyz.com"
+                }
+            ],
+            "listingSize": "GREATER_THAN_THOUSAND"
         }
-      ],
-      "hasMoreThanThousandListings": true
     }
-  }
 }

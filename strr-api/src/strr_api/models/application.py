@@ -235,7 +235,6 @@ class ApplicationSerializer:
         application_dict = copy.deepcopy(application.application_json)
         if not application_dict.get("header", None):
             application_dict["header"] = {}
-        application_dict["header"]["id"] = application.id
         application_dict["header"]["applicationNumber"] = application.application_number
         application_dict["header"]["name"] = application.type
         application_dict["header"]["paymentToken"] = application.invoice_id

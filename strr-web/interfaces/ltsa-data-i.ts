@@ -1,7 +1,7 @@
 export interface LtsaDataI {
   record: {
     id: number,
-    applicationId: number,
+    applicationNumber: string,
     creationDate: string,
     record: {
       titleStatus: string,

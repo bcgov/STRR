@@ -12,11 +12,9 @@ const DEFAULT_REFRESH_MIN_VALIDITY = 120
 /** Manages bcros keycloak authentication service data and flows */
 export const useBcrosKeycloak = defineStore('bcros/keycloak', () => {
   const kc: Ref<Keycloak> = ref({} as Keycloak)
-  const isExaminer: Ref<boolean> = ref(false)
 
   const kcUser = computed((): KCUserI => {
     if (kc.value?.tokenParsed) {
-      if (kc.value.tokenParsed.loginSource === 'IDIR') { isExaminer.value = true }
       return {
         firstName: kc.value.tokenParsed.firstname,
         lastName: kc.value.tokenParsed.lastname,
@@ -33,6 +31,7 @@ export const useBcrosKeycloak = defineStore('bcros/keycloak', () => {
   const kcUserKeycloakGuid = computed(() => kcUser.value.keycloakGuid)
   const kcUserLoginSource = computed(() => kcUser.value.loginSource)
   const kcUserRoles = computed(() => kcUser.value.roles || [])
+  const isExaminer = computed(() => kcUser.value.loginSource === 'IDIR')
 
   function clearSession () {
     kc.value = {} as Keycloak
@@ -63,7 +62,7 @@ export const useBcrosKeycloak = defineStore('bcros/keycloak', () => {
     idToken?: string,
     idpHint?: string,
     forceLogin?: boolean
-  ) {
+  ): Promise<boolean> {
     kc.value = new Keycloak(config)
     forceLogin = true
     if (kc.value) {

@@ -17,7 +17,7 @@ export const mockApplicationApproved: ApplicationI = {
       displayName: 'Joe Smith',
       username: 'joes@idir'
     },
-    status: ApplicationStatusE.APPROVED,
+    status: ApplicationStatusE.AUTO_APPROVED,
     submitter: {
       displayName: 'BCREGTEST TWENTYFIVE',
       username: 'bcsc/sdfasdfasdf'
@@ -51,9 +51,11 @@ export const mockApplicationApproved: ApplicationI = {
       socialInsuranceNumber: '111 222 333'
     },
     principalResidence: {
-      isPrincipal: undefined,
-      declaration: false,
-      agreeToSubmit: false
+      isPrincipalResidence: true,
+      nonPrincipalOption: 'Some Option',
+      specifiedServiceProvider: 'Some Service Provider',
+      agreedToRentalAct: true,
+      agreedToSubmit: true
     },
     unitAddress: {
       address: '123 Main St',

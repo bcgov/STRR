@@ -1,5 +1,5 @@
 export const strrStateModel = {
-  applicationId: '',
+  applicationNumber: '',
   applicationNickname: '',
   registrationId: '',
   registrationNumber: ''
