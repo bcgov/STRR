@@ -288,11 +288,18 @@
       "onlineListingDetails": "Online Listing Details",
       "webLinkInfo": "Add the web link for your listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).",
       "rentalUnitAddress": "Rental Unit Address",
-      "primaryDwelling": "All or part of primary dwelling",
-      "secondarySuite": "Secondary suite",
-      "accessory": "Accessory dwelling unit",
-      "float": "Float home",
-      "other": "Other",
+
+      // New dropdown options
+      "singleFamilyHome": "Single Family Home",
+      "secondarySuite": "Secondary Suite",
+      "accessoryDwelling": "Accessory Dwelling Unit",
+      "townhome": "Townhome",
+      "multiUnitHousing": "Small scale, multi-unit housing (e.g., duplex, triplex)",
+      "condoApartment": "Condo or apartment",
+      "recreationalProperty": "Recreational property (e.g., cabin, cottage)",
+      "bedAndBreakfast": "Bed and Breakfast",
+      "strataHotel": "Strata hotel",
+      "floatHome": "Float home",
       "rent": "Rent",
       "own": "Own",
       "coOwn": "Co-own"
