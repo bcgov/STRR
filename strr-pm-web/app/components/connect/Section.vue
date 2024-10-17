@@ -1,31 +1,29 @@
 <script setup lang="ts">
-const { title, optional, divider, className } = defineProps<{
+defineProps<{
   title?: string
   optional?: boolean
-  divider?: boolean
   className?: string
+  error?: boolean
 }>()
-
-const { t } = useI18n()
 </script>
 <template>
   <div
     data-testid="form-section"
-    :class="`${className} mt-[40px] mobile:mt-[20px] ml-[40px] mr-[20px] mobile:mx-[8px]`"
+    class="px-4 md:px-10"
+    :class="[className, error ? 'border-l-2 border-red-600' : '']"
   >
     <div class="flex flex-col sm:flex-row">
       <div v-if="title" class="w-[200px]">
-        <p class="mb-[8px] sm:mb-0 sm:font-bold">
+        <p class="mb-2 sm:mb-0 sm:font-bold" :class="error ? 'text-red-600' : ''">
           {{ title }}
         </p>
         <p v-if="optional">
-          {{ t('general.optional') }}
+          {{ $t('general.optional') }}
         </p>
       </div>
       <div class="w-full sm:pl-5">
         <slot />
       </div>
     </div>
-    <div v-if="divider" class="hidden h-px w-full bg-bcGovGray-300 sm:block" />
   </div>
 </template>

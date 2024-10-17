@@ -21,6 +21,9 @@ export default defineAppConfig({
         }
       }
     },
+    radioGroup: {
+      wrapper: 'max-w-bcGovInput'
+    },
     select: {
       color: {
         red: {
@@ -37,6 +40,21 @@ export default defineAppConfig({
         selected: 'text-primary-500 bg-gray-100 pe-0',
         container: 'w-full',
         empty: 'text-gray-700'
+      }
+    },
+    textarea: {
+      base: 'bg-gray-100 hover:bg-gray-200 border-b text-gray-900 focus:border-b-2 h-20 hover:bg-gray-200',
+      rounded: 'rounded-none rounded-t',
+      color: {
+        gray: {
+          outline: 'border-gray-900 placeholder-gray-700 ring-0 focus:ring-0 focus:placeholder-primary-500'
+        },
+        primary: {
+          outline: 'bg-primary-50 border-primary-500 text-gray-900 ring-0 focus:ring-0'
+        },
+        red: {
+          outline: 'bg-red-50 border-red-600 placeholder-red-600 ring-0 focus:ring-0'
+        }
       }
     },
     tooltip: {

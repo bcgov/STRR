@@ -11,31 +11,27 @@ const radioOptions = [
   { value: ListingSize.THOUSAND_OR_MORE, label: tPlat('text.thousandOrMore') },
   { value: ListingSize.UNDER_THOUSAND, label: tPlat('text.lessThanThousand') }]
 
-const platformBrandRef = ref()
-watch(platformBrandRef, (val) => {
-  if (val && isComplete) {
-    val.validate()
-  }
-})
 </script>
 
 <template>
   <div data-testid="platform-details">
     <ConnectPageSection
       class="bg-white"
-      :heading="{ label: tPlat('section.title.details'), labelClass: 'ml-6 font-bold' }"
+      :heading="{ label: tPlat('section.title.details'), labelClass: 'font-bold md:ml-6' }"
     >
       <UForm
-        ref="platformBrandRef"
         :state="platformDetails"
         :schema="platformDetailsSchema"
-        class="space-y-10 pb-10"
+        class="space-y-10 py-10"
       >
         <div
           v-for="brand, i in platformDetails.brands"
           :key="'brand' + i"
         >
-          <ConnectSection :title="tPlat('section.subTitle.brand') + ((i > 0) ? ` ${ i + 1 }` : '')">
+          <ConnectSection
+            :title="tPlat('section.subTitle.brand') + ((i > 0) ? ` ${ i + 1 }` : '')"
+            :error="isComplete && (!platformDetails.brands[i]?.name || !platformDetails.brands[i]?.website)"
+          >
             <div class="space-y-5">
               <div class="flex flex-col gap-5 sm:flex-row-reverse">
                 <div>
@@ -52,30 +48,28 @@ watch(platformBrandRef, (val) => {
                 <div class="grow space-y-5">
                   <UFormGroup
                     :aria-label="(i > 0) ? tPlat('label.brandNameOpt') : tPlat('label.brandName')"
+                    :help="tPlat('hint.brandName')"
                     :name="`brands.${i}.brandName`"
                     :error="isComplete && !brand.name ? 'Required' : ''"
                   >
                     <ConnectField
                       :id="'platform-brand-name-' + i"
                       v-model="brand.name"
-                      :help="tPlat('hint.brandName')"
-                      :name="`brands.element.test`"
                       :placeholder="(i > 0) ? tPlat('label.brandNameOpt') : tPlat('label.brandName')"
                       :wrap-with-form-grp="false"
                     />
                   </UFormGroup>
                   <UFormGroup
                     :aria-label="(i > 0) ? tPlat('label.brandSiteOpt') : tPlat('label.brandSite')"
+                    :help="tPlat('hint.brandSite')"
                     :name="`brands.${i}.website`"
                     :error="isComplete && !brand.website ? 'Required' : ''"
                   >
                     <ConnectField
                       :id="'platform-brand-site-' + i"
                       v-model="brand.website"
-                      :help="tPlat('hint.brandSite')"
                       name="website"
                       :placeholder="(i > 0) ? tPlat('label.brandSiteOpt') : tPlat('label.brandSite')"
-                      :wrap-with-form-grp="false"
                     />
                   </UFormGroup>
                 </div>
@@ -93,11 +87,11 @@ watch(platformBrandRef, (val) => {
           </ConnectSection>
         </div>
         <div class="h-px w-full border-b border-gray-100" />
-        <ConnectSection :title="tPlat('section.subTitle.size')">
+        <ConnectSection :title="tPlat('section.subTitle.size')" :error="!platformDetails.listingSize">
           <URadioGroup
             v-model="platformDetails.listingSize"
             class="p-1"
-            :class="isComplete && !platformDetails.listingSize ? 'border-red-600 border-2' : ''"
+            :class="!platformDetails.listingSize ? 'border-red-600 border-2' : ''"
             :legend="tPlat('text.listingSize')"
             :options="radioOptions"
             :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"

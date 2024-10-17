@@ -59,7 +59,7 @@ watch(secondForm, () => {
   <div data-testid="contact-information" class="space-y-10">
     <ConnectPageSection
       class="bg-white"
-      :heading="{ label: t('createAccount.contact.subtitle'), labelClass: 'ml-6 font-bold' }"
+      :heading="{ label: t('createAccount.contact.subtitle'), labelClass: 'font-bold md:ml-6' }"
     >
       <UForm
         ref="form"
@@ -126,7 +126,7 @@ watch(secondForm, () => {
     <ConnectPageSection
       v-else
       class="bg-white"
-      :heading="{ label: t('createAccount.contact.secondaryContactInfo'), labelClass: 'ml-6 font-bold' }"
+      :heading="{ label: t('createAccount.contact.secondaryContactInfo'), labelClass: 'font-bold md:ml-6' }"
     >
       <template #header>
         <div class="flex">

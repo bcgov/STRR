@@ -6,6 +6,10 @@ const businessNumber = defineModel<string>('businessNumber')
 
 const { isPrimary } = defineProps<{ isPrimary: boolean }>()
 
+const sinLabel = computed(() => isPrimary
+  ? t('createAccount.contactForm.socialInsuranceNumber')
+  : t('createAccount.contactForm.socialInsuranceNumberOptional'))
+
 </script>
 <template>
   <div class="space-y-5" data-testid="form-section-cra-info">
@@ -15,13 +19,9 @@ const { isPrimary } = defineProps<{ isPrimary: boolean }>()
           v-model="socialInsuranceNumber"
           :color="socialInsuranceNumber ? 'primary' : 'gray'"
           type="text"
-          aria-label="social insurance number"
           size="lg"
-          :placeholder="
-            `${isPrimary
-              ? t('createAccount.contactForm.socialInsuranceNumber')
-              : t('createAccount.contactForm.socialInsuranceNumberOptional')}`
-          "
+          :aria-label="sinLabel"
+          :placeholder="sinLabel"
         />
       </UFormGroup>
     </div>
@@ -32,7 +32,7 @@ const { isPrimary } = defineProps<{ isPrimary: boolean }>()
           :color="businessNumber ? 'primary' : 'gray'"
           size="lg"
           type="text"
-          aria-label="business number"
+          :aria-label="t('createAccount.contactForm.businessNumber')"
           :placeholder="t('createAccount.contactForm.businessNumber')"
         />
       </UFormGroup>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useWindowSize } from '@vueuse/core'
 
 const { t } = useI18n()
 
@@ -30,13 +31,12 @@ const feeItems = computed<ConnectFeeItem[]>(() => {
 // folding stuff
 const folded = ref(false)
 
-const { width } = useScreenSize()
-const isFoldable = computed(() => {
-  const threshold = width.value < 1024
-  if (!threshold) {
+const { width } = useWindowSize()
+const isFoldable = computed(() => width.value < 1024)
+watch(isFoldable, (val) => {
+  if (!val) {
     folded.value = false
   }
-  return threshold
 })
 
 const toggleFolded = () => {
@@ -51,31 +51,33 @@ const toggleFolded = () => {
     data-testid="fee-widget"
     class="z-10 mr-5 w-full rounded bg-white shadow-md lg:mr-0 lg:w-[320px]"
   >
-    <div
-      :class="`
-        ${folded ? 'rounded' : 'rounded-t'}
-        px-[15px] py-[10px] pt-[10px] bg-midnightBlue-900 flex flex-row justify-between
-        cursor-pointer lg:cursor-auto
-        `
-      "
+    <UButton
+      :tabindex="isFoldable ? 0 : -1"
+      :role="isFoldable ? 'button' : 'title'"
+      class="flex w-full bg-midnightBlue-900 py-2 pl-4 text-lg font-bold transition-all"
+      :class="[folded ? 'rounded' : 'rounded-b-none rounded-t', isFoldable ? '' : 'pointer-events-none']"
+      :aria-label="$t('feeSummary.title')"
+      :label="$t('feeSummary.title')"
       @click="toggleFolded"
     >
-      <p class="font-bold text-white">
-        {{ t("feeSummary.title") }}
-      </p>
-      <div class="flex lg:hidden">
-        <img
-          src="/icons/caret.svg"
-          alt="Toggle fee widget shown"
-          :class="`cursor-pointer transition-all ${folded ? 'rotate-180': ''}`"
-        >
-      </div>
-    </div>
-    <div :class="`transition-all ${folded ? 'h-[0px] overflow-hidden p-[0px]': 'px-[15px] pb-[10px] '}`">
+      <template #trailing>
+        <div class="flex grow justify-end pr-1">
+          <UIcon
+            v-if="isFoldable"
+            class="size-7"
+            :name="folded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-up'"
+          />
+        </div>
+      </template>
+    </UButton>
+    <div
+      class="text-sm transition-all"
+      :class="folded ? 'h-[0px] overflow-hidden': 'px-4 pt-1'"
+    >
       <div
         v-for="feeItem in feeItems"
         :key="feeItem.filingTypeCode"
-        class="flex flex-row justify-between border-b border-bcGovGray-300 py-[10px]"
+        class="flex flex-row justify-between border-b border-bcGovGray-300 py-3"
       >
         <p class="font-bold">
           {{ t(`feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}
@@ -123,7 +125,7 @@ const toggleFolded = () => {
         :fee="totalGst"
         :show-fee-value="isPlaceholderActive"
       />
-      <div class="flex flex-row items-end justify-between py-[10px] text-sm" aria-label="null">
+      <div class="flex flex-row items-end justify-between py-3" aria-label="null">
         <p class="mb-1 font-bold">
           {{ t("feeSummary.total") }}
         </p>

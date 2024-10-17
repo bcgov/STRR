@@ -130,12 +130,12 @@ const addressComplete = () => {
         />
       </UFormGroup>
     </div>
-    <UFormGroup v-slot="{ error }" :name="schemaPrefix + 'locationDescription'">
+    <UFormGroup :name="schemaPrefix + 'locationDescription'">
       <UTextarea
         v-model="locationDescription"
         :placeholder="$t('label.locationDescription')"
+        :color="locationDescription ? 'primary' : 'gray'"
         class="w-full"
-        :variant="error ? 'error' : 'bcGov'"
         data-testid="address-location-description"
       />
     </UFormGroup>

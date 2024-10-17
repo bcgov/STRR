@@ -333,7 +333,7 @@ export default {
       rentalUnitDetails: 'Rental Unit Details',
       internetListingDetails: 'Internet Listing Details',
       rentalUnitAddress: 'Rental Unit Address',
-      platformUrl: 'Paltform URL',
+      platformUrl: 'Platform URL',
       primaryDwelling: 'All or part of primary dwelling',
       secondarySuite: 'Secondary suite',
       accessory: 'Accessory dwelling unit',

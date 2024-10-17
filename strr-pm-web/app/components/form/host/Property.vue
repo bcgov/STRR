@@ -62,7 +62,7 @@ watch(canadaPostAddress, (newAddress) => {
   <div data-testid="property-information">
     <ConnectPageSection
       class="bg-white"
-      :heading="{ label: t('createAccount.propertyForm.subtitle'), labelClass: 'ml-6 font-bold' }"
+      :heading="{ label: t('createAccount.propertyForm.subtitle'), labelClass: 'font-bold md:ml-6' }"
     >
       <UForm
         ref="propertyForm"
@@ -72,7 +72,7 @@ watch(canadaPostAddress, (newAddress) => {
       >
         <ConnectSection :title="t('createAccount.propertyForm.rentalUnitAddress')">
           <div class="max-w-bcGovInput space-y-5">
-            <ConnectField
+            <ConnectFieldGroup
               id="property-nickname"
               v-model="property.nickname"
               name="nickname"
@@ -94,13 +94,13 @@ watch(canadaPostAddress, (newAddress) => {
         </ConnectSection>
         <ConnectSection :title="t('createAccount.propertyForm.rentalUnitDetails')">
           <div class="max-w-bcGovInput space-y-5">
-            <ConnectField
+            <ConnectFieldGroup
               id="parcel-itentifier"
               v-model="property.parcelIdentifier"
               name="parcelIdentifier"
               :placeholder="$t('createAccount.propertyForm.parcelIdentifier')"
             />
-            <ConnectField
+            <ConnectFieldGroup
               id="business-license"
               v-model="property.businessLicense"
               name="businessLicense"
@@ -144,7 +144,7 @@ watch(canadaPostAddress, (newAddress) => {
         </ConnectSection>
         <ConnectSection :title="t('createAccount.propertyForm.internetListingDetails')">
           <div name="whichPlatform" class="space-y-5">
-            <ConnectField
+            <ConnectFieldGroup
               id="platform-url"
               v-model="property.whichPlatform"
               name="whichPlatform"

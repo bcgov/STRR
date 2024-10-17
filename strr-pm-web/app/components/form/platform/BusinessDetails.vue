@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { t } = useI18n()
-
 const tPlat = (path: string) => t(`platform.${path}`)
 
 const { isComplete } = defineProps<{ isComplete: boolean }>()
@@ -11,6 +10,8 @@ const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 const radioOptions = [
   { value: true, label: t('word.Yes') },
   { value: false, label: t('word.No') }]
+
+// data manipulation stuff
 
 watch(() => platformBusiness.value.hasCpbc, () => {
   platformBusiness.value.cpbcLicenceNumber = ''
@@ -30,12 +31,52 @@ watch(() => platformBusiness.value.mailingAddress, (val) => {
   }
 }, { deep: true })
 
+// form validation / error styling
+
+const showErrorBusIds = ref(false)
+const showErrorBusAddr = ref(false)
+const showErrorRegOffAtt = ref(false)
+const showErrorNonComp = ref(false)
+const showErrorTakedownReq = ref(false)
+
 const platformBusinessRef = ref()
-watch(platformBusinessRef, (val) => {
-  if (val && isComplete) {
-    val.validate()
+
+const formHasErrors = (paths: string[]) => {
+  for (const path of paths) {
+    // @ts-ignore
+    if (platformBusinessRef.value.getErrors(path)?.length) {
+      return true
+    }
   }
-})
+  return false
+}
+
+const validateForm = async () => {
+  if (platformBusinessRef.value && isComplete) {
+    try {
+      await platformBusinessRef.value.validate()
+    } catch (e) {
+      console.info(e)
+    }
+    showErrorBusIds.value = platformBusiness.value.hasCpbc === undefined ||
+      formHasErrors(['legalName', 'homeJurisdiction', 'cpbcLicenceNumber'])
+    showErrorBusAddr.value = formHasErrors([
+      'mailingAddress.country',
+      'mailingAddress.street',
+      'mailingAddress.city',
+      'mailingAddress.region',
+      'mailingAddress.postalCode'
+    ])
+    showErrorRegOffAtt.value = formHasErrors(['regOfficeOrAtt'])
+    showErrorNonComp.value = formHasErrors(['nonComplianceEmail'])
+    showErrorTakedownReq.value = formHasErrors(['takeDownEmail'])
+  }
+}
+
+watch(platformBusinessRef, validateForm)
+watch(platformBusiness, validateForm, { deep: true })
+
+// address stuff
 
 const {
   activeAddressField,
@@ -76,17 +117,17 @@ watch(canadaPostAddress, (newAddress) => {
   <div data-testid="business-details">
     <ConnectPageSection
       class="bg-white"
-      :heading="{ label: tPlat('section.title.businessInfo'), labelClass: 'ml-6 font-bold' }"
+      :heading="{ label: tPlat('section.title.businessInfo'), labelClass: 'font-bold md:ml-6' }"
     >
       <UForm
         ref="platformBusinessRef"
         :schema="businessdetailsSchema"
         :state="platformBusiness"
-        class="space-y-10 pb-10"
+        class="space-y-10 py-10"
       >
-        <ConnectSection :title="tPlat('section.subTitle.businessIds')">
+        <ConnectSection :title="tPlat('section.subTitle.businessIds')" :error="showErrorBusIds">
           <div class="space-y-5">
-            <ConnectField
+            <ConnectFieldGroup
               id="platform-business-legal-name"
               v-model="platformBusiness.legalName"
               :aria-label="t('label.busNameLegal')"
@@ -94,7 +135,7 @@ watch(canadaPostAddress, (newAddress) => {
               name="legalName"
               :placeholder="t('label.busNameLegal')"
             />
-            <ConnectField
+            <ConnectFieldGroup
               id="platform-business-home-jur"
               v-model="platformBusiness.homeJurisdiction"
               :aria-label="t('label.homeJurisdiction')"
@@ -102,7 +143,7 @@ watch(canadaPostAddress, (newAddress) => {
               name="homeJurisdiction"
               :placeholder="t('label.homeJurisdiction')"
             />
-            <ConnectField
+            <ConnectFieldGroup
               id="platform-business-number"
               v-model="platformBusiness.businessNumber"
               :aria-label="t('label.busNumOpt')"
@@ -120,7 +161,7 @@ watch(canadaPostAddress, (newAddress) => {
                 :ui-radio="{ inner: 'space-y-2' }"
               />
             </UFormGroup>
-            <ConnectField
+            <ConnectFieldGroup
               v-if="platformBusiness.hasCpbc"
               id="platform-cpbc"
               v-model="platformBusiness.cpbcLicenceNumber"
@@ -131,7 +172,7 @@ watch(canadaPostAddress, (newAddress) => {
           </div>
         </ConnectSection>
         <div class="h-px w-full border-b border-gray-100" />
-        <ConnectSection :title="tPlat('section.subTitle.businessMailAddress')">
+        <ConnectSection :title="tPlat('section.subTitle.businessMailAddress')" :error="showErrorBusAddr">
           <div class="max-w-bcGovInput">
             <ConnectAddress
               id="platform-business-address"
@@ -148,7 +189,7 @@ watch(canadaPostAddress, (newAddress) => {
           </div>
         </ConnectSection>
         <div class="h-px w-full border-b border-gray-100" />
-        <ConnectSection :title="tPlat('section.subTitle.regOfficeAttSvcAddrress')">
+        <ConnectSection :title="tPlat('section.subTitle.regOfficeAttSvcAddrress')" :error="showErrorRegOffAtt">
           <div class="max-w-bcGovInput space-y-5">
             <UFormGroup name="null">
               <URadioGroup
@@ -168,7 +209,7 @@ watch(canadaPostAddress, (newAddress) => {
                   :label="t('label.sameAsMailAddress')"
                 />
               </UFormGroup>
-              <ConnectField
+              <ConnectFieldGroup
                 id="platform-att-for-svc-name"
                 v-model="platformBusiness.regOfficeOrAtt.attorneyName"
                 :aria-label="t('platform.label.attForSvcName')"
@@ -192,7 +233,7 @@ watch(canadaPostAddress, (newAddress) => {
           </div>
         </ConnectSection>
         <div class="h-px w-full border-b border-gray-100" />
-        <ConnectSection :title="tPlat('section.subTitle.noticeNonCompliance')">
+        <ConnectSection :title="tPlat('section.subTitle.noticeNonCompliance')" :error="showErrorNonComp">
           <div class="space-y-5">
             <p>
               {{ platformBusiness.hasRegOffAtt
@@ -200,14 +241,14 @@ watch(canadaPostAddress, (newAddress) => {
                 : tPlat('text.nonComplianceEmailLong')
               }}
             </p>
-            <ConnectField
+            <ConnectFieldGroup
               id="platform-business-noncompliance-email"
               v-model="platformBusiness.nonComplianceEmail"
               :aria-label="t('label.emailAddress')"
               name="nonComplianceEmail"
               :placeholder="t('label.emailAddress')"
             />
-            <ConnectField
+            <ConnectFieldGroup
               id="platform-business-noncompliance-email-optional"
               v-model="platformBusiness.nonComplianceEmailOptional"
               :aria-label="t('label.emailAddressOpt')"
@@ -217,17 +258,17 @@ watch(canadaPostAddress, (newAddress) => {
           </div>
         </ConnectSection>
         <div class="h-px w-full border-b border-gray-100" />
-        <ConnectSection :title="tPlat('section.subTitle.takedownRequest')">
+        <ConnectSection :title="tPlat('section.subTitle.takedownRequest')" :error="showErrorTakedownReq">
           <div class="space-y-5">
             <p>{{ platformBusiness.hasRegOffAtt ? tPlat('text.takedownEmail') : tPlat('text.takedownEmailLong') }}</p>
-            <ConnectField
+            <ConnectFieldGroup
               id="platform-business-takedown-email"
               v-model="platformBusiness.takeDownEmail"
               :aria-label="t('label.emailAddress')"
               name="takeDownEmail"
               :placeholder="t('label.emailAddress')"
             />
-            <ConnectField
+            <ConnectFieldGroup
               id="platform-business-takedown-email-optional"
               v-model="platformBusiness.takeDownEmailOptional"
               :aria-label="t('label.emailAddressOpt')"

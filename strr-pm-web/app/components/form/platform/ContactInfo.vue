@@ -16,9 +16,44 @@ watch(isCompletingPartyRep, (val) => {
   primaryRep.value = getNewRepresentative(val)
 })
 
-const validateForm = (formRef: any) => {
-  if (formRef && isComplete) {
-    formRef.validate()
+// error styling stuff
+
+const formHasErrors = (form: any, paths: string[]) => {
+  for (const path of paths) {
+    if (form?.getErrors(path)?.length) {
+      return true
+    }
+  }
+  return false
+}
+
+const compPartyDetailsErr = ref(false)
+const primaryRepNameErr = ref(false)
+const primaryRepDetailsErr = ref(false)
+const secondaryRepNameErr = ref(false)
+const secondaryRepDetailsErr = ref(false)
+
+const validateForm = async (form: any) => {
+  if (form && isComplete) {
+    try {
+      await form.validate()
+    } catch (e) {
+      // console.info(e)
+    }
+    switch (form) {
+      case compPartyRef.value:
+        compPartyDetailsErr.value = formHasErrors(compPartyRef.value, ['phone.countryCode', 'phone.number', 'email'])
+        break
+      case primaryRepRef.value:
+        primaryRepNameErr.value = formHasErrors(primaryRepRef.value, ['firstName', 'lastName'])
+        primaryRepDetailsErr.value = formHasErrors(
+          primaryRepRef.value, ['position', 'phone.countryCode', 'phone.number', 'email'])
+        break
+      case secondaryRepRef.value:
+        secondaryRepNameErr.value = formHasErrors(secondaryRepRef.value, ['firstName', 'lastName'])
+        secondaryRepDetailsErr.value = formHasErrors(
+          secondaryRepRef.value, ['position', 'phone.countryCode', 'phone.number', 'email'])
+    }
   }
 }
 
@@ -28,6 +63,16 @@ const secondaryRepRef = ref()
 watch(compPartyRef, validateForm)
 watch(primaryRepRef, validateForm)
 watch(secondaryRepRef, validateForm)
+
+watch(completingParty, async () => {
+  await validateForm(compPartyRef.value)
+}, { deep: true })
+watch(primaryRep, async () => {
+  await validateForm(primaryRepRef.value)
+}, { deep: true })
+watch(secondaryRep, async () => {
+  await validateForm(secondaryRepRef.value)
+}, { deep: true })
 </script>
 
 <template>
@@ -44,13 +89,12 @@ watch(secondaryRepRef, validateForm)
       <div v-if="!isCompletingPartyRep" class="space-y-10">
         <ConnectPageSection
           class="bg-white"
-          :heading="{ label: tPlat('section.title.completingParty'), labelClass: 'ml-6 font-bold' }"
+          :heading="{ label: tPlat('section.title.completingParty'), labelClass: 'font-bold md:ml-6' }"
         >
           <UForm
             ref="compPartyRef"
             :schema="getContactSchema(true)"
             :state="completingParty"
-            class="pb-10"
           >
             <FormCommonContact
               v-model:first-name="completingParty.firstName"
@@ -61,19 +105,20 @@ watch(secondaryRepRef, validateForm)
               name-divider
               prepopulate-name
               prepopulate-type="Bceid"
+              :error-details="compPartyDetailsErr"
             />
           </UForm>
         </ConnectPageSection>
         <ConnectPageSection
           v-if="primaryRep"
           class="bg-white"
-          :heading="{ label: tPlat('section.title.primaryRep'), labelClass: 'ml-6 font-bold' }"
+          :heading="{ label: tPlat('section.title.primaryRep'), labelClass: 'font-bold md:ml-6' }"
         >
           <UForm
             ref="primaryRepRef"
             :schema="getContactSchema(false)"
             :state="primaryRep"
-            class="space-y-10 pb-10"
+            class="space-y-10"
           >
             <FormCommonContact
               v-model:first-name="primaryRep.firstName"
@@ -88,6 +133,8 @@ watch(secondaryRepRef, validateForm)
               :prepopulate-name="false"
               email-warning
               :section-info="t('platform.text.primaryContact')"
+              :error-name="primaryRepNameErr"
+              :error-details="primaryRepDetailsErr"
             />
           </UForm>
         </ConnectPageSection>
@@ -95,13 +142,13 @@ watch(secondaryRepRef, validateForm)
       <div v-else-if="primaryRep">
         <ConnectPageSection
           class="bg-white"
-          :heading="{ label: tPlat('section.title.primaryRep'), labelClass: 'ml-6 font-bold' }"
+          :heading="{ label: tPlat('section.title.primaryRep'), labelClass: 'font-bold md:ml-6' }"
         >
           <UForm
             ref="primaryRepRef"
             :schema="getContactSchema(false)"
             :state="primaryRep"
-            class="space-y-10 pb-10"
+            class="space-y-10"
           >
             <FormCommonContact
               v-model:first-name="primaryRep.firstName"
@@ -116,6 +163,8 @@ watch(secondaryRepRef, validateForm)
               prepopulate-type="Bceid"
               name-divider
               email-warning
+              :error-name="primaryRepNameErr"
+              :error-details="primaryRepDetailsErr"
             />
           </UForm>
         </ConnectPageSection>
@@ -166,6 +215,8 @@ watch(secondaryRepRef, validateForm)
             id-prefix="platform-secondary-rep"
             :prepopulate-name="false"
             name-divider
+            :error-name="secondaryRepNameErr"
+            :error-details="secondaryRepDetailsErr"
           />
         </UForm>
       </ConnectPageSection>

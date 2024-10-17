@@ -186,7 +186,7 @@ const hasSpaces = (str: string) => /\s/.test(str)
         class="pb-10"
         :heading="{
           label: $t('createAccount.principalResidence.docDetails'),
-          labelClass: 'ml-6 font-bold',
+          labelClass: 'font-bold md:ml-6',
           level: 'h3'
         }"
       >
@@ -252,7 +252,7 @@ const hasSpaces = (str: string) => /\s/.test(str)
         class="mt-10 pb-10"
         :heading="{
           label: $t('createAccount.principalResidence.declaration'),
-          labelClass: 'ml-6 font-bold',
+          labelClass: 'font-bold md:ml-6',
           level: 'h3'
         }"
       >
