@@ -19,7 +19,7 @@ export enum HostApplicationStatusE {
   AUTO_APPROVED = 'Approved', // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   PROVISIONALLY_APPROVED = 'Approved', // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   FULL_REVIEW_APPROVED = 'Approved',
-  PROVISIONAL_REVIEW = 'Approved – Provisional', // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
+  PROVISIONAL_REVIEW = 'Approved \u2013 Provisional', // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   FULL_REVIEW = 'Pending Approval',
   DECLINED = 'Declined'
 }
@@ -28,9 +28,9 @@ export enum ExaminerApplicationStatusE {
   DRAFT = 'Draft',
   PAYMENT_DUE = 'Payment Due',
   PAID = 'Paid',
-  AUTO_APPROVED = 'Approved – Automatic',
-  PROVISIONALLY_APPROVED = 'Approved – Provisional',
-  FULL_REVIEW_APPROVED = 'Approved – Examined',
+  AUTO_APPROVED = 'Approved \u2013 Automatic',
+  PROVISIONALLY_APPROVED = 'Approved \u2013 Provisional',
+  FULL_REVIEW_APPROVED = 'Approved \u2013 Examined',
   PROVISIONAL_REVIEW = 'Provisional Examination',
   FULL_REVIEW = 'Full Examination',
   DECLINED = 'Declined'

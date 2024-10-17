@@ -45,7 +45,7 @@ export const useRegistrations = () => {
     axiosInstance.post(`${apiURL}/registrations/${id}/approve`)
       .then(() => window.location.reload())
 
-  const issueCertificate = (id: string): Promise<any> =>
+  const issueCertificate = (id: number): Promise<any> =>
     axiosInstance.post(`${apiURL}/registrations/${id}/certificate`)
       .then(() => window.location.reload())
 

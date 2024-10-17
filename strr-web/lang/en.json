@@ -64,24 +64,24 @@
   "statuses": {
     "examinerStatuses": {
       "paid": "Paid",
-      "autoApproved": "Approved - Automatic",
-      "provisionalApproved": "Approved - Provisional",
+      "autoApproved": "Approved \u2013 Automatic",
+      "provisionalApproved": "Approved \u2013 Provisional",
       "provisionalReview": "Provisional Examination",
-      "fullReviewApproved": "Approved - Examined",
+      "fullReviewApproved": "Approved \u2013 Examined",
       "fullReview": "Full Examination"
     },
     "hostStatuses": {
       "paid": "Pending Approval",
       "autoApproved": "Approved",
       "provisionalApproved": "Approved",
-      "provisionalReview": "Approved - Provisional",
+      "provisionalReview": "Approved \u2013 Provisional",
       "fullReviewApproved": "Approved",
       "fullReview": "Pending Approval"
     },
     "draft": "Draft",
     "paymentDue": "Payment Due",
     "declined": "Declined",
-    "additionalInfoRequested": "ADDITIONAL INFO REQUESTED",
+    "additionalInfoRequested": "Additional Info Requested",
     "active": "Active",
     "expired": "Expired",
     "suspended": "Suspended",
@@ -150,9 +150,10 @@
     "rent": "Rent"
   },
   "banner": {
-    "approve": "Approve",
-    "reject": "Reject",
-    "issue": "Issue Certificate"
+    "SUBMIT_PAYMENT": "Submit Payment",
+    "ISSUE_CERTIFICATE": "Issue Certificate",
+    "APPROVE": "Approve",
+    "REJECT": "Reject"
   },
   "finalization": {
     "title": "Service BC Account Creation",

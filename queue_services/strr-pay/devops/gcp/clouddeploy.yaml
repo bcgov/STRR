@@ -33,6 +33,7 @@ serialPipeline:
       service-account: "sa-api@bcrbk9-test.iam.gserviceaccount.com"
  - targetId: bcrbk9-sandbox
    profiles: [sandbox]
+   strategy:
     standard:
       verify: false
    deployParameters:

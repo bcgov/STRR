@@ -10,11 +10,11 @@ export const useChipFlavour = () => {
     text: tStatuses(translationKey)
   })
 
-  const examinerOrHostStatusMap = (flavour: AlertsFlavourE, key: string) => ({
+  const examinerOrHostStatusMap = (flavour: AlertsFlavourE, commonKey: string, hostSpecificKey?: string) => ({
     alert: flavour,
     text: isExaminer
-      ? tStatuses(`examinerStatuses.${key}`)
-      : tStatuses(`hostStatuses.${key}`)
+      ? tStatuses(`examinerStatuses.${commonKey}`)
+      : tStatuses(`hostStatuses.${hostSpecificKey || commonKey}`)
   })
 
   const getChipFlavour = (status: string): StatusChipFlavoursI['flavour'] => {
@@ -53,14 +53,15 @@ export const useChipFlavour = () => {
         return examinerOrHostStatusMap(AlertsFlavourE.SUCCESS, 'autoApproved')
       case ApplicationStatusE.PROVISIONALLY_APPROVED:
       case HostApplicationStatusE.PROVISIONALLY_APPROVED:
-      case ExaminerApplicationStatusE.PROVISIONALLY_APPROVED:
         return examinerOrHostStatusMap(AlertsFlavourE.SUCCESS, 'provisionalApproved')
+      case ExaminerApplicationStatusE.PROVISIONALLY_APPROVED:
+      case HostApplicationStatusE.PROVISIONAL_REVIEW:
+        return examinerOrHostStatusMap(AlertsFlavourE.SUCCESS, 'provisionalApproved', 'provisionalReview')
       case ApplicationStatusE.FULL_REVIEW_APPROVED:
       case HostApplicationStatusE.FULL_REVIEW_APPROVED:
       case ExaminerApplicationStatusE.FULL_REVIEW_APPROVED:
         return examinerOrHostStatusMap(AlertsFlavourE.SUCCESS, 'fullReviewApproved')
       case ApplicationStatusE.PROVISIONAL_REVIEW:
-      case HostApplicationStatusE.PROVISIONAL_REVIEW:
       case ExaminerApplicationStatusE.PROVISIONAL_REVIEW:
         return examinerOrHostStatusMap(AlertsFlavourE.SUCCESS, 'provisionalReview')
       case ApplicationStatusE.FULL_REVIEW:

@@ -35,7 +35,7 @@
 # pylint: disable=E1102
 """Manages user model interactions."""
 
-from strr_api.models import User
+from strr_api.models.user import User
 from strr_api.utils.user_context import UserContext, user_context
 
 

@@ -54,6 +54,7 @@ describe('useBcrosAuth Tests', () => {
     // verify things are setup
     expect(keycloak.kc.tokenParsed).toEqual(testParsedToken)
     expect(keycloak.kcUser).not.toEqual({})
+    expect(keycloak.isExaminer).toEqual(false) // is not examiner because loginSource in testParsedToken is not IDIR
     expect(account.user).toEqual(keycloak.kcUser)
     expect(account.userAccounts.length).toBe(2)
     expect(account.currentAccount).toEqual(mockUserSettings[0])

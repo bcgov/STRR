@@ -1,10 +1,6 @@
 <template>
   <div data-test-id="reg-details">
-    <BcrosBanner
-      :hide-buttons="!isExaminer"
-      :application-number="registrationId"
-      :registration-id="registrationId"
-    >
+    <BcrosBanner>
       <div data-test-id="reg-details-header" class="flex items-center m:mb-2 m:justify-between">
         <BcrosTypographyH1
           :text="

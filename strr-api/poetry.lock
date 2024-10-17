@@ -2841,10 +2841,10 @@ develop = false
 
 [package.source]
 type = "git"
-url = "https://github.com/bcgov/lear.git"
-reference = "feature-legal-name"
-resolved_reference = "e5a432d1460dc84208465ef35c0c81ab02e66f51"
-subdirectory = "python/common/sql-versioning"
+url = "https://github.com/bcgov/sbc-connect-common.git"
+reference = "main"
+resolved_reference = "43411ed428c4c4b89bea1ac6acdb10077f247d2b"
+subdirectory = "python/sql-versioning"
 
 [[package]]
 name = "sqlalchemy"
@@ -3221,4 +3221,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "c9e6d747b66973eaf76ebe6a80891385cc3d65b7b84b2b00e2d9f34c85e67d70"
+content-hash = "8160f48b2d7f6edb32721e0dae4cdf611782d6908e0155073ef9f55ce01dc613"

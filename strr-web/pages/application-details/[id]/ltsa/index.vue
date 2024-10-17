@@ -1,9 +1,7 @@
 <template>
   <div>
     <div>
-      <BcrosBanner
-        hide-buttons
-      >
+      <BcrosBanner>
         <div class="flex flex-col m:justify-between">
           <BcrosTypographyH1
             :text="tLtsa('ltsaDetails')"

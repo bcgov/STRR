@@ -40,7 +40,6 @@ from datetime import datetime, timezone
 from flask import render_template
 from weasyprint import HTML
 
-from strr_api import requests
 from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, RegistrationType
 from strr_api.models import (
     Address,
@@ -48,11 +47,16 @@ from strr_api.models import (
     Contact,
     Document,
     Events,
+    Platform,
+    PlatformBrand,
+    PlatformRegistration,
+    PlatformRepresentative,
     PropertyContact,
     PropertyListing,
     Registration,
     RentalProperty,
 )
+from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
 from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
@@ -62,10 +66,12 @@ class RegistrationService:
     """Service to save and load registration details from the database."""
 
     @classmethod
-    def create_registration(cls, user_id, sbc_account_id, registration_request: requests.Registration):
+    def create_registration(cls, user_id, sbc_account_id, registration_request: dict):
         """Creates registration from an application."""
         start_date = datetime.utcnow()
-        registration_number = RegistrationService._get_registration_number()
+        registration_details = registration_request.get("registration")
+        registration_type = registration_details.get("registrationType")
+        registration_number = RegistrationService._get_registration_number(registration_type)
 
         registration = Registration(
             user_id=user_id,
@@ -74,26 +80,92 @@ class RegistrationService:
             registration_number=registration_number,
             start_date=start_date,
             expiry_date=start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
-            registration_type=registration_request.registrationType,
+            registration_type=registration_type,
         )
 
         documents = []
-        for doc in registration_request.documents:
-            document = Document(file_name=doc.fileName, file_type=doc.fileType, path=doc.fileKey)
+        for doc in registration_details.get("documents", []):
+            document = Document(file_name=doc.get("fileName"), file_type=doc.get("fileType"), path=doc.get("fileKey"))
             documents.append(document)
         if documents:
             registration.documents = documents
 
-        if registration_request.registrationType == RegistrationType.HOST.value:
+        if registration_type == RegistrationType.HOST.value:
             registration.rental_property = cls._create_host_registration(registration_request)
-        elif registration_request.registrationType == RegistrationType.PLATFORM.value:
-            pass
+        elif registration_type == RegistrationType.PLATFORM.value:
+            registration.platform_registration = cls._create_platform_registration(registration_details)
 
         registration.save()
         return registration
 
     @classmethod
-    def _create_host_registration(cls, registration_request) -> RentalProperty:
+    def _create_platform_registration(cls, registration_request: dict) -> PlatformRegistration:
+        business_details_dict = registration_request.get("businessDetails")
+        mailing_address = business_details_dict.get("mailingAddress")
+
+        representatives = [
+            PlatformRepresentative(
+                contact=Contact(
+                    firstname=representative.get("firstName"),
+                    lastname=representative.get("lastName"),
+                    middlename=representative.get("middleName"),
+                    email=representative.get("emailAddress"),
+                    phone_extension=representative.get("extension"),
+                    fax_number=representative.get("faxNumber"),
+                    phone_number=representative.get("phoneNumber"),
+                    job_title=representative.get("jobTitle"),
+                )
+            )
+            for representative in registration_request.get("platformRepresentatives")
+        ]
+
+        platform_brands = [
+            PlatformBrand(name=brand.get("name"), website=brand.get("website"))
+            for brand in registration_request.get("platformDetails").get("brands")
+        ]
+
+        platform = Platform(
+            legal_name=business_details_dict.get("legalName"),
+            home_jurisdiction=business_details_dict.get("homeJurisdiction"),
+            business_number=business_details_dict.get("businessNumber"),
+            cpbc_licence_number=business_details_dict.get("consumerProtectionBCLicenceNumber"),
+            primary_non_compliance_notice_email=business_details_dict.get("noticeOfNonComplianceEmail"),
+            secondary_non_compliance_notice_email=business_details_dict.get("noticeOfNonComplianceOptionalEmail"),
+            primary_take_down_request_email=business_details_dict.get("takeDownRequestEmail"),
+            secondary_take_down_request_email=business_details_dict.get("takeDownRequestOptionalEmail"),
+            attorney_name=business_details_dict.get("legalName"),
+            listing_size=registration_request.get("platformDetails").get("listingSize"),
+            mailingAddress=Address(
+                country=mailing_address.get("country"),
+                street_address=mailing_address.get("address"),
+                street_address_additional=mailing_address.get("addressLineTwo"),
+                city=mailing_address.get("city"),
+                province=mailing_address.get("province"),
+                postal_code=mailing_address.get("postalCode"),
+            ),
+            brands=platform_brands,
+            representatives=representatives,
+        )
+
+        if attorney_details_dict := business_details_dict.get("registeredOfficeOrAttorneyForServiceDetails"):
+            platform.attorney_name = attorney_details_dict.get("attorneyName")
+            if attorney_mailing_address_dict := attorney_details_dict.get("mailingAddress"):
+                platform.registered_office_attorney_mailing_address = Address(
+                    country=attorney_mailing_address_dict.get("country"),
+                    street_address=attorney_mailing_address_dict.get("address"),
+                    street_address_additional=attorney_mailing_address_dict.get("addressLineTwo"),
+                    city=attorney_mailing_address_dict.get("city"),
+                    province=attorney_mailing_address_dict.get("province"),
+                    postal_code=attorney_mailing_address_dict.get("postalCode"),
+                )
+
+        platform_registration = PlatformRegistration(platform=platform)
+        return platform_registration
+
+    @classmethod
+    def _create_host_registration(cls, registration_request: dict) -> RentalProperty:
+        registration_request = RegistrationRequest(**registration_request).registration
+
         rental_property = RentalProperty(
             address=Address(
                 country=registration_request.unitAddress.country,
@@ -208,8 +280,13 @@ class RegistrationService:
         }
 
     @classmethod
-    def _get_registration_number(cls):
-        registration_number_prefix = f'BCH{datetime.now(timezone.utc).strftime("%y")}'
+    def _get_registration_number(cls, registration_type: str):
+        registration_code = None
+        if registration_type == RegistrationType.HOST.value:
+            registration_code = "BCH"
+        elif registration_type == RegistrationType.PLATFORM.value:
+            registration_code = "BCP"
+        registration_number_prefix = f'{registration_code}{datetime.now(timezone.utc).strftime("%y")}'
         while True:
             random_digits = "".join(random.choices("0123456789", k=9))
             registration_number = f"{registration_number_prefix}{random_digits}"

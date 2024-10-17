@@ -12,6 +12,8 @@ export interface ApplicationHeaderI {
   name: string
   paymentAccount: string
   paymentStatus: string
+  hostActions: string[]
+  examinerActions: string[]
   paymentToken: number
   registrationEndDate: string
   registrationId: number

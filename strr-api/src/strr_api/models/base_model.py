@@ -32,11 +32,18 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Base Model."""
+import datetime
+
+from sqlalchemy import Column, DateTime, ForeignKey
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship
+
+from strr_api.models.user import User
 
 from .db import db
 
 
-class BaseModel(db.Model):
+class SimpleBaseModel(db.Model):
     """Base class that defines all the common methods."""
 
     __abstract__ = True
@@ -80,3 +87,37 @@ class BaseModel(db.Model):
         if self:
             db.session.delete(self)
             db.session.commit()
+
+
+class BaseModel(SimpleBaseModel):
+    """Base class that defines all the common columns."""
+
+    __abstract__ = True
+
+    @declared_attr
+    def created_by_id(cls):  # pylint:disable=no-self-argument, # noqa: N805
+        """Return foreign key for created by."""
+        return Column(ForeignKey("users.id"), default=cls._get_current_user)
+
+    @declared_attr
+    def modified_by_id(cls):  # pylint:disable=no-self-argument, # noqa: N805
+        """Return foreign key for modified by."""
+        return Column(ForeignKey("users.id"), onupdate=cls._get_current_user)
+
+    @declared_attr
+    def created_by(cls):  # pylint:disable=no-self-argument, # noqa: N805
+        """Return relationship for created by."""
+        return relationship("User", foreign_keys=[cls.created_by_id], post_update=True, uselist=False)
+
+    @declared_attr
+    def modified_by(cls):  # pylint:disable=no-self-argument, # noqa: N805
+        """Return relationship for modified by."""
+        return relationship("User", foreign_keys=[cls.modified_by_id], post_update=True, uselist=False)
+
+    created = Column(DateTime, default=datetime.datetime.now)
+    modified = Column(DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now)
+
+    @staticmethod
+    def _get_current_user():
+        user = User.find_user_in_context()
+        return user.id if user else None

@@ -279,11 +279,13 @@ class ApplicationSerializer:
                 reviewer_display_name = f"{reviewer_display_name} {application.reviewer.lastname}"
             application_dict["header"]["reviewer"]["displayName"] = reviewer_display_name
 
+        application_dict["header"]["isCertificateIssued"] = False
         if application.registration_id:
             application_dict["header"]["registrationId"] = application.registration_id
             application_dict["header"]["registrationStartDate"] = application.registration.start_date.isoformat()
             application_dict["header"]["registrationEndDate"] = application.registration.expiry_date.isoformat()
             application_dict["header"]["registrationStatus"] = application.registration.status.value
             application_dict["header"]["registrationNumber"] = application.registration.registration_number
+            application_dict["header"]["isCertificateIssued"] = bool(application.registration.certificates)
 
         return application_dict

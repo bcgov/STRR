@@ -1,9 +1,7 @@
 <template>
   <div data-test-id="application-details">
     <BcrosBanner
-      :hide-buttons="!isExaminer"
-      :application-number="isApprovedOrRejected ? '' : applicationNumber"
-      :registration-id="registrationId"
+      :application="application"
       class="mobile:h-auto"
     >
       <div class="flex m:mb-2 m:justify-between" data-test-id="application-header">
@@ -356,9 +354,6 @@ const [application, applicationHistory]: [ApplicationI, FilingHistoryEventI[]] =
 setupBreadcrumbData(application)
 
 const applicationDetails: ApplicationDetailsI = application.registration
-const registrationId: string = application.header?.registrationId?.toString()
-const isApprovedOrRejected: boolean =
-  [ApplicationStatusE.APPROVED, ApplicationStatusE.REJECTED].includes(application.header.status)
 
 // Get Supporting Documents from the Application response
 const documents: DocumentUploadI[] = applicationDetails.documents || []

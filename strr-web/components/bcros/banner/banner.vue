@@ -1,61 +1,18 @@
 <template>
   <div
     data-test-id="banner"
-    :class="`
-        flex justify-center bg-white absolute w-full top-0 left-0 min-h-[104px] shadow-md
-        py-[30px] px-[70px]
-        m:flex-col m:min-h-[116px] m:px-[8px]
-        ${hideButtons ? 'm:min-h-[70px]' : ''}
-      `"
+    class="flex justify-center bg-white absolute w-full top-0 left-0 min-h-[104px]
+      shadow-md py-[30px] px-[70px] m:flex-col m:min-h-[116px] m:px-[8px]"
   >
-    <div class="flex justify-between px-4 w-full max-w-[1360px]">
+    <div class="d:flex justify-between px-4 w-full max-w-[1360px]">
       <slot />
-      <div v-if="!hideButtons">
-        <div class="mobile:hidden">
+      <div v-if="userActions" class="flex gap-4">
+        <div v-for="(action, index) in userActions" :key="index">
           <BcrosButtonsPrimary
-            v-if="applicationNumber"
-            :label="tBanner('approve')"
-            :action="() => applicationNumber && approveApplication(applicationNumber)"
+            :label="t(`banner.${action}`)"
             variant="outline"
-            class-name="ml-[16px]"
+            :action="actionsMap[action as HostActionsE | ExaminerActionsE]"
           />
-          <BcrosButtonsPrimary
-            v-if="applicationNumber"
-            :label="tBanner('reject')"
-            :action="() => applicationNumber && rejectApplication(applicationNumber)"
-            variant="outline"
-            class-name="ml-[16px]"
-          />
-          <BcrosButtonsPrimary
-            v-if="registrationId"
-            :label="tBanner('issue')"
-            :action="() => registrationId && issueCertificate(registrationId)"
-            variant="outline"
-            class-name="ml-[16px]"
-          />
-        </div>
-        <div class="desktop:hidden flex">
-          <a
-            v-if="applicationNumber"
-            class="mr-[16px] py-[10px]"
-            :on-click="() => applicationNumber && approveApplication(applicationNumber)"
-          >
-            {{ tBanner('approve') }}
-          </a>
-          <a
-            v-if="applicationNumber"
-            class="mr-[16px] py-[10px]"
-            :on-click="() => applicationNumber && rejectApplication(applicationNumber)"
-          >
-            {{ tBanner('reject') }}
-          </a>
-          <a
-            v-if="registrationId"
-            class="mr-[16px] py-[10px]"
-            :on-click="() => registrationId && issueCertificate(registrationId)"
-          >
-            {{ tBanner('issue') }}
-          </a>
         </div>
       </div>
     </div>
@@ -63,13 +20,27 @@
 </template>
 
 <script setup lang="ts">
-const { hideButtons = true } = defineProps<{
-  hideButtons?: boolean
-  applicationNumber?: string
-  registrationId?: string
+const { application = {} as ApplicationI } = defineProps<{
+  application?: ApplicationI
 }>()
+
 const { t } = useTranslation()
-const tBanner = (text: string) => t(`banner.${text}`)
 const { issueCertificate } = useRegistrations()
 const { approveApplication, rejectApplication } = useApplications()
+const { handlePaymentRedirect } = useFees()
+const { isExaminer } = storeToRefs(useBcrosKeycloak())
+
+const appHeader: ApplicationHeaderI = application?.header
+
+// determine user actions based on the role (examiner or host)
+const userActions = computed(() => isExaminer.value ? appHeader?.examinerActions : appHeader?.hostActions)
+
+// map of actions available for host and examiner
+const actionsMap: Record<HostActionsE | ExaminerActionsE, () => void> = {
+  [HostActionsE.SUBMIT_PAYMENT]: () => handlePaymentRedirect(appHeader?.paymentToken, appHeader?.applicationNumber),
+  [ExaminerActionsE.ISSUE_CERTIFICATE]: () => issueCertificate(appHeader?.registrationId),
+  [ExaminerActionsE.APPROVE]: () => approveApplication(appHeader?.applicationNumber),
+  [ExaminerActionsE.REJECT]: () => rejectApplication(appHeader?.applicationNumber)
+}
+
 </script>
