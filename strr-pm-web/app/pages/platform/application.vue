@@ -6,7 +6,7 @@ const { t } = useI18n()
 
 const { getContactSchema } = useStrrPlatformContact()
 const { isCompletingPartyRep, completingParty, primaryRep, secondaryRep } = storeToRefs(useStrrPlatformContact())
-
+const { submitPlatformApplication } = useStrrPlatformApplication()
 // fee stuff
 const { addReplaceFee, getFee, removeFee, setPlaceholderFilingTypeCode, setPlaceholderServiceFee } = useConnectFee()
 
@@ -125,6 +125,18 @@ const setPreviousStep = () => {
   }
 }
 
+// something like this? need to discuss options
+// how can we set loading state on the submit and pay button?
+// i wonder if tracking the steps in a store would be useful
+const handlePlatformSubmit = () => {
+  // validate each step
+  // if invalid step, set prop on Review component to highlight invalid fields/section ?
+  // show alert with some error text ?
+
+  // if all steps valid, submit form with store function
+  submitPlatformApplication()
+}
+
 watch(activeStepIndex, (val) => {
   const buttons: ConnectBtnControlItem[] = []
   if (val !== 0) {
@@ -142,7 +154,7 @@ watch(activeStepIndex, (val) => {
   }
   const isLastStep = val === steps.value.length - 1
   buttons.push({
-    action: isLastStep ? () => {} : setNextStep,
+    action: isLastStep ? handlePlatformSubmit : setNextStep,
     icon: 'i-mdi-chevron-right',
     label: isLastStep ? t('btn.submitAndPay') : t('btn.next'),
     trailing: true
@@ -208,7 +220,10 @@ setBreadcrumbs([
       <FormPlatformDetails :is-complete="activeStep.complete" />
     </div>
     <div v-else key="review-confirm">
-      <!-- tbd -->
+      <FormPlatformReview
+        :is-complete="activeStep.complete"
+        @edit="setActiveStep"
+      />
     </div>
   </div>
 </template>
