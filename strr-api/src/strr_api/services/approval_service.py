@@ -99,11 +99,7 @@ class ApprovalService:
             auto_approval = AutoApproval()
             registration_id = None
 
-            if registration_type == RegistrationType.PLATFORM.value:
-                cls._update_application_status_to_full_review(application)
-                return application.status, registration_id
-
-            elif registration_type == RegistrationType.HOST.value:
+            if registration_type == RegistrationType.HOST.value:
                 registration_request = RegistrationRequest(**application_json)
                 registration = registration_request.registration
                 pid = registration.unitDetails.parcelIdentifier
@@ -140,9 +136,9 @@ class ApprovalService:
                 else:
                     auto_approval.titleCheck = False
 
-                cls._update_application_status_to_full_review(application)
                 cls.save_approval_record_by_application(application.id, auto_approval)
-                return application.status, registration_id
+
+            cls._update_application_status_to_full_review(application)
             return application.status, registration_id
 
         except Exception as default_exception:  # noqa: B902; log error

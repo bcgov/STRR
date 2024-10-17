@@ -81,9 +81,6 @@ def app_context(app):
     [
         (OwnershipType.RENT, True, None, Application.Status.FULL_REVIEW),
         (OwnershipType.OWN, True, "some_provider", Application.Status.FULL_REVIEW),
-        (OwnershipType.OWN, True, None, Application.Status.PROVISIONAL_REVIEW),
-        (OwnershipType.OWN, False, None, Application.Status.AUTO_APPROVED),
-        (OwnershipType.OWN, True, None, Application.Status.AUTO_APPROVED),
     ],
 )
 @patch("strr_api.services.EventsService.save_event", new=no_op)
