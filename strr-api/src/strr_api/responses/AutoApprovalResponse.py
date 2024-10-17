@@ -11,10 +11,10 @@ class AutoApproval(BaseModel):
 
     renting: Optional[bool] = None
     serviceProvider: Optional[bool] = None
-    prExempt: Optional[bool] = None
-    addressMatch: Optional[bool] = None
     businessLicenseRequired: Optional[bool] = None
-    businessLicenseRequiredNotProvided: Optional[bool] = None
-    businessLicenseRequiredProvided: Optional[bool] = None
-    businessLicenseNotRequiredNotProvided: Optional[bool] = None
+    businessLicenseProvided: Optional[bool] = None
+    prExempt: Optional[bool] = None
+    strProhibited: Optional[bool] = None
+    organizationNm: Optional[str] = None
     titleCheck: Optional[bool] = None
+    addressMatch: Optional[bool] = None
