@@ -1,16 +1,28 @@
 import { FormPageI } from '~/interfaces/form/form-page-i'
 
-const createStep = (
-  label: string,
-  icon: string,
-  alt: string,
-  title: string,
-  subtitle: string,
-  formTitle: string,
-  complete: boolean,
-  isValid: boolean,
-  sections: any[] = []
-): FormPageI => ({
+interface CreateStepParamsI {
+  label: string
+  icon: string
+  alt: string
+  title: string
+  subtitle: string
+  formTitle: string
+  complete: boolean
+  isValid: boolean
+  sections?: any[]
+}
+
+const createStep = ({
+  label,
+  icon,
+  alt,
+  title,
+  subtitle,
+  formTitle,
+  complete,
+  isValid,
+  sections = []
+}: CreateStepParamsI): FormPageI => ({
   step: {
     label: `createAccount.stepTitle.${label}`,
     inactiveIconPath: `/icons/create-account/${icon}.svg`,
@@ -26,21 +38,57 @@ const createStep = (
 })
 
 const steps: FormPageI[] = [
-  createStep(
-    'propertyManager',
-    'add_property_manager',
-    'Add property managers',
-    'propertyManager',
-    'propertyManager',
-    'propertyManager',
+  createStep({
+    label: 'propertyManager',
+    icon: 'add_property_manager',
+    alt: 'Add property managers',
+    title: 'propertyManager',
+    subtitle: 'propertyManager',
+    formTitle: 'propertyManager',
     // TODO: remove
-    true,
-    true
-  ),
-  createStep('contact', 'add_person', 'Add contacts', 'contact', 'contact', 'contact', false, false),
-  createStep('property', 'add_location', 'Add properties', 'details', 'details', 'details', false, false),
-  createStep('eligibility', 'upload_file', 'Upload documents', 'eligibility', '', 'eligibility', false, false),
-  createStep('review', 'check', 'Check and verify', 'confirm', '', 'confirm', false, false)
+    complete: true,
+    isValid: true
+  }),
+  createStep({
+    label: 'contact',
+    icon: 'add_person',
+    alt: 'Add contacts',
+    title: 'contact',
+    subtitle: 'contact',
+    formTitle: 'contact',
+    complete: false,
+    isValid: false
+  }),
+  createStep({
+    label: 'property',
+    icon: 'add_location',
+    alt: 'Add properties',
+    title: 'details',
+    subtitle: 'details',
+    formTitle: 'details',
+    complete: false,
+    isValid: false
+  }),
+  createStep({
+    label: 'eligibility',
+    icon: 'upload_file',
+    alt: 'Upload documents',
+    title: 'eligibility',
+    subtitle: '',
+    formTitle: 'eligibility',
+    complete: false,
+    isValid: false
+  }),
+  createStep({
+    label: 'review',
+    icon: 'check',
+    alt: 'Check and verify',
+    title: 'confirm',
+    subtitle: '',
+    formTitle: 'confirm',
+    complete: false,
+    isValid: false
+  })
 ]
 
 export default steps
