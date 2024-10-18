@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0913
 # pylint: disable=E1102
+# pylint: disable=R0917
 """Manages registration model interactions."""
 import random
 from datetime import datetime, timezone
