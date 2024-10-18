@@ -3,6 +3,21 @@ import { FormPageI } from '~/interfaces/form/form-page-i'
 const steps: FormPageI[] = [
   {
     step: {
+      label: 'createAccount.stepTitle.propertyManager',
+      inactiveIconPath: '/icons/create-account/add_property_manager.svg',
+      activeIconPath: '/icons/create-account/add_property_manager_active.svg',
+      // TODO: change back to false after schema and validation implmentation
+      complete: true,
+      isValid: true,
+      alt: 'Add property managers'
+    },
+    title: 'createAccount.propertyManager.title',
+    subtitle: 'createAccount.propertyManager.subtitle',
+    formTitle: 'createAccount.propertyManager.primary',
+    sections: []
+  },
+  {
+    step: {
       label: 'createAccount.stepTitle.contact',
       inactiveIconPath: '/icons/create-account/add_person.svg',
       activeIconPath: '/icons/create-account/add_person_active.svg',

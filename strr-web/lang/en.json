@@ -200,6 +200,7 @@
   "createAccount": {
     "title": "Short-Term Rental Registration",
     "stepTitle": {
+      "propertyManager": "Property Manager Information",
       "contact": "Contact Information",
       "property": "Property Details",
       "eligibility": "Principal Residence",
@@ -234,6 +235,12 @@
       "haveAnotherProperty": "Have another rental property?",
       "startNewApplication": "Start a new application"
     },
+    "propertyManager": {
+      "title": "Step 1 - Property Manager Information",
+      "subtitle": "If there is a property manager business for this short-term rental unit, provide the contact information below.",
+      "primary": "Property Manager Information"
+    },
+    "propertyManagerForm": {},
     "contact": {
       "title": "Step 1 - Contact Information",
       "subtitle": "Primary Contact Information",
