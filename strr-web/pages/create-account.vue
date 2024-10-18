@@ -189,7 +189,7 @@ const setActiveStep = (newStep: number) => {
   activeStep.value.step.complete = true
   activeStepIndex.value = newStep
   activeStep.value = steps[activeStepIndex.value]
-  // TODO: remove
+  // TODO: remove with validation for Step 1 project manager
   if (newStep === 0) {
     activeStep.value.step.isValid = true
     activeStep.value.step.complete = true

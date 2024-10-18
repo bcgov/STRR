@@ -242,7 +242,7 @@
     },
     "propertyManagerForm": {},
     "contact": {
-      "title": "Step 1 - Contact Information",
+      "title": "Step 2 - Contact Information",
       "subtitle": "Primary Contact Information",
       "secondaryContactInfo": "Secondary Contact Information",
       "primary": "Primary Contact Information",
@@ -381,15 +381,15 @@
       "rent": "Rent"
     },
     "details": {
-      "title": "Step 2 - Add Your Short Term Rental Property Details",
+      "title": "Step 3 - Add Your Short Term Rental Property Details",
       "subtitle": "Tell us more about the property you plan to offer for short-term rental. If you have other properties you want to register and offer as short-term rentals, we will ask you about them later.",
       "primary": "Rental Unit Information"
     },
     "eligibility": {
-      "title": "Step 3 - Principal Residence "
+      "title": "Step 4 - Principal Residence "
     },
     "confirm": {
-      "title": "Step 4 - Review and Confirm"
+      "title": "Step 5 - Review and Confirm"
     }
   },
   "platformApplication": {

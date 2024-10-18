@@ -22,7 +22,7 @@
           pb-5 flex flex-col cursor-pointer
           mobile:border-b-0
         `"
-        :data-test-id="`step-index-${index}`"
+        :data-test-id="`step-index-${index}${index === activeStep.valueOf() ? '-active' : ''}`"
         @click="() => emit('changeStep', index)"
       >
         <div class="flex justify-center pt-[7px] ">

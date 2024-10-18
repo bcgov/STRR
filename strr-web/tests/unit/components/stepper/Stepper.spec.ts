@@ -90,7 +90,7 @@ describe('BcrosStepper', () => {
       }
     })
 
-    const stepElements = wrapper.findAll('[aria-roledescription="button"]')
+    const stepElements = wrapper.findAll('[data-test-id^="step-index-"]')
     expect(stepElements.length).toBe(mockSteps.length)
   })
 
@@ -103,25 +103,29 @@ describe('BcrosStepper', () => {
       }
     })
 
-    const activeStepElement = wrapper.findAll('[aria-roledescription="button"]')[1]
-    expect(activeStepElement.classes()).toContain('border-b-[3px]')
-    expect(activeStepElement.classes()).toContain('border-blue-500')
+    const activeStepElement = wrapper.find('[data-test-id="step-index-1-active"]')
+    expect(activeStepElement.exists()).toBe(true)
+    expect(activeStepElement.text()).toContain(mockSteps[1].step.label)
   })
 
-  it('displays icons for complete and valid steps', async () => {
+  it('displays correct icons for valid steps', async () => {
     const wrapper = await mountSuspended(BcrosStepper, {
       global: { plugins: [i18n] },
       props: {
         steps: mockSteps,
-        activeStep: 0
+        activeStep: 1
       }
     })
 
-    const completeStepIcons = wrapper.findAll('img[src="/icons/create-account/valid_step.svg"]')
-    expect(completeStepIcons.length).toBe(1)
-    const secondStepIcon = wrapper.findAll('[aria-roledescription="button"]')[1].find('img')
-    expect(secondStepIcon.exists()).toBe(true)
-    expect(secondStepIcon.attributes('src')).toBe('/icons/create-account/valid_step.svg')
+    const completeStep = wrapper.find('[data-test-id="step-index-1-active"]')
+    expect(completeStep.exists()).toBe(true)
+    const validStepIcon = completeStep.find('img[src="/icons/create-account/valid_step.svg"]')
+    expect(validStepIcon.exists()).toBe(true)
+
+    const incompleteStep = wrapper.find('[data-test-id="step-index-0"]')
+    expect(incompleteStep.exists()).toBe(true)
+    const incompleteStepValidIcon = incompleteStep.find('img[src="/icons/create-account/valid_step.svg"]')
+    expect(incompleteStepValidIcon.exists()).toBe(false)
   })
 
   it('emits changeStep event when a step is clicked', async () => {
@@ -133,10 +137,13 @@ describe('BcrosStepper', () => {
       }
     })
 
-    const secondStep = wrapper.findAll('[aria-roledescription="button"]')[1]
+    const secondStep = wrapper.find('[data-test-id="step-index-1"]')
     await secondStep.trigger('click')
 
     expect(wrapper.emitted('changeStep')).toBeTruthy()
     expect(wrapper.emitted('changeStep')![0]).toEqual([1])
+    await wrapper.setProps({ activeStep: 1 })
+    const newActiveStep = wrapper.find('[data-test-id="step-index-1-active"]')
+    expect(newActiveStep.exists()).toBe(true)
   })
 })

@@ -41,16 +41,16 @@ describe('Rental Application', () => {
 
     await goToStep(2)
     expect(wrapper.findComponent(BcrosFormSectionContactInformationForm).exists()).toBeTruthy()
-    expect(wrapper.findComponent(H2).text()).toContain('Step 1')
-
-    await goToStep(3)
     expect(wrapper.findComponent(H2).text()).toContain('Step 2')
 
-    await goToStep(4)
+    await goToStep(3)
     expect(wrapper.findComponent(H2).text()).toContain('Step 3')
 
-    await goToStep(5)
+    await goToStep(4)
     expect(wrapper.findComponent(H2).text()).toContain('Step 4')
+
+    await goToStep(5)
+    expect(wrapper.findComponent(H2).text()).toContain('Step 5')
 
     const reviewForm = wrapper.findComponent(BcrosFormSectionReviewForm)
     expect(reviewForm.exists()).toBeTruthy()

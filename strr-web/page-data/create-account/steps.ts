@@ -1,18 +1,6 @@
 import { FormPageI } from '~/interfaces/form/form-page-i'
 
-interface CreateStepParamsI {
-  label: string
-  icon: string
-  alt: string
-  title: string
-  subtitle: string
-  formTitle: string
-  complete: boolean
-  isValid: boolean
-  sections?: any[]
-}
-
-const createStepParams = (
+const createStep = (
   label: string,
   icon: string,
   alt: string,
@@ -22,29 +10,7 @@ const createStepParams = (
   complete: boolean = false,
   isValid: boolean = false,
   sections: any[] = []
-): CreateStepParamsI => ({
-  label,
-  icon,
-  alt,
-  title,
-  subtitle,
-  formTitle,
-  complete,
-  isValid,
-  sections
-})
-
-const createStep = ({
-  label,
-  icon,
-  alt,
-  title,
-  subtitle,
-  formTitle,
-  complete,
-  isValid,
-  sections = []
-}: CreateStepParamsI): FormPageI => ({
+): FormPageI => ({
   step: {
     label: `createAccount.stepTitle.${label}`,
     inactiveIconPath: `/icons/create-account/${icon}.svg`,
@@ -60,7 +26,7 @@ const createStep = ({
 })
 
 const steps: FormPageI[] = [
-  createStep(createStepParams(
+  createStep(
     'propertyManager',
     'add_property_manager',
     'Add property managers',
@@ -69,11 +35,11 @@ const steps: FormPageI[] = [
     'propertyManager',
     true,
     true
-  )),
-  createStep(createStepParams('contact', 'add_person', 'Add contacts', 'contact', 'contact', 'contact')),
-  createStep(createStepParams('property', 'add_location', 'Add properties', 'details', 'details', 'details')),
-  createStep(createStepParams('eligibility', 'upload_file', 'Upload documents', 'eligibility', '', 'eligibility')),
-  createStep(createStepParams('review', 'check', 'Check and verify', 'confirm', '', 'confirm'))
+  ),
+  createStep('contact', 'add_person', 'Add contacts', 'contact', 'contact', 'contact'),
+  createStep('property', 'add_location', 'Add properties', 'details', 'details', 'details'),
+  createStep('eligibility', 'upload_file', 'Upload documents', 'eligibility', '', 'eligibility'),
+  createStep('review', 'check', 'Check and verify', 'confirm', '', 'confirm')
 ]
 
 export default steps
