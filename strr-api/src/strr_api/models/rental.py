@@ -68,12 +68,34 @@ class RentalProperty(Versioned, BaseModel):
 
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=False)
+    property_manager_id = db.Column(db.Integer, db.ForeignKey("property_manager.id"), nullable=True)
 
     address = relationship("Address", foreign_keys=[address_id], back_populates="rental_properties_address")
     registration = relationship("Registration", foreign_keys=[registration_id], back_populates="rental_property")
+    property_manager = relationship(
+        "PropertyManager", foreign_keys=[property_manager_id], back_populates="rental_property"
+    )
 
     contacts = relationship("PropertyContact")
     property_listings = relationship("PropertyListing")
+
+
+class PropertyManager(Versioned, BaseModel):
+    """Property Manager"""
+
+    __tablename__ = "property_manager"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    business_legal_name = db.Column(db.String(250), nullable=True)
+    business_number = db.Column(db.String(100), nullable=True)
+
+    business_mailing_address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
+    contact_id = db.Column(db.Integer, db.ForeignKey("contacts.id"), nullable=False)
+
+    business_mailing_address = relationship("Address", foreign_keys=[business_mailing_address_id])
+    contact = relationship("Contact", foreign_keys=[contact_id])
+
+    rental_property = relationship("RentalProperty", back_populates="property_manager", uselist=False)
 
 
 class PropertyContact(Versioned, BaseModel):

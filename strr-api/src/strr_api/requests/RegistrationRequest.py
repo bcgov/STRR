@@ -25,17 +25,57 @@ class Registration:
         secondaryContact=None,
         documents=[],  # pylint: disable=W0102
         registrationType=None,
+        propertyManager=None,
     ):
         self.primaryContact = Contact(**primaryContact)
-        self.secondaryContact = None
-        if secondaryContact:
-            self.secondaryContact = Contact(**secondaryContact)
+        self.secondaryContact = Contact(**secondaryContact) if secondaryContact else None
         self.unitAddress = UnitAddress(**unitAddress)
         self.unitDetails = UnitDetails(**unitDetails)
         self.listingDetails = [ListingDetails(**item) for item in listingDetails]
         self.principalResidence = PrincipalResidence(**principalResidence)
         self.documents = [Document(**document) for document in documents]
         self.registrationType = registrationType
+        self.propertyManager = PropertyManager(**propertyManager) if propertyManager else None
+
+
+class PropertyManager:
+    """Property Manager object."""
+
+    def __init__(
+        self,
+        contact,
+        businessMailingAddress,
+        businessLegalName=None,
+        businessNumber=None,
+    ):
+        self.contact = PropertyManagerContact(**contact)
+        self.businessMailingAddress = MailingAddress(**businessMailingAddress)
+        self.businessLegalName = businessLegalName
+        self.businessNumber = businessNumber
+
+
+class PropertyManagerContact:
+    """Property Manager Contact object."""
+
+    def __init__(
+        self,
+        firstName,
+        lastName,
+        phoneNumber,
+        emailAddress,
+        middleName=None,
+        preferredName=None,
+        extension=None,
+        faxNumber=None,
+    ):
+        self.firstName = firstName
+        self.lastName = lastName
+        self.phoneNumber = phoneNumber
+        self.emailAddress = emailAddress
+        self.middleName = middleName
+        self.preferredName = preferredName
+        self.extension = extension
+        self.faxNumber = faxNumber
 
 
 class PrincipalResidence:

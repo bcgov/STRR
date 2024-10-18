@@ -4,6 +4,8 @@ from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
+import pytest
+
 from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
 from strr_api.models.application import ApplicationSerializer
@@ -11,6 +13,9 @@ from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_hea
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
+)
+CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration_property_manager.json"
 )
 CREATE_HOST_REGISTRATION_MINIMUM_FIELDS_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration_minimum.json"
@@ -31,9 +36,16 @@ MOCK_PAYMENT_COMPLETED_RESPONSE = {
 MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 
+@pytest.mark.parametrize(
+    "request_json",
+    [
+        CREATE_HOST_REGISTRATION_REQUEST,
+        CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST,
+    ],
+)
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_create_host_registration_application(session, client, jwt):
-    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+def test_create_host_registration_application(session, client, jwt, request_json):
+    with open(request_json) as f:
         json_data = json.load(f)
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -56,7 +68,7 @@ def test_get_applications(session, client, jwt):
 
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
-    assert len(response_json.get("applications")) == 1
+    assert len(response_json.get("applications")) == 2
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -276,9 +288,16 @@ def test_examiner_reject_application(session, client, jwt):
         assert response_json.get("header").get("hostActions") == []
 
 
+@pytest.mark.parametrize(
+    "request_json",
+    [
+        CREATE_HOST_REGISTRATION_REQUEST,
+        CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST,
+    ],
+)
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_examiner_approve_host_registration_application(session, client, jwt):
-    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+def test_examiner_approve_host_registration_application(session, client, jwt, request_json):
+    with open(request_json) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         json_data = json.load(f)
