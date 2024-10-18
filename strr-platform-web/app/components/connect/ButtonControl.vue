@@ -21,6 +21,8 @@ const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
               :label="button.label"
               :trailing="button.trailing || false"
               :variant="button.variant || 'solid'"
+              :disabled="button.disabled || false"
+              :loading="button.loading || false"
               data-testid="button-control-left-button"
               @click="button.action()"
             />
