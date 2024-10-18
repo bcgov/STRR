@@ -86,89 +86,59 @@ watch(secondaryRep, async () => {
       :ui-radio="{ inner: 'space-y-2' }"
     />
     <div v-if="isCompletingPartyRep !== undefined" class="space-y-10">
-      <div v-if="!isCompletingPartyRep" class="space-y-10">
-        <ConnectPageSection
-          class="bg-white"
-          :heading="{ label: tPlat('section.title.completingParty'), labelClass: 'font-bold md:ml-6' }"
+      <ConnectPageSection
+        v-if="!isCompletingPartyRep"
+        class="bg-white"
+        :heading="{ label: tPlat('section.title.completingParty'), labelClass: 'font-bold md:ml-6' }"
+      >
+        <UForm
+          ref="compPartyRef"
+          :schema="getContactSchema(true)"
+          :state="completingParty"
         >
-          <UForm
-            ref="compPartyRef"
-            :schema="getContactSchema(true)"
-            :state="completingParty"
-          >
-            <FormCommonContact
-              v-model:first-name="completingParty.firstName"
-              v-model:last-name="completingParty.lastName"
-              v-model:phone="completingParty.phone"
-              v-model:emailAddress="completingParty.emailAddress"
-              id-prefix="platform-completing-party"
-              name-divider
-              prepopulate-name
-              prepopulate-type="Bceid"
-              :error-details="compPartyDetailsErr"
-            />
-          </UForm>
-        </ConnectPageSection>
-        <ConnectPageSection
-          v-if="primaryRep"
-          class="bg-white"
-          :heading="{ label: tPlat('section.title.primaryRep'), labelClass: 'font-bold md:ml-6' }"
+          <FormCommonContact
+            v-model:first-name="completingParty.firstName"
+            v-model:last-name="completingParty.lastName"
+            v-model:phone="completingParty.phone"
+            v-model:emailAddress="completingParty.emailAddress"
+            id-prefix="platform-completing-party"
+            name-divider
+            prepopulate-name
+            prepopulate-type="Bceid"
+            :error-details="compPartyDetailsErr"
+          />
+        </UForm>
+      </ConnectPageSection>
+      <ConnectPageSection
+        v-if="primaryRep"
+        class="bg-white"
+        :heading="{ label: tPlat('section.title.primaryRep'), labelClass: 'font-bold md:ml-6' }"
+      >
+        <UForm
+          ref="primaryRepRef"
+          :schema="getContactSchema(false)"
+          :state="primaryRep"
+          class="space-y-10"
         >
-          <UForm
-            ref="primaryRepRef"
-            :schema="getContactSchema(false)"
-            :state="primaryRep"
-            class="space-y-10"
-          >
-            <FormCommonContact
-              v-model:first-name="primaryRep.firstName"
-              v-model:middle-name="primaryRep.middleName"
-              v-model:last-name="primaryRep.lastName"
-              v-model:phone="primaryRep.phone"
-              v-model:emailAddress="primaryRep.emailAddress"
-              v-model:fax-number="primaryRep.faxNumber"
-              v-model:position="primaryRep.position"
-              id-prefix="platform-primary-rep"
-              name-divider
-              :prepopulate-name="false"
-              email-warning
-              :section-info="t('platform.text.primaryContact')"
-              :error-name="primaryRepNameErr"
-              :error-details="primaryRepDetailsErr"
-            />
-          </UForm>
-        </ConnectPageSection>
-      </div>
-      <div v-else-if="primaryRep">
-        <ConnectPageSection
-          class="bg-white"
-          :heading="{ label: tPlat('section.title.primaryRep'), labelClass: 'font-bold md:ml-6' }"
-        >
-          <UForm
-            ref="primaryRepRef"
-            :schema="getContactSchema(false)"
-            :state="primaryRep"
-            class="space-y-10"
-          >
-            <FormCommonContact
-              v-model:first-name="primaryRep.firstName"
-              v-model:middle-name="primaryRep.middleName"
-              v-model:last-name="primaryRep.lastName"
-              v-model:phone="primaryRep.phone"
-              v-model:emailAddress="primaryRep.emailAddress"
-              v-model:fax-number="primaryRep.faxNumber"
-              v-model:position="primaryRep.position"
-              id-prefix="platform-primary-rep"
-              prepopulate-name
-              prepopulate-type="Bceid"
-              name-divider
-              email-warning
-              :error-name="primaryRepNameErr"
-              :error-details="primaryRepDetailsErr"
-            />
-          </UForm>
-        </ConnectPageSection>
-      </div>
+          <FormCommonContact
+            v-model:first-name="primaryRep.firstName"
+            v-model:middle-name="primaryRep.middleName"
+            v-model:last-name="primaryRep.lastName"
+            v-model:phone="primaryRep.phone"
+            v-model:emailAddress="primaryRep.emailAddress"
+            v-model:fax-number="primaryRep.faxNumber"
+            v-model:position="primaryRep.position"
+            id-prefix="platform-primary-rep"
+            name-divider
+            :prepopulate-name="isCompletingPartyRep"
+            prepopulate-type="Bceid"
+            email-warning
+            :section-info="isCompletingPartyRep ? undefined : t('platform.text.primaryContact')"
+            :error-name="primaryRepNameErr"
+            :error-details="primaryRepDetailsErr"
+          />
+        </UForm>
+      </ConnectPageSection>
       <div v-if="!secondaryRep">
         <UButton
           :label="tPlat('label.addRepresentative')"

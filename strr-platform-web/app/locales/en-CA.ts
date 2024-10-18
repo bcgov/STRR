@@ -226,6 +226,7 @@ export default {
       BCANN: 'BC Annual Report',
       PLATREG_SM: 'Platform Registration Fee',
       PLATREG_LG: 'Platform Registration Fee',
+      PLATREG_WV: 'Platform Registration Fee',
       REGSIGIN: 'Significant Individual Change',
       RENTAL_FEE: 'Registration Fee',
       PLACEHOLDER: 'Placeholder (Replace Me)', // each project using the connect fee widget should change the placeholder filingTypeCode

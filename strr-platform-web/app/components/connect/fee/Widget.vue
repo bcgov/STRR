@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useWindowSize } from '@vueuse/core'
 
-const { t } = useI18n()
-
 const {
   feeOptions,
   fees,
@@ -80,57 +78,57 @@ const toggleFolded = () => {
         class="flex flex-row justify-between border-b border-bcGovGray-300 py-3"
       >
         <p class="font-bold">
-          {{ t(`feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}
+          {{ $t(`feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}
         </p>
         <p>
           {{
             feeItem.waived
-              ? t('feeSummary.noFee')
+              ? $t('feeSummary.noFee')
               : !feeItem.isPlaceholder ? `$${feeItem.filingFees.toFixed(2)}` : '$ -' }}
         </p>
       </div>
       <ConnectFeeExtraFee
         v-if="feeOptions.showFutureEffectiveFees"
-        :description="t('feeSummary.futureEffectiveFees')"
+        :description="$t('feeSummary.futureEffectiveFees')"
         :fee="totalFutureEffectiveFees"
         :show-fee-value="isPlaceholderActive"
       />
       <ConnectFeeExtraFee
         v-if="feeOptions.showPriorityFees"
-        :description="t('feeSummary.priorityFees')"
+        :description="$t('feeSummary.priorityFees')"
         :fee="totalPriorityFees"
         :show-fee-value="isPlaceholderActive"
       />
       <ConnectFeeExtraFee
         v-if="feeOptions.showProcessingFees"
-        :description="t('feeSummary.processingFees')"
+        :description="$t('feeSummary.processingFees')"
         :fee="totalProcessingFees"
         :show-fee-value="isPlaceholderActive"
       />
       <ConnectFeeExtraFee
         v-if="feeOptions.showServiceFees"
-        :description="t('feeSummary.serviceFees')"
+        :description="$t('feeSummary.serviceFees')"
         :fee="isPlaceholderActive ? placeholderFeeItem.serviceFees : totalServiceFees"
         show-fee-value
       />
       <ConnectFeeExtraFee
         v-if="feeOptions.showPst"
-        :description="t('feeSummary.pst')"
+        :description="$t('feeSummary.pst')"
         :fee="totalPst"
         :show-fee-value="isPlaceholderActive"
       />
       <ConnectFeeExtraFee
         v-if="feeOptions.showGst"
-        :description="t('feeSummary.gst')"
+        :description="$t('feeSummary.gst')"
         :fee="totalGst"
         :show-fee-value="isPlaceholderActive"
       />
-      <div class="flex flex-row items-end justify-between py-3" aria-label="null">
+      <div class="flex flex-row items-end justify-between py-3">
         <p class="mb-1 font-bold">
-          {{ t("feeSummary.total") }}
+          {{ $t("feeSummary.total") }}
         </p>
         <p class="flex items-end text-sm text-bcGovGray-700">
-          <span class="mb-1">{{ t("currency.cad") }}</span>
+          <span class="mb-1">{{ $t("currency.cad") }}</span>
           <b class="ml-[5px] flex items-end text-2xl text-black">
             {{ !isPlaceholderActive ? `$${total.toFixed(2)}` : '$ -' }}
           </b>

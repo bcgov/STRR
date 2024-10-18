@@ -14,62 +14,50 @@ setPlaceholderFilingTypeCode(ConnectFeeCode.STR_PLAT_SM)
 
 const platFeeSm = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeLg = ref<ConnectFeeItem | undefined>(undefined)
+const platFeeWv = ref<ConnectFeeItem | undefined>(undefined)
 onMounted(async () => {
   const smallFee = getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_SM)
   const largeFee = getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_LG)
+  const waivedFee = getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_WV)
   platFeeSm.value = await smallFee
   platFeeLg.value = await largeFee
+  // NOTE: if we want this to have 'NO FEE' instead of $0.00 in the fee summary then set platFeeWv.value.waived = true
+  platFeeWv.value = await waivedFee
   if (platFeeSm.value) {
     setPlaceholderServiceFee(platFeeSm.value.serviceFees)
   }
 })
 
+const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 // const { getBusinessSchema } = useStrrPlatformBusiness()
 watch(() => platformBusiness.value.hasCpbc, (val) => {
-  if (!val && !platformDetails.value.listingSize) {
+  if (val && platFeeWv.value) {
     removeFee(ConnectFeeCode.STR_PLAT_SM)
     removeFee(ConnectFeeCode.STR_PLAT_LG)
-  } else if (platFeeSm.value && platFeeLg.value) {
-    if (val && !platformDetails.value.listingSize) {
-      addReplaceFee({
-        ...platFeeSm.value,
-        waived: val
-      })
-    } else if (platformDetails.value.listingSize === ListingSize.UNDER_THOUSAND) {
-      removeFee(ConnectFeeCode.STR_PLAT_LG)
-      addReplaceFee({
-        ...platFeeSm.value,
-        waived: val
-      })
-    } else {
-      // ListingSize.THOUSAND_OR_MORE
-      removeFee(ConnectFeeCode.STR_PLAT_SM)
-      addReplaceFee({
-        ...platFeeLg.value,
-        waived: val
-      })
-    }
+    addReplaceFee(platFeeWv.value)
+  } else {
+    removeFee(ConnectFeeCode.STR_PLAT_WV)
+    setFeeBasedOnListingSize(platformDetails.value.listingSize)
   }
 })
 
-const { platformDetails } = storeToRefs(useStrrPlatformDetails())
-watch(() => platformDetails.value.listingSize, (val) => {
-  if (platFeeSm.value && platFeeLg.value && val) {
-    if (val === ListingSize.UNDER_THOUSAND) {
+const setFeeBasedOnListingSize = (listingSize: ListingSize | undefined) => {
+  if (platFeeSm.value && platFeeLg.value && listingSize) {
+    if (listingSize === ListingSize.UNDER_THOUSAND) {
       removeFee(ConnectFeeCode.STR_PLAT_LG)
-      addReplaceFee({
-        ...platFeeSm.value,
-        waived: platformBusiness.value.hasCpbc
-      })
+      addReplaceFee(platFeeSm.value)
     } else {
       // ListingSize.THOUSAND_OR_MORE
       removeFee(ConnectFeeCode.STR_PLAT_SM)
-      addReplaceFee({
-        ...platFeeLg.value,
-        waived: platformBusiness.value.hasCpbc
-      })
+      addReplaceFee(platFeeLg.value)
     }
+  }
+}
+
+watch(() => platformDetails.value.listingSize, (val) => {
+  if (!platformBusiness.value.hasCpbc) {
+    setFeeBasedOnListingSize(val)
   }
 })
 
@@ -253,7 +241,7 @@ setBreadcrumbs([
 </script>
 <template>
   <div class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="t('createAccount.title')" class="my-5" />
+    <ConnectTypographyH1 :text="t('platform.title')" class="my-5" />
     <ConnectStepper
       :key="0"
       :active-step="activeStepIndex"

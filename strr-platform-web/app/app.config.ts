@@ -47,7 +47,7 @@ export default defineAppConfig({
       rounded: 'rounded-none rounded-t',
       color: {
         gray: {
-          outline: 'border-gray-900 placeholder-gray-700 ring-0 focus:ring-0 focus:placeholder-primary-500'
+          outline: 'placeholder-gray-700 ring-0 focus:ring-0 focus:placeholder-primary-500'
         },
         primary: {
           outline: 'bg-primary-50 border-primary-500 text-gray-900 ring-0 focus:ring-0'

@@ -3,7 +3,23 @@ import countryList from 'country-codes-list'
 import type { ConnectPhoneCountry } from '#imports'
 
 const countryCallingCode = defineModel<string | undefined>('countryCallingCode', { required: false })
+watch(countryCallingCode, (val) => {
+  // this is needed for when something outside this component changes the callingCode model value
+  if (!val) {
+    countryIso2.value = undefined
+  } else if (selectedCountry.value?.callingCode !== val) {
+    countryIso2.value = search(val)[0]?.iso2
+  }
+})
+
 const countryIso2 = defineModel<string | undefined>('countryIso2', { required: false })
+watch(countryIso2, (val) => {
+  if (!val) {
+    selectedCountry.value = undefined
+  } else if (val && selectedCountry.value?.iso2 !== val) {
+    selectCountry(val)
+  }
+})
 
 const selectedCountry = ref<ConnectPhoneCountry | undefined>(undefined)
 watch(selectedCountry, (newVal) => {
@@ -56,12 +72,6 @@ onMounted(() => {
     selectedCountry.value = {
       callingCode: `+${countryCallingCode.value}`
     }
-  }
-})
-
-watch(countryIso2, () => {
-  if (selectedCountry.value === undefined && countryIso2.value !== undefined) {
-    selectCountry(countryIso2.value)
   }
 })
 </script>
