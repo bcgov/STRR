@@ -6,6 +6,7 @@ import FeeWidget from '~/components/FeeWidget.vue'
 import H1 from '~/components/bcros/typography/H1.vue'
 import H2 from '~/components/bcros/typography/H2.vue'
 import {
+  BcrosFormSectionPropertyManagerForm,
   BcrosFormSectionContactInformationForm,
   BcrosFormSectionReviewForm,
   BcrosFormSectionReviewSubsection
@@ -36,10 +37,10 @@ describe('Rental Application', () => {
     const stepper = wrapper.findComponent(Stepper)
     expect(stepper.exists()).toBeTruthy()
 
-    expect(wrapper.findComponent(BcrosFormSectionContactInformationForm).exists()).toBeTruthy()
-    expect(wrapper.findComponent(H2).text()).toContain('Step 1')
+    expect(wrapper.findComponent(BcrosFormSectionPropertyManagerForm).exists()).toBeTruthy()
 
     await goToStep(2)
+    expect(wrapper.findComponent(BcrosFormSectionContactInformationForm).exists()).toBeTruthy()
     expect(wrapper.findComponent(H2).text()).toContain('Step 2')
 
     await goToStep(3)
@@ -47,6 +48,9 @@ describe('Rental Application', () => {
 
     await goToStep(4)
     expect(wrapper.findComponent(H2).text()).toContain('Step 4')
+
+    await goToStep(5)
+    expect(wrapper.findComponent(H2).text()).toContain('Step 5')
 
     const reviewForm = wrapper.findComponent(BcrosFormSectionReviewForm)
     expect(reviewForm.exists()).toBeTruthy()

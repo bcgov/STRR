@@ -60,6 +60,9 @@
               </p>
             </div>
             <div v-if="activeStepIndex === 0" :key="activeStepIndex">
+              <BcrosFormSectionPropertyManagerForm />
+            </div>
+            <div v-if="activeStepIndex === 1" :key="activeStepIndex">
               <BcrosFormSectionContactInformationForm
                 ref="contactForm"
                 :full-name="userFullName"
@@ -69,13 +72,13 @@
                 :second-form-is-complete="activeStep.step.complete"
               />
             </div>
-            <div v-if="activeStepIndex === 1" :key="activeStepIndex">
+            <div v-if="activeStepIndex === 2" :key="activeStepIndex">
               <BcrosFormSectionPropertyForm :is-complete="activeStep.step.complete" />
             </div>
-            <div v-if="activeStepIndex === 2" :key="activeStepIndex">
+            <div v-if="activeStepIndex === 3" :key="activeStepIndex">
               <BcrosFormSectionPrincipalResidenceForm :is-complete="steps[activeStepIndex].step.complete" />
             </div>
-            <div v-if="activeStepIndex === 3" :key="activeStepIndex">
+            <div v-if="activeStepIndex === 4" :key="activeStepIndex">
               <BcrosFormSectionReviewForm
                 :secondary-contact="hasSecondaryContact"
                 :is-complete="steps[activeStepIndex].step.complete"
@@ -186,6 +189,11 @@ const setActiveStep = (newStep: number) => {
   activeStep.value.step.complete = true
   activeStepIndex.value = newStep
   activeStep.value = steps[activeStepIndex.value]
+  // TODO: remove with validation for Step 1 project manager
+  if (newStep === 0) {
+    activeStep.value.step.isValid = true
+    activeStep.value.step.complete = true
+  }
 }
 
 const setStepValid = (index: number, valid: boolean) => {
@@ -197,36 +205,36 @@ const validateStep = (schema: any, state: any, index: number) => {
 }
 
 watch(formState.primaryContact, () => {
-  validateStep(primaryContactSchema, formState.primaryContact, 0)
+  validateStep(primaryContactSchema, formState.primaryContact, 1)
 })
 
 watch(formState.secondaryContact, () => {
-  validateStep(secondaryContactSchema, formState.secondaryContact, 0)
+  validateStep(secondaryContactSchema, formState.secondaryContact, 1)
 })
 
 watch(formState.propertyDetails, () => {
-  validateStep(propertyDetailsSchema, formState.propertyDetails, 1)
+  validateStep(propertyDetailsSchema, formState.propertyDetails, 2)
 })
 
 const validateProofPage = () => {
   if (formState.principal.isPrincipal && formState.principal.declaration && formState.supportingDocuments.length > 0) {
-    setStepValid(2, true)
+    setStepValid(3, true)
   } else if (
     !formState.principal.isPrincipal &&
     formState.principal.reason &&
     formState.principal.reason !== tPrincipalResidence('other')
   ) {
-    setStepValid(2, true)
+    setStepValid(3, true)
   } else if (!formState.principal.isPrincipal && formState.principal.reason && formState.principal.otherReason) {
-    setStepValid(2, true)
+    setStepValid(3, true)
   } else {
-    setStepValid(2, false)
+    setStepValid(3, false)
   }
 }
 
 const validateReviewPage = () => {
-  setStepValid(3, formState.principal.agreeToSubmit)
-  steps[3].step.complete = true
+  setStepValid(4, formState.principal.agreeToSubmit)
+  steps[4].step.complete = true
 }
 
 watch(formState.supportingDocuments, () => {
@@ -239,15 +247,18 @@ watch(formState.principal, () => {
 
 const validateSteps = () => {
   if (activeStepIndex.value === 0) {
-    validateStep(primaryContactSchema, formState.primaryContact, 0)
-    if (hasSecondaryContact.value) {
-      validateStep(secondaryContactSchema, formState.secondaryContact, 0)
-    }
+    // Do nothing for now
+    // TODO: add validation
   } else if (activeStepIndex.value === 1) {
-    validateStep(propertyDetailsSchema, formState.propertyDetails, 1)
+    validateStep(primaryContactSchema, formState.primaryContact, 1)
+    if (hasSecondaryContact.value) {
+      validateStep(secondaryContactSchema, formState.secondaryContact, 1)
+    }
   } else if (activeStepIndex.value === 2) {
-    validateProofPage()
+    validateStep(propertyDetailsSchema, formState.propertyDetails, 2)
   } else if (activeStepIndex.value === 3) {
+    validateProofPage()
+  } else if (activeStepIndex.value === 4) {
     validateReviewPage()
   }
 }
