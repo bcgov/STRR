@@ -12,6 +12,28 @@ interface CreateStepParamsI {
   sections?: any[]
 }
 
+const createStepParams = (
+  label: string,
+  icon: string,
+  alt: string,
+  title: string,
+  subtitle: string,
+  formTitle: string,
+  complete: boolean = false,
+  isValid: boolean = false,
+  sections: any[] = []
+): CreateStepParamsI => ({
+  label,
+  icon,
+  alt,
+  title,
+  subtitle,
+  formTitle,
+  complete,
+  isValid,
+  sections
+})
+
 const createStep = ({
   label,
   icon,
@@ -38,57 +60,20 @@ const createStep = ({
 })
 
 const steps: FormPageI[] = [
-  createStep({
-    label: 'propertyManager',
-    icon: 'add_property_manager',
-    alt: 'Add property managers',
-    title: 'propertyManager',
-    subtitle: 'propertyManager',
-    formTitle: 'propertyManager',
-    // TODO: remove
-    complete: true,
-    isValid: true
-  }),
-  createStep({
-    label: 'contact',
-    icon: 'add_person',
-    alt: 'Add contacts',
-    title: 'contact',
-    subtitle: 'contact',
-    formTitle: 'contact',
-    complete: false,
-    isValid: false
-  }),
-  createStep({
-    label: 'property',
-    icon: 'add_location',
-    alt: 'Add properties',
-    title: 'details',
-    subtitle: 'details',
-    formTitle: 'details',
-    complete: false,
-    isValid: false
-  }),
-  createStep({
-    label: 'eligibility',
-    icon: 'upload_file',
-    alt: 'Upload documents',
-    title: 'eligibility',
-    subtitle: '',
-    formTitle: 'eligibility',
-    complete: false,
-    isValid: false
-  }),
-  createStep({
-    label: 'review',
-    icon: 'check',
-    alt: 'Check and verify',
-    title: 'confirm',
-    subtitle: '',
-    formTitle: 'confirm',
-    complete: false,
-    isValid: false
-  })
+  createStep(createStepParams(
+    'propertyManager',
+    'add_property_manager',
+    'Add property managers',
+    'propertyManager',
+    'propertyManager',
+    'propertyManager',
+    true,
+    true
+  )),
+  createStep(createStepParams('contact', 'add_person', 'Add contacts', 'contact', 'contact', 'contact')),
+  createStep(createStepParams('property', 'add_location', 'Add properties', 'details', 'details', 'details')),
+  createStep(createStepParams('eligibility', 'upload_file', 'Upload documents', 'eligibility', '', 'eligibility')),
+  createStep(createStepParams('review', 'check', 'Check and verify', 'confirm', '', 'confirm'))
 ]
 
 export default steps
