@@ -101,7 +101,13 @@ defineProps<{
           name="position"
           :placeholder="t('label.positionTitle')"
         />
-        <ConnectPhoneNumber v-if="phone" v-model="phone" />
+        <ConnectPhoneNumber
+          v-if="phone"
+          v-model:country-code="phone.countryCode"
+          v-model:country-iso2="phone.countryIso2"
+          v-model:extension="phone.extension"
+          v-model:number="phone.number"
+        />
         <ConnectFieldGroup
           v-if="faxNumber !== undefined"
           :id="idPrefix + '-fax-number'"

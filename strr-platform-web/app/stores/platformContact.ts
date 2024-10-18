@@ -58,12 +58,11 @@ export const useStrrPlatformContact = defineStore('strr/platformContact', () => 
   }
 
   const completingParty = ref<Contact>(getNewContact(true))
-  const isCompletingPartyRep = ref<boolean | undefined>(undefined)
 
   const getNewRepresentative = (isActiveUser = false): PlatformContact => {
     let contact = getNewContact(false)
     if (isActiveUser) {
-      contact = { ...completingParty.value }
+      contact = JSON.parse(JSON.stringify(completingParty.value))
     }
     return {
       ...contact,
@@ -71,7 +70,15 @@ export const useStrrPlatformContact = defineStore('strr/platformContact', () => 
     }
   }
 
+  const isCompletingPartyRep = ref<boolean | undefined>(undefined)
   const primaryRep = ref<PlatformContact | undefined>(undefined)
+  watch(primaryRep, (val) => {
+    if (val && isCompletingPartyRep.value) {
+      completingParty.value.emailAddress = val?.emailAddress
+      completingParty.value.phone = val?.phone
+    }
+  }, { deep: true })
+
   const secondaryRep = ref<PlatformContact | undefined>(undefined)
 
   return {

@@ -7,7 +7,7 @@ const { isComplete } = defineProps<{ isComplete: boolean }>()
 const { getBusinessSchema } = useStrrPlatformBusiness()
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 
-const radioOptions = [
+const getRadioOptions = () => [
   { value: true, label: t('word.Yes') },
   { value: false, label: t('word.No') }]
 
@@ -150,13 +150,13 @@ watch(canadaPostAddress, (newAddress) => {
               name="businessNumber"
               :placeholder="t('label.busNumOpt')"
             />
-            <UFormGroup name="null">
+            <UFormGroup id="platform-business-hasCpbc" name="hasCpbc">
               <URadioGroup
                 v-model="platformBusiness.hasCpbc"
                 class="p-2"
                 :class="isComplete && platformBusiness.hasCpbc === undefined ? 'border-red-600 border-2' : ''"
                 :legend="tPlat('text.hasCpbc')"
-                :options="radioOptions"
+                :options="getRadioOptions()"
                 :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
                 :ui-radio="{ inner: 'space-y-2' }"
               />
@@ -191,13 +191,13 @@ watch(canadaPostAddress, (newAddress) => {
         <div class="h-px w-full border-b border-gray-100" />
         <ConnectSection :title="tPlat('section.subTitle.regOfficeAttSvcAddrress')" :error="showErrorRegOffAtt">
           <div class="max-w-bcGovInput space-y-5">
-            <UFormGroup name="null">
+            <UFormGroup id="platform-business-hasRegOffAtt" name="hasRegOffAtt">
               <URadioGroup
                 v-model="platformBusiness.hasRegOffAtt"
                 class="p-2"
                 :class="isComplete && platformBusiness.hasRegOffAtt === undefined ? 'border-red-600 border-2' : ''"
                 :legend="tPlat('text.regOffOrAtt')"
-                :options="radioOptions"
+                :options="getRadioOptions()"
                 :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
                 :ui-radio="{ inner: 'space-y-2' }"
               />
