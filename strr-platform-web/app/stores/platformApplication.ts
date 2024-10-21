@@ -8,8 +8,8 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
   const confirmInfoAccuracy = ref(false)
   const confirmDelistAndCancelBookings = ref(false)
 
-  function createApplicationBody (): PlatApp {
-    const applicationBody: PlatApp = {
+  function createApplicationBody (): PlatformApplicationPayload {
+    const applicationBody: PlatformApplicationPayload = {
       registration: {
         registrationType: ApplicationType.PLATFORM,
         completingParty: formatParty(completingParty.value),

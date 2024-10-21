@@ -1,4 +1,4 @@
-export interface PlatAppAddress {
+export interface ApiAddress {
   country: string
   address: string
   addressLineTwo: string
@@ -7,7 +7,7 @@ export interface PlatAppAddress {
   postalCode: string
 }
 
-export interface PlatAppParty {
+export interface ApiParty {
   firstName: string
   lastName: string
   middleName: string
@@ -17,11 +17,11 @@ export interface PlatAppParty {
   emailAddress: string
 }
 
-export interface PlatAppRep extends PlatAppParty {
+export interface ApiRep extends ApiParty {
   jobTitle: string
 }
 
-export interface PlatAppBusinessDetails {
+export interface ApiBusinessDetails {
   legalName: string
   homeJurisdiction: string
   businessNumber: string
@@ -30,26 +30,24 @@ export interface PlatAppBusinessDetails {
   noticeOfNonComplianceOptionalEmail: string
   takeDownRequestEmail: string
   takeDownRequestOptionalEmail: string
-  mailingAddress: PlatAppAddress
+  mailingAddress: ApiAddress
   registeredOfficeOrAttorneyForServiceDetails: {
     attorneyName: string
-    mailingAddress: PlatAppAddress
+    mailingAddress: ApiAddress
   }
 }
 
-export interface PlatAppPlatformDetails {
+export interface ApiPlatformDetails {
   brands: PlatBrand[]
   listingSize: ListingSize
 }
 
-export interface PlatAppRegistration {
-  registrationType: ApplicationType
-  completingParty: PlatAppParty
-  platformRepresentatives: PlatAppRep[]
-  businessDetails: PlatAppBusinessDetails
-  platformDetails: PlatAppPlatformDetails
-}
-
-export interface PlatApp {
-  registration: PlatAppRegistration
+export interface PlatformApplicationPayload {
+  registration: {
+    registrationType: ApplicationType
+    completingParty: ApiParty
+    platformRepresentatives: ApiRep[]
+    businessDetails: ApiBusinessDetails
+    platformDetails: ApiPlatformDetails
+  }
 }

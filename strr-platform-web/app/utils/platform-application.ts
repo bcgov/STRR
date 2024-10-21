@@ -5,7 +5,7 @@ export function formatPhoneNumber (phone: ConnectPhone) {
   }
 }
 
-export function formatAddress (add: ConnectAddress): PlatAppAddress {
+export function formatAddress (add: ConnectAddress): ApiAddress {
   return {
     country: add.country,
     address: add.street,
@@ -16,7 +16,7 @@ export function formatAddress (add: ConnectAddress): PlatAppAddress {
   }
 }
 
-export function formatParty (party: Contact): PlatAppParty {
+export function formatParty (party: Contact): ApiParty {
   return {
     firstName: party.firstName,
     middleName: party.middleName ?? '',
@@ -27,14 +27,14 @@ export function formatParty (party: Contact): PlatAppParty {
   }
 }
 
-export function formatRepresentative (rep: PlatformContact): PlatAppRep {
+export function formatRepresentative (rep: PlatformContact): ApiRep {
   return {
     ...formatParty(rep),
     jobTitle: rep.position
   }
 }
 
-export function formatBusinessDetails (bus: PlatBusiness): PlatAppBusinessDetails {
+export function formatBusinessDetails (bus: PlatBusiness): ApiBusinessDetails {
   return {
     legalName: bus.legalName,
     homeJurisdiction: bus.homeJurisdiction,
@@ -54,7 +54,7 @@ export function formatBusinessDetails (bus: PlatBusiness): PlatAppBusinessDetail
 
 export function formatPlatformDetails (
   plat: { brands: PlatBrand[], listingSize: ListingSize | undefined }
-): PlatAppPlatformDetails {
+): ApiPlatformDetails {
   return {
     brands: plat.brands.map(brand => ({
       name: brand.name,
