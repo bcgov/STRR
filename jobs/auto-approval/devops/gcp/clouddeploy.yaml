@@ -14,7 +14,7 @@ serialPipeline:
    - values:
       deploy-env: "development"
       deploy-project-id: "bcrbk9-dev"
-      service-name: "sstrr-application-auto-approval-job-dev"
+      service-name: "strr-application-auto-approval-job-dev"
       container-name: "strr-application-auto-approval-job-dev"
       cloudsql-instances: "bcrbk9-dev:northamerica-northeast1:strr-db-dev"
       service-account: "sa-api@bcrbk9-dev.iam.gserviceaccount.com"
