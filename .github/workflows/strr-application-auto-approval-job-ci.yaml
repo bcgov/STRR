@@ -9,7 +9,7 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: ./STRR/STRR/jobs/auto-approval
+    working-directory: ./jobs/auto-approval
 
 jobs:
   strr-pay-ci:
