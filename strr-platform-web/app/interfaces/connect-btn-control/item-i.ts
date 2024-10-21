@@ -7,4 +7,5 @@ export interface ConnectBtnControlItem {
   loading?: boolean
   variant?: string
   trailing?: boolean
+  disabled?: boolean
 }

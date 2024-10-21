@@ -3,7 +3,7 @@
 }
 
 .app-inner-container {
-  @apply max-w-bcGovLg w-[100vw] mx-auto px-4;
+  @apply max-w-bcGovLg w-full mx-auto px-4;
 }
 
 .app-body {

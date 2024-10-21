@@ -35,6 +35,7 @@ onMounted(async () => {
 
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
+// const { getBusinessSchema } = useStrrPlatformBusiness()
 watch(() => platformBusiness.value.hasCpbc, (val) => {
   if (val && platFeeWv.value) {
     removeFee(ConnectFeeCode.STR_PLAT_SM)
@@ -118,16 +119,65 @@ const setPreviousStep = () => {
   }
 }
 
-// something like this? need to discuss options
-// how can we set loading state on the submit and pay button?
-// i wonder if tracking the steps in a store would be useful
-const handlePlatformSubmit = () => {
-  // validate each step
-  // if invalid step, set prop on Review component to highlight invalid fields/section ?
-  // show alert with some error text ?
+// need to cleanup the setButtonControl somehow
+const handlePlatformSubmit = async () => {
+  try {
+    // set buttons to loading state
+    setButtonControl({
+      leftButtons: [
+        {
+          action: setPreviousStep,
+          icon: 'i-mdi-chevron-left',
+          label: t('btn.back'),
+          variant: 'outline',
+          disabled: true
+        },
+        {
+          action: handlePlatformSubmit,
+          icon: 'i-mdi-chevron-right',
+          label: t('btn.submitAndPay'),
+          trailing: true,
+          loading: true
+        }
+      ],
+      rightButtons: []
+    })
 
-  // if all steps valid, submit form with store function
-  submitPlatformApplication()
+    // something like this but cleaner
+    // validate all forms
+    // const isCompletingPartyValid = getContactSchema(true).safeParse(completingParty.value).success
+    // const isPrimaryRepValid = getContactSchema(false).safeParse(primaryRep.value).success
+    // if (secondaryRep.value) {
+    //   const isSecondaryRepValid = getContactSchema(false).safeParse(secondaryRep.value).success
+    // }
+    // const isBusDetailsValid = getBusinessSchema(
+    //   platformBusiness.value.hasCpbc, platformBusiness.value.hasRegOffAtt)
+    // console.log(isCompletingPartyValid)
+
+    // if all steps valid, submit form with store function
+    await submitPlatformApplication()
+  } catch (e) {
+
+  } finally {
+    // set buttons back to non loading state
+    setButtonControl({
+      leftButtons: [
+        {
+          action: setPreviousStep,
+          icon: 'i-mdi-chevron-left',
+          label: t('btn.back'),
+          variant: 'outline'
+        },
+        {
+          action: handlePlatformSubmit,
+          icon: 'i-mdi-chevron-right',
+          label: t('btn.submitAndPay'),
+          trailing: true
+        }
+      ],
+      rightButtons: []
+    })
+  }
 }
 
 watch(activeStepIndex, (val) => {

@@ -36,7 +36,7 @@ watch(isFoldable, (val) => {
 })
 
 const toggleFolded = () => {
-  if (isFoldable) {
+  if (isFoldable.value) {
     folded.value = !folded.value
   }
 }
