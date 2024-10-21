@@ -17,4 +17,4 @@ jobs:
     with:
       app_name: "strr-application-auto-approval-job"
       working_directory: "./jobs/auto-approval"
-      codecov_flag: "strrapplicationautoapprovaljob"
+      codecov_flag: "approvaljob"
