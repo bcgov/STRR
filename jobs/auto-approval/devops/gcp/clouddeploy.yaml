@@ -1,0 +1,61 @@
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+ name: strr-application-auto-approval-job-pipeline
+description: Deployment pipeline
+serialPipeline:
+ stages:
+ - targetId: bcrbk9-dev
+   profiles: [dev]
+   strategy:
+    standard:
+      verify: false
+   deployParameters:
+   - values:
+      deploy-env: "development"
+      deploy-project-id: "bcrbk9-dev"
+      service-name: "sstrr-application-auto-approval-job-dev"
+      container-name: "strr-application-auto-approval-job-dev"
+      cloudsql-instances: "bcrbk9-dev:northamerica-northeast1:strr-db-dev"
+      service-account: "sa-api@bcrbk9-dev.iam.gserviceaccount.com"
+ - targetId: bcrbk9-test
+   profiles: [test]
+   strategy:
+    standard:
+      verify: false
+   deployParameters:
+   - values:
+      deploy-env: "test"
+      deploy-project-id: "bcrbk9-test"
+      service-name: "strr-application-auto-approval-job-test"
+      container-name: "strr-application-auto-approval-job-test"
+      cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
+      service-account: "sa-api@bcrbk9-test.iam.gserviceaccount.com"
+ - targetId: bcrbk9-sandbox
+   profiles: [sandbox]
+   strategy:
+    standard:
+      verify: false
+   deployParameters:
+   - values:
+      deploy-env: "staging"
+      deploy-project-id: "bcrbk9-tools"
+      service-name: "strr-application-auto-approval-job-sandbox"
+      container-name: "strr-application-auto-approval-job-sandbox"
+      cloudsql-instances: "bcrbk9-tools:northamerica-northeast1:strr-db-sandbox"
+      service-account: "sa-api@bcrbk9-tools.iam.gserviceaccount.com"
+ - targetId: bcrbk9-prod
+   profiles: [prod]
+   strategy:
+    standard:
+      verify: false
+   deployParameters:
+   - values:
+      deploy-env: "production"
+      deploy-project-id: "bcrbk9-prod"
+      service-name: "strr-application-auto-approval-job-prod"
+      container-name: "strr-application-auto-approval-job-prod"
+      cloudsql-instances: "bcrbk9-prod:northamerica-northeast1:strr-db-prod"
+      service-account: "sa-api@bcrbk9-prod.iam.gserviceaccount.com"
+      max-scale: "10"
+      container-concurrency: "20"
