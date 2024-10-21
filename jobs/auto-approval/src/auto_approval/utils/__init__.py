@@ -21,8 +21,8 @@ def convert_to_json_date(date):
     """
     try:
         return date.strftime("%Y-%m-%d")
-    except Exception as err:
-        print(err)
+    except AttributeError as err:
+        print(f"Error: {err}. The provided object does not have a 'strftime' method.")
         return None
 
 
@@ -34,6 +34,6 @@ def convert_to_json_datetime(date):
     """
     try:
         return date.strftime("%Y-%m-%dT%H:%M:%S-00:00")
-    except Exception as err:
-        print(err)
+    except AttributeError as err:
+        print(f"Error: {err}. The provided object does not have a 'strftime' method.")
         return None

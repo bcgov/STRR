@@ -36,7 +36,7 @@ faker = "^24.4.0"
 lovely-pytest-docker = "^0.3.1"
 isort = "^5.13.2"
 black = "^24.10.0"
-pylint = "^3.3.1"
+pylint = "^3.0.3"
 
 [build-system]
 requires = ["poetry-core"]

@@ -14,7 +14,6 @@
 """All of the configuration for the service is captured here."""
 
 import os
-import sys
 
 from dotenv import find_dotenv, load_dotenv
 

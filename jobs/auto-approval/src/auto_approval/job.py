@@ -19,6 +19,8 @@ from http import HTTPStatus
 
 import requests
 from flask import Flask
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import HTTPError, RequestException, Timeout
 from sentry_sdk.integrations.logging import LoggingIntegration
 from strr_api.models import db
 from strr_api.models.application import Application
@@ -86,14 +88,19 @@ def process_applications(app, applications):
                 "Content-Type": "application/json",
             }
             try:
-                response = requests.post(url, headers=headers)
+                response = requests.post(url, headers=headers, timeout=10)
+                response.raise_for_status()  # Raises HTTPError for 4xx/5xx responses
                 if response.status_code != HTTPStatus.CREATED:
                     app.logger.error(
                         f"Unexpected response error: Status Code: {response.status_code}, "
                         f"URL: {url}"
                     )
-            except Exception as e:
-                app.logger.error(f"Request failed:", e)
+            except (Timeout, RequestsConnectionError, HTTPError) as e:
+                app.logger.error(f"Request failed due to network error: {e}")
+            except RequestException as e:  # Catch all other requests exceptions
+                app.logger.error(f"Request error: {e}")
+            except Exception as e:  # pylint: disable=broad-except
+                app.logger.error(f"Unexpected error occurred: {e}", exc_info=True)
 
 
 def run():
@@ -104,5 +111,5 @@ def run():
             app.logger.info("Starting auto approval job")
             applications = get_submitted_applications(app)
             process_applications(app, applications)
-    except Exception as err:
+    except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")
