@@ -1,3 +1,12 @@
+"""
+This module provides utility functions to convert datetime objects
+to JSON-compatible date and datetime strings.
+
+Functions:
+- convert_to_json_date: Converts a datetime object to a string formatted as YYYY-MM-DD.
+- convert_to_json_datetime: Converts a datetime object to a string formatted as YYYY-MM-SSTHH:MM:SS+00:00.
+"""
+
 # Copyright © 2019 Province of British Columbia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
