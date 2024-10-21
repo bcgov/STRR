@@ -1,0 +1,20 @@
+name: STRR APPLICATION AUTO APPROVAL JOB CI
+
+on:
+  pull_request:
+    paths:
+      - "jobs/auto-approval/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./jobs/auto-approval
+
+jobs:
+  strr-pay-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    with:
+      app_name: "strr-application-auto-approval-job"
+      working_directory: "./jobs/auto-approval/**"
+      codecov_flag: "strrpaystrrapplicationautoapprovaljob"

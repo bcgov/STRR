@@ -22,23 +22,29 @@ load_dotenv(find_dotenv())
 
 CONFIGURATION = {
     "development": "auto_approval.config.DevConfig",
-    "testing": "auto_approval.config.TestConfig",
+    "unittest": "strr_pay.config.UnitTestConfig",  # Renamed unit test config
+    "test": "strr_pay.config.TestConfig",  # GCP test config
     "production": "auto_approval.config.ProdConfig",
     "default": "auto_approval.config.ProdConfig",
 }
 
 
 def get_named_config(config_name: str = "production"):
-    """Return the configuration object based on the name."""
+    """Return the configuration object based on the name.
+
+    :raise: KeyError: if an unknown configuration is requested
+    """
     if config_name in ["production", "staging", "default"]:
-        config = ProdConfig()
-    elif config_name == "testing":
-        config = TestConfig()
+        app_config = ProdConfig()
+    elif config_name == "unittest":
+        app_config = UnitTestConfig()
+    elif config_name == "test":
+        app_config = TestConfig()
     elif config_name == "development":
-        config = DevConfig()
+        app_config = DevConfig()
     else:
-        raise KeyError(f"Unknown configuration '{config_name}'")
-    return config
+        raise KeyError(f"Unknown configuration: {config_name}")
+    return app_config
 
 
 class _Config(object):  # pylint: disable=too-few-public-methods
@@ -119,12 +125,23 @@ class DevConfig(_Config):  # pylint: disable=too-few-public-methods
     TESTING = False
     DEBUG = True
 
+class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
+    """In support of unit testing only.
 
-class TestConfig(_Config):  # pylint: disable=too-few-public-methods
-    """In support of testing only used by the py.test suite."""
+    Used by the py.test suite
+    """
 
     DEBUG = True
     TESTING = True
+
+class TestConfig(Config):  # pylint: disable=too-few-public-methods
+    """In support of testing only.
+
+    Used by the py.test suite
+    """
+
+    DEBUG = True
+    TESTING = False  # False for GCP test environments
 
     DATABASE_TEST_USERNAME = os.getenv("DATABASE_TEST_USERNAME", "")
     DATABASE_TEST_PASSWORD = os.getenv("DATABASE_TEST_PASSWORD", "")
