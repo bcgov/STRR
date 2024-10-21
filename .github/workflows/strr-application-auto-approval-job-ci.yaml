@@ -16,5 +16,5 @@ jobs:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
       app_name: "strr-application-auto-approval-job"
-      working_directory: "./jobs/auto-approval/**"
+      working_directory: "./jobs/auto-approval"
       codecov_flag: "strrpaystrrapplicationautoapprovaljob"
