@@ -125,6 +125,7 @@ class DevConfig(_Config):  # pylint: disable=too-few-public-methods
     TESTING = False
     DEBUG = True
 
+
 class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
     """In support of unit testing only.
 
@@ -133,6 +134,7 @@ class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
 
     DEBUG = True
     TESTING = True
+
 
 class TestConfig(Config):  # pylint: disable=too-few-public-methods
     """In support of testing only.
