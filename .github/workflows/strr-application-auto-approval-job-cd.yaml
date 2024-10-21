@@ -19,7 +19,7 @@ on:
           - prod
 
 jobs:
-  strr-pay-cd:
+  strr-application-auto-approval-job-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-cd.yaml@main
     with:
       target: ${{ inputs.target }}
