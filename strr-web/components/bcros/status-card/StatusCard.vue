@@ -42,26 +42,14 @@
 </template>
 
 <script setup lang="ts">
-import { RegistrationStatusE, HostApplicationStatusE, ExaminerApplicationStatusE } from '#imports'
+import { HostApplicationStatusE, ExaminerApplicationStatusE } from '#imports'
+const { downloadCertificate } = useDownloadCertificate()
 
 const { t } = useTranslation()
 const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
 
-const { getCertificate } = useRegistrations()
 const { getChipFlavour } = useChipFlavour()
 const { isExaminer } = useBcrosKeycloak()
-
-const downloadCertificate = async (id: string) => {
-  const file = await getCertificate(id)
-  const link = document.createElement('a')
-  const blob = new Blob([file], { type: 'application/pdf' })
-  link.href = window.URL.createObjectURL(blob)
-  link.target = '_blank'
-  link.download = `${tRegistrationStatus('strrCertificate')}.pdf`
-  document.body.appendChild(link)
-  link.click()
-  URL.revokeObjectURL(link.href)
-}
 
 const {
   applicationHeader,
@@ -71,8 +59,16 @@ const {
   isSingle: boolean,
 }>()
 
-const { registrationId, registrationNumber, status, hostStatus, examinerStatus, registrationStatus } = applicationHeader
-const applicationNumber = applicationHeader.applicationNumber
+const {
+  registrationId,
+  registrationNumber,
+  status,
+  hostStatus,
+  examinerStatus,
+  isCertificateIssued,
+  applicationNumber
+} = applicationHeader
+
 const flavour = computed(() => {
   if (isExaminer) {
     return getChipFlavour(examinerStatus || status)
@@ -81,7 +77,6 @@ const flavour = computed(() => {
   }
 })
 
-const isCertificateIssued: boolean = registrationStatus === RegistrationStatusE.ACTIVE
 const isApproved = computed(() => {
   if (isExaminer) {
     return [

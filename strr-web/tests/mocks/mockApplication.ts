@@ -64,6 +64,7 @@ export const mockApplicationApproved: ApplicationI = {
     registrationNumber: 'BCH24527283787',
     registrationStartDate: '2024-08-16T11:08:40.935161+00:00',
     registrationStatus: RegistrationStatusE.ACTIVE,
+    isCertificateIssued: true,
     reviewer: {
       displayName: 'Joe Smith',
       username: 'joes@idir'
@@ -98,6 +99,7 @@ export const mockApplicationPaymentDue: ApplicationI = {
     registrationNumber: 'BCH24527283787',
     registrationStartDate: '2024-08-16T11:08:40.935161+00:00',
     registrationStatus: RegistrationStatusE.ACTIVE,
+    isCertificateIssued: false,
     reviewer: {
       displayName: 'Joe Smith',
       username: 'joes@idir'
@@ -132,6 +134,7 @@ export const mockApplicationFullReview: ApplicationI = {
     registrationNumber: 'BCH24527283787',
     registrationStartDate: '2024-08-16T11:08:40.935161+00:00',
     registrationStatus: RegistrationStatusE.ACTIVE,
+    isCertificateIssued: false,
     reviewer: {
       displayName: 'Joe Smith',
       username: 'joes@idir'

@@ -68,23 +68,40 @@
       >
         <!-- Only way to do row clicks in NuxtUI currently -->
         <template #application-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationNumber)">
+          <div class="cursor-pointer w-full" @click="navigateToApplicationDetails(row.applicationNumber)">
             {{ row.applicationNumber }}
           </div>
         </template>
-        <template #location-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationNumber)">
-            {{ row.location }}
+        <template #registrationNumber-data="{ row }">
+          <div class="flex items-center">
+            <span
+              class="cursor-pointer"
+              @click="
+                row.registrationId
+                  ? navigateToRegistrationDetails(row.registrationId)
+                  : navigateToApplicationDetails(row.applicationNumber)
+              "
+            >
+              {{ row.registrationNumber }}
+            </span>
+            <UIcon
+              v-if="row.isCertificateIssued"
+              name="i-mdi-file-document-outline"
+              class="h-[20px] w-[20px] ml-3 text-blue-600 cursor-pointer"
+              alt="certificate download"
+              @click="downloadCertificate(row.registrationId)"
+            />
+          </div>
+        </template>
+        <template #registrationType-data="{ row }">
+          <div class="cursor-pointer w-full" @click="navigateToApplicationDetails(row.applicationNumber)">
+            {{ row.registrationType }}
           </div>
         </template>
         <template #address-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationNumber)">
-            {{ row.address }}
-          </div>
-        </template>
-        <template #owner-data="{ row }">
-          <div class="cursor-pointer w-full" @click="navigateToDetails(row.applicationNumber)">
-            {{ row.owner }}
+          <div class="cursor-pointer w-full" @click="navigateToApplicationDetails(row.applicationNumber)">
+            <div>{{ row.unitAddress }}</div>
+            <div>{{ row.unitAddressCity }} {{ row.unitAddressPostalCode }}</div>
           </div>
         </template>
         <template #status-data="{ row }">
@@ -96,7 +113,7 @@
         <template #submission-data="{ row }">
           <div
             class="cursor-pointer w-full"
-            @click="navigateToDetails(row.applicationNumber)"
+            @click="navigateToApplicationDetails(row.applicationNumber)"
           >
             {{ new Date(row.submissionDate).toLocaleDateString('en-US', { dateStyle: 'medium'}) }}
           </div>
@@ -128,12 +145,14 @@
 </template>
 
 <script setup lang="ts">
-import { ApplicationI, ApplicationStatusE } from '#imports'
+import { ApplicationStatusE, RegistrationTypeE } from '#imports'
+import { ExaminerDashboardRowI } from '~/interfaces/examiner-dashboard-row-i'
 import InfoModal from '~/components/common/InfoModal.vue'
 
 const { t } = useTranslation()
 const tRegistryDashboard = (translationKey: string) => t(`registryDashboard.${translationKey}`)
 const { getChipFlavour } = useChipFlavour()
+const { downloadCertificate } = useDownloadCertificate()
 
 const { getApplications, getApplicationsByStatus, getPaginatedApplications } = useApplications()
 
@@ -192,7 +211,8 @@ const updateFilterOptions = async () => {
   ]
 }
 
-const navigateToDetails = (id: number) => navigateTo(`/application-details/${id.toString()}`)
+const navigateToApplicationDetails = (appNumber: string) => navigateTo(`/application-details/${appNumber}`)
+const navigateToRegistrationDetails = (id: number) => navigateTo(`/registration-details/${id.toString()}`)
 
 const updateTableRows = async () => {
   loading.value = true
@@ -216,24 +236,44 @@ const updateTableRows = async () => {
 
 const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<string, string>[] => {
   const rows: Record<string, string>[] = []
-  applications.applications.forEach((application: ApplicationI) => {
-    const { header, registration: { unitAddress, primaryContact } } = application
+  for (const application of applications.applications) {
+    const {
+      header: {
+        applicationNumber,
+        registrationNumber,
+        registrationId,
+        examinerStatus,
+        status,
+        applicationDateTime,
+        isCertificateIssued
+      },
+      registration: { registrationType, unitAddress }
+    } = application
 
-    const row = {
-      applicationNumber: header.applicationNumber,
-      location: unitAddress.city,
-      address: unitAddress.address,
-      owner: `
-        ${primaryContact.name.firstName}
-        ${primaryContact.name.middleName ?? ''}
-        ${primaryContact.name.lastName}
-      `,
-      status: header.examinerStatus || header.status,
-      submissionDate: header.applicationDateTime
+    const row: ExaminerDashboardRowI = {
+      applicationNumber,
+      registrationNumber: registrationNumber ?? '-',
+      registrationId: registrationId ? registrationId.toString() : '',
+      isCertificateIssued,
+      registrationType: getRegistrationTypeLabel(registrationType),
+      unitAddressCity: unitAddress.city,
+      unitAddressPostalCode: unitAddress.postalCode,
+      unitAddress: unitAddress.address,
+      status: examinerStatus || status,
+      submissionDate: applicationDateTime
     }
     rows.push(row)
-  })
+  }
   return rows
+}
+
+const getRegistrationTypeLabel = (type: RegistrationTypeE): string => {
+  switch (type) {
+    case RegistrationTypeE.HOST:
+      return 'Host'
+    case RegistrationTypeE.PLATFORM:
+      return 'Platform'
+  }
 }
 
 watch(statusFilter, () => updateTableRows())
@@ -259,9 +299,9 @@ const selectedColumns = ref<{ key: string; label: string; }[]>([])
 
 const columns = [
   { key: 'application', label: tRegistryDashboard('applicationNumber'), sortable: true },
-  { key: 'location', label: tRegistryDashboard('location'), sortable: true },
+  { key: 'registrationNumber', label: tRegistryDashboard('registrationNumber'), sortable: true },
+  { key: 'registrationType', label: tRegistryDashboard('registrationType'), sortable: true },
   { key: 'address', label: tRegistryDashboard('address'), sortable: true },
-  { key: 'owner', label: tRegistryDashboard('owner'), sortable: true },
   { key: 'status', label: tRegistryDashboard('status'), sortable: true },
   { key: 'submission', label: tRegistryDashboard('submissionDate'), sortable: true }
 ]

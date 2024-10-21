@@ -47,19 +47,24 @@
         </p>
         <div class="bg-white py-[22px] px-[30px] mobile:px-5" data-test-id="rental-unit-info">
           <div class="flex flex-row justify-between w-full mobile:flex-col desktop:mb-6">
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('nickname')">
-              <p data-test-id="unit-nickname">
-                {{ applicationDetails?.unitAddress.nickname ?? '-' }}
-              </p>
-            </BcrosFormSectionReviewItem>
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('businessLicense')">
-              <p data-test-id="business-license">
-                {{ applicationDetails?.unitDetails.businessLicense ?? '-' }}
-              </p>
-            </BcrosFormSectionReviewItem>
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('ownership')">
-              <p data-test-id="ownership-type">
-                {{ getOwnershipTypeDisplay(applicationDetails?.unitDetails.ownershipType, tApplicationDetails) }}
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('nickname')"
+              :content="applicationDetails?.unitAddress.nickname || '-'"
+              data-test-id="unit-nickname"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('ownership')"
+              :content="getOwnershipTypeDisplay(applicationDetails?.unitDetails.ownershipType, tApplicationDetails)"
+              data-test-id="ownership-type"
+            />
+            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
+              <p data-test-id="property-type">
+                {{ applicationDetails?.unitDetails.propertyType
+                  ? tPropertyForm(
+                    propertyTypeMap[applicationDetails?.unitDetails.propertyType as keyof PropertyTypeMapI]
+                  )
+                  : '-'
+                }}
               </p>
             </BcrosFormSectionReviewItem>
           </div>
@@ -82,17 +87,12 @@
                   : '-' }}
               </p>
             </BcrosFormSectionReviewItem>
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
-              <p data-test-id="property-type">
-                {{ applicationDetails?.unitDetails.propertyType
-                  ? tPropertyForm(
-                    propertyTypeMap[applicationDetails?.unitDetails.propertyType as keyof PropertyTypeMapI]
-                  )
-                  : '-'
-                }}
-              </p>
-            </BcrosFormSectionReviewItem>
-            <div class="flex-1 max-w-[33.33%]">
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('businessLicense')"
+              :content="applicationDetails?.unitDetails.businessLicense || '-'"
+              data-test-id="business-license"
+            />
+            <div class="flex-1 d:max-w-[33.33%]">
               <template v-if="applicationDetails?.listingDetails && applicationDetails.listingDetails.length > 0">
                 <BcrosFormSectionReviewItem
                   :title="tApplicationDetails('listingLink')"
@@ -112,8 +112,14 @@
           </div>
           <div class="flex flex-row justify-between w-full mobile:flex-col">
             <div class="flex-1" />
-            <div class="flex-1" />
-            <div class="flex-1 max-w-[33.33%]">
+            <BcrosFormSectionReviewItem
+              v-if="applicationDetails?.unitDetails.businessLicenseExpiryDate"
+              :title="tApplicationDetails('businessLicenseExpiryDate')"
+              :content="convertDateToLongFormat(applicationDetails?.unitDetails.businessLicenseExpiryDate)"
+              data-test-id="business-exp-date"
+            />
+            <div v-else class="flex-1" />
+            <div class="flex-1 d:max-w-[33.33%]">
               <template v-if="applicationDetails?.listingDetails && applicationDetails.listingDetails.length > 1">
                 <div class="flex flex-col">
                   <div
@@ -146,30 +152,28 @@
           </p>
           <div class="d:hidden">
             <div class="bg-white py-[22px] px-[30px] mobile:px-5">
-              <BcrosFormSectionReviewItem :title="tApplicationDetails('name')">
-                <p data-test-id="primary-contact-name">
-                  {{ (applicationDetails ? getContactRows(applicationDetails?.primaryContact): [])[0].name }}
-                </p>
-              </BcrosFormSectionReviewItem>
-              <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">
-                <p data-test-id="primary-contact-address">
-                  {{ (applicationDetails ? getContactRows(applicationDetails?.primaryContact): [])[0].address }}
-                </p>
-              </BcrosFormSectionReviewItem>
-              <BcrosFormSectionReviewItem :title="tApplicationDetails('email')">
-                <p data-test-id="primary-contact-email">
-                  {{
-                    (applicationDetails ? getContactRows(applicationDetails?.primaryContact): [])[0]['Email Address']
-                  }}
-                </p>
-              </BcrosFormSectionReviewItem>
-              <BcrosFormSectionReviewItem :title="tApplicationDetails('phone')">
-                <p data-test-id="primary-contact-phone">
-                  {{
-                    (applicationDetails ? getContactRows(applicationDetails?.primaryContact): [])[0]['Phone Number']
-                  }}
-                </p>
-              </BcrosFormSectionReviewItem>
+              <BcrosFormSectionReviewItem
+                :title="tApplicationDetails('name')"
+                :content="(applicationDetails ? getContactRows(applicationDetails?.primaryContact) : [])[0].name"
+                data-test-id="primary-contact-name"
+              />
+              <BcrosFormSectionReviewItem
+                :title="tApplicationDetails('address')"
+                :content="(applicationDetails ? getContactRows(applicationDetails?.primaryContact) : [])[0].address"
+                data-test-id="primary-contact-address"
+              />
+              <BcrosFormSectionReviewItem
+                :title="tApplicationDetails('email')"
+                :content="(applicationDetails
+                  ? getContactRows(applicationDetails?.primaryContact) : [])[0]['Email Address']"
+                data-test-id="primary-contact-email"
+              />
+              <BcrosFormSectionReviewItem
+                :title="tApplicationDetails('phone')"
+                :content="(applicationDetails
+                  ? getContactRows(applicationDetails?.primaryContact) : [])[0]['Phone Number']"
+                data-test-id="primary-contact-phone"
+              />
             </div>
           </div>
           <div class="bg-white py-[22px] px-[30px] mobile:px-5 m:hidden overflow-x-scroll w-[150%]">
@@ -425,7 +429,7 @@ const getContactRows = (contactBlock: ContactI) => [{
   `,
   address: `
     ${contactBlock.mailingAddress.address} 
-    ${contactBlock.mailingAddress.addressLineTwo} 
+    ${contactBlock.mailingAddress.addressLineTwo || ''}
     ${contactBlock.mailingAddress.city} 
     ${contactBlock.mailingAddress.province} 
     ${contactBlock.mailingAddress.postalCode}
@@ -434,10 +438,7 @@ const getContactRows = (contactBlock: ContactI) => [{
   'Phone Number':
     `
       ${contactBlock.details.phoneNumber}
-      ${contactBlock.details.extension
-        ? contactBlock.details.extension
-        : ''
-      }
+      ${contactBlock.details.extension || ''}
     `,
   SIN: contactBlock.socialInsuranceNumber,
   'BN (GST)': contactBlock.businessNumber

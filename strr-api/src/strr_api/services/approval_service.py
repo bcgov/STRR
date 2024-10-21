@@ -39,19 +39,19 @@
 # pylint: disable=C0103
 
 """For a successfully paid registration, this service determines its auto-approval state."""
-from datetime import datetime
 from typing import Any, Tuple
 
+import requests
 from flask import current_app
 
-from strr_api.common.utils import compare_addresses
-from strr_api.enums.enum import OwnershipType
-from strr_api.models import Address, Application, AutoApprovalRecord, DSSOrganization, Events
+from strr_api.enums.enum import OwnershipType, RegistrationType
+from strr_api.models import Application, AutoApprovalRecord, Events
 from strr_api.requests import RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
-from strr_api.services import AuthService, EventsService, LtsaService, RegistrationService
+from strr_api.services import EventsService, LtsaService
 from strr_api.services.geocoder_service import GeoCoderService
+from strr_api.services.rest_service import RestService
 
 
 class ApprovalService:
@@ -92,193 +92,95 @@ class ApprovalService:
     @classmethod
     def process_auto_approval(cls, token, application: Application) -> Tuple[Any, Any]:
         """Process approval logic and produce output JSON to store in the DB."""
-        application_json = application.application_json
-        registration_request = RegistrationRequest(**application_json)
-        registration = registration_request.registration
-        pid = registration.unitDetails.parcelIdentifier
-        owner_name = registration.primaryContact.name.firstName + " " + registration.primaryContact.name.lastName
-        address = (
-            registration.unitAddress.address
-            + (" " + registration.unitAddress.addressLineTwo if registration.unitAddress.addressLineTwo else "")
-            + ", "
-            + registration.unitAddress.city
-            + ", "
-            + registration.unitAddress.province
-        )
-
-        renting = registration.unitDetails.ownershipType == OwnershipType.RENT
-        other_service_provider = (
-            registration.principalResidence.specifiedServiceProvider is not None
-            and registration.principalResidence.specifiedServiceProvider != "n/a"
-        )
-        pr_exempt = not registration.principalResidence.isPrincipalResidence
-        bl_provided = registration.unitDetails.businessLicense is not None
-        bcsc_address = AuthService.get_sbc_accounts_mailing_address(token, int(application.payment_account))
-        # Status setting just temporary for visibility
-        auto_approval = AutoApproval()
-        registration_ident = None
-
         try:
-            if renting:
-                auto_approval.renting = True
-                application.status = Application.Status.FULL_REVIEW
-                application.save()
-                EventsService.save_event(
-                    event_type=Events.EventType.APPLICATION,
-                    event_name=Events.EventName.AUTO_APPROVAL_FULL_REVIEW,
-                    application_id=application.id,
-                    visible_to_applicant=False,
+            application_json = application.application_json
+            registration_type = application_json.get("registration", {}).get("registrationType")
+
+            auto_approval = AutoApproval()
+            registration_id = None
+
+            if registration_type == RegistrationType.HOST.value:
+                registration_request = RegistrationRequest(**application_json)
+                registration = registration_request.registration
+                pid = registration.unitDetails.parcelIdentifier
+                owner_name = (
+                    registration.primaryContact.name.firstName + " " + registration.primaryContact.name.lastName
                 )
+                address = (
+                    registration.unitAddress.address
+                    + (" " + registration.unitAddress.addressLineTwo if registration.unitAddress.addressLineTwo else "")
+                    + ", "
+                    + registration.unitAddress.city
+                    + ", "
+                    + registration.unitAddress.province
+                )
+                auto_approval.renting = registration.unitDetails.ownershipType == OwnershipType.RENT
+                auto_approval.serviceProvider = (
+                    registration.principalResidence.specifiedServiceProvider is not None
+                    and registration.principalResidence.specifiedServiceProvider != "n/a"
+                )
+
+                organization = cls._getSTRDataForAddress(address)
+                if organization:
+                    auto_approval.businessLicenseRequired = organization.get("isBusinessLicenceRequired")
+                    auto_approval.strProhibited = organization.get("isStrProhibited")
+                    auto_approval.organizationNm = organization.get("organizationNm")
+                    auto_approval.prExempt = not organization.get("isPrincipalResidenceRequired")
+                    if auto_approval.businessLicenseRequired:
+                        auto_approval.businessLicenseProvided = registration.unitDetails.businessLicense is not None
+
+                if pid:
+                    ltsa_data = LtsaService.get_title_details_from_pid(pid)
+                    ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
+                    auto_approval.titleCheck = cls.check_full_name_exists_in_ownership_groups(ltsa_response, owner_name)
+
                 cls.save_approval_record_by_application(application.id, auto_approval)
-                return application.status, registration_ident
-            else:
-                auto_approval.renting = False
-                if other_service_provider:
-                    auto_approval.serviceProvider = True
-                    application.status = Application.Status.FULL_REVIEW
-                    application.save()
-                    EventsService.save_event(
-                        event_type=Events.EventType.APPLICATION,
-                        event_name=Events.EventName.AUTO_APPROVAL_FULL_REVIEW,
-                        application_id=application.id,
-                        visible_to_applicant=False,
-                    )
-                    cls.save_approval_record_by_application(application.id, auto_approval)
-                    return application.status, registration_ident
-                else:
-                    auto_approval.serviceProvider = False
 
-                if not pr_exempt:
-                    auto_approval.prExempt = False
-                    rental_address = Address(
-                        street_address=registration.unitAddress.address,
-                        street_address_additional=registration.unitAddress.addressLineTwo,
-                        city=registration.unitAddress.city,
-                        province=registration.unitAddress.province,
-                        postal_code=registration.unitAddress.postalCode,
-                        country=registration.unitAddress.country,
-                    )
-                    if not bcsc_address or not compare_addresses(rental_address, bcsc_address):
-                        auto_approval.addressMatch = False
-                        application.status = Application.Status.FULL_REVIEW
-                        application.save()
-                        EventsService.save_event(
-                            event_type=Events.EventType.APPLICATION,
-                            event_name=Events.EventName.AUTO_APPROVAL_FULL_REVIEW,
-                            application_id=application.id,
-                            visible_to_applicant=False,
-                        )
-                        cls.save_approval_record_by_application(application.id, auto_approval)
-                        return application.status, registration_ident
-                    else:
-                        auto_approval.addressMatch = True
-                        geocode_response = GeoCoderService.get_geocode_by_address(address)
-                        longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
-                        organization = DSSOrganization.lookup_by_geocode(longitude, latitude)
-                        if organization["is_business_licence_required"]:
-                            auto_approval.businessLicenseRequired = True
-                            if bl_provided:
-                                auto_approval.businessLicenseRequiredProvided = True
-                            else:
-                                auto_approval.businessLicenseRequiredNotProvided = True
-                                application.status = Application.Status.FULL_REVIEW
-                                application.save()
-                                EventsService.save_event(
-                                    event_type=Events.EventType.APPLICATION,
-                                    event_name=Events.EventName.AUTO_APPROVAL_FULL_REVIEW,
-                                    application_id=application.id,
-                                    visible_to_applicant=False,
-                                )
-                                cls.save_approval_record_by_application(application.id, auto_approval)
-                                return application.status, registration_ident
-                        else:
-                            auto_approval.businessLicenseNotRequiredNotProvided = True
+            cls._update_application_status_to_full_review(application)
+            return application.status, registration_id
 
-                        if pid:
-                            ltsa_data = LtsaService.get_title_details_from_pid(pid)
-                            ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
-                            owner_title_match = cls.check_full_name_exists_in_ownership_groups(
-                                ltsa_response, owner_name
-                            )
-                        else:
-                            owner_title_match = False
-                        if owner_title_match:
-                            auto_approval.titleCheck = True
-                            application.status = Application.Status.PROVISIONALLY_APPROVED
-                            application.save()
-                            EventsService.save_event(
-                                event_type=Events.EventType.APPLICATION,
-                                event_name=Events.EventName.AUTO_APPROVAL_PROVISIONAL,
-                                application_id=application.id,
-                                visible_to_applicant=False,
-                            )
-                            registration = RegistrationService.create_registration(
-                                application.submitter_id, application.payment_account, registration_request.registration
-                            )
-                            registration_ident = registration.id
-                            EventsService.save_event(
-                                event_type=Events.EventType.REGISTRATION,
-                                event_name=Events.EventName.REGISTRATION_CREATED,
-                                application_id=application.id,
-                                registration_id=registration.id,
-                                visible_to_applicant=False,
-                            )
-                        else:
-                            auto_approval.titleCheck = False
-                            application.status = Application.Status.FULL_REVIEW
-                            application.save()
-                            EventsService.save_event(
-                                event_type=Events.EventType.APPLICATION,
-                                event_name=Events.EventName.AUTO_APPROVAL_FULL_REVIEW,
-                                application_id=application.id,
-                                visible_to_applicant=False,
-                            )
-                        cls.save_approval_record_by_application(application.id, auto_approval)
-                        return application.status, registration_ident
-                else:
-                    geocode_response = GeoCoderService.get_geocode_by_address(address)
-                    longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
-                    organization = DSSOrganization.lookup_by_geocode(longitude, latitude)
-                    if organization["is_principal_residence_required"]:
-                        auto_approval.prExempt = False
-                        application.status = Application.Status.FULL_REVIEW
-                        application.save()
-                        EventsService.save_event(
-                            event_type=Events.EventType.APPLICATION,
-                            event_name=Events.EventName.AUTO_APPROVAL_FULL_REVIEW,
-                            application_id=application.id,
-                            visible_to_applicant=False,
-                        )
-                    else:
-                        auto_approval.prExempt = True
-                        application.status = Application.Status.AUTO_APPROVED
-                        registration = RegistrationService.create_registration(
-                            application.submitter_id, application.payment_account, registration_request.registration
-                        )
-                        registration_ident = registration.id
-                        application.registration_id = registration.id
-                        application.decision_date = datetime.utcnow()
-                        application.save()
-
-                        EventsService.save_event(
-                            event_type=Events.EventType.APPLICATION,
-                            event_name=Events.EventName.AUTO_APPROVAL_APPROVED,
-                            application_id=application.id,
-                            visible_to_applicant=False,
-                        )
-                        EventsService.save_event(
-                            event_type=Events.EventType.REGISTRATION,
-                            event_name=Events.EventName.REGISTRATION_CREATED,
-                            application_id=application.id,
-                            registration_id=registration.id,
-                            visible_to_applicant=False,
-                        )
-                    cls.save_approval_record_by_application(application.id, auto_approval)
-                    return application.status, registration_ident
         except Exception as default_exception:  # noqa: B902; log error
             current_app.logger.error("Error in auto approval process:", default_exception)
             current_app.logger.error(auto_approval)
-            return None, None
+            return application.status, None
+
+    @classmethod
+    def _getSTRDataForAddress(cls, address):
+        geocode_response = GeoCoderService.get_geocode_by_address(address)
+        longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
+        client_id = current_app.config.get("STR_DATA_API_CLIENT_ID")
+        client_secret = current_app.config.get("STR_DATA_API_CLIENT_SECRET")
+        token_url = current_app.config.get("STR_DATA_API_TOKEN_URL")
+        timeout = 20
+
+        data = "grant_type=client_credentials"
+
+        # get service account token
+        res = requests.post(
+            url=token_url,
+            data=data,
+            headers={"content-type": "application/x-www-form-urlencoded"},
+            auth=(client_id, client_secret),
+            timeout=timeout,
+        )
+        try:
+            token = res.json().get("access_token")
+            endpoint = f"{current_app.config.get('STR_DATA_API_URL')}/api/organizations/strrequirements?longitude={longitude}&latitude={latitude}"  # noqa: E501
+            str_info_for_address = RestService.get(endpoint=endpoint, token=token).json()
+            return str_info_for_address
+        except Exception:
+            return None
+
+    @classmethod
+    def _update_application_status_to_full_review(cls, application):
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.AUTO_APPROVAL_FULL_REVIEW,
+            application_id=application.id,
+            visible_to_applicant=False,
+        )
 
     @classmethod
     def save_approval_record_by_application(cls, application_id, approval: AutoApproval):

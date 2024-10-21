@@ -34,14 +34,21 @@
         </p>
         <div class="bg-white py-[22px] px-[30px] mobile:px-2">
           <div class="flex flex-row justify-between w-full mobile:flex-col desktop:mb-6">
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('nickname')">
-              <p>{{ application?.unitAddress.nickname ?? '-' }}</p>
-            </BcrosFormSectionReviewItem>
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('businessLicense')">
-              <p>{{ application?.unitDetails.businessLicense ?? '-' }}</p>
-            </BcrosFormSectionReviewItem>
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('ownership')">
-              <p>{{ application?.unitDetails.ownershipType ?? '-' }}</p>
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('nickname')"
+              :content="application?.unitAddress.nickname || '-'"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('ownership')"
+              :content="getOwnershipTypeDisplay(application?.unitDetails.ownershipType, tApplicationDetails)"
+            />
+            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
+              <p>
+                {{ application?.unitDetails.propertyType
+                  ? tPropertyForm(propertyTypeMap[application?.unitDetails.propertyType as keyof PropertyTypeMapI])
+                  : '-'
+                }}
+              </p>
             </BcrosFormSectionReviewItem>
           </div>
           <div class="flex flex-row justify-between w-full mobile:flex-col">
@@ -59,15 +66,17 @@
                 {{ application?.unitAddress.country ? regionNamesInEnglish.of(application?.unitAddress.country) : '-' }}
               </p>
             </BcrosFormSectionReviewItem>
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
-              <p>
-                {{ application?.unitDetails.propertyType
-                  ? tPropertyForm(propertyTypeMap[application?.unitDetails.propertyType as keyof PropertyTypeMapI])
-                  : '-'
-                }}
-              </p>
-            </BcrosFormSectionReviewItem>
-            <div class="flex-1" />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('businessLicense')"
+              :content="application?.unitDetails.businessLicense || '-'"
+            />
+            <BcrosFormSectionReviewItem
+              v-if="application?.unitDetails.businessLicenseExpiryDate"
+              :title="tApplicationDetails('businessLicenseExpiryDate')"
+              :content="convertDateToLongFormat(application?.unitDetails.businessLicenseExpiryDate)"
+              data-test-id="business-exp-date"
+            />
+            <div v-else class="flex-1" />
           </div>
         </div>
         <div class="mt-10 relative overflow-x-scroll">

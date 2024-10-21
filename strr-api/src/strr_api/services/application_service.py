@@ -193,6 +193,7 @@ class ApplicationService:
 
     @staticmethod
     def _get_event_name(application_status: Application.Status) -> str:
+        event_name = None
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
             event_name = Events.EventName.MANUALLY_APPROVED
         elif application_status == Application.Status.DECLINED:

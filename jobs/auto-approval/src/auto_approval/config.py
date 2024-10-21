@@ -67,6 +67,12 @@ class _Config(object):  # pylint: disable=too-few-public-methods
     GEOCODER_SVC_URL = os.getenv("GEOCODER_API_URL", "")
     GEOCODER_SVC_AUTH_KEY = os.getenv("GEOCODER_API_AUTH_KEY", "")
 
+    # DATA PORTAL API
+    STR_DATA_API_CLIENT_ID = os.getenv("STR_DATA_API_CLIENT_ID", "")
+    STR_DATA_API_CLIENT_SECRET = os.getenv("STR_DATA_API_CLIENT_SECRET", "")
+    STR_DATA_API_TOKEN_URL = os.getenv("STR_DATA_API_TOKEN_URL", "")
+    STR_DATA_API_URL = os.getenv("STR_DATA_API_URL", "")
+
     # STRR
     STRR_API_URL = os.getenv("STRR_API_URL")
 

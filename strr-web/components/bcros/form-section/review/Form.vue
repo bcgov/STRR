@@ -24,7 +24,7 @@
             :primary="false"
           />
         </div>
-        <div class="mt-[48px]">
+        <div class="mt-[48px]" data-test-id="rental-unit-review">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
             {{ tReview('rentalUnitInfo') }}
           </p>
@@ -32,11 +32,11 @@
             <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
               <BcrosFormSectionReviewItem
                 :title="tReview('nickname')"
-                :content="formState.propertyDetails.nickname ?? '-'"
+                :content="formState.propertyDetails.nickname || '-'"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('businessLicense')"
-                :content="formState.propertyDetails.businessLicense ?? '-'"
+                :content="formState.propertyDetails.businessLicense || '-'"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('ownershipType')"
@@ -63,10 +63,15 @@
                 </p>
               </BcrosFormSectionReviewItem>
               <BcrosFormSectionReviewItem
+                v-if="formState.propertyDetails.businessLicenseExpiryDate"
+                :title="tReview('businessLicenseExpiryDate')"
+                :content="convertDateToLongFormat(formState.propertyDetails.businessLicenseExpiryDate)"
+              />
+              <BcrosFormSectionReviewItem
                 :title="tReview('propertyType')"
                 :content="formState.propertyDetails.propertyType ?? '-'"
               />
-              <div class="flex-1" />
+              <div v-if="!formState.propertyDetails.businessLicenseExpiryDate" class="flex-1" />
             </div>
             <div
               v-if="
@@ -154,7 +159,7 @@
               <UCheckbox
                 v-model="formState.principal.agreeToSubmit"
                 :label="tReview('confirm')"
-                :class="`${isComplete && !formState.principal.agreeToSubmit ? 'outline outline-bcGovColor-error' : ''}`"
+                :ui="{ label: isComplete && !formState.principal.agreeToSubmit ? 'text-bcGovColor-error' : '' }"
               />
             </div>
           </div>

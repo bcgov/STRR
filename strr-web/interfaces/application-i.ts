@@ -19,6 +19,7 @@ export interface ApplicationHeaderI {
   registrationId: number
   registrationNumber: string
   registrationStartDate: string
+  isCertificateIssued: boolean,
   registrationStatus: RegistrationStatusE
   reviewer: {
     displayName: string
@@ -47,6 +48,7 @@ export interface ApplicationDetailsI {
   unitDetails: {
     parcelIdentifier?: string
     businessLicense?: string
+    businessLicenseExpiryDate?: string
     propertyType: string
     ownershipType: string
   }

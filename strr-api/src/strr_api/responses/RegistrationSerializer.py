@@ -188,3 +188,26 @@ class RegistrationSerializer:
             "nonPrincipalOption": registration.rental_property.pr_exempt_reason,
             "specifiedServiceProvider": registration.rental_property.service_provider,
         }
+
+        if property_manager := registration.rental_property.property_manager:
+            registration_data["propertyManager"] = {
+                "businessLegalName": property_manager.business_legal_name,
+                "businessNumber": property_manager.business_number,
+                "businessMailingAddress": {
+                    "address": property_manager.business_mailing_address.street_address,
+                    "city": property_manager.business_mailing_address.city,
+                    "postalCode": property_manager.business_mailing_address.postal_code,
+                    "province": property_manager.business_mailing_address.province,
+                    "country": property_manager.business_mailing_address.country,
+                },
+                "contact": {
+                    "firstName": property_manager.contact.firstname,
+                    "lastName": property_manager.contact.lastname,
+                    "middleName": property_manager.contact.middlename,
+                    "preferredName": property_manager.contact.preferredname,
+                    "phoneNumber": property_manager.contact.phone_number,
+                    "extension": property_manager.contact.phone_extension,
+                    "faxNumber": property_manager.contact.fax_number,
+                    "emailAddress": property_manager.contact.email,
+                },
+            }

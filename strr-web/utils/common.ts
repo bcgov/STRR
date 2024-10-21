@@ -1,4 +1,4 @@
-export const getOwnershipTypeDisplay = (ownershipType: string | null, t: (key: string) => string) => {
+export const getOwnershipTypeDisplay = (ownershipType: string | undefined, t: (key: string) => string) => {
   switch (ownershipType) {
     case 'CO_OWN':
       return t('coOwner')

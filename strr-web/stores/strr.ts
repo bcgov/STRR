@@ -198,6 +198,7 @@ export const propertyDetailsSchema = z.object({
   address: requiredNonEmptyString,
   addressLineTwo: optionalOrEmptyString,
   businessLicense: optionalOrEmptyString,
+  businessLicenseExpiryDate: optionalOrEmptyString,
   city: requiredNonEmptyString,
   country: requiredNonEmptyString,
   listingDetails: listingDetailsSchema,
@@ -207,6 +208,12 @@ export const propertyDetailsSchema = z.object({
   postalCode: requiredNonEmptyString,
   propertyType: requiredNonEmptyString,
   province: requiredNonEmptyString.refine(province => province === 'BC', { message: 'Province must be set to BC' })
+}).refine((data) => {
+  // additional validation: businessLicenseExpiryDate is required if businessLicense present
+  return !data.businessLicense || (data.businessLicense && data.businessLicenseExpiryDate)
+}, {
+  message: 'Business License Expiry Date is required',
+  path: ['businessLicenseExpiryDate']
 })
 
 export const formState: CreateAccountFormStateI = reactive({
@@ -215,6 +222,7 @@ export const formState: CreateAccountFormStateI = reactive({
   propertyDetails: {
     parcelIdentifier: undefined,
     businessLicense: undefined,
+    businessLicenseExpiryDate: undefined,
     propertyType: undefined,
     ownershipType: undefined,
     primaryResidence: undefined,

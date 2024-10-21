@@ -58,6 +58,7 @@ it('begins with empty address', () => {
       whichPlatform: 'whichPlatform',
       parcelIdentifier: 'parcelIdentifier',
       businessLicense: 'businessLicense',
+      businessLicenseExpiryDate: 'businessLicenseExpiryDate',
       propertyType: 'propertyType',
       ownershipType: 'ownershipType',
       nickname: 'nickname',

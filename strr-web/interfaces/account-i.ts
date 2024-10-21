@@ -153,6 +153,7 @@ export interface CreateAccountFormStateI {
     whichPlatform: string | undefined
     parcelIdentifier: string | undefined
     businessLicense: string | undefined
+    businessLicenseExpiryDate: string | undefined
     propertyType: string | undefined
     ownershipType: string | undefined
     nickname: string | undefined
@@ -227,6 +228,7 @@ export interface CreateAccountFormAPII {
     unitDetails: {
       parcelIdentifier?: string
       businessLicense?: string
+      businessLicenseExpiryDate?: string
       propertyType: string
       ownershipType: string
     }

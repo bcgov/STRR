@@ -13,6 +13,8 @@
     "applicationNumber": "Application #",
     "registrationNumber": "Registration #",
     "status": "Status",
+    "registrationType": "Type",
+    "contact": "Contact",
     "nickname": "Listing Nickname",
     "address": "Listing Address",
     "owner": "Owner",
@@ -122,6 +124,7 @@
     "unitInfo": "Rental Unit Information",
     "nickname": "Nickname",
     "businessLicense": "Business License",
+    "businessLicenseExpiryDate": "Business License Expiry Date",
     "listingLink": "Listing Link",
     "listingLinkOptional": "Listing Link (Optional)",
     "listingLinkHelp": "e.g., https://www.airbnb.ca/your_listing123",
@@ -197,6 +200,7 @@
   "createAccount": {
     "title": "Short-Term Rental Registration",
     "stepTitle": {
+      "propertyManager": "Property Manager Information",
       "contact": "Contact Information",
       "property": "Property Details",
       "eligibility": "Principal Residence",
@@ -231,8 +235,14 @@
       "haveAnotherProperty": "Have another rental property?",
       "startNewApplication": "Start a new application"
     },
+    "propertyManager": {
+      "title": "Step 1 - Property Manager Information",
+      "subtitle": "If there is a property manager business for this short-term rental unit, provide the contact information below.",
+      "primary": "Property Manager Information"
+    },
+    "propertyManagerForm": {},
     "contact": {
-      "title": "Step 1 - Contact Information",
+      "title": "Step 2 - Contact Information",
       "subtitle": "Primary Contact Information",
       "secondaryContactInfo": "Secondary Contact Information",
       "primary": "Primary Contact Information",
@@ -283,6 +293,8 @@
       "parcelIdentifierTooltip": "You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under 'Legal Description and Parcel ID'.",
       "businessLicense": "Local Government Business Licence (Optional)",
       "businessLicenseHelp": "This is the business licence to operate a short-term rental as provided by your local government.",
+      "businessLicenseExpiryDate": "Business Licence Expiry Date",
+      "businessLicenseExpiryDateHelp": "Enter the Business Licence Expiry Date (YYYY-MM-DD)",
       "propertyType": "Type of Property",
       "ownershipType": "Ownership Type",
       "rentalUnitDetails": "Rental Unit Details",
@@ -351,6 +363,7 @@
       "mailingAddress": "Mailing Address",
       "nickname": "Nickname",
       "businessLicense": "Business License",
+      "businessLicenseExpiryDate": "Business License Expiry Date",
       "address": "Address",
       "ownershipType": "Ownership Type",
       "propertyType": "Type Of Property",
@@ -368,15 +381,15 @@
       "rent": "Rent"
     },
     "details": {
-      "title": "Step 2 - Add Your Short Term Rental Property Details",
+      "title": "Step 3 - Add Your Short Term Rental Property Details",
       "subtitle": "Tell us more about the property you plan to offer for short-term rental. If you have other properties you want to register and offer as short-term rentals, we will ask you about them later.",
       "primary": "Rental Unit Information"
     },
     "eligibility": {
-      "title": "Step 3 - Principal Residence "
+      "title": "Step 4 - Principal Residence "
     },
     "confirm": {
-      "title": "Step 4 - Review and Confirm"
+      "title": "Step 5 - Review and Confirm"
     }
   },
   "platformApplication": {

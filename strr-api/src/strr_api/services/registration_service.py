@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0913
 # pylint: disable=E1102
+# pylint: disable=R0917
 """Manages registration model interactions."""
 import random
 from datetime import datetime, timezone
@@ -53,6 +54,7 @@ from strr_api.models import (
     PlatformRepresentative,
     PropertyContact,
     PropertyListing,
+    PropertyManager,
     Registration,
     RentalProperty,
 )
@@ -191,6 +193,30 @@ class RegistrationService:
             service_provider=registration_request.principalResidence.specifiedServiceProvider,
             property_listings=[PropertyListing(url=listing.url) for listing in registration_request.listingDetails],
         )
+
+        if property_manager := registration_request.propertyManager:
+            rental_property.property_manager = PropertyManager(
+                business_legal_name=property_manager.businessLegalName,
+                business_number=property_manager.businessNumber,
+                business_mailing_address=Address(
+                    country=property_manager.businessMailingAddress.country,
+                    street_address=property_manager.businessMailingAddress.address,
+                    street_address_additional=property_manager.businessMailingAddress.addressLineTwo,
+                    city=property_manager.businessMailingAddress.city,
+                    province=property_manager.businessMailingAddress.province,
+                    postal_code=property_manager.businessMailingAddress.postalCode,
+                ),
+                contact=Contact(
+                    firstname=property_manager.contact.firstName,
+                    lastname=property_manager.contact.lastName,
+                    middlename=property_manager.contact.middleName,
+                    preferredname=property_manager.contact.preferredName,
+                    email=property_manager.contact.emailAddress,
+                    phone_number=property_manager.contact.phoneNumber,
+                    phone_extension=property_manager.contact.extension,
+                    fax_number=property_manager.contact.faxNumber,
+                ),
+            )
 
         primary_property_contact = PropertyContact()
         primary_property_contact.is_primary = True

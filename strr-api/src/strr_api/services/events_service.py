@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # pylint: disable=C0121
+# pylint: disable=R0917
 
 """Events Service."""
 from strr_api.models import Events

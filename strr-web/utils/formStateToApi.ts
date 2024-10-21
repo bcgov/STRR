@@ -68,7 +68,8 @@ export const formStateToApi = (
       parcelIdentifier: formState.propertyDetails.parcelIdentifier,
       propertyType,
       ownershipType,
-      businessLicense: formState.propertyDetails.businessLicense
+      businessLicense: formState.propertyDetails.businessLicense,
+      businessLicenseExpiryDate: formState.propertyDetails.businessLicenseExpiryDate
     }
   }
 

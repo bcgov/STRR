@@ -29,6 +29,7 @@ export interface RegistrationI {
   unitDetails: {
     parcelIdentifier?: string,
     businessLicense?: string,
+    businessLicenseExpiryDate?: string,
     propertyType: string,
     ownershipType: string
   },

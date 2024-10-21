@@ -9,3 +9,4 @@
 Dockerfile
 sample_data
 tests
+.coveragerc

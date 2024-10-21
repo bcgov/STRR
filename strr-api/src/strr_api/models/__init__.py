@@ -42,7 +42,7 @@ from .dss import DSSOrganization
 from .events import Events
 from .ltsa import LTSARecord
 from .platforms import Platform, PlatformBrand, PlatformRegistration, PlatformRepresentative
-from .rental import Document, PropertyContact, PropertyListing, Registration, RentalProperty
+from .rental import Document, PropertyContact, PropertyListing, PropertyManager, Registration, RentalProperty
 from .user import Contact, User
 
 __all__ = (
@@ -55,6 +55,7 @@ __all__ = (
     "Address",
     "PropertyContact",
     "PropertyListing",
+    "PropertyManager",
     "Registration",
     "Contact",
     "Document",

@@ -1,0 +1,11 @@
+.app-container {
+  @apply bg-gray-100 text-gray-700 min-h-[100vh] flex flex-col;
+}
+
+.app-inner-container {
+  @apply max-w-bcGovLg w-[100vw] mx-auto px-4;
+}
+
+.app-body {
+  @apply grow relative;
+}

@@ -40,6 +40,26 @@
           </template>
         </UFormGroup>
       </div>
+      <div
+        v-if="businessLicense"
+        class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]"
+      >
+        <UFormGroup name="businessLicenseExpiryDate" class="d:pr-[16px] flex-grow">
+          <UInput
+            v-model="businessLicenseExpiryDate"
+            :placeholder="t('createAccount.propertyForm.businessLicenseExpiryDate')"
+            type="date"
+            :min="new Date().toISOString().split('T')[0]"
+            :max="new Date('2999-12-31').toISOString().split('T')[0]"
+            :ui="{ base: 'uppercase' }"
+            @blur="emit('validateBusinessLicenseExpiryDate')"
+            @change="emit('validateBusinessLicenseExpiryDate')"
+          />
+          <template #help>
+            {{ t('createAccount.propertyForm.businessLicenseExpiryDateHelp') }}
+          </template>
+        </UFormGroup>
+      </div>
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="propertyType" class="d:pr-[16px] flex-grow" :error="propertyTypeError">
           <USelect
@@ -83,8 +103,16 @@ const propertyType = defineModel<string>('propertyType')
 const ownershipType = defineModel<string>('ownershipType')
 const businessLicense = defineModel<string>('businessLicense')
 const parcelIdentifier = defineModel<string>('parcelIdentifier')
+const businessLicenseExpiryDate = defineModel<string>('businessLicenseExpiryDate')
 
-const emit = defineEmits(['validateOwnership', 'validateProperty'])
+watch(businessLicense, (): void => {
+  if (!businessLicense.value) {
+    // clear exp date when business lic is empty
+    formState.propertyDetails.businessLicenseExpiryDate = ''
+  }
+})
+
+const emit = defineEmits(['validateOwnership', 'validateProperty', 'validateBusinessLicenseExpiryDate'])
 
 const {
   propertyTypes,

@@ -25,12 +25,14 @@
           v-model:ownership-type="formState.propertyDetails.ownershipType"
           v-model:business-license="formState.propertyDetails.businessLicense"
           v-model:parcel-identifier="formState.propertyDetails.parcelIdentifier"
+          v-model:business-license-expiry-date="formState.propertyDetails.businessLicenseExpiryDate"
           :property-types="propertyTypes"
           :ownership-types="ownershipTypes"
           :ownership-type-error="ownershipTypeError"
           :property-type-error="propertyTypeError"
           @validate-ownership="validateOwnershipType"
           @validate-property="validatePropertyType"
+          @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
         />
         <BcrosFormSectionPropertyListingDetails
           v-model:listing-details="formState.propertyDetails.listingDetails"
@@ -166,6 +168,7 @@ const ownershipTypes: string[] = [
 
 const propertyTypeError = ref('')
 const ownershipTypeError = ref('')
+const businessLicenseExpiryDate = ref('')
 
 const validatePropertyType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
@@ -177,6 +180,12 @@ const validateOwnershipType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('ownershipType'))
   ownershipTypeError.value = error ? error.message : ''
+}
+
+const validateBusinessLicenseExpiryDate = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('businessLicenseExpiryDate'))
+  businessLicenseExpiryDate.value = error ? error.message : ''
 }
 
 const form = ref()
