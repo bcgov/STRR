@@ -21,9 +21,14 @@ onMounted(async () => {
   const waivedFee = getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_WV)
   platFeeSm.value = await smallFee
   platFeeLg.value = await largeFee
-  // NOTE: if we want this to have 'NO FEE' instead of $0.00 in the fee summary then set platFeeWv.value.waived = true
   platFeeWv.value = await waivedFee
-  if (platFeeSm.value) {
+  if (platFeeWv.value && platFeeSm.value) {
+    // NOTE: setting 'waived' changes the text to 'NO FEE' instead of $0.00
+    platFeeWv.value.waived = true
+    // NOTE: service fee is variable and dependent on the account
+    // Pay api incorrectly sets the service fee for $0 fee codes to 0,
+    // so we are manually setting it to the service fee value from a non-zero fee code
+    platFeeWv.value.serviceFees = platFeeSm.value.serviceFees
     setPlaceholderServiceFee(platFeeSm.value.serviceFees)
   }
 })

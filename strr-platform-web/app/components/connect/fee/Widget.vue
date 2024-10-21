@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useWindowSize } from '@vueuse/core'
 
 const {
   feeOptions,
@@ -29,8 +28,7 @@ const feeItems = computed<ConnectFeeItem[]>(() => {
 // folding stuff
 const folded = ref(false)
 
-const { width } = useWindowSize()
-const isFoldable = computed(() => width.value < 1024)
+const isFoldable = useMediaQuery('(max-width: 1024px)')
 watch(isFoldable, (val) => {
   if (!val) {
     folded.value = false

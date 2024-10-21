@@ -23,6 +23,7 @@ const inputMask = computed(() => countryCode.value === '1' ? northAmericaMask : 
       <ConnectPhoneNumberCountryCode
         v-model:country-calling-code="countryCode"
         v-model:country-iso2="countryIso2"
+        :aria-label="$t('label.phone.countryCode')"
         :placeholder="$t('label.phone.countryCode')"
         data-testid="phone-countryCode"
       />
@@ -31,6 +32,7 @@ const inputMask = computed(() => countryCode.value === '1' ? northAmericaMask : 
       <UInput
         v-model="number"
         v-maska="inputMask"
+        :aria-label="$t('label.phone.number')"
         :color="number ? 'primary' : 'gray'"
         :placeholder="$t('label.phone.number')"
         size="lg"
@@ -41,6 +43,7 @@ const inputMask = computed(() => countryCode.value === '1' ? northAmericaMask : 
       <UInput
         v-model="extension"
         class="max-w-bcGovInput"
+        :aria-label="$t('label.phone.extension')"
         :placeholder="$t('label.phone.extension')"
         size="lg"
         data-testid="phone-extension"
