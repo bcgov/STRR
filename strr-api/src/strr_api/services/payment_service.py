@@ -69,9 +69,14 @@ class PayService:
         """Create the invoice via the pay-api."""
         application_json = application.application_json
         filing_type = self._get_filing_type(application_json)
+        filing_type_dict = {"filingTypeCode": filing_type}
+
+        # Workaround to charge the service fee when the filing fee is 0.
+        if filing_type == "PLATREG_WV":
+            filing_type_dict["fee"] = 0
 
         payload = {
-            "filingInfo": {"filingTypes": [{"filingTypeCode": filing_type}]},
+            "filingInfo": {"filingTypes": [filing_type_dict]},
             "businessInfo": {"corpType": "STRR"},
             "paymentInfo": {"methodOfPayment": "DIRECT_PAY"},
         }
@@ -115,7 +120,10 @@ class PayService:
         if registration_type == RegistrationType.HOST.value:
             filing_type = "RENTAL_FEE"
         if registration_type == RegistrationType.PLATFORM.value:
-            if registration_json.get("platformDetails").get("listingSize") == "GREATER_THAN_THOUSAND":
+            cpbc_number = registration_json.get("businessDetails").get("consumerProtectionBCLicenceNumber")
+            if cpbc_number and (not cpbc_number.isspace()):
+                filing_type = "PLATREG_WV"
+            elif registration_json.get("platformDetails").get("listingSize") == "GREATER_THAN_THOUSAND":
                 filing_type = "PLATREG_LG"
             else:
                 filing_type = "PLATREG_SM"
