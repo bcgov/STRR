@@ -22,18 +22,15 @@ load_dotenv(find_dotenv())
 
 CONFIGURATION = {
     "development": "auto_approval.config.DevConfig",
-    "unittest": "strr_pay.config.UnitTestConfig",  # Renamed unit test config
-    "test": "strr_pay.config.TestConfig",  # GCP test config
+    "unittest": "strr_pay.config.UnitTestConfig",
+    "test": "strr_pay.config.TestConfig",
     "production": "auto_approval.config.ProdConfig",
     "default": "auto_approval.config.ProdConfig",
 }
 
 
 def get_named_config(config_name: str = "production"):
-    """Return the configuration object based on the name.
-
-    :raise: KeyError: if an unknown configuration is requested
-    """
+    """Return the configuration object based on the name."""
     if config_name in ["production", "staging", "default"]:
         app_config = ProdConfig()
     elif config_name == "unittest":
@@ -47,11 +44,10 @@ def get_named_config(config_name: str = "production"):
     return app_config
 
 
-class _Config(object):  # pylint: disable=too-few-public-methods
+class _Config:  # pylint: disable=too-few-public-methods
     """Base class configuration."""
 
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-
     SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 
     # SVC
@@ -60,9 +56,9 @@ class _Config(object):  # pylint: disable=too-few-public-methods
     STRR_SERVICE_ACCOUNT_SECRET = os.getenv("STRR_SERVICE_ACCOUNT_SECRET")
 
     # AUTH API
-    AUTH_SVC_URL = os.getenv("AUTH_SVC_URL")
-    if not AUTH_SVC_URL:
-        AUTH_SVC_URL = os.getenv("AUTH_API_URL", "") + os.getenv("AUTH_API_VERSION", "")
+    AUTH_SVC_URL = os.getenv("AUTH_SVC_URL") or os.getenv(
+        "AUTH_API_URL", ""
+    ) + os.getenv("AUTH_API_VERSION", "")
 
     # AUTO APPROVAL JOB
     AUTO_APPROVAL_APPLICATION_PROCESSING_DELAY = int(
@@ -73,33 +69,6 @@ class _Config(object):  # pylint: disable=too-few-public-methods
     GEOCODER_SVC_URL = os.getenv("GEOCODER_API_URL", "")
     GEOCODER_SVC_AUTH_KEY = os.getenv("GEOCODER_API_AUTH_KEY", "")
 
-    # DATA PORTAL API
-    STR_DATA_API_CLIENT_ID = os.getenv("STR_DATA_API_CLIENT_ID", "")
-    STR_DATA_API_CLIENT_SECRET = os.getenv("STR_DATA_API_CLIENT_SECRET", "")
-    STR_DATA_API_TOKEN_URL = os.getenv("STR_DATA_API_TOKEN_URL", "")
-    STR_DATA_API_URL = os.getenv("STR_DATA_API_URL", "")
-
-    # STRR
-    STRR_API_URL = os.getenv("STRR_API_URL")
-
-    # JWT_OIDC Settings
-    JWT_OIDC_WELL_KNOWN_CONFIG = os.getenv("JWT_OIDC_WELL_KNOWN_CONFIG")
-    JWT_OIDC_ALGORITHMS = os.getenv("JWT_OIDC_ALGORITHMS")
-    JWT_OIDC_JWKS_URI = os.getenv("JWT_OIDC_JWKS_URI")
-    JWT_OIDC_ISSUER = os.getenv("JWT_OIDC_ISSUER")
-    JWT_OIDC_AUDIENCE = os.getenv("JWT_OIDC_AUDIENCE")
-    JWT_OIDC_CLIENT_SECRET = os.getenv("JWT_OIDC_CLIENT_SECRET")
-    JWT_OIDC_CACHING_ENABLED = os.getenv("JWT_OIDC_CACHING_ENABLED")
-    JWT_OIDC_TOKEN_URL = os.getenv("JWT_OIDC_TOKEN_URL")
-    JWT_OIDC_JWKS_CACHE_TIMEOUT = int(os.getenv("JWT_OIDC_JWKS_CACHE_TIMEOUT"))
-    JWT_OIDC_USERNAME = os.getenv("JWT_OIDC_USERNAME", "username")
-    JWT_OIDC_FIRSTNAME = os.getenv("JWT_OIDC_FIRSTNAME", "firstname")
-    JWT_OIDC_LASTNAME = os.getenv("JWT_OIDC_LASTNAME", "lastname")
-
-    # LTSA
-    LTSA_SVC_URL = os.getenv("LTSA_API_URL", "") + os.getenv("LTSA_API_VERSION", "")
-    LTSA_SVC_AUTH_KEY = os.getenv("LTSA_API_KEY_STRR", "")
-
     # DATABASE
     DB_USER = os.getenv("DATABASE_USERNAME", "")
     DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
@@ -107,13 +76,12 @@ class _Config(object):  # pylint: disable=too-few-public-methods
     DB_HOST = os.getenv("DATABASE_HOST", "")
     DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
 
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{
-            DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
-    else:
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{
-                DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI = (
+        f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        if not os.getenv("DATABASE_UNIX_SOCKET")
+        else f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{
+            DB_NAME}?unix_sock={os.getenv('DATABASE_UNIX_SOCKET')}/.s.PGSQL.5432"
+    )
 
     TESTING = False
     DEBUG = False
@@ -126,46 +94,32 @@ class DevConfig(_Config):  # pylint: disable=too-few-public-methods
     DEBUG = True
 
 
-class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
-    """In support of unit testing only.
-
-    Used by the py.test suite
-    """
+class UnitTestConfig(_Config):  # pylint: disable=too-few-public-methods
+    """Configuration for unit testing."""
 
     DEBUG = True
     TESTING = True
 
 
-class TestConfig(Config):  # pylint: disable=too-few-public-methods
-    """In support of testing only.
-
-    Used by the py.test suite
-    """
+class TestConfig(_Config):  # pylint: disable=too-few-public-methods
+    """Configuration for testing."""
 
     DEBUG = True
-    TESTING = False  # False for GCP test environments
+    TESTING = False
 
     DATABASE_TEST_USERNAME = os.getenv("DATABASE_TEST_USERNAME", "")
     DATABASE_TEST_PASSWORD = os.getenv("DATABASE_TEST_PASSWORD", "")
     DATABASE_TEST_NAME = os.getenv("DATABASE_TEST_NAME", "")
     DATABASE_TEST_HOST = os.getenv("DATABASE_TEST_HOST", "")
-    DATABASE_TEST_PORT = int(os.getenv("DATABASE_TEST_PORT", "5432"))  # POSTGRESQL
+    DATABASE_TEST_PORT = int(os.getenv("DATABASE_TEST_PORT", "5432"))
 
-    SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE_TEST_USERNAME}:{
-        DATABASE_TEST_PASSWORD}@{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
-
-    COLIN_URL = os.getenv("COLIN_URL_TEST", "")
-    LEGAL_URL = os.getenv("LEGAL_URL_TEST", "")
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE_TEST_USERNAME}:{DATABASE_TEST_PASSWORD}@{
+            DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
 
 
 class ProdConfig(_Config):  # pylint: disable=too-few-public-methods
     """Production environment configuration."""
 
-    SECRET_KEY = os.getenv("SECRET_KEY", None)
-
-    if not SECRET_KEY:
-        SECRET_KEY = os.urandom(24)
-        print("WARNING: SECRET_KEY being set as a one-shot", file=sys.stderr)
-
+    SECRET_KEY = os.getenv("SECRET_KEY") or os.urandom(24)
     TESTING = False
     DEBUG = False
