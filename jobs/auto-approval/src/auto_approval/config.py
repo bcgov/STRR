@@ -112,8 +112,10 @@ class TestConfig(_Config):  # pylint: disable=too-few-public-methods
     DATABASE_TEST_HOST = os.getenv("DATABASE_TEST_HOST", "")
     DATABASE_TEST_PORT = int(os.getenv("DATABASE_TEST_PORT", "5432"))
 
-    SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE_TEST_USERNAME}:{DATABASE_TEST_PASSWORD}@{
-            DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
+    SQLALCHEMY_DATABASE_URI = (
+        f"postgresql://{DATABASE_TEST_USERNAME}:{DATABASE_TEST_PASSWORD}"
+        f"@{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
+    )
 
 
 class ProdConfig(_Config):  # pylint: disable=too-few-public-methods
