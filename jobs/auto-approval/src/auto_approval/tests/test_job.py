@@ -153,7 +153,7 @@ class TestAutoApprovalJob(unittest.TestCase):
     @patch("auto_approval.job.datetime")
     def test_get_submitted_applications(
         self, mock_datetime, MockApplication
-    ):  # pylint: disable=C0103
+    ):  # pylint: disable=C0103, W0108
         """
         Test retrieving submitted applications for auto-approval processing.
 
@@ -169,7 +169,7 @@ class TestAutoApprovalJob(unittest.TestCase):
         mock_datetime.now.return_value = mock_now
         mock_datetime.timedelta.side_effect = lambda **kwargs: timedelta(
             **kwargs
-        )  # pylint: disable=unnecessary-lambda
+        )  # pylint: disable=W0108
         mock_app.config.get.return_value = 60
         MockApplication.application_date = MagicMock()
         MockApplication.status = MagicMock()
