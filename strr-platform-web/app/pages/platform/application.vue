@@ -150,7 +150,7 @@ const handlePlatformSubmit = async () => {
       rightButtons: []
     })
 
-    // something like this but cleaner
+    // TODO: something like this but cleaner
     // validate all forms
     // const isCompletingPartyValid = getContactSchema(true).safeParse(completingParty.value).success
     // const isPrimaryRepValid = getContactSchema(false).safeParse(primaryRep.value).success
