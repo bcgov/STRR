@@ -56,13 +56,15 @@ class _Config(object):  # pylint: disable=too-few-public-methods
 
     # SVC
     KEYCLOAK_AUTH_TOKEN_URL = os.getenv("KEYCLOAK_AUTH_TOKEN_URL")
-    STRR_SERVICE_ACCOUNT_CLIENT_ID = os.getenv("STRR_SERVICE_ACCOUNT_CLIENT_ID")
+    STRR_SERVICE_ACCOUNT_CLIENT_ID = os.getenv(
+        "STRR_SERVICE_ACCOUNT_CLIENT_ID")
     STRR_SERVICE_ACCOUNT_SECRET = os.getenv("STRR_SERVICE_ACCOUNT_SECRET")
 
     # AUTH API
     AUTH_SVC_URL = os.getenv("AUTH_SVC_URL")
     if not AUTH_SVC_URL:
-        AUTH_SVC_URL = os.getenv("AUTH_API_URL", "") + os.getenv("AUTH_API_VERSION", "")
+        AUTH_SVC_URL = os.getenv("AUTH_API_URL", "") + \
+            os.getenv("AUTH_API_VERSION", "")
 
     # AUTO APPROVAL JOB
     AUTO_APPROVAL_APPLICATION_PROCESSING_DELAY = int(
@@ -97,7 +99,8 @@ class _Config(object):  # pylint: disable=too-few-public-methods
     JWT_OIDC_LASTNAME = os.getenv("JWT_OIDC_LASTNAME", "lastname")
 
     # LTSA
-    LTSA_SVC_URL = os.getenv("LTSA_API_URL", "") + os.getenv("LTSA_API_VERSION", "")
+    LTSA_SVC_URL = os.getenv("LTSA_API_URL", "") + \
+        os.getenv("LTSA_API_VERSION", "")
     LTSA_SVC_AUTH_KEY = os.getenv("LTSA_API_KEY_STRR", "")
 
     # DATABASE
@@ -109,10 +112,12 @@ class _Config(object):  # pylint: disable=too-few-public-methods
 
     # POSTGRESQL
     if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
+        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{
+            DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
     else:
         SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+            f"postgresql+pg8000://{DB_USER}:{
+                DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
         )
 
     TESTING = False
@@ -149,9 +154,11 @@ class TestConfig(Config):  # pylint: disable=too-few-public-methods
     DATABASE_TEST_PASSWORD = os.getenv("DATABASE_TEST_PASSWORD", "")
     DATABASE_TEST_NAME = os.getenv("DATABASE_TEST_NAME", "")
     DATABASE_TEST_HOST = os.getenv("DATABASE_TEST_HOST", "")
-    DATABASE_TEST_PORT = int(os.getenv("DATABASE_TEST_PORT", "5432"))  # POSTGRESQL
+    DATABASE_TEST_PORT = int(
+        os.getenv("DATABASE_TEST_PORT", "5432"))  # POSTGRESQL
 
-    SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE_TEST_USERNAME}:{DATABASE_TEST_PASSWORD}@{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE_TEST_USERNAME}:{
+        DATABASE_TEST_PASSWORD}@{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
 
     COLIN_URL = os.getenv("COLIN_URL_TEST", "")
     LEGAL_URL = os.getenv("LEGAL_URL_TEST", "")
