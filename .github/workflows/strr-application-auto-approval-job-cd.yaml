@@ -24,7 +24,7 @@ jobs:
     with:
       target: ${{ inputs.target }}
       app_name: "strr-application-auto-approval-job"
-      working_directory: "./jobs/auto-approval"
+      working_directory: "./STRR/STRR/jobs/auto-approval"
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
