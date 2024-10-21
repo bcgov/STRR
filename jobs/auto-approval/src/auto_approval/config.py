@@ -22,7 +22,8 @@ load_dotenv(find_dotenv())
 
 CONFIGURATION = {
     "development": "auto_approval.config.DevConfig",
-    "testing": "auto_approval.config.TestConfig",
+    "unittest": "strr_pay.config.UnitTestConfig",  # Renamed unit test config
+    "test": "strr_pay.config.TestConfig",  # GCP test config
     "production": "auto_approval.config.ProdConfig",
     "default": "auto_approval.config.ProdConfig",
 }
@@ -31,14 +32,16 @@ CONFIGURATION = {
 def get_named_config(config_name: str = "production"):
     """Return the configuration object based on the name."""
     if config_name in ["production", "staging", "default"]:
-        config = ProdConfig()
-    elif config_name == "testing":
-        config = TestConfig()
+        app_config = ProdConfig()
+    elif config_name == "unittest":
+        app_config = UnitTestConfig()
+    elif config_name == "test":
+        app_config = TestConfig()
     elif config_name == "development":
-        config = DevConfig()
+        app_config = DevConfig()
     else:
-        raise KeyError(f"Unknown configuration '{config_name}'")
-    return config
+        raise KeyError(f"Unknown configuration: {config_name}")
+    return app_config
 
 
 class _Config(object):  # pylint: disable=too-few-public-methods
