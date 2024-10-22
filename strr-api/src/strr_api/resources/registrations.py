@@ -45,7 +45,7 @@ from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import Role
+from strr_api.enums.enum import ErrorMessage, RegistrationType, Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
 from strr_api.responses import Events
@@ -270,9 +270,12 @@ def issue_registration_certificate(registration_id):
     try:
         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
         if not registration:
-            return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
-
-        # TODO: Throw error if a certificate has been issued already; replace messages with enums
+            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if registration.registration_type == RegistrationType.PLATFORM.value:
+            return error_response(
+                message=ErrorMessage.PLATFORM_ISSUE_CERTIFICATE_ERROR.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
 
         RegistrationService.generate_registration_certificate(registration)
         return RegistrationService.serialize(registration), HTTPStatus.CREATED
