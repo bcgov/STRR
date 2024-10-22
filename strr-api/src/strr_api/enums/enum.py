@@ -68,6 +68,7 @@ class Role(Enum):
 
     STRR_EXAMINER = "strr_examiner"
     STRR_INVESTIGATOR = "strr_investigator"
+    STRR_AUTOMATION_TESTER = "strr_automation_tester"
 
 
 class RegistrationStatus(Enum):
