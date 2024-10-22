@@ -161,11 +161,16 @@
         "propertyType": {
           "type": "string",
           "enum": [
-            "PRIMARY",
-            "SECONDARY",
-            "ACCESSORY",
-            "FLOAT_HOME",
-            "OTHER"
+            "SINGLE_FAMILY_HOME",
+            "SECONDARY_SUITE",
+            "ACCESSORY_DWELLING",
+            "MULTI_UNIT_HOUSING",
+            "TOWN_HOME",
+            "CONDO_OR_APT",
+            "RECREATIONAL",
+            "BED_AND_BREAKFAST",
+            "STRATA_HOTEL",
+            "FLOAT_HOME"
           ]
         },
         "ownershipType": {

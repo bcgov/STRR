@@ -95,11 +95,16 @@ class RegistrationSortBy(Enum):
 class PropertyType(Enum):
     """STRR Property Type."""
 
-    PRIMARY = "All or part of primary dwelling"
-    SECONDARY = "Secondary suite"
-    ACCESSORY = "Accessory dwelling unit"
+    SINGLE_FAMILY_HOME = "Single Family Home"
+    SECONDARY_SUITE = "Secondary suite"
+    ACCESSORY_DWELLING = "Accessory dwelling unit"
+    MULTI_UNIT_HOUSING = "Small scale, multi-unit housing"
+    TOWN_HOME = "Town Home"
+    CONDO_OR_APT = "Condo or Apartment"
+    RECREATIONAL = "Recreational Property"
+    BED_AND_BREAKFAST = "Bed and Breakfast"
+    STRATA_HOTEL = "Strata Hotel"
     FLOAT_HOME = "Float home"
-    OTHER = "Other"
 
 
 class OwnershipType(Enum):
