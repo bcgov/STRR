@@ -168,7 +168,7 @@ const propertyTypes: string[] = [
 const ownershipTypes: string[] = [
   t('createAccount.propertyForm.rent'),
   t('createAccount.propertyForm.own'),
-  t('createAccount.propertyForm.other')
+  t('createAccount.propertyForm.coOwn')
 ]
 
 const propertyTypeError = ref('')
