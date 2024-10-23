@@ -71,7 +71,8 @@ export const formStateToApi = (
       businessLicense: formState.propertyDetails.businessLicense,
       businessLicenseExpiryDate: formState.propertyDetails.businessLicenseExpiryDate
       isOnSameProperty: formState.propertyDetails.isOnSameProperty,
-      typeOfSpace: formState.propertyDetails.typeOfSpace
+      typeOfSpace: formState.propertyDetails.typeOfSpace,
+      numberOfRooms: formState.propertyDetails.isOnSameProperty === 'Yes' ? formState.propertyDetails.numberOfRooms : null
     }
   }
 
