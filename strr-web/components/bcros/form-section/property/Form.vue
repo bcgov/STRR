@@ -7,19 +7,6 @@
         </p>
       </div>
       <UForm ref="form" :schema="propertyDetailsSchema" :state="formState.propertyDetails">
-        <BcrosFormSectionPropertyAddress
-          id="propertyAddress"
-          v-model:nickname="formState.propertyDetails.nickname"
-          v-model:country="formState.propertyDetails.country"
-          v-model:address="formState.propertyDetails.address"
-          v-model:address-line-two="formState.propertyDetails.addressLineTwo"
-          v-model:city="formState.propertyDetails.city"
-          v-model:province="formState.propertyDetails.province"
-          v-model:postal-code="formState.propertyDetails.postalCode"
-          :enable-address-complete="enableAddressComplete"
-          default-country-iso2="CA"
-          :address-not-in-b-c="addressNotInBC"
-        />
         <BcrosFormSectionPropertyDetails
           v-model:property-type="formState.propertyDetails.propertyType"
           v-model:ownership-type="formState.propertyDetails.ownershipType"
@@ -33,6 +20,19 @@
           @validate-ownership="validateOwnershipType"
           @validate-property="validatePropertyType"
           @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
+        />
+        <BcrosFormSectionPropertyAddress
+          id="propertyAddress"
+          v-model:nickname="formState.propertyDetails.nickname"
+          v-model:country="formState.propertyDetails.country"
+          v-model:address="formState.propertyDetails.address"
+          v-model:address-line-two="formState.propertyDetails.addressLineTwo"
+          v-model:city="formState.propertyDetails.city"
+          v-model:province="formState.propertyDetails.province"
+          v-model:postal-code="formState.propertyDetails.postalCode"
+          :enable-address-complete="enableAddressComplete"
+          default-country-iso2="CA"
+          :address-not-in-b-c="addressNotInBC"
         />
         <BcrosFormSectionPropertyListingDetails
           v-model:listing-details="formState.propertyDetails.listingDetails"
@@ -153,17 +153,22 @@ defineEmits<{
 }>()
 
 const propertyTypes: string[] = [
-  t('createAccount.propertyForm.primaryDwelling'),
+  t('createAccount.propertyForm.singleFamilyHome'),
   t('createAccount.propertyForm.secondarySuite'),
-  t('createAccount.propertyForm.accessory'),
-  t('createAccount.propertyForm.float'),
-  t('createAccount.propertyForm.other')
+  t('createAccount.propertyForm.accessoryDwelling'),
+  t('createAccount.propertyForm.townhome'),
+  t('createAccount.propertyForm.multiUnitHousing'),
+  t('createAccount.propertyForm.condoApartment'),
+  t('createAccount.propertyForm.recreationalProperty'),
+  t('createAccount.propertyForm.bedAndBreakfast'),
+  t('createAccount.propertyForm.strataHotel'),
+  t('createAccount.propertyForm.floatHome')
 ]
 
 const ownershipTypes: string[] = [
   t('createAccount.propertyForm.rent'),
   t('createAccount.propertyForm.own'),
-  t('createAccount.propertyForm.other')
+  t('createAccount.propertyForm.coOwn')
 ]
 
 const propertyTypeError = ref('')
