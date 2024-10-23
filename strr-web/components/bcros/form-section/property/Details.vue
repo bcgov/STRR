@@ -130,9 +130,19 @@
           <div class="flex items-center">
             <span class="mr-[8px]">{{ t('createAccount.propertyForm.numberOfRoomsForRent') }}</span>
             <div class="flex items-center">
-              <button @click="decrementRooms" class="px-2 py-1 border border-gray-300 rounded">-</button>
+              <button
+                class="px-2 py-1 border border-gray-300 rounded"
+                @click="decrementRooms"
+              >
+                -
+              </button>
               <span class="px-4">{{ numberOfRooms }}</span>
-              <button @click="incrementRooms" class="px-2 py-1 border border-gray-300 rounded">+</button>
+              <button
+                class="px-2 py-1 border border-gray-300 rounded"
+                @click="incrementRooms"
+              >
+                +
+              </button>
             </div>
           </div>
         </UFormGroup>
