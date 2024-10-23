@@ -153,11 +153,16 @@ defineEmits<{
 }>()
 
 const propertyTypes: string[] = [
-  t('createAccount.propertyForm.primaryDwelling'),
+  t('createAccount.propertyForm.singleFamilyHome'),
   t('createAccount.propertyForm.secondarySuite'),
-  t('createAccount.propertyForm.accessory'),
-  t('createAccount.propertyForm.float'),
-  t('createAccount.propertyForm.other')
+  t('createAccount.propertyForm.accessoryDwelling'),
+  t('createAccount.propertyForm.townhome'),
+  t('createAccount.propertyForm.multiUnitHousing'),
+  t('createAccount.propertyForm.condoApartment'),
+  t('createAccount.propertyForm.recreationalProperty'),
+  t('createAccount.propertyForm.bedAndBreakfast'),
+  t('createAccount.propertyForm.strataHotel'),
+  t('createAccount.propertyForm.floatHome')
 ]
 
 const ownershipTypes: string[] = [

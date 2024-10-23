@@ -64,12 +64,14 @@ export const formStateToApi = (
   }
 
   const setUnitDetails = () => {
+    const { parcelIdentifier, businessLicense, businessLicenseExpiryDate } = formState.propertyDetails
+
     formData.registration.unitDetails = {
-      parcelIdentifier: formState.propertyDetails.parcelIdentifier,
+      parcelIdentifier,
       propertyType,
       ownershipType,
-      businessLicense: formState.propertyDetails.businessLicense,
-      businessLicenseExpiryDate: formState.propertyDetails.businessLicenseExpiryDate
+      businessLicense,
+      ...(businessLicense ? { businessLicenseExpiryDate } : {}) // include exp date only if business license exists
     }
   }
 
