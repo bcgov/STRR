@@ -13,13 +13,17 @@
           v-model:business-license="formState.propertyDetails.businessLicense"
           v-model:parcel-identifier="formState.propertyDetails.parcelIdentifier"
           v-model:business-license-expiry-date="formState.propertyDetails.businessLicenseExpiryDate"
+          v-model:type-of-space="formState.propertyDetails.typeOfSpace"
           :property-types="propertyTypes"
           :ownership-types="ownershipTypes"
+          :type-of-space-options="typeOfSpaceOptions"
           :ownership-type-error="ownershipTypeError"
           :property-type-error="propertyTypeError"
+          :type-of-space-error="typeOfSpaceError"
           @validate-ownership="validateOwnershipType"
           @validate-property="validatePropertyType"
           @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
+          @validate-type-of-space="validateTypeOfSpace"
         />
         <BcrosFormSectionPropertyAddress
           id="propertyAddress"
@@ -171,9 +175,15 @@ const ownershipTypes: string[] = [
   t('createAccount.propertyForm.coOwn')
 ]
 
+const typeOfSpaceOptions = [
+  t('createAccount.propertyForm.entireHome'),
+  t('createAccount.propertyForm.sharedAccommodation')
+]
+
 const propertyTypeError = ref('')
 const ownershipTypeError = ref('')
 const businessLicenseExpiryDate = ref('')
+const typeOfSpaceError = ref('')
 
 const validatePropertyType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
@@ -193,6 +203,14 @@ const validateBusinessLicenseExpiryDate = () => {
   businessLicenseExpiryDate.value = error ? error.message : ''
 }
 
+const validateTypeOfSpace = () => {
+  if (!formState.propertyDetails.typeOfSpace) {
+    typeOfSpaceError.value = t('createAccount.propertyForm.typeOfSpaceRequired')
+  } else {
+    typeOfSpaceError.value = ''
+  }
+}
+
 const form = ref()
 
 watch(form, () => {
@@ -206,6 +224,7 @@ onMounted(() => {
   if (isComplete) {
     validatePropertyType()
     validateOwnershipType()
+    validateTypeOfSpace()
   }
 })
 

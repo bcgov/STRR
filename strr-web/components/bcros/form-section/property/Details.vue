@@ -1,11 +1,10 @@
 <template>
   <div data-test-id="property-details">
     <BcrosFormSection :title="t('createAccount.propertyForm.rentalUnitDetails')">
+
+      <!-- Parcel Identifier Field -->
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup
-          name="parcelIdentifier"
-          class="d:pr-[16px] flex-grow"
-        >
+        <UFormGroup name="parcelIdentifier" class="d:pr-[16px] flex-grow">
           <UInput
             v-model="parcelIdentifier"
             aria-label="parcel identifier"
@@ -17,10 +16,7 @@
               <BcrosTooltip
                 class="ml-1"
                 :text="t('createAccount.propertyForm.parcelIdentifierTooltip')"
-                :popper="{
-                  placement: 'right',
-                  arrow: true
-                }"
+                :popper="{ placement: 'right', arrow: true }"
               >
                 <UIcon class="text-xl bg-bcGovColor-activeBlue" name="i-mdi-information-outline" />
               </BcrosTooltip>
@@ -28,6 +24,8 @@
           </template>
         </UFormGroup>
       </div>
+
+      <!-- Business License Field -->
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="businessLicense" class="d:pr-[16px] flex-grow">
           <UInput
@@ -40,10 +38,9 @@
           </template>
         </UFormGroup>
       </div>
-      <div
-        v-if="businessLicense"
-        class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]"
-      >
+
+      <!-- Business License Expiry Date Field -->
+      <div v-if="businessLicense" class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="businessLicenseExpiryDate" class="d:pr-[16px] flex-grow">
           <UInput
             v-model="businessLicenseExpiryDate"
@@ -60,6 +57,8 @@
           </template>
         </UFormGroup>
       </div>
+
+      <!-- Property Type Dropdown -->
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="propertyType" class="d:pr-[16px] flex-grow" :error="propertyTypeError">
           <USelect
@@ -75,6 +74,8 @@
           />
         </UFormGroup>
       </div>
+
+      <!-- Ownership Type Dropdown -->
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="ownershipType" class="d:pr-[16px] flex-grow" :error="ownershipTypeError">
           <USelect
@@ -84,10 +85,27 @@
             :options="ownershipTypes"
             option-attribute="name"
             class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             :error="ownershipTypeError"
+            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @blur="emit('validateOwnership')"
             @change="emit('validateOwnership')"
+          />
+        </UFormGroup>
+      </div>
+
+      <!-- Type of Space Dropdown -->
+      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
+        <UFormGroup name="typeOfSpace" class="d:pr-[16px] flex-grow" :error="typeOfSpaceError">
+          <USelect
+            v-model="typeOfSpace"
+            aria-label="type of space"
+            :placeholder="t('createAccount.propertyForm.typeOfSpace')"
+            :options="typeOfSpaceOptions"
+            option-attribute="name"
+            class="w-full"
+            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            @blur="emit('validateTypeOfSpace')"
+            @change="emit('validateTypeOfSpace')"
           />
         </UFormGroup>
       </div>
@@ -99,30 +117,42 @@
 
 const { t } = useTranslation()
 
+// Define models for each form field
 const propertyType = defineModel<string>('propertyType')
 const ownershipType = defineModel<string>('ownershipType')
 const businessLicense = defineModel<string>('businessLicense')
 const parcelIdentifier = defineModel<string>('parcelIdentifier')
 const businessLicenseExpiryDate = defineModel<string>('businessLicenseExpiryDate')
+const typeOfSpace = defineModel<string>('typeOfSpace')
 
+// Watch for changes in businessLicense to clear expiry date if necessary
 watch(businessLicense, (): void => {
   if (!businessLicense.value) {
-    // clear exp date when business lic is empty
     formState.propertyDetails.businessLicenseExpiryDate = ''
   }
 })
 
-const emit = defineEmits(['validateOwnership', 'validateProperty', 'validateBusinessLicenseExpiryDate'])
+// Emit events for validation
+const emit = defineEmits([
+  'validateOwnership',
+  'validateProperty',
+  'validateBusinessLicenseExpiryDate',
+  'validateTypeOfSpace'
+])
 
 const {
   propertyTypes,
   ownershipTypes,
   ownershipTypeError,
-  propertyTypeError
+  propertyTypeError,
+  typeOfSpaceOptions,
+  typeOfSpaceError
 } = defineProps<{
   propertyTypes: string[],
   ownershipTypes: string[],
   ownershipTypeError: string,
-  propertyTypeError: string
+  propertyTypeError: string,
+  typeOfSpaceOptions: string[],
+  typeOfSpaceError: string
 }>()
 </script>
