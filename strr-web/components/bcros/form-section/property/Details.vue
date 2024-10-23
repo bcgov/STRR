@@ -67,7 +67,6 @@
             :options="propertyTypes"
             option-attribute="name"
             class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @blur="emit('validateProperty')"
             @change="emit('validateProperty')"
           />
@@ -85,7 +84,6 @@
             option-attribute="name"
             class="w-full"
             :error="ownershipTypeError"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @blur="emit('validateOwnership')"
             @change="emit('validateOwnership')"
           />
@@ -102,7 +100,6 @@
             :options="typeOfSpaceOptions"
             option-attribute="name"
             class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @blur="emit('validateTypeOfSpace')"
             @change="emit('validateTypeOfSpace')"
           />
@@ -118,7 +115,6 @@
             :options="isOnSamePropertyOptions"
             option-attribute="name"
             class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @change="handleIsOnSamePropertyChange"
           />
         </UFormGroup>
