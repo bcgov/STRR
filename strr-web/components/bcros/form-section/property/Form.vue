@@ -7,6 +7,30 @@
         </p>
       </div>
       <UForm ref="form" :schema="propertyDetailsSchema" :state="formState.propertyDetails">
+        <BcrosFormSectionPropertyDetails
+          v-model:property-type="formState.propertyDetails.propertyType"
+          v-model:ownership-type="formState.propertyDetails.ownershipType"
+          v-model:business-license="formState.propertyDetails.businessLicense"
+          v-model:parcel-identifier="formState.propertyDetails.parcelIdentifier"
+          v-model:business-license-expiry-date="formState.propertyDetails.businessLicenseExpiryDate"
+          v-model:type-of-space="formState.propertyDetails.typeOfSpace"
+          v-model:is-on-same-property="formState.propertyDetails.isOnSameProperty"
+          v-model:number-of-rooms="formState.propertyDetails.numberOfRooms"
+          :property-types="propertyTypes"
+          :ownership-types="ownershipTypes"
+          :type-of-space-options="typeOfSpaceOptions"
+          :ownership-type-error="ownershipTypeError"
+          :property-type-error="propertyTypeError"
+          :type-of-space-error="typeOfSpaceError"
+          :is-on-same-property-options="isOnSamePropertyOptions"
+          :number-of-rooms-error="numberOfRoomsError"
+          @validate-ownership="validateOwnershipType"
+          @validate-property="validatePropertyType"
+          @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
+          @validate-type-of-space="validateTypeOfSpace"
+          @validate-is-on-same-property="validateIsOnSameProperty"
+          @validate-number-of-rooms="validateNumberOfRooms"
+        />
         <BcrosFormSectionPropertyAddress
           id="propertyAddress"
           v-model:nickname="formState.propertyDetails.nickname"
@@ -19,20 +43,6 @@
           :enable-address-complete="enableAddressComplete"
           default-country-iso2="CA"
           :address-not-in-b-c="addressNotInBC"
-        />
-        <BcrosFormSectionPropertyDetails
-          v-model:property-type="formState.propertyDetails.propertyType"
-          v-model:ownership-type="formState.propertyDetails.ownershipType"
-          v-model:business-license="formState.propertyDetails.businessLicense"
-          v-model:parcel-identifier="formState.propertyDetails.parcelIdentifier"
-          v-model:business-license-expiry-date="formState.propertyDetails.businessLicenseExpiryDate"
-          :property-types="propertyTypes"
-          :ownership-types="ownershipTypes"
-          :ownership-type-error="ownershipTypeError"
-          :property-type-error="propertyTypeError"
-          @validate-ownership="validateOwnershipType"
-          @validate-property="validatePropertyType"
-          @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
         />
         <BcrosFormSectionPropertyListingDetails
           v-model:listing-details="formState.propertyDetails.listingDetails"
@@ -153,22 +163,40 @@ defineEmits<{
 }>()
 
 const propertyTypes: string[] = [
-  t('createAccount.propertyForm.primaryDwelling'),
+  t('createAccount.propertyForm.singleFamilyHome'),
   t('createAccount.propertyForm.secondarySuite'),
-  t('createAccount.propertyForm.accessory'),
-  t('createAccount.propertyForm.float'),
-  t('createAccount.propertyForm.other')
+  t('createAccount.propertyForm.accessoryDwelling'),
+  t('createAccount.propertyForm.townhome'),
+  t('createAccount.propertyForm.multiUnitHousing'),
+  t('createAccount.propertyForm.condoApartment'),
+  t('createAccount.propertyForm.recreationalProperty'),
+  t('createAccount.propertyForm.bedAndBreakfast'),
+  t('createAccount.propertyForm.strataHotel'),
+  t('createAccount.propertyForm.floatHome')
 ]
 
 const ownershipTypes: string[] = [
   t('createAccount.propertyForm.rent'),
   t('createAccount.propertyForm.own'),
-  t('createAccount.propertyForm.other')
+  t('createAccount.propertyForm.coOwn')
+]
+
+const typeOfSpaceOptions = [
+  t('createAccount.propertyForm.entireHome'),
+  t('createAccount.propertyForm.sharedAccommodation')
+]
+
+const isOnSamePropertyOptions = [
+  t('createAccount.propertyForm.yes'),
+  t('createAccount.propertyForm.no')
 ]
 
 const propertyTypeError = ref('')
 const ownershipTypeError = ref('')
 const businessLicenseExpiryDate = ref('')
+const typeOfSpaceError = ref('')
+const numberOfRoomsError = ref('')
+const isOnSamePropertyError = ref('')
 
 const validatePropertyType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
@@ -188,6 +216,30 @@ const validateBusinessLicenseExpiryDate = () => {
   businessLicenseExpiryDate.value = error ? error.message : ''
 }
 
+const validateTypeOfSpace = () => {
+  if (!formState.propertyDetails.typeOfSpace) {
+    typeOfSpaceError.value = t('createAccount.propertyForm.typeOfSpaceRequired')
+  } else {
+    typeOfSpaceError.value = ''
+  }
+}
+
+const validateIsOnSameProperty = () => {
+  if (!formState.propertyDetails.isOnSameProperty) {
+    isOnSamePropertyError.value = t('createAccount.propertyForm.isOnSamePropertyRequired')
+  } else {
+    isOnSamePropertyError.value = ''
+  }
+}
+
+const validateNumberOfRooms = () => {
+  if (formState.propertyDetails.isOnSameProperty === 'No' && !formState.propertyDetails.numberOfRooms) {
+    numberOfRoomsError.value = t('createAccount.propertyForm.numberOfRoomsRequired')
+  } else {
+    numberOfRoomsError.value = ''
+  }
+}
+
 const form = ref()
 
 watch(form, () => {
@@ -201,6 +253,9 @@ onMounted(() => {
   if (isComplete) {
     validatePropertyType()
     validateOwnershipType()
+    validateTypeOfSpace()
+    validateIsOnSameProperty()
+    validateNumberOfRooms()
   }
 })
 

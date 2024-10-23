@@ -1,11 +1,9 @@
 <template>
   <div data-test-id="property-details">
     <BcrosFormSection :title="t('createAccount.propertyForm.rentalUnitDetails')">
+      <!-- Parcel Identifier Field -->
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup
-          name="parcelIdentifier"
-          class="d:pr-[16px] flex-grow"
-        >
+        <UFormGroup name="parcelIdentifier" class="d:pr-[16px] flex-grow">
           <UInput
             v-model="parcelIdentifier"
             aria-label="parcel identifier"
@@ -17,10 +15,7 @@
               <BcrosTooltip
                 class="ml-1"
                 :text="t('createAccount.propertyForm.parcelIdentifierTooltip')"
-                :popper="{
-                  placement: 'right',
-                  arrow: true
-                }"
+                :popper="{ placement: 'right', arrow: true }"
               >
                 <UIcon class="text-xl bg-bcGovColor-activeBlue" name="i-mdi-information-outline" />
               </BcrosTooltip>
@@ -28,6 +23,7 @@
           </template>
         </UFormGroup>
       </div>
+
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="businessLicense" class="d:pr-[16px] flex-grow">
           <UInput
@@ -40,10 +36,8 @@
           </template>
         </UFormGroup>
       </div>
-      <div
-        v-if="businessLicense"
-        class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]"
-      >
+
+      <div v-if="businessLicense" class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="businessLicenseExpiryDate" class="d:pr-[16px] flex-grow">
           <UInput
             v-model="businessLicenseExpiryDate"
@@ -60,6 +54,7 @@
           </template>
         </UFormGroup>
       </div>
+
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="propertyType" class="d:pr-[16px] flex-grow" :error="propertyTypeError">
           <USelect
@@ -68,13 +63,13 @@
             :placeholder="t('createAccount.propertyForm.propertyType')"
             :options="propertyTypes"
             option-attribute="name"
-            class="w-full"
             style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @blur="emit('validateProperty')"
             @change="emit('validateProperty')"
           />
         </UFormGroup>
       </div>
+
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="ownershipType" class="d:pr-[16px] flex-grow" :error="ownershipTypeError">
           <USelect
@@ -83,12 +78,62 @@
             :placeholder="t('createAccount.propertyForm.ownershipType')"
             :options="ownershipTypes"
             option-attribute="name"
-            class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             :error="ownershipTypeError"
+            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @blur="emit('validateOwnership')"
             @change="emit('validateOwnership')"
           />
+        </UFormGroup>
+      </div>
+
+      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
+        <UFormGroup name="typeOfSpace" class="d:pr-[16px] flex-grow" :error="typeOfSpaceError">
+          <USelect
+            v-model="typeOfSpace"
+            aria-label="type of space"
+            :placeholder="t('createAccount.propertyForm.typeOfSpace')"
+            :options="typeOfSpaceOptions"
+            option-attribute="name"
+            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            @blur="emit('validateTypeOfSpace')"
+            @change="emit('validateTypeOfSpace')"
+          />
+        </UFormGroup>
+      </div>
+      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
+        <UFormGroup name="isOnSameProperty" class="d:pr-[16px] flex-grow">
+          <USelect
+            v-model="isOnSameProperty"
+            aria-label="is on same property"
+            :placeholder="t('createAccount.propertyForm.isOnSameProperty')"
+            :options="isOnSamePropertyOptions"
+            option-attribute="name"
+            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            @change="handleIsOnSamePropertyChange"
+          />
+        </UFormGroup>
+      </div>
+
+      <div v-if="isOnSameProperty === 'Yes'" class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
+        <UFormGroup name="numberOfRooms" class="d:pr-[16px] flex-grow">
+          <div class="flex items-center">
+            <span class="mr-[8px]">{{ t('createAccount.propertyForm.numberOfRoomsForRent') }}</span>
+            <div class="flex items-center">
+              <button
+                class="px-2 py-1 border border-gray-300 rounded"
+                @click="decrementRooms"
+              >
+                -
+              </button>
+              <span class="px-4">{{ numberOfRooms }}</span>
+              <button
+                class="px-2 py-1 border border-gray-300 rounded"
+                @click="incrementRooms"
+              >
+                +
+              </button>
+            </div>
+          </div>
         </UFormGroup>
       </div>
     </BcrosFormSection>
@@ -104,25 +149,56 @@ const ownershipType = defineModel<string>('ownershipType')
 const businessLicense = defineModel<string>('businessLicense')
 const parcelIdentifier = defineModel<string>('parcelIdentifier')
 const businessLicenseExpiryDate = defineModel<string>('businessLicenseExpiryDate')
+const typeOfSpace = defineModel<string>('typeOfSpace')
+const isOnSameProperty = defineModel<string>('isOnSameProperty')
+const numberOfRooms = ref<number>(1)
 
 watch(businessLicense, (): void => {
   if (!businessLicense.value) {
-    // clear exp date when business lic is empty
     formState.propertyDetails.businessLicenseExpiryDate = ''
   }
 })
 
-const emit = defineEmits(['validateOwnership', 'validateProperty', 'validateBusinessLicenseExpiryDate'])
+const handleIsOnSamePropertyChange = () => {
+  if (isOnSameProperty.value === 'No') {
+    numberOfRooms.value = 0
+  } else if (isOnSameProperty.value === 'Yes') {
+    numberOfRooms.value = 1
+  }
+}
+
+const incrementRooms = () => {
+  numberOfRooms.value++
+}
+
+const decrementRooms = () => {
+  if (numberOfRooms.value > 1) {
+    numberOfRooms.value--
+  }
+}
+
+const emit = defineEmits([
+  'validateOwnership',
+  'validateProperty',
+  'validateBusinessLicenseExpiryDate',
+  'validateTypeOfSpace'
+])
 
 const {
   propertyTypes,
   ownershipTypes,
   ownershipTypeError,
-  propertyTypeError
+  propertyTypeError,
+  typeOfSpaceOptions,
+  typeOfSpaceError,
+  isOnSamePropertyOptions
 } = defineProps<{
   propertyTypes: string[],
   ownershipTypes: string[],
   ownershipTypeError: string,
-  propertyTypeError: string
+  propertyTypeError: string,
+  typeOfSpaceOptions: string[],
+  typeOfSpaceError: string,
+  isOnSamePropertyOptions: string[]
 }>()
 </script>
