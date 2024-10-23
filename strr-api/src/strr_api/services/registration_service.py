@@ -115,6 +115,7 @@ class RegistrationService:
                     phone_extension=representative.get("extension"),
                     fax_number=representative.get("faxNumber"),
                     phone_number=representative.get("phoneNumber"),
+                    phone_country_code=representative.get("phoneCountryCode"),
                     job_title=representative.get("jobTitle"),
                 )
             )

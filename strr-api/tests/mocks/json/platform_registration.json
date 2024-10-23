@@ -5,6 +5,7 @@
             "firstName": "Test",
             "lastName": "Test",
             "phoneNumber": "604-999-9999",
+            "phoneCountryCode": "001",
             "extension": "x64",
             "faxNumber": "604-777-7777",
             "emailAddress": "test@test.test"
@@ -14,6 +15,7 @@
                 "firstName": "Test",
                 "lastName": "Test",
                 "phoneNumber": "123-456-8970",
+                "phoneCountryCode": "001",
                 "extension": "x64",
                 "faxNumber": "604-777-7777",
                 "emailAddress": "test@test.test",
@@ -23,6 +25,7 @@
                 "firstName": "Test",
                 "lastName": "Test",
                 "phoneNumber": "604-999-9999",
+                "phoneCountryCode": "001",
                 "extension": "x64",
                 "faxNumber": "604-777-7777",
                 "emailAddress": "test@test.test",
