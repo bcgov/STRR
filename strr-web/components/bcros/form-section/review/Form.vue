@@ -6,6 +6,55 @@
         <p>{{ tReview('reviewInstructionsContinued') }}</p>
       </div>
       <div>
+        <div v-if="formState.hasPropertyManager" class="mt-[48px]" data-test-id="property-manager-review">
+          <p class="font-bold mb-[24px] mobile:mx-[8px]">
+            {{ tReviewPM('title') }}
+          </p>
+          <div
+            class="bg-white p-8 mobile:px-[8px] d:min-h-[250px]
+            grid d:grid-cols-3 d:grid-rows-3 d:grid-flow-col"
+          >
+            <BcrosFormSectionReviewItem
+              :title="tReviewPM('businessLegalName')"
+              :content="formState.propertyManager.businessLegalName || '-'"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tReviewPM('craBusinessNumber')"
+              :content="formState.propertyManager.craBusinessNumber || '-'"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tReviewPM('businessMailingAddress')"
+            >
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <p v-html="displayFullAddress(formState.propertyManager.businessMailingAddress) || '-'" />
+            </BcrosFormSectionReviewItem>
+            <BcrosFormSectionReviewItem
+              :title="tReviewPM('contactName')"
+              :content="displayContactFullName(propertyManagerContact) || '-'"
+            />
+            <div class="grid grid-rows-subgrid row-span-2">
+              <BcrosFormSectionReviewItem
+                :title="tReviewPM('preferredName')"
+                :content="propertyManagerContact.preferredName || '-'"
+              />
+            </div>
+            <BcrosFormSectionReviewItem
+              :title="tReviewPM('phoneNumber')"
+              :content="displayPhoneAndExt(
+                propertyManagerContact.phoneNumber, propertyManagerContact.extension
+              ) || '-'
+              "
+            />
+            <BcrosFormSectionReviewItem
+              :title="tReviewPM('faxNumber')"
+              :content="propertyManagerContact.faxNumber || '-'"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tReviewPM('emailAddress')"
+              :content="propertyManagerContact.emailAddress || '-'"
+            />
+          </div>
+        </div>
         <div class="mt-[48px]">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
             {{ tReview('primaryContact') }}
@@ -13,6 +62,7 @@
           <BcrosFormSectionReviewSubsection
             :state="formState.primaryContact"
             :primary="true"
+            data-test-id="primary-contact-review"
           />
         </div>
         <div v-if="secondaryContact" class="mt-[48px]">
@@ -55,8 +105,8 @@
                 </p>
                 <p>
                   {{ `
-                    ${formState.propertyDetails.country !== 'CAN'
-                    && formState.propertyDetails.country
+                  ${formState.propertyDetails.country !== 'CAN'
+                      && formState.propertyDetails.country
                       ? regionNamesInEnglish.of(formState.propertyDetails.country)
                   : '-'}`
                   }}
@@ -180,6 +230,9 @@ const { secondaryContact, isComplete } = defineProps<{ secondaryContact: boolean
 const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
 const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
+const tReviewPM = (translationKey: string) => t(`createAccount.review.propertyManager.${translationKey}`)
 const tPrincipal = (translationKey: string) => t(`createAccount.principalResidence.${translationKey}`)
+
+const propertyManagerContact = computed((): PropertyManagerContactI => formState.propertyManager.contact)
 
 </script>
