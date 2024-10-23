@@ -70,6 +70,8 @@ export const formStateToApi = (
       ownershipType,
       businessLicense: formState.propertyDetails.businessLicense,
       businessLicenseExpiryDate: formState.propertyDetails.businessLicenseExpiryDate
+      isOnSameProperty: formState.propertyDetails.isOnSameProperty,
+      typeOfSpace: formState.propertyDetails.typeOfSpace
     }
   }
 
