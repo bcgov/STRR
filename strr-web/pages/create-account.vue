@@ -11,7 +11,7 @@
               data-test-id="create-application-title"
               class="mobile:pb-[20px]"
             />
-            <div class="flex flex-row items-center mb-8">
+            <div class="flex d:flex-row m:flex-col mb-8">
               <InfoModal
                 :header="t('createAccount.modal.contactInfo.header')"
                 :open-button-label="t('createAccount.modal.contactInfo.openButtonLabel')"
@@ -28,7 +28,7 @@
                   </a>{{ t('createAccount.modal.contactInfo.contactUsSecondPart') }}
                 </p>
               </InfoModal>
-              <div class="self-stretch w-px bg-bcGovColor-formFieldLines mx-4 h-6" />
+              <div class="m:hidden self-stretch w-px bg-bcGovColor-formFieldLines mx-4 h-6" />
               <InfoModal
                 :header="t('createAccount.modal.bcrosFoippaNotice.header')"
                 :open-button-label="t('createAccount.modal.bcrosFoippaNotice.openButtonLabel')"
