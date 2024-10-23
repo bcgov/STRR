@@ -1,7 +1,12 @@
 export const propertyTypeMap: PropertyTypeMapI = {
-  PRIMARY: 'primaryDwelling',
-  SECONDARY: 'secondarySuite',
-  ACCESSORY: 'accessory',
-  FLOAT_HOME: 'float',
-  OTHER: 'other'
+  SINGLE_FAMILY_HOME: 'singleFamilyHome',
+  SECONDARY_SUITE: 'secondarySuite',
+  ACCESSORY_DWELLING: 'accessoryDwelling',
+  TOWNHOME: 'townhome',
+  MULTI_UNIT_HOUSING: 'multiUnitHousing',
+  CONDO_APARTMENT: 'condoApartment',
+  RECREATIONAL_PROPERTY: 'recreationalProperty',
+  BED_AND_BREAKFAST: 'bedAndBreakfast',
+  STRATA_HOTEL: 'strataHotel',
+  FLOAT_HOME: 'floatHome'
 }
