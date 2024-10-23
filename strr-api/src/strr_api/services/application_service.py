@@ -142,7 +142,11 @@ class ApplicationService:
         else:
             if application.payment_status_code == PaymentStatus.COMPLETED.value:
                 application.status = Application.Status.PAID
-                application.payment_completion_date = datetime.fromisoformat(invoice_details.get("paymentDate"))
+                application.payment_completion_date = (
+                    datetime.fromisoformat(invoice_details.get("paymentDate"))
+                    if invoice_details.get("paymentDate")
+                    else datetime.utcnow()
+                )
             elif application.payment_status_code == PaymentStatus.APPROVED.value:
                 application.payment_status_code = PaymentStatus.COMPLETED.value
                 application.status = Application.Status.PAID

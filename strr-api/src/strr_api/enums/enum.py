@@ -68,6 +68,7 @@ class Role(Enum):
 
     STRR_EXAMINER = "strr_examiner"
     STRR_INVESTIGATOR = "strr_investigator"
+    STRR_AUTOMATION_TESTER = "strr_automation_tester"
 
 
 class RegistrationStatus(Enum):
@@ -138,12 +139,14 @@ class RegistrationType(Enum):
 class ErrorMessage(Enum):
     """STRR Error Messages."""
 
-    APPLICATION_NOT_FOUND = "Application not found"
+    APPLICATION_NOT_FOUND = "Application not found."
     INVALID_APPLICATION_STATUS = "Invalid application status."
     APPLICATION_TERMINAL_STATE = "Application has reached the final state."
     PROCESSING_ERROR = "An error occurred while processing the request."
     DOCUMENT_NOT_FOUND = "Document not found."
     APPLICATION_NOT_PAID = "Application does not have a payment record."
+    REGISTRATION_NOT_FOUND = "Application not found."
+    PLATFORM_ISSUE_CERTIFICATE_ERROR = "Certificate is not available for a platform registration."
 
 
 class ApplicationRole(Enum):
