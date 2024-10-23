@@ -64,15 +64,19 @@ export const formStateToApi = (
   }
 
   const setUnitDetails = () => {
+    const numberOfRooms =
+    formState.propertyDetails.isOnSameProperty === 'Yes'
+      ? formState.propertyDetails.numberOfRooms
+      : null
     formData.registration.unitDetails = {
       parcelIdentifier: formState.propertyDetails.parcelIdentifier,
       propertyType,
       ownershipType,
       businessLicense: formState.propertyDetails.businessLicense,
-      businessLicenseExpiryDate: formState.propertyDetails.businessLicenseExpiryDate
+      businessLicenseExpiryDate: formState.propertyDetails.businessLicenseExpiryDate,
       isOnSameProperty: formState.propertyDetails.isOnSameProperty,
       typeOfSpace: formState.propertyDetails.typeOfSpace,
-      numberOfRooms: formState.propertyDetails.isOnSameProperty === 'Yes' ? formState.propertyDetails.numberOfRooms : null
+      numberOfRooms
     }
   }
 
