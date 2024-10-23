@@ -335,14 +335,7 @@ const getContactRows = (contactBlock: ContactI) => [{
       ${contactBlock.mailingAddress.postalCode}
     `,
   'Email Address': contactBlock.details.emailAddress,
-  'Phone Number':
-      `
-        ${contactBlock.details.phoneNumber}
-        ${contactBlock.details.extension
-          ? contactBlock.details.extension
-          : ''
-        }
-      `,
+  'Phone Number': displayPhoneAndExt(contactBlock.details.phoneNumber, contactBlock.details.extension) || '',
   SIN: contactBlock.socialInsuranceNumber,
   'BN (GST)': contactBlock.businessNumber
 }]
