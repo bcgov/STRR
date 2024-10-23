@@ -78,6 +78,7 @@ class RegistrationSerializer:
                 "faxNumber": representative.contact.fax_number,
                 "emailAddress": representative.contact.email,
                 "jobTitle": representative.contact.job_title,
+                "phoneCountryCode": representative.contact.phone_country_code,
             }
             for representative in platform.representatives
         ]

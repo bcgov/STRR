@@ -62,6 +62,7 @@ class Contact(Versioned, db.Model):
     email = db.Column(db.String(255), nullable=True)
     preferredname = db.Column(db.String, nullable=True)
     phone_extension = db.Column(db.String, nullable=True)
+    phone_country_code = db.Column(db.String, nullable=True)
     fax_number = db.Column(db.String, nullable=True)
     phone_number = db.Column(db.String(20), nullable=True)
     date_of_birth = db.Column(db.Date, nullable=True)

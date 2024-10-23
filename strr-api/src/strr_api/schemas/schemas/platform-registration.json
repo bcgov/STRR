@@ -19,6 +19,9 @@
         "phoneNumber": {
           "type": "string"
         },
+        "phoneCountryCode": {
+          "type": "string"
+        },
         "extension": {
           "type": "string"
         },

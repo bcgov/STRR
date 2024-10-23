@@ -60,7 +60,7 @@ def fake_registration_pending(*args, **kwargs):
         updated_date="2021-01-01T00:00:00Z",
         rental_property=RentalProperty(
             id=1,
-            property_type=PropertyType.PRIMARY,
+            property_type=PropertyType.SINGLE_FAMILY_HOME,
             ownership_type=OwnershipType.OWN,
             registration_id=1,
             is_principal_residence=True,
@@ -181,7 +181,7 @@ def fake_registration(*args, **kwargs):
         expiry_date="2025-07-29T00:00:00Z",
         rental_property=RentalProperty(
             id=1,
-            property_type=PropertyType.PRIMARY,
+            property_type=PropertyType.SINGLE_FAMILY_HOME,
             ownership_type=OwnershipType.OWN,
             registration_id=1,
             is_principal_residence=True,
