@@ -60,7 +60,9 @@
               </p>
             </div>
             <div v-if="activeStepIndex === 0" :key="activeStepIndex">
-              <BcrosFormSectionPropertyManagerForm />
+              <BcrosFormSectionPropertyManagerForm
+                :is-complete="steps[activeStepIndex].step.complete"
+              />
             </div>
             <div v-if="activeStepIndex === 1" :key="activeStepIndex">
               <BcrosFormSectionContactInformationForm
@@ -73,7 +75,7 @@
               />
             </div>
             <div v-if="activeStepIndex === 2" :key="activeStepIndex">
-              <BcrosFormSectionPropertyForm :is-complete="activeStep.step.complete" />
+              <BcrosFormSectionPropertyForm :is-complete="steps[activeStepIndex].step.complete" />
             </div>
             <div v-if="activeStepIndex === 3" :key="activeStepIndex">
               <BcrosFormSectionPrincipalResidenceForm :is-complete="steps[activeStepIndex].step.complete" />
@@ -162,11 +164,12 @@ const ownershipToApiType = (type: string | undefined): string => {
 }
 
 const submit = () => {
-  validateStep(primaryContactSchema, formState.primaryContact, 0)
+  validatePropertyManagerStep()
+  validateStep(primaryContactSchema, formState.primaryContact, 1)
   if (hasSecondaryContact.value) {
-    validateStep(secondaryContactSchema, formState.secondaryContact, 0)
+    validateStep(secondaryContactSchema, formState.secondaryContact, 1)
   }
-  validateStep(propertyDetailsSchema, formState.propertyDetails, 1)
+  validateStep(propertyDetailsSchema, formState.propertyDetails, 2)
   validateProofPage()
   validateReviewPage()
   headerUpdateKey.value++
@@ -189,11 +192,6 @@ const setActiveStep = (newStep: number) => {
   activeStep.value.step.complete = true
   activeStepIndex.value = newStep
   activeStep.value = steps[activeStepIndex.value]
-  // TODO: remove with validation for Step 1 project manager
-  if (newStep === 0) {
-    activeStep.value.step.isValid = true
-    activeStep.value.step.complete = true
-  }
 }
 
 const setStepValid = (index: number, valid: boolean) => {
@@ -203,6 +201,18 @@ const setStepValid = (index: number, valid: boolean) => {
 const validateStep = (schema: any, state: any, index: number) => {
   steps[index].step.isValid = schema.safeParse(state).success
 }
+
+const validatePropertyManagerStep = () => {
+  if (!formState.hasPropertyManager) {
+    steps[0].step.isValid = true
+  } else {
+    validateStep(propertyManagerSchema, formState.propertyManager, 0)
+  }
+}
+
+watch(formState.propertyManager, () => {
+  validatePropertyManagerStep()
+})
 
 watch(formState.primaryContact, () => {
   validateStep(primaryContactSchema, formState.primaryContact, 1)
@@ -247,8 +257,7 @@ watch(formState.principal, () => {
 
 const validateSteps = () => {
   if (activeStepIndex.value === 0) {
-    // Do nothing for now
-    // TODO: add validation
+    validatePropertyManagerStep()
   } else if (activeStepIndex.value === 1) {
     validateStep(primaryContactSchema, formState.primaryContact, 1)
     if (hasSecondaryContact.value) {

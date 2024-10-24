@@ -6,6 +6,7 @@ import {
   PrimaryContactInformationI,
   SecondaryContactInformationI
 } from '~/interfaces/account-i'
+import { PropertyManagerI } from '~/interfaces/property-manager-i'
 
 const apiURL = useRuntimeConfig().public.strrApiURL
 const axiosInstance = addAxiosInterceptors(axios.create())
@@ -52,6 +53,7 @@ const httpRegex = /^(https?:\/\/)([\w-]+(\.[\w-]+)+\.?(:\d+)?(\/.*)?)$/i
 const emailRegex = /^\S+@\S+\.\S+$/
 const pidRegex = /^\d{3}(-)\d{3}(-)\d{3}$/
 const sinRegex = /^\d{3}( )\d{3}( )\d{3}$/
+const craBusinessNumberRegex = /^\d{9}$/
 const phoneError = { message: 'Valid characters are "()- 123457890" ' }
 const emailError = { message: 'Email must contain @ symbol and domain' }
 const requiredPhone = z.string().regex(phoneRegex, phoneError)
@@ -76,6 +78,12 @@ const optionalSin = z
     message: 'Social Insurance Number must be provided in the format 111 111 111'
   })
   .optional()
+const optionalCRABusinessNumber = z
+  .string()
+  .refine(val => val === '' || craBusinessNumberRegex.test(val), {
+    message: 'CRA Business Number must be a 9-digit number'
+  })
+  .optional()
 const optionalExtension = optionalNumber
 const optionalOrEmptyString = z
   .string()
@@ -88,6 +96,29 @@ export const finalizationSchema = z.object({
   phoneExtension: optionalExtension,
   email: requiredEmail,
   name: requiredNonEmptyString
+})
+
+export const propertyManagerSchema = z.object({
+  businessLegalName: optionalOrEmptyString,
+  businessNumber: optionalCRABusinessNumber,
+  businessMailingAddress: z.object({
+    address: requiredNonEmptyString,
+    addressLineTwo: optionalOrEmptyString,
+    city: requiredNonEmptyString,
+    postalCode: requiredNonEmptyString,
+    province: requiredNonEmptyString,
+    country: requiredNonEmptyString
+  }),
+  contact: z.object({
+    firstName: requiredNonEmptyString,
+    middleName: optionalOrEmptyString,
+    lastName: requiredNonEmptyString,
+    preferredName: optionalOrEmptyString,
+    phoneNumber: requiredPhone,
+    extension: optionalOrEmptyString,
+    faxNumber: optionalOrEmptyString,
+    emailAddress: requiredEmail
+  })
 })
 
 export const primaryContactSchema = z.object({
@@ -162,6 +193,29 @@ const primaryContact: PrimaryContactInformationI = {
   businessNumber: undefined
 }
 
+const propertyManager: PropertyManagerI = {
+  businessLegalName: '',
+  businessNumber: '',
+  businessMailingAddress: {
+    address: undefined,
+    addressLineTwo: '',
+    city: undefined,
+    postalCode: undefined,
+    province: undefined,
+    country: undefined
+  },
+  contact: {
+    firstName: undefined,
+    middleName: '',
+    lastName: undefined,
+    preferredName: '',
+    phoneNumber: undefined,
+    extension: '',
+    faxNumber: '',
+    emailAddress: undefined
+  }
+}
+
 const secondaryContact: SecondaryContactInformationI = {
   preferredName: '',
   phoneNumber: undefined,
@@ -219,6 +273,9 @@ export const propertyDetailsSchema = z.object({
 export const formState: CreateAccountFormStateI = reactive({
   primaryContact,
   secondaryContact,
+  isPropertyManagerRole: false,
+  hasPropertyManager: true,
+  propertyManager,
   propertyDetails: {
     parcelIdentifier: undefined,
     businessLicense: undefined,
@@ -302,6 +359,7 @@ export const formDataForAPI: CreateAccountFormAPII = {
   registration: {
     primaryContact: primaryContactAPI,
     secondaryContact: secondaryContactAPI,
+    propertyManager: undefined,
     unitAddress: {
       address: '',
       addressLineTwo: '',

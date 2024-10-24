@@ -53,3 +53,8 @@ export interface CountryItem {
   value: string;
   name: string;
 }
+
+export interface ProvinceItem {
+  value: string;
+  name: string;
+}

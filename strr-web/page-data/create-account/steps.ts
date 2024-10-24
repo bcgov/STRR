@@ -32,14 +32,12 @@ const steps: FormPageI[] = [
     'Add property managers',
     'propertyManager',
     'propertyManager',
-    'propertyManager',
-    true,
-    true
+    'propertyManager'
   ),
-  createStep('contact', 'add_person', 'Add contacts', 'contact', 'contact', 'contact'),
+  createStep('contact', 'account_multiple_plus', 'Add contacts', 'contact', 'contact', 'contact'),
   createStep('property', 'add_location', 'Add properties', 'details', 'details', 'details'),
-  createStep('eligibility', 'upload_file', 'Upload documents', 'eligibility', '', 'eligibility'),
-  createStep('review', 'check', 'Check and verify', 'confirm', '', 'confirm')
+  createStep('eligibility', 'home_owner', 'Upload documents', 'eligibility', '', 'eligibility'),
+  createStep('review', 'text_box_check', 'Check and verify', 'confirm', '', 'confirm')
 ]
 
 export default steps

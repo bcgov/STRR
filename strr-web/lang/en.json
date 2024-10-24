@@ -202,7 +202,7 @@
     "title": "Short-Term Rental Registration",
     "stepTitle": {
       "propertyManager": "Property Manager Information",
-      "contact": "Contact Information",
+      "contact": "Host Information",
       "property": "Property Details",
       "eligibility": "Principal Residence",
       "review": "Review and Confirm"
@@ -239,9 +239,38 @@
     "propertyManager": {
       "title": "Step 1 - Property Manager Information",
       "subtitle": "If there is a property manager business for this short-term rental unit, provide the contact information below.",
-      "primary": "Property Manager Information"
+      "primary": "Property Manager Information",
+      "roleRadioLegend": "What is your role?",
+      "propertyManagerRadioLegend": "Do you have a property manager who manages this rental unit on your behalf?",
+      "propertyHostRoleOption": "Property host (I'm registering my personal short-term rental unit)",
+      "propertyManagerRoleOption": "Property manager (I'm registering a short-term rental unit on behalf of a client)",
+      "yesOption": "Yes",
+      "noOption": "No"
     },
-    "propertyManagerForm": {},
+    "propertyManagerForm": {
+      "businessDetails": "Business Details",
+      "businessName" : "Business Legal Name (Optional)",
+      "businessNumber" : "Canada Revenue Agency Business Number (Optional)",
+      "businessMailingAddress": "Business Mailing Address",
+      "country": "Country",
+      "address": "Address",
+      "addressLineTwo":"Address Line 2 (Optional)",
+      "city": "City",
+      "province": "Province",
+      "postalCode":"Postal Code",
+      "contactName": "Contact Name",
+      "contactDetails": "Contact Details",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "middleName": "Middle Name (Optional)",
+      "preferredName": "Preferred Name (Optional)",
+      "phoneNumber": "Phone Number",
+      "extension":"Extension (Optional)",
+      "faxNumber":"Fax Number (Optional)",
+      "emailAddress":"Email Address",
+      "boldWarning": "Note: ",
+      "warning": "Email will be default method of communication. Information sent via email will be considered \"received\" on the third day after the email is sent."
+    },
     "contact": {
       "title": "Step 2 - Contact Information",
       "subtitle": "Primary Contact Information",

@@ -99,10 +99,39 @@ export const formStateToApi = (
     delete formData.registration.secondaryContact
   }
 
+  const setPropertyManager = () => {
+    if (formState.hasPropertyManager && formState.propertyManager) {
+      formData.registration.propertyManager = {
+        businessLegalName: formState.propertyManager.businessLegalName,
+        businessNumber: formState.propertyManager.businessNumber,
+        businessMailingAddress: {
+          address: formState.propertyManager.businessMailingAddress.address ?? '',
+          addressLineTwo: formState.propertyManager.businessMailingAddress.addressLineTwo,
+          city: formState.propertyManager.businessMailingAddress.city ?? '',
+          postalCode: formState.propertyManager.businessMailingAddress.postalCode ?? '',
+          province: formState.propertyManager.businessMailingAddress.province ?? '',
+          country: formState.propertyManager.businessMailingAddress.country ?? ''
+        },
+        contact: {
+          firstName: formState.propertyManager.contact.firstName ?? '',
+          middleName: formState.propertyManager.contact.middleName,
+          lastName: formState.propertyManager.contact.lastName ?? '',
+          preferredName: formState.propertyManager.contact.preferredName,
+          phoneNumber: formState.propertyManager.contact.phoneNumber ?? '',
+          extension: formState.propertyManager.contact.extension,
+          faxNumber: formState.propertyManager.contact.faxNumber,
+          emailAddress: formState.propertyManager.contact.emailAddress ?? ''
+        }
+      }
+    } else {
+      delete formData.registration.propertyManager
+    }
+  }
+
   setListingDetails()
   setUnitAddress()
   setUnitDetails()
   setPrincipalResidence()
-
+  setPropertyManager()
   return formData
 }
