@@ -59,6 +59,33 @@ class _Config:  # pylint: disable=too-few-public-methods
         "AUTH_API_URL", ""
     ) + os.getenv("AUTH_API_VERSION", "")
 
+    # DATA PORTAL API
+    STR_DATA_API_CLIENT_ID = os.getenv("STR_DATA_API_CLIENT_ID", "")
+    STR_DATA_API_CLIENT_SECRET = os.getenv("STR_DATA_API_CLIENT_SECRET", "")
+    STR_DATA_API_TOKEN_URL = os.getenv("STR_DATA_API_TOKEN_URL", "")
+    STR_DATA_API_URL = os.getenv("STR_DATA_API_URL", "")
+
+    # STRR
+    STRR_API_URL = os.getenv("STRR_API_URL")
+
+    # JWT_OIDC Settings
+    JWT_OIDC_WELL_KNOWN_CONFIG = os.getenv("JWT_OIDC_WELL_KNOWN_CONFIG")
+    JWT_OIDC_ALGORITHMS = os.getenv("JWT_OIDC_ALGORITHMS")
+    JWT_OIDC_JWKS_URI = os.getenv("JWT_OIDC_JWKS_URI")
+    JWT_OIDC_ISSUER = os.getenv("JWT_OIDC_ISSUER")
+    JWT_OIDC_AUDIENCE = os.getenv("JWT_OIDC_AUDIENCE")
+    JWT_OIDC_CLIENT_SECRET = os.getenv("JWT_OIDC_CLIENT_SECRET")
+    JWT_OIDC_CACHING_ENABLED = os.getenv("JWT_OIDC_CACHING_ENABLED")
+    JWT_OIDC_TOKEN_URL = os.getenv("JWT_OIDC_TOKEN_URL")
+    JWT_OIDC_JWKS_CACHE_TIMEOUT = int(os.getenv("JWT_OIDC_JWKS_CACHE_TIMEOUT"))
+    JWT_OIDC_USERNAME = os.getenv("JWT_OIDC_USERNAME", "username")
+    JWT_OIDC_FIRSTNAME = os.getenv("JWT_OIDC_FIRSTNAME", "firstname")
+    JWT_OIDC_LASTNAME = os.getenv("JWT_OIDC_LASTNAME", "lastname")
+
+    # LTSA
+    LTSA_SVC_URL = os.getenv("LTSA_API_URL", "") + os.getenv("LTSA_API_VERSION", "")
+    LTSA_SVC_AUTH_KEY = os.getenv("LTSA_API_KEY_STRR", "")
+
     # AUTO APPROVAL JOB
     AUTO_APPROVAL_APPLICATION_PROCESSING_DELAY = int(
         os.getenv("AUTO_APPROVAL_APPLICATION_PROCESSING_DELAY") or "60"
@@ -75,12 +102,13 @@ class _Config:  # pylint: disable=too-few-public-methods
     DB_HOST = os.getenv("DATABASE_HOST", "")
     DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
 
-    SQLALCHEMY_DATABASE_URI = (
-        f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        if not os.getenv("DATABASE_UNIX_SOCKET")
-        else f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{
-            DB_NAME}?unix_sock={os.getenv('DATABASE_UNIX_SOCKET')}/.s.PGSQL.5432"
-    )
+    # POSTGRESQL
+    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
+        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
+    else:
+        SQLALCHEMY_DATABASE_URI = (
+            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        )
 
     TESTING = False
     DEBUG = False
@@ -117,9 +145,17 @@ class TestConfig(_Config):  # pylint: disable=too-few-public-methods
         f"@{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
     )
 
+    COLIN_URL = os.getenv("COLIN_URL_TEST", "")
+    LEGAL_URL = os.getenv("LEGAL_URL_TEST", "")
 
 class ProdConfig(_Config):  # pylint: disable=too-few-public-methods
     """Production environment configuration."""
+
+    SECRET_KEY = os.getenv("SECRET_KEY", None)
+
+    if not SECRET_KEY:
+        SECRET_KEY = os.urandom(24)
+        print("WARNING: SECRET_KEY being set as a one-shot", file=sys.stderr)
 
     SECRET_KEY = os.getenv("SECRET_KEY") or os.urandom(24)
     TESTING = False
