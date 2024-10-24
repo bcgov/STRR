@@ -14,6 +14,7 @@
 """All of the configuration for the service is captured here."""
 
 import os
+import sys
 
 from dotenv import find_dotenv, load_dotenv
 
@@ -147,6 +148,7 @@ class TestConfig(_Config):  # pylint: disable=too-few-public-methods
 
     COLIN_URL = os.getenv("COLIN_URL_TEST", "")
     LEGAL_URL = os.getenv("LEGAL_URL_TEST", "")
+
 
 class ProdConfig(_Config):  # pylint: disable=too-few-public-methods
     """Production environment configuration."""
