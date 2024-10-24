@@ -108,12 +108,25 @@ class UnitDetails:
     """UnitDetails payload object."""
 
     def __init__(
-        self, propertyType, ownershipType, parcelIdentifier=None, businessLicense=None, businessLicenseExpiryDate=None
+        self,
+        propertyType,
+        ownershipType,
+        rentalUnitSpaceType,
+        hostResidence,
+        isUnitOnPrincipalResidenceProperty,
+        numberOfRoomsForRent,
+        parcelIdentifier=None,
+        businessLicense=None,
+        businessLicenseExpiryDate=None,
     ):
         self.propertyType = propertyType
         self.ownershipType = ownershipType
         self.parcelIdentifier = parcelIdentifier
         self.businessLicense = businessLicense
+        self.rentalUnitSpaceType = rentalUnitSpaceType
+        self.hostResidence = hostResidence
+        self.isUnitOnPrincipalResidenceProperty = isUnitOnPrincipalResidenceProperty
+        self.numberOfRoomsForRent = numberOfRoomsForRent
         self.businessLicenseExpiryDate = businessLicenseExpiryDate
 
 

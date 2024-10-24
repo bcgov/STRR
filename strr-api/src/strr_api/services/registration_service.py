@@ -145,6 +145,7 @@ class RegistrationService:
                 city=mailing_address.get("city"),
                 province=mailing_address.get("province"),
                 postal_code=mailing_address.get("postalCode"),
+                location_description=mailing_address.get("locationDescription"),
             ),
             brands=platform_brands,
             representatives=representatives,
@@ -160,6 +161,7 @@ class RegistrationService:
                     city=attorney_mailing_address_dict.get("city"),
                     province=attorney_mailing_address_dict.get("province"),
                     postal_code=attorney_mailing_address_dict.get("postalCode"),
+                    location_description=mailing_address.get("locationDescription"),
                 )
 
         platform_registration = PlatformRegistration(platform=platform)
@@ -186,6 +188,10 @@ class RegistrationService:
             ).date()
             if registration_request.unitDetails.businessLicenseExpiryDate
             else None,
+            space_type=registration_request.unitDetails.rentalUnitSpaceType,
+            host_residence=registration_request.unitDetails.hostResidence,
+            is_unit_on_principal_residence_property=registration_request.unitDetails.isUnitOnPrincipalResidenceProperty,
+            number_of_rooms_for_rent=registration_request.unitDetails.numberOfRoomsForRent,
             property_type=registration_request.unitDetails.propertyType,
             ownership_type=registration_request.unitDetails.ownershipType,
             is_principal_residence=registration_request.principalResidence.isPrincipalResidence,

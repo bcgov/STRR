@@ -31,6 +31,10 @@
       "type": "string",
       "maxLength": 2,
       "description": "The 2-letter country code (ISO 3166-1) for this address."
+    },
+    "locationDescription": {
+      "type": "string",
+      "description": "Location description."
     }
   },
   "required": [

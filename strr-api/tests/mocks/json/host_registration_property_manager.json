@@ -52,7 +52,11 @@
       "businessLicense": "7777777",
       "businessLicenseExpiryDate": "2025-01-01",
       "propertyType": "SINGLE_FAMILY_HOME",
-      "ownershipType": "OWN"
+      "ownershipType": "OWN",
+      "rentalUnitSpaceType": "ENTIRE_HOME",
+      "hostResidence":  "SAME_UNIT",
+      "isUnitOnPrincipalResidenceProperty":  true,
+      "numberOfRoomsForRent": 1
     },
     "unitAddress": {
       "nickname": "My Rental Property",

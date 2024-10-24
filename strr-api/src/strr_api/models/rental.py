@@ -51,6 +51,18 @@ class Registration(Versioned, BaseModel):
 class RentalProperty(Versioned, BaseModel):
     """Rental Property"""
 
+    class RentalUnitSpaceType(BaseEnum):
+        """Enum of rental unit space type."""
+
+        ENTIRE_HOME = auto()  # pylint: disable=invalid-name
+        SHARED_ACCOMMODATION = auto()  # pylint: disable=invalid-name
+
+    class HostResidence(BaseEnum):
+        """Enum of host residence option."""
+
+        SAME_UNIT = auto()  # pylint: disable=invalid-name
+        ANOTHER_UNIT = auto()  # pylint: disable=invalid-name
+
     __tablename__ = "rental_properties"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -65,6 +77,10 @@ class RentalProperty(Versioned, BaseModel):
     rental_act_accepted = db.Column(db.Boolean, nullable=False, default=False)
     pr_exempt_reason = db.Column(db.String, nullable=True)
     service_provider = db.Column(db.String, nullable=True)
+    space_type = db.Column(db.Enum(RentalUnitSpaceType), nullable=False)
+    host_residence = db.Column(db.Enum(HostResidence), nullable=False)
+    is_unit_on_principal_residence_property = db.Column(db.Boolean, nullable=False)
+    number_of_rooms_for_rent = db.Column(db.Integer, nullable=False)
 
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=False)

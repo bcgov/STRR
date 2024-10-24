@@ -24,7 +24,11 @@
       "parcelIdentifier": "018-850-570",
       "businessLicense": "7777777",
       "propertyType": "SINGLE_FAMILY_HOME",
-      "ownershipType": "OWN"
+      "ownershipType": "OWN",
+      "rentalUnitSpaceType": "ENTIRE_HOME",
+      "hostResidence":  "SAME_UNIT",
+      "isUnitOnPrincipalResidenceProperty":  true,
+      "numberOfRoomsForRent": 1
     },
     "unitAddress": {
       "country": "CA",

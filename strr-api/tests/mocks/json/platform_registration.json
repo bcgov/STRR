@@ -47,7 +47,8 @@
                 "addressLineTwo": "",
                 "city": "MAPLE RIDGE",
                 "province": "BC",
-                "postalCode": "V2X 6K6"
+                "postalCode": "V2X 6K6",
+                "locationDescription": "Test Location"
             },
             "registeredOfficeOrAttorneyForServiceDetails": {
                 "attorneyName": "Test",
@@ -57,7 +58,8 @@
                     "addressLineTwo": "",
                     "city": "MAPLE RIDGE",
                     "province": "BC",
-                    "postalCode": "V2X 6K6"
+                    "postalCode": "V2X 6K6",
+                    "locationDescription": "Test Location"
                 }
             }
         },

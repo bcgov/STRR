@@ -52,6 +52,7 @@ class RegistrationSerializer:
                 "postalCode": platform.mailingAddress.postal_code,
                 "province": platform.mailingAddress.province,
                 "country": platform.mailingAddress.country,
+                "locationDescription": platform.mailingAddress.location_description,
             },
         }
         if platform.registered_office_attorney_mailing_address_id:
@@ -65,6 +66,7 @@ class RegistrationSerializer:
                     "postalCode": attorney_mailing_address.postal_code,
                     "province": attorney_mailing_address.province,
                     "country": attorney_mailing_address.country,
+                    "locationDescription": attorney_mailing_address.location_description,
                 },
             }
 
@@ -177,6 +179,10 @@ class RegistrationSerializer:
             else None,
             "propertyType": registration.rental_property.property_type.name,
             "ownershipType": registration.rental_property.ownership_type.name,
+            "rentalUnitSpaceType": registration.rental_property.space_type,
+            "hostResidence": registration.rental_property.host_residence,
+            "isUnitOnPrincipalResidenceProperty": registration.rental_property.is_unit_on_principal_residence_property,
+            "numberOfRoomsForRent": registration.rental_property.number_of_rooms_for_rent,
         }
 
         registration_data["listingDetails"] = [

@@ -158,6 +158,26 @@
           "type": "string",
           "format": "date"
         },
+        "rentalUnitSpaceType": {
+          "type": "string",
+          "enum": [
+            "ENTIRE_HOME",
+            "SHARED_ACCOMMODATION"
+          ]
+        },
+        "hostResidence": {
+          "type": "string",
+          "enum": [
+            "SAME_UNIT",
+            "ANOTHER_UNIT"
+          ]
+        },
+        "isUnitOnPrincipalResidenceProperty": {
+          "type": "boolean"
+        },
+        "numberOfRoomsForRent": {
+          "type": "integer"
+        },
         "propertyType": {
           "type": "string",
           "enum": [
@@ -184,7 +204,11 @@
       },
       "required": [
         "propertyType",
-        "ownershipType"
+        "ownershipType",
+        "rentalUnitSpaceType",
+        "hostResidence",
+        "isUnitOnPrincipalResidenceProperty",
+        "numberOfRoomsForRent"
       ]
     },
     "listingDetails": {
