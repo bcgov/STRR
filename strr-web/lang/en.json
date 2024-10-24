@@ -8,7 +8,8 @@
     "baseModal": {
       "closeButtonLabel": "Close"
     },
-    "loadingState": "Loading, please wait..."
+    "loadingState": "Loading, please wait...",
+    "phoneExt": "Ext."
   },
   "registryDashboard": {
     "applicationNumber": "Application #",
@@ -355,6 +356,17 @@
       "fileRequiredError": "Please upload a supporting document"
     },
     "review": {
+      "propertyManager": {
+        "title": "Property Manager Information",
+        "businessLegalName": "Business Legal Name",
+        "craBusinessNumber": "CRA Business Number",
+        "businessMailingAddress": "Business Mailing Address",
+        "contactName": "Contact Name",
+        "preferredName": "Preferred Name",
+        "phoneNumber": "Phone Number",
+        "faxNumber": "Fax Number",
+        "emailAddress": "Email Address"
+      },
       "reviewInstructions": "Please review all of the information entered below.",
       "reviewInstructionsContinued": "Please note that some information in this application can not be changed once the form has been submitted",
       "contact": "Contact Information",
@@ -392,7 +404,7 @@
       "primary": "Rental Unit Information"
     },
     "eligibility": {
-      "title": "Step 4 - Principal Residence "
+      "title": "Step 4 - Principal Residence"
     },
     "confirm": {
       "title": "Step 5 - Review and Confirm"

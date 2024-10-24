@@ -143,6 +143,29 @@ export const secondaryContactSchema = z.object({
     .optional()
 })
 
+const propertyManager: PropertyManagerI = {
+  businessLegalName: '',
+  craBusinessNumber: '',
+  businessMailingAddress: {
+    address: '',
+    addressLineTwo: '',
+    city: '',
+    postalCode: '',
+    province: '',
+    country: ''
+  },
+  contact: {
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    preferredName: '',
+    phoneNumber: '',
+    extension: '',
+    faxNumber: '',
+    emailAddress: ''
+  }
+}
+
 const primaryContact: PrimaryContactInformationI = {
   preferredName: '',
   phoneNumber: undefined,
@@ -219,6 +242,9 @@ export const propertyDetailsSchema = z.object({
 export const formState: CreateAccountFormStateI = reactive({
   primaryContact,
   secondaryContact,
+  propertyManager,
+  isPropertyManagerRole: false,
+  hasPropertyManager: false,
   propertyDetails: {
     parcelIdentifier: undefined,
     businessLicense: undefined,
@@ -323,6 +349,7 @@ export const formDataForAPI: CreateAccountFormAPII = {
       nonPrincipalOption: '',
       specifiedServiceProvider: '',
       agreedToSubmit: false
-    }
+    },
+    registrationType: undefined
   }
 }

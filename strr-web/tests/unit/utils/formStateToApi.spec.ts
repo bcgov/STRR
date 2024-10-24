@@ -1,6 +1,5 @@
 // @vitest-environment nuxt
 import { it, expect } from 'vitest'
-import { CreateAccountFormStateI, formStateToApi } from '#imports'
 
 it('begins with empty address', () => {
   const firstName = 'first'
@@ -9,7 +8,7 @@ it('begins with empty address', () => {
   const propertyType = 'propertyType'
   const ownershipType = 'ownershipType'
 
-  const primary = {
+  const primary: PrimaryContactInformationI = {
     preferredName: 'preferredName',
     phoneNumber: 'phoneNumber',
     extension: 'extension',
@@ -28,7 +27,7 @@ it('begins with empty address', () => {
     socialInsuranceNumber: 'socialInsuranceNumber'
   }
 
-  const secondary = {
+  const secondary: SecondaryContactInformationI = {
     preferredName: 'preferredNameSecondary',
     phoneNumber: 'phoneNumberSecondary',
     extension: 'extensionSecondary',
@@ -50,9 +49,30 @@ it('begins with empty address', () => {
     socialInsuranceNumber: 'socialInsuranceNumberSecondary'
   }
 
+  const propertyManager: PropertyManagerI = {
+    businessLegalName: 'businessLegalName',
+    craBusinessNumber: 'businessLegalName',
+    businessMailingAddress: {
+      address: 'address',
+      city: 'city',
+      postalCode: 'postalCode',
+      province: 'province',
+      country: 'country'
+    },
+    contact: {
+      firstName: 'firstName',
+      lastName: 'lastName',
+      phoneNumber: 'phoneNumber',
+      emailAddress: 'emailAddress'
+    }
+  }
+
   const createAccountState: CreateAccountFormStateI = {
     primaryContact: primary,
     secondaryContact: secondary,
+    isPropertyManagerRole: false,
+    hasPropertyManager: false,
+    propertyManager,
     propertyDetails: {
       primaryResidence: 'primaryResidence',
       whichPlatform: 'whichPlatform',

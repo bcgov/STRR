@@ -18,7 +18,7 @@ export const useApplications = () => {
     ownershipType: string,
     registrationType: RegistrationTypeE = RegistrationTypeE.HOST
   ) => {
-    const formData: CreateAccountFormAPII = formStateToApi(
+    const submitApplicationPayload: CreateAccountFormAPII = formStateToApi(
       formState,
       userFirstName,
       userLastName,
@@ -29,15 +29,15 @@ export const useApplications = () => {
 
     try {
       // add registration type to payload
-      formData.registration.registrationType = registrationType
+      submitApplicationPayload.registration.registrationType = registrationType
 
       if (formState.supportingDocuments.length) {
         // upload all document and add its info to the application data
         const documents: DocumentUploadI[] = await uploadSupportingDocuments()
-        formData.registration.documents = documents
+        submitApplicationPayload.registration.documents = documents
       }
 
-      const { data } = await axiosInstance.post(`${apiURL}/applications`, formData)
+      const { data } = await axiosInstance.post(`${apiURL}/applications`, submitApplicationPayload)
 
       if (!data) {
         throw new Error('Invalid AUTH API response')
@@ -48,7 +48,7 @@ export const useApplications = () => {
 
       return data
     } catch (error) {
-      console.warn('Error creating account.')
+      console.warn('Error submitting application.')
       console.error(error)
     }
   }
