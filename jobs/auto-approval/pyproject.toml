@@ -47,7 +47,7 @@ build-backend = "poetry.core.masonry.api"
 profile = "black"
 
 [tool.pylint]
-max-line-length = 120
+max-line-length = 132
 
 [tool.flake8]
 ignore = ["F401","E402", "Q000", "E203", "W503"]
@@ -58,4 +58,4 @@ exclude = [
     "devops",
     "*migrations*",
 ]
-max-line-length = 120
+max-line-length = 132
