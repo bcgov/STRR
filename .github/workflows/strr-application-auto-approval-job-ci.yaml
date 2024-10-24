@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - "jobs/auto-approval/**"
+      - "src/strr_api/models/**"
+      - "src/strr_api/services/**"
+      - "src/strr_api/enums/**"
+      - "src/strr_api/exceptions/**"
+      - "src/strr_api/utils/**"
   workflow_dispatch:
 
 defaults:
