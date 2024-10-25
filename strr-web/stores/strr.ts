@@ -1,5 +1,5 @@
-import { z } from 'zod'
 import axios from 'axios'
+import { z } from 'zod'
 import {
   CreateAccountFormStateI,
   OrgI,
@@ -207,6 +207,10 @@ export const propertyDetailsSchema = z.object({
   parcelIdentifier: optionalPID,
   postalCode: requiredNonEmptyString,
   propertyType: requiredNonEmptyString,
+  rentalUnitSpaceType: requiredNonEmptyString,
+  isUnitOnPrincipalResidenceProperty: z.boolean(),
+  hostResidence: optionalOrEmptyString,
+  numberOfRoomsForRent: z.number().min(1),
   province: requiredNonEmptyString.refine(province => province === 'BC', { message: 'Province must be set to BC' })
 }).refine((data) => {
   // additional validation: businessLicenseExpiryDate is required if businessLicense present
@@ -234,7 +238,11 @@ export const formState: CreateAccountFormStateI = reactive({
     city: undefined,
     province: 'BC',
     postalCode: undefined,
-    listingDetails: [{ url: '' }]
+    listingDetails: [{ url: '' }],
+    numberOfRoomsForRent: 1,
+    rentalUnitSpaceType: '',
+    isUnitOnPrincipalResidenceProperty: false,
+    hostResidence: ''
   },
   selectedAccount: {} as OrgI,
   principal: {
@@ -315,7 +323,11 @@ export const formDataForAPI: CreateAccountFormAPII = {
       parcelIdentifier: '',
       businessLicense: '',
       propertyType: '',
-      ownershipType: ''
+      ownershipType: '',
+      rentalUnitSpaceType: '',
+      isUnitOnPrincipalResidenceProperty: false,
+      hostResidence: '',
+      numberOfRoomsForRent: 1
     },
     principalResidence: {
       isPrincipalResidence: false,

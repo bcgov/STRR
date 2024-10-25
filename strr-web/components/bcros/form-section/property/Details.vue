@@ -163,10 +163,6 @@ const rentalUnitSpaceType = defineModel<string>('rentalUnitSpaceType')
 const isUnitOnPrincipalResidenceProperty = defineModel<boolean>('isUnitOnPrincipalResidenceProperty')
 const hostResidence = defineModel<string | null>('hostResidence')
 
-if (!formState.propertyDetails.numberOfRoomsForRent) {
-  formState.propertyDetails.numberOfRoomsForRent = 1
-}
-
 const incrementRooms = () => {
   formState.propertyDetails.numberOfRoomsForRent++
 }
