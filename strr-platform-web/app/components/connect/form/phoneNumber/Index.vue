@@ -1,22 +1,23 @@
 <script setup lang="ts">
-import { vMaska } from 'maska/vue'
-
 const countryIso2 = defineModel<string>('countryIso2')
 const countryCode = defineModel<string>('countryCode')
-const number = defineModel<string>('number')
 const extension = defineModel<string>('extension')
 
-defineProps({
-  name: { type: String, default: 'phone' }
+const props = defineProps({
+  name: { type: String, default: 'phone' },
+  number: { type: String, default: '' }
 })
+
+defineEmits(['update:number'])
 
 const northAmericaMask = '(###) ###-####'
 const otherMask = '##############'
-
 const inputMask = computed(() => countryCode.value === '1' ? northAmericaMask : otherMask)
+const maskedValue = ref<string>(props.number)
+const unmaskedValue = ref<string>('')
 
+defineExpose({ unmaskedValue })
 </script>
-
 <template>
   <div class="flex w-full max-w-bcGovInput flex-col gap-3 sm:flex-row">
     <UFormGroup :name="name + '.countryCode'" class="grow sm:max-w-[130px]">
@@ -30,13 +31,14 @@ const inputMask = computed(() => countryCode.value === '1' ? northAmericaMask : 
     </UFormGroup>
     <UFormGroup :name="name + '.number'" class="grow">
       <UInput
-        v-model="number"
-        v-maska="inputMask"
+        v-model="maskedValue"
+        v-maska:unmaskedValue.unmasked="inputMask"
         :aria-label="$t('label.phone.number')"
         :color="number ? 'primary' : 'gray'"
         :placeholder="$t('label.phone.number')"
         size="lg"
         data-testid="phone-number"
+        @input="$emit('update:number', unmaskedValue)"
       />
     </UFormGroup>
     <UFormGroup :name="name + '.extension'" class="grow sm:max-w-[170px]">

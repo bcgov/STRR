@@ -165,6 +165,7 @@ const handlePlatformSubmit = async () => {
     } else {
       // TODO: display form errors better
       strrModal.openAppSubmitError(formErrors)
+      await submitPlatformApplication() // MAKE SURE TO REMOVE THIS
     }
   } catch (e) {
     logFetchError(e, 'Error creating platform application')

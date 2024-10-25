@@ -22,7 +22,6 @@ defineProps<{
   errorName?: boolean
   errorDetails?: boolean
 }>()
-
 </script>
 
 <template>
