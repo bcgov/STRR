@@ -7,6 +7,29 @@
         </p>
       </div>
       <UForm ref="form" :schema="propertyDetailsSchema" :state="formState.propertyDetails">
+        <BcrosFormSectionPropertyDetails
+          v-model:property-type="formState.propertyDetails.propertyType"
+          v-model:ownership-type="formState.propertyDetails.ownershipType"
+          v-model:business-license="formState.propertyDetails.businessLicense"
+          v-model:parcel-identifier="formState.propertyDetails.parcelIdentifier"
+          v-model:business-license-expiry-date="formState.propertyDetails.businessLicenseExpiryDate"
+          v-model:rental-unit-space-type="formState.propertyDetails.rentalUnitSpaceType"
+          v-model:is-unit-on-principal-residence-property="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
+          v-model:host-residence="formState.propertyDetails.hostResidence"
+          v-model:number-of-rooms-for-rent="formState.propertyDetails.numberOfRoomsForRent"
+          :property-types="propertyTypes"
+          :ownership-types="ownershipTypes"
+          :rental-unit-space-type-options="rentalUnitSpaceTypeOptions"
+          :principal-residence-options="principalResidenceOptions"
+          :host-residence-options="hostResidenceOptions"
+          :ownership-type-error="ownershipTypeError"
+          :property-type-error="propertyTypeError"
+          :rental-unit-space-type-error="rentalUnitSpaceTypeError"
+          @validate-ownership="validateOwnershipType"
+          @validate-property="validatePropertyType"
+          @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
+          @validate-rental-unit-space-type="validateRentalUnitSpaceType"
+        />
         <BcrosFormSectionPropertyAddress
           id="propertyAddress"
           v-model:nickname="formState.propertyDetails.nickname"
@@ -19,20 +42,6 @@
           :enable-address-complete="enableAddressComplete"
           default-country-iso2="CA"
           :address-not-in-b-c="addressNotInBC"
-        />
-        <BcrosFormSectionPropertyDetails
-          v-model:property-type="formState.propertyDetails.propertyType"
-          v-model:ownership-type="formState.propertyDetails.ownershipType"
-          v-model:business-license="formState.propertyDetails.businessLicense"
-          v-model:parcel-identifier="formState.propertyDetails.parcelIdentifier"
-          v-model:business-license-expiry-date="formState.propertyDetails.businessLicenseExpiryDate"
-          :property-types="propertyTypes"
-          :ownership-types="ownershipTypes"
-          :ownership-type-error="ownershipTypeError"
-          :property-type-error="propertyTypeError"
-          @validate-ownership="validateOwnershipType"
-          @validate-property="validatePropertyType"
-          @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
         />
         <BcrosFormSectionPropertyListingDetails
           v-model:listing-details="formState.propertyDetails.listingDetails"
@@ -117,7 +126,7 @@ const validateField = (index: number) => {
       listingURLErrors.value = undefined
     } else {
       const removalIndex = listingURLErrors.value?.findIndex(nonerror => nonerror?.errorIndex === index)
-      if (removalIndex) {
+      if (removalIndex !== -1) {
         listingURLErrors.value?.splice(removalIndex, 1)
       }
     }
@@ -171,9 +180,25 @@ const ownershipTypes: string[] = [
   t('createAccount.propertyForm.coOwn')
 ]
 
+const rentalUnitSpaceTypeOptions = [
+  t('createAccount.propertyForm.entireHome'),
+  t('createAccount.propertyForm.sharedAccommodation')
+]
+
+const principalResidenceOptions = [
+  { value: true, label: t('createAccount.propertyForm.yes') },
+  { value: false, label: t('createAccount.propertyForm.no') }
+]
+
+const hostResidenceOptions = [
+  { value: 'thisUnit', label: "The host lives in this unit when it's not being rented" },
+  { value: 'anotherUnit', label: 'The host lives in another unit on the same property' }
+]
+
 const propertyTypeError = ref('')
 const ownershipTypeError = ref('')
 const businessLicenseExpiryDate = ref('')
+const rentalUnitSpaceTypeError = ref('')
 
 const validatePropertyType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
@@ -193,6 +218,14 @@ const validateBusinessLicenseExpiryDate = () => {
   businessLicenseExpiryDate.value = error ? error.message : ''
 }
 
+const validateRentalUnitSpaceType = () => {
+  if (!formState.propertyDetails.rentalUnitSpaceType) {
+    rentalUnitSpaceTypeError.value = t('createAccount.propertyForm.rentalUnitSpaceTypeRequired')
+  } else {
+    rentalUnitSpaceTypeError.value = ''
+  }
+}
+
 const form = ref()
 
 watch(form, () => {
@@ -206,7 +239,7 @@ onMounted(() => {
   if (isComplete) {
     validatePropertyType()
     validateOwnershipType()
+    validateRentalUnitSpaceType()
   }
 })
-
 </script>

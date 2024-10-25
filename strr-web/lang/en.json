@@ -300,6 +300,11 @@
       "ownershipType": "Ownership Type",
       "rentalUnitDetails": "Rental Unit Details",
       "onlineListingDetails": "Online Listing Details",
+      "rentalUnitSpaceType": "What type of space is offered in this rental unit?",
+      "selectrentalUnitSpaceType": "Select the type of space",
+      "entireHome": "Entire home (guests have the entire place to themselves)",
+      "sharedAccommodation": "Shared accommodation (guests rent a bedroom with access to common spaces)",
+      "rentalUnitSpaceTypeRequired": "Type of space is required.",
       "webLinkInfo": "Add the web link for your listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).",
       "rentalUnitAddress": "Rental Unit Address",
       "singleFamilyHome": "Single Family Home",
@@ -314,7 +319,13 @@
       "floatHome": "Float home",
       "rent": "Rent",
       "own": "Own",
-      "coOwn": "Co-own"
+      "coOwn": "Co-own",
+      "isUnitOnPrincipalResidenceProperty": "Is the rental unit on the same property as the principal residence?",
+      "yes": "Yes",
+      "no": "No",
+      "hostResidence": "Where does the property host live on the property?",
+      "numberOfRoomsForRent": "Number of Rooms for Rent",
+      "numberOfRoomsForRentHelp": "Enter the number of rooms available for rent in this unit."
     },
     "principalResidence": {
       "property": "Property",
