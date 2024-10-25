@@ -1,14 +1,14 @@
-export function formatPhoneNumber (phone: ConnectPhone) {
+export function formatPhoneNumber (party: Contact): ApiPhone {
   return {
-    phoneNumber: `${phone.countryCode ?? ''}${phone.number}`,
-    extension: phone.extension ?? ''
+    phoneNumber: party.phone.number,
+    phoneCountryCode: party.phone.countryCode ?? '',
+    extension: party.phone.extension ?? ''
   }
 }
 
 export function formatPhoneNumberUI (party: ApiParty): ConnectPhone {
   return {
-    // TODO: update after lekshmi's phone change is in
-    countryCode: '',
+    countryCode: party.phoneCountryCode,
     number: party.phoneNumber,
     extension: party.extension ?? ''
   }
@@ -43,7 +43,7 @@ export function formatParty (party: Contact): ApiParty {
     firstName: party.firstName,
     middleName: party.middleName ?? '',
     lastName: party.lastName,
-    ...formatPhoneNumber(party.phone),
+    ...formatPhoneNumber(party),
     faxNumber: party.faxNumber ?? '',
     emailAddress: party.emailAddress
   }
@@ -81,14 +81,15 @@ export function formatBusinessDetails (bus: PlatBusiness): ApiBusinessDetails {
     businessNumber: bus.businessNumber,
     consumerProtectionBCLicenceNumber: bus.cpbcLicenceNumber,
     noticeOfNonComplianceEmail: bus.nonComplianceEmail,
-    noticeOfNonComplianceOptionalEmail: bus.nonComplianceEmailOptional,
     takeDownRequestEmail: bus.takeDownEmail,
-    takeDownRequestOptionalEmail: bus.takeDownEmailOptional,
     mailingAddress: formatAddress(bus.mailingAddress),
     registeredOfficeOrAttorneyForServiceDetails: {
       attorneyName: bus.regOfficeOrAtt.attorneyName,
       mailingAddress: formatAddress(bus.regOfficeOrAtt.mailingAddress)
-    }
+    },
+    // add optional fields only if defined
+    ...(bus.nonComplianceEmailOptional && { noticeOfNonComplianceOptionalEmail: bus.nonComplianceEmailOptional }),
+    ...(bus.takeDownEmailOptional && { takeDownRequestOptionalEmail: bus.takeDownEmailOptional })
   }
 }
 
@@ -104,9 +105,9 @@ export function formatBusinessDetailsUI (bus: ApiBusinessDetails): PlatBusiness 
     hasCpbc: !!bus.consumerProtectionBCLicenceNumber,
     cpbcLicenceNumber: bus.consumerProtectionBCLicenceNumber,
     nonComplianceEmail: bus.noticeOfNonComplianceEmail,
-    nonComplianceEmailOptional: bus.noticeOfNonComplianceOptionalEmail,
+    nonComplianceEmailOptional: bus.noticeOfNonComplianceOptionalEmail ?? '',
     takeDownEmail: bus.takeDownRequestEmail,
-    takeDownEmailOptional: bus.takeDownRequestOptionalEmail,
+    takeDownEmailOptional: bus.takeDownRequestOptionalEmail ?? '',
     mailingAddress: formatAddressUI(bus.mailingAddress),
     hasRegOffAtt: !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress,
     regOfficeOrAtt: {

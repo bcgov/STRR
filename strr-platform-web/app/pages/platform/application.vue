@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { ConnectBtnControlItem } from '~/interfaces/connect-btn-control/item-i'
-import { ConnectStepper } from '#components'
+import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const strrModal = useStrrModals()
 
 const { validatePlatformContact } = useStrrPlatformContact()
@@ -108,6 +109,7 @@ const steps = ref<Step[]>([
 const activeStepIndex = ref<number>(0)
 const activeStep = ref<Step>(steps.value[activeStepIndex.value] as Step)
 const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
+const reviewFormRef = shallowRef<InstanceType<typeof FormPlatformReviewConfirm> | null>(null)
 
 // need to cleanup the setButtonControl somehow
 const handlePlatformSubmit = async () => {
@@ -136,6 +138,7 @@ const handlePlatformSubmit = async () => {
     })
 
     activeStep.value.complete = true // set final review step as active before validation
+    reviewFormRef.value?.validateConfirmation() // validate confirmation checkboxes on submit
 
     // all step validations
     const validations = [
@@ -153,7 +156,10 @@ const handlePlatformSubmit = async () => {
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
-      await submitPlatformApplication()
+      const response = await submitPlatformApplication()
+      if (response) {
+        return navigateTo(localePath('/platform/dashboard'))
+      }
     } else {
       // TODO: display form errors better
       strrModal.openAppSubmitError(formErrors)
@@ -241,7 +247,8 @@ setBreadcrumbs([
       <FormPlatformDetails :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
-      <FormPlatformReview
+      <FormPlatformReviewConfirm
+        ref="reviewFormRef"
         :is-complete="activeStep.complete"
         @edit="stepperRef?.setActiveStep"
       />

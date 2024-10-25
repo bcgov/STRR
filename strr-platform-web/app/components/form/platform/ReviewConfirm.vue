@@ -24,10 +24,17 @@ defineEmits<{
   edit: [index: number]
 }>()
 
-onMounted(async () => {
+const validateConfirmation = () => {
+  platformConfirmationFormRef.value?.validate(undefined, { silent: true })
+}
+
+// expose to trigger on application submission
+defineExpose({ validateConfirmation })
+
+onMounted(() => {
   // validate form if step marked as complete
   if (props.isComplete) {
-    await validateForm(platformConfirmationFormRef.value, props.isComplete)
+    validateConfirmation()
   }
 })
 </script>
@@ -48,15 +55,14 @@ onMounted(async () => {
     </UAlert>
 
     <!-- person completing platform application -->
-    <ConnectPageSection>
-      <template #header>
-        <FormPlatformReviewEditCardHeader
-          :title="tPlat('section.title.completingParty')"
-          icon="i-mdi-account-multiple-plus"
-          @edit="$emit('edit', 0)"
-        />
-      </template>
-
+    <ConnectPageSection
+      :heading="{
+        label: tPlat('section.title.completingParty'),
+        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
+        icon: 'i-mdi-account-multiple-plus',
+        padding: 'sm:px-8 py-4 px-4'
+      }"
+    >
       <div class="p-8">
         <FormCommonReviewRow>
           <template #item-1>
@@ -86,15 +92,14 @@ onMounted(async () => {
     </ConnectPageSection>
 
     <!-- primary platform rep section -->
-    <ConnectPageSection>
-      <template #header>
-        <FormPlatformReviewEditCardHeader
-          :title="tPlat('section.title.primaryRep')"
-          icon="i-mdi-account-multiple-plus"
-          @edit="$emit('edit', 0)"
-        />
-      </template>
-
+    <ConnectPageSection
+      :heading="{
+        label: tPlat('section.title.primaryRep'),
+        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
+        icon: 'i-mdi-account-multiple-plus',
+        padding: 'sm:px-8 py-4 px-4'
+      }"
+    >
       <div class="space-y-6 p-8">
         <FormCommonReviewRow>
           <template #item-1>
@@ -141,15 +146,15 @@ onMounted(async () => {
     </ConnectPageSection>
 
     <!-- secondary platform rep section -->
-    <ConnectPageSection v-if="secondaryRep">
-      <template #header>
-        <FormPlatformReviewEditCardHeader
-          :title="tPlat('section.title.secondaryRep')"
-          icon="i-mdi-account-multiple-plus"
-          @edit="$emit('edit', 0)"
-        />
-      </template>
-
+    <ConnectPageSection
+      v-if="secondaryRep"
+      :heading="{
+        label: tPlat('section.title.secondaryRep'),
+        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
+        icon: 'i-mdi-account-multiple-plus',
+        padding: 'sm:px-8 py-4 px-4'
+      }"
+    >
       <div class="space-y-6 p-8">
         <FormCommonReviewRow>
           <template #item-1>
@@ -196,15 +201,14 @@ onMounted(async () => {
     </ConnectPageSection>
 
     <!-- business info section -->
-    <ConnectPageSection>
-      <template #header>
-        <FormPlatformReviewEditCardHeader
-          :title="tPlat('section.title.businessInfo')"
-          icon="i-mdi-domain"
-          @edit="$emit('edit', 1)"
-        />
-      </template>
-
+    <ConnectPageSection
+      :heading="{
+        label: tPlat('section.title.businessInfo'),
+        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
+        icon: 'i-mdi-domain',
+        padding: 'sm:px-8 py-4 px-4'
+      }"
+    >
       <div class="space-y-6 p-8">
         <FormCommonReviewRow>
           <template #item-1>
@@ -292,15 +296,14 @@ onMounted(async () => {
     </ConnectPageSection>
 
     <!-- platform info section -->
-    <ConnectPageSection>
-      <template #header>
-        <FormPlatformReviewEditCardHeader
-          :title="tPlat('step.description.2')"
-          icon="i-mdi-map-marker-plus-outline"
-          @edit="$emit('edit', 2)"
-        />
-      </template>
-
+    <ConnectPageSection
+      :heading="{
+        label: tPlat('step.description.2'),
+        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
+        icon: 'i-mdi-map-marker-plus-outline',
+        padding: 'sm:px-8 py-4 px-4'
+      }"
+    >
       <div class="space-y-6 p-8">
         <FormCommonReviewRow
           v-if="platformDetails.brands.length === 0"
@@ -368,7 +371,7 @@ onMounted(async () => {
         ref="platformConfirmationFormRef"
         :state="platformConfirmation"
         :schema="platformConfirmationSchema"
-        class="space-y-10 py-10"
+        class="space-y-10 pb-10"
       >
         <UFormGroup name="confirmInfoAccuracy">
           <UCheckbox

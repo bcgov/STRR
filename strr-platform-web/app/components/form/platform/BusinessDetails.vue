@@ -37,7 +37,7 @@ watch(() => platformBusiness.value.regOfficeOrAtt.sameAsMailAddress,
 )
 
 watch(() => platformBusiness.value.hasRegOffAtt,
-  (newVal) => {
+  (newVal, oldVal) => {
   // reset regOfficeOrAtt if hasRegOffAtt radio set to false
     if (!newVal) {
       platformBusiness.value.regOfficeOrAtt.attorneyName = ''
@@ -46,9 +46,13 @@ watch(() => platformBusiness.value.hasRegOffAtt,
       // @ts-expect-error - ts doesnt recognize key type
         platformBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
       })
+    }
 
-      // revalidate fields to update/remove form errors
+    // revalidate fields to update/remove form errors if user clicks yes or no
+    // only revalidate if not the first click
+    if (oldVal !== undefined) {
       platformBusinessFormRef.value?.validate([
+        'hasRegOffAtt',
         'regOfficeOrAtt.mailingAddress.country',
         'regOfficeOrAtt.mailingAddress.street',
         'regOfficeOrAtt.mailingAddress.city',

@@ -32,6 +32,7 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     }
   }
 
+  // TODO: add phoneCountryCode and locationDescription to payload
   const createApplicationBody = (): PlatformApplicationPayload => {
     const applicationBody: PlatformApplicationPayload = {
       registration: {
@@ -58,21 +59,15 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     return applicationBody
   }
 
-  const submitPlatformApplication = async () => {
+  const submitPlatformApplication = () => {
     const body = createApplicationBody()
 
     console.info('submitting application: ', body)
 
-    // TODO: implement
-    // commenting this out now until payment is complete
-    // const response = await $strrApi('/applications', {
-    //   method: 'POST',
-    //   body
-    // })
-
-    // console.info('strr api response: ', response)
-
-    // return response
+    return $strrApi('/applications', {
+      method: 'POST',
+      body
+    })
   }
 
   return {
