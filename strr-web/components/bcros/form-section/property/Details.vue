@@ -168,9 +168,7 @@ const incrementRooms = () => {
 }
 
 const decrementRooms = () => {
-  if (formState.propertyDetails.numberOfRoomsForRent > 1) {
-    formState.propertyDetails.numberOfRoomsForRent--
-  }
+  formState.propertyDetails.numberOfRoomsForRent--
 }
 
 watch(businessLicense, (): void => {
