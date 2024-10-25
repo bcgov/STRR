@@ -1,7 +1,7 @@
-import { AccountTypeE } from '~/enums/account-type-e'
-import { AccountStatusE } from '~/enums/account-status-e'
-import { UserSettingsTypeE } from '~/enums/user-settings-type-e'
 import { RegistrationTypeE } from '#imports'
+import { AccountStatusE } from '~/enums/account-status-e'
+import { AccountTypeE } from '~/enums/account-type-e'
+import { UserSettingsTypeE } from '~/enums/user-settings-type-e'
 
 export interface DateOfBirthI {
   day: string
@@ -164,6 +164,10 @@ export interface CreateAccountFormStateI {
     province: string | undefined
     postalCode: string | undefined
     listingDetails: { url: string }[]
+    rentalUnitSpaceType: string
+    isUnitOnPrincipalResidenceProperty: boolean
+    hostResidence: string
+    numberOfRoomsForRent: number
   }
   selectedAccount: OrgI
   principal: PrincipalResidenceI
@@ -231,6 +235,10 @@ export interface CreateAccountFormAPII {
       businessLicenseExpiryDate?: string
       propertyType: string
       ownershipType: string
+      rentalUnitSpaceType: string
+      isUnitOnPrincipalResidenceProperty: boolean
+      hostResidence: string
+      numberOfRoomsForRent: number
     }
     listingDetails?: { url: string }[]
     documents?: DocumentUploadI[],

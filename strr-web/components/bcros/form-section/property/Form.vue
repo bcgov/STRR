@@ -58,6 +58,7 @@
 
 <script setup lang="ts">
 import { sanitizeUrl } from '@braintree/sanitize-url'
+import { HostResidenceE } from '~/enums/host-residence-e'
 
 const { isComplete } = defineProps<{
   isComplete: boolean
@@ -181,8 +182,8 @@ const ownershipTypes: string[] = [
 ]
 
 const rentalUnitSpaceTypeOptions = [
-  t('createAccount.propertyForm.entireHome'),
-  t('createAccount.propertyForm.sharedAccommodation')
+  { value: RentalUnitSpaceTypeE.ENTIRE_HOME, label: t('createAccount.propertyForm.entireHome') },
+  { value: RentalUnitSpaceTypeE.SHARED_ACCOMMODATION, label: t('createAccount.propertyForm.sharedAccommodation') }
 ]
 
 const principalResidenceOptions = [
@@ -191,8 +192,8 @@ const principalResidenceOptions = [
 ]
 
 const hostResidenceOptions = [
-  { value: 'thisUnit', label: "The host lives in this unit when it's not being rented" },
-  { value: 'anotherUnit', label: 'The host lives in another unit on the same property' }
+  { value: HostResidenceE.SAME_UNIT, label: "The host lives in this unit when it's not being rented" },
+  { value: HostResidenceE.ANOTHER_UNIT, label: 'The host lives in another unit on the same property' }
 ]
 
 const propertyTypeError = ref('')
