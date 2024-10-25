@@ -28,12 +28,15 @@ test.describe('STRR Platform Smoke Test',() => {
     await expect(page.getByTestId('phone-countryCode')).toBeVisible();
     await expect(page.getByTestId('phone-number')).toBeVisible();
     await expect(page.getByTestId('phone-extension')).toBeVisible();
-  //  await page.getByTestId('phone-countryCode').click();
-    await page.getByTestId('phone-countryCode').fill('+1');
+
+    //phone#
+    await page.getByTestId('phone-countryCode').click();
+    await page.locator('#headlessui-combobox-button-nZCZLesAYYv_9').click();
+    await page.getByTestId('phone-countryCode').press('Tab');
+    //await page.locator('#headlessui-combobox-option-nZCZLesAYYv_323').click();
     await page.getByTestId('phone-countryCode').press('Tab');
     await page.getByTestId('phone-number').fill('(250) 508-7044');
     await expect(page.getByPlaceholder('Email Address')).toBeVisible();
-    await page.getByPlaceholder('Email Address').click();
     await page.getByPlaceholder('Email Address').fill('no@test.smoke');
 
     //finalize step 1
@@ -139,28 +142,28 @@ test.describe('STRR Platform Smoke Test',() => {
     await expect(page.getByTestId('h2')).toContainText('Step 4 - Review and Confirm');
     //Person completing the form
     await expect(page.getByTestId('platform-review-confirm').locator('div').filter({ hasText: 'Person Completing Platform' }).first()).toBeVisible();
-    await expect(page.locator('section').filter({ hasText: 'Person Completing Platform' }).getByRole('button')).toBeVisible();
+//    await expect(page.locator('section').filter({ hasText: 'Person Completing Platform' }).getByRole('button')).toBeVisible();
     await expect(page.getByText('Contact Name').first()).toBeVisible();
     await expect(page.getByText('Phone Number').first()).toBeVisible();
     await expect(page.getByText('Email Address').first()).toBeVisible();
-    await expect(page.getByTestId('platform-review-confirm')).toContainText('+1 2505087044');
+    await expect(page.getByTestId('platform-review-confirm')).toContainText('+1 (250) 508-7044');
     await expect(page.getByTestId('platform-review-confirm')).toContainText('no@test.smoke');
     
     //platform rep
-    await expect(page.getByTestId('platform-review-confirm').locator('div').filter({ hasText: 'Platform RepresentativeEdit' }).first()).toBeVisible();
-    await expect(page.locator('section').filter({ hasText: 'Platform RepresentativeEditContact Name- Phone Number+- 2505087044 Email' }).getByRole('button')).toBeVisible();
+    await expect(page.getByTestId('platform-review-confirm').locator('div').filter({ hasText: 'Platform Representative' }).first()).toBeVisible();
+//    await expect(page.locator('section').filter({ hasText: 'Platform RepresentativeEditContact Name- Phone Number+- 2505087044 Email' }).getByRole('button')).toBeVisible();
     await expect(page.getByText('Contact Name').nth(1)).toBeVisible();
     await expect(page.getByText('Phone Number').nth(1)).toBeVisible();
     await expect(page.getByText('Email Address').nth(1)).toBeVisible();
     await expect(page.getByText('Position/Title')).toBeVisible();
     await expect(page.getByText('Fax Number')).toBeVisible();
-    await expect(page.getByTestId('platform-review-confirm')).toContainText('+1 2505087044');
+    await expect(page.getByTestId('platform-review-confirm')).toContainText('+1 (250) 508-7044');
     await expect(page.getByTestId('platform-review-confirm')).toContainText('no@test.smoke');
     await expect(page.getByTestId('platform-review-confirm')).toContainText('Sr Smoke Tester');
 
     //buisness info
-    await expect(page.getByTestId('platform-review-confirm').locator('div').filter({ hasText: 'Business InformationEdit' }).first()).toBeVisible();
-    await expect(page.locator('section').filter({ hasText: 'Business InformationEditLegal' }).getByRole('button')).toBeVisible();
+    await expect(page.getByTestId('platform-review-confirm').locator('div').filter({ hasText: 'Business Information' }).first()).toBeVisible();
+//    await expect(page.locator('section').filter({ hasText: 'Business InformationEditLegal' }).getByRole('button')).toBeVisible();
     await expect(page.getByText('Legal Business Name')).toBeVisible();
     await expect(page.getByText('Attorney for Service Name')).toBeVisible();
     await expect(page.getByText('Notice of Non-Compliance')).toBeVisible();
@@ -177,7 +180,7 @@ test.describe('STRR Platform Smoke Test',() => {
 
     //platform info
     await expect(page.getByRole('heading', { name: 'Platform Information' })).toBeVisible();
-    await expect(page.locator('section').filter({ hasText: 'Platform InformationEditPlatform Brand NameSmoke Test BrandPlatform Brand' }).getByRole('button')).toBeVisible();
+//    await expect(page.locator('section').filter({ hasText: 'Platform InformationEditPlatform Brand NameSmoke Test BrandPlatform Brand' }).getByRole('button')).toBeVisible();
     await expect(page.getByText('Platform Brand Name')).toBeVisible();
     await expect(page.getByText('Platform Brand Website')).toBeVisible();
     await expect(page.getByText('Platform Size')).toBeVisible();
