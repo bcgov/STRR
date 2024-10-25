@@ -67,10 +67,10 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
 
     console.info('submitting application: ', body)
 
-    return $strrApi('/applications', {
-      method: 'POST',
-      body
-    })
+    // return $strrApi('/applications', {
+    //   method: 'POST',
+    //   body
+    // })
   }
 
   return {
