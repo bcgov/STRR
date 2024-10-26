@@ -33,18 +33,31 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests to assure the approval service."""
 import json
-from unittest.mock import MagicMock, patch
+import os
+from unittest.mock import patch
 
 import pytest
 
-from strr_api.enums.enum import OwnershipType
-from strr_api.models import Application
-from strr_api.responses.LTSAResponse import LtsaResponse
+from strr_api.enums.enum import OwnershipType, PaymentStatus
+from strr_api.models import Application, Events
 from strr_api.services import ApprovalService
+from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 from tests.unit.utils.mocks import fake_application, mock_json_file, no_op
+
+ACCOUNT_ID = 1234
 
 MOCK_GEOCODER_RESPONSE = mock_json_file("geocoder_address")
 MOCK_LTSA_RESPONSE = mock_json_file("ltsa_title_order")
+
+CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
+)
+
+CREATE_PLATFORM_REGISTRATION_REQUEST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/platform_registration.json"
+)
+
+MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": ACCOUNT_ID}}
 
 
 def test_extract_longitude_and_latitude():
@@ -59,87 +72,60 @@ def test_extract_longitude_and_latitude():
     assert long == 48.4177006
 
 
-def test_check_full_name_exists_in_ownership_groups():
-    """Assure the full name exists in the ownership groups."""
-
-    with open(MOCK_LTSA_RESPONSE) as f:
-        data = json.load(f)
-
-    fielded_data = data.get("order", {}).get("orderedProduct", {}).get("fieldedData", {})
-    result = ApprovalService.check_full_name_exists_in_ownership_groups(LtsaResponse(**fielded_data), "FIRST LAST")
-    assert result
-
-
 @pytest.fixture(autouse=True)
 def app_context(app):
     with app.app_context():
         yield
 
 
-@pytest.mark.parametrize(
-    "ownership_type, is_principal_residence, specified_service_provider, expected_status",
-    [
-        (OwnershipType.RENT, True, None, Application.Status.FULL_REVIEW),
-        (OwnershipType.OWN, True, "some_provider", Application.Status.FULL_REVIEW),
-    ],
-)
-@patch("strr_api.services.EventsService.save_event", new=no_op)
-@patch("strr_api.models.Application.save", new=no_op)
-@patch("strr_api.services.AuthService.get_sbc_accounts_mailing_address")
-@patch("strr_api.services.GeoCoderService.get_geocode_by_address")
-@patch("strr_api.models.DSSOrganization.lookup_by_geocode")
-@patch("strr_api.services.LtsaService.get_title_details_from_pid")
-@patch("strr_api.services.LtsaService.build_ltsa_response")
-@patch("strr_api.services.RegistrationService.create_registration")
-def test_process_auto_approval(
-    mock_create_registration,
-    mock_build_ltsa,
-    mock_get_title,
-    mock_lookup_geocode,
-    mock_get_geocode,
-    mock_get_address,
-    ownership_type,
-    is_principal_residence,
-    specified_service_provider,
-    expected_status,
-    app_context,
-):
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_process_auto_approval_platform_application(session, client, jwt):
     """Test the auto-approval process for various scenarios."""
-    mock_get_address.return_value = MagicMock(
-        street="123 Main St",
-        city="Vancouver",
-        region="BC",
-        postalCode="V41B35",
-        country="Canada",
-    )
-    mock_get_geocode.return_value = {"features": [{"geometry": {"coordinates": [-123.1207, 49.2827]}}]}
-    mock_lookup_geocode.return_value = {"is_business_licence_required": False, "is_principal_residence_required": False}
-    mock_get_title.return_value = {"some": "data"}
+    with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
 
-    mock_ltsa_response = MagicMock(spec=LtsaResponse)
-    mock_ltsa_response.ownershipGroups = [
-        MagicMock(titleOwners=[MagicMock(lastNameOrCorpName1="GUY", givenName="THE FIRST")])
-    ]
-    mock_build_ltsa.return_value = mock_ltsa_response
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.PAID
+        application.save()
 
-    application = fake_application(ownership_type, is_principal_residence, specified_service_provider)
+        application_status, registration_id = ApprovalService.process_auto_approval(application=application)
 
-    if ownership_type == OwnershipType.OWN and is_principal_residence and not specified_service_provider:
-        mock_get_address.return_value = MagicMock(
-            street="456 Different St",
-            city="Victoria",
-            region="BC",
-            postalCode="V41B35",
-            country="Canada",
-        )
-        expected_status = Application.Status.FULL_REVIEW
+        assert application_status == "AUTO_APPROVED"
+        assert registration_id
 
-    registration_status, _ = ApprovalService.process_auto_approval(application=application)
 
-    assert application.status == expected_status
+def test_process_auto_approval_host_application(session, client, jwt):
+    """Test the auto-approval process for various scenarios."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
+            with patch(
+                "strr_api.services.approval_service.ApprovalService.getSTRDataForAddress",
+                return_value={
+                    "isBusinessLicenceRequired": False,
+                    "isStrProhibited": False,
+                    "organizationNm": "TEST",
+                    "isPrincipalResidenceRequired": True,
+                },
+            ):
+                headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+                headers["Account-Id"] = ACCOUNT_ID
+                json_data = json.load(f)
+                rv = client.post("/applications", json=json_data, headers=headers)
+                response_json = rv.json
+                application_number = response_json.get("header").get("applicationNumber")
 
-    if expected_status == Application.Status.PROVISIONAL_REVIEW:
-        assert registration_status == "PROVISIONAL_REVIEW"
+                application = Application.find_by_application_number(application_number=application_number)
+                application.payment_status = PaymentStatus.COMPLETED.value
+                application.status = Application.Status.PAID
+                application.save()
 
-    if expected_status == Application.Status.AUTO_APPROVED and is_principal_residence:
-        assert registration_status == "AUTO_APPROVED"
+                application_status, registration_id = ApprovalService.process_auto_approval(application=application)
+
+                assert application_status == Application.Status.FULL_REVIEW
+                assert not registration_id

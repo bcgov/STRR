@@ -122,7 +122,7 @@ class ApprovalService:
                     and registration.principalResidence.specifiedServiceProvider != "n/a"
                 )
 
-                organization = cls._getSTRDataForAddress(address)
+                organization = cls.getSTRDataForAddress(address)
                 if organization:
                     auto_approval.businessLicenseRequired = organization.get("isBusinessLicenceRequired")
                     auto_approval.strProhibited = organization.get("isStrProhibited")
@@ -163,7 +163,7 @@ class ApprovalService:
             return application.status, None
 
     @classmethod
-    def _getSTRDataForAddress(cls, address):
+    def getSTRDataForAddress(cls, address):
         geocode_response = GeoCoderService.get_geocode_by_address(address)
         longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
         client_id = current_app.config.get("STR_DATA_API_CLIENT_ID")
