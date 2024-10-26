@@ -204,12 +204,6 @@ class TestAutoApprovalJob(unittest.TestCase):
         mock_application2 = MagicMock()
         mock_application2.id = 2
         mock_applications = [mock_application1, mock_application2]
-        mock_token = (
-            "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEiLCJ0eXAiOiJKV1QifQ."
-            "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0Ijox"
-            "NTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-        )
-        mock_auth_service.get_service_client_token.return_value = mock_token
         mock_approval_service.process_auto_approval.return_value = (
             "APPROVED",
             "12345",
@@ -223,5 +217,4 @@ class TestAutoApprovalJob(unittest.TestCase):
         calls = mock_approval_service.process_auto_approval.call_args_list
         for call, mock_instance in zip(calls, mock_applications):
             args, kwargs = call  # pylint: disable=unused-variable
-            self.assertEqual(kwargs["token"], mock_token)
             self.assertEqual(kwargs["application"], mock_instance)
