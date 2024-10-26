@@ -39,6 +39,7 @@
 # pylint: disable=C0103
 
 """For a successfully paid registration, this service determines its auto-approval state."""
+from datetime import datetime
 from typing import Any, Tuple
 
 import requests
@@ -51,6 +52,7 @@ from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
 from strr_api.services import EventsService, LtsaService
 from strr_api.services.geocoder_service import GeoCoderService
+from strr_api.services.registration_service import RegistrationService
 from strr_api.services.rest_service import RestService
 
 
@@ -90,7 +92,7 @@ class ApprovalService:
         return False
 
     @classmethod
-    def process_auto_approval(cls, token, application: Application) -> Tuple[Any, Any]:
+    def process_auto_approval(cls, application: Application) -> Tuple[Any, Any]:
         """Process approval logic and produce output JSON to store in the DB."""
         try:
             application_json = application.application_json
@@ -135,8 +137,24 @@ class ApprovalService:
                     auto_approval.titleCheck = cls.check_full_name_exists_in_ownership_groups(ltsa_response, owner_name)
 
                 cls.save_approval_record_by_application(application.id, auto_approval)
+                cls._update_application_status_to_full_review(application)
 
-            cls._update_application_status_to_full_review(application)
+            elif registration_type == RegistrationType.PLATFORM.value:
+                application.status = Application.Status.AUTO_APPROVED
+                registration = RegistrationService.create_registration(
+                    application.submitter_id, application.payment_account, application.application_json
+                )
+                registration_id = registration.id
+                application.registration_id = registration.id
+                application.decision_date = datetime.utcnow()
+                application.save()
+
+                EventsService.save_event(
+                    event_type=Events.EventType.APPLICATION,
+                    event_name=Events.EventName.AUTO_APPROVAL_APPROVED,
+                    application_id=application.id,
+                    visible_to_applicant=False,
+                )
             return application.status, registration_id
 
         except Exception as default_exception:  # noqa: B902; log error
