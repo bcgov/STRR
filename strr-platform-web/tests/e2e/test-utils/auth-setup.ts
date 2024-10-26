@@ -1,6 +1,5 @@
 import { expect, type Browser, chromium, type Page } from '@playwright/test'
 import dotenv from 'dotenv'
-import { enI18n } from '../../mocks/i18n'
 // load default env
 // eslint-disable-next-line import/no-named-as-default-member
 dotenv.config()
@@ -48,11 +47,11 @@ async function authSetup () {
     throw new Error('User or password is not set in environment variables.')
   }
 
-  await page.goto(baseURL + 'en-CA/platform/application/')
-  await expect(page.getByTestId('h1')).toContainText(enI18n.global.t('platform.title.application'))
-  await page.locator('[id="logged-out-options-dropdown"]').click()
-  await expect(page.getByRole('menuitem', { name: 'IDIR' })).toBeVisible() // will need to change this to BCeID
-  await page.getByRole('menuitem', { name: 'IDIR' }).click()
+  // replace with environment variable?
+  const signinUrl = 'https://dev.account.bcregistry.gov.bc.ca/signin/bceid/'
+  const redirectUrl = encodeURIComponent(baseURL)
+
+  await page.goto(signinUrl + redirectUrl)
   await expect(page.getByText('Log in with')).toBeVisible()
   await page.locator('#user').fill(username)
   await page.getByLabel('Password').fill(password)
