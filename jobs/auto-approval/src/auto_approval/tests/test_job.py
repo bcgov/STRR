@@ -1,3 +1,4 @@
+# pylint: disable=W0613
 """
 Unit tests for the auto_approval.job module.
 
