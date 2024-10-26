@@ -122,7 +122,6 @@ def test_process_auto_approval(
     ]
     mock_build_ltsa.return_value = mock_ltsa_response
 
-    sample_token = "token"
     application = fake_application(ownership_type, is_principal_residence, specified_service_provider)
 
     if ownership_type == OwnershipType.OWN and is_principal_residence and not specified_service_provider:
@@ -135,7 +134,7 @@ def test_process_auto_approval(
         )
         expected_status = Application.Status.FULL_REVIEW
 
-    registration_status, _ = ApprovalService.process_auto_approval(token=sample_token, application=application)
+    registration_status, _ = ApprovalService.process_auto_approval(application=application)
 
     assert application.status == expected_status
 
