@@ -67,7 +67,7 @@ def get_submitted_applications(app):
 
 def process_applications(app, applications):
     """Process auto-approval for submitted applications."""
-    token = AuthService.get_service_client_token()
+    AuthService.get_service_client_token()
     for application in applications:
         app.logger.info(f"Auto processing application {str(application.id)}")
         ApprovalService.process_auto_approval(application=application)

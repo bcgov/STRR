@@ -164,6 +164,7 @@ class ApprovalService:
 
     @classmethod
     def getSTRDataForAddress(cls, address):
+        """Gets the STR data from data portal API."""
         geocode_response = GeoCoderService.get_geocode_by_address(address)
         longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
         client_id = current_app.config.get("STR_DATA_API_CLIENT_ID")
