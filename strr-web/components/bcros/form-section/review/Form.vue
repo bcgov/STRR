@@ -49,6 +49,23 @@
                 :title="tReview('ownershipType')"
                 :content="getOwnershipTypeDisplay(formState.propertyDetails.ownershipType, tReview)"
               />
+              <BcrosFormSectionReviewItem
+                :title="tReview('rentalUnitSpaceType')"
+                :content="formState.propertyDetails.rentalUnitSpaceType || '-'"
+              />
+              <BcrosFormSectionReviewItem
+                :title="tReview('isUnitOnPrincipalResidenceProperty')"
+                :content="formState.propertyDetails.isUnitOnPrincipalResidenceProperty ? tReview('yes') : tReview('no')"
+              />
+              <BcrosFormSectionReviewItem
+                v-if="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
+                :title="tReview('hostResidence')"
+                :content="formState.propertyDetails.hostResidence || '-'"
+              />
+              <BcrosFormSectionReviewItem
+                :title="tReview('numberOfRoomsForRent')"
+                :content="formState.propertyDetails.numberOfRoomsForRent || '-'"
+              />
             </div>
             <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
               <BcrosFormSectionReviewItem :title="tReview('address')">
@@ -177,8 +194,8 @@
 </template>
 
 <script setup lang="ts">
-import { getOwnershipTypeDisplay } from '@/utils/common'
 import { formState } from '@/stores/strr'
+import { getOwnershipTypeDisplay } from '@/utils/common'
 
 const { t } = useTranslation()
 

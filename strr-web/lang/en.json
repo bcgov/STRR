@@ -441,7 +441,13 @@
       "confirm": "I confirm that the information contained in the application for registration is accurate and true. I understand that, if I have provided inaccurate or false information, I may be the subject of enforcement action under Part 4 of the Short-Term Rental Accommodations Act. Enforcement action may include being ordered to pay an administrative penalty.",
       "coOwner": "Co-own",
       "owner": "Own",
-      "rent": "Rent"
+      "rent": "Rent",
+      "rentalUnitSpaceType": "Type of Space",
+      "isUnitOnPrincipalResidenceProperty": "On Principal Residence Property",
+      "hostResidence": "Host Residence",
+      "numberOfRoomsForRent": "Number of Rooms for Rent",
+      "yes": "Yes",
+      "no": "No"
     },
     "details": {
       "title": "Step 3 - Add Your Short Term Rental Property Details",
