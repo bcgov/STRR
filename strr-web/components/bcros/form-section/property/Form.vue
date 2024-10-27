@@ -25,10 +25,16 @@
           :ownership-type-error="ownershipTypeError"
           :property-type-error="propertyTypeError"
           :rental-unit-space-type-error="rentalUnitSpaceTypeError"
+          :principal-residence-error="principalResidenceError"
+          :host-residence-error="hostResidenceError"
+          :number-of-rooms-for-rent-error="numberOfRoomsForRentError"
           @validate-ownership="validateOwnershipType"
           @validate-property="validatePropertyType"
           @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
           @validate-rental-unit-space-type="validateRentalUnitSpaceType"
+          @validate-principal-residence="validatePrincipalResidenceOptions"
+          @validate-host-residence="validateHostResidence"
+          @validate-number-of-rooms-for-rent="validateNumberOfRoomsForRent"
         />
         <BcrosFormSectionPropertyAddress
           id="propertyAddress"
@@ -200,6 +206,9 @@ const propertyTypeError = ref('')
 const ownershipTypeError = ref('')
 const businessLicenseExpiryDate = ref('')
 const rentalUnitSpaceTypeError = ref('')
+const principalResidenceError = ref('')
+const hostResidenceError = ref('')
+const numberOfRoomsForRentError = ref('')
 
 const validatePropertyType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
@@ -227,6 +236,30 @@ const validateRentalUnitSpaceType = () => {
   }
 }
 
+const validatePrincipalResidenceOptions = () => {
+  if (formState.propertyDetails.isUnitOnPrincipalResidenceProperty === undefined) {
+    principalResidenceError.value = t('createAccount.propertyForm.principalResidenceRequired')
+  } else {
+    principalResidenceError.value = ''
+  }
+}
+
+const validateHostResidence = () => {
+  if (!hostResidence) {
+    hostResidenceError.value = t('createAccount.propertyForm.hostResidenceRequired')
+  } else {
+    hostResidenceError.value = ''
+  }
+}
+
+const validateNumberOfRoomsForRent = () => {
+  if (!formState.propertyDetails.numberOfRoomsForRent || formState.propertyDetails.numberOfRoomsForRent <= 0) {
+    numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentRequired')
+  } else {
+    numberOfRoomsForRentError.value = ''
+  }
+}
+
 const form = ref()
 
 watch(form, () => {
@@ -241,6 +274,9 @@ onMounted(() => {
     validatePropertyType()
     validateOwnershipType()
     validateRentalUnitSpaceType()
+    validatePrincipalResidenceOptions()
+    validateHostResidence()
+    validateNumberOfRoomsForRent()
   }
 })
 </script>

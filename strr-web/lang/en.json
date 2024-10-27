@@ -357,8 +357,11 @@
       "yes": "Yes",
       "no": "No",
       "hostResidence": "Where does the property host live on the property?",
+      "hostResidenceRequired": "Please specify where the host lives on the property.",
       "numberOfRoomsForRent": "Number of Rooms for Rent",
-      "numberOfRoomsForRentHelp": "Enter the number of rooms available for rent in this unit."
+      "numberOfRoomsForRentHelp": "Enter the number of rooms available for rent in this unit.",
+      "principalResidenceRequired": "Please select if the rental unit is on the same property as the principal residence.",
+      "numberOfRoomsForRentRequired": "Please specify the number of rooms available for rent."
     },
     "principalResidence": {
       "property": "Property",

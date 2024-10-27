@@ -1,5 +1,5 @@
-import { reactive } from 'vue'
 import axios from 'axios'
+import { reactive } from 'vue'
 import { z } from 'zod'
 import {
   CreateAccountFormStateI,
@@ -336,7 +336,7 @@ export const formState: CreateAccountFormStateI = reactive({
     listingDetails: [{ url: '' }],
     numberOfRoomsForRent: 1,
     rentalUnitSpaceType: '',
-    isUnitOnPrincipalResidenceProperty: false,
+    isUnitOnPrincipalResidenceProperty: null,
     hostResidence: ''
   },
   selectedAccount: {} as OrgI,

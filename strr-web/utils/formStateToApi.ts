@@ -80,7 +80,7 @@ export const formStateToApi = (
       ownershipType,
       businessLicense,
       rentalUnitSpaceType,
-      isUnitOnPrincipalResidenceProperty,
+      ...(typeof isUnitOnPrincipalResidenceProperty === 'boolean' ? { isUnitOnPrincipalResidenceProperty } : {}),
       hostResidence,
       numberOfRoomsForRent,
       ...(businessLicense ? { businessLicenseExpiryDate } : {}) // include exp date only if business license exists

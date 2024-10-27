@@ -100,7 +100,11 @@
         </UFormGroup>
       </div>
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="isUnitOnPrincipalResidenceProperty" class="d:pr-[16px] flex-grow">
+        <UFormGroup
+          name="isUnitOnPrincipalResidenceProperty"
+          class="d:pr-[16px] flex-grow"
+          :error="principalResidenceError"
+        >
           <USelect
             v-model="isUnitOnPrincipalResidenceProperty"
             :placeholder="t('createAccount.propertyForm.isUnitOnPrincipalResidenceProperty')"
@@ -108,7 +112,7 @@
             class="w-full"
             style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @blur="emit('validateIsUnitOnPrincipalResidenceProperty')"
-            @change="(value) => { isUnitOnPrincipalResidenceProperty = (value === 'true') }"
+            @change="(value) => { isUnitOnPrincipalResidenceProperty = value === 'true'; emit('validatePrincipalResidenceOptions'); }"
           />
         </UFormGroup>
       </div>
@@ -117,7 +121,11 @@
         :key="isUnitOnPrincipalResidenceProperty ? 'withDropdown' : 'withoutDropdown'"
         class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]"
       >
-        <UFormGroup name="hostResidence" class="d:pr-[16px] flex-grow">
+        <UFormGroup
+          name="hostResidence"
+          class="d:pr-[16px] flex-grow"
+          :error="hostResidenceError"
+        >
           <USelect
             v-model="hostResidence"
             :placeholder="t('createAccount.propertyForm.hostResidence')"
@@ -127,7 +135,11 @@
           />
         </UFormGroup>
       </div>
-      <UFormGroup name="numberOfRoomsForRent" class="d:pr-[16px] flex-grow">
+      <UFormGroup
+        name="numberOfRoomsForRent"
+        class="d:pr-[16px] flex-grow"
+        :error="numberOfRoomsForRentError"
+      >
         <label class="block mb-2">{{ t('createAccount.propertyForm.numberOfRoomsForRent') }}</label>
         <div class="flex items-center border border-gray-300 rounded-md p-2 max-w-[200px]">
           <button
@@ -189,7 +201,10 @@ const emit = defineEmits([
   'validateProperty',
   'validateBusinessLicenseExpiryDate',
   'validateRentalUnitSpaceType',
-  'validateIsUnitOnPrincipalResidenceProperty'
+  'validateIsUnitOnPrincipalResidenceProperty',
+  'validatePrincipalResidenceOptions',
+  'validateHostResidence',
+  'validateNumberOfRoomsForRent'
 ])
 
 const {
@@ -197,9 +212,12 @@ const {
   ownershipTypes,
   ownershipTypeError,
   propertyTypeError,
+  principalResidenceError,
   rentalUnitSpaceTypeOptions,
   principalResidenceOptions,
-  hostResidenceOptions
+  hostResidenceOptions,
+  hostResidenceError,
+  numberOfRoomsForRentError
 } = defineProps<{
   propertyTypes: string[],
   ownershipTypes: string[],
