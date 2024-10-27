@@ -112,7 +112,7 @@
             class="w-full"
             style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
             @blur="emit('validateIsUnitOnPrincipalResidenceProperty')"
-            @change="(value) => { isUnitOnPrincipalResidenceProperty = value === 'true'; emit('validatePrincipalResidenceOptions'); }"
+            @change="(value) => { isUnitOnPrincipalResidenceProperty = (value === 'true') }"
           />
         </UFormGroup>
       </div>

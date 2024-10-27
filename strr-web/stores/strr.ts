@@ -301,7 +301,7 @@ export const propertyDetailsSchema = z.object({
   propertyType: requiredNonEmptyString,
   rentalUnitSpaceType: requiredNonEmptyString,
   isUnitOnPrincipalResidenceProperty: z.boolean(),
-  hostResidence: optionalOrEmptyString,
+  hostResidence: z.string().nullable(),
   numberOfRoomsForRent: z.number().min(1),
   province: requiredNonEmptyString.refine(province => province === 'BC', { message: 'Province must be set to BC' })
 }).refine((data) => {
@@ -310,6 +310,15 @@ export const propertyDetailsSchema = z.object({
 }, {
   message: 'Business License Expiry Date is required',
   path: ['businessLicenseExpiryDate']
+}).superRefine((data, ctx) => {
+  // Only check when explicitly `true`
+  if (data.isUnitOnPrincipalResidenceProperty === true && !data.hostResidence) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Host Residence is required when the unit is on the principal residence property',
+      path: ['hostResidence']
+    })
+  }
 })
 
 export const formState: CreateAccountFormStateI = reactive({
@@ -337,7 +346,7 @@ export const formState: CreateAccountFormStateI = reactive({
     numberOfRoomsForRent: 1,
     rentalUnitSpaceType: '',
     isUnitOnPrincipalResidenceProperty: null,
-    hostResidence: ''
+    hostResidence: null as string | null
   },
   selectedAccount: {} as OrgI,
   principal: {

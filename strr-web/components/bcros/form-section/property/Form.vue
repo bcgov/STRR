@@ -93,6 +93,13 @@ watch(canadaPostAddress, (newAddress) => {
   }
 })
 
+watch(() => formState.propertyDetails.isUnitOnPrincipalResidenceProperty, (newValue) => {
+  if (!newValue) {
+    formState.propertyDetails.hostResidence = null // Reset if not required
+  }
+  validateHostResidence() // Ensure validation reflects changes
+})
+
 const { t } = useTranslation()
 
 const isValid = ref(false)
@@ -245,8 +252,12 @@ const validatePrincipalResidenceOptions = () => {
 }
 
 const validateHostResidence = () => {
-  if (!hostResidence) {
-    hostResidenceError.value = t('createAccount.propertyForm.hostResidenceRequired')
+  if (formState.propertyDetails.isUnitOnPrincipalResidenceProperty) {
+    if (!formState.propertyDetails.hostResidence) {
+      hostResidenceError.value = 'Please specify where the host lives on the property.'
+    } else {
+      hostResidenceError.value = ''
+    }
   } else {
     hostResidenceError.value = ''
   }
