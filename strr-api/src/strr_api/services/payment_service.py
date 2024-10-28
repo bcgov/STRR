@@ -113,12 +113,14 @@ class PayService:
             raise ExternalServiceException(error=repr(err), status_code=HTTPStatus.PAYMENT_REQUIRED) from err
 
     def _get_payment_request(self, application_json):
+        filing_type = None
+        quantity = 1
         registration_json = application_json.get("registration", {})
         registration_type = registration_json.get("registrationType")
         if registration_type == RegistrationType.HOST.value:
             filing_type, quantity = self._get_host_filing_type(registration_json)
         elif registration_type == RegistrationType.PLATFORM.value:
-            filing_type, quantity = self._get_platform_filing_type(registration_json)
+            filing_type = self._get_platform_filing_type(registration_json)
 
         filing_type_dict = {"filingTypeCode": filing_type, "quantity": quantity}
 
@@ -137,7 +139,6 @@ class PayService:
         return payload
 
     def _get_platform_filing_type(self, registration_json):
-        quantity = 1
         cpbc_number = registration_json.get("businessDetails").get("consumerProtectionBCLicenceNumber")
         if cpbc_number and (not cpbc_number.isspace()):
             filing_type = PLATFORM_FEE_WAIVED
@@ -145,10 +146,11 @@ class PayService:
             filing_type = PLATFORM_LARGE_USER_BASE
         else:
             filing_type = PLATFORM_SMALL_USER_BASE
-        return filing_type, quantity
+        return filing_type
 
     def _get_host_filing_type(self, registration_json):
         quantity = 1
+        filing_type = None
         rental_unit_space_type = registration_json.get("unitDetails").get("rentalUnitSpaceType")
         is_rental_unit_on_principal_residence = registration_json.get("unitDetails").get(
             "isUnitOnPrincipalResidenceProperty"
