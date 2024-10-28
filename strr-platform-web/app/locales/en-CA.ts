@@ -107,7 +107,8 @@ export default {
     line1: 'Address Line 1',
     line2: 'Address Line 2 (Optional)',
     city: 'City',
-    region: 'Region (Optional)',
+    region: 'Region',
+    regionOpt: 'Region (Optional)',
     postalCode: 'Postal Code',
     locationDescription: 'Location Description (Optional)',
     countryOfCitizenship: {
@@ -266,7 +267,7 @@ export default {
     },
     business: {
       legalName: 'Please enter the business legal name',
-      jurisdiction: 'Please enter the business home jusrisdiction',
+      jurisdiction: 'Please enter the business home jurisdiction',
       cpbc: 'Please enter the CPBC number'
     },
     email: 'Please enter a valid email',

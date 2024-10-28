@@ -12,7 +12,8 @@ defineProps({
   placeholder: { type: String, default: '' },
   size: { type: String, default: 'lg' },
   helpId: { type: String, default: undefined },
-  errorId: { type: String, default: undefined }
+  errorId: { type: String, default: undefined },
+  ariaLabel: { type: String, default: undefined }
 })
 
 const normalize = () => {
@@ -35,6 +36,7 @@ const normalize = () => {
     :aria-required="isRequired"
     :aria-invalid="isInvalid"
     :aria-describedby="helpId"
+    :aria-label="ariaLabel"
     @blur="normalize"
   />
   <!-- :aria-errormessage="errorId" -->

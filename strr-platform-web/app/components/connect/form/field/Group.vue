@@ -17,7 +17,8 @@ const props = defineProps({
   placeholder: { type: String, default: '' },
   isDisabled: { type: Boolean, default: false },
   isRequired: { type: Boolean, default: false },
-  size: { type: String, default: 'lg' }
+  size: { type: String, default: 'lg' },
+  ariaLabel: { type: String, default: undefined }
 })
 
 const inputId = useId()
@@ -38,6 +39,7 @@ const errorId = `${props.name}-error-${inputId}`
         :is-invalid="error !== undefined"
         :help-id="helpId"
         :error-id="errorId"
+        :aria-label="ariaLabel"
         size="lg"
       />
     </template>
