@@ -46,7 +46,7 @@ onMounted(async () => {
                 <div>
                   <UButton
                     v-if="i !== 0"
-                    :label="t('word.Remove')"
+                    :label="$t('word.Remove')"
                     class="border border-blue-500 sm:border-0"
                     color="primary"
                     trailing-icon="i-mdi-close"
@@ -55,29 +55,24 @@ onMounted(async () => {
                   />
                 </div>
                 <div class="grow space-y-5">
-                  <UFormGroup
+                  <ConnectFormFieldGroup
+                    :id="'platform-brand-name-' + i"
+                    v-model="brand.name"
                     :aria-label="(i > 0) ? $t('platform.label.brandNameOpt') : $t('platform.label.brandName')"
                     :help="$t('platform.hint.brandName')"
                     :name="`brands.${i}.name`"
-                  >
-                    <ConnectFormField
-                      :id="'platform-brand-name-' + i"
-                      v-model="brand.name"
-                      :placeholder="(i > 0) ? $t('platform.label.brandNameOpt') : $t('platform.label.brandName')"
-                    />
-                  </UFormGroup>
-                  <UFormGroup
+                    :placeholder="(i > 0) ? $t('platform.label.brandNameOpt') : $t('platform.label.brandName')"
+                    :is-required="true"
+                  />
+                  <ConnectFormFieldGroup
+                    :id="'platform-brand-site-' + i"
+                    v-model="brand.website"
                     :aria-label="(i > 0) ? $t('platform.label.brandSiteOpt') : $t('platform.label.brandSite')"
                     :help="$t('platform.hint.brandSite')"
                     :name="`brands.${i}.website`"
-                  >
-                    <ConnectFormField
-                      :id="'platform-brand-site-' + i"
-                      v-model="brand.website"
-                      name="website"
-                      :placeholder="(i > 0) ? $t('platform.label.brandSiteOpt') : $t('platform.label.brandSite')"
-                    />
-                  </UFormGroup>
+                    :placeholder="(i > 0) ? $t('platform.label.brandSiteOpt') : $t('platform.label.brandSite')"
+                    :is-required="true"
+                  />
                 </div>
               </div>
               <UButton
@@ -102,11 +97,15 @@ onMounted(async () => {
               v-model="platformDetails.listingSize"
               class="p-1"
               :class="hasFormErrors(platformDetailsFormRef, ['listingSize']) ? 'border-red-600 border-2' : ''"
-              :legend="$t('platform.text.listingSize')"
               :options="radioOptions"
               :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
               :ui-radio="{ inner: 'space-y-2' }"
-            />
+            >
+              <template #legend>
+                <span class="sr-only">{{ $t('validation.required') }}</span>
+                <span>{{ $t('platform.text.listingSize') }}</span>
+              </template>
+            </URadioGroup>
           </UFormGroup>
         </ConnectFormSection>
       </UForm>
