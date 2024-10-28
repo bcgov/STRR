@@ -77,7 +77,6 @@ onMounted(async () => {
     <div v-if="isCompletingPartyRep !== undefined" class="space-y-10">
       <ConnectPageSection
         v-if="!isCompletingPartyRep"
-        class="bg-white"
         :heading="{ label: $t('platform.section.title.completingParty'), labelClass: 'font-bold md:ml-6' }"
       >
         <UForm
@@ -100,7 +99,6 @@ onMounted(async () => {
       </ConnectPageSection>
       <ConnectPageSection
         v-if="primaryRep"
-        class="bg-white"
         :heading="{ label: $t('platform.section.title.primaryRep'), labelClass: 'font-bold md:ml-6' }"
       >
         <UForm
@@ -142,23 +140,19 @@ onMounted(async () => {
       </div>
       <ConnectPageSection
         v-else
-        class="bg-white"
+        :heading="{
+          label: $t('platform.section.title.secondaryRep'),
+          padding: 'px-4 py-4 md:px-10',
+          labelClass: 'font-bold'
+        }"
+        :actions="[{
+          label: $t('word.Remove'),
+          color: 'red',
+          trailingIcon: 'i-mdi-close',
+          variant: 'outline',
+          click: () => secondaryRep = undefined
+        }]"
       >
-        <template #header>
-          <div class="flex">
-            <h2 class="ml-6 grow font-bold">
-              {{ $t('platform.section.title.secondaryRep') }}
-            </h2>
-            <UButton
-              :label="t('word.Remove')"
-              class="px-5"
-              color="red"
-              trailing-icon="i-mdi-close"
-              variant="outline"
-              @click="secondaryRep = undefined"
-            />
-          </div>
-        </template>
         <UForm
           ref="secondaryRepFormRef"
           :schema="secondaryRepSchema"
