@@ -120,7 +120,8 @@ const handlePlatformSubmit = async () => {
     // TODO: move button management into composable ?
     // set buttons to loading state
     setButtonControl({
-      leftButtons: [
+      leftButtons: [],
+      rightButtons: [
         {
           action: () => undefined, // is disabled
           icon: 'i-mdi-chevron-left',
@@ -135,8 +136,7 @@ const handlePlatformSubmit = async () => {
           trailing: true,
           loading: true
         }
-      ],
-      rightButtons: []
+      ]
     })
 
     activeStep.value.complete = true // set final review step as active before validation
@@ -165,7 +165,6 @@ const handlePlatformSubmit = async () => {
     } else {
       // TODO: display form errors better
       strrModal.openAppSubmitError(formErrors)
-      await submitPlatformApplication() // MAKE SURE TO REMOVE THIS
     }
   } catch (e) {
     logFetchError(e, 'Error creating platform application')
@@ -173,7 +172,8 @@ const handlePlatformSubmit = async () => {
   } finally {
     // set buttons back to non loading state
     setButtonControl({
-      leftButtons: [
+      leftButtons: [],
+      rightButtons: [
         {
           action: () => stepperRef.value?.setPreviousStep(),
           icon: 'i-mdi-chevron-left',
@@ -186,8 +186,7 @@ const handlePlatformSubmit = async () => {
           label: t('btn.submitAndPay'),
           trailing: true
         }
-      ],
-      rightButtons: []
+      ]
     })
   }
 }
@@ -210,7 +209,7 @@ watch(activeStepIndex, (val) => {
     trailing: true
   })
 
-  setButtonControl({ leftButtons: buttons, rightButtons: [] })
+  setButtonControl({ leftButtons: [], rightButtons: buttons })
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }, { immediate: true })
 
