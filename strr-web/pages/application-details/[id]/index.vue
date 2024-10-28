@@ -75,6 +75,7 @@
               </p>
             </BcrosFormSectionReviewItem>
           </div>
+
           <div class="flex flex-row justify-between w-full mobile:flex-col gap-4">
             <div class="flex-1">
               <!-- Display rentalUnitSpaceType -->
