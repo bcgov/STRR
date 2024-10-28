@@ -127,6 +127,7 @@ defineProps<{
           name="emailAddress"
           :placeholder="t('label.emailAddress')"
           :is-required="true"
+          type="email"
         />
         <EmailAlert v-if="emailWarning" />
       </div>

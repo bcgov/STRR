@@ -279,6 +279,7 @@ onMounted(async () => {
               name="nonComplianceEmail"
               :placeholder="$t('label.emailAddress')"
               :is-required="true"
+              type="email"
             />
             <ConnectFormFieldGroup
               id="platform-business-noncompliance-email-optional"
@@ -286,6 +287,7 @@ onMounted(async () => {
               :aria-label="$t('label.emailAddressOpt')"
               name="nonComplianceEmailOptional"
               :placeholder="$t('label.emailAddressOpt')"
+              type="email"
             />
           </div>
         </ConnectFormSection>
@@ -303,6 +305,7 @@ onMounted(async () => {
               name="takeDownEmail"
               :placeholder="$t('label.emailAddress')"
               :is-required="true"
+              type="email"
             />
             <ConnectFormFieldGroup
               id="platform-business-takedown-email-optional"
@@ -310,6 +313,7 @@ onMounted(async () => {
               :aria-label="$t('label.emailAddressOpt')"
               name="takeDownEmailOptional"
               :placeholder="$t('label.emailAddressOpt')"
+              type="email"
             />
           </div>
         </ConnectFormSection>

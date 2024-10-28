@@ -13,7 +13,8 @@ defineProps({
   size: { type: String, default: 'lg' },
   helpId: { type: String, default: undefined },
   errorId: { type: String, default: undefined },
-  ariaLabel: { type: String, default: undefined }
+  ariaLabel: { type: String, default: undefined },
+  type: { type: String, default: 'text' }
 })
 
 const normalize = () => {
@@ -26,7 +27,7 @@ const normalize = () => {
     :id="id"
     v-model="model"
     v-bind="$attrs"
-    type="text"
+    :type
     class="max-w-bcGovInput"
     :size="size"
     :color="model ? 'primary' : 'gray'"
