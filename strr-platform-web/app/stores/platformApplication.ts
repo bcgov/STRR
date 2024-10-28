@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { MultiFormValidationResult } from '~/interfaces/validation'
 
 export const useStrrPlatformApplication = defineStore('strr/platformApplication', () => {
+  const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
   const platContactStore = useStrrPlatformContact()
   const platBusinessStore = useStrrPlatformBusiness()
@@ -12,10 +13,13 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     confirmDelistAndCancelBookings: false
   })
 
-  // TODO: add validation messages - will add in future pr
   const getConfirmationSchema = () => z.object({
-    confirmInfoAccuracy: z.literal(true),
-    confirmDelistAndCancelBookings: z.literal(true)
+    confirmInfoAccuracy: z.boolean().refine(val => val === true, {
+      message: t('validation.confirm')
+    }),
+    confirmDelistAndCancelBookings: z.boolean().refine(val => val === true, {
+      message: t('validation.confirm')
+    })
   })
 
   const platformConfirmationSchema = getConfirmationSchema()
@@ -32,7 +36,6 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     }
   }
 
-  // TODO: add phoneCountryCode and locationDescription to payload
   const createApplicationBody = (): PlatformApplicationPayload => {
     const applicationBody: PlatformApplicationPayload = {
       registration: {

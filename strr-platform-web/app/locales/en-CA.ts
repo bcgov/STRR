@@ -199,7 +199,8 @@ export default {
     No: 'No',
     Edit: 'Edit',
     Save: 'Save',
-    Receipt: 'Receipt'
+    Receipt: 'Receipt',
+    Certify: 'Certify'
   },
   page: {
     notFound: {
@@ -282,7 +283,8 @@ export default {
     step: {
       false: 'Step did not pass validation',
       true: 'Step successfully validated'
-    }
+    },
+    confirm: 'Please confirm to continue'
   },
   // components
   ConnectHeader: {

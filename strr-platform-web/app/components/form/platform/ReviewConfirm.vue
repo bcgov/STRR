@@ -365,7 +365,7 @@ onMounted(() => {
     </ConnectPageSection>
 
     <section class="space-y-6">
-      <h2>Certify</h2>
+      <h2>{{ $t('word.Certify') }}</h2>
 
       <UForm
         ref="platformConfirmationFormRef"
