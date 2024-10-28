@@ -1,19 +1,16 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { set } from 'lodash'
-import CreateApplication from '@/pages/create-account.vue'
-import Stepper from '~/components/bcros/stepper/Stepper.vue'
-import InfoModal from '~/components/common/InfoModal.vue'
-import FeeWidget from '~/components/FeeWidget.vue'
-import H1 from '~/components/bcros/typography/H1.vue'
-import H2 from '~/components/bcros/typography/H2.vue'
 import {
-  BcrosFormSectionPropertyManagerForm,
   BcrosFormSectionContactInformationForm,
+  BcrosFormSectionPropertyManagerForm,
   BcrosFormSectionReviewForm,
   BcrosFormSectionReviewSubsection
 } from '#components'
-import { mockPropertyManager } from '~/tests/mocks/mockPropertyManager'
-import { mockPrimaryContact } from '~/tests/mocks/mockApplication'
+import CreateApplication from '@/pages/create-account.vue'
+import { mountSuspended } from '@nuxt/test-utils/runtime'
+import Stepper from '~/components/bcros/stepper/Stepper.vue'
+import H1 from '~/components/bcros/typography/H1.vue'
+import H2 from '~/components/bcros/typography/H2.vue'
+import InfoModal from '~/components/common/InfoModal.vue'
+import FeeWidget from '~/components/FeeWidget.vue'
 
 const { t } = useTranslation()
 
@@ -149,8 +146,6 @@ describe('Rental Application', () => {
 
     // check number of fields displayed in rental unit section
     const rentalUnitReviewFields = rentalUnitReview.findAll("[data-test-id='form-item']")
-    expect(rentalUnitReviewFields).toHaveLength(5)
-
-    // TODO: add the tests
+    expect(rentalUnitReviewFields.length).toBe(8)
   })
 })
