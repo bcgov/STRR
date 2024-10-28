@@ -107,6 +107,7 @@ onMounted(() => {
         :country-code-iso2letter="option.iso2"
       />
       <span class="mt-1 h-5 truncate">{{ option.label }}</span>
+      <span class="sr-only">{{ option.nameLocal }}</span>
     </template>
   </UInputMenu>
 </template>
