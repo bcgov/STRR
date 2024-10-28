@@ -382,6 +382,8 @@ onMounted(() => {
               ? 'outline outline-red-600'
               : ''
             "
+            aria-required="true"
+            :aria-invalid="hasFormErrors(platformConfirmationFormRef, ['confirmInfoAccuracy'])"
           />
         </UFormGroup>
 
@@ -394,6 +396,8 @@ onMounted(() => {
               ? 'outline outline-red-600'
               : ''
             "
+            aria-required="true"
+            :aria-invalid="hasFormErrors(platformConfirmationFormRef, ['confirmDelistAndCancelBookings'])"
           />
         </UFormGroup>
       </UForm>
