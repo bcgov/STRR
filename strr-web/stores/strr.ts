@@ -33,7 +33,7 @@ export const submitCreateAccountForm = (
     ownershipType,
     rentalUnitSpaceType,
     isUnitOnPrincipalResidenceProperty,
-    hostResidence,
+    isUnitOnPrincipalResidenceProperty ? hostResidence : '',
     numberOfRoomsForRent
   )
   axiosInstance.post(`${apiURL}/registrations`,
