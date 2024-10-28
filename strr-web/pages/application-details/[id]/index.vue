@@ -341,13 +341,13 @@
 </template>
 
 <script setup lang="ts">
+import { ApplicationStatusE, ExaminerApplicationStatusE, HostApplicationStatusE } from '#imports'
+import { getOwnershipTypeDisplay } from '@/utils/common'
 import FilingHistory from '~/components/FilingHistory.vue'
 import { useApplications } from '~/composables/useApplications'
 import { useBreadcrumb } from '~/composables/useBreadcrumb'
 import { useChipFlavour } from '~/composables/useChipFlavour'
 import { propertyTypeMap } from '~/utils/propertyTypeMap'
-import { getOwnershipTypeDisplay } from '@/utils/common'
-import { ApplicationStatusE, HostApplicationStatusE, ExaminerApplicationStatusE } from '#imports'
 
 const route = useRoute()
 const { t } = useTranslation()
@@ -449,10 +449,10 @@ const getContactRows = (contactBlock: ContactI) => [{
      ${contactBlock.name.lastName}
   `,
   address: `
-    ${contactBlock.mailingAddress.address} 
+    ${contactBlock.mailingAddress.address}
     ${contactBlock.mailingAddress.addressLineTwo || ''}
-    ${contactBlock.mailingAddress.city} 
-    ${contactBlock.mailingAddress.province} 
+    ${contactBlock.mailingAddress.city}
+    ${contactBlock.mailingAddress.province}
     ${contactBlock.mailingAddress.postalCode}
   `,
   'Email Address': contactBlock.details.emailAddress,
