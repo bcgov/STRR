@@ -182,7 +182,7 @@ const submit = () => {
       propertyToApiType(formState.propertyDetails.propertyType),
       ownershipToApiType(formState.propertyDetails.ownershipType),
       formState.propertyDetails.rentalUnitSpaceType,
-      formState.propertyDetails.isUnitOnPrincipalResidenceProperty,
+      formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
       formState.propertyDetails.hostResidence,
       formState.propertyDetails.numberOfRoomsForRent
     )

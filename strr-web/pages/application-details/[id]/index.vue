@@ -50,19 +50,21 @@
           {{ tApplicationDetails('unitInfo') }}
         </h2>
         <div class="bg-white py-[22px] px-[30px] mobile:px-5" data-test-id="rental-unit-info">
-          <div class="flex flex-row justify-between w-full mobile:flex-col desktop:mb-6">
+          <!-- First Row: Nickname, Ownership Type, Property Type -->
+          <div class="flex flex-row justify-between w-full mobile:flex-col desktop:mb-6 gap-4">
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('nickname')"
               :content="applicationDetails?.unitAddress.nickname || '-'"
               data-test-id="unit-nickname"
-              class="break-all"
+              class="flex-1 break-all"
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('ownership')"
               :content="getOwnershipTypeDisplay(applicationDetails?.unitDetails.ownershipType, tApplicationDetails)"
               data-test-id="ownership-type"
+              class="flex-1"
             />
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
+            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')" class="flex-1">
               <p data-test-id="property-type">
                 {{ applicationDetails?.unitDetails.propertyType
                   ? tPropertyForm(
@@ -73,28 +75,42 @@
               </p>
             </BcrosFormSectionReviewItem>
           </div>
-          <div class="flex flex-row justify-between w-full mobile:flex-col">
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('rentalUnitSpaceType')"
-              :content="applicationDetails?.unitDetails.rentalUnitSpaceType || '-'"
-              data-test-id="rental-unit-space-type"
-            />
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
-              :content="isUnitOnPrincipalResidenceText"
-              data-test-id="is-unit-on-principal-residence-property"
-            />
-            <BcrosFormSectionReviewItem
-              v-if="applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty"
-              :title="tApplicationDetails('hostResidence')"
-              :content="applicationDetails?.unitDetails.hostResidence || '-'"
-              data-test-id="host-residence"
-            />
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('numberOfRoomsForRent')"
-              :content="applicationDetails?.unitDetails.numberOfRoomsForRent || '-'"
-              data-test-id="number-of-rooms-for-rent"
-            />
+          <div class="flex flex-row justify-between w-full mobile:flex-col gap-4">
+            <div class="flex-1">
+              <!-- Display rentalUnitSpaceType -->
+              <BcrosFormSectionReviewItem
+                :title="tApplicationDetails('rentalUnitSpaceType')"
+                :content="applicationDetails?.unitDetails.rentalUnitSpaceType || '-'"
+                data-test-id="rental-unit-space-type"
+              />
+            </div>
+
+            <div class="flex-1">
+              <!-- Display isUnitOnPrincipalResidenceProperty -->
+              <BcrosFormSectionReviewItem
+                :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
+                :content="isUnitOnPrincipalResidenceText"
+                data-test-id="is-unit-on-principal-residence-property"
+              />
+            </div>
+
+            <!-- Conditionally Display hostResidence only if isUnitOnPrincipalResidenceProperty is true -->
+            <div v-if="applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty" class="flex-1">
+              <BcrosFormSectionReviewItem
+                :title="tApplicationDetails('hostResidence')"
+                :content="applicationDetails?.unitDetails.hostResidence || '-'"
+                data-test-id="host-residence"
+              />
+            </div>
+
+            <div class="flex-1">
+              <!-- Display numberOfRoomsForRent -->
+              <BcrosFormSectionReviewItem
+                :title="tApplicationDetails('numberOfRoomsForRent')"
+                :content="applicationDetails?.unitDetails.numberOfRoomsForRent || '-'"
+                data-test-id="number-of-rooms-for-rent"
+              />
+            </div>
           </div>
           <div class="flex flex-row justify-between w-full mobile:flex-col">
             <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">

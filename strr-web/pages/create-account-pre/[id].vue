@@ -156,7 +156,7 @@ const submit = () => {
       propertyToApiType(formState.propertyDetails.propertyType),
       ownershipToApiType(formState.propertyDetails.ownershipType),
       rentalUnitSpaceTypeToApiType(formState.propertyDetails.rentalUnitSpaceType),
-      formState.propertyDetails.isUnitOnPrincipalResidenceProperty,
+      formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
       hostResidenceToApiType(formState.propertyDetails.hostResidence),
       numberOfRoomsForRentToApiType(formState.propertyDetails.numberOfRoomsForRent)
     )
