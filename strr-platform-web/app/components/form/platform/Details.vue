@@ -72,6 +72,7 @@ onMounted(async () => {
                     :name="`brands.${i}.website`"
                     :placeholder="(i > 0) ? $t('platform.label.brandSiteOpt') : $t('platform.label.brandSite')"
                     :is-required="true"
+                    type="url"
                   />
                 </div>
               </div>

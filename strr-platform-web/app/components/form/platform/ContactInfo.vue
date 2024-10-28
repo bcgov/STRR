@@ -69,11 +69,15 @@ onMounted(async () => {
       id="completing-party-radio-group"
       v-model="isCompletingPartyRep"
       :class="isComplete && isCompletingPartyRep === undefined ? 'border-red-600 border-2 p-2' : 'p-2'"
-      :legend="$t('platform.text.isUserRep')"
       :options="radioOptions"
       :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
       :ui-radio="{ inner: 'space-y-2' }"
-    />
+    >
+      <template #legend>
+        <span class="sr-only">{{ $t('validation.required') }}</span>
+        <span>{{ $t('platform.text.isUserRep') }}</span>
+      </template>
+    </URadioGroup>
     <div v-if="isCompletingPartyRep !== undefined" class="space-y-10">
       <ConnectPageSection
         v-if="!isCompletingPartyRep"

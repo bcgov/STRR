@@ -18,7 +18,8 @@ const props = defineProps({
   isDisabled: { type: Boolean, default: false },
   isRequired: { type: Boolean, default: false },
   size: { type: String, default: 'lg' },
-  ariaLabel: { type: String, default: undefined }
+  ariaLabel: { type: String, default: undefined },
+  type: { type: String, default: 'text' }
 })
 
 const inputId = useId()
@@ -33,6 +34,7 @@ const errorId = `${props.name}-error-${inputId}`
       <ConnectFormField
         :id="id"
         v-model="model"
+        :type
         :placeholder="placeholder"
         :is-disabled="isDisabled"
         :is-required="isRequired"

@@ -52,6 +52,7 @@ defineExpose({ unmaskedValue })
           :aria-invalid="error !== undefined"
           :aria-describedby="`${name}.number-${phoneId}`"
           size="lg"
+          type="tel"
           data-testid="phone-number"
           @input="$emit('update:number', unmaskedValue)"
         />
