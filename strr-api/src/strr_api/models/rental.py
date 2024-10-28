@@ -78,7 +78,7 @@ class RentalProperty(Versioned, BaseModel):
     pr_exempt_reason = db.Column(db.String, nullable=True)
     service_provider = db.Column(db.String, nullable=True)
     space_type = db.Column(db.Enum(RentalUnitSpaceType), nullable=False)
-    host_residence = db.Column(db.Enum(HostResidence), nullable=False)
+    host_residence = db.Column(db.Enum(HostResidence), nullable=True)
     is_unit_on_principal_residence_property = db.Column(db.Boolean, nullable=False)
     number_of_rooms_for_rent = db.Column(db.Integer, nullable=False)
 

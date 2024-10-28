@@ -289,18 +289,25 @@ def test_examiner_reject_application(session, client, jwt):
 
 
 @pytest.mark.parametrize(
-    "request_json",
+    "request_json, isUnitOnPrincipalResidence",
     [
-        CREATE_HOST_REGISTRATION_REQUEST,
-        CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST,
+        (CREATE_HOST_REGISTRATION_REQUEST, True),
+        (CREATE_HOST_REGISTRATION_REQUEST, False),
+        (CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST, True),
+        (CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST, False),
     ],
 )
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_examiner_approve_host_registration_application(session, client, jwt, request_json):
+def test_examiner_approve_host_registration_application(session, client, jwt, request_json, isUnitOnPrincipalResidence):
     with open(request_json) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         json_data = json.load(f)
+
+        if not isUnitOnPrincipalResidence:
+            json_data["registration"]["unitDetails"]["isUnitOnPrincipalResidenceProperty"] = False
+            del json_data["registration"]["unitDetails"]["hostResidence"]
+
         rv = client.post("/applications", json=json_data, headers=headers)
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")

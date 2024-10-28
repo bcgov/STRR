@@ -206,7 +206,6 @@
         "propertyType",
         "ownershipType",
         "rentalUnitSpaceType",
-        "hostResidence",
         "isUnitOnPrincipalResidenceProperty",
         "numberOfRoomsForRent"
       ]
