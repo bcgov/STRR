@@ -16,18 +16,42 @@ const props = defineProps({
   label: { type: String, default: '' },
   placeholder: { type: String, default: '' },
   isDisabled: { type: Boolean, default: false },
+  isRequired: { type: Boolean, default: false },
   size: { type: String, default: 'lg' }
 })
+
+const inputId = useId()
+
+const helpId = `${props.name}-help-${inputId}`
+const errorId = `${props.name}-error-${inputId}`
 </script>
 
 <template>
-  <UFormGroup :label="label" :name="name" :help="help">
-    <ConnectFormField
-      :id="id"
-      v-model="model"
-      :placeholder="placeholder"
-      :disabled="isDisabled"
-      size="lg"
-    />
+  <UFormGroup :label="label" :name="name">
+    <template #default="{ error }">
+      <ConnectFormField
+        :id="id"
+        v-model="model"
+        :placeholder="placeholder"
+        :is-disabled="isDisabled"
+        :is-required="isRequired"
+        :is-invalid="error !== undefined"
+        :help-id="helpId"
+        :error-id="errorId"
+        size="lg"
+      />
+    </template>
+
+    <template v-if="help" #help>
+      <span :id="helpId">
+        {{ help }}
+      </span>
+    </template>
+
+    <template #error="{ error }">
+      <span :id="helpId">
+        {{ error }}
+      </span>
+    </template>
   </UFormGroup>
 </template>

@@ -2,6 +2,10 @@
 import countryList from 'country-codes-list'
 import type { ConnectPhoneCountry } from '#imports'
 
+defineProps<{
+  isInvalid: boolean | undefined
+}>()
+
 const countryCallingCode = defineModel<string | undefined>('countryCallingCode', { required: false })
 watch(countryCallingCode, (val) => {
   // this is needed for when something outside this component changes the callingCode model value
@@ -85,6 +89,8 @@ onMounted(() => {
     :search="search"
     :trailing-icon="'i-mdi-chevron-down'"
     option-attribute="label"
+    :aria-required="true"
+    :aria-invalid="isInvalid"
     :ui="{
       padding: {
         'lg': selectedCountry?.callingCode ? 'pl-[50px]' : 'pl-3',

@@ -40,6 +40,7 @@ defineProps<{
         <p v-if="sectionInfo" class="mt-1 text-sm">
           {{ sectionInfo }}
         </p>
+        <!-- TODO: add isRequired prop? -->
         <ConnectFormFieldGroup
           v-if="fullName !== undefined"
           :id="idPrefix + '-full-name'"
@@ -57,6 +58,7 @@ defineProps<{
             :aria-label="t('label.firstName')"
             name="firstName"
             :placeholder="t('label.firstName')"
+            :is-required="true"
           />
           <ConnectFormFieldGroup
             v-if="middleName !== undefined"
@@ -75,6 +77,7 @@ defineProps<{
             :aria-label="t('label.lastName')"
             name="lastName"
             :placeholder="t('label.lastName')"
+            :is-required="true"
           />
         </div>
         <ConnectFormFieldGroup
@@ -99,6 +102,7 @@ defineProps<{
           :help="t('platform.text.positionTitle')"
           name="position"
           :placeholder="t('label.positionTitle')"
+          :is-required="true"
         />
         <ConnectFormPhoneNumber
           v-if="phone"
@@ -122,6 +126,7 @@ defineProps<{
           :aria-label="t('label.emailAddress')"
           name="emailAddress"
           :placeholder="t('label.emailAddress')"
+          :is-required="true"
         />
         <EmailAlert v-if="emailWarning" />
       </div>
