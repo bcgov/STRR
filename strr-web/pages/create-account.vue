@@ -183,7 +183,8 @@ const submit = () => {
       ownershipToApiType(formState.propertyDetails.ownershipType),
       formState.propertyDetails.rentalUnitSpaceType,
       formState.propertyDetails.isUnitOnPrincipalResidenceProperty,
-      formState.propertyDetails.hostResidence
+      formState.propertyDetails.hostResidence,
+      formState.propertyDetails.numberOfRoomsForRent
     )
   } else {
     scrollToTop()
