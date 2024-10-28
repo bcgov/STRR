@@ -1,7 +1,4 @@
 <script setup lang="ts">
-
-const { t } = useI18n()
-
 const country = defineModel<string>('country')
 const street = defineModel<string>('street')
 const streetAdditional = defineModel<string>('streetAdditional')
@@ -40,12 +37,13 @@ const addressComplete = () => {
   }
 }
 
+const addId = useId()
 </script>
-
 <template>
   <div data-testid="form-section-mailing" class="space-y-3">
-    <div class="flex flex-row">
-      <UFormGroup v-slot="{ error }" :name="schemaPrefix + 'country'" class="grow">
+    <!-- country menu -->
+    <UFormGroup :name="schemaPrefix + 'country'" class="grow">
+      <template #default="{ error }">
         <USelectMenu
           v-model="country"
           value-attribute="alpha_2"
@@ -53,87 +51,132 @@ const addressComplete = () => {
           size="lg"
           :color="country ? 'primary' : 'gray'"
           :placeholder="$t('label.country')"
+          :aria-label="$t('label.country')"
           :options="countries"
           :ui-menu="{ label: country ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'}"
           option-attribute="name"
           data-testid="address-country"
+          :aria-required="true"
+          :aria-invalid="error !== undefined"
+          :aria-describedby="schemaPrefix + 'country-' + addId"
         />
-      </UFormGroup>
-    </div>
-    <div class="flex flex-row">
-      <UFormGroup :name="schemaPrefix + 'street'" :hint="t('text.streetHint')" class="grow">
+      </template>
+
+      <template #error="{ error }">
+        <span :id="schemaPrefix + 'country-' + addId">
+          {{ error }}
+        </span>
+      </template>
+    </UFormGroup>
+    <!-- street input -->
+    <UFormGroup :name="schemaPrefix + 'street'" class="grow">
+      <template #default="{ error }">
         <UInput
           :id="id"
           v-model="street"
           size="lg"
           :color="street ? 'primary' : 'gray'"
-          aria-label="street"
-          :placeholder="t('label.street')"
+          :aria-label="$t('label.street')"
+          :placeholder="$t('label.street')"
+          :aria-required="true"
+          :aria-invalid="error !== undefined"
+          :aria-describedby="schemaPrefix + 'street-' + addId"
           @keypress.once="addressComplete()"
           @click="addressComplete()"
         />
-      </UFormGroup>
-    </div>
-    <div class="flex flex-row sm:flex-col">
-      <UFormGroup :name="schemaPrefix + 'streetAdditional'" class="grow">
-        <UInput
-          v-model="streetAdditional"
-          size="lg"
-          :color="streetAdditional ? 'primary' : 'gray'"
-          :placeholder="t('label.streetAdditional')"
-          aria-label="address line two"
-        />
-      </UFormGroup>
-    </div>
+      </template>
+      <template #help>
+        <span :id="schemaPrefix + 'street-' + addId">
+          {{ $t('text.streetHint') }}
+        </span>
+      </template>
+
+      <template #error="{ error }">
+        <span :id="schemaPrefix + 'street-' + addId">
+          {{ error }}
+        </span>
+      </template>
+    </UFormGroup>
+    <!-- street line 2 -->
+    <UFormGroup :name="schemaPrefix + 'streetAdditional'" class="grow">
+      <UInput
+        v-model="streetAdditional"
+        size="lg"
+        :color="streetAdditional ? 'primary' : 'gray'"
+        :placeholder="$t('label.streetAdditional')"
+        :aria-label="$t('label.streetAdditional')"
+      />
+    </UFormGroup>
     <div class="flex flex-col gap-3 sm:flex-row">
-      <UFormGroup :name="schemaPrefix + 'city'" class="w-full grow">
-        <UInput
-          v-model="city"
-          size="lg"
-          :color="city ? 'primary' : 'gray'"
-          :placeholder="t('createAccount.contactForm.city')"
-          aria-label="city"
-        />
+      <!-- city input -->
+      <ConnectFormFieldGroup
+        :id="schemaPrefix + 'city'"
+        v-model="city"
+        class="w-full grow"
+        :name="schemaPrefix + 'city'"
+        :color="city ? 'primary' : 'gray'"
+        :placeholder="$t('createAccount.contactForm.city')"
+        :aria-label="$t('createAccount.contactForm.city')"
+        :is-required="true"
+      />
+      <!-- region input/menu -->
+      <UFormGroup :name="schemaPrefix + 'region'" class="w-full grow">
+        <template #default="{ error }">
+          <USelectMenu
+            v-if="country === 'US' || country === 'CA'"
+            v-model="region"
+            :options="regions"
+            :placeholder="country === 'CA' ? $t('createAccount.contactForm.province') : $t('label.state')"
+            :aria-label="country === 'CA' ? $t('createAccount.contactForm.province') : $t('label.state')"
+            size="lg"
+            :color="region ? 'primary' : 'gray'"
+            option-attribute="name"
+            value-attribute="code"
+            :ui-menu="{ label: region ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'}"
+            data-testid="address-region-select"
+            :aria-required="true"
+            :aria-invalid="error !== undefined"
+            :aria-describedby="schemaPrefix + 'region-' + addId"
+          />
+          <UInput
+            v-else
+            v-model="region"
+            :placeholder="$t('label.region')"
+            :aria-label="$t('label.region')"
+            :color="region ? 'primary' : 'gray'"
+            size="lg"
+            data-testid="address-region-input"
+            :aria-required="true"
+            :aria-invalid="error !== undefined"
+            :aria-describedby="schemaPrefix + 'region-' + addId"
+          />
+        </template>
+
+        <template #error="{ error }">
+          <span :id="schemaPrefix + 'region-' + addId">
+            {{ error }}
+          </span>
+        </template>
       </UFormGroup>
-      <UFormGroup ref="test" v-slot="{ error }" :name="schemaPrefix + 'region'" class="w-full grow">
-        <USelectMenu
-          v-if="country === 'US' || country === 'CA'"
-          ref="refRegion"
-          v-model="region"
-          :options="regions"
-          :placeholder="country === 'CA' ? t('createAccount.contactForm.province') : $t('label.state')"
-          size="lg"
-          :color="region ? 'primary' : 'gray'"
-          option-attribute="name"
-          value-attribute="code"
-          :ui-menu="{ label: region ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'}"
-          data-testid="address-region-select"
-        />
-        <UInput
-          v-else
-          v-model="region"
-          :placeholder="'Region'"
-          class="w-full pr-4"
-          :color="region ? 'primary' : 'gray'"
-          size="lg"
-          data-testid="address-region-input"
-        />
-      </UFormGroup>
-      <UFormGroup :name="schemaPrefix + 'postalCode'" class="w-full grow">
-        <UInput
-          v-model="postalCode"
-          size="lg"
-          :color="postalCode ? 'primary' : 'gray'"
-          :placeholder="country === 'CA' ?
-            t('createAccount.contactForm.postalCode') : country === 'US' ? 'Zip Code' : 'Code'"
-          aria-label="postal code"
-        />
-      </UFormGroup>
+      <!-- postal code input -->
+      <ConnectFormFieldGroup
+        :id="schemaPrefix + 'postalCode'"
+        v-model="postalCode"
+        class="w-full grow"
+        :name="schemaPrefix + 'postalCode'"
+        :color="postalCode ? 'primary' : 'gray'"
+        :placeholder="country === 'CA' ?
+          $t('createAccount.contactForm.postalCode') : country === 'US' ? 'Zip Code' : 'Code'"
+        :aria-label="$t('createAccount.contactForm.postalCode')"
+        :is-required="true"
+      />
     </div>
+    <!-- delivery details input -->
     <UFormGroup :name="schemaPrefix + 'locationDescription'">
       <UTextarea
         v-model="locationDescription"
         :placeholder="$t('label.locationDescription')"
+        :aria-label="$t('label.locationDescription')"
         :color="locationDescription ? 'primary' : 'gray'"
         class="w-full"
         data-testid="address-location-description"

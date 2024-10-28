@@ -134,7 +134,8 @@ onMounted(async () => {
               :aria-label="$t('label.busNameLegal')"
               :help="$t('platform.hint.businessLegalName')"
               name="legalName"
-              :placeholder="t('label.busNameLegal')"
+              :placeholder="$t('label.busNameLegal')"
+              :is-required="true"
             />
             <ConnectFormFieldGroup
               id="platform-business-home-jur"
@@ -143,6 +144,7 @@ onMounted(async () => {
               :help="$t('platform.hint.humeJurisdiction')"
               name="homeJurisdiction"
               :placeholder="t('label.homeJurisdiction')"
+              :is-required="true"
             />
             <ConnectFormFieldGroup
               id="platform-business-number"
@@ -156,11 +158,15 @@ onMounted(async () => {
                 v-model="platformBusiness.hasCpbc"
                 class="p-2"
                 :class="isComplete && platformBusiness.hasCpbc === undefined ? 'border-red-600 border-2' : ''"
-                :legend="$t('platform.text.hasCpbc')"
                 :options="getRadioOptions()"
                 :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
                 :ui-radio="{ inner: 'space-y-2' }"
-              />
+              >
+                <template #legend>
+                  <span class="sr-only">{{ $t('validation.required') }}</span>
+                  <span>{{ $t('platform.text.hasCpbc') }}</span>
+                </template>
+              </URadioGroup>
             </UFormGroup>
             <ConnectFormFieldGroup
               v-if="platformBusiness.hasCpbc"
@@ -169,6 +175,7 @@ onMounted(async () => {
               :aria-label="$t('label.cpbcLicNum')"
               name="cpbcLicenceNumber"
               :placeholder="$t('label.cpbcLicNum')"
+              :is-required="true"
             />
           </div>
         </ConnectFormSection>
@@ -216,11 +223,15 @@ onMounted(async () => {
                 v-model="platformBusiness.hasRegOffAtt"
                 class="p-2"
                 :class="isComplete && platformBusiness.hasRegOffAtt === undefined ? 'border-red-600 border-2' : ''"
-                :legend="$t('platform.text.regOffOrAtt')"
                 :options="getRadioOptions()"
                 :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
                 :ui-radio="{ inner: 'space-y-2' }"
-              />
+              >
+                <template #legend>
+                  <span class="sr-only">{{ $t('validation.required') }}</span>
+                  <span>{{ $t('platform.text.regOffOrAtt') }}</span>
+                </template>
+              </URadioGroup>
             </UFormGroup>
             <div v-if="platformBusiness.hasRegOffAtt" class="space-y-5">
               <UFormGroup name="null">
@@ -232,9 +243,9 @@ onMounted(async () => {
               <ConnectFormFieldGroup
                 id="platform-att-for-svc-name"
                 v-model="platformBusiness.regOfficeOrAtt.attorneyName"
-                :aria-label="t('platform.label.attForSvcName')"
+                :aria-label="$t('platform.label.attForSvcName')"
                 name="regOfficeOrAtt.attorneyName"
-                :placeholder="t('platform.label.attForSvcName')"
+                :placeholder="$t('platform.label.attForSvcName')"
               />
               <ConnectFormAddress
                 v-if="!platformBusiness.regOfficeOrAtt.sameAsMailAddress"
@@ -267,6 +278,7 @@ onMounted(async () => {
               :aria-label="$t('label.emailAddress')"
               name="nonComplianceEmail"
               :placeholder="$t('label.emailAddress')"
+              :is-required="true"
             />
             <ConnectFormFieldGroup
               id="platform-business-noncompliance-email-optional"
@@ -290,6 +302,7 @@ onMounted(async () => {
               :aria-label="$t('label.emailAddress')"
               name="takeDownEmail"
               :placeholder="$t('label.emailAddress')"
+              :is-required="true"
             />
             <ConnectFormFieldGroup
               id="platform-business-takedown-email-optional"
