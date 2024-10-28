@@ -4,7 +4,11 @@ export const formStateToApi = (
   lastName: string,
   hasSecondaryContact: boolean,
   propertyType: string,
-  ownershipType: string
+  ownershipType: string,
+  rentalUnitSpaceType: string,
+  isUnitOnPrincipalResidenceProperty: boolean,
+  hostResidence: string,
+  numberOfRoomsForRent: number
 ): CreateAccountFormAPII => {
   const formData = formDataForAPI
 
@@ -48,7 +52,9 @@ export const formStateToApi = (
 
   const setListingDetails = () => {
     formData.registration.listingDetails =
-      formState.propertyDetails.listingDetails[0].url !== '' ? formState.propertyDetails.listingDetails : []
+      formState.propertyDetails.listingDetails[0].url !== ''
+        ? formState.propertyDetails.listingDetails
+        : []
   }
 
   const setUnitAddress = () => {
@@ -67,11 +73,7 @@ export const formStateToApi = (
     const {
       parcelIdentifier,
       businessLicense,
-      businessLicenseExpiryDate,
-      rentalUnitSpaceType,
-      isUnitOnPrincipalResidenceProperty,
-      hostResidence,
-      numberOfRoomsForRent
+      businessLicenseExpiryDate
     } = formState.propertyDetails
 
     formData.registration.unitDetails = {
@@ -80,7 +82,7 @@ export const formStateToApi = (
       ownershipType,
       businessLicense,
       rentalUnitSpaceType,
-      ...(typeof isUnitOnPrincipalResidenceProperty === 'boolean' ? { isUnitOnPrincipalResidenceProperty } : {}),
+      isUnitOnPrincipalResidenceProperty,
       hostResidence,
       numberOfRoomsForRent,
       ...(businessLicense ? { businessLicenseExpiryDate } : {}) // include exp date only if business license exists
@@ -112,8 +114,9 @@ export const formStateToApi = (
   }
 
   const setPropertyManager = () => {
-    const shouldHavePropertyManager = formState.isPropertyManagerRole ||
-    (!formState.isPropertyManagerRole && formState.hasPropertyManager)
+    const shouldHavePropertyManager =
+      formState.isPropertyManagerRole ||
+      (!formState.isPropertyManagerRole && formState.hasPropertyManager)
     if (shouldHavePropertyManager && formState.propertyManager) {
       formData.registration.propertyManager = {
         businessLegalName: formState.propertyManager.businessLegalName,

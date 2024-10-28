@@ -74,6 +74,29 @@
             </BcrosFormSectionReviewItem>
           </div>
           <div class="flex flex-row justify-between w-full mobile:flex-col">
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('rentalUnitSpaceType')"
+              :content="applicationDetails?.unitDetails.rentalUnitSpaceType || '-'"
+              data-test-id="rental-unit-space-type"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
+              :content="isUnitOnPrincipalResidenceText"
+              data-test-id="is-unit-on-principal-residence-property"
+            />
+            <BcrosFormSectionReviewItem
+              v-if="applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty"
+              :title="tApplicationDetails('hostResidence')"
+              :content="applicationDetails?.unitDetails.hostResidence || '-'"
+              data-test-id="host-residence"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('numberOfRoomsForRent')"
+              :content="applicationDetails?.unitDetails.numberOfRoomsForRent || '-'"
+              data-test-id="number-of-rooms-for-rent"
+            />
+          </div>
+          <div class="flex flex-row justify-between w-full mobile:flex-col">
             <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">
               <p data-test-id="unit-address">
                 {{ applicationDetails?.unitAddress.address }}
@@ -341,13 +364,13 @@
 </template>
 
 <script setup lang="ts">
+import { ApplicationStatusE, ExaminerApplicationStatusE, HostApplicationStatusE } from '#imports'
+import { getOwnershipTypeDisplay } from '@/utils/common'
 import FilingHistory from '~/components/FilingHistory.vue'
 import { useApplications } from '~/composables/useApplications'
 import { useBreadcrumb } from '~/composables/useBreadcrumb'
 import { useChipFlavour } from '~/composables/useChipFlavour'
 import { propertyTypeMap } from '~/utils/propertyTypeMap'
-import { getOwnershipTypeDisplay } from '@/utils/common'
-import { ApplicationStatusE, HostApplicationStatusE, ExaminerApplicationStatusE } from '#imports'
 
 const route = useRoute()
 const { t } = useTranslation()
@@ -379,6 +402,12 @@ const [application, applicationHistory]: [ApplicationI, FilingHistoryEventI[]] =
 setupBreadcrumbData(application)
 
 const applicationDetails: HostApplicationDetailsI = application.registration
+
+const isUnitOnPrincipalResidenceText = computed(() => {
+  return applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty
+    ? tApplicationDetails('yes')
+    : tApplicationDetails('no')
+})
 
 // Get Supporting Documents from the Application response
 const documents: DocumentUploadI[] = applicationDetails.documents || []
@@ -449,10 +478,10 @@ const getContactRows = (contactBlock: ContactI) => [{
      ${contactBlock.name.lastName}
   `,
   address: `
-    ${contactBlock.mailingAddress.address} 
+    ${contactBlock.mailingAddress.address}
     ${contactBlock.mailingAddress.addressLineTwo || ''}
-    ${contactBlock.mailingAddress.city} 
-    ${contactBlock.mailingAddress.province} 
+    ${contactBlock.mailingAddress.city}
+    ${contactBlock.mailingAddress.province}
     ${contactBlock.mailingAddress.postalCode}
   `,
   'Email Address': contactBlock.details.emailAddress,

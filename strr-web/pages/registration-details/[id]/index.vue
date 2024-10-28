@@ -54,6 +54,25 @@
             </BcrosFormSectionReviewItem>
           </div>
           <div class="flex flex-row justify-between w-full mobile:flex-col">
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('rentalUnitSpaceType')"
+              :content="application?.unitDetails.rentalUnitSpaceType || '-'"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
+              :content="isUnitOnPrincipalResidenceText"
+            />
+            <BcrosFormSectionReviewItem
+              v-if="application?.unitDetails.isUnitOnPrincipalResidenceProperty"
+              :title="tApplicationDetails('hostResidence')"
+              :content="application?.unitDetails.hostResidence || '-'"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('numberOfRoomsForRent')"
+              :content="application?.unitDetails.numberOfRoomsForRent || '-'"
+            />
+          </div>
+          <div class="flex flex-row justify-between w-full mobile:flex-col">
             <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">
               <p>{{ application?.unitAddress.address }}</p>
               <p v-if="application?.unitAddress.addressLineTwo">
@@ -241,9 +260,15 @@
 </template>
 
 <script setup lang="ts">
-import { propertyTypeMap } from '~/utils/propertyTypeMap'
-import { formatLongDate, formatTimeString } from '~/utils/format-helper'
 import { RegistrationStatusE } from '#imports'
+import { formatLongDate, formatTimeString } from '~/utils/format-helper'
+import { propertyTypeMap } from '~/utils/propertyTypeMap'
+
+const isUnitOnPrincipalResidenceText = computed(() => {
+  return application?.unitDetails.isUnitOnPrincipalResidenceProperty
+    ? tApplicationDetails('yes')
+    : tApplicationDetails('no')
+})
 
 const route = useRoute()
 const t = useNuxtApp().$i18n.t
@@ -346,10 +371,10 @@ const getContactRows = (contactBlock: ContactI) => [{
        ${contactBlock.name.lastName}
     `,
   address: `
-      ${contactBlock.mailingAddress.address} 
-      ${contactBlock.mailingAddress.addressLineTwo} 
-      ${contactBlock.mailingAddress.city} 
-      ${contactBlock.mailingAddress.province} 
+      ${contactBlock.mailingAddress.address}
+      ${contactBlock.mailingAddress.addressLineTwo}
+      ${contactBlock.mailingAddress.city}
+      ${contactBlock.mailingAddress.province}
       ${contactBlock.mailingAddress.postalCode}
     `,
   'Email Address': contactBlock.details.emailAddress,

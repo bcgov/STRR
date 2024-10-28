@@ -28,11 +28,15 @@ export interface RegistrationI {
   submissionDate: string
   unitAddress: RegistrationAddressI
   unitDetails: {
-    parcelIdentifier?: string
-    businessLicense?: string
-    businessLicenseExpiryDate?: string
-    propertyType: string
-    ownershipType: string
+    parcelIdentifier?: string,
+    businessLicense?: string,
+    businessLicenseExpiryDate?: string,
+    propertyType: string,
+    ownershipType: string,
+    rentalUnitSpaceType: string,
+    isUnitOnPrincipalResidenceProperty: boolean,
+    hostResidence: string,
+    numberOfRoomsForRent: number
   },
   updatedDate: string
   user_id: number

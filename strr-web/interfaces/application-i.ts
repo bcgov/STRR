@@ -1,10 +1,9 @@
 import {
-  RegistrationStatusE,
   ApplicationStatusE,
-  HostApplicationStatusE,
   ExaminerApplicationStatusE,
-  RegistrationTypeE,
-  ListingSizeE
+  HostApplicationStatusE,
+  RegistrationStatusE,
+  RegistrationTypeE
 } from '#imports'
 
 export interface ApplicationHeaderI {
@@ -55,6 +54,10 @@ export interface HostApplicationDetailsI {
     businessLicenseExpiryDate?: string
     propertyType: string
     ownershipType: string
+    rentalUnitSpaceType: string
+    isUnitOnPrincipalResidenceProperty: boolean
+    hostResidence: string
+    numberOfRoomsForRent: number
   }
   documents?: DocumentUploadI[]
 }
