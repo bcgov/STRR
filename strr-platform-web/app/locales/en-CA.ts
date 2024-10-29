@@ -451,9 +451,9 @@ export default {
     },
     step: {
       description: {
-        0: 'Contact Information',
-        1: 'Business Details',
-        2: 'Platform Information',
+        0: 'Add Contact Information',
+        1: 'Add Business Details',
+        2: 'Add Platform Information',
         3: 'Review and Confirm'
       },
       title: {

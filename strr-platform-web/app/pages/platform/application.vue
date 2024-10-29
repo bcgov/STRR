@@ -205,7 +205,7 @@ watch(activeStepIndex, (val) => {
   buttons.push({
     action: isLastStep ? handlePlatformSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
-    label: isLastStep ? t('btn.submitAndPay') : t('btn.next'),
+    label: isLastStep ? t('btn.submitAndPay') : t(`platform.step.description.${val + 1}`),
     trailing: true
   })
 
