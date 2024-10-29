@@ -133,6 +133,12 @@
     "listingLinkOptional": "Listing Link (Optional)",
     "listingLinkHelp": "e.g., https://www.airbnb.ca/your_listing123",
     "ownership": "Ownership Type",
+    "rentalUnitSpaceType": "Rental Unit Space Type",
+    "entireHome": "Entire home",
+    "sharedAccommodation": "Shared accommodation",
+    "isUnitOnPrincipalResidenceProperty": "Principal Residence",
+    "yes": "Yes",
+    "no": "No",
     "address": "Address",
     "propertyType": "Type of Property",
     "primaryContact": "Primary Contact Information",
@@ -154,7 +160,11 @@
     "filing": "Filing History",
     "coOwner": "Co-own",
     "owner": "Own",
-    "rent": "Rent"
+    "rent": "Rent",
+    "hostResidence": "Host Residence",
+    "sameUnit":"The host lives in this unit when it's not being rented",
+    "anotherUnit":"The host lives in another unit on the same property",
+    "numberOfRoomsForRent":"Number of Rooms for Rent"
   },
   "banner": {
     "SUBMIT_PAYMENT": "Submit Payment",

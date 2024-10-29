@@ -65,6 +65,7 @@
 <script setup lang="ts">
 import { sanitizeUrl } from '@braintree/sanitize-url'
 import { HostResidenceE } from '~/enums/host-residence-e'
+import { RentalUnitSpaceTypeE } from '~/enums/rental-unit-space-type-e'
 
 const { isComplete } = defineProps<{
   isComplete: boolean

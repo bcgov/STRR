@@ -62,6 +62,25 @@
               :content="getOwnershipTypeDisplay(applicationDetails?.unitDetails.ownershipType, tApplicationDetails)"
               data-test-id="ownership-type"
             />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('rentalUnitSpaceType')"
+              :content="rentalUnitSpaceTypeContent"
+              data-test-id="rentalUnitSpaceType-type"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
+              :content="principalResidenceContent"
+              data-test-id="isUnitOnPrincipalResidenceProperty-type"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('hostResidence')"
+              :content="getHostResidenceDisplay(applicationDetails?.unitDetails.hostResidence, tApplicationDetails)"
+              data-test-id="hostResidence-type"
+            />
+            <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('numberOfRoomsForRent')"
+              :content="applicationDetails?.unitDetails.numberOfRoomsForRent.toString() || '-'"
+            />
             <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
               <p data-test-id="property-type">
                 {{ applicationDetails?.unitDetails.propertyType
@@ -342,7 +361,12 @@
 
 <script setup lang="ts">
 import { ApplicationStatusE, ExaminerApplicationStatusE, HostApplicationStatusE } from '#imports'
-import { getOwnershipTypeDisplay } from '@/utils/common'
+import {
+  getHostResidenceDisplay,
+  getOwnershipTypeDisplay,
+  getPrincipalResidenceDisplay,
+  getRentalUnitSpaceTypeDisplay
+} from '@/utils/common'
 import FilingHistory from '~/components/FilingHistory.vue'
 import { useApplications } from '~/composables/useApplications'
 import { useBreadcrumb } from '~/composables/useBreadcrumb'
@@ -460,4 +484,14 @@ const getContactRows = (contactBlock: ContactI) => [{
   SIN: contactBlock.socialInsuranceNumber,
   'BN (GST)': contactBlock.businessNumber
 }]
+
+const rentalUnitSpaceTypeContent = getRentalUnitSpaceTypeDisplay(
+  applicationDetails?.unitDetails.rentalUnitSpaceType,
+  tApplicationDetails
+)
+
+const principalResidenceContent = getPrincipalResidenceDisplay(
+  applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty,
+  tApplicationDetails
+)
 </script>
