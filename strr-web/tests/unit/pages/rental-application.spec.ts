@@ -1,5 +1,3 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { set } from 'zod'
 import {
   BcrosFormSectionContactInformationForm,
   BcrosFormSectionPropertyManagerForm,
@@ -7,6 +5,8 @@ import {
   BcrosFormSectionReviewSubsection
 } from '#components'
 import CreateApplication from '@/pages/create-account.vue'
+import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { set } from 'zod'
 import Stepper from '~/components/bcros/stepper/Stepper.vue'
 import H1 from '~/components/bcros/typography/H1.vue'
 import H2 from '~/components/bcros/typography/H2.vue'
@@ -133,7 +133,7 @@ describe('Rental Application', () => {
     formState.primaryContact = mockPrimaryContact
     await nextTick()
 
-    // Update country from 'CA' to 'Canada' in mockPrimaryContact
+    // update Country from CA to Canada
     const updatedPrimaryContact = set({ ...mockPrimaryContact }, 'country', 'Canada')
 
     // Construct list of expected values by filtering only string values
