@@ -50,7 +50,7 @@
           {{ tApplicationDetails('unitInfo') }}
         </h2>
         <div class="bg-white py-[22px] px-[30px] mobile:px-5" data-test-id="rental-unit-info">
-          <div class="flex flex-row justify-between w-full mobile:flex-col desktop:mb-6">
+          <div class="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 desktop:mb-6">
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('nickname')"
               :content="applicationDetails?.unitAddress.nickname || '-'"
