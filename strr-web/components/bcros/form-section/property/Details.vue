@@ -132,6 +132,7 @@
             :options="hostResidenceOptions"
             class="w-full"
             style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            @change="emit('validateHostResidence')"
           />
         </UFormGroup>
       </div>

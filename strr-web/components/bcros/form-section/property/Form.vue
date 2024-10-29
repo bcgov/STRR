@@ -275,7 +275,7 @@ const validateNumberOfRoomsForRent = () => {
 const form = ref()
 
 watch(form, () => {
-  if (form.value && isComplete) { form.value.validate({ silent: true }) }
+  if (form.value && isComplete) { form.value.validate() }
 })
 
 onMounted(() => {
