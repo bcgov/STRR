@@ -233,8 +233,9 @@ const {
   rentalUnitSpaceTypeOptions: { value: RentalUnitSpaceTypeE, label: string }[],
   rentalUnitSpaceTypeError: string,
   principalResidenceOptions: { value: boolean, label: string }[],
+  principalResidenceError: string,
   hostResidenceOptions: { value: HostResidenceE, label: string }[],
   hostResidenceError: string,
-  numberOfRoomsForRentError: string
+  numberOfRoomsForRentError: string;
 }>()
 </script>
