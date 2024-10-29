@@ -4,11 +4,7 @@ export const formStateToApi = (
   lastName: string,
   hasSecondaryContact: boolean,
   propertyType: string,
-  ownershipType: string,
-  rentalUnitSpaceType: string,
-  isUnitOnPrincipalResidenceProperty: boolean,
-  hostResidence: string,
-  numberOfRoomsForRent: number
+  ownershipType: string
 ): CreateAccountFormAPII => {
   const formData = formDataForAPI
 
