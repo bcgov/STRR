@@ -29,7 +29,7 @@ export const getRentalUnitSpaceTypeDisplay = (
 }
 
 export const getPrincipalResidenceDisplay = (
-  principalResidence: boolean | undefined,
+  principalResidence: boolean | null,
   t: (key: string) => string
 ) => {
   switch (principalResidence) {

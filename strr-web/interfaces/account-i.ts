@@ -169,7 +169,7 @@ export interface CreateAccountFormStateI {
     postalCode: string | undefined
     listingDetails: { url: string }[]
     rentalUnitSpaceType: string
-    isUnitOnPrincipalResidenceProperty: boolean | null
+    isUnitOnPrincipalResidenceProperty: boolean | undefined
     hostResidence: string | null
     numberOfRoomsForRent: number
   }
