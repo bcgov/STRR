@@ -74,6 +74,8 @@ export const formStateToApi = (
       parcelIdentifier,
       businessLicense,
       businessLicenseExpiryDate,
+      rentalUnitSpaceType,
+      isUnitOnPrincipalResidenceProperty,
       hostResidence,
       numberOfRoomsForRent
     } = formState.propertyDetails
