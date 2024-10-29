@@ -354,7 +354,7 @@ export const formState: CreateAccountFormStateI = reactive({
     numberOfRoomsForRent: 1,
     rentalUnitSpaceType: '',
     isUnitOnPrincipalResidenceProperty: null,
-    hostResidence: null as string | null
+    hostResidence: undefined
   },
   selectedAccount: {} as OrgI,
   principal: {

@@ -18,7 +18,6 @@ export const useApplications = () => {
     ownershipType: string,
     rentalUnitSpaceType: string,
     isUnitOnPrincipalResidenceProperty: boolean,
-    hostResidence: string,
     numberOfRoomsForRent: number,
 
     registrationType: RegistrationTypeE = RegistrationTypeE.HOST
@@ -32,7 +31,6 @@ export const useApplications = () => {
       ownershipType,
       rentalUnitSpaceType,
       isUnitOnPrincipalResidenceProperty,
-      hostResidence,
       numberOfRoomsForRent
     )
 

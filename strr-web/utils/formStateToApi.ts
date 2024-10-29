@@ -73,7 +73,9 @@ export const formStateToApi = (
     const {
       parcelIdentifier,
       businessLicense,
-      businessLicenseExpiryDate
+      businessLicenseExpiryDate,
+      hostResidence,
+      numberOfRoomsForRent
     } = formState.propertyDetails
 
     formData.registration.unitDetails = {
@@ -83,9 +85,9 @@ export const formStateToApi = (
       businessLicense,
       rentalUnitSpaceType,
       isUnitOnPrincipalResidenceProperty,
-      hostResidence,
       numberOfRoomsForRent,
-      ...(businessLicense ? { businessLicenseExpiryDate } : {}) // include exp date only if business license exists
+      ...(businessLicense ? { businessLicenseExpiryDate } : {}), // include exp date only if business license exists
+      ...(isUnitOnPrincipalResidenceProperty ? { hostResidence } : {})
     }
   }
 

@@ -119,21 +119,13 @@ const ownershipToApiType = (type: string | undefined): string => {
   return ''
 }
 
-const rentalUnitSpaceTypeToApiType = (type: string | undefined): RentalUnitSpaceTypeE | '' => {
+const rentalUnitSpaceTypeToApiType = (type: string | null): RentalUnitSpaceTypeE | '' => {
   if (type === 'ENTIRE_HOME') {
     return RentalUnitSpaceTypeE.ENTIRE_HOME
   } else if (type === 'SHARED_ACCOMMODATION') {
     return RentalUnitSpaceTypeE.SHARED_ACCOMMODATION
   }
   return '' // Return empty string if no match
-}
-
-const hostResidenceToApiType = (hostResidence: string | null): HostResidenceE | '' => {
-  return (hostResidence as HostResidenceE) || ''
-}
-
-const numberOfRoomsForRentToApiType = (rooms: number | undefined): number => {
-  return rooms ?? 0 // Default to 0 if undefined
 }
 
 const submit = () => {
@@ -152,8 +144,7 @@ const submit = () => {
       ownershipToApiType(formState.propertyDetails.ownershipType),
       rentalUnitSpaceTypeToApiType(formState.propertyDetails.rentalUnitSpaceType),
       formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
-      hostResidenceToApiType(formState.propertyDetails.hostResidence),
-      numberOfRoomsForRentToApiType(formState.propertyDetails.numberOfRoomsForRent)
+      formState.propertyDetails.numberOfRoomsForRent
     )
     : (steps[3].step.complete = true)
 }
