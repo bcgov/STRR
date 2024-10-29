@@ -43,7 +43,7 @@ export const getPrincipalResidenceDisplay = (
 }
 
 export const getHostResidenceDisplay = (
-  hostResidenceType: HostResidenceE | undefined,
+  hostResidenceType: HostResidenceE | string | null,
   t: (key: string) => string
 ) => {
   switch (hostResidenceType) {

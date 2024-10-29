@@ -127,7 +127,7 @@
           :error="hostResidenceError"
         >
           <USelect
-            v-model="hostResidence"
+            v-model="hostResidenceComputed"
             :placeholder="t('createAccount.propertyForm.hostResidence')"
             :options="hostResidenceOptions"
             class="w-full"
@@ -207,6 +207,13 @@ const emit = defineEmits([
   'validateNumberOfRoomsForRent'
 ])
 
+const hostResidenceComputed = computed({
+  get: () => formState.propertyDetails.hostResidence ?? '', // Ensure string return
+  set: (value: string) => {
+    formState.propertyDetails.hostResidence = value || null // Set to null if empty
+  }
+})
+
 const {
   propertyTypes,
   ownershipTypes,
@@ -226,6 +233,8 @@ const {
   rentalUnitSpaceTypeOptions: { value: RentalUnitSpaceTypeE, label: string }[],
   rentalUnitSpaceTypeError: string,
   principalResidenceOptions: { value: boolean, label: string }[],
-  hostResidenceOptions: { value: HostResidenceE, label: string }[]
+  hostResidenceOptions: { value: HostResidenceE, label: string }[],
+  hostResidenceError: string,
+  numberOfRoomsForRentError: string
 }>()
 </script>

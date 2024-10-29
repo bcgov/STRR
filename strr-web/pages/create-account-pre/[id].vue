@@ -128,7 +128,7 @@ const rentalUnitSpaceTypeToApiType = (type: string | undefined): RentalUnitSpace
   return '' // Return empty string if no match
 }
 
-const hostResidenceToApiType = (hostResidence: string | undefined): HostResidenceE | '' => {
+const hostResidenceToApiType = (hostResidence: string | null): HostResidenceE | '' => {
   if (hostResidence === 'SAME_UNIT') {
     return HostResidenceE.SAME_UNIT
   } else if (hostResidence === 'ANOTHER_UNIT') {

@@ -69,7 +69,7 @@
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('numberOfRoomsForRent')"
-              :content="application?.unitDetails.numberOfRoomsForRent || '-'"
+              :content="application?.unitDetails.numberOfRoomsForRent.toString() || '-'"
             />
           </div>
           <div class="flex flex-row justify-between w-full mobile:flex-col">
