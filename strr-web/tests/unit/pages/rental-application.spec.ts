@@ -97,12 +97,16 @@ describe('Rental Application', () => {
     const updatePropertyManagerAddress: PropertyManagerBusinessAddressI =
        set({ ...mockPropertyManager.businessMailingAddress }, 'country', 'Canada')
 
+    const filterValues = obj => Object.values(obj).filter(value =>
+      typeof value === 'string' || typeof value === 'number'
+    )
+
     // construct list of expected values from mocked Property Manager
     const expectedValues = [
       mockPropertyManager.businessLegalName,
       mockPropertyManager.businessNumber,
-      ...Object.values(updatePropertyManagerAddress),
-      ...Object.values(mockPropertyManager.contact)
+      ...filterValues(updatePropertyManagerAddress),
+      ...filterValues(mockPropertyManager.contact)
     ]
 
     // check that mocked values were rendered (as text) in the Property Manager section
@@ -111,6 +115,9 @@ describe('Rental Application', () => {
     })
   })
 
+  // Utility function to filter only string values from an object
+  const filterValues = obj => Object.values(obj).filter(val => typeof val === 'string')
+
   it('should render Review and Confirm Step - Primary Contact Information section', async () => {
     wrapper = await mountSuspended(CreateApplication)
     await goToStep(5)
@@ -118,23 +125,24 @@ describe('Rental Application', () => {
     const primaryContactReview = wrapper.findTestId('primary-contact-review')
     expect(primaryContactReview.exists()).toBe(true)
 
-    // check number of fields displayed in primary contact section
+    // Check number of fields displayed in primary contact section
     const primaryContactFields = primaryContactReview.findAll('[data-test-id=form-item]')
     expect(primaryContactFields).toHaveLength(9)
 
-    // update Property Manager state
+    // Update Property Manager state with mock data
     formState.primaryContact = mockPrimaryContact
     await nextTick()
 
-    // update Country from CA to Canada
+    // Update country from 'CA' to 'Canada' in mockPrimaryContact
     const updatedPrimaryContact = set({ ...mockPrimaryContact }, 'country', 'Canada')
 
-    // construct list of expected values from mocked Primary Contact
-    const expectedValues = Object.values(updatedPrimaryContact)
+    // Construct list of expected values by filtering only string values
+    const expectedValues = filterValues(updatedPrimaryContact)
 
+    // Extract text from the rendered Primary Contact section
     const primaryContactReviewText = primaryContactReview.text()
 
-    // check that mocked values were rendered (as text) in the Primary Contact section
+    // Verify that each expected value appears in the rendered text
     expectedValues.forEach((value) => {
       expect(primaryContactReviewText).toContain(value)
     })
