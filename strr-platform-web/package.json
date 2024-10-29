@@ -46,7 +46,7 @@
     "vue-router": "^4.4.0"
   },
   "dependencies": {
-    "@daxiom/nuxt-core-layer-test": "^0.0.9",
+    "@daxiom/nuxt-core-layer-test": "^0.0.10",
     "@vuepic/vue-datepicker": "^9.0.3",
     "country-codes-list": "^1.6.11",
     "firebase": "^10.12.3",

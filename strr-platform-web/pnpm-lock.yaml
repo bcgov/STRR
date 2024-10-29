@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@daxiom/nuxt-core-layer-test':
-    specifier: ^0.0.9
-    version: 0.0.9(nuxt@3.12.3)(pinia@2.1.7)(rollup@4.18.0)(typescript@5.5.3)(vite@5.3.3)(vue@3.4.31)
+    specifier: ^0.0.10
+    version: 0.0.10(nuxt@3.12.3)(pinia@2.1.7)(rollup@4.18.0)(typescript@5.5.3)(vite@5.3.3)(vue@3.4.31)
   '@vuepic/vue-datepicker':
     specifier: ^9.0.3
     version: 9.0.3(vue@3.4.31)
@@ -663,8 +663,8 @@ packages:
       postcss-selector-parser: 6.1.0
     dev: false
 
-  /@daxiom/nuxt-core-layer-test@0.0.9(nuxt@3.12.3)(pinia@2.1.7)(rollup@4.18.0)(typescript@5.5.3)(vite@5.3.3)(vue@3.4.31):
-    resolution: {integrity: sha512-pj0+EL4eVDEL7Rgc4gvtMAh3JVRqtg7HQ+ry5ujPfPo5NUKoLVpL4oxTzntbcvJGtjvY0AyS4qF8d0WV82duKQ==}
+  /@daxiom/nuxt-core-layer-test@0.0.10(nuxt@3.12.3)(pinia@2.1.7)(rollup@4.18.0)(typescript@5.5.3)(vite@5.3.3)(vue@3.4.31):
+    resolution: {integrity: sha512-oazYOV72fBgxZrE8dKeI8Rg5okfiC8ZTumo9pfsYK0AeNpqKTojmrNFPu/kCqRnIgRQGGlAnlzTN9jErw3mrrQ==}
     dependencies:
       '@iconify-json/mdi': 1.1.68
       '@nuxt/content': 2.13.2(nuxt@3.12.3)(rollup@4.18.0)(vue@3.4.31)
