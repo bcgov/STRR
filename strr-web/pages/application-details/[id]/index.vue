@@ -69,7 +69,8 @@
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
-              :content="tApplicationDetails(applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty)|| '-'"
+              :content="tApplicationDetails(applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty?
+                'true':'false')|| '-'"
               data-test-id="isUnitOnPrincipalResidenceProperty-type"
             />
             <BcrosFormSectionReviewItem
