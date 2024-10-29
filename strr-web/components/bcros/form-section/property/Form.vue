@@ -253,15 +253,10 @@ const validatePrincipalResidenceOptions = () => {
 }
 
 const validateHostResidence = () => {
-  if (formState.propertyDetails.isUnitOnPrincipalResidenceProperty) {
-    if (!formState.propertyDetails.hostResidence) {
-      hostResidenceError.value = 'Please specify where the host lives on the property.'
-    } else {
-      hostResidenceError.value = ''
-    }
-  } else {
-    hostResidenceError.value = ''
-  }
+  hostResidenceError.value =
+    formState.propertyDetails.isUnitOnPrincipalResidenceProperty && !formState.propertyDetails.hostResidence
+      ? 'Please specify where the host lives on the property.'
+      : ''
 }
 
 const validateNumberOfRoomsForRent = () => {

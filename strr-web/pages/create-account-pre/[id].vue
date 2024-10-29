@@ -129,12 +129,7 @@ const rentalUnitSpaceTypeToApiType = (type: string | undefined): RentalUnitSpace
 }
 
 const hostResidenceToApiType = (hostResidence: string | null): HostResidenceE | '' => {
-  if (hostResidence === 'SAME_UNIT') {
-    return HostResidenceE.SAME_UNIT
-  } else if (hostResidence === 'ANOTHER_UNIT') {
-    return HostResidenceE.ANOTHER_UNIT
-  }
-  return '' // Return empty string if no match
+  return (hostResidence as HostResidenceE) || ''
 }
 
 const numberOfRoomsForRentToApiType = (rooms: number | undefined): number => {
