@@ -453,11 +453,15 @@
       "owner": "Own",
       "rent": "Rent",
       "rentalUnitSpaceType": "Type of Space",
+      "entireHome": "Entire home",
+      "sharedAccommodation": "Shared accommodation",
       "isUnitOnPrincipalResidenceProperty": "On Principal Residence Property",
       "hostResidence": "Host Residence",
       "numberOfRoomsForRent": "Number of Rooms for Rent",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "sameUnit":"The host lives in this unit when it's not being rented",
+      "anotherUnit":"The host lives in another unit on the same property"
     },
     "details": {
       "title": "Step 3 - Add Your Short Term Rental Property Details",

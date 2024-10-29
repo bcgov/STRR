@@ -36,7 +36,7 @@
             {{ tReview('rentalUnitInfo') }}
           </p>
           <div class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
-            <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
+            <div class="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 desktop:mb-6">
               <BcrosFormSectionReviewItem
                 :title="tReview('nickname')"
                 :content="formState.propertyDetails.nickname || '-'"
@@ -51,20 +51,20 @@
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('rentalUnitSpaceType')"
-                :content="formState.propertyDetails.rentalUnitSpaceType || '-'"
+                :content="getRentalUnitSpaceTypeDisplay(formState.propertyDetails.rentalUnitSpaceType, tReview)"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('isUnitOnPrincipalResidenceProperty')"
-                :content="formState.propertyDetails.isUnitOnPrincipalResidenceProperty ? tReview('yes') : tReview('no')"
+                :content="principalResidenceDisplayContent"
               />
               <BcrosFormSectionReviewItem
                 v-if="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
                 :title="tReview('hostResidence')"
-                :content="formState.propertyDetails.hostResidence || '-'"
+                :content="getHostResidenceDisplay(formState.propertyDetails.hostResidence, tReview)"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('numberOfRoomsForRent')"
-                :content="formState.propertyDetails.numberOfRoomsForRent || '-'"
+                :content="formState.propertyDetails.numberOfRoomsForRent.toString() || '-'"
               />
             </div>
             <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
@@ -195,7 +195,11 @@
 
 <script setup lang="ts">
 import { formState } from '@/stores/strr'
-import { getOwnershipTypeDisplay } from '@/utils/common'
+import {
+  getHostResidenceDisplay,
+  getOwnershipTypeDisplay,
+  getRentalUnitSpaceTypeDisplay
+} from '@/utils/common'
 
 const { t } = useTranslation()
 
@@ -205,5 +209,9 @@ const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
 const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
 const tPrincipal = (translationKey: string) => t(`createAccount.principalResidence.${translationKey}`)
+const principalResidenceDisplayContent = getPrincipalResidenceDisplay(
+  formState.propertyDetails.isUnitOnPrincipalResidenceProperty,
+  tReview
+)
 
 </script>
