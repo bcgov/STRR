@@ -1,9 +1,7 @@
 <template>
   <div>
     <div>
-      <BcrosBanner
-        hide-buttons
-      >
+      <BcrosBanner>
         <div class="flex flex-col m:justify-between">
           <BcrosTypographyH1
             :text="tAutoApproval('autoApprovalDetails')"
@@ -57,11 +55,11 @@ const provisionalRows = ref<{ [key: string]: string }[]>([])
 const { getAutoApproval, getApplication } = useApplications()
 const { setupBreadcrumbData } = useBreadcrumb()
 
-const applicationId = route.params.id.toString()
+const applicationNumber = route.params.id.toString()
 
-const application = await getApplication(applicationId)
-const data: AutoApprovalDataI[] = await getAutoApproval(applicationId) || {} as AutoApprovalDataI[]
-const applicationDetails: ApplicationDetailsI = application.registration
+const application = await getApplication(applicationNumber)
+const data: AutoApprovalDataI[] = await getAutoApproval(applicationNumber) || {} as AutoApprovalDataI[]
+const applicationDetails: HostApplicationDetailsI = application.registration
 
 setupBreadcrumbData(application)
 
@@ -145,6 +143,6 @@ const headerLabel =
   `${applicationDetails.unitAddress.city} ` +
   `${applicationDetails.unitAddress.province} ` +
   `${applicationDetails.unitAddress.postalCode}` +
-  `, Application #${applicationId}`
+  `, Application #${applicationNumber}`
 
 </script>

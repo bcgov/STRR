@@ -1,9 +1,12 @@
 <template>
   <div data-test-id="listing-details-section">
     <BcrosFormSection
-      :title="t('createAccount.propertyForm.internetListingDetails')"
+      :title="t('createAccount.propertyForm.onlineListingDetails')"
       class="desktop:pb-[40px] mobile:pb-[20px]"
     >
+      <p class="text-gray-700 mb-10">
+        {{ t('createAccount.propertyForm.webLinkInfo') }}
+      </p>
       <div v-for="(listing, index) in listingDetails" :key="index">
         <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px] items-center">
           <UFormGroup
@@ -14,25 +17,23 @@
             <UInput
               v-model="listing.url"
               aria-label="URL input"
-              :placeholder="`Platform URL ${index > 0 ? index + 1: ''}`"
+              :placeholder="t('applicationDetails.listingLinkOptional')"
               @blur="() => emitValidate(index)"
             />
+            <template #help>
+              {{ t('applicationDetails.listingLinkHelp') }}
+            </template>
           </UFormGroup>
-          <div
-            class="
-              flex flex-row desktop:mr-[20px] w-[117px] h-[36px]
-              mobile:w-[106px] items-center justify-center text-[16px] text-blue-500
-            "
-            :role="index > 0 ? 'button': ''"
-            :onclick="index > 0 ? () => removeDetailAtIndex(index): null"
-          >
-            <div v-if="index > 0" class="flex flex-row justify-center items-center">
-              <p class="mr-[4px]">
-                {{ t('createAccount.contact.remove') }}
-              </p>
-              <UIcon class="h-[20px] w-[20px]" name="i-mdi-remove" alt="remove icon" />
-            </div>
-          </div>
+
+          <UButton
+            v-if="index > 0"
+            class="p-2 text-base mb-6"
+            variant="ghost"
+            :label="t('createAccount.contact.remove')"
+            :trailing-icon="'i-mdi-remove'"
+            :ui="{ variant: { ghost: 'hover:bg-transparent' } }"
+            @click="removeDetailAtIndex(index)"
+          />
         </div>
       </div>
       <BcrosButtonsPrimary

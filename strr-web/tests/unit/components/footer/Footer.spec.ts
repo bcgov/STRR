@@ -15,7 +15,7 @@ describe('Tests for Footer.vue', () => {
 
     const expectedTexts = ['Home', 'Disclaimer', 'Privacy', 'Accessibility', 'Copyright']
     const expectedHrefs = [
-      '/',
+      '/' + RouteNamesE.APPLICATION_STATUS,
       'https://www2.gov.bc.ca/gov/content/home/disclaimer',
       'https://www2.gov.bc.ca/gov/content/home/privacy',
       'https://www2.gov.bc.ca/gov/content/home/accessibility',

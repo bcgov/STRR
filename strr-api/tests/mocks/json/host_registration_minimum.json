@@ -22,8 +22,12 @@
       }
     },
     "unitDetails": {
-      "propertyType": "PRIMARY",
-      "ownershipType": "OWN"
+      "propertyType": "SINGLE_FAMILY_HOME",
+      "ownershipType": "OWN",
+      "rentalUnitSpaceType": "ENTIRE_HOME",
+      "hostResidence":  "SAME_UNIT",
+      "isUnitOnPrincipalResidenceProperty":  true,
+      "numberOfRoomsForRent": 1
     },
     "unitAddress": {
       "country": "CA",

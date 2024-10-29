@@ -8,12 +8,12 @@ from typing import List, Optional
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import text
 
-from strr_api.models.base_model import BaseModel
+from strr_api.models.base_model import SimpleBaseModel
 
 from .db import db
 
 
-class AutoApprovalRecord(BaseModel):
+class AutoApprovalRecord(SimpleBaseModel):
     """AutoApprovalRecord Record"""
 
     __tablename__ = "auto_approval_records"

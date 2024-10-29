@@ -1,29 +1,52 @@
-// @vitest-environment nuxt
-import { it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { createI18n } from 'vue-i18n'
+import { setupExaminer, setupHost } from '../../utils/helper-functions'
 import { BcrosBanner, BcrosButtonsPrimary } from '#components'
+import {
+  mockApplicationApproved,
+  mockApplicationFullReview,
+  mockApplicationPaymentDue
+} from '~/tests/mocks/mockApplication'
 
-const i18n = createI18n({
-  // vue-i18n options here ...
-})
+describe('Banner Component Test', () => {
+  const { t } = useTranslation()
 
-it('can mount Banner component with buttons', async () => {
-  const banner = await mountSuspended(BcrosBanner,
-    {
-      global: { plugins: [i18n] },
-      props: { applicationId: '1', hideButtons: false }
+  it('should mount Banner component with Examiner action buttons', async () => {
+    const banner = await mountSuspended(BcrosBanner, {
+      props: { application: mockApplicationFullReview }
     })
-  expect(banner.find('[data-test-id="banner"]').exists()).toBe(true)
-  expect(banner.findComponent(BcrosButtonsPrimary).exists()).toBe(true)
-})
 
-it('can mount Banner component with hidden buttons', async () => {
-  const banner = await mountSuspended(BcrosBanner,
-    {
-      global: { plugins: [i18n] },
-      props: { hideButtons: true, applicationId: '1' }
+    await setupExaminer()
+
+    expect(banner.find('[data-test-id="banner"]').exists()).toBe(true)
+
+    const examinerActionButtons = banner.findAllComponents(BcrosButtonsPrimary)
+    expect(examinerActionButtons.length).toBe(2)
+    expect(examinerActionButtons.at(0)?.text()).toContain(t('banner.' + ExaminerActionsE.APPROVE))
+    expect(examinerActionButtons.at(1)?.text()).toContain(t('banner.' + ExaminerActionsE.REJECT))
+  })
+
+  it('should mount Banner component with Host action buttons', async () => {
+    const banner = await mountSuspended(BcrosBanner, {
+      props: { application: mockApplicationPaymentDue }
     })
-  expect(banner.find('[data-test-id="banner"]').exists()).toBe(true)
-  expect(banner.findComponent(BcrosButtonsPrimary).exists()).toBe(false)
+
+    await setupHost()
+
+    const hostActionButtons = banner.findAllComponents(BcrosButtonsPrimary)
+    expect(hostActionButtons.length).toBe(1)
+    expect(hostActionButtons.at(0)?.text()).toContain(t('banner.' + HostActionsE.SUBMIT_PAYMENT))
+  })
+
+  it('should mount Banner component with no action buttons for Host', async () => {
+    const banner = await mountSuspended(BcrosBanner, {
+      props: { application: mockApplicationApproved }
+    })
+
+    await setupHost()
+
+    const hostActionButtons = banner.findAllComponents(BcrosButtonsPrimary)
+    // there should be no actions buttons for Host because application is already approved
+    expect(hostActionButtons.length).toBe(0)
+  })
 })

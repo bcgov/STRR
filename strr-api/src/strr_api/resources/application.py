@@ -162,11 +162,11 @@ def get_applications():
         return exception_response(service_exception)
 
 
-@bp.route("/<application_id>", methods=("GET",))
+@bp.route("/<application_number>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_application_details(application_id):
+def get_application_details(application_number):
     """
     Get application details
     ---
@@ -174,10 +174,10 @@ def get_application_details(application_id):
       - application
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application Id
+        description: Application Number
     responses:
       200:
         description:
@@ -189,7 +189,7 @@ def get_application_details(application_id):
 
     try:
         account_id = request.headers.get("Account-Id", None)
-        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
         if not application:
             return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
@@ -197,11 +197,11 @@ def get_application_details(application_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<application_id>/payment-details", methods=("PUT",))
+@bp.route("/<application_number>/payment-details", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def update_application_payment_details(application_id):
+def update_application_payment_details(application_number):
     """
     Updates the invoice status of a STRR Application.
     ---
@@ -209,10 +209,10 @@ def update_application_payment_details(application_id):
       - application
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: ID of the application
+        description: Application Number
       - in: path
         name: invoice_id
         type: integer
@@ -236,7 +236,7 @@ def update_application_payment_details(application_id):
                 "Account Id is missing.",
                 HTTPStatus.BAD_REQUEST,
             )
-        application = ApplicationService.get_application(application_id, account_id)
+        application = ApplicationService.get_application(application_number, account_id)
         if not application:
             raise AuthException()
         invoice_details = strr_pay.get_payment_details_by_invoice_id(
@@ -250,12 +250,12 @@ def update_application_payment_details(application_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<application_id>/ltsa", methods=("GET",))
+@bp.route("/<application_number>/ltsa", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
 @jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
-def get_application_ltsa(application_id):
+def get_application_ltsa(application_number):
     """
     Get application LTSA records
     ---
@@ -263,10 +263,10 @@ def get_application_ltsa(application_id):
       - examiner
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application Id
+        description: Application Number
     responses:
       200:
         description:
@@ -277,10 +277,10 @@ def get_application_ltsa(application_id):
     """
 
     try:
-        application = ApplicationService.get_application(application_id)
+        application = ApplicationService.get_application(application_number)
         if not application:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
-
+        application_id = application.id
         records = LtsaService.get_application_ltsa_records(application_id=application_id)
         return (
             jsonify([LTSARecord.from_db(record).model_dump(mode="json") for record in records]),
@@ -290,12 +290,12 @@ def get_application_ltsa(application_id):
         return exception_response(exception)
 
 
-@bp.route("/<application_id>/auto-approval-records", methods=("GET",))
+@bp.route("/<application_number>/auto-approval-records", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
 @jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
-def get_application_auto_approval_records(application_id):
+def get_application_auto_approval_records(application_number):
     """
     Get application auto approval records
     ---
@@ -303,10 +303,10 @@ def get_application_auto_approval_records(application_id):
       - examiner
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application Id
+        description: Application Number
     responses:
       200:
         description:
@@ -317,10 +317,10 @@ def get_application_auto_approval_records(application_id):
     """
 
     try:
-        application = ApplicationService.get_application(application_id)
+        application = ApplicationService.get_application(application_number)
         if not application:
             return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
-
+        application_id = application.id
         records = ApprovalService.get_approval_records_for_application(application_id)
         return (
             jsonify([AutoApprovalRecord.from_db(record).model_dump(mode="json") for record in records]),
@@ -330,11 +330,11 @@ def get_application_auto_approval_records(application_id):
         return exception_response(exception)
 
 
-@bp.route("/<application_id>/events", methods=("GET",))
+@bp.route("/<application_number>/events", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_application_events(application_id):
+def get_application_events(application_number):
     """
     Get application events.
     ---
@@ -342,10 +342,10 @@ def get_application_events(application_id):
       - application
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application Id
+        description: Application Number
     responses:
       200:
         description:
@@ -362,7 +362,8 @@ def get_application_events(application_id):
         if UserService.is_strr_staff_or_system():
             account_id = None
             applicant_visible_events_only = False
-        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
+        application_id = application.id
         if not application:
             return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
 
@@ -376,12 +377,12 @@ def get_application_events(application_id):
         return error_response("ErrorMessage.PROCESSING_ERROR.value", HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<application_id>/status", methods=("PUT",))
+@bp.route("/<application_number>/status", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
 @jwt.has_one_of_roles([Role.STRR_EXAMINER.value])
-def update_application_status(application_id):
+def update_application_status(application_number):
     """
     Update application status.
     ---
@@ -389,10 +390,10 @@ def update_application_status(application_id):
       - examiner
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application ID
+        description: Application Number
     responses:
       200:
         description:
@@ -413,7 +414,7 @@ def update_application_status(application_id):
                 message=ErrorMessage.INVALID_APPLICATION_STATUS.value,
                 http_status=HTTPStatus.BAD_REQUEST,
             )
-        application = ApplicationService.get_application(application_id)
+        application = ApplicationService.get_application(application_number)
         if not application:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
         if application.status in APPLICATION_TERMINAL_STATES:
@@ -428,11 +429,11 @@ def update_application_status(application_id):
         return error_response(ErrorMessage.PROCESSING_ERROR.value, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<application_id>/documents", methods=("POST",))
+@bp.route("/<application_number>/documents", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def upload_registration_supporting_document(application_id):
+def upload_registration_supporting_document(application_number):
     """
     Upload a supporting document for a STRR application.
     ---
@@ -440,10 +441,10 @@ def upload_registration_supporting_document(application_id):
       - application
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application ID
+        description: Application Number
       - name: file
         in: formData
         type: file
@@ -469,7 +470,7 @@ def upload_registration_supporting_document(application_id):
         file = validate_document_upload(request.files)
 
         # only allow upload for registrations that belong to the user
-        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
         if not application:
             raise AuthException()
 
@@ -485,11 +486,11 @@ def upload_registration_supporting_document(application_id):
         return exception_response(service_exception)
 
 
-@bp.route("/<application_id>/documents/<file_key>", methods=("GET",))
+@bp.route("/<application_number>/documents/<file_key>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_document(application_id, file_key):
+def get_document(application_number, file_key):
     """
     Get document.
     ---
@@ -497,10 +498,10 @@ def get_document(application_id, file_key):
       - application
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application Id
+        description: Application Number
       - in: path
         name: file_key
         type: string
@@ -520,7 +521,7 @@ def get_document(application_id, file_key):
     try:
         # only allow fetch for applications that belong to the user
         account_id = request.headers.get("Account-Id", None)
-        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
         if not application:
             raise AuthException()
         application_documents = [
@@ -544,11 +545,11 @@ def get_document(application_id, file_key):
         return exception_response(external_exception)
 
 
-@bp.route("/<application_id>/documents/<file_key>", methods=("DELETE",))
+@bp.route("/<application_number>/documents/<file_key>", methods=("DELETE",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def delete_document(application_id, file_key):
+def delete_document(application_number, file_key):
     """
     Delete document.
     ---
@@ -556,10 +557,10 @@ def delete_document(application_id, file_key):
       - application
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application Id
+        description: Application Number
       - in: path
         name: file_key
         type: string
@@ -579,7 +580,7 @@ def delete_document(application_id, file_key):
     try:
         # only allow upload for registrations that belong to the user
         account_id = request.headers.get("Account-Id", None)
-        application = ApplicationService.get_application(application_id=application_id, account_id=account_id)
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
         if not application:
             raise AuthException()
 
@@ -591,11 +592,11 @@ def delete_document(application_id, file_key):
         return exception_response(external_exception)
 
 
-@bp.route("/<application_id>/payment/receipt", methods=("GET",))
+@bp.route("/<application_number>/payment/receipt", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_payment_receipt(application_id):
+def get_payment_receipt(application_number):
     """
     Get application payment receipt.
     ---
@@ -603,10 +604,10 @@ def get_payment_receipt(application_id):
       - application
     parameters:
       - in: path
-        name: application_id
-        type: integer
+        name: application_number
+        type: string
         required: true
-        description: Application Id
+        description: Application Number
     responses:
       200:
         description:
@@ -615,7 +616,7 @@ def get_payment_receipt(application_id):
     """
 
     try:
-        application = ApplicationService.get_application(application_id=application_id)
+        application = ApplicationService.get_application(application_number=application_number)
         if not application:
             raise AuthException()
 

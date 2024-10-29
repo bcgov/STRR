@@ -1,0 +1,104 @@
+{
+  "registration": {
+    "registrationType": "HOST",
+    "primaryContact": {
+      "name": {
+        "firstName": "The",
+        "middleName": "First",
+        "lastName": "Guy"
+      },
+      "dateOfBirth": "1986-10-23",
+      "details": {
+        "preferredName": "Mickey",
+        "phoneNumber": "604-999-9999",
+        "extension": "x64",
+        "faxNumber": "604-777-7777",
+        "emailAddress": "test@test.test"
+      },
+      "mailingAddress": {
+        "country": "CA",
+        "address": "12766 227st",
+        "addressLineTwo": "",
+        "city": "MAPLE RIDGE",
+        "province": "BC",
+        "postalCode": "V2X 6K6"
+      }
+    },
+    "secondaryContact": {
+      "name": {
+        "firstName": "The",
+        "middleName": "Other",
+        "lastName": "Guy"
+      },
+      "dateOfBirth": "1986-10-23",
+      "details": {
+        "preferredName": "Mouse",
+        "phoneNumber": "604-888-8888",
+        "extension": "",
+        "faxNumber": "",
+        "emailAddress": "test2@test.test"
+      },
+      "mailingAddress": {
+        "country": "CA",
+        "address": "12766 227st",
+        "addressLineTwo": "",
+        "city": "MAPLE RIDGE",
+        "province": "BC",
+        "postalCode": "V2X 6K6"
+      }
+    },
+    "unitDetails": {
+      "parcelIdentifier": "000-460-991",
+      "businessLicense": "7777777",
+      "businessLicenseExpiryDate": "2025-01-01",
+      "propertyType": "SINGLE_FAMILY_HOME",
+      "ownershipType": "OWN",
+      "rentalUnitSpaceType": "ENTIRE_HOME",
+      "hostResidence":  "SAME_UNIT",
+      "isUnitOnPrincipalResidenceProperty":  true,
+      "numberOfRoomsForRent": 1
+    },
+    "unitAddress": {
+      "nickname": "My Rental Property",
+      "country": "CA",
+      "address": "12166 GREENWELL ST MAPLE RIDGE",
+      "addressLineTwo": "",
+      "city": "MAPLE RIDGE",
+      "province": "BC",
+      "postalCode": "V2X 7N1"
+    },
+    "listingDetails": [
+      {
+        "url": "https://www.airbnb.ca/rooms/26359027"
+      }
+    ],
+    "principalResidence": {
+      "isPrincipalResidence": true,
+      "agreedToRentalAct": true,
+      "nonPrincipalOption": "n/a",
+      "specifiedServiceProvider": "n/a",
+      "agreedToSubmit": true
+    },
+    "propertyManager": {
+      "businessLegalName": "Test Business",
+      "businessMailingAddress": {
+        "address": "123 GREENWELL ST MAPLE RIDGE",
+        "city": "MAPLE RIDGE",
+        "country": "CA",
+        "postalCode": "V2X 7N1",
+        "province": "BC"
+      },
+      "businessNumber": "123456789",
+      "contact": {
+        "emailAddress": "abc@def.com",
+        "extension": "",
+        "faxNumber": "",
+        "firstName": "Property",
+        "lastName": "Manager",
+        "middleName": "ABC",
+        "phoneNumber": "5567869456",
+        "preferredName": "Property Manager"
+      }
+    }
+  }
+}

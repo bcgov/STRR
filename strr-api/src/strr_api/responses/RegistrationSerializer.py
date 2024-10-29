@@ -3,7 +3,7 @@ Registration response objects.
 """
 
 from strr_api.enums.enum import RegistrationType
-from strr_api.models import Registration
+from strr_api.models import Platform, Registration
 
 
 class RegistrationSerializer:
@@ -12,31 +12,91 @@ class RegistrationSerializer:
     @classmethod
     def serialize(cls, registration: Registration):
         """Return a Registration object from a database model."""
-        documents = []
-        if registration.documents:
-            for doc in registration.documents:
-                documents.append({"fileKey": doc.path, "fileName": doc.file_name, "fileType": doc.file_type})
-
         registration_data = {
             "id": registration.id,
             "user_id": registration.user_id,
             "sbc_account_id": registration.sbc_account_id,
+            "registrationType": registration.registration_type,
             "updatedDate": registration.updated_date,
             "startDate": registration.start_date if registration.start_date else None,
             "expiryDate": registration.expiry_date if registration.expiry_date else None,
             "status": registration.status.name,
             "registration_number": registration.registration_number,
-            "documents": documents,
         }
 
         if registration.registration_type == RegistrationType.HOST.value:
             RegistrationSerializer.populate_host_registration_details(registration_data, registration)
 
+        elif registration.registration_type == RegistrationType.PLATFORM.value:
+            RegistrationSerializer.populate_platform_registration_details(registration_data, registration)
+
         return registration_data
 
     @classmethod
+    def populate_platform_registration_details(cls, registration_data: dict, registration: Registration):
+        """Populates host registration details into response object."""
+        platform: Platform = registration.platform_registration.platform
+        registration_data["businessDetails"] = {
+            "legalName": platform.legal_name,
+            "homeJurisdiction": platform.home_jurisdiction,
+            "businessNumber": platform.business_number,
+            "consumerProtectionBCLicenceNumber": platform.cpbc_licence_number,
+            "noticeOfNonComplianceEmail": platform.primary_non_compliance_notice_email,
+            "noticeOfNonComplianceOptionalEmail": platform.secondary_non_compliance_notice_email,
+            "takeDownRequestEmail": platform.primary_take_down_request_email,
+            "takeDownRequestOptionalEmail": platform.secondary_take_down_request_email,
+            "mailingAddress": {
+                "address": platform.mailingAddress.street_address,
+                "addressLineTwo": platform.mailingAddress.street_address_additional,  # noqa: E501
+                "city": platform.mailingAddress.city,
+                "postalCode": platform.mailingAddress.postal_code,
+                "province": platform.mailingAddress.province,
+                "country": platform.mailingAddress.country,
+                "locationDescription": platform.mailingAddress.location_description,
+            },
+        }
+        if platform.registered_office_attorney_mailing_address_id:
+            attorney_mailing_address = platform.registered_office_attorney_mailing_address
+            registration_data["businessDetails"]["registeredOfficeOrAttorneyForServiceDetails"] = {
+                "attorneyName": platform.attorney_name,
+                "mailingAddress": {
+                    "address": attorney_mailing_address.street_address,
+                    "addressLineTwo": attorney_mailing_address.street_address_additional,  # noqa: E501
+                    "city": attorney_mailing_address.city,
+                    "postalCode": attorney_mailing_address.postal_code,
+                    "province": attorney_mailing_address.province,
+                    "country": attorney_mailing_address.country,
+                    "locationDescription": attorney_mailing_address.location_description,
+                },
+            }
+
+        registration_data["platformRepresentatives"] = [
+            {
+                "firstName": representative.contact.firstname,
+                "middleName": representative.contact.middlename,
+                "lastName": representative.contact.lastname,
+                "phoneNumber": representative.contact.phone_number,
+                "extension": representative.contact.phone_extension,
+                "faxNumber": representative.contact.fax_number,
+                "emailAddress": representative.contact.email,
+                "jobTitle": representative.contact.job_title,
+                "phoneCountryCode": representative.contact.phone_country_code,
+            }
+            for representative in platform.representatives
+        ]
+
+        platform_brands = [{"name": brand.name, "website": brand.website} for brand in platform.brands]
+        registration_data["platformDetails"] = {"brands": platform_brands, "listingSize": platform.listing_size}
+
+    @classmethod
     def populate_host_registration_details(cls, registration_data: dict, registration: Registration):
-        """Host Registration response object."""
+        """Populates host registration details into response object."""
+        documents = []
+        if registration.documents:
+            for doc in registration.documents:
+                documents.append({"fileKey": doc.path, "fileName": doc.file_name, "fileType": doc.file_type})
+        registration_data["documents"] = documents
+
         primary_property_contact = list(filter(lambda x: x.is_primary is True, registration.rental_property.contacts))[
             0
         ]
@@ -112,8 +172,17 @@ class RegistrationSerializer:
         registration_data["unitDetails"] = {
             "parcelIdentifier": registration.rental_property.parcel_identifier,
             "businessLicense": registration.rental_property.local_business_licence,
+            "businessLicenseExpiryDate": registration.rental_property.local_business_licence_expiry_date.strftime(
+                "%Y-%m-%d"
+            )
+            if registration.rental_property.local_business_licence_expiry_date
+            else None,
             "propertyType": registration.rental_property.property_type.name,
             "ownershipType": registration.rental_property.ownership_type.name,
+            "rentalUnitSpaceType": registration.rental_property.space_type,
+            "hostResidence": registration.rental_property.host_residence,
+            "isUnitOnPrincipalResidenceProperty": registration.rental_property.is_unit_on_principal_residence_property,
+            "numberOfRoomsForRent": registration.rental_property.number_of_rooms_for_rent,
         }
 
         registration_data["listingDetails"] = [
@@ -126,3 +195,26 @@ class RegistrationSerializer:
             "nonPrincipalOption": registration.rental_property.pr_exempt_reason,
             "specifiedServiceProvider": registration.rental_property.service_provider,
         }
+
+        if property_manager := registration.rental_property.property_manager:
+            registration_data["propertyManager"] = {
+                "businessLegalName": property_manager.business_legal_name,
+                "businessNumber": property_manager.business_number,
+                "businessMailingAddress": {
+                    "address": property_manager.business_mailing_address.street_address,
+                    "city": property_manager.business_mailing_address.city,
+                    "postalCode": property_manager.business_mailing_address.postal_code,
+                    "province": property_manager.business_mailing_address.province,
+                    "country": property_manager.business_mailing_address.country,
+                },
+                "contact": {
+                    "firstName": property_manager.contact.firstname,
+                    "lastName": property_manager.contact.lastname,
+                    "middleName": property_manager.contact.middlename,
+                    "preferredName": property_manager.contact.preferredname,
+                    "phoneNumber": property_manager.contact.phone_number,
+                    "extension": property_manager.contact.phone_extension,
+                    "faxNumber": property_manager.contact.fax_number,
+                    "emailAddress": property_manager.contact.email,
+                },
+            }

@@ -7,11 +7,11 @@ import {
 export const useBreadcrumb = () => {
   const route = useRoute()
   const strrStore = useStrrStore()
-  const { getApplicationId, getApplicationNickname, getRegistrationNumber } = storeToRefs(strrStore)
+  const { getApplicationNumber, getApplicationNickname, getRegistrationNumber } = storeToRefs(strrStore)
   const { isExaminer } = useBcrosKeycloak()
   const { t } = useTranslation()
 
-  const { setApplicationId, setApplicationNickname, setRegistrationNumber } = useStrrStore()
+  const { setApplicationNumber, setApplicationNickname, setRegistrationNumber } = useStrrStore()
 
   const NO_BREADCRUMB_ROUTES = [
     RouteNamesE.TERMS_OF_SERVICE,
@@ -22,7 +22,7 @@ export const useBreadcrumb = () => {
 
   // set store values for breadcrumb
   const setupBreadcrumbData = (application: ApplicationI) => {
-    setApplicationId(application?.header.id.toString())
+    setApplicationNumber(application?.header.applicationNumber)
     setApplicationNickname(application?.registration.unitAddress.nickname)
     setRegistrationNumber(application?.header.registrationNumber)
   }
@@ -56,14 +56,14 @@ export const useBreadcrumb = () => {
     switch (currentRouteName) {
       case RouteNamesE.APPLICATION_DETAILS:
         breadcrumbLinks[1] = {
-          label: `${nickname}Application #${getApplicationId.value}`
+          label: `${nickname}Application #${getApplicationNumber.value}`
         }
         break
       case RouteNamesE.APPLICATION_DETAILS_LTSA:
       case RouteNamesE.APPLICATION_DETAILS_AUTO_APPROVAL:
         breadcrumbLinks[1] = {
-          label: `${nickname}Application #${getApplicationId.value}`,
-          to: `/${RouteNamesE.APPLICATION_DETAILS}/${getApplicationId.value}`
+          label: `${nickname}Application #${getApplicationNumber.value}`,
+          to: `/${RouteNamesE.APPLICATION_DETAILS}/${getApplicationNumber.value}`
         }
         breadcrumbLinks[2] = {
           label:

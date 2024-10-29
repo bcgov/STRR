@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strr-api"
-version = "0.0.9"
+version = "0.0.18"
 description = ""
 authors = ["thorwolpert <thor@wolpert.ca>"]
 license = "BSD 3-Clause"
@@ -14,7 +14,6 @@ launchdarkly-server-sdk = "^9.0.1"
 python-dotenv = "^1.0.0"
 flask-sqlalchemy = "^3.1.1"
 flask-migrate = "^4.0.4"
-sql-versioning = { git = "https://github.com/bcgov/lear.git", subdirectory = "python/common/sql-versioning", branch = "feature-legal-name" }
 sentry-sdk = "^1.24.0"
 flask-babel = "^4.0.0"
 flask-cors = "^4.0.0"
@@ -33,6 +32,7 @@ google-cloud-storage = "2.14.0"
 geoalchemy2 = "^0.15.1"
 weasyprint = "^62.3"
 sqlalchemy-utils = "^0.41.2"
+sql-versioning = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/sql-versioning", branch = "main" }
 
 [tool.poetry.group.test.dependencies]
 freezegun = "^1.2.2"

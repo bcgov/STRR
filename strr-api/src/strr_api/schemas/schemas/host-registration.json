@@ -74,6 +74,62 @@
         "details",
         "mailingAddress"
       ]
+    },
+    "propertyManager": {
+      "type": "object",
+      "properties": {
+        "businessLegalName": {
+          "type": "string",
+          "description": "Business Legal Name"
+        },
+        "businessNumber": {
+          "type": "string",
+          "description": "CRA Business Number"
+        },
+        "businessMailingAddress": {
+          "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
+        },
+        "contact": {
+          "type": "object",
+          "properties": {
+            "firstName": {
+              "type": "string"
+            },
+            "middleName": {
+              "type": "string"
+            },
+            "lastName": {
+              "type": "string"
+            },
+            "preferredName": {
+              "type": "string"
+            },
+            "phoneNumber": {
+              "type": "string"
+            },
+            "extension": {
+              "type": "string"
+            },
+            "faxNumber": {
+              "type": "string"
+            },
+            "emailAddress": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "required": [
+            "firstName",
+            "lastName",
+            "phoneNumber",
+            "emailAddress"
+          ]
+        }
+      },
+      "required": [
+        "businessMailingAddress",
+        "contact"
+      ]
     }
   },
   "properties": {
@@ -98,14 +154,43 @@
         "businessLicense": {
           "type": "string"
         },
+        "businessLicenseExpiryDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "rentalUnitSpaceType": {
+          "type": "string",
+          "enum": [
+            "ENTIRE_HOME",
+            "SHARED_ACCOMMODATION"
+          ]
+        },
+        "hostResidence": {
+          "type": "string",
+          "enum": [
+            "SAME_UNIT",
+            "ANOTHER_UNIT"
+          ]
+        },
+        "isUnitOnPrincipalResidenceProperty": {
+          "type": "boolean"
+        },
+        "numberOfRoomsForRent": {
+          "type": "integer"
+        },
         "propertyType": {
           "type": "string",
           "enum": [
-            "PRIMARY",
-            "SECONDARY",
-            "ACCESSORY",
-            "FLOAT_HOME",
-            "OTHER"
+            "SINGLE_FAMILY_HOME",
+            "SECONDARY_SUITE",
+            "ACCESSORY_DWELLING",
+            "MULTI_UNIT_HOUSING",
+            "TOWN_HOME",
+            "CONDO_OR_APT",
+            "RECREATIONAL",
+            "BED_AND_BREAKFAST",
+            "STRATA_HOTEL",
+            "FLOAT_HOME"
           ]
         },
         "ownershipType": {
@@ -119,7 +204,10 @@
       },
       "required": [
         "propertyType",
-        "ownershipType"
+        "ownershipType",
+        "rentalUnitSpaceType",
+        "isUnitOnPrincipalResidenceProperty",
+        "numberOfRoomsForRent"
       ]
     },
     "listingDetails": {

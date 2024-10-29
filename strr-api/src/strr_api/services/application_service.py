@@ -39,7 +39,6 @@ from strr_api.enums.enum import ApplicationType, PaymentStatus
 from strr_api.models import Application, Events, User
 from strr_api.models.application import ApplicationSerializer
 from strr_api.models.dataclass import ApplicationSearch
-from strr_api.requests import RegistrationRequest
 from strr_api.services.events_service import EventsService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.user_service import UserService
@@ -98,11 +97,12 @@ class ApplicationService:
         }
 
     @staticmethod
-    def get_application(application_id: int, account_id: Optional[int] = None) -> Application:
-        """Get the application with the specified id."""
+    def get_application(application_number: str, account_id: Optional[int] = None) -> Application:
+        """Get the application with the specified number."""
         UserService.get_or_create_user_in_context()
-        if ApplicationService.is_user_authorized_for_application(account_id, application_id):
-            return Application.find_by_id(application_id)
+        application = Application.find_by_application_number(application_number)
+        if application and ApplicationService.is_user_authorized_for_application(account_id, application.id):
+            return application
         return None
 
     @staticmethod
@@ -142,7 +142,11 @@ class ApplicationService:
         else:
             if application.payment_status_code == PaymentStatus.COMPLETED.value:
                 application.status = Application.Status.PAID
-                application.payment_completion_date = datetime.fromisoformat(invoice_details.get("paymentDate"))
+                application.payment_completion_date = (
+                    datetime.fromisoformat(invoice_details.get("paymentDate"))
+                    if invoice_details.get("paymentDate")
+                    else datetime.utcnow()
+                )
             elif application.payment_status_code == PaymentStatus.APPROVED.value:
                 application.payment_status_code = PaymentStatus.COMPLETED.value
                 application.status = Application.Status.PAID
@@ -166,9 +170,8 @@ class ApplicationService:
         application.status = application_status
 
         if application.status == Application.Status.FULL_REVIEW_APPROVED:
-            registration_request = RegistrationRequest(**application.application_json)
             registration = RegistrationService.create_registration(
-                application.submitter_id, application.payment_account, registration_request.registration
+                application.submitter_id, application.payment_account, application.application_json
             )
             EventsService.save_event(
                 event_type=Events.EventType.REGISTRATION,
@@ -194,6 +197,7 @@ class ApplicationService:
 
     @staticmethod
     def _get_event_name(application_status: Application.Status) -> str:
+        event_name = None
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
             event_name = Events.EventName.MANUALLY_APPROVED
         elif application_status == Application.Status.DECLINED:

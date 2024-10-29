@@ -130,7 +130,7 @@ const formState = reactive({
 })
 
 const validateAndSubmit = async () => {
-  if (form.value.validate()) {
+  if (form.value.validate({ silent: true })) {
     const result: SbcCreationResponseE = await createSbcRegistration(formState)
     if (result === SbcCreationResponseE.CONFLICT) {
       accountNameConflict.value = true

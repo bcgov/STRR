@@ -13,10 +13,13 @@
     >
       <p class="mb-10">
         {{ tRegistrationStatus('modal.contactInfo.contactUsFirstPart') }}
-        <a :href="`${tRegistrationStatus('modal.contactInfo.informationPageLink')}`">
+        <a
+          :href="`${tRegistrationStatus('modal.contactInfo.informationPageLink')}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {{ tRegistrationStatus('modal.contactInfo.informationPageLabel') }}
-        </a>
-        {{ tRegistrationStatus('modal.contactInfo.contactUsSecondPart') }}
+        </a>{{ tRegistrationStatus('modal.contactInfo.contactUsSecondPart') }}
       </p>
     </InfoModal>
     <div>
@@ -35,7 +38,7 @@
       <div class="flex flex-row mobile:flex-col flex-wrap">
         <div
           v-for="(application, index) in applications"
-          :key="application?.header.id"
+          :key="application?.header.applicationNumber"
           :class="[
             (applications && applications?.length > 1) ? 'desktop:w-[calc(33.33%)]' : 'desktop:w-full flex-grow flex-1',
             'flex flex-row mobile:flex-col'
@@ -99,13 +102,12 @@ definePageMeta({
   layout: 'wide-no-space'
 })
 
-/**
- * Default sorting order for applications
- */
-const applicationStatusPriority: any = {
-  [ApplicationStatusE.REJECTED]: 4,
-  [ApplicationStatusE.APPROVED]: 3,
-  [ApplicationStatusE.SUBMITTED]: 2
+const hostApplicationStatusPriority: any = {
+  [ApplicationStatusE.DECLINED]: 4,
+  [ApplicationStatusE.PROVISIONALLY_APPROVED]: 3,
+  [ApplicationStatusE.FULL_REVIEW_APPROVED]: 3,
+  [ApplicationStatusE.AUTO_APPROVED]: 3,
+  [ApplicationStatusE.PAYMENT_DUE]: 2
 }
 
 const tRegistrationStatus = (translationKey: string) => useTranslation().t(`registrationStatus.${translationKey}`)
@@ -115,13 +117,16 @@ const applications = ref<(ApplicationI | undefined)[]>()
 const res = await getApplications()
 
 if (res.total === 0) {
-  navigateTo('/create-account')
+  navigateTo('/' + RouteNamesE.CREATE_ACCOUNT)
 }
 
 applications.value = res.applications
   .sort(
-    (a: ApplicationI, b: ApplicationI) =>
-      applicationStatusPriority[a.header.status] ?? 1 - applicationStatusPriority[b.header.status] ?? 1
+    (a: ApplicationI, b: ApplicationI) => {
+      const priorityA = hostApplicationStatusPriority[a.header.hostStatus || a.header.status] ?? 1
+      const priorityB = hostApplicationStatusPriority[b.header.hostStatus || b.header.status] ?? 1
+      return priorityB - priorityA
+    }
   )
   .sort((a: ApplicationI, b: ApplicationI) =>
     a.registration.unitAddress.city.localeCompare(b.registration.unitAddress.city)

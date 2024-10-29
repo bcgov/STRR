@@ -1,0 +1,21 @@
+name: STRR PLATFORM UI CI
+
+on:
+  pull_request:
+    paths:
+      - "strr-platform-web/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./strr-platform-web
+
+jobs:
+  platform-ui-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@main
+    with:
+      app_name: "strr-platform-ui"
+      working_directory: "./strr-platform-web"
+      codecov_flag: "strrplatformui"
+      node_version: 20

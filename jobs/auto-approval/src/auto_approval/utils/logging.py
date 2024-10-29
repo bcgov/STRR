@@ -23,9 +23,9 @@ def setup_logging(conf):
 
     if conf and path.isfile(conf):
         logging.config.fileConfig(conf)
-        print("Configure logging, from conf:{}".format(conf), file=sys.stdout)
+        print(f"Configure logging, from conf:{conf}", file=sys.stdout)
     else:
         print(
-            "Unable to configure logging, attempted conf:{}".format(conf),
+            f"Unable to configure logging, attempted conf:{conf}",
             file=sys.stderr,
         )

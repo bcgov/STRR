@@ -1,6 +1,5 @@
 // @vitest-environment nuxt
 import { it, expect } from 'vitest'
-import { CreateAccountFormStateI, formStateToApi } from '#imports'
 
 it('begins with empty address', () => {
   const firstName = 'first'
@@ -9,7 +8,7 @@ it('begins with empty address', () => {
   const propertyType = 'propertyType'
   const ownershipType = 'ownershipType'
 
-  const primary = {
+  const primary: PrimaryContactInformationI = {
     preferredName: 'preferredName',
     phoneNumber: 'phoneNumber',
     extension: 'extension',
@@ -28,7 +27,7 @@ it('begins with empty address', () => {
     socialInsuranceNumber: 'socialInsuranceNumber'
   }
 
-  const secondary = {
+  const secondary: SecondaryContactInformationI = {
     preferredName: 'preferredNameSecondary',
     phoneNumber: 'phoneNumberSecondary',
     extension: 'extensionSecondary',
@@ -50,14 +49,41 @@ it('begins with empty address', () => {
     socialInsuranceNumber: 'socialInsuranceNumberSecondary'
   }
 
+  const propertyManager: PropertyManagerI = {
+    businessLegalName: 'businessLegalName',
+    businessNumber: 'businessNumber',
+    businessMailingAddress: {
+      address: 'address',
+      addressLineTwo: 'addressLineTwo',
+      city: 'city',
+      postalCode: 'postalCode',
+      province: 'province',
+      country: 'country'
+    },
+    contact: {
+      firstName: 'firstName',
+      middleName: 'middleName',
+      lastName: 'lastName',
+      preferredName: 'preferredName',
+      phoneNumber: 'phoneNumber',
+      extension: 'extension',
+      faxNumber: 'faxNumber',
+      emailAddress: 'emailAddress'
+    }
+  }
+
   const createAccountState: CreateAccountFormStateI = {
     primaryContact: primary,
     secondaryContact: secondary,
+    isPropertyManagerRole: false,
+    hasPropertyManager: false,
+    propertyManager,
     propertyDetails: {
       primaryResidence: 'primaryResidence',
       whichPlatform: 'whichPlatform',
       parcelIdentifier: 'parcelIdentifier',
       businessLicense: 'businessLicense',
+      businessLicenseExpiryDate: 'businessLicenseExpiryDate',
       propertyType: 'propertyType',
       ownershipType: 'ownershipType',
       nickname: 'nickname',
@@ -67,7 +93,11 @@ it('begins with empty address', () => {
       city: 'city',
       province: 'province',
       postalCode: 'postalCode',
-      listingDetails: [{ url: 'https://www.airbnb.com' }]
+      listingDetails: [{ url: 'https://www.airbnb.com' }],
+      rentalUnitSpaceType: '',
+      isUnitOnPrincipalResidenceProperty: false,
+      hostResidence: '',
+      numberOfRoomsForRent: 0
     },
     selectedAccount: {} as OrgI,
     principal: {} as PrincipalResidenceI,

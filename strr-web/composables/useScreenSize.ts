@@ -9,10 +9,12 @@ const useScreenSize = () => {
     height.value = window.innerHeight
   }
 
+  const isMobile = computed(() => width.value <= 1263)
+
   onMounted(() => window.addEventListener('resize', handler))
   onUnmounted(() => window.removeEventListener('resize', handler))
 
-  return { width, height }
+  return { width, height, isMobile }
 }
 
 export default useScreenSize

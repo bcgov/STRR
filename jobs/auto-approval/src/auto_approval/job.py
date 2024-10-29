@@ -19,6 +19,8 @@ from http import HTTPStatus
 
 import requests
 from flask import Flask
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import HTTPError, RequestException, Timeout
 from sentry_sdk.integrations.logging import LoggingIntegration
 from strr_api.models import db
 from strr_api.models.application import Application
@@ -65,35 +67,42 @@ def get_submitted_applications(app):
 
 def process_applications(app, applications):
     """Process auto-approval for submitted applications."""
-    token = AuthService.get_service_client_token()
+    AuthService.get_service_client_token()
     for application in applications:
         app.logger.info(f"Auto processing application {str(application.id)}")
-        application_status, registration_id = ApprovalService.process_auto_approval(
-            token=token, application=application
+        ApprovalService.process_auto_approval(application=application)
+        # _generate_certificate(app, token, application_status, registration_id)
+
+
+def _generate_certificate(app, token, application_status, registration_id):
+    if (
+        application_status
+        and application_status == Application.Status.AUTO_APPROVED
+        and registration_id
+    ):
+        url = (
+            f"{app.config.get('STRR_API_URL')}"
+            f"/registrations/{registration_id}"
+            f"/certificate"
         )
-        if (
-            application_status
-            and application_status == Application.Status.AUTO_APPROVED
-            and registration_id
-        ):
-            url = (
-                f"{app.config.get('STRR_API_URL')}"
-                f"/registrations/{registration_id}"
-                f"/certificate"
-            )
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-            }
-            try:
-                response = requests.post(url, headers=headers)
-                if response.status_code != HTTPStatus.CREATED:
-                    app.logger.error(
-                        f"Unexpected response error: Status Code: {response.status_code}, "
-                        f"URL: {url}"
-                    )
-            except Exception as e:
-                app.logger.error(f"Request failed:", e)
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+        try:
+            response = requests.post(url, headers=headers, timeout=10)
+            response.raise_for_status()  # Raises HTTPError for 4xx/5xx responses
+            if response.status_code != HTTPStatus.CREATED:
+                app.logger.error(
+                    f"Unexpected response error: Status Code: {response.status_code}, "
+                    f"URL: {url}"
+                )
+        except (Timeout, RequestsConnectionError, HTTPError) as e:
+            app.logger.error(f"Request failed due to network error: {e}")
+        except RequestException as e:  # Catch all other requests exceptions
+            app.logger.error(f"Request error: {e}")
+        except Exception as e:  # pylint: disable=broad-except
+            app.logger.error(f"Unexpected error occurred: {e}", exc_info=True)
 
 
 def run():
@@ -104,5 +113,5 @@ def run():
             app.logger.info("Starting auto approval job")
             applications = get_submitted_applications(app)
             process_applications(app, applications)
-    except Exception as err:
+    except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")

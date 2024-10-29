@@ -47,6 +47,7 @@
         <UFormGroup name="faxNumber" class="flex-grow">
           <UInput
             v-model="faxNumber"
+            type="tel"
             :placeholder="t('createAccount.contactForm.faxNumber')"
             aria-label="fax number"
           />

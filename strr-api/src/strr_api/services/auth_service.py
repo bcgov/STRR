@@ -99,10 +99,20 @@ class AuthService:
     @classmethod
     def get_sbc_accounts_mailing_address(cls, bearer_token, account_id):
         """Return mailing address for given sbc account"""
-
+        mailing_address = None
         endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/orgs/{account_id}"
         user_account_details = RestService.get(endpoint=endpoint, token=bearer_token).json()
-        return SBCMailingAddress(**user_account_details["mailingAddress"])
+        if mailing_address_dict := user_account_details.get("mailingAddress", {}):
+            if mailing_address_dict.get("street"):
+                mailing_address = SBCMailingAddress(
+                    street=mailing_address_dict.get("street"),
+                    city=mailing_address_dict.get("city"),
+                    region=mailing_address_dict.get("region"),
+                    postalCode=mailing_address_dict.get("postalCode"),
+                    country=mailing_address_dict.get("country"),
+                    streetAdditional=mailing_address_dict.get("streetAdditional", None),
+                )
+        return mailing_address
 
     @classmethod
     @user_context

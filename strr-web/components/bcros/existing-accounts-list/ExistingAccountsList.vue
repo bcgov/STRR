@@ -61,8 +61,9 @@ import { formState } from '@/stores/strr'
 
 const { accounts } = defineProps<{ accounts: OrgI[] }>()
 const { t } = useTranslation()
-const { goToCreateAccount, goToCreateSbcAccount } = useBcrosNavigate()
+const { goToHostDashboard, goToExaminerDashboard, goToCreateSbcAccount } = useBcrosNavigate()
 const { switchCurrentAccount } = useBcrosAccount()
+const { isExaminer } = storeToRefs(useBcrosKeycloak())
 
 const createButtonAction = () => {
   goToCreateSbcAccount()
@@ -71,7 +72,8 @@ const createButtonAction = () => {
 const chooseButtonAction = (account: OrgI) => {
   switchCurrentAccount(account.id)
   formState.selectedAccount = account
-  goToCreateAccount()
+  // redirect to correct dashboard based on user type/role
+  isExaminer.value ? goToExaminerDashboard() : goToHostDashboard()
 }
 
 const useAccountButton = t('account.existingAccountSection.useAccountButton')

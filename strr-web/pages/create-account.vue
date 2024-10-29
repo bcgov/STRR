@@ -11,28 +11,29 @@
               data-test-id="create-application-title"
               class="mobile:pb-[20px]"
             />
-            <div class="flex flex-row items-center mb-6">
+            <div class="flex d:flex-row m:flex-col mb-8">
               <InfoModal
                 :header="t('createAccount.modal.contactInfo.header')"
                 :open-button-label="t('createAccount.modal.contactInfo.openButtonLabel')"
                 :hide-contact-info="false"
-                class="mb-6"
               >
                 <p class="mb-10">
                   {{ t('createAccount.modal.contactInfo.contactUsFirstPart') }}
-                  <a :href="`${t('createAccount.modal.contactInfo.informationPageLink')}`">
+                  <a
+                    :href="`${t('createAccount.modal.contactInfo.informationPageLink')}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {{ t('createAccount.modal.contactInfo.informationPageLabel') }}
-                  </a>
-                  {{ t('createAccount.modal.contactInfo.contactUsSecondPart') }}
+                  </a>{{ t('createAccount.modal.contactInfo.contactUsSecondPart') }}
                 </p>
               </InfoModal>
-              <div class="self-stretch w-px bg-gray-300 mx-4" />
+              <div class="m:hidden self-stretch w-px bg-bcGovColor-formFieldLines mx-4 h-6" />
               <InfoModal
                 :header="t('createAccount.modal.bcrosFoippaNotice.header')"
                 :open-button-label="t('createAccount.modal.bcrosFoippaNotice.openButtonLabel')"
                 :open-button-icon="'i-mdi-info-circle-outline'"
                 :hide-contact-info="true"
-                class="mb-6"
               >
                 <p class="mb-10">
                   {{ $t('createAccount.modal.bcrosFoippaNotice.noticeTextFirstPart') }}
@@ -59,6 +60,11 @@
               </p>
             </div>
             <div v-if="activeStepIndex === 0" :key="activeStepIndex">
+              <BcrosFormSectionPropertyManagerForm
+                :is-complete="steps[activeStepIndex].step.complete"
+              />
+            </div>
+            <div v-if="activeStepIndex === 1" :key="activeStepIndex">
               <BcrosFormSectionContactInformationForm
                 ref="contactForm"
                 :full-name="userFullName"
@@ -68,13 +74,13 @@
                 :second-form-is-complete="activeStep.step.complete"
               />
             </div>
-            <div v-if="activeStepIndex === 1" :key="activeStepIndex">
-              <BcrosFormSectionPropertyForm :is-complete="activeStep.step.complete" />
-            </div>
             <div v-if="activeStepIndex === 2" :key="activeStepIndex">
-              <BcrosFormSectionPrincipalResidenceForm :is-complete="steps[activeStepIndex].step.complete" />
+              <BcrosFormSectionPropertyForm :is-complete="steps[activeStepIndex].step.complete" />
             </div>
             <div v-if="activeStepIndex === 3" :key="activeStepIndex">
+              <BcrosFormSectionPrincipalResidenceForm :is-complete="steps[activeStepIndex].step.complete" />
+            </div>
+            <div v-if="activeStepIndex === 4" :key="activeStepIndex">
               <BcrosFormSectionReviewForm
                 :secondary-contact="hasSecondaryContact"
                 :is-complete="steps[activeStepIndex].step.complete"
@@ -100,8 +106,8 @@
 
 <script setup lang="ts">
 import steps from '../page-data/create-account/steps'
-import { FormPageI } from '~/interfaces/form/form-page-i'
 import InfoModal from '~/components/common/InfoModal.vue'
+import { FormPageI } from '~/interfaces/form/form-page-i'
 
 const hasSecondaryContact: Ref<boolean> = ref(false)
 const activeStepIndex: Ref<number> = ref(0)
@@ -125,7 +131,7 @@ const { createApplication } = useApplications()
 onMounted(() => {
   // if no SBC accounts exist redirect to SBC account creation
   if (!me?.settings.length) {
-    navigateTo('/finalization')
+    navigateTo('/' + RouteNamesE.FINALIZATION)
   }
   updateFees()
 })
@@ -158,11 +164,12 @@ const ownershipToApiType = (type: string | undefined): string => {
 }
 
 const submit = () => {
-  validateStep(primaryContactSchema, formState.primaryContact, 0)
+  validatePropertyManagerStep()
+  validateStep(primaryContactSchema, formState.primaryContact, 1)
   if (hasSecondaryContact.value) {
-    validateStep(secondaryContactSchema, formState.secondaryContact, 0)
+    validateStep(secondaryContactSchema, formState.secondaryContact, 1)
   }
-  validateStep(propertyDetailsSchema, formState.propertyDetails, 1)
+  validateStep(propertyDetailsSchema, formState.propertyDetails, 2)
   validateProofPage()
   validateReviewPage()
   headerUpdateKey.value++
@@ -173,7 +180,10 @@ const submit = () => {
       userLastName,
       hasSecondaryContact.value,
       propertyToApiType(formState.propertyDetails.propertyType),
-      ownershipToApiType(formState.propertyDetails.ownershipType)
+      ownershipToApiType(formState.propertyDetails.ownershipType),
+      formState.propertyDetails.rentalUnitSpaceType,
+      formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
+      formState.propertyDetails.numberOfRoomsForRent
     )
   } else {
     scrollToTop()
@@ -195,37 +205,49 @@ const validateStep = (schema: any, state: any, index: number) => {
   steps[index].step.isValid = schema.safeParse(state).success
 }
 
+const validatePropertyManagerStep = () => {
+  if (!formState.isPropertyManagerRole && !formState.hasPropertyManager) {
+    steps[0].step.isValid = true
+  } else {
+    validateStep(propertyManagerSchema, formState.propertyManager, 0)
+  }
+}
+
+watch(formState.propertyManager, () => {
+  validatePropertyManagerStep()
+})
+
 watch(formState.primaryContact, () => {
-  validateStep(primaryContactSchema, formState.primaryContact, 0)
+  validateStep(primaryContactSchema, formState.primaryContact, 1)
 })
 
 watch(formState.secondaryContact, () => {
-  validateStep(secondaryContactSchema, formState.secondaryContact, 0)
+  validateStep(secondaryContactSchema, formState.secondaryContact, 1)
 })
 
 watch(formState.propertyDetails, () => {
-  validateStep(propertyDetailsSchema, formState.propertyDetails, 1)
+  validateStep(propertyDetailsSchema, formState.propertyDetails, 2)
 })
 
 const validateProofPage = () => {
   if (formState.principal.isPrincipal && formState.principal.declaration && formState.supportingDocuments.length > 0) {
-    setStepValid(2, true)
+    setStepValid(3, true)
   } else if (
     !formState.principal.isPrincipal &&
     formState.principal.reason &&
     formState.principal.reason !== tPrincipalResidence('other')
   ) {
-    setStepValid(2, true)
+    setStepValid(3, true)
   } else if (!formState.principal.isPrincipal && formState.principal.reason && formState.principal.otherReason) {
-    setStepValid(2, true)
+    setStepValid(3, true)
   } else {
-    setStepValid(2, false)
+    setStepValid(3, false)
   }
 }
 
 const validateReviewPage = () => {
-  setStepValid(3, formState.principal.agreeToSubmit)
-  steps[3].step.complete = true
+  setStepValid(4, formState.principal.agreeToSubmit)
+  steps[4].step.complete = true
 }
 
 watch(formState.supportingDocuments, () => {
@@ -238,21 +260,24 @@ watch(formState.principal, () => {
 
 const validateSteps = () => {
   if (activeStepIndex.value === 0) {
-    validateStep(primaryContactSchema, formState.primaryContact, 0)
-    if (hasSecondaryContact.value) {
-      validateStep(secondaryContactSchema, formState.secondaryContact, 0)
-    }
+    validatePropertyManagerStep()
   } else if (activeStepIndex.value === 1) {
-    validateStep(propertyDetailsSchema, formState.propertyDetails, 1)
+    validateStep(primaryContactSchema, formState.primaryContact, 1)
+    if (hasSecondaryContact.value) {
+      validateStep(secondaryContactSchema, formState.secondaryContact, 1)
+    }
   } else if (activeStepIndex.value === 2) {
-    validateProofPage()
+    validateStep(propertyDetailsSchema, formState.propertyDetails, 2)
   } else if (activeStepIndex.value === 3) {
+    validateProofPage()
+  } else if (activeStepIndex.value === 4) {
     validateReviewPage()
   }
 }
 
 const setNextStep = () => {
   if (activeStepIndex.value < steps.length - 1) {
+    validateSteps()
     const nextStep = activeStepIndex.value + 1
     activeStepIndex.value = nextStep
     activeStep.value = steps[activeStepIndex.value]
@@ -263,6 +288,7 @@ const setNextStep = () => {
 
 const setPreviousStep = () => {
   if (activeStepIndex.value > 0) {
+    validateSteps()
     const nextStep = activeStepIndex.value - 1
     activeStepIndex.value = nextStep
     activeStep.value = steps[activeStepIndex.value]

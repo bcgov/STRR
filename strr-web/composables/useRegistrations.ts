@@ -10,7 +10,7 @@ export const useRegistrations = () => {
   const getRegistrations = () => axiosInstance.get<PaginatedRegistrationsI>(`${apiURL}/registrations`)
     .then((res) => {
       if (res.data.count === 0) {
-        navigateTo('/create-account')
+        navigateTo('/' + RouteNamesE.CREATE_ACCOUNT)
       }
       return res.data.results
         .sort(
@@ -45,7 +45,7 @@ export const useRegistrations = () => {
     axiosInstance.post(`${apiURL}/registrations/${id}/approve`)
       .then(() => window.location.reload())
 
-  const issueCertificate = (id: string): Promise<any> =>
+  const issueCertificate = (id: number): Promise<any> =>
     axiosInstance.post(`${apiURL}/registrations/${id}/certificate`)
       .then(() => window.location.reload())
 
@@ -74,13 +74,14 @@ export const useRegistrations = () => {
     )
       .then(res => res.data)
 
+  // TODO: possibly not needed anymore
   const getStatusPriority = (status: string) => {
     switch (status) {
-      case 'DENIED':
+      case 'ACTIVE':
         return 4
-      case 'APPROVED':
+      case 'EXPIRED':
         return 3
-      case 'PENDING':
+      case 'SUSPENDED':
         return 2
       default:
         return 1
@@ -101,17 +102,17 @@ export const useRegistrations = () => {
       }>(`${apiURL}/accounts`,
         registration
       )
-      .then((res) => {
+      .then(async (res) => {
         if (res.data) {
           const { setAccountInfo } = useBcrosAccount()
-          setAccountInfo(res.data.sbc_account_id)
-          navigateTo('/create-account')
+          await setAccountInfo(res.data.sbc_account_id)
+          navigateTo('/' + RouteNamesE.CREATE_ACCOUNT)
           return SbcCreationResponseE.SUCCESS
         }
         return SbcCreationResponseE.ERROR
       })
       .catch((err) => {
-        if (err.status === '403') { return SbcCreationResponseE.CONFLICT }
+        if (err.status === '400') { return SbcCreationResponseE.CONFLICT }
         return SbcCreationResponseE.ERROR
       })
 

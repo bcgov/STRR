@@ -7,6 +7,35 @@
         </p>
       </div>
       <UForm ref="form" :schema="propertyDetailsSchema" :state="formState.propertyDetails">
+        <BcrosFormSectionPropertyDetails
+          v-model:property-type="formState.propertyDetails.propertyType"
+          v-model:ownership-type="formState.propertyDetails.ownershipType"
+          v-model:business-license="formState.propertyDetails.businessLicense"
+          v-model:parcel-identifier="formState.propertyDetails.parcelIdentifier"
+          v-model:business-license-expiry-date="formState.propertyDetails.businessLicenseExpiryDate"
+          v-model:rental-unit-space-type="formState.propertyDetails.rentalUnitSpaceType"
+          v-model:is-unit-on-principal-residence-property="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
+          v-model:host-residence="formState.propertyDetails.hostResidence"
+          v-model:number-of-rooms-for-rent="formState.propertyDetails.numberOfRoomsForRent"
+          :property-types="propertyTypes"
+          :ownership-types="ownershipTypes"
+          :rental-unit-space-type-options="rentalUnitSpaceTypeOptions"
+          :principal-residence-options="principalResidenceOptions"
+          :host-residence-options="hostResidenceOptions"
+          :ownership-type-error="ownershipTypeError"
+          :property-type-error="propertyTypeError"
+          :rental-unit-space-type-error="rentalUnitSpaceTypeError"
+          :principal-residence-error="principalResidenceError"
+          :host-residence-error="hostResidenceError"
+          :number-of-rooms-for-rent-error="numberOfRoomsForRentError"
+          @validate-ownership="validateOwnershipType"
+          @validate-property="validatePropertyType"
+          @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
+          @validate-rental-unit-space-type="validateRentalUnitSpaceType"
+          @validate-principal-residence="validatePrincipalResidenceOptions"
+          @validate-host-residence="validateHostResidence"
+          @validate-number-of-rooms-for-rent="validateNumberOfRoomsForRent"
+        />
         <BcrosFormSectionPropertyAddress
           id="propertyAddress"
           v-model:nickname="formState.propertyDetails.nickname"
@@ -19,18 +48,6 @@
           :enable-address-complete="enableAddressComplete"
           default-country-iso2="CA"
           :address-not-in-b-c="addressNotInBC"
-        />
-        <BcrosFormSectionPropertyDetails
-          v-model:property-type="formState.propertyDetails.propertyType"
-          v-model:ownership-type="formState.propertyDetails.ownershipType"
-          v-model:business-license="formState.propertyDetails.businessLicense"
-          v-model:parcel-identifier="formState.propertyDetails.parcelIdentifier"
-          :property-types="propertyTypes"
-          :ownership-types="ownershipTypes"
-          :ownership-type-error="ownershipTypeError"
-          :property-type-error="propertyTypeError"
-          @validate-ownership="validateOwnershipType"
-          @validate-property="validatePropertyType"
         />
         <BcrosFormSectionPropertyListingDetails
           v-model:listing-details="formState.propertyDetails.listingDetails"
@@ -47,6 +64,8 @@
 
 <script setup lang="ts">
 import { sanitizeUrl } from '@braintree/sanitize-url'
+import { HostResidenceE } from '~/enums/host-residence-e'
+import { RentalUnitSpaceTypeE } from '~/enums/rental-unit-space-type-e'
 
 const { isComplete } = defineProps<{
   isComplete: boolean
@@ -73,6 +92,13 @@ watch(canadaPostAddress, (newAddress) => {
       addressNotInBC.value = true
     }
   }
+})
+
+watch(() => formState.propertyDetails.isUnitOnPrincipalResidenceProperty, (newValue) => {
+  if (!newValue) {
+    formState.propertyDetails.hostResidence = null // Reset if not required
+  }
+  validateHostResidence() // Ensure validation reflects changes
 })
 
 const { t } = useTranslation()
@@ -115,7 +141,7 @@ const validateField = (index: number) => {
       listingURLErrors.value = undefined
     } else {
       const removalIndex = listingURLErrors.value?.findIndex(nonerror => nonerror?.errorIndex === index)
-      if (removalIndex) {
+      if (removalIndex !== -1) {
         listingURLErrors.value?.splice(removalIndex, 1)
       }
     }
@@ -151,21 +177,46 @@ defineEmits<{
 }>()
 
 const propertyTypes: string[] = [
-  t('createAccount.propertyForm.primaryDwelling'),
+  t('createAccount.propertyForm.singleFamilyHome'),
   t('createAccount.propertyForm.secondarySuite'),
-  t('createAccount.propertyForm.accessory'),
-  t('createAccount.propertyForm.float'),
-  t('createAccount.propertyForm.other')
+  t('createAccount.propertyForm.accessoryDwelling'),
+  t('createAccount.propertyForm.townhome'),
+  t('createAccount.propertyForm.multiUnitHousing'),
+  t('createAccount.propertyForm.condoApartment'),
+  t('createAccount.propertyForm.recreationalProperty'),
+  t('createAccount.propertyForm.bedAndBreakfast'),
+  t('createAccount.propertyForm.strataHotel'),
+  t('createAccount.propertyForm.floatHome')
 ]
 
 const ownershipTypes: string[] = [
   t('createAccount.propertyForm.rent'),
   t('createAccount.propertyForm.own'),
-  t('createAccount.propertyForm.other')
+  t('createAccount.propertyForm.coOwn')
+]
+
+const rentalUnitSpaceTypeOptions = [
+  { value: RentalUnitSpaceTypeE.ENTIRE_HOME, label: t('createAccount.propertyForm.entireHome') },
+  { value: RentalUnitSpaceTypeE.SHARED_ACCOMMODATION, label: t('createAccount.propertyForm.sharedAccommodation') }
+]
+
+const principalResidenceOptions = [
+  { value: true, label: t('createAccount.propertyForm.yes') },
+  { value: false, label: t('createAccount.propertyForm.no') }
+]
+
+const hostResidenceOptions = [
+  { value: HostResidenceE.SAME_UNIT, label: "The host lives in this unit when it's not being rented" },
+  { value: HostResidenceE.ANOTHER_UNIT, label: 'The host lives in another unit on the same property' }
 ]
 
 const propertyTypeError = ref('')
 const ownershipTypeError = ref('')
+const businessLicenseExpiryDate = ref('')
+const rentalUnitSpaceTypeError = ref('')
+const principalResidenceError = ref('')
+const hostResidenceError = ref('')
+const numberOfRoomsForRentError = ref('')
 
 const validatePropertyType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
@@ -179,10 +230,47 @@ const validateOwnershipType = () => {
   ownershipTypeError.value = error ? error.message : ''
 }
 
+const validateBusinessLicenseExpiryDate = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('businessLicenseExpiryDate'))
+  businessLicenseExpiryDate.value = error ? error.message : ''
+}
+
+const validateRentalUnitSpaceType = () => {
+  if (!formState.propertyDetails.rentalUnitSpaceType) {
+    rentalUnitSpaceTypeError.value = t('createAccount.propertyForm.rentalUnitSpaceTypeRequired')
+  } else {
+    rentalUnitSpaceTypeError.value = ''
+  }
+}
+
+const validatePrincipalResidenceOptions = () => {
+  if (formState.propertyDetails.isUnitOnPrincipalResidenceProperty === undefined) {
+    principalResidenceError.value = t('createAccount.propertyForm.principalResidenceRequired')
+  } else {
+    principalResidenceError.value = ''
+  }
+}
+
+const validateHostResidence = () => {
+  hostResidenceError.value =
+    formState.propertyDetails.isUnitOnPrincipalResidenceProperty && !formState.propertyDetails.hostResidence
+      ? 'Please specify where the host lives on the property.'
+      : ''
+}
+
+const validateNumberOfRoomsForRent = () => {
+  if (!formState.propertyDetails.numberOfRoomsForRent || formState.propertyDetails.numberOfRoomsForRent <= 0) {
+    numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentRequired')
+  } else {
+    numberOfRoomsForRentError.value = ''
+  }
+}
+
 const form = ref()
 
 watch(form, () => {
-  if (form.value && isComplete) { form.value.validate() }
+  if (form.value && isComplete) { form.value.validate({ silent: true }) }
 })
 
 onMounted(() => {
@@ -192,7 +280,10 @@ onMounted(() => {
   if (isComplete) {
     validatePropertyType()
     validateOwnershipType()
+    validateRentalUnitSpaceType()
+    validatePrincipalResidenceOptions()
+    validateHostResidence()
+    validateNumberOfRoomsForRent()
   }
 })
-
 </script>

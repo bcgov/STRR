@@ -40,8 +40,19 @@ from flask_jwt_oidc import JwtManager
 
 from strr_api.enums.enum import RegistrationType
 from strr_api.exceptions import ExternalServiceException
-from strr_api.models import Application, Events
+from strr_api.models import Application, Events, RentalProperty
 from strr_api.services.events_service import EventsService
+from strr_api.services.user_service import UserService
+
+HOST_REGISTRATION_FEE_2 = "HOSTREG_2"
+
+HOST_REGISTRATION_FEE_1 = "HOSTREG_1"
+
+PLATFORM_SMALL_USER_BASE = "PLATREG_SM"
+
+PLATFORM_LARGE_USER_BASE = "PLATREG_LG"
+
+PLATFORM_FEE_WAIVED = "PLATREG_WV"
 
 
 class PayService:
@@ -68,14 +79,7 @@ class PayService:
     def create_invoice(self, user_jwt: JwtManager, account_id, application=None):
         """Create the invoice via the pay-api."""
         application_json = application.application_json
-        filing_type = self._get_filing_type(application_json)
-
-        payload = {
-            "filingInfo": {"filingTypes": [{"filingTypeCode": filing_type}]},
-            "businessInfo": {"corpType": "STRR"},
-            "paymentInfo": {"methodOfPayment": "DIRECT_PAY"},
-        }
-
+        payload = self._get_payment_request(application_json)
         try:
             token = user_jwt.get_token_auth_header()
             headers = {
@@ -108,18 +112,62 @@ class PayService:
             self.app.logger.debug("Pay-api integration (create invoice) failure:", repr(err))
             raise ExternalServiceException(error=repr(err), status_code=HTTPStatus.PAYMENT_REQUIRED) from err
 
-    def _get_filing_type(self, application_json):
+    def _get_payment_request(self, application_json):
         filing_type = None
+        quantity = 1
         registration_json = application_json.get("registration", {})
         registration_type = registration_json.get("registrationType")
         if registration_type == RegistrationType.HOST.value:
-            filing_type = "RENTAL_FEE"
-        if registration_type == RegistrationType.PLATFORM.value:
-            if registration_json.get("platformDetails").get("hasMoreThanThousandListings"):
-                filing_type = "PLATREG_LG"
-            else:
-                filing_type = "PLATREG_SM"
+            filing_type, quantity = self._get_host_filing_type(registration_json)
+        elif registration_type == RegistrationType.PLATFORM.value:
+            filing_type = self._get_platform_filing_type(registration_json)
+
+        filing_type_dict = {"filingTypeCode": filing_type, "quantity": quantity}
+
+        # Workaround to charge the service fee when the filing fee is 0.
+        if filing_type == PLATFORM_FEE_WAIVED:
+            filing_type_dict["fee"] = 0
+
+        payload = {"filingInfo": {"filingTypes": [filing_type_dict]}, "businessInfo": {"corpType": "STRR"}}
+
+        if registration_type == RegistrationType.HOST.value:
+            payload["paymentInfo"] = {"methodOfPayment": "DIRECT_PAY"}
+
+        if UserService.is_automation_tester():
+            payload["skipPayment"] = True
+
+        return payload
+
+    def _get_platform_filing_type(self, registration_json):
+        cpbc_number = registration_json.get("businessDetails").get("consumerProtectionBCLicenceNumber")
+        if cpbc_number and (not cpbc_number.isspace()):
+            filing_type = PLATFORM_FEE_WAIVED
+        elif registration_json.get("platformDetails").get("listingSize") == "GREATER_THAN_THOUSAND":
+            filing_type = PLATFORM_LARGE_USER_BASE
+        else:
+            filing_type = PLATFORM_SMALL_USER_BASE
         return filing_type
+
+    def _get_host_filing_type(self, registration_json):
+        quantity = 1
+        filing_type = None
+        rental_unit_space_type = registration_json.get("unitDetails").get("rentalUnitSpaceType")
+        is_rental_unit_on_principal_residence = registration_json.get("unitDetails").get(
+            "isUnitOnPrincipalResidenceProperty"
+        )
+        if rental_unit_space_type == RentalProperty.RentalUnitSpaceType.ENTIRE_HOME:
+            if is_rental_unit_on_principal_residence:
+                host_residence = registration_json.get("unitDetails").get("hostResidence")
+                if host_residence == RentalProperty.HostResidence.SAME_UNIT:
+                    filing_type = HOST_REGISTRATION_FEE_1
+                elif host_residence == RentalProperty.HostResidence.ANOTHER_UNIT:
+                    filing_type = HOST_REGISTRATION_FEE_2
+            else:
+                filing_type = HOST_REGISTRATION_FEE_2
+        elif rental_unit_space_type == RentalProperty.RentalUnitSpaceType.SHARED_ACCOMMODATION:
+            quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
+            filing_type = HOST_REGISTRATION_FEE_1
+        return filing_type, quantity
 
     def get_payment_details_by_invoice_id(self, user_jwt: JwtManager, account_id, invoice_id: int):
         """Get payment details by invoice id."""

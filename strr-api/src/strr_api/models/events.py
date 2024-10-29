@@ -7,12 +7,12 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text
 
 from strr_api.common.enum import BaseEnum, auto
-from strr_api.models.base_model import BaseModel
+from strr_api.models.base_model import SimpleBaseModel
 
 from .db import db
 
 
-class Events(BaseModel):
+class Events(SimpleBaseModel):
     """Events related to application, registration etc."""
 
     class EventType(BaseEnum):

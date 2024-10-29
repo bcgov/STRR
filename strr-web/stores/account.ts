@@ -13,8 +13,8 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
   const keycloak = useBcrosKeycloak()
   const isTosAccepted = ref(false)
   const tos = ref<TermsOfServiceI>()
-  // selected user account
-  const currentAccount: Ref<AccountI> = ref({} as AccountI)
+  // selected user account, need to store in localStorage to be available across open tabs
+  const currentAccount = ref<AccountI>(JSON.parse(localStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT) || '{}'))
   const currentAccountName = computed((): string => currentAccount.value?.label || '')
   // user info
   const user = computed(() => keycloak.kcUser)
@@ -33,12 +33,19 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
   const axiosInstance = addAxiosInterceptors(axios.create())
   const apiURL = useRuntimeConfig().public.authApiURL
 
+  // GETTERS
+
+  const getCurrentAccount = computed(() => currentAccount.value)
+
   /** Get user information from AUTH */
   async function getAuthUserProfile (identifier: string) {
-    return await axiosInstance.get<KCUserI | void>(`${apiURL}/users/${identifier}`)
+    return await axiosInstance
+      .get<KCUserI | void>(`${apiURL}/users/${identifier}`)
       .then((response) => {
         const data = response?.data
-        if (!data) { throw new Error('Invalid AUTH API response') }
+        if (!data) {
+          throw new Error('Invalid AUTH API response')
+        }
         return data
       })
       .catch((error) => {
@@ -53,7 +60,8 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
 
   /** Update user information in AUTH with current token info */
   async function updateAuthUserInfo () {
-    return await axiosInstance.post<KCUserI | void>(`${apiURL}/users`, { isLogin: true })
+    return await axiosInstance
+      .post<KCUserI | void>(`${apiURL}/users`, { isLogin: true })
       .then(response => response.data)
       .catch((error) => {
         // not too worried if this errs -- log for ops
@@ -61,29 +69,17 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
       })
   }
 
-  /** Set user name information */
-  async function setUserName () {
-    if (user.value?.loginSource === LoginSourceE.BCEID) {
-      // get from auth
-      const authUserInfo = await getAuthUserProfile('@me')
-      if (authUserInfo) {
-        userFirstName.value = authUserInfo.firstName
-        userLastName.value = authUserInfo.lastName
-      }
-      return
-    }
-    userFirstName.value = user.value?.firstName || '-'
-    userLastName.value = user.value?.lastName || ''
-  }
-
   /** Get me object for this user from STRR api */
   // TODO: TC - move this to an STRR store
   async function getMe () {
     const apiURL = useRuntimeConfig().public.strrApiURL
-    return await axiosInstance.get(`${apiURL}/accounts`)
+    return await axiosInstance
+      .get(`${apiURL}/accounts`)
       .then((response) => {
         const data = response?.data as MeI
-        if (!data) { throw new Error('Invalid STRR API response') }
+        if (!data) {
+          throw new Error('Invalid STRR API response')
+        }
         me.value = data as MeI
         return data as MeI
       })
@@ -100,11 +96,14 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
   /** Get the user's account list */
   async function getUserAccounts (keycloakGuid: string) {
     const apiURL = useRuntimeConfig().public.authApiURL
-    return await axiosInstance.get<UserSettingsI[]>(`${apiURL}/users/${keycloakGuid}/settings`)
+    return await axiosInstance
+      .get<UserSettingsI[]>(`${apiURL}/users/${keycloakGuid}/settings`)
       .then((response) => {
         const data = response?.data
-        if (!data) { throw new Error('Invalid AUTH API response') }
-        return data.filter(userSettings => (userSettings.type === UserSettingsTypeE.ACCOUNT)) as AccountI[]
+        if (!data) {
+          throw new Error('Invalid AUTH API response')
+        }
+        return data.filter(userSettings => userSettings.type === UserSettingsTypeE.ACCOUNT) as AccountI[]
       })
       .catch((error) => {
         console.warn('Error fetching user settings / account list.')
@@ -116,54 +115,68 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
       })
   }
 
+  // SETTERS
+
+  /** Set user name information */
+  async function setUserName () {
+    if (user.value?.loginSource === LoginSourceE.BCEID) {
+      // get from auth
+      const authUserInfo = await getAuthUserProfile('@me')
+      if (authUserInfo) {
+        userFirstName.value = authUserInfo.firstName
+        userLastName.value = authUserInfo.lastName
+      }
+      return
+    }
+    userFirstName.value = user.value?.firstName || '-'
+    userLastName.value = user.value?.lastName || ''
+  }
+
+  const setCurrentAccount = (account: AccountI) => {
+    currentAccount.value = account
+    localStorage.setItem(SessionStorageKeyE.CURRENT_ACCOUNT, JSON.stringify(account))
+  }
+
   /** Set the user account list and current account */
   async function setAccountInfo (currentAccountId?: string) {
-    if (!currentAccountId) {
-      // try getting id from existing session storage
-      currentAccountId = JSON.parse(sessionStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT) || '{}').id
-    }
-
-    // Retrieve the user session from session storage
-    const storedUserProfile: MeI = JSON.parse(sessionStorage.getItem(SessionStorageKeyE.USER_PROFILE) || 'null')
-
     if (user.value?.keycloakGuid) {
-      // Set user accounts from stored user profile settings or fetch from API if not available
-      userAccounts.value =
-        (storedUserProfile?.settings?.filter(settings => settings.type === UserSettingsTypeE.ACCOUNT) as AccountI[]) ||
-        (await getUserAccounts(user.value?.keycloakGuid)) ||
-        []
+      // Retrieve the user session from session storage
+      let storedUserProfile: MeI | void = JSON.parse(sessionStorage.getItem(SessionStorageKeyE.USER_PROFILE) || 'null')
 
-      if (userAccounts && userAccounts.value.length > 0) {
-        currentAccount.value = userAccounts.value[0]
-        if (currentAccountId) {
-          // if previous current account id selection information available set this as current account
-          currentAccount.value = userAccounts.value.find(account => account.id === currentAccountId) || {} as AccountI
+      // if no stored user profile or account ID is provided, fetch user profile
+      if ((!storedUserProfile || !!currentAccountId) || !currentAccount.value.id) {
+        storedUserProfile = await getMe()
+        if (storedUserProfile) {
+          sessionStorage.setItem(SessionStorageKeyE.USER_PROFILE, JSON.stringify(storedUserProfile))
         }
-        sessionStorage.setItem(SessionStorageKeyE.CURRENT_ACCOUNT, JSON.stringify(currentAccount.value))
       }
 
       // Set Me and UserOrgs refs from stored user profile or fetch from the API
       if (storedUserProfile) {
         me.value = storedUserProfile
-        userOrgs.value = storedUserProfile.orgs
-      } else {
-        const myUserProfile = await getMe()
-        if (myUserProfile) {
-          userOrgs.value = myUserProfile.orgs || []
-          sessionStorage.setItem(SessionStorageKeyE.USER_PROFILE, JSON.stringify(myUserProfile))
-        }
+        userOrgs.value = storedUserProfile.orgs || []
+        // Set user accounts from stored user profile settings or fetch from API if not available
+        userAccounts.value =
+          (storedUserProfile.settings?.filter(settings => settings.type === UserSettingsTypeE.ACCOUNT) as AccountI[]) ||
+          (await getUserAccounts(user.value.keycloakGuid)) || // in most cases will not be called
+          []
+      }
+
+      // if a current account id is provided, switch to that account
+      if (currentAccountId) {
+        switchCurrentAccount(currentAccountId)
       }
     }
   }
 
   /** Switch the current account to the given account ID if it exists in the user's account list */
   function switchCurrentAccount (accountId: string) {
-    for (const i in userAccounts.value) {
-      if (userAccounts.value[i].id === accountId) {
-        currentAccount.value = userAccounts.value[i]
-      }
+    const account = userAccounts.value.find(account => account.id === accountId)
+    if (account) {
+      setCurrentAccount(account)
+    } else {
+      console.error(`Error switching account: account with id ${accountId} not found.`)
     }
-    sessionStorage.setItem(SessionStorageKeyE.CURRENT_ACCOUNT, JSON.stringify(currentAccount.value))
   }
 
   return {
@@ -171,7 +184,7 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
     me,
     tos,
     isTosAccepted,
-    currentAccount,
+    currentAccount: getCurrentAccount,
     currentAccountName,
     userAccounts,
     userOrgs,
@@ -182,6 +195,7 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
     userLastName,
     updateAuthUserInfo,
     setUserName,
+    setCurrentAccount,
     setAccountInfo,
     switchCurrentAccount
   }

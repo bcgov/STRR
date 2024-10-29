@@ -1,7 +1,8 @@
-import { AccountTypeE } from '~/enums/account-type-e'
-import { AccountStatusE } from '~/enums/account-status-e'
-import { UserSettingsTypeE } from '~/enums/user-settings-type-e'
+import { PropertyManagerI } from './property-manager-i'
 import { RegistrationTypeE } from '#imports'
+import { AccountStatusE } from '~/enums/account-status-e'
+import { AccountTypeE } from '~/enums/account-type-e'
+import { UserSettingsTypeE } from '~/enums/user-settings-type-e'
 
 export interface DateOfBirthI {
   day: string
@@ -138,21 +139,25 @@ export interface SecondaryContactInformationI extends ContactInformationI {
 }
 
 export interface PrincipalResidenceI {
-  isPrincipal: boolean | undefined
-  reason?: string
-  otherReason?: string
-  declaration: boolean
-  agreeToSubmit: boolean
+  agreedToRentalAct: boolean
+  agreedToSubmit: boolean
+  isPrincipalResidence: boolean
+  nonPrincipalOption: string
+  specifiedServiceProvider: string
 }
 
 export interface CreateAccountFormStateI {
   primaryContact: PrimaryContactInformationI
   secondaryContact: SecondaryContactInformationI
+  propertyManager: PropertyManagerI
+  isPropertyManagerRole: boolean
+  hasPropertyManager: boolean
   propertyDetails: {
     primaryResidence: string | undefined
     whichPlatform: string | undefined
     parcelIdentifier: string | undefined
     businessLicense: string | undefined
+    businessLicenseExpiryDate: string | undefined
     propertyType: string | undefined
     ownershipType: string | undefined
     nickname: string | undefined
@@ -163,6 +168,10 @@ export interface CreateAccountFormStateI {
     province: string | undefined
     postalCode: string | undefined
     listingDetails: { url: string }[]
+    rentalUnitSpaceType: string
+    isUnitOnPrincipalResidenceProperty: boolean | undefined
+    hostResidence: string | undefined
+    numberOfRoomsForRent: number
   }
   selectedAccount: OrgI
   principal: PrincipalResidenceI
@@ -223,12 +232,18 @@ export interface CreateAccountFormAPII {
     }
     primaryContact?: ContactAPII
     secondaryContact?: ContactAPII
+    propertyManager?: PropertyManagerI
     unitAddress: UnitAddressI
     unitDetails: {
       parcelIdentifier?: string
       businessLicense?: string
+      businessLicenseExpiryDate?: string
       propertyType: string
       ownershipType: string
+      rentalUnitSpaceType: string
+      isUnitOnPrincipalResidenceProperty: boolean
+      hostResidence: string
+      numberOfRoomsForRent: number
     }
     listingDetails?: { url: string }[]
     documents?: DocumentUploadI[],

@@ -41,12 +41,15 @@ from __future__ import annotations
 from datetime import datetime
 
 from flask import current_app
+from sql_versioning import Versioned
 from sqlalchemy.orm import relationship
+
+from strr_api.utils.user_context import UserContext, user_context
 
 from .db import db
 
 
-class Contact(db.Model):
+class Contact(Versioned, db.Model):
     """Contact model for storing information about non-registered users."""
 
     __tablename__ = "contacts"
@@ -55,15 +58,17 @@ class Contact(db.Model):
     firstname = db.Column(db.String(1000), nullable=False)
     lastname = db.Column(db.String(1000), nullable=False)
     middlename = db.Column(db.String(1000))
-    address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
+    address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=True)
     email = db.Column(db.String(255), nullable=True)
     preferredname = db.Column(db.String, nullable=True)
     phone_extension = db.Column(db.String, nullable=True)
+    phone_country_code = db.Column(db.String, nullable=True)
     fax_number = db.Column(db.String, nullable=True)
     phone_number = db.Column(db.String(20), nullable=True)
     date_of_birth = db.Column(db.Date, nullable=True)
     social_insurance_number = db.Column(db.String, nullable=True)
     business_number = db.Column(db.String, nullable=True)
+    job_title = db.Column(db.String, nullable=True)
 
     address = relationship("Address", back_populates="contact")
 
@@ -88,8 +93,6 @@ class User(db.Model):
     idp_userid = db.Column(db.String(256), index=True)
     login_source = db.Column(db.String(200), nullable=True)
     creation_date = db.Column(db.DateTime(timezone=True), default=datetime.now)
-
-    registrations = relationship("Registration")
 
     @property
     def display_name(self):
@@ -190,3 +193,12 @@ class User(db.Model):
         """Cannot delete User records."""
         return self
         # need to intercept the ORM and stop Users from being deleted
+
+    @classmethod
+    @user_context
+    def find_user_in_context(cls, **kwargs) -> User:
+        """Find the user in context."""
+        usr_context: UserContext = kwargs["user_context"]
+        if usr_context and usr_context.token_info:
+            return User.find_by_jwt_token(usr_context.token_info)
+        return None

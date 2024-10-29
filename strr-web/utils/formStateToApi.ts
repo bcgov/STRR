@@ -48,7 +48,9 @@ export const formStateToApi = (
 
   const setListingDetails = () => {
     formData.registration.listingDetails =
-      formState.propertyDetails.listingDetails[0].url !== '' ? formState.propertyDetails.listingDetails : []
+      formState.propertyDetails.listingDetails[0].url !== ''
+        ? formState.propertyDetails.listingDetails
+        : []
   }
 
   const setUnitAddress = () => {
@@ -64,11 +66,26 @@ export const formStateToApi = (
   }
 
   const setUnitDetails = () => {
+    const {
+      parcelIdentifier,
+      businessLicense,
+      businessLicenseExpiryDate,
+      rentalUnitSpaceType,
+      isUnitOnPrincipalResidenceProperty,
+      hostResidence,
+      numberOfRoomsForRent
+    } = formState.propertyDetails
+
     formData.registration.unitDetails = {
-      parcelIdentifier: formState.propertyDetails.parcelIdentifier,
+      parcelIdentifier,
       propertyType,
       ownershipType,
-      businessLicense: formState.propertyDetails.businessLicense
+      businessLicense,
+      rentalUnitSpaceType,
+      isUnitOnPrincipalResidenceProperty,
+      numberOfRoomsForRent,
+      ...(businessLicense ? { businessLicenseExpiryDate } : {}), // include exp date only if business license exists
+      ...(isUnitOnPrincipalResidenceProperty ? { hostResidence } : {})
     }
   }
 
@@ -96,10 +113,42 @@ export const formStateToApi = (
     delete formData.registration.secondaryContact
   }
 
+  const setPropertyManager = () => {
+    const shouldHavePropertyManager =
+      formState.isPropertyManagerRole ||
+      (!formState.isPropertyManagerRole && formState.hasPropertyManager)
+    if (shouldHavePropertyManager && formState.propertyManager) {
+      formData.registration.propertyManager = {
+        businessLegalName: formState.propertyManager.businessLegalName,
+        businessNumber: formState.propertyManager.businessNumber,
+        businessMailingAddress: {
+          address: formState.propertyManager.businessMailingAddress.address ?? '',
+          addressLineTwo: formState.propertyManager.businessMailingAddress.addressLineTwo,
+          city: formState.propertyManager.businessMailingAddress.city ?? '',
+          postalCode: formState.propertyManager.businessMailingAddress.postalCode ?? '',
+          province: formState.propertyManager.businessMailingAddress.province ?? '',
+          country: formState.propertyManager.businessMailingAddress.country ?? ''
+        },
+        contact: {
+          firstName: formState.propertyManager.contact.firstName ?? '',
+          middleName: formState.propertyManager.contact.middleName,
+          lastName: formState.propertyManager.contact.lastName ?? '',
+          preferredName: formState.propertyManager.contact.preferredName,
+          phoneNumber: formState.propertyManager.contact.phoneNumber ?? '',
+          extension: formState.propertyManager.contact.extension,
+          faxNumber: formState.propertyManager.contact.faxNumber,
+          emailAddress: formState.propertyManager.contact.emailAddress ?? ''
+        }
+      }
+    } else {
+      delete formData.registration.propertyManager
+    }
+  }
+
   setListingDetails()
   setUnitAddress()
   setUnitDetails()
   setPrincipalResidence()
-
+  setPropertyManager()
   return formData
 }

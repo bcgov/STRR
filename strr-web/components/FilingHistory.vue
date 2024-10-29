@@ -14,9 +14,9 @@ const hasHistory: boolean = history.length > 0
 
 <template>
   <div data-test-id="filing-history">
-    <h3 class="font-bold mb-6 mobile:mx-2">
+    <h2 class="font-bold mb-6 mobile:mx-2 text-xl">
       {{ header }}
-    </h3>
+    </h2>
     <div class="bg-white py-[22px] px-[30px] mobile:px-2">
       <div v-if="hasHistory" class="flex flex-col w-full justify-between">
         <div

@@ -34,17 +34,20 @@
 #
 """This Module processes simple cloud event messages for possible strr application payments.
 """
-import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone
 from http import HTTPStatus
+import re
 from typing import Optional
 
-from flask import Blueprint, request
+from flask import Blueprint
+from flask import request
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.models import Application
-from strr_pay.services import gcp_queue
 from structured_logging import StructuredLogging
+
+from strr_pay.services import gcp_queue
 
 bp = Blueprint("worker", __name__)
 
@@ -84,10 +87,7 @@ def worker():
     logger.info(f"received ce: {str(ce)}")
 
     # 2. Get payment information
-    if (
-        not (payment_token := get_payment_token(ce))
-        or payment_token.status_code != "COMPLETED"
-    ):
+    if not (payment_token := get_payment_token(ce)) or payment_token.status_code != "COMPLETED":
         # no payment info, or not a payment COMPLETED token, take off Q
         return {}, HTTPStatus.OK
 
@@ -97,7 +97,7 @@ def worker():
         # The payment token might not be there yet, put back on Q
         return {}, HTTPStatus.NOT_FOUND
 
-    if application.status != Application.Status.SUBMITTED.value:
+    if application.status != Application.Status.PAYMENT_DUE.value:
         # Already processed, so don't do anything but remove from Q
         logger.debug(f"Application not in submitted state: {str(ce)}")
         return {}, HTTPStatus.OK
@@ -126,12 +126,9 @@ class PaymentToken:
 
 def get_payment_token(ce: SimpleCloudEvent):
     """Return a PaymentToken if enclosed in the cloud event."""
+    # pylint: disable=fixme
     # TODO move to common enums for ce.type = bc.registry.payment
-    if (
-        (ce.type == "bc.registry.payment")
-        and (data := ce.data)
-        and isinstance(data, dict)
-    ):
+    if (ce.type == "bc.registry.payment") and (data := ce.data) and isinstance(data, dict):
         converted = dict_keys_to_snake_case(data)
         pt = PaymentToken(**converted)
         return pt

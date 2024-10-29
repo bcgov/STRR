@@ -31,7 +31,7 @@ const { tos, isTosAccepted } = storeToRefs(useBcrosAccount())
 
 watch(isTosAccepted, (isAccepted) => {
   if (isAccepted) {
-    navigateTo('/create-account')
+    navigateTo('/' + RouteNamesE.CREATE_ACCOUNT)
   }
 })
 

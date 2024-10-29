@@ -81,7 +81,7 @@ class Application(BaseModel):
         "application_date", db.DateTime(timezone=True), server_default=func.now()  # pylint:disable=not-callable
     )  # pylint:disable=not-callable
     type = db.Column("type", db.String(50), nullable=False, index=True)
-    status = db.Column("status", db.String(20), default=Status.DRAFT, index=True)
+    status = db.Column("status", db.String(50), default=Status.DRAFT, index=True)
     decision_date = db.Column("decision_date", db.DateTime(timezone=True))
 
     # maps to invoice id created by the pay-api (used for getting receipt)
@@ -205,6 +205,8 @@ class ApplicationSerializer:
         Application.Status.DECLINED: "Declined",
     }
 
+    HOST_ACTIONS = {Application.Status.PAYMENT_DUE: ["SUBMIT_PAYMENT"]}
+
     EXAMINER_STATUSES = {
         Application.Status.DRAFT: "Draft",
         Application.Status.PAYMENT_DUE: "Payment Due",
@@ -215,6 +217,11 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
         Application.Status.FULL_REVIEW: "Full Examination",
         Application.Status.DECLINED: "Declined",
+    }
+
+    EXAMINER_ACTIONS = {
+        Application.Status.FULL_REVIEW_APPROVED: ["ISSUE_CERTIFICATE"],
+        Application.Status.FULL_REVIEW: ["APPROVE", "REJECT"],
     }
 
     @staticmethod
@@ -228,7 +235,6 @@ class ApplicationSerializer:
         application_dict = copy.deepcopy(application.application_json)
         if not application_dict.get("header", None):
             application_dict["header"] = {}
-        application_dict["header"]["id"] = application.id
         application_dict["header"]["applicationNumber"] = application.application_number
         application_dict["header"]["name"] = application.type
         application_dict["header"]["paymentToken"] = application.invoice_id
@@ -239,6 +245,14 @@ class ApplicationSerializer:
         application_dict["header"]["examinerStatus"] = ApplicationSerializer.EXAMINER_STATUSES.get(
             application.status, ""
         )
+        application_dict["header"]["hostActions"] = ApplicationSerializer.HOST_ACTIONS.get(application.status, [])
+        application_dict["header"]["examinerActions"] = ApplicationSerializer.EXAMINER_ACTIONS.get(
+            application.status, []
+        )
+        if application.status == Application.Status.FULL_REVIEW_APPROVED:
+            certificates = application.registration.certificates
+            if certificates:
+                application_dict["header"]["examinerActions"] = []
         application_dict["header"]["applicationDateTime"] = application.application_date.isoformat()
         application_dict["header"]["decisionDate"] = (
             application.decision_date.isoformat() if application.decision_date else None
@@ -265,11 +279,13 @@ class ApplicationSerializer:
                 reviewer_display_name = f"{reviewer_display_name} {application.reviewer.lastname}"
             application_dict["header"]["reviewer"]["displayName"] = reviewer_display_name
 
+        application_dict["header"]["isCertificateIssued"] = False
         if application.registration_id:
             application_dict["header"]["registrationId"] = application.registration_id
             application_dict["header"]["registrationStartDate"] = application.registration.start_date.isoformat()
             application_dict["header"]["registrationEndDate"] = application.registration.expiry_date.isoformat()
             application_dict["header"]["registrationStatus"] = application.registration.status.value
             application_dict["header"]["registrationNumber"] = application.registration.registration_number
+            application_dict["header"]["isCertificateIssued"] = bool(application.registration.certificates)
 
         return application_dict

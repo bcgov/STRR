@@ -13,11 +13,13 @@ export default defineAppConfig({
       }
     },
     formGroup: {
-      label: { base: 'block text-base font-bold py-3 text-gray-900' }
+      label: { base: 'block text-base font-bold py-3 text-gray-900' },
+      help: 'text-gray-700 text-xs'
     },
     input: {
-      base: 'bg-gray-100 hover:bg-gray-200 h-[56px] border-b-[1px] focus:border-b-2 focus:ring-0',
+      base: 'bg-gray-100 hover:bg-gray-100 h-[56px] border-b-[1px] focus:border-b-2 focus:ring-0',
       rounded: 'rounded-none rounded-t-md',
+      placeholder: 'placeholder-gray-600',
       variant: {
         bcGov: 'border-gray-700 placeholder-gray-700 focus:border-primary-500 focus:placeholder-primary-500',
         error: 'border-red-500 focus:border-red-500 placeholder-red-500 focus:placeholder-red-500',
@@ -25,8 +27,9 @@ export default defineAppConfig({
       }
     },
     select: {
-      base: 'bg-gray-100 hover:bg-gray-200 h-[56px] border-b-[1px] focus:border-b-2 focus:ring-0',
+      base: 'bg-gray-100 hover:bg-gray-100 h-[56px] border-b-[1px] focus:border-b-2 focus:ring-0',
       rounded: 'rounded-none rounded-t-md',
+      placeholder: 'placeholder-gray-600',
       variant: {
         bcGov: 'border-gray-700',
         error: 'border-red-500'
@@ -51,8 +54,9 @@ export default defineAppConfig({
       }
     },
     textarea: {
-      base: 'bg-gray-100 hover:bg-gray-200 border-b-[1px] focus:border-b-2 h-20 focus:ring-0 text-gray-900',
+      base: 'bg-gray-100 hover:bg-gray-100 border-b-[1px] focus:border-b-2 h-20 focus:ring-0 text-gray-900',
       rounded: 'rounded-none rounded-t-md',
+      placeholder: 'placeholder-gray-600',
       variant: {
         bcGov: 'border-gray-700 placeholder-gray-700 focus:border-primary-500 focus:placeholder-primary-500',
         error: 'border-red-500 focus:border-red-500 placeholder-red-500 focus:placeholder-red-500'

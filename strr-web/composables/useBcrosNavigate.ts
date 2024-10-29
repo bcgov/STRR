@@ -34,16 +34,25 @@ export const useBcrosNavigate = () => {
     redirect(config.public.authWebURL + `account/${account.currentAccount.id}/settings/transactions`)
   }
   function goToCreateSbcAccount () {
-    router.push('/finalization')
+    router.push('/' + RouteNamesE.FINALIZATION)
+  }
+  function goToHostDashboard () {
+    router.push('/' + RouteNamesE.APPLICATION_STATUS)
+  }
+  function goToExaminerDashboard () {
+    router.push('/' + RouteNamesE.REGISTRY_DASHBOARD)
   }
   function goToCreateAccount () {
-    router.push('/create-account')
+    router.push('/' + RouteNamesE.CREATE_ACCOUNT)
   }
   function goToSetupAccount () {
     redirect(config.public.authWebURL + 'setup-account')
   }
-  function goToTosPage () {
-    router.push('/terms-of-service')
+  function goToTermsOfService () {
+    router.push('/' + RouteNamesE.TERMS_OF_SERVICE)
+  }
+  function goToAccountSelect () {
+    router.push('/' + RouteNamesE.ACCOUNT_SELECT)
   }
 
   return {
@@ -51,12 +60,15 @@ export const useBcrosNavigate = () => {
     goToBcrosHome,
     goToBcrosLogin,
     goToAccountInfo,
-    goToTosPage,
+    goToTermsOfService,
     goToCreateSbcAccount,
+    goToHostDashboard,
+    goToExaminerDashboard,
     goToCreateAccount,
     goToEditProfile,
     goToSetupAccount,
     goToTeamMembers,
-    goToTransactions
+    goToTransactions,
+    goToAccountSelect
   }
 }

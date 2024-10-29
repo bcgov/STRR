@@ -6,15 +6,20 @@
       "rentalRegistration": "Short-Term Rental Registration"
     },
     "baseModal": {
-      "closeButtonLabel": "Close" 
-    }
+      "closeButtonLabel": "Close"
+    },
+    "loadingState": "Loading, please wait...",
+    "phoneExt": "Ext."
   },
   "registryDashboard": {
-    "applicationNumber": "Application #",
-    "registrationNumber": "Registration #",
+    "applicationNumber": "Application Number",
+    "registrationNumber": "Registration Number",
     "status": "Status",
+    "registrationType": "Type",
+    "contact": "Contact",
     "nickname": "Listing Nickname",
-    "address": "Listing Address",
+    "address": "Property Address",
+    "applicantName": "Applicant Name",
     "owner": "Owner",
     "submissionDate": "Submission Date",
     "columnsToShow": "Columns to Show",
@@ -27,20 +32,8 @@
     "results": "Results",
     "location": "Location",
     "approved": "Approved",
-    "statusChip": {
-      "active": "ACTIVE",
-      "approved": "APPROVED",
-      "rejected": "REJECTED",
-      "provisional": "PROVISIONAL",
-      "underReview": "UNDER REVIEW",
-      "moreInfoNeeded": "MORE INFO NEEDED",
-      "denied": "DENIED",
-      "issued": "ISSUED",
-      "pending": "APPLIED",
-      "submitted": "SUBMITTED",
-      "paid": "PAID"
-    },
-    "modal":{
+    "downloadReceipt": "Download Receipt",
+    "modal": {
       "contactInfo": {
         "header": "Need Help?",
         "openButtonLabel": "Help with using this dashboard",
@@ -73,6 +66,33 @@
     "last": "Last Name",
     "address": "Address",
     "occupation": "Occupation"
+  },
+  "statuses": {
+    "examinerStatuses": {
+      "paid": "Paid",
+      "autoApproved": "Approved \u2013 Automatic",
+      "provisionalApproved": "Approved \u2013 Provisional",
+      "provisionalReview": "Provisional Examination",
+      "fullReviewApproved": "Approved \u2013 Examined",
+      "fullReview": "Full Examination"
+    },
+    "hostStatuses": {
+      "paid": "Pending Approval",
+      "autoApproved": "Approved",
+      "provisionalApproved": "Approved",
+      "provisionalReview": "Approved \u2013 Provisional",
+      "fullReviewApproved": "Approved",
+      "fullReview": "Pending Approval"
+    },
+    "draft": "Draft",
+    "paymentDue": "Payment Due",
+    "declined": "Declined",
+    "additionalInfoRequested": "Additional Info Requested",
+    "active": "Active",
+    "expired": "Expired",
+    "suspended": "Suspended",
+    "cancelled": "Registration Cancelled",
+    "provisional": "Provisional"
   },
   "autoApproval": {
     "autoApprovalDetails": "Automatic Approval Details",
@@ -108,8 +128,17 @@
     "unitInfo": "Rental Unit Information",
     "nickname": "Nickname",
     "businessLicense": "Business License",
-    "platformUrl": "Platform URL",
+    "businessLicenseExpiryDate": "Business License Expiry Date",
+    "listingLink": "Listing Link",
+    "listingLinkOptional": "Listing Link (Optional)",
+    "listingLinkHelp": "e.g., https://www.airbnb.ca/your_listing123",
     "ownership": "Ownership Type",
+    "rentalUnitSpaceType": "Rental Unit Space Type",
+    "ENTIRE_HOME": "Entire home",
+    "SHARED_ACCOMMODATION": "Shared accommodation",
+    "isUnitOnPrincipalResidenceProperty": "Principal Residence",
+    "true": "Yes",
+    "false": "No",
     "address": "Address",
     "propertyType": "Type of Property",
     "primaryContact": "Primary Contact Information",
@@ -122,32 +151,26 @@
     "principalResidenceReason": "Reason",
     "principalResidenceServiceProvider": "Service Provider",
     "principalResidenceNotApplies": "Principal residence does not apply or my property is exempt",
-    "principalResidenceApplies": "Pincipal residence does apply",
+    "principalResidenceApplies": "Principal residence does apply",
     "proof": "Proof of Principal Residence",
     "ltsaInfo": "LTSA Information",
     "ltsaDetails": "View LTSA Details",
     "autoApprovalLogic": "Auto-Approval Logic",
     "autoApprovalDetails": "View Auto-Approval Details",
     "filing": "Filing History",
-    "ACTIVE": "Active",
-    "PENDING": "Pending",
-    "APPROVED": "Approved",
-    "MORE_INFO_NEEDED": "Provisional",
-    "DENIED": "Denied",
-    "ISSUED": "Issued",
-    "UNDER_REVIEW": "Under Review",
-    "PROVISIONAL": "Provisional",
-    "SUBMITTED": "Submitted",
-    "PAID": "Paid",
-    "REJECTED": "Rejected",
     "coOwner": "Co-own",
     "owner": "Own",
-    "rent": "Rent"
+    "rent": "Rent",
+    "hostResidence": "Host Residence",
+    "SAME_UNIT":"The host lives in this unit when it's not being rented",
+    "ANOTHER_UNIT":"The host lives in another unit on the same property",
+    "numberOfRoomsForRent":"Number of Rooms for Rent"
   },
   "banner": {
-    "approve": "Approve",
-    "reject": "Reject",
-    "issue": "Issue Certificate"
+    "SUBMIT_PAYMENT": "Submit Payment",
+    "ISSUE_CERTIFICATE": "Issue Certificate",
+    "APPROVE": "Approve",
+    "REJECT": "Reject"
   },
   "finalization": {
     "title": "Service BC Account Creation",
@@ -163,14 +186,6 @@
     "accountName": "Account Name"
   },
   "registrationStatus": {
-    "PENDING": "PENDING",
-    "approved": "APPROVED",
-    "denied": "DENIED",
-    "APPROVED": "APPROVED",
-    "MORE_INFO_NEEDED": "PROVISIONAL",
-    "DENIED": "DENIED",
-    "applied": "APPLIED",
-    "provisional": "PROVISIONAL",
     "create": "Create New Registration",
     "myRegApplication": "My Registration Applications",
     "title": "My STR Registry Dashboard",
@@ -178,7 +193,8 @@
     "download": "Download Certificate",
     "renewal": "Renewal",
     "strrCertificate": "Short Term Rental Registry Certificate",
-    "modal":{
+    "strrReceipt": "Short Term Rental Registry Receipt",
+    "modal": {
       "contactInfo": {
         "header": "Need Help?",
         "openButtonLabel": "Help with using this dashboard",
@@ -199,18 +215,19 @@
   "createAccount": {
     "title": "Short-Term Rental Registration",
     "stepTitle": {
-      "contact": "Contact Information",
+      "propertyManager": "Property Manager Information",
+      "contact": "Host Information",
       "property": "Property Details",
       "eligibility": "Principal Residence",
       "review": "Review and Confirm"
     },
-    "modal":{
+    "modal": {
       "bcrosFoippaNotice": {
         "header": "Information Collection Notice",
         "openButtonLabel": "Information collection notice",
         "noticeTextFirstPart": "Any personal information required is collected to support the administration and enforcement of the ",
         "noticeTextSecondPart": ", under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at",
-        "email": "strbranch{'@'}gov.bc.ca",
+        "email": "STRBranch{'@'}gov.bc.ca",
         "actName": "Short-Term Rental Accommodations Act"
       },
       "contactInfo": {
@@ -233,8 +250,43 @@
       "haveAnotherProperty": "Have another rental property?",
       "startNewApplication": "Start a new application"
     },
+    "propertyManager": {
+      "title": "Step 1 - Property Manager Information",
+      "subtitle": "If there is a property manager business for this short-term rental unit, provide the contact information below.",
+      "primary": "Property Manager Information",
+      "roleRadioLegend": "What is your role?",
+      "propertyManagerRadioLegend": "Do you have a property manager who manages this rental unit on your behalf?",
+      "propertyHostRoleOption": "Property host (I'm registering my personal short-term rental unit)",
+      "propertyManagerRoleOption": "Property manager (I'm registering a short-term rental unit on behalf of a client)",
+      "yesOption": "Yes",
+      "noOption": "No"
+    },
+    "propertyManagerForm": {
+      "businessDetails": "Business Details",
+      "businessName" : "Business Legal Name (Optional)",
+      "businessNumber" : "Canada Revenue Agency Business Number (Optional)",
+      "businessMailingAddress": "Business Mailing Address",
+      "country": "Country",
+      "address": "Address",
+      "addressLineTwo":"Address Line 2 (Optional)",
+      "city": "City",
+      "province": "Province",
+      "postalCode":"Postal Code",
+      "contactName": "Contact Name",
+      "contactDetails": "Contact Details",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "middleName": "Middle Name (Optional)",
+      "preferredName": "Preferred Name (Optional)",
+      "phoneNumber": "Phone Number",
+      "extension":"Extension (Optional)",
+      "faxNumber":"Fax Number (Optional)",
+      "emailAddress":"Email Address",
+      "boldWarning": "Note: ",
+      "warning": "Email will be default method of communication. Information sent via email will be considered \"received\" on the third day after the email is sent."
+    },
     "contact": {
-      "title": "Step 1 - Contact Information",
+      "title": "Step 2 - Contact Information",
       "subtitle": "Primary Contact Information",
       "secondaryContactInfo": "Secondary Contact Information",
       "primary": "Primary Contact Information",
@@ -279,21 +331,46 @@
     "propertyForm": {
       "subtitle": "Rental Unit Information",
       "nickname": "Nickname (Optional)",
+      "nicknameHelp": "This is only to help you identify your rental unit, especially if you manage multiple properties (e.g., My Guest Suite)",
       "parcelIdentifier": "Parcel Identifier (Optional)",
-      "businessLicense": "Local Government Business License (Optional)",
+      "parcelIdentifierHelp": "This is a nine-digit number that identifies the parcel in the land title of your property.",
+      "parcelIdentifierTooltip": "You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under 'Legal Description and Parcel ID'.",
+      "businessLicense": "Local Government Business Licence (Optional)",
+      "businessLicenseHelp": "This is the business licence to operate a short-term rental as provided by your local government.",
+      "businessLicenseExpiryDate": "Business Licence Expiry Date",
+      "businessLicenseExpiryDateHelp": "Enter the Business Licence Expiry Date (YYYY-MM-DD)",
       "propertyType": "Type of Property",
       "ownershipType": "Ownership Type",
       "rentalUnitDetails": "Rental Unit Details",
-      "internetListingDetails": "Internet Listing Details",
+      "onlineListingDetails": "Online Listing Details",
+      "rentalUnitSpaceType": "What type of space is offered in this rental unit?",
+      "selectrentalUnitSpaceType": "Select the type of space",
+      "entireHome": "Entire home (guests have the entire place to themselves)",
+      "sharedAccommodation": "Shared accommodation (guests rent a bedroom with access to common spaces)",
+      "rentalUnitSpaceTypeRequired": "Type of space is required.",
+      "webLinkInfo": "Add the web link for your listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).",
       "rentalUnitAddress": "Rental Unit Address",
-      "primaryDwelling": "All or part of primary dwelling",
-      "secondarySuite": "Secondary suite",
-      "accessory": "Accessory dwelling unit",
-      "float": "Float home",
-      "other": "Other",
+      "singleFamilyHome": "Single Family Home",
+      "secondarySuite": "Secondary Suite",
+      "accessoryDwelling": "Accessory Dwelling Unit",
+      "townhome": "Townhome",
+      "multiUnitHousing": "Small scale, multi-unit housing (e.g., duplex, triplex)",
+      "condoApartment": "Condo or apartment",
+      "recreationalProperty": "Recreational property (e.g., cabin, cottage)",
+      "bedAndBreakfast": "Bed and Breakfast",
+      "strataHotel": "Strata hotel",
+      "floatHome": "Float home",
       "rent": "Rent",
       "own": "Own",
-      "coOwn": "Co-own"
+      "coOwn": "Co-own",
+      "isUnitOnPrincipalResidenceProperty": "Is the rental unit on the same property as the principal residence?",
+      "yes": "Yes",
+      "no": "No",
+      "hostResidence": "Where does the property host live on the property?",
+      "numberOfRoomsForRent": "Number of Rooms for Rent",
+      "numberOfRoomsForRentHelp": "Enter the number of rooms available for rent in this unit.",
+      "principalResidenceRequired": "Please select if the rental unit is on the same property as the principal residence.",
+      "numberOfRoomsForRentRequired": "Please specify the number of rooms available for rent."
     },
     "principalResidence": {
       "property": "Property",
@@ -334,6 +411,17 @@
       "fileRequiredError": "Please upload a supporting document"
     },
     "review": {
+      "propertyManager": {
+        "header": "Property Manager Information",
+        "businessLegalName": "Business Legal Name",
+        "craBusinessNumber": "CRA Business Number",
+        "businessMailingAddress": "Business Mailing Address",
+        "contactName": "Contact Name",
+        "preferredName": "Preferred Name",
+        "phoneNumber": "Phone Number",
+        "faxNumber": "Fax Number",
+        "emailAddress": "Email Address"
+      },
       "reviewInstructions": "Please review all of the information entered below.",
       "reviewInstructionsContinued": "Please note that some information in this application can not be changed once the form has been submitted",
       "contact": "Contact Information",
@@ -348,6 +436,7 @@
       "mailingAddress": "Mailing Address",
       "nickname": "Nickname",
       "businessLicense": "Business License",
+      "businessLicenseExpiryDate": "Business License Expiry Date",
       "address": "Address",
       "ownershipType": "Ownership Type",
       "propertyType": "Type Of Property",
@@ -358,22 +447,32 @@
       "declarationPartTwo": "I understand that if the property host does not comply with the requirement to provide the short-term rental accommodation services in the principal residence, I may be subject to enforcement action under Part 4 of the Act, including being ordered to pay an administrative penalty.",
       "declaration": "Declaration",
       "proof": "Proof of Principal Residence",
-      "listing": "Internet Listings",
+      "listing": "Online Listing Details",
       "confirm": "I confirm that the information contained in the application for registration is accurate and true. I understand that, if I have provided inaccurate or false information, I may be the subject of enforcement action under Part 4 of the Short-Term Rental Accommodations Act. Enforcement action may include being ordered to pay an administrative penalty.",
       "coOwner": "Co-own",
       "owner": "Own",
-      "rent": "Rent"
+      "rent": "Rent",
+      "rentalUnitSpaceType": "Type of Space",
+      "ENTIRE_HOME": "Entire home",
+      "SHARED_ACCOMMODATION": "Shared accommodation",
+      "isUnitOnPrincipalResidenceProperty": "On Principal Residence Property",
+      "hostResidence": "Host Residence",
+      "numberOfRoomsForRent": "Number of Rooms for Rent",
+      "true": "Yes",
+      "false": "No",
+      "SAME_UNIT":"The host lives in this unit when it's not being rented",
+      "ANOTHER_UNIT":"The host lives in another unit on the same property"
     },
     "details": {
-      "title": "Step 2 - Add Your Short Term Rental Property Details",
+      "title": "Step 3 - Add Your Short Term Rental Property Details",
       "subtitle": "Tell us more about the property you plan to offer for short-term rental. If you have other properties you want to register and offer as short-term rentals, we will ask you about them later.",
       "primary": "Rental Unit Information"
     },
     "eligibility": {
-      "title": "Step 3 - Principal Residence "
+      "title": "Step 4 - Principal Residence"
     },
     "confirm": {
-      "title": "Step 4 - Review and Confirm"
+      "title": "Step 5 - Review and Confirm"
     }
   },
   "platformApplication": {
@@ -478,7 +577,7 @@
     },
     "email": {
       "label": "Email:",
-      "value": "BCRegistries{'@'}gov.bc.ca" 
+      "value": "STRBranch{'@'}gov.bc.ca"
     }
   }
 }

@@ -1,6 +1,6 @@
 <template>
-  <div data-test-id="form-subsection" class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
-    <div class="flex flex-row justify-between w-full desktop:mb-[40px]">
+  <div data-test-id="form-subsection" class="bg-white p-8 mobile:px-[8px]">
+    <div class="flex flex-row justify-between w-full">
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between w-full mb-[24px] mobile:flex-col">
           <BcrosFormSectionReviewItem
@@ -9,11 +9,11 @@
           />
           <BcrosFormSectionReviewItem
             :title="tContact('preferred')"
-            :content="state.preferredName ? state.preferredName: '-'"
+            :content="state.preferredName || '-'"
           />
           <BcrosFormSectionReviewItem
             :title="tContact('phoneNumber')"
-            :content="state.phoneNumber?.toString() ?? '-'"
+            :content="displayPhoneAndExt(state.phoneNumber, state.extension) || '-'"
           />
         </div>
         <div class="flex flex-row justify-between w-full mb-[24px] mobile:flex-col">
@@ -43,13 +43,13 @@
           <BcrosFormSectionReviewItem
             v-else
             :title="tContact('socialInsuranceNumber')"
-            :content="getSocialInsuranceNumber()"
+            :content="state.socialInsuranceNumber || '-'"
           />
-          <div v-if="!primary && getBusinessNumber()" />
+          <div v-if="!primary && state.businessNumber" />
           <BcrosFormSectionReviewItem
             v-else
             :title="tContact('businessNumberReview')"
-            :content="getBusinessNumber()"
+            :content="state.businessNumber || '-'"
           />
         </div>
       </div>
@@ -68,20 +68,6 @@ const { state, primary } = defineProps<{
 }>()
 
 const { me } = useBcrosAccount()
-
-const getSocialInsuranceNumber = () => {
-  if ('socialInsuranceNumber' in state && state.socialInsuranceNumber) {
-    return state.socialInsuranceNumber
-  }
-  return '-'
-}
-
-const getBusinessNumber = () => {
-  if ('businessNumber' in state && state.businessNumber) {
-    return state.businessNumber
-  }
-  return '-'
-}
 
 const getNames = () => {
   const secondaryContactState: SecondaryContactInformationI = state as SecondaryContactInformationI

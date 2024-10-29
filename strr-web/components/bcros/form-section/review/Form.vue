@@ -6,6 +6,12 @@
         <p>{{ tReview('reviewInstructionsContinued') }}</p>
       </div>
       <div>
+        <BcrosFormSectionPropertyManagerSummaryView
+          v-if="formState.hasPropertyManager"
+          :property-manager="formState.propertyManager"
+          data-test-id="property-manager-review"
+          class="mt-[48px]"
+        />
         <div class="mt-[48px]">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
             {{ tReview('primaryContact') }}
@@ -13,6 +19,7 @@
           <BcrosFormSectionReviewSubsection
             :state="formState.primaryContact"
             :primary="true"
+            data-test-id="primary-contact-review"
           />
         </div>
         <div v-if="secondaryContact" class="mt-[48px]">
@@ -24,23 +31,40 @@
             :primary="false"
           />
         </div>
-        <div class="mt-[48px]">
+        <div class="mt-[48px]" data-test-id="rental-unit-review">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
             {{ tReview('rentalUnitInfo') }}
           </p>
           <div class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
-            <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
+            <div class="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 desktop:mb-6">
               <BcrosFormSectionReviewItem
                 :title="tReview('nickname')"
-                :content="formState.propertyDetails.nickname ?? '-'"
+                :content="formState.propertyDetails.nickname || '-'"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('businessLicense')"
-                :content="formState.propertyDetails.businessLicense ?? '-'"
+                :content="formState.propertyDetails.businessLicense || '-'"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('ownershipType')"
                 :content="getOwnershipTypeDisplay(formState.propertyDetails.ownershipType, tReview)"
+              />
+              <BcrosFormSectionReviewItem
+                :title="tReview('rentalUnitSpaceType')"
+                :content="tReview(formState.propertyDetails.rentalUnitSpaceType)|| '-'"
+              />
+              <BcrosFormSectionReviewItem
+                :title="tReview('isUnitOnPrincipalResidenceProperty')"
+                :content="tReview(formState.propertyDetails.isUnitOnPrincipalResidenceProperty)|| '-'"
+              />
+              <BcrosFormSectionReviewItem
+                v-if="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
+                :title="tReview('hostResidence')"
+                :content="tReview(formState.propertyDetails.hostResidence)|| '-'"
+              />
+              <BcrosFormSectionReviewItem
+                :title="tReview('numberOfRoomsForRent')"
+                :content="formState.propertyDetails.numberOfRoomsForRent.toString() || '-'"
               />
             </div>
             <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
@@ -55,18 +79,23 @@
                 </p>
                 <p>
                   {{ `
-                    ${formState.propertyDetails.country !== 'CAN'
-                    && formState.propertyDetails.country
+                  ${formState.propertyDetails.country !== 'CAN'
+                      && formState.propertyDetails.country
                       ? regionNamesInEnglish.of(formState.propertyDetails.country)
                   : '-'}`
                   }}
                 </p>
               </BcrosFormSectionReviewItem>
               <BcrosFormSectionReviewItem
+                v-if="formState.propertyDetails.businessLicenseExpiryDate"
+                :title="tReview('businessLicenseExpiryDate')"
+                :content="convertDateToLongFormat(formState.propertyDetails.businessLicenseExpiryDate)"
+              />
+              <BcrosFormSectionReviewItem
                 :title="tReview('propertyType')"
                 :content="formState.propertyDetails.propertyType ?? '-'"
               />
-              <div class="flex-1" />
+              <div v-if="!formState.propertyDetails.businessLicenseExpiryDate" class="flex-1" />
             </div>
             <div
               v-if="
@@ -154,7 +183,7 @@
               <UCheckbox
                 v-model="formState.principal.agreeToSubmit"
                 :label="tReview('confirm')"
-                :class="`${isComplete && !formState.principal.agreeToSubmit ? 'outline outline-bcGovColor-error' : ''}`"
+                :ui="{ label: isComplete && !formState.principal.agreeToSubmit ? 'text-bcGovColor-error' : '' }"
               />
             </div>
           </div>
@@ -165,8 +194,10 @@
 </template>
 
 <script setup lang="ts">
-import { getOwnershipTypeDisplay } from '@/utils/common'
 import { formState } from '@/stores/strr'
+import {
+  getOwnershipTypeDisplay
+} from '@/utils/common'
 
 const { t } = useTranslation()
 

@@ -203,13 +203,13 @@ onMounted(() => {
 const form = ref()
 
 watch(form, () => {
-  if (form.value && isComplete) { form.value.validate() }
+  if (form.value && isComplete) { form.value.validate({ silent: true }) }
 })
 
 const secondForm = ref()
 
 watch(secondForm, () => {
-  if (secondForm.value && secondFormIsComplete) { secondForm.value.validate() }
+  if (secondForm.value && secondFormIsComplete) { secondForm.value.validate({ silent: true }) }
 })
 
 </script>

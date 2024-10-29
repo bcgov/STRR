@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { AlertsFlavourE } from '#imports'
+import { AlertsFlavourE, RouteNamesE } from '#imports'
 import InfoModal from '~/components/common/InfoModal.vue'
 
 const { t } = useTranslation()
@@ -42,7 +42,7 @@ const existingAccountsTitle = `${t('account.existingAccountSection.title')} (${u
 onMounted(() => {
   // if no sbc accounts navigate to sbc account creation
   if (!me?.settings.length) {
-    navigateTo('/finalization')
+    navigateTo('/' + RouteNamesE.FINALIZATION)
   }
 })
 </script>

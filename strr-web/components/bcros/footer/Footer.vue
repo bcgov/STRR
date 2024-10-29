@@ -48,14 +48,16 @@
 </template>
 
 <script setup lang="ts">
-
+const { isExaminer } = storeToRefs(useBcrosKeycloak())
 const { t } = useTranslation()
 const version = useRuntimeConfig().public.version
 
 const { extraSpace } = defineProps<{ extraSpace?: boolean }>()
 
+const homeLink = isExaminer.value ? RouteNamesE.REGISTRY_DASHBOARD : RouteNamesE.APPLICATION_STATUS
+
 const links = [
-  { text: 'home', href: '/', newTab: false },
+  { text: 'home', href: '/' + homeLink, newTab: false },
   { text: 'disclaimer', href: 'https://www2.gov.bc.ca/gov/content/home/disclaimer', newTab: true },
   { text: 'privacy', href: 'https://www2.gov.bc.ca/gov/content/home/privacy', newTab: true },
   { text: 'accessibility', href: 'https://www2.gov.bc.ca/gov/content/home/accessibility', newTab: true },

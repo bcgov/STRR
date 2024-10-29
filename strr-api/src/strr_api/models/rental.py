@@ -5,18 +5,18 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
+from sql_versioning import Versioned
 from sqlalchemy import Enum
 from sqlalchemy.orm import relationship
 
 from strr_api.common.enum import BaseEnum, auto
 from strr_api.enums.enum import OwnershipType, PropertyType, RegistrationStatus
 from strr_api.models.base_model import BaseModel
-from strr_api.models.platforms import Platform  # pylint: disable=W0611
 
 from .db import db
 
 
-class Registration(BaseModel):
+class Registration(Versioned, BaseModel):
     """Registration model"""
 
     class RegistrationType(BaseEnum):
@@ -40,17 +40,28 @@ class Registration(BaseModel):
     updated_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-
-    user = relationship("User", back_populates="registrations")
+    user = relationship("User", foreign_keys=[user_id])
 
     certificates = relationship("Certificate", back_populates="registration")
     rental_property = relationship("RentalProperty", back_populates="registration", uselist=False)
-    platform = relationship("Platform", back_populates="registration", uselist=False)
+    platform_registration = relationship("PlatformRegistration", back_populates="registration", uselist=False)
     documents = relationship("Document", back_populates="registration")
 
 
-class RentalProperty(BaseModel):
+class RentalProperty(Versioned, BaseModel):
     """Rental Property"""
+
+    class RentalUnitSpaceType(BaseEnum):
+        """Enum of rental unit space type."""
+
+        ENTIRE_HOME = auto()  # pylint: disable=invalid-name
+        SHARED_ACCOMMODATION = auto()  # pylint: disable=invalid-name
+
+    class HostResidence(BaseEnum):
+        """Enum of host residence option."""
+
+        SAME_UNIT = auto()  # pylint: disable=invalid-name
+        ANOTHER_UNIT = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "rental_properties"
 
@@ -58,6 +69,7 @@ class RentalProperty(BaseModel):
     nickname = db.Column(db.String, nullable=True)
     parcel_identifier = db.Column(db.String, nullable=True)
     local_business_licence = db.Column(db.String, nullable=True)
+    local_business_licence_expiry_date = db.Column(db.Date, nullable=True)
     # Enum: All or part of primary dwelling; Secondary suite; Accessory dwelling unit; Float home; Other
     property_type = db.Column(Enum(PropertyType), nullable=False)
     ownership_type = db.Column(Enum(OwnershipType), nullable=False)  # Enum: own, rent, co-own
@@ -65,44 +77,44 @@ class RentalProperty(BaseModel):
     rental_act_accepted = db.Column(db.Boolean, nullable=False, default=False)
     pr_exempt_reason = db.Column(db.String, nullable=True)
     service_provider = db.Column(db.String, nullable=True)
+    space_type = db.Column(db.Enum(RentalUnitSpaceType), nullable=False)
+    host_residence = db.Column(db.Enum(HostResidence), nullable=True)
+    is_unit_on_principal_residence_property = db.Column(db.Boolean, nullable=False)
+    number_of_rooms_for_rent = db.Column(db.Integer, nullable=False)
 
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=False)
+    property_manager_id = db.Column(db.Integer, db.ForeignKey("property_manager.id"), nullable=True)
 
     address = relationship("Address", foreign_keys=[address_id], back_populates="rental_properties_address")
     registration = relationship("Registration", foreign_keys=[registration_id], back_populates="rental_property")
+    property_manager = relationship(
+        "PropertyManager", foreign_keys=[property_manager_id], back_populates="rental_property"
+    )
 
     contacts = relationship("PropertyContact")
     property_listings = relationship("PropertyListing")
 
 
-class Address(BaseModel):
-    """Address"""
+class PropertyManager(Versioned, BaseModel):
+    """Property Manager"""
 
-    __tablename__ = "addresses"
+    __tablename__ = "property_manager"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    country = db.Column(db.String, nullable=False)
-    street_address = db.Column(db.String, nullable=False)
-    street_address_additional = db.Column(db.String, nullable=True)
-    city = db.Column(db.String, nullable=False)
-    province = db.Column(db.String, nullable=False)
-    postal_code = db.Column(db.String, nullable=False)
+    business_legal_name = db.Column(db.String(250), nullable=True)
+    business_number = db.Column(db.String(100), nullable=True)
 
-    contact = relationship("Contact", back_populates="address", foreign_keys="Contact.address_id")
-    rental_properties_address = relationship(
-        "RentalProperty", back_populates="address", foreign_keys="RentalProperty.address_id"
-    )
+    business_mailing_address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
+    contact_id = db.Column(db.Integer, db.ForeignKey("contacts.id"), nullable=False)
 
-    def to_oneline_address(self):
-        """Convert object to one line address."""
-        unit = ""
-        if self.street_address_additional:
-            unit = f"{self.street_address_additional} "
-        return f"{unit}{self.street_address}, {self.city}, {self.province}, {self.country}, {self.postal_code}"
+    business_mailing_address = relationship("Address", foreign_keys=[business_mailing_address_id])
+    contact = relationship("Contact", foreign_keys=[contact_id])
+
+    rental_property = relationship("RentalProperty", back_populates="property_manager", uselist=False)
 
 
-class PropertyContact(BaseModel):
+class PropertyContact(Versioned, BaseModel):
     """Property Contacts"""
 
     __tablename__ = "property_contacts"
@@ -117,7 +129,7 @@ class PropertyContact(BaseModel):
     property = relationship("RentalProperty", back_populates="contacts")
 
 
-class PropertyListing(BaseModel):
+class PropertyListing(Versioned, BaseModel):
     """Platform Listings"""
 
     __tablename__ = "property_listings"
@@ -132,7 +144,7 @@ class PropertyListing(BaseModel):
     property = relationship("RentalProperty", back_populates="property_listings")
 
 
-class Document(BaseModel):
+class Document(Versioned, BaseModel):
     """Document model."""
 
     __tablename__ = "documents"

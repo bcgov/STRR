@@ -13,7 +13,6 @@ it('can mount Property Form Section component', async () => {
     {
       global: { plugins: [i18n] },
       props: {
-        secondaryContact: false,
         isComplete: false
       }
     })

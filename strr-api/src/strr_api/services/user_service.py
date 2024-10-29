@@ -35,7 +35,7 @@
 # pylint: disable=E1102
 """Manages user model interactions."""
 
-from strr_api.models import User
+from strr_api.models.user import User
 from strr_api.utils.user_context import UserContext, user_context
 
 
@@ -91,3 +91,12 @@ class UserService:
         usr_context: UserContext = kwargs["user_context"]
         user = UserService.get_or_create_user_by_jwt(usr_context.token_info)
         return user
+
+    @classmethod
+    @user_context
+    def is_automation_tester(cls, **kwargs) -> bool:
+        """Method to check whether the user has automation tester role."""
+        usr_context: UserContext = kwargs["user_context"]
+        if usr_context.is_automation_tester():
+            return True
+        return False
