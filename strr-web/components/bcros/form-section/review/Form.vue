@@ -51,16 +51,16 @@
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('rentalUnitSpaceType')"
-                :content="getRentalUnitSpaceTypeDisplay(formState.propertyDetails.rentalUnitSpaceType, tReview)"
+                :content="tReview(formState.propertyDetails.rentalUnitSpaceType)|| '-'"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('isUnitOnPrincipalResidenceProperty')"
-                :content="principalResidenceDisplayContent"
+                :content="tReview(formState.propertyDetails.isUnitOnPrincipalResidenceProperty)|| '-'"
               />
               <BcrosFormSectionReviewItem
                 v-if="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
                 :title="tReview('hostResidence')"
-                :content="getHostResidenceDisplay(formState.propertyDetails.hostResidence, tReview)"
+                :content="tReview(formState.propertyDetails.hostResidence)|| '-'"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('numberOfRoomsForRent')"
@@ -196,9 +196,7 @@
 <script setup lang="ts">
 import { formState } from '@/stores/strr'
 import {
-  getHostResidenceDisplay,
-  getOwnershipTypeDisplay,
-  getRentalUnitSpaceTypeDisplay
+  getOwnershipTypeDisplay
 } from '@/utils/common'
 
 const { t } = useTranslation()
@@ -209,9 +207,5 @@ const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
 const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
 const tPrincipal = (translationKey: string) => t(`createAccount.principalResidence.${translationKey}`)
-const principalResidenceDisplayContent = getPrincipalResidenceDisplay(
-  formState.propertyDetails.isUnitOnPrincipalResidenceProperty,
-  tReview
-)
 
 </script>

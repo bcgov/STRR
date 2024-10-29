@@ -64,17 +64,17 @@
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('rentalUnitSpaceType')"
-              :content="rentalUnitSpaceTypeContent"
+              :content="tApplicationDetails(applicationDetails?.unitDetails.rentalUnitSpaceType)|| '-'"
               data-test-id="rentalUnitSpaceType-type"
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
-              :content="principalResidenceContent"
+              :content="tApplicationDetails(applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty)|| '-'"
               data-test-id="isUnitOnPrincipalResidenceProperty-type"
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('hostResidence')"
-              :content="getHostResidenceDisplay(applicationDetails?.unitDetails.hostResidence, tApplicationDetails)"
+              :content="tApplicationDetails(applicationDetails?.unitDetails.hostResidence)|| '-'"
               data-test-id="hostResidence-type"
             />
             <BcrosFormSectionReviewItem
@@ -362,10 +362,7 @@
 <script setup lang="ts">
 import { ApplicationStatusE, ExaminerApplicationStatusE, HostApplicationStatusE } from '#imports'
 import {
-  getHostResidenceDisplay,
-  getOwnershipTypeDisplay,
-  getPrincipalResidenceDisplay,
-  getRentalUnitSpaceTypeDisplay
+  getOwnershipTypeDisplay
 } from '@/utils/common'
 import FilingHistory from '~/components/FilingHistory.vue'
 import { useApplications } from '~/composables/useApplications'
@@ -485,13 +482,4 @@ const getContactRows = (contactBlock: ContactI) => [{
   'BN (GST)': contactBlock.businessNumber
 }]
 
-const rentalUnitSpaceTypeContent = getRentalUnitSpaceTypeDisplay(
-  applicationDetails?.unitDetails.rentalUnitSpaceType,
-  tApplicationDetails
-)
-
-const principalResidenceContent = getPrincipalResidenceDisplay(
-  applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty,
-  tApplicationDetails
-)
 </script>

@@ -1,3 +1,5 @@
+import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { set } from 'zod'
 import {
   BcrosFormSectionContactInformationForm,
   BcrosFormSectionPropertyManagerForm,
@@ -5,8 +7,6 @@ import {
   BcrosFormSectionReviewSubsection
 } from '#components'
 import CreateApplication from '@/pages/create-account.vue'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { set } from 'zod'
 import Stepper from '~/components/bcros/stepper/Stepper.vue'
 import H1 from '~/components/bcros/typography/H1.vue'
 import H2 from '~/components/bcros/typography/H2.vue'
