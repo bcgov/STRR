@@ -105,9 +105,9 @@
 </template>
 
 <script setup lang="ts">
-import steps from '../page-data/create-account/steps'
 import InfoModal from '~/components/common/InfoModal.vue'
 import { FormPageI } from '~/interfaces/form/form-page-i'
+import steps from '../page-data/create-account/steps'
 
 const hasSecondaryContact: Ref<boolean> = ref(false)
 const activeStepIndex: Ref<number> = ref(0)
@@ -157,7 +157,7 @@ const ownershipToApiType = (type: string | undefined): string => {
       return 'RENT'
     case t('createAccount.propertyForm.own'):
       return 'OWN'
-    case t('createAccount.propertyForm.other'):
+    case t('createAccount.propertyForm.coOwn'):
       return 'CO_OWN'
   }
   return ''
