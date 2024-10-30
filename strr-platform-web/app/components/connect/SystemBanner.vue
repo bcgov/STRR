@@ -33,7 +33,7 @@ onMounted(async () => {
     </template>
     <template #description>
       <!-- eslint-disable vue/no-v-html tailwindcss/no-custom-classname -->
-      <p class="vhtml" v-html="message" />
+      <p class="vhtml text-gray-900" v-html="message" />
     </template>
   </UAlert>
 </template>
