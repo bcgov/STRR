@@ -1,11 +1,11 @@
 <script setup lang="ts">
+const ldStore = useConnectLaunchdarklyStore()
+const { $sanitize } = useNuxtApp()
+
 defineProps({
   dismissible: { type: Boolean, default: false },
   icon: { type: String, default: 'i-mdi-information' }
 })
-
-const { $sanitize } = useNuxtApp()
-const ldStore = useConnectLaunchdarklyStore()
 
 const close = ref(false)
 const message = ref('')
