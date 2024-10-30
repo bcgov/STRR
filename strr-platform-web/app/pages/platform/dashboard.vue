@@ -14,7 +14,6 @@ const representatives = ref<ConnectAccordionItem[]>([])
 onMounted(async () => {
   loading.value = true
   await loadPlatform()
-  await new Promise((resolve) => { setTimeout(resolve, 1000) })
   // set header stuff
   if (!activePlatform.value || !showPlatformDetails.value) {
     // no registration or valid complete application under the account, set static header
@@ -29,7 +28,7 @@ onMounted(async () => {
       t(`platform.label.listingSize.${platformDetails.value.listingSize}`)
     ]
     if (!isRegistration.value) {
-      setApplicaitonHeaderDetails()
+      setApplicationHeaderDetails()
     } else {
       setRegistrationHeaderDetails()
     }

@@ -1,6 +1,6 @@
 import { validateEmailRfc5322Regex, validateEmailRfc6532Regex } from '~/utils/connect-validation'
 
-export const setApplicaitonHeaderDetails = () => {
+export const setApplicationHeaderDetails = () => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
   const { activeApplicationInfo, isPaidApplication } = useStrrPlatformStore()
