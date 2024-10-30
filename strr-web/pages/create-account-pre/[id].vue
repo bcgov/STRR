@@ -65,8 +65,8 @@
 </template>
 
 <script setup lang="ts">
-import { FormPageI } from '~/interfaces/form/form-page-i'
 import steps from '../../page-data/create-account/steps'
+import { FormPageI } from '~/interfaces/form/form-page-i'
 
 const hasSecondaryContact: Ref<boolean> = ref(false)
 const activeStepIndex: Ref<number> = ref(0)
