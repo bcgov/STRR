@@ -1,6 +1,8 @@
 import { validateEmailRfc5322Regex, validateEmailRfc6532Regex } from '~/utils/connect-validation'
 
-export const setApplicaitonHeaderDetails = (t: any) => {
+export const setApplicaitonHeaderDetails = () => {
+  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
+  const { t } = useNuxtApp().$i18n
   const { activeApplicationInfo, isPaidApplication } = useStrrPlatformStore()
   const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
 
@@ -19,7 +21,9 @@ export const setApplicaitonHeaderDetails = (t: any) => {
   }
 }
 
-export const setRegistrationHeaderDetails = (t: any) => {
+export const setRegistrationHeaderDetails = () => {
+  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
+  const { t } = useNuxtApp().$i18n
   const { activePlatform } = useStrrPlatformStore()
   const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
 
@@ -47,8 +51,10 @@ export const setRegistrationHeaderDetails = (t: any) => {
   ]
 }
 
-export const setSideHeaderDetails = (t: any) => {
+export const setSideHeaderDetails = () => {
   // set right side details of header
+  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
+  const { t } = useNuxtApp().$i18n
   const { isRegistration } = useStrrPlatformStore()
   const { platformBusiness } = useStrrPlatformBusiness()
   const { sideDetails } = storeToRefs(useConnectDetailsHeaderStore())
@@ -99,7 +105,9 @@ export const setSideHeaderDetails = (t: any) => {
   sideDetails.value = sideDetailsList
 }
 
-export const getDashboardAddresses = (t: any) => {
+export const getDashboardAddresses = () => {
+  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
+  const { t } = useNuxtApp().$i18n
   const { platformBusiness } = useStrrPlatformBusiness()
 
   const addresses: ConnectAccordionItem[] = [{
@@ -134,7 +142,9 @@ export const getDashboardAddresses = (t: any) => {
   return addresses
 }
 
-export const getRepItem = (rep: PlatformContact, t: any): ConnectAccordionItem => {
+export const getRepItem = (rep: PlatformContact): ConnectAccordionItem => {
+  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
+  const { t } = useNuxtApp().$i18n
   return {
     showAvatar: true,
     label: `${rep.firstName || ''} ` +
@@ -162,16 +172,16 @@ export const getRepItem = (rep: PlatformContact, t: any): ConnectAccordionItem =
   }
 }
 
-export const getDashboardRepresentives = (t: any): ConnectAccordionItem[] => {
+export const getDashboardRepresentives = (): ConnectAccordionItem[] => {
   const { primaryRep, secondaryRep } = useStrrPlatformContact()
   if (!primaryRep) {
     return []
   }
-  const rep = getRepItem(primaryRep, t)
+  const rep = getRepItem(primaryRep)
   rep.defaultOpen = true
   const reps = [rep]
   if (secondaryRep) {
-    reps.push(getRepItem(secondaryRep, t))
+    reps.push(getRepItem(secondaryRep))
   }
   return reps
 }

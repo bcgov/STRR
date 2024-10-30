@@ -38,14 +38,17 @@ watch(() => platformBusiness.value.regOfficeOrAtt.sameAsMailAddress,
 
 watch(() => platformBusiness.value.hasRegOffAtt,
   (newVal, oldVal) => {
-  // reset regOfficeOrAtt if hasRegOffAtt radio set to false
+    // reset regOfficeOrAtt if hasRegOffAtt radio set to false
     if (!newVal) {
       platformBusiness.value.regOfficeOrAtt.attorneyName = ''
       platformBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
       Object.keys(platformBusiness.value.regOfficeOrAtt.mailingAddress).forEach((key) => {
-      // @ts-expect-error - ts doesnt recognize key type
+        // @ts-expect-error - ts doesnt recognize key type
         platformBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
       })
+    } else {
+      platformBusiness.value.regOfficeOrAtt.mailingAddress.country = 'CA'
+      platformBusiness.value.regOfficeOrAtt.mailingAddress.region = 'BC'
     }
 
     // revalidate fields to update/remove form errors if user clicks yes or no
@@ -91,11 +94,10 @@ watch(canadaPostAddress, (newAddress) => {
       platformBusiness.value.mailingAddress.region = newAddress.region
       platformBusiness.value.mailingAddress.postalCode = newAddress.postalCode
     } else if (newAddress) {
+      // NOTE: country and region are not set because they are disabled for regOfficeOrAtt.mailingAddress
       platformBusiness.value.regOfficeOrAtt.mailingAddress.street = newAddress.street
       platformBusiness.value.regOfficeOrAtt.mailingAddress.streetAdditional = newAddress.streetAdditional
-      platformBusiness.value.regOfficeOrAtt.mailingAddress.country = newAddress.country
       platformBusiness.value.regOfficeOrAtt.mailingAddress.city = newAddress.city
-      platformBusiness.value.regOfficeOrAtt.mailingAddress.region = newAddress.region
       platformBusiness.value.regOfficeOrAtt.mailingAddress.postalCode = newAddress.postalCode
     }
   }
@@ -149,9 +151,9 @@ onMounted(async () => {
             <ConnectFormFieldGroup
               id="platform-business-number"
               v-model="platformBusiness.businessNumber"
-              :aria-label="$t('label.busNumOpt')"
+              :aria-label="$t('label.craBusNumOpt')"
               name="businessNumber"
-              :placeholder="$t('label.busNumOpt')"
+              :placeholder="$t('label.craBusNumOpt')"
             />
             <UFormGroup id="platform-business-hasCpbc" name="hasCpbc">
               <URadioGroup
@@ -199,7 +201,6 @@ onMounted(async () => {
               v-model:city="platformBusiness.mailingAddress.city"
               v-model:region="platformBusiness.mailingAddress.region"
               v-model:postal-code="platformBusiness.mailingAddress.postalCode"
-              v-model:location-description="platformBusiness.mailingAddress.locationDescription"
               :schema-prefix="'mailingAddress.'"
               :enable-address-complete="enableAddressComplete"
             />
@@ -256,9 +257,9 @@ onMounted(async () => {
                 v-model:city="platformBusiness.regOfficeOrAtt.mailingAddress.city"
                 v-model:region="platformBusiness.regOfficeOrAtt.mailingAddress.region"
                 v-model:postal-code="platformBusiness.regOfficeOrAtt.mailingAddress.postalCode"
-                v-model:location-description="platformBusiness.regOfficeOrAtt.mailingAddress.locationDescription"
                 :schema-prefix="'regOfficeOrAtt.mailingAddress.'"
                 :enable-address-complete="enableAddressComplete"
+                :disabled-fields="['country', 'region']"
               />
             </div>
           </div>

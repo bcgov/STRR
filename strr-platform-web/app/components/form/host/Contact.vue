@@ -105,7 +105,6 @@ watch(secondForm, () => {
               v-model:city="primaryContact.address.city"
               v-model:region="primaryContact.address.region"
               v-model:postal-code="primaryContact.address.postalCode"
-              v-model:location-description="primaryContact.address.locationDescription"
               :schema-prefix="'address.'"
               :enable-address-complete="enableAddressComplete"
             />
@@ -183,7 +182,6 @@ watch(secondForm, () => {
               v-model:city="secondaryContact.address.city"
               v-model:region="secondaryContact.address.region"
               v-model:postal-code="secondaryContact.address.postalCode"
-              v-model:location-description="secondaryContact.address.locationDescription"
               :schema-prefix="'address.'"
               :enable-address-complete="enableAddressComplete"
             />

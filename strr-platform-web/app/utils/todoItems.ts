@@ -1,5 +1,6 @@
-// TODO: investigate why t must be passed in here (causing failure even though this is only called within a setup fn)
-export const getTodoApplication = (t: any) => {
+export const getTodoApplication = () => {
+  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
+  const { t } = useNuxtApp().$i18n
   const { activeApplicationInfo } = useStrrPlatformStore()
   return {
     title: t('platform.title.application'),

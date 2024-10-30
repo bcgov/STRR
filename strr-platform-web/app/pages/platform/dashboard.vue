@@ -12,7 +12,6 @@ const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 
 onMounted(async () => {
-  // TODO: break this onMounted logic out into dashboard helper utils
   loading.value = true
   await loadPlatform()
   await new Promise((resolve) => { setTimeout(resolve, 1000) })
@@ -20,7 +19,7 @@ onMounted(async () => {
   if (!activePlatform.value || !showPlatformDetails.value) {
     // no registration or valid complete application under the account, set static header
     title.value = t('platform.title.dashboard')
-    todos.value = [getTodoApplication(t)]
+    todos.value = [getTodoApplication()]
   } else {
     // existing registration or application under the account
     // set left side of header
@@ -30,15 +29,15 @@ onMounted(async () => {
       t(`platform.label.listingSize.${platformDetails.value.listingSize}`)
     ]
     if (!isRegistration.value) {
-      setApplicaitonHeaderDetails(t)
+      setApplicaitonHeaderDetails()
     } else {
-      setRegistrationHeaderDetails(t)
+      setRegistrationHeaderDetails()
     }
-    setSideHeaderDetails(t)
+    setSideHeaderDetails()
     // set sidebar accordian addresses
-    addresses.value = getDashboardAddresses(t)
+    addresses.value = getDashboardAddresses()
     // set sidebar accordian reps
-    representatives.value = getDashboardRepresentives(t)
+    representatives.value = getDashboardRepresentives()
     // update breadcrumbs with platform business name
     setBreadcrumbs([
       { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },

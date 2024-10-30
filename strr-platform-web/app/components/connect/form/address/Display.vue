@@ -1,5 +1,8 @@
 <script setup lang="ts">
-const props = defineProps<{ address: Partial<ConnectAddress> }>()
+const props = defineProps<{
+  address: Partial<ConnectAddress>,
+  useLocationDescLabel?: boolean
+}>()
 const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
 const addressData = computed((): string[] => {
@@ -24,7 +27,7 @@ const addressData = computed((): string[] => {
       v-if="address.locationDescription"
       class="mt-2"
       :content="address.locationDescription"
-      title="Location Description"
+      :title="useLocationDescLabel ? $t('label.locationDescription') : $t('label.deliveryInstructions')"
       data-testid="location-description"
     />
   </div>

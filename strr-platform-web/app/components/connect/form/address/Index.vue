@@ -7,17 +7,22 @@ const region = defineModel<string>('region')
 const postalCode = defineModel<string>('postalCode')
 const locationDescription = defineModel<string>('locationDescription')
 
+type AddressField = 'country' | 'street' | 'streetAdditional' | 'city' |
+  'region' | 'postalCode' | 'locationDescription'
+
 const {
   id,
   enableAddressComplete,
-  schemaPrefix
+  schemaPrefix,
+  disabledFields
 } = defineProps<{
   id: string,
   enableAddressComplete:(id: string, countryIso2: string, countrySelect: boolean) => void,
-  schemaPrefix: string
+  schemaPrefix: string,
+  disabledFields?: AddressField[],
+  excludedFields?: AddressField[],
+  locationDescLabel?: boolean
 }>()
-
-defineEmits<{ setId: [id: string] }>()
 
 const countries = iscCountriesListSortedByName
 const regions = computed(() => {
@@ -33,16 +38,20 @@ const regions = computed(() => {
 
 const addressComplete = () => {
   if (typeof country.value === 'string') {
-    enableAddressComplete(id, country.value, true)
+    enableAddressComplete(id, country.value, !disabledFields?.includes('country'))
   }
 }
 
 const addId = useId()
 </script>
 <template>
-  <div data-testid="form-section-mailing" class="space-y-3">
+  <div class="space-y-3">
     <!-- country menu -->
-    <UFormGroup :name="schemaPrefix + 'country'" class="grow">
+    <UFormGroup
+      v-if="!excludedFields?.includes('country')"
+      :name="schemaPrefix + 'country'"
+      class="grow"
+    >
       <template #default="{ error }">
         <USelectMenu
           v-model="country"
@@ -50,6 +59,7 @@ const addId = useId()
           class="w-full"
           size="lg"
           :color="country ? 'primary' : 'gray'"
+          :disabled="disabledFields?.includes('country')"
           :placeholder="$t('label.country')"
           :aria-label="$t('label.country')"
           :options="countries"
@@ -69,18 +79,23 @@ const addId = useId()
       </template>
     </UFormGroup>
     <!-- street input -->
-    <UFormGroup :name="schemaPrefix + 'street'" class="grow">
+    <UFormGroup
+      v-if="!excludedFields?.includes('street')"
+      :name="schemaPrefix + 'street'"
+      class="grow"
+    >
       <template #default="{ error }">
         <UInput
           :id="id"
           v-model="street"
           size="lg"
           :color="street ? 'primary' : 'gray'"
-          :aria-label="$t('label.street')"
-          :placeholder="$t('label.street')"
+          :aria-label="$t('label.line1')"
+          :placeholder="$t('label.line1')"
           :aria-required="true"
           :aria-invalid="error !== undefined"
           :aria-describedby="schemaPrefix + 'street-' + addId"
+          :disabled="disabledFields?.includes('street')"
           @keypress.once="addressComplete()"
           @click="addressComplete()"
         />
@@ -98,36 +113,47 @@ const addId = useId()
       </template>
     </UFormGroup>
     <!-- street line 2 -->
-    <UFormGroup :name="schemaPrefix + 'streetAdditional'" class="grow">
+    <UFormGroup
+      v-if="!excludedFields?.includes('streetAdditional')"
+      :name="schemaPrefix + 'streetAdditional'"
+      class="grow"
+    >
       <UInput
         v-model="streetAdditional"
         size="lg"
         :color="streetAdditional ? 'primary' : 'gray'"
-        :placeholder="$t('label.streetAdditional')"
-        :aria-label="$t('label.streetAdditional')"
+        :placeholder="$t('label.line2')"
+        :aria-label="$t('label.lin2')"
+        :disabled="disabledFields?.includes('streetAdditional')"
       />
     </UFormGroup>
     <div class="flex flex-col gap-3 sm:flex-row">
       <!-- city input -->
       <ConnectFormFieldGroup
+        v-if="!excludedFields?.includes('city')"
         :id="schemaPrefix + 'city'"
         v-model="city"
         class="w-full grow"
         :name="schemaPrefix + 'city'"
         :color="city ? 'primary' : 'gray'"
-        :placeholder="$t('createAccount.contactForm.city')"
-        :aria-label="$t('createAccount.contactForm.city')"
+        :is-disabled="disabledFields?.includes('city')"
+        :placeholder="$t('label.city')"
+        :aria-label="$t('label.city')"
         :is-required="true"
       />
       <!-- region input/menu -->
-      <UFormGroup :name="schemaPrefix + 'region'" class="w-full grow">
+      <UFormGroup
+        v-if="!excludedFields?.includes('region')"
+        :name="schemaPrefix + 'region'"
+        class="w-full grow"
+      >
         <template #default="{ error }">
           <USelectMenu
             v-if="country === 'US' || country === 'CA'"
             v-model="region"
             :options="regions"
-            :placeholder="country === 'CA' ? $t('createAccount.contactForm.province') : $t('label.state')"
-            :aria-label="country === 'CA' ? $t('createAccount.contactForm.province') : $t('label.state')"
+            :placeholder="country === 'CA' ? $t('label.province') : $t('label.state')"
+            :aria-label="country === 'CA' ? $t('label.province') : $t('label.state')"
             size="lg"
             :color="region ? 'primary' : 'gray'"
             option-attribute="name"
@@ -137,6 +163,7 @@ const addId = useId()
             :aria-required="true"
             :aria-invalid="error !== undefined"
             :aria-describedby="schemaPrefix + 'region-' + addId"
+            :disabled="disabledFields?.includes('region')"
           />
           <UInput
             v-else
@@ -149,6 +176,7 @@ const addId = useId()
             :aria-required="true"
             :aria-invalid="error !== undefined"
             :aria-describedby="schemaPrefix + 'region-' + addId"
+            :disabled="disabledFields?.includes('region')"
           />
         </template>
 
@@ -160,11 +188,13 @@ const addId = useId()
       </UFormGroup>
       <!-- postal code input -->
       <ConnectFormFieldGroup
+        v-if="!excludedFields?.includes('postalCode')"
         :id="schemaPrefix + 'postalCode'"
         v-model="postalCode"
         class="w-full grow"
         :name="schemaPrefix + 'postalCode'"
         :color="postalCode ? 'primary' : 'gray'"
+        :is-disabled="disabledFields?.includes('postalCode')"
         :placeholder="country === 'CA' ?
           $t('createAccount.contactForm.postalCode') : country === 'US' ? 'Zip Code' : 'Code'"
         :aria-label="$t('createAccount.contactForm.postalCode')"
@@ -172,12 +202,20 @@ const addId = useId()
       />
     </div>
     <!-- delivery details input -->
-    <UFormGroup :name="schemaPrefix + 'locationDescription'">
+    <UFormGroup
+      v-if="!excludedFields?.includes('locationDescription')"
+      :name="schemaPrefix + 'locationDescription'"
+    >
       <UTextarea
         v-model="locationDescription"
-        :placeholder="$t('label.locationDescription')"
-        :aria-label="$t('label.locationDescription')"
+        :placeholder="locationDescLabel
+          ? $t('label.locationDescriptionOpt')
+          : $t('label.deliveryInstructionsOpt')"
+        :aria-label="locationDescLabel
+          ? $t('label.locationDescriptionOpt')
+          : $t('label.deliveryInstructionsOpt')"
         :color="locationDescription ? 'primary' : 'gray'"
+        :disabled="disabledFields?.includes('locationDescription')"
         class="w-full"
         data-testid="address-location-description"
       />
