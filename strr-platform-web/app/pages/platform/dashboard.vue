@@ -53,7 +53,8 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
-  path: '/platform/dashboard'
+  path: '/platform/dashboard',
+  middleware: ['auth']
 })
 
 setBreadcrumbs([
