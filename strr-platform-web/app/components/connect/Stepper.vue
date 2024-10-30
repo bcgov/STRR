@@ -75,7 +75,7 @@ watch(activeStepIndexModel, (newIndex) => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 })
 
-defineExpose({ setActiveStep, setNextStep, setPreviousStep, setStepValidity })
+defineExpose({ setActiveStep, setNextStep, setPreviousStep, setStepValidity, buttonRefs })
 
 onMounted(() => {
   if (stepsModel.value.length > 0) { // init first step based on activeStepIndexModel default value

@@ -163,12 +163,11 @@ const handlePlatformSubmit = async () => {
         return navigateTo(localePath('/platform/dashboard'))
       }
     } else {
-      // TODO: display form errors better
-      strrModal.openAppSubmitError(formErrors)
+      stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
     }
   } catch (e) {
     logFetchError(e, 'Error creating platform application')
-    // TODO: handle backend errors
+    strrModal.openAppSubmitError(e)
   } finally {
     // set buttons back to non loading state
     setButtonControl({

@@ -11,7 +11,7 @@ export const useStrrModals = () => {
         title: 'Error submitting application', // need to come up with different error messages for different scenarios
         description: 'Some description here.'
       },
-      content: `Do something with errors: ${JSON.stringify(e)}`,
+      content: e.data?.message ?? undefined,
       actions: [{ label: t('btn.close'), handler: () => close() }]
     })
   }
