@@ -75,7 +75,8 @@
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('hostResidence')"
-              :content="tApplicationDetails(applicationDetails?.unitDetails.hostResidence)|| '-'"
+              :content="applicationDetails?.unitDetails.hostResidence
+                ? tApplicationDetails(applicationDetails?.unitDetails.hostResidence) : '-'"
               data-test-id="hostResidence-type"
             />
             <BcrosFormSectionReviewItem
