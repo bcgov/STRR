@@ -55,12 +55,12 @@
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('isUnitOnPrincipalResidenceProperty')"
-                :content="tReview(formState.propertyDetails.isUnitOnPrincipalResidenceProperty)|| '-'"
+                :content="tReview(formState.propertyDetails.isUnitOnPrincipalResidenceProperty ? 'true':'false')|| '-'"
               />
               <BcrosFormSectionReviewItem
                 v-if="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
                 :title="tReview('hostResidence')"
-                :content="tReview(formState.propertyDetails.hostResidence)|| '-'"
+                :content="tReview(formState.propertyDetails.hostResidence ?? '-')"
               />
               <BcrosFormSectionReviewItem
                 :title="tReview('numberOfRoomsForRent')"
