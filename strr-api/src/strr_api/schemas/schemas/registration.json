@@ -12,7 +12,8 @@
             "type": "string",
             "enum": [
               "HOST",
-              "PLATFORM"
+              "PLATFORM",
+              "STRATA_HOTEL"
             ]
           }
         },
@@ -38,6 +39,18 @@
           },
           "then": {
             "$ref": "https://strr.gov.bc.ca/.well_known/schemas/platform_registration"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "registrationType": {
+                "const": "STRATA_HOTEL"
+              }
+            }
+          },
+          "then": {
+            "$ref": "https://strr.gov.bc.ca/.well_known/schemas/strata_hotel_registration"
           }
         }
       ]

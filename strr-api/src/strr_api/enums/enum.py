@@ -70,6 +70,8 @@ class Role(Enum):
     STRR_INVESTIGATOR = "strr_investigator"
     STRR_AUTOMATION_TESTER = "strr_automation_tester"
 
+    TIP_INTERNAL_PAYMENT_OVERRIDE = "tip_internal_payment_override"
+
 
 class RegistrationStatus(Enum):
     """STRR Registration Status."""

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "851741da-a4a0-449e-8019-9e23b0f46a54",
+		"_postman_id": "4d78da9e-1bed-4531-8fa7-6d736a7a9343",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -111,6 +111,66 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"registration\": {\n        \"registrationType\": \"PLATFORM\",\n        \"completingParty\": {\n            \"firstName\": \"Test\",\n            \"middleName\": \"\",\n            \"lastName\": \"Test\",\n            \"phoneNumber\": \"604-999-9999\",\n            \"phoneCountryCode\": \"001\",\n            \"extension\": \"x64\",\n            \"faxNumber\": \"604-777-7777\",\n            \"emailAddress\": \"test@test.test\"\n        },\n        \"platformRepresentatives\": [\n            {\n                \"firstName\": \"Test\",\n                \"middleName\": \"\",\n                \"lastName\": \"Test\",\n                \"phoneNumber\": \"123-456-8970\",\n                \"phoneCountryCode\": \"001\",\n                \"extension\": \"x64\",\n                \"faxNumber\": \"604-777-7777\",\n                \"emailAddress\": \"test@test.test\",\n                \"jobTitle\": \"Sales Manager\"\n            },\n            {\n                \"firstName\": \"Test\",\n                \"middleName\": \"Test\",\n                \"lastName\": \"Test\",\n                \"phoneNumber\": \"604-999-9999\",\n                \"phoneCountryCode\": \"001\",\n                \"extension\": \"x64\",\n                \"faxNumber\": \"604-777-7777\",\n                \"emailAddress\": \"test@test.test\",\n                \"jobTitle\": \"Sales Manager\"\n            }\n        ],\n        \"businessDetails\": {\n            \"legalName\": \"Test Business\",\n            \"homeJurisdiction\": \"Vancouver\",\n            \"businessNumber\": \"BN12345\",\n            \"consumerProtectionBCLicenceNumber\": \"1234\",\n            \"noticeOfNonComplianceEmail\": \"test@test.test\",\n            \"noticeOfNonComplianceOptionalEmail\": \"test@test.test\",\n            \"takeDownRequestEmail\": \"test@test.test\",\n            \"takeDownRequestOptionalEmail\": \"test@test.test\",\n            \"mailingAddress\": {\n                \"country\": \"CA\",\n                \"address\": \"12766 227st\",\n                \"addressLineTwo\": \"\",\n                \"city\": \"MAPLE RIDGE\",\n                \"province\": \"BC\",\n                \"postalCode\": \"V2X 6K6\",\n                \"locationDescription\": \"Test Location\"\n            },\n            \"registeredOfficeOrAttorneyForServiceDetails\": {\n                \"attorneyName\": \"Test\",\n                \"mailingAddress\": {\n                    \"country\": \"CA\",\n                    \"address\": \"12766 227st\",\n                    \"addressLineTwo\": \"\",\n                    \"city\": \"MAPLE RIDGE\",\n                    \"province\": \"BC\",\n                    \"postalCode\": \"V2X 6K6\",\n                    \"locationDescription\": \"Test Location\"\n                }\n            }\n        },\n        \"platformDetails\": {\n            \"brands\": [\n                {\n                    \"name\": \"Provider A\",\n                    \"website\": \"http://abc.com\"\n                },\n                {\n                    \"name\": \"Provider B\",\n                    \"website\": \"http://xyz.com\"\n                }\n            ],\n            \"listingSize\": \"GREATER_THAN_THOUSAND\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/applications",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create strata hotel registration application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.environment.set(\"application_number\",jsonData.header.applicationNumber)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"registration\": {\n    \"registrationType\": \"STRATA_HOTEL\",\n    \"completingParty\": {\n      \"firstName\": \"Test\",\n      \"middleName\": \"\",\n      \"lastName\": \"Test\",\n      \"phoneNumber\": \"604-999-9999\",\n      \"phoneCountryCode\": \"001\",\n      \"extension\": \"x64\",\n      \"faxNumber\": \"604-777-7777\",\n      \"emailAddress\": \"test@test.test\",\n      \"jobTitle\": \"Sales Manager\"\n    },\n    \"strataHotelRepresentatives\": [\n      {\n        \"firstName\": \"Test\",\n        \"lastName\": \"Test\",\n        \"phoneNumber\": \"123-456-8970\",\n        \"phoneCountryCode\": \"001\",\n        \"extension\": \"x64\",\n        \"faxNumber\": \"604-777-7777\",\n        \"emailAddress\": \"test@test.test\",\n        \"jobTitle\": \"Sales Manager\"\n      },\n      {\n        \"firstName\": \"Test\",\n        \"lastName\": \"Test\",\n        \"phoneNumber\": \"604-999-9999\",\n        \"phoneCountryCode\": \"001\",\n        \"extension\": \"x64\",\n        \"faxNumber\": \"604-777-7777\",\n        \"emailAddress\": \"test@test.test\",\n        \"jobTitle\": \"Sales Manager\"\n      }\n    ],\n    \"businessDetails\": {\n      \"legalName\": \"Test Business\",\n      \"homeJurisdiction\": \"Vancouver\",\n      \"businessNumber\": \"BN12345\",\n      \"mailingAddress\": {\n        \"country\": \"CA\",\n        \"address\": \"12766 227st\",\n        \"addressLineTwo\": \"\",\n        \"city\": \"MAPLE RIDGE\",\n        \"province\": \"BC\",\n        \"postalCode\": \"V2X 6K6\",\n        \"locationDescription\": \"Test Location\"\n      },\n      \"registeredOfficeOrAttorneyForServiceDetails\": {\n        \"attorneyName\": \"Test\",\n        \"mailingAddress\": {\n          \"country\": \"CA\",\n          \"address\": \"12766 227st\",\n          \"addressLineTwo\": \"\",\n          \"city\": \"MAPLE RIDGE\",\n          \"province\": \"BC\",\n          \"postalCode\": \"V2X 6K6\",\n          \"locationDescription\": \"Test Location\"\n        }\n      }\n    },\n    \"strataHotelDetails\": {\n      \"brand\": {\n        \"name\": \"Brand A\",\n        \"website\": \"http://abc.com\"\n      },\n      \"location\": {\n        \"country\": \"CA\",\n        \"address\": \"12766 227st\",\n        \"addressLineTwo\": \"\",\n        \"city\": \"MAPLE RIDGE\",\n        \"province\": \"BC\",\n        \"postalCode\": \"V2X 6K6\",\n        \"locationDescription\": \"Test Location\"\n      },\n      \"numberOfUnits\": 50,\n      \"buildings\": [\n        {\n          \"country\": \"CA\",\n          \"address\": \"12766 227st\",\n          \"addressLineTwo\": \"\",\n          \"city\": \"MAPLE RIDGE\",\n          \"province\": \"BC\",\n          \"postalCode\": \"V2X 6K6\",\n          \"locationDescription\": \"Test Location\"\n        },\n        {\n          \"country\": \"CA\",\n          \"address\": \"12766 228st\",\n          \"addressLineTwo\": \"\",\n          \"city\": \"MAPLE RIDGE\",\n          \"province\": \"BC\",\n          \"postalCode\": \"V2X 6K6\",\n          \"locationDescription\": \"Test Location\"\n        }\n      ]\n    }\n  }\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"

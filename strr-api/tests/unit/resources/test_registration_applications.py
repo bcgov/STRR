@@ -23,6 +23,9 @@ CREATE_HOST_REGISTRATION_MINIMUM_FIELDS_REQUEST = os.path.join(
 CREATE_PLATFORM_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/platform_registration.json"
 )
+CREATE_STRATA_HOTEL_REGISTRATION_REQUEST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/strata_hotel_registration.json"
+)
 
 ACCOUNT_ID = 1234
 
@@ -454,3 +457,26 @@ def test_actions_for_application_in_full_review(session, client, jwt):
             Application.Status.FULL_REVIEW
         )
         assert response_json.get("header").get("hostActions") == []
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_create_strata_hotel_registration_application(session, client, jwt):
+    with open(CREATE_STRATA_HOTEL_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+
+    assert HTTPStatus.CREATED == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_create_strata_hotel_registration_application_bad_request(session, client, jwt):
+    with open(CREATE_STRATA_HOTEL_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        del json_data["registration"]["strataHotelRepresentatives"]
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+
+    assert HTTPStatus.BAD_REQUEST == rv.status_code
