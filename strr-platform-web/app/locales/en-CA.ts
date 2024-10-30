@@ -82,6 +82,9 @@ export default {
       description: 'An error occurred, please try again. If this error persists, please contact us.'
     }
   },
+  imageAlt: {
+    genericLogin: 'Generic Login Image'
+  },
   label: {
     note: 'Note',
     optional: 'Optional',
@@ -187,7 +190,10 @@ export default {
     stepInvalid: 'Step Invalid',
     platAppStepLabel: 'Platform Application Step Navigation',
     stepUnfinished: 'This step is unfinished.',
-    returnStepToFinish: 'Return to this step to finish it'
+    returnStepToFinish: 'Return to this step to finish it',
+    loginBceid: 'Log in with BCeID',
+    loginBcsc: 'Log in with BC Services Card',
+    loginIdir: 'Log in with IDIR'
   },
   word: {
     i: 'i',
@@ -458,7 +464,8 @@ export default {
     title: {
       application: 'Short-Term Rental Platform Application',
       comingSoon: 'My Short-Term Rental Registry Coming Soon',
-      dashboard: 'My Short-Term Rental Registry'
+      dashboard: 'My Short-Term Rental Registry',
+      login: 'Log In to Short-Term Rental Registry'
     },
     step: {
       description: {
