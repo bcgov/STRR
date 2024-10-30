@@ -1,24 +1,22 @@
 <script setup lang="ts">
 const countryIso2 = defineModel<string>('countryIso2')
 const countryCode = defineModel<string>('countryCode')
+const number = defineModel<string>('number')
 const extension = defineModel<string>('extension')
 
-const props = defineProps({
-  name: { type: String, default: 'phone' },
-  number: { type: String, default: '' }
-})
-
-defineEmits(['update:number'])
+defineProps({ name: { type: String, default: 'phone' } })
 
 const northAmericaMask = '(###) ###-####'
 const otherMask = '##############'
 const inputMask = computed(() => countryCode.value === '1' ? northAmericaMask : otherMask)
-const maskedValue = ref<string>(props.number)
-const unmaskedValue = ref<string>('')
+const maskedValue = ref<string>(number.value || '')
+watch(number, (val) => {
+  maskedValue.value = val || ''
+})
 
 const phoneId = useId()
 
-defineExpose({ unmaskedValue })
+defineExpose({ number })
 </script>
 <template>
   <div class="flex w-full max-w-bcGovInput flex-col gap-3 sm:flex-row">
@@ -44,7 +42,7 @@ defineExpose({ unmaskedValue })
       <template #default="{ error }">
         <UInput
           v-model="maskedValue"
-          v-maska:unmaskedValue.unmasked="inputMask"
+          v-maska:number.unmasked="inputMask"
           :aria-label="$t('label.phone.number')"
           :color="number ? 'primary' : 'gray'"
           :placeholder="$t('label.phone.number')"
@@ -54,7 +52,6 @@ defineExpose({ unmaskedValue })
           size="lg"
           type="tel"
           data-testid="phone-number"
-          @input="$emit('update:number', unmaskedValue)"
         />
       </template>
       <template #error="{ error }">
