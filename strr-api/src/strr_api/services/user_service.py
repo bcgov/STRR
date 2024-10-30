@@ -35,7 +35,6 @@
 # pylint: disable=E1102
 """Manages user model interactions."""
 
-from strr_api.enums.enum import Role
 from strr_api.models.user import User
 from strr_api.utils.user_context import UserContext, user_context
 
@@ -99,14 +98,5 @@ class UserService:
         """Method to check whether the user has automation tester role."""
         usr_context: UserContext = kwargs["user_context"]
         if usr_context.is_automation_tester():
-            return True
-        return False
-
-    @classmethod
-    @user_context
-    def has_payment_override_role(cls, **kwargs) -> bool:
-        """Method to check whether the user has the payment override role."""
-        usr_context: UserContext = kwargs["user_context"]
-        if usr_context.has_role(Role.TIP_INTERNAL_PAYMENT_OVERRIDE.value):
             return True
         return False

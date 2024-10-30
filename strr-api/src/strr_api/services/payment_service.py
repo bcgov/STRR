@@ -140,9 +140,6 @@ class PayService:
         if UserService.is_automation_tester():
             payload["skipPayment"] = True
 
-        if UserService.has_payment_override_role():
-            payload["paymentInfo"] = {"methodOfPayment": "INTERNAL"}
-
         return payload
 
     def _get_platform_filing_type(self, registration_json):
