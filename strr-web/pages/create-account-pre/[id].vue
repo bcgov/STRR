@@ -65,8 +65,8 @@
 </template>
 
 <script setup lang="ts">
-import steps from '../../page-data/create-account/steps'
 import { FormPageI } from '~/interfaces/form/form-page-i'
+import steps from '../../page-data/create-account/steps'
 
 const hasSecondaryContact: Ref<boolean> = ref(false)
 const activeStepIndex: Ref<number> = ref(0)
@@ -113,19 +113,10 @@ const ownershipToApiType = (type: string | undefined): string => {
       return 'RENT'
     case t('createAccount.propertyForm.own'):
       return 'OWN'
-    case t('createAccount.propertyForm.other'):
+    case t('createAccount.propertyForm.coOwn'):
       return 'CO_OWN'
   }
   return ''
-}
-
-const rentalUnitSpaceTypeToApiType = (type: string | null): RentalUnitSpaceTypeE | '' => {
-  if (type === 'ENTIRE_HOME') {
-    return RentalUnitSpaceTypeE.ENTIRE_HOME
-  } else if (type === 'SHARED_ACCOMMODATION') {
-    return RentalUnitSpaceTypeE.SHARED_ACCOMMODATION
-  }
-  return '' // Return empty string if no match
 }
 
 const submit = () => {
@@ -141,10 +132,7 @@ const submit = () => {
       userLastName,
       hasSecondaryContact.value,
       propertyToApiType(formState.propertyDetails.propertyType),
-      ownershipToApiType(formState.propertyDetails.ownershipType),
-      rentalUnitSpaceTypeToApiType(formState.propertyDetails.rentalUnitSpaceType),
-      formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
-      formState.propertyDetails.numberOfRoomsForRent
+      ownershipToApiType(formState.propertyDetails.ownershipType)
     )
     : (steps[3].step.complete = true)
 }

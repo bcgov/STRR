@@ -18,11 +18,7 @@ export const submitCreateAccountForm = (
   userLastName: string,
   hasSecondaryContact: boolean,
   propertyType: string,
-  ownershipType: string,
-  rentalUnitSpaceType: string,
-  isUnitOnPrincipalResidenceProperty: boolean,
-  hostResidence: string,
-  numberOfRoomsForRent: number
+  ownershipType: string
 ) => {
   const formData: CreateAccountFormAPII = formStateToApi(
     formState,
@@ -30,11 +26,7 @@ export const submitCreateAccountForm = (
     userLastName,
     hasSecondaryContact,
     propertyType,
-    ownershipType,
-    rentalUnitSpaceType,
-    isUnitOnPrincipalResidenceProperty,
-    isUnitOnPrincipalResidenceProperty ? hostResidence : '',
-    numberOfRoomsForRent
+    ownershipType
   )
   axiosInstance.post(`${apiURL}/registrations`,
     { ...formData }
