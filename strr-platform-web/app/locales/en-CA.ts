@@ -138,7 +138,6 @@ export default {
     corpNum: 'Incorporation Number',
     busNum: 'Business Number',
     busNumOpt: 'Business Number (Optional)',
-    craBusNumOpt: 'Canada Revenue Agency Business Number (Optional)',
     cpbcLicNum: 'CPBC Licence Number',
     homeJurisdiction: 'Home Jurisdiction',
     name: 'Name',

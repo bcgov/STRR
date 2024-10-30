@@ -151,9 +151,9 @@ onMounted(async () => {
             <ConnectFormFieldGroup
               id="platform-business-number"
               v-model="platformBusiness.businessNumber"
-              :aria-label="$t('label.craBusNumOpt')"
+              :aria-label="$t('label.busNumOpt')"
               name="businessNumber"
-              :placeholder="$t('label.craBusNumOpt')"
+              :placeholder="$t('label.busNumOpt')"
             />
             <UFormGroup id="platform-business-hasCpbc" name="hasCpbc">
               <URadioGroup
