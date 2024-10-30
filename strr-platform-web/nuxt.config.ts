@@ -84,7 +84,9 @@ export default defineNuxtConfig({
       paymentPortalUrl: process.env.NUXT_PAYMENT_PORTAL_URL,
       baseUrl: process.env.NUXT_BASE_URL,
       environment: process.env.NUXT_ENVIRONMENT_HEADER || '',
-      version: `STRR PM UI v${process.env.npm_package_version}`
+      version: `STRR Platform UI v${process.env.npm_package_version}`,
+      ldClientId: process.env.NUXT_LD_CLIENT_ID || '',
+      appName: process.env.npm_package_name
       // set by layer - still required in .env
       // keycloakAuthUrl
       // keycloakClientId
@@ -93,7 +95,6 @@ export default defineNuxtConfig({
       // authWebURL
       // registryHomeURL
       // ldClientId
-      // appName - not required in .env
     }
   },
 

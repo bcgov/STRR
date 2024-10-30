@@ -447,6 +447,7 @@ export default {
   platform: {
     title: {
       application: 'Short-Term Rental Platform Application',
+      comingSoon: 'My Short-Term Rental Registry Coming Soon',
       dashboard: 'My Short-Term Rental Registry'
     },
     step: {
@@ -521,6 +522,7 @@ export default {
       brandNames: 'If your platform operates under distinct brand names, please enter each of them here.',
       brandNames2: 'If the business provides the same listings on multiple websites with different brand names, provide those as well. ',
       brandNamesNote: 'NOTE: if the listings are different, each brand should be a separate registration',
+      comingSoon: 'My Short-Term Rental Registry will be available on December 15, 2024',
       emailNote: 'Email will be the default method of communication. Information sent to your email address will be considered “received” on the third day after the email is sent.',
       hasCpbc: 'Does the business have an active number with Consumer Protection BC (CPBC)?',
       isUserRep: 'Are you the platform representative?',
