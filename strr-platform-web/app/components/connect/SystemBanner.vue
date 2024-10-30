@@ -4,6 +4,7 @@ defineProps({
   icon: { type: String, default: 'i-mdi-information' }
 })
 
+const { $sanitize } = useNuxtApp()
 const ldStore = useConnectLaunchdarklyStore()
 
 const close = ref(false)
@@ -11,7 +12,7 @@ const message = ref('')
 
 onMounted(async () => {
   await ldStore.ldClient?.waitUntilReady()
-  message.value = ldStore.getStoredFlag('banner-text').trim()
+  message.value = $sanitize(ldStore.getStoredFlag('banner-text')?.trim())
 })
 </script>
 
@@ -30,5 +31,16 @@ onMounted(async () => {
       <!-- NB: needed due to icon sizing via app.config / ui config for alert is not getting applied -->
       <UIcon class="ml-[-2px] text-[34px]" :name="icon" />
     </template>
+    <template #description>
+      <!-- eslint-disable vue/no-v-html tailwindcss/no-custom-classname -->
+      <p class="vhtml" v-html="message" />
+    </template>
   </UAlert>
 </template>
+<!-- must style globally for vhtml style to work  -->
+<style>
+.vhtml > a {
+  color: #212529;
+  text-decoration: underline;
+}
+</style>

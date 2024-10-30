@@ -84,17 +84,16 @@ export default defineNuxtConfig({
       paymentPortalUrl: process.env.NUXT_PAYMENT_PORTAL_URL,
       baseUrl: process.env.NUXT_BASE_URL,
       environment: process.env.NUXT_ENVIRONMENT_HEADER || '',
-      version: `STRR Platform UI v${process.env.npm_package_version}`,
-      ldClientId: process.env.NUXT_LD_CLIENT_ID || '',
-      appName: process.env.npm_package_name
+      version: `STRR Platform UI v${process.env.npm_package_version}`
       // set by layer - still required in .env
-      // keycloakAuthUrl
-      // keycloakClientId
-      // keycloakRealm
-      // authApiURL
-      // authWebURL
-      // registryHomeURL
-      // ldClientId
+      // keycloakAuthUrl - NUXT_KEYCLOAK_AUTH_URL
+      // keycloakClientId - NUXT_KEYCLOAK_CLIENTID
+      // keycloakRealm - NUXT_KEYCLOAK_REALM
+      // authApiURL - NUXT_AUTH_API_URL
+      // authWebURL - NUXT_AUTH_WEB_URL
+      // registryHomeURL - NUXT_REGISTRY_HOME_URL
+      // ldClientId - NUXT_LD_CLIENT_ID
+      // appName - npm_package_name
     }
   },
 
