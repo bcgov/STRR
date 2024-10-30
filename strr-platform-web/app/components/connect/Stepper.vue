@@ -1,9 +1,13 @@
 <script setup lang="ts">
+const { t } = useI18n()
+defineProps<{ stepperLabel: string }>()
 const emit = defineEmits<{ newStep: [stepIndex: number] }>()
 
 const stepsModel = defineModel<Step[]>('steps', { default: () => [] })
 const activeStepIndexModel = defineModel<number>('activeStepIndex', { default: 0 })
 const activeStepModel = defineModel<Step>('activeStep', { default: () => {} })
+
+const buttonRefs = ref<HTMLButtonElement[]>([])
 
 async function setActiveStep (newStep: number) {
   activeStepModel.value.complete = true // set currently active step to complete
@@ -57,6 +61,20 @@ function setStepValidity (index: number, valid: boolean) {
   stepsModel.value[index].isValid = valid
 }
 
+function createStepAriaLabel (index: number) {
+  const step = stepsModel.value[index]
+  const stepCount = t('label.stepCount', { current: index + 1, max: stepsModel.value.length })
+  const label = step?.label ? t(step.label) : t(`${step?.i18nPrefix}.description.${index}`)
+  const validity = step?.complete ? (step.isValid ? t('label.stepValid') : t('label.stepInvalid')) : ''
+
+  return `${stepCount} ${label}, ${validity}`
+}
+
+watch(activeStepIndexModel, (newIndex) => {
+  buttonRefs.value[newIndex]?.focus()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
 defineExpose({ setActiveStep, setNextStep, setPreviousStep, setStepValidity })
 
 onMounted(() => {
@@ -66,78 +84,80 @@ onMounted(() => {
 })
 </script>
 <template>
-  <div>
-    <div
-      class="
+  <ol
+    :aria-label="stepperLabel"
+    class="
         flex w-full flex-row justify-between
         rounded-[4px] bg-transparent px-0 pt-0
         sm:bg-white sm:px-5 sm:pt-5
       "
-      data-testid="stepper"
+    data-testid="stepper"
+  >
+    <li
+      v-for="(step, index) in stepsModel"
+      :key="'step' + index"
+      class="flex flex-row"
+      :class="index == stepsModel.length - 1 ? 'shrink grow-0': 'shrink-0 grow'"
     >
-      <div
-        v-for="(step, index) in stepsModel"
-        :key="'step' + index"
-        class="flex flex-row"
-        :class="index == stepsModel.length - 1 ? 'shrink grow-0': 'shrink-0 grow'"
+      <button
+        ref="buttonRefs"
+        class="flex cursor-pointer flex-col items-center border-b-0 border-blue-500 pb-5"
+        :class="index === activeStepIndexModel ? 'sm:border-b-[3px]' : ''"
+        :aria-label="createStepAriaLabel(index)"
+        :aria-current="index === activeStepIndexModel ? 'step' : undefined"
+        @click="setActiveStep(index)"
       >
-        <button
-          class="flex cursor-pointer flex-col items-center border-b-0 border-blue-500 pb-5"
-          :class="index === activeStepIndexModel ? 'sm:border-b-[3px]' : ''"
-          @click="setActiveStep(index)"
-        >
-          <div class="flex justify-center pt-2 ">
-            <div
-              class="
+        <div class="flex justify-center pt-2 ">
+          <div
+            class="
                 relative size-8 rounded-full p-[5px]
                 outline outline-1 outline-blue-500
                 sm:size-12 sm:p-3 md:size-16 md:p-4
               "
-              :class="index === activeStepIndexModel ? 'bg-blue-500' : ''"
-            >
-              <div v-if="step.complete">
-                <img
-                  :src="step.isValid
-                    ? '/icons/valid_step.svg'
-                    : '/icons/invalid_step.svg'
-                  "
-                  :alt="$t(`validation.step.${step.isValid}`)"
-                  class="absolute right-[-10px] top-[-10px]"
-                >
-              </div>
-              <UIcon
-                v-if="step.icon"
-                class="size-5 sm:size-6 md:size-8"
-                :class="index === activeStepIndexModel ? 'text-white' : 'text-primary'"
-                :name="step.icon"
-              />
+            :class="index === activeStepIndexModel ? 'bg-blue-500' : ''"
+          >
+            <div v-if="step.complete">
               <img
-                v-else
-                :src="`${index === activeStepIndexModel ? `${step.activeIconPath}`: step.inactiveIconPath}`"
-                class="size-5 sm:size-6 md:size-8"
-                :alt="step.i18nPrefix ? $t(`${step.i18nPrefix}.description.${index}`) : step.alt"
+                :src="step.isValid
+                  ? '/icons/valid_step.svg'
+                  : '/icons/invalid_step.svg'
+                "
+                :alt="$t(`validation.step.${step.isValid}`)"
+                class="absolute right-[-10px] top-[-10px]"
               >
             </div>
+            <UIcon
+              v-if="step.icon"
+              class="size-5 sm:size-6 md:size-8"
+              :class="index === activeStepIndexModel ? 'text-white' : 'text-primary'"
+              :name="step.icon"
+            />
+            <img
+              v-else
+              :src="`${index === activeStepIndexModel ? `${step.activeIconPath}`: step.inactiveIconPath}`"
+              class="size-5 sm:size-6 md:size-8"
+              :alt="step.i18nPrefix ? $t(`${step.i18nPrefix}.description.${index}`) : step.alt"
+            >
           </div>
-          <p
-            class="
+        </div>
+        <p
+          class="
               mt-2 hidden max-w-[95px] text-center
               text-[14px] leading-5 sm:block
             "
-            :class="index === activeStepIndexModel ? 'font-bold text-black' : 'text-blue-500'"
-          >
-            {{ step.label ? $t(step.label) : $t(`${step.i18nPrefix}.description.${index}`) }}
-          </p>
-        </button>
-        <div
-          v-if="index < stepsModel.length - 1"
-          class="mb-2 shrink-0 grow self-center sm:mb-10 md:mb-10"
+          :class="index === activeStepIndexModel ? 'font-bold text-black' : 'text-blue-500'"
         >
-          <div class="h-px bg-gray-600" />
-        </div>
+          {{ step.label ? $t(step.label) : $t(`${step.i18nPrefix}.description.${index}`) }}
+        </p>
+      </button>
+      <div
+        v-if="index < stepsModel.length - 1"
+        class="mb-2 shrink-0 grow self-center sm:mb-10 md:mb-10"
+      >
+        <div class="h-px bg-gray-600" />
       </div>
-    </div>
-  </div>
+    </li>
+  </ol>
   <div v-if="stepsModel[activeStepIndexModel]?.i18nPrefix" class="space-y-5 py-5">
     <ConnectTypographyH2 :text="$t(`${stepsModel[activeStepIndexModel]?.i18nPrefix}.title.${activeStepIndexModel}`)" />
     <p>

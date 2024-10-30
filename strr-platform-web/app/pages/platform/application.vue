@@ -210,7 +210,6 @@ watch(activeStepIndex, (val) => {
   })
 
   setButtonControl({ leftButtons: [], rightButtons: buttons })
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }, { immediate: true })
 
 // page stuff
@@ -238,6 +237,7 @@ setBreadcrumbs([
       v-model:steps="steps"
       v-model:active-step-index="activeStepIndex"
       v-model:active-step="activeStep"
+      :stepper-label="$t('label.platAppStepLabel')"
     />
     <div v-if="activeStepIndex === 0" key="contact-information">
       <FormPlatformContactInfo :is-complete="activeStep.complete" />

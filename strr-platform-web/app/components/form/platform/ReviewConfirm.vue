@@ -277,7 +277,7 @@ onMounted(async () => {
     <!-- platform info section -->
     <ConnectPageSection
       :heading="{
-        label: tPlat('step.description.2'),
+        label: tPlat('section.title.details'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
         icon: 'i-mdi-map-marker-plus-outline',
         padding: 'sm:px-8 py-4 px-4'
