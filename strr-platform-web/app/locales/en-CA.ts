@@ -185,7 +185,9 @@ export default {
     stepCount: 'Step {current} of {max}:',
     stepValid: 'Step Valid',
     stepInvalid: 'Step Invalid',
-    platAppStepLabel: 'Platform Application Step Navigation'
+    platAppStepLabel: 'Platform Application Step Navigation',
+    stepUnfinished: 'This step is unfinished.',
+    returnStepToFinish: 'Return to this step to finish it'
   },
   word: {
     i: 'i',

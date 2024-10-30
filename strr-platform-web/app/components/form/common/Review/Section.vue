@@ -18,10 +18,10 @@ defineEmits<{
       class="inline-flex items-center gap-1 px-4 pt-4 sm:px-8"
     >
       <UIcon name="i-mdi-alert-circle-outline" class="size-6 text-red-500" />
-      <span class="text-red-500">This step is unfinished.</span>
+      <span class="text-red-500">{{ $t('label.stepUnfinished') }}</span>
       <UButton
         variant="link"
-        label="Return to this step to finish it"
+        :label="$t('label.returnStepToFinish')"
         :padded="false"
         size="xl"
         class="underline"
