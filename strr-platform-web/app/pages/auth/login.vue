@@ -11,6 +11,10 @@ useHead({
   title: t('platform.title.login')
 })
 
+definePageMeta({
+  middleware: 'login-page'
+})
+
 setBreadcrumbs([
   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' }
 ])
