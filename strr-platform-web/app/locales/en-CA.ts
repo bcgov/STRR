@@ -194,7 +194,13 @@ export default {
     loginBceid: 'Log in with BCeID',
     loginBcsc: 'Log in with BC Services Card',
     loginIdir: 'Log in with IDIR',
-    strrLogin: 'STRR Login'
+    strrLogin: 'STRR Login',
+    selectAccount: 'Select Account',
+    yourExistingAccounts: 'Your Existing Accounts ({count})',
+    basicAccount: 'Basic Account',
+    inactiveAccount: 'Inactive Account',
+    createNewAccount: 'Create New Account',
+    contToCreateAccount: 'Continue to Create Account'
   },
   word: {
     i: 'i',
@@ -243,7 +249,8 @@ export default {
       hint: 'Example: William Smith may prefer to go by Bill Smith to their acquaintances'
     },
     sameAsBusMailing: 'Same as the business mailing address',
-    streetHint: 'Street address, PO box, rural route, or general delivery address'
+    streetHint: 'Street address, PO box, rural route, or general delivery address',
+    noAccountsFound: 'No accounts found, please click below to get started with an account.'
   },
   toast: {},
   feeSummary: {
@@ -466,7 +473,8 @@ export default {
       application: 'Short-Term Rental Platform Application',
       comingSoon: 'My Short-Term Rental Registry Coming Soon',
       dashboard: 'My Short-Term Rental Registry',
-      login: 'Log In to Short-Term Rental Registry'
+      login: 'Log In to Short-Term Rental Registry',
+      chooseAccount: 'Select an Account - My Short-Term Rental Registry'
     },
     step: {
       description: {
@@ -556,7 +564,10 @@ export default {
       takedownEmailLong: 'This message will be sent to the platform service provider by a local government to request the platform service provider cease providing platform services for a listing that is not compliant with a local government business licence requirement. The request may be sent within a period of 5-90 days after a Notice of Non-compliance was delivered. As per s.18 (3)(b) of the Short-term Rental Accommodations Act, platform service providers must comply with the request of the local government.',
       thousandOrMore: '1000 or more',
       yourNameBcsc: 'This is your legal name as it appears on your BC Services Card.',
-      yourNameBceid: 'This is your legal name as it appears on your BCeID.'
+      yourNameBceid: 'This is your legal name as it appears on your BCeID.',
+      selectAccountForStrr: 'Select the account you wish to use to register your Short-term rental platform.',
+      onlyPremiumAccountWarning: '{boldStart}Note:{boldEnd} Only Premium accounts using Pre-authorized Debit (PAD) can be used to register Short-term Rental Registry Platforms.',
+      onlyPremiumAccountModalContent: 'Note: You must create a BC Registries Premium Account that uses a Pre-authorized Debit (PAD) payment method.'
     },
     review: {
       alert: {
