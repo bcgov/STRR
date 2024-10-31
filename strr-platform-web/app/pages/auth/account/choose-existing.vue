@@ -11,7 +11,7 @@ useHead({
 })
 
 definePageMeta({
-  middleware: []
+  middleware: ['auth']
 })
 
 // display premium accounts first
@@ -27,9 +27,9 @@ const sortedAccounts = computed(() => {
 })
 // const sortedAccounts = []
 
-// TODO: how do we want to redirect if user has or does not have any platforms?
+// TODO: how do we want to redirect if the user has/does not have any platforms?
 // check if the account has a platform here and either redirect to the dashboard or registration page?
-// or redirect to the dashboard page and if the user doesnt have any platforms they get redirected to the application
+// or redirect to the dashboard page and if the user doesnt have any platforms the dashboard can handle the redirect ?
 function handleAccountSwitch (id: string) {
   accountStore.switchCurrentAccount(id)
   // only navigate if account successfully changed
