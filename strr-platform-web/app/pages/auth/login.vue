@@ -22,7 +22,7 @@ setBreadcrumbs([
         {{ $t('platform.title.login') }}
       </h1>
       <img src="/img/BCReg_Generic_Login_image.jpg" class="py-4" :alt="$t('imageAlt.genericLogin')">
-      <div class="space-y-4 pt-5">
+      <div class="space-y-4 pt-3">
         <UButton
           :label="$t('label.loginBceid')"
           icon="i-mdi-two-factor-authentication"
