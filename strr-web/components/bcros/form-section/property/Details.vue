@@ -55,6 +55,7 @@
             <button
               class="px-2 py-1 border-r border-gray-300 rounded-l-md"
               :disabled="formState.propertyDetails.numberOfRoomsForRent <= 1"
+              data-test-id="decrement-button"
               @click="decrementRooms"
             >
               -
@@ -64,11 +65,13 @@
               type="number"
               class="w-full text-center outline-none border-none"
               :min="1"
+              data-test-id="number-of-rooms-input"
               @input="emit('validateNumberOfRoomsForRent')"
               @keydown.enter.prevent
             >
             <button
               class="px-2 py-1 border-l border-gray-300 rounded-r-md"
+              data-test-id="increment-button"
               @click="incrementRooms"
             >
               +
