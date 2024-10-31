@@ -6,7 +6,8 @@ export default defineAppConfig({
         red: {
           outline: 'text-red-600 border border-red-600 hover:bg-red-100'
         }
-      }
+      },
+      gap: { sm: 'gap-x-2.5' }
     },
     input: {
       file: {

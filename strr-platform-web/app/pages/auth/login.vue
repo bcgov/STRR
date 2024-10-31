@@ -26,14 +26,11 @@ setBreadcrumbs([
         {{ $t('platform.title.login') }}
       </h1>
       <img src="/img/BCReg_Generic_Login_image.jpg" class="py-4" :alt="$t('imageAlt.genericLogin')">
-      <div class="space-y-4 pt-3">
+      <div class="space-y-4 pt-2.5">
         <UButton
           :label="$t('label.loginBceid')"
           icon="i-mdi-two-factor-authentication"
           block
-          :ui="{
-            gap: { sm: 'gap-x-2.5' }
-          }"
           @click="keycloak.login(IdpHint.BCEID, redirectUrl)"
         />
         <UButton
@@ -41,9 +38,6 @@ setBreadcrumbs([
           icon="i-mdi-account-card-details-outline"
           color="gray"
           block
-          :ui="{
-            gap: { sm: 'gap-x-2.5' }
-          }"
           @click="keycloak.login(IdpHint.BCSC, redirectUrl)"
         />
         <UButton
@@ -51,9 +45,6 @@ setBreadcrumbs([
           icon="i-mdi-account-group-outline"
           color="gray"
           block
-          :ui="{
-            gap: { sm: 'gap-x-2.5' }
-          }"
           @click="keycloak.login(IdpHint.IDIR, redirectUrl)"
         />
       </div>
