@@ -364,6 +364,7 @@
       "own": "Own",
       "coOwn": "Co-own",
       "isUnitOnPrincipalResidenceProperty": "Is the rental unit on the same property as the principal residence?",
+      "isUnitOnPrincipalResidencePropertyRequired": "This field is required.",
       "yes": "Yes",
       "no": "No",
       "hostResidence": "Where does the property host live on the property?",

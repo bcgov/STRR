@@ -245,8 +245,8 @@ const validateRentalUnitSpaceType = () => {
 }
 
 const validatePrincipalResidenceOptions = () => {
-  if (formState.propertyDetails.isUnitOnPrincipalResidenceProperty === undefined) {
-    principalResidenceError.value = t('createAccount.propertyForm.principalResidenceRequired')
+  if (!formState.propertyDetails.isUnitOnPrincipalResidenceProperty) {
+    principalResidenceError.value = t('createAccount.propertyForm.isUnitOnPrincipalResidencePropertyRequired')
   } else {
     principalResidenceError.value = ''
   }
