@@ -65,6 +65,7 @@
               type="number"
               class="w-full text-center outline-none border-none"
               :min="1"
+              :max="5000"
               data-test-id="number-of-rooms-input"
               @input="emit('validateNumberOfRoomsForRent')"
               @keydown.enter.prevent
@@ -182,7 +183,9 @@ const decrementRooms = () => {
 }
 
 const incrementRooms = () => {
-  formState.propertyDetails.numberOfRoomsForRent++
+  if (formState.propertyDetails.numberOfRoomsForRent < 5000) {
+    formState.propertyDetails.numberOfRoomsForRent++
+  }
 }
 
 watch(businessLicense, (): void => {

@@ -275,6 +275,8 @@ const validateHostResidence = () => {
 const validateNumberOfRoomsForRent = () => {
   if (formState.propertyDetails?.numberOfRoomsForRent < 1) {
     numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentRequired')
+  } else if (formState.propertyDetails?.numberOfRoomsForRent > 5000) {
+    numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentMaxExceeded', { max: 5000 })
   } else {
     numberOfRoomsForRentError.value = ''
   }
