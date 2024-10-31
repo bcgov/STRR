@@ -260,8 +260,7 @@ const validateHostResidence = () => {
 }
 
 const validateNumberOfRoomsForRent = () => {
-  if (!formState.propertyDetails.numberOfRoomsForRent || formState.propertyDetails.numberOfRoomsForRent < 1) {
-    formState.propertyDetails.numberOfRoomsForRent = 1
+  if (formState.propertyDetails.numberOfRoomsForRent === '' || formState.propertyDetails.numberOfRoomsForRent < 1) {
     numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentRequired')
   } else {
     numberOfRoomsForRentError.value = ''
