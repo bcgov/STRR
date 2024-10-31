@@ -20,7 +20,7 @@
           :error="principalResidenceError"
         >
           <USelect
-            v-model="isUnitOnPrincipalResidenceProperty"
+            v-model="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
             :placeholder="t('createAccount.propertyForm.isUnitOnPrincipalResidenceProperty')"
             :options="principalResidenceOptions"
             class="w-full"

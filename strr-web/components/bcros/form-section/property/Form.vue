@@ -244,11 +244,24 @@ const validateRentalUnitSpaceType = () => {
   }
 }
 
+watch(
+  () => formState.propertyDetails.isUnitOnPrincipalResidenceProperty,
+  (newValue) => {
+    // Coerce string "true"/"false" to boolean true/false
+    if (newValue === 'true') {
+      formState.propertyDetails.isUnitOnPrincipalResidenceProperty = true
+    } else if (newValue === 'false') {
+      formState.propertyDetails.isUnitOnPrincipalResidenceProperty = false
+    }
+  }
+)
+
 const validatePrincipalResidenceOptions = () => {
-  if (!formState.propertyDetails.isUnitOnPrincipalResidenceProperty) {
+  const value = formState.propertyDetails.isUnitOnPrincipalResidenceProperty
+  if (value === null || value === undefined) {
     principalResidenceError.value = t('createAccount.propertyForm.isUnitOnPrincipalResidencePropertyRequired')
   } else {
-    principalResidenceError.value = ''
+    principalResidenceError.value = '' // Clear the error if a valid selection is made
   }
 }
 

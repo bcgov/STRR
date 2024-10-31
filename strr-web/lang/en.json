@@ -164,7 +164,8 @@
     "hostResidence": "Host Residence",
     "SAME_UNIT":"The host lives in this unit when it's not being rented",
     "ANOTHER_UNIT":"The host lives in another unit on the same property",
-    "numberOfRoomsForRent":"Number of Rooms for Rent"
+    "numberOfRoomsForRent":"Number of Rooms for Rent",
+    "parcelIdentifier": "Parcel Identifier",
   },
   "banner": {
     "SUBMIT_PAYMENT": "Submit Payment",
