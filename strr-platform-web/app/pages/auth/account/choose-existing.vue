@@ -31,11 +31,17 @@ const sortedAccounts = computed(() => {
 // check if the account has a platform here and either redirect to the dashboard or registration page?
 // or redirect to the dashboard page and if the user doesnt have any platforms the dashboard can handle the redirect ?
 function handleAccountSwitch (id: string) {
+  const route = useRoute()
   accountStore.switchCurrentAccount(id)
+  // TODO: add Strr product to org product list
   // only navigate if account successfully changed
   // if (accountStore.currentAccount.id === id) { // TODO: assume account change is always successful ?
-  return navigateTo(localePath('/platform/dashboard'))
-  // }
+
+  if (route.query.return) {
+    return navigateTo(route.query.return as string)
+  } else {
+    return navigateTo(localePath('/platform/dashboard'))
+  }
 }
 
 // TODO: how much do we care about displaying the account mailing address ?
@@ -43,11 +49,11 @@ function handleAccountSwitch (id: string) {
 // if we want the mailing address, we'll need to make a separate auth api call
 // maybe this should be added to the layer?
 
-// onMounted(async () => {
-//   const { $authApi } = useNuxtApp()
+// onMounted(() => {
+// const { $authApi } = useNuxtApp()
 
-//   const response = await $authApi('/users/orgs')
-//   console.log(response)
+// const response = await $authApi('/users/orgs')
+// const response = await $authApi(`orgs/${accountStore.currentAccount.id}/products`) // get users products
 // })
 </script>
 <template>
