@@ -435,6 +435,7 @@
       "contactDetails": "Contact Details",
       "mailingAddress": "Mailing Address",
       "nickname": "Nickname",
+      "parcelIdentifier": "Parcel Identifier",
       "businessLicense": "Business License",
       "businessLicenseExpiryDate": "Business License Expiry Date",
       "address": "Address",
