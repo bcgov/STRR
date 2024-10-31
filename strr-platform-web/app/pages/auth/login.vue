@@ -21,8 +21,8 @@ setBreadcrumbs([
 ])
 </script>
 <template>
-  <div class="flex justify-center py-10">
-    <UCard class="max-w-md">
+  <div class="flex grow justify-center py-10">
+    <UCard class="my-auto max-w-md">
       <h1>
         {{ $t('platform.title.login') }}
       </h1>

@@ -7,5 +7,5 @@
 }
 
 .app-body {
-  @apply grow relative;
+  @apply grow relative flex flex-col;
 }
