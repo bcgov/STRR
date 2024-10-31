@@ -60,11 +60,12 @@
               -
             </button>
             <input
-              v-model.number="formState.propertyDetails.numberOfRoomsForRent"
+              v-model="formState.propertyDetails.numberOfRoomsForRent"
               type="number"
               class="w-full text-center outline-none border-none"
               :min="1"
-              @change="emit('validateNumberOfRoomsForRent')"
+              @input="emit('validateNumberOfRoomsForRent')"
+              @keydown.enter.prevent
             >
             <button
               class="px-2 py-1 border-l border-gray-300 rounded-r-md"
@@ -172,12 +173,14 @@ const rentalUnitSpaceType = defineModel<string>('rentalUnitSpaceType')
 const isUnitOnPrincipalResidenceProperty = defineModel<boolean>('isUnitOnPrincipalResidenceProperty')
 const hostResidence = defineModel<string | null>('hostResidence')
 
-const incrementRooms = () => {
-  formState.propertyDetails.numberOfRoomsForRent++
+const decrementRooms = () => {
+  if (formState.propertyDetails.numberOfRoomsForRent > 1) {
+    formState.propertyDetails.numberOfRoomsForRent--
+  }
 }
 
-const decrementRooms = () => {
-  formState.propertyDetails.numberOfRoomsForRent--
+const incrementRooms = () => {
+  formState.propertyDetails.numberOfRoomsForRent++
 }
 
 watch(businessLicense, (): void => {
