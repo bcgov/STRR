@@ -193,7 +193,8 @@ export default {
     returnStepToFinish: 'Return to this step to finish it',
     loginBceid: 'Log in with BCeID',
     loginBcsc: 'Log in with BC Services Card',
-    loginIdir: 'Log in with IDIR'
+    loginIdir: 'Log in with IDIR',
+    strrLogin: 'STRR Login'
   },
   word: {
     i: 'i',
