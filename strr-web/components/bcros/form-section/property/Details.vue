@@ -76,7 +76,6 @@
           </div>
         </UFormGroup>
       </div>
-
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="propertyType" class="d:pr-[16px] flex-grow" :error="propertyTypeError">
           <USelect
@@ -239,3 +238,17 @@ const {
   numberOfRoomsForRentError: string;
 }>()
 </script>
+
+<style scoped>
+/* Hide spinner controls for Chrome, Safari, Edge, and Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide spinner controls for Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+</style>

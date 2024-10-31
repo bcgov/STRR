@@ -69,8 +69,10 @@
                 :title="tReview('numberOfRoomsForRent')"
                 :content="formState.propertyDetails.numberOfRoomsForRent.toString() || '-'"
               />
-            </div>
-            <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
+              <BcrosFormSectionReviewItem
+                :title="tReview('propertyType')"
+                :content="formState.propertyDetails.propertyType ?? '-'"
+              />
               <BcrosFormSectionReviewItem :title="tReview('address')">
                 <p>{{ formState.propertyDetails.address }}</p>
                 <p v-if="formState.propertyDetails.addressLineTwo">
@@ -89,14 +91,12 @@
                   }}
                 </p>
               </BcrosFormSectionReviewItem>
+            </div>
+            <div class="flex flex-row justify-between w-full desktop:mb-[24px] mobile:flex-col">
               <BcrosFormSectionReviewItem
                 v-if="formState.propertyDetails.businessLicenseExpiryDate"
                 :title="tReview('businessLicenseExpiryDate')"
                 :content="convertDateToLongFormat(formState.propertyDetails.businessLicenseExpiryDate)"
-              />
-              <BcrosFormSectionReviewItem
-                :title="tReview('propertyType')"
-                :content="formState.propertyDetails.propertyType ?? '-'"
               />
               <div v-if="!formState.propertyDetails.businessLicenseExpiryDate" class="flex-1" />
             </div>
