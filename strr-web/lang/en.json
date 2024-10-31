@@ -372,7 +372,8 @@
       "numberOfRoomsForRent": "Number of Rooms for Rent",
       "numberOfRoomsForRentHelp": "Enter the number of rooms available for rent in this unit.",
       "principalResidenceRequired": "Please select if the rental unit is on the same property as the principal residence.",
-      "numberOfRoomsForRentRequired": "Please specify the number of rooms available for rent."
+      "numberOfRoomsForRentRequired": "Please specify the number of rooms available for rent.",
+      "numberOfRoomsForRentMaxExceeded": "The maximum allowed number of rooms for rent is 5000."
     },
     "principalResidence": {
       "property": "Property",
