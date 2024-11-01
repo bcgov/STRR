@@ -1,11 +1,13 @@
-export const useStrrPlatformStore = defineStore('strr/platform', () => {
-  // TODO: WIP - update for strata
+import { formatBusinessDetailsUI, formatStrataDetailsUI } from '~/utils/strata-formating'
+
+export const useStrrStrataStore = defineStore('strr/strata', () => {
+  const { getAccountApplications, getAccountRegistrations } = useStrrApi()
   const { primaryRep, secondaryRep } = storeToRefs(useStrrContactStore())
   const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
   const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 
   const activeApplicationInfo = ref<ApplicationHeader | undefined>(undefined)
-  const activePlatform = ref<PlatformRegistrationResp | ApiBasePlatformRegistration | undefined>(undefined)
+  const activePlatform = ref<StrataRegistrationResp | ApiBaseStrataRegistration | undefined>(undefined)
 
   // @ts-expect-error - registration_number will only be there for registrations
   const isRegistration = computed(() => !!activePlatform.value?.registration_number)
@@ -16,49 +18,37 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
   const isPaidApplication = computed(() =>
     activeApplicationInfo.value && !isApplicationStatus([ApplicationStatus.DRAFT, ApplicationStatus.PAYMENT_DUE]))
 
-  const showPlatformDetails = computed(() => isRegistration.value ||
+  const showStrataDetails = computed(() => isRegistration.value ||
     (activeApplicationInfo.value && !isApplicationStatus([ApplicationStatus.DECLINED, ApplicationStatus.DRAFT])))
 
-  const getAccountRegistrations = async () => {
-    // TODO: add error handling / modal popup?
-    const resp = await $strrApi<{ registrations: PlatformRegistrationResp[] }>('/registrations')
-    return resp?.registrations
-  }
-
-  const getAccountApplications = async () => {
-    // TODO: add error handling / modal popup?
-    const resp = await $strrApi('/applications', { method: 'GET' }) as { applications: PlatformApplicationResp[] }
-    return resp.applications
-  }
-
-  const loadPlatform = async () => {
+  const loadStrata = async (id: string) => {
     // get registrations under this account
-    const registrations = await getAccountRegistrations()
-    if (registrations.length) {
+    const registration = await getAccountRegistrations<StrataRegistrationResp>(id) as StrataRegistrationResp
+    if (registration) {
       // set active platform to the most recent registration (ordered by api)
-      activePlatform.value = registrations[0]
+      activePlatform.value = registration
     } else {
       // No registrations under the account so get applications
-      const applications = await getAccountApplications()
-      if (applications.length) {
+      const application = await getAccountApplications<StrataApplicationResp>(id) as StrataApplicationResp
+      if (application) {
         // set active platform to the most recent application (ordered by api)
-        activePlatform.value = applications[0]?.registration
+        activePlatform.value = application.registration
         // set application header info
-        activeApplicationInfo.value = applications[0]?.header
+        activeApplicationInfo.value = application.header
       }
     }
 
-    if (activePlatform.value && (isRegistration.value || showPlatformDetails.value)) {
+    if (activePlatform.value && (isRegistration.value || showStrataDetails.value)) {
       // set relevant sub store values to active platform data
       // @ts-expect-error - key at index 0 should always exist here
-      primaryRep.value = formatRepresentativeUI(activePlatform.value.platformRepresentatives[0])
+      primaryRep.value = formatRepresentativeUI(activePlatform.value.strataHotelRepresentatives[0])
       // should only ever be 2 reps at most
-      if (activePlatform.value.platformRepresentatives?.length > 1) {
+      if (activePlatform.value.strataHotelRepresentatives?.length > 1) {
         // @ts-expect-error - key at index 0 should always exist here
-        secondaryRep.value = formatRepresentativeUI(activePlatform.value.platformRepresentatives[1])
+        secondaryRep.value = formatRepresentativeUI(activePlatform.value.strataHotelRepresentatives[1])
       }
-      platformBusiness.value = formatBusinessDetailsUI(activePlatform.value.businessDetails)
-      platformDetails.value = activePlatform.value.platformDetails
+      strataBusiness.value = formatBusinessDetailsUI(activePlatform.value.businessDetails)
+      strataDetails.value = formatStrataDetailsUI(activePlatform.value.strataHotelDetails)
     }
   }
 
@@ -67,8 +57,8 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     activePlatform,
     isRegistration,
     isPaidApplication,
-    showPlatformDetails,
+    showStrataDetails,
     isApplicationStatus,
-    loadPlatform
+    loadStrata
   }
 })

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { StrataDetails } from '~/interfaces/strata-details'
 
 export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () => {
   const {
@@ -12,8 +13,18 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
     brands: z.array(getStrataBrandSchema())
   })
 
-  const strataDetails = ref<{ brands: StrrBrand[], numberOfUnits: number | undefined }>({
+  const strataDetails = ref<StrataDetails>({
     brands: [{ name: '', website: '' }],
+    buildings: [],
+    location: {
+      country: '',
+      street: '',
+      streetAdditional: '',
+      city: '',
+      region: '',
+      postalCode: '',
+      locationDescription: ''
+    },
     numberOfUnits: undefined
   })
 

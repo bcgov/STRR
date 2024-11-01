@@ -1,3 +1,4 @@
+// TODO: move relevant functions to strr-base-web layer
 export function formatPhoneNumber (party: Contact): ApiPhone {
   return {
     phoneNumber: party.phone.number,
@@ -93,7 +94,7 @@ export function formatBusinessDetails (bus: PlatBusiness): ApiPlatformBusinessDe
   }
 }
 
-function isSameAddress (addr1: object, addr2: object) {
+export function isSameAddress (addr1: object, addr2: object) {
   return Object.values(addr1).toString() === Object.values(addr2).toString()
 }
 

@@ -1,11 +1,13 @@
 export interface ApiStrataDetails {
   brands: StrrBrand[]
-  listingSize: number
+  buildings: ApiAddress[]
+  location: ApiAddress
+  numberOfUnits: number
 }
 
 export interface ApiBaseStrataRegistration extends ApiBaseRegistration {
-  strataRepresentatives: ApiRep[]
-  strataDetails: ApiStrataDetails
+  strataHotelRepresentatives: ApiRep[]
+  strataHotelDetails: ApiStrataDetails
 }
 
 export interface StrataRegistrationResp extends ApiBaseStrataRegistration, ApiExtraRegistrationDetails {

@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import type { MultiFormValidationResult } from '#imports'
+import type { MultiFormValidationResult, StrataApplicationPayload } from '#imports'
+import { formatBusinessDetails, formatStrataDetails } from '~/utils/strata-formating'
 
 export const useStrrPlatformApplication = defineStore('strr/platformApplication', () => {
   // TODO: WIP - updating for strata
@@ -36,31 +37,30 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     }
   }
 
-  // TODO: update for strata api submission
   const createApplicationBody = () => {
-    // const applicationBody: PlatformApplicationPayload = {
-    //   registration: {
-    //     registrationType: ApplicationType.PLATFORM,
-    //     completingParty: formatParty(contactStore.completingParty),
-    //     platformRepresentatives: [],
-    //     businessDetails: formatBusinessDetails(businessStore.strataBusiness),
-    //     platformDetails: formatPlatformDetails(detailsStore.strataDetails)
-    //   }
-    // }
+    const applicationBody: StrataApplicationPayload = {
+      registration: {
+        registrationType: ApplicationType.STRATA_HOTEL,
+        completingParty: formatParty(contactStore.completingParty),
+        businessDetails: formatBusinessDetails(businessStore.strataBusiness),
+        strataHotelRepresentatives: [],
+        strataHotelDetails: formatStrataDetails(detailsStore.strataDetails)
+      }
+    }
 
-    // if (platContactStore.primaryRep !== undefined) {
-    //   applicationBody.registration.platformRepresentatives.push(
-    //     formatRepresentative(platContactStore.primaryRep)
-    //   )
-    // }
+    if (contactStore.primaryRep !== undefined) {
+      applicationBody.registration.strataHotelRepresentatives.push(
+        formatRepresentative(contactStore.primaryRep)
+      )
+    }
 
-    // if (platContactStore.secondaryRep !== undefined) {
-    //   applicationBody.registration.platformRepresentatives.push(
-    //     formatRepresentative(platContactStore.secondaryRep)
-    //   )
-    // }
+    if (contactStore.secondaryRep !== undefined) {
+      applicationBody.registration.strataHotelRepresentatives.push(
+        formatRepresentative(contactStore.secondaryRep)
+      )
+    }
 
-    // return applicationBody
+    return applicationBody
   }
 
   const submitPlatformApplication = async () => {
@@ -68,8 +68,7 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
 
     console.info('submitting application: ', body)
 
-    // TODO: update type for strata payload
-    return await postApplication<PlatformApplicationPayload>(body)
+    return await postApplication<StrataApplicationPayload>(body)
   }
 
   return {
