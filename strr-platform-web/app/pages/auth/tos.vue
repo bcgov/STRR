@@ -1,0 +1,127 @@
+<script setup lang="ts">
+import type { FormError } from '#ui/types'
+const { $sanitize } = useNuxtApp()
+const { t } = useI18n()
+const tosStore = useTosStore()
+const strrModal = useStrrModals()
+const route = useRoute()
+
+// page stuff
+useHead({
+  title: t('strr.title.login')
+})
+
+setBreadcrumbs([
+  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+  { label: 'Terms of Use' }
+])
+
+const checkboxRef = ref(null)
+const formRef = ref() // typing not working here
+const tosDivRef = ref<HTMLDivElement | null>(null)
+
+const { bottom: tosBottom } = useElementBounding(tosDivRef)
+const { top: formTop } = useElementBounding(formRef)
+
+// track if user has scrolled to bottom of page
+const hasReachedBottom = computed(() => formTop.value >= tosBottom.value)
+
+// reset form errors if user reaches bottom of page
+watch(hasReachedBottom, (newVal) => {
+  if (newVal) {
+    formRef.value?.clear()
+  }
+})
+
+const state = reactive({
+  agreeToTerms: undefined
+})
+
+const validate = (state: { agreeToTerms: boolean | undefined }): FormError[] => {
+  const errors: FormError[] = []
+
+  if (!state.agreeToTerms && !hasReachedBottom.value) {
+    errors.push({ path: 'agreeToTerms', message: 'You must scroll to the bottom of this page to accept the tos' })
+    return errors
+  }
+
+  if (!state.agreeToTerms) {
+    errors.push({ path: 'agreeToTerms', message: 'You must accept the Terms of Use to continue' })
+  }
+
+  return errors
+}
+
+async function submitTermsOfUse () {
+  try {
+    tosStore.loading = true
+    await tosStore.patchTermsOfUse()
+    await navigateTo(route.query.return as string)
+  } catch {
+    // TODO: handle patch errors
+  } finally {
+    tosStore.loading = false
+  }
+}
+</script>
+<template>
+  <!-- eslint-disable vue/no-v-html -->
+  <div class="relative mx-auto flex w-full flex-col items-center sm:max-w-screen-sm md:max-w-screen-md">
+    <ConnectTypographyH1
+      class="sticky top-0 w-full border-b border-bcGovGray-500 bg-bcGovColor-gray1 pb-2 pt-4 text-center sm:pt-8"
+      text="Terms of Use"
+    />
+
+    <div
+      v-if="tosStore.tos.termsOfUse"
+      ref="tosDivRef"
+      class="prose prose-bcGov max-w-full break-words"
+      v-html="$sanitize(tosStore.tos.termsOfUse)"
+    />
+
+    <!-- TODO: display fallback content if tos fails to load -->
+
+    <UForm
+      ref="formRef"
+      class="sticky bottom-0 flex w-full flex-col items-start justify-between
+        gap-4 border-t border-bcGovGray-500 bg-bcGovColor-gray1 py-4 sm:flex-row sm:items-center sm:gap-0 sm:pb-8"
+      :state
+      :validate="validate"
+      @submit="submitTermsOfUse()"
+    >
+      <UFormGroup
+        name="agreeToTerms"
+      >
+        <UCheckbox
+          ref="checkboxRef"
+          v-model="state.agreeToTerms"
+          :disabled="!hasReachedBottom || tosStore.loading"
+          label="I have read and accept the Terms of Use"
+        />
+        <template #error="{ error }">
+          <span :class="{ 'text-red-500': error, 'text-base': !hasReachedBottom }">
+            {{ error }}
+          </span>
+        </template>
+      </UFormGroup>
+      <div class="flex w-full gap-4 sm:w-fit">
+        <UButton
+          class="flex-1 sm:flex-none"
+          :ui="{ base: 'flex justify-center items-center'}"
+          label="Accept Terms of Use"
+          aria-label="Accept Terms of Use, You must scroll to the bottom to accept the terms of use checkbox"
+          type="submit"
+          :loading="tosStore.loading"
+        />
+        <UButton
+          class="flex-1 sm:flex-none"
+          :ui="{ base: 'flex justify-center items-center'}"
+          :label="$t('btn.decline')"
+          variant="outline"
+          :disabled="tosStore.loading"
+          @click="strrModal.openConfirmDeclineTosModal()"
+        />
+      </div>
+    </UForm>
+  </div>
+</template>
