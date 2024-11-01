@@ -39,7 +39,7 @@ onMounted(async () => {
   }
 
   const validations = [
-    platContactStore.validatePlatformContact(),
+    platContactStore.validateContact(),
     platBusStore.validatePlatformBusiness(),
     platDetailsStore.validatePlatformDetails()
   ]

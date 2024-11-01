@@ -5,7 +5,7 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
 
-const { validatePlatformContact } = useStrrContactStore()
+const { validateContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
 const { validatePlatformDetails } = useStrrPlatformDetails()
 const { submitPlatformApplication, validatePlatformConfirmation } = useStrrPlatformApplication()
@@ -83,7 +83,7 @@ const steps = ref<Step[]>([
     icon: 'i-mdi-account-multiple-plus',
     complete: false,
     isValid: false,
-    validationFn: async () => await validatePlatformContact(true) as boolean
+    validationFn: async () => await validateContact(true) as boolean
   },
   {
     i18nPrefix: 'strr.step',
@@ -143,7 +143,7 @@ const handlePlatformSubmit = async () => {
 
     // all step validations
     const validations = [
-      validatePlatformContact(),
+      validateContact(),
       validatePlatformBusiness(),
       validatePlatformDetails(),
       validatePlatformConfirmation()

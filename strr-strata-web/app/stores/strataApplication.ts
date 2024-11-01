@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { MultiFormValidationResult, StrataApplicationPayload } from '#imports'
 import { formatBusinessDetails, formatStrataDetails } from '~/utils/strata-formating'
 
-export const useStrrPlatformApplication = defineStore('strr/platformApplication', () => {
+export const useStrrStrataApplicationStore = defineStore('strr/strataApplication', () => {
   // TODO: WIP - updating for strata
   const { t } = useI18n()
   const { postApplication } = useStrrApi()
@@ -25,7 +25,7 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     })
   })
 
-  const validatePlatformConfirmation = (returnBool = false): MultiFormValidationResult | boolean => {
+  const validateStrataConfirmation = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(
       getConfirmationSchema(), platformConfirmation, 'platform-confirmation-form'
     )
@@ -74,6 +74,6 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
   return {
     platformConfirmation,
     submitPlatformApplication,
-    validatePlatformConfirmation
+    validateStrataConfirmation
   }
 })

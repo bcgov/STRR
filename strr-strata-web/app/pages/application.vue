@@ -3,10 +3,10 @@ import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 
 const { t } = useI18n()
 
-const { validatePlatformContact } = useStrrPlatformContact()
-const { validatePlatformBusiness } = useStrrPlatformBusiness()
-const { validatePlatformDetails } = useStrrPlatformDetails()
-const { validatePlatformConfirmation } = useStrrPlatformApplication()
+const { validateContact } = useStrrContactStore()
+const { validateStrataBusiness } = useStrrStrataBusinessStore()
+const { validateStrataDetails } = useStrrStrataDetailsStore()
+const { validateStrataConfirmation } = useStrrStrataApplicationStore()
 // fee stuff
 const {
   addReplaceFee,
@@ -17,6 +17,7 @@ const {
 const strataFee = ref<ConnectFeeItem | undefined>(undefined)
 
 onMounted(async () => {
+  // TODO: check for application id in the route query, if there then load the application
   strataFee.value = await getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_STRATA)
   if (strataFee.value) {
     addReplaceFee(strataFee.value)
@@ -31,32 +32,32 @@ onMounted(async () => {
 // TODO: replace validation functions
 const steps = ref<Step[]>([
   {
-    i18nPrefix: 'strata.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-domain-plus',
     complete: false,
     isValid: false,
-    validationFn: () => validatePlatformBusiness(true) as boolean
+    validationFn: () => validateStrataBusiness(true) as boolean
   },
   {
-    i18nPrefix: 'strata.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-account-multiple-plus',
     complete: false,
     isValid: false,
-    validationFn: async () => await validatePlatformContact(true) as boolean
+    validationFn: async () => await validateContact(true) as boolean
   },
   {
-    i18nPrefix: 'strata.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-map-marker-plus-outline',
     complete: false,
     isValid: false,
-    validationFn: () => validatePlatformDetails(true) as boolean
+    validationFn: () => validateStrataDetails(true) as boolean
   },
   {
-    i18nPrefix: 'strata.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-text-box-check-outline',
     complete: false,
     isValid: false,
-    validationFn: () => validatePlatformConfirmation(true) as boolean
+    validationFn: () => validateStrataConfirmation(true) as boolean
   }
 ])
 const activeStepIndex = ref<number>(0)
@@ -116,15 +117,18 @@ setBreadcrumbs([
       :stepper-label="$t('strr.step.stepperLabel')"
     />
     <div v-if="activeStepIndex === 0" key="contact-information">
+      <!-- TODO: replace with strata version -->
       <FormPlatformBusinessDetails :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 1" key="business-details">
-      <FormPlatformContactInfo :is-complete="activeStep.complete" />
+      <FormContactInfo :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 2" key="platform-information">
+      <!-- TODO: replace with strata version -->
       <FormPlatformDetails :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
+      <!-- TODO: replace with strata version -->
       <FormPlatformReviewConfirm
         ref="reviewFormRef"
         :is-complete="activeStep.complete"

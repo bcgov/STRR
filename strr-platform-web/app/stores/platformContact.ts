@@ -87,7 +87,7 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
   const primaryRepSchema = getContactSchema(false)
   const secondaryRepSchema = getContactSchema(false)
 
-  const validatePlatformContact = async (returnBool = false): Promise<MultiFormValidationResult | boolean> => {
+  const validateContact = async (returnBool = false): Promise<MultiFormValidationResult | boolean> => {
     const validations = [
       validateSchemaAgainstState(compPartySchema, completingParty.value, 'completing-party-form'),
       validateSchemaAgainstState(primaryRepSchema, primaryRep.value, 'primary-rep-form')
@@ -125,6 +125,6 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
     getContactSchema,
     getNewContact,
     getNewRepresentative,
-    validatePlatformContact
+    validateContact
   }
 })
