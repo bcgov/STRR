@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { useStrrStrataStore } from '~/stores/strata';
+import { useStrrStrataStore } from '~/stores/strata'
 
-// TODO: rework this for strata hotels
 const { t } = useI18n()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
