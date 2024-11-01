@@ -1,11 +1,11 @@
 export const useStrrPlatformStore = defineStore('strr/platform', () => {
-  const { $strrApi } = useNuxtApp()
-  const { primaryRep, secondaryRep } = storeToRefs(useStrrPlatformContact())
+  const { getAccountApplications, getAccountRegistrations } = useStrrApi()
+  const { primaryRep, secondaryRep } = storeToRefs(useStrrContactStore())
   const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
   const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 
   const activeApplicationInfo = ref<ApplicationHeader | undefined>(undefined)
-  const activePlatform = ref<PlatformRegistrationResp | ApiBaseRegistration | undefined>(undefined)
+  const activePlatform = ref<PlatformRegistrationResp | ApiBasePlatformRegistration | undefined>(undefined)
 
   // @ts-expect-error - registration_number will only be there for registrations
   const isRegistration = computed(() => !!activePlatform.value?.registration_number)
@@ -19,27 +19,15 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
   const showPlatformDetails = computed(() => isRegistration.value ||
     (activeApplicationInfo.value && !isApplicationStatus([ApplicationStatus.DECLINED, ApplicationStatus.DRAFT])))
 
-  const getAccountRegistrations = async () => {
-    // TODO: add error handling / modal popup?
-    const resp = await $strrApi<{ registrations: PlatformRegistrationResp[] }>('/registrations')
-    return resp?.registrations
-  }
-
-  const getAccountApplications = async () => {
-    // TODO: add error handling / modal popup?
-    const resp = await $strrApi('/applications', { method: 'GET' }) as { applications: PlatformApplicationResp[] }
-    return resp.applications
-  }
-
   const loadPlatform = async () => {
     // get registrations under this account
-    const registrations = await getAccountRegistrations()
+    const registrations = await getAccountRegistrations<PlatformRegistrationResp>() as PlatformRegistrationResp[]
     if (registrations.length) {
       // set active platform to the most recent registration (ordered by api)
       activePlatform.value = registrations[0]
     } else {
       // No registrations under the account so get applications
-      const applications = await getAccountApplications()
+      const applications = await getAccountApplications<PlatformApplicationResp>() as PlatformApplicationResp[]
       if (applications.length) {
         // set active platform to the most recent application (ordered by api)
         activePlatform.value = applications[0]?.registration

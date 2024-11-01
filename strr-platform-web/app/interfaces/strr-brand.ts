@@ -1,4 +1,4 @@
-export interface PlatBrand {
+export interface StrrBrand {
   name: string
   website: string,
   errors?: {

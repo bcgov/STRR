@@ -15,7 +15,7 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     isPlaceholder: true,
     filingFees: 0,
     filingType: 'placeholder',
-    filingTypeCode: ConnectFeeCode.PLACEHOLDER,
+    filingTypeCode: 'PLACEHOLDER',
     futureEffectiveFees: 0,
     priorityFees: 0,
     processingFees: 0,
@@ -82,8 +82,8 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
    * @returns {Promise<Fee | undefined>} Fee data or undefined if an error occurs.
    */
   const getFee = async (
-    entityType: ConnectFeeEntityType,
-    code: ConnectFeeCode
+    entityType: string,
+    code: string
   ): Promise<ConnectFeeItem | undefined> => {
     try {
       return await $payApi<ConnectFeeItem>(`/fees/${entityType}/${code}`)
@@ -104,7 +104,7 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     }
   }
 
-  const setPlaceholderFilingTypeCode = (code: ConnectFeeCode) => {
+  const setPlaceholderFilingTypeCode = (code: string) => {
     placeholderFeeItem.value.filingTypeCode = code
   }
 

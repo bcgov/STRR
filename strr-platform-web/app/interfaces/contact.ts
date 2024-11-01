@@ -7,18 +7,6 @@ export interface Contact {
   emailAddress: string
 }
 
-export interface PlatformContact extends Contact {
+export interface StrrContact extends Contact {
   position: string
-}
-
-export interface HostContactInformation {
-  fullName: string
-  preferredName: string
-  phone: ConnectPhone
-  faxNumber: string
-  emailAddress: string
-  address: ConnectAddress
-  dateOfBirth: string
-  businessNumber: string
-  socialInsuranceNumber: string
 }

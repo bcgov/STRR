@@ -3,7 +3,7 @@ export const getTodoApplication = () => {
   const { t } = useNuxtApp().$i18n
   const { activeApplicationInfo } = useStrrPlatformStore()
   return {
-    title: t('platform.title.application'),
+    title: t('strr.title.application'),
     // NOTE: currently this status could only ever be DRAFT as there is no review process for platforms
     subtitle: activeApplicationInfo ? activeApplicationInfo.status : undefined,
     button: {

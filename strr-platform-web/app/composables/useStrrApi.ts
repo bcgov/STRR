@@ -1,0 +1,35 @@
+// TODO: move to strr-base-web layer
+export const useStrrApi = () => {
+  const { $strrApi } = useNuxtApp()
+
+  const getAccountRegistrations = async <T extends ApiBaseRegistration>(id?: string) => {
+    // TODO: add optional filter based on registration type (need in api first)
+    if (id) {
+      return await $strrApi<T>(`/registrations/${id}`)
+    }
+    const resp = await $strrApi<{ registrations: T[] }>('/registrations')
+    return resp.registrations
+  }
+
+  const getAccountApplications = async <T extends { registration: ApiBaseRegistration }>(id?: string) => {
+    // TODO: add optional filter based on registration type (need in api first)
+    if (id) {
+      return await $strrApi<T>(`/applications/${id}`)
+    }
+    const resp = await $strrApi<{ applications: T[] }>('/applications')
+    return resp.applications
+  }
+
+  const postApplication = async <T extends { registration: ApiBaseRegistration }>(body: T) => {
+    return await $strrApi<T>('/applications', {
+      method: 'POST',
+      body
+    })
+  }
+
+  return {
+    getAccountRegistrations,
+    getAccountApplications,
+    postApplication
+  }
+}

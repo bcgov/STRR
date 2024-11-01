@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { t } = useI18n()
-const tPlat = (path: string) => t(`platform.${path}`)
+const tPlat = (path: string) => t(`strr.${path}`)
 
 const fullName = defineModel<string>('fullName', { required: false })
 const preferredName = defineModel<string>('preferredName', { required: false })
@@ -99,7 +99,7 @@ defineProps<{
           :id="idPrefix + '-position'"
           v-model="position"
           :aria-label="t('label.positionTitle')"
-          :help="t('platform.text.positionTitle')"
+          :help="t('strr.text.positionTitle')"
           name="position"
           :placeholder="t('label.positionTitle')"
           :is-required="true"
@@ -115,9 +115,9 @@ defineProps<{
           v-if="faxNumber !== undefined"
           :id="idPrefix + '-fax-number'"
           v-model="faxNumber"
-          :aria-label="t('createAccount.contactForm.faxNumber')"
+          :aria-label="t('label.faxNumber')"
           name="faxNumber"
-          :placeholder="t('createAccount.contactForm.faxNumber')"
+          :placeholder="t('label.faxNumber')"
         />
         <ConnectFormFieldGroup
           v-if="emailAddress !== undefined"

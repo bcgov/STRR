@@ -115,7 +115,7 @@ onMounted(async () => {
   <div data-testid="business-details">
     <ConnectPageSection
       class="bg-white"
-      :heading="{ label: $t('platform.section.title.businessInfo'), labelClass: 'font-bold md:ml-6' }"
+      :heading="{ label: $t('strr.section.title.businessInfo'), labelClass: 'font-bold md:ml-6' }"
     >
       <UForm
         ref="platformBusinessFormRef"
@@ -124,7 +124,7 @@ onMounted(async () => {
         class="space-y-10 py-10"
       >
         <ConnectFormSection
-          :title="$t('platform.section.subTitle.businessIds')"
+          :title="$t('strr.section.subTitle.businessIds')"
           :error="isComplete && (platformBusiness.hasCpbc === undefined ||
             hasFormErrors(platformBusinessFormRef, ['legalName', 'homeJurisdiction', 'cpbcLicenceNumber']))
           "
@@ -134,7 +134,7 @@ onMounted(async () => {
               id="platform-business-legal-name"
               v-model="platformBusiness.legalName"
               :aria-label="$t('label.busNameLegal')"
-              :help="$t('platform.hint.businessLegalName')"
+              :help="$t('strr.hint.businessLegalName')"
               name="legalName"
               :placeholder="$t('label.busNameLegal')"
               :is-required="true"
@@ -143,7 +143,7 @@ onMounted(async () => {
               id="platform-business-home-jur"
               v-model="platformBusiness.homeJurisdiction"
               :aria-label="$t('label.homeJurisdiction')"
-              :help="$t('platform.hint.humeJurisdiction')"
+              :help="$t('strr.hint.humeJurisdiction')"
               name="homeJurisdiction"
               :placeholder="t('label.homeJurisdiction')"
               :is-required="true"
@@ -166,7 +166,7 @@ onMounted(async () => {
               >
                 <template #legend>
                   <span class="sr-only">{{ $t('validation.required') }}</span>
-                  <span>{{ $t('platform.text.hasCpbc') }}</span>
+                  <span>{{ $t('strr.text.hasCpbc') }}</span>
                 </template>
               </URadioGroup>
             </UFormGroup>
@@ -183,7 +183,7 @@ onMounted(async () => {
         </ConnectFormSection>
         <div class="h-px w-full border-b border-gray-100" />
         <ConnectFormSection
-          :title="$t('platform.section.subTitle.businessMailAddress')"
+          :title="$t('strr.section.subTitle.businessMailAddress')"
           :error="hasFormErrors(platformBusinessFormRef, [
             'mailingAddress.country',
             'mailingAddress.street',
@@ -208,7 +208,7 @@ onMounted(async () => {
         </ConnectFormSection>
         <div class="h-px w-full border-b border-gray-100" />
         <ConnectFormSection
-          :title="$t('platform.section.subTitle.regOfficeAttSvcAddrress')"
+          :title="$t('strr.section.subTitle.regOfficeAttSvcAddrress')"
           :error="hasFormErrors(platformBusinessFormRef, [
             'hasRegOffAtt',
             'regOfficeOrAtt.mailingAddress.country',
@@ -230,7 +230,7 @@ onMounted(async () => {
               >
                 <template #legend>
                   <span class="sr-only">{{ $t('validation.required') }}</span>
-                  <span>{{ $t('platform.text.regOffOrAtt') }}</span>
+                  <span>{{ $t('strr.text.regOffOrAtt') }}</span>
                 </template>
               </URadioGroup>
             </UFormGroup>
@@ -244,9 +244,9 @@ onMounted(async () => {
               <ConnectFormFieldGroup
                 id="platform-att-for-svc-name"
                 v-model="platformBusiness.regOfficeOrAtt.attorneyName"
-                :aria-label="$t('platform.label.attForSvcName')"
+                :aria-label="$t('strr.label.attForSvcName')"
                 name="regOfficeOrAtt.attorneyName"
-                :placeholder="$t('platform.label.attForSvcName')"
+                :placeholder="$t('strr.label.attForSvcName')"
               />
               <ConnectFormAddress
                 v-if="!platformBusiness.regOfficeOrAtt.sameAsMailAddress"
@@ -266,12 +266,12 @@ onMounted(async () => {
         </ConnectFormSection>
         <div class="h-px w-full border-b border-gray-100" />
         <ConnectFormSection
-          :title="$t('platform.section.subTitle.noticeNonCompliance')"
+          :title="$t('strr.section.subTitle.noticeNonCompliance')"
           :error="hasFormErrors(platformBusinessFormRef, ['nonComplianceEmail'])"
         >
           <div class="space-y-5">
             <p>
-              {{ $t('platform.text.nonComplianceEmail') }}
+              {{ $t('strr.text.nonComplianceEmail') }}
             </p>
             <ConnectFormFieldGroup
               id="platform-business-noncompliance-email"
@@ -294,11 +294,11 @@ onMounted(async () => {
         </ConnectFormSection>
         <div class="h-px w-full border-b border-gray-100" />
         <ConnectFormSection
-          :title="$t('platform.section.subTitle.takedownRequest')"
+          :title="$t('strr.section.subTitle.takedownRequest')"
           :error="hasFormErrors(platformBusinessFormRef, ['takeDownEmail'])"
         >
           <div class="space-y-5">
-            <p>{{ $t('platform.text.takedownEmail') }}</p>
+            <p>{{ $t('strr.text.takedownEmail') }}</p>
             <ConnectFormFieldGroup
               id="platform-business-takedown-email"
               v-model="platformBusiness.takeDownEmail"

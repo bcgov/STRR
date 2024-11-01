@@ -17,7 +17,7 @@ onMounted(async () => {
   // set header stuff
   if (!activePlatform.value || !showPlatformDetails.value) {
     // no registration or valid complete application under the account, set static header
-    title.value = t('platform.title.dashboard')
+    title.value = t('strr.title.dashboard')
     todos.value = [getTodoApplication()]
   } else {
     // existing registration or application under the account
@@ -25,7 +25,7 @@ onMounted(async () => {
     title.value = platformBusiness.value.legalName
     subtitles.value = [
       platformBusiness.value.homeJurisdiction,
-      t(`platform.label.listingSize.${platformDetails.value.listingSize}`)
+      t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
     ]
     if (!isRegistration.value) {
       setApplicationHeaderDetails()
@@ -48,7 +48,7 @@ onMounted(async () => {
 
 // page stuff
 useHead({
-  title: t('platform.title.dashboard')
+  title: t('strr.title.dashboard')
 })
 
 definePageMeta({
@@ -59,7 +59,7 @@ definePageMeta({
 
 setBreadcrumbs([
   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('platform.title.dashboard') }
+  { label: t('strr.title.dashboard') }
 ])
 </script>
 <template>
@@ -75,7 +75,7 @@ setBreadcrumbs([
           :button="todo.button"
         />
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('platform.label.brandNames')" :loading="loading">
+      <ConnectDashboardSection :title="$t('strr.label.brandNames')" :loading="loading">
         <div class="space-y-3 p-5">
           <div v-if="showPlatformDetails">
             <p v-for="brand in platformDetails.brands" :key="brand.name">
@@ -105,7 +105,7 @@ setBreadcrumbs([
           </div>
           <div>
             <p class="font-bold">
-              {{ t('platform.label.registeredOfficeAttorney') }}
+              {{ t('strr.label.registeredOfficeAttorney') }}
             </p>
             <p class="text-sm">
               {{ $t('text.completeFilingToDisplay') }}

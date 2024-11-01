@@ -12,7 +12,7 @@
     <template #description>
       <p>
         <b>{{ $t('label.note') }}:</b>
-        {{ $t('platform.text.emailNote') }}
+        {{ $t('strr.text.emailNote') }}
       </p>
     </template>
   </UAlert>

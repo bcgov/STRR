@@ -8,7 +8,7 @@ keycloak.setLogoutRedirectUrl(logoutUrl)
 
 // page stuff
 useHead({
-  title: t('platform.title.login')
+  title: t('strr.title.login')
 })
 
 definePageMeta({
@@ -24,7 +24,7 @@ setBreadcrumbs([
   <div class="flex grow justify-center py-10">
     <UCard class="my-auto max-w-md">
       <h1>
-        {{ $t('platform.title.login') }}
+        {{ $t('strr.title.login') }}
       </h1>
       <img src="/img/BCReg_Generic_Login_image.jpg" class="py-4" :alt="$t('imageAlt.genericLogin')">
       <div class="space-y-4 pt-2.5">

@@ -1,0 +1,125 @@
+<script setup lang="ts">
+// TODO: rework this for strata hotels
+const { t } = useI18n()
+
+const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
+const { activePlatform, isRegistration, showPlatformDetails } = storeToRefs(useStrrPlatformStore())
+const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
+const { platformDetails } = storeToRefs(useStrrPlatformDetails())
+
+const todos = ref<Todo[]>([])
+const addresses = ref<ConnectAccordionItem[]>([])
+const representatives = ref<ConnectAccordionItem[]>([])
+
+onMounted(() => {
+  loading.value = true
+  // TODO: get reg id from route and load in data
+  // set header stuff
+  if (!activePlatform.value || !showPlatformDetails.value) {
+    // no registration or valid complete application under the account, set static header
+    title.value = t('strr.title.dashboard')
+    todos.value = [getTodoApplication()]
+  } else {
+    // existing registration or application under the account
+    // set left side of header
+    title.value = platformBusiness.value.legalName
+    subtitles.value = [
+      platformBusiness.value.homeJurisdiction,
+      t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
+    ]
+    if (!isRegistration.value) {
+      setApplicationHeaderDetails()
+    } else {
+      setRegistrationHeaderDetails()
+    }
+    setSideHeaderDetails()
+    // set sidebar accordian addresses
+    addresses.value = getDashboardAddresses()
+    // set sidebar accordian reps
+    representatives.value = getDashboardRepresentives()
+    // update breadcrumbs with platform business name
+    setBreadcrumbs([
+      { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+      { label: platformBusiness.value.legalName }
+    ])
+  }
+  loading.value = false
+})
+
+// page stuff
+useHead({
+  title: t('strr.title.dashboard')
+})
+
+definePageMeta({
+  layout: 'connect-dashboard',
+  path: '/strata-hotel/dashboard/:registrationId'
+})
+
+setBreadcrumbs([
+  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+  { label: t('strr.title.dashboard') }
+])
+</script>
+<template>
+  <div class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10">
+    <div class="grow space-y-10">
+      <ConnectDashboardSection :title="$t('label.todo')" :title-num="todos.length" :loading="loading">
+        <TodoEmpty v-if="!todos.length" />
+        <Todo
+          v-for="todo in todos"
+          :key="todo.title"
+          :title="todo.title"
+          :subtitle="todo.subtitle"
+          :button="todo.button"
+        />
+      </ConnectDashboardSection>
+      <ConnectDashboardSection :title="$t('strr.label.brandNames')" :loading="loading">
+        <div class="space-y-3 p-5">
+          <div v-if="showPlatformDetails">
+            <p v-for="brand in platformDetails.brands" :key="brand.name">
+              {{ brand.name }} - {{ brand.website }}
+            </p>
+          </div>
+          <p v-else class="text-center">
+            {{ $t('text.completeFilingToDisplay') }}
+          </p>
+        </div>
+      </ConnectDashboardSection>
+    </div>
+    <div class="space-y-10">
+      <ConnectDashboardSection :title="$t('word.addresses')" :loading="loading" class="*:w-[300px]">
+        <ConnectAccordion v-if="showPlatformDetails" :items="addresses" multiple />
+        <div v-else class="space-y-4 bg-white p-5 opacity-50 *:space-y-2">
+          <div>
+            <p class="font-bold">
+              {{ t('label.mailingAddress') }}
+            </p>
+            <div class="flex gap-2">
+              <UIcon name="i-mdi-email-outline" class="mt-[2px]" />
+              <p class="text-sm">
+                {{ $t('text.completeFilingToDisplay') }}
+              </p>
+            </div>
+          </div>
+          <div>
+            <p class="font-bold">
+              {{ t('strr.label.registeredOfficeAttorney') }}
+            </p>
+            <p class="text-sm">
+              {{ $t('text.completeFilingToDisplay') }}
+            </p>
+          </div>
+        </div>
+      </ConnectDashboardSection>
+      <ConnectDashboardSection :title="$t('word.representatives')" :loading="loading">
+        <ConnectAccordion v-if="showPlatformDetails" :items="representatives" multiple />
+        <div v-else class="w-[300px] bg-white p-5 opacity-50">
+          <p class="text-sm">
+            {{ $t('text.completeFilingToDisplay') }}
+          </p>
+        </div>
+      </ConnectDashboardSection>
+    </div>
+  </div>
+</template>

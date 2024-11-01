@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { ConnectBtnControlItem } from '~/interfaces/connect-btn-control/item-i'
 import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
 
-const { validatePlatformContact } = useStrrPlatformContact()
+const { validatePlatformContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
 const { validatePlatformDetails } = useStrrPlatformDetails()
 const { submitPlatformApplication, validatePlatformConfirmation } = useStrrPlatformApplication()
@@ -19,16 +18,16 @@ const {
   setPlaceholderServiceFee
 } = useConnectFeeStore()
 
-setPlaceholderFilingTypeCode(ConnectFeeCode.STR_PLAT_SM)
+setPlaceholderFilingTypeCode(StrrFeeCode.STR_PLAT_SM)
 
 const platFeeSm = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeLg = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeWv = ref<ConnectFeeItem | undefined>(undefined)
 onMounted(async () => {
   const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
-    getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_SM),
-    getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_LG),
-    getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_WV)
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_SM),
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_LG),
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_WV)
   ])
   platFeeSm.value = smallFeeResp
   platFeeLg.value = largeFeeResp
@@ -49,11 +48,11 @@ const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 
 watch(() => platformBusiness.value.hasCpbc, (val) => {
   if (val && platFeeWv.value) {
-    removeFee(ConnectFeeCode.STR_PLAT_SM)
-    removeFee(ConnectFeeCode.STR_PLAT_LG)
+    removeFee(StrrFeeCode.STR_PLAT_SM)
+    removeFee(StrrFeeCode.STR_PLAT_LG)
     addReplaceFee(platFeeWv.value)
   } else {
-    removeFee(ConnectFeeCode.STR_PLAT_WV)
+    removeFee(StrrFeeCode.STR_PLAT_WV)
     setFeeBasedOnListingSize(platformDetails.value.listingSize)
   }
 })
@@ -61,11 +60,11 @@ watch(() => platformBusiness.value.hasCpbc, (val) => {
 const setFeeBasedOnListingSize = (listingSize: ListingSize | undefined) => {
   if (platFeeSm.value && platFeeLg.value && listingSize) {
     if (listingSize === ListingSize.UNDER_THOUSAND) {
-      removeFee(ConnectFeeCode.STR_PLAT_LG)
+      removeFee(StrrFeeCode.STR_PLAT_LG)
       addReplaceFee(platFeeSm.value)
     } else {
       // ListingSize.THOUSAND_OR_MORE
-      removeFee(ConnectFeeCode.STR_PLAT_SM)
+      removeFee(StrrFeeCode.STR_PLAT_SM)
       addReplaceFee(platFeeLg.value)
     }
   }
@@ -204,7 +203,7 @@ watch(activeStepIndex, (val) => {
   buttons.push({
     action: isLastStep ? handlePlatformSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
-    label: isLastStep ? t('btn.submitAndPay') : t(`platform.step.description.${val + 1}`),
+    label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${val + 1}`),
     trailing: true
   })
 
@@ -213,7 +212,7 @@ watch(activeStepIndex, (val) => {
 
 // page stuff
 useHead({
-  title: t('platform.title.application')
+  title: t('strr.title.application')
 })
 
 definePageMeta({
@@ -224,13 +223,13 @@ definePageMeta({
 
 setBreadcrumbs([
   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('platform.title.dashboard'), to: useLocalePath()('/platform/dashboard') },
-  { label: t('platform.title.application') }
+  { label: t('strr.title.dashboard'), to: useLocalePath()('/platform/dashboard') },
+  { label: t('strr.title.application') }
 ])
 </script>
 <template>
   <div class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="t('platform.title.application')" class="my-5" />
+    <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
     <ConnectStepper
       ref="stepperRef"
       :key="0"

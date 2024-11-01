@@ -1,10 +1,11 @@
 import { z } from 'zod'
+import { useStrrApi } from '~/composables/useStrrApi'
 import type { MultiFormValidationResult } from '~/interfaces/validation'
 
 export const useStrrPlatformApplication = defineStore('strr/platformApplication', () => {
   const { t } = useI18n()
-  const { $strrApi } = useNuxtApp()
-  const platContactStore = useStrrPlatformContact()
+  const { postApplication } = useStrrApi()
+  const platContactStore = useStrrContactStore()
   const platBusinessStore = useStrrPlatformBusiness()
   const platDetailsStore = useStrrPlatformDetails()
 
@@ -62,15 +63,12 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     return applicationBody
   }
 
-  const submitPlatformApplication = () => {
+  const submitPlatformApplication = async () => {
     const body = createApplicationBody()
 
     console.info('submitting application: ', body)
 
-    return $strrApi('/applications', {
-      method: 'POST',
-      body
-    })
+    return await postApplication<PlatformApplicationPayload>(body)
   }
 
   return {

@@ -9,8 +9,8 @@ const props = defineProps<{ isComplete: boolean }>()
 
 const platformDetailsFormRef = ref<Form<z.output<typeof platformDetailSchema>>>()
 const radioOptions = [
-  { value: ListingSize.THOUSAND_OR_MORE, label: t('platform.text.thousandOrMore') },
-  { value: ListingSize.UNDER_THOUSAND, label: t('platform.text.lessThanThousand') }
+  { value: ListingSize.THOUSAND_OR_MORE, label: t('strr.text.thousandOrMore') },
+  { value: ListingSize.UNDER_THOUSAND, label: t('strr.text.lessThanThousand') }
 ]
 
 onMounted(async () => {
@@ -25,7 +25,7 @@ onMounted(async () => {
   <div data-testid="platform-details">
     <ConnectPageSection
       class="bg-white"
-      :heading="{ label: $t('platform.section.title.details'), labelClass: 'font-bold md:ml-6' }"
+      :heading="{ label: $t('strr.section.title.details'), labelClass: 'font-bold md:ml-6' }"
     >
       <UForm
         ref="platformDetailsFormRef"
@@ -38,7 +38,7 @@ onMounted(async () => {
           :key="'brand' + i"
         >
           <ConnectFormSection
-            :title="$t('platform.section.subTitle.brand') + ((i > 0) ? ` ${ i + 1 }` : '')"
+            :title="$t('strr.section.subTitle.brand') + ((i > 0) ? ` ${ i + 1 }` : '')"
             :error="hasFormErrors(platformDetailsFormRef, [`brands.${i}.name`, `brands.${i}.website`])"
           >
             <div class="space-y-5">
@@ -58,19 +58,19 @@ onMounted(async () => {
                   <ConnectFormFieldGroup
                     :id="'platform-brand-name-' + i"
                     v-model="brand.name"
-                    :aria-label="(i > 0) ? $t('platform.label.brandNameOpt') : $t('platform.label.brandName')"
-                    :help="$t('platform.hint.brandName')"
+                    :aria-label="(i > 0) ? $t('strr.label.brandNameOpt') : $t('strr.label.brandName')"
+                    :help="$t('strr.hint.brandName')"
                     :name="`brands.${i}.name`"
-                    :placeholder="(i > 0) ? $t('platform.label.brandNameOpt') : $t('platform.label.brandName')"
+                    :placeholder="(i > 0) ? $t('strr.label.brandNameOpt') : $t('strr.label.brandName')"
                     :is-required="true"
                   />
                   <ConnectFormFieldGroup
                     :id="'platform-brand-site-' + i"
                     v-model="brand.website"
-                    :aria-label="(i > 0) ? $t('platform.label.brandSiteOpt') : $t('platform.label.brandSite')"
-                    :help="$t('platform.hint.brandSite')"
+                    :aria-label="(i > 0) ? $t('strr.label.brandSiteOpt') : $t('strr.label.brandSite')"
+                    :help="$t('strr.hint.brandSite')"
                     :name="`brands.${i}.website`"
-                    :placeholder="(i > 0) ? $t('platform.label.brandSiteOpt') : $t('platform.label.brandSite')"
+                    :placeholder="(i > 0) ? $t('strr.label.brandSiteOpt') : $t('strr.label.brandSite')"
                     :is-required="true"
                     type="url"
                   />
@@ -78,7 +78,7 @@ onMounted(async () => {
               </div>
               <UButton
                 v-if="i === platformDetails.brands.length - 1"
-                :label="$t('platform.label.addBrand')"
+                :label="$t('strr.label.addBrand')"
                 class="px-5 py-3"
                 color="primary"
                 icon="i-mdi-domain-plus"
@@ -90,7 +90,7 @@ onMounted(async () => {
         </div>
         <div class="h-px w-full border-b border-gray-100" />
         <ConnectFormSection
-          :title="$t('platform.section.subTitle.size')"
+          :title="$t('strr.section.subTitle.size')"
           :error="hasFormErrors(platformDetailsFormRef, ['listingSize'])"
         >
           <UFormGroup name="listingSize">
@@ -104,7 +104,7 @@ onMounted(async () => {
             >
               <template #legend>
                 <span class="sr-only">{{ $t('validation.required') }}</span>
-                <span>{{ $t('platform.text.listingSize') }}</span>
+                <span>{{ $t('strr.text.listingSize') }}</span>
               </template>
             </URadioGroup>
           </UFormGroup>

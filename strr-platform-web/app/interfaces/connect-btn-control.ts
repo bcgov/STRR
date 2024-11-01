@@ -9,3 +9,8 @@ export interface ConnectBtnControlItem {
   trailing?: boolean
   disabled?: boolean
 }
+
+export interface ConnectBtnControl {
+  leftButtons: ConnectBtnControlItem[],
+  rightButtons: ConnectBtnControlItem[]
+}

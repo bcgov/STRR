@@ -5,11 +5,11 @@ import { z } from 'zod'
 const { t } = useI18n()
 const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
 const tContact = (translationKey: string) => t(`createAccount.contactForm.${translationKey}`)
-const tPlat = (path: string) => t(`platform.${path}`)
-const tPlatReview = (path: string) => t(`platform.review.${path}`)
+const tPlat = (path: string) => t(`strr.${path}`)
+const tPlatReview = (path: string) => t(`strr.review.${path}`)
 
 const accountStore = useConnectAccountStore()
-const platContactStore = useStrrPlatformContact()
+const platContactStore = useStrrContactStore()
 const platBusStore = useStrrPlatformBusiness()
 const platDetailsStore = useStrrPlatformDetails()
 const platAppStore = useStrrPlatformApplication()
@@ -293,14 +293,14 @@ onMounted(async () => {
           >
             <template #item-1>
               <ConnectInfoBox
-                :title="$t('platform.review.platInfo.brandName', 0)"
+                :title="$t('strr.review.platInfo.brandName', 0)"
                 title-class="font-bold text-bcGovGray-900"
                 content="-"
               />
             </template>
             <template #item-2>
               <ConnectInfoBox
-                :title="$t('platform.review.platInfo.brandSite', 0)"
+                :title="$t('strr.review.platInfo.brandSite', 0)"
                 title-class="font-bold text-bcGovGray-900"
                 content="-"
               />
@@ -320,14 +320,14 @@ onMounted(async () => {
             >
               <template #item-1>
                 <ConnectInfoBox
-                  :title="$t('platform.review.platInfo.brandName', { count: i + 1})"
+                  :title="$t('strr.review.platInfo.brandName', { count: i + 1})"
                   title-class="font-bold text-bcGovGray-900"
                   :content="brand.name || '-'"
                 />
               </template>
               <template #item-2>
                 <ConnectInfoBox
-                  :title="$t('platform.review.platInfo.brandSite', { count: i + 1})"
+                  :title="$t('strr.review.platInfo.brandSite', { count: i + 1})"
                   title-class="font-bold text-bcGovGray-900"
                   :content="brand.website || '-'"
                 />

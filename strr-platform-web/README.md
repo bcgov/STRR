@@ -11,7 +11,7 @@ gh repo fork bcgov/STRR
 
 Change into the directory and install the packages.
 ```bash
-cd STRR/strr-pm-web
+cd STRR/strr-platform-web
 pnpm install
 ```
 

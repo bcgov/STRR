@@ -3,7 +3,7 @@ const { t } = useI18n()
 
 // page stuff
 useHead({
-  title: t('platform.title')
+  title: t('strr.title')
 })
 
 definePageMeta({
@@ -11,7 +11,7 @@ definePageMeta({
 })
 
 setBreadcrumbs([
-  { label: t('platform.title') }
+  { label: t('strr.title') }
 ])
 </script>
 <template>

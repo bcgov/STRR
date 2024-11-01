@@ -6,7 +6,7 @@ export interface ConnectTax {
 export interface ConnectFeeItem {
   filingFees: number,
   filingType: string,
-  filingTypeCode: ConnectFeeCode,
+  filingTypeCode: string,
   futureEffectiveFees: number,
   priorityFees: number,
   processingFees: number,

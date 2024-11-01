@@ -10,13 +10,13 @@ const {
   primaryRepSchema,
   secondaryRepSchema,
   getNewRepresentative
-} = useStrrPlatformContact()
+} = useStrrContactStore()
 const {
   isCompletingPartyRep,
   completingParty,
   primaryRep,
   secondaryRep
-} = storeToRefs(useStrrPlatformContact())
+} = storeToRefs(useStrrContactStore())
 
 type CompletingPartySchema = z.output<typeof compPartySchema>
 type PrimaryRepSchema = z.output<typeof primaryRepSchema>
@@ -75,13 +75,13 @@ onMounted(async () => {
     >
       <template #legend>
         <span class="sr-only">{{ $t('validation.required') }}</span>
-        <span>{{ $t('platform.text.isUserRep') }}</span>
+        <span>{{ $t('strr.text.isUserRep') }}</span>
       </template>
     </URadioGroup>
     <div v-if="isCompletingPartyRep !== undefined" class="space-y-10">
       <ConnectPageSection
         v-if="!isCompletingPartyRep"
-        :heading="{ label: $t('platform.section.title.completingParty'), labelClass: 'font-bold md:ml-6' }"
+        :heading="{ label: $t('strr.section.title.completingParty'), labelClass: 'font-bold md:ml-6' }"
       >
         <UForm
           ref="compPartyFormRef"
@@ -103,7 +103,7 @@ onMounted(async () => {
       </ConnectPageSection>
       <ConnectPageSection
         v-if="primaryRep"
-        :heading="{ label: $t('platform.section.title.primaryRep'), labelClass: 'font-bold md:ml-6' }"
+        :heading="{ label: $t('strr.section.title.primaryRep'), labelClass: 'font-bold md:ml-6' }"
       >
         <UForm
           ref="primaryRepFormRef"
@@ -124,7 +124,7 @@ onMounted(async () => {
             :prepopulate-name="isCompletingPartyRep"
             prepopulate-type="Bceid"
             email-warning
-            :section-info="isCompletingPartyRep ? undefined : $t('platform.text.primaryContact')"
+            :section-info="isCompletingPartyRep ? undefined : $t('strr.text.primaryContact')"
             :error-name="hasFormErrors(primaryRepFormRef, ['firstName', 'lastName'])"
             :error-details="
               hasFormErrors(primaryRepFormRef, ['position', 'phone.countryCode', 'phone.number', 'email'])
@@ -134,7 +134,7 @@ onMounted(async () => {
       </ConnectPageSection>
       <div v-if="!secondaryRep">
         <UButton
-          :label="$t('platform.label.addRepresentative')"
+          :label="$t('strr.label.addRepresentative')"
           class="px-5 py-3"
           color="primary"
           icon="i-mdi-account-plus"
@@ -145,7 +145,7 @@ onMounted(async () => {
       <ConnectPageSection
         v-else
         :heading="{
-          label: $t('platform.section.title.secondaryRep'),
+          label: $t('strr.section.title.secondaryRep'),
           padding: 'px-4 py-4 md:px-10',
           labelClass: 'font-bold'
         }"

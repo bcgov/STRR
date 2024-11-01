@@ -123,7 +123,7 @@ const addId = useId()
         size="lg"
         :color="streetAdditional ? 'primary' : 'gray'"
         :placeholder="$t('label.line2')"
-        :aria-label="$t('label.lin2')"
+        :aria-label="$t('label.line2')"
         :disabled="disabledFields?.includes('streetAdditional')"
       />
     </UFormGroup>
@@ -196,8 +196,8 @@ const addId = useId()
         :color="postalCode ? 'primary' : 'gray'"
         :is-disabled="disabledFields?.includes('postalCode')"
         :placeholder="country === 'CA' ?
-          $t('createAccount.contactForm.postalCode') : country === 'US' ? 'Zip Code' : 'Code'"
-        :aria-label="$t('createAccount.contactForm.postalCode')"
+          $t('label.postalCode') : country === 'US' ? $t('label.zipCode') : $t('label.code')"
+        :aria-label="$t('label.postalCode')"
         :is-required="true"
       />
     </div>
