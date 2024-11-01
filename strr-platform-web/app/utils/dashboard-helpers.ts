@@ -105,10 +105,9 @@ export const setSideHeaderDetails = () => {
   sideDetails.value = sideDetailsList
 }
 
-export const getDashboardAddresses = () => {
+export const getDashboardAddresses = (business: StrrBusiness) => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
-  const { platformBusiness } = useStrrPlatformBusiness()
 
   const addresses: ConnectAccordionItem[] = [{
     defaultOpen: true,
@@ -117,11 +116,11 @@ export const getDashboardAddresses = () => {
     values: [
       {
         icon: 'i-mdi-email-outline',
-        address: platformBusiness.mailingAddress
+        address: business.mailingAddress
       }
     ]
   }]
-  if (platformBusiness.hasRegOffAtt) {
+  if (business.hasRegOffAtt) {
     addresses.push({
       showAvatar: false,
       label: t('strr.label.registeredOfficeAttorney'),
@@ -129,12 +128,12 @@ export const getDashboardAddresses = () => {
         {
           class: 'pl-7',
           label: t('strr.label.attName'),
-          text: platformBusiness.regOfficeOrAtt.attorneyName ?? t('label.notAvailable')
+          text: business.regOfficeOrAtt.attorneyName ?? t('label.notAvailable')
         },
         {
           class: 'pl-7',
           label: t('label.registeredOffice'),
-          address: platformBusiness.regOfficeOrAtt.mailingAddress
+          address: business.regOfficeOrAtt.mailingAddress
         }
       ]
     })

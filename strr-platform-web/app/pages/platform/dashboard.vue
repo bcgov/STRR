@@ -34,7 +34,7 @@ onMounted(async () => {
     }
     setSideHeaderDetails()
     // set sidebar accordian addresses
-    addresses.value = getDashboardAddresses()
+    addresses.value = getDashboardAddresses(platformBusiness.value)
     // set sidebar accordian reps
     representatives.value = getDashboardRepresentives()
     // update breadcrumbs with platform business name

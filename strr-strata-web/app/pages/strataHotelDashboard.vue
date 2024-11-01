@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { useStrrStrataStore } from '~/stores/strata';
+
 // TODO: rework this for strata hotels
 const { t } = useI18n()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
-const { activePlatform, isRegistration, showPlatformDetails } = storeToRefs(useStrrPlatformStore())
-const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
-const { platformDetails } = storeToRefs(useStrrPlatformDetails())
+const { loadStrata } = useStrrStrataStore()
+const { activePlatform, isRegistration, showStrataDetails } = storeToRefs(useStrrStrataStore())
+const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
+const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 
 const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
@@ -13,34 +16,38 @@ const representatives = ref<ConnectAccordionItem[]>([])
 
 onMounted(() => {
   loading.value = true
-  // TODO: get reg id from route and load in data
+  const registrationId = useRoute().params.registrationId as string
+  loadStrata(registrationId)
   // set header stuff
-  if (!activePlatform.value || !showPlatformDetails.value) {
+  if (!activePlatform.value || !showStrataDetails.value) {
     // no registration or valid complete application under the account, set static header
     title.value = t('strr.title.dashboard')
+    // TODO: verify for strata -- in this case it should always be a draft application
     todos.value = [getTodoApplication()]
   } else {
     // existing registration or application under the account
     // set left side of header
-    title.value = platformBusiness.value.legalName
+    title.value = strataBusiness.value.legalName
     subtitles.value = [
-      platformBusiness.value.homeJurisdiction,
-      t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
+      strataBusiness.value.homeJurisdiction
+      // TODO: number of units
+      // t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
     ]
     if (!isRegistration.value) {
       setApplicationHeaderDetails()
     } else {
       setRegistrationHeaderDetails()
     }
-    setSideHeaderDetails()
+    // TODO: strata side details
+    // setSideHeaderDetails()
     // set sidebar accordian addresses
-    addresses.value = getDashboardAddresses()
+    addresses.value = getDashboardAddresses(strataBusiness.value)
     // set sidebar accordian reps
     representatives.value = getDashboardRepresentives()
     // update breadcrumbs with platform business name
     setBreadcrumbs([
       { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-      { label: platformBusiness.value.legalName }
+      { label: strataBusiness.value.legalName }
     ])
   }
   loading.value = false
@@ -76,8 +83,8 @@ setBreadcrumbs([
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('strr.label.brandNames')" :loading="loading">
         <div class="space-y-3 p-5">
-          <div v-if="showPlatformDetails">
-            <p v-for="brand in platformDetails.brands" :key="brand.name">
+          <div v-if="showStrataDetails">
+            <p v-for="brand in strataDetails.brands" :key="brand.name">
               {{ brand.name }} - {{ brand.website }}
             </p>
           </div>
@@ -89,7 +96,7 @@ setBreadcrumbs([
     </div>
     <div class="space-y-10">
       <ConnectDashboardSection :title="$t('word.addresses')" :loading="loading" class="*:w-[300px]">
-        <ConnectAccordion v-if="showPlatformDetails" :items="addresses" multiple />
+        <ConnectAccordion v-if="showStrataDetails" :items="addresses" multiple />
         <div v-else class="space-y-4 bg-white p-5 opacity-50 *:space-y-2">
           <div>
             <p class="font-bold">
@@ -113,7 +120,7 @@ setBreadcrumbs([
         </div>
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('word.representatives')" :loading="loading">
-        <ConnectAccordion v-if="showPlatformDetails" :items="representatives" multiple />
+        <ConnectAccordion v-if="showStrataDetails" :items="representatives" multiple />
         <div v-else class="w-[300px] bg-white p-5 opacity-50">
           <p class="text-sm">
             {{ $t('text.completeFilingToDisplay') }}
