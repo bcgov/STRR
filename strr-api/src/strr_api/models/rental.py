@@ -117,10 +117,18 @@ class PropertyManager(Versioned, BaseModel):
 class PropertyContact(Versioned, BaseModel):
     """Property Contacts"""
 
+    class ContactType(BaseEnum):
+        """Enum of host residence option."""
+
+        INDIVIDUAL = auto()  # pylint: disable=invalid-name
+        BUSINESS = auto()  # pylint: disable=invalid-name
+
     __tablename__ = "property_contacts"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     is_primary = db.Column(db.Boolean, nullable=False, default=False)
+    contact_type = db.Column(db.Enum(ContactType), default=ContactType.INDIVIDUAL)
+    business_legal_name = db.Column(db.String(1000), nullable=True)
 
     contact_id = db.Column(db.Integer, db.ForeignKey("contacts.id"), nullable=False)
     property_id = db.Column(db.Integer, db.ForeignKey("rental_properties.id"), nullable=False)
