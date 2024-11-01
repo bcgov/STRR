@@ -101,6 +101,7 @@ export default {
     lastName: 'Last Name',
     fullName: 'Full Legal Name',
     preferredName: 'Preferred Name',
+    contactName: 'Contact Name',
     address: 'Address',
     addressResidential: 'Residential Address',
     state: 'State',

@@ -79,28 +79,28 @@ watch(() => platformDetails.value.listingSize, (val) => {
 // stepper stuff
 const steps = ref<Step[]>([
   {
-    i18nPrefix: 'platform.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-account-multiple-plus',
     complete: false,
     isValid: false,
     validationFn: async () => await validatePlatformContact(true) as boolean
   },
   {
-    i18nPrefix: 'platform.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-domain-plus',
     complete: false,
     isValid: false,
     validationFn: () => validatePlatformBusiness(true) as boolean
   },
   {
-    i18nPrefix: 'platform.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-earth',
     complete: false,
     isValid: false,
     validationFn: () => validatePlatformDetails(true) as boolean
   },
   {
-    i18nPrefix: 'platform.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-text-box-check-outline',
     complete: false,
     isValid: false,
