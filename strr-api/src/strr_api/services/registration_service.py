@@ -183,11 +183,11 @@ class RegistrationService:
             nickname=registration_request.unitAddress.nickname,
             parcel_identifier=registration_request.unitDetails.parcelIdentifier,
             local_business_licence=registration_request.unitDetails.businessLicense,
-            local_business_licence_expiry_date=(
-                datetime.strptime(registration_request.unitDetails.businessLicenseExpiryDate, "%Y-%m-%d").date()
-                if registration_request.unitDetails.businessLicenseExpiryDate
-                else None
-            ),
+            local_business_licence_expiry_date=datetime.strptime(
+                registration_request.unitDetails.businessLicenseExpiryDate, "%Y-%m-%d"
+            ).date()
+            if registration_request.unitDetails.businessLicenseExpiryDate
+            else None,
             space_type=registration_request.unitDetails.rentalUnitSpaceType,
             host_residence=registration_request.unitDetails.hostResidence,
             is_unit_on_principal_residence_property=registration_request.unitDetails.isUnitOnPrincipalResidenceProperty,
