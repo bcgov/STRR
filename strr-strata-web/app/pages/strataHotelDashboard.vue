@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useStrrStrataStore } from '~/stores/strata'
-
 const { t } = useI18n()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
