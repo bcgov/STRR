@@ -20,12 +20,13 @@ export const useTosStore = defineStore('strr/terms-of-service', () => {
   const loading = ref<boolean>(false)
   const tos = ref<TOSGetResponse>({} as TOSGetResponse)
 
-  // get user terms of use, handle error from middleware
   async function getTermsOfUse ():Promise<void> {
     try {
       loading.value = true
       tos.value = await $strrApi<TOSGetResponse>('/users/tos')
-    } catch {} finally {
+    } catch {
+      // TODO: handle errors
+    } finally {
       loading.value = false
     }
   }
