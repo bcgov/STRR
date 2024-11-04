@@ -3,7 +3,12 @@ const { t } = useI18n()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
 const { loadPlatform } = useStrrPlatformStore()
-const { activePlatform, isRegistration, showPlatformDetails } = storeToRefs(useStrrPlatformStore())
+const {
+  activeApplicationInfo,
+  activePlatform,
+  isRegistration,
+  showPlatformDetails
+} = storeToRefs(useStrrPlatformStore())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 
@@ -28,9 +33,10 @@ onMounted(async () => {
       t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
     ]
     if (!isRegistration.value) {
-      setApplicationHeaderDetails()
+      setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
     } else {
-      setRegistrationHeaderDetails()
+      // @ts-expect-error - ts not picking up that it will have status attr in this case
+      setRegistrationHeaderDetails(activePlatform.value.status)
     }
     setSideHeaderDetails()
     // set sidebar accordian addresses

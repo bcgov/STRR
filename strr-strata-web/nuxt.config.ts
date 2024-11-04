@@ -38,8 +38,7 @@ export default defineNuxtConfig({
     vueI18n: './i18n.config.ts'
   },
 
-  // FUTURE: change this to strr-base-web once it exists
-  extends: ['../strr-platform-web'],
+  extends: ['../strr-base-web'],
 
   imports: {
     dirs: ['stores', 'composables', 'enums', 'interfaces', 'types', 'utils']

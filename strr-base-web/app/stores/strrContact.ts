@@ -1,10 +1,6 @@
 // TODO: rename / move to strr-base-web layer
 import { z } from 'zod'
 import type { Contact, StrrContact } from '#imports'
-import {
-  optionalOrEmptyString, getRequiredEmail, getRequiredNonEmptyString, getRequiredPhone
-} from '~/utils/connect-validation'
-import type { MultiFormValidationResult } from '~/interfaces/validation'
 
 export const useStrrContactStore = defineStore('strr/contact', () => {
   const { t } = useI18n()

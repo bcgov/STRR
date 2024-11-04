@@ -7,6 +7,7 @@ useHead({
 })
 
 definePageMeta({
+  middleware: ['auth'],
   path: '/strata-hotel/dashboard'
 })
 

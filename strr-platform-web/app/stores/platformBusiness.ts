@@ -1,7 +1,4 @@
 import { z } from 'zod'
-import {
-  getOptionalEmail, getRequiredEmail, getRequiredNonEmptyString, optionalOrEmptyString
-} from '~/utils/connect-validation'
 
 export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () => {
   const { t } = useI18n()

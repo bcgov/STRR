@@ -239,7 +239,7 @@ setBreadcrumbs([
       :stepper-label="$t('label.platAppStepLabel')"
     />
     <div v-if="activeStepIndex === 0" key="contact-information">
-      <FormPlatformContactInfo :is-complete="activeStep.complete" />
+      <FormContactInfo :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 1" key="business-details">
       <FormPlatformBusinessDetails :is-complete="activeStep.complete" />

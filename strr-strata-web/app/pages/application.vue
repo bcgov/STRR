@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
+import { ConnectStepper } from '#components'
 
 const { t } = useI18n()
 
@@ -63,7 +63,7 @@ const steps = ref<Step[]>([
 const activeStepIndex = ref<number>(0)
 const activeStep = ref<Step>(steps.value[activeStepIndex.value] as Step)
 const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
-const reviewFormRef = shallowRef<InstanceType<typeof FormPlatformReviewConfirm> | null>(null)
+// const reviewFormRef = shallowRef<InstanceType<typeof FormPlatformReviewConfirm> | null>(null)
 
 // TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
 watch(activeStepIndex, (val) => {
@@ -118,22 +118,22 @@ setBreadcrumbs([
     />
     <div v-if="activeStepIndex === 0" key="contact-information">
       <!-- TODO: replace with strata version -->
-      <FormPlatformBusinessDetails :is-complete="activeStep.complete" />
+      <!-- <FormPlatformBusinessDetails :is-complete="activeStep.complete" /> -->
     </div>
     <div v-if="activeStepIndex === 1" key="business-details">
       <FormContactInfo :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 2" key="platform-information">
       <!-- TODO: replace with strata version -->
-      <FormPlatformDetails :is-complete="activeStep.complete" />
+      <!-- <FormPlatformDetails :is-complete="activeStep.complete" /> -->
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
       <!-- TODO: replace with strata version -->
-      <FormPlatformReviewConfirm
+      <!-- <FormPlatformReviewConfirm
         ref="reviewFormRef"
         :is-complete="activeStep.complete"
         @edit="stepperRef?.setActiveStep"
-      />
+      /> -->
     </div>
   </div>
 </template>

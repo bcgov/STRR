@@ -3,7 +3,12 @@ const { t } = useI18n()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
 const { loadStrata } = useStrrStrataStore()
-const { activePlatform, isRegistration, showStrataDetails } = storeToRefs(useStrrStrataStore())
+const {
+  activeApplicationInfo,
+  activePlatform,
+  isRegistration,
+  showStrataDetails
+} = storeToRefs(useStrrStrataStore())
 const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 
@@ -31,9 +36,10 @@ onMounted(() => {
       // t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
     ]
     if (!isRegistration.value) {
-      setApplicationHeaderDetails()
+      setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
     } else {
-      setRegistrationHeaderDetails()
+      // @ts-expect-error - ts not picking up that it will have status attr in this case
+      setRegistrationHeaderDetails(activePlatform.value.status)
     }
     // TODO: strata side details
     // setSideHeaderDetails()
@@ -57,6 +63,7 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
+  middleware: ['auth'],
   path: '/strata-hotel/dashboard/:registrationId'
 })
 
