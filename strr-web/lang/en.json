@@ -162,7 +162,7 @@
     "owner": "Own",
     "rent": "Rent",
     "hostResidence": "Host Residence",
-    "SAME_UNIT":"The host lives in this unit when it's not being rented",
+    "SAME_UNIT":"The host lives in this unit",
     "ANOTHER_UNIT":"The host lives in another unit on the same property",
     "numberOfRoomsForRent":"Number of Rooms for Rent",
     "parcelIdentifier": "Parcel Identifier",
@@ -466,7 +466,7 @@
       "numberOfRoomsForRent": "Number of Rooms for Rent",
       "true": "Yes",
       "false": "No",
-      "SAME_UNIT":"The host lives in this unit when it's not being rented",
+      "SAME_UNIT":"The host lives in this unit",
       "ANOTHER_UNIT":"The host lives in another unit on the same property"
     },
     "details": {
