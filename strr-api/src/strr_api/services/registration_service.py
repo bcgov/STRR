@@ -57,6 +57,10 @@ from strr_api.models import (
     PropertyManager,
     Registration,
     RentalProperty,
+    StrataHotel,
+    StrataHotelBuilding,
+    StrataHotelRegistration,
+    StrataHotelRepresentative,
 )
 from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
@@ -96,9 +100,97 @@ class RegistrationService:
             registration.rental_property = cls._create_host_registration(registration_request)
         elif registration_type == RegistrationType.PLATFORM.value:
             registration.platform_registration = cls._create_platform_registration(registration_details)
+        elif registration_type == RegistrationType.STRATA_HOTEL.value:
+            registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_details)
 
         registration.save()
         return registration
+
+    @classmethod
+    def _create_strata_hotel_registration(cls, registration_request: dict) -> StrataHotelRegistration:
+        business_details_dict = registration_request.get("businessDetails")
+        mailing_address = business_details_dict.get("mailingAddress")
+
+        representatives = [
+            StrataHotelRepresentative(
+                contact=Contact(
+                    firstname=representative.get("firstName"),
+                    lastname=representative.get("lastName"),
+                    middlename=representative.get("middleName"),
+                    email=representative.get("emailAddress"),
+                    phone_extension=representative.get("extension"),
+                    fax_number=representative.get("faxNumber"),
+                    phone_number=representative.get("phoneNumber"),
+                    phone_country_code=representative.get("phoneCountryCode"),
+                    job_title=representative.get("jobTitle"),
+                )
+            )
+            for representative in registration_request.get("strataHotelRepresentatives")
+        ]
+
+        strata_hotel_details_dict = registration_request.get("strataHotelDetails")
+        strata_hotel_location_dict = strata_hotel_details_dict.get("location")
+
+        strata_hotel_buildings = [
+            StrataHotelBuilding(
+                address=Address(
+                    country=building.get("country"),
+                    street_address=building.get("address"),
+                    street_address_additional=building.get("addressLineTwo"),
+                    city=building.get("city"),
+                    province=building.get("province"),
+                    postal_code=building.get("postalCode"),
+                    location_description=building.get("locationDescription"),
+                ),
+            )
+            for building in strata_hotel_details_dict.get("buildings")
+        ]
+
+        strata_hotel = StrataHotel(
+            legal_name=business_details_dict.get("legalName"),
+            home_jurisdiction=business_details_dict.get("homeJurisdiction"),
+            business_number=business_details_dict.get("businessNumber"),
+            attorney_name=business_details_dict.get("legalName"),
+            mailingAddress=Address(
+                country=mailing_address.get("country"),
+                street_address=mailing_address.get("address"),
+                street_address_additional=mailing_address.get("addressLineTwo"),
+                city=mailing_address.get("city"),
+                province=mailing_address.get("province"),
+                postal_code=mailing_address.get("postalCode"),
+                location_description=mailing_address.get("locationDescription"),
+            ),
+            brand_name=strata_hotel_details_dict.get("brand").get("name"),
+            website=strata_hotel_details_dict.get("brand").get("website"),
+            number_of_units=strata_hotel_details_dict.get("numberOfUnits"),
+            location=Address(
+                country=strata_hotel_location_dict.get("country"),
+                street_address=strata_hotel_location_dict.get("address"),
+                street_address_additional=strata_hotel_location_dict.get("addressLineTwo"),
+                city=strata_hotel_location_dict.get("city"),
+                province=strata_hotel_location_dict.get("province"),
+                postal_code=strata_hotel_location_dict.get("postalCode"),
+                location_description=strata_hotel_location_dict.get("locationDescription"),
+            ),
+            buildings=strata_hotel_buildings,
+            representatives=representatives,
+        )
+
+        if attorney_details_dict := business_details_dict.get("registeredOfficeOrAttorneyForServiceDetails"):
+            strata_hotel.attorney_name = attorney_details_dict.get("attorneyName")
+            if attorney_mailing_address_dict := attorney_details_dict.get("mailingAddress"):
+                strata_hotel.registered_office_attorney_mailing_address = Address(
+                    country=attorney_mailing_address_dict.get("country"),
+                    street_address=attorney_mailing_address_dict.get("address"),
+                    street_address_additional=attorney_mailing_address_dict.get("addressLineTwo"),
+                    city=attorney_mailing_address_dict.get("city"),
+                    province=attorney_mailing_address_dict.get("province"),
+                    postal_code=attorney_mailing_address_dict.get("postalCode"),
+                    location_description=mailing_address.get("locationDescription"),
+                )
+
+        strata_hotel_registration = StrataHotelRegistration(strata_hotel=strata_hotel)
+        return strata_hotel_registration
 
     @classmethod
     def _create_platform_registration(cls, registration_request: dict) -> PlatformRegistration:
@@ -322,6 +414,8 @@ class RegistrationService:
             registration_code = "BCH"
         elif registration_type == RegistrationType.PLATFORM.value:
             registration_code = "BCP"
+        elif registration_type == RegistrationType.STRATA_HOTEL.value:
+            registration_code = "BCS"
         registration_number_prefix = f'{registration_code}{datetime.now(timezone.utc).strftime("%y")}'
         while True:
             random_digits = "".join(random.choices("0123456789", k=9))
