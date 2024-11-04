@@ -17,7 +17,7 @@ export default defineNuxtConfig({
     '@nuxt/image'
   ],
 
-  extends: ['../strr-base-web'],
+  extends: [['../strr-base-web', { install: true }]],
 
   imports: {
     dirs: ['stores', 'composables', 'enums', 'interfaces', 'types', 'utils']
