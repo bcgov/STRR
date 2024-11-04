@@ -3,7 +3,7 @@ Registration response objects.
 """
 
 from strr_api.enums.enum import RegistrationType
-from strr_api.models import Platform, Registration
+from strr_api.models import Platform, Registration, StrataHotel
 
 
 class RegistrationSerializer:
@@ -30,7 +30,85 @@ class RegistrationSerializer:
         elif registration.registration_type == RegistrationType.PLATFORM.value:
             RegistrationSerializer.populate_platform_registration_details(registration_data, registration)
 
+        elif registration.registration_type == RegistrationType.STRATA_HOTEL.value:
+            RegistrationSerializer.populate_strata_hotel_registration_details(registration_data, registration)
+
         return registration_data
+
+    @classmethod
+    def populate_strata_hotel_registration_details(cls, registration_data: dict, registration: Registration):
+        """Populates strata hotel registration details into response object."""
+        strata_hotel: StrataHotel = registration.strata_hotel_registration.strata_hotel
+        registration_data["businessDetails"] = {
+            "legalName": strata_hotel.legal_name,
+            "homeJurisdiction": strata_hotel.home_jurisdiction,
+            "businessNumber": strata_hotel.business_number,
+            "mailingAddress": {
+                "address": strata_hotel.mailingAddress.street_address,
+                "addressLineTwo": strata_hotel.mailingAddress.street_address_additional,  # noqa: E501
+                "city": strata_hotel.mailingAddress.city,
+                "postalCode": strata_hotel.mailingAddress.postal_code,
+                "province": strata_hotel.mailingAddress.province,
+                "country": strata_hotel.mailingAddress.country,
+                "locationDescription": strata_hotel.mailingAddress.location_description,
+            },
+        }
+        if strata_hotel.registered_office_attorney_mailing_address_id:
+            attorney_mailing_address = strata_hotel.registered_office_attorney_mailing_address
+            registration_data["businessDetails"]["registeredOfficeOrAttorneyForServiceDetails"] = {
+                "attorneyName": strata_hotel.attorney_name,
+                "mailingAddress": {
+                    "address": attorney_mailing_address.street_address,
+                    "addressLineTwo": attorney_mailing_address.street_address_additional,  # noqa: E501
+                    "city": attorney_mailing_address.city,
+                    "postalCode": attorney_mailing_address.postal_code,
+                    "province": attorney_mailing_address.province,
+                    "country": attorney_mailing_address.country,
+                    "locationDescription": attorney_mailing_address.location_description,
+                },
+            }
+
+        registration_data["strataHotelRepresentatives"] = [
+            {
+                "firstName": representative.contact.firstname,
+                "middleName": representative.contact.middlename,
+                "lastName": representative.contact.lastname,
+                "phoneNumber": representative.contact.phone_number,
+                "extension": representative.contact.phone_extension,
+                "faxNumber": representative.contact.fax_number,
+                "emailAddress": representative.contact.email,
+                "jobTitle": representative.contact.job_title,
+                "phoneCountryCode": representative.contact.phone_country_code,
+            }
+            for representative in strata_hotel.representatives
+        ]
+
+        buildings = [
+            {
+                "address": building.address.street_address,
+                "addressLineTwo": building.address.street_address_additional,  # noqa: E501
+                "city": building.address.city,
+                "postalCode": building.address.postal_code,
+                "province": building.address.province,
+                "country": building.address.country,
+                "locationDescription": building.address.location_description,
+            }
+            for building in strata_hotel.buildings
+        ]
+        registration_data["strataHotelDetails"] = {
+            "brand": {"name": strata_hotel.brand_name, "website": strata_hotel.website},
+            "location": {
+                "address": strata_hotel.location.street_address,
+                "addressLineTwo": strata_hotel.location.street_address_additional,  # noqa: E501
+                "city": strata_hotel.location.city,
+                "postalCode": strata_hotel.location.postal_code,
+                "province": strata_hotel.location.province,
+                "country": strata_hotel.location.country,
+                "locationDescription": strata_hotel.location.location_description,
+            },
+            "numberOfUnits": strata_hotel.number_of_units,
+            "buildings": buildings,
+        }
 
     @classmethod
     def populate_platform_registration_details(cls, registration_data: dict, registration: Registration):

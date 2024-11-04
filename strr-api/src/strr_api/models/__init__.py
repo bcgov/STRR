@@ -43,6 +43,7 @@ from .events import Events
 from .ltsa import LTSARecord
 from .platforms import Platform, PlatformBrand, PlatformRegistration, PlatformRepresentative
 from .rental import Document, PropertyContact, PropertyListing, PropertyManager, Registration, RentalProperty
+from .strata_hotels import StrataHotel, StrataHotelBuilding, StrataHotelRegistration, StrataHotelRepresentative
 from .user import Contact, User
 
 __all__ = (
@@ -68,4 +69,8 @@ __all__ = (
     "PlatformBrand",
     "PlatformRegistration",
     "PlatformRepresentative",
+    "StrataHotel",
+    "StrataHotelRegistration",
+    "StrataHotelBuilding",
+    "StrataHotelRepresentative",
 )

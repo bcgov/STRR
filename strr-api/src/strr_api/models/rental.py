@@ -45,6 +45,7 @@ class Registration(Versioned, BaseModel):
     certificates = relationship("Certificate", back_populates="registration")
     rental_property = relationship("RentalProperty", back_populates="registration", uselist=False)
     platform_registration = relationship("PlatformRegistration", back_populates="registration", uselist=False)
+    strata_hotel_registration = relationship("StrataHotelRegistration", back_populates="registration", uselist=False)
     documents = relationship("Document", back_populates="registration")
 
 
