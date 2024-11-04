@@ -9,7 +9,7 @@
       :loading="loading"
       :trailing="trailing"
       :variant="variant"
-      data-test-id="button"
+      :data-test-id="dataTestId || 'button'"
       :disabled="disabled"
       @click="action()"
     />
@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { ButtonVariant } from '@nuxt/ui/dist/runtime/types'
 
-const { action, color, className, icon, label, loading, trailing, variant, disabled } = defineProps<{
+const { action, color, className, icon, label, loading, trailing, variant, disabled, dataTestId } = defineProps<{
   action: Function,
   className?: string,
   color?: string,
@@ -29,6 +29,7 @@ const { action, color, className, icon, label, loading, trailing, variant, disab
   trailing?: boolean,
   variant?: ButtonVariant,
   disabled?: boolean
+  dataTestId?: string
 }>()
 
 </script>

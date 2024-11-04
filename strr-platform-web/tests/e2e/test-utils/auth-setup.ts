@@ -49,7 +49,7 @@ async function authSetup () {
   }
 
   await page.goto(baseURL + 'en-CA/platform/application/')
-  await expect(page.getByTestId('h1')).toContainText(enI18n.global.t('platform.title.application'))
+  await expect(page.getByTestId('h1')).toContainText(enI18n.global.t('strr.title.application'))
   await page.locator('[id="logged-out-options-dropdown"]').click()
   await expect(page.getByRole('menuitem', { name: 'IDIR' })).toBeVisible() // will need to change this to BCeID
   await page.getByRole('menuitem', { name: 'IDIR' }).click()

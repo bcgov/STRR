@@ -1,5 +1,5 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { set } from 'zod'
+import { set } from 'lodash'
 import {
   BcrosFormSectionContactInformationForm,
   BcrosFormSectionPropertyManagerForm,
@@ -69,7 +69,7 @@ describe('Rental Application', () => {
     expect(rentalUnitReview.exists()).toBe(true)
   })
 
-  it('should render Review and Confirm Step - Property Manager Information section', async () => {
+  it('Review Step - should render Property Manager Information section', async () => {
     wrapper = await mountSuspended(CreateApplication)
     await goToStep(5)
 
@@ -97,7 +97,7 @@ describe('Rental Application', () => {
     const updatePropertyManagerAddress: PropertyManagerBusinessAddressI =
        set({ ...mockPropertyManager.businessMailingAddress }, 'country', 'Canada')
 
-    const filterValues = obj => Object.values(obj).filter(value =>
+    const filterValues = (obj: any) => Object.values(obj).filter(value =>
       typeof value === 'string' || typeof value === 'number'
     )
 
@@ -113,12 +113,31 @@ describe('Rental Application', () => {
     expectedValues.forEach((value) => {
       expect(propertyManagerReviewText).toContain(value)
     })
+
+    expect(wrapper.findTestId('host-auth-checkbox').exists()).toBe(false)
+  })
+
+  it('Review Step - should render Host Authorization Checkbox', async () => {
+    wrapper = await mountSuspended(CreateApplication)
+    formState.isPropertyManagerRole = true
+    await goToStep(5)
+
+    const rentalUnitReview = wrapper.findTestId('rental-unit-review')
+    expect(rentalUnitReview.exists()).toBe(true)
+    expect(wrapper.findTestId('host-auth-checkbox').exists()).toBe(true)
+
+    // go back to Step 1 and reset Property Manager role
+    await goToStep(1)
+    formState.isPropertyManagerRole = false
+    await goToStep(5)
+
+    expect(wrapper.findTestId('host-auth-checkbox').exists()).toBe(false)
   })
 
   // Utility function to filter only string values from an object
-  const filterValues = obj => Object.values(obj).filter(val => typeof val === 'string')
+  const filterValues = (obj: any) => Object.values(obj).filter(val => typeof val === 'string')
 
-  it('should render Review and Confirm Step - Primary Contact Information section', async () => {
+  it('Review Step - should render Primary Contact Information section', async () => {
     wrapper = await mountSuspended(CreateApplication)
     await goToStep(5)
 
@@ -148,7 +167,7 @@ describe('Rental Application', () => {
     })
   })
 
-  it('should render Review and Confirm Step - Rental Unit Information section', async () => {
+  it('Review Step - should render Rental Unit Information section', async () => {
     wrapper = await mountSuspended(CreateApplication)
     await goToStep(5)
 
@@ -157,6 +176,6 @@ describe('Rental Application', () => {
 
     // check number of fields displayed in rental unit section
     const rentalUnitReviewFields = rentalUnitReview.findAll("[data-test-id='form-item']")
-    expect(rentalUnitReviewFields.length).toBe(8)
+    expect(rentalUnitReviewFields.length).toBe(9)
   })
 })

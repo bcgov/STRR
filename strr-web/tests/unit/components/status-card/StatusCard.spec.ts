@@ -9,10 +9,12 @@ const i18n = createI18n({
   // vue-i18n options here ...
 })
 
+let wrapper: any
+
 it('can mount status card component', async () => {
   const applicationHeader: ApplicationHeaderI = mockApplicationApproved.header
 
-  const addressSection = await mountSuspended(BcrosStatusCard,
+  wrapper = await mountSuspended(BcrosStatusCard,
     {
       global: { plugins: [i18n] },
       props: {
@@ -20,15 +22,18 @@ it('can mount status card component', async () => {
         applicationHeader
       }
     })
-  expect(addressSection.find('[data-test-id="status-card"]').exists()).toBe(true)
-  expect(addressSection.classes()).toContain('flex-1')
-  expect(addressSection.text()).toContain(applicationHeader.registrationNumber)
+  expect(wrapper.findTestId('status-card').exists()).toBe(true)
+  expect(wrapper.classes()).toContain('flex-1')
+  expect(wrapper.text()).toContain(applicationHeader.registrationNumber)
 })
 
 it('can mount one of many status card components', async () => {
-  const applicationHeader: ApplicationHeaderI = mockApplicationApproved.header
+  const applicationHeader: ApplicationHeaderI = {
+    ...mockApplicationApproved.header,
+    paymentStatus: 'COMPLETED'
+  }
 
-  const addressSection = await mountSuspended(BcrosStatusCard,
+  wrapper = await mountSuspended(BcrosStatusCard,
     {
       global: { plugins: [i18n] },
       props: {
@@ -36,6 +41,21 @@ it('can mount one of many status card components', async () => {
         applicationHeader
       }
     })
-  expect(addressSection.find('[data-test-id="status-card"]').exists()).toBe(true)
-  expect(addressSection.classes()).not.toContain('flex-1')
+  expect(wrapper.findTestId('status-card').exists()).toBe(true)
+  expect(wrapper.classes()).not.toContain('flex-1')
+})
+
+it('renders view application and download receipt links for paid applications', async () => {
+  const applicationHeader: ApplicationHeaderI = mockApplicationApproved.header
+
+  wrapper = await mountSuspended(BcrosStatusCard, {
+    global: { plugins: [i18n] },
+    props: {
+      isSingle: true,
+      applicationHeader
+    }
+  })
+
+  expect(wrapper.findTestId('view-application-link').exists()).toBe(true)
+  expect(wrapper.findTestId('download-receipt-link').exists()).toBe(true)
 })

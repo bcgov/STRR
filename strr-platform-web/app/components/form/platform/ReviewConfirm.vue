@@ -3,20 +3,17 @@ import type { Form } from '#ui/types'
 import { z } from 'zod'
 
 const { t } = useI18n()
-const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
-const tContact = (translationKey: string) => t(`createAccount.contactForm.${translationKey}`)
-const tPlat = (path: string) => t(`platform.${path}`)
-const tPlatReview = (path: string) => t(`platform.review.${path}`)
+const tPlat = (path: string) => t(`strr.${path}`)
+const tPlatReview = (path: string) => t(`strr.review.${path}`)
 
 const accountStore = useConnectAccountStore()
+const platContactStore = useStrrContactStore()
+const platBusStore = useStrrPlatformBusiness()
+const platDetailsStore = useStrrPlatformDetails()
+const platAppStore = useStrrPlatformApplication()
 
-const { completingParty, primaryRep, secondaryRep } = storeToRefs(useStrrPlatformContact())
-const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
-const { platformDetails } = storeToRefs(useStrrPlatformDetails())
-const { platformConfirmation } = storeToRefs(useStrrPlatformApplication())
-const { platformConfirmationSchema } = useStrrPlatformApplication()
-
-const platformConfirmationFormRef = ref<Form<z.output<typeof platformConfirmationSchema>>>()
+const platformConfirmationFormRef = ref<Form<z.output<typeof platAppStore.platformConfirmationSchema>>>()
+const sectionErrors = ref<MultiFormValidationResult>([])
 
 const props = defineProps<{ isComplete: boolean }>()
 
@@ -28,14 +25,27 @@ const validateConfirmation = () => {
   platformConfirmationFormRef.value?.validate(undefined, { silent: true })
 }
 
+const isSectionInvalid = (formId: string) => {
+  return sectionErrors.value.some(item => item.formId === formId && !item.success)
+}
+
 // expose to trigger on application submission
 defineExpose({ validateConfirmation })
 
-onMounted(() => {
+onMounted(async () => {
   // validate form if step marked as complete
   if (props.isComplete) {
     validateConfirmation()
   }
+
+  const validations = [
+    platContactStore.validateContact(),
+    platBusStore.validatePlatformBusiness(),
+    platDetailsStore.validatePlatformDetails()
+  ]
+
+  const validationResults = await Promise.all(validations)
+  sectionErrors.value = validationResults.flatMap(result => result as MultiFormValidationResult)
 })
 </script>
 <template>
@@ -50,7 +60,7 @@ onMounted(() => {
       }"
     >
       <template #description>
-        <ConnectI18nBold class="text-bcGovGray-900" translation-path="platform.review.alert.contactInfo" />
+        <ConnectI18nBold class="text-bcGovGray-900" translation-path="strr.review.alert.contactInfo" />
       </template>
     </UAlert>
 
@@ -63,32 +73,29 @@ onMounted(() => {
         padding: 'sm:px-8 py-4 px-4'
       }"
     >
-      <div class="p-8">
-        <FormCommonReviewRow>
-          <template #item-1>
-            <ConnectInfoBox
-              :title="tReview('contactName')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="`${accountStore.userFullName || '-'}`"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="tContact('phoneNumber')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="`+${completingParty.phone.countryCode || '-'} ` +
-                completingParty.phone.number + ' ' + completingParty.phone.extension || ''"
-            />
-          </template>
-          <template #item-3>
-            <ConnectInfoBox
-              :title="$t('label.emailAddress')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="completingParty.emailAddress || '-'"
-            />
-          </template>
-        </FormCommonReviewRow>
-      </div>
+      <FormCommonReviewSection
+        :error="isSectionInvalid('completing-party-form')"
+        :items="[
+          {
+            title: $t('label.contactName'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: accountStore.userFullName
+          },
+          {
+            title: $t('label.phone.number'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: `+${platContactStore.completingParty.phone.countryCode || '-'} ` +
+              platContactStore.completingParty.phone.number +
+              ' ' + platContactStore.completingParty.phone.extension || ''
+          },
+          {
+            title: $t('label.emailAddress'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: platContactStore.completingParty.emailAddress
+          },
+        ]"
+        @edit="$emit('edit', 0)"
+      />
     </ConnectPageSection>
 
     <!-- primary platform rep section -->
@@ -100,54 +107,45 @@ onMounted(() => {
         padding: 'sm:px-8 py-4 px-4'
       }"
     >
-      <div class="space-y-6 p-8">
-        <FormCommonReviewRow>
-          <template #item-1>
-            <ConnectInfoBox
-              :title="tReview('contactName')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="`${primaryRep?.firstName || '-'} ` +
-                `${primaryRep?.middleName || ''}` + ` ${primaryRep?.lastName || ''}`"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="tContact('phoneNumber')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="`+${primaryRep?.phone.countryCode || '-'} ` +
-                `${primaryRep?.phone.number || ''}` + ' ' + `${primaryRep?.phone.extension || ''}`"
-            />
-          </template>
-          <template #item-3>
-            <ConnectInfoBox
-              :title="$t('label.emailAddress')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="primaryRep?.emailAddress || '-'"
-            />
-          </template>
-        </FormCommonReviewRow>
-        <FormCommonReviewRow>
-          <template #item-1>
-            <ConnectInfoBox
-              :title="$t('label.positionTitle')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="primaryRep?.position || '-'"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="$t('label.faxNumber')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="primaryRep?.faxNumber || '-'"
-            />
-          </template>
-        </FormCommonReviewRow>
-      </div>
+      <FormCommonReviewSection
+        :error="isSectionInvalid('primary-rep-form')"
+        :items="[
+          {
+            title: $t('label.contactName'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: `${platContactStore.primaryRep?.firstName || '-'} ` +
+              `${platContactStore.primaryRep?.middleName || ''}` + ` ${platContactStore.primaryRep?.lastName || ''}`
+          },
+          {
+            title: $t('label.phone.number'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: `+${platContactStore.primaryRep?.phone.countryCode || '-'} ` +
+              `${platContactStore.primaryRep?.phone.number || ''}` +
+              ' ' + `${platContactStore.primaryRep?.phone.extension || ''}`
+          },
+          {
+            title: $t('label.emailAddress'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: platContactStore.primaryRep?.emailAddress
+          },
+          {
+            title: $t('label.positionTitle'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: platContactStore.primaryRep?.position
+          },
+          {
+            title: $t('label.faxNumber'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: platContactStore.primaryRep?.faxNumber
+          },
+        ]"
+        @edit="$emit('edit', 0)"
+      />
     </ConnectPageSection>
 
     <!-- secondary platform rep section -->
     <ConnectPageSection
-      v-if="secondaryRep"
+      v-if="platContactStore.secondaryRep"
       :heading="{
         label: tPlat('section.title.secondaryRep'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
@@ -155,49 +153,40 @@ onMounted(() => {
         padding: 'sm:px-8 py-4 px-4'
       }"
     >
-      <div class="space-y-6 p-8">
-        <FormCommonReviewRow>
-          <template #item-1>
-            <ConnectInfoBox
-              :title="tReview('contactName')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="`${secondaryRep?.firstName || '-'} ` +
-                `${secondaryRep?.middleName || ''}` + ` ${secondaryRep?.lastName || ''}`"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="tContact('phoneNumber')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="`+${secondaryRep?.phone.countryCode || '-'} ` +
-                `${secondaryRep?.phone.number || ''}` + ' ' + `${secondaryRep?.phone.extension || ''}`"
-            />
-          </template>
-          <template #item-3>
-            <ConnectInfoBox
-              :title="$t('label.emailAddress')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="secondaryRep?.emailAddress || '-'"
-            />
-          </template>
-        </FormCommonReviewRow>
-        <FormCommonReviewRow>
-          <template #item-1>
-            <ConnectInfoBox
-              :title="$t('label.positionTitle')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="secondaryRep?.position || '-'"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="$t('label.faxNumber')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="secondaryRep?.faxNumber || '-'"
-            />
-          </template>
-        </FormCommonReviewRow>
-      </div>
+      <FormCommonReviewSection
+        :error="isSectionInvalid('secondary-rep-form')"
+        :items="[
+          {
+            title: $t('label.contactName'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: `${platContactStore.secondaryRep?.firstName || '-'} ` +
+              `${platContactStore.secondaryRep?.middleName || ''}` + ` ${platContactStore.secondaryRep?.lastName || ''}`
+          },
+          {
+            title: $t('label.phone.number'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: `+${platContactStore.secondaryRep?.phone.countryCode || '-'} ` +
+              `${platContactStore.secondaryRep?.phone.number || ''}` +
+              ' ' + `${platContactStore.secondaryRep?.phone.extension || ''}`
+          },
+          {
+            title: $t('label.emailAddress'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: platContactStore.secondaryRep?.emailAddress
+          },
+          {
+            title: $t('label.positionTitle'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: platContactStore.secondaryRep?.position
+          },
+          {
+            title: $t('label.faxNumber'),
+            titleClass: 'font-bold text-bcGovGray-900',
+            content: platContactStore.secondaryRep?.faxNumber
+          },
+        ]"
+        @edit="$emit('edit', 0)"
+      />
     </ConnectPageSection>
 
     <!-- business info section -->
@@ -209,159 +198,152 @@ onMounted(() => {
         padding: 'sm:px-8 py-4 px-4'
       }"
     >
-      <div class="space-y-6 p-8">
-        <FormCommonReviewRow>
-          <template #item-1>
-            <ConnectInfoBox
-              :title="$t('label.busNameLegal')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="platformBusiness.legalName || '-'"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="tPlatReview('busInfo.attForSvcName')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="platformBusiness.regOfficeOrAtt.attorneyName || '-'"
-            />
-          </template>
-          <template #item-3>
-            <ConnectInfoBox
-              :title="tPlat('section.subTitle.noticeNonCompliance')"
-              title-class="font-bold text-bcGovGray-900"
-            >
-              <span> {{ platformBusiness.nonComplianceEmail || '-' }} </span>
-              <span v-if="platformBusiness.nonComplianceEmailOptional">
-                {{ platformBusiness.nonComplianceEmailOptional }}
-              </span>
-            </ConnectInfoBox>
-          </template>
-        </FormCommonReviewRow>
+      <FormCommonReviewSection
+        :error="isSectionInvalid('business-details-form')"
+        :items="[
+          {
+            title: $t('label.busNameLegal'),
+            content: platBusStore.platformBusiness.legalName
+          },
+          {
+            title: tPlatReview('busInfo.attForSvcName'),
+            content: platBusStore.platformBusiness.regOfficeOrAtt.attorneyName
+          },
+          {
+            title: tPlat('section.subTitle.noticeNonCompliance'),
+            slot: 'noticeNonCompliance'
+          },
+          {
+            title: $t('label.homeJurisdiction'),
+            content: platBusStore.platformBusiness.homeJurisdiction
+          },
+          {
+            title: tPlat('section.subTitle.regOfficeAttSvcAddrress'),
+            slot: 'regOfficeAttSvcAddrress'
+          },
+          {
+            title: tPlat('section.subTitle.takedownRequest'),
+            slot: 'takedownRequest'
+          },
+          {
+            title: $t('label.busNum'),
+            content: platBusStore.platformBusiness.businessNumber
+          },
+          {
+            title: tPlat('section.subTitle.businessMailAddress'),
+            slot: 'businessMailAddress'
+          },
+          {
+            title: $t('label.cpbcLicNum'),
+            content: platBusStore.platformBusiness.cpbcLicenceNumber
+          }
+        ]"
+        @edit="$emit('edit', 1)"
+      >
+        <template #noticeNonCompliance>
+          <span> {{ platBusStore.platformBusiness.nonComplianceEmail || '-' }} </span>
+          <span v-if="platBusStore.platformBusiness.nonComplianceEmailOptional">
+            {{ platBusStore.platformBusiness.nonComplianceEmailOptional }}
+          </span>
+        </template>
 
-        <FormCommonReviewRow>
-          <template #item-1>
-            <ConnectInfoBox
-              :title="$t('label.homeJurisdiction')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="platformBusiness.homeJurisdiction || '-'"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="tPlat('section.subTitle.regOfficeAttSvcAddrress')"
-              title-class="font-bold text-bcGovGray-900"
-            >
-              <ConnectFormAddressDisplay
-                v-if="platformBusiness.regOfficeOrAtt.mailingAddress.street"
-                :address="platformBusiness.regOfficeOrAtt.mailingAddress"
-              />
-              <span v-else> - </span>
-            </ConnectInfoBox>
-          </template>
-          <template #item-3>
-            <ConnectInfoBox
-              :title="tPlat('section.subTitle.takedownRequest')"
-              title-class="font-bold text-bcGovGray-900"
-            >
-              <span> {{ platformBusiness.takeDownEmail || '-' }} </span>
-              <span v-if="platformBusiness.takeDownEmailOptional">
-                {{ platformBusiness.takeDownEmailOptional }}
-              </span>
-            </ConnectInfoBox>
-          </template>
-        </FormCommonReviewRow>
+        <template #regOfficeAttSvcAddrress>
+          <ConnectFormAddressDisplay
+            v-if="platBusStore.platformBusiness.regOfficeOrAtt.mailingAddress.street"
+            :address="platBusStore.platformBusiness.regOfficeOrAtt.mailingAddress"
+          />
+          <span v-else> - </span>
+        </template>
 
-        <FormCommonReviewRow>
-          <template #item-1>
-            <ConnectInfoBox
-              :title="$t('label.busNum')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="platformBusiness.businessNumber || '-'"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="tPlat('section.subTitle.businessMailAddress')"
-              title-class="font-bold text-bcGovGray-900"
-            >
-              <ConnectFormAddressDisplay
-                v-if="platformBusiness.mailingAddress.street"
-                :address="platformBusiness.mailingAddress"
-              />
-              <span v-else> - </span>
-            </ConnectInfoBox>
-          </template>
-        </FormCommonReviewRow>
-      </div>
+        <template #takedownRequest>
+          <span> {{ platBusStore.platformBusiness.takeDownEmail || '-' }} </span>
+          <span v-if="platBusStore.platformBusiness.takeDownEmailOptional">
+            {{ platBusStore.platformBusiness.takeDownEmailOptional }}
+          </span>
+        </template>
+
+        <template #businessMailAddress>
+          <ConnectFormAddressDisplay
+            v-if="platBusStore.platformBusiness.mailingAddress.street"
+            :address="platBusStore.platformBusiness.mailingAddress"
+          />
+          <span v-else> - </span>
+        </template>
+      </FormCommonReviewSection>
     </ConnectPageSection>
 
     <!-- platform info section -->
     <ConnectPageSection
       :heading="{
-        label: tPlat('step.description.2'),
+        label: tPlat('section.title.details'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
         icon: 'i-mdi-map-marker-plus-outline',
         padding: 'sm:px-8 py-4 px-4'
       }"
     >
-      <div class="space-y-6 p-8">
-        <FormCommonReviewRow
-          v-if="platformDetails.brands.length === 0"
-        >
-          <template #item-1>
-            <ConnectInfoBox
-              :title="$t('platform.review.platInfo.brandName', 0)"
-              title-class="font-bold text-bcGovGray-900"
-              content="-"
-            />
-          </template>
-          <template #item-2>
-            <ConnectInfoBox
-              :title="$t('platform.review.platInfo.brandSite', 0)"
-              title-class="font-bold text-bcGovGray-900"
-              content="-"
-            />
-          </template>
-          <template #item-3>
-            <ConnectInfoBox
-              :title="tPlat('section.subTitle.size')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="platformDetails.listingSize || '-'"
-            />
-          </template>
-        </FormCommonReviewRow>
-        <template v-else>
+      <FormCommonReviewSection
+        :error="isSectionInvalid('platform-details-form')"
+        @edit="$emit('edit', 2)"
+      >
+        <div class="space-y-5">
           <FormCommonReviewRow
-            v-for="(brand, i) in platformDetails.brands"
-            :key="brand.name"
+            v-if="platDetailsStore.platformDetails.brands.length === 0"
           >
             <template #item-1>
               <ConnectInfoBox
-                :title="$t('platform.review.platInfo.brandName', { count: i + 1})"
+                :title="$t('strr.review.platInfo.brandName', 0)"
                 title-class="font-bold text-bcGovGray-900"
-                :content="brand.name || '-'"
+                content="-"
               />
             </template>
             <template #item-2>
               <ConnectInfoBox
-                :title="$t('platform.review.platInfo.brandSite', { count: i + 1})"
+                :title="$t('strr.review.platInfo.brandSite', 0)"
                 title-class="font-bold text-bcGovGray-900"
-                :content="brand.website || '-'"
+                content="-"
               />
             </template>
             <template #item-3>
               <ConnectInfoBox
-                v-if="i === 0"
                 :title="tPlat('section.subTitle.size')"
                 title-class="font-bold text-bcGovGray-900"
-                :content="platformDetails.listingSize ?
-                  tPlatReview(`platInfo.sizeDesc.${platformDetails.listingSize}`) :
-                  '-'"
+                :content="platDetailsStore.platformDetails.listingSize || '-'"
               />
             </template>
           </FormCommonReviewRow>
-        </template>
-      </div>
+          <template v-else>
+            <FormCommonReviewRow
+              v-for="(brand, i) in platDetailsStore.platformDetails.brands"
+              :key="brand.name"
+            >
+              <template #item-1>
+                <ConnectInfoBox
+                  :title="$t('strr.review.platInfo.brandName', { count: i + 1})"
+                  title-class="font-bold text-bcGovGray-900"
+                  :content="brand.name || '-'"
+                />
+              </template>
+              <template #item-2>
+                <ConnectInfoBox
+                  :title="$t('strr.review.platInfo.brandSite', { count: i + 1})"
+                  title-class="font-bold text-bcGovGray-900"
+                  :content="brand.website || '-'"
+                />
+              </template>
+              <template #item-3>
+                <ConnectInfoBox
+                  v-if="i === 0"
+                  :title="tPlat('section.subTitle.size')"
+                  title-class="font-bold text-bcGovGray-900"
+                  :content="platDetailsStore.platformDetails.listingSize ?
+                    tPlatReview(`platInfo.sizeDesc.${platDetailsStore.platformDetails.listingSize}`) :
+                    '-'"
+                />
+              </template>
+            </FormCommonReviewRow>
+          </template>
+        </div>
+      </FormCommonReviewSection>
     </ConnectPageSection>
 
     <section class="space-y-6">
@@ -369,13 +351,13 @@ onMounted(() => {
 
       <UForm
         ref="platformConfirmationFormRef"
-        :state="platformConfirmation"
-        :schema="platformConfirmationSchema"
+        :state="platAppStore.platformConfirmation"
+        :schema="platAppStore.platformConfirmationSchema"
         class="space-y-10 pb-10"
       >
         <UFormGroup name="confirmInfoAccuracy">
           <UCheckbox
-            v-model="platformConfirmation.confirmInfoAccuracy"
+            v-model="platAppStore.platformConfirmation.confirmInfoAccuracy"
             :label="tPlatReview('confirm.infoAccuracy')"
             class="rounded bg-white p-4"
             :class="hasFormErrors(platformConfirmationFormRef, ['confirmInfoAccuracy'])
@@ -389,7 +371,7 @@ onMounted(() => {
 
         <UFormGroup name="confirmDelistAndCancelBookings">
           <UCheckbox
-            v-model="platformConfirmation.confirmDelistAndCancelBookings"
+            v-model="platAppStore.platformConfirmation.confirmDelistAndCancelBookings"
             :label="tPlatReview('confirm.delistAndCancelBookings')"
             class="rounded bg-white p-4"
             :class="hasFormErrors(platformConfirmationFormRef, ['confirmDelistAndCancelBookings'])

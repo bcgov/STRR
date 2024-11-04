@@ -96,7 +96,7 @@ watch(canadaPostAddress, (newAddress) => {
 
 watch(() => formState.propertyDetails.isUnitOnPrincipalResidenceProperty, (newValue) => {
   if (!newValue) {
-    formState.propertyDetails.hostResidence = null // Reset if not required
+    formState.propertyDetails.hostResidence = undefined // Reset if not required
   }
   validateHostResidence() // Ensure validation reflects changes
 })
@@ -244,11 +244,24 @@ const validateRentalUnitSpaceType = () => {
   }
 }
 
+watch(
+  () => formState.propertyDetails.isUnitOnPrincipalResidenceProperty,
+  (newValue) => {
+    // Coerce string "true"/"false" to boolean true/false
+    if (newValue === 'true') {
+      formState.propertyDetails.isUnitOnPrincipalResidenceProperty = true
+    } else if (newValue === 'false') {
+      formState.propertyDetails.isUnitOnPrincipalResidenceProperty = false
+    }
+  }
+)
+
 const validatePrincipalResidenceOptions = () => {
-  if (formState.propertyDetails.isUnitOnPrincipalResidenceProperty === undefined) {
-    principalResidenceError.value = t('createAccount.propertyForm.principalResidenceRequired')
+  const value = formState.propertyDetails.isUnitOnPrincipalResidenceProperty
+  if (value === null || value === undefined) {
+    principalResidenceError.value = t('createAccount.propertyForm.isUnitOnPrincipalResidencePropertyRequired')
   } else {
-    principalResidenceError.value = ''
+    principalResidenceError.value = '' // Clear the error if a valid selection is made
   }
 }
 
@@ -260,8 +273,10 @@ const validateHostResidence = () => {
 }
 
 const validateNumberOfRoomsForRent = () => {
-  if (!formState.propertyDetails.numberOfRoomsForRent || formState.propertyDetails.numberOfRoomsForRent <= 0) {
+  if (formState.propertyDetails?.numberOfRoomsForRent < 1) {
     numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentRequired')
+  } else if (formState.propertyDetails?.numberOfRoomsForRent > 5000) {
+    numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentMaxExceeded', { max: 5000 })
   } else {
     numberOfRoomsForRentError.value = ''
   }

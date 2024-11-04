@@ -28,14 +28,17 @@
         :label="tRegistrationStatus('view')"
         class-name="px-4 py-1 mobile:grow-0"
         variant="ghost"
+        data-test-id="view-application-link"
       />
 
       <BcrosButtonsPrimary
-        v-if="isCertificateIssued"
-        :action="() => downloadCertificate(registrationId.toString())"
-        :label="tRegistrationStatus('download')"
+        v-if="isPaid"
+        :loading="downloadingReceipts.has(applicationNumber)"
+        :action="() => downloadReceipt(applicationNumber)"
+        :label="downloadingReceipts.has(applicationNumber) ? '' : tRegistrationStatus('downloadReceipt')"
         class-name="px-4 py-1 mobile:grow-0"
         variant="ghost"
+        data-test-id="download-receipt-link"
       />
     </div>
   </div>
@@ -43,7 +46,7 @@
 
 <script setup lang="ts">
 import { HostApplicationStatusE, ExaminerApplicationStatusE } from '#imports'
-const { downloadCertificate } = useDownloadCertificate()
+const { downloadReceipt, downloadingReceipts } = useDownloadReceipt()
 
 const { t } = useTranslation()
 const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${translationKey}`)
@@ -65,9 +68,14 @@ const {
   status,
   hostStatus,
   examinerStatus,
-  isCertificateIssued,
   applicationNumber
 } = applicationHeader
+
+const hasPaymentReceipt = (status: string): boolean => {
+  return status !== ApplicationStatusE.DRAFT && status !== ApplicationStatusE.PAYMENT_DUE
+}
+
+const isPaid = hasPaymentReceipt(status)
 
 const flavour = computed(() => {
   if (isExaminer) {

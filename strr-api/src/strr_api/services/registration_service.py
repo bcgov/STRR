@@ -227,6 +227,8 @@ class RegistrationService:
 
         primary_property_contact = PropertyContact()
         primary_property_contact.is_primary = True
+        primary_property_contact.contact_type = registration_request.primaryContact.contactType
+        primary_property_contact.business_legal_name = registration_request.primaryContact.businessLegalName
         primary_property_contact.contact = Contact(
             firstname=registration_request.primaryContact.name.firstName,
             lastname=registration_request.primaryContact.name.lastName,
@@ -252,6 +254,7 @@ class RegistrationService:
         if registration_request.secondaryContact:
             secondary_property_contact = PropertyContact()
             secondary_property_contact.is_primary = False
+            secondary_property_contact.contact_type = registration_request.secondaryContact.contactType
             secondary_property_contact.contact = Contact(
                 firstname=registration_request.secondaryContact.name.firstName,
                 lastname=registration_request.secondaryContact.name.lastName,

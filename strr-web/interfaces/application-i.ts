@@ -45,7 +45,6 @@ export interface HostApplicationDetailsI {
   primaryContact: ContactI
   secondaryContact?: ContactI
   principalResidence: PrincipalResidenceI
-  propertyManager?: PropertyManagerI
   unitAddress: RegistrationAddressI
   propertyManager?: PropertyManagerI
   unitDetails: {
@@ -56,7 +55,7 @@ export interface HostApplicationDetailsI {
     ownershipType: string
     rentalUnitSpaceType: string
     isUnitOnPrincipalResidenceProperty: boolean
-    hostResidence: string
+    hostResidence: string | undefined
     numberOfRoomsForRent: number
   }
   documents?: DocumentUploadI[]

@@ -175,7 +175,8 @@ export interface CreateAccountFormStateI {
   }
   selectedAccount: OrgI
   principal: PrincipalResidenceI
-  supportingDocuments: File[]
+  supportingDocuments: File[],
+  hasHostAuthorization: boolean
 }
 
 export interface MailingAddressAPII {
@@ -241,8 +242,8 @@ export interface CreateAccountFormAPII {
       propertyType: string
       ownershipType: string
       rentalUnitSpaceType: string
-      isUnitOnPrincipalResidenceProperty: boolean
-      hostResidence: string
+      isUnitOnPrincipalResidenceProperty: boolean | undefined
+      hostResidence: string | undefined
       numberOfRoomsForRent: number
     }
     listingDetails?: { url: string }[]

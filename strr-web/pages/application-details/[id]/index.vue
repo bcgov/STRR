@@ -12,8 +12,7 @@
           <BcrosTypographyH1
             :text="
               `${applicationDetails?.unitAddress.nickname ?? ''} ${tApplicationDetails('applicationTitle')}
-              #${application?.header.applicationNumber ?? '-'}`
-            "
+              #${application?.header.applicationNumber ?? '-'}`"
             class="mobile:text-6 mobile:col-span-7"
             no-spacing
             data-test-id="application-title"
@@ -69,13 +68,17 @@
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
-              :content="tApplicationDetails(applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty?
-                'true':'false')|| '-'"
+              :content="tApplicationDetails(
+                applicationDetails?.unitDetails.isUnitOnPrincipalResidenceProperty
+                  ? 'true'
+                  : 'false'
+              ) || '-'"
               data-test-id="isUnitOnPrincipalResidenceProperty-type"
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('hostResidence')"
-              :content="tApplicationDetails(applicationDetails?.unitDetails.hostResidence)|| '-'"
+              :content="applicationDetails?.unitDetails.hostResidence
+                ? tApplicationDetails(applicationDetails?.unitDetails.hostResidence) : '-'"
               data-test-id="hostResidence-type"
             />
             <BcrosFormSectionReviewItem
@@ -92,8 +95,6 @@
                 }}
               </p>
             </BcrosFormSectionReviewItem>
-          </div>
-          <div class="flex flex-row justify-between w-full mobile:flex-col">
             <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">
               <p data-test-id="unit-address">
                 {{ applicationDetails?.unitAddress.address }}
@@ -113,63 +114,34 @@
               </p>
             </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('parcelIdentifier')"
+              :content="applicationDetails?.unitDetails.parcelIdentifier || '-'"
+              data-test-id="parcel-identifier"
+              class="break-all"
+            />
+            <BcrosFormSectionReviewItem
               :title="tApplicationDetails('businessLicense')"
               :content="applicationDetails?.unitDetails.businessLicense || '-'"
               data-test-id="business-license"
               class="break-all"
             />
-            <div class="flex-1 d:max-w-[33.33%]">
-              <template v-if="applicationDetails?.listingDetails && applicationDetails.listingDetails.length > 0">
-                <BcrosFormSectionReviewItem
-                  :title="tApplicationDetails('listingLink')"
-                >
-                  <a
-                    :href="applicationDetails?.listingDetails[0].url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-ellipsis overflow-hidden break-words"
-                    data-test-id="platform-url-1"
-                  >
-                    {{ applicationDetails?.listingDetails[0].url }}
-                  </a>
-                </BcrosFormSectionReviewItem>
-              </template>
-            </div>
-          </div>
-          <div class="flex flex-row justify-between w-full mobile:flex-col">
-            <div class="flex-1" />
+            <BcrosFormSectionReviewItem :title="tApplicationDetails('listingLink')">
+              <a
+                :href="applicationDetails?.listingDetails[0].url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-ellipsis overflow-hidden break-words"
+                data-test-id="platform-url-1"
+              >
+                {{ applicationDetails?.listingDetails[0].url }}
+              </a>
+            </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem
               v-if="applicationDetails?.unitDetails.businessLicenseExpiryDate"
               :title="tApplicationDetails('businessLicenseExpiryDate')"
               :content="convertDateToLongFormat(applicationDetails?.unitDetails.businessLicenseExpiryDate)"
               data-test-id="business-exp-date"
             />
-            <div v-else class="flex-1" />
-            <div class="flex-1 d:max-w-[33.33%]">
-              <template v-if="applicationDetails?.listingDetails && applicationDetails.listingDetails.length > 1">
-                <div class="flex flex-col">
-                  <div
-                    v-for="(listingDetail, index) in applicationDetails.listingDetails.slice(1)"
-                    :key="index"
-                    :class="{ 'desktop:mt-6 mobile:mt-2': index > 1 }"
-                  >
-                    <BcrosFormSectionReviewItem
-                      :title="tApplicationDetails('listingLink') + (` ${index + 2}`)"
-                    >
-                      <a
-                        :href="listingDetail.url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-ellipsis overflow-hidden break-words"
-                        :data-test-id="`platform-url-${index + 2}`"
-                      >
-                        {{ listingDetail.url }}
-                      </a>
-                    </BcrosFormSectionReviewItem>
-                  </div>
-                </div>
-              </template>
-            </div>
           </div>
         </div>
         <!-- Principal Residence -->

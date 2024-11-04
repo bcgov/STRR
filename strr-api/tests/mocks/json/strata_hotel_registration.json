@@ -1,0 +1,100 @@
+{
+  "registration": {
+    "registrationType": "STRATA_HOTEL",
+    "completingParty": {
+      "firstName": "Test",
+      "middleName": "",
+      "lastName": "Test",
+      "phoneNumber": "604-999-9999",
+      "phoneCountryCode": "001",
+      "extension": "x64",
+      "faxNumber": "604-777-7777",
+      "emailAddress": "test@test.test",
+      "jobTitle": "Sales Manager"
+    },
+    "strataHotelRepresentatives": [
+      {
+        "firstName": "Test",
+        "lastName": "Test",
+        "phoneNumber": "123-456-8970",
+        "phoneCountryCode": "001",
+        "extension": "x64",
+        "faxNumber": "604-777-7777",
+        "emailAddress": "test@test.test",
+        "jobTitle": "Sales Manager"
+      },
+      {
+        "firstName": "Test",
+        "lastName": "Test",
+        "phoneNumber": "604-999-9999",
+        "phoneCountryCode": "001",
+        "extension": "x64",
+        "faxNumber": "604-777-7777",
+        "emailAddress": "test@test.test",
+        "jobTitle": "Sales Manager"
+      }
+    ],
+    "businessDetails": {
+      "legalName": "Test Business",
+      "homeJurisdiction": "Vancouver",
+      "businessNumber": "BN12345",
+      "mailingAddress": {
+        "country": "CA",
+        "address": "12766 227st",
+        "addressLineTwo": "",
+        "city": "MAPLE RIDGE",
+        "province": "BC",
+        "postalCode": "V2X 6K6",
+        "locationDescription": "Test Location"
+      },
+      "registeredOfficeOrAttorneyForServiceDetails": {
+        "attorneyName": "Test",
+        "mailingAddress": {
+          "country": "CA",
+          "address": "12766 227st",
+          "addressLineTwo": "",
+          "city": "MAPLE RIDGE",
+          "province": "BC",
+          "postalCode": "V2X 6K6",
+          "locationDescription": "Test Location"
+        }
+      }
+    },
+    "strataHotelDetails": {
+      "brand": {
+        "name": "Brand A",
+        "website": "http://abc.com"
+      },
+      "location": {
+        "country": "CA",
+        "address": "12766 227st",
+        "addressLineTwo": "",
+        "city": "MAPLE RIDGE",
+        "province": "BC",
+        "postalCode": "V2X 6K6",
+        "locationDescription": "Test Location"
+      },
+      "numberOfUnits": 50,
+      "buildings": [
+        {
+          "country": "CA",
+          "address": "12766 227st",
+          "addressLineTwo": "",
+          "city": "MAPLE RIDGE",
+          "province": "BC",
+          "postalCode": "V2X 6K6",
+          "locationDescription": "Test Location"
+        },
+        {
+          "country": "CA",
+          "address": "12766 228st",
+          "addressLineTwo": "",
+          "city": "MAPLE RIDGE",
+          "province": "BC",
+          "postalCode": "V2X 6K6",
+          "locationDescription": "Test Location"
+        }
+      ]
+    }
+  }
+}

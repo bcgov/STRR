@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { ConnectBtnControlItem } from '~/interfaces/connect-btn-control/item-i'
 import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
 
-const { validatePlatformContact } = useStrrPlatformContact()
+const { validateContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
 const { validatePlatformDetails } = useStrrPlatformDetails()
 const { submitPlatformApplication, validatePlatformConfirmation } = useStrrPlatformApplication()
@@ -19,16 +18,16 @@ const {
   setPlaceholderServiceFee
 } = useConnectFeeStore()
 
-setPlaceholderFilingTypeCode(ConnectFeeCode.STR_PLAT_SM)
+setPlaceholderFilingTypeCode(StrrFeeCode.STR_PLAT_SM)
 
 const platFeeSm = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeLg = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeWv = ref<ConnectFeeItem | undefined>(undefined)
 onMounted(async () => {
   const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
-    getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_SM),
-    getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_LG),
-    getFee(ConnectFeeEntityType.STRR, ConnectFeeCode.STR_PLAT_WV)
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_SM),
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_LG),
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_WV)
   ])
   platFeeSm.value = smallFeeResp
   platFeeLg.value = largeFeeResp
@@ -49,11 +48,11 @@ const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 
 watch(() => platformBusiness.value.hasCpbc, (val) => {
   if (val && platFeeWv.value) {
-    removeFee(ConnectFeeCode.STR_PLAT_SM)
-    removeFee(ConnectFeeCode.STR_PLAT_LG)
+    removeFee(StrrFeeCode.STR_PLAT_SM)
+    removeFee(StrrFeeCode.STR_PLAT_LG)
     addReplaceFee(platFeeWv.value)
   } else {
-    removeFee(ConnectFeeCode.STR_PLAT_WV)
+    removeFee(StrrFeeCode.STR_PLAT_WV)
     setFeeBasedOnListingSize(platformDetails.value.listingSize)
   }
 })
@@ -61,11 +60,11 @@ watch(() => platformBusiness.value.hasCpbc, (val) => {
 const setFeeBasedOnListingSize = (listingSize: ListingSize | undefined) => {
   if (platFeeSm.value && platFeeLg.value && listingSize) {
     if (listingSize === ListingSize.UNDER_THOUSAND) {
-      removeFee(ConnectFeeCode.STR_PLAT_LG)
+      removeFee(StrrFeeCode.STR_PLAT_LG)
       addReplaceFee(platFeeSm.value)
     } else {
       // ListingSize.THOUSAND_OR_MORE
-      removeFee(ConnectFeeCode.STR_PLAT_SM)
+      removeFee(StrrFeeCode.STR_PLAT_SM)
       addReplaceFee(platFeeLg.value)
     }
   }
@@ -80,28 +79,28 @@ watch(() => platformDetails.value.listingSize, (val) => {
 // stepper stuff
 const steps = ref<Step[]>([
   {
-    i18nPrefix: 'platform.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-account-multiple-plus',
     complete: false,
     isValid: false,
-    validationFn: async () => await validatePlatformContact(true) as boolean
+    validationFn: async () => await validateContact(true) as boolean
   },
   {
-    i18nPrefix: 'platform.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-domain-plus',
     complete: false,
     isValid: false,
     validationFn: () => validatePlatformBusiness(true) as boolean
   },
   {
-    i18nPrefix: 'platform.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-earth',
     complete: false,
     isValid: false,
     validationFn: () => validatePlatformDetails(true) as boolean
   },
   {
-    i18nPrefix: 'platform.step',
+    i18nPrefix: 'strr.step',
     icon: 'i-mdi-text-box-check-outline',
     complete: false,
     isValid: false,
@@ -144,7 +143,7 @@ const handlePlatformSubmit = async () => {
 
     // all step validations
     const validations = [
-      validatePlatformContact(),
+      validateContact(),
       validatePlatformBusiness(),
       validatePlatformDetails(),
       validatePlatformConfirmation()
@@ -163,12 +162,11 @@ const handlePlatformSubmit = async () => {
         return navigateTo(localePath('/platform/dashboard'))
       }
     } else {
-      // TODO: display form errors better
-      strrModal.openAppSubmitError(formErrors)
+      stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
     }
   } catch (e) {
     logFetchError(e, 'Error creating platform application')
-    // TODO: handle backend errors
+    strrModal.openAppSubmitError(e)
   } finally {
     // set buttons back to non loading state
     setButtonControl({
@@ -205,42 +203,43 @@ watch(activeStepIndex, (val) => {
   buttons.push({
     action: isLastStep ? handlePlatformSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
-    label: isLastStep ? t('btn.submitAndPay') : t('btn.next'),
+    label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${val + 1}`),
     trailing: true
   })
 
   setButtonControl({ leftButtons: [], rightButtons: buttons })
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }, { immediate: true })
 
 // page stuff
 useHead({
-  title: t('platform.title.application')
+  title: t('strr.title.application')
 })
 
 definePageMeta({
   layout: 'connect-form',
-  path: '/platform/application'
+  path: '/platform/application',
+  middleware: ['auth', 'require-premium-account']
 })
 
 setBreadcrumbs([
   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('platform.title.dashboard'), to: useLocalePath()('/platform/dashboard') },
-  { label: t('platform.title.application') }
+  { label: t('strr.title.dashboard'), to: useLocalePath()('/platform/dashboard') },
+  { label: t('strr.title.application') }
 ])
 </script>
 <template>
   <div class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="t('platform.title.application')" class="my-5" />
+    <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
     <ConnectStepper
       ref="stepperRef"
       :key="0"
       v-model:steps="steps"
       v-model:active-step-index="activeStepIndex"
       v-model:active-step="activeStep"
+      :stepper-label="$t('label.platAppStepLabel')"
     />
     <div v-if="activeStepIndex === 0" key="contact-information">
-      <FormPlatformContactInfo :is-complete="activeStep.complete" />
+      <FormContactInfo :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 1" key="business-details">
       <FormPlatformBusinessDetails :is-complete="activeStep.complete" />

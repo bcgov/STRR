@@ -99,6 +99,7 @@
         :set-previous-step="setPreviousStep"
         :submit="submit"
         :is-last-step="activeStepIndex.valueOf() == steps.length - 1"
+        :submit-in-progress="submitInProgress"
       />
     </div>
   </div>
@@ -127,7 +128,7 @@ const { t } = useTranslation()
 const { userFullName, userFirstName, userLastName, me } = useBcrosAccount()
 
 const { createApplication } = useApplications()
-
+const submitInProgress = ref(false)
 onMounted(() => {
   // if no SBC accounts exist redirect to SBC account creation
   if (!me?.settings.length) {
@@ -157,13 +158,13 @@ const ownershipToApiType = (type: string | undefined): string => {
       return 'RENT'
     case t('createAccount.propertyForm.own'):
       return 'OWN'
-    case t('createAccount.propertyForm.other'):
+    case t('createAccount.propertyForm.coOwn'):
       return 'CO_OWN'
   }
   return ''
 }
 
-const submit = () => {
+const submit = async () => {
   validatePropertyManagerStep()
   validateStep(primaryContactSchema, formState.primaryContact, 1)
   if (hasSecondaryContact.value) {
@@ -175,16 +176,21 @@ const submit = () => {
   headerUpdateKey.value++
   const allStepsCheck = steps.every(step => step.step.isValid && step.step.complete)
   if (allStepsCheck) {
-    createApplication(
-      userFirstName,
-      userLastName,
-      hasSecondaryContact.value,
-      propertyToApiType(formState.propertyDetails.propertyType),
-      ownershipToApiType(formState.propertyDetails.ownershipType),
-      formState.propertyDetails.rentalUnitSpaceType,
-      formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
-      formState.propertyDetails.numberOfRoomsForRent
-    )
+    submitInProgress.value = true
+    try {
+      await createApplication(
+        userFirstName,
+        userLastName,
+        hasSecondaryContact.value,
+        propertyToApiType(formState.propertyDetails.propertyType),
+        ownershipToApiType(formState.propertyDetails.ownershipType),
+        formState.propertyDetails.rentalUnitSpaceType,
+        formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
+        formState.propertyDetails.numberOfRoomsForRent
+      )
+    } finally {
+      submitInProgress.value = false
+    }
   } else {
     scrollToTop()
   }
@@ -246,7 +252,8 @@ const validateProofPage = () => {
 }
 
 const validateReviewPage = () => {
-  setStepValid(4, formState.principal.agreeToSubmit)
+  setStepValid(4, formState.principal.agreeToSubmit &&
+    (formState.isPropertyManagerRole ? formState.hasHostAuthorization : true))
   steps[4].step.complete = true
 }
 

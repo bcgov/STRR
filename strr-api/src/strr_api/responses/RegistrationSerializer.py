@@ -114,6 +114,8 @@ class RegistrationSerializer:
             "dateOfBirth": primary_property_contact.contact.date_of_birth,
             "socialInsuranceNumber": primary_property_contact.contact.social_insurance_number,
             "businessNumber": primary_property_contact.contact.business_number,
+            "contactType": primary_property_contact.contact_type,
+            "businessLegalName": primary_property_contact.business_legal_name,
             "details": {
                 "preferredName": primary_property_contact.contact.preferredname,
                 "phoneNumber": primary_property_contact.contact.phone_number,
@@ -141,6 +143,7 @@ class RegistrationSerializer:
                 },
                 "dateOfBirth": secondary_property_contact.contact.date_of_birth,
                 "socialInsuranceNumber": secondary_property_contact.contact.social_insurance_number,
+                "contactType": secondary_property_contact.contact_type,
                 "businessNumber": secondary_property_contact.contact.business_number,
                 "details": {
                     "preferredName": secondary_property_contact.contact.preferredname,

@@ -1,3 +1,4 @@
+// TODO: move relevant functions to strr-base-web layer
 export function formatPhoneNumber (party: Contact): ApiPhone {
   return {
     phoneNumber: party.phone.number,
@@ -60,21 +61,21 @@ export function formatPartyUI (party: ApiParty): Contact {
   }
 }
 
-export function formatRepresentative (rep: PlatformContact): ApiRep {
+export function formatRepresentative (rep: StrrContact): ApiRep {
   return {
     ...formatParty(rep),
     jobTitle: rep.position
   }
 }
 
-export function formatRepresentativeUI (rep: ApiRep): PlatformContact {
+export function formatRepresentativeUI (rep: ApiRep): StrrContact {
   return {
     ...formatPartyUI(rep),
     position: rep.jobTitle
   }
 }
 
-export function formatBusinessDetails (bus: PlatBusiness): ApiBusinessDetails {
+export function formatBusinessDetails (bus: PlatBusiness): ApiPlatformBusinessDetails {
   return {
     legalName: bus.legalName,
     homeJurisdiction: bus.homeJurisdiction,
@@ -93,11 +94,11 @@ export function formatBusinessDetails (bus: PlatBusiness): ApiBusinessDetails {
   }
 }
 
-function isSameAddress (addr1: object, addr2: object) {
+export function isSameAddress (addr1: object, addr2: object) {
   return Object.values(addr1).toString() === Object.values(addr2).toString()
 }
 
-export function formatBusinessDetailsUI (bus: ApiBusinessDetails): PlatBusiness {
+export function formatBusinessDetailsUI (bus: ApiPlatformBusinessDetails): PlatBusiness {
   return {
     legalName: bus.legalName,
     homeJurisdiction: bus.homeJurisdiction,
@@ -120,7 +121,7 @@ export function formatBusinessDetailsUI (bus: ApiBusinessDetails): PlatBusiness 
 }
 
 export function formatPlatformDetails (
-  plat: { brands: PlatBrand[], listingSize: ListingSize | undefined }
+  plat: { brands: StrrBrand[], listingSize: ListingSize | undefined }
 ): ApiPlatformDetails {
   // TODO: we can remove this I think as the mapping is the same?
   return {

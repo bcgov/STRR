@@ -3,7 +3,12 @@ const { t } = useI18n()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
 const { loadPlatform } = useStrrPlatformStore()
-const { activePlatform, isRegistration, showPlatformDetails } = storeToRefs(useStrrPlatformStore())
+const {
+  activeApplicationInfo,
+  activePlatform,
+  isRegistration,
+  showPlatformDetails
+} = storeToRefs(useStrrPlatformStore())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 
@@ -12,33 +17,32 @@ const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 
 onMounted(async () => {
-  // TODO: break this onMounted logic out into dashboard helper utils
   loading.value = true
   await loadPlatform()
-  await new Promise((resolve) => { setTimeout(resolve, 1000) })
   // set header stuff
   if (!activePlatform.value || !showPlatformDetails.value) {
     // no registration or valid complete application under the account, set static header
-    title.value = t('platform.title.dashboard')
-    todos.value = [getTodoApplication(t)]
+    title.value = t('strr.title.dashboard')
+    todos.value = [getTodoApplication()]
   } else {
     // existing registration or application under the account
     // set left side of header
     title.value = platformBusiness.value.legalName
     subtitles.value = [
       platformBusiness.value.homeJurisdiction,
-      t(`platform.label.listingSize.${platformDetails.value.listingSize}`)
+      t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
     ]
     if (!isRegistration.value) {
-      setApplicaitonHeaderDetails(t)
+      setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
     } else {
-      setRegistrationHeaderDetails(t)
+      // @ts-expect-error - ts not picking up that it will have status attr in this case
+      setRegistrationHeaderDetails(activePlatform.value.status)
     }
-    setSideHeaderDetails(t)
+    setSideHeaderDetails()
     // set sidebar accordian addresses
-    addresses.value = getDashboardAddresses(t)
+    addresses.value = getDashboardAddresses(platformBusiness.value)
     // set sidebar accordian reps
-    representatives.value = getDashboardRepresentives(t)
+    representatives.value = getDashboardRepresentives()
     // update breadcrumbs with platform business name
     setBreadcrumbs([
       { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
@@ -50,17 +54,18 @@ onMounted(async () => {
 
 // page stuff
 useHead({
-  title: t('platform.title.dashboard')
+  title: t('strr.title.dashboard')
 })
 
 definePageMeta({
   layout: 'connect-dashboard',
-  path: '/platform/dashboard'
+  path: '/platform/dashboard',
+  middleware: ['auth', 'require-premium-account']
 })
 
 setBreadcrumbs([
   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('platform.title.dashboard') }
+  { label: t('strr.title.dashboard') }
 ])
 </script>
 <template>
@@ -76,7 +81,7 @@ setBreadcrumbs([
           :button="todo.button"
         />
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('platform.label.brandNames')" :loading="loading">
+      <ConnectDashboardSection :title="$t('strr.label.brandNames')" :loading="loading">
         <div class="space-y-3 p-5">
           <div v-if="showPlatformDetails">
             <p v-for="brand in platformDetails.brands" :key="brand.name">
@@ -106,7 +111,7 @@ setBreadcrumbs([
           </div>
           <div>
             <p class="font-bold">
-              {{ t('platform.label.registeredOfficeAttorney') }}
+              {{ t('strr.label.registeredOfficeAttorney') }}
             </p>
             <p class="text-sm">
               {{ $t('text.completeFilingToDisplay') }}

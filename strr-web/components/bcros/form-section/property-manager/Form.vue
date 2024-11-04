@@ -187,6 +187,10 @@ watch([() => formState.isPropertyManagerRole, () => formState.hasPropertyManager
       }
     }
   }
+  // reset Host Authorization flag if role is not Property manager
+  if (!formState.isPropertyManagerRole) {
+    formState.hasHostAuthorization = false
+  }
 })
 
 onMounted(() => {

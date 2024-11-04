@@ -1,13 +1,14 @@
 import axios from 'axios'
 import { reactive } from 'vue'
 import { z } from 'zod'
-import {
+import type {
   CreateAccountFormStateI,
   OrgI,
   PrimaryContactInformationI,
   SecondaryContactInformationI
 } from '~/interfaces/account-i'
-import { PropertyManagerI } from '~/interfaces/property-manager-i'
+import type { PropertyManagerI } from '~/interfaces/property-manager-i'
+import { RegistrationTypeE } from '#imports'
 
 const apiURL = useRuntimeConfig().public.strrApiURL
 const axiosInstance = addAxiosInterceptors(axios.create())
@@ -18,11 +19,7 @@ export const submitCreateAccountForm = (
   userLastName: string,
   hasSecondaryContact: boolean,
   propertyType: string,
-  ownershipType: string,
-  rentalUnitSpaceType: string,
-  isUnitOnPrincipalResidenceProperty: boolean,
-  hostResidence: string,
-  numberOfRoomsForRent: number
+  ownershipType: string
 ) => {
   const formData: CreateAccountFormAPII = formStateToApi(
     formState,
@@ -30,11 +27,7 @@ export const submitCreateAccountForm = (
     userLastName,
     hasSecondaryContact,
     propertyType,
-    ownershipType,
-    rentalUnitSpaceType,
-    isUnitOnPrincipalResidenceProperty,
-    isUnitOnPrincipalResidenceProperty ? hostResidence : '',
-    numberOfRoomsForRent
+    ownershipType
   )
   axiosInstance.post(`${apiURL}/registrations`,
     { ...formData }
@@ -363,7 +356,8 @@ export const formState: CreateAccountFormStateI = reactive({
     declaration: false,
     agreeToSubmit: false
   },
-  supportingDocuments: []
+  supportingDocuments: [],
+  hasHostAuthorization: false // if Property Manager is authorized by Host
 })
 
 const primaryContactAPI: ContactAPII = {
@@ -449,6 +443,6 @@ export const formDataForAPI: CreateAccountFormAPII = {
       specifiedServiceProvider: '',
       agreedToSubmit: false
     },
-    registrationType: undefined
+    registrationType: RegistrationTypeE.HOST
   }
 }

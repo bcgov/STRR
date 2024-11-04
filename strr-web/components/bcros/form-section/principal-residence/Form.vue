@@ -106,7 +106,7 @@
                   :key="fileInputKey"
                   required
                   aria-label="Supporting document file upload"
-                  accept=".pdf,.jpg,.png,.doc"
+                  accept=".pdf"
                   type="file"
                   class="w-full pl-10 cursor-pointer"
                   :placeholder="tPrincipalResidence('chooseSupportDocs')"
@@ -223,7 +223,7 @@ if (isComplete) {
 
 const uploadFile = (file: FileList) => {
   const extension = file[0].name.substring(file[0].name.length - 3)
-  const validType = ['pdf', 'jpg', 'doc', 'png']
+  const validType = ['pdf']
   const fileSize = file[0].size / 1024 / 1024 // in MiB
   const validFileType = validType.includes(extension)
   const validFileSize = fileSize <= 50

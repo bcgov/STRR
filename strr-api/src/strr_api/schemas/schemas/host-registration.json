@@ -39,6 +39,17 @@
         "businessNumber": {
           "type": "string"
         },
+        "businessLegalName": {
+           "type": "string"
+        },
+        "contactType": {
+          "type": "string",
+          "enum": [
+            "INDIVIDUAL",
+            "BUSINESS"
+          ],
+          "default": "INDIVIDUAL"
+        },
         "details": {
           "type": "object",
           "properties": {

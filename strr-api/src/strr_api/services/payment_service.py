@@ -44,6 +44,8 @@ from strr_api.models import Application, Events, RentalProperty
 from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
 
+STRATA_HOTEL_REG = "STRATAREG"
+
 HOST_REGISTRATION_FEE_2 = "HOSTREG_2"
 
 HOST_REGISTRATION_FEE_1 = "HOSTREG_1"
@@ -121,6 +123,8 @@ class PayService:
             filing_type, quantity = self._get_host_filing_type(registration_json)
         elif registration_type == RegistrationType.PLATFORM.value:
             filing_type = self._get_platform_filing_type(registration_json)
+        elif registration_type == RegistrationType.STRATA_HOTEL.value:
+            filing_type = STRATA_HOTEL_REG
 
         filing_type_dict = {"filingTypeCode": filing_type, "quantity": quantity}
 
