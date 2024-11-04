@@ -206,7 +206,7 @@ const principalResidenceOptions = [
 ]
 
 const hostResidenceOptions = [
-  { value: HostResidenceE.SAME_UNIT, label: "The host lives in this unit when it's not being rented" },
+  { value: HostResidenceE.SAME_UNIT, label: 'The host lives in this unit' },
   { value: HostResidenceE.ANOTHER_UNIT, label: 'The host lives in another unit on the same property' }
 ]
 
