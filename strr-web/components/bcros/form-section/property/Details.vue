@@ -66,6 +66,7 @@
               class="w-full text-center outline-none border-none"
               :min="1"
               :max="5000"
+              step="1"
               data-test-id="number-of-rooms-input"
               @input="emit('validateNumberOfRoomsForRent')"
               @keydown.enter.prevent
