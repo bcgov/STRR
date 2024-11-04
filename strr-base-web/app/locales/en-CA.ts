@@ -50,7 +50,11 @@ export default {
     save: 'Save',
     saveExit: 'Save and Resume Later',
     beginApplication: 'Begin Application',
-    resumeApplication: 'Resume Application'
+    resumeApplication: 'Resume Application',
+    acceptTos: {
+      main: 'Accept Terms of Use',
+      aria: 'Accept Terms of Use (scroll and check the box before)'
+    }
   },
   contactInfo: {
     bcRegGeneral: {
@@ -77,9 +81,13 @@ export default {
     usd: 'USD'
   },
   error: {
+    persistContactUs: 'If this issue persists, please contact us at:',
     generic: {
       title: 'Something Went Wrong',
       description: 'An error occurred, please try again. If this error persists, please contact us.'
+    },
+    tos: {
+      load: 'Unable to load terms of use, please try again later.'
     }
   },
   imageAlt: {
@@ -206,6 +214,13 @@ export default {
     createNewAccount: 'Create New Account',
     contToCreateAccount: 'Continue to Create Account'
   },
+  modal: {
+    declineTos: {
+      title: 'Decline Terms of Use?',
+      content: 'By declining the Terms of Use, you won’t be able to access this service. Do you wish to proceed?',
+      declineBtn: 'Decline Terms of Use'
+    }
+  },
   word: {
     i: 'i',
     addresses: 'Addresses',
@@ -242,6 +257,11 @@ export default {
     login: {
       // Each app could overwrite this if they wanted. Default would be different
       h1: 'Log In to Short-Term Rental Registry'
+    },
+    tos: {
+      title: 'Terms of Use - Short Term Rental Registry',
+      h1: 'Terms of Use',
+      acceptCheckbox: 'I have read and accept the Terms of Use'
     }
   },
   table: {},
@@ -311,7 +331,11 @@ export default {
       false: 'Step did not pass validation',
       true: 'Step successfully validated'
     },
-    confirm: 'Please confirm to continue'
+    confirm: 'Please confirm to continue',
+    tos: {
+      scroll: 'You must scroll to the bottom of this page to accept the Terms of Use',
+      accept: 'You must accept the Terms of Use to continue'
+    }
   },
   // components
   ConnectHeader: {

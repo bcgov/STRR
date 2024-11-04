@@ -40,12 +40,12 @@ export const useStrrModals = () => {
 
   function openConfirmDeclineTosModal () {
     modal.open(ModalBase, {
-      title: 'Decline Terms of Use?',
-      content: 'By declining the Terms of Use, you won’t be able to access this service. Do you wish to proceed?',
+      title: t('modal.declineTos.title'),
+      content: t('modal.declineTos.content'),
       actions: [
         { label: t('btn.cancel'), variant: 'outline', handler: () => close() },
         {
-          label: 'Decline Terms of Use',
+          label: t('modal.declineTos.declineBtn'),
           handler: () => navigateTo(config.declineTosRedirectUrl as string, { external: true })
         }
       ]
@@ -55,8 +55,9 @@ export const useStrrModals = () => {
   function openPatchTosErrorModal () {
     modal.open(ModalBase, {
       error: {
-        title: 'Unable to accept the Terms of Use.',
-        description: 'An unexpected error occured, please try again later.'
+        title: t('error.generic.title'),
+        description: t('error.generic.description'),
+        showContactInfo: true
       },
       actions: [
         { label: t('btn.close'), handler: () => close() }

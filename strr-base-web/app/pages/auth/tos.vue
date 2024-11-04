@@ -9,12 +9,12 @@ const route = useRoute()
 
 // page stuff
 useHead({
-  title: t('strr.title.login')
+  title: t('page.tos.title')
 })
 
 setBreadcrumbs([
   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: 'Terms of Use' }
+  { label: t('page.tos.h1') }
 ])
 
 definePageMeta({
@@ -46,12 +46,12 @@ const validate = (state: { agreeToTerms: boolean | undefined }): FormError[] => 
   const errors: FormError[] = []
 
   if (!state.agreeToTerms && !hasReachedBottom.value) {
-    errors.push({ path: 'agreeToTerms', message: 'You must scroll to the bottom of this page to accept the tos' })
+    errors.push({ path: 'agreeToTerms', message: t('validation.tos.scroll') })
     return errors
   }
 
   if (!state.agreeToTerms) {
-    errors.push({ path: 'agreeToTerms', message: 'You must accept the Terms of Use to continue' })
+    errors.push({ path: 'agreeToTerms', message: t('validation.tos.accept') })
   }
 
   return errors
@@ -60,7 +60,6 @@ const validate = (state: { agreeToTerms: boolean | undefined }): FormError[] => 
 async function submitTermsOfUse () {
   try {
     tosStore.loading = true
-    throw new Error('test')
     await tosStore.patchTermsOfUse()
 
     const redirectUrl = route.query.return ?? localePath('/')
@@ -78,7 +77,7 @@ async function submitTermsOfUse () {
   <div class="relative mx-auto flex w-full grow flex-col items-center sm:max-w-screen-sm md:max-w-screen-md">
     <ConnectTypographyH1
       class="sticky top-0 w-full border-b border-bcGovGray-500 bg-bcGovColor-gray1 pb-2 pt-4 text-center sm:pt-8"
-      text="Terms of Use"
+      :text="$t('page.tos.h1')"
     />
 
     <div
@@ -94,13 +93,13 @@ async function submitTermsOfUse () {
     >
       <UAlert
         icon="i-mdi-alert"
-        title="Unable to laod terms of use, please try again later."
+        :title="$t('error.tos.load')"
         color="red"
         variant="subtle"
         :ui="{ inner: 'p-0' }"
         :close-button="null"
       />
-      <p>If this issue persists, please contact us at: </p>
+      <p>{{ $t('error.persistContactUs') }}</p>
       <ConnectContactBcros />
     </div>
 
@@ -119,7 +118,7 @@ async function submitTermsOfUse () {
           ref="checkboxRef"
           v-model="state.agreeToTerms"
           :disabled="!hasReachedBottom || tosStore.loading || !tosStore.tos.termsOfUse"
-          label="I have read and accept the Terms of Use"
+          :label="$t('page.tos.acceptCheckbox')"
         />
         <template #error="{ error }">
           <span :class="{ 'text-red-500': error, 'text-base': !hasReachedBottom }">
@@ -131,8 +130,8 @@ async function submitTermsOfUse () {
         <UButton
           class="flex-1 sm:flex-none"
           :ui="{ base: 'flex justify-center items-center'}"
-          label="Accept Terms of Use"
-          aria-label="Accept Terms of Use, You must scroll to the bottom to accept the terms of use checkbox"
+          :label="$t('btn.acceptTos.main')"
+          :aria-label="$t('btn.acceptTos.aria')"
           type="submit"
           :disabled="!tosStore.tos.termsOfUse"
           :loading="tosStore.loading"

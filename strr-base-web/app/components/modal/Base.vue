@@ -9,7 +9,7 @@ defineProps<{
   error?: {
     title: string
     description: string
-    // showContactInfo?: boolean
+    showContactInfo?: boolean
   },
   fullscreen?: boolean
 }>()
@@ -58,11 +58,7 @@ defineEmits<{
             {{ error.title }}
           </h2>
           <p>{{ error.description }}</p>
-          <!-- should we have a contact info section ?? -->
-          <!-- <p v-if="error.showContactInfo" class="self-start">
-            Please contact us if you require assistance.
-          </p>
-          <BCRegContactInfo v-if="error.showContactInfo" class="self-start text-left" /> -->
+          <ConnectContactBcros v-if="error.showContactInfo" class="self-start text-left" />
         </div>
       </slot>
       <template v-if="actions !== undefined || $slots.footer" #footer>
