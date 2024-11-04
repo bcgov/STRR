@@ -8,7 +8,8 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/': { redirect: '/en-CA/platform/dashboard' }
+    '/en-CA': { redirect: '/en-CA/platform/dashboard' },
+    '/fr-CA': { redirect: '/fr-CA/platform/dashboard' }
   },
 
   modules: [

@@ -218,7 +218,7 @@ useHead({
 definePageMeta({
   layout: 'connect-form',
   path: '/platform/application',
-  middleware: ['auth', 'require-premium-account']
+  middleware: ['auth', 'check-tos', 'require-premium-account']
 })
 
 setBreadcrumbs([

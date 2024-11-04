@@ -11,7 +11,7 @@ useHead({
 })
 
 definePageMeta({
-  middleware: ['auth']
+  middleware: ['auth', 'check-tos']
 })
 
 // display premium accounts first
