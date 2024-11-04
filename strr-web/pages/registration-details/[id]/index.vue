@@ -33,47 +33,57 @@
         <h2 class="font-bold mb-6 mobile:mx-2 text-xl">
           {{ tApplicationDetails('unitInfo') }}
         </h2>
-        <div class="bg-white py-[22px] px-[30px] mobile:px-2">
+        <div class="bg-white py-[22px] px-[30px] mobile:px-5" data-test-id="rental-unit-info">
           <div class="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 desktop:mb-6">
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('nickname')"
               :content="application?.unitAddress.nickname || '-'"
+              data-test-id="unit-nickname"
               class="break-all"
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('ownership')"
               :content="getOwnershipTypeDisplay(application?.unitDetails.ownershipType, tApplicationDetails)"
+              data-test-id="ownership-type"
             />
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
-              <p>
-                {{ application?.unitDetails.propertyType
-                  ? tPropertyForm(propertyTypeMap[application?.unitDetails.propertyType as keyof PropertyTypeMapI])
-                  : '-'
-                }}
-              </p>
-            </BcrosFormSectionReviewItem>
-          </div>
-          <div class="flex flex-row justify-between w-full mobile:flex-col">
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('rentalUnitSpaceType')"
-              :content="tApplicationDetails(application?.unitDetails.rentalUnitSpaceType) || '-'"
+              :content="tApplicationDetails(application?.unitDetails.rentalUnitSpaceType)|| '-'"
+              data-test-id="rentalUnitSpaceType-type"
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
-              :content="tApplicationDetails(application?.unitDetails.isUnitOnPrincipalResidenceProperty?
-                'true':'false') || '-'"
+              :content="tApplicationDetails(
+                application?.unitDetails.isUnitOnPrincipalResidenceProperty
+                  ? 'true'
+                  : 'false'
+              ) || '-'"
+              data-test-id="isUnitOnPrincipalResidenceProperty-type"
             />
             <BcrosFormSectionReviewItem
-              v-if="application?.unitDetails.isUnitOnPrincipalResidenceProperty"
               :title="tApplicationDetails('hostResidence')"
-              :content="tApplicationDetails(application?.unitDetails.hostResidence) || '-'"
+              :content="application?.unitDetails.hostResidence
+                ? tApplicationDetails(application?.unitDetails.hostResidence) : '-'"
+              data-test-id="hostResidence-type"
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('numberOfRoomsForRent')"
               :content="application?.unitDetails.numberOfRoomsForRent.toString() || '-'"
             />
+            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
+              <p data-test-id="property-type">
+                {{ application?.unitDetails.propertyType
+                  ? tPropertyForm(
+                    propertyTypeMap[application?.unitDetails.propertyType as keyof PropertyTypeMapI]
+                  )
+                  : '-'
+                }}
+              </p>
+            </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">
-              <p>{{ application?.unitAddress.address }}</p>
+              <p data-test-id="unit-address">
+                {{ application?.unitAddress.address }}
+              </p>
               <p v-if="application?.unitAddress.addressLineTwo">
                 {{ application?.unitAddress.addressLineTwo }}
               </p>
@@ -83,7 +93,9 @@
                 {{ application?.unitAddress.postalCode || '-' }}
               </p>
               <p>
-                {{ application?.unitAddress.country ? regionNamesInEnglish.of(application?.unitAddress.country) : '-' }}
+                {{ application?.unitAddress.country
+                  ? regionNamesInEnglish.of(application?.unitAddress.country)
+                  : '-' }}
               </p>
             </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem
@@ -95,8 +107,20 @@
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('businessLicense')"
               :content="application?.unitDetails.businessLicense || '-'"
+              data-test-id="business-license"
               class="break-all"
             />
+            <BcrosFormSectionReviewItem :title="tApplicationDetails('listingLink')">
+              <a
+                :href="application?.listingDetails[0].url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-ellipsis overflow-hidden break-words"
+                data-test-id="platform-url-1"
+              >
+                {{ application?.listingDetails[0].url }}
+              </a>
+            </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem
               v-if="application?.unitDetails.businessLicenseExpiryDate"
               :title="tApplicationDetails('businessLicenseExpiryDate')"
