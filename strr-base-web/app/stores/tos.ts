@@ -25,7 +25,7 @@ export const useTosStore = defineStore('strr/terms-of-service', () => {
       loading.value = true
       tos.value = await $strrApi<TOSGetResponse>('/users/tos')
     } catch {
-      // TODO: handle errors
+      // handled with fallback content on tos page
     } finally {
       loading.value = false
     }

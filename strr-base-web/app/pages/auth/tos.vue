@@ -60,13 +60,14 @@ const validate = (state: { agreeToTerms: boolean | undefined }): FormError[] => 
 async function submitTermsOfUse () {
   try {
     tosStore.loading = true
+    throw new Error('test')
     await tosStore.patchTermsOfUse()
 
     const redirectUrl = route.query.return ?? localePath('/')
 
     await navigateTo(redirectUrl as string)
   } catch {
-    // TODO: handle patch errors
+    strrModal.openPatchTosErrorModal()
   } finally {
     tosStore.loading = false
   }
@@ -74,7 +75,7 @@ async function submitTermsOfUse () {
 </script>
 <template>
   <!-- eslint-disable vue/no-v-html -->
-  <div class="relative mx-auto flex w-full flex-col items-center sm:max-w-screen-sm md:max-w-screen-md">
+  <div class="relative mx-auto flex w-full grow flex-col items-center sm:max-w-screen-sm md:max-w-screen-md">
     <ConnectTypographyH1
       class="sticky top-0 w-full border-b border-bcGovGray-500 bg-bcGovColor-gray1 pb-2 pt-4 text-center sm:pt-8"
       text="Terms of Use"
@@ -87,7 +88,21 @@ async function submitTermsOfUse () {
       v-html="$sanitize(tosStore.tos.termsOfUse)"
     />
 
-    <!-- TODO: display fallback content if tos fails to load -->
+    <div
+      v-else
+      class="flex size-full grow flex-col justify-center gap-6 py-6"
+    >
+      <UAlert
+        icon="i-mdi-alert"
+        title="Unable to laod terms of use, please try again later."
+        color="red"
+        variant="subtle"
+        :ui="{ inner: 'p-0' }"
+        :close-button="null"
+      />
+      <p>If this issue persists, please contact us at: </p>
+      <ConnectContactBcros />
+    </div>
 
     <UForm
       ref="formRef"
@@ -103,7 +118,7 @@ async function submitTermsOfUse () {
         <UCheckbox
           ref="checkboxRef"
           v-model="state.agreeToTerms"
-          :disabled="!hasReachedBottom || tosStore.loading"
+          :disabled="!hasReachedBottom || tosStore.loading || !tosStore.tos.termsOfUse"
           label="I have read and accept the Terms of Use"
         />
         <template #error="{ error }">
@@ -119,6 +134,7 @@ async function submitTermsOfUse () {
           label="Accept Terms of Use"
           aria-label="Accept Terms of Use, You must scroll to the bottom to accept the terms of use checkbox"
           type="submit"
+          :disabled="!tosStore.tos.termsOfUse"
           :loading="tosStore.loading"
         />
         <UButton

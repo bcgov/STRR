@@ -52,6 +52,18 @@ export const useStrrModals = () => {
     })
   }
 
+  function openPatchTosErrorModal () {
+    modal.open(ModalBase, {
+      error: {
+        title: 'Unable to accept the Terms of Use.',
+        description: 'An unexpected error occured, please try again later.'
+      },
+      actions: [
+        { label: t('btn.close'), handler: () => close() }
+      ]
+    })
+  }
+
   function close () {
     modal.close()
   }
@@ -60,6 +72,7 @@ export const useStrrModals = () => {
     openAppSubmitError,
     openCreateAccountModal,
     openConfirmDeclineTosModal,
+    openPatchTosErrorModal,
     close
   }
 }
