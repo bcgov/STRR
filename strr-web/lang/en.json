@@ -466,7 +466,7 @@
       "numberOfRoomsForRent": "Number of Rooms for Rent",
       "true": "Yes",
       "false": "No",
-      "SAME_UNIT":"The host lives in this unit",
+      "SAME_UNIT":"The host lives in this unit ",
       "ANOTHER_UNIT":"The host lives in another unit on the same property"
     },
     "details": {
