@@ -81,7 +81,6 @@
       },
       "required": [
         "name",
-        "dateOfBirth",
         "details",
         "mailingAddress"
       ]
