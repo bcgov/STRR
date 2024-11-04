@@ -66,7 +66,7 @@
             <BcrosFormSectionReviewItem
               v-if="application?.unitDetails.isUnitOnPrincipalResidenceProperty"
               :title="tApplicationDetails('hostResidence')"
-              :content="application?.unitDetails.hostResidence || '-'"
+              :content="tApplicationDetails(application?.unitDetails.hostResidence) || '-'"
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('numberOfRoomsForRent')"
