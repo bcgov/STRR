@@ -34,7 +34,7 @@
           {{ tApplicationDetails('unitInfo') }}
         </h2>
         <div class="bg-white py-[22px] px-[30px] mobile:px-2">
-          <div class="flex flex-row justify-between w-full mobile:flex-col desktop:mb-6">
+          <div class="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 desktop:mb-6">
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('nickname')"
               :content="application?.unitAddress.nickname || '-'"
@@ -72,8 +72,6 @@
               :title="tApplicationDetails('numberOfRoomsForRent')"
               :content="application?.unitDetails.numberOfRoomsForRent.toString() || '-'"
             />
-          </div>
-          <div class="flex flex-row justify-between w-full mobile:flex-col">
             <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">
               <p>{{ application?.unitAddress.address }}</p>
               <p v-if="application?.unitAddress.addressLineTwo">
@@ -89,6 +87,12 @@
               </p>
             </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem
+              :title="tApplicationDetails('parcelIdentifier')"
+              :content="application?.unitDetails.parcelIdentifier || '-'"
+              data-test-id="parcel-identifier"
+              class="break-all"
+            />
+            <BcrosFormSectionReviewItem
               :title="tApplicationDetails('businessLicense')"
               :content="application?.unitDetails.businessLicense || '-'"
               class="break-all"
@@ -99,7 +103,6 @@
               :content="convertDateToLongFormat(application?.unitDetails.businessLicenseExpiryDate)"
               data-test-id="business-exp-date"
             />
-            <div v-else class="flex-1" />
           </div>
         </div>
         <!-- Property Manager -->
