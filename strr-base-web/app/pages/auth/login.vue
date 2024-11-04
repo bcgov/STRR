@@ -8,7 +8,7 @@ useHead({
 })
 
 definePageMeta({
-  middleware: 'login-page'
+  middleware: ['login-page']
 })
 
 setBreadcrumbs([
