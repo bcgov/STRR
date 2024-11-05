@@ -21,7 +21,7 @@ export const useStrrModals = () => {
   function openCreateAccountModal () {
     modal.open(ModalBase, {
       title: t('label.createNewAccount'),
-      content: t('platform.text.onlyPremiumAccountModalContent'),
+      content: t('strr.text.onlyPremiumAccountModalContent'),
       actions: [
         { label: t('btn.cancel'), variant: 'outline', handler: () => close() },
         {

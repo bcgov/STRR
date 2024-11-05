@@ -4,7 +4,7 @@ const keycloak = useKeycloak()
 
 // page stuff
 useHead({
-  title: t('login.h1.login')
+  title: t('page.login.h1')
 })
 
 definePageMeta({
@@ -20,7 +20,7 @@ setBreadcrumbs([
   <div class="flex grow justify-center py-10">
     <UCard class="my-auto max-w-md">
       <h1>
-        {{ $t('login.h1.login') }}
+        {{ $t('page.login.h1') }}
       </h1>
       <img src="/img/BCReg_Generic_Login_image.jpg" class="py-4" :alt="$t('imageAlt.genericLogin')">
       <div class="space-y-4 pt-2.5">

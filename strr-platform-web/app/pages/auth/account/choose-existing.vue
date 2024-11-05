@@ -7,7 +7,7 @@ const strrModal = useStrrModals()
 const accountStore = useConnectAccountStore()
 
 useHead({
-  title: t('platform.title.chooseAccount')
+  title: t('strr.title.chooseAccount')
 })
 
 definePageMeta({
@@ -60,19 +60,19 @@ function handleAccountSwitch (id: string) {
   <div class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="$t('label.selectAccount')" />
 
-    <p>{{ $t('platform.text.selectAccountForStrr') }}</p>
+    <p>{{ $t('strr.text.selectAccountForStrr') }}</p>
 
     <UAlert
       color="yellow"
       icon="i-mdi-alert"
-      :close-button="null"
+      :close-button="undefined"
       variant="subtle"
       :ui="{
         inner: 'pt-0',
       }"
     >
       <template #description>
-        <ConnectI18nBold class="text-bcGovColor-darkGray" translation-path="platform.text.onlyPremiumAccountWarning" />
+        <ConnectI18nBold class="text-bcGovColor-darkGray" translation-path="strr.text.onlyPremiumAccountWarning" />
       </template>
     </UAlert>
 
@@ -139,15 +139,13 @@ function handleAccountSwitch (id: string) {
             <div class="my-auto flex gap-2">
               <UBadge
                 v-if="account.accountType === AccountType.BASIC"
-                :label="$t('label.basicAccount')"
-                color="yellow"
-                class="px-3 text-center"
+                :label="$t('badge.basicAccount')"
+                class="bg-[#fff7e3] px-3 text-center font-bold text-bcGovColor-midGray"
               />
               <UBadge
                 v-if="account.accountStatus !== AccountStatus.ACTIVE"
-                :label="$t('label.inactiveAccount')"
-                class="px-3 text-center"
-                color="red"
+                :label="$t('badge.inactiveAccount')"
+                class="bg-[#fff7e3] px-3 text-center font-bold text-bcGovColor-midGray"
               />
             </div>
 
