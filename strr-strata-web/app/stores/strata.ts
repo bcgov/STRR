@@ -52,13 +52,33 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     }
   }
 
+  // TODO: move to separate strataDashboard store?
+  const registrations = ref([])
+  const applications = ref([])
+
+  const loadStrataHotelList = async () => {
+    try {
+      registrations.value = await getAccountRegistrations()
+    } catch (e) {
+      logFetchError(e, 'Unable to load account registrations')
+    }
+    try {
+      applications.value = await getAccountApplications()
+    } catch (e) {
+      logFetchError(e, 'Unable to load account applications')
+    }
+  }
+
   return {
     activeApplicationInfo,
     activePlatform,
     isRegistration,
     isPaidApplication,
     showStrataDetails,
+    applications,
+    registrations,
     isApplicationStatus,
-    loadStrata
+    loadStrata,
+    loadStrataHotelList
   }
 })

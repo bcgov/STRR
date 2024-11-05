@@ -1,60 +1,65 @@
 <script setup lang="ts">
 const { t } = useI18n()
-
-const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
-const { loadStrata } = useStrrStrataStore()
+const localePath = useLocalePath()
 const {
-  activeApplicationInfo,
-  activePlatform,
-  isRegistration,
+  loading
+  // title,
+  // subtitles
+} = storeToRefs(useConnectDetailsHeaderStore())
+// const { loadStrata } = useStrrStrataStore()
+const {
+//   activeApplicationInfo,
+//   activePlatform,
+//   isRegistration,
   showStrataDetails
 } = storeToRefs(useStrrStrataStore())
-const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
-const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+// const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
+// const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 
 const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 
-onMounted(() => {
-  loading.value = true
-  const registrationId = useRoute().params.registrationId as string
-  loadStrata(registrationId)
-  // set header stuff
-  if (!activePlatform.value || !showStrataDetails.value) {
-    // no registration or valid complete application under the account, set static header
-    title.value = t('strr.title.dashboard')
-    // TODO: verify for strata -- in this case it should always be a draft application
-    todos.value = [getTodoApplication()]
-  } else {
-    // existing registration or application under the account
-    // set left side of header
-    title.value = strataBusiness.value.legalName
-    subtitles.value = [
-      strataBusiness.value.homeJurisdiction
-      // TODO: number of units
-      // t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
-    ]
-    if (!isRegistration.value) {
-      setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
-    } else {
-      // @ts-expect-error - ts not picking up that it will have status attr in this case
-      setRegistrationHeaderDetails(activePlatform.value.status)
-    }
-    // TODO: strata side details
-    // setSideHeaderDetails()
-    // set sidebar accordian addresses
-    addresses.value = getDashboardAddresses(strataBusiness.value)
-    // set sidebar accordian reps
-    representatives.value = getDashboardRepresentives()
-    // update breadcrumbs with platform business name
-    setBreadcrumbs([
-      { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-      { label: strataBusiness.value.legalName }
-    ])
-  }
-  loading.value = false
-})
+// onMounted(() => {
+//   loading.value = true
+//   const registrationId = route.params.registrationId as string
+//   loadStrata(registrationId)
+//   // set header stuff
+//   if (!activePlatform.value || !showStrataDetails.value) {
+//     // no registration or valid complete application under the account, set static header
+//     title.value = t('strr.title.dashboard')
+//     // TODO: verify for strata -- in this case it should always be a draft application
+//     todos.value = [getTodoApplication()]
+//   } else {
+//     // existing registration or application under the account
+//     // set left side of header
+//     title.value = strataBusiness.value.legalName
+//     subtitles.value = [
+//       strataBusiness.value.homeJurisdiction
+//       // TODO: number of units
+//       // t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
+//     ]
+//     if (!isRegistration.value) {
+//       setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
+//     } else {
+//       // @ts-expect-error - ts not picking up that it will have status attr in this case
+//       setRegistrationHeaderDetails(activePlatform.value.status)
+//     }
+//     // TODO: strata side details
+//     // setSideHeaderDetails()
+//     // set sidebar accordian addresses
+//     addresses.value = getDashboardAddresses(strataBusiness.value)
+//     // set sidebar accordian reps
+//     representatives.value = getDashboardRepresentives()
+//     // update breadcrumbs with platform business name
+//     // setBreadcrumbs([
+//     //   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+//     //   { label: strataBusiness.value.legalName }
+//     // ])
+//   }
+
+//   loading.value = false
+// })
 
 // page stuff
 useHead({
@@ -63,13 +68,13 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
-  middleware: ['auth'],
-  path: '/strata-hotel/dashboard/:registrationId'
+  middleware: ['auth']
 })
 
 setBreadcrumbs([
   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('strr.title.dashboard') }
+  { label: 'My Short Term Rental Registry', to: localePath('/strata-hotel/dashboard') },
+  { label: 'Item 1' }
 ])
 </script>
 <template>
