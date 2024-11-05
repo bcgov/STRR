@@ -48,7 +48,9 @@
             />
             <BcrosFormSectionReviewItem
               :title="tApplicationDetails('rentalUnitSpaceType')"
-              :content="tApplicationDetails(application?.unitDetails.rentalUnitSpaceType)|| '-'"
+              :content="application?.unitDetails.rentalUnitSpaceType
+                ? tApplicationDetails(application.unitDetails.rentalUnitSpaceType) : '-'
+              "
               data-test-id="rentalUnitSpaceType-type"
             />
             <BcrosFormSectionReviewItem
@@ -112,19 +114,19 @@
             />
             <BcrosFormSectionReviewItem :title="tApplicationDetails('listingLink')">
               <a
-                :href="application?.listingDetails[0].url"
+                :href="applicationDetails?.listingDetails[0].url"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-ellipsis overflow-hidden break-words"
                 data-test-id="platform-url-1"
               >
-                {{ application?.listingDetails[0].url }}
+                {{ applicationDetails?.listingDetails[0].url }}
               </a>
             </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem
-              v-if="application?.unitDetails.businessLicenseExpiryDate"
+              v-if="applicationDetails?.unitDetails.businessLicenseExpiryDate"
               :title="tApplicationDetails('businessLicenseExpiryDate')"
-              :content="convertDateToLongFormat(application?.unitDetails.businessLicenseExpiryDate)"
+              :content="convertDateToLongFormat(applicationDetails?.unitDetails.businessLicenseExpiryDate)"
               data-test-id="business-exp-date"
             />
           </div>
