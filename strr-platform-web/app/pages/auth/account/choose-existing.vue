@@ -25,17 +25,10 @@ const sortedAccounts = computed(() => {
     return 0
   })
 })
-// const sortedAccounts = []
 
-// TODO: how do we want to redirect if the user has/does not have any platforms?
-// check if the account has a platform here and either redirect to the dashboard or registration page?
-// or redirect to the dashboard page and if the user doesnt have any platforms the dashboard can handle the redirect ?
 function handleAccountSwitch (id: string) {
   const route = useRoute()
   accountStore.switchCurrentAccount(id)
-  // TODO: add Strr product to org product list
-  // only navigate if account successfully changed
-  // if (accountStore.currentAccount.id === id) { // TODO: assume account change is always successful ?
 
   if (route.query.return) {
     return navigateTo(route.query.return as string)

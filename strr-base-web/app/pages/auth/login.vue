@@ -1,6 +1,13 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const keycloak = useKeycloak()
+const runtimeConfig = useRuntimeConfig()
+const appConfig = useAppConfig()
+
+const appConfigRedirectUrl = appConfig.strrBaseLayer.page.login.redirectPath
+const redirectUrl = appConfigRedirectUrl
+  ? runtimeConfig.public.baseUrl + locale.value + appConfigRedirectUrl
+  : undefined
 
 // page stuff
 useHead({
@@ -28,21 +35,21 @@ setBreadcrumbs([
           :label="$t('label.loginBceid')"
           icon="i-mdi-two-factor-authentication"
           block
-          @click="keycloak.login(IdpHint.BCEID)"
+          @click="keycloak.login(IdpHint.BCEID, redirectUrl)"
         />
         <UButton
           :label="$t('label.loginBcsc')"
           icon="i-mdi-account-card-details-outline"
           color="gray"
           block
-          @click="keycloak.login(IdpHint.BCSC)"
+          @click="keycloak.login(IdpHint.BCSC, redirectUrl)"
         />
         <UButton
           :label="$t('label.loginIdir')"
           icon="i-mdi-account-group-outline"
           color="gray"
           block
-          @click="keycloak.login(IdpHint.IDIR)"
+          @click="keycloak.login(IdpHint.IDIR, redirectUrl)"
         />
       </div>
     </UCard>

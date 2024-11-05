@@ -1,4 +1,11 @@
 export default defineAppConfig({
+  strrBaseLayer: {
+    page: {
+      login: {
+        redirectPath: ''
+      }
+    }
+  },
   ui: {
     strategy: 'merge',
     button: {
@@ -64,3 +71,15 @@ export default defineAppConfig({
     }
   }
 })
+
+declare module 'nuxt/schema' {
+  interface AppConfig {
+    strrBaseLayer: {
+      page: {
+        login: {
+          redirectPath: string
+        }
+      }
+    }
+  }
+}

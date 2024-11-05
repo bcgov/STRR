@@ -1,4 +1,11 @@
 export default defineAppConfig({
+  strrBaseLayer: {
+    page: {
+      login: {
+        redirectPath: '/auth/account/choose-existing'
+      }
+    }
+  },
   ui: {
     strategy: 'merge',
     button: {
