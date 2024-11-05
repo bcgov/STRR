@@ -59,7 +59,7 @@
                 application?.unitDetails.isUnitOnPrincipalResidenceProperty
                   ? 'true'
                   : 'false'
-              ) || '-'"
+              )"
               data-test-id="isUnitOnPrincipalResidenceProperty-type"
             />
             <BcrosFormSectionReviewItem
