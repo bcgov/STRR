@@ -17,49 +17,48 @@ const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 
-watch(() => accountStore.currentAccount,
-  async (newVal) => {
-    // navigate to registry dashboard if user switches account and account is not premium or inactive
-    if (newVal.accountType !== AccountType.PREMIUM || newVal.accountStatus !== AccountStatus.ACTIVE) {
-      await navigateTo(useRuntimeConfig().public.registryHomeURL + 'dashboard', { external: true })
-    } else { // else reload platform info
-      loading.value = true
-      await loadPlatform()
-      // set header stuff
-      if (!activePlatform.value || !showPlatformDetails.value) {
-        // no registration or valid complete application under the account, set static header
-        title.value = t('strr.title.dashboard')
-        todos.value = [getTodoApplication()]
-      } else {
-        // existing registration or application under the account
-        // set left side of header
-        title.value = platformBusiness.value.legalName
-        subtitles.value = [
-          platformBusiness.value.homeJurisdiction,
-          t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
-        ]
-        if (!isRegistration.value) {
-          setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
-        } else {
-          // @ts-expect-error - ts not picking up that it will have status attr in this case
-          setRegistrationHeaderDetails(activePlatform.value.status)
-        }
-        setSideHeaderDetails()
-        // set sidebar accordian addresses
-        addresses.value = getDashboardAddresses(platformBusiness.value)
-        // set sidebar accordian reps
-        representatives.value = getDashboardRepresentives()
-        // update breadcrumbs with platform business name
-        setBreadcrumbs([
-          { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-          { label: platformBusiness.value.legalName }
-        ])
-      }
-      loading.value = false
-    }
-  },
-  { immediate: true, deep: true }
+watch(() => accountStore.currentAccount.id,
+  () => {
+    const { redirect } = useNavigate()
+    redirect(useRuntimeConfig().public.registryHomeURL + 'dashboard')
+  }
 )
+
+onMounted(async () => {
+  loading.value = true
+  await loadPlatform()
+  // set header stuff
+  if (!activePlatform.value || !showPlatformDetails.value) {
+    // no registration or valid complete application under the account, set static header
+    title.value = t('strr.title.dashboard')
+    todos.value = [getTodoApplication()]
+  } else {
+    // existing registration or application under the account
+    // set left side of header
+    title.value = platformBusiness.value.legalName
+    subtitles.value = [
+      platformBusiness.value.homeJurisdiction,
+      t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
+    ]
+    if (!isRegistration.value) {
+      setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
+    } else {
+      // @ts-expect-error - ts not picking up that it will have status attr in this case
+      setRegistrationHeaderDetails(activePlatform.value.status)
+    }
+    setSideHeaderDetails()
+    // set sidebar accordian addresses
+    addresses.value = getDashboardAddresses(platformBusiness.value)
+    // set sidebar accordian reps
+    representatives.value = getDashboardRepresentives()
+    // update breadcrumbs with platform business name
+    setBreadcrumbs([
+      { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+      { label: platformBusiness.value.legalName }
+    ])
+  }
+  loading.value = false
+})
 
 // page stuff
 useHead({
