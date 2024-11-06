@@ -126,7 +126,7 @@ class AuthService:
             response = RestService.post(endpoint=endpoint, token=user.bearer_token).json()
             return response
         except HTTPError as exception:
-            current_app.logger.error("Error while creating user roles", exception)
+            current_app.logger.error("Error while updating user profile in SBC Connect.", exception)
             raise ExternalServiceException(
                 error="Error while updating user profile in SBC Connect.",
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
