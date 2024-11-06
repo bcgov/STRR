@@ -6,7 +6,7 @@ const { t } = useI18n()
 const { validateContact } = useStrrContactStore()
 const { validateStrataBusiness } = useStrrStrataBusinessStore()
 const { validateStrataDetails } = useStrrStrataDetailsStore()
-const { validateStrataConfirmation } = useStrrStrataApplicationStore()
+const { submitStrataApplication, validateStrataConfirmation } = useStrrStrataApplicationStore()
 // fee stuff
 const {
   addReplaceFee,
@@ -78,8 +78,7 @@ watch(activeStepIndex, (val) => {
   }
   const isLastStep = val === steps.value.length - 1
   buttons.push({
-    // TODO: make submission function
-    action: isLastStep ? () => console.info('TODO') : () => stepperRef.value?.setNextStep(),
+    action: isLastStep ? submitStrataApplication : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
     label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${val + 1}`),
     trailing: true
@@ -110,6 +109,7 @@ setBreadcrumbs([
   <div class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
     <ConnectStepper
+      ref="stepperRef"
       :key="0"
       v-model:steps="steps"
       v-model:active-step-index="activeStepIndex"
@@ -117,23 +117,20 @@ setBreadcrumbs([
       :stepper-label="$t('strr.step.stepperLabel')"
     />
     <div v-if="activeStepIndex === 0" key="contact-information">
-      <!-- TODO: replace with strata version -->
-      <!-- <FormPlatformBusinessDetails :is-complete="activeStep.complete" /> -->
-    </div>
-    <div v-if="activeStepIndex === 1" key="business-details">
       <FormContactInfo :is-complete="activeStep.complete" />
     </div>
-    <div v-if="activeStepIndex === 2" key="platform-information">
-      <!-- TODO: replace with strata version -->
-      <!-- <FormPlatformDetails :is-complete="activeStep.complete" /> -->
+    <div v-if="activeStepIndex === 1" key="business-details">
+      <FormBusinessDetails :is-complete="activeStep.complete" />
+    </div>
+    <div v-if="activeStepIndex === 2" key="strata-information">
+      <FormStrataDetails :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
-      <!-- TODO: replace with strata version -->
-      <!-- <FormPlatformReviewConfirm
+      <FormReviewConfirm
         ref="reviewFormRef"
         :is-complete="activeStep.complete"
         @edit="stepperRef?.setActiveStep"
-      /> -->
+      />
     </div>
   </div>
 </template>

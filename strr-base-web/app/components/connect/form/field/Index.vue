@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { normalizeInput } from '~/utils/connect-validation'
 
-const model = defineModel({ type: String, default: '' })
+const model = defineModel<string | number>()
 
 defineProps({
   id: { type: String, required: true },
@@ -18,7 +18,9 @@ defineProps({
 })
 
 const normalize = () => {
-  model.value = normalizeInput(model.value)
+  if (typeof model.value === 'string') {
+    model.value = normalizeInput(model.value)
+  }
 }
 </script>
 

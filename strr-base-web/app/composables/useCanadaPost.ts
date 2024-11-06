@@ -13,8 +13,9 @@ export const useCanadaPostAddress = () => {
     locationDescription: ''
   })
 
-  const createAddressComplete = (pca: any, key: string, id: string, countryIso2: string,
-    countrySelect: boolean): object => {
+  const createAddressComplete = (
+    pca: any, key: string, id: string, countryIso2: string, countrySelect: boolean
+  ): object => {
     const fields = [
       { element: id, field: 'Line1', mode: pca.fieldMode.SEARCH }
     ]
@@ -34,7 +35,7 @@ export const useCanadaPostAddress = () => {
     activeAddressField.value = id
     const config = useRuntimeConfig()
     const pca = (window as any).pca
-    const key = config.public.addressCompleteKey
+    const key = config.public.addressCompleteKey as string
     if (!pca || !key) {
       console.warn('AddressComplete not initialized due to missing script and/or key')
       return

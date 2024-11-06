@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { Form } from '#ui/types'
+
 const country = defineModel<string>('country')
 const street = defineModel<string>('street')
 const streetAdditional = defineModel<string>('streetAdditional')
@@ -10,19 +12,16 @@ const locationDescription = defineModel<string>('locationDescription')
 type AddressField = 'country' | 'street' | 'streetAdditional' | 'city' |
   'region' | 'postalCode' | 'locationDescription'
 
-const {
-  id,
-  enableAddressComplete,
-  schemaPrefix,
-  disabledFields
-} = defineProps<{
+const props = defineProps<{
   id: string,
-  enableAddressComplete:(id: string, countryIso2: string, countrySelect: boolean) => void,
   schemaPrefix: string,
+  formRef?: Form<any>,
   disabledFields?: AddressField[],
   excludedFields?: AddressField[],
   locationDescLabel?: boolean
 }>()
+
+const { address: canadaPostAddress, enableAddressComplete } = useCanadaPostAddress()
 
 const countries = iscCountriesListSortedByName
 const regions = computed(() => {
@@ -38,9 +37,48 @@ const regions = computed(() => {
 
 const addressComplete = () => {
   if (typeof country.value === 'string') {
-    enableAddressComplete(id, country.value, !disabledFields?.includes('country'))
+    enableAddressComplete(props.id, country.value, !props.disabledFields?.includes('country'))
   }
 }
+
+watch(canadaPostAddress, (newAddress) => {
+  // automatically populate all non excluded / non disabled fields
+  if (newAddress) {
+    // clear form validation for city/region/postalCode if address is autocompleted
+    if (props.formRef) {
+      props.formRef.clear(`${props.schemaPrefix}country`)
+      props.formRef.clear(`${props.schemaPrefix}city`)
+      props.formRef.clear(`${props.schemaPrefix}region`)
+      props.formRef.clear(`${props.schemaPrefix}postalCode`)
+    }
+    for (const key of Object.keys(newAddress)) {
+      if (
+        !props.disabledFields?.includes(key as AddressField) &&
+        !props.excludedFields?.includes(key as AddressField)
+      ) {
+        switch (key as AddressField) {
+          case 'street':
+            street.value = newAddress.street
+            break
+          case 'streetAdditional':
+            streetAdditional.value = newAddress.streetAdditional
+            break
+          case 'country':
+            country.value = newAddress.country
+            break
+          case 'city':
+            city.value = newAddress.city
+            break
+          case 'region':
+            region.value = newAddress.region
+            break
+          case 'postalCode':
+            postalCode.value = newAddress.postalCode
+        }
+      }
+    }
+  }
+})
 
 const addId = useId()
 </script>

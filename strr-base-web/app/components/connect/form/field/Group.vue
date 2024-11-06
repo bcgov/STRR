@@ -3,7 +3,7 @@ import { type UseEventBusReturn } from '@vueuse/core'
 
 const formBus = inject<UseEventBusReturn<any, string> | undefined>('form-events', undefined)
 
-const model = defineModel({ type: String, default: '' })
+const model = defineModel<string | number>()
 watch(model, () => {
   formBus?.emit({ type: 'blur', path: props.name })
   formBus?.emit({ type: 'change', path: props.name })
