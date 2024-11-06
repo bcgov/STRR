@@ -23,6 +23,8 @@ export const useTosStore = defineStore('strr/terms-of-service', () => {
   async function getTermsOfUse ():Promise<void> {
     try {
       loading.value = true
+      // make sure user is in auth before fetching tos
+      await $strrApi('/users', { method: 'POST' }) // TODO: fix in core layer
       tos.value = await $strrApi<TOSGetResponse>('/users/tos')
     } catch {
       // handled with fallback content on tos page
