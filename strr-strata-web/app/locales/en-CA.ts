@@ -56,7 +56,8 @@ export default {
     },
     text: {
       comingSoon: 'Short-Term Rental Strata Hotel Registry will be available on December 15, 2024',
-      isUserRep: 'Are you the strata hotel representative?'
+      isUserRep: 'Are you the strata hotel representative?',
+      primaryContact: 'This is the primary contact person for the strata hotel.'
     },
     hint: {
       brandName: 'The brand name for the strata hotel',

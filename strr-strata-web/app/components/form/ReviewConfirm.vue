@@ -65,7 +65,7 @@ onMounted(async () => {
       :heading="{
         label: $t('strr.section.title.completingParty'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
-        icon: 'i-mdi-account-multiple-plus',
+        icon: 'i-mdi-account-plus',
         padding: 'sm:px-8 py-4 px-4'
       }"
     >
@@ -190,7 +190,7 @@ onMounted(async () => {
       :heading="{
         label: $t('strr.section.title.businessInfo'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
-        icon: 'i-mdi-domain',
+        icon: 'i-mdi-domain-plus',
         padding: 'sm:px-8 py-4 px-4'
       }"
     >
@@ -199,45 +199,54 @@ onMounted(async () => {
         :items="[
           {
             title: $t('label.busNameLegal'),
-            content: businessStore.strataBusiness.legalName
-          },
-          {
-            title: $t('strr.review.busInfo.attForSvcName'),
-            content: businessStore.strataBusiness.regOfficeOrAtt.attorneyName
-          },
-          {
-            title: $t('label.homeJurisdiction'),
-            content: businessStore.strataBusiness.homeJurisdiction
-          },
-          {
-            title: $t('strr.section.subTitle.regOfficeAttSvcAddrress'),
-            slot: 'regOfficeAttSvcAddrress'
-          },
-          {
-            title: $t('label.busNum'),
-            content: businessStore.strataBusiness.businessNumber
+            slot: 'businessIdentifiers'
           },
           {
             title: $t('strr.section.subTitle.businessMailAddress'),
             slot: 'businessMailAddress'
+          },
+          {
+            title: $t('strr.review.busInfo.attForSvcName'),
+            slot: 'regOfficeAtt'
           }
         ]"
         @edit="$emit('edit', 1)"
       >
-        <template #regOfficeAttSvcAddrress>
-          <ConnectFormAddressDisplay
-            v-if="businessStore.strataBusiness.regOfficeOrAtt.mailingAddress.street"
-            :address="businessStore.strataBusiness.regOfficeOrAtt.mailingAddress"
-          />
-          <span v-else> - </span>
+        <template #businessIdentifiers>
+          <div class="space-y-5">
+            <p>{{ businessStore.strataBusiness.legalName || '-' }}</p>
+            <ConnectInfoBox
+              :title="$t('label.homeJurisdiction')"
+              title-class="font-bold text-bcGovGray-900"
+              :content="businessStore.strataBusiness.homeJurisdiction || '-'"
+            />
+            <ConnectInfoBox
+              :title="$t('label.busNum')"
+              title-class="font-bold text-bcGovGray-900"
+              :content="businessStore.strataBusiness.businessNumber || '-'"
+            />
+          </div>
         </template>
-
         <template #businessMailAddress>
           <ConnectFormAddressDisplay
             v-if="businessStore.strataBusiness.mailingAddress.street"
             :address="businessStore.strataBusiness.mailingAddress"
           />
           <span v-else> - </span>
+        </template>
+        <template #regOfficeAtt>
+          <p>{{ businessStore.strataBusiness.regOfficeOrAtt.attorneyName || '-' }}</p>
+          <ConnectInfoBox
+            :title="$t('strr.section.subTitle.regOfficeAttSvcAddrress')"
+            title-class="font-bold text-bcGovGray-900"
+            class="mt-5"
+          >
+            <ConnectFormAddressDisplay
+              v-if="businessStore.strataBusiness.regOfficeOrAtt.mailingAddress.street"
+              :address="businessStore.strataBusiness.regOfficeOrAtt.mailingAddress"
+            />
+            <span v-else> - </span>
+          </ConnectInfoBox>
         </template>
       </FormCommonReviewSection>
     </ConnectPageSection>

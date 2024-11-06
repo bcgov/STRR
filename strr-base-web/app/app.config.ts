@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 export default defineAppConfig({
   ui: {
     strategy: 'merge',
@@ -14,12 +15,14 @@ export default defineAppConfig({
         base: 'file:text-gray-700 file:pt-2'
       },
       color: {
+        gray: {
+          outline: 'bg-gray-100 ring-0 disabled:hover:bg-gray-100 disabled:hover:border-gray-500  hover:bg-gray-200 hover:border-gray-600 focus:border-primary-500 focus:border-b-2 focus:ring-0'
+        },
         red: {
-          outline: 'bg-red-100 ring-0 border-red-600 placeholder-red-600 hover:bg-gray-200 ' +
-            'focus:border-red-600 focus:border-b-2 focus:ring-0'
+          outline: 'bg-red-100 ring-0 border-red-600 placeholder-red-600 focus:border-red-600 focus:border-b-2 focus:ring-0'
         },
         primary: {
-          outline: 'bg-primary-50 ring-0 border-primary-500 hover:bg-gray-200 focus:border-b-2 focus:ring-0'
+          outline: 'bg-primary-50 ring-0 border-primary-500 focus:border-b-2 focus:ring-0'
         }
       }
     },
@@ -28,9 +31,14 @@ export default defineAppConfig({
     },
     select: {
       color: {
+        gray: {
+          outline: 'bg-gray-100 ring-0 disabled:hover:bg-gray-100 hover:bg-gray-200 hover:border-gray-600 focus:border-primary-500 focus:border-b-2 focus:ring-0'
+        },
+        primary: {
+          outline: 'bg-primary-50 ring-0 border-primary-500 disabled:hover:bg-primary-50 focus:border-b-2 focus:ring-0'
+        },
         red: {
-          outline: 'bg-red-100 border-red-600 ring-0 hover:bg-gray-200 ' +
-            'focus:border-red-600 focus:border-b-2 focus:ring-0'
+          outline: 'bg-red-100 border-red-600 ring-0 focus:border-red-600 focus:border-b-2 focus:ring-0'
         }
       }
     },

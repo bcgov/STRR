@@ -66,7 +66,7 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
 
     console.info('submitting application: ', body)
 
-    return await postApplication<PlatformApplicationPayload>(body)
+    return await postApplication<PlatformApplicationPayload, PlatformApplicationResp>(body)
   }
 
   return {

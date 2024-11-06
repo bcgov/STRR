@@ -59,7 +59,7 @@ onMounted(async () => {
           <div class="h-px w-full border-b border-gray-100" />
           <ConnectFormSection
             :title="$t('strr.section.subTitle.numberOfUnits')"
-            :error="isComplete && hasFormErrors(strataDetailsFormRef, ['numberOfUnits'])"
+            :error="hasFormErrors(strataDetailsFormRef, ['numberOfUnits'])"
           >
             <div class="space-y-5">
               <ConnectFormFieldGroup

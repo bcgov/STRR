@@ -322,6 +322,7 @@ export default {
       last: 'Please enter a last name',
       full: 'Please enter a full legal name'
     },
+    number: 'Please enter a number',
     phone: {
       code: 'Please select a country code',
       number: 'Please enter a phone number'

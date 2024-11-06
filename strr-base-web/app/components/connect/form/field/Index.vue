@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { normalizeInput } from '~/utils/connect-validation'
-
 const model = defineModel<string | number>()
 
 defineProps({
@@ -16,18 +14,12 @@ defineProps({
   ariaLabel: { type: String, default: undefined },
   type: { type: String, default: 'text' }
 })
-
-const normalize = () => {
-  if (typeof model.value === 'string') {
-    model.value = normalizeInput(model.value)
-  }
-}
 </script>
 
 <template>
   <UInput
     :id="id"
-    v-model="model"
+    v-model.trim="model"
     v-bind="$attrs"
     :type
     class="max-w-bcGovInput"
@@ -40,7 +32,6 @@ const normalize = () => {
     :aria-invalid="isInvalid"
     :aria-describedby="helpId"
     :aria-label="ariaLabel"
-    @blur="normalize"
   />
   <!-- :aria-errormessage="errorId" -->
   <!-- Doesnt look like aria-errormessage is well supported, need to look into this more -->

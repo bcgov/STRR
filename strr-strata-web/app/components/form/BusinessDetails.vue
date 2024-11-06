@@ -84,7 +84,7 @@ onMounted(async () => {
       >
         <ConnectFormSection
           :title="$t('strr.section.subTitle.businessIds')"
-          :error="isComplete && hasFormErrors(strataBusinessFormRef, ['legalName', 'homeJurisdiction'])"
+          :error="hasFormErrors(strataBusinessFormRef, ['legalName', 'homeJurisdiction'])"
         >
           <div class="space-y-5">
             <ConnectFormFieldGroup

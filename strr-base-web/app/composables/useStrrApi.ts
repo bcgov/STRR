@@ -20,8 +20,8 @@ export const useStrrApi = () => {
     return resp.applications
   }
 
-  const postApplication = async <T extends { registration: ApiBaseRegistration }>(body: T) => {
-    return await $strrApi<T>('/applications', {
+  const postApplication = async <T extends { registration: ApiBaseRegistration }, R extends T>(body: T) => {
+    return await $strrApi<R>('/applications', {
       method: 'POST',
       body
     })

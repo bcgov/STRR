@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { MultiFormValidationResult, StrataApplicationPayload } from '#imports'
+import type { MultiFormValidationResult, StrataApplicationPayload, StrataApplicationResp } from '#imports'
 import { formatBusinessDetails, formatStrataDetails } from '~/utils/strata-formating'
 
 export const useStrrStrataApplicationStore = defineStore('strr/strataApplication', () => {
@@ -67,7 +67,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
 
     console.info('submitting application: ', body)
 
-    return await postApplication<StrataApplicationPayload>(body)
+    return await postApplication<StrataApplicationPayload, StrataApplicationResp>(body)
   }
 
   return {
