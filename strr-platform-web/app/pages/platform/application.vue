@@ -210,16 +210,13 @@ watch(activeStepIndex, (val) => {
 }, { immediate: true })
 
 // manage account changes mid-application
-watch(() => accountStore.currentAccount,
-  async (newVal) => {
-    // navigate to registry dashboard if user switches account and account is not premium or inactive
-    if (newVal.accountType !== AccountType.PREMIUM || newVal.accountStatus !== AccountStatus.ACTIVE) {
-      await navigateTo(useRuntimeConfig().public.registryHomeURL + 'dashboard', { external: true })
-    } else {
-      // TODO: Warning modal and reset form to blank state?
+const originalAccountId = accountStore.currentAccount.id // TODO: find better solution than this
+watch(() => accountStore.currentAccount.id,
+  (newVal, oldVal) => {
+    if (newVal !== originalAccountId) {
+      strrModal.openConfirmSwitchAccountModal(oldVal)
     }
-  },
-  { immediate: true, deep: true }
+  }
 )
 
 // page stuff

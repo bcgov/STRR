@@ -220,6 +220,11 @@ export default {
       title: 'Decline Terms of Use?',
       content: 'By declining the Terms of Use, you won’t be able to access this service. Do you wish to proceed?',
       declineBtn: 'Decline Terms of Use'
+    },
+    changeAccountConfirm: {
+      title: 'Leave Site?',
+      content: 'Changes you made may not be saved.',
+      leaveBtn: 'Leave'
     }
   },
   word: {
@@ -245,7 +250,8 @@ export default {
     Edit: 'Edit',
     Save: 'Save',
     Receipt: 'Receipt',
-    Certify: 'Certify'
+    Certify: 'Certify',
+    Leave: 'Leave'
   },
   page: {
     notFound: {
