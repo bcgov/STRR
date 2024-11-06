@@ -4,6 +4,7 @@ import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
+const accountStore = useConnectAccountStore()
 
 const { validateContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
@@ -153,8 +154,6 @@ const handlePlatformSubmit = async () => {
     formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
     const isApplicationValid = formErrors.every(result => result.success === true)
 
-    console.info('is application valid: ', isApplicationValid, formErrors)
-
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
       const response = await submitPlatformApplication()
@@ -210,6 +209,19 @@ watch(activeStepIndex, (val) => {
   setButtonControl({ leftButtons: [], rightButtons: buttons })
 }, { immediate: true })
 
+// manage account changes mid-application
+watch(() => accountStore.currentAccount,
+  async (newVal) => {
+    // navigate to registry dashboard if user switches account and account is not premium or inactive
+    if (newVal.accountType !== AccountType.PREMIUM || newVal.accountStatus !== AccountStatus.ACTIVE) {
+      await navigateTo(useRuntimeConfig().public.registryHomeURL + 'dashboard', { external: true })
+    } else {
+      // TODO: Warning modal and reset form to blank state?
+    }
+  },
+  { immediate: true, deep: true }
+)
+
 // page stuff
 useHead({
   title: t('strr.title.application')
@@ -229,7 +241,7 @@ setBreadcrumbs([
 </script>
 <template>
   <div class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
+    <ConnectTypographyH1 :text="$t('strr.title.application')" class="my-5" />
     <ConnectStepper
       ref="stepperRef"
       :key="0"
