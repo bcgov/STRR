@@ -58,7 +58,6 @@ function handleAccountSwitch (id: string) {
     <UAlert
       color="yellow"
       icon="i-mdi-alert"
-      :close-button="undefined"
       variant="subtle"
       :ui="{
         inner: 'pt-0',
