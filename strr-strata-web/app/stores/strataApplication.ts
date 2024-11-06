@@ -26,7 +26,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
 
   const validateStrataConfirmation = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(
-      confirmationSchema, confirmation, 'platform-confirmation-form'
+      confirmationSchema, confirmation, 'strata-confirmation-form'
     )
 
     if (returnBool) {
