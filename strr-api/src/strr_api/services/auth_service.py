@@ -31,12 +31,14 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+# pylint: disable=W0707
 """Manages Auth service interactions."""
 import os
 from http import HTTPStatus
 
 import requests
 from flask import current_app
+from requests.exceptions import HTTPError
 
 from strr_api.exceptions import ExternalServiceException
 from strr_api.requests import SBCMailingAddress
@@ -113,6 +115,22 @@ class AuthService:
                     streetAdditional=mailing_address_dict.get("streetAdditional", None),
                 )
         return mailing_address
+
+    @classmethod
+    @user_context
+    def update_user_profile(cls, **kwargs):
+        """Updates user profile in SBC Connect"""
+        user: UserContext = kwargs["user_context"]
+        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/users"
+        try:
+            response = RestService.post(endpoint=endpoint, token=user.bearer_token).json()
+            return response
+        except HTTPError as exception:
+            current_app.logger.error("Error while creating user roles", exception)
+            raise ExternalServiceException(
+                error="Error while updating user profile in SBC Connect.",
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
 
     @classmethod
     @user_context
