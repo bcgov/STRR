@@ -54,7 +54,8 @@ export default {
     acceptTos: {
       main: 'Accept Terms of Use',
       aria: 'Accept Terms of Use (scroll and check the box before)'
-    }
+    },
+    createAnAccount: 'Create an Account'
   },
   contactInfo: {
     bcRegGeneral: {
@@ -231,6 +232,7 @@ export default {
     none: 'None',
     or: 'or',
     Or: 'Or',
+    OR: 'OR',
     error: 'error',
     Error: 'Error',
     OK: 'OK',

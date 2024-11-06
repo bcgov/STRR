@@ -1,13 +1,36 @@
 <script setup lang="ts">
 const { t, locale } = useI18n()
 const keycloak = useKeycloak()
+const { createAccountUrl } = useConnectNav()
 const runtimeConfig = useRuntimeConfig()
-const appConfig = useAppConfig()
+const loginConfig = useAppConfig().strrBaseLayer.page.login
 
-const appConfigRedirectUrl = appConfig.strrBaseLayer.page.login.redirectPath
-const redirectUrl = appConfigRedirectUrl
-  ? runtimeConfig.public.baseUrl + locale.value + appConfigRedirectUrl
+const redirectUrl = loginConfig.redirectPath
+  ? runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
   : undefined
+
+const loginOptionsMap = {
+  bcsc: {
+    label: t('label.loginBcsc'),
+    icon: 'i-mdi-account-card-details-outline',
+    click: () => keycloak.login(IdpHint.BCSC, redirectUrl)
+  },
+  bceid: {
+    label: t('label.loginBceid'),
+    icon: 'i-mdi-two-factor-authentication',
+    click: () => keycloak.login(IdpHint.BCEID, redirectUrl)
+  },
+  idir: {
+    label: t('label.loginIdir'),
+    icon: 'i-mdi-account-group-outline',
+    click: () => keycloak.login(IdpHint.IDIR, redirectUrl)
+  }
+}
+
+const options = computed(() => {
+  const items = loginConfig.options.idps
+  return items.map(key => loginOptionsMap[key]) // order by idps array
+})
 
 // page stuff
 useHead({
@@ -32,24 +55,27 @@ setBreadcrumbs([
       <img src="/img/BCReg_Generic_Login_image.jpg" class="py-4" :alt="$t('imageAlt.genericLogin')">
       <div class="space-y-4 pt-2.5">
         <UButton
-          :label="$t('label.loginBceid')"
-          icon="i-mdi-two-factor-authentication"
+          v-for="(option, i) in options"
+          :key="option.label"
+          :color="i === 0 ? 'primary' : 'gray'"
           block
-          @click="keycloak.login(IdpHint.BCEID, redirectUrl)"
+          :icon="option.icon"
+          :label="option.label"
+          :ui="{
+            gap: { sm: 'gap-x-2.5' }
+          }"
+          @click="option.click"
+        />
+        <UDivider
+          v-if="loginConfig.options.createAccount"
+          :label="$t('word.OR')"
         />
         <UButton
-          :label="$t('label.loginBcsc')"
-          icon="i-mdi-account-card-details-outline"
-          color="gray"
+          v-if="loginConfig.options.createAccount"
+          :label="$t('btn.createAnAccount')"
           block
-          @click="keycloak.login(IdpHint.BCSC, redirectUrl)"
-        />
-        <UButton
-          :label="$t('label.loginIdir')"
-          icon="i-mdi-account-group-outline"
           color="gray"
-          block
-          @click="keycloak.login(IdpHint.IDIR, redirectUrl)"
+          :to="createAccountUrl()"
         />
       </div>
     </UCard>
