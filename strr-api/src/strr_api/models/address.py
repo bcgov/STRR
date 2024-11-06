@@ -25,6 +25,8 @@ class Address(Versioned, BaseModel):
     province = db.Column(db.String, nullable=False)
     postal_code = db.Column(db.String, nullable=False)
     location_description = db.Column(db.String, nullable=True)
+    unit_number = db.Column(db.String, nullable=True)
+    street_number = db.Column(db.String, nullable=True)
 
     contact = relationship("Contact", back_populates="address", foreign_keys="Contact.address_id")
     rental_properties_address = relationship(

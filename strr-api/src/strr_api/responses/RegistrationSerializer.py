@@ -241,7 +241,9 @@ class RegistrationSerializer:
             }
 
         registration_data["unitAddress"] = {
-            "address": registration.rental_property.address.street_address,
+            "unitNumber": registration.rental_property.address.unit_number,
+            "streetNumber": registration.rental_property.address.street_number,
+            "streetName": registration.rental_property.address.street_address,
             "addressLineTwo": registration.rental_property.address.street_address_additional,
             "city": registration.rental_property.address.city,
             "postalCode": registration.rental_property.address.postal_code,

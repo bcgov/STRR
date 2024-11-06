@@ -266,7 +266,9 @@ class RegistrationService:
         rental_property = RentalProperty(
             address=Address(
                 country=registration_request.unitAddress.country,
-                street_address=registration_request.unitAddress.address,
+                street_address=registration_request.unitAddress.streetName,
+                street_number=registration_request.unitAddress.streetNumber,
+                unit_number=registration_request.unitAddress.unitNumber,
                 street_address_additional=registration_request.unitAddress.addressLineTwo,
                 city=registration_request.unitAddress.city,
                 province=registration_request.unitAddress.province,

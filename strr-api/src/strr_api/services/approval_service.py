@@ -50,7 +50,7 @@ from strr_api.models import Application, AutoApprovalRecord, Events
 from strr_api.requests import RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
-from strr_api.services import EventsService, LtsaService
+from strr_api.services import EventsService
 from strr_api.services.geocoder_service import GeoCoderService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.rest_service import RestService
@@ -104,12 +104,15 @@ class ApprovalService:
             if registration_type == RegistrationType.HOST.value:
                 registration_request = RegistrationRequest(**application_json)
                 registration = registration_request.registration
-                pid = registration.unitDetails.parcelIdentifier
-                owner_name = (
-                    registration.primaryContact.name.firstName + " " + registration.primaryContact.name.lastName
-                )
+                unit_number = registration.unitAddress.unitNumber
+                street_number = registration.unitAddress.streetNumber
+                street_name = registration.unitAddress.streetName
+                address_line_1 = ""
+                if unit_number:
+                    address_line_1 = f"{unit_number}-"
+                address_line_1 = f"{address_line_1}{street_number} {street_name}"
                 address = (
-                    registration.unitAddress.address
+                    address_line_1
                     + (" " + registration.unitAddress.addressLineTwo if registration.unitAddress.addressLineTwo else "")
                     + ", "
                     + registration.unitAddress.city
@@ -131,14 +134,18 @@ class ApprovalService:
                     if auto_approval.businessLicenseRequired:
                         auto_approval.businessLicenseProvided = registration.unitDetails.businessLicense is not None
 
-                if pid:
-                    ltsa_data = LtsaService.get_title_details_from_pid(pid)
-                    if ltsa_data:
-                        ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
-                        if ltsa_response:
-                            auto_approval.titleCheck = cls.check_full_name_exists_in_ownership_groups(
-                                ltsa_response, owner_name
-                            )
+                # pid = registration.unitDetails.parcelIdentifier
+                # owner_name = (
+                #         registration.primaryContact.name.firstName + " " + registration.primaryContact.name.lastName
+                # )
+                # if pid:
+                #     ltsa_data = LtsaService.get_title_details_from_pid(pid)
+                #     if ltsa_data:
+                #         ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
+                #         if ltsa_response:
+                #             auto_approval.titleCheck = cls.check_full_name_exists_in_ownership_groups(
+                #                 ltsa_response, owner_name
+                #             )
 
                 cls.save_approval_record_by_application(application.id, auto_approval)
                 cls._update_application_status_to_full_review(application)

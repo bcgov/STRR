@@ -142,12 +142,30 @@ class MailingAddress:
         self.addressLineTwo = addressLineTwo
 
 
-class UnitAddress(MailingAddress):
+class UnitAddress:
     """UnitAddress payload object."""
 
-    def __init__(self, address, city, postalCode, province, country, addressLineTwo=None, nickname=None):
-        super().__init__(address, city, postalCode, province, country, addressLineTwo)
+    def __init__(
+        self,
+        streetNumber,
+        streetName,
+        city,
+        postalCode,
+        province,
+        country,
+        addressLineTwo=None,
+        nickname=None,
+        unitNumber=None,
+    ):
         self.nickname = nickname
+        self.streetNumber = streetNumber
+        self.streetName = streetName
+        self.city = city
+        self.postalCode = postalCode
+        self.province = province
+        self.country = country
+        self.addressLineTwo = addressLineTwo
+        self.unitNumber = unitNumber
 
 
 class ContactName:
@@ -176,13 +194,13 @@ class Contact:
     def __init__(
         self,
         name,
-        dateOfBirth,
         details,
         mailingAddress,
         socialInsuranceNumber=None,
         businessNumber=None,
         businessLegalName=None,
         contactType=None,
+        dateOfBirth=None,
     ):
         self.name = ContactName(**name)
         self.dateOfBirth = dateOfBirth
