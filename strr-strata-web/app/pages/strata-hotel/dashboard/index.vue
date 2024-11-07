@@ -8,32 +8,32 @@ const strataModal = useStrataModals()
 const columns = [
   {
     key: 'hotelName',
-    label: 'Hotel Name',
+    label: t('label.hotelName'),
     sortable: true
   },
   {
     key: 'number',
-    label: 'Number',
+    label: t('label.number'),
     sortable: true
   },
   {
     key: 'type',
-    label: 'Type',
+    label: t('label.type'),
     sortable: true
   },
   {
     key: 'expiryDate',
-    label: 'Expiry Date',
+    label: t('label.expiryDate'),
     sortable: true
   },
   {
     key: 'status',
-    label: 'Status',
+    label: t('label.status'),
     sortable: true
   },
   {
     key: 'actions',
-    label: 'Actions'
+    label: t('label.actions')
   }
 ]
 
