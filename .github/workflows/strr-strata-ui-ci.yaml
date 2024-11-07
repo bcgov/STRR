@@ -1,0 +1,21 @@
+name: STRR STRATA UI CI
+
+on:
+  pull_request:
+    paths:
+      - "strr-strata-web/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./strr-strata-web
+
+jobs:
+  strata-ui-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@main
+    with:
+      app_name: "strr-strata-hotel-ui"
+      working_directory: "./strr-strata-web"
+      codecov_flag: "strrstrataui"
+      node_version: 20
