@@ -1,5 +1,5 @@
 export interface ApiStrataDetails {
-  brands: StrrBrand[]
+  brand: StrrBrand
   buildings: ApiAddress[]
   location: ApiAddress
   numberOfUnits: number

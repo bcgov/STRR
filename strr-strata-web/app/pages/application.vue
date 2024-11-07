@@ -114,7 +114,7 @@ const handleStrataSubmit = async () => {
     if (isApplicationValid) {
       const response = await submitStrataApplication()
       if (response) {
-        return navigateTo(localePath(`/strata/dashboard/${response.header.applicationNumber}`))
+        return navigateTo(localePath(`/strata-hotel/dashboard/${response.header.applicationNumber}`))
       }
     } else {
       stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
