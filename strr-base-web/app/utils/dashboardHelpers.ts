@@ -26,17 +26,17 @@ export const setRegistrationHeaderDetails = (status: ApplicationStatus) => {
   details.value = { chip: { text: status } }
   bottomButtons.value = [
     // TODO: determine if this is a valid action / add label to locales
-    {
-      action: () => { console.info('View and Change') },
-      label: 'View and Change Platform Information',
-      icon: 'i-mdi-file-document-edit-outline'
-    },
-    // TODO: pending - remove as platforms won't have a certificate
-    {
-      action: () => { console.info('Certificate') },
-      label: 'Certificate',
-      icon: 'i-mdi-file-download-outline'
-    },
+    // {
+    //   action: () => { console.info('View and Change') },
+    //   label: 'View and Change Platform Information',
+    //   icon: 'i-mdi-file-document-edit-outline'
+    // },
+    // FUTURE: add back in once certificate is built
+    // {
+    //   action: () => { console.info('Certificate') },
+    //   label: 'Certificate',
+    //   icon: 'i-mdi-file-download-outline'
+    // },
     {
       action: () => { console.info('Receipt') },
       label: t('word.Receipt'),
@@ -44,6 +44,36 @@ export const setRegistrationHeaderDetails = (status: ApplicationStatus) => {
       icon: 'i-mdi-file-download-outline'
     }
   ]
+}
+
+export const setSideHeaderDetails = (
+  business: StrrBusiness,
+  registration?: ApiExtraRegistrationDetails,
+  application?: ApplicationHeader
+) => {
+  // set right side details of header
+  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
+  const { t } = useNuxtApp().$i18n
+  const { sideDetails } = storeToRefs(useConnectDetailsHeaderStore())
+  const sideDetailsList = []
+  if (registration) {
+    sideDetailsList.push({ label: t('label.registrationNum'), value: registration.registration_number })
+    sideDetailsList.push({
+      label: t('label.registrationDate'),
+      value: dateToStringPacific(registration.startDate, 'MMMM Do, YYYY')
+    })
+  } else if (application) {
+    sideDetailsList.push({ label: t('label.applicationNum'), value: application.applicationNumber })
+    sideDetailsList.push({
+      label: t('label.applicationDate'),
+      value: dateToStringPacific(application.applicationDateTime, 'MMMM Do, YYYY')
+    })
+  }
+  if (business.businessNumber) {
+    sideDetailsList.push({ label: t('label.busNum'), value: business.businessNumber })
+  }
+
+  sideDetails.value = sideDetailsList
 }
 
 export const getDashboardAddresses = (business: StrrBusiness) => {

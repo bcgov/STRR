@@ -44,6 +44,7 @@
     "@daxiom/nuxt-core-layer-test": "^0.0.10",
     "@vuepic/vue-datepicker": "^9.0.3",
     "country-codes-list": "^1.6.11",
+    "moment": "^2.30.1",
     "nuxt": "^3.12.3",
     "vue-country-flag-next": "^2.3.2"
   }

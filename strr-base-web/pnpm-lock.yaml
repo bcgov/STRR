@@ -14,6 +14,9 @@ dependencies:
   country-codes-list:
     specifier: ^1.6.11
     version: 1.6.11
+  moment:
+    specifier: ^2.30.1
+    version: 2.30.1
   nuxt:
     specifier: ^3.12.3
     version: 3.12.3(@opentelemetry/api@1.9.0)(eslint@8.57.0)(rollup@4.18.0)(sass@1.77.6)(typescript@5.5.3)(vite@5.3.3)
@@ -8752,6 +8755,10 @@ packages:
 
   /module-details-from-path@1.0.3:
     resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
+
+  /moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
+    dev: false
 
   /mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}

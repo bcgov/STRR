@@ -59,6 +59,9 @@ export default {
       isUserRep: 'Are you the strata hotel representative?',
       primaryContact: 'This is the primary contact person for the strata hotel.'
     },
+    word: {
+      units: 'units'
+    },
     hint: {
       brandName: 'The brand name for the strata hotel',
       brandSite: 'e.g., https://www.your-strata-hotel.ca/',

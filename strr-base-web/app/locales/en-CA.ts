@@ -99,6 +99,9 @@ export default {
     genericLogin: 'Generic Login Image'
   },
   label: {
+    applicationDate: 'Application Date',
+    expiryDate: 'Expiry Date',
+    registrationDate: 'Registration Date',
     note: 'Note',
     optional: 'Optional',
     characters: 'characters',
@@ -158,6 +161,8 @@ export default {
     busNum: 'Business Number',
     busNumOpt: 'Business Number (Optional)',
     cpbcLicNum: 'CPBC Licence Number',
+    registrationNum: 'Registration Number',
+    applicationNum: 'Application Number',
     homeJurisdiction: 'Home Jurisdiction',
     name: 'Name',
     mailingAddress: 'Mailing Address',
