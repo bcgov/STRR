@@ -5,6 +5,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   const { primaryRep, secondaryRep } = storeToRefs(useStrrContactStore())
   const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
   const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+  const { t } = useI18n()
 
   const activeApplicationInfo = ref<ApplicationHeader | undefined>(undefined)
   const activePlatform = ref<StrataRegistrationResp | ApiBaseStrataRegistration | undefined>(undefined)
@@ -63,9 +64,10 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
           return (response as StrataRegistrationResp[]).filter(
             item => item.registrationType === ApplicationType.STRATA_HOTEL
           ).map(reg => ({
+            id: reg.id,
             hotelName: reg.strataHotelDetails.brand.name,
             number: reg.registration_number,
-            type: 'Registration',
+            type: t('label.registration'),
             expiryDate: reg.expiryDate,
             status: reg.status
           }))
@@ -85,7 +87,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
           ).map(app => ({
             hotelName: app.registration.strataHotelDetails.brand.name,
             number: app.header.applicationNumber,
-            type: 'Application',
+            type: t('label.application'),
             expiryDate: '-',
             status: app.header.status
           }))

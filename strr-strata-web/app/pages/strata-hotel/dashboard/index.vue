@@ -59,6 +59,11 @@ const { data: strataHotelList, status } = await useAsyncData(
   () => strataStore.loadStrataHotelList(),
   { watch: [() => accountStore.currentAccount.id] }
 )
+
+async function handleItemSelect (row: any) {
+  const identifier = row.id ?? row.number // id only exists in the registration objects
+  await navigateTo(localePath('/strata-hotel/dashboard/' + identifier))
+}
 </script>
 <template>
   <div class="space-y-8 py-8 sm:space-y-10 sm:py-10">
@@ -136,7 +141,7 @@ const { data: strataHotelList, status } = await useAsyncData(
           <template #actions-data="{ row }">
             <UButton
               :label="$t('btn.view')"
-              @click="navigateTo(localePath('/strata-hotel/dashboard/' + row.number))"
+              @click="handleItemSelect(row)"
             />
           </template>
         </UTable>

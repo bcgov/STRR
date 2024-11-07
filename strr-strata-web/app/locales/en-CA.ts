@@ -77,7 +77,9 @@ export default {
   },
   label: {
     hotelName: 'Hotel Name',
-    expiryDate: 'Expiry Date'
+    expiryDate: 'Expiry Date',
+    application: 'Application',
+    registration: 'Registration'
   },
   modal: {
     helpRegisteringStrata: {
