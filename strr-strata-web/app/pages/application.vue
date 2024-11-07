@@ -174,7 +174,7 @@ useHead({
 
 definePageMeta({
   layout: 'connect-form',
-  middleware: ['auth'],
+  middleware: ['auth', 'require-account'],
   path: '/strata-hotel/application'
 })
 

@@ -1,5 +1,9 @@
 /* eslint-disable max-len */
 export default {
+  badge: {
+    basicAccount: 'BASIC ACCOUNT',
+    inactiveAccount: 'INACTIVE ACCOUNT'
+  },
   btn: {
     getStarted: 'Get Started',
     goHome: 'Go Home',

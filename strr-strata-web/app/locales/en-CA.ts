@@ -70,5 +70,33 @@ export default {
         site: 'Strata Hotel Brand Website | Strata Hotel Brand {count} Website'
       }
     }
+  },
+  btn: {
+    addStrataHotel: 'Add a Strata Hotel',
+    view: 'View'
+  },
+  label: {
+    hotelName: 'Hotel Name',
+    date: 'Date'
+  },
+  modal: {
+    helpRegisteringStrata: {
+      triggerBtn: 'Help with registering and managing short-term rentals',
+      title: 'Short Term Rental Help',
+      content: 'Help Text Here'
+    }
+  },
+  table: {
+    strataHotelList: {
+      title: '{boldStart}My Strata Hotel List{boldEnd} ({count})',
+      emptyText: "You don't have any strata hotels yet. Add a strata hotel above."
+    }
+  },
+  page: {
+    dashboardList: {
+      title: 'Dashboard - My Short Term Rental Registry',
+      h1: 'My Short Term Rental Registry',
+      subtitle: 'Register and keep short-term rental unit information up to date.'
+    }
   }
 }

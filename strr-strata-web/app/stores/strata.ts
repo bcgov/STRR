@@ -52,21 +52,48 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     }
   }
 
-  // TODO: move to separate strataDashboard store?
-  const registrations = ref([])
-  const applications = ref([])
-
   const loadStrataHotelList = async () => {
-    try {
-      registrations.value = await getAccountRegistrations()
-    } catch (e) {
-      logFetchError(e, 'Unable to load account registrations')
-    }
-    try {
-      applications.value = await getAccountApplications()
-    } catch (e) {
-      logFetchError(e, 'Unable to load account applications')
-    }
+    const regs = await getAccountRegistrations<StrataRegistrationResp>()
+      .catch((e) => {
+        logFetchError(e, 'Unable to load account registrations')
+        return undefined
+      })
+      .then((response) => {
+        if (response) {
+          return (response as StrataRegistrationResp[]).filter(
+            item => item.registrationType === ApplicationType.STRATA_HOTEL
+          ).map(reg => ({
+            hotelName: reg.strataHotelDetails.brand.name,
+            number: reg.registration_number,
+            type: 'Registration',
+            expiryDate: reg.expiryDate,
+            status: reg.status
+          }))
+        }
+        return []
+      })
+
+    const apps = await getAccountApplications<StrataApplicationResp>()
+      .catch((e) => {
+        logFetchError(e, 'Unable to load account applications')
+        return undefined
+      })
+      .then((response) => {
+        if (response) {
+          return (response as StrataApplicationResp[]).filter(
+            item => item.registration.registrationType === ApplicationType.STRATA_HOTEL
+          ).map(app => ({
+            hotelName: app.registration.strataHotelDetails.brand.name,
+            number: app.header.applicationNumber,
+            type: 'Application',
+            expiryDate: '-',
+            status: app.header.status
+          }))
+        }
+        return []
+      })
+
+    return [...apps, ...regs]
   }
 
   return {
@@ -75,8 +102,6 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     isRegistration,
     isPaidApplication,
     showStrataDetails,
-    applications,
-    registrations,
     isApplicationStatus,
     loadStrata,
     loadStrataHotelList

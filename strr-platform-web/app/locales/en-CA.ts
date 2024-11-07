@@ -1,9 +1,5 @@
 /* eslint-disable max-len */
 export default {
-  badge: {
-    basicAccount: 'BASIC ACCOUNT',
-    inactiveAccount: 'INACTIVE ACCOUNT'
-  },
   feeSummary: {
     itemLabels: {
       PLATREG_SM: 'Platform Application Fee',
