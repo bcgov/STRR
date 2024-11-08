@@ -138,6 +138,11 @@ async function handleItemSelect (row: any) {
             },
           }"
         >
+          <!-- using a slot for this so the nuxtui sort will still sort by datetime -->
+          <template #date-data="{ row }">
+            {{ dateToStringPacific(row.date, 'MMMM Do, YYYY') }}
+          </template>
+
           <template #actions-data="{ row }">
             <UButton
               :label="$t('btn.view')"
