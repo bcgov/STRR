@@ -115,10 +115,10 @@ const handleStrataSubmit = async () => {
     if (isApplicationValid) {
       const { paymentToken, filingId, applicationStatus } = await submitStrataApplication()
       const redirectPath = `/strata-hotel/dashboard/${filingId}`
-      if (applicationStatus === ApplicationStatus.PAID) {
-        await navigateTo(localePath(redirectPath))
-      } else {
+      if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
         handlePaymentRedirect(paymentToken, redirectPath)
+      } else {
+        await navigateTo(localePath(redirectPath))
       }
     } else {
       stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
