@@ -4,6 +4,7 @@ import { ConnectStepper, FormReviewConfirm } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
+const { handlePaymentRedirect } = useNavigate()
 
 const { validateContact } = useStrrContactStore()
 const { validateStrataBusiness } = useStrrStrataBusinessStore()
@@ -112,9 +113,12 @@ const handleStrataSubmit = async () => {
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
-      const response = await submitStrataApplication()
-      if (response) {
-        return navigateTo(localePath(`/strata-hotel/dashboard/${response.header.applicationNumber}`))
+      const { paymentToken, filingId, applicationStatus } = await submitStrataApplication()
+      const redirectPath = `/strata-hotel/dashboard/${filingId}`
+      if (applicationStatus === ApplicationStatus.PAID) {
+        await navigateTo(localePath(redirectPath))
+      } else {
+        handlePaymentRedirect(paymentToken, redirectPath)
       }
     } else {
       stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors

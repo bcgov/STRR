@@ -71,7 +71,13 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
 
     console.info('submitting application: ', body)
 
-    return await postApplication<StrataApplicationPayload, StrataApplicationResp>(body)
+    const res = await postApplication<StrataApplicationPayload, StrataApplicationResp>(body) as StrataApplicationResp
+
+    const paymentToken = res.header.paymentToken
+    const filingId = res.header.applicationNumber
+    const applicationStatus = res.header.status
+
+    return { paymentToken, filingId, applicationStatus }
   }
 
   return {

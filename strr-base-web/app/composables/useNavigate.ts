@@ -1,5 +1,8 @@
 export const useNavigate = () => {
   const accountStore = useConnectAccountStore()
+  const localePath = useLocalePath()
+  const config = useRuntimeConfig().public
+
   function redirect (url: string, params?: { [key: string]: string }, target = '_self') {
     // get account id and set in params
     const redirectURL = new URL(url)
@@ -14,5 +17,12 @@ export const useNavigate = () => {
     window.open(redirectURL, target)
   }
 
-  return { redirect }
+  async function handlePaymentRedirect (paymentToken: number, redirectPath: string): Promise<void> {
+    const returnUrl = encodeURIComponent(window.location.origin + localePath(redirectPath))
+    const payUrl = config.paymentPortalUrl + paymentToken + '/' + returnUrl
+
+    await navigateTo(payUrl, { external: true })
+  }
+
+  return { redirect, handlePaymentRedirect }
 }
