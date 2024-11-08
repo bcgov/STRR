@@ -193,7 +193,7 @@ setBreadcrumbs([
   <div class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
 
-    <div class="flex gap-4">
+    <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
       <UButton
         :label="$t('modal.helpRegisterStrataHotel.triggerBtn')"
         :padded="false"
@@ -202,7 +202,10 @@ setBreadcrumbs([
         @click="strataModal.openHelpRegisterStrataHotelModal()"
       />
 
-      <UDivider orientation="vertical" />
+      <UDivider
+        orientation="vertical"
+        class="hidden sm:block"
+      />
 
       <UButton
         :label="$t('modal.infoCollectionNotice.triggerBtn')"
