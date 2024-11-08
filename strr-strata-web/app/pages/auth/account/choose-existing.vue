@@ -3,8 +3,8 @@
 const localePath = useLocalePath()
 const { t } = useI18n()
 const isSmallScreen = useMediaQuery('(max-width: 640px)')
-const strrModal = useStrrModals()
 const accountStore = useConnectAccountStore()
+const connectNav = useConnectNav()
 
 useHead({
   title: t('strr.title.chooseAccount')
@@ -139,7 +139,8 @@ function handleAccountSwitch (id: string) {
         icon="i-mdi-chevron-right"
         trailing
         :block="isSmallScreen"
-        @click="strrModal.openCreateAccountModal()"
+        :to="connectNav.createAccountUrl()"
+        target="_blank"
       />
     </div>
   </div>
