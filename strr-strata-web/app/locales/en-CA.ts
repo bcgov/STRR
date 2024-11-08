@@ -82,7 +82,8 @@ export default {
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
     application: 'Application',
-    registration: 'Registration'
+    registration: 'Registration',
+    date: 'Date'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page'

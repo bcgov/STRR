@@ -22,8 +22,8 @@ const columns = [
     sortable: true
   },
   {
-    key: 'expiryDate',
-    label: t('label.expiryDate'),
+    key: 'date',
+    label: t('label.date'),
     sortable: true
   },
   {

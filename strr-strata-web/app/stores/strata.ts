@@ -68,7 +68,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
             hotelName: reg.strataHotelDetails.brand.name,
             number: reg.registration_number,
             type: t('label.registration'),
-            expiryDate: reg.expiryDate,
+            date: reg.startDate,
             status: reg.status
           }))
         }
@@ -88,7 +88,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
             hotelName: app.registration.strataHotelDetails.brand.name,
             number: app.header.applicationNumber,
             type: t('label.application'),
-            expiryDate: '-',
+            date: app.header.applicationDateTime,
             status: app.header.status
           }))
         }
