@@ -1,5 +1,8 @@
 /* eslint-disable max-len */
 export default {
+  act: {
+    strrAccomodations: 'Short-Term Rental Accommodations Act'
+  },
   badge: {
     basicAccount: 'BASIC ACCOUNT',
     inactiveAccount: 'INACTIVE ACCOUNT'

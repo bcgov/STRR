@@ -84,11 +84,24 @@ export default {
     application: 'Application',
     registration: 'Registration'
   },
+  link: {
+    strataHotelInfoPage: 'strata hotel information page'
+  },
   modal: {
     helpRegisteringStrata: {
       triggerBtn: 'Help with registering and managing short-term rentals',
       title: 'Short Term Rental Help',
       content: 'Help Text Here'
+    },
+    helpRegisterStrataHotel: {
+      triggerBtn: 'Help with registering a strata hotel',
+      title: 'Need Help?',
+      content: 'For more information on definitions and rules, refer to the {act} and the Short-Term Rental Accommodation Regulation, or visit the {link}. If you need help with registering your strata hotel, using the My STR Registry Dashboard, or resolving a technical issue, you can also contact us directly.'
+    },
+    infoCollectionNotice: {
+      triggerBtn: 'Information collection notice',
+      title: 'Information Collection Notice',
+      content: 'Any personal information required is collected to support the administration and enforcement of the {act}, under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at {link}.'
     }
   },
   table: {

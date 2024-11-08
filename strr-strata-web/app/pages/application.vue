@@ -4,6 +4,7 @@ import { ConnectStepper, FormReviewConfirm } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
+const strataModal = useStrataModals()
 const { handlePaymentRedirect } = useNavigate()
 
 const { validateContact } = useStrrContactStore()
@@ -191,6 +192,27 @@ setBreadcrumbs([
 <template>
   <div class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
+
+    <div class="flex gap-4">
+      <UButton
+        :label="$t('modal.helpRegisterStrataHotel.triggerBtn')"
+        :padded="false"
+        icon="i-mdi-help-circle-outline"
+        variant="link"
+        @click="strataModal.openHelpRegisterStrataHotelModal()"
+      />
+
+      <UDivider orientation="vertical" />
+
+      <UButton
+        :label="$t('modal.infoCollectionNotice.triggerBtn')"
+        :padded="false"
+        icon="i-mdi-information-circle-outline"
+        variant="link"
+        @click="strataModal.openInfoCollectionNoticeModal()"
+      />
+    </div>
+
     <ConnectStepper
       ref="stepperRef"
       :key="0"

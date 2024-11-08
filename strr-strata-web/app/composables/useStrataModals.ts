@@ -1,5 +1,9 @@
 // https://ui.nuxt.com/components/modal#control-programmatically
-import { ModalBase } from '#components'
+import {
+  ModalBase,
+  ModalHelpRegisterStrataHotel,
+  ModalInfoCollectionNotice
+} from '#components'
 
 export const useStrataModals = () => {
   const modal = useModal()
@@ -13,12 +17,27 @@ export const useStrataModals = () => {
     })
   }
 
+  // might change the above modal to match this one
+  function openHelpRegisterStrataHotelModal () {
+    modal.open(ModalHelpRegisterStrataHotel, {
+      actions: [{ label: t('btn.close'), handler: () => close() }]
+    })
+  }
+
+  function openInfoCollectionNoticeModal () {
+    modal.open(ModalInfoCollectionNotice, {
+      actions: [{ label: t('btn.close'), handler: () => close() }]
+    })
+  }
+
   function close () {
     modal.close()
   }
 
   return {
     openhelpRegisteringStrataModal,
+    openHelpRegisterStrataHotelModal,
+    openInfoCollectionNoticeModal,
     close
   }
 }
