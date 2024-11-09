@@ -133,8 +133,12 @@ class ApprovalService:
 
                 if pid:
                     ltsa_data = LtsaService.get_title_details_from_pid(pid)
-                    ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
-                    auto_approval.titleCheck = cls.check_full_name_exists_in_ownership_groups(ltsa_response, owner_name)
+                    if ltsa_data:
+                        ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
+                        if ltsa_response:
+                            auto_approval.titleCheck = cls.check_full_name_exists_in_ownership_groups(
+                                ltsa_response, owner_name
+                            )
 
                 cls.save_approval_record_by_application(application.id, auto_approval)
                 cls._update_application_status_to_full_review(application)
@@ -155,11 +159,17 @@ class ApprovalService:
                     application_id=application.id,
                     visible_to_applicant=False,
                 )
+            elif registration_type == RegistrationType.STRATA_HOTEL.value:
+                cls._update_application_status_to_full_review(application)
             return application.status, registration_id
 
         except Exception as default_exception:  # noqa: B902; log error
             current_app.logger.error("Error in auto approval process:", default_exception)
             current_app.logger.error(auto_approval)
+            try:
+                cls._update_application_status_to_full_review(application)
+            except Exception as e:
+                current_app.logger.error("Error while updating application status to full review:", e)
             return application.status, None
 
     @classmethod

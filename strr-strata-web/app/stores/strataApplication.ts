@@ -1,9 +1,8 @@
 import { z } from 'zod'
-import type { MultiFormValidationResult, StrataApplicationPayload } from '#imports'
+import type { MultiFormValidationResult, StrataApplicationPayload, StrataApplicationResp } from '#imports'
 import { formatBusinessDetails, formatStrataDetails } from '~/utils/strata-formating'
 
 export const useStrrStrataApplicationStore = defineStore('strr/strataApplication', () => {
-  // TODO: WIP - updating for strata
   const { t } = useI18n()
   const { postApplication } = useStrrApi()
   const contactStore = useStrrContactStore()
@@ -11,12 +10,12 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
   const detailsStore = useStrrStrataDetailsStore()
 
   // TODO: update confirmation stuff for strata
-  const platformConfirmation = reactive({
+  const confirmation = reactive({
     confirmInfoAccuracy: false,
     confirmDelistAndCancelBookings: false
   })
 
-  const getConfirmationSchema = () => z.object({
+  const confirmationSchema = z.object({
     confirmInfoAccuracy: z.boolean().refine(val => val === true, {
       message: t('validation.confirm')
     }),
@@ -27,7 +26,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
 
   const validateStrataConfirmation = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(
-      getConfirmationSchema(), platformConfirmation, 'platform-confirmation-form'
+      confirmationSchema, confirmation, 'strata-confirmation-form'
     )
 
     if (returnBool) {
@@ -63,17 +62,28 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
     return applicationBody
   }
 
-  const submitPlatformApplication = async () => {
+  const submitStrataApplication = async () => {
     const body = createApplicationBody()
+
+    // TODO: confirm if jobTitle for completing party is required for strata application
+    // @ts-expect-error - temporary until we confirm requirements
+    body.registration.completingParty.jobTitle = 'Completing Party Job Title'
 
     console.info('submitting application: ', body)
 
-    return await postApplication<StrataApplicationPayload>(body)
+    const res = await postApplication<StrataApplicationPayload, StrataApplicationResp>(body) as StrataApplicationResp
+
+    const paymentToken = res.header.paymentToken
+    const filingId = res.header.applicationNumber
+    const applicationStatus = res.header.status
+
+    return { paymentToken, filingId, applicationStatus }
   }
 
   return {
-    platformConfirmation,
-    submitPlatformApplication,
+    confirmation,
+    confirmationSchema,
+    submitStrataApplication,
     validateStrataConfirmation
   }
 })

@@ -193,6 +193,7 @@ const tRegistryDashboard = (translationKey: string) => t(`registryDashboard.${tr
 const { getChipFlavour } = useChipFlavour()
 const { downloadReceipt, downloadingReceipts } = useDownloadReceipt()
 const { getApplications, getApplicationsByStatus, getPaginatedApplications } = useApplications()
+const { isExaminer } = storeToRefs(useBcrosKeycloak())
 
 const statusFilter = ref<string>('')
 const offset = ref<number>(0)
@@ -304,7 +305,7 @@ const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<
     let propertyAddress = ''
     if (registrationType === RegistrationTypeE.HOST) {
       const hostApplication: HostApplicationDetailsI = application.registration
-      if (hostApplication.propertyManager) {
+      if (hostApplication.propertyManager && hostApplication.propertyManager.initiatedByPropertyManager) {
         applicationType = 'Property Manager'
       } else {
         applicationType = 'Host'
@@ -378,6 +379,13 @@ const columns = [
   { key: 'status', label: tRegistryDashboard('status'), sortable: false },
   { key: 'submission', label: tRegistryDashboard('submissionDate'), sortable: false }
 ]
+
+onBeforeMount(() => {
+  // redirect Hosts to their own Dashboard
+  if (!isExaminer.value) {
+    navigateTo({ path: '/' + RouteNamesE.APPLICATION_STATUS })
+  }
+})
 
 onMounted(async () => {
   statusFilter.value = DEFAULT_STATUS

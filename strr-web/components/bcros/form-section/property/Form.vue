@@ -19,9 +19,6 @@
           v-model:number-of-rooms-for-rent="formState.propertyDetails.numberOfRoomsForRent"
           :property-types="propertyTypes"
           :ownership-types="ownershipTypes"
-          :rental-unit-space-type-options="rentalUnitSpaceTypeOptions"
-          :principal-residence-options="principalResidenceOptions"
-          :host-residence-options="hostResidenceOptions"
           :ownership-type-error="ownershipTypeError"
           :property-type-error="propertyTypeError"
           :rental-unit-space-type-error="rentalUnitSpaceTypeError"
@@ -64,8 +61,6 @@
 
 <script setup lang="ts">
 import { sanitizeUrl } from '@braintree/sanitize-url'
-import { HostResidenceE } from '~/enums/host-residence-e'
-import { RentalUnitSpaceTypeE } from '~/enums/rental-unit-space-type-e'
 
 const { isComplete } = defineProps<{
   isComplete: boolean
@@ -195,21 +190,6 @@ const ownershipTypes: string[] = [
   t('createAccount.propertyForm.coOwn')
 ]
 
-const rentalUnitSpaceTypeOptions = [
-  { value: RentalUnitSpaceTypeE.ENTIRE_HOME, label: t('createAccount.propertyForm.entireHome') },
-  { value: RentalUnitSpaceTypeE.SHARED_ACCOMMODATION, label: t('createAccount.propertyForm.sharedAccommodation') }
-]
-
-const principalResidenceOptions = [
-  { value: true, label: t('createAccount.propertyForm.yes') },
-  { value: false, label: t('createAccount.propertyForm.no') }
-]
-
-const hostResidenceOptions = [
-  { value: HostResidenceE.SAME_UNIT, label: "The host lives in this unit when it's not being rented" },
-  { value: HostResidenceE.ANOTHER_UNIT, label: 'The host lives in another unit on the same property' }
-]
-
 const propertyTypeError = ref('')
 const ownershipTypeError = ref('')
 const businessLicenseExpiryDate = ref('')
@@ -253,6 +233,10 @@ watch(
     } else if (newValue === 'false') {
       formState.propertyDetails.isUnitOnPrincipalResidenceProperty = false
     }
+
+    if (isComplete) {
+      validatePrincipalResidenceOptions()
+    }
   }
 )
 
@@ -267,16 +251,23 @@ const validatePrincipalResidenceOptions = () => {
 
 const validateHostResidence = () => {
   hostResidenceError.value =
-    formState.propertyDetails.isUnitOnPrincipalResidenceProperty && !formState.propertyDetails.hostResidence
-      ? 'Please specify where the host lives on the property.'
+    (formState.propertyDetails.isUnitOnPrincipalResidenceProperty && !formState.propertyDetails.hostResidence)
+      ? t('createAccount.propertyForm.hostResidenceRequiredError')
       : ''
 }
 
 const validateNumberOfRoomsForRent = () => {
-  if (formState.propertyDetails?.numberOfRoomsForRent < 1) {
+  let value = formState.propertyDetails?.numberOfRoomsForRent
+
+  if (!Number.isInteger(Number(value))) {
+    value = Math.floor(Number(value))
+    formState.propertyDetails.numberOfRoomsForRent = value
+  }
+
+  if (value < 1) {
     numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentRequired')
-  } else if (formState.propertyDetails?.numberOfRoomsForRent > 5000) {
-    numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentMaxExceeded', { max: 5000 })
+  } else if (value > 5000) {
+    numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentMaxExceeded')
   } else {
     numberOfRoomsForRentError.value = ''
   }

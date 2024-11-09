@@ -11,27 +11,16 @@ export const useApplications = () => {
    * Create a new STR Application and redirect user to the payment page.
    */
   const createApplication = async (
-    userFirstName: string,
-    userLastName: string,
     hasSecondaryContact: boolean,
     propertyType: string,
     ownershipType: string,
-    rentalUnitSpaceType: string,
-    isUnitOnPrincipalResidenceProperty: boolean,
-    numberOfRoomsForRent: number,
-
     registrationType: RegistrationTypeE = RegistrationTypeE.HOST
   ) => {
     const submitApplicationPayload: CreateAccountFormAPII = formStateToApi(
       formState,
-      userFirstName,
-      userLastName,
       hasSecondaryContact,
       propertyType,
-      ownershipType,
-      rentalUnitSpaceType,
-      isUnitOnPrincipalResidenceProperty,
-      numberOfRoomsForRent
+      ownershipType
     )
 
     try {

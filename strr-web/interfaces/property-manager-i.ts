@@ -23,4 +23,5 @@ export interface PropertyManagerI {
     businessNumber: string | undefined
     businessMailingAddress: PropertyManagerBusinessAddressI
     contact: PropertyManagerContactI
+    initiatedByPropertyManager: boolean | undefined
 }

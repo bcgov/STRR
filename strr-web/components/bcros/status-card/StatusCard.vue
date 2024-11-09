@@ -10,7 +10,7 @@
       <BcrosChip :flavour="flavour" class="mobile:hidden mb-6" />
       <a
         v-if="isApproved"
-        @click="navigateTo(`/registration-details/${registrationId}`, { open: { target: '_blank' } })"
+        @click="navigateTo(`/registration-details/${registrationId}`)"
       >
         {{ registrationNumber }}
       </a>
@@ -24,7 +24,7 @@
     </div>
     <div class="flex flex-row text-bcGovColor-activeBlue justify-start">
       <BcrosButtonsPrimary
-        :action="() => navigateTo(`/application-details/${applicationNumber}`, { open: { target: '_blank' } })"
+        :action="() => navigateTo(`/application-details/${applicationNumber}`)"
         :label="tRegistrationStatus('view')"
         class-name="px-4 py-1 mobile:grow-0"
         variant="ghost"

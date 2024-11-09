@@ -6,11 +6,18 @@ export const useBcrosAuth = () => {
   const config = useRuntimeConfig()
   const keycloak = useBcrosKeycloak()
   const account = useBcrosAccount()
-  const { redirect, goToSetupAccount, goToCreateAccount, goToAccountSelect, goToTermsOfService, goToCreateSbcAccount } =
-    useBcrosNavigate()
+  const {
+    redirect,
+    goToSetupAccount,
+    goToCreateAccount,
+    goToAccountSelect,
+    goToTermsOfService,
+    goToCreateSbcAccount,
+    goToExaminerDashboard
+  } = useBcrosNavigate()
   const { checkTermsOfService } = useTermsOfService()
 
-  const { currentAccount, userOrgs } = storeToRefs(account)
+  const { currentAccount, userOrgs, userAccounts } = storeToRefs(account)
 
   /** redirect to the correct creation screen based on auth state */
   function createAccount () {
@@ -23,10 +30,7 @@ export const useBcrosAuth = () => {
 
   /** Logout and then redirect to given page (if redirect provided). */
   async function logout (redirect: string) {
-    account.setCurrentAccount({} as AccountI)
-    account.userOrgs = []
     await keycloak.logout(redirect)
-    localStorage.removeItem(SessionStorageKeyE.CURRENT_ACCOUNT)
   }
 
   /** redirect if account status is suspended */
@@ -57,7 +61,6 @@ export const useBcrosAuth = () => {
           // set user and account info
           console.info('Setting user account information...')
           const accountInfoPromise = account.setAccountInfo(currentAccountId)
-          console.info('Setting user name...')
           const userNamePromise = account.setUserName()
 
           // Wait for all promises to resolve
@@ -68,8 +71,8 @@ export const useBcrosAuth = () => {
           // verify account status
           verifyAccountStatus()
 
-          // do not show Terms for IDIR users
-          if (keycloak.kcUser.loginSource !== 'IDIR') {
+          // do not show Terms for IDIR users (Examiners)
+          if (!keycloak.isExaminer) {
             const isToSAccepted = await checkTermsOfService()
             // if Terms not accepted - redirect TOS page
             if (!isToSAccepted) {
@@ -79,9 +82,15 @@ export const useBcrosAuth = () => {
           }
 
           // if user has not picked an account - go to Account Select
-          if (isEmpty(currentAccount.value) && userOrgs.value.length > 0) {
+          // Examiners will skip the account select page
+          if (isEmpty(currentAccount.value) && userOrgs.value.length > 0 && !keycloak.isExaminer) {
             goToAccountSelect()
             return
+          } else if (keycloak.isExaminer && userOrgs.value.length === 1) {
+            currentAccount.value = userAccounts.value[0]
+            sessionStorage.setItem(SessionStorageKeyE.CURRENT_ACCOUNT, JSON.stringify(userAccounts.value[0]))
+            // redirect Examiner to Dashboard
+            goToExaminerDashboard()
           }
 
           // if user has no accounts - go to account finalization page

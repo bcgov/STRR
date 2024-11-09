@@ -21,5 +21,5 @@ it('can mount Property Details Form Section component', async () => {
         toggleAddSecondary: mockFn
       }
     })
-  expect(addressSection.find('[data-test-id="contact-information"]').exists()).toBe(true)
+  expect(addressSection.find('[data-test-id="host-information-form"]').exists()).toBe(true)
 })

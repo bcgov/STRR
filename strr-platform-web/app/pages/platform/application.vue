@@ -4,6 +4,7 @@ import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
+const accountStore = useConnectAccountStore()
 
 const { validateContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
@@ -153,8 +154,6 @@ const handlePlatformSubmit = async () => {
     formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
     const isApplicationValid = formErrors.every(result => result.success === true)
 
-    console.info('is application valid: ', isApplicationValid, formErrors)
-
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
       const response = await submitPlatformApplication()
@@ -210,6 +209,16 @@ watch(activeStepIndex, (val) => {
   setButtonControl({ leftButtons: [], rightButtons: buttons })
 }, { immediate: true })
 
+// manage account changes mid-application
+const originalAccountId = accountStore.currentAccount.id // TODO: find better solution than this
+watch(() => accountStore.currentAccount.id,
+  (newVal, oldVal) => {
+    if (newVal !== originalAccountId) {
+      strrModal.openConfirmSwitchAccountModal(oldVal)
+    }
+  }
+)
+
 // page stuff
 useHead({
   title: t('strr.title.application')
@@ -218,7 +227,7 @@ useHead({
 definePageMeta({
   layout: 'connect-form',
   path: '/platform/application',
-  middleware: ['auth', 'require-premium-account']
+  middleware: ['auth', 'check-tos', 'require-premium-account']
 })
 
 setBreadcrumbs([
@@ -229,7 +238,7 @@ setBreadcrumbs([
 </script>
 <template>
   <div class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
+    <ConnectTypographyH1 :text="$t('strr.title.application')" class="my-5" />
     <ConnectStepper
       ref="stepperRef"
       :key="0"

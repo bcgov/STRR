@@ -41,7 +41,6 @@ export default {
       subTitle: {
         brand: 'Platform Brand',
         noticeNonCompliance: 'Notice of Non-Compliance',
-        regOfficeAttSvcAddrress: 'Registered Office or Attorney for Service Address',
         size: 'Platform Size',
         takedownRequest: 'Takedown Request'
       }
@@ -81,7 +80,7 @@ export default {
       thousandOrMore: '1000 or more',
       selectAccountForStrr: 'Select the account you wish to use to register your Short-term rental platform.',
       onlyPremiumAccountWarning: '{boldStart}Note:{boldEnd} Only Premium accounts using Pre-authorized Debit (PAD) can be used to register Short-term Rental Registry Platforms.',
-      onlyPremiumAccountModalContent: 'Note: You must create a BC Registries Premium Account that uses a Pre-authorized Debit (PAD) payment method.'
+      onlyPremiumAccountModalContent: 'You must create a BC Registries Premium Account that uses a Pre-authorized Debit (PAD) payment method.'
     },
     review: {
       platInfo: {

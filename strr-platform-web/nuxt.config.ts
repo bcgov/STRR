@@ -8,7 +8,9 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/': { redirect: '/en-CA/platform/dashboard' }
+    '/': { redirect: '/en-CA/platform/dashboard' },
+    '/en-CA': { redirect: '/en-CA/platform/dashboard' },
+    '/fr-CA': { redirect: '/fr-CA/platform/dashboard' }
   },
 
   modules: [
@@ -17,7 +19,10 @@ export default defineNuxtConfig({
     '@nuxt/image'
   ],
 
-  extends: [['../strr-base-web', { install: true }]],
+  extends: [
+    // ['../strr-base-web', { install: true }] // dev only
+    ['github:bcgov/STRR/strr-base-web', { install: true }]
+  ],
 
   imports: {
     dirs: ['stores', 'composables', 'enums', 'interfaces', 'types', 'utils']

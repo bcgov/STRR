@@ -1,7 +1,7 @@
 <template>
   <div data-test-id="form-section-cra-info">
     <BcrosFormSection :title="t('createAccount.contactForm.cra')">
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:flex-col mobile:mb-[16px]">
+      <div class="flex mb-10 m:mb-4">
         <UFormGroup name="socialInsuranceNumber" class="flex-grow">
           <UInput
             v-model="socialInsuranceNumber"
@@ -15,7 +15,20 @@
           />
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mobile:flex-col">
+      <div
+        v-if="isPrimary"
+        class="mb-10 m:mb-4"
+      >
+        <UFormGroup name="businessLegalName">
+          <UInput
+            v-model="businessLegalName"
+            type="text"
+            aria-label="business legal name"
+            :placeholder="t('common.formLabels.businessLegalNameOptional')"
+          />
+        </UFormGroup>
+      </div>
+      <div class="flex">
         <UFormGroup name="businessNumber" class="flex-grow">
           <UInput
             v-model="businessNumber"
@@ -33,8 +46,9 @@
 const { t } = useTranslation()
 
 const socialInsuranceNumber = defineModel<string>('socialInsuranceNumber')
+const businessLegalName = defineModel<string>('businessLegalName')
 const businessNumber = defineModel<string>('businessNumber')
 
-const { isPrimary } = defineProps<{ isPrimary: boolean }>()
+const { isPrimary } = defineProps<{ isPrimary?: boolean }>()
 
 </script>

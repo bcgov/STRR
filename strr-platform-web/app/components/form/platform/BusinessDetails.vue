@@ -66,43 +66,6 @@ watch(() => platformBusiness.value.hasRegOffAtt,
   }
 )
 
-// address stuff
-const {
-  activeAddressField,
-  address: canadaPostAddress,
-  enableAddressComplete
-} = useCanadaPostAddress()
-
-const activeAddressPath = computed(() => {
-  if (activeAddressField.value === 'platform-business-address') {
-    return 'mailingAddress'
-  }
-  return 'regOfficeOrAtt.mailingAddress'
-})
-
-watch(canadaPostAddress, (newAddress) => {
-  if (platformBusinessFormRef.value) {
-    // reset form validation for city/region/postalCode if address is changed
-    platformBusinessFormRef.value.clear(`${activeAddressPath.value}.city`)
-    platformBusinessFormRef.value.clear(`${activeAddressPath.value}.region`)
-    platformBusinessFormRef.value.clear(`${activeAddressPath.value}.postalCode`)
-    if (newAddress && activeAddressPath.value === 'mailingAddress') {
-      platformBusiness.value.mailingAddress.street = newAddress.street
-      platformBusiness.value.mailingAddress.streetAdditional = newAddress.streetAdditional
-      platformBusiness.value.mailingAddress.country = newAddress.country
-      platformBusiness.value.mailingAddress.city = newAddress.city
-      platformBusiness.value.mailingAddress.region = newAddress.region
-      platformBusiness.value.mailingAddress.postalCode = newAddress.postalCode
-    } else if (newAddress) {
-      // NOTE: country and region are not set because they are disabled for regOfficeOrAtt.mailingAddress
-      platformBusiness.value.regOfficeOrAtt.mailingAddress.street = newAddress.street
-      platformBusiness.value.regOfficeOrAtt.mailingAddress.streetAdditional = newAddress.streetAdditional
-      platformBusiness.value.regOfficeOrAtt.mailingAddress.city = newAddress.city
-      platformBusiness.value.regOfficeOrAtt.mailingAddress.postalCode = newAddress.postalCode
-    }
-  }
-})
-
 onMounted(async () => {
   // validate form if step marked as complete
   if (props.isComplete) {
@@ -202,7 +165,7 @@ onMounted(async () => {
               v-model:region="platformBusiness.mailingAddress.region"
               v-model:postal-code="platformBusiness.mailingAddress.postalCode"
               :schema-prefix="'mailingAddress.'"
-              :enable-address-complete="enableAddressComplete"
+              :form-ref="platformBusinessFormRef"
             />
           </div>
         </ConnectFormSection>
@@ -258,8 +221,8 @@ onMounted(async () => {
                 v-model:region="platformBusiness.regOfficeOrAtt.mailingAddress.region"
                 v-model:postal-code="platformBusiness.regOfficeOrAtt.mailingAddress.postalCode"
                 :schema-prefix="'regOfficeOrAtt.mailingAddress.'"
-                :enable-address-complete="enableAddressComplete"
                 :disabled-fields="['country', 'region']"
+                :form-ref="platformBusinessFormRef"
               />
             </div>
           </div>

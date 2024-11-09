@@ -1,258 +1,129 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi } from 'vitest'
-import { mockFilingHistory } from '../../mocks/mockFilingHistory'
-import { mockApplicationApproved } from '../../mocks/mockApplication'
+import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { ref } from 'vue'
 import ApplicationDetails from '@/pages/application-details/[id]/index.vue'
+import {
+  mockApplicationApproved,
+  mockApplicationPaymentDue,
+  mockApplicationApprovedWithSecondaryContact,
+  mockApplicationApprovedWithDocuments
+} from '~/tests/mocks/mockApplication'
+
+const { t } = useTranslation()
+const tApplicationDetails = (key: string) => t(`applicationDetails.${key}`)
+const tStatuses = (key: string) => t(`statuses.${key}`)
 
 vi.mock('~/composables/useApplications', () => ({
-  useApplications: vi.fn(() => ({
-    getApplication: vi.fn(),
-    getApplicationHistory: vi.fn(),
-    getDocument: vi.fn()
-  }))
+  useApplications: vi.fn()
 }))
 
-vi.mock('~/composables/useBreadcrumb', () => ({
-  useBreadcrumb: vi.fn(() => ({
-    setupBreadcrumbData: vi.fn()
+const mockUseApplications = (applicationData: any = mockApplicationApproved) => {
+  // @ts-ignore: Ignore TypeScript error for mockImplementation
+  useApplications.mockImplementation(() => ({
+    getApplication: vi.fn().mockResolvedValue(applicationData),
+    getApplicationHistory: vi.fn().mockResolvedValue([])
   }))
-}))
-
-vi.mock('~/composables/useChipFlavour', () => ({
-  useChipFlavour: vi.fn(() => ({
-    getChipFlavour: vi.fn()
-  }))
-}))
-
-const mockRoute = {
-  params: {
-    id: '1'
-  }
 }
 
-describe('ApplicationDetails', () => {
-  it('renders application details correctly', () => {
-    const wrapper = mount(ApplicationDetails, {
-      global: {
-        mocks: {
-          $route: mockRoute,
-          useApplications: vi.fn(() => ({
-            getApplication: vi.fn().mockResolvedValue(mockApplicationApproved),
-            getApplicationHistory: vi.fn().mockResolvedValue(mockFilingHistory),
-            getDocument: vi.fn()
-          })),
-          useBreadcrumb: vi.fn(() => ({
-            setupBreadcrumbData: vi.fn()
-          })),
-          useChipFlavour: vi.fn(() => ({
-            getChipFlavour: vi.fn().mockReturnValue({ text: 'Auto Approved' })
-          }))
-        },
-        stubs: [
-          'BcrosBanner',
-          'BcrosTypographyH1',
-          'BcrosChip',
-          'BcrosFormSectionReviewItem',
-          'UTable',
-          'UButton',
-          'FilingHistory'
-        ]
-      }
+vi.mock('@/stores/keycloak', () => ({
+  useBcrosKeycloak: vi.fn()
+}))
+
+const mockUseBcrosKeycloak = (isExaminer: boolean = false) => {
+  // @ts-ignore: Ignore TypeScript error for mockImplementation
+  useBcrosKeycloak.mockImplementation(() => ({
+    isExaminer: ref(isExaminer)
+  }))
+}
+
+vi.mock('~/composables/useChipFlavour', () => ({
+  useChipFlavour: () => ({
+    getChipFlavour: () => ({
+      text: 'success',
+      color: 'bg-green-100'
     })
-    expect(wrapper.vm).toBeTruthy()
+  })
+}))
 
-    //  await wrapper.vm.$nextTick()
-    //     expect(wrapper.find('[data-test-id="application-title"]').text()).toContain('BCH24527283787')
-    //     expect(wrapper.find('[data-test-id="application-status-chip"]').text()).toBe('Auto Approved')
-    //     expect(wrapper.find('[data-test-id="unit-address"]').text()).toContain('123 Main St')
-    //     expect(wrapper.find('[data-test-id="business-license"]').text()).toBe('-')
-    //     expect(wrapper.find('[data-test-id="ownership-type"]').text()).toBe('Own')
-    //     expect(wrapper.find('[data-test-id="property-type"]').text()).toBe('Secondary Suite')
-    //     expect(wrapper.find('[data-test-id="primary-contact-name"]').text()).toContain('BCREGTEST TWENTYFIVE')
-    //     expect(wrapper.find('[data-test-id="primary-contact-email"]').text()).toBe('test1@email.com')
-    //     expect(wrapper.find('[data-test-id="primary-contact-phone"]').text()).toBe('5554443322')
-    //   })
+describe('Application Details Page', () => {
+  let wrapper: any
 
-    //   it('displays correct application status', async () => {
-    //     const wrapper = mount(ApplicationDetails, {
-    //       global: {
-    //         mocks: {
-    //           $route: mockRoute,
-    //           useApplications: vi.fn(() => ({
-    //             getApplication: vi.fn().mockResolvedValue(mockApplicationApproved),
-    //             getApplicationHistory: vi.fn().mockResolvedValue(mockFilingHistory),
-    //             getDocument: vi.fn()
-    //           })),
-    //           useBreadcrumb: vi.fn(() => ({
-    //             setupBreadcrumbData: vi.fn()
-    //           })),
-    //           useChipFlavour: vi.fn(() => ({
-    //             getChipFlavour: vi.fn().mockReturnValue({ text: 'Auto Approved' })
-    //           }))
-    //         },
-    //         stubs: [
-    //           'BcrosBanner',
-    //           'BcrosTypographyH1',
-    //           'BcrosChip',
-    //           'BcrosFormSectionReviewItem',
-    //           'UTable',
-    //           'UButton',
-    //           'FilingHistory'
-    //         ]
-    //       }
-    //     })
+  beforeEach(() => {
+    vi.resetAllMocks()
+    mockUseApplications()
+    mockUseBcrosKeycloak()
+  })
 
-    //     await wrapper.vm.$nextTick()
+  it('renders the application details page correctly', async () => {
+    wrapper = await mountSuspended(ApplicationDetails)
+    expect(wrapper.findTestId('application-details').exists()).toBe(true)
+    expect(wrapper.findTestId('application-header').exists()).toBe(true)
+    expect(wrapper.findTestId('application-title').exists()).toBe(true)
+  })
 
-    //     expect(wrapper.find('[data-test-id="application-status-text"]').text()).toBe('hostStatuses.autoApproved')
-    //   })
+  it('displays application status correctly', async () => {
+    wrapper = await mountSuspended(ApplicationDetails)
+    const statusSection = wrapper.findTestId('application-status')
+    expect(statusSection.exists()).toBe(true)
+    expect(statusSection.find('h2').text()).toBe(tApplicationDetails('applicationStatus'))
+  })
 
-    //   it('renders filing history correctly', async () => {
-    //     const wrapper = mount(ApplicationDetails, {
-    //       global: {
-    //         mocks: {
-    //           $route: mockRoute,
-    //           useApplications: vi.fn(() => ({
-    //             getApplication: vi.fn().mockResolvedValue(mockApplicationApproved),
-    //             getApplicationHistory: vi.fn().mockResolvedValue(mockFilingHistory),
-    //             getDocument: vi.fn()
-    //           })),
-    //           useBreadcrumb: vi.fn(() => ({
-    //             setupBreadcrumbData: vi.fn()
-    //           })),
-    //           useChipFlavour: vi.fn(() => ({
-    //             getChipFlavour: vi.fn().mockReturnValue({ text: 'Auto Approved' })
-    //           }))
-    //         },
-    //         stubs: [
-    //           'BcrosBanner',
-    //           'BcrosTypographyH1',
-    //           'BcrosChip',
-    //           'BcrosFormSectionReviewItem',
-    //           'UTable',
-    //           'UButton'
-    //         ]
-    //       }
-    //     })
+  it('displays rental unit information correctly', async () => {
+    wrapper = await mountSuspended(ApplicationDetails)
+    expect(wrapper.findTestId('unit-nickname').exists()).toBe(true)
+    expect(wrapper.findTestId('ownership-type').exists()).toBe(true)
+    expect(wrapper.findTestId('unit-address').exists()).toBe(true)
+    expect(wrapper.findTestId('parcel-identifier').exists()).toBe(true)
+    expect(wrapper.findTestId('property-type').exists()).toBe(true)
+    const statusText = wrapper.findTestId('application-status-text')
+    expect(statusText.text()).toBe(tStatuses('hostStatuses.fullReviewApproved'))
+  })
 
-    //     await wrapper.vm.$nextTick()
+  it('displays primary contact information correctly', async () => {
+    wrapper = await mountSuspended(ApplicationDetails)
+    const primaryContact = wrapper.findTestId('primary-contact')
+    expect(primaryContact.exists()).toBe(true)
+    expect(wrapper.findTestId('primary-contact-name').exists()).toBe(true)
+    expect(wrapper.findTestId('primary-contact-email').exists()).toBe(true)
+    expect(wrapper.findTestId('primary-contact-phone').exists()).toBe(true)
+    expect(wrapper.findTestId('primary-contact-address').exists()).toBe(true)
+  })
 
-    //     const filingHistory = wrapper.findComponent({ name: 'FilingHistory' })
-    //     expect(filingHistory.exists()).toBe(true)
-    //     expect(filingHistory.props('history')).toEqual(mockFilingHistory)
-    //   })
+  it('displays payment due banner when payment is due', async () => {
+    mockUseApplications(mockApplicationPaymentDue)
 
-    //   it('handles application without documents', async () => {
-    //     const applicationWithoutDocuments = {
-    //       ...mockApplicationApproved,
-    //       registration: { ...mockApplicationApproved.registration, documents: [] }
-    //     }
-    //     const wrapper = mount(ApplicationDetails, {
-    //       global: {
-    //         mocks: {
-    //           $route: mockRoute,
-    //           useApplications: vi.fn(() => ({
-    //             getApplication: vi.fn().mockResolvedValue(applicationWithoutDocuments),
-    //             getApplicationHistory: vi.fn().mockResolvedValue(mockFilingHistory),
-    //             getDocument: vi.fn()
-    //           })),
-    //           useBreadcrumb: vi.fn(() => ({
-    //             setupBreadcrumbData: vi.fn()
-    //           })),
-    //           useChipFlavour: vi.fn(() => ({
-    //             getChipFlavour: vi.fn().mockReturnValue({ text: 'Auto Approved' })
-    //           }))
-    //         },
-    //         stubs: [
-    //           'BcrosBanner',
-    //           'BcrosTypographyH1',
-    //           'BcrosChip',
-    //           'BcrosFormSectionReviewItem',
-    //           'UTable',
-    //           'UButton',
-    //           'FilingHistory'
-    //         ]
-    //       }
-    //     })
+    wrapper = await mountSuspended(ApplicationDetails)
+    const statusText = wrapper.findTestId('application-status-text')
+    expect(statusText.text()).toBe(tStatuses('paymentDue'))
+    const banner = wrapper.findTestId('payment-due-banner')
+    expect(banner.exists()).toBe(true)
+    expect(banner.text()).toContain(tApplicationDetails('paymentDueBannerTitle'))
+  })
 
-    //     await wrapper.vm.$nextTick()
+  it('displays documents section when documents exist', async () => {
+    mockUseApplications(mockApplicationApprovedWithDocuments)
 
-    //     expect(wrapper.find('[data-test-id="documents-section"]').exists()).toBe(false)
-    //   })
+    wrapper = await mountSuspended(ApplicationDetails)
+    const documentId = wrapper.vm.documents[0].fileKey
+    const documents = wrapper.findTestId(`document-${documentId}`)
+    expect(documents.exists()).toBe(true)
+    const documentsSection = wrapper.findTestId('documents-section')
+    expect(documentsSection.exists()).toBe(true)
+  })
 
-    //   it('displays LTSA and auto-approval sections for examiner', async () => {
-    //     const wrapper = mount(ApplicationDetails, {
-    //       global: {
-    //         mocks: {
-    //           $route: mockRoute,
-    //           useApplications: vi.fn(() => ({
-    //             getApplication: vi.fn().mockResolvedValue(mockApplicationApproved),
-    //             getApplicationHistory: vi.fn().mockResolvedValue(mockFilingHistory),
-    //             getDocument: vi.fn()
-    //           })),
-    //           useBreadcrumb: vi.fn(() => ({
-    //             setupBreadcrumbData: vi.fn()
-    //           })),
-    //           useChipFlavour: vi.fn(() => ({
-    //             getChipFlavour: vi.fn().mockReturnValue({ text: 'Auto Approved' })
-    //           })),
-    //           useBcrosKeycloak: vi.fn(() => ({
-    //             isExaminer: true
-    //           }))
-    //         },
-    //         stubs: [
-    //           'BcrosBanner',
-    //           'BcrosTypographyH1',
-    //           'BcrosChip',
-    //           'BcrosFormSectionReviewItem',
-    //           'UTable',
-    //           'UButton',
-    //           'FilingHistory'
-    //         ]
-    //       }
-    //     })
+  it('displays examiner-specific sections when user is examiner', async () => {
+    mockUseBcrosKeycloak(true)
 
-    //     await wrapper.vm.$nextTick()
+    wrapper = await mountSuspended(ApplicationDetails)
+    expect(wrapper.findTestId('ltsa-info-section').exists()).toBe(true)
+    expect(wrapper.findTestId('auto-approval-section').exists()).toBe(true)
+  })
 
-    //     expect(wrapper.find('[data-test-id="ltsa-info-section"]').exists()).toBe(true)
-    //     expect(wrapper.find('[data-test-id="auto-approval-section"]').exists()).toBe(true)
-    //   })
+  it('displays secondary contact information when available', async () => {
+    mockUseApplications(mockApplicationApprovedWithSecondaryContact)
 
-    //   it('does not display LTSA and auto-approval sections for non-examiner', async () => {
-    //     const wrapper = mount(ApplicationDetails, {
-    //       global: {
-    //         mocks: {
-    //           $route: mockRoute,
-    //           useApplications: vi.fn(() => ({
-    //             getApplication: vi.fn().mockResolvedValue(mockApplicationApproved),
-    //             getApplicationHistory: vi.fn().mockResolvedValue(mockFilingHistory),
-    //             getDocument: vi.fn()
-    //           })),
-    //           useBreadcrumb: vi.fn(() => ({
-    //             setupBreadcrumbData: vi.fn()
-    //           })),
-    //           useChipFlavour: vi.fn(() => ({
-    //             getChipFlavour: vi.fn().mockReturnValue({ text: 'Auto Approved' })
-    //           })),
-    //           useBcrosKeycloak: vi.fn(() => ({
-    //             isExaminer: false
-    //           }))
-    //         },
-    //         stubs: [
-    //           'BcrosBanner',
-    //           'BcrosTypographyH1',
-    //           'BcrosChip',
-    //           'BcrosFormSectionReviewItem',
-    //           'UTable',
-    //           'UButton',
-    //           'FilingHistory'
-    //         ]
-    //       }
-    //     })
-
-    //     await wrapper.vm.$nextTick()
-
-    //     expect(wrapper.find('[data-test-id="ltsa-info-section"]').exists()).toBe(false)
-    //     expect(wrapper.find('[data-test-id="auto-approval-section"]').exists()).toBe(false)
+    wrapper = await mountSuspended(ApplicationDetails)
+    const secondaryContact = wrapper.findTestId('secondary-contact')
+    expect(secondaryContact.exists()).toBe(true)
+    expect(wrapper.findTestId('secondary-contact-email').text()).toContain('secondary@email.com')
   })
 })

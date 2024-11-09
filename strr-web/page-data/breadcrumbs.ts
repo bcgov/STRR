@@ -61,5 +61,5 @@ export const examinerBreadcrumbs: Partial<BreadcrumbsI> = {
   [RouteNamesE.APPLICATION_DETAILS_LTSA]: examinerApplicationDetailsBreadcrumb,
   [RouteNamesE.APPLICATION_DETAILS_AUTO_APPROVAL]: examinerApplicationDetailsBreadcrumb,
   [RouteNamesE.CREATE_ACCOUNT]: examinerStrRegistrationBreadcrumb,
-  [RouteNamesE.REGISTRATION_DETAILS]: examinerDashboardBreadcrumb
+  [RouteNamesE.REGISTRATION_DETAILS]: examinerApplicationDetailsBreadcrumb
 }

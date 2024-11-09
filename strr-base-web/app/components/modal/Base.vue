@@ -5,33 +5,46 @@ const isSmallScreen = useMediaQuery('(max-width: 640px)')
 defineProps<{
   title?: string
   content?: string
-  actions?: { label: string, handler:() => void, color?: string, variant?: string }[]
+  actions?: { label: string, handler:() => void, color?: string, variant?: string }[],
+  closeFn?: () => void
   error?: {
     title: string
     description: string
-    // showContactInfo?: boolean
+    showContactInfo?: boolean
   },
-  fullscreen?: boolean
+  fullscreen?: boolean,
+  persist?: boolean
 }>()
 
 defineEmits<{
-  modalClosed: [void]
+  afterLeave: [void]
 }>()
 </script>
 <template>
   <UModal
     v-model="modalModel"
     :fullscreen
+    :prevent-close="!!persist"
     :ui="{
       width: 'w-full sm:max-w-lg md:min-w-min'
     }"
-    @after-leave="$emit('modalClosed')"
+    @after-leave="$emit('afterLeave')"
   >
     <UCard
       :ui="{
         divide: '',
         rounded: fullscreen ? 'rounded-none' : 'rounded-lg',
-        base: fullscreen ? 'h-screen' : ''
+        base: fullscreen ? 'h-screen' : '',
+        body: {
+          base: '',
+          background: '',
+          padding: 'px-4 py-4 sm:p-6'
+        },
+        header: {
+          base: '',
+          background: '',
+          padding: 'px-4 py-4 sm:px-6'
+        },
       }"
     >
       <template #header>
@@ -44,7 +57,7 @@ defineEmits<{
             :aria-label="$t('btn.close')"
             square
             variant="ghost"
-            @click="modalModel = false"
+            @click="closeFn ? closeFn() : (modalModel = false)"
           />
         </div>
       </template>
@@ -58,11 +71,7 @@ defineEmits<{
             {{ error.title }}
           </h2>
           <p>{{ error.description }}</p>
-          <!-- should we have a contact info section ?? -->
-          <!-- <p v-if="error.showContactInfo" class="self-start">
-            Please contact us if you require assistance.
-          </p>
-          <BCRegContactInfo v-if="error.showContactInfo" class="self-start text-left" /> -->
+          <ConnectContactBcros v-if="error.showContactInfo" class="self-start text-left" />
         </div>
       </slot>
       <template v-if="actions !== undefined || $slots.footer" #footer>

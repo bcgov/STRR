@@ -31,7 +31,7 @@ export function formatBusinessDetailsUI (bus: ApiBusinessDetails): StrrBusiness 
 
 export function formatStrataDetails (details: StrataDetails): ApiStrataDetails {
   return {
-    brands: details.brands,
+    brand: details.brand,
     buildings: details.buildings.map(building => (formatAddress(building))),
     location: formatAddress(details.location),
     numberOfUnits: details.numberOfUnits as number
@@ -40,7 +40,7 @@ export function formatStrataDetails (details: StrataDetails): ApiStrataDetails {
 
 export function formatStrataDetailsUI (details: ApiStrataDetails): StrataDetails {
   return {
-    brands: details.brands,
+    brand: details.brand,
     buildings: details.buildings.map(building => (formatAddressUI(building))),
     location: formatAddressUI(details.location),
     numberOfUnits: details.numberOfUnits as number

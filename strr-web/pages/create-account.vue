@@ -2,14 +2,14 @@
   <div data-test-id="create-account-page" class="relative h-full">
     <div class="w-full flex flex-col justify-between desktop:justify-center items-center">
       <div
-        class="shrink w-full flex flex-row mobile:flex-col mobile:justify-between justify-center max-w-[1360px] px-4"
+        class="shrink w-full flex flex-row m:flex-col m:justify-between justify-center max-w-[1360px] px-4"
       >
-        <div class="grow mr-6 mobile:mr-0">
-          <div class="mobile:px-[8px]">
+        <div class="grow mr-6 m:mr-0">
+          <div class="m:px-2">
             <BcrosTypographyH1
               :text="t('createAccount.title')"
               data-test-id="create-application-title"
-              class="mobile:pb-[20px]"
+              class="m:pb-5"
             />
             <div class="flex d:flex-row m:flex-col mb-8">
               <InfoModal
@@ -53,9 +53,9 @@
             />
           </div>
           <div :key="activeStepIndex" class="grow">
-            <div class="mobile:px-[8px]">
-              <BcrosTypographyH2 :text="t(activeStep.title)" class="py-[32px]" />
-              <p v-if="activeStep.subtitle" class="mb-[32px]">
+            <div class="m:px-2">
+              <BcrosTypographyH2 :text="t(activeStep.title)" class="py-8" />
+              <p v-if="activeStep.subtitle" class="mb-8">
                 {{ t(activeStep.subtitle) }}
               </p>
             </div>
@@ -88,7 +88,7 @@
             </div>
           </div>
         </div>
-        <div class="shrink mobile:grow">
+        <div class="shrink m:grow">
           <FeeWidget :fee="fee" />
         </div>
       </div>
@@ -125,7 +125,7 @@ const updateFees = async () => {
 }
 
 const { t } = useTranslation()
-const { userFullName, userFirstName, userLastName, me } = useBcrosAccount()
+const { userFullName, me } = useBcrosAccount()
 
 const { createApplication } = useApplications()
 const submitInProgress = ref(false)
@@ -179,14 +179,9 @@ const submit = async () => {
     submitInProgress.value = true
     try {
       await createApplication(
-        userFirstName,
-        userLastName,
         hasSecondaryContact.value,
         propertyToApiType(formState.propertyDetails.propertyType),
-        ownershipToApiType(formState.propertyDetails.ownershipType),
-        formState.propertyDetails.rentalUnitSpaceType,
-        formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
-        formState.propertyDetails.numberOfRoomsForRent
+        ownershipToApiType(formState.propertyDetails.ownershipType)
       )
     } finally {
       submitInProgress.value = false

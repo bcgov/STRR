@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { ConnectStepper } from '#components'
+import { ConnectStepper, FormReviewConfirm } from '#components'
 
 const { t } = useI18n()
+const localePath = useLocalePath()
+const strrModal = useStrrModals()
+const strataModal = useStrataModals()
+const { handlePaymentRedirect } = useNavigate()
 
 const { validateContact } = useStrrContactStore()
 const { validateStrataBusiness } = useStrrStrataBusinessStore()
 const { validateStrataDetails } = useStrrStrataDetailsStore()
-const { validateStrataConfirmation } = useStrrStrataApplicationStore()
+const { submitStrataApplication, validateStrataConfirmation } = useStrrStrataApplicationStore()
 // fee stuff
 const {
   addReplaceFee,
@@ -63,7 +67,87 @@ const steps = ref<Step[]>([
 const activeStepIndex = ref<number>(0)
 const activeStep = ref<Step>(steps.value[activeStepIndex.value] as Step)
 const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
-// const reviewFormRef = shallowRef<InstanceType<typeof FormPlatformReviewConfirm> | null>(null)
+const reviewFormRef = shallowRef<InstanceType<typeof FormReviewConfirm> | null>(null)
+
+// need to cleanup the setButtonControl somehow
+const handleStrataSubmit = async () => {
+  let formErrors: MultiFormValidationResult = []
+  try {
+    // TODO: move button management into composable ?
+    // set buttons to loading state
+    setButtonControl({
+      leftButtons: [],
+      rightButtons: [
+        {
+          action: () => undefined, // is disabled
+          icon: 'i-mdi-chevron-left',
+          label: t('btn.back'),
+          variant: 'outline',
+          disabled: true
+        },
+        {
+          action: () => undefined, // is disabled
+          icon: 'i-mdi-chevron-right',
+          label: t('btn.submitAndPay'),
+          trailing: true,
+          loading: true
+        }
+      ]
+    })
+
+    activeStep.value.complete = true // set final review step as active before validation
+    reviewFormRef.value?.validateConfirmation() // validate confirmation checkboxes on submit
+
+    // all step validations
+    const validations = [
+      validateContact(),
+      validateStrataBusiness(),
+      validateStrataDetails(),
+      validateStrataConfirmation()
+    ]
+
+    const validationResults = await Promise.all(validations)
+    formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
+    const isApplicationValid = formErrors.every(result => result.success === true)
+
+    console.info('is application valid: ', isApplicationValid, formErrors)
+
+    // if all steps valid, submit form with store function
+    if (isApplicationValid) {
+      const { paymentToken, filingId, applicationStatus } = await submitStrataApplication()
+      const redirectPath = `/strata-hotel/dashboard/${filingId}`
+      if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
+        handlePaymentRedirect(paymentToken, redirectPath)
+      } else {
+        await navigateTo(localePath(redirectPath))
+      }
+    } else {
+      stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
+    }
+  } catch (e) {
+    logFetchError(e, 'Error creating strata application')
+    strrModal.openAppSubmitError(e)
+  } finally {
+    // set buttons back to non loading state
+    setButtonControl({
+      leftButtons: [],
+      rightButtons: [
+        {
+          action: () => stepperRef.value?.setPreviousStep(),
+          icon: 'i-mdi-chevron-left',
+          label: t('btn.back'),
+          variant: 'outline'
+        },
+        {
+          action: handleStrataSubmit,
+          icon: 'i-mdi-chevron-right',
+          label: t('btn.submitAndPay'),
+          trailing: true
+        }
+      ]
+    })
+  }
+}
 
 // TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
 watch(activeStepIndex, (val) => {
@@ -78,8 +162,7 @@ watch(activeStepIndex, (val) => {
   }
   const isLastStep = val === steps.value.length - 1
   buttons.push({
-    // TODO: make submission function
-    action: isLastStep ? () => console.info('TODO') : () => stepperRef.value?.setNextStep(),
+    action: isLastStep ? handleStrataSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
     label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${val + 1}`),
     trailing: true
@@ -96,7 +179,7 @@ useHead({
 
 definePageMeta({
   layout: 'connect-form',
-  middleware: ['auth'],
+  middleware: ['auth', 'require-account'],
   path: '/strata-hotel/application'
 })
 
@@ -109,7 +192,32 @@ setBreadcrumbs([
 <template>
   <div class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
+
+    <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
+      <UButton
+        :label="$t('modal.helpRegisterStrataHotel.triggerBtn')"
+        :padded="false"
+        icon="i-mdi-help-circle-outline"
+        variant="link"
+        @click="strataModal.openHelpRegisterStrataHotelModal()"
+      />
+
+      <UDivider
+        orientation="vertical"
+        class="hidden sm:block"
+      />
+
+      <UButton
+        :label="$t('modal.infoCollectionNotice.triggerBtn')"
+        :padded="false"
+        icon="i-mdi-information-circle-outline"
+        variant="link"
+        @click="strataModal.openInfoCollectionNoticeModal()"
+      />
+    </div>
+
     <ConnectStepper
+      ref="stepperRef"
       :key="0"
       v-model:steps="steps"
       v-model:active-step-index="activeStepIndex"
@@ -117,23 +225,20 @@ setBreadcrumbs([
       :stepper-label="$t('strr.step.stepperLabel')"
     />
     <div v-if="activeStepIndex === 0" key="contact-information">
-      <!-- TODO: replace with strata version -->
-      <!-- <FormPlatformBusinessDetails :is-complete="activeStep.complete" /> -->
-    </div>
-    <div v-if="activeStepIndex === 1" key="business-details">
       <FormContactInfo :is-complete="activeStep.complete" />
     </div>
-    <div v-if="activeStepIndex === 2" key="platform-information">
-      <!-- TODO: replace with strata version -->
-      <!-- <FormPlatformDetails :is-complete="activeStep.complete" /> -->
+    <div v-if="activeStepIndex === 1" key="business-details">
+      <FormBusinessDetails :is-complete="activeStep.complete" />
+    </div>
+    <div v-if="activeStepIndex === 2" key="strata-information">
+      <FormStrataDetails :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
-      <!-- TODO: replace with strata version -->
-      <!-- <FormPlatformReviewConfirm
+      <FormReviewConfirm
         ref="reviewFormRef"
         :is-complete="activeStep.complete"
         @edit="stepperRef?.setActiveStep"
-      /> -->
+      />
     </div>
   </div>
 </template>

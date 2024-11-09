@@ -20,6 +20,7 @@
             <a
               class="block py-1 px-2 text-white text-[15px] mobile:text-[13px] hover:underline"
               :href="link.href"
+              rel="noopener noreferrer"
               :target="link.newTab ? '_blank' : '_self'"
             >
               {{ t(`footer.link.${link.text}`) }}

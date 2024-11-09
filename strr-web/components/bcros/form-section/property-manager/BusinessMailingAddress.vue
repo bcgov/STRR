@@ -1,5 +1,5 @@
 <template>
-  <div data-test-id="property-manager-business-address" class="with-divider">
+  <div data-test-id="property-manager-business-address">
     <BcrosFormSection :title="t('createAccount.propertyManagerForm.businessMailingAddress')">
       <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
         <UFormGroup name="country" class="flex-grow">

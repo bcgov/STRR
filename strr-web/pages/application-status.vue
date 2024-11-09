@@ -45,7 +45,7 @@
           ]"
         >
           <BcrosStatusCard
-            v-if="application"
+            v-if="application && isHostRegistrationType(application)"
             :application-header="application.header"
             :is-single="!(applications && applications?.length > 1)"
             :class="{'mr-6': (index + 1) % 3 !== 0}"
@@ -115,6 +115,18 @@ const tRegistrationStatus = (translationKey: string) => useTranslation().t(`regi
 const { getApplications } = useApplications()
 const applications = ref<(ApplicationI | undefined)[]>()
 const res = await getApplications()
+const { isExaminer } = storeToRefs(useBcrosKeycloak())
+
+const isHostRegistrationType = (application): boolean => {
+  return !isExaminer.value && application.registration.registrationType === RegistrationTypeE.HOST
+}
+
+onBeforeMount(() => {
+  // redirect Examiners to their own Dashboard
+  if (isExaminer.value) {
+    navigateTo({ path: '/' + RouteNamesE.REGISTRY_DASHBOARD })
+  }
+})
 
 if (res.total === 0) {
   navigateTo('/' + RouteNamesE.CREATE_ACCOUNT)
@@ -129,7 +141,7 @@ applications.value = res.applications
     }
   )
   .sort((a: ApplicationI, b: ApplicationI) =>
-    a.registration.unitAddress.city.localeCompare(b.registration.unitAddress.city)
+    a.registration?.unitAddress?.city.localeCompare(b.registration?.unitAddress?.city)
   )
 const applicationsCount = applications.value?.length || 0
 </script>

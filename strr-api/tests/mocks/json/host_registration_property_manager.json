@@ -81,6 +81,7 @@
     },
     "propertyManager": {
       "businessLegalName": "Test Business",
+      "initiatedByPropertyManager": false,
       "businessMailingAddress": {
         "address": "123 GREENWELL ST MAPLE RIDGE",
         "city": "MAPLE RIDGE",

@@ -1,5 +1,12 @@
 /* eslint-disable max-len */
 export default {
+  act: {
+    strrAccomodations: 'Short-Term Rental Accommodations Act'
+  },
+  badge: {
+    basicAccount: 'BASIC ACCOUNT',
+    inactiveAccount: 'INACTIVE ACCOUNT'
+  },
   btn: {
     getStarted: 'Get Started',
     goHome: 'Go Home',
@@ -50,7 +57,12 @@ export default {
     save: 'Save',
     saveExit: 'Save and Resume Later',
     beginApplication: 'Begin Application',
-    resumeApplication: 'Resume Application'
+    resumeApplication: 'Resume Application',
+    acceptTos: {
+      main: 'Accept Terms of Use',
+      aria: 'Accept Terms of Use (scroll and check the box before)'
+    },
+    createAnAccount: 'Create an Account'
   },
   contactInfo: {
     bcRegGeneral: {
@@ -77,15 +89,22 @@ export default {
     usd: 'USD'
   },
   error: {
+    persistContactUs: 'If this issue persists, please contact us at:',
     generic: {
       title: 'Something Went Wrong',
       description: 'An error occurred, please try again. If this error persists, please contact us.'
+    },
+    tos: {
+      load: 'Unable to load terms of use, please try again later.'
     }
   },
   imageAlt: {
     genericLogin: 'Generic Login Image'
   },
   label: {
+    applicationDate: 'Application Date',
+    expiryDate: 'Expiry Date',
+    registrationDate: 'Registration Date',
     note: 'Note',
     optional: 'Optional',
     characters: 'characters',
@@ -145,6 +164,8 @@ export default {
     busNum: 'Business Number',
     busNumOpt: 'Business Number (Optional)',
     cpbcLicNum: 'CPBC Licence Number',
+    registrationNum: 'Registration Number',
+    applicationNum: 'Application Number',
     homeJurisdiction: 'Home Jurisdiction',
     name: 'Name',
     mailingAddress: 'Mailing Address',
@@ -206,6 +227,18 @@ export default {
     createNewAccount: 'Create New Account',
     contToCreateAccount: 'Continue to Create Account'
   },
+  modal: {
+    declineTos: {
+      title: 'Decline Terms of Use?',
+      content: 'By declining the Terms of Use, you won’t be able to access this service. Do you wish to proceed?',
+      declineBtn: 'Decline Terms of Use'
+    },
+    changeAccountConfirm: {
+      title: 'Leave Site?',
+      content: 'Changes you made may not be saved.',
+      leaveBtn: 'Leave'
+    }
+  },
   word: {
     i: 'i',
     addresses: 'Addresses',
@@ -216,6 +249,7 @@ export default {
     none: 'None',
     or: 'or',
     Or: 'Or',
+    OR: 'OR',
     error: 'error',
     Error: 'Error',
     OK: 'OK',
@@ -228,7 +262,8 @@ export default {
     Edit: 'Edit',
     Save: 'Save',
     Receipt: 'Receipt',
-    Certify: 'Certify'
+    Certify: 'Certify',
+    Leave: 'Leave'
   },
   page: {
     notFound: {
@@ -242,6 +277,11 @@ export default {
     login: {
       // Each app could overwrite this if they wanted. Default would be different
       h1: 'Log In to Short-Term Rental Registry'
+    },
+    tos: {
+      title: 'Terms of Use - Short Term Rental Registry',
+      h1: 'Terms of Use',
+      acceptCheckbox: 'I have read and accept the Terms of Use'
     }
   },
   table: {},
@@ -302,6 +342,7 @@ export default {
       last: 'Please enter a last name',
       full: 'Please enter a full legal name'
     },
+    number: 'Please enter a number',
     phone: {
       code: 'Please select a country code',
       number: 'Please enter a phone number'
@@ -311,7 +352,11 @@ export default {
       false: 'Step did not pass validation',
       true: 'Step successfully validated'
     },
-    confirm: 'Please confirm to continue'
+    confirm: 'Please confirm to continue',
+    tos: {
+      scroll: 'You must scroll to the bottom of this page to accept the Terms of Use',
+      accept: 'You must accept the Terms of Use to continue'
+    }
   },
   // components
   ConnectHeader: {

@@ -48,11 +48,13 @@ class PropertyManager:
         businessMailingAddress,
         businessLegalName=None,
         businessNumber=None,
+        initiatedByPropertyManager=False,
     ):
         self.contact = PropertyManagerContact(**contact)
         self.businessMailingAddress = MailingAddress(**businessMailingAddress)
         self.businessLegalName = businessLegalName
         self.businessNumber = businessNumber
+        self.initiatedByPropertyManager = initiatedByPropertyManager
 
 
 class PropertyManagerContact:

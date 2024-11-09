@@ -14,7 +14,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     statuses.includes(activeApplicationInfo.value?.status as ApplicationStatus)
 
   const isPaidApplication = computed(() =>
-    activeApplicationInfo.value && !isApplicationStatus([ApplicationStatus.DRAFT, ApplicationStatus.PAYMENT_DUE]))
+    !!activeApplicationInfo.value && !isApplicationStatus([ApplicationStatus.DRAFT, ApplicationStatus.PAYMENT_DUE]))
 
   const showPlatformDetails = computed(() => isRegistration.value ||
     (activeApplicationInfo.value && !isApplicationStatus([ApplicationStatus.DECLINED, ApplicationStatus.DRAFT])))

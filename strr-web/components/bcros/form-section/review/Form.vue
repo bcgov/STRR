@@ -1,20 +1,21 @@
 <template>
   <div data-test-id="review-form" class="relative h-full">
-    <div class="desktop:mb-[180px] mobile:mb-[32px] rounded-[4px]">
-      <div class="bg-white px-[30px] py-[22px] mobile:px-[8px]">
+    <div class="d:mb-[180px] m:mb-[32px] rounded-1">
+      <div class="bg-white px-[30px] py-[22px] m:px-2">
         <p>{{ tReview('reviewInstructions') }}</p>
         <p>{{ tReview('reviewInstructionsContinued') }}</p>
       </div>
       <div>
+        <!-- Property Manager Information -->
         <BcrosFormSectionPropertyManagerSummaryView
           v-if="formState.hasPropertyManager"
           :property-manager="formState.propertyManager"
           data-test-id="property-manager-review"
-          class="mt-[48px]"
+          class="mt-12"
         />
         <div class="mt-[48px]">
           <p class="font-bold mb-[24px] mobile:mx-[8px]">
-            {{ tReview('primaryContact') }}
+            {{ tReview('hostInformation') }}
           </p>
           <BcrosFormSectionReviewSubsection
             :state="formState.primaryContact"
@@ -22,8 +23,9 @@
             data-test-id="primary-contact-review"
           />
         </div>
-        <div v-if="secondaryContact" class="mt-[48px]">
-          <p class="font-bold mb-[24px] mobile:mx-[8px]">
+        <!-- Secondary Contact -->
+        <div v-if="secondaryContact" class="mt-12">
+          <p class="font-bold mb-6 m:mx-2">
             {{ tReview('secondaryContact') }}
           </p>
           <BcrosFormSectionReviewSubsection
@@ -31,177 +33,88 @@
             :primary="false"
           />
         </div>
-        <div class="mt-[48px]" data-test-id="rental-unit-review">
-          <p class="font-bold mb-[24px] mobile:mx-[8px]">
-            {{ tReview('rentalUnitInfo') }}
+        <!-- Property Details -->
+        <BcrosFormSectionPropertySummaryView
+          :property-details="formState.propertyDetails"
+          data-test-id="property-details-review"
+          class="mt-12"
+        />
+        <!-- Principal Residence -->
+        <div class="mt-12">
+          <p class="font-bold mb-6 m:mx-2">
+            {{ tReview('principal') }}
           </p>
-          <div class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
-            <div class="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 desktop:mb-6">
-              <BcrosFormSectionReviewItem
-                :title="tReview('nickname')"
-                :content="formState.propertyDetails.nickname || '-'"
-              />
-              <BcrosFormSectionReviewItem
-                :title="tReview('parcelIdentifier')"
-                :content="formState.propertyDetails.parcelIdentifier || '-'"
-              />
-              <BcrosFormSectionReviewItem
-                :title="tReview('businessLicense')"
-                :content="formState.propertyDetails.businessLicense || '-'"
-              />
-              <BcrosFormSectionReviewItem
-                v-if="formState.propertyDetails.businessLicenseExpiryDate"
-                :title="tReview('businessLicenseExpiryDate')"
-                :content="convertDateToLongFormat(formState.propertyDetails.businessLicenseExpiryDate)"
-              />
-              <BcrosFormSectionReviewItem
-                :title="tReview('ownershipType')"
-                :content="getOwnershipTypeDisplay(formState.propertyDetails.ownershipType, tReview)"
-              />
-              <BcrosFormSectionReviewItem
-                :title="tReview('rentalUnitSpaceType')"
-                :content="tReview(formState.propertyDetails.rentalUnitSpaceType) || '-'"
-              />
-              <BcrosFormSectionReviewItem
-                :title="tReview('isUnitOnPrincipalResidenceProperty')"
-                :content="
-                  tReview(formState.propertyDetails.isUnitOnPrincipalResidenceProperty ? 'true' : 'false') || '-'
-                "
-              />
-              <BcrosFormSectionReviewItem
-                v-if="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
-                :title="tReview('hostResidence')"
-                :content="formState.propertyDetails.hostResidence
-                  ? tReview(formState.propertyDetails.hostResidence) : '-'"
-              />
-              <BcrosFormSectionReviewItem
-                :title="tReview('numberOfRoomsForRent')"
-                :content="formState.propertyDetails.numberOfRoomsForRent.toString() || '-'"
-              />
-              <BcrosFormSectionReviewItem
-                :title="tReview('propertyType')"
-                :content="formState.propertyDetails.propertyType ?? '-'"
-              />
-              <BcrosFormSectionReviewItem :title="tReview('address')">
-                <p>{{ formState.propertyDetails.address }}</p>
-                <p v-if="formState.propertyDetails.addressLineTwo">
-                  {{ formState.propertyDetails.addressLineTwo }}
-                </p>
-                <p>
-                  <!-- eslint-disable-next-line max-len -->
-                  {{ `${formState.propertyDetails.city ?? '-'} ${formState.propertyDetails.province ?? '-'}
-                  ${formState.propertyDetails.postalCode ?? '-'}` }}
-                </p>
-                <p>
-                  {{ `
-                  ${formState.propertyDetails.country !== 'CAN'
-                      && formState.propertyDetails.country
-                      ? regionNamesInEnglish.of(formState.propertyDetails.country)
-                  : '-'}`
-                  }}
-                </p>
-              </BcrosFormSectionReviewItem>
-              <div
-                v-if="
-                  formState.propertyDetails.listingDetails.length > 0
-                    && formState.propertyDetails.listingDetails[0].url !== ''
-                "
-              >
-                <BcrosFormSectionReviewItem
-                  :title="tReview('listing')"
-                >
-                  <a
-                    v-for="listing in formState.propertyDetails.listingDetails"
-                    :key="listing.url"
-                    :href="listing.url"
-                    target="_blank"
-                    class="my-[4px]"
-                    rel="noopener"
-                  >
-                    {{ listing.url }}
-                  </a>
-                </BcrosFormSectionReviewItem>
-              </div>
+          <div class="bg-white py-[22px] px-[30px] mb-6 m:px-2">
+            <p>
+              {{ formState.principal.isPrincipal ? tPrincipal('yes') : tPrincipal('no') }}
+            </p>
+            <div v-if="!formState.principal.isPrincipal">
+              <p>
+                <b>{{ tReview('reason') }}: </b>
+                {{ formState.principal.otherReason
+                  ? `${formState.principal.reason}: ${formState.principal.otherReason}`
+                  : (formState.principal.reason || '-')
+                }}
+              </p>
             </div>
           </div>
-          <div class="mt-[48px]">
-            <p class="font-bold mb-[24px] mobile:mx-[8px]">
-              {{ tReview('principal') }}
-            </p>
-            <div class="bg-white py-[22px] px-[30px] mb-[24px] mobile:px-[8px]">
-              {{
-                `${formState.principal.isPrincipal
-                  ? tPrincipal('yes')
-                  : tPrincipal('no')
-                }`
-              }}
-              <div v-if="!formState.principal.isPrincipal">
-                <p>
-                  <b>{{ tReview('reason') }}: </b>
-                  {{ `${formState.principal.otherReason
-                    ? `${formState.principal.reason}: ${formState.principal.otherReason}`
-                    : formState.principal.reason
-                  }` }}
-                </p>
-              </div>
-            </div>
-            <div v-if="formState.principal.isPrincipal && formState.principal.declaration">
-              <div class="bg-white py-[22px] px-[30px] mobile:px-[8px]">
-                <p class="font-bold mb-[8px]">
-                  {{ tReview('proof') }}
-                </p>
-                <div class="mb-[24px]">
-                  <div v-for="(supportingDocument) in formState.supportingDocuments" :key="supportingDocument.name">
-                    <div class="flex flex-row items-center">
-                      <img
-                        class="mr-[4px] h-[18px] w-[18px]"
-                        src="/icons/create-account/attach_dark.svg"
-                        alt="Attach icon"
-                      >
-                      <p>{{ supportingDocument.name }}</p>
-                    </div>
+          <div v-if="formState.principal.isPrincipal && formState.principal.declaration">
+            <div class="bg-white py-[22px] px-[30px] m:px-2">
+              <p class="font-bold mb-2">
+                {{ tReview('proof') }}
+              </p>
+              <div class="mb-6">
+                <div v-for="(supportingDocument) in formState.supportingDocuments" :key="supportingDocument.name">
+                  <div class="flex flex-row items-center">
+                    <img
+                      class="mr-1 h-[18px] w-[18px]"
+                      src="/icons/create-account/attach_dark.svg"
+                      alt="Attach icon"
+                    >
+                    <p>{{ supportingDocument.name }}</p>
                   </div>
                 </div>
-                <div class="mb-[24px]">
-                  <p class="font-bold">
-                    {{ tReview('declaration') }}
-                  </p>
-                  <div class="mt-[8px]">
-                    <div class="mb-[12px] flex flex-row">
-                      <img
-                        class="mr-[8px] self-start"
-                        src="/icons/create-account/gray_check.svg"
-                        alt="Confirmation checkmark"
-                      >
-                      <BcrosFormSectionReviewDeclaration />
-                    </div>
+              </div>
+              <div class="mb-6">
+                <p class="font-bold">
+                  {{ tReview('declaration') }}
+                </p>
+                <div class="mt-2">
+                  <div class="mb-[12px] flex flex-row">
+                    <img
+                      class="mr-2 self-start"
+                      src="/icons/create-account/gray_check.svg"
+                      alt="Confirmation checkmark"
+                    >
+                    <BcrosFormSectionReviewDeclaration />
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="mt-[48px]">
-            <p class="font-bold mb-[24px] mobile:mx-2">
-              {{ tReview('review') }}
-            </p>
-            <div class="bg-white p-8 mb-6">
-              <UCheckbox
-                v-model="formState.principal.agreeToSubmit"
-                :label="tReview('confirm')"
-                :ui="{ label: isComplete && !formState.principal.agreeToSubmit ? 'text-bcGovColor-error' : '' }"
-              />
-            </div>
-            <div
-              v-if="formState.isPropertyManagerRole"
-              class="bg-white p-8 mb-6"
-              data-test-id="host-auth-checkbox"
-            >
-              <UCheckbox
-                v-model="formState.hasHostAuthorization"
-                :label="tReview('confirmHostAuthorization')"
-                :ui="{ label: isComplete && !formState.hasHostAuthorization ? 'text-bcGovColor-error' : '' }"
-              />
-            </div>
+        </div>
+        <!-- Review and Confirm -->
+        <div class="mt-12">
+          <p class="font-bold mb-6 m:mx-2">
+            {{ tReview('review') }}
+          </p>
+          <div class="bg-white p-8 mb-6">
+            <UCheckbox
+              v-model="formState.principal.agreeToSubmit"
+              :label="tReview('confirm')"
+              :ui="{ label: isComplete && !formState.principal.agreeToSubmit ? 'text-bcGovColor-error' : '' }"
+            />
+          </div>
+          <div
+            v-if="formState.isPropertyManagerRole"
+            class="bg-white p-8 mb-6"
+            data-test-id="host-auth-checkbox"
+          >
+            <UCheckbox
+              v-model="formState.hasHostAuthorization"
+              :label="tReview('confirmHostAuthorization')"
+              :ui="{ label: isComplete && !formState.hasHostAuthorization ? 'text-bcGovColor-error' : '' }"
+            />
           </div>
         </div>
       </div>
@@ -211,17 +124,9 @@
 
 <script setup lang="ts">
 import { formState } from '@/stores/strr'
-import {
-  getOwnershipTypeDisplay
-} from '@/utils/common'
-
 const { t } = useTranslation()
-
 const { secondaryContact, isComplete } = defineProps<{ secondaryContact: boolean, isComplete: boolean }>()
-
-const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
 const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
 const tPrincipal = (translationKey: string) => t(`createAccount.principalResidence.${translationKey}`)
-
 </script>

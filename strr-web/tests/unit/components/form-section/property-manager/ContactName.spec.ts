@@ -1,7 +1,7 @@
 import { it, expect } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { createI18n } from 'vue-i18n'
-import { BcrosFormSectionPropertyManagerContactName } from '#components'
+import { BcrosFormSectionContactName } from '#components'
 
 const i18n = createI18n({
   // vue-i18n options here ...
@@ -9,7 +9,7 @@ const i18n = createI18n({
 let wrapper: any
 
 it('can mount Contact Name component', async () => {
-  wrapper = await mountSuspended(BcrosFormSectionPropertyManagerContactName,
+  wrapper = await mountSuspended(BcrosFormSectionContactName,
     {
       global: { plugins: [i18n] },
       props: {
@@ -17,15 +17,15 @@ it('can mount Contact Name component', async () => {
       }
     }
   )
-  expect(wrapper.findTestId('property-manager-contact-name').exists()).toBe(true)
-  expect(wrapper.findTestId('property-manager-first-name-input').exists()).toBe(true)
-  expect(wrapper.findTestId('property-manager-middle-name-input').exists()).toBe(true)
-  expect(wrapper.findTestId('property-manager-last-name-input').exists()).toBe(true)
+  expect(wrapper.findTestId('form-section-contact-name').exists()).toBe(true)
+  expect(wrapper.findTestId('contact-first-name-input').exists()).toBe(true)
+  expect(wrapper.findTestId('contact-middle-name-input').exists()).toBe(true)
+  expect(wrapper.findTestId('contact-last-name-input').exists()).toBe(true)
   expect(wrapper.findTestId('property-manager-preferred-name-input').exists()).toBe(true)
 })
 
 it('emits events on input changes', async () => {
-  wrapper = await mountSuspended(BcrosFormSectionPropertyManagerContactName,
+  wrapper = await mountSuspended(BcrosFormSectionContactName,
     {
       global: { plugins: [i18n] },
       props: {
@@ -33,14 +33,14 @@ it('emits events on input changes', async () => {
       }
     })
 
-  const firstNameInput = wrapper.findTestId('property-manager-first-name-input')
+  const firstNameInput = wrapper.findTestId('contact-first-name-input')
   await firstNameInput.trigger('input')
   expect(wrapper.emitted('resetFieldError')).toBeTruthy()
 
   await firstNameInput.trigger('blur')
   expect(wrapper.emitted('validateField')).toBeTruthy()
 
-  const lastNameInput = wrapper.findTestId('property-manager-last-name-input')
+  const lastNameInput = wrapper.findTestId('contact-last-name-input')
   await lastNameInput.trigger('input')
   expect(wrapper.emitted('resetFieldError')).toBeTruthy()
 
@@ -49,7 +49,7 @@ it('emits events on input changes', async () => {
 })
 
 it('does emit events for middle name and preferred name inputs', async () => {
-  wrapper = await mountSuspended(BcrosFormSectionPropertyManagerContactName,
+  wrapper = await mountSuspended(BcrosFormSectionContactName,
     {
       global: { plugins: [i18n] },
       props: {
@@ -57,7 +57,7 @@ it('does emit events for middle name and preferred name inputs', async () => {
       }
     })
 
-  const middleNameInput = wrapper.findTestId('property-manager-middle-name-input')
+  const middleNameInput = wrapper.findTestId('contact-middle-name-input')
   await middleNameInput.trigger('input')
   await middleNameInput.trigger('blur')
 

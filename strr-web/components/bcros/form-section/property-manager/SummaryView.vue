@@ -10,7 +10,7 @@ const props = defineProps<{
 // default values
 const {
   headerTag = 'p',
-  headerClass = 'font-bold mb-6 mobile:mx-2'
+  headerClass = 'font-bold mb-6 m:mx-2'
 } = props
 
 const propertyManagerContact = computed((): PropertyManagerContactI => props.propertyManager.contact)
@@ -22,8 +22,7 @@ const propertyManagerContact = computed((): PropertyManagerContactI => props.pro
       {{ tReviewPM('header') }}
     </component>
     <div
-      class="bg-white p-8 mobile:px-2 d:min-h-[250px]
-            grid d:grid-cols-3 d:grid-rows-3 d:grid-flow-col"
+      class="bg-white p-8 m:px-2 d:min-h-[250px] grid d:grid-cols-3 d:grid-rows-3 d:grid-flow-col"
     >
       <BcrosFormSectionReviewItem
         :title="tReviewPM('businessLegalName')"

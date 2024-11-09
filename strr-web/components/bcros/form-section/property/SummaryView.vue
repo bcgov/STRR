@@ -1,0 +1,114 @@
+<script setup lang="ts">
+import { getOwnershipTypeDisplay } from '@/utils/common'
+const { t } = useTranslation()
+const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
+
+const props = defineProps<{
+  headerTag?: string,
+  headerClass?: string,
+  propertyDetails: PropertyDetailsI
+}>()
+
+// default values
+const {
+  headerTag = 'p',
+  headerClass = 'font-bold mb-6 m:mx-2',
+  propertyDetails
+} = props
+
+const propertyAddressDetails = computed((): MailingAddressAPII => {
+  return {
+    address: propertyDetails.address,
+    addressLineTwo: propertyDetails.addressLineTwo,
+    city: propertyDetails.city,
+    postalCode: propertyDetails.postalCode,
+    province: propertyDetails.province,
+    country: propertyDetails.country
+  }
+})
+
+</script>
+
+<template>
+  <div>
+    <component :is="headerTag" :class="headerClass">
+      {{ tReview('propertyDetails') }}
+    </component>
+    <div class="bg-white p-8 m:px-2 grid d:grid-cols-3 d:grid-rows-5">
+      <BcrosFormSectionReviewItem
+        :title="tReview('nickname')"
+        :content="propertyDetails.nickname || '-'"
+        class="break-all"
+      />
+      <BcrosFormSectionReviewItem
+        :title="tReview('rentalUnitSpaceType')"
+        :content="propertyDetails.rentalUnitSpaceType
+          ? tReview(propertyDetails.rentalUnitSpaceType) : '-'"
+      />
+      <BcrosFormSectionReviewItem
+        :title="tReview('parcelIdentifier')"
+        :content="propertyDetails.parcelIdentifier || '-'"
+      />
+      <div class="grid grid-rows-subgrid d:row-span-5">
+        <BcrosFormSectionReviewItem
+          :title="tReview('address')"
+        >
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <p v-html="displayFullAddress(propertyAddressDetails) || '-'" />
+        </BcrosFormSectionReviewItem>
+      </div>
+      <BcrosFormSectionReviewItem
+        :title="tReview('isUnitOnPrincipalResidenceProperty')"
+        :content="propertyDetails.isUnitOnPrincipalResidenceProperty !== null
+          ? tReview(String(propertyDetails.isUnitOnPrincipalResidenceProperty)) : '-'
+        "
+      />
+      <BcrosFormSectionReviewItem
+        :title="tReview('businessLicense')"
+        :content="propertyDetails.businessLicense || '-'"
+      />
+      <BcrosFormSectionReviewItem
+        v-if="propertyDetails.isUnitOnPrincipalResidenceProperty"
+        :title="tReview('hostResidence')"
+        :content="propertyDetails.hostResidence
+          ? tReview(propertyDetails.hostResidence) : '-'"
+      />
+      <BcrosFormSectionReviewItem
+        v-if="propertyDetails.businessLicenseExpiryDate"
+        :title="tReview('businessLicenseExpiryDate')"
+        :content="convertDateToLongFormat(propertyDetails.businessLicenseExpiryDate)"
+      />
+      <BcrosFormSectionReviewItem
+        :title="tReview('numberOfRoomsForRent')"
+        :content="String(propertyDetails.numberOfRoomsForRent) || '-'"
+      />
+      <div class="grid grid-rows-subgrid d:row-span-3">
+        <BcrosFormSectionReviewItem :title="tReview('listing')">
+          <template v-if="propertyDetails.listingDetails[0]?.url.length > 0">
+            <a
+              v-for="listing in propertyDetails.listingDetails"
+              :key="listing.url"
+              :href="listing.url"
+              target="_blank"
+              class="my-1"
+              rel="noopener noreferrer"
+            >
+              {{ listing.url }}
+            </a>
+          </template>
+          <p v-else>
+            -
+          </p>
+        </BcrosFormSectionReviewItem>
+      </div>
+      <BcrosFormSectionReviewItem
+        :title="tReview('propertyType')"
+        :content="propertyDetails.propertyType ?? '-'"
+      />
+      <BcrosFormSectionReviewItem
+        :title="tReview('ownershipType')"
+        :content="getOwnershipTypeDisplay(propertyDetails.ownershipType, tReview)"
+      />
+    </div>
+  </div>
+</template>

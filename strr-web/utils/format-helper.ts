@@ -90,8 +90,8 @@ export function displayFullAddress (mailingAddress?: MailingAddressAPII): string
 
   return `
       ${address || '-'}${addressPartTwo}<br>
-      ${city || '-'} ${province} ${postalCode}<br>
-      ${regionNamesInEnglish.of(country) || '-'}
+      ${city || '-'} ${province} ${postalCode || '-'}<br>
+      ${country ? regionNamesInEnglish.of(country) : '-'}
     `
 }
 

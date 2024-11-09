@@ -2,42 +2,61 @@ import { z } from 'zod'
 import type { StrataDetails } from '~/interfaces/strata-details'
 
 export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () => {
-  const {
-    addNewEmptyBrand: baseAddNewEmptyBrand,
-    getBrandSchema: getStrataBrandSchema,
-    removeBrandAtIndex: baseRemoveBrandAtIndex
-  } = useStrrBaseBrand()
+  const { t } = useI18n()
+  const { getBrandSchema: getStrataBrandSchema } = useStrrBaseBrand()
 
-  const getStrataDetailsSchema = () => z.object({
-    numberOfUnits: z.number(),
-    brands: z.array(getStrataBrandSchema())
+  const strataDetailsSchema = z.object({
+    numberOfUnits: z.number({ required_error: t('validation.number') }),
+    brand: getStrataBrandSchema(),
+    buildings: z.array(getRequiredAddress(
+      t('validation.address.street'),
+      t('validation.address.city'),
+      t('validation.address.region'),
+      t('validation.address.postalCode'),
+      t('validation.address.country')
+    )),
+    location: getRequiredAddress(
+      t('validation.address.street'),
+      t('validation.address.city'),
+      t('validation.address.region'),
+      t('validation.address.postalCode'),
+      t('validation.address.country')
+    )
   })
 
   const strataDetails = ref<StrataDetails>({
-    brands: [{ name: '', website: '' }],
+    brand: { name: '', website: '' },
     buildings: [],
     location: {
-      country: '',
+      country: 'CA',
       street: '',
       streetAdditional: '',
       city: '',
-      region: '',
+      region: 'BC',
       postalCode: '',
       locationDescription: ''
     },
     numberOfUnits: undefined
   })
 
-  const addNewEmptyBrand = () => {
-    baseAddNewEmptyBrand(strataDetails)
+  const addNewEmptyBuilding = () => {
+    strataDetails.value.buildings.push({
+      country: 'CA',
+      street: '',
+      streetAdditional: '',
+      city: '',
+      region: 'BC',
+      postalCode: '',
+      locationDescription: ''
+    })
   }
 
-  const removeBrandAtIndex = (index: number) => {
-    baseRemoveBrandAtIndex(strataDetails, index)
+  const removeBuildingAtIndex = (index: number) => {
+    strataDetails.value.buildings.splice(index, 1)
   }
 
   const validateStrataDetails = (returnBool = false): MultiFormValidationResult | boolean => {
-    const result = validateSchemaAgainstState(getStrataDetailsSchema(), strataDetails.value, 'strata-details-form')
+    const result = validateSchemaAgainstState(strataDetailsSchema, strataDetails.value, 'strata-details-form')
 
     if (returnBool) {
       return result.success === true
@@ -49,9 +68,9 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
   return {
     strataDetails,
     getStrataBrandSchema,
-    getStrataDetailsSchema,
-    addNewEmptyBrand,
-    removeBrandAtIndex,
+    strataDetailsSchema,
+    addNewEmptyBuilding,
+    removeBuildingAtIndex,
     validateStrataDetails
   }
 })

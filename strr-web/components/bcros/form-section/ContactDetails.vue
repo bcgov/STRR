@@ -1,17 +1,13 @@
 <template>
-  <div data-test-id="property-manager-contact-details" class="desktop:mx-[25px]">
-    <BcrosFormSection :title="t('createAccount.propertyManagerForm.contactDetails')">
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:flex-col mobile:mb-[16px]">
-        <UFormGroup
-          name="phoneNumber"
-          class="desktop:d:pr-[16px] flex-grow mobile:mb-[16px]"
-          :error="errors.phoneNumber"
-        >
+  <div data-test-id="form-section-contact-details">
+    <BcrosFormSection :title="t('createAccount.contactForm.contactDetails')">
+      <div class="flex flex-row justify-between w-full mb-10 m:flex-col m:mb-4">
+        <UFormGroup name="phoneNumber" class="d:pr-4 flex-grow m:mb-4" :error="errors.phoneNumber">
           <UInput
             v-model="phoneNumber"
             type="tel"
-            :placeholder="t('createAccount.propertyManagerForm.phoneNumber')"
-            data-test-id="property-manager-phone-number"
+            :placeholder="t('createAccount.contactForm.phoneNumber')"
+            data-test-id="phone-number"
             @input="emit('resetFieldError', 'phoneNumber')"
             @blur="emit('validateField', 'phoneNumber')"
             @change="emit('validateField', 'phoneNumber')"
@@ -20,49 +16,44 @@
         <UFormGroup name="extension" class="flex-grow" :error="errors.extension">
           <UInput
             v-model="extension"
-            :placeholder="t('createAccount.propertyManagerForm.extension')"
-            data-test-id="property-manager-extension"
+            :placeholder="t('createAccount.contactForm.extension')"
+            data-test-id="extension"
             @input="emit('resetFieldError', 'extension')"
             @blur="emit('validateField', 'extension')"
             @change="emit('validateField', 'extension')"
           />
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
+      <div class="flex flex-row justify-between w-full mb-10 m:mb-4">
         <UFormGroup name="faxNumber" class="flex-grow" :error="errors.faxNumber">
           <UInput
             v-model="faxNumber"
             type="tel"
-            :placeholder="t('createAccount.propertyManagerForm.faxNumber')"
-            data-test-id="property-manager-fax-number"
+            :placeholder="t('createAccount.contactForm.faxNumber')"
+            data-test-id="fax-number"
             @input="emit('resetFieldError', 'faxNumber')"
             @blur="emit('validateField', 'faxNumber')"
             @change="emit('validateField', 'faxNumber')"
           />
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup
-          type="email"
-          name="emailAddress"
-          class="flex-grow"
-          :error="errors.emailAddress"
-        >
+      <div class="flex flex-row justify-between w-full mb-10 m:mb-4">
+        <UFormGroup type="email" name="emailAddress" class="flex-grow" :error="errors.emailAddress">
           <UInput
             v-model="emailAddress"
-            :placeholder="t('createAccount.propertyManagerForm.emailAddress')"
-            data-test-id="property-manager-email-address"
+            :placeholder="t('createAccount.contactForm.emailAddress')"
+            data-test-id="email-address"
             @input="emit('resetFieldError', 'emailAddress')"
             @blur="emit('validateField', 'emailAddress')"
             @change="emit('validateField', 'emailAddress')"
           />
         </UFormGroup>
       </div>
-      <div class="mb-[40px] mobile:flex-col mobile:mb-[16px]">
+      <div class="mb-10 m:flex-col m:mb-4">
         <BcrosAlertsMessage :flavour="AlertsFlavourE.INFO">
           <p>
-            <b>{{ t('createAccount.propertyManagerForm.boldWarning') }}</b>
-            {{ t('createAccount.propertyManagerForm.warning') }}
+            <b>{{ t('createAccount.contactForm.boldWarning') }}</b>
+            {{ t('createAccount.contactForm.warning') }}
           </p>
         </BcrosAlertsMessage>
       </div>
@@ -74,8 +65,8 @@
 const { t } = useTranslation()
 
 const emit = defineEmits<{
-    validateField: [field: string]
-    resetFieldError: [field: string]
+  validateField: [field: string]
+  resetFieldError: [field: string]
 }>()
 
 const { errors = {} } = defineProps<{

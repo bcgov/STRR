@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "auto-approval"
-version = "0.0.3"
+version = "0.0.4"
 description = ""
 authors = []
 packages = [{include = "auto_approval", from = "src"}]

@@ -30,7 +30,7 @@
             class="p-2 text-base mb-6"
             variant="ghost"
             :label="t('createAccount.contact.remove')"
-            :trailing-icon="'i-mdi-remove'"
+            trailing-icon="i-mdi-remove"
             :ui="{ variant: { ghost: 'hover:bg-transparent' } }"
             @click="removeDetailAtIndex(index)"
           />

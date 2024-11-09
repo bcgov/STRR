@@ -2,13 +2,15 @@
 import { it, expect } from 'vitest'
 
 it('begins with empty address', () => {
-  const firstName = 'first'
-  const lastName = 'last'
   const hasSecondaryContact = true
   const propertyType = 'propertyType'
   const ownershipType = 'ownershipType'
 
   const primary: PrimaryContactInformationI = {
+    firstName: 'firstName',
+    middleName: 'middleName',
+    lastName: 'lastName',
+    businessLegalName: '',
     preferredName: 'preferredName',
     phoneNumber: 'phoneNumber',
     extension: 'extension',
@@ -24,7 +26,8 @@ it('begins with empty address', () => {
     birthMonth: 'birthMonth',
     birthYear: 'birthYear',
     businessNumber: 'businessNumber',
-    socialInsuranceNumber: 'socialInsuranceNumber'
+    socialInsuranceNumber: 'socialInsuranceNumber',
+    contactType: HostContactTypeE.INDIVIDUAL
   }
 
   const secondary: SecondaryContactInformationI = {
@@ -101,13 +104,12 @@ it('begins with empty address', () => {
     },
     selectedAccount: {} as OrgI,
     principal: {} as PrincipalResidenceI,
-    supportingDocuments: []
+    supportingDocuments: [],
+    hasHostAuthorization: false
   }
 
   const apiFormattedState = formStateToApi(
     createAccountState,
-    firstName,
-    lastName,
     hasSecondaryContact,
     propertyType,
     ownershipType

@@ -1,15 +1,13 @@
 export const formStateToApi = (
   formState: CreateAccountFormStateI,
-  firstName: string,
-  lastName: string,
   hasSecondaryContact: boolean,
   propertyType: string,
   ownershipType: string
 ): CreateAccountFormAPII => {
   const formData = formDataForAPI
 
-  const transformContactData = (primary: boolean) => {
-    const dataContact: ContactAPII | undefined = primary
+  const transformContactData = (isPrimaryContact: boolean) => {
+    const dataContact: ContactAPII | undefined = isPrimaryContact
       ? formData.registration.primaryContact
       : formData.registration.secondaryContact
 
@@ -17,16 +15,31 @@ export const formStateToApi = (
       return
     }
 
-    const stateContact = primary ? formState.primaryContact : formState.secondaryContact
+    const { contactType } = formState.primaryContact
+
+    const stateContact = isPrimaryContact ? formState.primaryContact : formState.secondaryContact
 
     dataContact.name = {
-      firstName: primary ? firstName.toString() : formState.secondaryContact?.firstName ?? '-',
-      lastName: primary ? lastName.toString() : formState.secondaryContact?.lastName ?? '-'
+      firstName: stateContact.firstName,
+      middleName: stateContact.middleName,
+      lastName: stateContact.lastName
     }
 
-    dataContact.socialInsuranceNumber = stateContact.socialInsuranceNumber ?? ''
-    dataContact.businessNumber = stateContact.businessNumber ?? ''
-    dataContact.dateOfBirth = `${stateContact.birthYear}-${stateContact.birthMonth}-${stateContact.birthDay}`
+    // Primary Contact Type Business
+    if (isPrimaryContact && contactType === HostContactTypeE.BUSINESS) {
+      dataContact.businessLegalName = formState.primaryContact.businessLegalName
+      delete dataContact.dateOfBirth
+      delete dataContact.socialInsuranceNumber
+    }
+
+    // Contact Type Individual
+    if (contactType === HostContactTypeE.INDIVIDUAL) {
+      dataContact.dateOfBirth = `${stateContact.birthYear}-${stateContact.birthMonth}-${stateContact.birthDay}`
+      dataContact.socialInsuranceNumber = stateContact.socialInsuranceNumber
+    }
+
+    dataContact.contactType = isPrimaryContact ? formState.primaryContact.contactType : HostContactTypeE.INDIVIDUAL
+    dataContact.businessNumber = stateContact.businessNumber
     dataContact.details = {
       preferredName: stateContact.preferredName,
       phoneNumber: stateContact.phoneNumber ?? '',
@@ -138,7 +151,8 @@ export const formStateToApi = (
           extension: formState.propertyManager.contact.extension,
           faxNumber: formState.propertyManager.contact.faxNumber,
           emailAddress: formState.propertyManager.contact.emailAddress ?? ''
-        }
+        },
+        initiatedByPropertyManager: formState.isPropertyManagerRole
       }
     } else {
       delete formData.registration.propertyManager

@@ -1,7 +1,8 @@
 export default defineNuxtRouteMiddleware(() => {
   const { isAuthenticated } = useKeycloak()
+  const localePath = useLocalePath()
 
   if (!isAuthenticated.value) {
-    return navigateTo({ path: useLocalePath()('/auth/login') })
+    return navigateTo(localePath('/auth/login'))
   }
 })

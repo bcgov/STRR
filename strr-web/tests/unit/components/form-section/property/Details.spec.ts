@@ -16,7 +16,7 @@ it('can mount Property Details Form Section component', async () => {
 })
 
 describe('Number of Rooms Input', () => {
-  let wrapper
+  let wrapper: any
 
   beforeEach(async () => {
     wrapper = await mountSuspended(BcrosFormSectionPropertyDetails, {

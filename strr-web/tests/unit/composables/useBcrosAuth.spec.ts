@@ -66,6 +66,6 @@ describe('useBcrosAuth Tests', () => {
     // user selected account
     account.switchCurrentAccount(mockUserSettings[0].id)
     expect(account.currentAccount).toEqual(mockUserSettings[0])
-    expect(localStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT)).toBe(JSON.stringify(mockUserSettings[0]))
+    expect(sessionStorage.getItem(SessionStorageKeyE.CURRENT_ACCOUNT)).toBe(JSON.stringify(mockUserSettings[0]))
   })
 })

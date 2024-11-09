@@ -14,7 +14,8 @@ export default defineAppConfig({
     },
     formGroup: {
       label: { base: 'block text-base font-bold py-3 text-gray-900' },
-      help: 'text-gray-700 text-xs'
+      help: 'text-gray-700 text-xs',
+      error: 'data-field-error' // add error class to use in unit tests
     },
     input: {
       base: 'bg-gray-100 hover:bg-gray-100 h-[56px] border-b-[1px] focus:border-b-2 focus:ring-0',

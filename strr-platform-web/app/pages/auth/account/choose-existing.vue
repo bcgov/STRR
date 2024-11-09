@@ -7,11 +7,11 @@ const strrModal = useStrrModals()
 const accountStore = useConnectAccountStore()
 
 useHead({
-  title: t('platform.title.chooseAccount')
+  title: t('strr.title.chooseAccount')
 })
 
 definePageMeta({
-  middleware: ['auth']
+  middleware: ['auth', 'check-tos']
 })
 
 // display premium accounts first
@@ -25,17 +25,10 @@ const sortedAccounts = computed(() => {
     return 0
   })
 })
-// const sortedAccounts = []
 
-// TODO: how do we want to redirect if the user has/does not have any platforms?
-// check if the account has a platform here and either redirect to the dashboard or registration page?
-// or redirect to the dashboard page and if the user doesnt have any platforms the dashboard can handle the redirect ?
 function handleAccountSwitch (id: string) {
   const route = useRoute()
   accountStore.switchCurrentAccount(id)
-  // TODO: add Strr product to org product list
-  // only navigate if account successfully changed
-  // if (accountStore.currentAccount.id === id) { // TODO: assume account change is always successful ?
 
   if (route.query.return) {
     return navigateTo(route.query.return as string)
@@ -60,7 +53,7 @@ function handleAccountSwitch (id: string) {
   <div class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="$t('label.selectAccount')" />
 
-    <p>{{ $t('platform.text.selectAccountForStrr') }}</p>
+    <p>{{ $t('strr.text.selectAccountForStrr') }}</p>
 
     <UAlert
       color="yellow"
@@ -72,7 +65,7 @@ function handleAccountSwitch (id: string) {
       }"
     >
       <template #description>
-        <ConnectI18nBold class="text-bcGovColor-darkGray" translation-path="platform.text.onlyPremiumAccountWarning" />
+        <ConnectI18nBold class="text-bcGovColor-darkGray" translation-path="strr.text.onlyPremiumAccountWarning" />
       </template>
     </UAlert>
 
@@ -139,15 +132,13 @@ function handleAccountSwitch (id: string) {
             <div class="my-auto flex gap-2">
               <UBadge
                 v-if="account.accountType === AccountType.BASIC"
-                :label="$t('label.basicAccount')"
-                color="yellow"
-                class="px-3 text-center"
+                :label="$t('badge.basicAccount')"
+                class="bg-[#fff7e3] px-3 text-center font-bold text-bcGovColor-midGray"
               />
               <UBadge
                 v-if="account.accountStatus !== AccountStatus.ACTIVE"
-                :label="$t('label.inactiveAccount')"
-                class="px-3 text-center"
-                color="red"
+                :label="$t('badge.inactiveAccount')"
+                class="bg-[#fff7e3] px-3 text-center font-bold text-bcGovColor-midGray"
               />
             </div>
 

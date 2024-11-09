@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { reactive } from 'vue'
 import { z } from 'zod'
 import type {
@@ -9,44 +8,7 @@ import type {
 } from '~/interfaces/account-i'
 import type { PropertyManagerI } from '~/interfaces/property-manager-i'
 import { RegistrationTypeE } from '#imports'
-
-const apiURL = useRuntimeConfig().public.strrApiURL
-const axiosInstance = addAxiosInterceptors(axios.create())
-const { handlePaymentRedirect } = useFees()
-
-export const submitCreateAccountForm = (
-  userFirstName: string,
-  userLastName: string,
-  hasSecondaryContact: boolean,
-  propertyType: string,
-  ownershipType: string
-) => {
-  const formData: CreateAccountFormAPII = formStateToApi(
-    formState,
-    userFirstName,
-    userLastName,
-    hasSecondaryContact,
-    propertyType,
-    ownershipType
-  )
-  axiosInstance.post(`${apiURL}/registrations`,
-    { ...formData }
-  )
-    .then((response) => {
-      const data = response?.data
-      if (!data) { throw new Error('Invalid AUTH API response') }
-      return data
-    })
-    .then((data) => {
-      const { invoices } = data
-      handlePaymentRedirect(invoices[0].invoice_id, data.id)
-      return data
-    })
-    .catch((error: string) => {
-      console.warn('Error creating account.')
-      console.error(error)
-    })
-}
+import { HostContactTypeE } from '~/enums/host-contact-type-e'
 
 const numbersRegex = /^\d+$/
 // matches chars 123456789 ()
@@ -92,19 +54,25 @@ const optionalOrEmptyString = z
   .string()
   .optional()
   .transform(e => (e === '' ? undefined : e))
-const requiredNonEmptyString = z.string().refine(e => e !== '', 'Field cannot be empty')
+const requiredNonEmptyString = z
+  .string()
+  .min(1, { message: 'Required' })
+  // .refine(e => e !== '', 'Field cannot be empty')
 const requiredNonEmptyString15 = z
   .string()
+  .min(1, { message: 'Required' })
   .max(15, { message: 'Maximum length is 15 characters' })
-  .refine(e => e !== '', 'Field cannot be empty')
+  // .refine(e => e !== '', 'Field cannot be empty')
 const requiredNonEmptyString100 = z
   .string()
+  .min(1, { message: 'Required' })
   .max(100, { message: 'Maximum length is 100 characters' })
-  .refine(e => e !== '', 'Field cannot be empty')
+  // .refine(e => e !== '', 'Field cannot be empty')
 const requiredNonEmptyString50 = z
   .string()
+  .min(1, { message: 'Required' })
   .max(50, { message: 'Maximum length is 50 characters' })
-  .refine(e => e !== '', 'Field cannot be empty')
+  // .refine(s => !s.includes(' '), 'Spaces not allowed')
 
 export const finalizationSchema = z.object({
   phone: requiredPhone,
@@ -160,35 +128,10 @@ export const propertyManagerSchema = z.object({
   }
 )
 
-export const primaryContactSchema = z.object({
-  preferredName: optionalOrEmptyString,
-  socialInsuranceNumber: requiredSin,
-  businessNumber: optionalOrEmptyString,
-  phoneNumber: requiredPhone,
-  extension: optionalOrEmptyString,
-  faxNumber: optionalPhone,
-  emailAddress: requiredEmail,
-  address: requiredNonEmptyString,
-  country: requiredNonEmptyString,
-  addressLineTwo: optionalOrEmptyString,
-  city: requiredNonEmptyString100,
-  province: requiredNonEmptyString,
-  postalCode: requiredNonEmptyString15,
-  birthDay: requiredNumber
-    .refine(day => day.length === 2, 'Day must be two digits')
-    .refine(day => Number(day) <= 31, 'Date must be less than or equal to 31')
-    .refine(day => Number(day) > 0, 'Date must be less greater to 0'),
-  birthMonth: requiredNonEmptyString,
-  birthYear: requiredNumber
-    .refine(year => Number(year) <= new Date().getFullYear(), 'Year must be in the past')
-    .refine(year => year.length === 4, 'Year must be four digits')
-    .refine(day => Number(day) > 0, 'Year must be greater than 0')
-})
-
 export const secondaryContactSchema = z.object({
   firstName: requiredNonEmptyString50,
   lastName: requiredNonEmptyString50,
-  middleName: requiredNonEmptyString50,
+  middleName: optionalOrEmptyString,
   socialInsuranceNumber: optionalSin,
   businessNumber: optionalOrEmptyString,
   preferredName: optionalOrEmptyString,
@@ -229,10 +172,16 @@ const primaryContact: PrimaryContactInformationI = {
   birthMonth: undefined,
   birthYear: undefined,
   socialInsuranceNumber: '',
-  businessNumber: undefined
+  businessNumber: '',
+  firstName: '',
+  middleName: '',
+  lastName: '',
+  businessLegalName: '',
+  contactType: HostContactTypeE.INDIVIDUAL
 }
 
 export const propertyManager: PropertyManagerI = {
+  initiatedByPropertyManager: undefined,
   businessLegalName: '',
   businessNumber: '',
   businessMailingAddress: {
@@ -256,10 +205,13 @@ export const propertyManager: PropertyManagerI = {
 }
 
 const secondaryContact: SecondaryContactInformationI = {
+  firstName: '',
+  lastName: '',
+  middleName: '',
   preferredName: '',
-  phoneNumber: undefined,
-  businessNumber: undefined,
-  socialInsuranceNumber: undefined,
+  phoneNumber: '',
+  businessNumber: '',
+  socialInsuranceNumber: '',
   extension: '',
   faxNumber: '',
   emailAddress: undefined,
@@ -271,10 +223,7 @@ const secondaryContact: SecondaryContactInformationI = {
   postalCode: undefined,
   birthDay: undefined,
   birthMonth: undefined,
-  birthYear: undefined,
-  firstName: undefined,
-  lastName: undefined,
-  middleName: undefined
+  birthYear: undefined
 }
 
 // If any listing details exist must follow httpRegex otherwise can be blank
@@ -337,7 +286,7 @@ export const formState: CreateAccountFormStateI = reactive({
     primaryResidence: undefined,
     whichPlatform: undefined,
     nickname: '',
-    country: 'CAN',
+    country: 'CA',
     address: undefined,
     addressLineTwo: undefined,
     city: undefined,
@@ -383,7 +332,9 @@ const primaryContactAPI: ContactAPII = {
     country: ''
   },
   socialInsuranceNumber: '',
-  businessNumber: ''
+  businessNumber: '',
+  businessLegalName: '',
+  contactType: HostContactTypeE.INDIVIDUAL
 }
 
 const secondaryContactAPI: ContactAPII = {
@@ -409,7 +360,9 @@ const secondaryContactAPI: ContactAPII = {
     country: ''
   },
   socialInsuranceNumber: '',
-  businessNumber: ''
+  businessNumber: '',
+  businessLegalName: '',
+  contactType: HostContactTypeE.INDIVIDUAL
 }
 
 export const formDataForAPI: CreateAccountFormAPII = {
@@ -446,3 +399,50 @@ export const formDataForAPI: CreateAccountFormAPII = {
     registrationType: RegistrationTypeE.HOST
   }
 }
+
+// validation schema for Individual Host Type
+const primaryContactIndividual = z.object({
+  contactType: z.literal(HostContactTypeE.INDIVIDUAL),
+  firstName: requiredNonEmptyString50,
+  lastName: requiredNonEmptyString50,
+  middleName: optionalOrEmptyString,
+  preferredName: optionalOrEmptyString,
+  socialInsuranceNumber: requiredSin,
+  businessLegalName: optionalOrEmptyString,
+  businessNumber: optionalOrEmptyString,
+  phoneNumber: requiredPhone,
+  extension: optionalOrEmptyString,
+  faxNumber: optionalPhone,
+  emailAddress: requiredEmail,
+  address: requiredNonEmptyString,
+  country: requiredNonEmptyString,
+  addressLineTwo: optionalOrEmptyString,
+  city: requiredNonEmptyString100,
+  province: requiredNonEmptyString,
+  postalCode: requiredNonEmptyString15,
+  birthDay: requiredNumber
+    .refine(day => day.length <= 2, 'Incorrect Date')
+    .refine(day => Number(day) <= 31, 'Date must be less than or equal to 31')
+    .refine(day => Number(day) > 0, 'Date must be less greater to 0'),
+  birthMonth: requiredNonEmptyString,
+  birthYear: requiredNumber
+    .refine(year => Number(year) <= new Date().getFullYear(), 'Year must be in the past')
+    .refine(year => year.length === 4, 'Year must be four digits')
+    .refine(day => Number(day) > 0, 'Year must be greater than 0')
+})
+
+// validation schema for Business Host Type
+const primaryContactBusiness = primaryContactIndividual.extend({
+  contactType: z.literal(HostContactTypeE.BUSINESS),
+  businessLegalName: requiredNonEmptyString50,
+  socialInsuranceNumber: optionalOrEmptyString,
+  birthDay: optionalOrEmptyString,
+  birthMonth: optionalOrEmptyString,
+  birthYear: optionalOrEmptyString
+})
+
+// main Primary Contact Schema will selected based on contactType prop
+export const primaryContactSchema = z.discriminatedUnion('contactType', [
+  primaryContactIndividual,
+  primaryContactBusiness
+])

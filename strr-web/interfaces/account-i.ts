@@ -3,6 +3,7 @@ import { RegistrationTypeE } from '#imports'
 import { AccountStatusE } from '~/enums/account-status-e'
 import { AccountTypeE } from '~/enums/account-type-e'
 import { UserSettingsTypeE } from '~/enums/user-settings-type-e'
+import type { HostContactTypeE } from '~/enums/host-contact-type-e'
 
 export interface DateOfBirthI {
   day: string
@@ -126,16 +127,21 @@ export interface ContactInformationI {
 }
 
 export interface PrimaryContactInformationI extends ContactInformationI {
-  businessNumber: string | undefined
-  socialInsuranceNumber: string | undefined
+  firstName: string
+  middleName: string
+  lastName: string
+  businessNumber: string
+  businessLegalName: string
+  socialInsuranceNumber: string
+  contactType: HostContactTypeE
 }
 
 export interface SecondaryContactInformationI extends ContactInformationI {
-  firstName: string | undefined
-  middleName: string | undefined
-  lastName: string | undefined
-  businessNumber: string | undefined
-  socialInsuranceNumber: string | undefined
+  firstName: string
+  middleName: string
+  lastName: string
+  businessNumber: string
+  socialInsuranceNumber: string
 }
 
 export interface PrincipalResidenceI {
@@ -152,27 +158,7 @@ export interface CreateAccountFormStateI {
   propertyManager: PropertyManagerI
   isPropertyManagerRole: boolean
   hasPropertyManager: boolean
-  propertyDetails: {
-    primaryResidence: string | undefined
-    whichPlatform: string | undefined
-    parcelIdentifier: string | undefined
-    businessLicense: string | undefined
-    businessLicenseExpiryDate: string | undefined
-    propertyType: string | undefined
-    ownershipType: string | undefined
-    nickname: string | undefined
-    country: string | undefined
-    address: string | undefined
-    addressLineTwo: string | undefined
-    city: string | undefined
-    province: string | undefined
-    postalCode: string | undefined
-    listingDetails: { url: string }[]
-    rentalUnitSpaceType: string
-    isUnitOnPrincipalResidenceProperty: boolean | undefined
-    hostResidence: string | undefined
-    numberOfRoomsForRent: number
-  }
+  propertyDetails: PropertyDetailsI
   selectedAccount: OrgI
   principal: PrincipalResidenceI
   supportingDocuments: File[],
@@ -200,7 +186,7 @@ export interface ContactNameAPII {
 
 export interface ContactAPII {
   name: ContactNameAPII
-  dateOfBirth: string
+  dateOfBirth?: string // not required for Contact Type Business
   details: {
     preferredName?: string
     phoneNumber: string
@@ -209,8 +195,10 @@ export interface ContactAPII {
     emailAddress: string
   }
   mailingAddress: MailingAddressAPII
-  socialInsuranceNumber: string
+  socialInsuranceNumber?: string // not required for Contact Type Business
   businessNumber: string
+  businessLegalName: string
+  contactType: HostContactTypeE
 }
 
 export interface SelectedAccountMailingAPII {

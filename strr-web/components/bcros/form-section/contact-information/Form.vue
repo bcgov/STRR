@@ -1,40 +1,77 @@
 <template>
-  <div data-test-id="contact-information" class="relative h-full">
-    <div :class="`mb-[${hasSecondaryContact ? '32px' : '132px'}] bg-white rounded-[4px]`">
-      <div class="bg-bcGovColor-gray2 rounded-t-[4px]">
-        <p class="px-[40px] py-[15px] font-bold">
-          {{ t('createAccount.contact.subtitle') }}
+  <div data-test-id="host-information-form" class="relative h-full">
+    <UFormGroup name="hostContactType">
+      <URadioGroup
+        v-model="formState.primaryContact.contactType"
+        :legend="t('createAccount.contact.individualOrBusinessQuestion')"
+        :options="hostContactTypeOptions"
+        :ui="{ legend: 'mb-3 text-md font-bold text-gray-700' }"
+        :ui-radio="{
+          inner: 'space-y-2',
+          label: 'text-md'
+        }"
+        data-test-id="host-contact-type-radio"
+      />
+    </UFormGroup>
+    <div
+      class="d:pr-5 mt-10 bg-white rounded-1"
+    >
+      <div class="bg-bcGovColor-gray2 d:-mr-5">
+        <p class="px-10 py-[15px] font-bold">
+          {{ t('createAccount.contact.primary') }}
         </p>
       </div>
-      <BcrosFormSection :title="t('createAccount.contact.yourName')" :divider="true">
-        <div class="mb-[16px] text-[14px] leading-[22px]">
-          {{ fullName }}
+      <UForm ref="primaryContactForm" :schema="primaryContactSchema" :state="formState.primaryContact">
+        <div
+          v-if="!isHostIndividual"
+          data-test-id="host-type-business"
+        >
+          <BcrosFormSectionBusinessDetails
+            v-model:business-name="formState.primaryContact.businessLegalName"
+            v-model:business-number="formState.primaryContact.businessNumber"
+            is-business-name-required
+            :errors="primaryContactErrors"
+            @reset-field-error="resetFieldError"
+            @validate-field="validateField"
+          />
+          <div class="m:hidden h-[1px] ml-10 mr-5 bg-bcGovGray-300" />
         </div>
-        <div ref="testRef" class="mb-[16px] text-[14px] leading-[22px]">
-          {{ t('createAccount.contact.disclaimer') }}
-        </div>
-      </BcrosFormSection>
-      <UForm ref="form" :schema="primaryContactSchema" :state="formState.primaryContact">
+        <BcrosFormSectionContactName
+          v-model:first-name="formState.primaryContact.firstName"
+          v-model:middle-name="formState.primaryContact.middleName"
+          v-model:last-name="formState.primaryContact.lastName"
+          v-model:preferred-name="formState.primaryContact.preferredName"
+          :errors="primaryContactErrors"
+          @reset-field-error="resetFieldError"
+          @validate-field="validateField"
+        />
+
+        <div class="m:hidden h-[1px] ml-10 mr-5 bg-bcGovGray-300" />
         <BcrosFormSectionContactInformationContactInfo
+          v-if="isHostIndividual"
           v-model:day="formState.primaryContact.birthDay"
           v-model:month="formState.primaryContact.birthMonth"
           v-model:year="formState.primaryContact.birthYear"
-          :month-error="monthError"
-          :is-primary="true"
-          @validate-months="validateMonths"
+          is-primary
+          :errors="primaryContactErrors"
+          @reset-field-error="resetFieldError"
+          @validate-field="validateField"
         />
         <BcrosFormSectionContactInformationCraInfo
+          v-if="isHostIndividual"
           v-model:social-insurance-number="formState.primaryContact.socialInsuranceNumber"
+          v-model:business-legal-name="formState.primaryContact.businessLegalName"
           v-model:business-number="formState.primaryContact.businessNumber"
-          :is-primary="true"
+          is-primary
         />
-        <BcrosFormSectionContactInformationContactDetails
+        <BcrosFormSectionContactDetails
           v-model:phone-number="formState.primaryContact.phoneNumber"
-          v-model:preferred-name="formState.primaryContact.preferredName"
           v-model:extension="formState.primaryContact.extension"
           v-model:fax-number="formState.primaryContact.faxNumber"
           v-model:email-address="formState.primaryContact.emailAddress"
-          :is-primary="true"
+          :errors="primaryContactErrors"
+          @reset-field-error="resetFieldError"
+          @validate-field="validateField"
         />
         <BcrosFormSectionContactInformationMailingAddress
           id="primaryContactAddress"
@@ -49,54 +86,64 @@
         />
       </UForm>
     </div>
-    <div v-if="!hasSecondaryContact" class="desktop:mb-[180px] mobile:mb-[32px] mt-[32px] mobile:w-full mobile:p-[8px]">
+    <div v-if="!hasSecondaryContact" class="d:mb-[180px] my-8 m:w-full m:p-1">
       <BcrosButtonsPrimary
         :action="toggleAddSecondary"
         :label="t('createAccount.contact.addSecondaryContact')"
         variant="outline"
-        icon=""
-        class-name="mobile:w-full mobile:mx-[0px]"
+        icon="i-mdi-account-plus"
+        class-name="m:w-full m:mx-[0px]"
+        data-test-id="add-another-contact"
       />
     </div>
     <div v-else>
-      <div class="mb-[180px] bg-white rounded-[4px]">
-        <div class="bg-bcGovColor-gray2 rounded-t-[4px] flex flex-row justify-between items-center">
-          <p class="px-[40px] py-[15px] font-bold">
-            {{ t('createAccount.contact.secondaryContactInfo') }}
+      <div class="mb-[180px] bg-white rounded-1 mt-8">
+        <div class="bg-bcGovColor-gray2 px-10 py-[15px] rounded-t-1 flex flex-row justify-between items-center">
+          <p class="font-bold">
+            {{ isHostIndividual
+              ? t('createAccount.contact.secondaryContactInfo')
+              : t('createAccount.contact.backupContactInfo')
+            }}
           </p>
-          <div
-            class="flex flex-row mr-[20px] w-[117px] h-[36px] items-center justify-center text-[16px] text-blue-500"
-            role="button"
-            :onclick="toggleAddSecondary"
-          >
-            <p class="mr-[4px]">
-              {{ t('createAccount.contact.remove') }}
-            </p>
-            <UIcon class="h-[20px] w-[20px]" name="i-mdi-remove" alt="remove icon" />
-          </div>
+          <UButton
+            class="p-0 text-base"
+            variant="ghost"
+            :label="t('createAccount.contact.remove')"
+            trailing-icon="i-mdi-remove"
+            @click="toggleAddSecondary"
+          />
         </div>
-        <UForm ref="secondForm" :schema="secondaryContactSchema" :state="formState.secondaryContact">
+        <UForm ref="secondaryContactForm" :schema="secondaryContactSchema" :state="formState.secondaryContact">
+          <BcrosFormSectionContactName
+            v-model:first-name="formState.secondaryContact.firstName"
+            v-model:middle-name="formState.secondaryContact.middleName"
+            v-model:last-name="formState.secondaryContact.lastName"
+            v-model:preferred-name="formState.secondaryContact.preferredName"
+            :contact-info-description="t('createAccount.contact.backupContactInfoDescription')"
+            :errors="secondaryContactErrors"
+            @reset-field-error="resetFieldErrorSecondary"
+            @validate-field="validateFieldSecondary"
+          />
           <BcrosFormSectionContactInformationContactInfo
             v-model:day="formState.secondaryContact.birthDay"
             v-model:month="formState.secondaryContact.birthMonth"
             v-model:year="formState.secondaryContact.birthYear"
-            :is-primary="false"
+            :errors="secondaryContactErrors"
+            @reset-field-error="resetFieldErrorSecondary"
+            @validate-field="validateFieldSecondary"
           />
           <BcrosFormSectionContactInformationCraInfo
             v-model:social-insurance-number="formState.secondaryContact.socialInsuranceNumber"
             v-model:business-number="formState.secondaryContact.businessNumber"
-            :is-primary="false"
           />
-          <BcrosFormSectionContactInformationContactDetails
+          <BcrosFormSectionContactDetails
             v-model:phone-number="formState.secondaryContact.phoneNumber"
-            v-model:preferred-name="formState.secondaryContact.preferredName"
             v-model:extension="formState.secondaryContact.extension"
             v-model:fax-number="formState.secondaryContact.faxNumber"
             v-model:email-address="formState.secondaryContact.emailAddress"
-            v-model:first-name="formState.secondaryContact.firstName"
-            v-model:last-name="formState.secondaryContact.lastName"
-            v-model:middle-name="formState.secondaryContact.middleName"
-            :is-primary="false"
+            :errors="secondaryContactErrors"
+            @reset-field-error="resetFieldErrorSecondary"
+            @validate-field="validateFieldSecondary"
           />
           <BcrosFormSectionContactInformationMailingAddress
             id="secondaryContactAddress"
@@ -118,17 +165,15 @@
 
 <script setup lang="ts">
 import { formState } from '@/stores/strr'
+import { HostContactTypeE } from '~/enums/host-contact-type-e'
 const { t } = useTranslation()
-const monthError = ref('')
 
 const {
-  fullName,
   hasSecondaryContact,
   toggleAddSecondary,
   isComplete,
   secondFormIsComplete
 } = defineProps<{
-  fullName: string,
   hasSecondaryContact: boolean,
   toggleAddSecondary:() => void,
   isComplete: boolean,
@@ -141,38 +186,36 @@ const {
   enableAddressComplete
 } = useCanadaPostAddress()
 
-const getActiveAddressState = (): ContactInformationI | CreateAccountFormStateI['propertyDetails'] => {
-  if (activeAddressField.value === 'primaryContactAddress') {
-    return formState.primaryContact
-  } else if (activeAddressField.value === 'secondaryContactAddress') {
-    return formState.secondaryContact
-  } else {
-    return formState.propertyDetails
-  }
-}
-
-watch(canadaPostAddress, (newAddress) => {
-  const activeAddressState = getActiveAddressState()
-  if (newAddress) {
-    activeAddressState.address = newAddress.street
-    activeAddressState.addressLineTwo = newAddress.streetAdditional
-    activeAddressState.country = newAddress.country
-    activeAddressState.city = newAddress.city
-    activeAddressState.province = newAddress.region
-    activeAddressState.postalCode = newAddress.postalCode
-  }
-})
-
-const validateMonths = () => {
-  const parsed = primaryContactSchema.safeParse(formState.primaryContact).error?.errors
-  const error = parsed?.find(error => error.path.includes('birthMonth'))
-  monthError.value = error ? error.message : ''
-}
-
 const { me, currentAccount } = useBcrosAccount()
 
+const primaryContactForm = ref()
+const secondaryContactForm = ref()
+
+const primaryContactErrors = reactive<Record<string, string>>({})
+const secondaryContactErrors = reactive<Record<string, string>>({})
+
+const hostContactTypeOptions = [
+  { value: HostContactTypeE.INDIVIDUAL, label: t('createAccount.contact.individualRadioOption') },
+  { value: HostContactTypeE.BUSINESS, label: t('createAccount.contact.businessRadioOption') }
+]
+
+const isHostIndividual = computed((): boolean => formState.primaryContact.contactType === HostContactTypeE.INDIVIDUAL)
+
 onMounted(() => {
-  if (isComplete) { validateMonths() }
+  if (isComplete) {
+    const parsed = primaryContactSchema.safeParse(formState.primaryContact).error?.errors
+    parsed?.forEach((error: any) => {
+      primaryContactErrors[error.path[0]] = error.message
+    })
+
+    if (hasSecondaryContact) {
+      const parsed = secondaryContactSchema.safeParse(formState.secondaryContact).error?.errors
+      parsed?.forEach((error: any) => {
+        secondaryContactErrors[error.path[0]] = error.message
+      })
+    }
+  }
+
   if (currentAccount && me) {
     const currentAccountInfo = me?.orgs.find(({ id }) => id === currentAccount.id)?.mailingAddress as AddressI[]
     if (currentAccountInfo && currentAccountInfo.length > 0) {
@@ -200,16 +243,66 @@ onMounted(() => {
   }
 })
 
-const form = ref()
+const getActiveAddressState = (): ContactInformationI | CreateAccountFormStateI['propertyDetails'] => {
+  if (activeAddressField.value === 'primaryContactAddress') {
+    return formState.primaryContact
+  } else if (activeAddressField.value === 'secondaryContactAddress') {
+    return formState.secondaryContact
+  } else {
+    return formState.propertyDetails
+  }
+}
 
-watch(form, () => {
-  if (form.value && isComplete) { form.value.validate({ silent: true }) }
+// reset errors for Primary Contact
+const resetFieldError = (field: keyof typeof primaryContactErrors) => {
+  primaryContactErrors[field] = ''
+}
+
+// reset errors for Primary Contact
+const validateField = (field: keyof typeof primaryContactErrors) => {
+  const { error } = primaryContactSchema.safeParse(formState.primaryContact)
+  const errorMessage = error?.errors.find(error => error.path.includes(field))?.message
+  primaryContactErrors[field] = errorMessage || ''
+}
+
+// reset errors for Secondary Contact
+const resetFieldErrorSecondary = (field: keyof typeof secondaryContactErrors) => {
+  secondaryContactErrors[field] = ''
+}
+
+// validate fields for Secondary Contact
+const validateFieldSecondary = (field: keyof typeof secondaryContactErrors) => {
+  const { error } = secondaryContactSchema.safeParse(formState.secondaryContact)
+  const errorMessage = error?.errors.find(error => error.path.includes(field))?.message
+  secondaryContactErrors[field] = errorMessage || ''
+}
+
+watch(secondaryContactForm, () => {
+  if (secondaryContactForm.value && secondFormIsComplete) {
+    secondaryContactForm.value.validate({ silent: true })
+  }
 })
 
-const secondForm = ref()
+watch(isHostIndividual, () => {
+  if (isComplete) {
+    const parsed = primaryContactSchema.safeParse(formState.primaryContact).error?.errors
+    parsed?.forEach((error: any) => {
+      primaryContactErrors[error.path[0]] = error.message
+    })
+  }
+  validateField('businessLegalName')
+})
 
-watch(secondForm, () => {
-  if (secondForm.value && secondFormIsComplete) { secondForm.value.validate({ silent: true }) }
+watch(canadaPostAddress, (newAddress) => {
+  const activeAddressState = getActiveAddressState()
+  if (newAddress) {
+    activeAddressState.address = newAddress.street
+    activeAddressState.addressLineTwo = newAddress.streetAdditional
+    activeAddressState.country = newAddress.country
+    activeAddressState.city = newAddress.city
+    activeAddressState.province = newAddress.region
+    activeAddressState.postalCode = newAddress.postalCode
+  }
 })
 
 </script>

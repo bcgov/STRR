@@ -85,7 +85,7 @@ const save = (sideDetail: ConnectDetailHeaderSideDetail) => {
             </slot>
           </div>
         </div>
-        <dl class="space-y-1 text-sm">
+        <dl class="space-y-1 pt-1 text-sm">
           <template v-for="detail in sideDetails" :key="detail.label">
             <div :class="[detail.edit && !detail.edit.isEditing && 'mr-14']">
               <!-- TODO: design not finalized, this is a WIP  -->

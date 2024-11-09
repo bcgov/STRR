@@ -1,4 +1,15 @@
 export default defineAppConfig({
+  strrBaseLayer: {
+    page: {
+      login: {
+        redirectPath: '/auth/account/choose-existing',
+        options: {
+          createAccount: false,
+          idps: () => ['bceid', 'bcsc'] // function required to overwrite default value, will merge if no function
+        }
+      }
+    }
+  },
   ui: {
     strategy: 'merge',
     button: {

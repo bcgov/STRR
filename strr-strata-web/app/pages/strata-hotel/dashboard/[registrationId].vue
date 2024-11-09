@@ -1,11 +1,17 @@
 <script setup lang="ts">
 const { t } = useI18n()
-
-const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
+const route = useRoute()
+const localePath = useLocalePath()
+const {
+  loading,
+  title,
+  subtitles
+} = storeToRefs(useConnectDetailsHeaderStore())
 const { loadStrata } = useStrrStrataStore()
 const {
   activeApplicationInfo,
-  activePlatform,
+  activeStrata,
+  isPaidApplication,
   isRegistration,
   showStrataDetails
 } = storeToRefs(useStrrStrataStore())
@@ -16,43 +22,46 @@ const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 
-onMounted(() => {
+onMounted(async () => {
   loading.value = true
-  const registrationId = useRoute().params.registrationId as string
-  loadStrata(registrationId)
+  const registrationId = route.params.registrationId as string
+  await loadStrata(registrationId)
   // set header stuff
-  if (!activePlatform.value || !showStrataDetails.value) {
-    // no registration or valid complete application under the account, set static header
+  if (!activeStrata.value || !showStrataDetails.value) {
+    // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')
-    // TODO: verify for strata -- in this case it should always be a draft application
-    todos.value = [getTodoApplication()]
+    todos.value = [getTodoApplication('/strata-hotel/application', activeApplicationInfo.value)]
   } else {
     // existing registration or application under the account
     // set left side of header
     title.value = strataBusiness.value.legalName
     subtitles.value = [
-      strataBusiness.value.homeJurisdiction
-      // TODO: number of units
-      // t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
+      strataBusiness.value.homeJurisdiction,
+      `${strataDetails.value.numberOfUnits} ${t('strr.word.units')}`
     ]
     if (!isRegistration.value) {
-      setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
+      setApplicationHeaderDetails(isPaidApplication.value, activeApplicationInfo.value?.hostStatus)
     } else {
       // @ts-expect-error - ts not picking up that it will have status attr in this case
-      setRegistrationHeaderDetails(activePlatform.value.status)
+      setRegistrationHeaderDetails(activeStrata.value.status)
     }
-    // TODO: strata side details
-    // setSideHeaderDetails()
+    // strata side details
+    setSideHeaderDetails(
+      strataBusiness.value,
+      isRegistration.value ? activeStrata.value as ApiExtraRegistrationDetails : undefined,
+      activeApplicationInfo.value)
     // set sidebar accordian addresses
     addresses.value = getDashboardAddresses(strataBusiness.value)
     // set sidebar accordian reps
     representatives.value = getDashboardRepresentives()
-    // update breadcrumbs with platform business name
+    // update breadcrumbs with strata business name
     setBreadcrumbs([
       { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+      { label: t('strr.title.dashboard'), to: useLocalePath()('/strata-hotel/dashboard') },
       { label: strataBusiness.value.legalName }
     ])
   }
+
   loading.value = false
 })
 
@@ -63,13 +72,13 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
-  middleware: ['auth'],
-  path: '/strata-hotel/dashboard/:registrationId'
+  middleware: ['auth', 'require-account']
 })
 
 setBreadcrumbs([
   { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('strr.title.dashboard') }
+  { label: 'My Short Term Rental Registry', to: localePath('/strata-hotel/dashboard') },
+  { label: 'Item 1' }
 ])
 </script>
 <template>
@@ -88,8 +97,8 @@ setBreadcrumbs([
       <ConnectDashboardSection :title="$t('strr.label.brandNames')" :loading="loading">
         <div class="space-y-3 p-5">
           <div v-if="showStrataDetails">
-            <p v-for="brand in strataDetails.brands" :key="brand.name">
-              {{ brand.name }} - {{ brand.website }}
+            <p>
+              {{ strataDetails.brand.name }} - {{ strataDetails.brand.website }}
             </p>
           </div>
           <p v-else class="text-center">

@@ -38,14 +38,18 @@ export default defineNuxtConfig({
     vueI18n: './i18n.config.ts'
   },
 
-  extends: ['../strr-base-web'],
+  extends: [
+    // '../strr-base-web' // dev only
+    ['github:bcgov/STRR/strr-base-web', { install: true }]
+  ],
 
   imports: {
     dirs: ['stores', 'composables', 'enums', 'interfaces', 'types', 'utils']
   },
 
   routeRules: {
-    '/': { redirect: '/en-CA/strata-hotel/dashboard' }
+    '/': { redirect: '/en-CA/strata-hotel/dashboard' },
+    '/en-CA': { redirect: '/en-CA/strata-hotel/dashboard' }
   },
 
   runtimeConfig: {

@@ -1,29 +1,41 @@
 <template>
   <div data-test-id="form-section-contact">
     <BcrosFormSection :title="t('createAccount.contactForm.dateOfBirth')" :optional="!isPrimary">
-      <div class="flex flex-row justify-between w-full mobile:flex-col">
-        <UFormGroup name="birthDay" class="desktop:pr-[16px] flex-grow mobile:mb-[16px]">
+      <div class="flex m:flex-col gap-4">
+        <UFormGroup name="birthDay" class="d:w-1/3" :error="errors.birthDay">
           <UInput
             v-model="day"
             :placeholder="t('createAccount.contactForm.day')"
             aria-label="birth day"
+            data-test-id="contact-info-birth-day"
+            @input="emit('resetFieldError', 'birthDay')"
+            @blur="isPrimary && emit('validateField', 'birthDay')"
+            @change="isPrimary && emit('validateField', 'birthDay')"
           />
         </UFormGroup>
-        <UFormGroup name="month" class="desktop:pr-[16px] flex-grow mobile:mb-[16px]" :error="monthError">
+        <UFormGroup name="birthMonth" class="d:w-1/3" :error="errors.birthMonth">
           <USelect
             v-model="month"
             :placeholder="t('createAccount.contactForm.month')"
             :options="getMonths()"
             option-attribute="key"
-            class="w-full"
             aria-label="birth month"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
-            @blur="isPrimary ? emit('validateMonths'): null"
-            @change="isPrimary ? emit('validateMonths'): null"
+            data-test-id="contact-info-birth-month"
+            style="color: #1a202c; /* text-gray-900 */"
+            @input="emit('resetFieldError', 'birthMonth')"
+            @blur="isPrimary && emit('validateField', 'birthMonth')"
           />
         </UFormGroup>
-        <UFormGroup name="birthYear">
-          <UInput v-model="year" :placeholder="t('createAccount.contactForm.year')" aria-label="birth year" />
+        <UFormGroup name="birthYear" class="d:w-1/3" :error="errors.birthYear">
+          <UInput
+            v-model="year"
+            :placeholder="t('createAccount.contactForm.year')"
+            aria-label="birth year"
+            data-test-id="contact-info-birth-year"
+            @input="emit('resetFieldError', 'birthYear')"
+            @blur="isPrimary && emit('validateField', 'birthYear')"
+            @change="isPrimary && emit('validateField', 'birthYear')"
+          />
         </UFormGroup>
       </div>
     </BcrosFormSection>
@@ -35,16 +47,20 @@ const { t } = useTranslation()
 
 const {
   isPrimary,
-  monthError
+  errors = {}
 } = defineProps<{
   isPrimary?: boolean
-  monthError?: string
+  errors: Record<string, string>
+}>()
+
+const emit = defineEmits<{
+  validateField: [field: string]
+  resetFieldError: [field: keyof typeof errors]
 }>()
 
 const day = defineModel<string>('day')
 const month = defineModel<string>('month')
 const year = defineModel<string>('year')
-const emit = defineEmits(['validateMonths'])
 
 const months: string[] = [
   t('general.january'),

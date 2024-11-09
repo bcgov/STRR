@@ -1,11 +1,13 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const accountStore = useConnectAccountStore()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
 const { loadPlatform } = useStrrPlatformStore()
 const {
   activeApplicationInfo,
   activePlatform,
+  isPaidApplication,
   isRegistration,
   showPlatformDetails
 } = storeToRefs(useStrrPlatformStore())
@@ -16,6 +18,13 @@ const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 
+watch(() => accountStore.currentAccount.id,
+  () => {
+    const { redirect } = useNavigate()
+    redirect(useRuntimeConfig().public.registryHomeURL + 'dashboard')
+  }
+)
+
 onMounted(async () => {
   loading.value = true
   await loadPlatform()
@@ -23,7 +32,7 @@ onMounted(async () => {
   if (!activePlatform.value || !showPlatformDetails.value) {
     // no registration or valid complete application under the account, set static header
     title.value = t('strr.title.dashboard')
-    todos.value = [getTodoApplication()]
+    todos.value = [getTodoApplication('/platform/application', activeApplicationInfo.value)]
   } else {
     // existing registration or application under the account
     // set left side of header
@@ -33,12 +42,18 @@ onMounted(async () => {
       t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
     ]
     if (!isRegistration.value) {
-      setApplicationHeaderDetails(isRegistration.value, activeApplicationInfo.value?.hostStatus)
+      setApplicationHeaderDetails(isPaidApplication.value, activeApplicationInfo.value?.hostStatus)
     } else {
       // @ts-expect-error - ts not picking up that it will have status attr in this case
       setRegistrationHeaderDetails(activePlatform.value.status)
     }
-    setSideHeaderDetails()
+    // add common side details
+    setSideHeaderDetails(
+      platformBusiness.value,
+      isRegistration.value ? activePlatform.value as ApiExtraRegistrationDetails : undefined,
+      activeApplicationInfo.value)
+    // add platform specific side details
+    setPlatformSideHeaderDetails()
     // set sidebar accordian addresses
     addresses.value = getDashboardAddresses(platformBusiness.value)
     // set sidebar accordian reps
@@ -60,7 +75,7 @@ useHead({
 definePageMeta({
   layout: 'connect-dashboard',
   path: '/platform/dashboard',
-  middleware: ['auth', 'require-premium-account']
+  middleware: ['auth', 'check-tos', 'require-premium-account']
 })
 
 setBreadcrumbs([

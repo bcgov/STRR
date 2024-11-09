@@ -81,7 +81,6 @@
       },
       "required": [
         "name",
-        "dateOfBirth",
         "details",
         "mailingAddress"
       ]
@@ -92,6 +91,9 @@
         "businessLegalName": {
           "type": "string",
           "description": "Business Legal Name"
+        },
+        "initiatedByPropertyManager": {
+          "type": "boolean"
         },
         "businessNumber": {
           "type": "string",

@@ -1,30 +1,30 @@
 <template>
   <div data-test-id="property-details">
     <BcrosFormSection :title="t('createAccount.propertyForm.rentalUnitDetails')">
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="rentalUnitSpaceType" class="d:pr-[16px] flex-grow" :error="rentalUnitSpaceTypeError">
+      <div class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
+        <UFormGroup name="rentalUnitSpaceType" class="d:pr-4 flex-grow" :error="rentalUnitSpaceTypeError">
           <USelect
             v-model="rentalUnitSpaceType"
             :placeholder="t('createAccount.propertyForm.rentalUnitSpaceType')"
             :options="rentalUnitSpaceTypeOptions"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            style="color: #1a202c; /* text-gray-900 */"
             @blur="emit('validateRentalUnitSpaceType')"
             @change="emit('validateRentalUnitSpaceType')"
           />
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
+      <div class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
         <UFormGroup
           name="isUnitOnPrincipalResidenceProperty"
-          class="d:pr-[16px] flex-grow"
+          class="d:pr-4 flex-grow"
           :error="principalResidenceError"
         >
           <USelect
-            v-model="formState.propertyDetails.isUnitOnPrincipalResidenceProperty"
+            v-model="isUnitOnPrincipalResidenceProperty"
             :placeholder="t('createAccount.propertyForm.isUnitOnPrincipalResidenceProperty')"
             :options="principalResidenceOptions"
             class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            style="color: #1a202c; /* text-gray-900 */"
             @blur="emit('validatePrincipalResidenceOptions')"
             @change="emit('validatePrincipalResidenceOptions')"
           />
@@ -35,22 +35,24 @@
         :key="isUnitOnPrincipalResidenceProperty
           ? 'withDropdown' : 'withoutDropdown'"
         class="flex flex-row justify-between
-        w-full mb-[40px] mobile:mb-[16px]"
+        w-full mb-[40px] m:mb-4"
       >
-        <UFormGroup name="hostResidence" class="d:pr-[16px] flex-grow" :error="hostResidenceError">
+        <UFormGroup name="hostResidence" class="d:pr-4 flex-grow" :error="hostResidenceError">
           <USelect
             v-model="hostResidenceComputed"
             :placeholder="t('createAccount.propertyForm.hostResidence')"
             :options="hostResidenceOptions"
             class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            style="color: #1a202c; /* text-gray-900 */"
             @change="emit('validateHostResidence')"
           />
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="numberOfRoomsForRent" class="d:pr-[16px] flex-grow" :error="numberOfRoomsForRentError">
-          <label class="block mb-2">{{ t('createAccount.propertyForm.numberOfRoomsForRent') }}</label>
+      <div class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
+        <UFormGroup name="numberOfRoomsForRent" class="d:pr-4 flex-grow" :error="numberOfRoomsForRentError">
+          <div class="mb-2">
+            {{ t('createAccount.propertyForm.numberOfRoomsForRent') }}
+          </div>
           <div class="flex items-center border border-gray-300 rounded-md max-w-[200px]">
             <button
               class="px-2 py-1 border-r border-gray-300 rounded-l-md"
@@ -66,6 +68,7 @@
               class="w-full text-center outline-none border-none"
               :min="1"
               :max="5000"
+              step="1"
               data-test-id="number-of-rooms-input"
               @input="emit('validateNumberOfRoomsForRent')"
               @keydown.enter.prevent
@@ -80,34 +83,34 @@
           </div>
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="propertyType" class="d:pr-[16px] flex-grow" :error="propertyTypeError">
+      <div class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
+        <UFormGroup name="propertyType" class="d:pr-4 flex-grow" :error="propertyTypeError">
           <USelect
             v-model="propertyType"
             :placeholder="t('createAccount.propertyForm.propertyType')"
             :options="propertyTypes"
             class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            style="color: #1a202c; /* text-gray-900 */"
             @blur="emit('validateProperty')"
             @change="emit('validateProperty')"
           />
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="ownershipType" class="d:pr-[16px] flex-grow" :error="ownershipTypeError">
+      <div class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
+        <UFormGroup name="ownershipType" class="d:pr-4 flex-grow" :error="ownershipTypeError">
           <USelect
             v-model="ownershipType"
             :placeholder="t('createAccount.propertyForm.ownershipType')"
             :options="ownershipTypes"
             class="w-full"
-            style="color: #1a202c; /* text-gray-900 */ dark:text-white; /* Override with dark mode text color */"
+            style="color: #1a202c; /* text-gray-900 */"
             @blur="emit('validateOwnership')"
             @change="emit('validateOwnership')"
           />
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="parcelIdentifier" class="d:pr-[16px] flex-grow">
+      <div class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
+        <UFormGroup name="parcelIdentifier" class="d:pr-4 flex-grow">
           <UInput
             v-model="parcelIdentifier"
             aria-label="parcel identifier"
@@ -130,8 +133,8 @@
           </template>
         </UFormGroup>
       </div>
-      <div class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="businessLicense" class="d:pr-[16px] flex-grow">
+      <div class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
+        <UFormGroup name="businessLicense" class="d:pr-4 flex-grow">
           <UInput
             v-model="businessLicense"
             aria-label="business license"
@@ -142,8 +145,8 @@
           </template>
         </UFormGroup>
       </div>
-      <div v-if="businessLicense" class="flex flex-row justify-between w-full mb-[40px] mobile:mb-[16px]">
-        <UFormGroup name="businessLicenseExpiryDate" class="d:pr-[16px] flex-grow">
+      <div v-if="businessLicense" class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
+        <UFormGroup name="businessLicenseExpiryDate" class="d:pr-4 flex-grow">
           <UInput
             v-model="businessLicenseExpiryDate"
             :placeholder="t('createAccount.propertyForm.businessLicenseExpiryDate')"
@@ -176,6 +179,56 @@ const rentalUnitSpaceType = defineModel<string>('rentalUnitSpaceType')
 const isUnitOnPrincipalResidenceProperty = defineModel<boolean>('isUnitOnPrincipalResidenceProperty')
 const hostResidence = defineModel<string | null>('hostResidence')
 
+const {
+  propertyTypes,
+  ownershipTypes,
+  ownershipTypeError,
+  propertyTypeError,
+  principalResidenceError,
+  hostResidenceError,
+  numberOfRoomsForRentError
+} = defineProps<{
+  propertyTypes: string[],
+  ownershipTypes: string[],
+  ownershipTypeError: string,
+  propertyTypeError: string,
+  rentalUnitSpaceTypeError: string,
+  principalResidenceError: string,
+  hostResidenceError: string,
+  numberOfRoomsForRentError: string;
+}>()
+
+const emit = defineEmits([
+  'validateOwnership',
+  'validateProperty',
+  'validateBusinessLicenseExpiryDate',
+  'validateRentalUnitSpaceType',
+  'validateIsUnitOnPrincipalResidenceProperty',
+  'validatePrincipalResidenceOptions',
+  'validateHostResidence',
+  'validateNumberOfRoomsForRent'
+])
+
+const principalResidenceOptions = [
+  { value: true, label: t('createAccount.propertyForm.yes') },
+  { value: false, label: t('createAccount.propertyForm.no') }
+]
+
+const rentalUnitSpaceTypeOptions = [
+  { value: RentalUnitSpaceTypeE.ENTIRE_HOME, label: t('createAccount.propertyForm.entireHome') },
+  { value: RentalUnitSpaceTypeE.SHARED_ACCOMMODATION, label: t('createAccount.propertyForm.sharedAccommodation') }
+]
+
+const hostResidenceOptions = computed(() => [
+  {
+    value: HostResidenceE.SAME_UNIT,
+    label: rentalUnitSpaceType.value === RentalUnitSpaceTypeE.ENTIRE_HOME
+      ? t('createAccount.propertyForm.sameUnitAltOption')
+      : t('createAccount.propertyForm.sameUnitOption')
+  },
+  { value: HostResidenceE.ANOTHER_UNIT, label: t('createAccount.propertyForm.anotherUnitOption') }
+])
+
 const decrementRooms = () => {
   if (formState.propertyDetails.numberOfRoomsForRent > 1) {
     formState.propertyDetails.numberOfRoomsForRent--
@@ -187,6 +240,13 @@ const incrementRooms = () => {
     formState.propertyDetails.numberOfRoomsForRent++
   }
 }
+
+const hostResidenceComputed = computed({
+  get: () => formState.propertyDetails.hostResidence ?? '', // Ensure string return
+  set: (value: string) => {
+    formState.propertyDetails.hostResidence = value || null // Set to null if empty
+  }
+})
 
 watch(businessLicense, (): void => {
   if (!businessLicense.value) {
@@ -201,48 +261,6 @@ watch(isUnitOnPrincipalResidenceProperty, (newValue) => {
   }
 })
 
-const emit = defineEmits([
-  'validateOwnership',
-  'validateProperty',
-  'validateBusinessLicenseExpiryDate',
-  'validateRentalUnitSpaceType',
-  'validateIsUnitOnPrincipalResidenceProperty',
-  'validatePrincipalResidenceOptions',
-  'validateHostResidence',
-  'validateNumberOfRoomsForRent'
-])
-
-const hostResidenceComputed = computed({
-  get: () => formState.propertyDetails.hostResidence ?? '', // Ensure string return
-  set: (value: string) => {
-    formState.propertyDetails.hostResidence = value || null // Set to null if empty
-  }
-})
-
-const {
-  propertyTypes,
-  ownershipTypes,
-  ownershipTypeError,
-  propertyTypeError,
-  principalResidenceError,
-  rentalUnitSpaceTypeOptions,
-  principalResidenceOptions,
-  hostResidenceOptions,
-  hostResidenceError,
-  numberOfRoomsForRentError
-} = defineProps<{
-  propertyTypes: string[],
-  ownershipTypes: string[],
-  ownershipTypeError: string,
-  propertyTypeError: string,
-  rentalUnitSpaceTypeOptions: { value: RentalUnitSpaceTypeE, label: string }[],
-  rentalUnitSpaceTypeError: string,
-  principalResidenceOptions: { value: boolean, label: string }[],
-  principalResidenceError: string,
-  hostResidenceOptions: { value: HostResidenceE, label: string }[],
-  hostResidenceError: string,
-  numberOfRoomsForRentError: string;
-}>()
 </script>
 
 <style scoped>

@@ -42,7 +42,6 @@ export const useBcrosKeycloak = defineStore('bcros/keycloak', () => {
     sessionStorage.removeItem(SessionStorageKeyE.USER_PROFILE)
     // TODO: TC - investigate if this fix for "not quite logged out redirect issue"
     sessionStorage.removeItem(SessionStorageKeyE.CURRENT_ACCOUNT)
-    localStorage.removeItem(SessionStorageKeyE.CURRENT_ACCOUNT)
   }
 
   function syncSessionStorage () {
@@ -54,6 +53,7 @@ export const useBcrosKeycloak = defineStore('bcros/keycloak', () => {
     sessionStorage.setItem(SessionStorageKeyE.KEYCLOAK_TOKEN_REFRESH, kc.value?.refreshToken || '')
     sessionStorage.setItem(SessionStorageKeyE.KEYCLOAK_TOKEN_ID, kc.value?.idToken || '')
     sessionStorage.setItem(SessionStorageKeyE.KEYCLOAK_SYNCED, 'true')
+    sessionStorage.removeItem(SessionStorageKeyE.CURRENT_ACCOUNT)
   }
 
   async function initKeyCloak (

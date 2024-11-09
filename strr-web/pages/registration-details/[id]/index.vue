@@ -29,53 +29,34 @@
         </div>
       </div>
       <div class="mt-10">
-        <!-- Rental Unit Info -->
+        <!-- Property Details -->
         <h2 class="font-bold mb-6 mobile:mx-2 text-xl">
-          {{ tApplicationDetails('unitInfo') }}
+          {{ tReview('propertyDetails') }}
         </h2>
-        <div class="bg-white py-[22px] px-[30px] mobile:px-2">
-          <div class="flex flex-row justify-between w-full mobile:flex-col desktop:mb-6">
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('nickname')"
-              :content="application?.unitAddress.nickname || '-'"
-              class="break-all"
-            />
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('ownership')"
-              :content="getOwnershipTypeDisplay(application?.unitDetails.ownershipType, tApplicationDetails)"
-            />
-            <BcrosFormSectionReviewItem :title="tApplicationDetails('propertyType')">
-              <p>
-                {{ application?.unitDetails.propertyType
-                  ? tPropertyForm(propertyTypeMap[application?.unitDetails.propertyType as keyof PropertyTypeMapI])
-                  : '-'
-                }}
-              </p>
-            </BcrosFormSectionReviewItem>
-          </div>
-          <div class="flex flex-row justify-between w-full mobile:flex-col">
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('rentalUnitSpaceType')"
-              :content="tApplicationDetails(application?.unitDetails.rentalUnitSpaceType) || '-'"
-            />
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('isUnitOnPrincipalResidenceProperty')"
-              :content="tApplicationDetails(application?.unitDetails.isUnitOnPrincipalResidenceProperty?
-                'true':'false') || '-'"
-            />
-            <BcrosFormSectionReviewItem
-              v-if="application?.unitDetails.isUnitOnPrincipalResidenceProperty"
-              :title="tApplicationDetails('hostResidence')"
-              :content="application?.unitDetails.hostResidence || '-'"
-            />
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('numberOfRoomsForRent')"
-              :content="application?.unitDetails.numberOfRoomsForRent.toString() || '-'"
-            />
-          </div>
-          <div class="flex flex-row justify-between w-full mobile:flex-col">
+        <div class="bg-white p-8 m:px-2 grid d:grid-cols-3 d:grid-rows-5">
+          <BcrosFormSectionReviewItem
+            :title="tReview('nickname')"
+            :content="application?.unitAddress.nickname || '-'"
+            data-test-id="unit-nickname"
+            class="break-all"
+          />
+          <BcrosFormSectionReviewItem
+            :title="tReview('rentalUnitSpaceType')"
+            :content="application?.unitDetails.rentalUnitSpaceType
+              ? tApplicationDetails(application.unitDetails.rentalUnitSpaceType) : '-'
+            "
+          />
+          <BcrosFormSectionReviewItem
+            :title="tReview('parcelIdentifier')"
+            :content="application?.unitDetails.parcelIdentifier || '-'"
+            data-test-id="parcel-identifier"
+            class="break-all"
+          />
+          <div class="grid grid-rows-subgrid d:row-span-5">
             <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">
-              <p>{{ application?.unitAddress.address }}</p>
+              <p data-test-id="unit-address">
+                {{ application?.unitAddress.address }}
+              </p>
               <p v-if="application?.unitAddress.addressLineTwo">
                 {{ application?.unitAddress.addressLineTwo }}
               </p>
@@ -85,22 +66,77 @@
                 {{ application?.unitAddress.postalCode || '-' }}
               </p>
               <p>
-                {{ application?.unitAddress.country ? regionNamesInEnglish.of(application?.unitAddress.country) : '-' }}
+                {{ application?.unitAddress.country
+                  ? regionNamesInEnglish.of(application?.unitAddress.country)
+                  : '-' }}
               </p>
             </BcrosFormSectionReviewItem>
-            <BcrosFormSectionReviewItem
-              :title="tApplicationDetails('businessLicense')"
-              :content="application?.unitDetails.businessLicense || '-'"
-              class="break-all"
-            />
-            <BcrosFormSectionReviewItem
-              v-if="application?.unitDetails.businessLicenseExpiryDate"
-              :title="tApplicationDetails('businessLicenseExpiryDate')"
-              :content="convertDateToLongFormat(application?.unitDetails.businessLicenseExpiryDate)"
-              data-test-id="business-exp-date"
-            />
-            <div v-else class="flex-1" />
           </div>
+          <BcrosFormSectionReviewItem
+            :title="tReview('isUnitOnPrincipalResidenceProperty')"
+            :content="tApplicationDetails(
+              application?.unitDetails.isUnitOnPrincipalResidenceProperty
+                ? 'true'
+                : 'false'
+            )"
+            data-test-id="isUnitOnPrincipalResidenceProperty-type"
+          />
+          <BcrosFormSectionReviewItem
+            :title="tReview('businessLicense')"
+            :content="application?.unitDetails.businessLicense || '-'"
+            data-test-id="business-license"
+            class="break-all"
+          />
+          <BcrosFormSectionReviewItem
+            :title="tReview('hostResidence')"
+            :content="application?.unitDetails.hostResidence
+              ? tApplicationDetails(application?.unitDetails.hostResidence) : '-'"
+            data-test-id="hostResidence-type"
+          />
+          <BcrosFormSectionReviewItem
+            v-if="application?.unitDetails.businessLicenseExpiryDate"
+            :title="tReview('businessLicenseExpiryDate')"
+            :content="convertDateToLongFormat(application?.unitDetails.businessLicenseExpiryDate)"
+            data-test-id="business-exp-date"
+          />
+          <BcrosFormSectionReviewItem
+            :title="tReview('numberOfRoomsForRent')"
+            :content="String(application?.unitDetails.numberOfRoomsForRent) || '-'"
+          />
+          <div class="grid grid-rows-subgrid d:row-span-3">
+            <BcrosFormSectionReviewItem :title="tReview('listing')">
+              <template v-if="application.listingDetails[0]?.url.length > 0">
+                <a
+                  v-for="listing in application.listingDetails"
+                  :key="listing.url"
+                  :href="listing.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mb-1 break-all w-5/6"
+                >
+                  {{ listing.url }}
+                </a>
+              </template>
+              <p v-else>
+                -
+              </p>
+            </BcrosFormSectionReviewItem>
+          </div>
+          <BcrosFormSectionReviewItem :title="tReview('propertyType')">
+            <p data-test-id="property-type">
+              {{ application?.unitDetails.propertyType
+                ? tPropertyForm(
+                  propertyTypeMap[application?.unitDetails.propertyType as keyof PropertyTypeMapI]
+                )
+                : '-'
+              }}
+            </p>
+          </BcrosFormSectionReviewItem>
+          <BcrosFormSectionReviewItem
+            :title="tReview('ownershipType')"
+            :content="getOwnershipTypeDisplay(application?.unitDetails.ownershipType, tApplicationDetails)"
+            data-test-id="ownership-type"
+          />
         </div>
         <!-- Property Manager -->
         <BcrosFormSectionPropertyManagerSummaryView
@@ -197,22 +233,18 @@
             </h2>
             <a
               class="mobile:mx-2"
-              :href="`/application-details/${registrationId}/ltsa`"
-              target="_blank"
-              rel="noopener"
+              @click="navigateTo(`/application-details/${registrationId}/ltsa`)"
             >
               {{ tApplicationDetails('ltsaDetails') }}
             </a>
           </div>
           <div class="mt-10">
-            <h2 class="font-bold mb-6 mobile:mx-2">
+            <h2 class="font-bold mb-6 mobile:mx-2 text-xl">
               {{ tApplicationDetails('autoApprovalLogic') }}
             </h2>
             <a
               class="mobile:mx-2"
-              :href="`/application-details/${registrationId}/auto-approval`"
-              target="_blank"
-              rel="noopener"
+              @click="navigateTo(`/application-details/${registrationId}/auto-approval`)"
             >
               {{ tApplicationDetails('autoApprovalDetails') }}
             </a>
@@ -271,6 +303,7 @@ const tRegistrationStatus = (translationKey: string) => t(`registrationStatus.${
 const tApplicationDetails = (translationKey: string) => t(`applicationDetails.${translationKey}`)
 const tStatuses = (translationKey: string) => t(`statuses.${translationKey}`)
 const tPropertyForm = (translationKey: string) => t(`createAccount.propertyForm.${translationKey}`)
+const tReview = (translationKey: string) => t(`createAccount.review.${translationKey}`)
 const { isExaminer } = useBcrosKeycloak()
 const { getChipFlavour } = useChipFlavour()
 
