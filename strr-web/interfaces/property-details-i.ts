@@ -8,7 +8,9 @@ export interface PropertyDetailsI {
     ownershipType: string | undefined
     nickname: string | undefined
     country: string | undefined
-    address: string | undefined
+    streetNumber: string | undefined
+    streetName: string | undefined
+    unitNumber: string | undefined
     addressLineTwo: string | undefined
     city: string | undefined
     province: string | undefined

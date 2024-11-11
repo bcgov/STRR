@@ -69,7 +69,11 @@
           <div class="grid grid-rows-subgrid d:row-span-5">
             <BcrosFormSectionReviewItem :title="tApplicationDetails('address')">
               <p data-test-id="unit-address">
-                {{ applicationDetails?.unitAddress.address }}
+                {{ applicationDetails?.unitAddress.streetNumber }} {{ applicationDetails?.unitAddress.streetName }}
+                {{ applicationDetails?.unitAddress.unitNumber
+                  ? `, ${applicationDetails?.unitAddress.unitNumber}`
+                  : ''
+                }}
               </p>
               <p v-if="applicationDetails?.unitAddress.addressLineTwo">
                 {{ applicationDetails?.unitAddress.addressLineTwo }}

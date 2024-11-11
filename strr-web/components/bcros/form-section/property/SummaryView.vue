@@ -16,9 +16,11 @@ const {
   propertyDetails
 } = props
 
-const propertyAddressDetails = computed((): MailingAddressAPII => {
+const propertyAddressDetails = computed((): UnitAddressI => {
   return {
-    address: propertyDetails.address,
+    streetName: propertyDetails.streetName,
+    streetNumber: propertyDetails.streetNumber,
+    unitNumber: propertyDetails.unitNumber,
     addressLineTwo: propertyDetails.addressLineTwo,
     city: propertyDetails.city,
     postalCode: propertyDetails.postalCode,
@@ -54,7 +56,7 @@ const propertyAddressDetails = computed((): MailingAddressAPII => {
           :title="tReview('address')"
         >
           <!-- eslint-disable-next-line vue/no-v-html -->
-          <p v-html="displayFullAddress(propertyAddressDetails) || '-'" />
+          <p v-html="displayFullAddressWithStreetAttributes(propertyAddressDetails) || '-'" />
         </BcrosFormSectionReviewItem>
       </div>
       <BcrosFormSectionReviewItem

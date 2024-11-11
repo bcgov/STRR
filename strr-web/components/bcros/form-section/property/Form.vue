@@ -25,6 +25,8 @@
           :principal-residence-error="principalResidenceError"
           :host-residence-error="hostResidenceError"
           :number-of-rooms-for-rent-error="numberOfRoomsForRentError"
+          :business-license-expiry-date-error="businessLicenseExpiryDateError"
+          @reset-field-error="resetFieldError"
           @validate-ownership="validateOwnershipType"
           @validate-property="validatePropertyType"
           @validate-business-license-expiry-date="validateBusinessLicenseExpiryDate"
@@ -34,21 +36,38 @@
           @validate-number-of-rooms-for-rent="validateNumberOfRoomsForRent"
         />
         <BcrosFormSectionPropertyAddress
-          id="propertyAddress"
           v-model:nickname="formState.propertyDetails.nickname"
           v-model:country="formState.propertyDetails.country"
-          v-model:address="formState.propertyDetails.address"
+          v-model:street-number="formState.propertyDetails.streetNumber"
+          v-model:street-name="formState.propertyDetails.streetName"
+          v-model:unit-number="formState.propertyDetails.unitNumber"
           v-model:address-line-two="formState.propertyDetails.addressLineTwo"
           v-model:city="formState.propertyDetails.city"
           v-model:province="formState.propertyDetails.province"
           v-model:postal-code="formState.propertyDetails.postalCode"
+          street-number-id="propertyAddressStreetNumber"
+          street-name-id="propertyAddressStreetName"
           :enable-address-complete="enableAddressComplete"
           default-country-iso2="CA"
           :address-not-in-b-c="addressNotInBC"
+          :street-number-error="streetNumberError"
+          :street-name-error="streetNameError"
+          :unit-number-error="unitNumberError"
+          :address-line-two-error="addressLineTwoError"
+          :city-error="cityError"
+          :province-error="provinceError"
+          :postal-code-error="postalCodeError"
+          @reset-field-error="resetFieldError"
+          @validate-street-number="validateStreetNumber"
+          @validate-street-name="validateStreetName"
+          @validate-unit-number="validateUnitNumber"
+          @validate-address-line-two="validateAddressLineTwo"
+          @validate-city="validateCity"
+          @validate-province="validateProvince"
+          @validate-postal-code="validatePostalCode"
         />
         <BcrosFormSectionPropertyListingDetails
           v-model:listing-details="formState.propertyDetails.listingDetails"
-          :enable-address-complete="enableAddressComplete"
           :add-platform="addPlatform"
           :remove-detail-at-index="removeDetailAtIndex"
           :invalid-urls="listingURLErrors"
@@ -69,7 +88,8 @@ const { isComplete } = defineProps<{
 const addressNotInBC = ref(false)
 
 const {
-  address: canadaPostAddress,
+  activeAddressField,
+  addressWithStreetAttributes: canadaPostAddress,
   enableAddressComplete
 } = useCanadaPostAddress(true)
 
@@ -82,15 +102,17 @@ const getActiveAddressState = () => {
 }
 
 watch(canadaPostAddress, (newAddress) => {
-  if (newAddress) {
+  const activeAddressState = getActiveAddressState()
+  if (newAddress && activeAddressState) {
     if (newAddress.region === 'BC') {
       addressNotInBC.value = false
-      formState.propertyDetails.address = newAddress.street
-      formState.propertyDetails.addressLineTwo = newAddress.streetAdditional
-      formState.propertyDetails.country = newAddress.country
-      formState.propertyDetails.city = newAddress.city
-      formState.propertyDetails.province = newAddress.region
-      formState.propertyDetails.postalCode = newAddress.postalCode
+      activeAddressState.streetNumber = newAddress.streetNumber
+      activeAddressState.streetName = newAddress.streetName
+      activeAddressState.addressLineTwo = newAddress.streetAdditional
+      activeAddressState.country = newAddress.country
+      activeAddressState.city = newAddress.city
+      activeAddressState.province = newAddress.region
+      activeAddressState.postalCode = newAddress.postalCode
     } else {
       addressNotInBC.value = true
     }
@@ -200,7 +222,7 @@ const ownershipTypes: string[] = [
 
 const propertyTypeError = ref('')
 const ownershipTypeError = ref('')
-const businessLicenseExpiryDate = ref('')
+const businessLicenseExpiryDateError = ref('')
 const rentalUnitSpaceTypeError = ref('')
 const principalResidenceError = ref('')
 const hostResidenceError = ref('')
@@ -221,7 +243,7 @@ const validateOwnershipType = () => {
 const validateBusinessLicenseExpiryDate = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('businessLicenseExpiryDate'))
-  businessLicenseExpiryDate.value = error ? error.message : ''
+  businessLicenseExpiryDateError.value = error ? error.message : ''
 }
 
 const validateRentalUnitSpaceType = () => {
@@ -281,6 +303,80 @@ const validateNumberOfRoomsForRent = () => {
   }
 }
 
+const streetNumberError = ref('')
+const streetNameError = ref('')
+const unitNumberError = ref('')
+const addressLineTwoError = ref('')
+const cityError = ref('')
+const provinceError = ref('')
+const postalCodeError = ref('')
+
+const validateStreetNumber = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('streetNumber'))
+  streetNumberError.value = error ? error.message : ''
+}
+
+const validateStreetName = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('streetName'))
+  streetNameError.value = error ? error.message : ''
+}
+
+const validateUnitNumber = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('unitNumber'))
+  unitNumberError.value = error ? error.message : ''
+}
+
+const validateAddressLineTwo = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('addressLineTwo'))
+  addressLineTwoError.value = error ? error.message : ''
+}
+
+const validateCity = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('city'))
+  cityError.value = error ? error.message : ''
+}
+
+const validateProvince = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('province'))
+  provinceError.value = error ? error.message : ''
+}
+
+const validatePostalCode = () => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
+  const error = parsed?.find(error => error.path.includes('postalCode'))
+  postalCodeError.value = error ? error.message : ''
+}
+
+const resetFieldError = (errorTypes: string[]) => {
+  const errorMap: Record<string, Ref<string>> = {
+    propertyType: propertyTypeError,
+    ownershipType: ownershipTypeError,
+    rentalUnitSpaceType: rentalUnitSpaceTypeError,
+    principalResidence: principalResidenceError,
+    hostResidence: hostResidenceError,
+    numberOfRoomsForRent: numberOfRoomsForRentError,
+    streetNumber: streetNumberError,
+    streetName: streetNameError,
+    unitNumber: unitNumberError,
+    addressLineTwo: addressLineTwoError,
+    city: cityError,
+    province: provinceError,
+    postalCode: postalCodeError
+  }
+
+  errorTypes.forEach((errorType) => {
+    if (errorType in errorMap) {
+      errorMap[errorType].value = ''
+    }
+  })
+}
+
 const form = ref()
 
 watch(form, () => {
@@ -298,6 +394,13 @@ onMounted(() => {
     validatePrincipalResidenceOptions()
     validateHostResidence()
     validateNumberOfRoomsForRent()
+    validateStreetNumber()
+    validateStreetName()
+    validateUnitNumber()
+    validateAddressLineTwo()
+    validateCity()
+    validateProvince()
+    validatePostalCode()
   }
 })
 </script>

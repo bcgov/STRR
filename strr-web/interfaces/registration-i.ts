@@ -3,9 +3,20 @@ export interface RegistrationAddressI {
   country: string
   postalCode: string
   province: string
-  address: string
+  streetNumber: string
+  streetName: string
+  unitNumber?: string
   addressLineTwo: string
   nickname: string
+}
+
+export interface MailingAddressI {
+  city: string
+  country: string
+  postalCode: string
+  province: string
+  address: string
+  addressLineTwo: string
 }
 
 export interface RegistrationI {

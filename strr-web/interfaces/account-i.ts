@@ -174,7 +174,15 @@ export interface MailingAddressAPII {
   country: string
 }
 
-export interface UnitAddressI extends MailingAddressAPII {
+export interface UnitAddressI {
+  streetNumber: string
+  streetName: string
+  unitNumber?: string
+  addressLineTwo?: string
+  city: string
+  postalCode: string
+  province: string
+  country: string
   nickname: string
 }
 

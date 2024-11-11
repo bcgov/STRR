@@ -10,6 +10,18 @@ export interface CanadaPostAddressI {
   deliveryInstructions?: string
 }
 
+export interface CanadaPostAddressWithStreetAttributesI {
+  streetNumber: string
+  streetName: string
+  unitNumber?: string
+  streetAdditional?: string
+  city: string
+  region: string
+  postalCode: string
+  country: string
+  deliveryInstructions?: string
+}
+
 export interface CanadaPostResponseAddressI {
   Id: string
   DomesticId: string

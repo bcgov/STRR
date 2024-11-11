@@ -54,13 +54,24 @@
               <p class="font-bold">
                 {{
                   application.registration.unitAddress.nickname ||
-                    application.registration.unitAddress.address
+                    `${application.registration.unitAddress.streetNumber} ${
+                      application.registration.unitAddress.streetName
+                    }${
+                      application.registration.unitAddress.unitNumber
+                        ? `, ${application.registration.unitAddress.unitNumber}`
+                        : ''
+                    }`
                 }}
               </p>
               <p>
                 {{
                   application.registration.unitAddress.nickname
-                    ? application.registration.unitAddress.address
+                    ? `${application.registration.unitAddress.streetNumber} ${
+                      application.registration.unitAddress.streetName}${
+                      application.registration.unitAddress.unitNumber
+                        ? `, ${application.registration.unitAddress.unitNumber}`
+                        : ''
+                    }`
                     : application.registration.unitAddress.addressLineTwo
                 }}
               </p>

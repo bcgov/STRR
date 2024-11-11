@@ -134,7 +134,11 @@ const headerLabel =
       ? applicationDetails.unitAddress.nickname + ','
       : ''
   }` +
-  `${applicationDetails.unitAddress.address}` +
+  `${applicationDetails.unitAddress.streetNumber} ` +
+  `${applicationDetails.unitAddress.streetName}` +
+  `${applicationDetails.unitAddress.unitNumber
+    ? `, ${applicationDetails.unitAddress.unitNumber}`
+    : ''}` +
   `${
     applicationDetails.unitAddress.addressLineTwo
       ? ' ' + applicationDetails.unitAddress.addressLineTwo

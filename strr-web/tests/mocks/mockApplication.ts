@@ -84,7 +84,9 @@ export const mockApplicationDetails: HostApplicationDetailsI = {
     specifiedServiceProvider: ''
   },
   unitAddress: {
-    address: '123 Main St',
+    streetNumber: '123',
+    streetName: 'Main St',
+    unitNumber: 'test',
     city: 'Victoria',
     country: 'CA',
     nickname: '',

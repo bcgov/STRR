@@ -96,6 +96,26 @@ export function displayFullAddress (mailingAddress?: MailingAddressAPII): string
 }
 
 /**
+ * Displays the full unit address based on the provided address object.
+ *
+ * @param unitAddress the unit address object containing address details.
+ * @returns formatted full address as a string, or undefined if all fields are empty.
+ */
+export function displayFullAddressWithStreetAttributes (unitAddress?: UnitAddressI): string | undefined {
+  if (!unitAddress || Object.values(unitAddress).every(field => !field)) {
+    return undefined // let the caller handle the undefined state
+  }
+  const { streetName, streetNumber, unitNumber, addressLineTwo, city, postalCode, province, country } = unitAddress
+  // add comma only if address & addressLineTwo exists
+  const addressPartTwo = streetNumber && streetName && addressLineTwo ? `, ${addressLineTwo}` : addressLineTwo || ''
+
+  return `
+      ${streetNumber || '-'} ${streetName || '-'} ${unitNumber || ''}${addressPartTwo}<br>
+      ${city || '-'} ${province} ${postalCode || '-'}<br>
+      ${country ? regionNamesInEnglish.of(country) : '-'}
+    `
+}
+/**
  * Formats a contact's name by combining first, middle, and last names.
  * @param {Object} contact contact object containing the names.
  * @returns {string | undefined} formatted name or undefined if all name parts are missing.

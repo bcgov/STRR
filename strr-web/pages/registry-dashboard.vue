@@ -316,7 +316,7 @@ const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<
       const platformApplication: PlatformApplicationDetailsI = application.registration
       applicationType = 'Platform'
       applicantName = platformApplication.businessDetails.legalName
-      propertyAddress = formatPropertyAddress(platformApplication.businessDetails.mailingAddress)
+      propertyAddress = formatMailingAddress(platformApplication.businessDetails.mailingAddress)
     } else if (registrationType === RegistrationTypeE.STRATA_HOTEL) {
       applicationType = 'Strata Hotel'
       // Implement this once the backend supports it
@@ -338,6 +338,20 @@ const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<
 }
 
 const formatPropertyAddress = (propertyAddress: RegistrationAddressI): string => {
+  const { streetNumber, streetName, unitNumber, addressLineTwo, city, postalCode, province, country } = propertyAddress
+  const unitNumberPart = unitNumber ? `, ${unitNumber}` : ''
+  const addressPartTwo = streetNumber && streetName && addressLineTwo ? `, ${addressLineTwo}` : addressLineTwo || ''
+  return `
+    ${streetNumber || '-'} 
+    ${streetName || '-'}${unitNumberPart}${addressPartTwo} 
+    ${city} 
+    ${province} 
+    ${postalCode} 
+    ${country || '-'}
+  `
+}
+
+const formatMailingAddress = (propertyAddress: MailingAddressI): string => {
   const { address, addressLineTwo, city, postalCode, province, country } = propertyAddress
   const addressPartTwo = address && addressLineTwo ? `, ${addressLineTwo}` : addressLineTwo || ''
   return `

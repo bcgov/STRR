@@ -8,7 +8,9 @@
         <p class="text-[16px] text-bcGovColor-midGray">
           <!-- eslint-disable-next-line max-len -->
           {{ `${formState.propertyDetails.nickname ?? '' }
-           ${formState.propertyDetails.address ?? ''}
+           ${formState.propertyDetails.streetNumber ?? ''}
+           ${formState.propertyDetails.streetName ?? ''}
+           ${formState.propertyDetails.unitNumber ?? ''}
            ${formState.propertyDetails.addressLineTwo ?? ''}
            ${formState.propertyDetails.city ?? ''}
            ${formState.propertyDetails.postalCode ?? ''}

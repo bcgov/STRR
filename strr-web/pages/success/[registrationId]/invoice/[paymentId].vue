@@ -18,8 +18,15 @@
         <p class="mb-6 font-bold">
           {{
             (fetchedApplication && fetchedApplication?.registration?.unitAddress)
-              ? fetchedApplication.registration.unitAddress.address
-              : '-' }}
+              ? `${fetchedApplication.registration.unitAddress.streetNumber} ${
+                fetchedApplication.registration.unitAddress.streetName
+              }${
+                fetchedApplication.registration.unitAddress.unitNumber
+                  ? `, ${fetchedApplication.registration.unitAddress.unitNumber}`
+                  : ''
+              }`
+              : '-'
+          }}
         </p>
         <p class="mobile:mb-6">
           {{ tApplicationConfirm('teamWillReview') }}

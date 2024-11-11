@@ -91,7 +91,9 @@ it('begins with empty address', () => {
       ownershipType: 'ownershipType',
       nickname: 'nickname',
       country: 'country',
-      address: 'address',
+      streetNumber: '123',
+      streetName: 'Main St',
+      unitNumber: 'test',
       addressLineTwo: 'addressLineTwo',
       city: 'city',
       province: 'province',
@@ -118,8 +120,14 @@ it('begins with empty address', () => {
   expect(apiFormattedState.registration.listingDetails)
     .toEqual(createAccountState.propertyDetails.listingDetails)
 
-  expect(apiFormattedState.registration.unitAddress.address)
-    .toEqual(createAccountState.propertyDetails.address)
+  expect(apiFormattedState.registration.unitAddress.streetNumber)
+    .toEqual(createAccountState.propertyDetails.streetNumber)
+
+  expect(apiFormattedState.registration.unitAddress.streetName)
+    .toEqual(createAccountState.propertyDetails.streetName)
+
+  expect(apiFormattedState.registration.unitAddress.unitNumber)
+    .toEqual(createAccountState.propertyDetails.unitNumber)
 
   expect(apiFormattedState.registration.unitDetails.businessLicense)
     .toEqual(createAccountState.propertyDetails.businessLicense)

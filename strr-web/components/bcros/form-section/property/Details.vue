@@ -146,7 +146,7 @@
         </UFormGroup>
       </div>
       <div v-if="businessLicense" class="flex flex-row justify-between w-full mb-[40px] m:mb-4">
-        <UFormGroup name="businessLicenseExpiryDate" class="d:pr-4 flex-grow">
+        <UFormGroup name="businessLicenseExpiryDate" class="d:pr-4 flex-grow" :error="businessLicenseExpiryDateError">
           <UInput
             v-model="businessLicenseExpiryDate"
             :placeholder="t('createAccount.propertyForm.businessLicenseExpiryDate')"
@@ -154,6 +154,7 @@
             :min="new Date().toISOString().split('T')[0]"
             :max="new Date('2999-12-31').toISOString().split('T')[0]"
             :ui="{ base: 'uppercase' }"
+            @input="emit('resetFieldError', ['businessLicenseExpiryDate'])"
             @blur="emit('validateBusinessLicenseExpiryDate')"
             @change="emit('validateBusinessLicenseExpiryDate')"
           />
@@ -186,7 +187,8 @@ const {
   propertyTypeError,
   principalResidenceError,
   hostResidenceError,
-  numberOfRoomsForRentError
+  numberOfRoomsForRentError,
+  businessLicenseExpiryDateError
 } = defineProps<{
   propertyTypes: string[],
   ownershipTypes: string[],
@@ -195,7 +197,8 @@ const {
   rentalUnitSpaceTypeError: string,
   principalResidenceError: string,
   hostResidenceError: string,
-  numberOfRoomsForRentError: string;
+  numberOfRoomsForRentError: string,
+  businessLicenseExpiryDateError: string
 }>()
 
 const emit = defineEmits([
@@ -206,7 +209,8 @@ const emit = defineEmits([
   'validateIsUnitOnPrincipalResidenceProperty',
   'validatePrincipalResidenceOptions',
   'validateHostResidence',
-  'validateNumberOfRoomsForRent'
+  'validateNumberOfRoomsForRent',
+  'resetFieldError'
 ])
 
 const principalResidenceOptions = [

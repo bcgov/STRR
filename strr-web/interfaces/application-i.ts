@@ -74,10 +74,10 @@ export interface PlatformApplicationDetailsI {
     noticeOfNonComplianceOptionalEmail?: string,
     takeDownRequestEmail: string,
     takeDownRequestOptionalEmail?: string,
-    mailingAddress: RegistrationAddressI,
+    mailingAddress: MailingAddressI,
     registeredOfficeOrAttorneyForServiceDetails?: {
       attorneyName: string,
-      mailingAddress: RegistrationAddressI
+      mailingAddress: MailingAddressI
     }
   },
   platformDetails: {

@@ -68,8 +68,10 @@ export const formStateToApi = (
 
   const setUnitAddress = () => {
     formData.registration.unitAddress = {
-      address: formState.propertyDetails.address ?? '',
-      addressLineTwo: formState.propertyDetails.addressLineTwo,
+      streetNumber: formState.propertyDetails.streetNumber ?? '',
+      streetName: formState.propertyDetails.streetName ?? '',
+      unitNumber: formState.propertyDetails.unitNumber ?? '',
+      addressLineTwo: formState.propertyDetails.addressLineTwo ?? '',
       city: formState.propertyDetails.city ?? '',
       postalCode: formState.propertyDetails.postalCode ?? '',
       province: formState.propertyDetails.province ?? '',

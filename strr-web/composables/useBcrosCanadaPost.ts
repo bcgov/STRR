@@ -2,7 +2,7 @@ import { reactive } from 'vue'
 import { useRuntimeConfig } from '#app'
 import type { CanadaPostAddressI, CanadaPostResponseAddressI } from '#imports'
 
-export const useCanadaPostAddress = () => {
+export const useCanadaPostAddress = (isStreetAttributes: boolean = false) => {
   const activeAddressField = ref<string>()
   const address = reactive<CanadaPostAddressI>({
     street: '',
@@ -14,8 +14,20 @@ export const useCanadaPostAddress = () => {
     deliveryInstructions: ''
   })
 
+  const addressWithStreetAttributes = reactive<CanadaPostAddressWithStreetAttributesI>({
+    streetNumber: '',
+    streetName: '',
+    unitNumber: '',
+    streetAdditional: '',
+    city: '',
+    region: '',
+    postalCode: '',
+    country: '',
+    deliveryInstructions: ''
+  })
+
   const createAddressComplete = (pca: any, key: string, id: string, countryIso2: string,
-    countrySelect: boolean): object => {
+    countrySelect: boolean, province?: string): object => {
     const fields = [
       { element: id, field: 'Line1', mode: pca.fieldMode.SEARCH }
     ]
@@ -25,13 +37,28 @@ export const useCanadaPostAddress = () => {
       defaultCode: countryIso2,
       ...(countrySelect ? {} : { codesList: 'CA' })
     }
-    const options = { key, bar, countries }
+    const options = {
+      key,
+      bar,
+      countries,
+      ...(province
+        ? {
+            province: {
+              codesList: province
+            }
+          }
+        : {})
+    }
     const addressComplete = new pca.Address(fields, options)
-    addressComplete.listen('populate', addressCompletePopulate)
+    if (isStreetAttributes) {
+      addressComplete.listen('populate', addressCompletePopulateWithStreetAttributes)
+    } else {
+      addressComplete.listen('populate', addressCompletePopulate)
+    }
     return addressComplete
   }
 
-  const enableAddressComplete = (id: string, countryIso2: string, countrySelect: boolean): void => {
+  const enableAddressComplete = (id: string, countryIso2: string, countrySelect: boolean, province?: string): void => {
     activeAddressField.value = id
     const config = useRuntimeConfig()
     const pca = (window as any).pca
@@ -43,7 +70,9 @@ export const useCanadaPostAddress = () => {
     if ((window as any).currentAddressComplete) {
       (window as any).currentAddressComplete.destroy()
     }
-    (window as any).currentAddressComplete = createAddressComplete(pca, key, id, countryIso2, countrySelect)
+    (window as any).currentAddressComplete = createAddressComplete(
+      pca, key, id, countryIso2, countrySelect, province
+    )
   }
 
   const addressCompletePopulate = (addressComplete: CanadaPostResponseAddressI): void => {
@@ -55,9 +84,21 @@ export const useCanadaPostAddress = () => {
     address.country = addressComplete.CountryIso2
   }
 
+  const addressCompletePopulateWithStreetAttributes = (addressComplete: CanadaPostResponseAddressI): void => {
+    addressWithStreetAttributes.streetNumber = addressComplete.BuildingNumber
+    addressWithStreetAttributes.streetName = addressComplete.Street
+    addressWithStreetAttributes.unitNumber = addressComplete.SubBuilding || ''
+    addressWithStreetAttributes.streetAdditional = addressComplete.Line2 || ''
+    addressWithStreetAttributes.city = addressComplete.City
+    addressWithStreetAttributes.region = addressComplete.ProvinceCode
+    addressWithStreetAttributes.postalCode = addressComplete.PostalCode
+    addressWithStreetAttributes.country = addressComplete.CountryIso2
+  }
+
   return {
     activeAddressField,
     address,
+    addressWithStreetAttributes,
     enableAddressComplete
   }
 }
