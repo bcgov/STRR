@@ -71,7 +71,15 @@ const addressNotInBC = ref(false)
 const {
   address: canadaPostAddress,
   enableAddressComplete
-} = useCanadaPostAddress()
+} = useCanadaPostAddress(true)
+
+const getActiveAddressState = () => {
+  if (activeAddressField.value === 'propertyAddressStreetNumber' ||
+      activeAddressField.value === 'propertyAddressStreetName') {
+    return formState.propertyDetails
+  }
+  return null
+}
 
 watch(canadaPostAddress, (newAddress) => {
   if (newAddress) {
