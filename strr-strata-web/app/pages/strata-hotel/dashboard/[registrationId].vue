@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { t } = useI18n()
 const route = useRoute()
+const config = useRuntimeConfig().public
 const localePath = useLocalePath()
 const {
   loading,
@@ -56,8 +57,13 @@ onMounted(async () => {
     representatives.value = getDashboardRepresentives()
     // update breadcrumbs with strata business name
     setBreadcrumbs([
-      { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-      { label: t('strr.title.dashboard'), to: useLocalePath()('/strata-hotel/dashboard') },
+      {
+        label: t('label.bcregDash'),
+        to: config.registryHomeURL + 'dashboard',
+        appendAccountId: true,
+        external: true
+      },
+      { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
       { label: strataBusiness.value.legalName }
     ])
   }
@@ -76,8 +82,13 @@ definePageMeta({
 })
 
 setBreadcrumbs([
-  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: 'My Short Term Rental Registry', to: localePath('/strata-hotel/dashboard') },
+  {
+    label: t('label.bcregDash'),
+    to: config.registryHomeURL + 'dashboard',
+    appendAccountId: true,
+    external: true
+  },
+  { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
   { label: 'Item 1' }
 ])
 </script>

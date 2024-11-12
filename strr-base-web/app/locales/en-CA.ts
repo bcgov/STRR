@@ -225,7 +225,8 @@ export default {
     basicAccount: 'Basic Account',
     inactiveAccount: 'Inactive Account',
     createNewAccount: 'Create New Account',
-    contToCreateAccount: 'Continue to Create Account'
+    contToCreateAccount: 'Continue to Create Account',
+    myStrr: 'My Short-term Rental Registry'
   },
   modal: {
     declineTos: {

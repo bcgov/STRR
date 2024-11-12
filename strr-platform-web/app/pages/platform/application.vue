@@ -231,8 +231,13 @@ definePageMeta({
 })
 
 setBreadcrumbs([
-  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('strr.title.dashboard'), to: useLocalePath()('/platform/dashboard') },
+  {
+    label: t('label.bcregDash'),
+    to: useRuntimeConfig().public.registryHomeURL + 'dashboard',
+    appendAccountId: true,
+    external: true
+  },
+  { label: t('strr.title.dashboard'), to: localePath('/platform/dashboard') },
   { label: t('strr.title.application') }
 ])
 </script>

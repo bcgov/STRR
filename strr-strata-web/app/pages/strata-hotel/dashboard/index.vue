@@ -4,7 +4,6 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strataStore = useStrrStrataStore()
 const strataModal = useStrataModals()
-const { setBreadcrumbs } = useConnectBreadcrumbStore()
 
 const columns = [
   {
@@ -50,7 +49,12 @@ definePageMeta({
 })
 
 setBreadcrumbs([
-  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard', appendAccountId: true },
+  {
+    label: t('label.bcregDash'),
+    to: useRuntimeConfig().public.registryHomeURL + 'dashboard',
+    appendAccountId: true,
+    external: true
+  },
   { label: t('page.dashboardList.h1') }
 ])
 

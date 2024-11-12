@@ -38,13 +38,9 @@ useHead({
 })
 
 definePageMeta({
-  middleware: 'login-page'
+  middleware: 'login-page',
+  hideBreadcrumbs: true
 })
-
-setBreadcrumbs([
-  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('label.login') }
-])
 </script>
 <template>
   <div class="flex grow justify-center py-10">

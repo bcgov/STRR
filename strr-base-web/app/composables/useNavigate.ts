@@ -24,10 +24,5 @@ export const useNavigate = () => {
     await navigateTo(payUrl, { external: true })
   }
 
-  function appendUrlParam (url: string, key: string, value: string | number) {
-    const separator = url.includes('?') ? '&' : '?'
-    return `${url}${separator}${key}=${value}`
-  }
-
-  return { redirect, handlePaymentRedirect, appendUrlParam }
+  return { redirect, handlePaymentRedirect }
 }
