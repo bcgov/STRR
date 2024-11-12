@@ -337,7 +337,7 @@ const registrationsToTableRows = (applications: PaginatedApplicationsI): Record<
   return rows
 }
 
-const formatPropertyAddress = (propertyAddress: RegistrationAddressI): string => {
+const formatPropertyAddress = (propertyAddress: UnitAddressAPII): string => {
   const { streetNumber, streetName, unitNumber, addressLineTwo, city, postalCode, province, country } = propertyAddress
   const unitNumberPart = unitNumber ? `, ${unitNumber}` : ''
   const addressPartTwo = streetNumber && streetName && addressLineTwo ? `, ${addressLineTwo}` : addressLineTwo || ''
@@ -351,7 +351,7 @@ const formatPropertyAddress = (propertyAddress: RegistrationAddressI): string =>
   `
 }
 
-const formatMailingAddress = (propertyAddress: MailingAddressI): string => {
+const formatMailingAddress = (propertyAddress: MailingAddressAPII): string => {
   const { address, addressLineTwo, city, postalCode, province, country } = propertyAddress
   const addressPartTwo = address && addressLineTwo ? `, ${addressLineTwo}` : addressLineTwo || ''
   return `

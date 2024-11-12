@@ -1,24 +1,3 @@
-export interface RegistrationAddressI {
-  city: string
-  country: string
-  postalCode: string
-  province: string
-  streetNumber: string
-  streetName: string
-  unitNumber?: string
-  addressLineTwo: string
-  nickname: string
-}
-
-export interface MailingAddressI {
-  city: string
-  country: string
-  postalCode: string
-  province: string
-  address: string
-  addressLineTwo: string
-}
-
 export interface RegistrationI {
   id: number
   registration_number?: string
@@ -37,7 +16,7 @@ export interface RegistrationI {
   sbc_account_id: number
   status: string
   submissionDate: string
-  unitAddress: RegistrationAddressI
+  unitAddress: UnitAddressAPII
   unitDetails: {
     parcelIdentifier?: string,
     businessLicense?: string,

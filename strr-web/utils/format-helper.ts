@@ -101,16 +101,17 @@ export function displayFullAddress (mailingAddress?: MailingAddressAPII): string
  * @param unitAddress the unit address object containing address details.
  * @returns formatted full address as a string, or undefined if all fields are empty.
  */
-export function displayFullAddressWithStreetAttributes (unitAddress?: UnitAddressI): string | undefined {
+export function displayFullAddressWithStreetAttributes (unitAddress?: UnitAddressAPII): string | undefined {
   if (!unitAddress || Object.values(unitAddress).every(field => !field)) {
     return undefined // let the caller handle the undefined state
   }
   const { streetName, streetNumber, unitNumber, addressLineTwo, city, postalCode, province, country } = unitAddress
   // add comma only if address & addressLineTwo exists
   const addressPartTwo = streetNumber && streetName && addressLineTwo ? `, ${addressLineTwo}` : addressLineTwo || ''
+  const unitNumberPart = unitNumber ? `, ${unitNumber}` : ''
 
   return `
-      ${streetNumber || '-'} ${streetName || '-'} ${unitNumber || ''}${addressPartTwo}<br>
+      ${streetNumber || '-'} ${streetName || '-'}${unitNumberPart}${addressPartTwo}<br>
       ${city || '-'} ${province} ${postalCode || '-'}<br>
       ${country ? regionNamesInEnglish.of(country) : '-'}
     `

@@ -25,7 +25,7 @@
         <UFormGroup
           name="streetNumber"
           class="d:pr-[16px] flex-grow"
-          :error="streetNumberError"
+          :error="errors.streetNumber"
         >
           <UInput
             :id="streetNumberId"
@@ -45,7 +45,7 @@
         <UFormGroup
           name="streetName"
           class="d:pr-[16px] flex-grow"
-          :error="streetNameError"
+          :error="errors.streetName"
         >
           <UInput
             :id="streetNameId"
@@ -65,7 +65,7 @@
         <UFormGroup
           name="unitNumber"
           class="d:pr-[16px] flex-grow"
-          :error="unitNumberError"
+          :error="errors.unitNumber"
         >
           <UInput
             v-model="unitNumber"
@@ -81,7 +81,7 @@
         <UFormGroup
           name="AddressLineTwo"
           class="d:pr-[16px] flex-grow"
-          :error="addressLineTwoError"
+          :error="errors.addressLineTwo"
         >
           <UInput
             v-model="addressLineTwo"
@@ -96,7 +96,7 @@
         <UFormGroup
           name="city"
           class="d:pr-[16px] flex-grow mobile:mb-[16px]"
-          :error="cityError"
+          :error="errors.city"
         >
           <UInput
             v-model="city"
@@ -110,7 +110,7 @@
         <UFormGroup
           name="province"
           class="d:pr-[16px] flex-grow mobile:mb-[16px]"
-          :error="addressNotInBC ? 'Address must be in BC' : provinceError || ''"
+          :error="errors.addressNotInBC"
         >
           <UInput
             v-model="province"
@@ -125,7 +125,7 @@
         <UFormGroup
           name="postalCode"
           class="d:pr-[16px] flex-grow mobile:mb-[16px]"
-          :error="postalCodeError"
+          :error="errors.postalCode"
         >
           <UInput
             v-model="postalCode"
@@ -143,7 +143,7 @@
 
 <script setup lang="ts">
 import { CountryItem } from '@/interfaces/address-i'
-import { PropertyTypeValueMapE } from '@/enums/property-type-map-e'
+import { PropertyTypeEnglishTranslationMapE } from '@/enums/property-type-map-e'
 import countries from '@/utils/countries.json'
 const { t } = useTranslation()
 const unitNumberPlaceholder = ref('')
@@ -185,27 +185,13 @@ const {
   streetNameId,
   defaultCountryIso2,
   enableAddressComplete,
-  addressNotInBC,
-  streetNumberError,
-  streetNameError,
-  unitNumberError,
-  addressLineTwoError,
-  cityError,
-  postalCodeError,
-  provinceError
+  errors = {}
 } = defineProps<{
   streetNumberId: string,
   streetNameId: string,
   defaultCountryIso2: string,
   enableAddressComplete:(id: string, countryIso2: string, countrySelect: boolean, province?: string) => void,
-  addressNotInBC?: boolean,
-  streetNumberError?: string,
-  streetNameError?: string,
-  unitNumberError?: string,
-  addressLineTwoError?: string,
-  cityError?: string,
-  postalCodeError?: string,
-  provinceError?: string
+  errors: Record<string, string>
 }>()
 
 const emit = defineEmits([
@@ -226,12 +212,12 @@ const getUnitNumberPlaceholder = (propertyType?: string) => {
     return t('createAccount.contactForm.unitNumberOptional')
   }
   switch (propertyType) {
-    case PropertyTypeValueMapE.SECONDARY_SUITE:
-    case PropertyTypeValueMapE.ACCESSORY_DWELLING:
-    case PropertyTypeValueMapE.TOWN_HOME:
-    case PropertyTypeValueMapE.MULTI_UNIT_HOUSING:
-    case PropertyTypeValueMapE.CONDO_OR_APT:
-    case PropertyTypeValueMapE.STRATA_HOTEL:
+    case PropertyTypeEnglishTranslationMapE.SECONDARY_SUITE:
+    case PropertyTypeEnglishTranslationMapE.ACCESSORY_DWELLING:
+    case PropertyTypeEnglishTranslationMapE.TOWN_HOME:
+    case PropertyTypeEnglishTranslationMapE.MULTI_UNIT_HOUSING:
+    case PropertyTypeEnglishTranslationMapE.CONDO_OR_APT:
+    case PropertyTypeEnglishTranslationMapE.STRATA_HOTEL:
       return t('createAccount.contactForm.unitNumberRequired')
     default:
       return t('createAccount.contactForm.unitNumberOptional')

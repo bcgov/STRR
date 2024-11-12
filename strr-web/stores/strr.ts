@@ -10,7 +10,7 @@ import type {
 import type { PropertyManagerI } from '~/interfaces/property-manager-i'
 import { RegistrationTypeE } from '#imports'
 import { HostContactTypeE } from '~/enums/host-contact-type-e'
-import { PropertyTypeValueMapE } from '~/enums/property-type-map-e'
+import { PropertyTypeEnglishTranslationMapE } from '~/enums/property-type-map-e'
 
 const apiURL = useRuntimeConfig().public.strrApiURL
 const axiosInstance = addAxiosInterceptors(axios.create())
@@ -298,28 +298,32 @@ const businessLicenseExpiryOptionalSchema = basePropertyDetailsSchema.extend({
 const businessLicenseExpiryRequiredSchema = basePropertyDetailsSchema.extend({
   _hasLicense: z.literal(false),
   businessLicense: z.string().length(0),
-  businessLicenseExpiryDate: optionalOrEmptyString
+  businessLicenseExpiryDate: z.string().length(0)
 })
 
 const businessLicensePropertyDetailsSchema = z.object({
   ...basePropertyDetailsSchema.shape,
-  businessLicense: z.string(),
-  businessLicenseExpiryDate: z.string()
+  businessLicense: z.string().optional().default(''),
+  businessLicenseExpiryDate: z.string().optional().default('')
 }).transform((data) => {
-  const _hasLicense = data.businessLicense.length > 0
+  // Determine if a business license is present
+  // Add _hasLicense field temporarily to apply different schemas
+  const _hasLicense = Boolean(data.businessLicense?.length)
   return {
     ...data,
     _hasLicense
   }
 }).pipe(
+  // Use discriminated union to apply different schemas
+  // based on if business license is present
   z.discriminatedUnion('_hasLicense', [
     businessLicenseExpiryRequiredSchema,
     businessLicenseExpiryOptionalSchema
   ])
 ).transform((data) => {
+  // Remove _hasLicense field
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _hasLicense, ...rest } = data
-  console.error('rest', rest)
   return rest
 })
 
@@ -340,22 +344,22 @@ const principalResidencePropertyDetailsSchema = z.discriminatedUnion('isUnitOnPr
 
 const unitNumberRequiredPropertyDetailsSchema = basePropertyDetailsSchema.extend({
   propertyType: z.enum([
-    PropertyTypeValueMapE.CONDO_OR_APT,
-    PropertyTypeValueMapE.STRATA_HOTEL,
-    PropertyTypeValueMapE.SECONDARY_SUITE,
-    PropertyTypeValueMapE.ACCESSORY_DWELLING,
-    PropertyTypeValueMapE.TOWN_HOME,
-    PropertyTypeValueMapE.MULTI_UNIT_HOUSING
+    PropertyTypeEnglishTranslationMapE.CONDO_OR_APT,
+    PropertyTypeEnglishTranslationMapE.STRATA_HOTEL,
+    PropertyTypeEnglishTranslationMapE.SECONDARY_SUITE,
+    PropertyTypeEnglishTranslationMapE.ACCESSORY_DWELLING,
+    PropertyTypeEnglishTranslationMapE.TOWN_HOME,
+    PropertyTypeEnglishTranslationMapE.MULTI_UNIT_HOUSING
   ]),
   unitNumber: requiredNonEmptyString
 })
 
 const UnitNumberOptionalPropertyDetailsSchema = basePropertyDetailsSchema.extend({
   propertyType: z.enum([
-    PropertyTypeValueMapE.SINGLE_FAMILY_HOME,
-    PropertyTypeValueMapE.RECREATIONAL,
-    PropertyTypeValueMapE.BED_AND_BREAKFAST,
-    PropertyTypeValueMapE.FLOAT_HOME
+    PropertyTypeEnglishTranslationMapE.SINGLE_FAMILY_HOME,
+    PropertyTypeEnglishTranslationMapE.RECREATIONAL,
+    PropertyTypeEnglishTranslationMapE.BED_AND_BREAKFAST,
+    PropertyTypeEnglishTranslationMapE.FLOAT_HOME
   ]),
   unitNumber: optionalOrEmptyString
 })

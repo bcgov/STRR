@@ -1,4 +1,4 @@
-export enum PropertyTypeValueMapE {
+export enum PropertyTypeEnglishTranslationMapE {
   SECONDARY_SUITE = 'Secondary Suite',
   ACCESSORY_DWELLING = 'Accessory Dwelling Unit',
   TOWN_HOME = 'Townhome',

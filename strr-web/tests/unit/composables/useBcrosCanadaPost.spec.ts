@@ -6,13 +6,12 @@ it('begins with empty address', () => {
     address
   } = useCanadaPostAddress()
 
-  expect(address.street).toEqual('')
-  expect(address.streetAdditional).toEqual('')
+  expect(address.address).toEqual('')
+  expect(address.addressLineTwo).toEqual('')
   expect(address.city).toEqual('')
-  expect(address.region).toEqual('')
+  expect(address.province).toEqual('')
   expect(address.postalCode).toEqual('')
   expect(address.country).toEqual('')
-  expect(address.deliveryInstructions).toEqual('')
 })
 
 it('sets the active address field', () => {

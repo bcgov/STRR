@@ -19,13 +19,7 @@
           v-model:number-of-rooms-for-rent="formState.propertyDetails.numberOfRoomsForRent"
           :property-types="propertyTypes"
           :ownership-types="ownershipTypes"
-          :ownership-type-error="ownershipTypeError"
-          :property-type-error="propertyTypeError"
-          :rental-unit-space-type-error="rentalUnitSpaceTypeError"
-          :principal-residence-error="principalResidenceError"
-          :host-residence-error="hostResidenceError"
-          :number-of-rooms-for-rent-error="numberOfRoomsForRentError"
-          :business-license-expiry-date-error="businessLicenseExpiryDateError"
+          :errors="errorRefs"
           @reset-field-error="resetFieldError"
           @validate-ownership="validateOwnershipType"
           @validate-property="validatePropertyType"
@@ -49,14 +43,7 @@
           street-name-id="propertyAddressStreetName"
           :enable-address-complete="enableAddressComplete"
           default-country-iso2="CA"
-          :address-not-in-b-c="addressNotInBC"
-          :street-number-error="streetNumberError"
-          :street-name-error="streetNameError"
-          :unit-number-error="unitNumberError"
-          :address-line-two-error="addressLineTwoError"
-          :city-error="cityError"
-          :province-error="provinceError"
-          :postal-code-error="postalCodeError"
+          :errors="errorRefs"
           @reset-field-error="resetFieldError"
           @validate-street-number="validateStreetNumber"
           @validate-street-name="validateStreetName"
@@ -85,8 +72,6 @@ const { isComplete } = defineProps<{
   isComplete: boolean
 }>()
 
-const addressNotInBC = ref(false)
-
 const {
   activeAddressField,
   addressWithStreetAttributes: canadaPostAddress,
@@ -104,17 +89,17 @@ const getActiveAddressState = () => {
 watch(canadaPostAddress, (newAddress) => {
   const activeAddressState = getActiveAddressState()
   if (newAddress && activeAddressState) {
-    if (newAddress.region === 'BC') {
-      addressNotInBC.value = false
+    if (newAddress.province === 'BC') {
+      errorRefs.addressNotInBC = ''
       activeAddressState.streetNumber = newAddress.streetNumber
       activeAddressState.streetName = newAddress.streetName
-      activeAddressState.addressLineTwo = newAddress.streetAdditional
+      activeAddressState.addressLineTwo = newAddress.addressLineTwo
       activeAddressState.country = newAddress.country
       activeAddressState.city = newAddress.city
-      activeAddressState.province = newAddress.region
+      activeAddressState.province = newAddress.province
       activeAddressState.postalCode = newAddress.postalCode
     } else {
-      addressNotInBC.value = true
+      errorRefs.addressNotInBC = 'Address must be in BC'
     }
   }
 })
@@ -129,6 +114,24 @@ watch(() => formState.propertyDetails.isUnitOnPrincipalResidenceProperty, (newVa
 const { t } = useTranslation()
 
 const isValid = ref(false)
+
+const errorRefs = reactive({
+  propertyType: '',
+  ownershipType: '',
+  businessLicenseExpiryDate: '',
+  rentalUnitSpaceType: '',
+  principalResidence: '',
+  hostResidence: '',
+  numberOfRoomsForRent: '',
+  streetNumber: '',
+  streetName: '',
+  unitNumber: '',
+  addressLineTwo: '',
+  city: '',
+  province: '',
+  postalCode: '',
+  addressNotInBC: ''
+})
 const listingURLErrors = ref<(({
     errorIndex: string | number;
     message: string;
@@ -220,37 +223,29 @@ const ownershipTypes: string[] = [
   t('createAccount.propertyForm.coOwn')
 ]
 
-const propertyTypeError = ref('')
-const ownershipTypeError = ref('')
-const businessLicenseExpiryDateError = ref('')
-const rentalUnitSpaceTypeError = ref('')
-const principalResidenceError = ref('')
-const hostResidenceError = ref('')
-const numberOfRoomsForRentError = ref('')
-
 const validatePropertyType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('propertyType'))
-  propertyTypeError.value = error ? error.message : ''
+  errorRefs.propertyType = error ? error.message : ''
 }
 
 const validateOwnershipType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('ownershipType'))
-  ownershipTypeError.value = error ? error.message : ''
+  errorRefs.ownershipType = error ? error.message : ''
 }
 
 const validateBusinessLicenseExpiryDate = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('businessLicenseExpiryDate'))
-  businessLicenseExpiryDateError.value = error ? error.message : ''
+  errorRefs.businessLicenseExpiryDate = error ? error.message : ''
 }
 
 const validateRentalUnitSpaceType = () => {
   if (!formState.propertyDetails.rentalUnitSpaceType) {
-    rentalUnitSpaceTypeError.value = t('createAccount.propertyForm.rentalUnitSpaceTypeRequired')
+    errorRefs.rentalUnitSpaceType = t('createAccount.propertyForm.rentalUnitSpaceTypeRequired')
   } else {
-    rentalUnitSpaceTypeError.value = ''
+    errorRefs.rentalUnitSpaceType = ''
   }
 }
 
@@ -273,14 +268,14 @@ watch(
 const validatePrincipalResidenceOptions = () => {
   const value = formState.propertyDetails.isUnitOnPrincipalResidenceProperty
   if (value === null || value === undefined) {
-    principalResidenceError.value = t('createAccount.propertyForm.isUnitOnPrincipalResidencePropertyRequired')
+    errorRefs.principalResidence = t('createAccount.propertyForm.isUnitOnPrincipalResidencePropertyRequired')
   } else {
-    principalResidenceError.value = '' // Clear the error if a valid selection is made
+    errorRefs.principalResidence = '' // Clear the error if a valid selection is made
   }
 }
 
 const validateHostResidence = () => {
-  hostResidenceError.value =
+  errorRefs.hostResidence =
     (formState.propertyDetails.isUnitOnPrincipalResidenceProperty && !formState.propertyDetails.hostResidence)
       ? t('createAccount.propertyForm.hostResidenceRequiredError')
       : ''
@@ -295,85 +290,59 @@ const validateNumberOfRoomsForRent = () => {
   }
 
   if (value < 1) {
-    numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentRequired')
+    errorRefs.numberOfRoomsForRent = t('createAccount.propertyForm.numberOfRoomsForRentRequired')
   } else if (value > 5000) {
-    numberOfRoomsForRentError.value = t('createAccount.propertyForm.numberOfRoomsForRentMaxExceeded')
+    errorRefs.numberOfRoomsForRent = t('createAccount.propertyForm.numberOfRoomsForRentMaxExceeded')
   } else {
-    numberOfRoomsForRentError.value = ''
+    errorRefs.numberOfRoomsForRent = ''
   }
 }
-
-const streetNumberError = ref('')
-const streetNameError = ref('')
-const unitNumberError = ref('')
-const addressLineTwoError = ref('')
-const cityError = ref('')
-const provinceError = ref('')
-const postalCodeError = ref('')
 
 const validateStreetNumber = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('streetNumber'))
-  streetNumberError.value = error ? error.message : ''
+  errorRefs.streetNumber = error ? error.message : ''
 }
 
 const validateStreetName = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('streetName'))
-  streetNameError.value = error ? error.message : ''
+  errorRefs.streetName = error ? error.message : ''
 }
 
 const validateUnitNumber = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('unitNumber'))
-  unitNumberError.value = error ? error.message : ''
+  errorRefs.unitNumber = error ? error.message : ''
 }
 
 const validateAddressLineTwo = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('addressLineTwo'))
-  addressLineTwoError.value = error ? error.message : ''
+  errorRefs.addressLineTwo = error ? error.message : ''
 }
 
 const validateCity = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('city'))
-  cityError.value = error ? error.message : ''
+  errorRefs.city = error ? error.message : ''
 }
 
 const validateProvince = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('province'))
-  provinceError.value = error ? error.message : ''
+  errorRefs.province = error ? error.message : ''
 }
 
 const validatePostalCode = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('postalCode'))
-  postalCodeError.value = error ? error.message : ''
+  errorRefs.postalCode = error ? error.message : ''
 }
 
-const resetFieldError = (errorTypes: string[]) => {
-  const errorMap: Record<string, Ref<string>> = {
-    propertyType: propertyTypeError,
-    ownershipType: ownershipTypeError,
-    rentalUnitSpaceType: rentalUnitSpaceTypeError,
-    principalResidence: principalResidenceError,
-    hostResidence: hostResidenceError,
-    numberOfRoomsForRent: numberOfRoomsForRentError,
-    streetNumber: streetNumberError,
-    streetName: streetNameError,
-    unitNumber: unitNumberError,
-    addressLineTwo: addressLineTwoError,
-    city: cityError,
-    province: provinceError,
-    postalCode: postalCodeError
-  }
-
-  errorTypes.forEach((errorType) => {
-    if (errorType in errorMap) {
-      errorMap[errorType].value = ''
-    }
+const resetFieldError = (fields: Array<keyof typeof errorRefs>) => {
+  fields.forEach((field) => {
+    errorRefs[field] = ''
   })
 }
 

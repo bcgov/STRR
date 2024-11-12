@@ -174,7 +174,7 @@ export interface MailingAddressAPII {
   country: string
 }
 
-export interface UnitAddressI {
+export interface UnitAddressAPII {
   streetNumber: string
   streetName: string
   unitNumber?: string
@@ -230,7 +230,7 @@ export interface CreateAccountFormAPII {
     primaryContact?: ContactAPII
     secondaryContact?: ContactAPII
     propertyManager?: PropertyManagerI
-    unitAddress: UnitAddressI
+    unitAddress: UnitAddressAPII
     unitDetails: {
       parcelIdentifier?: string
       businessLicense?: string

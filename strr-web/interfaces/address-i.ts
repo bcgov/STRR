@@ -1,27 +1,5 @@
 import { CanadaPostAddressResponseDataLevelE } from '~/enums/address-datalevel-e'
 
-export interface CanadaPostAddressI {
-  street: string
-  streetAdditional?: string
-  city: string
-  region: string
-  postalCode: string
-  country: string
-  deliveryInstructions?: string
-}
-
-export interface CanadaPostAddressWithStreetAttributesI {
-  streetNumber: string
-  streetName: string
-  unitNumber?: string
-  streetAdditional?: string
-  city: string
-  region: string
-  postalCode: string
-  country: string
-  deliveryInstructions?: string
-}
-
 export interface CanadaPostResponseAddressI {
   Id: string
   DomesticId: string

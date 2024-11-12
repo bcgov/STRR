@@ -17,7 +17,7 @@
         </p>
         <p class="mb-[24px] font-bold">
           {{
-            fetchedRegistration
+            fetchedRegistration?.unitAddress
               ? `${fetchedRegistration.unitAddress.streetNumber} ${
                 fetchedRegistration.unitAddress.streetName
               }${

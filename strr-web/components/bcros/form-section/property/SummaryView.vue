@@ -16,7 +16,7 @@ const {
   propertyDetails
 } = props
 
-const propertyAddressDetails = computed((): UnitAddressI => {
+const propertyAddressDetails = computed((): UnitAddressAPII => {
   return {
     streetName: propertyDetails.streetName,
     streetNumber: propertyDetails.streetNumber,

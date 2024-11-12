@@ -1,29 +1,28 @@
 import { reactive } from 'vue'
 import { useRuntimeConfig } from '#app'
-import type { CanadaPostAddressI, CanadaPostResponseAddressI } from '#imports'
+import type { UnitAddressAPII, MailingAddressAPII } from '#imports'
 
 export const useCanadaPostAddress = (isStreetAttributes: boolean = false) => {
   const activeAddressField = ref<string>()
-  const address = reactive<CanadaPostAddressI>({
-    street: '',
-    streetAdditional: '',
+  const address = reactive<MailingAddressAPII>({
+    address: '',
+    addressLineTwo: '',
     city: '',
-    region: '',
+    province: '',
     postalCode: '',
-    country: '',
-    deliveryInstructions: ''
+    country: ''
   })
 
-  const addressWithStreetAttributes = reactive<CanadaPostAddressWithStreetAttributesI>({
+  const addressWithStreetAttributes = reactive<UnitAddressAPII>({
     streetNumber: '',
     streetName: '',
     unitNumber: '',
-    streetAdditional: '',
+    addressLineTwo: '',
     city: '',
-    region: '',
+    province: '',
     postalCode: '',
     country: '',
-    deliveryInstructions: ''
+    nickname: ''
   })
 
   const createAddressComplete = (pca: any, key: string, id: string, countryIso2: string,
@@ -76,10 +75,10 @@ export const useCanadaPostAddress = (isStreetAttributes: boolean = false) => {
   }
 
   const addressCompletePopulate = (addressComplete: CanadaPostResponseAddressI): void => {
-    address.street = addressComplete.Line1 || 'N/A'
-    address.streetAdditional = addressComplete.Line2 || ''
+    address.address = addressComplete.Line1 || 'N/A'
+    address.addressLineTwo = addressComplete.Line2 || ''
     address.city = addressComplete.City
-    address.region = addressComplete.ProvinceCode
+    address.province = addressComplete.ProvinceCode
     address.postalCode = addressComplete.PostalCode
     address.country = addressComplete.CountryIso2
   }
@@ -88,9 +87,9 @@ export const useCanadaPostAddress = (isStreetAttributes: boolean = false) => {
     addressWithStreetAttributes.streetNumber = addressComplete.BuildingNumber
     addressWithStreetAttributes.streetName = addressComplete.Street
     addressWithStreetAttributes.unitNumber = addressComplete.SubBuilding || ''
-    addressWithStreetAttributes.streetAdditional = addressComplete.Line2 || ''
+    addressWithStreetAttributes.addressLineTwo = addressComplete.Line2 || ''
     addressWithStreetAttributes.city = addressComplete.City
-    addressWithStreetAttributes.region = addressComplete.ProvinceCode
+    addressWithStreetAttributes.province = addressComplete.ProvinceCode
     addressWithStreetAttributes.postalCode = addressComplete.PostalCode
     addressWithStreetAttributes.country = addressComplete.CountryIso2
   }
