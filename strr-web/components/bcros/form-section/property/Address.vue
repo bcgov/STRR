@@ -32,11 +32,7 @@
             v-model="streetNumber"
             :aria-label="t('createAccount.contactForm.streetNumber')"
             :placeholder="t('createAccount.contactForm.streetNumber')"
-            @input="
-              onAddressInput(false); emit('resetFieldError', [
-                'streetNumber', 'streetName', 'city', 'province', 'postalCode'
-              ])
-            "
+            @keypress.once="addressComplete(false)"
             @click="addressComplete(false)"
             @blur="emit('validateStreetNumber')"
             @change="emit('validateStreetNumber')"
@@ -52,11 +48,7 @@
             v-model="streetName"
             :aria-label="t('createAccount.contactForm.streetName')"
             :placeholder="t('createAccount.contactForm.streetName')"
-            @input="
-              onAddressInput(true); emit('resetFieldError', [
-                'streetNumber', 'streetName', 'city', 'province', 'postalCode'
-              ])
-            "
+            @keypress.once="addressComplete(true)"
             @click="addressComplete(true)"
             @blur="emit('validateStreetName')"
             @change="emit('validateStreetName')"
@@ -160,6 +152,7 @@ const nickname = defineModel<string>('nickname')
 const countryItems = ref<CountryItem[]>([])
 
 const addressComplete = (initiatedFromStreetName: boolean) => {
+  emit('resetFieldError', ['streetNumber', 'streetName', 'city', 'province', 'postalCode'])
   if (typeof country.value === 'string') {
     if (initiatedFromStreetName) {
       enableAddressComplete(streetNameId, 'CA', false, 'BC')
@@ -167,17 +160,6 @@ const addressComplete = (initiatedFromStreetName: boolean) => {
       enableAddressComplete(streetNumberId, 'CA', false, 'BC')
     }
   }
-}
-
-const onAddressInput = (initiatedFromStreetName: boolean) => {
-  if (!initiatedFromStreetName) {
-    streetName.value = ''
-  }
-  unitNumber.value = ''
-  addressLineTwo.value = ''
-  city.value = ''
-  postalCode.value = ''
-  addressComplete(initiatedFromStreetName)
 }
 
 const {

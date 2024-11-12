@@ -114,7 +114,7 @@ const {
   enableAddressComplete
 } = useCanadaPostAddress()
 
-const getActiveAddressState = () => {
+const getActiveAddressState = (): PropertyManagerBusinessAddressI | null => {
   if (activeAddressField.value === 'propertyManagerBusinessAddress') {
     return formState.propertyManager.businessMailingAddress
   }
@@ -150,8 +150,10 @@ const errorRefs = reactive({
   faxNumber: ''
 })
 
-const resetFieldError = (field: keyof typeof errorRefs) => {
-  errorRefs[field] = ''
+const resetFieldError = (fields: Array<keyof typeof errorRefs>) => {
+  fields.forEach((field) => {
+    errorRefs[field] = ''
+  })
 }
 
 const validateField = (field: keyof typeof errorRefs) => {

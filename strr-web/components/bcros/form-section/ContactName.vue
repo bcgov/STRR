@@ -17,7 +17,7 @@
             v-model="firstName"
             :placeholder="t('createAccount.contactForm.firstName')"
             data-test-id="contact-first-name-input"
-            @input="emit('resetFieldError', 'firstName')"
+            @input="emit('resetFieldError', ['firstName'])"
             @blur="emit('validateField', 'firstName')"
             @change="emit('validateField', 'firstName')"
           />
@@ -27,7 +27,7 @@
             v-model="middleName"
             :placeholder="t('createAccount.contactForm.middleName')"
             data-test-id="contact-middle-name-input"
-            @input="emit('resetFieldError', 'middleName')"
+            @input="emit('resetFieldError', ['middleName'])"
             @blur="emit('validateField', 'middleName')"
             @change="emit('validateField', 'middleName')"
           />
@@ -37,7 +37,7 @@
             v-model="lastName"
             :placeholder="t('createAccount.contactForm.lastName')"
             data-test-id="contact-last-name-input"
-            @input="emit('resetFieldError', 'lastName')"
+            @input="emit('resetFieldError', ['lastName'])"
             @blur="emit('validateField', 'lastName')"
             @change="emit('validateField', 'lastName')"
           />
@@ -50,7 +50,7 @@
             type="name"
             :placeholder="t('createAccount.contactForm.preferredName')"
             data-test-id="property-manager-preferred-name-input"
-            @input="emit('resetFieldError', 'preferredName')"
+            @input="emit('resetFieldError', ['preferredName'])"
             @blur="emit('validateField', 'preferredName')"
             @change="emit('validateField', 'preferredName')"
           />
@@ -75,7 +75,7 @@ const { errors = {} } = defineProps<{
 
 const emit = defineEmits<{
   validateField: [field: string]
-  resetFieldError: [field: keyof typeof errors]
+  resetFieldError: [field: Array<keyof typeof errors>]
 }>()
 
 </script>

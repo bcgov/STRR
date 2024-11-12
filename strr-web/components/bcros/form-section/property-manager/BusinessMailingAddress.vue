@@ -19,7 +19,7 @@
             v-model="address"
             :placeholder="t('createAccount.propertyManagerForm.address')"
             data-test-id="property-manager-address-input"
-            @input="onAddressInput"
+            @keypress.once="addressComplete()"
             @click="addressComplete()"
             @blur="emit('validateField', 'address')"
             @change="emit('validateField', 'address')"
@@ -45,7 +45,7 @@
             v-model="city"
             :placeholder="t('createAccount.propertyManagerForm.city')"
             data-test-id="property-manager-city-input"
-            @input="emit('resetFieldError', 'city')"
+            @input="emit('resetFieldError', ['city'])"
             @blur="emit('validateField', 'city')"
             @change="emit('validateField', 'city')"
           />
@@ -64,7 +64,7 @@
             v-model="province"
             :placeholder="t('createAccount.propertyManagerForm.province')"
             data-test-id="property-manager-province-input"
-            @input="emit('resetFieldError', 'province')"
+            @input="emit('resetFieldError', ['province'])"
             @blur="emit('validateField', 'province')"
             @change="emit('validateField', 'province')"
           />
@@ -74,7 +74,7 @@
             v-model="postalCode"
             :placeholder="t('createAccount.propertyManagerForm.postalCode')"
             data-test-id="property-manager-postal-code-input"
-            @input="emit('resetFieldError', 'postalCode')"
+            @input="emit('resetFieldError', ['postalCode'])"
             @blur="emit('validateField', 'postalCode')"
             @change="emit('validateField', 'postalCode')"
           />
@@ -115,28 +115,11 @@ const provinceItems = computed<ProvinceItem[]>(() => {
 })
 
 const addressComplete = () => {
+  emit('resetFieldError', ['address', 'city', 'province', 'postalCode'])
   if (country.value === 'CA' || country.value === 'US') {
     enableAddressComplete(id, country.value, true)
   }
 }
-
-const onAddressInput = () => {
-  address.value = ''
-  province.value = ''
-  city.value = ''
-  postalCode.value = ''
-  emit('resetFieldError', 'address')
-  emit('resetFieldError', 'city')
-  emit('resetFieldError', 'province')
-  emit('resetFieldError', 'postalCode')
-  addressComplete()
-}
-
-const emit = defineEmits<{
-    setId: [id: string]
-    validateField: [field: string]
-    resetFieldError: [field: string]
-}>()
 
 const {
   id,
@@ -148,6 +131,12 @@ const {
     defaultCountryIso2: string,
     enableAddressComplete:(id: string, countryIso2: string, countrySelect: boolean) => void,
     errors: Record<string, string>
+}>()
+
+const emit = defineEmits<{
+    setId: [id: string]
+    validateField: [field: string]
+    resetFieldError: [field: Array<keyof typeof errors>]
 }>()
 
 country.value = defaultCountryIso2

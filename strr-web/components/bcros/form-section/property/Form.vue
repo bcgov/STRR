@@ -78,7 +78,7 @@ const {
   enableAddressComplete
 } = useCanadaPostAddress(true)
 
-const getActiveAddressState = () => {
+const getActiveAddressState = (): PropertyDetailsI | null => {
   if (activeAddressField.value === 'propertyAddressStreetNumber' ||
       activeAddressField.value === 'propertyAddressStreetName') {
     return formState.propertyDetails
