@@ -17,11 +17,15 @@ export interface ApiBasePlatformRegistration extends ApiBaseRegistration {
   platformDetails: ApiPlatformDetails
 }
 
+export interface ApiBasePlatformApplication extends ApiBasePlatformRegistration {
+  completingParty: ApiParty
+}
+
 export interface PlatformRegistrationResp extends ApiBasePlatformRegistration, ApiExtraRegistrationDetails {
 }
 
 export interface PlatformApplicationPayload {
-  registration: ApiBasePlatformRegistration
+  registration: ApiBasePlatformApplication
 }
 
 export interface PlatformApplicationResp extends PlatformApplicationPayload {

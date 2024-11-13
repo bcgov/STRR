@@ -48,26 +48,24 @@ const save = (sideDetail: ConnectDetailHeaderSideDetail) => {
         </div>
       </div>
       <div v-else class="flex flex-col gap-2 sm:flex-row">
-        <div class="grow space-y-2">
+        <div class="grow space-y-4">
           <div>
             <ConnectTypographyH1 v-if="title" custom-class="text-[1.375rem] font-bold" :text="title" />
             <div v-if="subtitles.length" class="flex divide-x *:border-gray-500 *:px-2 first:*:pl-0">
-              <p v-for="subtitle in subtitles" :key="subtitle" class="text-sm">
-                {{ subtitle }}
-              </p>
+              <ConnectDetailsHeaderItem
+                v-for="subtitle, i in subtitles"
+                :key="'subtitle-' + i"
+                v-bind="subtitle"
+              />
             </div>
           </div>
           <div class="space-y-1">
             <slot name="details">
-              <UBadge
-                v-if="details?.chip"
-                :label="details.chip.text"
-                :color="details.chip.colour || 'primary'"
-                class="px-3"
-              />
-              <p v-if="details?.text" class="text-sm">
-                {{ details }}
-              </p>
+              <div class="flex">
+                <div v-for="detail, i in details" :key="'detail-' + i" class="flex space-x-2">
+                  <ConnectDetailsHeaderItem v-bind="detail" />
+                </div>
+              </div>
             </slot>
             <slot name="buttons">
               <div v-if="bottomButtons.length" class="flex flex-wrap gap-2">

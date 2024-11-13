@@ -4,7 +4,7 @@ export const setApplicationHeaderDetails = (showReceipt: boolean, hostStatus?: s
   const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
 
   if (hostStatus) {
-    details.value = { chip: { text: hostStatus, colour: 'yellow' } }
+    details.value = [{ text: hostStatus, chip: true, chipColour: 'yellow' }]
   }
   if (showReceipt) {
     bottomButtons.value = [
@@ -18,12 +18,16 @@ export const setApplicationHeaderDetails = (showReceipt: boolean, hostStatus?: s
   }
 }
 
-export const setRegistrationHeaderDetails = (status: ApplicationStatus) => {
+export const setRegistrationHeaderDetails = (status: ApplicationStatus, expiryDate?: string) => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
   const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
 
-  details.value = { chip: { text: status } }
+  details.value = [{ text: status, chip: true }]
+  if (expiryDate) {
+    // TODO: scott + fiona to decide if they want this or not (for now scott says no)
+    // details.value.push({ text: `${t('label.expiryDate')} - ${expiryDate}` })
+  }
   bottomButtons.value = [
     // TODO: determine if this is a valid action / add label to locales
     // {
@@ -91,16 +95,19 @@ export const getDashboardAddresses = (business: StrrBusiness) => {
       }
     ]
   }]
-  if (business.hasRegOffAtt) {
+  if (business.hasRegOffAtt && business.regOfficeOrAtt.attorneyName) {
     addresses.push({
       showAvatar: false,
       label: t('strr.label.registeredOfficeAttorney'),
       values: [
-        {
-          class: 'pl-7',
-          label: t('strr.label.attName'),
-          text: business.regOfficeOrAtt.attorneyName ?? t('label.notAvailable')
-        },
+        ...(business.regOfficeOrAtt.attorneyName
+          ? [{
+              class: 'pl-7',
+              label: t('strr.label.attName'),
+              text: business.regOfficeOrAtt.attorneyName
+            }]
+          : []
+        ),
         {
           class: 'pl-7',
           label: t('label.registeredOffice'),
@@ -112,34 +119,46 @@ export const getDashboardAddresses = (business: StrrBusiness) => {
   return addresses
 }
 
-export const getRepItem = (rep: StrrContact): ConnectAccordionItem => {
-  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
-  const { t } = useNuxtApp().$i18n
+export const getPartyItem = (party: Contact): ConnectAccordionItem => {
+  const number = party.phone.countryCode === '1'
+    ? party.phone.number.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
+    : party.phone.number
   return {
     showAvatar: true,
-    label: `${rep.firstName || ''} ` +
-      `${rep.middleName || ''} ` +
-      `${rep.lastName || ''}`.replaceAll('  ', '').trim(),
+    label: `${party.firstName || ''} ` +
+      `${party.middleName || ''} ` +
+      `${party.lastName || ''}`.replaceAll('  ', '').trim(),
     values: [
-      { text: rep?.position },
       {
         icon: 'i-mdi-at',
         iconClass: 'text-base mt-[2px]',
-        text: rep.emailAddress ?? t('label.notEntered')
+        text: party.emailAddress
       },
       {
         icon: 'i-mdi-phone',
         iconClass: 'text-base mt-[2px]',
-        // TODO: update display to have correct mask display and country code
-        text: rep.phone.number ?? t('label.notEntered')
+        text: `+${party.phone.countryCode} ${number}` +
+          (party.phone.extension ? ` Ext. ${party.phone.extension}` : '')
       },
-      {
-        icon: 'i-mdi-fax',
-        iconClass: 'text-base mt-[2px]',
-        text: rep.faxNumber ?? t('label.notEntered')
-      }
+      ...(party.faxNumber
+        ? [{
+            icon: 'i-mdi-fax',
+            iconClass: 'text-base mt-[2px]',
+            text: party.faxNumber
+          }]
+        : [])
     ]
   }
+}
+
+export const getRepItem = (rep: StrrContact): ConnectAccordionItem => {
+  const repItem = getPartyItem(rep)
+  // add position info for representative
+  repItem.values = [
+    { text: rep?.position },
+    ...repItem.values
+  ]
+  return repItem
 }
 
 export const getDashboardRepresentives = (): ConnectAccordionItem[] => {
@@ -154,4 +173,12 @@ export const getDashboardRepresentives = (): ConnectAccordionItem[] => {
     reps.push(getRepItem(secondaryRep))
   }
   return reps
+}
+
+export const getDashboardCompParty = (): ConnectAccordionItem | undefined => {
+  const { completingParty } = useStrrContactStore()
+  if (!completingParty) {
+    return undefined
+  }
+  return getPartyItem(completingParty)
 }

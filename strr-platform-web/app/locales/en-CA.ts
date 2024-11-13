@@ -52,6 +52,7 @@ export default {
       brandSite: 'Platform Brand Website',
       brandSiteOpt: 'Platform Brand Website (Optional)',
       cpbcNum: 'Consumer Protection BC Number',
+      emailAddresses: 'Email Addresses',
       listingSize: {
         LESS_THAN_THOUSAND: 'Small Platform',
         GREATER_THAN_THOUSAND: 'Large Platform'
