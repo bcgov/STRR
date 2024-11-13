@@ -67,14 +67,15 @@ class ApplicationService:
         return ApplicationSerializer.to_dict(application)
 
     @staticmethod
-    def save_application(account_id: int, request_json: dict) -> Application:
+    def save_application(account_id: int, request_json: dict, application: Application) -> Application:
         """Saves an application to db."""
         user = UserService.get_or_create_user_in_context()
-        application = Application()
+        if not application:
+            application = Application()
+            application.application_number = Application.generate_unique_application_number()
         application.payment_account = account_id
         application.submitter_id = user.id
         application.type = ApplicationType.REGISTRATION.value
-        application.application_number = Application.generate_unique_application_number()
         application.application_json = request_json
         application.save()
         return application

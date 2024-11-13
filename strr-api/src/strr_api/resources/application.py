@@ -39,6 +39,7 @@ STRR Application Resource.
 import logging
 from http import HTTPStatus
 from io import BytesIO
+from typing import Optional
 
 from flasgger import swag_from
 from flask import Blueprint, g, jsonify, request, send_file
@@ -46,7 +47,7 @@ from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ApplicationRole, ErrorMessage, Role
+from strr_api.enums.enum import ErrorMessage, Role
 from strr_api.exceptions import (
     AuthException,
     ExternalServiceException,
@@ -54,11 +55,11 @@ from strr_api.exceptions import (
     error_response,
     exception_response,
 )
+from strr_api.models import Application as ApplicationModel
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
 from strr_api.services import (
-    AccountService,
     ApplicationService,
     ApprovalService,
     DocumentService,
@@ -80,10 +81,11 @@ bp = Blueprint("applications", __name__)
 
 
 @bp.route("", methods=("POST",))
+@bp.route("/<string:application_number>", methods=["POST", "PUT"])
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def create_application():
+def create_application(application_number: Optional[str] = None):
     """
     Create a STRR application.
     ---
@@ -95,7 +97,7 @@ def create_application():
         schema:
           type: object
     responses:
-      201:
+      200:
         description:
       400:
         description:
@@ -107,18 +109,42 @@ def create_application():
 
     try:
         account_id = request.headers.get("Account-Id", None)
+        is_draft = request.headers.get("isDraft", False)
+
         json_input = request.get_json()
-        [valid, errors] = validate(json_input, "registration")
-        if not valid:
-            return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
-        validate_request(json_input)
-        roles = AccountService.list_account_roles(account_id=account_id)
-        if not roles:
-            AccountService.create_account_roles(account_id, [ApplicationRole.HOST.value])
-        application = ApplicationService.save_application(account_id, json_input)
-        invoice_details = strr_pay.create_invoice(jwt, account_id, application=application)
-        application = ApplicationService.update_application_payment_details_and_status(application, invoice_details)
-        return jsonify(ApplicationService.serialize(application)), HTTPStatus.CREATED
+
+        application = None
+        if application_number:
+            application = ApplicationService.get_application(
+                application_number=application_number, account_id=account_id
+            )
+            if not application:
+                return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+            if application.status != ApplicationModel.Status.DRAFT:
+                return error_response(
+                    message=ErrorMessage.APPLICATION_NOT_MODIFIABLE.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
+
+        # Validate only the final submissions
+        if not is_draft:
+            [valid, errors] = validate(json_input, "registration")
+            if not valid:
+                return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
+            validate_request(json_input)
+
+        application = ApplicationService.save_application(account_id, json_input, application)
+
+        if not is_draft:
+            invoice_details = strr_pay.create_invoice(jwt, account_id, application=application)
+            if not invoice_details:
+                return error_response(
+                    message=ErrorMessage.INVOICE_CREATION_ERROR.value,
+                    http_status=HTTPStatus.PAYMENT_REQUIRED,
+                )
+            application = ApplicationService.update_application_payment_details_and_status(application, invoice_details)
+
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except ValidationException as validation_exception:
         return exception_response(validation_exception)
     except ExternalServiceException as service_exception:
@@ -191,7 +217,7 @@ def get_application_details(application_number):
         account_id = request.headers.get("Account-Id", None)
         application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
         if not application:
-            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except AuthException as auth_exception:
         return exception_response(auth_exception)
@@ -233,8 +259,8 @@ def update_application_payment_details(application_number):
         account_id = request.headers.get("Account-Id", None)
         if not account_id:
             return error_response(
-                "Account Id is missing.",
-                HTTPStatus.BAD_REQUEST,
+                message="Account Id is missing.",
+                http_status=HTTPStatus.BAD_REQUEST,
             )
         application = ApplicationService.get_application(application_number, account_id)
         if not application:
@@ -426,7 +452,7 @@ def update_application_status(application_number):
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:
         logger.error(exception)
-        return error_response(ErrorMessage.PROCESSING_ERROR.value, HTTPStatus.INTERNAL_SERVER_ERROR)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @bp.route("/<application_number>/documents", methods=("POST",))

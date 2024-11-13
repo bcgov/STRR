@@ -104,15 +104,9 @@ class PayService:
                 application_id=application.id,
             )
             return resp.json()
-        except ExternalServiceException as exc:
-            # pass along
-            raise exc
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as err:
-            self.app.logger.debug("Pay-api connection failure:", repr(err))
-            raise ExternalServiceException(error=repr(err), status_code=HTTPStatus.GATEWAY_TIMEOUT) from err
         except Exception as err:
             self.app.logger.debug("Pay-api integration (create invoice) failure:", repr(err))
-            raise ExternalServiceException(error=repr(err), status_code=HTTPStatus.PAYMENT_REQUIRED) from err
+            return None
 
     def _get_payment_request(self, application_json):
         filing_type = None
