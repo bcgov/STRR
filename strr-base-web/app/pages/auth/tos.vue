@@ -12,13 +12,9 @@ useHead({
   title: t('page.tos.title')
 })
 
-setBreadcrumbs([
-  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('page.tos.h1') }
-])
-
 definePageMeta({
-  middleware: ['auth', 'tos-page']
+  middleware: ['auth', 'tos-page'],
+  hideBreadcrumbs: true
 })
 
 const checkboxRef = ref(null)
