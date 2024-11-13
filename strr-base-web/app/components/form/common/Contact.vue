@@ -115,9 +115,9 @@ defineProps<{
           v-if="faxNumber !== undefined"
           :id="idPrefix + '-fax-number'"
           v-model="faxNumber"
-          :aria-label="t('label.faxNumber')"
+          :aria-label="t('label.faxNumberOpt')"
           name="faxNumber"
-          :placeholder="t('label.faxNumber')"
+          :placeholder="t('label.faxNumberOpt')"
         />
         <ConnectFormFieldGroup
           v-if="emailAddress !== undefined"
