@@ -15,7 +15,7 @@ const phone = defineModel<ConnectPhone>('phone', { required: false })
 defineProps<{
   idPrefix: string,
   prepopulateName: boolean,
-  prepopulateType?: 'Bcsc' | 'Bceid'
+  prepopulateType?: 'BCSC' | 'BCEID' | 'IDIR'
   sectionInfo?: string
   nameDivider?: boolean
   emailWarning?: boolean

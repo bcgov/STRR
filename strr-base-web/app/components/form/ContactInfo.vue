@@ -96,7 +96,7 @@ onMounted(async () => {
             id-prefix="platform-completing-party"
             name-divider
             prepopulate-name
-            prepopulate-type="Bceid"
+            :prepopulate-type="$keycloak.tokenParsed?.loginSource"
             :error-details="hasFormErrors(compPartyFormRef, ['phone.countryCode', 'phone.number', 'email'])"
           />
         </UForm>
@@ -122,7 +122,7 @@ onMounted(async () => {
             id-prefix="platform-primary-rep"
             name-divider
             :prepopulate-name="isCompletingPartyRep"
-            prepopulate-type="Bceid"
+            :prepopulate-type="$keycloak.tokenParsed?.loginSource"
             email-warning
             :section-info="isCompletingPartyRep ? undefined : $t('strr.text.primaryContact')"
             :error-name="hasFormErrors(primaryRepFormRef, ['firstName', 'lastName'])"

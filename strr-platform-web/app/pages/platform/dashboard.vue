@@ -20,9 +20,11 @@ const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 
 watch(() => accountStore.currentAccount.id,
-  () => {
-    const { redirect } = useNavigate()
-    redirect(config.registryHomeURL + 'dashboard')
+  (newVal) => {
+    if (newVal !== undefined) {
+      const { redirect } = useNavigate()
+      redirect(config.registryHomeURL + 'dashboard')
+    }
   }
 )
 

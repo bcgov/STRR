@@ -159,7 +159,7 @@ export default {
     socialInsuranceNumber: 'Social Insurance Number (SIN)',
     taxNumber: 'Tax Number',
     busName: 'Business Name',
-    busNameLegal: 'Legal Business Name',
+    busNameLegal: 'Business Legal Name',
     corpNum: 'Incorporation Number',
     busNum: 'Business Number',
     busNumOpt: 'Business Number (Optional)',
@@ -390,7 +390,8 @@ export default {
       registeredOfficeAttorney: 'Registered Office / Attorney'
     },
     hint: {
-      businessLegalName: 'The full legal name of the business that is operating the platform. Include corporate designations (e.g., "Ltd.", "Inc.", "LLC")',
+      businessLegalNamePlatform: 'The full legal name of the business that is operating the platform. Include corporate designations (e.g., "Ltd.", "Inc.", "LLC.")',
+      businessLegalNameStrataHotel: 'The full legal name of the business that is operating the strata hotel. Include corporate designations (e.g., "Ltd.", "Inc.", "LLC.")',
       businessNumber: 'Canada Revenue Agency (CRA) Business Number',
       humeJurisdiction: 'The regional or federal jurisdiction where the business was incorporated or registered',
       position: 'Enter your current job title or position'
@@ -401,8 +402,9 @@ export default {
       positionTitle: 'Enter your current job title or position',
       regOffOrAtt: 'Does the business have a registered office or attorney for service in British Columbia?',
       secondaryContact: 'This is a back-up contact person in case other contacts cannot be reached.',
-      yourNameBcsc: 'This is your legal name as it appears on your BC Services Card.',
-      yourNameBceid: 'This is your legal name as it appears on your BCeID.'
+      yourNameBCSC: 'This is your legal name as it appears on your BC Services Card.',
+      yourNameBCEID: 'This is your legal name as it appears on your BCeID.',
+      yourNameIDIR: 'This is your legal name as it appears on your IDIR.'
     },
     review: {
       alert: {

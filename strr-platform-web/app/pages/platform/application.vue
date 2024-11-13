@@ -213,7 +213,7 @@ watch(activeStepIndex, (val) => {
 const originalAccountId = accountStore.currentAccount.id // TODO: find better solution than this
 watch(() => accountStore.currentAccount.id,
   (newVal, oldVal) => {
-    if (newVal !== originalAccountId) {
+    if (newVal !== undefined && newVal !== originalAccountId) {
       strrModal.openConfirmSwitchAccountModal(oldVal)
     }
   }
