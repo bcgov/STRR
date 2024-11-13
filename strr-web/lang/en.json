@@ -305,7 +305,7 @@
     "contactForm": {
       "fullName": "Full Name",
       "firstName": "First Name",
-      "middleName": "Middle Name",
+      "middleName": "Middle Name (Optional)",
       "lastName": "Last Name",
       "hostTypeIndividual": "Individual",
       "hostTypeBusiness": "Business",

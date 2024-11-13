@@ -9,6 +9,7 @@ export const useTermsOfService = () => {
   const strrApiURL = useRuntimeConfig().public.strrApiURL
   const axiosInstance = addAxiosInterceptors(axios.create())
   const { tos, isTosAccepted } = storeToRefs(useBcrosAccount())
+  const { goToAccountSelect } = useBcrosNavigate()
 
   async function checkTermsOfService (): Promise<boolean> {
     let isAccepted = false
@@ -48,7 +49,7 @@ export const useTermsOfService = () => {
         })
       await useBcrosAccount().setAccountInfo()
       if (isAccepted) {
-        navigateTo('/' + RouteNamesE.ACCOUNT_SELECT)
+        goToAccountSelect()
       } else {
         navigateTo(DECLINE_TERMS_REDIRECT_URL, { external: true })
       }

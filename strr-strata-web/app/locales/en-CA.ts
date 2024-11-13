@@ -113,8 +113,8 @@ export default {
   },
   page: {
     dashboardList: {
-      title: 'Dashboard - My Short Term Rental Registry',
-      h1: 'My Short Term Rental Registry',
+      title: 'Dashboard - My Short-Term Rental Registry',
+      h1: 'My Short-Term Rental Registry',
       subtitle: 'Register and keep short-term rental unit information up to date.'
     }
   }

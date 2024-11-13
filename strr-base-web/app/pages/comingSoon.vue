@@ -11,7 +11,12 @@ definePageMeta({
 })
 
 setBreadcrumbs([
-  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+  {
+    label: t('label.bcregDash'),
+    to: useRuntimeConfig().public.registryHomeURL + 'dashboard',
+    appendAccountId: true,
+    external: true
+  },
   { label: t('strr.title.dashboard') }
 ])
 </script>

@@ -169,7 +169,6 @@ watch(activeStepIndex, (val) => {
   })
 
   setButtonControl({ leftButtons: [], rightButtons: buttons })
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }, { immediate: true })
 
 // page stuff
@@ -184,8 +183,13 @@ definePageMeta({
 })
 
 setBreadcrumbs([
-  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
-  { label: t('strr.title.dashboard'), to: useLocalePath()('/strata-hotel/dashboard') },
+  {
+    label: t('label.bcregDash'),
+    to: useRuntimeConfig().public.registryHomeURL + 'dashboard',
+    appendAccountId: true,
+    external: true
+  },
+  { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
   { label: t('strr.title.application') }
 ])
 </script>

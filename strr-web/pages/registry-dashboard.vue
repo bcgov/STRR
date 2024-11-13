@@ -183,7 +183,7 @@
 </template>
 
 <script setup lang="ts">
-import { ApplicationStatusE, RegistrationTypeE } from '#imports'
+import { ApplicationStatusE, RegistrationTypeE, RouteNamesE } from '#imports'
 import { ExaminerDashboardRowI } from '~/interfaces/examiner-dashboard-row-i'
 import { HostApplicationDetailsI, PlatformApplicationDetailsI } from '~/interfaces/application-i'
 import InfoModal from '~/components/common/InfoModal.vue'
@@ -193,6 +193,7 @@ const tRegistryDashboard = (translationKey: string) => t(`registryDashboard.${tr
 const { getChipFlavour } = useChipFlavour()
 const { downloadReceipt, downloadingReceipts } = useDownloadReceipt()
 const { getApplications, getApplicationsByStatus, getPaginatedApplications } = useApplications()
+const { goToHostDashboard } = useBcrosNavigate()
 const { isExaminer } = storeToRefs(useBcrosKeycloak())
 
 const statusFilter = ref<string>('')
@@ -211,14 +212,14 @@ const DEFAULT_STATUS: ApplicationStatusE = ApplicationStatusE.FULL_REVIEW
 
 const isClickableRow = (registrationType: string) => registrationType !== 'Platform'
 
-const handleRowClick = (registrationType: string, identfier: string, isApplication: boolean = true) => {
+const handleRowClick = (registrationType: string, identifier: string, isApplication: boolean = true) => {
   if (!isClickableRow(registrationType)) {
     return
   }
   if (isApplication) {
-    navigateToApplicationDetails(identfier)
+    navigateToApplicationDetails(identifier)
   } else {
-    navigateToRegistrationDetails(identfier)
+    navigateToRegistrationDetails(identifier)
   }
 }
 
@@ -263,8 +264,10 @@ const updateFilterOptions = async () => {
   ]
 }
 
-const navigateToApplicationDetails = (appNumber: string) => navigateTo(`/application-details/${appNumber}`)
-const navigateToRegistrationDetails = (id: number) => navigateTo(`/registration-details/${id.toString()}`)
+const navigateToApplicationDetails = (appNumber: string) =>
+  navigateTo(`/${RouteNamesE.APPLICATION_DETAILS}/${appNumber}`)
+const navigateToRegistrationDetails = (id: string) =>
+  navigateTo(`${RouteNamesE.REGISTRATION_DETAILS}/${id}`)
 
 const updateTableRows = async () => {
   loading.value = true
@@ -383,7 +386,7 @@ const columns = [
 onBeforeMount(() => {
   // redirect Hosts to their own Dashboard
   if (!isExaminer.value) {
-    navigateTo({ path: '/' + RouteNamesE.APPLICATION_STATUS })
+    goToHostDashboard()
   }
 })
 

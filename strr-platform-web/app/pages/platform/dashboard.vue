@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const config = useRuntimeConfig().public
 const accountStore = useConnectAccountStore()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
@@ -21,7 +22,7 @@ const representatives = ref<ConnectAccordionItem[]>([])
 watch(() => accountStore.currentAccount.id,
   () => {
     const { redirect } = useNavigate()
-    redirect(useRuntimeConfig().public.registryHomeURL + 'dashboard')
+    redirect(config.registryHomeURL + 'dashboard')
   }
 )
 
@@ -60,7 +61,12 @@ onMounted(async () => {
     representatives.value = getDashboardRepresentives()
     // update breadcrumbs with platform business name
     setBreadcrumbs([
-      { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+      {
+        label: t('label.bcregDash'),
+        to: config.registryHomeURL + 'dashboard',
+        appendAccountId: true,
+        external: true
+      },
       { label: platformBusiness.value.legalName }
     ])
   }
@@ -79,7 +85,12 @@ definePageMeta({
 })
 
 setBreadcrumbs([
-  { label: t('label.bcregDash'), to: useRuntimeConfig().public.registryHomeURL + 'dashboard' },
+  {
+    label: t('label.bcregDash'),
+    to: config.registryHomeURL + 'dashboard',
+    appendAccountId: true,
+    external: true
+  },
   { label: t('strr.title.dashboard') }
 ])
 </script>

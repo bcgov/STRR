@@ -1,8 +1,6 @@
-import { useRouter } from 'vue-router'
 export const useBcrosNavigate = () => {
   const config = useRuntimeConfig()
   const account = useBcrosAccount()
-  const router = useRouter()
 
   /** Redirect to the given URL with necessary BCROS args */
   function redirect (url: string) {
@@ -34,25 +32,25 @@ export const useBcrosNavigate = () => {
     redirect(config.public.authWebURL + `account/${account.currentAccount.id}/settings/transactions`)
   }
   function goToCreateSbcAccount () {
-    router.push('/' + RouteNamesE.FINALIZATION)
+    navigateTo('/' + RouteNamesE.FINALIZATION)
   }
   function goToHostDashboard () {
-    router.push('/' + RouteNamesE.APPLICATION_STATUS)
+    navigateTo('/' + RouteNamesE.APPLICATION_STATUS)
   }
   function goToExaminerDashboard () {
-    router.push('/' + RouteNamesE.REGISTRY_DASHBOARD)
+    navigateTo('/' + RouteNamesE.REGISTRY_DASHBOARD)
   }
   function goToCreateAccount () {
-    router.push('/' + RouteNamesE.CREATE_ACCOUNT)
+    navigateTo('/' + RouteNamesE.CREATE_ACCOUNT)
   }
   function goToSetupAccount () {
     redirect(config.public.authWebURL + 'setup-account')
   }
   function goToTermsOfService () {
-    router.push('/' + RouteNamesE.TERMS_OF_SERVICE)
+    navigateTo('/' + RouteNamesE.TERMS_OF_SERVICE)
   }
   function goToAccountSelect () {
-    router.push('/' + RouteNamesE.ACCOUNT_SELECT)
+    navigateTo('/' + RouteNamesE.ACCOUNT_SELECT)
   }
 
   return {

@@ -11,7 +11,8 @@ useHead({
 })
 
 definePageMeta({
-  middleware: ['auth', 'check-tos']
+  middleware: ['auth', 'check-tos'],
+  hideBreadcrumbs: true
 })
 
 function handleAccountSwitch (id: string) {

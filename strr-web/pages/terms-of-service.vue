@@ -28,10 +28,11 @@ const tTos = (translationKey: string) => t(`tos.${translationKey}`)
 
 const { acceptTermsOfService } = useTermsOfService()
 const { tos, isTosAccepted } = storeToRefs(useBcrosAccount())
+const { goToCreateAccount } = useBcrosNavigate()
 
 watch(isTosAccepted, (isAccepted) => {
   if (isAccepted) {
-    navigateTo('/' + RouteNamesE.CREATE_ACCOUNT)
+    goToCreateAccount()
   }
 })
 

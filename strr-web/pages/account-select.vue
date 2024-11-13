@@ -28,9 +28,10 @@
 </template>
 
 <script setup lang="ts">
-import { AlertsFlavourE, RouteNamesE } from '#imports'
+import { AlertsFlavourE } from '#imports'
 import InfoModal from '~/components/common/InfoModal.vue'
 
+const { goToCreateSbcAccount } = useBcrosNavigate()
 const { t } = useTranslation()
 
 const alertFlavour: AlertsFlavourE = AlertsFlavourE.INFO
@@ -42,7 +43,7 @@ const existingAccountsTitle = `${t('account.existingAccountSection.title')} (${u
 onMounted(() => {
   // if no sbc accounts navigate to sbc account creation
   if (!me?.settings.length) {
-    navigateTo('/' + RouteNamesE.FINALIZATION)
+    goToCreateSbcAccount()
   }
 })
 </script>

@@ -30,7 +30,7 @@
         />
         <BcrosButtonsPrimary
           :label="tRegistrationStatus('create')"
-          :action="() => navigateTo('/create-account')"
+          :action="goToCreateAccount"
           icon="i-mdi-plus"
           class-name="mobile:hidden"
         />
@@ -87,7 +87,7 @@
     <div class="w-full h-[120px] desktop:hidden flex justify-center items-center">
       <BcrosButtonsPrimary
         :label="tRegistrationStatus('create')"
-        :action="() => navigateTo('/create-account')"
+        :action="goToCreateAccount"
         icon="i-mdi-plus"
       />
     </div>
@@ -110,6 +110,8 @@ const hostApplicationStatusPriority: any = {
   [ApplicationStatusE.PAYMENT_DUE]: 2
 }
 
+const { goToCreateAccount, goToExaminerDashboard } = useBcrosNavigate()
+
 const tRegistrationStatus = (translationKey: string) => useTranslation().t(`registrationStatus.${translationKey}`)
 
 const { getApplications } = useApplications()
@@ -124,13 +126,13 @@ const isHostRegistrationType = (application): boolean => {
 onBeforeMount(() => {
   // redirect Examiners to their own Dashboard
   if (isExaminer.value) {
-    navigateTo({ path: '/' + RouteNamesE.REGISTRY_DASHBOARD })
+    goToExaminerDashboard()
+    return
+  }
+  if (res.total === 0) {
+    goToCreateAccount()
   }
 })
-
-if (res.total === 0) {
-  navigateTo('/' + RouteNamesE.CREATE_ACCOUNT)
-}
 
 applications.value = res.applications
   .sort(

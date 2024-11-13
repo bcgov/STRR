@@ -118,6 +118,7 @@ const contactForm = ref()
 const fee = ref<FeeI>()
 const headerUpdateKey = ref(0)
 
+const { goToCreateSbcAccount } = useBcrosNavigate()
 const { getHostApplicationFee } = useFees()
 
 const updateFees = async () => {
@@ -132,7 +133,7 @@ const submitInProgress = ref(false)
 onMounted(() => {
   // if no SBC accounts exist redirect to SBC account creation
   if (!me?.settings.length) {
-    navigateTo('/' + RouteNamesE.FINALIZATION)
+    goToCreateSbcAccount()
   }
   updateFees()
 })

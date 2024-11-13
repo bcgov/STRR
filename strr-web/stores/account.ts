@@ -137,7 +137,7 @@ export const useBcrosAccount = defineStore('bcros/account', () => {
       let storedUserProfile: MeI | void = JSON.parse(sessionStorage.getItem(SessionStorageKeyE.USER_PROFILE) || 'null')
 
       // if no stored user profile or account ID is provided, fetch user profile
-      if ((!storedUserProfile || !!currentAccountId) || !currentAccount.value.id) {
+      if (!storedUserProfile || !!currentAccountId) {
         storedUserProfile = await getMe()
         if (storedUserProfile) {
           sessionStorage.setItem(SessionStorageKeyE.USER_PROFILE, JSON.stringify(storedUserProfile))

@@ -53,7 +53,6 @@ export const useBcrosKeycloak = defineStore('bcros/keycloak', () => {
     sessionStorage.setItem(SessionStorageKeyE.KEYCLOAK_TOKEN_REFRESH, kc.value?.refreshToken || '')
     sessionStorage.setItem(SessionStorageKeyE.KEYCLOAK_TOKEN_ID, kc.value?.idToken || '')
     sessionStorage.setItem(SessionStorageKeyE.KEYCLOAK_SYNCED, 'true')
-    sessionStorage.removeItem(SessionStorageKeyE.CURRENT_ACCOUNT)
   }
 
   async function initKeyCloak (

@@ -30,14 +30,14 @@
       <BcrosTypographyH2 :text="tApplicationConfirm('links')" class="mt-8 text-[18px] mb-6" />
       <p class="mb-6">
         <!-- eslint-disable-next-line max-len -->
-        <a @click="navigateTo('/application-status')">{{ tApplicationConfirm('status') }}</a> {{ tApplicationConfirm('dashboard') }}
+        <a @click="goToHostDashboard">{{ tApplicationConfirm('status') }}</a> {{ tApplicationConfirm('dashboard') }}
       </p>
       <p class="mb-6">
         {{ tApplicationConfirm('haveAnotherProperty') }}
       </p>
       <BcrosButtonsPrimary
         :label="tApplicationConfirm('startNewApplication')"
-        :action="() => navigateTo('/create-account')"
+        :action="goToCreateAccount"
         class-name="font-bold"
       />
     </div>
@@ -53,6 +53,7 @@ const tApplicationConfirm = (translationKey: string) => t(`createAccount.applica
 
 const { getApplication } = useApplications()
 const { createInvoiceRecord } = useFees()
+const { goToCreateAccount, goToHostDashboard } = useBcrosNavigate()
 
 const { registrationId, paymentId } = route.params
 
