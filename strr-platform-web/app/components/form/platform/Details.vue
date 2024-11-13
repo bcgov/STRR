@@ -58,19 +58,19 @@ onMounted(async () => {
                   <ConnectFormFieldGroup
                     :id="'platform-brand-name-' + i"
                     v-model="brand.name"
-                    :aria-label="(i > 0) ? $t('strr.label.brandNameOpt') : $t('strr.label.brandName')"
+                    :aria-label="$t('strr.label.brandName')"
                     :help="$t('strr.hint.brandName')"
                     :name="`brands.${i}.name`"
-                    :placeholder="(i > 0) ? $t('strr.label.brandNameOpt') : $t('strr.label.brandName')"
+                    :placeholder="$t('strr.label.brandName')"
                     :is-required="true"
                   />
                   <ConnectFormFieldGroup
                     :id="'platform-brand-site-' + i"
                     v-model="brand.website"
-                    :aria-label="(i > 0) ? $t('strr.label.brandSiteOpt') : $t('strr.label.brandSite')"
+                    :aria-label="$t('strr.label.brandSite')"
                     :help="$t('strr.hint.brandSite')"
                     :name="`brands.${i}.website`"
-                    :placeholder="(i > 0) ? $t('strr.label.brandSiteOpt') : $t('strr.label.brandSite')"
+                    :placeholder="$t('strr.label.brandSite')"
                     :is-required="true"
                     type="url"
                   />
