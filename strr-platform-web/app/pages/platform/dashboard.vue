@@ -74,20 +74,20 @@ onMounted(async () => {
       label: t('strr.label.emailAddresses'),
       values: [
         {
-          class: 'pl-7',
+          icon: 'i-mdi-at',
           label: t('strr.label.noncomplianceEmail'),
           text: platformBusiness.value.nonComplianceEmail
         },
         ...(platformBusiness.value.nonComplianceEmailOptional
-          ? [{ class: '-mt-2 pl-7', text: platformBusiness.value.nonComplianceEmailOptional }]
+          ? [{ class: '-mt-2 pl-8', text: platformBusiness.value.nonComplianceEmailOptional }]
           : []),
         {
-          class: 'pl-7',
+          icon: 'i-mdi-at',
           label: t('strr.label.takedownEmail'),
           text: platformBusiness.value.takeDownEmail
         },
         ...(platformBusiness.value.takeDownEmailOptional
-          ? [{ class: '-mt-2 pl-7', text: platformBusiness.value.takeDownEmailOptional }]
+          ? [{ class: '-mt-2 pl-8', text: platformBusiness.value.takeDownEmailOptional }]
           : [])
       ]
     })

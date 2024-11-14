@@ -107,14 +107,14 @@ export const getDashboardAddresses = (business: StrrBusiness) => {
       values: [
         ...(business.regOfficeOrAtt.attorneyName
           ? [{
-              class: 'pl-7',
+              icon: 'i-mdi-account-tie',
               label: t('strr.label.attName'),
               text: business.regOfficeOrAtt.attorneyName
             }]
           : []
         ),
         {
-          class: 'pl-7',
+          icon: 'i-mdi-office-building',
           label: t('label.registeredOffice'),
           address: business.regOfficeOrAtt.mailingAddress
         }
