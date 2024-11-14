@@ -140,7 +140,7 @@ class PayService:
         cpbc_number = registration_json.get("businessDetails").get("consumerProtectionBCLicenceNumber")
         if cpbc_number and (not cpbc_number.isspace()):
             filing_type = PLATFORM_FEE_WAIVED
-        elif registration_json.get("platformDetails").get("listingSize") == "GREATER_THAN_THOUSAND":
+        elif registration_json.get("platformDetails").get("listingSize") == "THOUSAND_AND_ABOVE":
             filing_type = PLATFORM_LARGE_USER_BASE
         else:
             filing_type = PLATFORM_SMALL_USER_BASE

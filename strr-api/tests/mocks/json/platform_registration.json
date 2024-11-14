@@ -74,7 +74,7 @@
                     "website": "http://xyz.com"
                 }
             ],
-            "listingSize": "GREATER_THAN_THOUSAND"
+            "listingSize": "THOUSAND_AND_ABOVE"
         }
     }
 }
