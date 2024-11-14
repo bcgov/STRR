@@ -271,64 +271,56 @@ onMounted(async () => {
         :error="isSectionInvalid('platform-details-form')"
         @edit="$emit('edit', 2)"
       >
-        <div class="space-y-5">
-          <FormCommonReviewRow
-            v-if="platDetailsStore.platformDetails.brands.length === 0"
-          >
-            <template #item-1>
-              <ConnectInfoBox
-                :title="$t('strr.review.platInfo.brandName', 0)"
-                title-class="font-bold text-bcGovGray-900"
-                content="-"
-              />
-            </template>
-            <template #item-2>
-              <ConnectInfoBox
-                :title="$t('strr.review.platInfo.brandSite', 0)"
-                title-class="font-bold text-bcGovGray-900"
-                content="-"
-              />
-            </template>
-            <template #item-3>
-              <ConnectInfoBox
-                :title="$t('strr.section.subTitle.size')"
-                title-class="font-bold text-bcGovGray-900"
-                :content="platDetailsStore.platformDetails.listingSize || '-'"
-              />
-            </template>
-          </FormCommonReviewRow>
-          <template v-else>
-            <FormCommonReviewRow
-              v-for="(brand, i) in platDetailsStore.platformDetails.brands"
-              :key="brand.name"
-            >
-              <template #item-1>
-                <ConnectInfoBox
-                  :title="$t('strr.review.platInfo.brandName', { count: i + 1})"
-                  title-class="font-bold text-bcGovGray-900"
-                  :content="brand.name || '-'"
-                />
-              </template>
-              <template #item-2>
-                <ConnectInfoBox
-                  :title="$t('strr.review.platInfo.brandSite', { count: i + 1})"
-                  title-class="font-bold text-bcGovGray-900"
-                  :content="brand.website || '-'"
-                />
-              </template>
-              <template #item-3>
-                <ConnectInfoBox
-                  v-if="i === 0"
-                  :title="$t('strr.section.subTitle.size')"
-                  title-class="font-bold text-bcGovGray-900"
-                  :content="platDetailsStore.platformDetails.listingSize ?
-                    $t(`strr.label.listingSize.${platDetailsStore.platformDetails.listingSize}`) :
-                    '-'"
-                />
-              </template>
-            </FormCommonReviewRow>
-          </template>
+        <div
+          v-if="platDetailsStore.platformDetails.brands.length === 0"
+          class="grid grid-cols-3"
+        >
+          <ConnectInfoBox
+            :title="$t('strr.review.platInfo.brandName', 0)"
+            title-class="font-bold text-bcGovGray-900"
+            content="-"
+          />
+          <ConnectInfoBox
+            :title="$t('strr.review.platInfo.brandSite', 0)"
+            title-class="font-bold text-bcGovGray-900"
+            content="-"
+          />
+          <ConnectInfoBox
+            :title="$t('strr.section.subTitle.size')"
+            title-class="font-bold text-bcGovGray-900"
+            :content="platDetailsStore.platformDetails.listingSize || '-'"
+          />
         </div>
+        <template v-else>
+          <div
+            v-for="(brand, i) in platDetailsStore.platformDetails.brands"
+            :key="brand.name"
+            class="flex flex-col gap-4 pb-4 sm:grid sm:grid-cols-3 sm:gap-0"
+            :class="[
+              i === 0 ? 'sm:pb-2' : 'sm:py-2',
+              i === platDetailsStore.platformDetails.brands.length - 1 ? 'sm:pb-0' : ''
+            ]"
+          >
+            <ConnectInfoBox
+              :title="$t('strr.review.platInfo.brandName', { count: i + 1})"
+              title-class="font-bold text-bcGovGray-900"
+              :content="brand.name || '-'"
+            />
+            <ConnectInfoBox
+              :title="$t('strr.review.platInfo.brandSite', { count: i + 1})"
+              title-class="font-bold text-bcGovGray-900"
+              :content="brand.website || '-'"
+            />
+            <ConnectInfoBox
+              v-if="i === 0"
+              :title="$t('strr.section.subTitle.size')"
+              title-class="font-bold text-bcGovGray-900"
+              :content="platDetailsStore.platformDetails.listingSize ?
+                $t(`strr.label.listingSize.${platDetailsStore.platformDetails.listingSize}`) :
+                '-'"
+            />
+          </div>
+        </template>
       </FormCommonReviewSection>
     </ConnectPageSection>
 
