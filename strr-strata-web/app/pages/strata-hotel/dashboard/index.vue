@@ -131,7 +131,7 @@ async function handleItemSelect (row: any) {
           :columns="selectedColumns"
           :rows="strataHotelList"
           :loading="status === 'pending'"
-          :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: $t('table.strataHotelList.emptyText') }"
+          :empty-state="{ icon: '', label: $t('table.strataHotelList.emptyText') }"
           :sort="{ column: 'date', direction: 'desc' }"
           :ui="{
             wrapper: 'relative overflow-x-auto h-[512px]',
