@@ -385,11 +385,11 @@ export const formState: CreateAccountFormStateI = reactive({
   },
   selectedAccount: {} as OrgI,
   principal: {
-    isPrincipal: undefined,
-    reason: undefined,
-    declaration: false,
-    agreeToSubmit: false,
-    otherReason: undefined
+    isPrincipalResidence: undefined,
+    agreedToRentalAct: false,
+    agreedToSubmit: false,
+    nonPrincipalOption: undefined,
+    specifiedServiceProvider: undefined
   },
   supportingDocuments: [],
   hasHostAuthorization: false // if Property Manager is authorized by Host

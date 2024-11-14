@@ -32,17 +32,17 @@
         </p>
         <URadioGroup
           id="primary-residence-radio"
-          v-model="formState.principal.isPrincipal"
+          v-model="formState.principal.isPrincipalResidence"
           :legend="tPrincipalResidence('radioLegend')"
           :options="primaryResidenceRadioOptions"
         />
         <UFormGroup
-          v-if="!formState.principal.isPrincipal && formState.principal.isPrincipal !== undefined"
+          v-if="!formState.principal.isPrincipalResidence && formState.principal.isPrincipalResidence !== undefined"
           class="text-[16px] mt-[20px]"
           :error="reasonError"
         >
           <USelect
-            v-model="formState.principal.reason"
+            v-model="formState.principal.nonPrincipalOption"
             :placeholder="tPrincipalResidence('reason')"
             :options="exemptionReasons"
             option-attribute="key"
@@ -57,12 +57,13 @@
           </p>
         </UFormGroup>
         <UFormGroup
-          v-if="!formState.principal.isPrincipal && formState.principal.reason === tPrincipalResidence('other')"
+          v-if="!formState.principal.isPrincipalResidence &&
+            formState.principal.nonPrincipalOption === tPrincipalResidence('other')"
           class="text-[16px] ml-[48px] mt-[20px]"
           :error="otherReasonError"
         >
           <USelect
-            v-model="formState.principal.otherReason"
+            v-model="formState.principal.specifiedServiceProvider"
             :placeholder="tPrincipalResidence('service')"
             :options="otherExemptionReasons"
             option-attribute="key"
@@ -77,7 +78,7 @@
           </p>
         </UFormGroup>
       </div>
-      <div v-if="formState.principal.isPrincipal">
+      <div v-if="formState.principal.isPrincipalResidence">
         <div class="mt-[40px] mobile:mx-[8px]">
           <p>{{ tPrincipalResidence('requiredDocs') }}</p>
           <div class="p-[16px] flex flex-row text-blue-500 text-[16px]">
@@ -163,14 +164,14 @@
               :class="`flex flex-row
                   ${
                 isComplete
-                && !formState.principal.declaration
+                && !formState.principal.agreedToRentalAct
                   ? 'outline outline-bcGovColor-error p-[5px]'
                   : 'p-[5px]'
               }
                 `"
             >
               <UCheckbox
-                v-model="formState.principal.declaration"
+                v-model="formState.principal.agreedToRentalAct"
                 aria-label="Checkbox for primary residence declaration"
                 class="mb-[18px]"
                 name="declaration"
@@ -195,7 +196,7 @@ const fileInputKey = ref(0)
 
 const { isComplete } = defineProps<{ isComplete: boolean }>()
 
-watch(() => formState.principal.declaration, (ticked) => {
+watch(() => formState.principal.agreedToRentalAct, (ticked) => {
   if (ticked && formState.supportingDocuments.length === 0) {
     fileError.value = tPrincipalResidence('fileRequiredError')
   } else {
@@ -206,7 +207,7 @@ watch(() => formState.principal.declaration, (ticked) => {
 const validateReason = (reason: string, event?: any) => {
   reasonError.value = reason || event?.target?.value ? undefined : 'Reason required'
   if (reason !== tPrincipalResidence('other') && event === undefined) {
-    formState.principal.otherReason = undefined
+    formState.principal.specifiedServiceProvider = undefined
   }
 }
 
@@ -215,11 +216,12 @@ const validateOtherReason = (otherReason: string, event?: any) => {
 }
 
 if (isComplete) {
-  if (!formState.principal.isPrincipal) {
-    validateReason(formState.principal.reason ?? '')
+  if (!formState.principal.isPrincipalResidence) {
+    validateReason(formState.principal.nonPrincipalOption ?? '')
   }
-  if (!formState.principal.isPrincipal && formState.principal.otherReason === tPrincipalResidence('other')) {
-    validateOtherReason(formState.principal.otherReason ?? '')
+  if (!formState.principal.isPrincipalResidence &&
+    formState.principal.specifiedServiceProvider === tPrincipalResidence('other')) {
+    validateOtherReason(formState.principal.specifiedServiceProvider ?? '')
   }
 }
 
@@ -242,7 +244,7 @@ const uploadFile = (file: FileList) => {
 
 const removeFile = (index: number) => {
   formState.supportingDocuments.splice(index, 1)
-  if (formState.principal.declaration && formState.supportingDocuments.length === 0) {
+  if (formState.principal.agreedToRentalAct && formState.supportingDocuments.length === 0) {
     fileError.value = tPrincipalResidence('fileRequiredError')
   }
 }

@@ -209,15 +209,23 @@ watch(formState.propertyDetails, () => {
 })
 
 const validateProofPage = () => {
-  if (formState.principal.isPrincipal && formState.principal.declaration && formState.supportingDocuments.length > 0) {
-    setStepValid(3, true)
-  } else if (
-    !formState.principal.isPrincipal &&
-    formState.principal.reason &&
-    formState.principal.reason !== tPrincipalResidence('other')
+  if (
+    formState.principal.isPrincipalResidence &&
+    formState.principal.agreedToRentalAct &&
+    formState.supportingDocuments.length > 0
   ) {
     setStepValid(3, true)
-  } else if (!formState.principal.isPrincipal && formState.principal.reason && formState.principal.otherReason) {
+  } else if (
+    !formState.principal.isPrincipalResidence &&
+    formState.principal.nonPrincipalOption &&
+    formState.principal.nonPrincipalOption !== tPrincipalResidence('other')
+  ) {
+    setStepValid(3, true)
+  } else if (
+    !formState.principal.isPrincipalResidence &&
+    formState.principal.nonPrincipalOption &&
+    formState.principal.specifiedServiceProvider
+  ) {
     setStepValid(3, true)
   } else {
     setStepValid(3, false)
@@ -225,7 +233,7 @@ const validateProofPage = () => {
 }
 
 const validateReviewPage = () => {
-  setStepValid(4, formState.principal.agreeToSubmit &&
+  setStepValid(4, formState.principal.agreedToSubmit &&
     (formState.isPropertyManagerRole ? formState.hasHostAuthorization : true))
   steps[4].step.complete = true
 }

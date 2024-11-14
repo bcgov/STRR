@@ -46,19 +46,19 @@
           </p>
           <div class="bg-white py-[22px] px-[30px] mb-6 m:px-2">
             <p>
-              {{ formState.principal.isPrincipal ? tPrincipal('yes') : tPrincipal('no') }}
+              {{ formState.principal.isPrincipalResidence ? tPrincipal('yes') : tPrincipal('no') }}
             </p>
-            <div v-if="!formState.principal.isPrincipal">
+            <div v-if="!formState.principal.isPrincipalResidence">
               <p>
                 <b>{{ tReview('reason') }}: </b>
-                {{ formState.principal.otherReason
-                  ? `${formState.principal.reason}: ${formState.principal.otherReason}`
-                  : (formState.principal.reason || '-')
+                {{ formState.principal.specifiedServiceProvider
+                  ? `${formState.principal.nonPrincipalOption}: ${formState.principal.specifiedServiceProvider}`
+                  : (formState.principal.nonPrincipalOption || '-')
                 }}
               </p>
             </div>
           </div>
-          <div v-if="formState.principal.isPrincipal && formState.principal.declaration">
+          <div v-if="formState.principal.isPrincipalResidence && formState.principal.agreedToRentalAct">
             <div class="bg-white py-[22px] px-[30px] m:px-2">
               <p class="font-bold mb-2">
                 {{ tReview('proof') }}
@@ -100,9 +100,9 @@
           </p>
           <div class="bg-white p-8 mb-6">
             <UCheckbox
-              v-model="formState.principal.agreeToSubmit"
+              v-model="formState.principal.agreedToSubmit"
               :label="tReview('confirm')"
-              :ui="{ label: isComplete && !formState.principal.agreeToSubmit ? 'text-bcGovColor-error' : '' }"
+              :ui="{ label: isComplete && !formState.principal.agreedToSubmit ? 'text-bcGovColor-error' : '' }"
             />
           </div>
           <div

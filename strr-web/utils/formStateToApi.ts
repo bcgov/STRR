@@ -106,17 +106,23 @@ export const formStateToApi = (
   }
 
   const setPrincipalResidence = () => {
-    const { isPrincipal, declaration, agreeToSubmit, reason, otherReason } = formState.principal
+    const {
+      isPrincipalResidence,
+      agreedToRentalAct,
+      agreedToSubmit,
+      nonPrincipalOption,
+      specifiedServiceProvider
+    } = formState.principal
 
     formData.registration.principalResidence = {
-      isPrincipalResidence: isPrincipal ?? false,
-      agreedToRentalAct: declaration,
-      agreedToSubmit: agreeToSubmit,
-      ...(isPrincipal
+      isPrincipalResidence,
+      agreedToRentalAct,
+      agreedToSubmit,
+      ...(isPrincipalResidence
         ? {}
         : {
-            nonPrincipalOption: reason ?? 'n/a',
-            specifiedServiceProvider: otherReason ?? 'n/a'
+            nonPrincipalOption: nonPrincipalOption ?? 'n/a',
+            specifiedServiceProvider: specifiedServiceProvider ?? 'n/a'
           })
     }
   }
