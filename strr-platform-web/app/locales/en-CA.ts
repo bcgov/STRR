@@ -71,7 +71,7 @@ export default {
       hasCpbc: 'Does the business have an active number with Consumer Protection BC (CPBC)?',
       isUserRep: 'Are you the platform representative?',
       lessThanThousand: 'Less than 1000',
-      listingSize: 'What is the total number of listings offered by the Platform Provider on June 1, [previous year]?',
+      listingSize: 'What is the total number of listings offered by the Platform Provider on June 1, {year}?',
       nonComplianceEmail: 'Provide an email address to receive Notices of Non-Compliance.',
       nonComplianceEmailLong: 'This message will be sent to the supplier host and platform service provider by a local government to inform both parties that a listing is not compliant with a local government business licence requirement. No action is required from the platform service provider.',
       primaryContact: 'This is the primary contact person for the platform.',

@@ -104,7 +104,7 @@ onMounted(async () => {
             >
               <template #legend>
                 <span class="sr-only">{{ $t('validation.required') }}</span>
-                <span>{{ $t('strr.text.listingSize') }}</span>
+                <span>{{ $t('strr.text.listingSize', { year: new Date().getFullYear() - 1 }) }}</span>
               </template>
             </URadioGroup>
           </UFormGroup>
