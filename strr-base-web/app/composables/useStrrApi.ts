@@ -43,9 +43,18 @@ export const useStrrApi = () => {
     })
   }
 
+  const getApplicationReceipt = async (applicationNumber: string) => {
+    return await $strrApi<Blob>(`/applications/${applicationNumber}/payment/receipt`)
+      .catch((e) => {
+        logFetchError(e, `Unable to get application receipt for ${applicationNumber}`)
+        return undefined
+      })
+  }
+
   return {
     getAccountRegistrations,
     getAccountApplications,
+    getApplicationReceipt,
     postApplication
   }
 }

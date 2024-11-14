@@ -1,4 +1,4 @@
-export const setApplicationHeaderDetails = (showReceipt: boolean, hostStatus?: string) => {
+export const setApplicationHeaderDetails = (receiptAction?: Function, hostStatus?: string) => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
   const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
@@ -6,10 +6,10 @@ export const setApplicationHeaderDetails = (showReceipt: boolean, hostStatus?: s
   if (hostStatus) {
     details.value = [{ text: hostStatus, chip: true, chipColour: 'yellow' }]
   }
-  if (showReceipt) {
+  if (receiptAction) {
     bottomButtons.value = [
       {
-        action: () => { console.info('Receipt') },
+        action: receiptAction,
         label: t('word.Receipt'),
         // TODO: find/replace with correct icon
         icon: 'i-mdi-file-download-outline'
@@ -18,15 +18,18 @@ export const setApplicationHeaderDetails = (showReceipt: boolean, hostStatus?: s
   }
 }
 
-export const setRegistrationHeaderDetails = (status: ApplicationStatus, expiryDate?: string) => {
+export const setRegistrationHeaderDetails = (
+  status: ApplicationStatus,
+  expiryDate?: string,
+  receiptAction?: Function
+) => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
   const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
 
   details.value = [{ text: status, chip: true }]
   if (expiryDate) {
-    // TODO: scott + fiona to decide if they want this or not (for now scott says no)
-    // details.value.push({ text: `${t('label.expiryDate')} - ${expiryDate}` })
+    details.value.push({ text: `${t('label.expiryDate')} - ${expiryDate}` })
   }
   bottomButtons.value = [
     // TODO: determine if this is a valid action / add label to locales
@@ -41,12 +44,14 @@ export const setRegistrationHeaderDetails = (status: ApplicationStatus, expiryDa
     //   label: 'Certificate',
     //   icon: 'i-mdi-file-download-outline'
     // },
-    {
-      action: () => { console.info('Receipt') },
-      label: t('word.Receipt'),
-      // TODO: find/replace with correct icon
-      icon: 'i-mdi-file-download-outline'
-    }
+    ...(receiptAction
+      ? [{
+          action: receiptAction,
+          label: t('word.Receipt'),
+          // TODO: find/replace with correct icon
+          icon: 'i-mdi-file-download-outline'
+        }]
+      : [])
   ]
 }
 

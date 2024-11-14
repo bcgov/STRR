@@ -20,7 +20,7 @@ defineProps<ConnectDetailHeaderItem>()
     >
       {{ text }}
     </a>
-    <p v-else :class="itemClass || 'text-sm'">
+    <p v-else :class="itemClass || 'mt-[2px] text-sm'">
       {{ text }}
     </p>
   </div>

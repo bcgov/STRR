@@ -14,7 +14,8 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     permitDetails,
     isPaidApplication,
     showPermitDetails,
-    loadPermitData
+    loadPermitData,
+    downloadApplicationReceipt
   } = useStrrBasePermit<StrataRegistrationResp, StrataApplicationResp>()
 
   const loadStrata = async (id: string) => {
@@ -86,6 +87,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     permitDetails,
     isPaidApplication,
     showPermitDetails,
+    downloadApplicationReceipt,
     loadStrata,
     loadStrataHotelList
   }

@@ -74,5 +74,11 @@ export default defineNuxtConfig({
       // ldClientId - NUXT_LD_CLIENT_ID
       // appName - npm_package_name
     }
+  },
+
+  vite: {
+    optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
+      include: ['zod', 'uuid', 'vitest']
+    }
   }
 })

@@ -61,8 +61,8 @@ const save = (sideDetail: ConnectDetailHeaderSideDetail) => {
           </div>
           <div class="space-y-1">
             <slot name="details">
-              <div class="flex">
-                <div v-for="detail, i in details" :key="'detail-' + i" class="flex space-x-2">
+              <div class="flex space-x-2">
+                <div v-for="detail, i in details" :key="'detail-' + i">
                   <ConnectDetailsHeaderItem v-bind="detail" />
                 </div>
               </div>

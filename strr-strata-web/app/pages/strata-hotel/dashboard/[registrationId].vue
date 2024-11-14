@@ -8,7 +8,7 @@ const {
   title,
   subtitles
 } = storeToRefs(useConnectDetailsHeaderStore())
-const { loadStrata } = useStrrStrataStore()
+const { downloadApplicationReceipt, loadStrata } = useStrrStrataStore()
 const {
   application,
   registration,
@@ -47,7 +47,9 @@ onMounted(async () => {
       }
     ]
     if (!registration.value) {
-      setApplicationHeaderDetails(isPaidApplication.value, application.value?.header.hostStatus)
+      setApplicationHeaderDetails(
+        isPaidApplication.value ? downloadApplicationReceipt : undefined,
+        application.value?.header.hostStatus)
     } else {
       setRegistrationHeaderDetails(permitDetails.value.status)
     }

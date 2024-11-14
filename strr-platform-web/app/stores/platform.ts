@@ -9,6 +9,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     permitDetails,
     isPaidApplication,
     showPermitDetails,
+    downloadApplicationReceipt,
     loadPermitData
   } = useStrrBasePermit<PlatformRegistrationResp, PlatformApplicationResp>()
 
@@ -36,6 +37,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     permitDetails,
     isPaidApplication,
     showPermitDetails,
+    downloadApplicationReceipt,
     loadPlatform
   }
 })

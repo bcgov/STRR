@@ -1,7 +1,12 @@
 import type { ApiApplicationResp, ApiRegistrationResp } from '~/interfaces/strr-api'
+import { downloadFile } from '~/utils/download-file'
 
 export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationResp>() => {
-  const { getAccountApplications, getAccountRegistrations } = useStrrApi()
+  const {
+    getAccountApplications,
+    getAccountRegistrations,
+    getApplicationReceipt
+  } = useStrrApi()
 
   // Typescript not unwrapping the generic ref properly without the 'as ...'
   const application = ref<A | undefined>(undefined) as Ref<A | undefined>
@@ -24,15 +29,12 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     (!!application.value && !isApplicationStatus([ApplicationStatus.DECLINED, ApplicationStatus.DRAFT])))
 
   const loadPermitData = async (id?: string) => {
-    console.log(id)
     if (id) {
       // check if the id matches a registration under this account
       registration.value = await getAccountRegistrations<R>(id) as R
-      console.log(registration.value)
       if (!registration.value) {
         // No registrations under the account so get by application
         application.value = await getAccountApplications<A>(id) as A
-        console.log(application.value)
       }
     } else {
       const applications = await getAccountApplications<A>() as A[]
@@ -59,6 +61,13 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     }
   }
 
+  const downloadApplicationReceipt = async () => {
+    if (application.value && isPaidApplication.value) {
+      const receipt = await getApplicationReceipt(application.value.header.applicationNumber)
+      downloadFile(receipt, `${application.value.header.applicationNumber}.pdf`)
+    }
+  }
+
   return {
     application,
     registration,
@@ -66,6 +75,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     isApprovedApplication,
     isPaidApplication,
     showPermitDetails,
+    downloadApplicationReceipt,
     isApplicationStatus,
     loadPermitData
   }

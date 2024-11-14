@@ -4,7 +4,7 @@ const config = useRuntimeConfig().public
 const accountStore = useConnectAccountStore()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
-const { loadPlatform } = useStrrPlatformStore()
+const { downloadApplicationReceipt, loadPlatform } = useStrrPlatformStore()
 const {
   application,
   registration,
@@ -46,14 +46,17 @@ onMounted(async () => {
       { text: t(`strr.label.listingSize.${platformDetails.value.listingSize}`) }
     ]
     if (!registration.value) {
-      setApplicationHeaderDetails(isPaidApplication.value, application.value?.header?.hostStatus)
+      setApplicationHeaderDetails(
+        isPaidApplication.value ? downloadApplicationReceipt : undefined,
+        application.value?.header.hostStatus)
     } else {
       const registrationDetails = permitDetails.value as ApiExtraRegistrationDetails
       setRegistrationHeaderDetails(
         registrationDetails.status as ApplicationStatus,
         registrationDetails.expiryDate
           ? dateToStringPacific(registrationDetails.expiryDate, 'MMMM Do, YYYY')
-          : undefined
+          : undefined,
+        downloadApplicationReceipt
       )
     }
     // add common side details
