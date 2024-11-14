@@ -50,9 +50,12 @@ export default {
     },
     label: {
       addBuilding: 'Add a Building',
+      building: 'Building | Buildings | Primary Building',
       brandName: 'Strata Hotel Brand Name',
       brandSite: 'Strata Hotel Brand Website',
-      numberOfUnits: 'Number of Rental Units'
+      numberOfUnits: 'Number of Rental Units',
+      registeringBusiness: 'Registering Business',
+      regOfficeAttSvc: 'Registered Office or Attorney for Service'
     },
     text: {
       comingSoon: 'Short-Term Rental Strata Hotel Registry will be available on December 15, 2024',
@@ -60,7 +63,7 @@ export default {
       primaryContact: 'This is the primary contact person for the strata hotel.'
     },
     word: {
-      units: 'units'
+      unit: 'unit | units'
     },
     hint: {
       brandName: 'The brand name for the strata hotel',

@@ -20,7 +20,7 @@ const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 
 const todos = ref<Todo[]>([])
-const addresses = ref<ConnectAccordionItem[]>([])
+const buildings = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 
@@ -37,10 +37,11 @@ onMounted(async () => {
     // existing registration or application under the account
     // set left side of header
     title.value = strataDetails.value.brand.name
+    const nonPlural = strataDetails.value.numberOfUnits === 1
     subtitles.value = [
-      { text: `${strataDetails.value.numberOfUnits} ${t('strr.word.units')}` },
+      { text: `${strataDetails.value.numberOfUnits} ${t('strr.word.unit', nonPlural ? 1 : 2)}` },
       {
-        text: strataDetails.value.brand.website,
+        text: strataDetails.value.brand.website.replace(/^https?:\/\/(www\.)/, ''),
         icon: 'i-mdi-web',
         link: true,
         linkHref: strataDetails.value.brand.website
@@ -58,8 +59,8 @@ onMounted(async () => {
       strataBusiness.value,
       registration.value ? permitDetails.value : undefined,
       application.value?.header)
-    // set sidebar accordian addresses
-    addresses.value = getDashboardAddresses(strataBusiness.value)
+    // set sidebar accordian buildings
+    buildings.value = getDashboardBuildings()
     // set sidebar accordian reps
     representatives.value = getDashboardRepresentives()
     // set side bar completing party
@@ -114,43 +115,37 @@ setBreadcrumbs([
           :button="todo.button"
         />
       </ConnectDashboardSection>
-    </div>
-    <div class="space-y-10">
-      <ConnectDashboardSection :title="$t('word.addresses')" :loading="loading" class="*:w-[300px]">
-        <ConnectAccordion v-if="showPermitDetails" :items="addresses" multiple />
-        <div v-else class="space-y-4 bg-white p-5 opacity-50 *:space-y-2">
-          <div>
-            <p class="font-bold">
-              {{ t('label.mailingAddress') }}
-            </p>
-            <div class="flex gap-2">
-              <UIcon name="i-mdi-email-outline" class="mt-[2px]" />
-              <p class="text-sm">
-                {{ $t('text.completeFilingToDisplay') }}
-              </p>
-            </div>
-          </div>
-          <div>
-            <p class="font-bold">
-              {{ t('strr.label.registeredOfficeAttorney') }}
-            </p>
-            <p class="text-sm">
-              {{ $t('text.completeFilingToDisplay') }}
-            </p>
-          </div>
+      <ConnectDashboardSection :title="$t('strr.label.registeringBusiness')" :loading="loading">
+        <div class="rounded p-3">
+          <SummaryBusiness />
         </div>
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('word.representatives')" :loading="loading">
-        <ConnectAccordion v-if="showPermitDetails" :items="representatives" multiple />
-        <div v-else class="w-[300px] bg-white p-5 opacity-50">
+      <ConnectDashboardSection :title="$t('strr.label.regOfficeAttSvc')" :loading="loading">
+        <div class="rounded p-3">
+          <SummaryRegOfficeAttorney />
+        </div>
+      </ConnectDashboardSection>
+    </div>
+    <div class="space-y-10 sm:w-[300px]">
+      <ConnectDashboardSection v-if="!registration" :title="$t('label.completingParty')" :loading="loading">
+        <ConnectAccordion v-if="showPermitDetails && completingParty" :items="[completingParty]" />
+        <div v-else-if="!showPermitDetails" class="bg-white p-5 opacity-50">
           <p class="text-sm">
             {{ $t('text.completeFilingToDisplay') }}
           </p>
         </div>
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('label.completingParty')" :loading="loading">
-        <ConnectAccordion v-if="showPermitDetails && completingParty" :items="[completingParty]" />
-        <div v-else-if="!showPermitDetails" class="w-[300px] bg-white p-5 opacity-50">
+      <ConnectDashboardSection :title="$t('word.representatives')" :loading="loading">
+        <ConnectAccordion v-if="showPermitDetails" :items="representatives" multiple />
+        <div v-else class="w-full bg-white p-5 opacity-50">
+          <p class="text-sm">
+            {{ $t('text.completeFilingToDisplay') }}
+          </p>
+        </div>
+      </ConnectDashboardSection>
+      <ConnectDashboardSection :title="$t('strr.label.building', 1)" :loading="loading">
+        <ConnectAccordion v-if="showPermitDetails" :items="buildings" multiple />
+        <div v-else class="bg-white p-5 opacity-50">
           <p class="text-sm">
             {{ $t('text.completeFilingToDisplay') }}
           </p>

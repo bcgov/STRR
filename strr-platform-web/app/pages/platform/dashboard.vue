@@ -156,8 +156,8 @@ setBreadcrumbs([
         </div>
       </ConnectDashboardSection>
     </div>
-    <div class="space-y-10">
-      <ConnectDashboardSection :title="$t('word.addresses')" :loading="loading" class="*:w-[300px]">
+    <div class="space-y-10 sm:w-[300px]">
+      <ConnectDashboardSection :title="$t('word.addresses')" :loading="loading">
         <ConnectAccordion v-if="showPermitDetails" :items="addresses" multiple />
         <div v-else class="space-y-4 bg-white p-5 opacity-50 *:space-y-2">
           <div>
@@ -183,7 +183,7 @@ setBreadcrumbs([
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('word.representatives')" :loading="loading">
         <ConnectAccordion v-if="showPermitDetails" :items="representatives" multiple />
-        <div v-else class="w-[300px] bg-white p-5 opacity-50">
+        <div v-else class="bg-white p-5 opacity-50">
           <p class="text-sm">
             {{ $t('text.completeFilingToDisplay') }}
           </p>
@@ -191,7 +191,7 @@ setBreadcrumbs([
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('label.completingParty')" :loading="loading">
         <ConnectAccordion v-if="showPermitDetails && completingParty" :items="[completingParty]" />
-        <div v-else-if="!showPermitDetails" class="w-[300px] bg-white p-5 opacity-50">
+        <div v-else-if="!showPermitDetails" class="bg-white p-5 opacity-50">
           <p class="text-sm">
             {{ $t('text.completeFilingToDisplay') }}
           </p>
