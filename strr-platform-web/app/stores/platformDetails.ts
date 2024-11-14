@@ -8,7 +8,7 @@ export const useStrrPlatformDetails = defineStore('strr/platformDetails', () => 
   } = useStrrBaseBrand()
 
   const getPlatformDetailsSchema = () => z.object({
-    listingSize: z.enum([ListingSize.UNDER_THOUSAND, ListingSize.THOUSAND_OR_MORE]),
+    listingSize: z.enum([ListingSize.THOUSAND_AND_ABOVE, ListingSize.BETWEEN_250_AND_999, ListingSize.LESS_THAN_250]),
     brands: z.array(getPlatformBrandSchema())
   })
 

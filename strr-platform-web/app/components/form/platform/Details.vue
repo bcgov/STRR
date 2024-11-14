@@ -9,8 +9,9 @@ const props = defineProps<{ isComplete: boolean }>()
 
 const platformDetailsFormRef = ref<Form<z.output<typeof platformDetailSchema>>>()
 const radioOptions = [
-  { value: ListingSize.THOUSAND_OR_MORE, label: t('strr.text.thousandOrMore') },
-  { value: ListingSize.UNDER_THOUSAND, label: t('strr.text.lessThanThousand') }
+  { value: ListingSize.THOUSAND_AND_ABOVE, label: t('strr.text.thousandOrMore') },
+  { value: ListingSize.BETWEEN_250_AND_999, label: t('strr.text.250-999') },
+  { value: ListingSize.LESS_THAN_250, label: t('strr.text.249orLess') }
 ]
 
 onMounted(async () => {

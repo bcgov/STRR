@@ -60,13 +60,13 @@ watch(() => platformBusiness.value.hasCpbc, (val) => {
 
 const setFeeBasedOnListingSize = (listingSize: ListingSize | undefined) => {
   if (platFeeSm.value && platFeeLg.value && listingSize) {
-    if (listingSize === ListingSize.UNDER_THOUSAND) {
-      removeFee(StrrFeeCode.STR_PLAT_LG)
-      addReplaceFee(platFeeSm.value)
-    } else {
-      // ListingSize.THOUSAND_OR_MORE
+    if (listingSize === ListingSize.THOUSAND_AND_ABOVE) {
+      // large fee for greater than 1000
       removeFee(StrrFeeCode.STR_PLAT_SM)
       addReplaceFee(platFeeLg.value)
+    } else { // both listing size options under 1000 have the same fee
+      removeFee(StrrFeeCode.STR_PLAT_LG)
+      addReplaceFee(platFeeSm.value)
     }
   }
 }
