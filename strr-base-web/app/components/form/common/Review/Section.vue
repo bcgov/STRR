@@ -36,7 +36,6 @@ defineEmits<{
             :key="item.title + i"
             :title="item.title"
             :title-class="item.titleClass || 'font-bold text-bcGovGray-900'"
-            class="w-full sm:w-1/3"
           >
             <template #default>
               <template v-if="item.slot">

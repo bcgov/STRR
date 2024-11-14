@@ -2,14 +2,16 @@
 defineProps<{ title?: string, titleClass?: string, content?: string }>()
 </script>
 <template>
-  <div class="flex flex-col">
+  <div class="flex w-full flex-col overflow-hidden sm:w-1/3 sm:max-w-[300px] sm:pr-4">
     <strong v-if="title" :class="titleClass || 'text-[smaller] font-bold italic tracking-wider'">
       {{ title }}
     </strong>
-    <slot>
-      <p v-if="content" data-testid="content">
-        {{ content }}
-      </p>
-    </slot>
+    <div class="line-clamp-6 break-words">
+      <slot>
+        <p v-if="content" data-testid="content">
+          {{ content }}
+        </p>
+      </slot>
+    </div>
   </div>
 </template>

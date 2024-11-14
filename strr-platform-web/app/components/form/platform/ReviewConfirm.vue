@@ -3,7 +3,6 @@ import type { Form } from '#ui/types'
 import { z } from 'zod'
 
 const { t } = useI18n()
-const tPlat = (path: string) => t(`strr.${path}`)
 const tPlatReview = (path: string) => t(`strr.review.${path}`)
 
 const accountStore = useConnectAccountStore()
@@ -67,7 +66,7 @@ onMounted(async () => {
     <!-- person completing platform application -->
     <ConnectPageSection
       :heading="{
-        label: tPlat('section.title.completingParty'),
+        label: $t('strr.section.title.completingParty'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
         icon: 'i-mdi-account-multiple-plus',
         padding: 'sm:px-8 py-4 px-4'
@@ -78,19 +77,16 @@ onMounted(async () => {
         :items="[
           {
             title: $t('label.contactName'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: accountStore.userFullName
           },
           {
             title: $t('label.phone.number'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: `+${platContactStore.completingParty.phone.countryCode || '-'} ` +
               platContactStore.completingParty.phone.number +
               ' ' + platContactStore.completingParty.phone.extension || ''
           },
           {
             title: $t('label.emailAddress'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: platContactStore.completingParty.emailAddress
           },
         ]"
@@ -101,7 +97,7 @@ onMounted(async () => {
     <!-- primary platform rep section -->
     <ConnectPageSection
       :heading="{
-        label: tPlat('section.title.primaryRep'),
+        label: $t('strr.section.title.primaryRep'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
         icon: 'i-mdi-account-multiple-plus',
         padding: 'sm:px-8 py-4 px-4'
@@ -112,30 +108,25 @@ onMounted(async () => {
         :items="[
           {
             title: $t('label.contactName'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: `${platContactStore.primaryRep?.firstName || '-'} ` +
               `${platContactStore.primaryRep?.middleName || ''}` + ` ${platContactStore.primaryRep?.lastName || ''}`
           },
           {
             title: $t('label.phone.number'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: `+${platContactStore.primaryRep?.phone.countryCode || '-'} ` +
               `${platContactStore.primaryRep?.phone.number || ''}` +
               ' ' + `${platContactStore.primaryRep?.phone.extension || ''}`
           },
           {
             title: $t('label.emailAddress'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: platContactStore.primaryRep?.emailAddress
           },
           {
             title: $t('label.positionTitle'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: platContactStore.primaryRep?.position
           },
           {
             title: $t('label.faxNumber'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: platContactStore.primaryRep?.faxNumber
           },
         ]"
@@ -147,7 +138,7 @@ onMounted(async () => {
     <ConnectPageSection
       v-if="platContactStore.secondaryRep"
       :heading="{
-        label: tPlat('section.title.secondaryRep'),
+        label: $t('strr.section.title.secondaryRep'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
         icon: 'i-mdi-account-multiple-plus',
         padding: 'sm:px-8 py-4 px-4'
@@ -158,30 +149,25 @@ onMounted(async () => {
         :items="[
           {
             title: $t('label.contactName'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: `${platContactStore.secondaryRep?.firstName || '-'} ` +
               `${platContactStore.secondaryRep?.middleName || ''}` + ` ${platContactStore.secondaryRep?.lastName || ''}`
           },
           {
             title: $t('label.phone.number'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: `+${platContactStore.secondaryRep?.phone.countryCode || '-'} ` +
               `${platContactStore.secondaryRep?.phone.number || ''}` +
               ' ' + `${platContactStore.secondaryRep?.phone.extension || ''}`
           },
           {
             title: $t('label.emailAddress'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: platContactStore.secondaryRep?.emailAddress
           },
           {
             title: $t('label.positionTitle'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: platContactStore.secondaryRep?.position
           },
           {
             title: $t('label.faxNumber'),
-            titleClass: 'font-bold text-bcGovGray-900',
             content: platContactStore.secondaryRep?.faxNumber
           },
         ]"
@@ -192,7 +178,7 @@ onMounted(async () => {
     <!-- business info section -->
     <ConnectPageSection
       :heading="{
-        label: tPlat('section.title.businessInfo'),
+        label: $t('strr.section.title.businessInfo'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
         icon: 'i-mdi-domain',
         padding: 'sm:px-8 py-4 px-4'
@@ -210,7 +196,7 @@ onMounted(async () => {
             content: platBusStore.platformBusiness.regOfficeOrAtt.attorneyName
           },
           {
-            title: tPlat('section.subTitle.noticeNonCompliance'),
+            title: $t('strr.section.subTitle.noticeNonCompliance'),
             slot: 'noticeNonCompliance'
           },
           {
@@ -218,11 +204,11 @@ onMounted(async () => {
             content: platBusStore.platformBusiness.homeJurisdiction
           },
           {
-            title: tPlat('section.subTitle.regOfficeAttSvcAddrress'),
+            title: $t('strr.section.subTitle.regOfficeAttSvcAddrress'),
             slot: 'regOfficeAttSvcAddrress'
           },
           {
-            title: tPlat('section.subTitle.takedownRequest'),
+            title: $t('strr.section.subTitle.takedownRequest'),
             slot: 'takedownRequest'
           },
           {
@@ -230,7 +216,7 @@ onMounted(async () => {
             content: platBusStore.platformBusiness.businessNumber
           },
           {
-            title: tPlat('section.subTitle.businessMailAddress'),
+            title: $t('strr.section.subTitle.businessMailAddress'),
             slot: 'businessMailAddress'
           },
           {
@@ -275,7 +261,7 @@ onMounted(async () => {
     <!-- platform info section -->
     <ConnectPageSection
       :heading="{
-        label: tPlat('section.title.details'),
+        label: $t('strr.section.title.details'),
         labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
         icon: 'i-mdi-map-marker-plus-outline',
         padding: 'sm:px-8 py-4 px-4'
@@ -305,7 +291,7 @@ onMounted(async () => {
             </template>
             <template #item-3>
               <ConnectInfoBox
-                :title="tPlat('section.subTitle.size')"
+                :title="$t('strr.section.subTitle.size')"
                 title-class="font-bold text-bcGovGray-900"
                 :content="platDetailsStore.platformDetails.listingSize || '-'"
               />
@@ -333,10 +319,10 @@ onMounted(async () => {
               <template #item-3>
                 <ConnectInfoBox
                   v-if="i === 0"
-                  :title="tPlat('section.subTitle.size')"
+                  :title="$t('strr.section.subTitle.size')"
                   title-class="font-bold text-bcGovGray-900"
                   :content="platDetailsStore.platformDetails.listingSize ?
-                    tPlatReview(`platInfo.sizeDesc.${platDetailsStore.platformDetails.listingSize}`) :
+                    $t(`strr.label.listingSize.${platDetailsStore.platformDetails.listingSize}`) :
                     '-'"
                 />
               </template>
