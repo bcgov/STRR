@@ -10,7 +10,7 @@ import type {
 import type { PropertyManagerI } from '~/interfaces/property-manager-i'
 import { RegistrationTypeE } from '#imports'
 import { HostContactTypeE } from '~/enums/host-contact-type-e'
-import { PropertyTypeEnglishTranslationMapE } from '~/enums/property-type-map-e'
+import { PropertyTypeE } from '~/enums/property-type-e'
 
 const apiURL = useRuntimeConfig().public.strrApiURL
 const axiosInstance = addAxiosInterceptors(axios.create())
@@ -289,89 +289,70 @@ const basePropertyDetailsSchema = z.object({
   province: requiredNonEmptyString.refine(province => province === 'BC', { message: 'Province must be set to BC' })
 })
 
-const businessLicenseExpiryOptionalSchema = basePropertyDetailsSchema.extend({
-  _hasLicense: z.literal(true),
-  businessLicense: requiredNonEmptyString,
-  businessLicenseExpiryDate: requiredNonEmptyString
-})
-
-const businessLicenseExpiryRequiredSchema = basePropertyDetailsSchema.extend({
-  _hasLicense: z.literal(false),
-  businessLicense: z.string().length(0),
-  businessLicenseExpiryDate: z.string().length(0)
-})
-
-const businessLicensePropertyDetailsSchema = z.object({
-  ...basePropertyDetailsSchema.shape,
-  businessLicense: z.string().optional().default(''),
-  businessLicenseExpiryDate: z.string().optional().default('')
-}).transform((data) => {
-  // Determine if a business license is present
-  // Add _hasLicense field temporarily to apply different schemas
-  const _hasLicense = Boolean(data.businessLicense?.length)
-  return {
-    ...data,
-    _hasLicense
-  }
-}).pipe(
-  // Use discriminated union to apply different schemas
-  // based on if business license is present
-  z.discriminatedUnion('_hasLicense', [
-    businessLicenseExpiryRequiredSchema,
-    businessLicenseExpiryOptionalSchema
-  ])
-).transform((data) => {
-  // Remove _hasLicense field
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { _hasLicense, ...rest } = data
-  return rest
-})
-
-const withPrincipalResidenceSchema = basePropertyDetailsSchema.extend({
+const withPrincipalResidenceSchema = z.object({
   isUnitOnPrincipalResidenceProperty: z.literal(true),
   hostResidence: requiredNonEmptyString
 })
 
-const withoutPrincipalResidenceSchema = basePropertyDetailsSchema.extend({
+const withoutPrincipalResidenceSchema = z.object({
   isUnitOnPrincipalResidenceProperty: z.literal(false),
   hostResidence: z.string().nullable()
 })
 
-const principalResidencePropertyDetailsSchema = z.discriminatedUnion('isUnitOnPrincipalResidenceProperty', [
-  withPrincipalResidenceSchema,
-  withoutPrincipalResidenceSchema
-])
-
-const unitNumberRequiredPropertyDetailsSchema = basePropertyDetailsSchema.extend({
+const unitNumberRequiredPropertyDetailsSchema = z.object({
   propertyType: z.enum([
-    PropertyTypeEnglishTranslationMapE.CONDO_OR_APT,
-    PropertyTypeEnglishTranslationMapE.STRATA_HOTEL,
-    PropertyTypeEnglishTranslationMapE.SECONDARY_SUITE,
-    PropertyTypeEnglishTranslationMapE.ACCESSORY_DWELLING,
-    PropertyTypeEnglishTranslationMapE.TOWN_HOME,
-    PropertyTypeEnglishTranslationMapE.MULTI_UNIT_HOUSING
+    PropertyTypeE.CONDO_OR_APT,
+    PropertyTypeE.STRATA_HOTEL,
+    PropertyTypeE.SECONDARY_SUITE,
+    PropertyTypeE.ACCESSORY_DWELLING,
+    PropertyTypeE.TOWN_HOME,
+    PropertyTypeE.MULTI_UNIT_HOUSING
   ]),
   unitNumber: requiredNonEmptyString
 })
 
-const UnitNumberOptionalPropertyDetailsSchema = basePropertyDetailsSchema.extend({
+const unitNumberOptionalPropertyDetailsSchema = z.object({
   propertyType: z.enum([
-    PropertyTypeEnglishTranslationMapE.SINGLE_FAMILY_HOME,
-    PropertyTypeEnglishTranslationMapE.RECREATIONAL,
-    PropertyTypeEnglishTranslationMapE.BED_AND_BREAKFAST,
-    PropertyTypeEnglishTranslationMapE.FLOAT_HOME
+    PropertyTypeE.SINGLE_FAMILY_HOME,
+    PropertyTypeE.RECREATIONAL,
+    PropertyTypeE.BED_AND_BREAKFAST,
+    PropertyTypeE.FLOAT_HOME
   ]),
   unitNumber: optionalOrEmptyString
 })
 
-export const propertyDetailsSchema = z.discriminatedUnion('propertyType', [
-  unitNumberRequiredPropertyDetailsSchema,
-  UnitNumberOptionalPropertyDetailsSchema
-], {
-  errorMap: () => ({ message: 'Please select a valid property type' })
+const businessLicensePropertyDetailsSchema = z.object({
+  businessLicense: optionalOrEmptyString,
+  businessLicenseExpiryDate: optionalOrEmptyString
+}).superRefine((data, ctx) => {
+  const hasLicense = data.businessLicense?.trim()
+  const hasExpiryDate = data.businessLicenseExpiryDate?.trim()
+  if (hasLicense && !hasExpiryDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Business License Expiry Date is required',
+      path: ['businessLicenseExpiryDate']
+    })
+  }
 })
-  .and(principalResidencePropertyDetailsSchema)
-  .and(businessLicensePropertyDetailsSchema)
+
+export const propertyDetailsSchema = z.preprocess(
+  data => data,
+  basePropertyDetailsSchema
+    .and(businessLicensePropertyDetailsSchema)
+    .and(
+      z.discriminatedUnion('propertyType', [
+        unitNumberRequiredPropertyDetailsSchema,
+        unitNumberOptionalPropertyDetailsSchema
+      ])
+    )
+    .and(
+      z.discriminatedUnion('isUnitOnPrincipalResidenceProperty', [
+        withPrincipalResidenceSchema,
+        withoutPrincipalResidenceSchema
+      ])
+    )
+)
 
 export const formState: CreateAccountFormStateI = reactive({
   primaryContact,
@@ -407,7 +388,8 @@ export const formState: CreateAccountFormStateI = reactive({
     isPrincipal: undefined,
     reason: undefined,
     declaration: false,
-    agreeToSubmit: false
+    agreeToSubmit: false,
+    otherReason: undefined
   },
   supportingDocuments: [],
   hasHostAuthorization: false // if Property Manager is authorized by Host

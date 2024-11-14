@@ -10,3 +10,8 @@ export const getOwnershipTypeDisplay = (ownershipType: string | undefined, t: (k
       return ownershipType ?? '-'
   }
 }
+
+export const getPropertyTypeDisplay = (type: string | undefined, t: (key: string) => string): string => {
+  const propertyKey = type ? propertyTypeMap[type as keyof PropertyTypeMapI] : undefined
+  return propertyKey ? t(propertyKey) : type ?? '-'
+}

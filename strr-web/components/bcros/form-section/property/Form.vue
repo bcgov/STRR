@@ -45,13 +45,7 @@
           default-country-iso2="CA"
           :errors="errorRefs"
           @reset-field-error="resetFieldError"
-          @validate-street-number="validateStreetNumber"
-          @validate-street-name="validateStreetName"
-          @validate-unit-number="validateUnitNumber"
-          @validate-address-line-two="validateAddressLineTwo"
-          @validate-city="validateCity"
-          @validate-province="validateProvince"
-          @validate-postal-code="validatePostalCode"
+          @validate-address-field="validateAddressField"
         />
         <BcrosFormSectionPropertyListingDetails
           v-model:listing-details="formState.propertyDetails.listingDetails"
@@ -71,6 +65,28 @@ import { sanitizeUrl } from '@braintree/sanitize-url'
 const { isComplete } = defineProps<{
   isComplete: boolean
 }>()
+
+const errorRefs = reactive({
+  propertyType: '',
+  ownershipType: '',
+  businessLicenseExpiryDate: '',
+  rentalUnitSpaceType: '',
+  principalResidence: '',
+  hostResidence: '',
+  numberOfRoomsForRent: '',
+  streetNumber: '',
+  streetName: '',
+  unitNumber: '',
+  addressLineTwo: '',
+  city: '',
+  province: '',
+  postalCode: '',
+  addressNotInBC: ''
+})
+
+const resetFieldError = (field: keyof typeof errorRefs) => {
+  errorRefs[field] = ''
+}
 
 const {
   activeAddressField,
@@ -115,23 +131,6 @@ const { t } = useTranslation()
 
 const isValid = ref(false)
 
-const errorRefs = reactive({
-  propertyType: '',
-  ownershipType: '',
-  businessLicenseExpiryDate: '',
-  rentalUnitSpaceType: '',
-  principalResidence: '',
-  hostResidence: '',
-  numberOfRoomsForRent: '',
-  streetNumber: '',
-  streetName: '',
-  unitNumber: '',
-  addressLineTwo: '',
-  city: '',
-  province: '',
-  postalCode: '',
-  addressNotInBC: ''
-})
 const listingURLErrors = ref<(({
     errorIndex: string | number;
     message: string;
@@ -204,41 +203,41 @@ defineEmits<{
   validatePage: [isValid: boolean]
 }>()
 
-const propertyTypes: string[] = [
-  t('createAccount.propertyForm.singleFamilyHome'),
-  t('createAccount.propertyForm.secondarySuite'),
-  t('createAccount.propertyForm.accessoryDwelling'),
-  t('createAccount.propertyForm.townhome'),
-  t('createAccount.propertyForm.multiUnitHousing'),
-  t('createAccount.propertyForm.condoApartment'),
-  t('createAccount.propertyForm.recreationalProperty'),
-  t('createAccount.propertyForm.bedAndBreakfast'),
-  t('createAccount.propertyForm.strataHotel'),
-  t('createAccount.propertyForm.floatHome')
+const propertyTypes = [
+  { value: PropertyTypeE.SINGLE_FAMILY_HOME, label: t('createAccount.propertyForm.singleFamilyHome') },
+  { value: PropertyTypeE.SECONDARY_SUITE, label: t('createAccount.propertyForm.secondarySuite') },
+  { value: PropertyTypeE.ACCESSORY_DWELLING, label: t('createAccount.propertyForm.accessoryDwelling') },
+  { value: PropertyTypeE.TOWNHOME, label: t('createAccount.propertyForm.townhome') },
+  { value: PropertyTypeE.MULTI_UNIT_HOUSING, label: t('createAccount.propertyForm.multiUnitHousing') },
+  { value: PropertyTypeE.CONDO_APARTMENT, label: t('createAccount.propertyForm.condoApartment') },
+  { value: PropertyTypeE.RECREATIONAL_PROPERTY, label: t('createAccount.propertyForm.recreationalProperty') },
+  { value: PropertyTypeE.BED_AND_BREAKFAST, label: t('createAccount.propertyForm.bedAndBreakfast') },
+  { value: PropertyTypeE.STRATA_HOTEL, label: t('createAccount.propertyForm.strataHotel') },
+  { value: PropertyTypeE.FLOAT_HOME, label: t('createAccount.propertyForm.floatHome') }
 ]
 
-const ownershipTypes: string[] = [
-  t('createAccount.propertyForm.rent'),
-  t('createAccount.propertyForm.own'),
-  t('createAccount.propertyForm.coOwn')
+const ownershipTypes = [
+  { value: OwnershipTypeE.RENT, label: t('createAccount.propertyForm.rent') },
+  { value: OwnershipTypeE.OWN, label: t('createAccount.propertyForm.own') },
+  { value: OwnershipTypeE.CO_OWN, label: t('createAccount.propertyForm.coOwn') }
 ]
 
 const validatePropertyType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('propertyType'))
-  errorRefs.propertyType = error ? error.message : ''
+  errorRefs.propertyType = error?.message || ''
 }
 
 const validateOwnershipType = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('ownershipType'))
-  errorRefs.ownershipType = error ? error.message : ''
+  errorRefs.ownershipType = error?.message || ''
 }
 
 const validateBusinessLicenseExpiryDate = () => {
   const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
   const error = parsed?.find(error => error.path.includes('businessLicenseExpiryDate'))
-  errorRefs.businessLicenseExpiryDate = error ? error.message : ''
+  errorRefs.businessLicenseExpiryDate = error?.message || ''
 }
 
 const validateRentalUnitSpaceType = () => {
@@ -298,52 +297,20 @@ const validateNumberOfRoomsForRent = () => {
   }
 }
 
-const validateStreetNumber = () => {
-  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
-  const error = parsed?.find(error => error.path.includes('streetNumber'))
-  errorRefs.streetNumber = error ? error.message : ''
+const validateAddressField = (field: keyof typeof errorRefs) => {
+  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails)
+  const error = parsed.success ? null : parsed.error.issues.find(issue => issue.path.includes(field))
+  errorRefs[field] = error?.message || ''
 }
 
-const validateStreetName = () => {
-  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
-  const error = parsed?.find(error => error.path.includes('streetName'))
-  errorRefs.streetName = error ? error.message : ''
-}
-
-const validateUnitNumber = () => {
-  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
-  const error = parsed?.find(error => error.path.includes('unitNumber'))
-  errorRefs.unitNumber = error ? error.message : ''
-}
-
-const validateAddressLineTwo = () => {
-  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
-  const error = parsed?.find(error => error.path.includes('addressLineTwo'))
-  errorRefs.addressLineTwo = error ? error.message : ''
-}
-
-const validateCity = () => {
-  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
-  const error = parsed?.find(error => error.path.includes('city'))
-  errorRefs.city = error ? error.message : ''
-}
-
-const validateProvince = () => {
-  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
-  const error = parsed?.find(error => error.path.includes('province'))
-  errorRefs.province = error ? error.message : ''
-}
-
-const validatePostalCode = () => {
-  const parsed = propertyDetailsSchema.safeParse(formState.propertyDetails).error?.errors
-  const error = parsed?.find(error => error.path.includes('postalCode'))
-  errorRefs.postalCode = error ? error.message : ''
-}
-
-const resetFieldError = (fields: Array<keyof typeof errorRefs>) => {
-  fields.forEach((field) => {
-    errorRefs[field] = ''
-  })
+const validateAddressFields = () => {
+  validateAddressField('streetNumber')
+  validateAddressField('streetName')
+  validateAddressField('unitNumber')
+  validateAddressField('addressLineTwo')
+  validateAddressField('city')
+  validateAddressField('province')
+  validateAddressField('postalCode')
 }
 
 const form = ref()
@@ -363,13 +330,7 @@ onMounted(() => {
     validatePrincipalResidenceOptions()
     validateHostResidence()
     validateNumberOfRoomsForRent()
-    validateStreetNumber()
-    validateStreetName()
-    validateUnitNumber()
-    validateAddressLineTwo()
-    validateCity()
-    validateProvince()
-    validatePostalCode()
+    validateAddressFields()
   }
 })
 </script>

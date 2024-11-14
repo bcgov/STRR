@@ -34,8 +34,14 @@
             :placeholder="t('createAccount.contactForm.streetNumber')"
             @keypress.once="addressComplete(false)"
             @click="addressComplete(false)"
-            @blur="emit('validateStreetNumber')"
-            @change="emit('validateStreetNumber')"
+            @blur="
+              emit('validateAddressField', 'streetNumber');
+              resetAddressFields();
+            "
+            @change="
+              emit('validateAddressField', 'streetNumber');
+              resetAddressFields();
+            "
           />
         </UFormGroup>
         <UFormGroup
@@ -50,8 +56,14 @@
             :placeholder="t('createAccount.contactForm.streetName')"
             @keypress.once="addressComplete(true)"
             @click="addressComplete(true)"
-            @blur="emit('validateStreetName')"
-            @change="emit('validateStreetName')"
+            @blur="
+              emit('validateAddressField', 'streetName');
+              resetAddressFields();
+            "
+            @change="
+              emit('validateAddressField', 'streetName');
+              resetAddressFields();
+            "
           />
         </UFormGroup>
         <UFormGroup
@@ -63,9 +75,9 @@
             v-model="unitNumber"
             :aria-label="t('createAccount.contactForm.unitNumberRequired')"
             :placeholder="unitNumberPlaceholder"
-            @input="emit('resetFieldError', ['unitNumber'])"
-            @blur="emit('validateUnitNumber')"
-            @change="emit('validateUnitNumber')"
+            @input="emit('resetFieldError', 'unitNumber')"
+            @blur="emit('validateAddressField', 'unitNumber')"
+            @change="emit('validateAddressField', 'unitNumber')"
           />
         </UFormGroup>
       </div>
@@ -79,8 +91,8 @@
             v-model="addressLineTwo"
             aria-label="address line two"
             :placeholder="t('createAccount.contactForm.addressLineTwo')"
-            @blur="emit('validateAddressLineTwo')"
-            @change="emit('validateAddressLineTwo')"
+            @blur="emit('validateAddressField', 'addressLineTwo')"
+            @change="emit('validateAddressField', 'addressLineTwo')"
           />
         </UFormGroup>
       </div>
@@ -94,9 +106,9 @@
             v-model="city"
             aria-label="city"
             :placeholder="t('createAccount.contactForm.city')"
-            @input="emit('resetFieldError', ['city'])"
-            @blur="emit('validateCity')"
-            @change="emit('validateCity')"
+            @input="emit('resetFieldError', 'city')"
+            @blur="emit('validateAddressField', 'city')"
+            @change="emit('validateAddressField', 'city')"
           />
         </UFormGroup>
         <UFormGroup
@@ -109,9 +121,9 @@
             aria-label="province"
             :placeholder="t('createAccount.contactForm.province')"
             disabled
-            @input="emit('resetFieldError', ['province'])"
-            @blur="emit('validateProvince')"
-            @change="emit('validateProvince')"
+            @input="emit('resetFieldError', 'province')"
+            @blur="emit('validateAddressField', 'province')"
+            @change="emit('validateAddressField', 'province')"
           />
         </UFormGroup>
         <UFormGroup
@@ -123,9 +135,9 @@
             v-model="postalCode"
             aria-label="postal code"
             :placeholder="t('createAccount.contactForm.postalCode')"
-            @input="emit('resetFieldError', ['postalCode'])"
-            @blur="emit('validatePostalCode')"
-            @change="emit('validatePostalCode')"
+            @input="emit('resetFieldError', 'postalCode')"
+            @blur="emit('validateAddressField', 'postalCode')"
+            @change="emit('validateAddressField', 'postalCode')"
           />
         </UFormGroup>
       </div>
@@ -135,7 +147,7 @@
 
 <script setup lang="ts">
 import { CountryItem } from '@/interfaces/address-i'
-import { PropertyTypeEnglishTranslationMapE } from '@/enums/property-type-map-e'
+import { PropertyTypeE } from '@/enums/property-type-e'
 import countries from '@/utils/countries.json'
 const { t } = useTranslation()
 const unitNumberPlaceholder = ref('')
@@ -151,8 +163,15 @@ const postalCode = defineModel<string>('postalCode')
 const nickname = defineModel<string>('nickname')
 const countryItems = ref<CountryItem[]>([])
 
+const resetAddressFields = () => {
+  emit('resetFieldError', 'streetNumber')
+  emit('resetFieldError', 'streetName')
+  emit('resetFieldError', 'city')
+  emit('resetFieldError', 'province')
+  emit('resetFieldError', 'postalCode')
+}
+
 const addressComplete = (initiatedFromStreetName: boolean) => {
-  emit('resetFieldError', ['streetNumber', 'streetName', 'city', 'province', 'postalCode'])
   if (typeof country.value === 'string') {
     if (initiatedFromStreetName) {
       enableAddressComplete(streetNameId, 'CA', false, 'BC')
@@ -176,16 +195,10 @@ const {
   errors: Record<string, string>
 }>()
 
-const emit = defineEmits([
-  'validateStreetNumber',
-  'validateStreetName',
-  'validateUnitNumber',
-  'validateAddressLineTwo',
-  'validateCity',
-  'validatePostalCode',
-  'validateProvince',
-  'resetFieldError'
-])
+const emit = defineEmits<{
+  validateAddressField: [field: string]
+  resetFieldError: [field: keyof typeof errors]
+}>()
 
 country.value = defaultCountryIso2
 
@@ -194,12 +207,12 @@ const getUnitNumberPlaceholder = (propertyType?: string) => {
     return t('createAccount.contactForm.unitNumberOptional')
   }
   switch (propertyType) {
-    case PropertyTypeEnglishTranslationMapE.SECONDARY_SUITE:
-    case PropertyTypeEnglishTranslationMapE.ACCESSORY_DWELLING:
-    case PropertyTypeEnglishTranslationMapE.TOWN_HOME:
-    case PropertyTypeEnglishTranslationMapE.MULTI_UNIT_HOUSING:
-    case PropertyTypeEnglishTranslationMapE.CONDO_OR_APT:
-    case PropertyTypeEnglishTranslationMapE.STRATA_HOTEL:
+    case PropertyTypeE.SECONDARY_SUITE:
+    case PropertyTypeE.ACCESSORY_DWELLING:
+    case PropertyTypeE.TOWN_HOME:
+    case PropertyTypeE.MULTI_UNIT_HOUSING:
+    case PropertyTypeE.CONDO_OR_APT:
+    case PropertyTypeE.STRATA_HOTEL:
       return t('createAccount.contactForm.unitNumberRequired')
     default:
       return t('createAccount.contactForm.unitNumberOptional')

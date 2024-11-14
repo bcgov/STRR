@@ -92,10 +92,7 @@
             class="w-full"
             style="color: #1a202c; /* text-gray-900 */"
             @blur="emit('validateProperty')"
-            @change="() => {
-              emit('validateProperty')
-              emit('resetFieldError', ['unitNumber'])
-            }"
+            @change="emit('validateProperty')"
           />
         </UFormGroup>
       </div>
@@ -157,7 +154,7 @@
             :min="new Date().toISOString().split('T')[0]"
             :max="new Date('2999-12-31').toISOString().split('T')[0]"
             :ui="{ base: 'uppercase' }"
-            @input="emit('resetFieldError', ['businessLicenseExpiryDate'])"
+            @input="emit('resetFieldError', 'businessLicenseExpiryDate')"
             @blur="emit('validateBusinessLicenseExpiryDate')"
             @change="emit('validateBusinessLicenseExpiryDate')"
           />

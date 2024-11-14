@@ -150,10 +150,8 @@ const errorRefs = reactive({
   faxNumber: ''
 })
 
-const resetFieldError = (fields: Array<keyof typeof errorRefs>) => {
-  fields.forEach((field) => {
-    errorRefs[field] = ''
-  })
+const resetFieldError = (field: keyof typeof errorRefs) => {
+  errorRefs[field] = ''
 }
 
 const validateField = (field: keyof typeof errorRefs) => {

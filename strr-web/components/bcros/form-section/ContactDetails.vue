@@ -8,7 +8,7 @@
             type="tel"
             :placeholder="t('createAccount.contactForm.phoneNumber')"
             data-test-id="phone-number"
-            @input="emit('resetFieldError', ['phoneNumber'])"
+            @input="emit('resetFieldError', 'phoneNumber')"
             @blur="emit('validateField', 'phoneNumber')"
             @change="emit('validateField', 'phoneNumber')"
           />
@@ -18,7 +18,7 @@
             v-model="extension"
             :placeholder="t('createAccount.contactForm.extension')"
             data-test-id="extension"
-            @input="emit('resetFieldError', ['extension'])"
+            @input="emit('resetFieldError', 'extension')"
             @blur="emit('validateField', 'extension')"
             @change="emit('validateField', 'extension')"
           />
@@ -31,7 +31,7 @@
             type="tel"
             :placeholder="t('createAccount.contactForm.faxNumber')"
             data-test-id="fax-number"
-            @input="emit('resetFieldError', ['faxNumber'])"
+            @input="emit('resetFieldError', 'faxNumber')"
             @blur="emit('validateField', 'faxNumber')"
             @change="emit('validateField', 'faxNumber')"
           />
@@ -43,7 +43,7 @@
             v-model="emailAddress"
             :placeholder="t('createAccount.contactForm.emailAddress')"
             data-test-id="email-address"
-            @input="emit('resetFieldError', ['emailAddress'])"
+            @input="emit('resetFieldError', 'emailAddress')"
             @blur="emit('validateField', 'emailAddress')"
             @change="emit('validateField', 'emailAddress')"
           />
@@ -70,7 +70,7 @@ const { errors = {} } = defineProps<{
 
 const emit = defineEmits<{
   validateField: [field: string]
-  resetFieldError: [field: Array<keyof typeof errors>]
+  resetFieldError: [field: keyof typeof errors]
 }>()
 
 const phoneNumber = defineModel<string>('phoneNumber')

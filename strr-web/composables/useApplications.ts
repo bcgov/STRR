@@ -14,10 +14,7 @@ export const useApplications = () => {
     hasSecondaryContact: boolean,
     propertyType: string,
     ownershipType: string,
-    rentalUnitSpaceType: string,
-    isUnitOnPrincipalResidenceProperty: boolean,
-    numberOfRoomsForRent: number,
-
+    t: (key: string) => string,
     registrationType: RegistrationTypeE = RegistrationTypeE.HOST
   ) => {
     const submitApplicationPayload: CreateAccountFormAPII = formStateToApi(
@@ -25,9 +22,7 @@ export const useApplications = () => {
       hasSecondaryContact,
       propertyType,
       ownershipType,
-      rentalUnitSpaceType,
-      isUnitOnPrincipalResidenceProperty,
-      numberOfRoomsForRent
+      t
     )
 
     try {

@@ -10,7 +10,7 @@
               ? t('common.formLabels.businessLegalName')
               : t('common.formLabels.businessLegalNameOptional')"
             data-test-id="business-legal-name-input"
-            @input="emit('resetFieldError', ['businessLegalName'])"
+            @input="emit('resetFieldError', 'businessLegalName')"
             @blur="emit('validateField', 'businessLegalName')"
             @change="emit('validateField', 'businessLegalName')"
           />
@@ -23,7 +23,7 @@
             type="text"
             :placeholder="t('common.formLabels.craBusinessNumberOptional')"
             data-test-id="cra-business-number-input"
-            @input="emit('resetFieldError', ['businessNumber'])"
+            @input="emit('resetFieldError', 'businessNumber')"
             @blur="emit('validateField', 'businessNumber')"
             @change="emit('validateField', 'businessNumber')"
           />
@@ -46,6 +46,6 @@ const { isBusinessNameRequired = false, errors = {} } = defineProps<{
 
 const emit = defineEmits<{
   validateField: [field: string]
-  resetFieldError: [field: Array<keyof typeof errors>]
+  resetFieldError: [field: keyof typeof errors]
 }>()
 </script>

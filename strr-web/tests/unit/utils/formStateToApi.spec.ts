@@ -1,6 +1,8 @@
 // @vitest-environment nuxt
 import { it, expect } from 'vitest'
 
+const { t } = useTranslation()
+
 it('begins with empty address', () => {
   const hasSecondaryContact = true
   const propertyType = 'propertyType'
@@ -114,7 +116,8 @@ it('begins with empty address', () => {
     createAccountState,
     hasSecondaryContact,
     propertyType,
-    ownershipType
+    ownershipType,
+    t
   )
 
   expect(apiFormattedState.registration.listingDetails)

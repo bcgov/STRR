@@ -96,6 +96,7 @@ export const formStateToApi = (
       propertyType,
       ownershipType,
       businessLicense,
+      hostResidence,
       rentalUnitSpaceType,
       isUnitOnPrincipalResidenceProperty,
       numberOfRoomsForRent,

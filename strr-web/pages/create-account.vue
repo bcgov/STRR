@@ -141,29 +141,6 @@ const toggleAddSecondary = () => {
   hasSecondaryContact.value = !hasSecondaryContact.value
 }
 
-const propertyToApiType = (type: string | undefined): string => {
-  const tPropertyForm = (translationKey: string) => t(`createAccount.propertyForm.${translationKey}`)
-  for (const key in propertyTypeMap) {
-    const propertyKey = propertyTypeMap[key as keyof PropertyTypeMapI]
-    if (type && tPropertyForm(propertyKey) === type) {
-      return key
-    }
-  }
-  return ''
-}
-
-const ownershipToApiType = (type: string | undefined): string => {
-  switch (type) {
-    case t('createAccount.propertyForm.rent'):
-      return 'RENT'
-    case t('createAccount.propertyForm.own'):
-      return 'OWN'
-    case t('createAccount.propertyForm.coOwn'):
-      return 'CO_OWN'
-  }
-  return ''
-}
-
 const submit = async () => {
   validatePropertyManagerStep()
   validateStep(primaryContactSchema, formState.primaryContact, 1)
@@ -180,11 +157,9 @@ const submit = async () => {
     try {
       await createApplication(
         hasSecondaryContact.value,
-        propertyToApiType(formState.propertyDetails.propertyType),
-        ownershipToApiType(formState.propertyDetails.ownershipType),
-        formState.propertyDetails.rentalUnitSpaceType,
-        formState.propertyDetails.isUnitOnPrincipalResidenceProperty || false,
-        formState.propertyDetails.numberOfRoomsForRent
+        formState.propertyDetails.propertyType,
+        formState.propertyDetails.ownershipType,
+        t
       )
     } finally {
       submitInProgress.value = false
