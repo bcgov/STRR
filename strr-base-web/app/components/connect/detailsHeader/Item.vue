@@ -6,7 +6,7 @@ defineProps<ConnectDetailHeaderItem>()
 
 <template>
   <div class="flex space-x-1">
-    <UIcon v-if="icon" :name="icon" :class="iconClass || ''" />
+    <UIcon v-if="icon" :name="icon" :class="iconClass || 'mt-1 text-blue-500'" />
     <UBadge
       v-if="chip"
       :label="text"
@@ -16,7 +16,7 @@ defineProps<ConnectDetailHeaderItem>()
     <a
       v-else-if="link"
       :href="linkHref"
-      :class="itemClass || ''"
+      :class="itemClass || 'mt-[2px] text-sm text-blue-500 underline'"
     >
       {{ text }}
     </a>
