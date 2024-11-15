@@ -52,7 +52,7 @@ export interface ApiExtraRegistrationDetails {
   registration_number: string
   sbc_account_id: number
   startDate: Date
-  status: 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'SUSPENDED',
+  status: RegistrationStatus,
   updatedDate: Date
   user_id: number
 }
@@ -71,6 +71,12 @@ export interface ApplicationHeader {
   paymentStatus: string
   paymentToken: string // invoice id
   status: ApplicationStatus
+  // below will only exist for applications that have a linked registration
+  registrationEndDate?: Date
+  registrationId?: number
+  registrationNumber?: string
+  registrationStartDate?: Date
+  registrationStatus?: RegistrationStatus
 }
 
 export interface ApiRegistrationResp extends ApiBaseRegistration, ApiExtraRegistrationDetails { }

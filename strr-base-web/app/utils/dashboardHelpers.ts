@@ -1,13 +1,43 @@
-export const setApplicationHeaderDetails = (receiptAction?: Function, hostStatus?: string) => {
+export const setHeaderDetails = (
+  status?: string | RegistrationStatus,
+  expiryDate?: string,
+  receiptAction?: Function
+) => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
   const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
 
-  if (hostStatus) {
-    details.value = [{ text: hostStatus, chip: true, chipColour: 'yellow' }]
+  if (status) {
+    const red = [
+      RegistrationStatus.CANCELLED,
+      RegistrationStatus.EXPIRED,
+      RegistrationStatus.SUSPENDED].includes(status as RegistrationStatus)
+
+    const yellow = status !== RegistrationStatus.ACTIVE
+
+    details.value = [{
+      text: status,
+      chip: true,
+      chipColour: red ? 'red' : yellow ? 'yellow' : undefined
+    }]
+  }
+  if (expiryDate) {
+    details.value.push({ text: `${t('label.expiryDate')} - ${expiryDate}` })
   }
   if (receiptAction) {
     bottomButtons.value = [
+      // TODO: add in later
+      // {
+      //   action: () => { console.info('View and Change') },
+      //   label: 'View and Change Platform Information',
+      //   icon: 'i-mdi-file-document-edit-outline'
+      // },
+      // FUTURE: add back in once certificate is built
+      // {
+      //   action: () => { console.info('Certificate') },
+      //   label: 'Certificate',
+      //   icon: 'i-mdi-file-download-outline'
+      // },
       {
         action: receiptAction,
         label: t('word.Receipt'),
@@ -16,43 +46,6 @@ export const setApplicationHeaderDetails = (receiptAction?: Function, hostStatus
       }
     ]
   }
-}
-
-export const setRegistrationHeaderDetails = (
-  status: ApplicationStatus,
-  expiryDate?: string,
-  receiptAction?: Function
-) => {
-  // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
-  const { t } = useNuxtApp().$i18n
-  const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
-
-  details.value = [{ text: status, chip: true }]
-  if (expiryDate) {
-    details.value.push({ text: `${t('label.expiryDate')} - ${expiryDate}` })
-  }
-  bottomButtons.value = [
-    // TODO: determine if this is a valid action / add label to locales
-    // {
-    //   action: () => { console.info('View and Change') },
-    //   label: 'View and Change Platform Information',
-    //   icon: 'i-mdi-file-document-edit-outline'
-    // },
-    // FUTURE: add back in once certificate is built
-    // {
-    //   action: () => { console.info('Certificate') },
-    //   label: 'Certificate',
-    //   icon: 'i-mdi-file-download-outline'
-    // },
-    ...(receiptAction
-      ? [{
-          action: receiptAction,
-          label: t('word.Receipt'),
-          // TODO: find/replace with correct icon
-          icon: 'i-mdi-file-download-outline'
-        }]
-      : [])
-  ]
 }
 
 export const setSideHeaderDetails = (

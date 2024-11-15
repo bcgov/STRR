@@ -2,7 +2,7 @@ import { formatBusinessDetailsUI, formatStrataDetailsUI } from '~/utils/strata-f
 
 export const useStrrStrataStore = defineStore('strr/strata', () => {
   // TODO: move common pieces of strata and platform to base layer composable
-  const { getAccountApplications, getAccountRegistrations } = useStrrApi()
+  const { getAccountApplications } = useStrrApi()
   const { completingParty, primaryRep, secondaryRep } = storeToRefs(useStrrContactStore())
   const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
   const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
@@ -18,8 +18,8 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     downloadApplicationReceipt
   } = useStrrBasePermit<StrataRegistrationResp, StrataApplicationResp>()
 
-  const loadStrata = async (id: string) => {
-    await loadPermitData(id)
+  const loadStrata = async (applicationId: string) => {
+    await loadPermitData(applicationId)
     if (application.value) {
       // set completing party info (this data is only in the application)
       completingParty.value = formatPartyUI(application.value.registration.completingParty)
@@ -37,48 +37,25 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   }
 
   const loadStrataHotelList = async () => {
-    const regs = await getAccountRegistrations<StrataRegistrationResp>()
-      .catch((e) => {
-        logFetchError(e, 'Unable to load account registrations')
-        return undefined
-      })
-      .then((response) => {
-        if (response) {
-          return (response as StrataRegistrationResp[]).filter(
-            item => item.registrationType === ApplicationType.STRATA_HOTEL
-          ).map(reg => ({
-            id: reg.id,
-            hotelName: reg.strataHotelDetails.brand.name,
-            number: reg.registration_number,
-            type: t('label.registration'),
-            date: reg.startDate,
-            status: reg.status
-          }))
-        }
-        return []
-      })
-
-    const apps = await getAccountApplications<StrataApplicationResp>()
+    // Load the full list of strata hotel applications
+    return await getAccountApplications<StrataApplicationResp>(undefined, ApplicationType.STRATA_HOTEL)
       .catch((e) => {
         logFetchError(e, 'Unable to load account applications')
         return undefined
       })
       .then((response) => {
         if (response) {
-          return (response as StrataApplicationResp[]).filter(
-            item => item.registration.registrationType === ApplicationType.STRATA_HOTEL
-          ).map(app => ({
+          return (response as StrataApplicationResp[]).map(app => ({
             hotelName: app.registration.strataHotelDetails.brand.name,
-            number: app.header.applicationNumber,
-            type: t('label.application'),
-            date: app.header.applicationDateTime,
-            status: app.header.status
+            number: app.header.registrationNumber || app.header.applicationNumber,
+            type: app.header.registrationNumber ? t('label.registration') : t('label.application'),
+            date: app.header.registrationStartDate || app.header.applicationDateTime,
+            status: app.header.registrationStatus || app.header.hostStatus,
+            applicationNumber: app.header.applicationNumber // always used for view action
           }))
         }
         return []
       })
-
-    return [...apps, ...regs]
   }
 
   return {

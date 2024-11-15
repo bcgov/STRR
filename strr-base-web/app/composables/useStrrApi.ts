@@ -3,7 +3,7 @@ export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
 
   const getAccountRegistrations = async <T extends ApiBaseRegistration>(
-    id?: string,
+    id?: number | string,
     type?: ApplicationType
   ) => {
     if (id) {

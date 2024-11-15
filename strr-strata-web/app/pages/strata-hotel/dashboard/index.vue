@@ -69,8 +69,7 @@ const { data: strataHotelList, status } = await useAsyncData(
 )
 
 async function handleItemSelect (row: any) {
-  const identifier = row.id ?? row.number // id only exists in the registration objects
-  await navigateTo(localePath('/strata-hotel/dashboard/' + identifier))
+  await navigateTo(localePath('/strata-hotel/dashboard/' + row.applicationNumber))
 }
 </script>
 <template>

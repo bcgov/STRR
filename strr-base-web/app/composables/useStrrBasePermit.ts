@@ -28,34 +28,25 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
   const showPermitDetails = computed(() => !!registration.value ||
     (!!application.value && !isApplicationStatus([ApplicationStatus.DECLINED, ApplicationStatus.DRAFT])))
 
-  const loadPermitData = async (id?: string) => {
-    if (id) {
-      // check if the id matches a registration under this account
-      registration.value = await getAccountRegistrations<R>(id) as R
-      if (!registration.value) {
-        // No registrations under the account so get by application
-        application.value = await getAccountApplications<A>(id) as A
+  const loadPermitData = async (applicationId?: string, applicationType?: ApplicationType) => {
+    if (applicationId) {
+      // Get specific application
+      application.value = await getAccountApplications<A>(applicationId) as A
+      if (application.value?.header.registrationId) {
+        // Get linked registration if applicable
+        registration.value = await getAccountRegistrations<R>(
+          application.value.header.registrationId) as R
       }
     } else {
-      const applications = await getAccountApplications<A>() as A[]
+      // Get most recent application
+      const applications = await getAccountApplications<A>(undefined, applicationType) as A[]
       if (applications.length) {
-        // set active strata to the most recent application (ordered by api: newest to oldest)
+        // Set active strata to the most recent application (ordered by api: newest to oldest)
         application.value = applications[0]
-        if (isApprovedApplication.value) {
-          // TODO: should be able to get a registration based on the application number and vice versa?
-          // get registrations under this account
-          const registrations = await getAccountRegistrations<R>() as R[]
-          if (
-            registrations.length &&
-            // NOTE: below line is just for ts
-            (registrations[0] && application.value) &&
-            registrations[0].startDate > application.value.header.applicationDateTime
-          ) {
-            // set active platform to the most recent registration
-            registration.value = registrations.sort(
-              // TODO: update once api allows sorting
-              (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())[0]
-          }
+        if (application.value?.header.registrationId) {
+          // Get linked registration if applicable
+          registration.value = await getAccountRegistrations<R>(
+            application.value.header.registrationId) as R
         }
       }
     }

@@ -46,18 +46,15 @@ onMounted(async () => {
       { text: t(`strr.label.listingSize.${platformDetails.value.listingSize}`) }
     ]
     if (!registration.value) {
-      setApplicationHeaderDetails(
-        isPaidApplication.value ? downloadApplicationReceipt : undefined,
-        application.value?.header.hostStatus)
+      setHeaderDetails(
+        application.value?.header.hostStatus,
+        undefined,
+        isPaidApplication.value ? downloadApplicationReceipt : undefined)
     } else {
-      const registrationDetails = permitDetails.value as ApiExtraRegistrationDetails
-      setRegistrationHeaderDetails(
-        registrationDetails.status as ApplicationStatus,
-        registrationDetails.expiryDate
-          ? dateToStringPacific(registrationDetails.expiryDate, 'MMMM Do, YYYY')
-          : undefined,
-        downloadApplicationReceipt
-      )
+      setHeaderDetails(
+        permitDetails.value.status,
+        permitDetails.value.expiryDate,
+        downloadApplicationReceipt)
     }
     // add common side details
     setSideHeaderDetails(

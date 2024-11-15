@@ -14,7 +14,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
   } = useStrrBasePermit<PlatformRegistrationResp, PlatformApplicationResp>()
 
   const loadPlatform = async () => {
-    await loadPermitData()
+    await loadPermitData(undefined, ApplicationType.PLATFORM)
     if (application.value) {
       // set completing party info (this data is only in the application)
       completingParty.value = formatPartyUI(application.value.registration.completingParty)

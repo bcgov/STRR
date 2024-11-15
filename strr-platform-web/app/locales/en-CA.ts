@@ -56,7 +56,8 @@ export default {
       listingSize: {
         THOUSAND_AND_ABOVE: '1000 or more listings',
         BETWEEN_250_AND_999: '250-999 listings',
-        LESS_THAN_250: 'Less than 250 listings'
+        LESS_THAN_250: 'Less than 250 listings',
+        null: 'No Listings'
       },
       noncomplianceEmail: 'Non-compliance Email',
       registeredOfficeAttorney: 'Registered Office / Attorney',

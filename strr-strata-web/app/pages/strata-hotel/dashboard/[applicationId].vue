@@ -26,8 +26,8 @@ const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 
 onMounted(async () => {
   loading.value = true
-  const registrationId = route.params.registrationId as string
-  await loadStrata(registrationId)
+  const applicationId = route.params.applicationId as string
+  await loadStrata(applicationId)
   // set header stuff
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
@@ -48,11 +48,15 @@ onMounted(async () => {
       }
     ]
     if (!registration.value) {
-      setApplicationHeaderDetails(
-        isPaidApplication.value ? downloadApplicationReceipt : undefined,
-        application.value?.header.hostStatus)
+      setHeaderDetails(
+        application.value?.header.hostStatus,
+        undefined,
+        isPaidApplication.value ? downloadApplicationReceipt : undefined)
     } else {
-      setRegistrationHeaderDetails(permitDetails.value.status)
+      setHeaderDetails(
+        permitDetails.value.status,
+        permitDetails.value.expiryDate,
+        downloadApplicationReceipt)
     }
     // strata side details
     setSideHeaderDetails(
@@ -127,7 +131,7 @@ setBreadcrumbs([
       </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
-      <ConnectDashboardSection v-if="!registration" :title="$t('label.completingParty')" :loading="loading">
+      <ConnectDashboardSection :title="$t('label.completingParty')" :loading="loading">
         <ConnectAccordion v-if="showPermitDetails && completingParty" :items="[completingParty]" />
         <div v-else-if="!showPermitDetails" class="bg-white p-5 opacity-50">
           <p class="text-sm">
