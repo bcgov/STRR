@@ -40,14 +40,14 @@ const steps = ref<Step[]>([
     icon: 'i-mdi-domain-plus',
     complete: false,
     isValid: false,
-    validationFn: () => validateStrataBusiness(true) as boolean
+    validationFn: async () => await validateContact(true) as boolean
   },
   {
     i18nPrefix: 'strr.step',
     icon: 'i-mdi-account-multiple-plus',
     complete: false,
     isValid: false,
-    validationFn: async () => await validateContact(true) as boolean
+    validationFn: () => validateStrataBusiness(true) as boolean
   },
   {
     i18nPrefix: 'strr.step',

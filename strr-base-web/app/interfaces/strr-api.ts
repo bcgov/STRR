@@ -39,8 +39,11 @@ export interface ApiBusinessDetails {
 
 export interface ApiBaseRegistration {
   registrationType: ApplicationType
-  completingParty: ApiParty
   businessDetails: ApiBusinessDetails
+}
+
+export interface ApiBaseApplication extends ApiBaseRegistration {
+  completingParty: ApiParty
 }
 
 export interface ApiExtraRegistrationDetails {
@@ -68,4 +71,10 @@ export interface ApplicationHeader {
   paymentStatus: string
   paymentToken: string // invoice id
   status: ApplicationStatus
+}
+
+export interface ApiRegistrationResp extends ApiBaseRegistration, ApiExtraRegistrationDetails { }
+export interface ApiApplicationResp {
+  registration: ApiBaseApplication
+  header: ApplicationHeader
 }

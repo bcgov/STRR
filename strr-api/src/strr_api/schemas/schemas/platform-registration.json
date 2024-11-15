@@ -131,8 +131,9 @@
         "listingSize": {
           "type": "string",
           "enum": [
-            "GREATER_THAN_THOUSAND",
-            "LESS_THAN_THOUSAND"
+            "LESS_THAN_250",
+            "BETWEEN_250_AND_999",
+            "THOUSAND_AND_ABOVE"
           ]
         }
       },

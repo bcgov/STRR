@@ -1,4 +1,3 @@
-// TODO: move relevant functions to strr-base-web layer
 export function formatPhoneNumber (party: Contact): ApiPhone {
   return {
     phoneNumber: party.phone.number,

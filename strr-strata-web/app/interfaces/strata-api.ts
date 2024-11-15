@@ -10,11 +10,15 @@ export interface ApiBaseStrataRegistration extends ApiBaseRegistration {
   strataHotelDetails: ApiStrataDetails
 }
 
+export interface ApiBaseStrataApplication extends ApiBaseStrataRegistration {
+  completingParty: ApiParty
+}
+
 export interface StrataRegistrationResp extends ApiBaseStrataRegistration, ApiExtraRegistrationDetails {
 }
 
 export interface StrataApplicationPayload {
-  registration: ApiBaseStrataRegistration
+  registration: ApiBaseStrataApplication
 }
 
 export interface StrataApplicationResp extends StrataApplicationPayload {

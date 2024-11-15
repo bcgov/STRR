@@ -9,8 +9,9 @@ const props = defineProps<{ isComplete: boolean }>()
 
 const platformDetailsFormRef = ref<Form<z.output<typeof platformDetailSchema>>>()
 const radioOptions = [
-  { value: ListingSize.THOUSAND_OR_MORE, label: t('strr.text.thousandOrMore') },
-  { value: ListingSize.UNDER_THOUSAND, label: t('strr.text.lessThanThousand') }
+  { value: ListingSize.THOUSAND_AND_ABOVE, label: t('strr.text.thousandOrMore') },
+  { value: ListingSize.BETWEEN_250_AND_999, label: t('strr.text.250-999') },
+  { value: ListingSize.LESS_THAN_250, label: t('strr.text.249orLess') }
 ]
 
 onMounted(async () => {
@@ -58,19 +59,19 @@ onMounted(async () => {
                   <ConnectFormFieldGroup
                     :id="'platform-brand-name-' + i"
                     v-model="brand.name"
-                    :aria-label="(i > 0) ? $t('strr.label.brandNameOpt') : $t('strr.label.brandName')"
+                    :aria-label="$t('strr.label.brandName')"
                     :help="$t('strr.hint.brandName')"
                     :name="`brands.${i}.name`"
-                    :placeholder="(i > 0) ? $t('strr.label.brandNameOpt') : $t('strr.label.brandName')"
+                    :placeholder="$t('strr.label.brandName')"
                     :is-required="true"
                   />
                   <ConnectFormFieldGroup
                     :id="'platform-brand-site-' + i"
                     v-model="brand.website"
-                    :aria-label="(i > 0) ? $t('strr.label.brandSiteOpt') : $t('strr.label.brandSite')"
+                    :aria-label="$t('strr.label.brandSite')"
                     :help="$t('strr.hint.brandSite')"
                     :name="`brands.${i}.website`"
-                    :placeholder="(i > 0) ? $t('strr.label.brandSiteOpt') : $t('strr.label.brandSite')"
+                    :placeholder="$t('strr.label.brandSite')"
                     :is-required="true"
                     type="url"
                   />
@@ -104,7 +105,7 @@ onMounted(async () => {
             >
               <template #legend>
                 <span class="sr-only">{{ $t('validation.required') }}</span>
-                <span>{{ $t('strr.text.listingSize') }}</span>
+                <span>{{ $t('strr.text.listingSize', { year: new Date().getFullYear() - 1 }) }}</span>
               </template>
             </URadioGroup>
           </UFormGroup>

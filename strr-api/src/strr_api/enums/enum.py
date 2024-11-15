@@ -152,6 +152,8 @@ class ErrorMessage(Enum):
     APPLICATION_NOT_PAID = "Application does not have a payment record."
     REGISTRATION_NOT_FOUND = "Application not found."
     PLATFORM_ISSUE_CERTIFICATE_ERROR = "Certificate is not available for a platform registration."
+    INVOICE_CREATION_ERROR = "Error while creating invoice."
+    APPLICATION_NOT_MODIFIABLE = "Application cannot be modified."
 
 
 class ApplicationRole(Enum):

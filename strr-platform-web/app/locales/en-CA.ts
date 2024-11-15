@@ -52,9 +52,11 @@ export default {
       brandSite: 'Platform Brand Website',
       brandSiteOpt: 'Platform Brand Website (Optional)',
       cpbcNum: 'Consumer Protection BC Number',
+      emailAddresses: 'Email Addresses',
       listingSize: {
-        LESS_THAN_THOUSAND: 'Small Platform',
-        GREATER_THAN_THOUSAND: 'Large Platform'
+        THOUSAND_AND_ABOVE: '1000 or more listings',
+        BETWEEN_250_AND_999: '250-999 listings',
+        LESS_THAN_250: 'Less than 250 listings'
       },
       noncomplianceEmail: 'Non-compliance Email',
       registeredOfficeAttorney: 'Registered Office / Attorney',
@@ -70,14 +72,15 @@ export default {
       brandNamesNote: 'NOTE: if the listings are different, each brand should be a separate registration',
       hasCpbc: 'Does the business have an active number with Consumer Protection BC (CPBC)?',
       isUserRep: 'Are you the platform representative?',
-      lessThanThousand: 'Less than 1000',
-      listingSize: 'What is the total number of listings offered by the Platform Provider on June 1, [previous year]?',
+      listingSize: 'What is the total number of listings offered by the Platform Provider on June 1, {year}?',
       nonComplianceEmail: 'Provide an email address to receive Notices of Non-Compliance.',
       nonComplianceEmailLong: 'This message will be sent to the supplier host and platform service provider by a local government to inform both parties that a listing is not compliant with a local government business licence requirement. No action is required from the platform service provider.',
       primaryContact: 'This is the primary contact person for the platform.',
       takedownEmail: 'Provide an email address to receive Takedown Requests.',
       takedownEmailLong: 'This message will be sent to the platform service provider by a local government to request the platform service provider cease providing platform services for a listing that is not compliant with a local government business licence requirement. The request may be sent within a period of 5-90 days after a Notice of Non-compliance was delivered. As per s.18 (3)(b) of the Short-term Rental Accommodations Act, platform service providers must comply with the request of the local government.',
       thousandOrMore: '1000 or more',
+      '250-999': '250-999',
+      '249orLess': '249 or less',
       selectAccountForStrr: 'Select the account you wish to use to register your Short-term rental platform.',
       onlyPremiumAccountWarning: '{boldStart}Note:{boldEnd} Only Premium accounts using Pre-authorized Debit (PAD) can be used to register Short-term Rental Registry Platforms.',
       onlyPremiumAccountModalContent: 'You must create a BC Registries Premium Account that uses a Pre-authorized Debit (PAD) payment method.'

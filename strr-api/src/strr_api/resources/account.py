@@ -44,12 +44,11 @@ from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ApplicationRole
 from strr_api.exceptions import AuthException, ExternalServiceException, ValidationException, exception_response
 from strr_api.requests import SBCAccountCreationRequest
 from strr_api.responses import SBCAccount
 from strr_api.schemas.utils import validate
-from strr_api.services import AccountService, AuthService, UserService
+from strr_api.services import AuthService, UserService
 
 logger = logging.getLogger("api")
 bp = Blueprint("account", __name__)
@@ -80,8 +79,6 @@ def get_user_accounts():
         settings = AuthService.get_user_settings(token, profile["keycloakGuid"])
         response["profile"] = profile
         response["settings"] = settings
-        for org in response.get("orgs", []):
-            org["roles"] = AccountService.list_account_roles(account_id=org.get("id"))
         return jsonify(response), HTTPStatus.OK
     except AuthException as auth_exception:
         return exception_response(auth_exception)
@@ -128,10 +125,6 @@ def create_user_account():
         sbc_account_id = new_account.get("id")
 
         AuthService.add_contact_info(token, sbc_account_id, sbc_account_creation_request, user.id)
-
-        roles = sbc_account_creation_request.roles or [ApplicationRole.HOST.value]
-
-        AccountService.create_account_roles(int(sbc_account_id), roles)
 
         return (
             jsonify(SBCAccount(user_id=user.id, sbc_account_id=sbc_account_id).model_dump(mode="json")),

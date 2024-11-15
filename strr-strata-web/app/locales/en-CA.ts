@@ -21,7 +21,7 @@ export default {
         3: 'Step 4 - Review and Confirm'
       },
       info: {
-        0: 'Short-term rental platforms must identify a strata hotel representative to communicate with the Province. This person will be responsible for representing the strata hotel regarding regulatory requirements for strata hotels.',
+        0: 'Short-term rental strata hotels must identify a strata hotel representative to communicate with the Province. This person will be responsible for representing the strata hotel regarding regulatory requirements for strata hotels.',
         1: 'Information about the business operating the strata hotel.',
         2: 'Provide information about each strata hotel operated by your company.',
         3: 'Review and confirm all of the information you provided as shown below.'

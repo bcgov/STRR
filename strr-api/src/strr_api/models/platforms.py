@@ -18,8 +18,9 @@ class Platform(Versioned, BaseModel):
     class ListingSize(BaseEnum):
         """Enum of the registration types."""
 
-        GREATER_THAN_THOUSAND = auto()  # pylint: disable=invalid-name
-        LESS_THAN_THOUSAND = auto()  # pylint: disable=invalid-name
+        LESS_THAN_250 = auto()  # pylint: disable=invalid-name
+        BETWEEN_250_AND_999 = auto()  # pylint: disable=invalid-name
+        THOUSAND_AND_ABOVE = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "platforms"
 

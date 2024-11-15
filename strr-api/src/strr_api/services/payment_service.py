@@ -104,15 +104,9 @@ class PayService:
                 application_id=application.id,
             )
             return resp.json()
-        except ExternalServiceException as exc:
-            # pass along
-            raise exc
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as err:
-            self.app.logger.debug("Pay-api connection failure:", repr(err))
-            raise ExternalServiceException(error=repr(err), status_code=HTTPStatus.GATEWAY_TIMEOUT) from err
         except Exception as err:
             self.app.logger.debug("Pay-api integration (create invoice) failure:", repr(err))
-            raise ExternalServiceException(error=repr(err), status_code=HTTPStatus.PAYMENT_REQUIRED) from err
+            return None
 
     def _get_payment_request(self, application_json):
         filing_type = None
@@ -146,7 +140,7 @@ class PayService:
         cpbc_number = registration_json.get("businessDetails").get("consumerProtectionBCLicenceNumber")
         if cpbc_number and (not cpbc_number.isspace()):
             filing_type = PLATFORM_FEE_WAIVED
-        elif registration_json.get("platformDetails").get("listingSize") == "GREATER_THAN_THOUSAND":
+        elif registration_json.get("platformDetails").get("listingSize") == "THOUSAND_AND_ABOVE":
             filing_type = PLATFORM_LARGE_USER_BASE
         else:
             filing_type = PLATFORM_SMALL_USER_BASE

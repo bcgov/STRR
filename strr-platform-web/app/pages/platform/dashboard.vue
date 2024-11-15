@@ -4,13 +4,13 @@ const config = useRuntimeConfig().public
 const accountStore = useConnectAccountStore()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
-const { loadPlatform } = useStrrPlatformStore()
+const { downloadApplicationReceipt, loadPlatform } = useStrrPlatformStore()
 const {
-  activeApplicationInfo,
-  activePlatform,
+  application,
+  registration,
+  permitDetails,
   isPaidApplication,
-  isRegistration,
-  showPlatformDetails
+  showPermitDetails
 } = storeToRefs(useStrrPlatformStore())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
@@ -18,11 +18,14 @@ const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
+const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 
 watch(() => accountStore.currentAccount.id,
-  () => {
-    const { redirect } = useNavigate()
-    redirect(config.registryHomeURL + 'dashboard')
+  (newVal) => {
+    if (newVal !== undefined) {
+      const { redirect } = useNavigate()
+      redirect(config.registryHomeURL + 'dashboard')
+    }
   }
 )
 
@@ -30,35 +33,68 @@ onMounted(async () => {
   loading.value = true
   await loadPlatform()
   // set header stuff
-  if (!activePlatform.value || !showPlatformDetails.value) {
+  if (!permitDetails.value || !showPermitDetails.value) {
     // no registration or valid complete application under the account, set static header
     title.value = t('strr.title.dashboard')
-    todos.value = [getTodoApplication('/platform/application', activeApplicationInfo.value)]
+    todos.value = [getTodoApplication('/platform/application', application.value?.header)]
   } else {
     // existing registration or application under the account
     // set left side of header
     title.value = platformBusiness.value.legalName
     subtitles.value = [
-      platformBusiness.value.homeJurisdiction,
-      t(`strr.label.listingSize.${platformDetails.value.listingSize}`)
+      { text: platformBusiness.value.homeJurisdiction },
+      { text: t(`strr.label.listingSize.${platformDetails.value.listingSize}`) }
     ]
-    if (!isRegistration.value) {
-      setApplicationHeaderDetails(isPaidApplication.value, activeApplicationInfo.value?.hostStatus)
+    if (!registration.value) {
+      setApplicationHeaderDetails(
+        isPaidApplication.value ? downloadApplicationReceipt : undefined,
+        application.value?.header.hostStatus)
     } else {
-      // @ts-expect-error - ts not picking up that it will have status attr in this case
-      setRegistrationHeaderDetails(activePlatform.value.status)
+      const registrationDetails = permitDetails.value as ApiExtraRegistrationDetails
+      setRegistrationHeaderDetails(
+        registrationDetails.status as ApplicationStatus,
+        registrationDetails.expiryDate
+          ? dateToStringPacific(registrationDetails.expiryDate, 'MMMM Do, YYYY')
+          : undefined,
+        downloadApplicationReceipt
+      )
     }
     // add common side details
     setSideHeaderDetails(
       platformBusiness.value,
-      isRegistration.value ? activePlatform.value as ApiExtraRegistrationDetails : undefined,
-      activeApplicationInfo.value)
+      registration.value ? permitDetails.value : undefined,
+      application.value?.header)
     // add platform specific side details
     setPlatformSideHeaderDetails()
     // set sidebar accordian addresses
     addresses.value = getDashboardAddresses(platformBusiness.value)
+    // platform specific address items (emails)
+    addresses.value.push({
+      showAvatar: false,
+      label: t('strr.label.emailAddresses'),
+      values: [
+        {
+          icon: 'i-mdi-at',
+          label: t('strr.label.noncomplianceEmail'),
+          text: platformBusiness.value.nonComplianceEmail
+        },
+        ...(platformBusiness.value.nonComplianceEmailOptional
+          ? [{ class: '-mt-2 pl-8', text: platformBusiness.value.nonComplianceEmailOptional }]
+          : []),
+        {
+          icon: 'i-mdi-at',
+          label: t('strr.label.takedownEmail'),
+          text: platformBusiness.value.takeDownEmail
+        },
+        ...(platformBusiness.value.takeDownEmailOptional
+          ? [{ class: '-mt-2 pl-8', text: platformBusiness.value.takeDownEmailOptional }]
+          : [])
+      ]
+    })
     // set sidebar accordian reps
     representatives.value = getDashboardRepresentives()
+    // set side bar completing party
+    completingParty.value = getDashboardCompParty()
     // update breadcrumbs with platform business name
     setBreadcrumbs([
       {
@@ -109,7 +145,7 @@ setBreadcrumbs([
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('strr.label.brandNames')" :loading="loading">
         <div class="space-y-3 p-5">
-          <div v-if="showPlatformDetails">
+          <div v-if="showPermitDetails">
             <p v-for="brand in platformDetails.brands" :key="brand.name">
               {{ brand.name }} - {{ brand.website }}
             </p>
@@ -122,7 +158,7 @@ setBreadcrumbs([
     </div>
     <div class="space-y-10">
       <ConnectDashboardSection :title="$t('word.addresses')" :loading="loading" class="*:w-[300px]">
-        <ConnectAccordion v-if="showPlatformDetails" :items="addresses" multiple />
+        <ConnectAccordion v-if="showPermitDetails" :items="addresses" multiple />
         <div v-else class="space-y-4 bg-white p-5 opacity-50 *:space-y-2">
           <div>
             <p class="font-bold">
@@ -146,8 +182,16 @@ setBreadcrumbs([
         </div>
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('word.representatives')" :loading="loading">
-        <ConnectAccordion v-if="showPlatformDetails" :items="representatives" multiple />
+        <ConnectAccordion v-if="showPermitDetails" :items="representatives" multiple />
         <div v-else class="w-[300px] bg-white p-5 opacity-50">
+          <p class="text-sm">
+            {{ $t('text.completeFilingToDisplay') }}
+          </p>
+        </div>
+      </ConnectDashboardSection>
+      <ConnectDashboardSection :title="$t('label.completingParty')" :loading="loading">
+        <ConnectAccordion v-if="showPermitDetails && completingParty" :items="[completingParty]" />
+        <div v-else-if="!showPermitDetails" class="w-[300px] bg-white p-5 opacity-50">
           <p class="text-sm">
             {{ $t('text.completeFilingToDisplay') }}
           </p>

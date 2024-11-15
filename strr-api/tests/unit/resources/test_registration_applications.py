@@ -57,7 +57,7 @@ def test_create_host_registration_application(session, client, jwt, request_json
         headers["Account-Id"] = ACCOUNT_ID
         rv = client.post("/applications", json=json_data, headers=headers)
 
-    assert HTTPStatus.CREATED == rv.status_code
+    assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     assert response_json.get("header").get("hostStatus") == "Payment Due"
     assert response_json.get("header").get("examinerStatus") == "Payment Due"
@@ -85,7 +85,7 @@ def test_get_application_details(session, client, jwt):
         headers["Account-Id"] = ACCOUNT_ID
         rv = client.post("/applications", json=json_data, headers=headers)
 
-        assert HTTPStatus.CREATED == rv.status_code
+        assert HTTPStatus.OK == rv.status_code
         application_number = rv.json.get("header").get("applicationNumber")
 
         rv = client.get(f"/applications/{application_number}", headers=headers)
@@ -119,7 +119,7 @@ def test_get_application_details_with_multiple_accounts(session, client, jwt):
         with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
             headers["Account-Id"] = ACCOUNT_ID
             rv = client.post("/applications", json=json_data, headers=headers)
-            assert HTTPStatus.CREATED == rv.status_code
+            assert HTTPStatus.OK == rv.status_code
             print(rv.json)
             application_number = rv.json.get("header").get("applicationNumber")
 
@@ -131,7 +131,7 @@ def test_get_application_details_with_multiple_accounts(session, client, jwt):
         with patch("strr_api.services.strr_pay.create_invoice", return_value=mock_invoice_response_2):
             headers["Account-Id"] = secondary_account
             rv = client.post("/applications", json=json_data, headers=headers)
-            assert HTTPStatus.CREATED == rv.status_code
+            assert HTTPStatus.OK == rv.status_code
             print(rv.json)
             application_number_2 = rv.json.get("header").get("applicationNumber")
 
@@ -158,7 +158,7 @@ def test_create_application_with_minimum_fields(session, client, jwt):
         headers["Account-Id"] = ACCOUNT_ID
         rv = client.post("/applications", json=json_data, headers=headers)
 
-    assert HTTPStatus.CREATED == rv.status_code
+    assert HTTPStatus.OK == rv.status_code
 
 
 def test_create_application_invalid_request(session, client, jwt):
@@ -234,7 +234,7 @@ def test_get_application_events_user(session, client, jwt):
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         rv = client.post("/applications", json=json_data, headers=headers)
-        assert HTTPStatus.CREATED == rv.status_code
+        assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
@@ -411,7 +411,7 @@ def test_search_applications(session, client, jwt):
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         rv = client.post("/applications", json=json_data, headers=headers)
-        assert HTTPStatus.CREATED == rv.status_code
+        assert HTTPStatus.OK == rv.status_code
 
         headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.get("/applications/search?text=12177 GREENWELL ST", headers=headers)
@@ -433,7 +433,7 @@ def test_create_platform_registration_application(session, client, jwt):
         headers["Account-Id"] = ACCOUNT_ID
         rv = client.post("/applications", json=json_data, headers=headers)
 
-    assert HTTPStatus.CREATED == rv.status_code
+    assert HTTPStatus.OK == rv.status_code
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -470,7 +470,7 @@ def test_create_strata_hotel_registration_application(session, client, jwt):
         headers["Account-Id"] = ACCOUNT_ID
         rv = client.post("/applications", json=json_data, headers=headers)
 
-    assert HTTPStatus.CREATED == rv.status_code
+    assert HTTPStatus.OK == rv.status_code
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -493,7 +493,7 @@ def test_create_registration_application_with_business_as_a_host(session, client
         headers["Account-Id"] = ACCOUNT_ID
         rv = client.post("/applications", json=json_data, headers=headers)
 
-    assert HTTPStatus.CREATED == rv.status_code
+    assert HTTPStatus.OK == rv.status_code
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -558,3 +558,45 @@ def test_examiner_approve_strata_hotel_registration_application(session, client,
             Application.Status.FULL_REVIEW_APPROVED
         )
         assert response_json.get("header").get("hostActions") == []
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=None)
+def test_create_application_invoice_failure(session, client, jwt):
+    with open(CREATE_STRATA_HOTEL_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+
+    assert HTTPStatus.PAYMENT_REQUIRED == rv.status_code
+
+
+def test_save_and_resume_applications(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_BUSINESS_AS_HOST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        headers["isDraft"] = True
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        rv = client.put(f"/applications/{application_number}", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_save_and_resume_failed_for_paid_applications(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_BUSINESS_AS_HOST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        rv = client.put(f"/applications/{application_number}", json=json_data, headers=headers)
+        assert HTTPStatus.BAD_REQUEST == rv.status_code

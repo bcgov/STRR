@@ -75,7 +75,7 @@ def get_registrations():
         enum: [ACTIVE, EXPIRED, SUSPENDED]
       - in: query
         name: sort_by
-        enum: [REGISTRATION_NUMBER, STATUS]
+        enum: [ID, STATUS]
       - in: query
         name: sort_desc
         type: boolean
@@ -83,11 +83,11 @@ def get_registrations():
       - in: query
         name: offset
         type: integer
-        default: 0
+        default: 1
       - in: query
         name: limit
         type: integer
-        default: 100
+        default: 50
     responses:
       200:
         description:

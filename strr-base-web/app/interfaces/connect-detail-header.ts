@@ -10,3 +10,14 @@ export interface ConnectDetailHeaderSideDetail {
     action: Function
   }
 }
+
+export interface ConnectDetailHeaderItem {
+  text: string
+  itemClass?: string
+  icon?: string
+  iconClass?: string
+  chip?: boolean
+  chipColour?: string
+  link?: boolean
+  linkHref?: string
+}
