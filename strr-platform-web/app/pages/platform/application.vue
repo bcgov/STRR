@@ -249,6 +249,7 @@ setBreadcrumbs([
 <template>
   <div class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="$t('strr.title.application')" class="my-5" />
+    <ModalGroupHelpAndInfo />
     <ConnectStepper
       ref="stepperRef"
       :key="0"

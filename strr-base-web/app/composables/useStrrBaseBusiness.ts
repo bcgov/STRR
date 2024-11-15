@@ -7,7 +7,7 @@ export const useStrrBaseBusiness = () => {
   const getBaseBusinessSchema = (business: StrrBusiness) => {
     return z.object({
       legalName: getRequiredNonEmptyString(t('validation.business.legalName')),
-      homeJurisdiction: getRequiredNonEmptyString(t('validation.business.jurisdiction')),
+      homeJurisdiction: optionalOrEmptyString,
       businessNumber: optionalOrEmptyString,
       mailingAddress: getRequiredAddress(
         t('validation.address.street'),

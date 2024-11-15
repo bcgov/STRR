@@ -1,5 +1,9 @@
 // https://ui.nuxt.com/components/modal#control-programmatically
-import { ModalBase } from '#components'
+import {
+  ModalBase,
+  ModalHelpRegisterStr,
+  ModalInfoCollectionNotice
+} from '#components'
 
 export const useStrrModals = () => {
   const modal = useModal()
@@ -93,6 +97,18 @@ export const useStrrModals = () => {
     })
   }
 
+  function openHelpRegisterModal () {
+    modal.open(ModalHelpRegisterStr, {
+      actions: [{ label: t('btn.close'), handler: () => close() }]
+    })
+  }
+
+  function openInfoCollectionNoticeModal () {
+    modal.open(ModalInfoCollectionNotice, {
+      actions: [{ label: t('btn.close'), handler: () => close() }]
+    })
+  }
+
   function close () {
     modal.close()
   }
@@ -103,6 +119,8 @@ export const useStrrModals = () => {
     openConfirmDeclineTosModal,
     openPatchTosErrorModal,
     openConfirmSwitchAccountModal,
+    openHelpRegisterModal,
+    openInfoCollectionNoticeModal,
     close
   }
 }

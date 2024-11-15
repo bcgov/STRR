@@ -141,7 +141,10 @@ setBreadcrumbs([
           :button="todo.button"
         />
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('strr.label.brandNames')" :loading="loading">
+      <ConnectDashboardSection
+        :title="$t('strr.label.platformNames', platformDetails.brands.length)"
+        :loading="loading"
+      >
         <div class="space-y-3 p-5">
           <div v-if="showPermitDetails">
             <p v-for="brand in platformDetails.brands" :key="brand.name">

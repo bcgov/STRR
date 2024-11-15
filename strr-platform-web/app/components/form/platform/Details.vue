@@ -39,10 +39,11 @@ onMounted(async () => {
           :key="'brand' + i"
         >
           <ConnectFormSection
-            :title="$t('strr.section.subTitle.brand') + ((i > 0) ? ` ${ i + 1 }` : '')"
+            :title="$t('strr.section.subTitle.platform') + ((i > 0) ? ` ${ i + 1 }` : '')"
             :error="hasFormErrors(platformDetailsFormRef, [`brands.${i}.name`, `brands.${i}.website`])"
           >
             <div class="space-y-5">
+              <span>{{ $t('strr.text.listEachPlatform') }}</span>
               <div class="flex flex-col gap-5 sm:flex-row-reverse">
                 <div>
                   <UButton
@@ -59,19 +60,19 @@ onMounted(async () => {
                   <ConnectFormFieldGroup
                     :id="'platform-brand-name-' + i"
                     v-model="brand.name"
-                    :aria-label="$t('strr.label.brandName')"
-                    :help="$t('strr.hint.brandName')"
+                    :aria-label="$t('strr.label.platformName')"
+                    :help="$t('strr.hint.platformName')"
                     :name="`brands.${i}.name`"
-                    :placeholder="$t('strr.label.brandName')"
+                    :placeholder="$t('strr.label.platformName')"
                     :is-required="true"
                   />
                   <ConnectFormFieldGroup
                     :id="'platform-brand-site-' + i"
                     v-model="brand.website"
-                    :aria-label="$t('strr.label.brandSite')"
-                    :help="$t('strr.hint.brandSite')"
+                    :aria-label="$t('strr.label.platformSite')"
+                    :help="$t('strr.hint.platformSite')"
                     :name="`brands.${i}.website`"
-                    :placeholder="$t('strr.label.brandSite')"
+                    :placeholder="$t('strr.label.platformSite')"
                     :is-required="true"
                     type="url"
                   />
@@ -79,7 +80,7 @@ onMounted(async () => {
               </div>
               <UButton
                 v-if="i === platformDetails.brands.length - 1"
-                :label="$t('strr.label.addBrand')"
+                :label="$t('strr.label.addPlatform')"
                 class="px-5 py-3"
                 color="primary"
                 icon="i-mdi-domain-plus"

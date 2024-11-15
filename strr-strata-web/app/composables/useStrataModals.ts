@@ -1,8 +1,7 @@
 // https://ui.nuxt.com/components/modal#control-programmatically
 import {
   ModalBase,
-  ModalHelpRegisterStrataHotel,
-  ModalInfoCollectionNotice
+  ModalHelpRegisterStrataHotel
 } from '#components'
 
 export const useStrataModals = () => {
@@ -24,12 +23,6 @@ export const useStrataModals = () => {
     })
   }
 
-  function openInfoCollectionNoticeModal () {
-    modal.open(ModalInfoCollectionNotice, {
-      actions: [{ label: t('btn.close'), handler: () => close() }]
-    })
-  }
-
   function close () {
     modal.close()
   }
@@ -37,7 +30,6 @@ export const useStrataModals = () => {
   return {
     openhelpRegisteringStrataModal,
     openHelpRegisterStrataHotelModal,
-    openInfoCollectionNoticeModal,
     close
   }
 }

@@ -105,10 +105,10 @@ onMounted(async () => {
             <ConnectFormFieldGroup
               id="platform-business-home-jur"
               v-model="platformBusiness.homeJurisdiction"
-              :aria-label="$t('label.homeJurisdiction')"
+              :aria-label="$t('label.homeJurisdictionOpt')"
               :help="$t('strr.hint.humeJurisdiction')"
               name="homeJurisdiction"
-              :placeholder="t('label.homeJurisdiction')"
+              :placeholder="t('label.homeJurisdictionOpt')"
               :is-required="true"
             />
             <ConnectFormFieldGroup

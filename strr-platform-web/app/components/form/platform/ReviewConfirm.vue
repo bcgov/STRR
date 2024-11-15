@@ -276,12 +276,12 @@ onMounted(async () => {
           class="grid grid-cols-3"
         >
           <ConnectInfoBox
-            :title="$t('strr.review.platInfo.brandName', 0)"
+            :title="$t('strr.review.platInfo.platformName', 0)"
             title-class="font-bold text-bcGovGray-900"
             content="-"
           />
           <ConnectInfoBox
-            :title="$t('strr.review.platInfo.brandSite', 0)"
+            :title="$t('strr.review.platInfo.platformSite', 0)"
             title-class="font-bold text-bcGovGray-900"
             content="-"
           />
@@ -302,12 +302,12 @@ onMounted(async () => {
             ]"
           >
             <ConnectInfoBox
-              :title="$t('strr.review.platInfo.brandName', { count: i + 1})"
+              :title="$t('strr.review.platInfo.platformName', { count: i + 1})"
               title-class="font-bold text-bcGovGray-900"
               :content="brand.name || '-'"
             />
             <ConnectInfoBox
-              :title="$t('strr.review.platInfo.brandSite', { count: i + 1})"
+              :title="$t('strr.review.platInfo.platformSite', { count: i + 1})"
               title-class="font-bold text-bcGovGray-900"
               :content="brand.website || '-'"
             />

@@ -82,6 +82,21 @@ export default {
         title: 'Hours of Operation:',
         value: 'Monday to Friday, 8:30am - 4:30pm Pacific Time'
       }
+    },
+    strr: {
+      listTitle: 'Short-Term Rental Registry Contact Information',
+      tollFree: {
+        title: 'Canada and U.S. Toll Free:',
+        value: '1-833-828-2240'
+      },
+      victoriaOffice: {
+        title: 'Victoria Office:',
+        value: '604-630-4058'
+      },
+      email: {
+        title: 'Email:',
+        value: "STRregistry{'@'}gov.bc.ca"
+      }
     }
   },
   currency: {
@@ -159,7 +174,7 @@ export default {
     socialInsuranceNumber: 'Social Insurance Number (SIN)',
     taxNumber: 'Tax Number',
     busName: 'Business Name',
-    busNameLegal: 'Business Legal Name',
+    busNameLegal: 'Legal Name',
     corpNum: 'Incorporation Number',
     busNum: 'Business Number',
     busNumOpt: 'Business Number (Optional)',
@@ -167,6 +182,7 @@ export default {
     registrationNum: 'Registration Number',
     applicationNum: 'Application Number',
     homeJurisdiction: 'Home Jurisdiction',
+    homeJurisdictionOpt: 'Home Jurisdiction (Optional)',
     name: 'Name',
     mailingAddress: 'Mailing Address',
     deliveryAddress: 'Delivery Address',
@@ -239,6 +255,20 @@ export default {
       title: 'Leave Site?',
       content: 'Changes you made may not be saved.',
       leaveBtn: 'Leave'
+    },
+    help: {
+      registerStr: {
+        triggerBtn: 'Help with registering',
+        title: 'Need Help?',
+        content: 'For more information about registration requirements, visit {link}. If you need help registering, using the dashboard, or resolving a technical issue, you can also contact us directly.'
+      }
+    },
+    info: {
+      collectionNotice: {
+        triggerBtn: 'Information collection notice',
+        title: 'Information Collection Notice',
+        content: 'Any personal information required is collected to support the administration and enforcement of the {act}, under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at {email}.'
+      }
     }
   },
   word: {
@@ -334,7 +364,7 @@ export default {
       site: 'Please enter a valid full url for this brand (i.e. https://www.bcregistry.gov.bc.ca)'
     },
     business: {
-      legalName: 'Please enter the business legal name',
+      legalName: 'Please enter the legal name',
       jurisdiction: 'Please enter the business home jurisdiction',
       cpbc: 'Please enter the CPBC number'
     },
@@ -391,10 +421,10 @@ export default {
       registeredOfficeAttorney: 'Registered Office / Attorney'
     },
     hint: {
-      businessLegalNamePlatform: 'The full legal name of the business that is operating the platform. Include corporate designations (e.g., "Ltd.", "Inc.", "LLC.")',
+      businessLegalNamePlatform: 'The full legal name of the platform service provider',
       businessLegalNameStrataHotel: 'The full legal name of the business that is operating the strata hotel. Include corporate designations (e.g., "Ltd.", "Inc.", "LLC.")',
       businessNumber: 'Canada Revenue Agency (CRA) Business Number',
-      humeJurisdiction: 'The regional or federal jurisdiction where the business was incorporated or registered',
+      humeJurisdiction: 'The regional or federal jurisdiction where the business was incorporated or registered, if applicable',
       position: 'Enter your current job title or position'
     },
     text: {
