@@ -107,7 +107,9 @@ export default {
     }
   },
   validation: {
-    platformName: 'Please enter a platform name',
-    platformSite: 'Please enter a valid full URL for this platform (i.e. https://www.bcregistry.gov.bc.ca)'
+    brand: {
+      name: 'Please enter a platform name',
+      site: 'Please enter a valid full URL for this platform (i.e. https://www.bcregistry.gov.bc.ca)'
+    }
   }
 }

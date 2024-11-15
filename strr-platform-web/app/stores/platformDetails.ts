@@ -1,20 +1,15 @@
 import { z } from 'zod'
 
 export const useStrrPlatformDetails = defineStore('strr/platformDetails', () => {
-  const { t } = useI18n()
   const {
     addNewEmptyBrand: baseAddNewEmptyBrand,
+    getBrandSchema: getPlatformBrandSchema,
     removeBrandAtIndex: baseRemoveBrandAtIndex
   } = useStrrBaseBrand()
 
-  const getPlatformSchema = () => z.object({
-    name: getRequiredNonEmptyString(t('validation.platformName')),
-    website: getRequiredUrl(t('validation.platformSite'))
-  })
-
   const getPlatformDetailsSchema = () => z.object({
     listingSize: z.enum([ListingSize.THOUSAND_AND_ABOVE, ListingSize.BETWEEN_250_AND_999, ListingSize.LESS_THAN_250]),
-    brands: z.array(getPlatformSchema())
+    brands: z.array(getPlatformBrandSchema())
   })
 
   const platformDetailSchema = getPlatformDetailsSchema()
