@@ -4,7 +4,6 @@ export const useStrrPlatformDetails = defineStore('strr/platformDetails', () => 
   const { t } = useI18n()
   const {
     addNewEmptyBrand: baseAddNewEmptyBrand,
-    getBrandSchema: getPlatformBrandSchema,
     removeBrandAtIndex: baseRemoveBrandAtIndex
   } = useStrrBaseBrand()
 
@@ -53,7 +52,6 @@ export const useStrrPlatformDetails = defineStore('strr/platformDetails', () => 
   return {
     platformDetails,
     platformDetailSchema,
-    getPlatformBrandSchema,
     getPlatformDetailsSchema,
     addNewEmptyBrand,
     removeBrandAtIndex,
