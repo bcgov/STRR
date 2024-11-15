@@ -14,15 +14,13 @@ export const useApplications = () => {
     hasSecondaryContact: boolean,
     propertyType: string,
     ownershipType: string,
-    t: (key: string) => string,
     registrationType: RegistrationTypeE = RegistrationTypeE.HOST
   ) => {
     const submitApplicationPayload: CreateAccountFormAPII = formStateToApi(
       formState,
       hasSecondaryContact,
       propertyType,
-      ownershipType,
-      t
+      ownershipType
     )
 
     try {

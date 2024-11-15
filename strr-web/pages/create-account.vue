@@ -159,8 +159,7 @@ const submit = async () => {
       await createApplication(
         hasSecondaryContact.value,
         formState.propertyDetails.propertyType,
-        formState.propertyDetails.ownershipType,
-        t
+        formState.propertyDetails.ownershipType
       )
     } finally {
       submitInProgress.value = false
