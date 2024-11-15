@@ -273,7 +273,8 @@ onMounted(async () => {
           },
           {
             title: $t('strr.section.subTitle.primaryStrataBuilding'),
-            slot: 'buildings'
+            slot: 'buildings',
+            contentClass: 'line-clamp-none'
           },
         ]"
         @edit="$emit('edit', 2)"

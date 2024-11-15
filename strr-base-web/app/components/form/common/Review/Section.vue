@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps({
   items: {
-    type: Array<{ title?: string, titleClass?: string, content?: string, slot?: string }>,
+    type: Array<{ title?: string, titleClass?: string, content?: string, slot?: string, contentClass?: string }>,
     default: []
   },
   error: { type: Boolean, default: false }
@@ -37,6 +37,7 @@ defineEmits<{
             :title="item.title"
             :title-class="item.titleClass || 'font-bold text-bcGovGray-900'"
             class="sm:w-1/3"
+            :content-class="item.contentClass"
           >
             <template #default>
               <template v-if="item.slot">
