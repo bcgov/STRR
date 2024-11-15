@@ -52,7 +52,7 @@ onMounted(async () => {
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 
-watch(() => platformBusiness.value.hasCpbc, (val) => {
+watch(() => platformBusiness.value?.hasCpbc, (val) => {
   if (val && platFeeWv.value) {
     removeFee(StrrFeeCode.STR_PLAT_SM)
     removeFee(StrrFeeCode.STR_PLAT_LG)
@@ -77,7 +77,7 @@ const setFeeBasedOnListingSize = (listingSize: ListingSize | undefined) => {
 }
 
 watch(() => platformDetails.value.listingSize, (val) => {
-  if (!platformBusiness.value.hasCpbc) {
+  if (!platformBusiness.value?.hasCpbc) {
     setFeeBasedOnListingSize(val)
   }
 })

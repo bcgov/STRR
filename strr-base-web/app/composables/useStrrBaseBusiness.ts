@@ -2,9 +2,12 @@
 import { z } from 'zod'
 import { getRequiredAddress, getRequiredNonEmptyString, optionalOrEmptyString } from '~/utils/connect-validation'
 
-export const useStrrBaseBusiness = () => {
+export const useStrrBaseBusiness = <T extends StrrBusiness>() => {
   const { t } = useI18n()
-  const getBaseBusinessSchema = (business: StrrBusiness) => {
+  const getBaseBusinessSchema = () => {
+    if (!strrBusiness.value) {
+      return undefined
+    }
     return z.object({
       legalName: getRequiredNonEmptyString(t('validation.business.legalName')),
       homeJurisdiction: getRequiredNonEmptyString(t('validation.business.jurisdiction')),
@@ -17,7 +20,7 @@ export const useStrrBaseBusiness = () => {
         t('validation.address.country')
       ),
       hasRegOffAtt: z.boolean(),
-      regOfficeOrAtt: business.hasRegOffAtt
+      regOfficeOrAtt: strrBusiness.value.hasRegOffAtt
         ? z.object({
           attorneyName: optionalOrEmptyString,
           sameAsMailAddress: z.boolean(),
@@ -33,7 +36,7 @@ export const useStrrBaseBusiness = () => {
     })
   }
 
-  const strrBusiness = ref<StrrBusiness>({
+  const getEmptyBusiness = () => ({
     legalName: '',
     homeJurisdiction: '',
     businessNumber: '',
@@ -62,8 +65,60 @@ export const useStrrBaseBusiness = () => {
     }
   })
 
+  const strrBusiness = ref<T | undefined>(undefined)
+
+  const isMailingInBC = computed(() => {
+    const isCA = strrBusiness.value?.mailingAddress.country === 'CA'
+    const isBC = strrBusiness.value?.mailingAddress.region === 'BC'
+    return isCA && isBC
+  })
+
+  // set regOfficeOrAtt.mailingAddress to match business mailing address if sameAsMailAddress checkbox checked
+  watch(() => strrBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
+    (newVal) => {
+      if (newVal && strrBusiness.value && isMailingInBC.value) {
+        strrBusiness.value.regOfficeOrAtt.mailingAddress = { ...strrBusiness.value.mailingAddress }
+      }
+    }
+  )
+
+  watch(() => strrBusiness.value?.mailingAddress,
+    (newAddr) => {
+      if (strrBusiness.value) {
+        if (!isMailingInBC.value) {
+          strrBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
+        }
+        if (newAddr && strrBusiness.value.regOfficeOrAtt.sameAsMailAddress) {
+          strrBusiness.value.regOfficeOrAtt.mailingAddress = { ...newAddr }
+        }
+      }
+    },
+    { deep: true }
+  )
+
+  watch(() => strrBusiness.value?.hasRegOffAtt,
+    (newVal) => {
+      // reset regOfficeOrAtt if hasRegOffAtt radio set to false
+      if (strrBusiness.value) {
+        if (!newVal) {
+          strrBusiness.value.regOfficeOrAtt.attorneyName = ''
+          strrBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
+          Object.keys(strrBusiness.value.regOfficeOrAtt.mailingAddress).forEach((key) => {
+            // @ts-expect-error - ts doesnt recognize key type
+            strataBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
+          })
+        } else {
+          strrBusiness.value.regOfficeOrAtt.mailingAddress.country = 'CA'
+          strrBusiness.value.regOfficeOrAtt.mailingAddress.region = 'BC'
+        }
+      }
+    }
+  )
+
   return {
     strrBusiness,
-    getBaseBusinessSchema
+    isMailingInBC,
+    getBaseBusinessSchema,
+    getEmptyBusiness
   }
 }

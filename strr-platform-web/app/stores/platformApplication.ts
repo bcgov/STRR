@@ -41,7 +41,7 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
         registrationType: ApplicationType.PLATFORM,
         completingParty: formatParty(platContactStore.completingParty),
         platformRepresentatives: [],
-        businessDetails: formatBusinessDetails(platBusinessStore.platformBusiness),
+        businessDetails: formatBusinessDetails(platBusinessStore.platformBusiness || {} as PlatBusiness),
         platformDetails: formatPlatformDetails(platDetailsStore.platformDetails)
       }
     }

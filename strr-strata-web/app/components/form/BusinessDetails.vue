@@ -3,7 +3,7 @@ import type { Form } from '#ui/types'
 // TODO: move common code between platform + strata into base layer
 const { t } = useI18n()
 const { getBusinessSchema } = useStrrStrataBusinessStore()
-const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
+const { strataBusiness, isMailingInBC } = storeToRefs(useStrrStrataBusinessStore())
 
 const props = defineProps<{ isComplete: boolean }>()
 
@@ -16,10 +16,9 @@ const getRadioOptions = () => [
 ]
 
 // set regOfficeOrAtt.mailingAddress to match business mailing address if sameAsMailAddress checkbox checked
-watch(() => strataBusiness.value.regOfficeOrAtt.sameAsMailAddress,
+watch(() => strataBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
   (newVal) => {
     if (newVal) {
-      strataBusiness.value.regOfficeOrAtt.mailingAddress = { ...strataBusiness.value.mailingAddress }
       // revalidate fields to update/remove form errors
       strataBusinessFormRef.value?.validate([
         'regOfficeOrAtt.mailingAddress.country',
@@ -32,21 +31,8 @@ watch(() => strataBusiness.value.regOfficeOrAtt.sameAsMailAddress,
   }
 )
 
-watch(() => strataBusiness.value.hasRegOffAtt,
-  (newVal, oldVal) => {
-    // reset regOfficeOrAtt if hasRegOffAtt radio set to false
-    if (!newVal) {
-      strataBusiness.value.regOfficeOrAtt.attorneyName = ''
-      strataBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
-      Object.keys(strataBusiness.value.regOfficeOrAtt.mailingAddress).forEach((key) => {
-        // @ts-expect-error - ts doesnt recognize key type
-        strataBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
-      })
-    } else {
-      strataBusiness.value.regOfficeOrAtt.mailingAddress.country = 'CA'
-      strataBusiness.value.regOfficeOrAtt.mailingAddress.region = 'BC'
-    }
-
+watch(() => strataBusiness.value?.hasRegOffAtt,
+  (_, oldVal) => {
     // revalidate fields to update/remove form errors if user clicks yes or no
     // only revalidate if not the first click
     if (oldVal !== undefined) {
@@ -170,6 +156,7 @@ onMounted(async () => {
             <div v-if="strataBusiness.hasRegOffAtt" class="space-y-5">
               <UFormGroup name="null">
                 <UCheckbox
+                  v-if="isMailingInBC"
                   v-model="strataBusiness.regOfficeOrAtt.sameAsMailAddress"
                   :label="t('label.sameAsMailAddress')"
                 />

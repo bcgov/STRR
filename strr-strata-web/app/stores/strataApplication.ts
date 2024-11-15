@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { MultiFormValidationResult, StrataApplicationPayload, StrataApplicationResp } from '#imports'
+import type { MultiFormValidationResult, StrataApplicationPayload, StrataApplicationResp, StrrBusiness } from '#imports'
 import { formatBusinessDetails, formatStrataDetails } from '~/utils/strata-formating'
 
 export const useStrrStrataApplicationStore = defineStore('strr/strataApplication', () => {
@@ -41,7 +41,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
       registration: {
         registrationType: ApplicationType.STRATA_HOTEL,
         completingParty: formatParty(contactStore.completingParty),
-        businessDetails: formatBusinessDetails(businessStore.strataBusiness),
+        businessDetails: formatBusinessDetails(businessStore.strataBusiness || {} as StrrBusiness),
         strataHotelRepresentatives: [],
         strataHotelDetails: formatStrataDetails(detailsStore.strataDetails)
       }

@@ -61,7 +61,7 @@ onMounted(async () => {
     }
     // strata side details
     setSideHeaderDetails(
-      strataBusiness.value,
+      strataBusiness.value || {} as StrrBusiness,
       registration.value ? permitDetails.value : undefined,
       application.value?.header)
     // set sidebar accordian buildings
@@ -79,7 +79,7 @@ onMounted(async () => {
         external: true
       },
       { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
-      { label: strataBusiness.value.legalName }
+      { label: strataBusiness.value?.legalName || t('text.notAvailable') }
     ])
   }
 

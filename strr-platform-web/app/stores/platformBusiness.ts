@@ -2,10 +2,32 @@ import { z } from 'zod'
 
 export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () => {
   const { t } = useI18n()
-  const { strrBusiness, getBaseBusinessSchema } = useStrrBaseBusiness()
+  const {
+    strrBusiness: platformBusiness,
+    isMailingInBC,
+    getBaseBusinessSchema,
+    getEmptyBusiness
+  } = useStrrBaseBusiness<PlatBusiness>()
+
+  const getEmptyPlatBusFields = () => ({
+    hasCpbc: undefined,
+    cpbcLicenceNumber: '',
+    nonComplianceEmail: '',
+    nonComplianceEmailOptional: '',
+    takeDownEmail: '',
+    takeDownEmailOptional: ''
+  })
+
+  platformBusiness.value = {
+    ...getEmptyBusiness(),
+    ...getEmptyPlatBusFields()
+  }
 
   const getBusinessSchema = () => {
-    return getBaseBusinessSchema(platformBusiness.value).extend({
+    if (!platformBusiness.value) {
+      return undefined
+    }
+    return getBaseBusinessSchema()?.extend({
       hasCpbc: z.boolean(),
       cpbcLicenceNumber: platformBusiness.value.hasCpbc
         ? getRequiredNonEmptyString(t('validation.business.cpbc'))
@@ -17,20 +39,11 @@ export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () =
     })
   }
 
-  const getEmptyBusiness = () => ({
-    ...strrBusiness.value,
-    hasCpbc: undefined,
-    cpbcLicenceNumber: '',
-    nonComplianceEmail: '',
-    nonComplianceEmailOptional: '',
-    takeDownEmail: '',
-    takeDownEmailOptional: ''
-  })
-
-  const platformBusiness = ref<PlatBusiness>(getEmptyBusiness())
-
   const validatePlatformBusiness = (returnBool = false): MultiFormValidationResult | boolean => {
     const schema = getBusinessSchema()
+    if (!schema) {
+      return false
+    }
     const result = validateSchemaAgainstState(schema, platformBusiness.value, 'business-details-form')
 
     if (returnBool) {
@@ -41,11 +54,15 @@ export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () =
   }
 
   const $reset = () => {
-    platformBusiness.value = getEmptyBusiness()
+    platformBusiness.value = {
+      ...getEmptyBusiness(),
+      ...getEmptyPlatBusFields()
+    }
   }
 
   return {
     platformBusiness,
+    isMailingInBC,
     getBusinessSchema,
     validatePlatformBusiness,
     $reset

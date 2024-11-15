@@ -2,7 +2,7 @@
 import type { Form } from '#ui/types'
 const { t } = useI18n()
 const { getBusinessSchema } = useStrrPlatformBusiness()
-const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
+const { platformBusiness, isMailingInBC } = storeToRefs(useStrrPlatformBusiness())
 
 const props = defineProps<{ isComplete: boolean }>()
 
@@ -15,15 +15,16 @@ const getRadioOptions = () => [
 ]
 
 // reset cpbcLicenceNumber if hasCpbc radio button changed
-watch(() => platformBusiness.value.hasCpbc, () => {
-  platformBusiness.value.cpbcLicenceNumber = ''
+watch(() => platformBusiness.value?.hasCpbc, () => {
+  if (platformBusiness.value) {
+    platformBusiness.value.cpbcLicenceNumber = ''
+  }
 })
 
 // set regOfficeOrAtt.mailingAddress to match business mailing address if sameAsMailAddress checkbox checked
-watch(() => platformBusiness.value.regOfficeOrAtt.sameAsMailAddress,
+watch(() => platformBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
   (newVal) => {
     if (newVal) {
-      platformBusiness.value.regOfficeOrAtt.mailingAddress = { ...platformBusiness.value.mailingAddress }
       // revalidate fields to update/remove form errors
       platformBusinessFormRef.value?.validate([
         'regOfficeOrAtt.mailingAddress.country',
@@ -36,21 +37,8 @@ watch(() => platformBusiness.value.regOfficeOrAtt.sameAsMailAddress,
   }
 )
 
-watch(() => platformBusiness.value.hasRegOffAtt,
-  (newVal, oldVal) => {
-    // reset regOfficeOrAtt if hasRegOffAtt radio set to false
-    if (!newVal) {
-      platformBusiness.value.regOfficeOrAtt.attorneyName = ''
-      platformBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
-      Object.keys(platformBusiness.value.regOfficeOrAtt.mailingAddress).forEach((key) => {
-        // @ts-expect-error - ts doesnt recognize key type
-        platformBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
-      })
-    } else {
-      platformBusiness.value.regOfficeOrAtt.mailingAddress.country = 'CA'
-      platformBusiness.value.regOfficeOrAtt.mailingAddress.region = 'BC'
-    }
-
+watch(() => platformBusiness.value?.hasRegOffAtt,
+  (_, oldVal) => {
     // revalidate fields to update/remove form errors if user clicks yes or no
     // only revalidate if not the first click
     if (oldVal !== undefined) {
@@ -81,6 +69,7 @@ onMounted(async () => {
       :heading="{ label: $t('strr.section.title.businessInfo'), labelClass: 'font-bold md:ml-6' }"
     >
       <UForm
+        v-if="platformBusiness"
         ref="platformBusinessFormRef"
         :schema="getBusinessSchema()"
         :state="platformBusiness"
@@ -200,6 +189,7 @@ onMounted(async () => {
             <div v-if="platformBusiness.hasRegOffAtt" class="space-y-5">
               <UFormGroup name="null">
                 <UCheckbox
+                  v-if="isMailingInBC"
                   v-model="platformBusiness.regOfficeOrAtt.sameAsMailAddress"
                   :label="t('label.sameAsMailAddress')"
                 />

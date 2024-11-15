@@ -41,9 +41,9 @@ onMounted(async () => {
   } else {
     // existing registration or application under the account
     // set left side of header
-    title.value = platformBusiness.value.legalName
+    title.value = platformBusiness.value?.legalName
     subtitles.value = [
-      { text: platformBusiness.value.homeJurisdiction },
+      { text: platformBusiness.value?.homeJurisdiction || t('text.notAvailable') },
       { text: t(`strr.label.listingSize.${platformDetails.value.listingSize}`) }
     ]
     if (!registration.value) {
@@ -59,13 +59,13 @@ onMounted(async () => {
     }
     // add common side details
     setSideHeaderDetails(
-      platformBusiness.value,
+      platformBusiness.value || {} as PlatBusiness,
       registration.value ? permitDetails.value : undefined,
       application.value?.header)
     // add platform specific side details
     setPlatformSideHeaderDetails()
     // set sidebar accordian addresses
-    addresses.value = getDashboardAddresses(platformBusiness.value)
+    addresses.value = getDashboardAddresses(platformBusiness.value || {} as PlatBusiness)
     // platform specific address items (emails)
     addresses.value.push({
       showAvatar: false,
@@ -74,17 +74,17 @@ onMounted(async () => {
         {
           icon: 'i-mdi-at',
           label: t('strr.label.noncomplianceEmail'),
-          text: platformBusiness.value.nonComplianceEmail
+          text: platformBusiness.value?.nonComplianceEmail
         },
-        ...(platformBusiness.value.nonComplianceEmailOptional
+        ...(platformBusiness.value?.nonComplianceEmailOptional
           ? [{ class: '-mt-2 pl-8', text: platformBusiness.value.nonComplianceEmailOptional }]
           : []),
         {
           icon: 'i-mdi-at',
           label: t('strr.label.takedownEmail'),
-          text: platformBusiness.value.takeDownEmail
+          text: platformBusiness.value?.takeDownEmail
         },
-        ...(platformBusiness.value.takeDownEmailOptional
+        ...(platformBusiness.value?.takeDownEmailOptional
           ? [{ class: '-mt-2 pl-8', text: platformBusiness.value.takeDownEmailOptional }]
           : [])
       ]
@@ -101,7 +101,7 @@ onMounted(async () => {
         appendAccountId: true,
         external: true
       },
-      { label: platformBusiness.value.legalName }
+      { label: platformBusiness.value?.legalName || t('text.notAvailable') }
     ])
   }
   loading.value = false
