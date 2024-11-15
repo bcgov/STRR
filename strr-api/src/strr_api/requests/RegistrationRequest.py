@@ -178,9 +178,9 @@ class Contact:
     def __init__(
         self,
         name,
-        dateOfBirth,
         details,
         mailingAddress,
+        dateOfBirth=None,
         socialInsuranceNumber=None,
         businessNumber=None,
         businessLegalName=None,
