@@ -10,7 +10,11 @@ const { handlePaymentRedirect } = useNavigate()
 const { validateContact } = useStrrContactStore()
 const { validateStrataBusiness } = useStrrStrataBusinessStore()
 const { validateStrataDetails } = useStrrStrataDetailsStore()
-const { submitStrataApplication, validateStrataConfirmation } = useStrrStrataApplicationStore()
+const {
+  submitStrataApplication,
+  validateStrataConfirmation,
+  $reset: applicationReset
+} = useStrrStrataApplicationStore()
 // fee stuff
 const {
   addReplaceFee,
@@ -22,6 +26,7 @@ const strataFee = ref<ConnectFeeItem | undefined>(undefined)
 
 onMounted(async () => {
   // TODO: check for application id in the route query, if there then load the application
+  applicationReset()
   strataFee.value = await getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_STRATA)
   if (strataFee.value) {
     addReplaceFee(strataFee.value)

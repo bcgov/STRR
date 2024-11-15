@@ -4,7 +4,7 @@ const config = useRuntimeConfig().public
 const accountStore = useConnectAccountStore()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadPlatform } = useStrrPlatformStore()
+const { downloadApplicationReceipt, loadPlatform, $reset } = useStrrPlatformStore()
 const {
   application,
   registration,
@@ -31,6 +31,7 @@ watch(() => accountStore.currentAccount.id,
 
 onMounted(async () => {
   loading.value = true
+  $reset()
   await loadPlatform()
   // set header stuff
   if (!permitDetails.value || !showPermitDetails.value) {
@@ -53,7 +54,7 @@ onMounted(async () => {
     } else {
       setHeaderDetails(
         permitDetails.value.status,
-        permitDetails.value.expiryDate,
+        dateToStringPacific(permitDetails.value.expiryDate, 'MMMM Do, YYYY'),
         downloadApplicationReceipt)
     }
     // add common side details

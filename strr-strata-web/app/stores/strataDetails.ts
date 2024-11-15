@@ -24,7 +24,7 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
     )
   })
 
-  const strataDetails = ref<StrataDetails>({
+  const getEmptyStrataDetails = () => ({
     brand: { name: '', website: '' },
     buildings: [],
     location: {
@@ -38,6 +38,8 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
     },
     numberOfUnits: undefined
   })
+
+  const strataDetails = ref<StrataDetails>(getEmptyStrataDetails())
 
   const addNewEmptyBuilding = () => {
     strataDetails.value.buildings.push({
@@ -65,12 +67,17 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
     }
   }
 
+  const $reset = () => {
+    strataDetails.value = getEmptyStrataDetails()
+  }
+
   return {
     strataDetails,
     getStrataBrandSchema,
     strataDetailsSchema,
     addNewEmptyBuilding,
     removeBuildingAtIndex,
-    validateStrataDetails
+    validateStrataDetails,
+    $reset
   }
 })

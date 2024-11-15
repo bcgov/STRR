@@ -37,6 +37,13 @@ export const useStrrPlatformDetails = defineStore('strr/platformDetails', () => 
     }
   }
 
+  const $reset = () => {
+    platformDetails.value = {
+      brands: [{ name: '', website: '' }],
+      listingSize: undefined
+    }
+  }
+
   return {
     platformDetails,
     platformDetailSchema,
@@ -44,6 +51,7 @@ export const useStrrPlatformDetails = defineStore('strr/platformDetails', () => 
     getPlatformDetailsSchema,
     addNewEmptyBrand,
     removeBrandAtIndex,
-    validatePlatformDetails
+    validatePlatformDetails,
+    $reset
   }
 })

@@ -17,7 +17,7 @@ export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () =
     })
   }
 
-  const platformBusiness = ref<PlatBusiness>({
+  const getEmptyBusiness = () => ({
     ...strrBusiness.value,
     hasCpbc: undefined,
     cpbcLicenceNumber: '',
@@ -26,6 +26,8 @@ export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () =
     takeDownEmail: '',
     takeDownEmailOptional: ''
   })
+
+  const platformBusiness = ref<PlatBusiness>(getEmptyBusiness())
 
   const validatePlatformBusiness = (returnBool = false): MultiFormValidationResult | boolean => {
     const schema = getBusinessSchema()
@@ -38,9 +40,14 @@ export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () =
     }
   }
 
+  const $reset = () => {
+    platformBusiness.value = getEmptyBusiness()
+  }
+
   return {
     platformBusiness,
     getBusinessSchema,
-    validatePlatformBusiness
+    validatePlatformBusiness,
+    $reset
   }
 })

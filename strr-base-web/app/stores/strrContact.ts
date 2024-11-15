@@ -110,6 +110,13 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
     }
   }
 
+  const $reset = () => {
+    completingParty.value = getNewContact(true)
+    isCompletingPartyRep.value = undefined
+    primaryRep.value = undefined
+    secondaryRep.value = undefined
+  }
+
   return {
     completingParty,
     isCompletingPartyRep,
@@ -121,6 +128,7 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
     getContactSchema,
     getNewContact,
     getNewRepresentative,
-    validateContact
+    validateContact,
+    $reset
   }
 })

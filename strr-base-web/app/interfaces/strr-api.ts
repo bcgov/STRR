@@ -69,7 +69,7 @@ export interface ApplicationHeader {
   name: string
   paymentAccount: string
   paymentStatus: string
-  paymentToken: string // invoice id
+  paymentToken: number // invoice id
   status: ApplicationStatus
   // below will only exist for applications that have a linked registration
   registrationEndDate?: Date

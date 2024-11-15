@@ -3,9 +3,12 @@ import { formatBusinessDetailsUI, formatStrataDetailsUI } from '~/utils/strata-f
 export const useStrrStrataStore = defineStore('strr/strata', () => {
   // TODO: move common pieces of strata and platform to base layer composable
   const { getAccountApplications } = useStrrApi()
-  const { completingParty, primaryRep, secondaryRep } = storeToRefs(useStrrContactStore())
-  const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
-  const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+  const contactStore = useStrrContactStore()
+  const businessStore = useStrrStrataBusinessStore()
+  const detailsStore = useStrrStrataDetailsStore()
+  const { completingParty, primaryRep, secondaryRep } = storeToRefs(contactStore)
+  const { strataBusiness } = storeToRefs(businessStore)
+  const { strataDetails } = storeToRefs(detailsStore)
   const { t } = useI18n()
 
   const {
@@ -58,6 +61,14 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
       })
   }
 
+  const $reset = () => {
+    contactStore.$reset()
+    businessStore.$reset()
+    detailsStore.$reset()
+    application.value = undefined
+    registration.value = undefined
+  }
+
   return {
     application,
     registration,
@@ -66,6 +77,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     showPermitDetails,
     downloadApplicationReceipt,
     loadStrata,
-    loadStrataHotelList
+    loadStrataHotelList,
+    $reset
   }
 })

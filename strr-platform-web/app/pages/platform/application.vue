@@ -9,7 +9,11 @@ const accountStore = useConnectAccountStore()
 const { validateContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
 const { validatePlatformDetails } = useStrrPlatformDetails()
-const { submitPlatformApplication, validatePlatformConfirmation } = useStrrPlatformApplication()
+const {
+  submitPlatformApplication,
+  validatePlatformConfirmation,
+  $reset: applicationReset
+} = useStrrPlatformApplication()
 // fee stuff
 const {
   addReplaceFee,
@@ -25,6 +29,7 @@ const platFeeSm = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeLg = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeWv = ref<ConnectFeeItem | undefined>(undefined)
 onMounted(async () => {
+  applicationReset()
   const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_SM),
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_LG),

@@ -21,3 +21,11 @@ export interface ConnectDetailHeaderItem {
   link?: boolean
   linkHref?: string
 }
+
+export interface ConnectDetailHeaderBtn {
+  action: Function
+  label: string
+  icon?: string
+  loading?: boolean
+  trailingIcon?: string
+}

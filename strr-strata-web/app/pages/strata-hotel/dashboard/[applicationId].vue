@@ -8,7 +8,7 @@ const {
   title,
   subtitles
 } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadStrata } = useStrrStrataStore()
+const { downloadApplicationReceipt, loadStrata, $reset } = useStrrStrataStore()
 const {
   application,
   registration,
@@ -26,6 +26,7 @@ const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 
 onMounted(async () => {
   loading.value = true
+  $reset()
   const applicationId = route.params.applicationId as string
   await loadStrata(applicationId)
   // set header stuff
@@ -55,7 +56,7 @@ onMounted(async () => {
     } else {
       setHeaderDetails(
         permitDetails.value.status,
-        permitDetails.value.expiryDate,
+        dateToStringPacific(permitDetails.value.expiryDate, 'MMMM Do, YYYY'),
         downloadApplicationReceipt)
     }
     // strata side details

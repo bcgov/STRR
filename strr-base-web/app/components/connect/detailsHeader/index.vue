@@ -28,6 +28,12 @@ const save = (sideDetail: ConnectDetailHeaderSideDetail) => {
   }
 }
 
+const handleButtonAction = async (button: ConnectDetailHeaderBtn) => {
+  button.loading = true
+  await button.action()
+  button.loading = false
+}
+
 </script>
 
 <template>
@@ -74,10 +80,11 @@ const save = (sideDetail: ConnectDetailHeaderSideDetail) => {
                   :key="btn.label"
                   :label="btn.label"
                   :icon="btn.icon"
+                  :loading="btn.loading"
                   class="pl-0"
                   color="primary"
                   variant="link"
-                  @click="btn.action()"
+                  @click="handleButtonAction(btn)"
                 />
               </div>
             </slot>

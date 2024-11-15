@@ -80,10 +80,19 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
     return { paymentToken, filingId, applicationStatus }
   }
 
+  const $reset = () => {
+    contactStore.$reset()
+    businessStore.$reset()
+    detailsStore.$reset()
+    confirmation.confirmDelistAndCancelBookings = false
+    confirmation.confirmInfoAccuracy = false
+  }
+
   return {
     confirmation,
     confirmationSchema,
     submitStrataApplication,
-    validateStrataConfirmation
+    validateStrataConfirmation,
+    $reset
   }
 })

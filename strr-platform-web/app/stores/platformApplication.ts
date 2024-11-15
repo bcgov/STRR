@@ -69,10 +69,19 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     return await postApplication<PlatformApplicationPayload, PlatformApplicationResp>(body)
   }
 
+  const $reset = () => {
+    platContactStore.$reset()
+    platBusinessStore.$reset()
+    platDetailsStore.$reset()
+    platformConfirmation.confirmDelistAndCancelBookings = false
+    platformConfirmation.confirmInfoAccuracy = false
+  }
+
   return {
     platformConfirmation,
     platformConfirmationSchema,
     submitPlatformApplication,
-    validatePlatformConfirmation
+    validatePlatformConfirmation,
+    $reset
   }
 })

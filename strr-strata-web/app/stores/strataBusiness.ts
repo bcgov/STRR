@@ -16,9 +16,14 @@ export const useStrrStrataBusinessStore = defineStore('strr/strataBusiness', () 
     }
   }
 
+  const $reset = () => {
+    strataBusiness.value = { ...strrBusiness.value }
+  }
+
   return {
     strataBusiness,
     getBusinessSchema,
-    validateStrataBusiness
+    validateStrataBusiness,
+    $reset
   }
 })

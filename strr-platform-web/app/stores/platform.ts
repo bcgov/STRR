@@ -1,7 +1,10 @@
 export const useStrrPlatformStore = defineStore('strr/platform', () => {
-  const { completingParty, primaryRep, secondaryRep } = storeToRefs(useStrrContactStore())
-  const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
-  const { platformDetails } = storeToRefs(useStrrPlatformDetails())
+  const contactStore = useStrrContactStore()
+  const businessStore = useStrrPlatformBusiness()
+  const detailsStore = useStrrPlatformDetails()
+  const { completingParty, primaryRep, secondaryRep } = storeToRefs(contactStore)
+  const { platformBusiness } = storeToRefs(businessStore)
+  const { platformDetails } = storeToRefs(detailsStore)
 
   const {
     application,
@@ -31,6 +34,14 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     }
   }
 
+  const $reset = () => {
+    contactStore.$reset()
+    businessStore.$reset()
+    detailsStore.$reset()
+    application.value = undefined
+    registration.value = undefined
+  }
+
   return {
     application,
     registration,
@@ -38,6 +49,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     isPaidApplication,
     showPermitDetails,
     downloadApplicationReceipt,
-    loadPlatform
+    loadPlatform,
+    $reset
   }
 })

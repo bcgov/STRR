@@ -4,7 +4,7 @@ export const useConnectDetailsHeaderStore = defineStore('connect/detailsHeader',
   const subtitles = ref<ConnectDetailHeaderItem[]>([])
   const details = ref<ConnectDetailHeaderItem[]>([])
   const sideDetails = ref<ConnectDetailHeaderSideDetail[]>([])
-  const bottomButtons = ref<{ action: Function, label: string, icon?: string, trailingIcon?: string }[]>([])
+  const bottomButtons = ref<ConnectDetailHeaderBtn[]>([])
 
   return {
     loading,
