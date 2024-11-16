@@ -16,7 +16,7 @@ const getRadioOptions = () => [
 ]
 
 // set regOfficeOrAtt.mailingAddress to match business mailing address if sameAsMailAddress checkbox checked
-watch(() => strataBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
+watch(() => strataBusiness.value.regOfficeOrAtt.sameAsMailAddress,
   (newVal) => {
     if (newVal) {
       // revalidate fields to update/remove form errors
@@ -31,7 +31,7 @@ watch(() => strataBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
   }
 )
 
-watch(() => strataBusiness.value?.hasRegOffAtt,
+watch(() => strataBusiness.value.hasRegOffAtt,
   (_, oldVal) => {
     // revalidate fields to update/remove form errors if user clicks yes or no
     // only revalidate if not the first click

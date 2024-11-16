@@ -6,14 +6,8 @@ export const useStrrStrataBusinessStore = defineStore('strr/strataBusiness', () 
     getEmptyBusiness
   } = useStrrBaseBusiness<StrrBusiness>()
 
-  strataBusiness.value = getEmptyBusiness()
-
   const validateStrataBusiness = (returnBool = false): MultiFormValidationResult | boolean => {
     const schema = getBusinessSchema()
-    if (!schema) {
-      return false
-    }
-
     const result = validateSchemaAgainstState(schema, strataBusiness.value, 'business-details-form')
 
     if (returnBool) {

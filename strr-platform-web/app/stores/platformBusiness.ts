@@ -18,16 +18,14 @@ export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () =
     takeDownEmailOptional: ''
   })
 
+  // add extra platform details to default business
   platformBusiness.value = {
-    ...getEmptyBusiness(),
+    ...platformBusiness.value,
     ...getEmptyPlatBusFields()
   }
 
   const getBusinessSchema = () => {
-    if (!platformBusiness.value) {
-      return undefined
-    }
-    return getBaseBusinessSchema()?.extend({
+    return getBaseBusinessSchema().extend({
       hasCpbc: z.boolean(),
       cpbcLicenceNumber: platformBusiness.value.hasCpbc
         ? getRequiredNonEmptyString(t('validation.business.cpbc'))
@@ -41,9 +39,6 @@ export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () =
 
   const validatePlatformBusiness = (returnBool = false): MultiFormValidationResult | boolean => {
     const schema = getBusinessSchema()
-    if (!schema) {
-      return false
-    }
     const result = validateSchemaAgainstState(schema, platformBusiness.value, 'business-details-form')
 
     if (returnBool) {

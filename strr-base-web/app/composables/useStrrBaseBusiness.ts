@@ -5,9 +5,6 @@ import { getRequiredAddress, getRequiredNonEmptyString, optionalOrEmptyString } 
 export const useStrrBaseBusiness = <T extends StrrBusiness>() => {
   const { t } = useI18n()
   const getBaseBusinessSchema = () => {
-    if (!strrBusiness.value) {
-      return undefined
-    }
     return z.object({
       legalName: getRequiredNonEmptyString(t('validation.business.legalName')),
       homeJurisdiction: optionalOrEmptyString,
@@ -65,52 +62,48 @@ export const useStrrBaseBusiness = <T extends StrrBusiness>() => {
     }
   })
 
-  const strrBusiness = ref<T | undefined>(undefined)
+  const strrBusiness = ref<T>(getEmptyBusiness() as T)
 
   const isMailingInBC = computed(() => {
-    const isCA = strrBusiness.value?.mailingAddress.country === 'CA'
-    const isBC = strrBusiness.value?.mailingAddress.region === 'BC'
+    const isCA = strrBusiness.value.mailingAddress.country === 'CA'
+    const isBC = strrBusiness.value.mailingAddress.region === 'BC'
     return isCA && isBC
   })
 
   // set regOfficeOrAtt.mailingAddress to match business mailing address if sameAsMailAddress checkbox checked
-  watch(() => strrBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
+  watch(() => strrBusiness.value.regOfficeOrAtt.sameAsMailAddress,
     (newVal) => {
-      if (newVal && strrBusiness.value && isMailingInBC.value) {
+      if (newVal && isMailingInBC.value) {
         strrBusiness.value.regOfficeOrAtt.mailingAddress = { ...strrBusiness.value.mailingAddress }
       }
     }
   )
 
-  watch(() => strrBusiness.value?.mailingAddress,
+  watch(() => strrBusiness.value.mailingAddress,
     (newAddr) => {
-      if (strrBusiness.value) {
-        if (!isMailingInBC.value) {
-          strrBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
-        }
-        if (newAddr && strrBusiness.value.regOfficeOrAtt.sameAsMailAddress) {
-          strrBusiness.value.regOfficeOrAtt.mailingAddress = { ...newAddr }
-        }
+      if (!isMailingInBC.value) {
+        strrBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
+      }
+      if (newAddr && strrBusiness.value.regOfficeOrAtt.sameAsMailAddress) {
+        strrBusiness.value.regOfficeOrAtt.mailingAddress = { ...newAddr }
       }
     },
     { deep: true }
   )
 
-  watch(() => strrBusiness.value?.hasRegOffAtt,
+  watch(() => strrBusiness.value.hasRegOffAtt,
     (newVal) => {
       // reset regOfficeOrAtt if hasRegOffAtt radio set to false
-      if (strrBusiness.value) {
-        if (!newVal) {
-          strrBusiness.value.regOfficeOrAtt.attorneyName = ''
-          strrBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
-          Object.keys(strrBusiness.value.regOfficeOrAtt.mailingAddress).forEach((key) => {
-            // @ts-expect-error - ts doesnt recognize key type
-            strrBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
-          })
-        } else {
-          strrBusiness.value.regOfficeOrAtt.mailingAddress.country = 'CA'
-          strrBusiness.value.regOfficeOrAtt.mailingAddress.region = 'BC'
-        }
+      if (!newVal) {
+        strrBusiness.value.regOfficeOrAtt.attorneyName = ''
+        strrBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
+        Object.keys(strrBusiness.value.regOfficeOrAtt.mailingAddress).forEach((key) => {
+          // @ts-expect-error - ts doesnt recognize key type
+          strrBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
+        })
+      } else {
+        strrBusiness.value.regOfficeOrAtt.mailingAddress.country = 'CA'
+        strrBusiness.value.regOfficeOrAtt.mailingAddress.region = 'BC'
       }
     }
   )

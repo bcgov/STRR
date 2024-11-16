@@ -15,14 +15,12 @@ const getRadioOptions = () => [
 ]
 
 // reset cpbcLicenceNumber if hasCpbc radio button changed
-watch(() => platformBusiness.value?.hasCpbc, () => {
-  if (platformBusiness.value) {
-    platformBusiness.value.cpbcLicenceNumber = ''
-  }
+watch(() => platformBusiness.value.hasCpbc, () => {
+  platformBusiness.value.cpbcLicenceNumber = ''
 })
 
 // set regOfficeOrAtt.mailingAddress to match business mailing address if sameAsMailAddress checkbox checked
-watch(() => platformBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
+watch(() => platformBusiness.value.regOfficeOrAtt.sameAsMailAddress,
   (newVal) => {
     if (newVal) {
       // revalidate fields to update/remove form errors
@@ -37,7 +35,7 @@ watch(() => platformBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
   }
 )
 
-watch(() => platformBusiness.value?.hasRegOffAtt,
+watch(() => platformBusiness.value.hasRegOffAtt,
   (_, oldVal) => {
     // revalidate fields to update/remove form errors if user clicks yes or no
     // only revalidate if not the first click
@@ -69,7 +67,6 @@ onMounted(async () => {
       :heading="{ label: $t('strr.section.title.businessInfo'), labelClass: 'font-bold md:ml-6' }"
     >
       <UForm
-        v-if="platformBusiness"
         ref="platformBusinessFormRef"
         :schema="getBusinessSchema()"
         :state="platformBusiness"
