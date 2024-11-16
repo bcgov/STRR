@@ -64,7 +64,7 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
   const submitPlatformApplication = async () => {
     const body = createApplicationBody()
 
-    console.info('submitting application: ', body)
+    // console.info('submitting application: ', body)
 
     return await postApplication<PlatformApplicationPayload, PlatformApplicationResp>(body)
   }
