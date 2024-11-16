@@ -105,7 +105,7 @@ export const useStrrBaseBusiness = <T extends StrrBusiness>() => {
           strrBusiness.value.regOfficeOrAtt.sameAsMailAddress = false
           Object.keys(strrBusiness.value.regOfficeOrAtt.mailingAddress).forEach((key) => {
             // @ts-expect-error - ts doesnt recognize key type
-            strataBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
+            strrBusiness.value.regOfficeOrAtt.mailingAddress[key] = ''
           })
         } else {
           strrBusiness.value.regOfficeOrAtt.mailingAddress.country = 'CA'
