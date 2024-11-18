@@ -4,9 +4,18 @@ import {
   ModalHelpRegisterStrataHotel
 } from '#components'
 
-export const useStrataModals = () => {
+export const useHostPmModals = () => {
   const modal = useModal()
   const { t } = useI18n()
+
+  function openHelpCreateAccountModal () {
+    modal.open(ModalBase, {
+      title: t('modal.createAccount.title'),
+      content: t('modal.createAccount.content'),
+      error: { showContactInfo: true, title: '', description: '', hideIcon: true },
+      actions: [{ label: t('btn.close'), handler: () => close() }]
+    })
+  }
 
   function openhelpRegisteringStrataModal () {
     modal.open(ModalBase, {
@@ -30,6 +39,7 @@ export const useStrataModals = () => {
   return {
     openhelpRegisteringStrataModal,
     openHelpRegisterStrataHotelModal,
+    openHelpCreateAccountModal,
     close
   }
 }

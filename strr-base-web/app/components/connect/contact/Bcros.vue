@@ -2,23 +2,27 @@
   <div class="space-y-5">
     <ul class="space-y-1">
       <li>
-        <span>
+        <span class="inline-flex items-center gap-1">
+          <UIcon name="i-mdi-phone" class="mr-2 size-5 text-blue-500" />
           {{ $t('contactInfo.bcRegGeneral.tollFree.title') }}
-          <a class="underline" href="tel:+1-877-526-1526">1-877-526-1526</a>
+          <a class="text-blue-500 underline" href="tel:+1-877-526-1526">1-877-526-1526</a>
         </span>
       </li>
       <li>
-        <span>
+        <span class="inline-flex items-center gap-1">
+          <UIcon name="i-mdi-phone" class="mr-2 size-5 text-blue-500" />
           {{ $t('contactInfo.bcRegGeneral.victoriaOffice.title') }}
-          <a class="underline" href="tel:+1-250-387-7848">250-387-7848</a>
+          <a class="text-blue-500 underline" href="tel:+1-250-387-7848">250-387-7848</a>
         </span>
       </li>
       <li>
-        <span>
+        <span class="inline-flex items-center gap-1">
+          <UIcon name="i-mdi-email" class="mr-2 size-5 text-blue-500" />
           {{ $t('contactInfo.bcRegGeneral.email.title') }}
           <a
-            class="underline"
+            class="text-blue-500 underline"
             href="mailto:bcregistries@gov.bc.ca?subject=BC%20Registries%20Support%20Request"
+            target="_blank"
           >
             BCRegistries@gov.bc.ca
           </a>

@@ -11,6 +11,7 @@ defineProps<{
     title: string
     description: string
     showContactInfo?: boolean
+    hideIcon?: boolean
   },
   fullscreen?: boolean,
   persist?: boolean
@@ -66,7 +67,11 @@ defineEmits<{
           {{ content }}
         </p>
         <div v-if="error" class="flex flex-col items-center gap-4 text-center">
-          <UIcon name="i-mdi-alert-circle-outline" class="-mt-10 size-8 text-red-500" />
+          <UIcon
+            v-if="!!error.hideIcon !== true"
+            name="i-mdi-alert-circle-outline"
+            class="-mt-10 size-8 text-red-500"
+          />
           <h2 class="text-xl font-semibold">
             {{ error.title }}
           </h2>

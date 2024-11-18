@@ -4,10 +4,9 @@ const localePath = useLocalePath()
 const { t } = useI18n()
 const isSmallScreen = useMediaQuery('(max-width: 640px)')
 const accountStore = useConnectAccountStore()
-const connectNav = useConnectNav()
 
 useHead({
-  title: t('strr.title.chooseAccount')
+  title: t('page.chooseAccount.title')
 })
 
 definePageMeta({
@@ -22,16 +21,13 @@ function handleAccountSwitch (id: string) {
   if (route.query.return) {
     return navigateTo(route.query.return as string)
   } else {
-    return navigateTo(localePath('/strata-hotel/dashboard'))
+    return navigateTo(localePath('/dashboard'))
   }
 }
 </script>
 <template>
   <div class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="$t('label.selectAccount')" />
-
-    <p>What subtitle/text should go here?</p>
-    <!-- <p>{{ $t('strr.text.selectAccountForStrr') }}</p> -->
+    <ConnectTypographyH1 :text="$t('page.chooseAccount.h1')" />
 
     <UAlert
       color="yellow"
@@ -43,9 +39,10 @@ function handleAccountSwitch (id: string) {
       }"
     >
       <template #description>
-        <span class="text-gray-900">Some warning here maybe</span>
-        <!-- eslint-disable-next-line -->
-        <!-- <ConnectI18nBold class="text-bcGovColor-darkGray" translation-path="strr.text.onlyPremiumAccountWarning" /> -->
+        <ConnectI18nBold
+          class="text-bcGovColor-darkGray"
+          translation-path="page.chooseAccount.existingAccountFoundAlert"
+        />
       </template>
     </UAlert>
 
@@ -140,8 +137,7 @@ function handleAccountSwitch (id: string) {
         icon="i-mdi-chevron-right"
         trailing
         :block="isSmallScreen"
-        :to="connectNav.createAccountUrl()"
-        target="_blank"
+        :to="localePath('/auth/account/create-new')"
       />
     </div>
   </div>

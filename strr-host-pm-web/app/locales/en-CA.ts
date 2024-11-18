@@ -79,14 +79,18 @@ export default {
   },
   btn: {
     addStrataHotel: 'Add a Strata Hotel',
-    view: 'View'
+    view: 'View',
+    saveStartApplication: 'Save & Start Application'
   },
   label: {
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
     application: 'Application',
     registration: 'Registration',
-    date: 'Date'
+    date: 'Date',
+    accountName: 'Account Name',
+    accountInfo: 'Account Information',
+    primaryContactInfo: 'Primary Contact Information'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page'
@@ -106,6 +110,11 @@ export default {
       triggerBtn: 'Information collection notice',
       title: 'Information Collection Notice',
       content: 'Any personal information required is collected to support the administration and enforcement of the {act}, under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at {link}.'
+    },
+    createAccount: {
+      triggerBtn: 'Help with setting up an account',
+      title: 'Need Help?',
+      content: 'If you need help with setting up your BC Registries and Online Services account, please contact us.'
     }
   },
   table: {
@@ -119,6 +128,23 @@ export default {
       title: 'Dashboard - My Short-Term Rental Registry',
       h1: 'My Short-Term Rental Registry',
       subtitle: 'Register and keep short-term rental unit information up to date.'
+    },
+    chooseAccount: {
+      title: 'Choose Account - My Short-Term Rental Registry',
+      h1: 'Existing Account Found',
+      existingAccountFoundAlert: '{boldStart}Note{boldEnd}: It looks like you already have an account with BC Registries and Online Services. You can use an existing account to proceed or create a new one.'
+    },
+    createAccount: {
+      title: 'Create Account - My Short-Term Rental Registry',
+      h1: 'Service BC Account Creation',
+      subtitle: 'Create a new account to continue.',
+      accountNameHint: "e.g., Andy's Rentals"
+    }
+  },
+  validation: {
+    accountName: {
+      required: 'Please enter an account name',
+      exists: 'An account with this name already exists'
     }
   }
 }
