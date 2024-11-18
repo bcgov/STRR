@@ -42,6 +42,30 @@ MOCK_PAYMENT_COMPLETED_RESPONSE = {
 MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 
+def test_save_and_resume_applications(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_BUSINESS_AS_HOST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        headers["isDraft"] = True
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        rv = client.put(f"/applications/{application_number}", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+
+def test_staff_cannot_access_draft_applications(session, client, jwt):
+    headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv = client.get("/applications/search", headers=headers)
+    assert HTTPStatus.OK == rv.status_code
+    applications = rv.json
+    assert len(applications.get("applications")) == 0
+
+
 @pytest.mark.parametrize(
     "request_json",
     [
@@ -74,7 +98,23 @@ def test_get_applications(session, client, jwt):
 
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
-    assert len(response_json.get("applications")) == 2
+    assert len(response_json.get("applications")) == 3
+
+
+def test_get_applications_by_registration_type(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+    rv = client.get("/applications?registrationType=HOST", headers=headers)
+
+    assert HTTPStatus.OK == rv.status_code
+    response_json = rv.json
+    assert len(response_json.get("applications")) == 3
+
+    rv = client.get("/applications?registrationType=PLATFORM", headers=headers)
+
+    assert HTTPStatus.OK == rv.status_code
+    response_json = rv.json
+    assert len(response_json.get("applications")) == 0
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
