@@ -77,7 +77,7 @@ class RegistrationService:
         start_date = datetime.utcnow()
         registration_details = registration_request.get("registration")
         registration_type = registration_details.get("registrationType")
-        registration_number = RegistrationService._get_registration_number(registration_type)
+        registration_number = RegistrationService._get_registration_number(registration_details)
 
         registration = Registration(
             user_id=user_id,
@@ -410,18 +410,25 @@ class RegistrationService:
         }
 
     @classmethod
-    def _get_registration_number(cls, registration_type: str):
+    def _get_registration_number(cls, registration_details: dict):
+        registration_type = registration_details.get("registrationType")
+
         registration_code = None
         if registration_type == RegistrationType.HOST.value:
-            registration_code = "BCH"
+            is_application_initiated_by_property_manager = registration_details.get("propertyManager", {}).get(
+                "initiatedByPropertyManager", False
+            )
+            if is_application_initiated_by_property_manager:
+                registration_code = "PM"
+            else:
+                registration_code = "H"
         elif registration_type == RegistrationType.PLATFORM.value:
-            registration_code = "BCP"
+            registration_code = "PL"
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
-            registration_code = "BCS"
-        registration_number_prefix = f'{registration_code}{datetime.now(timezone.utc).strftime("%y")}'
+            registration_code = "ST"
         while True:
             random_digits = "".join(random.choices("0123456789", k=9))
-            registration_number = f"{registration_number_prefix}{random_digits}"
+            registration_number = f"{registration_code}{random_digits}"
             if Registration.query.filter(Registration.registration_number == registration_number).one_or_none() is None:
                 return registration_number
 

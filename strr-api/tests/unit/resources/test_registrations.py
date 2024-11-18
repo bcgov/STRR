@@ -301,7 +301,7 @@ def test_get_host_registration_by_id(session, client, jwt):
         assert response_json.get("header").get("reviewer").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
-        assert response_json.get("header").get("registrationNumber").startswith("BCH")
+        assert response_json.get("header").get("registrationNumber").startswith("H")
         registration_id = response_json.get("header").get("registrationId")
         rv = client.get(f"/registrations/{registration_id}", headers=headers)
         assert rv.status_code == HTTPStatus.OK
@@ -330,7 +330,7 @@ def test_get_platform_registration_by_id(session, client, jwt):
         assert response_json.get("header").get("reviewer").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
-        assert response_json.get("header").get("registrationNumber").startswith("BCP")
+        assert response_json.get("header").get("registrationNumber").startswith("PL")
         registration_id = response_json.get("header").get("registrationId")
         rv = client.get(f"/registrations/{registration_id}", headers=headers)
         assert rv.status_code == HTTPStatus.OK

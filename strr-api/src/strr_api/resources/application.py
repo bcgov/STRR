@@ -180,7 +180,10 @@ def get_applications():
         status = request.args.get("status", None)
         page = request.args.get("page", 1)
         limit = request.args.get("limit", 50)
-        filter_criteria = ApplicationSearch(status=status, page=int(page), limit=int(limit))
+        registration_type = request.args.get("registrationType")
+        filter_criteria = ApplicationSearch(
+            status=status, page=int(page), limit=int(limit), registration_type=registration_type
+        )
         application_list = ApplicationService.list_applications(account_id, filter_criteria=filter_criteria)
         return jsonify(application_list), HTTPStatus.OK
 

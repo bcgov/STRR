@@ -72,6 +72,7 @@ class ApplicationService:
         user = UserService.get_or_create_user_in_context()
         if not application:
             application = Application()
+            application.registration_type = request_json.get("registration").get("registrationType")
             application.application_number = Application.generate_unique_application_number()
         application.payment_account = account_id
         application.submitter_id = user.id

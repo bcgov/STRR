@@ -45,6 +45,7 @@ from sqlalchemy_utils.types.ts_vector import TSVectorType
 from strr_api.common.enum import BaseEnum, auto
 from strr_api.models.base_model import BaseModel
 from strr_api.models.dataclass import ApplicationSearch
+from strr_api.models.rental import Registration
 
 from .db import db
 
@@ -81,6 +82,7 @@ class Application(BaseModel):
         "application_date", db.DateTime(timezone=True), server_default=func.now()  # pylint:disable=not-callable
     )  # pylint:disable=not-callable
     type = db.Column("type", db.String(50), nullable=False, index=True)
+    registration_type = db.Column(db.Enum(Registration.RegistrationType), index=True, nullable=True)
     status = db.Column("status", db.String(50), default=Status.DRAFT, index=True)
     decision_date = db.Column("decision_date", db.DateTime(timezone=True))
 
@@ -162,6 +164,8 @@ class Application(BaseModel):
             query = query.filter_by(payment_account=account_id)
         if filter_criteria.status:
             query = query.filter_by(status=filter_criteria.status.upper())
+        if filter_criteria.registration_type:
+            query = query.filter_by(registration_type=filter_criteria.registration_type.upper())
         query = query.order_by(Application.id.desc())
 
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
@@ -176,6 +180,8 @@ class Application(BaseModel):
     def search_applications(cls, filter_criteria: ApplicationSearch):
         """Returns the applications matching the search criteria."""
         query = cls.query
+        if filter_criteria.status and filter_criteria.status.upper() == Application.Status.DRAFT:
+            filter_criteria.status = None
         if filter_criteria.search_text:
             query = query.filter(
                 db.or_(
@@ -185,6 +191,8 @@ class Application(BaseModel):
             )
         if filter_criteria.status:
             query = query.filter_by(status=filter_criteria.status.upper())
+        else:
+            query = query.filter(Application.status != Application.Status.DRAFT)
         query = query.order_by(Application.id.desc())
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
         return paginated_result
@@ -220,7 +228,7 @@ class ApplicationSerializer:
     }
 
     EXAMINER_ACTIONS = {
-        Application.Status.FULL_REVIEW_APPROVED: ["ISSUE_CERTIFICATE"],
+        Application.Status.FULL_REVIEW_APPROVED: [],
         Application.Status.FULL_REVIEW: ["APPROVE", "REJECT"],
     }
 

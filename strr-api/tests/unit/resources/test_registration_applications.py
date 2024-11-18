@@ -551,7 +551,7 @@ def test_examiner_approve_strata_hotel_registration_application(session, client,
         assert response_json.get("header").get("reviewer").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
-        assert response_json.get("header").get("registrationNumber").startswith("BCS")
+        assert response_json.get("header").get("registrationNumber").startswith("ST")
         assert response_json.get("header").get("hostStatus") == "Approved"
         assert response_json.get("header").get("examinerStatus") == "Approved – Examined"
         assert response_json.get("header").get("examinerActions") == ApplicationSerializer.EXAMINER_ACTIONS.get(

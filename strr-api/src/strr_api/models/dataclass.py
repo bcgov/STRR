@@ -42,3 +42,4 @@ class ApplicationSearch:
     limit: int
     status: str
     search_text: str = None
+    registration_type: str = None
