@@ -45,7 +45,6 @@ from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ErrorMessage, RegistrationType, Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
 from strr_api.responses import Events
@@ -239,92 +238,48 @@ def get_registration_events(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/certificate", methods=("POST",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.SYSTEM.value])
-def issue_registration_certificate(registration_id):
-    """
-    Manually generate and issue a STRR registration certificate.
-    ---
-    tags:
-      - examiner
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-      404:
-        description:
-    """
-
-    try:
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
-        if not registration:
-            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.REGISTRATION_NOT_FOUND.value)
-        if registration.registration_type == RegistrationType.PLATFORM.value:
-            return error_response(
-                message=ErrorMessage.PLATFORM_ISSUE_CERTIFICATE_ERROR.value,
-                http_status=HTTPStatus.BAD_REQUEST,
-            )
-
-        RegistrationService.generate_registration_certificate(registration)
-        return RegistrationService.serialize(registration), HTTPStatus.CREATED
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
-
-
-@bp.route("/<registration_id>/certificate", methods=("GET",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-def get_registration_certificate(registration_id):
-    """
-    Get latest certificate PDF for a given registration.
-    ---
-    tags:
-      - registration
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: ID of the registration
-    responses:
-      200:
-        description:
-      401:
-        description:
-      403:
-        description:
-      404:
-        description:
-    """
-
-    try:
-        account_id = request.headers.get("Account-Id")
-        registration = RegistrationService.get_registration(account_id, registration_id)
-        if not registration:
-            raise AuthException()
-
-        certificate = RegistrationService.get_latest_certificate(registration)
-        if not certificate:
-            return error_response(HTTPStatus.NOT_FOUND, "Certificate not found")
-
-        return send_file(
-            BytesIO(certificate.certificate),
-            as_attachment=True,
-            download_name="Host Registration Certificate.pdf",
-            mimetype="application/pdf",
-        )
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
+# @bp.route("/<registration_id>/certificate", methods=("POST",))
+# @swag_from({"security": [{"Bearer": []}]})
+# @cross_origin(origin="*")
+# @jwt.requires_auth
+# @jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.SYSTEM.value])
+# def issue_registration_certificate(registration_id):
+#     try:
+#         registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
+#         if not registration:
+#             return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.REGISTRATION_NOT_FOUND.value)
+#         if registration.registration_type == RegistrationType.PLATFORM.value:
+#             return error_response(
+#                 message=ErrorMessage.PLATFORM_ISSUE_CERTIFICATE_ERROR.value,
+#                 http_status=HTTPStatus.BAD_REQUEST,
+#             )
+#
+#         RegistrationService.generate_registration_certificate(registration)
+#         return RegistrationService.serialize(registration), HTTPStatus.CREATED
+#     except AuthException as auth_exception:
+#         return exception_response(auth_exception)
+#
+#
+# @bp.route("/<registration_id>/certificate", methods=("GET",))
+# @swag_from({"security": [{"Bearer": []}]})
+# @cross_origin(origin="*")
+# @jwt.requires_auth
+# def get_registration_certificate(registration_id):
+#     try:
+#         account_id = request.headers.get("Account-Id")
+#         registration = RegistrationService.get_registration(account_id, registration_id)
+#         if not registration:
+#             raise AuthException()
+#
+#         certificate = RegistrationService.get_latest_certificate(registration)
+#         if not certificate:
+#             return error_response(HTTPStatus.NOT_FOUND, "Certificate not found")
+#
+#         return send_file(
+#             BytesIO(certificate.certificate),
+#             as_attachment=True,
+#             download_name="Host Registration Certificate.pdf",
+#             mimetype="application/pdf",
+#         )
+#     except AuthException as auth_exception:
+#         return exception_response(auth_exception)

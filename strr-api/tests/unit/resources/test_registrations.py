@@ -4,6 +4,8 @@ from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
+import pytest
+
 from strr_api.enums.enum import PaymentStatus
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events
@@ -140,18 +142,15 @@ def test_get_registration_events(session, client, jwt):
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
         registration_id = response_json.get("header").get("registrationId")
-        rv = client.post(f"/registrations/{registration_id}/certificate", headers=staff_headers)
-        assert rv.status_code == HTTPStatus.CREATED
         rv = client.get(f"/registrations/{registration_id}/events", headers=headers)
         assert rv.status_code == HTTPStatus.OK
         events = rv.json
-        assert len(events) == 2
+        assert len(events) == 1
         assert events[0].get("eventName") == Events.EventName.REGISTRATION_CREATED
         assert events[0].get("eventType") == Events.EventType.REGISTRATION
-        assert events[1].get("eventName") == Events.EventName.CERTIFICATE_ISSUED
-        assert events[1].get("eventType") == Events.EventType.REGISTRATION
 
 
+@pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_examiner_issue_certificate_for_host_registration(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
@@ -185,6 +184,7 @@ def test_examiner_issue_certificate_for_host_registration(session, client, jwt):
         assert response_json.get("header").get("hostActions") == []
 
 
+@pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_examiner_issue_certificate_for_platform_registration(session, client, jwt):
     with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
@@ -213,6 +213,7 @@ def test_examiner_issue_certificate_for_platform_registration(session, client, j
         assert rv.status_code == HTTPStatus.BAD_REQUEST
 
 
+@pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_issue_certificate_public_user(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
@@ -241,6 +242,7 @@ def test_issue_certificate_public_user(session, client, jwt):
         assert rv.status_code == HTTPStatus.UNAUTHORIZED
 
 
+@pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_get_registration_certificate(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
@@ -273,6 +275,7 @@ def test_get_registration_certificate(session, client, jwt):
         assert rv.status_code == HTTPStatus.OK
 
 
+@pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 def test_get_registration_certificate_401(client):
     rv = client.get("/registrations/1/certificate")
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
