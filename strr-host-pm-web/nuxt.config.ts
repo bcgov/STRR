@@ -48,15 +48,16 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/': { redirect: '/en-CA/strata-hotel/dashboard' },
-    '/en-CA': { redirect: '/en-CA/strata-hotel/dashboard' }
+    '/': { redirect: '/en-CA/dashboard' },
+    '/en-CA': { redirect: '/en-CA/dashboard' },
+    '/fr-CA': { redirect: '/fr-CA/dashboard' }
   },
 
   runtimeConfig: {
     public: {
       // Keys within public, will be also exposed to the client-side
       baseUrl: process.env.NUXT_BASE_URL,
-      version: `STRR Strata Hotel UI v${process.env.npm_package_version}`
+      version: `STRR Host & Property Manager UI v${process.env.npm_package_version}`
       // set by strr-base-web layer (still required in .env)
       // addressCompleteKey - NUXT_ADDRESS_COMPLETE_KEY
       // payApiURL - NUXT_PAY_API_VERSION

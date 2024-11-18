@@ -1,7 +1,7 @@
 {
   "hosting":
     {
-      "site": "strr-strata-hotel-dev",
+      "site": "strr-host-pm-dev",
       "public": "dist",
       "ignore": ["**/devops/**", "**/.*", "**/node_modules/**"],
       "rewrites": [
