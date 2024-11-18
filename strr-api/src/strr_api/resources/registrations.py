@@ -238,6 +238,7 @@ def get_registration_events(registration_id):
         return exception_response(auth_exception)
 
 
+# TODO: Certificates are not supported for the MVP release. This functionality will be supported in a future release.
 # @bp.route("/<registration_id>/certificate", methods=("POST",))
 # @swag_from({"security": [{"Bearer": []}]})
 # @cross_origin(origin="*")
