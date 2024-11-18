@@ -69,7 +69,7 @@ const { data: strataHotelList, status } = await useAsyncData(
 )
 
 async function handleItemSelect (row: any) {
-  await navigateTo(localePath('/strata-hotel/dashboard/' + row.applicationNumber))
+  await navigateTo(localePath('/dashboard/' + row.applicationNumber))
 }
 </script>
 <template>
@@ -89,7 +89,7 @@ async function handleItemSelect (row: any) {
       <UButton
         :label="$t('btn.addStrataHotel')"
         icon="i-mdi-plus"
-        :to="localePath('/strata-hotel/application')"
+        :to="localePath('/application')"
       />
 
       <ConnectPageSection>

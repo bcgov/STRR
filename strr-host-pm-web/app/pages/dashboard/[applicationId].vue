@@ -78,7 +78,7 @@ onMounted(async () => {
         appendAccountId: true,
         external: true
       },
-      { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
+      { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
       { label: strataBusiness.value?.legalName || t('text.notAvailable') }
     ])
   }
@@ -103,7 +103,7 @@ setBreadcrumbs([
     appendAccountId: true,
     external: true
   },
-  { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
+  { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
   { label: 'Item 1' }
 ])
 </script>
