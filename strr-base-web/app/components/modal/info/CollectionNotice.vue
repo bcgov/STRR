@@ -9,10 +9,10 @@
         <template #email>
           <a
             class="text-blue-500 underline"
-            href="mailto:STRregistry@gov.bc.ca"
+            href="mailto:STRBranch@gov.bc.ca"
             target="_blank"
           >
-            STRregistry@gov.bc.ca
+            STRBranch@gov.bc.ca
           </a>
         </template>
       </i18n-t>
