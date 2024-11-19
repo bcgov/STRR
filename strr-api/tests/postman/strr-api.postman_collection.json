@@ -1168,13 +1168,19 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_url}}/accounts/search",
+							"raw": "{{api_url}}/accounts/search?name=Smith Autos",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"accounts",
 								"search"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Smith Autos"
+								}
 							]
 						}
 					},
