@@ -80,6 +80,10 @@ onMounted(async () => {
         class="bg-white"
         :heading="{ label: $t('strr.section.title.buildings'), labelClass: 'font-bold md:ml-6' }"
       >
+        <p class="px-4 pt-10 md:px-10">
+          {{ $t('strr.text.buildingsSubText') }}
+        </p>
+
         <div class="space-y-10 py-10">
           <ConnectFormSection
             :title="$t('strr.section.subTitle.primaryStrataBuilding')"

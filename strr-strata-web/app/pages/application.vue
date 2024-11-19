@@ -194,7 +194,7 @@ setBreadcrumbs([
     external: true
   },
   { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
-  { label: t('strr.title.application') }
+  { label: t('breadcrumb.str.strataApplication') }
 ])
 </script>
 <template>

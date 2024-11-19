@@ -1,5 +1,10 @@
 /* eslint-disable max-len */
 export default {
+  breadcrumb: {
+    str: {
+      strataApplication: 'STR Strata-Titled Hotel or Motel Application'
+    }
+  },
   feeSummary: {
     itemLabels: {
       STRATAREG: 'Strata Hotel Application Fee'
@@ -11,69 +16,70 @@ export default {
       description: {
         0: 'Add Contact Information',
         1: 'Add Business Details',
-        2: 'Add Strata Hotel Information',
+        2: 'Add Strata Information',
         3: 'Review and Confirm'
       },
       title: {
         0: 'Step 1 - Contact Information',
         1: 'Step 2 - Business Details',
-        2: 'Step 3 - Platform Information',
+        2: 'Step 3 - Strata-Titled Hotel or Motel Information ',
         3: 'Step 4 - Review and Confirm'
       },
       info: {
-        0: 'Short-term rental strata hotels must identify a strata hotel representative to communicate with the Province. This person will be responsible for representing the strata hotel regarding regulatory requirements for strata hotels.',
-        1: 'Information about the business operating the strata hotel.',
-        2: 'Provide information about each strata hotel operated by your company.',
+        0: 'Strata-titled hotels and motels must identify a representative to communicate with the Province. This person will be responsible for representing the strata-titled hotel or motel regarding regulatory requirements for strata-titled hotels and motels.',
+        1: 'Provide information about the business operating the strata-titled hotel or motel.',
+        2: 'Provide information about the strata-titled hotel or motel you are registering. If you operate additional strata-titled hotels or motels, you must register each of them separately.',
         3: 'Review and confirm all of the information you provided as shown below.'
       }
     },
     section: {
       title: {
         buildings: 'Strata Hotel Buildings',
-        completingParty: 'Person Completing Strata Hotel Application',
-        details: 'Strata Hotel Details',
-        primaryRep: 'Strata Hotel Representative',
-        secondaryRep: 'Secondary Strata Hotel Representative'
+        completingParty: 'Person Completing Strata-Titled Hotel or Motel Application',
+        details: 'Strata-Titled Hotel or Motel Details',
+        primaryRep: 'Strata-Titled Hotel or Motel Representative',
+        secondaryRep: 'Secondary Strata-Titled Hotel or Motel Representative'
       },
       subTitle: {
-        brand: 'Strata Hotel Brand',
+        brand: 'Strata-Titled Hotel or Motel',
         numberOfUnits: 'Number of Rental Units',
-        primaryStrataBuilding: 'Primary Strata Hotel Building',
-        strataBuilding: 'Strata Hotel Building'
+        primaryStrataBuilding: 'Primary Strata-Titled Hotel or Motel Building',
+        strataBuilding: 'Strata-Titled Hotel or Motel Building'
       }
     },
     title: {
-      application: 'Short-Term Rental Strata Hotel Application',
+      application: 'Short-Term Rental Strata-Titled Hotel or Motel Application',
       comingSoon: 'Short-Term Rental Strata Hotel Registry Coming Soon',
-      dashboard: 'My Short-Term Rental Strata Hotel Registry',
+      dashboard: 'My STR Strata-Titled Hotel or Motel Registry',
       default: 'TBD'
     },
     label: {
       addBuilding: 'Add a Building',
       building: 'Building | Buildings | Primary Building',
-      brandName: 'Strata Hotel Brand Name',
-      brandSite: 'Strata Hotel Brand Website',
+      brandName: 'Strata-Titled Hotel or Motel Name',
+      brandSite: 'Strata-Titled Hotel or Motel Website',
       numberOfUnits: 'Number of Rental Units',
       registeringBusiness: 'Registering Business',
       regOfficeAttSvc: 'Registered Office or Attorney for Service'
     },
     text: {
       comingSoon: 'Short-Term Rental Strata Hotel Registry will be available on December 15, 2024',
-      isUserRep: 'Are you the strata hotel representative?',
-      primaryContact: 'This is the primary contact person for the strata hotel.'
+      isUserRep: 'Are you the strata-title hotel or motel representative?',
+      primaryContact: 'This is the primary contact person for the strata-titled hotel or motel.',
+      buildingsSubText: 'Enter the address for each building that is part of the strata-titled hotel or motel. Include all co-located buildings in your application.'
     },
     word: {
       unit: 'unit | units'
     },
     hint: {
-      brandName: 'The brand name for the strata hotel',
+      brandName: 'The name of the strata-titled hotel or motel.',
       brandSite: 'e.g., https://www.your-strata-hotel.ca/',
-      numberOfUnits: 'The total number of units within the strata hotel that are offered as short-term rentals'
+      numberOfUnits: 'The total number of units within the strata-titled hotel or motel that are offered as short-term rental accommodation.'
     },
     review: {
       brand: {
-        name: 'Strata Hotel Brand Name | Strata Hotel Brand {count} Name',
-        site: 'Strata Hotel Brand Website | Strata Hotel Brand {count} Website'
+        name: 'Strata-Titled Hotel or Motel Name',
+        site: 'Strata-Titled Hotel or Motel Website'
       }
     }
   },
@@ -123,8 +129,15 @@ export default {
     }
   },
   text: {
+    streetHint: 'Street address, rural route, or general delivery address',
     selectAccount: {
       generic: 'Select the account you wish to use to register and manage your short-term rentals, or create a new account.'
+    }
+  },
+  validation: {
+    brand: {
+      name: 'Please enter a name',
+      site: 'Please enter a valid full url for this brand (i.e. https://www.bcregistry.gov.bc.ca)'
     }
   }
 }

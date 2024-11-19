@@ -85,11 +85,11 @@ onMounted(async () => {
             <ConnectFormFieldGroup
               id="strata-business-home-jur"
               v-model="strataBusiness.homeJurisdiction"
-              :aria-label="$t('label.homeJurisdiction')"
+              :aria-label="$t('label.homeJurisdictionOpt')"
               :help="$t('strr.hint.humeJurisdiction')"
               name="homeJurisdiction"
-              :placeholder="t('label.homeJurisdiction')"
-              :is-required="true"
+              :placeholder="t('label.homeJurisdictionOpt')"
+              :is-required="false"
             />
             <ConnectFormFieldGroup
               id="strata-business-number"
