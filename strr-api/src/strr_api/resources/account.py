@@ -44,7 +44,7 @@ from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
-from strr_api.exceptions import AuthException, ExternalServiceException, ValidationException, exception_response
+from strr_api.exceptions import ExternalServiceException, ValidationException, error_response, exception_response
 from strr_api.requests import SBCAccountCreationRequest
 from strr_api.responses import SBCAccount
 from strr_api.schemas.utils import validate
@@ -54,13 +54,31 @@ logger = logging.getLogger("api")
 bp = Blueprint("account", __name__)
 
 
+@bp.route("/search", methods=["GET"])
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def search_accounts():
+    """Find accounts matching the search criteria."""
+    try:
+        account_name = request.args.get("name", None)
+        if not account_name:
+            return error_response(
+                message="Account Id is missing.",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        return AuthService.search_accounts(account_name=account_name), HTTPStatus.OK
+    except ExternalServiceException as service_exception:
+        return error_response(service_exception.message, service_exception.status_code)
+
+
 @bp.route("/", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
 def get_user_accounts():
     """
-    Get current user's profile.
+    Get current user's accounts.
     ---
     tags:
       - users
@@ -74,16 +92,9 @@ def get_user_accounts():
     """
     try:
         token = jwt.get_token_auth_header()
-        response = AuthService.get_user_accounts(token)
-        profile = AuthService.get_user_profile(token)
-        settings = AuthService.get_user_settings(token, profile["keycloakGuid"])
-        response["profile"] = profile
-        response["settings"] = settings
-        return jsonify(response), HTTPStatus.OK
-    except AuthException as auth_exception:
-        return exception_response(auth_exception)
+        return AuthService.get_user_accounts(bearer_token=token), HTTPStatus.OK
     except ExternalServiceException as service_exception:
-        return exception_response(service_exception)
+        return error_response(service_exception.message, service_exception.status_code)
 
 
 @bp.route("/", methods=("POST",))
@@ -121,10 +132,10 @@ def create_user_account():
 
         sbc_account_creation_request = SBCAccountCreationRequest(**json_input)
         user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        new_account = AuthService.create_user_account(token, sbc_account_creation_request, user.id)
+        new_account = AuthService.create_user_account(token, sbc_account_creation_request)
         sbc_account_id = new_account.get("id")
 
-        AuthService.add_contact_info(token, sbc_account_id, sbc_account_creation_request, user.id)
+        AuthService.add_contact_info(token, sbc_account_id, sbc_account_creation_request)
 
         return (
             jsonify(SBCAccount(user_id=user.id, sbc_account_id=sbc_account_id).model_dump(mode="json")),

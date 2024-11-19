@@ -31,9 +31,8 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-# pylint: disable=W0707
 """Manages Auth service interactions."""
-import os
+
 from http import HTTPStatus
 
 import requests
@@ -48,7 +47,7 @@ from strr_api.utils.user_context import UserContext, user_context
 
 
 class AuthService:
-    """Service to invoke Rest calls to auth-api."""
+    """Wrapper service to interact with the Auth API."""
 
     @classmethod
     def get_service_client_token(cls):
@@ -76,19 +75,13 @@ class AuthService:
             return None
 
     @classmethod
-    def does_sbc_account_exist(cls, bearer_token, account_name: str):
-        """Search and return if SBC account name already exists."""
-
+    def search_accounts(cls, account_name: str):
+        """Searches for an existing account."""
+        token = AuthService.get_service_client_token()
+        print(token)
         endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/orgs?name={account_name.strip()}"
-        headers = {"Authorization": "Bearer " + bearer_token}
-        resp = requests.get(endpoint, headers=headers)
-
-        if resp.status_code == HTTPStatus.OK:
-            return True
-        elif resp.status_code == HTTPStatus.NO_CONTENT:
-            return False
-
-        raise ExternalServiceException(message="Error checking if SBC account name already exists.")
+        accounts = RestService.get(endpoint=endpoint, token=token).json()
+        return accounts
 
     @classmethod
     def get_user_accounts(cls, bearer_token):
@@ -97,6 +90,47 @@ class AuthService:
         endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/users/orgs"
         user_account_details = RestService.get(endpoint=endpoint, token=bearer_token).json()
         return user_account_details
+
+    @classmethod
+    def create_user_account(cls, bearer_token, request: SBCAccountCreationRequest):
+        """Create a new user account."""
+        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/orgs"
+        create_account_payload = {
+            "name": request.name,
+            "accessType": "REGULAR",
+            "typeCode": "BASIC",
+            "productSubscriptions": [{"productCode": "STRR"}],
+            "paymentInfo": {"paymentMethod": "DIRECT_PAY"},
+        }
+
+        if request.mailingAddress:
+            create_account_payload["mailingAddress"] = request.mailingAddress.to_dict()
+
+        new_user_account = RestService.post(
+            data=create_account_payload,
+            endpoint=endpoint,
+            token=bearer_token,
+            generate_token=False,
+        ).json()
+
+        return new_user_account
+
+    @classmethod
+    def add_contact_info(cls, bearer_token, account_id, request: SBCAccountCreationRequest):
+        """Create contact info for user account."""
+
+        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/orgs/{account_id}/contacts"
+        create_account_contact_payload = {
+            "email": str(request.email),
+            "phone": str(request.phone),
+            "phoneExtension": str(request.phoneExtension) if request.phoneExtension else "",
+        }
+        contact_info = RestService.post(
+            data=create_account_contact_payload,
+            endpoint=endpoint,
+            token=bearer_token,
+        ).json()
+        return contact_info
 
     @classmethod
     def get_sbc_accounts_mailing_address(cls, bearer_token, account_id):
@@ -115,22 +149,6 @@ class AuthService:
                     streetAdditional=mailing_address_dict.get("streetAdditional", None),
                 )
         return mailing_address
-
-    @classmethod
-    @user_context
-    def update_user_profile(cls, **kwargs):
-        """Updates user profile in SBC Connect"""
-        user: UserContext = kwargs["user_context"]
-        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/users"
-        try:
-            response = RestService.post(endpoint=endpoint, token=user.bearer_token).json()
-            return response
-        except HTTPError as exception:
-            current_app.logger.error("Error while updating user profile in SBC Connect.", exception)
-            raise ExternalServiceException(
-                error="Error while updating user profile in SBC Connect.",
-                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            )
 
     @classmethod
     @user_context
@@ -163,74 +181,17 @@ class AuthService:
         return res
 
     @classmethod
-    def get_user_profile(cls, bearer_token):
-        """Return current user profile."""
-
-        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/users/@me"
-        user_profile = RestService.get(endpoint=endpoint, token=bearer_token).json()
-        return user_profile
-
-    @classmethod
-    def get_user_settings(cls, bearer_token, uuid):
-        """Return a user's settings."""
-
-        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/users/{uuid}/settings"
-        user_settings = RestService.get(endpoint=endpoint, token=bearer_token).json()
-        return user_settings
-
-    @classmethod
-    def get_unique_sbc_username(cls, bearer_token, name):
-        """Get a unique username for the SBC account."""
-
-        basename = name
-        # add two random hexadecimals to the name to make it unique
-        for _ in range(10):
-            account_name_already_exists = AuthService.does_sbc_account_exist(bearer_token, name)
-            if not account_name_already_exists:
-                break
-            name = f"{basename}-{os.urandom(1).hex()}"
-
-        return name
-
-    @classmethod
-    def create_user_account(cls, bearer_token, request: SBCAccountCreationRequest, user_id):
-        """Create a new user account."""
-
-        account_name = AuthService.get_unique_sbc_username(bearer_token, request.name)
-        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/orgs"
-        create_account_payload = {
-            "name": account_name,
-            "accessType": "REGULAR",
-            "typeCode": "BASIC",
-            "productSubscriptions": [{"productCode": "STRR"}],
-            "paymentInfo": {"paymentMethod": "DIRECT_PAY"},
-        }
-
-        if request.mailingAddress:
-            create_account_payload["mailingAddress"] = request.mailingAddress.to_dict()
-
-        new_user_account = RestService.post(
-            data=create_account_payload,
-            endpoint=endpoint,
-            token=bearer_token,
-            generate_token=False,
-        ).json()
-
-        return new_user_account
-
-    @classmethod
-    def add_contact_info(cls, bearer_token, account_id, request: SBCAccountCreationRequest, user_id):
-        """Create contact info for user account."""
-
-        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/orgs/{account_id}/contacts"
-        create_account_contact_payload = {
-            "email": str(request.email),
-            "phone": str(request.phone),
-            "phoneExtension": str(request.phoneExtension) if request.phoneExtension else "",
-        }
-        contact_info = RestService.post(
-            data=create_account_contact_payload,
-            endpoint=endpoint,
-            token=bearer_token,
-        ).json()
-        return contact_info
+    @user_context
+    def update_user_profile(cls, **kwargs):
+        """Updates user profile in SBC Connect"""
+        user: UserContext = kwargs["user_context"]
+        endpoint = f"{current_app.config.get('AUTH_SVC_URL')}/users"
+        try:
+            response = RestService.post(endpoint=endpoint, token=user.bearer_token).json()
+            return response
+        except HTTPError as exception:
+            current_app.logger.error("Error while updating user profile in SBC Connect.", exception)
+            raise ExternalServiceException(  # pylint: disable=W0707
+                error="Error while updating user profile in SBC Connect.",
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            )

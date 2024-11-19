@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "2048a10e-42da-46e0-b89e-6477b8cb04e4",
+		"_postman_id": "22e88e3b-9a92-4098-ae9e-578f2af2859c",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -1147,6 +1147,34 @@
 							],
 							"path": [
 								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Accounts",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/accounts/search",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"accounts",
+								"search"
 							]
 						}
 					},
