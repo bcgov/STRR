@@ -7,8 +7,8 @@ const strrModal = useStrrModals()
 
 const columns = [
   {
-    key: 'hotelName',
-    label: t('label.hotelName'),
+    key: 'strataName',
+    label: t('label.strataName'),
     sortable: true
   },
   {
@@ -17,13 +17,13 @@ const columns = [
     sortable: true
   },
   {
-    key: 'type',
-    label: t('label.type'),
+    key: 'date',
+    label: t('label.date'),
     sortable: true
   },
   {
-    key: 'date',
-    label: t('label.date'),
+    key: 'expiryDate',
+    label: t('label.expiryDate'),
     sortable: true
   },
   {
@@ -151,6 +151,10 @@ async function handleItemSelect (row: any) {
           <!-- using a slot for this so the nuxtui sort will still sort by datetime -->
           <template #date-data="{ row }">
             {{ dateToStringPacific(row.date, 'MMMM Do, YYYY') }}
+          </template>
+
+          <template #expiryDate-data="{ row }">
+            {{ dateToStringPacific(row.expiryDate, 'MMMM Do, YYYY') }}
           </template>
 
           <template #actions-data="{ row }">

@@ -49,10 +49,10 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
       .then((response) => {
         if (response) {
           return (response as StrataApplicationResp[]).map(app => ({
-            hotelName: app.registration.strataHotelDetails.brand.name,
+            strataName: app.registration.strataHotelDetails.brand.name,
             number: app.header.registrationNumber || app.header.applicationNumber,
-            type: app.header.registrationNumber ? t('label.registration') : t('label.application'),
             date: app.header.registrationStartDate || app.header.applicationDateTime,
+            expiryDate: app.header.registrationEndDate || '-',
             status: app.header.registrationStatus || app.header.hostStatus,
             applicationNumber: app.header.applicationNumber // always used for view action
           }))

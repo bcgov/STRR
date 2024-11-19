@@ -78,10 +78,11 @@ export default {
     }
   },
   btn: {
-    addStrataHotel: 'Add a Strata Hotel',
+    addStrataHotel: 'Add a strata-titled hotel or motel',
     view: 'View'
   },
   label: {
+    strataName: 'Strata Name',
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
     application: 'Application',
@@ -110,8 +111,8 @@ export default {
   },
   table: {
     strataHotelList: {
-      title: '{boldStart}My Strata Hotel List{boldEnd} ({count})',
-      emptyText: "You don't have any strata hotels yet. Add a strata hotel above."
+      title: '{boldStart}My Strata-titled Hotel and Motel List{boldEnd} ({count})',
+      emptyText: 'You don’t have any strata-titled hotels or motels yet. Add a strata-titled hotel or motel above.'
     }
   },
   page: {
