@@ -3,7 +3,7 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strataStore = useStrrStrataStore()
-const strataModal = useStrataModals()
+const strrModal = useStrrModals()
 
 const columns = [
   {
@@ -78,10 +78,11 @@ async function handleItemSelect (row: any) {
       <ConnectTypographyH1 :text="$t('page.dashboardList.h1')" />
       <p>{{ $t('page.dashboardList.subtitle') }}</p>
       <UButton
-        :label="$t('modal.helpRegisteringStrata.triggerBtn')"
+        :label="$t('modal.help.registerStr.triggerBtn')"
         :padded="false"
+        icon="i-mdi-help-circle-outline"
         variant="link"
-        @click="strataModal.openhelpRegisteringStrataModal()"
+        @click="strrModal.openHelpRegisterModal()"
       />
     </div>
 
