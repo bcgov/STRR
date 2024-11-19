@@ -118,7 +118,12 @@ export default {
     dashboardList: {
       title: 'Dashboard - My Short-Term Rental Registry',
       h1: 'My Short-Term Rental Registry',
-      subtitle: 'Register and keep short-term rental unit information up to date.'
+      subtitle: 'Register and keep your information up to date.'
+    }
+  },
+  text: {
+    selectAccount: {
+      generic: 'Select the account you wish to use to register and manage your short-term rentals, or create a new account.'
     }
   }
 }

@@ -28,26 +28,10 @@ function handleAccountSwitch (id: string) {
 </script>
 <template>
   <div class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="$t('label.selectAccount')" />
-
-    <p>What subtitle/text should go here?</p>
-    <!-- <p>{{ $t('strr.text.selectAccountForStrr') }}</p> -->
-
-    <UAlert
-      color="yellow"
-      icon="i-mdi-alert"
-      :close-button="null"
-      variant="subtle"
-      :ui="{
-        inner: 'pt-0',
-      }"
-    >
-      <template #description>
-        <span class="text-gray-900">Some warning here maybe</span>
-        <!-- eslint-disable-next-line -->
-        <!-- <ConnectI18nBold class="text-bcGovColor-darkGray" translation-path="strr.text.onlyPremiumAccountWarning" /> -->
-      </template>
-    </UAlert>
+    <div class="flex flex-col gap-2">
+      <ConnectTypographyH1 :text="$t('label.selectAccount')" />
+      <p>{{ $t('text.selectAccount.generic') }}</p>
+    </div>
 
     <ConnectTypographyH2
       :text="$t('label.yourExistingAccounts', { count: accountStore.userAccounts.length })"
