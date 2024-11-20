@@ -9,7 +9,6 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   const { completingParty, primaryRep, secondaryRep } = storeToRefs(contactStore)
   const { strataBusiness } = storeToRefs(businessStore)
   const { strataDetails } = storeToRefs(detailsStore)
-  const { t } = useI18n()
 
   const {
     application,

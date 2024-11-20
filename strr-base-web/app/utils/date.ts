@@ -29,20 +29,14 @@ export function dateStringToDate (dateString: string): Date | null {
  * @param format default: YYYY-MM-DD, see format options here
  * https://moment.github.io/luxon/#/formatting?id=table-of-tokens
  */
-export function dateToStringPacific (date: Date, format = 'D') {
+export function dateToStringPacific (date: Date | string, format = 'D') {
   const locale = useNuxtApp().$i18n.locale.value
+  const jsDate = DateTime.fromJSDate(new Date(date), { zone: 'UTC' }) // convert to jsdate, assume UTC timezone
 
-  let parsedDate: DateTime
-
-  if (date instanceof Date) {
-    parsedDate = DateTime.fromJSDate(date).setZone('UTC')
-  } else {
-    parsedDate = DateTime.fromISO(date, { setZone: true })
-  }
-
-  const pacificDate = parsedDate.setZone('America/Vancouver')
-
-  return pacificDate.setLocale(locale).toFormat(format)
+  return jsDate
+    .setZone('America/Vancouver') // convert to pacific
+    .setLocale(locale)
+    .toFormat(format)
 }
 
 /** Return the date string in date format from datetime string format

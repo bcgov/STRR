@@ -62,13 +62,13 @@ export const setSideHeaderDetails = (
     sideDetailsList.push({ label: t('label.registrationNum'), value: registration.registration_number })
     sideDetailsList.push({
       label: t('label.registrationDate'),
-      value: dateToStringPacific(registration.startDate, 'MMMM Do, YYYY')
+      value: dateToStringPacific(registration.startDate, 'DDD')
     })
   } else if (application) {
     sideDetailsList.push({ label: t('label.applicationNum'), value: application.applicationNumber })
     sideDetailsList.push({
       label: t('label.applicationDate'),
-      value: dateToStringPacific(application.applicationDateTime, 'MMMM Do, YYYY')
+      value: dateToStringPacific(application.applicationDateTime, 'DDD')
     })
   }
   if (business.businessNumber) {

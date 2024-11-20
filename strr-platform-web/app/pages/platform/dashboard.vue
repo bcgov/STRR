@@ -57,7 +57,7 @@ onMounted(async () => {
     } else {
       setHeaderDetails(
         permitDetails.value.status,
-        dateToStringPacific(permitDetails.value.expiryDate, 'MMMM Do, YYYY'),
+        dateToStringPacific(permitDetails.value.expiryDate, 'DDD'),
         downloadApplicationReceipt)
     }
     // add common side details
