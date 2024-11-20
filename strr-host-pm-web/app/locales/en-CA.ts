@@ -96,7 +96,8 @@ export default {
     expiresToday: 'Expires today',
     dayCount: '0 days | 1 day | {count} days',
     lastStatusChange: 'Last Status Change',
-    daysToExpiry: 'Days to Expiry (Pacific Time)'
+    daysToExpiry: 'Days to Expiry (Pacific Time)',
+    property: 'Property'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page'

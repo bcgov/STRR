@@ -8,7 +8,7 @@ const strrModal = useStrrModals()
 const columns = [
   {
     key: 'property',
-    label: 'Property'
+    label: t('label.property')
   },
   {
     key: 'number',
