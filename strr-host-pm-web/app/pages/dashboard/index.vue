@@ -3,13 +3,12 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strataStore = useStrrStrataStore()
-const strataModal = useStrataModals()
+const strrModal = useStrrModals()
 
 const columns = [
   {
-    key: 'hotelName',
-    label: t('label.hotelName'),
-    sortable: true
+    key: 'property',
+    label: 'Property'
   },
   {
     key: 'number',
@@ -17,19 +16,20 @@ const columns = [
     sortable: true
   },
   {
-    key: 'type',
-    label: t('label.type'),
-    sortable: true
-  },
-  {
-    key: 'date',
-    label: t('label.date'),
-    sortable: true
-  },
-  {
     key: 'status',
     label: t('label.status'),
     sortable: true
+  },
+  {
+    key: 'lastStatusChange',
+    label: t('label.lastStatusChange'),
+    sortable: true
+  },
+  {
+    key: 'daysToExpiry',
+    label: t('label.daysToExpiry'),
+    sortable: true,
+    class: 'max-w-28'
   },
   {
     key: 'actions',
@@ -59,9 +59,9 @@ setBreadcrumbs([
 ])
 
 // can use watch param to handle pagination in future
-const { data: strataHotelList, status } = await useAsyncData(
-  'strata-hotel-list',
-  () => strataStore.loadStrataHotelList(),
+const { data: hostPmList, status } = await useAsyncData(
+  'host-pm-list',
+  () => strataStore.loadHostPmList(),
   {
     watch: [() => accountStore.currentAccount.id],
     default: () => []
@@ -78,16 +78,17 @@ async function handleItemSelect (row: any) {
       <ConnectTypographyH1 :text="$t('page.dashboardList.h1')" />
       <p>{{ $t('page.dashboardList.subtitle') }}</p>
       <UButton
-        :label="$t('modal.helpRegisteringStrata.triggerBtn')"
+        :label="$t('modal.help.registerStr.triggerBtn')"
         :padded="false"
+        icon="i-mdi-help-circle-outline"
         variant="link"
-        @click="strataModal.openhelpRegisteringStrataModal()"
+        @click="strrModal.openHelpRegisterModal()"
       />
     </div>
 
     <div class="space-y-4">
       <UButton
-        :label="$t('btn.addStrataHotel')"
+        :label="$t('btn.createNewReg')"
         icon="i-mdi-plus"
         :to="localePath('/application')"
       />
@@ -96,7 +97,7 @@ async function handleItemSelect (row: any) {
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="font-normal">
-              <ConnectI18nBold translation-path="table.strataHotelList.title" :count="strataHotelList.length" />
+              <ConnectI18nBold translation-path="table.hostPmList.title" :count="hostPmList.length" />
             </h2>
             <!-- TODO: filtering post-mvp ? -->
             <!-- <UInput
@@ -128,9 +129,9 @@ async function handleItemSelect (row: any) {
         <UTable
           ref="tableRef"
           :columns="selectedColumns"
-          :rows="strataHotelList"
+          :rows="hostPmList"
           :loading="status === 'pending'"
-          :empty-state="{ icon: '', label: $t('table.strataHotelList.emptyText') }"
+          :empty-state="{ icon: '', label: $t('table.hostPmList.emptyText') }"
           :sort="{ column: 'date', direction: 'desc' }"
           :ui="{
             wrapper: 'relative overflow-x-auto h-[512px]',
@@ -147,9 +148,27 @@ async function handleItemSelect (row: any) {
             },
           }"
         >
+          <template #property-data="{ row }">
+            <div class="flex flex-col">
+              <span v-if="row.property.nickname">
+                {{ row.property.nickname }}
+              </span>
+              <span>
+                <!-- eslint-disable-next-line max-len-->
+                {{ `${row.property.streetNumber} ${row.property.streetName}${row.property.unitNumber ? ', Unit ' + row.property.unitNumber : ''}` }}
+              </span>
+            </div>
+          </template>
+
           <!-- using a slot for this so the nuxtui sort will still sort by datetime -->
-          <template #date-data="{ row }">
-            {{ dateToStringPacific(row.date, 'MMMM Do, YYYY') }}
+          <template #lastStatusChange-data="{ row }">
+            {{ dateToStringPacific(row.lastStatusChange, 'DDD') }}
+          </template>
+
+          <template #daysToExpiry-data="{ row }">
+            <span :class="{'font-semibold text-red-500': row.daysToExpiry.value <= 0}">
+              {{ row.daysToExpiry.label }}
+            </span>
           </template>
 
           <template #actions-data="{ row }">

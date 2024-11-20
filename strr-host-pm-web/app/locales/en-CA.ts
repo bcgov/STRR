@@ -80,7 +80,8 @@ export default {
   btn: {
     addStrataHotel: 'Add a Strata Hotel',
     view: 'View',
-    saveStartApplication: 'Save & Start Application'
+    saveStartApplication: 'Save & Start Application',
+    createNewReg: 'Create New Registration'
   },
   label: {
     hotelName: 'Hotel Name',
@@ -90,7 +91,12 @@ export default {
     date: 'Date',
     accountName: 'Account Name',
     accountInfo: 'Account Information',
-    primaryContactInfo: 'Primary Contact Information'
+    primaryContactInfo: 'Primary Contact Information',
+    expired: 'Expired',
+    expiresToday: 'Expires today',
+    dayCount: '0 days | 1 day | {count} days',
+    lastStatusChange: 'Last Status Change',
+    daysToExpiry: 'Days to Expiry (Pacific Time)'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page'
@@ -118,9 +124,9 @@ export default {
     }
   },
   table: {
-    strataHotelList: {
-      title: '{boldStart}My Strata Hotel List{boldEnd} ({count})',
-      emptyText: "You don't have any strata hotels yet. Add a strata hotel above."
+    hostPmList: {
+      title: '{boldStart}My Registration Applications{boldEnd} ({count})',
+      emptyText: "You don't have any properties yet. Add a property above."
     }
   },
   page: {
