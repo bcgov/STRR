@@ -1,3 +1,4 @@
+// TODO: move to strr-base-web layer
 export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
 
@@ -11,9 +12,11 @@ export const useStrrApi = () => {
         return undefined
       })
     }
-
-    const resp = await $strrApi<{ registrations: T[] }>('/registrations', { params: { registrationType: type } })
-    return resp.registrations
+    // TODO: add type filter in call (need in api first)
+    const resp = await $strrApi<{ registrations: T[] }>('/registrations')
+    return type
+      ? resp.registrations?.filter(reg => reg.registrationType === type)
+      : resp.registrations
   }
 
   const getAccountApplications = async <T extends { registration: ApiBaseRegistration }>(
@@ -26,9 +29,11 @@ export const useStrrApi = () => {
         return undefined
       })
     }
-
-    const resp = await $strrApi<{ applications: T[] }>('/applications', { params: { registrationType: type } })
-    return resp.applications
+    // TODO: add type filter in call (need in api first)
+    const resp = await $strrApi<{ applications: T[] }>('/applications')
+    return type
+      ? resp.applications?.filter(app => app.registration.registrationType === type)
+      : resp.applications
   }
 
   const postApplication = async <T extends { registration: ApiBaseRegistration }, R extends T>(body: T) => {
