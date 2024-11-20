@@ -52,7 +52,8 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
             strataName: app.registration.strataHotelDetails.brand.name,
             number: app.header.registrationNumber || app.header.applicationNumber,
             date: app.header.registrationStartDate || app.header.applicationDateTime,
-            expiryDate: app.header.registrationEndDate || '-',
+            lastStatusChange: getLastStatusChangeColumn(app.header),
+            daysToExpiry: getDaysToExpiryColumn(app.header),
             status: app.header.registrationStatus || app.header.hostStatus,
             applicationNumber: app.header.applicationNumber // always used for view action
           }))

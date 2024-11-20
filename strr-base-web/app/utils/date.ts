@@ -1,45 +1,77 @@
-import moment from 'moment'
+// format tokens
+// https://moment.github.io/luxon/#/formatting?id=table-of-tokens
+import { DateTime } from 'luxon'
 
 /** Return the date string as a date
  * @param dateString expected dateString format: YYYY-MM-DD
 */
-export function dateStringToDate (dateString: string) {
-  // convert to date
-  const date = new Date(dateString)
-  // @ts-ignore
-  if (isNaN(date)) { return null }
-  // return date offsetted by local timezone (otherwise it defaults to UTC at 12am)
-  const localOffset = date.getTimezoneOffset()
-  return moment(date).add(localOffset, 'm').toDate()
+export function dateStringToDate (dateString: string): Date | null {
+  const date = DateTime.fromISO(dateString, { zone: 'local' })
+
+  // return null if date is invalid
+  if (!date.isValid) {
+    return null
+  }
+
+  return date.toJSDate()
 }
 
 /** Return the date as a string in the desired format
  * @param date js Date
  * @param format default: YYYY-MM-DDT:HH:mm:ss+-HH:mm
 */
-export function dateToString (date: Date, format?: string) {
-  return (date) ? moment(date).local().format(format) : ''
-}
+// export function dateToString (date: Date, format?: string) {
+//   return (date) ? moment(date).local().format(format) : ''
+// }
 
 /** Convert the date to pacific time and return as a string in the desired format
- * @param date js Date
- * @param format default: YYYY-MM-DDT:HH:mm:ss+-HH:mm
+ * @param {Date | string} date - js Date or ISO datestring
+ * @param format default: YYYY-MM-DD, see format options here
+ * https://moment.github.io/luxon/#/formatting?id=table-of-tokens
  */
-export function dateToStringPacific (date: Date, format?: string) {
-  date = new Date(date.toLocaleString('en-US', { timeZone: 'America/Vancouver' }))
-  return moment(date).format(format)
+export function dateToStringPacific (date: Date, format = 'D') {
+  const locale = useNuxtApp().$i18n.locale.value
+
+  let parsedDate: DateTime
+
+  if (date instanceof Date) {
+    parsedDate = DateTime.fromJSDate(date).setZone('UTC')
+  } else {
+    parsedDate = DateTime.fromISO(date, { setZone: true })
+  }
+
+  const pacificDate = parsedDate.setZone('America/Vancouver')
+
+  return pacificDate.setLocale(locale).toFormat(format)
 }
 
 /** Return the date string in date format from datetime string format
  * @param datetimeString expected format: YYYY-MM-DDT:HH:mm:ss+-HH:mm
 */
-export function datetimeStringToDateString (datetimeString: string) {
-  const date = new Date(datetimeString)
-  // convert to date and back so that it returns correctly for the timezone
-  return (date) ? moment(date).local().format('YYYY-MM-DD') : ''
-}
+// export function datetimeStringToDateString (datetimeString: string) {
+//   const date = new Date(datetimeString)
+//   // convert to date and back so that it returns correctly for the timezone
+//   return (date) ? moment(date).local().format('YYYY-MM-DD') : ''
+// }
 
-export function addOneYear (dateString: string) {
-  const date = dateStringToDate(dateString)
-  return moment(date).add(1, 'year').format('YYYY-MM-DD')
+// export function addOneYear (dateString: string) {
+//   const date = dateStringToDate(dateString)
+//   return moment(date).add(1, 'year').format('YYYY-MM-DD')
+// }
+
+/**
+ * Calculates the number of full days remaining until a given end date.
+ *
+ * @param end - The ISO datestring for the end value.
+ * @returns The number of full days remaining until the end date.
+ */
+export function dayCountdown (end: string): number {
+  const startDate = DateTime.utc() // get current utc date
+  const endDate = DateTime.fromISO(end, { setZone: true }).toUTC() // get given end date and convert to utc
+
+  // get difference in days https://moment.github.io/luxon/#/math?id=diffs
+  const diff = endDate.diff(startDate, 'days').toObject().days
+
+  // round difference down
+  return Math.floor(diff)
 }

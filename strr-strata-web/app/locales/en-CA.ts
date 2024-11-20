@@ -93,7 +93,12 @@ export default {
     expiryDate: 'Expiry Date',
     application: 'Application',
     registration: 'Registration',
-    date: 'Date'
+    date: 'Date',
+    expired: 'Expired',
+    expiresToday: 'Expires today',
+    dayCount: '0 days | 1 day | {count} days',
+    lastStatusChange: 'Last Status Change',
+    daysToExpiry: 'Days to Expiry (Pacific Time)'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page'
