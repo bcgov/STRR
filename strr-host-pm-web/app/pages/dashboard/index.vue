@@ -61,7 +61,7 @@ setBreadcrumbs([
 // can use watch param to handle pagination in future
 const { data: hostPmList, status } = await useAsyncData(
   'host-pm-list',
-  () => strataStore.loadHostPmList(),
+  () => strataStore.loadHostPmList(), // TODO: update store name when/if store name changes
   {
     watch: [() => accountStore.currentAccount.id],
     default: () => []

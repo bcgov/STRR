@@ -45,7 +45,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
         logFetchError(e, 'Unable to load account applications')
         return undefined
       }).then((response) => {
-        if (response) {
+        if (response) { // TODO: update types
           return (response as Array<any>).map(app => ({
             property: app.registration.unitAddress,
             number: app.header.registrationNumber || app.header.applicationNumber,
