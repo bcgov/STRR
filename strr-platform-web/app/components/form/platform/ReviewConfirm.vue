@@ -227,10 +227,12 @@ onMounted(async () => {
         @edit="$emit('edit', 1)"
       >
         <template #noticeNonCompliance>
-          <span> {{ platBusStore.platformBusiness.nonComplianceEmail || '-' }} </span>
-          <span v-if="platBusStore.platformBusiness.nonComplianceEmailOptional">
-            {{ platBusStore.platformBusiness.nonComplianceEmailOptional }}
-          </span>
+          <div class="flex flex-col">
+            <span> {{ platBusStore.platformBusiness.nonComplianceEmail || '-' }} </span>
+            <span v-if="platBusStore.platformBusiness.nonComplianceEmailOptional">
+              {{ platBusStore.platformBusiness.nonComplianceEmailOptional }}
+            </span>
+          </div>
         </template>
 
         <template #regOfficeAttSvcAddrress>
@@ -242,10 +244,12 @@ onMounted(async () => {
         </template>
 
         <template #takedownRequest>
-          <span> {{ platBusStore.platformBusiness.takeDownEmail || '-' }} </span>
-          <span v-if="platBusStore.platformBusiness.takeDownEmailOptional">
-            {{ platBusStore.platformBusiness.takeDownEmailOptional }}
-          </span>
+          <div class="flex flex-col">
+            <span> {{ platBusStore.platformBusiness.takeDownEmail || '-' }} </span>
+            <span v-if="platBusStore.platformBusiness.takeDownEmailOptional">
+              {{ platBusStore.platformBusiness.takeDownEmailOptional }}
+            </span>
+          </div>
         </template>
 
         <template #businessMailAddress>
