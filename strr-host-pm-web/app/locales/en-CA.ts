@@ -2,28 +2,29 @@
 export default {
   feeSummary: {
     itemLabels: {
-      STRATAREG: 'Strata Hotel Application Fee'
+      HOSTREG_1: 'Short-Term Rental Application Fee',
+      HOSTREG_2: 'Short-Term Rental Application Fee'
     }
   },
   strr: {
     step: {
-      stepperLabel: 'Strata Hotel Application Step Navigation',
+      stepperLabel: 'Short-Term Rental Application Step Navigation',
       description: {
-        0: 'Add Contact Information',
-        1: 'Add Business Details',
-        2: 'Add Strata Hotel Information',
+        0: 'Define Your Rental',
+        1: 'Add Individuals and Businesses',
+        2: 'Principal Residence',
         3: 'Review and Confirm'
       },
       title: {
-        0: 'Step 1 - Contact Information',
-        1: 'Step 2 - Business Details',
-        2: 'Step 3 - Platform Information',
-        3: 'Step 4 - Review and Confirm'
+        0: 'Your Rental',
+        1: 'Individuals and Businesses',
+        2: 'Principal Residence',
+        3: 'Review and Confirm'
       },
       info: {
-        0: 'Short-term rental strata hotels must identify a strata hotel representative to communicate with the Province. This person will be responsible for representing the strata hotel regarding regulatory requirements for strata hotels.',
-        1: 'Information about the business operating the strata hotel.',
-        2: 'Provide information about each strata hotel operated by your company.',
+        0: 'TBD.',
+        1: 'Add the individuals and businesses who will have a role in your short-term rental registration. The completing party must be a individual.',
+        2: 'TBD.',
         3: 'Review and confirm all of the information you provided as shown below.'
       }
     },
@@ -31,21 +32,20 @@ export default {
       title: {
         buildings: 'Strata Hotel Buildings',
         completingParty: 'Person Completing Strata Hotel Application',
-        details: 'Strata Hotel Details',
+        property: 'Rental Unit Information',
         primaryRep: 'Strata Hotel Representative',
         secondaryRep: 'Secondary Strata Hotel Representative'
       },
       subTitle: {
-        brand: 'Strata Hotel Brand',
-        numberOfUnits: 'Number of Rental Units',
-        primaryStrataBuilding: 'Primary Strata Hotel Building',
-        strataBuilding: 'Strata Hotel Building'
+        propertyAddress: 'Rental Unit Address',
+        propertyDetails: 'Rental Unit Details',
+        propertyListings: 'Online Listing Details'
       }
     },
     title: {
-      application: 'Short-Term Rental Strata Hotel Application',
-      comingSoon: 'Short-Term Rental Strata Hotel Registry Coming Soon',
-      dashboard: 'My Short-Term Rental Strata Hotel Registry',
+      application: 'Short-Term Rental Registration',
+      comingSoon: 'Short-Term Rental Registry Coming Soon',
+      dashboard: 'My Short-Term Rental Registry',
       default: 'TBD'
     },
     label: {
@@ -53,13 +53,14 @@ export default {
       building: 'Building | Buildings | Primary Building',
       brandName: 'Strata Hotel Brand Name',
       brandSite: 'Strata Hotel Brand Website',
-      numberOfUnits: 'Number of Rental Units',
+      host: 'Host',
+      numberOfRooms: 'Number of Rooms for Rent',
+      propertyManager: 'Property Manager',
       registeringBusiness: 'Registering Business',
       regOfficeAttSvc: 'Registered Office or Attorney for Service'
     },
     text: {
-      comingSoon: 'Short-Term Rental Strata Hotel Registry will be available on December 15, 2024',
-      isUserRep: 'Are you the strata hotel representative?',
+      comingSoon: 'Short-Term Rental Registry will be available on December 15, 2024',
       primaryContact: 'This is the primary contact person for the strata hotel.'
     },
     word: {
@@ -78,7 +79,9 @@ export default {
     }
   },
   btn: {
-    addStrataHotel: 'Add a Strata Hotel',
+    addCompParty: 'Start by adding a Completing Party',
+    addBusiness: 'Add a Business',
+    addIndividual: 'Add an Individual',
     view: 'View',
     saveStartApplication: 'Save & Start Application',
     createNewReg: 'Create New Registration'

@@ -8,6 +8,9 @@ export interface ConnectAddress {
   postalCode: string
   country: string
   locationDescription: string
+  streetName?: string
+  streetNumber?: string
+  unitNumber?: string
 }
 
 export interface CanadaPostResponseAddress {

@@ -1,59 +1,28 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
+import { useHostContactStore } from '~/stores/hostContact'
+
 // TODO: move common code between platform + strata into base layer
 const { t } = useI18n()
-const { getBusinessSchema } = useStrrStrataBusinessStore()
-const { strataBusiness, isMailingInBC } = storeToRefs(useStrrStrataBusinessStore())
+const contactStore = useHostContactStore()
+const { completingParty, primaryContact, secondContact, thirdContact } = storeToRefs(contactStore)
 
-const props = defineProps<{ isComplete: boolean }>()
+// const props = defineProps<{ isComplete: boolean }>()
 
 // cant set form schema type as the schema changes based on user input
-const strataBusinessFormRef = ref<Form<any>>()
+const contactFormRef = ref<Form<any>>()
 
 const getRadioOptions = () => [
-  { value: true, label: t('word.Yes') },
-  { value: false, label: t('word.No') }
+  { value: true, label: t('strr.label.host') },
+  { value: false, label: t('strr.label.propertyManager') }
 ]
 
-// set regOfficeOrAtt.mailingAddress to match business mailing address if sameAsMailAddress checkbox checked
-watch(() => strataBusiness.value?.regOfficeOrAtt.sameAsMailAddress,
-  (newVal) => {
-    if (newVal) {
-      // revalidate fields to update/remove form errors
-      strataBusinessFormRef.value?.validate([
-        'regOfficeOrAtt.mailingAddress.country',
-        'regOfficeOrAtt.mailingAddress.street',
-        'regOfficeOrAtt.mailingAddress.city',
-        'regOfficeOrAtt.mailingAddress.region',
-        'regOfficeOrAtt.mailingAddress.postalCode'
-      ], { silent: true })
-    }
-  }
-)
-
-watch(() => strataBusiness.value?.hasRegOffAtt,
-  (_, oldVal) => {
-    // revalidate fields to update/remove form errors if user clicks yes or no
-    // only revalidate if not the first click
-    if (oldVal !== undefined) {
-      strataBusinessFormRef.value?.validate([
-        'hasRegOffAtt',
-        'regOfficeOrAtt.mailingAddress.country',
-        'regOfficeOrAtt.mailingAddress.street',
-        'regOfficeOrAtt.mailingAddress.city',
-        'regOfficeOrAtt.mailingAddress.region',
-        'regOfficeOrAtt.mailingAddress.postalCode'
-      ], { silent: true })
-    }
-  }
-)
-
-onMounted(async () => {
-  // validate form if step marked as complete
-  if (props.isComplete) {
-    await validateForm(strataBusinessFormRef.value, props.isComplete)
-  }
-})
+// onMounted(async () => {
+//   // validate form if step marked as complete
+//   if (props.isComplete) {
+//     await validateForm(contactFormRef.value, props.isComplete)
+//   }
+// })
 </script>
 
 <template>

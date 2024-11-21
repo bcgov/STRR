@@ -10,7 +10,10 @@ export const useCanadaPostAddress = () => {
     region: '',
     postalCode: '',
     country: '',
-    locationDescription: ''
+    locationDescription: '',
+    streetName: '',
+    streetNumber: '',
+    unitNumber: ''
   })
 
   const createAddressComplete = (
@@ -53,6 +56,9 @@ export const useCanadaPostAddress = () => {
     address.region = addressComplete.ProvinceCode
     address.postalCode = addressComplete.PostalCode
     address.country = addressComplete.CountryIso2
+    address.streetName = addressComplete.Street
+    address.streetNumber = addressComplete.BuildingNumber
+    address.unitNumber = addressComplete.SubBuilding
   }
 
   return {

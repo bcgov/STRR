@@ -33,7 +33,7 @@ onMounted(async () => {
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')
-    todos.value = [getTodoApplication('/strata-hotel/application', application.value?.header)]
+    todos.value = [getTodoApplication('/application', application.value?.header)]
   } else {
     // existing registration or application under the account
     // set left side of header

@@ -14,27 +14,82 @@ const {
   validateStrataConfirmation,
   $reset: applicationReset
 } = useStrrStrataApplicationStore()
+const { property } = storeToRefs(useHostPropertyStore())
 // fee stuff
 const {
   addReplaceFee,
   getFee,
-  setPlaceholderFilingTypeCode
+  removeFee,
+  setPlaceholderFilingTypeCode,
+  setPlaceholderServiceFee
 } = useConnectFeeStore()
 
-const strataFee = ref<ConnectFeeItem | undefined>(undefined)
+setPlaceholderFilingTypeCode(StrrFeeCode.STR_HOST_1)
+
+const hostFee1 = ref<ConnectFeeItem | undefined>(undefined)
+const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
+const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 
 onMounted(async () => {
   // TODO: check for application id in the route query, if there then load the application
   applicationReset()
-  strataFee.value = await getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_STRATA)
-  if (strataFee.value) {
-    addReplaceFee(strataFee.value)
-  } else {
-    // error getting fee info from api
-    // TODO: set fee to a static value or set an error in the fee summary?
-    setPlaceholderFilingTypeCode(StrrFeeCode.STR_STRATA)
+  const [fee1, fee2] = await Promise.all([
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_1),
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_2)
+  ])
+  hostFee1.value = fee1
+  hostFee2.value = fee2
+  // TODO: expecting new fee code for this
+  hostFee3.value = fee1
+  if (hostFee1.value) {
+    setPlaceholderServiceFee(hostFee1.value.serviceFees)
   }
 })
+
+const setFeeBasedOnProperty = () => {
+  if (!hostFee1.value || !hostFee2.value || !hostFee3.value) {
+    return
+  }
+  if (property.value.rentalUnitSpaceType === RentalUnitType.ENTIRE_HOME) {
+    if (property.value.isUnitOnPrincipalResidenceProperty) {
+      if (property.value.hostResidence === ResidenceType.SAME_UNIT) {
+        removeFee(StrrFeeCode.STR_HOST_2)
+        addReplaceFee(hostFee1.value)
+      } else {
+        // property.value.hostResidence === ResidenceType.ANOTHER_UNIT
+        removeFee(StrrFeeCode.STR_HOST_1)
+        addReplaceFee(hostFee2.value)
+      }
+    } else if (property.value.isUnitOnPrincipalResidenceProperty !== undefined) {
+      removeFee(StrrFeeCode.STR_HOST_1)
+      addReplaceFee(hostFee2.value)
+    } else {
+      // set placeholder
+      removeFee(StrrFeeCode.STR_HOST_1)
+      removeFee(StrrFeeCode.STR_HOST_2)
+    }
+  } else if (property.value.rentalUnitSpaceType !== undefined) {
+    if (property.value.numberOfRoomsForRent || 0 > 1) {
+      hostFee3.value.quantity = property.value.numberOfRoomsForRent
+    }
+    removeFee(StrrFeeCode.STR_HOST_1)
+    removeFee(StrrFeeCode.STR_HOST_2)
+    addReplaceFee(hostFee3.value)
+  }
+}
+// update fee stuff
+watch(() => property.value.rentalUnitSpaceType, (val) => {
+  if (val === RentalUnitType.SHARED_ACCOMMODATION && property.value.numberOfRoomsForRent === undefined) {
+    // this will trigger the watcher on numberOfRoomsForRent, which will call setFeeBasedOnProperty
+    property.value.numberOfRoomsForRent = 0
+  } else {
+    setFeeBasedOnProperty()
+  }
+})
+
+watch(() => property.value.isUnitOnPrincipalResidenceProperty, setFeeBasedOnProperty)
+watch(() => property.value.hostResidence, setFeeBasedOnProperty)
+watch(() => property.value.numberOfRoomsForRent, setFeeBasedOnProperty)
 
 // stepper stuff
 // TODO: replace validation functions
@@ -119,7 +174,7 @@ const handleStrataSubmit = async () => {
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
       const { paymentToken, filingId, applicationStatus } = await submitStrataApplication()
-      const redirectPath = `/strata-hotel/dashboard/${filingId}`
+      const redirectPath = `/dashboard/${filingId}`
       if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
         handlePaymentRedirect(paymentToken, redirectPath)
       } else {
@@ -192,7 +247,7 @@ setBreadcrumbs([
     appendAccountId: true,
     external: true
   },
-  { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
+  { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
   { label: t('strr.title.application') }
 ])
 </script>
@@ -209,13 +264,13 @@ setBreadcrumbs([
       :stepper-label="$t('strr.step.stepperLabel')"
     />
     <div v-if="activeStepIndex === 0" key="contact-information">
-      <FormContactInfo :is-complete="activeStep.complete" />
+      <FormPropertyDetails :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 1" key="business-details">
-      <FormBusinessDetails :is-complete="activeStep.complete" />
+      <!-- <FormBusinessDetails :is-complete="activeStep.complete" /> -->
     </div>
     <div v-if="activeStepIndex === 2" key="strata-information">
-      <FormStrataDetails :is-complete="activeStep.complete" />
+      <!-- <FormStrataDetails :is-complete="activeStep.complete" /> -->
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
       <FormReviewConfirm
