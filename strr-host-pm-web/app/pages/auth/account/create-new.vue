@@ -10,20 +10,21 @@ const isSmallScreen = useMediaQuery('(max-width: 640px)')
 const accountStore = useConnectAccountStore()
 const { compPartySchema } = useStrrContactStore()
 const { completingParty } = storeToRefs(useStrrContactStore())
-const loading = ref<boolean>(false)
+const loadingSubmitForm = ref<boolean>(false)
+const loadingCheckAccountName = ref<boolean>(false)
+const accountExists = ref<boolean>(false)
 
-const createAccountSchema = compPartySchema.extend({
-  accountName: z
-    .string()
-    .trim()
-    .min(1, t('validation.accountName.required')) // check for a non empty string
-    .refine( // check account doesnt already exist
-      name => !accountStore.userAccounts.some(account => account.label === name),
-      t('validation.accountName.exists')
-    )
-})
+const createAccountSchema = computed(
+  () => compPartySchema.extend({
+    accountName: z
+      .string()
+      .trim()
+      .min(1, t('validation.accountName.required')) // check for a non empty string
+      .refine(() => accountExists.value !== true, t('validation.accountName.exists'))
+  })
+)
 
-type CreateAccountSchema = z.output<typeof createAccountSchema>
+type CreateAccountSchema = z.output<typeof createAccountSchema.value>
 
 const state = reactive({
   ...completingParty.value,
@@ -32,20 +33,10 @@ const state = reactive({
 
 const createAccountFormRef = ref<Form<CreateAccountSchema>>()
 
-useHead({
-  title: t('page.createAccount.title')
-})
-
-definePageMeta({
-  middleware: ['auth', 'check-tos'],
-  hideBreadcrumbs: true
-})
-
 async function handleCreateAccount () {
   try {
-    loading.value = true
-
-    const response = await $strrApi<{sbc_account_id: number, user_id: number}>('/accounts', {
+    loadingSubmitForm.value = true
+    const response = await $strrApi<{sbc_account_id: number, user_id: number}>('/accounts', { // TODO: move function to store/composable?
       method: 'POST',
       body: {
         name: state.accountName,
@@ -61,12 +52,48 @@ async function handleCreateAccount () {
       await navigateTo(localePath('/application'))
     }
   } catch (e) {
-    strrModal.openAppSubmitError(e) // TODO: better error message
+    strrModal.openErrorModal(t('error.createAccount.title'), t('error.createAccount.description'), true)
     logFetchError(e, 'Unable to create account')
   } finally {
-    loading.value = false
+    loadingSubmitForm.value = false
   }
 }
+
+// validate account name already exists
+watchDebounced(
+  () => state.accountName,
+  async (newVal) => {
+    if (newVal.trim() !== '') {
+      try {
+        loadingCheckAccountName.value = true
+        // also returns limit: number, orgs: Array<any>, page: number, but we only need the total here
+        const { total } = await $strrApi<{ total: number }>('/accounts/search', { // TODO: move function to store/composable?
+          params: { name: newVal }
+        })
+        accountExists.value = total > 0
+      } catch (e) {
+        logFetchError(e, 'Error checking if account name exists')
+        accountExists.value = true // assume account exists if api error
+      } finally {
+        loadingCheckAccountName.value = false
+      }
+    } else {
+      accountExists.value = false // set to false if accountName is empty
+    }
+    // revalidate input after accountExists ref is updated
+    createAccountFormRef.value?.validate('accountName', { silent: true })
+  },
+  { debounce: 150 } // short debounce to get the 'on input' real time validation, this may need to be tweaked
+)
+
+useHead({
+  title: t('page.createAccount.title')
+})
+
+definePageMeta({
+  middleware: ['auth', 'check-tos'],
+  hideBreadcrumbs: true
+})
 </script>
 <template>
   <div class="flex flex-col gap-8 py-8 sm:py-10">
@@ -132,7 +159,8 @@ async function handleCreateAccount () {
           size="bcGov"
           class="ml-auto"
           type="submit"
-          :loading
+          :loading="loadingSubmitForm"
+          :disabled="loadingCheckAccountName"
           :block="isSmallScreen"
         />
       </div>

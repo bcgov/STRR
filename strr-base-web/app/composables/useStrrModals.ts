@@ -99,13 +99,28 @@ export const useStrrModals = () => {
 
   function openHelpRegisterModal () {
     modal.open(ModalHelpRegisterStr, {
+      // @ts-expect-error - actions prop is passed down from ModalHelpRegisterStr -> ModalBase
       actions: [{ label: t('btn.close'), handler: () => close() }]
     })
   }
 
   function openInfoCollectionNoticeModal () {
     modal.open(ModalInfoCollectionNotice, {
+      // @ts-expect-error - actions prop is passed down from ModalInfoCollectionNotice -> ModalBase
       actions: [{ label: t('btn.close'), handler: () => close() }]
+    })
+  }
+
+  function openErrorModal (title: string, description: string, showContactInfo: boolean) {
+    modal.open(ModalBase, {
+      error: {
+        title,
+        description,
+        showContactInfo
+      },
+      actions: [
+        { label: t('btn.close'), handler: () => close() }
+      ]
     })
   }
 
@@ -121,6 +136,7 @@ export const useStrrModals = () => {
     openConfirmSwitchAccountModal,
     openHelpRegisterModal,
     openInfoCollectionNoticeModal,
+    openErrorModal,
     close
   }
 }

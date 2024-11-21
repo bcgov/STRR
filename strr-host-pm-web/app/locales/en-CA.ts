@@ -86,6 +86,12 @@ export default {
     saveStartApplication: 'Save & Start Application',
     createNewReg: 'Create New Registration'
   },
+  error: {
+    createAccount: {
+      title: 'Error creating account',
+      description: 'We could not create your account at this time. Please try again or if this issue persists, please contact us.'
+    }
+  },
   label: {
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
