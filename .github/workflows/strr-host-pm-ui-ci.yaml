@@ -1,0 +1,21 @@
+name: STRR HOST PM UI CI
+
+on:
+  pull_request:
+    paths:
+      - "strr-host-pm-web/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./strr-host-pm-web
+
+jobs:
+  strata-ui-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@main
+    with:
+      app_name: "strr-host-pm-ui"
+      working_directory: "./strr-host-pm-web"
+      codecov_flag: "strrhostpmui"
+      node_version: 20
