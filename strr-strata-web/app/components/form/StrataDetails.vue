@@ -107,6 +107,7 @@ onMounted(async () => {
                 :schema-prefix="'location.'"
                 :form-ref="strataDetailsFormRef"
                 :disabled-fields="['country', 'region']"
+                :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
               />
               <UButton
                 v-if="!strataDetails.buildings.length"
@@ -158,6 +159,7 @@ onMounted(async () => {
                       :schema-prefix="`buildings.${i}`"
                       :form-ref="strataDetailsFormRef"
                       :disabled-fields="['country', 'region']"
+                      :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
                     />
                   </div>
                 </div>

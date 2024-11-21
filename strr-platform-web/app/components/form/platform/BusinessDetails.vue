@@ -152,6 +152,7 @@ onMounted(async () => {
               v-model:postal-code="platformBusiness.mailingAddress.postalCode"
               :schema-prefix="'mailingAddress.'"
               :form-ref="platformBusinessFormRef"
+              :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
             />
           </div>
         </ConnectFormSection>
@@ -209,6 +210,7 @@ onMounted(async () => {
                 v-model:postal-code="platformBusiness.regOfficeOrAtt.mailingAddress.postalCode"
                 :schema-prefix="'regOfficeOrAtt.mailingAddress.'"
                 :disabled-fields="['country', 'region']"
+                :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
                 :form-ref="platformBusinessFormRef"
               />
             </div>

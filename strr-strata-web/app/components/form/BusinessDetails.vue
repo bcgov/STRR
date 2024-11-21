@@ -122,6 +122,7 @@ onMounted(async () => {
               v-model:postal-code="strataBusiness.mailingAddress.postalCode"
               :schema-prefix="'mailingAddress.'"
               :form-ref="strataBusinessFormRef"
+              :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
             />
           </div>
         </ConnectFormSection>
@@ -180,6 +181,7 @@ onMounted(async () => {
                 :schema-prefix="'regOfficeOrAtt.mailingAddress.'"
                 :form-ref="strataBusinessFormRef"
                 :disabled-fields="['country', 'region']"
+                :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
               />
             </div>
           </div>
