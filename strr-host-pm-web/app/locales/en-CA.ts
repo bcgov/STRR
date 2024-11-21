@@ -2,8 +2,8 @@
 export default {
   feeSummary: {
     itemLabels: {
-      HOSTREG_1: 'Short-Term Rental Application Fee',
-      HOSTREG_2: 'Short-Term Rental Application Fee'
+      HOSTREG_1: 'STR Application Fee',
+      HOSTREG_2: 'STR Application Fee'
     }
   },
   strr: {
@@ -49,27 +49,51 @@ export default {
       default: 'TBD'
     },
     label: {
-      addBuilding: 'Add a Building',
-      building: 'Building | Buildings | Primary Building',
-      brandName: 'Strata Hotel Brand Name',
-      brandSite: 'Strata Hotel Brand Website',
+      addListing: 'Add Another Listing',
+      businessLicenseOpt: 'Local Government Business License (Optional)',
       host: 'Host',
+      listingLinkOpt: 'Listing Link (Optional)',
       numberOfRooms: 'Number of Rooms for Rent',
+      ownershipType: 'Ownership Type',
+      nicknameOpt: 'Nickname (Optional)',
+      parcelIdentifierOpt: 'Parcel Identifier (Optional)',
       propertyManager: 'Property Manager',
-      registeringBusiness: 'Registering Business',
-      regOfficeAttSvc: 'Registered Office or Attorney for Service'
+      propertyType: 'Property Type',
+      own: 'Own',
+      coown: 'Co-Own',
+      rent: 'Rent',
+      accessDwelling: 'Accessory Dwelling',
+      bb: 'Bed & Breakfast',
+      condoApt: 'Condo or Apartment',
+      floatHome: 'Float Home',
+      multiHousing: 'Multi Unit Housing',
+      recreational: 'Recreational',
+      secondarySuite: 'Secondary Suite',
+      singleFamily: 'Single Family Home',
+      strataHotel: 'Strata Hotel',
+      townHome: 'Town Home'
     },
     text: {
       comingSoon: 'Short-Term Rental Registry will be available on December 15, 2024',
-      primaryContact: 'This is the primary contact person for the strata hotel.'
+      primaryContact: 'This is the primary contact person for the strata hotel.',
+      rentalType: 'What type of space is offered in this rental unit?',
+      entireHome: 'Entire home (guests have the entire place to themselves)',
+      sharedAccomodation: 'Shared accommodation (guests rent a bedroom with access to common spaces)',
+      hostSameUnit: 'The host lives in this unit when it’s not being rented',
+      hostDifferentUnit: 'The host lives in another unit on the same property',
+      hostResidence: 'Is this rental unit on the same property as the property host’s principal residence?',
+      hostUnit: 'Where does the property host live on the property?',
+      listEachWebLink: 'Add the web link for the rental unit’s listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).'
     },
     word: {
+      room: 'room | rooms',
       unit: 'unit | units'
     },
     hint: {
-      brandName: 'The brand name for the strata hotel',
-      brandSite: 'e.g., https://www.your-strata-hotel.ca/',
-      numberOfUnits: 'The total number of units within the strata hotel that are offered as short-term rentals'
+      businessLicense: 'This is the business licence to operate a short-term rental as provided by your local government.',
+      listingLink: 'e.g., http://www.airbnb.ca/your_listing123',
+      nickname: 'This is only to help you identify your rental unit, especially if you manage multiple properties. (e.g., My Guest Suite)',
+      parcelIdentifier: 'This is a nine-digit number that identifies the parcel in the land title of your property.'
     },
     review: {
       brand: {

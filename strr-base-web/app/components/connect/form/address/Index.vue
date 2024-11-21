@@ -2,15 +2,19 @@
 import type { Form } from '#ui/types'
 
 const country = defineModel<string>('country')
-const street = defineModel<string>('street')
+const street = defineModel<string>('street', { required: false })
+const streetName = defineModel<string>('streetName', { required: false })
+const streetNumber = defineModel<string>('streetNumber', { required: false })
+const unitNumber = defineModel<string>('unitNumber', { required: false })
 const streetAdditional = defineModel<string>('streetAdditional')
 const city = defineModel<string>('city')
 const region = defineModel<string>('region')
 const postalCode = defineModel<string>('postalCode')
 const locationDescription = defineModel<string>('locationDescription')
 
-type AddressField = 'country' | 'street' | 'streetAdditional' | 'city' |
-  'region' | 'postalCode' | 'locationDescription'
+type AddressField = 'country' | 'street' | 'streetName' | 'streetNumber' |
+  'unitNumber' | 'streetAdditional' | 'city' | 'region' | 'postalCode' |
+  'locationDescription'
 
 const props = defineProps<{
   id: string,
@@ -35,9 +39,9 @@ const regions = computed(() => {
   }
 })
 
-const addressComplete = () => {
+const addressComplete = (id: string) => {
   if (typeof country.value === 'string') {
-    enableAddressComplete(props.id, country.value, !props.disabledFields?.includes('country'))
+    enableAddressComplete(id, country.value, !props.disabledFields?.includes('country'))
   }
 }
 
@@ -47,6 +51,10 @@ watch(canadaPostAddress, (newAddress) => {
     // clear form validation for city/region/postalCode if address is autocompleted
     if (props.formRef) {
       props.formRef.clear(`${props.schemaPrefix}country`)
+      props.formRef.clear(`${props.schemaPrefix}streetNumber`)
+      props.formRef.clear(`${props.schemaPrefix}streetName`)
+      props.formRef.clear(`${props.schemaPrefix}unitNumber`)
+      props.formRef.clear(`${props.schemaPrefix}street`)
       props.formRef.clear(`${props.schemaPrefix}city`)
       props.formRef.clear(`${props.schemaPrefix}region`)
       props.formRef.clear(`${props.schemaPrefix}postalCode`)
@@ -57,6 +65,15 @@ watch(canadaPostAddress, (newAddress) => {
         !props.excludedFields?.includes(key as AddressField)
       ) {
         switch (key as AddressField) {
+          case 'streetNumber':
+            streetNumber.value = newAddress.streetNumber
+            break
+          case 'streetName':
+            streetName.value = newAddress.streetName
+            break
+          case 'unitNumber':
+            unitNumber.value = newAddress.unitNumber
+            break
           case 'street':
             street.value = newAddress.street
             break
@@ -116,6 +133,51 @@ const addId = useId()
         </span>
       </template>
     </UFormGroup>
+    <!-- street number / name / unit number -->
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <!-- street number input -->
+      <ConnectFormFieldGroup
+        v-if="!excludedFields?.includes('streetNumber')"
+        :id="id + '-streetNumber'"
+        v-model="streetNumber"
+        class="w-full grow"
+        :name="schemaPrefix + 'streetNumber'"
+        :color="city ? 'primary' : 'gray'"
+        :is-disabled="disabledFields?.includes('streetNumber')"
+        :placeholder="$t('label.streetNumber')"
+        :aria-label="$t('label.streetNumber')"
+        :is-required="true"
+        @keypress.once="addressComplete(id + '-streetNumber')"
+        @click="addressComplete(id + '-streetNumber')"
+      />
+      <!-- street name input -->
+      <ConnectFormFieldGroup
+        v-if="!excludedFields?.includes('streetName')"
+        :id="id + '-streetName'"
+        v-model="streetName"
+        class="w-full grow"
+        :name="schemaPrefix + 'streetName'"
+        :color="city ? 'primary' : 'gray'"
+        :is-disabled="disabledFields?.includes('streetName')"
+        :placeholder="$t('label.streetName')"
+        :aria-label="$t('label.streetName')"
+        :is-required="true"
+        @keypress.once="addressComplete(id + '-streetName')"
+        @click="addressComplete(id + '-streetName')"
+      />
+      <!-- unit number input -->
+      <ConnectFormFieldGroup
+        v-if="!excludedFields?.includes('unitNumber')"
+        :id="schemaPrefix + 'unitNumber'"
+        v-model="unitNumber"
+        class="w-full grow"
+        :name="schemaPrefix + 'unitNumber'"
+        :color="city ? 'primary' : 'gray'"
+        :is-disabled="disabledFields?.includes('unitNumber')"
+        :placeholder="$t('label.unitNumberOpt')"
+        :aria-label="$t('label.unitNumberOpt')"
+      />
+    </div>
     <!-- street input -->
     <UFormGroup
       v-if="!excludedFields?.includes('street')"
@@ -124,7 +186,7 @@ const addId = useId()
     >
       <template #default="{ error }">
         <UInput
-          :id="id"
+          :id="id + '-street'"
           v-model="street"
           size="lg"
           :color="street ? 'primary' : 'gray'"
@@ -134,8 +196,8 @@ const addId = useId()
           :aria-invalid="error !== undefined"
           :aria-describedby="schemaPrefix + 'street-' + addId"
           :disabled="disabledFields?.includes('street')"
-          @keypress.once="addressComplete()"
-          @click="addressComplete()"
+          @keypress.once="addressComplete(id + '-street')"
+          @click="addressComplete(id + '-street')"
         />
       </template>
       <template #help>

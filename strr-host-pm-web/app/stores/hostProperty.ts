@@ -24,7 +24,8 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     rentalUnitSpaceType: z.enum([RentalUnitType.ENTIRE_HOME, RentalUnitType.SHARED_ACCOMMODATION]),
     isUnitOnPrincipalResidenceProperty: z.boolean(),
     hostResidence: z.enum([ResidenceType.ANOTHER_UNIT, ResidenceType.SAME_UNIT]),
-    numberOfRoomsForRent: z.number({ required_error: t('validation.number') }),
+    numberOfRoomsForRent: z.number({ required_error: t('validation.number') }).int().min(0),
+    // TODO: update for street number/name/unit number
     address: getRequiredBCAddress(
       t('validation.address.street'),
       t('validation.address.city'),
@@ -52,13 +53,15 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     numberOfRoomsForRent: undefined,
     address: {
       street: '',
+      streetNumber: '',
+      streetName: '',
+      unitNumber: '',
       streetAdditional: '',
       region: 'BC',
       city: '',
       country: 'CA',
       postalCode: '',
       locationDescription: '',
-      unitNumber: '',
       nickname: ''
     },
     listingDetails: [{ url: '' }]

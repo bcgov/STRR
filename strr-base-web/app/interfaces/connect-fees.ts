@@ -14,6 +14,7 @@ export interface ConnectFeeItem {
   tax: ConnectTax,
   total: number,
   quantity?: number,
+  quantityDesc?: string
   isPlaceholder?: boolean,
   waived?: boolean
 }

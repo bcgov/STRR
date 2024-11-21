@@ -55,10 +55,14 @@ const setFeeBasedOnProperty = () => {
       if (property.value.hostResidence === ResidenceType.SAME_UNIT) {
         removeFee(StrrFeeCode.STR_HOST_2)
         addReplaceFee(hostFee1.value)
-      } else {
-        // property.value.hostResidence === ResidenceType.ANOTHER_UNIT
+      } else if (property.value.hostResidence === ResidenceType.ANOTHER_UNIT) {
         removeFee(StrrFeeCode.STR_HOST_1)
         addReplaceFee(hostFee2.value)
+      } else {
+        // property.value.hostResidence === undefined
+        // set placeholder
+        removeFee(StrrFeeCode.STR_HOST_1)
+        removeFee(StrrFeeCode.STR_HOST_2)
       }
     } else if (property.value.isUnitOnPrincipalResidenceProperty !== undefined) {
       removeFee(StrrFeeCode.STR_HOST_1)
@@ -68,18 +72,28 @@ const setFeeBasedOnProperty = () => {
       removeFee(StrrFeeCode.STR_HOST_1)
       removeFee(StrrFeeCode.STR_HOST_2)
     }
-  } else if (property.value.rentalUnitSpaceType !== undefined) {
-    if (property.value.numberOfRoomsForRent || 0 > 1) {
-      hostFee3.value.quantity = property.value.numberOfRoomsForRent
-    }
+  } else if (
+    property.value.rentalUnitSpaceType !== undefined &&
+    property.value.numberOfRoomsForRent !== undefined &&
+    property.value.numberOfRoomsForRent >= 0
+  ) {
+    // set fee quantity (0 is treated the same as 1)
+    hostFee3.value.quantity = property.value.numberOfRoomsForRent || 1
+    hostFee3.value.quantityDesc = hostFee3.value.quantity > 1
+      ? t('strr.word.room', hostFee3.value.quantity)
+      : undefined
     removeFee(StrrFeeCode.STR_HOST_1)
     removeFee(StrrFeeCode.STR_HOST_2)
     addReplaceFee(hostFee3.value)
+  } else {
+    // set placeholder
+    removeFee(StrrFeeCode.STR_HOST_1)
+    removeFee(StrrFeeCode.STR_HOST_2)
   }
 }
 // update fee stuff
 watch(() => property.value.rentalUnitSpaceType, (val) => {
-  if (val === RentalUnitType.SHARED_ACCOMMODATION && property.value.numberOfRoomsForRent === undefined) {
+  if (val === RentalUnitType.SHARED_ACCOMMODATION && !property.value.numberOfRoomsForRent) {
     // this will trigger the watcher on numberOfRoomsForRent, which will call setFeeBasedOnProperty
     property.value.numberOfRoomsForRent = 0
   } else {

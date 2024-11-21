@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+const { t } = useI18n()
 const {
   feeOptions,
   fees,
@@ -41,6 +41,16 @@ const toggleFolded = () => {
   }
 }
 
+const getItemFee = (feeItem: ConnectFeeItem) => {
+  if (feeItem.isPlaceholder) {
+    return '$ -'
+  }
+  if (feeItem.waived) {
+    return t('feeSummary.noFee')
+  }
+  return `$${(feeItem.filingFees * (feeItem.quantity || 1)).toFixed(2)}`
+}
+
 </script>
 <template>
   <div
@@ -67,23 +77,23 @@ const toggleFolded = () => {
       </template>
     </UButton>
     <div
-      class="text-sm transition-all"
+      class="text-sm transition-all *:border-b *:border-bcGovGray-300"
       :class="folded ? 'h-[0px] overflow-hidden': 'px-4 pt-1'"
     >
       <div
         v-for="feeItem in feeItems"
         :key="feeItem.filingTypeCode"
-        class="flex flex-row justify-between border-b border-bcGovGray-300 py-3"
+        class="flex justify-between py-3"
       >
-        <p class="font-bold">
-          {{ $t(`feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}
-        </p>
-        <p>
-          {{
-            feeItem.waived
-              ? $t('feeSummary.noFee')
-              : !feeItem.isPlaceholder ? `$${feeItem.filingFees.toFixed(2)}` : '$ -' }}
-        </p>
+        <div>
+          <p class="font-bold">
+            {{ $t(`feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}
+          </p>
+          <p v-if="feeItem.quantity !== undefined && feeItem.quantityDesc" class="pl-4 text-gray-600">
+            x {{ feeItem.quantity }} {{ feeItem.quantityDesc }}
+          </p>
+        </div>
+        <p>{{ getItemFee(feeItem) }}</p>
       </div>
       <ConnectFeeExtraFee
         v-if="feeOptions.showFutureEffectiveFees"

@@ -27,7 +27,7 @@ const hostUnitOptions = [
 
 const propertyTypes = [
   { name: t('strr.label.accessDwelling'), value: PropertyType.ACCESSORY_DWELLING },
-  { name: t('strr.label.b&b'), value: PropertyType.BED_AND_BREAKFAST },
+  { name: t('strr.label.bb'), value: PropertyType.BED_AND_BREAKFAST },
   { name: t('strr.label.condoApt'), value: PropertyType.CONDO_OR_APT },
   { name: t('strr.label.floatHome'), value: PropertyType.FLOAT_HOME },
   { name: t('strr.label.multiHousing'), value: PropertyType.MULTI_UNIT_HOUSING },
@@ -75,7 +75,7 @@ onMounted(async () => {
         <div class="space-y-10 py-10">
           <ConnectFormSection
             :title="$t('strr.section.subTitle.propertyDetails')"
-            :error="hasFormErrors(propertyFormRef, [
+            :error="isComplete && hasFormErrors(propertyFormRef, [
               'numberOfRoomsForRent', 'propertyType', 'ownershipType',
               'parcelIdentifier', 'businessLicense', 'businessLicenseExpiryDate'])"
           >
@@ -201,7 +201,7 @@ onMounted(async () => {
           <div class="h-px w-full border-b border-gray-100" />
           <ConnectFormSection
             :title="$t('strr.section.subTitle.propertyAddress')"
-            :error="hasFormErrors(propertyFormRef, [
+            :error="isComplete && hasFormErrors(propertyFormRef, [
               'address.nickname',
               'address.country',
               'address.street',
@@ -219,11 +219,12 @@ onMounted(async () => {
                 name="address.nickname"
                 :placeholder="$t('strr.label.nicknameOpt')"
               />
-              <!-- TODO: figure out unit/street number -->
               <ConnectFormAddress
                 id="property-address"
                 v-model:country="property.address.country"
-                v-model:street="property.address.street"
+                v-model:street-number="property.address.streetNumber"
+                v-model:street-name="property.address.streetName"
+                v-model:unit-number="property.address.unitNumber"
                 v-model:street-additional="property.address.streetAdditional"
                 v-model:city="property.address.city"
                 v-model:region="property.address.region"
@@ -231,6 +232,7 @@ onMounted(async () => {
                 class="max-w-bcGovInput"
                 :schema-prefix="'address.'"
                 :disabled-fields="['country', 'region']"
+                :excluded-fields="['street']"
                 :form-ref="propertyFormRef"
               />
             </div>
@@ -239,7 +241,7 @@ onMounted(async () => {
           <!-- TODO: get hasFormErrors dynamically -->
           <ConnectFormSection
             :title="$t('strr.section.subTitle.propertyListings')"
-            :error="hasFormErrors(propertyFormRef, listingDetailsErrorList)"
+            :error="isComplete && hasFormErrors(propertyFormRef, listingDetailsErrorList)"
           >
             <div class="space-y-5">
               <span>{{ $t('strr.text.listEachWebLink') }}</span>
