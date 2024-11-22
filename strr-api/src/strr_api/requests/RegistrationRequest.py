@@ -120,6 +120,7 @@ class UnitDetails:
         parcelIdentifier=None,
         businessLicense=None,
         businessLicenseExpiryDate=None,
+        strataHotelRegistrationNumber=None,
     ):
         self.propertyType = propertyType
         self.ownershipType = ownershipType
@@ -130,6 +131,7 @@ class UnitDetails:
         self.isUnitOnPrincipalResidenceProperty = isUnitOnPrincipalResidenceProperty
         self.numberOfRoomsForRent = numberOfRoomsForRent
         self.businessLicenseExpiryDate = businessLicenseExpiryDate
+        self.strataHotelRegistrationNumber = strataHotelRegistrationNumber
 
 
 class MailingAddress:

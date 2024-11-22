@@ -266,6 +266,9 @@
             "RENT",
             "CO_OWN"
           ]
+        },
+        "strataHotelRegistrationNumber": {
+          "type": "string"
         }
       },
       "required": [

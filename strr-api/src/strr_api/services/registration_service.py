@@ -293,6 +293,7 @@ class RegistrationService:
             pr_exempt_reason=registration_request.principalResidence.nonPrincipalOption,
             service_provider=registration_request.principalResidence.specifiedServiceProvider,
             property_listings=[PropertyListing(url=listing.url) for listing in registration_request.listingDetails],
+            strata_hotel_registration_number=registration_request.unitDetails.strataHotelRegistrationNumber,
         )
 
         if property_manager := registration_request.propertyManager:
@@ -440,6 +441,15 @@ class RegistrationService:
         if not UserService.is_strr_staff_or_system():
             query = query.filter_by(sbc_account_id=account_id)
         return query.one_or_none()
+
+    @classmethod
+    def is_registration_valid(cls, registration_number) -> bool:
+        """Returns whether a registration number is valid."""
+        is_valid = False
+        registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
+        if registration and registration.status == RegistrationStatus.ACTIVE:
+            is_valid = True
+        return is_valid
 
     @classmethod
     def generate_registration_certificate(cls, registration: Registration):

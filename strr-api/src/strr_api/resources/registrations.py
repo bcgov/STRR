@@ -45,6 +45,7 @@ from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
+from strr_api.enums.enum import ErrorMessage
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
 from strr_api.responses import Events
@@ -138,6 +139,36 @@ def get_registration(registration_id):
 
     except AuthException as auth_exception:
         return exception_response(auth_exception)
+
+
+@bp.route("/<registration_number>/validate", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def validate_registration(registration_number):
+    """
+    Returns whether a registration is valid or not.
+    ---
+    tags:
+      - registration
+    parameters:
+      - in: path
+        name: registration_number
+        type: string
+        required: true
+        description: Registration Number
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+
+    try:
+        return {"isValid": RegistrationService.is_registration_valid(registration_number)}, HTTPStatus.OK
+    except Exception as exception:
+        logger.error("Error in validating registration number: %s", repr(exception))
+        return error_response(ErrorMessage.PROCESSING_ERROR.value, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @bp.route("/<registration_id>/documents/<file_key>", methods=("GET",))

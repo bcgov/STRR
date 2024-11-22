@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "22e88e3b-9a92-4098-ae9e-578f2af2859c",
+		"_postman_id": "a0b2883b-75ca-4130-853f-dabb7d473484",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -1080,6 +1080,41 @@
 							"path": [
 								"registrations",
 								"{{registration_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Registration number",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_number}}/validate",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_number}}",
+								"validate"
 							]
 						}
 					},

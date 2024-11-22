@@ -82,6 +82,7 @@ class RentalProperty(Versioned, BaseModel):
     host_residence = db.Column(db.Enum(HostResidence), nullable=True)
     is_unit_on_principal_residence_property = db.Column(db.Boolean, nullable=False)
     number_of_rooms_for_rent = db.Column(db.Integer, nullable=False)
+    strata_hotel_registration_number = db.Column(db.String, nullable=True)
 
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=False)
