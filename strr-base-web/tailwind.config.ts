@@ -4,6 +4,10 @@ module.exports = {
   presets: [require('@daxiom/nuxt-core-layer-test/tailwind.config')],
   theme: {
     extend: {
+      listStyleType: {
+        alpha: 'lower-alpha',
+        upperAlpha: 'upper-alpha'
+      },
       maxWidth: {
         bcGovInput: '600px'
       },
