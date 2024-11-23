@@ -23,7 +23,9 @@
         "app-inner-container",
         "connect-date-picker",
         "connect-date-picker__err",
-        "prose-bcGov"
+        "prose-bcGov",
+        "list-alpha",
+        "list-upperAlpha"
       ]
     }],
     "no-use-before-define": "off"

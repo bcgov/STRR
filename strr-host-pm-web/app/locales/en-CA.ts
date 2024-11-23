@@ -6,6 +6,32 @@ export default {
       HOSTREG_2: 'STR Application Fee'
     }
   },
+  form: {
+    pr: {
+      declaration: {
+        intro: 'As required by section 14 (2) of the {italicStart}Short-Term Accommodations Rental Act{italicEnd} (the Act), I declare the property host will comply with the principal residence restriction in the Act and provide the short-term rental accommodation services described in this registration in one or both of:',
+        list: {
+          a: 'the property host’s principal residence,',
+          b: "not more than one secondary suite or other accessory dwelling unit that is on the land parcel associated with the property host's principal residence."
+        },
+        agreement: 'I understand that if the property host does not comply with the requirement to provide the short-term rental accommodation services in the principal residence, the property host may be subject to enforcement action under Part 4 of the Act, including being ordered to pay an administrative penalty.'
+      },
+      exemptReason: {
+        EXEMPT_COMMUNITY: 'Located in exempt community',
+        STRATA_HOTEL: 'Eligible strata hotel or motel',
+        FARM_LAND: 'Farm land (BC Assessment Farm Class 9)',
+        OTHER: 'Other exempted accommodation service provider'
+      },
+      exemptOtherProvider: {
+        TIMESHARE: 'Timeshare',
+        FRACTIONAL_OWNERSHIP: 'Fractional Ownership',
+        HOME_EXCHANGE: 'Home Exchange',
+        LODGE_OPERATOR: 'Lodge (operator of outdoor recreational activity)',
+        EDUCATIONAL_INSTITUTION: 'Educational institution accommodation (Student or Employee) (off campus)',
+        STRATA_GUEST_SUITE: 'Strata corporation guest suite'
+      }
+    }
+  },
   strr: {
     step: {
       stepperLabel: 'Short-Term Rental Application Step Navigation',

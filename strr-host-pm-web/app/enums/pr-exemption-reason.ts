@@ -1,0 +1,6 @@
+export enum PrExemptionReason {
+  EXEMPT_COMMUNITY = 'EXEMPT_COMMUNITY',
+  STRATA_HOTEL = 'STRATA_HOTEL',
+  FARM_LAND = 'FARM_LAND',
+  OTHER = 'OTHER'
+}

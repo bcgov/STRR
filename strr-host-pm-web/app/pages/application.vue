@@ -283,8 +283,8 @@ setBreadcrumbs([
     <div v-if="activeStepIndex === 1" key="business-details">
       <!-- <FormBusinessDetails :is-complete="activeStep.complete" /> -->
     </div>
-    <div v-if="activeStepIndex === 2" key="strata-information">
-      <!-- <FormStrataDetails :is-complete="activeStep.complete" /> -->
+    <div v-if="activeStepIndex === 2" key="principal-residence">
+      <FormPrincipalResidence :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
       <FormReviewConfirm
