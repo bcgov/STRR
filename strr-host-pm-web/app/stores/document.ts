@@ -11,10 +11,6 @@ export const useDocumentStore = defineStore('host/application', () => {
 
   const apiDocuments = computed<ApiDocument[]>(() => storedDocuments.value.map(item => item.apiDoc))
 
-  function sleep (ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
   async function addStoredDocument (doc: File): Promise<void> {
     const uiDoc: UiDocument = {
       file: doc,
@@ -29,15 +25,14 @@ export const useDocumentStore = defineStore('host/application', () => {
     storedDocuments.value.push(uiDoc)
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10mb
-    await sleep(3000)
-    if (true) {
+    if (doc.size > MAX_FILE_SIZE) {
       updateStoredDocument(uiDoc.id, 'error', true)
       updateStoredDocument(uiDoc.id, 'message', 'File size too big, this file will not be included in your application')
       updateStoredDocument(uiDoc.id, 'loading', false)
       return
     }
 
-    await sleep(5000)
+    await sleep(3000)
     await postDocument(uiDoc)
   }
 
