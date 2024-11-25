@@ -157,12 +157,33 @@ class PropertyListing(Versioned, BaseModel):
 class Document(Versioned, BaseModel):
     """Document model."""
 
+    class DocumentType(BaseEnum):
+        """Enum of the document types."""
+
+        LESS_THAN_250 = auto()  # pylint: disable=invalid-name
+        BETWEEN_250_AND_999 = auto()  # pylint: disable=invalid-name
+        THOUSAND_AND_ABOVE = auto()  # pylint: disable=invalid-name
+        BC_DRIVERS_LICENSE = auto()  # pylint: disable=invalid-name
+        PROPERTY_ASSESSMENT_NOTICE = auto()  # pylint: disable=invalid-name
+        SPEC_TAX_CONFIRMATION = auto()  # pylint: disable=invalid-name
+        HOG_DECLARATION = auto()  # pylint: disable=invalid-name
+        ICBC_CERTIFICATE_OF_INSURANCE = auto()  # pylint: disable=invalid-name
+        HOME_INSURANCE_SUMMARY = auto()  # pylint: disable=invalid-name
+        PROPERTY_TAX_NOTICE = auto()  # pylint: disable=invalid-name
+        UTILITY_BILL = auto()  # pylint: disable=invalid-name
+        GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE = auto()  # pylint: disable=invalid-name
+        TENANCY_AGREEMENT = auto()  # pylint: disable=invalid-name
+        RENT_RECEIPT_OR_BANK_STATEMENT = auto()  # pylint: disable=invalid-name
+        LOCAL_GOVT_BUSINESS_LICENSE = auto()  # pylint: disable=invalid-name
+        OTHERS = auto()  # pylint: disable=invalid-name
+
     __tablename__ = "documents"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     file_name = db.Column(db.String, nullable=False)
     file_type = db.Column(db.String, nullable=False)  # e.g., 'pdf', 'jpeg', etc.
     path = db.Column(db.String, nullable=False)
+    document_type = db.Column("document_type", db.Enum(DocumentType), default=DocumentType.OTHERS)
 
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=False)
     registration = relationship("Registration", foreign_keys=[registration_id], back_populates="documents")

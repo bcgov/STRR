@@ -330,12 +330,32 @@
           },
           "fileKey": {
             "type": "string"
+          },
+          "documentType": {
+            "type": "string",
+            "default": "OTHERS",
+            "enum": [
+              "BC_DRIVERS_LICENSE",
+              "PROPERTY_ASSESSMENT_NOTICE",
+              "SPEC_TAX_CONFIRMATION",
+              "HOG_DECLARATION",
+              "ICBC_CERTIFICATE_OF_INSURANCE",
+              "HOME_INSURANCE_SUMMARY",
+              "PROPERTY_TAX_NOTICE",
+              "UTILITY_BILL",
+              "GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE",
+              "TENANCY_AGREEMENT",
+              "RENT_RECEIPT_OR_BANK_STATEMENT",
+              "LOCAL_GOVT_BUSINESS_LICENSE",
+              "OTHERS"
+            ]
           }
         },
         "required": [
           "fileName",
           "fileType",
-          "fileKey"
+          "fileKey",
+          "documentType"
         ]
       }
     }

@@ -91,7 +91,12 @@ class RegistrationService:
 
         documents = []
         for doc in registration_details.get("documents", []):
-            document = Document(file_name=doc.get("fileName"), file_type=doc.get("fileType"), path=doc.get("fileKey"))
+            document = Document(
+                file_name=doc.get("fileName"),
+                file_type=doc.get("fileType"),
+                path=doc.get("fileKey"),
+                document_type=doc.get("documentType"),
+            )
             documents.append(document)
         if documents:
             registration.documents = documents

@@ -172,7 +172,14 @@ class RegistrationSerializer:
         documents = []
         if registration.documents:
             for doc in registration.documents:
-                documents.append({"fileKey": doc.path, "fileName": doc.file_name, "fileType": doc.file_type})
+                documents.append(
+                    {
+                        "fileKey": doc.path,
+                        "fileName": doc.file_name,
+                        "fileType": doc.file_type,
+                        "documentType": doc.document_type,
+                    }
+                )
         registration_data["documents"] = documents
 
         primary_property_contact = list(filter(lambda x: x.is_primary is True, registration.rental_property.contacts))[

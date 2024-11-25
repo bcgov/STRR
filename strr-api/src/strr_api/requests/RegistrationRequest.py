@@ -219,7 +219,8 @@ class Contact:
 class Document:
     """Document object."""
 
-    def __init__(self, fileName: str, fileType: str, fileKey: str):
+    def __init__(self, fileName: str, fileType: str, fileKey: str, documentType: str):
         self.fileName = fileName
         self.fileKey = fileKey
         self.fileType = fileType
+        self.documentType = documentType

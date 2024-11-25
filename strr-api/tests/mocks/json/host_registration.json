@@ -80,6 +80,14 @@
       "nonPrincipalOption": "n/a",
       "specifiedServiceProvider": "n/a",
       "agreedToSubmit": true
-    }
+    },
+    "documents": [
+      {
+        "fileName": "Drivers License",
+        "fileType": "pdf",
+        "fileKey": "a1234",
+        "documentType": "BC_DRIVERS_LICENSE"
+      }
+    ]
   }
 }
