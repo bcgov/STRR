@@ -16,8 +16,7 @@ defineEmits<{
     <div
       class="flex items-center justify-between rounded bg-gray-100 p-3"
       :class="{
-        'opacity-90': doc.loading,
-        'bg-red-100': doc.error
+        'opacity-90': doc.loading
       }"
     >
       <div class="flex items-center justify-between">
@@ -25,18 +24,18 @@ defineEmits<{
           <UIcon
             :name="doc.loading
               ? 'i-heroicons-arrow-path-20-solid'
-              : doc.error
-                ? 'i-mdi-alert'
-                : 'i-mdi-paperclip'
+              : 'i-mdi-check-circle'
             "
-            class="size-5"
+            class="size-6"
             :class="{
               'animate-spin': doc.loading,
-              'text-red-500': doc.error
+              'text-green-500': !doc.loading
             }"
           />
-          <span>{{ doc.name }}</span>
-          {{ doc.file.size }}
+          <div class="flex flex-col">
+            <span class="text-sm">{{ $t(`form.pr.docType.${doc.type}`) }}</span>
+            <span>{{ doc.name }}</span>
+          </div>
         </div>
       </div>
       <UButton
@@ -47,13 +46,5 @@ defineEmits<{
         @click="$emit('remove', doc)"
       />
     </div>
-    <p
-      class="ml-2 text-sm"
-      :class="{
-        'text-red-500': doc.error
-      }"
-    >
-      {{ doc.message }}
-    </p>
   </li>
 </template>

@@ -4,35 +4,90 @@ import type { ApiDocument } from '~/interfaces/host-api'
 import type { UiDocument } from '~/interfaces/ui-document'
 
 export const useDocumentStore = defineStore('host/application', () => {
-  // const { t } = useI18n()
+  const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
+  const strrModal = useStrrModals()
 
   const storedDocuments = ref<UiDocument[]>([])
-
   const apiDocuments = computed<ApiDocument[]>(() => storedDocuments.value.map(item => item.apiDoc))
+  const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
+
+  const docTypeOptions = [
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENSE}`),
+      value: DocumentUploadType.BC_DRIVERS_LICENSE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE}`),
+      value: DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.SPEC_TAX_CONFIRMATION}`),
+      value: DocumentUploadType.SPEC_TAX_CONFIRMATION
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.HOG_DECLARATION}`),
+      value: DocumentUploadType.HOG_DECLARATION
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE}`),
+      value: DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.HOME_INSURANCE_SUMMARY}`),
+      value: DocumentUploadType.HOME_INSURANCE_SUMMARY
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TAX_NOTICE}`),
+      value: DocumentUploadType.PROPERTY_TAX_NOTICE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.UTILITY_BILL}`),
+      value: DocumentUploadType.UTILITY_BILL
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE}`),
+      value: DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.TENANCY_AGREEMENT}`),
+      value: DocumentUploadType.TENANCY_AGREEMENT
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT}`),
+      value: DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`),
+      value: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.OTHERS}`),
+      value: DocumentUploadType.OTHERS
+    }
+  ]
 
   async function addStoredDocument (doc: File): Promise<void> {
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10mb
+    if (doc.size > MAX_FILE_SIZE) {
+      strrModal.openErrorModal(t('error.docUpload.fileSize.title'), t('error.docUpload.fileSize.description'), false)
+      return
+    }
+
     const uiDoc: UiDocument = {
       file: doc,
       apiDoc: {} as ApiDocument,
       name: doc.name,
-      error: false,
+      type: selectedDocType.value!,
       id: uuidv4(),
-      loading: true,
-      message: ''
+      loading: true
     }
 
     storedDocuments.value.push(uiDoc)
 
-    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10mb
-    if (doc.size > MAX_FILE_SIZE) {
-      updateStoredDocument(uiDoc.id, 'error', true)
-      updateStoredDocument(uiDoc.id, 'message', 'File size too big, this file will not be included in your application')
-      updateStoredDocument(uiDoc.id, 'loading', false)
-      return
-    }
+    selectedDocType.value = undefined
 
-    await sleep(3000)
+    await sleep(3000) // dev only
     await postDocument(uiDoc)
   }
 
@@ -60,6 +115,7 @@ export const useDocumentStore = defineStore('host/application', () => {
       // create payload
       const formData = new FormData()
       formData.append('file', uiDoc.file)
+      formData.append('documentType', uiDoc.type)
 
       // submit file
       const res = await $strrApi<ApiDocument>('/documents', {
@@ -70,10 +126,9 @@ export const useDocumentStore = defineStore('host/application', () => {
       // update ui object with backend response
       updateStoredDocument(uiDoc.id, 'apiDoc', res)
     } catch (e) {
-      // add error=true to ui object
       logFetchError(e, 'Error uploading document')
-      updateStoredDocument(uiDoc.id, 'error', true)
-      updateStoredDocument(uiDoc.id, 'message', 'Error uploading document <reason ??>')
+      strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      await removeStoredDocument(uiDoc)
     } finally {
       // cleanup loading on ui object
       updateStoredDocument(uiDoc.id, 'loading', false)
@@ -97,6 +152,8 @@ export const useDocumentStore = defineStore('host/application', () => {
   return {
     apiDocuments,
     storedDocuments,
+    selectedDocType,
+    docTypeOptions,
     postDocument,
     deleteDocument,
     addStoredDocument,

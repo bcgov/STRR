@@ -29,6 +29,21 @@ export default {
         LODGE_OPERATOR: 'Lodge (operator of outdoor recreational activity)',
         EDUCATIONAL_INSTITUTION: 'Educational institution accommodation (Student or Employee) (off campus)',
         STRATA_GUEST_SUITE: 'Strata corporation guest suite'
+      },
+      docType: {
+        BC_DRIVERS_LICENSE: "BC Driver's License",
+        PROPERTY_ASSESSMENT_NOTICE: 'Property Assessment Notice',
+        SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax Confirmation',
+        HOG_DECLARATION: 'Home Owner Grant declaration',
+        ICBC_CERTIFICATE_OF_INSURANCE: 'ICBC Certificate of Insurance',
+        HOME_INSURANCE_SUMMARY: 'Home Insurance Summary',
+        PROPERTY_TAX_NOTICE: 'Property Tax Notice',
+        UTILITY_BILL: 'Utility Bill',
+        GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE: 'Government or Crown Corporation Official Notice',
+        TENANCY_AGREEMENT: 'Tenancy Agreement',
+        RENT_RECEIPT_OR_BANK_STATEMENT: 'Rent Receipt or Bank Statement',
+        LOCAL_GOVT_BUSINESS_LICENSE: 'Local Government Business License',
+        OTHERS: 'Other Proof Document (subject to review by registry staff)'
       }
     }
   },
@@ -140,6 +155,16 @@ export default {
     createAccount: {
       title: 'Error creating account',
       description: 'We could not create your account at this time. Please try again or if this issue persists, please contact us.'
+    },
+    docUpload: {
+      fileSize: {
+        title: 'Error Uploading Document',
+        description: 'File size too large. Please only upload files less than 10mb.'
+      },
+      generic: {
+        title: 'Error Uploading Document',
+        description: 'Something went wrong when uploading the file, only pdfs and files less than 10mb are accepted.'
+      }
     }
   },
   label: {

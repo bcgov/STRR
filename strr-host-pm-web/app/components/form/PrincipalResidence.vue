@@ -179,16 +179,9 @@ onMounted(async () => {
                 name="documentUpload"
                 :ui="{ help: 'mt-2 ml-10' }"
               >
-                <!-- <DocumentUploadButton
-                  id="supporting-documents"
-                  label="Choose Supporting Documents"
-                  :multiple="false"
-                  @change="docStore.addStoredDocument"
-                /> -->
                 <DocumentUploadSelect
                   id="supporting-documents"
                   label="Choose Supporting Documents"
-                  :multiple="false"
                   @change="docStore.addStoredDocument"
                 />
               </UFormGroup>

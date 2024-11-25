@@ -9,22 +9,10 @@ const props = defineProps({
   helpId: { type: String, default: undefined },
   ariaLabel: { type: String, default: undefined },
   accept: { type: String, default: undefined },
-  multiple: { type: Boolean, default: true },
   error: { type: Boolean, default: false }
 })
 
-const options = [
-  'doc type 1',
-  'doc type 2',
-  'doc type 3',
-  'doc type 4',
-  'doc type 5',
-  'doc type 6',
-  'doc type 7',
-  'doc type 8',
-  'doc type 9'
-]
-const option = ref('')
+const docStore = useDocumentStore()
 
 const emit = defineEmits<{
   change: [any]
@@ -32,7 +20,7 @@ const emit = defineEmits<{
 
 const { open, onChange } = useFileDialog({
   accept: props.accept,
-  multiple: props.multiple,
+  multiple: false,
   directory: false
 })
 
@@ -53,13 +41,14 @@ onChange((files) => {
       class="size-6 text-blue-500"
     />
     <USelectMenu
-      v-model="option"
+      v-model="docStore.selectedDocType"
       size="lg"
       :color="'gray'"
-      :options="options"
+      :options="docStore.docTypeOptions"
       :aria-label="'Choose Supporting Documents'"
       :aria-required="isRequired"
       :aria-invalid="isInvalid"
+      value-attribute="value"
       :ui-menu="{
         label: true ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'
       }"
@@ -70,25 +59,5 @@ onChange((files) => {
         <span>{{ label }}</span>
       </template>
     </USelectMenu>
-    <!-- <button
-      class="h-[56px] w-full rounded-t border-b border-gray-500 bg-gray-100 px-4 text-left ring-0
-       hover:border-gray-600 hover:bg-gray-200 focus:border-b-2 focus:border-blue-500 focus:outline-none focus:ring-0"
-      :aria-required="isRequired"
-      :aria-invalid="isInvalid"
-      :aria-label="ariaLabel"
-      :disabled="isDisabled"
-      @click="open()"
-    >
-      {{ label }}
-    </button> -->
   </div>
 </template>
-<style>
-::-webkit-file-upload-button {
-   display: none;
-}
-
-::file-selector-button {
-  display: none;
-}
-</style>
