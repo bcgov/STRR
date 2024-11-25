@@ -57,13 +57,13 @@ export default {
         3: 'Review and Confirm'
       },
       title: {
-        0: 'Your Rental',
+        0: 'Define Your Rental',
         1: 'Individuals and Businesses',
         2: 'Principal Residence',
         3: 'Review and Confirm'
       },
       info: {
-        0: 'TBD.',
+        0: 'Tell us about the short-term rental property. Note: If you have multiple short-term rental properties, you must submit a separate Short-Term Rental Registration for each rental property.',
         1: 'Add the individuals and businesses who will have a role in your short-term rental registration. The completing party must be a individual.',
         2: 'TBD.',
         3: 'Review and confirm all of the information you provided as shown below.'
@@ -80,7 +80,8 @@ export default {
       subTitle: {
         propertyAddress: 'Rental Unit Address',
         propertyDetails: 'Rental Unit Details',
-        propertyListings: 'Online Listing Details'
+        propertyListings: 'Online Listings',
+        rentalUnitResiAddress: 'Rental Unit Residential Address'
       }
     },
     title: {
@@ -91,6 +92,7 @@ export default {
     },
     label: {
       addListing: 'Add Another Listing',
+      businessLicense: 'Business Licence Number',
       businessLicenseOpt: 'Local Government Business License (Optional)',
       businessLicenseDate: 'Business Licence Expiry Date',
       host: 'Host',
@@ -113,7 +115,14 @@ export default {
       secondarySuite: 'Secondary Suite',
       singleFamily: 'Single Family Home',
       strataHotel: 'Strata Hotel',
-      townHome: 'Town Home'
+      townHome: 'Town Home',
+      rentalUnitSetup: 'Rental Unit Set-up',
+      rentalUnitName: 'Rental Unit Name',
+      rentalUnitNameOpt: 'Rental Unit Name (Optional)',
+      parcelId: 'Parcel Identifier (PID)',
+      prRequirement: 'Principal Residence Requirement',
+      theRentalUnitIs: 'The rental unit is:',
+      supportingInfo: 'Supporting Information'
     },
     text: {
       comingSoon: 'Short-Term Rental Registry will be available on December 15, 2024',
@@ -125,7 +134,15 @@ export default {
       hostDifferentUnit: 'The host lives in another unit on the same property',
       hostResidence: 'Is this rental unit on the same property as the property host’s principal residence?',
       hostUnit: 'Where does the property host live on the property?',
-      listEachWebLink: 'Add the web link for the rental unit’s listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).'
+      listEachWebLink: 'Add the web link for the rental unit’s listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).',
+      ownershipTypeLegend: 'Required, What is the ownership type of the property?',
+      wholePr: 'The whole Host Principal Residence',
+      roomInPr: 'A room or rooms in the Host Principal Residence',
+      wholeUnitSameProperty: 'A whole unit on the same property as the Host Principal Residence (basement suite, secondary suite)',
+      wholeUnitDiffProperty: 'Not on the same property as the Host Principal Residence',
+      enterResiAddressToDetermineRequirement: 'Start by entering the residential address of rental unit to help determine if you need to register your short-term rental and if it is in an area subject to the {link}.',
+      rentalUnitSetupLegend: 'Select the set-up of the property, host principal residence, and rental unit.',
+      requireBusLicense: 'Your local government requires a valid business licence to operate a short-term rental.'
     },
     word: {
       room: 'room | rooms',
@@ -246,6 +263,8 @@ export default {
     },
     ownershipType: 'Please select the ownership type of this rental unit',
     parcelIdentifier: 'The parcel identifier must be a nine-digit number',
-    propertyType: 'Please select the property type of this rental unit'
+    propertyType: 'Please select the property type of this rental unit',
+    onlineListings: 'Please enter a valid URL (i.e. https://www.bcregistry.gov.bc.ca)',
+    rentalUnitSetupType: 'Please select the setup type of this rental unit'
   }
 }

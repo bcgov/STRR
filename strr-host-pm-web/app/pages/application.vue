@@ -277,8 +277,8 @@ setBreadcrumbs([
       v-model:active-step="activeStep"
       :stepper-label="$t('strr.step.stepperLabel')"
     />
-    <div v-if="activeStepIndex === 0" key="contact-information">
-      <FormPropertyDetails :is-complete="activeStep.complete" />
+    <div v-if="activeStepIndex === 0" key="define-your-rental">
+      <FormDefineYourRental :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 1" key="business-details">
       <!-- <FormBusinessDetails :is-complete="activeStep.complete" /> -->

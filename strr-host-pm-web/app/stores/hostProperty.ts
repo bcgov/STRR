@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { getRequiredUrl } from '#imports'
+import { RentalUnitSetupType } from '~/enums/rental-unit-setup-types'
+import type { UiHostProperty } from '~/interfaces/host-ui'
 
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()
@@ -27,9 +28,14 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     ownershipType: z.enum([OwnwershipType.CO_OWN, OwnwershipType.OWN, OwnwershipType.RENT], {
       errorMap: () => ({ message: t('validation.ownershipType') })
     }),
-    rentalUnitSpaceType: z.enum([RentalUnitType.ENTIRE_HOME, RentalUnitType.SHARED_ACCOMMODATION]),
-    isUnitOnPrincipalResidenceProperty: z.boolean(),
-    hostResidence: z.enum([ResidenceType.ANOTHER_UNIT, ResidenceType.SAME_UNIT]),
+    rentalUnitSetupType: z.enum([
+      RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
+      RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
+      RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY,
+      RentalUnitSetupType.WHOLE_UNIT_DIFFERENT_PROPERTY
+    ], {
+      errorMap: () => ({ message: t('validation.rentalUnitSetupType') })
+    }),
     numberOfRoomsForRent: z.number({ required_error: t('validation.numberOfRooms.empty') })
       .int({ message: t('validation.numberOfRooms.invalidInput') }).min(0),
     // TODO: update for street number/name/unit number
@@ -48,18 +54,16 @@ export const useHostPropertyStore = defineStore('host/property', () => {
         : optionalOrEmptyString,
       nickname: optionalOrEmptyString
     }),
-    listingDetails: z.array(z.object({ url: getRequiredUrl(t('validation.listingDetails')) }))
+    listingDetails: z.array(z.object({ url: getOptionalUrl(t('validation.onlineListings')) }))
   }))
 
-  const getEmptyProperty = () => ({
+  const getEmptyProperty = (): UiHostProperty => ({
     parcelIdentifier: '',
     businessLicense: '',
     businessLicenseExpiryDate: '',
     propertyType: undefined,
     ownershipType: undefined,
-    rentalUnitSpaceType: undefined,
-    hostResidence: undefined,
-    isUnitOnPrincipalResidenceProperty: undefined,
+    rentalUnitSetupType: undefined,
     numberOfRoomsForRent: undefined,
     address: {
       street: '',
@@ -77,7 +81,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     listingDetails: [{ url: '' }]
   })
 
-  const property = ref<HostProperty>(getEmptyProperty())
+  const property = ref<UiHostProperty>(getEmptyProperty())
   const isUnitNumberRequired = computed(() => property.value.propertyType && [
     PropertyType.SECONDARY_SUITE,
     PropertyType.ACCESSORY_DWELLING,
