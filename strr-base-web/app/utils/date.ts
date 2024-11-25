@@ -17,19 +17,20 @@ export function dateStringToDate (dateString: string): Date | null {
 }
 
 /** Return the date as a string in the desired format
- * @param date js Date
- * @param format default: YYYY-MM-DDT:HH:mm:ss+-HH:mm
+ * @param date - js Date or ISO datestring
+ * @param format default: YYYY-MM-DD, see format options:
+ * https://moment.github.io/luxon/#/formatting?id=table-of-tokens
 */
-// export function dateToString (date: Date, format?: string) {
-//   return (date) ? moment(date).local().format(format) : ''
-// }
+export function dateToString (date: Date | string, format = 'y-MM-dd') {
+  return DateTime.fromJSDate(new Date(date)).toFormat(format)
+}
 
 /** Convert the date to pacific time and return as a string in the desired format
  * @param {Date | string} date - js Date or ISO datestring
  * @param format default: YYYY-MM-DD, see format options here
  * https://moment.github.io/luxon/#/formatting?id=table-of-tokens
  */
-export function dateToStringPacific (date: Date | string, format = 'D') {
+export function dateToStringPacific (date: Date | string, format = 'y-MM-dd') {
   const locale = useNuxtApp().$i18n.locale.value
   const jsDate = DateTime.fromJSDate(new Date(date), { zone: 'UTC' }) // convert to jsdate, assume UTC timezone
 

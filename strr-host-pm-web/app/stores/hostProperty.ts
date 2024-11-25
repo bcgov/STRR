@@ -1,13 +1,15 @@
 import { z } from 'zod'
-import type { HostProperty } from '~/interfaces/host-property'
+import { getRequiredUrl } from '#imports'
 
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()
 
-  const propertySchema = z.object({
-    parcelIdentifier: getRequiredNonEmptyString(t('validation.parcelIdentifier')),
-    businessLicense: getRequiredNonEmptyString(t('validation.businessLicense')),
-    businessLicenseExpiryDate: getRequiredNonEmptyString(t('validation.businessLicenseExpiryDate')),
+  const propertySchema = computed(() => z.object({
+    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
+    businessLicense: optionalOrEmptyString,
+    businessLicenseExpiryDate: property.value.businessLicense
+      ? getRequiredNonEmptyString(t('validation.businessLicenseExpiryDate'))
+      : optionalOrEmptyString,
     propertyType: z.enum([
       PropertyType.ACCESSORY_DWELLING,
       PropertyType.BED_AND_BREAKFAST,
@@ -19,27 +21,35 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       PropertyType.SINGLE_FAMILY_HOME,
       PropertyType.STRATA_HOTEL,
       PropertyType.TOWN_HOME
-    ]),
-    ownershipType: z.enum([OwnwershipType.CO_OWN, OwnwershipType.OWN, OwnwershipType.RENT]),
+    ], {
+      errorMap: () => ({ message: t('validation.propertyType') })
+    }),
+    ownershipType: z.enum([OwnwershipType.CO_OWN, OwnwershipType.OWN, OwnwershipType.RENT], {
+      errorMap: () => ({ message: t('validation.ownershipType') })
+    }),
     rentalUnitSpaceType: z.enum([RentalUnitType.ENTIRE_HOME, RentalUnitType.SHARED_ACCOMMODATION]),
     isUnitOnPrincipalResidenceProperty: z.boolean(),
     hostResidence: z.enum([ResidenceType.ANOTHER_UNIT, ResidenceType.SAME_UNIT]),
-    numberOfRoomsForRent: z.number({ required_error: t('validation.number') }).int().min(0),
+    numberOfRoomsForRent: z.number({ required_error: t('validation.numberOfRooms.empty') })
+      .int({ message: t('validation.numberOfRooms.invalidInput') }).min(0),
     // TODO: update for street number/name/unit number
-    address: getRequiredBCAddress(
-      t('validation.address.street'),
+    address: getRequiredBCAddressSplitStreet(
       t('validation.address.city'),
       t('validation.address.region'),
       t('validation.address.postalCode'),
       t('validation.address.country'),
       t('validation.address.requiredBC.region'),
-      t('validation.address.requiredBC.country')
+      t('validation.address.requiredBC.country'),
+      t('validation.address.streetName'),
+      t('validation.address.streetNumber')
     ).extend({
-      unitNumber: getRequiredNonEmptyString(t('validation.address.unitNumber')),
+      unitNumber: isUnitNumberRequired.value
+        ? getRequiredNonEmptyString(t('validation.address.unitNumber'))
+        : optionalOrEmptyString,
       nickname: optionalOrEmptyString
     }),
     listingDetails: z.array(z.object({ url: getRequiredUrl(t('validation.listingDetails')) }))
-  })
+  }))
 
   const getEmptyProperty = () => ({
     parcelIdentifier: '',
@@ -68,6 +78,14 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   })
 
   const property = ref<HostProperty>(getEmptyProperty())
+  const isUnitNumberRequired = computed(() => property.value.propertyType && [
+    PropertyType.SECONDARY_SUITE,
+    PropertyType.ACCESSORY_DWELLING,
+    PropertyType.TOWN_HOME,
+    PropertyType.CONDO_OR_APT,
+    PropertyType.MULTI_UNIT_HOUSING,
+    PropertyType.STRATA_HOTEL].includes(property.value.propertyType)
+  )
 
   const removeListingAtIndex = (index: number) => {
     property.value.listingDetails.splice(index, 1)
@@ -78,7 +96,10 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   }
 
   const validateProperty = (returnBool = false): MultiFormValidationResult | boolean => {
-    const result = validateSchemaAgainstState(propertySchema, property.value, 'property-form')
+    const result = validateSchemaAgainstState(
+      propertySchema.value,
+      property.value,
+      'property-form')
 
     if (returnBool) {
       return result.success === true
@@ -93,6 +114,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   return {
     property,
+    isUnitNumberRequired,
     propertySchema,
     addNewEmptyListing,
     removeListingAtIndex,

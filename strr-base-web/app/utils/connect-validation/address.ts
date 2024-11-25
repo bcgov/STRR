@@ -36,3 +36,25 @@ export const getRequiredBCAddress = (
     .refine(country => country === 'CA', caRequiredMessage),
   locationDescription: optionalOrEmptyString
 })
+
+export const getRequiredBCAddressSplitStreet = (
+  cityMessage: string,
+  regionMessage: string,
+  postalCodeMessage: string,
+  countryMessage: string,
+  bcRequiredMessage: string,
+  caRequiredMessage: string,
+  streetNameMessage: string,
+  streetNumberMessage: string
+) => z.object({
+  streetAdditional: optionalOrEmptyString,
+  city: getRequiredNonEmptyString(cityMessage),
+  region: getRequiredNonEmptyString(regionMessage)
+    .refine(province => province === 'BC', bcRequiredMessage),
+  postalCode: getRequiredNonEmptyString(postalCodeMessage),
+  country: getRequiredNonEmptyString(countryMessage)
+    .refine(country => country === 'CA', caRequiredMessage),
+  locationDescription: optionalOrEmptyString,
+  streetName: getRequiredNonEmptyString(streetNameMessage),
+  streetNumber: getRequiredNonEmptyString(streetNumberMessage)
+})

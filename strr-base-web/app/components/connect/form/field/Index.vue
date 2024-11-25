@@ -12,14 +12,18 @@ defineProps({
   helpId: { type: String, default: undefined },
   errorId: { type: String, default: undefined },
   ariaLabel: { type: String, default: undefined },
-  type: { type: String, default: 'text' }
+  type: { type: String, default: 'text' },
+  mask: { type: String, default: undefined }
 })
+
+defineExpose({ model })
 </script>
 
 <template>
   <UInput
     :id="id"
     v-model.trim="model"
+    v-maska:model.unmasked="mask"
     v-bind="$attrs"
     :type
     class="max-w-bcGovInput"

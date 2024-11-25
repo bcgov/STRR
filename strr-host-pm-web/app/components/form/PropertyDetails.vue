@@ -5,10 +5,10 @@ import { z } from 'zod'
 const props = defineProps<{ isComplete: boolean }>()
 
 const { t } = useI18n()
-const { propertySchema, addNewEmptyListing, removeListingAtIndex } = useHostPropertyStore()
-const { property } = storeToRefs(useHostPropertyStore())
+const { addNewEmptyListing, removeListingAtIndex } = useHostPropertyStore()
+const { property, isUnitNumberRequired, propertySchema } = storeToRefs(useHostPropertyStore())
 
-const propertyFormRef = ref<Form<z.output<typeof propertySchema>>>()
+const propertyFormRef = ref<Form<z.output<typeof propertySchema.value>>>()
 
 const rentalTypeOptions = [
   { value: RentalUnitType.ENTIRE_HOME, label: t('strr.text.entireHome') },
@@ -174,6 +174,7 @@ onMounted(async () => {
               <ConnectFormFieldGroup
                 id="property-parcel-id"
                 v-model="property.parcelIdentifier"
+                mask="###-###-###"
                 :aria-label="$t('strr.label.parcelIdentifierOpt')"
                 :help="$t('strr.hint.parcelIdentifier')"
                 name="parcelIdentifier"
@@ -187,15 +188,16 @@ onMounted(async () => {
                 name="businessLicense"
                 :placeholder="$t('strr.label.businessLicenseOpt')"
               />
-              <!-- TODO: date picker -->
-              <!-- <ConnectFormFieldGroup
-                id="property-parcel-id"
-                v-model="property.parcelIdentifier"
-                :aria-label="$t('strr.label.parcelIdentifierOpt')"
-                :help="$t('strr.hint.parcelIdentifier')"
-                name="parcelIdentifier"
-                :placeholder="$t('strr.label.parcelIdentifierOpt')"
-              /> -->
+              <ConnectFormDateInput
+                v-if="property.businessLicense"
+                name="businessLicenseExpiryDate"
+                :initial-date="property.businessLicenseExpiryDate
+                  ? dateStringToDate(property.businessLicenseExpiryDate)
+                  : undefined"
+                :help="t('text.defaultDateFormat')"
+                :placeholder="t('strr.label.businessLicenseDate')"
+                @selection="property.businessLicenseExpiryDate = $event ? dateToString($event) : ''"
+              />
             </div>
           </ConnectFormSection>
           <div class="h-px w-full border-b border-gray-100" />
@@ -204,10 +206,12 @@ onMounted(async () => {
             :error="isComplete && hasFormErrors(propertyFormRef, [
               'address.nickname',
               'address.country',
-              'address.street',
               'address.city',
               'address.region',
-              'address.postalCode'
+              'address.postalCode',
+              'address.unitNumber',
+              'address.streetName',
+              'address.streetNumber'
             ])"
           >
             <div class="space-y-5">
@@ -234,6 +238,7 @@ onMounted(async () => {
                 :disabled-fields="['country', 'region']"
                 :excluded-fields="['street']"
                 :form-ref="propertyFormRef"
+                :unit-number-required="isUnitNumberRequired"
               />
             </div>
           </ConnectFormSection>

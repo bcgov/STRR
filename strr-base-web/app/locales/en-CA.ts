@@ -143,6 +143,7 @@ export default {
     streetAdditional: 'Additional Street Address (Optional)',
     streetName: 'Street Name',
     streetNumber: 'Street Number',
+    unitNumber: 'Unit Number',
     unitNumberOpt: 'Unit Number (Optional)',
     country: 'Country',
     line1: 'Address Line 1',
@@ -322,6 +323,7 @@ export default {
   table: {},
   text: {
     completeFilingToDisplay: 'Complete your filing to display',
+    defaultDateFormat: 'YYYY-MM-DD',
     filingsWillAppear: 'Filings that require your attention will appear here',
     notAvailable: 'Not Available',
     notEntered: 'Not Entered',
@@ -354,13 +356,16 @@ export default {
     address: {
       country: 'Please select a country',
       street: 'Please enter a street address',
+      streetName: 'Please enter a street name',
+      streetNumber: 'Please enter a street number',
       city: 'Please enter a city',
       region: 'Please select a region',
       postalCode: 'Please enter a postal code',
       requiredBC: {
         region: 'Please enter a BC address',
         country: 'Please enter a BC, Canada address'
-      }
+      },
+      unitNumber: 'Please enter a unit number'
     },
     brand: {
       name: 'Please enter a brand name',

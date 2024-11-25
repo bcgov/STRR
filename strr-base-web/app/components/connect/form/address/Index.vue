@@ -22,7 +22,9 @@ const props = defineProps<{
   formRef?: Form<any>,
   disabledFields?: AddressField[],
   excludedFields?: AddressField[],
-  locationDescLabel?: boolean
+  // TODO: cleanup below strategies
+  locationDescLabel?: boolean,
+  unitNumbRequired?: boolean
 }>()
 
 const { address: canadaPostAddress, enableAddressComplete } = useCanadaPostAddress()
@@ -174,8 +176,9 @@ const addId = useId()
         :name="schemaPrefix + 'unitNumber'"
         :color="city ? 'primary' : 'gray'"
         :is-disabled="disabledFields?.includes('unitNumber')"
-        :placeholder="$t('label.unitNumberOpt')"
-        :aria-label="$t('label.unitNumberOpt')"
+        :placeholder="unitNumbRequired ? $t('label.unitNumber') : $t('label.unitNumberOpt')"
+        :aria-label="unitNumbRequired ? $t('label.unitNumber') : $t('label.unitNumberOpt')"
+        :aria-required="unitNumbRequired || false"
       />
     </div>
     <!-- street input -->

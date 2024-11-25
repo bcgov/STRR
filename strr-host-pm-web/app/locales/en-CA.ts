@@ -51,6 +51,7 @@ export default {
     label: {
       addListing: 'Add Another Listing',
       businessLicenseOpt: 'Local Government Business License (Optional)',
+      businessLicenseDate: 'Business Licence Expiry Date',
       host: 'Host',
       listingLinkOpt: 'Listing Link (Optional)',
       numberOfRooms: 'Number of Rooms for Rent',
@@ -185,6 +186,15 @@ export default {
     accountName: {
       required: 'Please enter an account name',
       exists: 'An account with this name already exists'
-    }
+    },
+    businessLicense: 'Please enter a valid business license number',
+    businessLicenseExpiryDate: 'Please select the expiry date for the business license',
+    numberOfRooms: {
+      empty: 'Please specify the number of rooms available for rent',
+      invalidInput: 'Please enter a valid number of rooms (e.g., 5)'
+    },
+    ownershipType: 'Please select the ownership type of this rental unit',
+    parcelIdentifier: 'The parcel identifier must be a nine-digit number',
+    propertyType: 'Please select the property type of this rental unit'
   }
 }

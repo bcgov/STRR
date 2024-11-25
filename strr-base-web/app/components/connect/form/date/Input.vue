@@ -9,6 +9,7 @@ const formBus = inject<UseEventBusReturn<any, string> | undefined>('form-events'
 
 const props = defineProps<{
   name: string
+  help?: string,
   initialDate?: Date,
   minDate?: Date,
   maxDate?: Date,
@@ -39,7 +40,7 @@ const updateDate = (val: Date | null) => {
 }
 
 const selectedDateDisplay: ComputedRef<string> = computed(
-  () => selectedDate.value ? dateToString(selectedDate.value, 'YYYY-MM-DD') : ''
+  () => selectedDate.value ? dateToString(selectedDate.value) : ''
 )
 
 const handleManualDateEntry = (input: string) => {
@@ -54,11 +55,14 @@ const handleManualDateEntry = (input: string) => {
 </script>
 
 <template>
-  <UFormGroup
+  <ConnectFormFieldGroup
+    :id="`connect-date-input-grp-${name}`"
     v-slot="{ error }"
     :name="name"
+    :help="help"
   >
     <UInput
+      :id="`connect-date-input-${name}`"
       :ui="{ icon: { trailing: { pointer: '' } } }"
       :model-value="selectedDateDisplay"
       :placeholder="placeholder || ''"
@@ -83,7 +87,7 @@ const handleManualDateEntry = (input: string) => {
           name="i-mdi-calendar"
           :padded="false"
           class="cursor-pointer text-xl"
-          :class="error ? 'text-red-600' : showDatePicker ? 'text-blue-500' : 'text-gray-700'"
+          :class="error ? 'text-red-600' : showDatePicker || selectedDate ? 'text-blue-500' : 'text-gray-700'"
           @click="showDatePicker = true"
         />
       </template>
@@ -98,5 +102,5 @@ const handleManualDateEntry = (input: string) => {
       :set-max-date="maxDate"
       @selected-date="updateDate($event); showDatePicker = false; hasDateChanged = true"
     />
-  </UFormGroup>
+  </ConnectFormFieldGroup>
 </template>
