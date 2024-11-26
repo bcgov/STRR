@@ -5,6 +5,24 @@ import type { UiHostProperty } from '~/interfaces/host-ui'
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()
 
+  const rentalAddressSchema = computed(() => z.object({
+    address: getRequiredBCAddressSplitStreet(
+      t('validation.address.city'),
+      t('validation.address.region'),
+      t('validation.address.postalCode'),
+      t('validation.address.country'),
+      t('validation.address.requiredBC.region'),
+      t('validation.address.requiredBC.country'),
+      t('validation.address.streetName'),
+      t('validation.address.streetNumber')
+    ).extend({
+      unitNumber: isUnitNumberRequired.value
+        ? getRequiredNonEmptyString(t('validation.address.unitNumber'))
+        : optionalOrEmptyString,
+      nickname: optionalOrEmptyString
+    })
+  }))
+
   const propertySchema = computed(() => z.object({
     parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
     businessLicense: optionalOrEmptyString,
@@ -57,6 +75,22 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     listingDetails: z.array(z.object({ url: getOptionalUrl(t('validation.onlineListings')) }))
   }))
 
+  const getEmptyRentalAddress = () => ({
+    address: {
+      street: '',
+      streetNumber: '',
+      streetName: '',
+      unitNumber: '',
+      streetAdditional: '',
+      region: 'BC',
+      city: '',
+      country: 'CA',
+      postalCode: '',
+      locationDescription: '',
+      nickname: ''
+    }
+  })
+
   const getEmptyProperty = (): UiHostProperty => ({
     parcelIdentifier: '',
     businessLicense: '',
@@ -81,6 +115,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     listingDetails: [{ url: '' }]
   })
 
+  const rentalAddress = ref(getEmptyRentalAddress())
   const property = ref<UiHostProperty>(getEmptyProperty())
   const isUnitNumberRequired = computed(() => property.value.propertyType && [
     PropertyType.SECONDARY_SUITE,
@@ -136,7 +171,9 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   return {
     property,
+    rentalAddress,
     isUnitNumberRequired,
+    rentalAddressSchema,
     propertySchema,
     propertyTypeFeeTriggers,
     addNewEmptyListing,

@@ -21,11 +21,6 @@ export default defineAppConfig({
       },
       gap: { sm: 'gap-x-2.5' }
     },
-    divider: {
-      border: {
-        base: 'flex border-gray-100 dark:border-gray-800'
-      }
-    },
     input: {
       file: {
         base: 'file:text-gray-700 file:pt-2'

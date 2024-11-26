@@ -122,7 +122,8 @@ export default {
       parcelId: 'Parcel Identifier (PID)',
       prRequirement: 'Principal Residence Requirement',
       theRentalUnitIs: 'The rental unit is:',
-      supportingInfo: 'Supporting Information'
+      supportingInfo: 'Supporting Information',
+      other: 'Other'
     },
     text: {
       comingSoon: 'Short-Term Rental Registry will be available on December 15, 2024',

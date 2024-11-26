@@ -26,7 +26,8 @@ const propertyTypes = [
 const ownershipTypes = [
   { label: t('strr.label.own'), value: OwnwershipType.OWN },
   { label: t('strr.label.coown'), value: OwnwershipType.CO_OWN },
-  { label: t('strr.label.rent'), value: OwnwershipType.RENT }
+  { label: t('strr.label.rent'), value: OwnwershipType.RENT },
+  { label: t('strr.label.other'), value: OwnwershipType.OTHER }
 ]
 
 const rentalUnitSetupTypes = [
@@ -68,80 +69,27 @@ onMounted(async () => {
       class="space-y-10"
     >
       <ConnectPageSection>
+        <FormDefineYourRentalUnitResiAddress :is-complete="isComplete" />
+
         <div class="space-y-10 py-10">
-          <i18n-t
-            keypath="strr.text.enterResiAddressToDetermineRequirement"
-            tag="p"
-            scope="global"
-            class="px-4 md:px-10"
-          >
-            <template #link>
-              <a
-                href=""
-                target="_blank"
-                class="text-bcGovColor-activeBlue underline"
-              >
-                <!-- TODO: add href -->
-                {{ $t('strr.label.prRequirement') }} NEED HREF
-              </a>
-            </template>
-          </i18n-t>
+          <UDivider :ui="{ border: { base: 'border-gray-100' } }" />
 
-          <!-- rental unit address section -->
-          <ConnectFormSection
-            :title="$t('strr.section.subTitle.rentalUnitResiAddress')"
-            :error="isComplete && hasFormErrors(propertyFormRef, [
-              // 'address.nickname',
-              'address.country',
-              'address.city',
-              'address.region',
-              'address.postalCode',
-              'address.unitNumber',
-              'address.streetName',
-              'address.streetNumber'
-            ])"
-          >
-            <div class="space-y-5">
-              <!-- <ConnectFormFieldGroup
-                id="property-address-nickname"
-                v-model="property.address.nickname"
-                :aria-label="$t('strr.label.nicknameOpt')"
-                :help="$t('strr.hint.nickname')"
-                name="address.nickname"
-                :placeholder="$t('strr.label.nicknameOpt')"
-              /> -->
-              <ConnectFormAddress
-                id="property-address"
-                v-model:country="property.address.country"
-                v-model:street-number="property.address.streetNumber"
-                v-model:street-name="property.address.streetName"
-                v-model:unit-number="property.address.unitNumber"
-                v-model:street-additional="property.address.streetAdditional"
-                v-model:city="property.address.city"
-                v-model:region="property.address.region"
-                v-model:postal-code="property.address.postalCode"
-                class="max-w-bcGovInput"
-                :schema-prefix="'address.'"
-                :disabled-fields="['country', 'region']"
-                :excluded-fields="['street']"
-                :form-ref="propertyFormRef"
-                :unit-number-required="isUnitNumberRequired"
+          <fieldset class="flex flex-col gap-6 px-4 md:px-10">
+            <legend class="text-lg font-semibold">
+              {{ $t('strr.label.prRequirement') }}
+            </legend>
+
+            <UFormGroup
+              label="This property is in an area subject to the Principal Residence Requirement."
+              :ui="{ label: { base: 'font-normal' } }"
+            >
+              <UCheckbox
+                label="This property is exempt from  the Principal Residence Requirement"
               />
-            </div>
-          </ConnectFormSection>
+            </UFormGroup>
+          </fieldset>
 
-          CHECK BTN ??
-
-          <UDivider />
-
-          <div class="flex flex-col gap-4 border border-black px-4 md:px-10">
-            <span>pr requirement stuff</span>
-            <span>checkbox here</span>
-            <span>list stuff</span>
-            <span>file upload stuff</span>
-          </div>
-
-          <UDivider />
+          <UDivider :ui="{ border: { base: 'border-gray-100' } }" />
 
           <!-- property type section -->
           <ConnectFormSection

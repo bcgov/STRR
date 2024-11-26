@@ -52,7 +52,7 @@ onChange((files) => {
       :ui-menu="{
         label: true ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'
       }"
-      class="w-full cursor-pointer"
+      class="w-full"
       @change="open()"
     >
       <template #label>
