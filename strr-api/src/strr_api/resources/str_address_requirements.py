@@ -57,7 +57,22 @@ bp = Blueprint("str-requirements", __name__)
 @cross_origin(origin="*")
 @jwt.requires_auth
 def get_str_requirements():
-    """Returns the Short Term Rental requirements for this address."""
+    """
+    Returns the Short Term Rental requirements for this address.
+    ---
+    tags:
+      - address
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+    responses:
+      200:
+        description:
+      400:
+        description:
+    """
     try:
         address_json = request.get_json()
         [valid, errors] = validate(address_json, "rental_unit_address")
