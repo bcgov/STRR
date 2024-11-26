@@ -122,6 +122,12 @@ class Config:  # pylint: disable=too-few-public-methods
     GCP_CS_BUCKET_ID = os.getenv("GCP_CS_BUCKET_ID")
     GCP_AUTH_KEY = os.getenv("GCP_AUTH_KEY")
 
+    # DATA PORTAL API
+    STR_DATA_API_CLIENT_ID = os.getenv("STR_DATA_API_CLIENT_ID", "")
+    STR_DATA_API_CLIENT_SECRET = os.getenv("STR_DATA_API_CLIENT_SECRET", "")
+    STR_DATA_API_TOKEN_URL = os.getenv("STR_DATA_API_TOKEN_URL", "")
+    STR_DATA_API_URL = os.getenv("STR_DATA_API_URL", "")
+
 
 class Production(Config):  # pylint: disable=too-few-public-methods
     """Production class configuration that should override vars for production."""

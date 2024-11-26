@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://strr.gov.bc.ca/.well_known/schemas/rental_unit_address",
+  "type": "object",
+  "title": "Rental Unit Address",
+  "definitions": {
+    "rentalUnitAddress": {
+      "type": "object",
+      "properties": {
+        "nickname": {
+          "type": "string"
+        },
+        "unitNumber": {
+          "type": "string",
+          "description": "Unit Number."
+        },
+        "streetNumber": {
+          "type": "string",
+          "description": "Street Number."
+        },
+        "streetName": {
+          "type": "string",
+          "description": "Street address and name."
+        },
+        "addressLineTwo": {
+          "type": "string",
+          "description": "Additional street address information."
+        },
+        "city": {
+          "type": "string",
+          "description": "City, Town, or Village."
+        },
+        "postalCode": {
+          "type": "string",
+          "maxLength": 15,
+          "description": "Postal Code in A1A 1A1 format for Canada, or zip code for US addresses."
+        },
+        "province": {
+          "type": "string",
+          "maxLength": 2,
+          "description": "The 2-letter province code (ISO 3166-2) for this address."
+        },
+        "country": {
+          "type": "string",
+          "maxLength": 2,
+          "description": "The 2-letter country code (ISO 3166-1) for this address."
+        },
+        "locationDescription": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Location description."
+        }
+      },
+      "required": [
+        "streetNumber",
+        "streetName",
+        "city",
+        "province"
+      ]
+    }
+  },
+  "properties": {
+    "address": {
+      "$ref": "#/definitions/rentalUnitAddress"
+    }
+  },
+  "required": [
+    "address"
+  ]
+}

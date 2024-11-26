@@ -1407,6 +1407,43 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "STR Requirements",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"address\": {\n        \"unitNumber\": \"\",\n        \"streetNumber\": \"12166\",\n        \"streetName\": \"GREENWELL ST MAPLE RIDGE\",\n        \"addressLineTwo\": \"\",\n        \"city\": \"MAPLE RIDGE\",\n        \"province\": \"BC\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_url}}/address/requirements",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"address",
+						"requirements"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
