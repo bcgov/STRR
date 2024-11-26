@@ -17,6 +17,8 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
   const loadingReqs = ref<boolean>(false)
   const addressReqs = ref<AddressRequirements>({} as AddressRequirements)
 
+  const hasReqs = computed(() => addressReqs.value.organizationNm !== undefined)
+
   const rentalAddressSchema = computed(() => z.object({
     address: getRequiredBCAddressSplitStreet(
       t('validation.address.city'),
@@ -93,7 +95,8 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
   // }
 
   const $reset = () => {
-    // property.value = getEmptyProperty()
+    rentalAddress.value = getEmptyRentalAddress()
+    addressReqs.value = {} as AddressRequirements
   }
 
   return {
@@ -101,6 +104,7 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
     rentalAddressSchema,
     loadingReqs,
     addressReqs,
+    hasReqs,
     getAddressReqs,
     // validateProperty,
     $reset

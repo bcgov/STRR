@@ -7,6 +7,7 @@ import {
 export const useHostPmModals = () => {
   const modal = useModal()
   const { t } = useI18n()
+  const reqStore = usePrReqStore()
 
   function openHelpCreateAccountModal () {
     modal.open(ModalBase, {
@@ -32,6 +33,23 @@ export const useHostPmModals = () => {
     })
   }
 
+  function openConfirmRestartApplicationModal () {
+    modal.open(ModalBase, {
+      title: 'Edit Rental Unit Address?',
+      content: 'Making any changes to the current rental unit address will reset the application, any progress you have will be lost. Would you like to continue?',
+      actions: [
+        { label: t('btn.cancel'), handler: () => close() },
+        {
+          label: 'Edit Address',
+          handler: () => {
+            reqStore.$reset()
+            close()
+          } // TODO: reset other form state as well ?
+        }
+      ]
+    })
+  }
+
   function close () {
     modal.close()
   }
@@ -40,6 +58,7 @@ export const useHostPmModals = () => {
     openhelpRegisteringStrataModal,
     openHelpRegisterStrataHotelModal,
     openHelpCreateAccountModal,
+    openConfirmRestartApplicationModal,
     close
   }
 }

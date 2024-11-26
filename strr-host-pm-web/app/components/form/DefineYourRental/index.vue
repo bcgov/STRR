@@ -71,9 +71,9 @@ onMounted(async () => {
       <ConnectPageSection>
         <FormDefineYourRentalUnitResiAddress :is-complete="isComplete" />
 
-        <div class="space-y-10 py-10">
-          <UDivider :ui="{ border: { base: 'border-gray-100' } }" />
+        <UDivider :ui="{ border: { base: 'border-gray-100' } }" />
 
+        <div class="space-y-10 py-10">
           <fieldset class="flex flex-col gap-6 px-4 md:px-10">
             <legend class="text-lg font-semibold">
               {{ $t('strr.label.prRequirement') }}
