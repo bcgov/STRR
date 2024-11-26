@@ -41,7 +41,6 @@ const rentalUnitSetupTypes = [
     value: RentalUnitSetupType.WHOLE_UNIT_DIFFERENT_PROPERTY
   }
 ]
-const rentalUnitSetup = ref() // TODO: move to store object
 
 const listingDetailsErrorList = computed(() => {
   const errorList: string[] = []
@@ -197,8 +196,8 @@ onMounted(async () => {
             <UFormGroup id="rental-unit-setup" name="rentalUnitSetupType">
               <URadioGroup
                 id="rental-unit-setup-radio-group"
-                v-model="rentalUnitSetup"
-                :class="isComplete && rentalUnitSetup === undefined
+                v-model="property.rentalUnitSetupType"
+                :class="isComplete && property.rentalUnitSetupType === undefined
                   ? 'border-red-600 border-2 p-2'
                   : 'p-2'"
                 :options="rentalUnitSetupTypes"

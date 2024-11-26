@@ -91,6 +91,24 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     PropertyType.STRATA_HOTEL].includes(property.value.propertyType)
   )
 
+  const propertyTypeFeeTriggers = computed(() => ({
+    isWholeUnit: property.value.rentalUnitSetupType !== undefined && [
+      RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
+      RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY,
+      RentalUnitSetupType.WHOLE_UNIT_DIFFERENT_PROPERTY
+    ].includes(property.value.rentalUnitSetupType),
+    isUnitOnPrincipalResidenceProperty: property.value.rentalUnitSetupType !== undefined && [
+      RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
+      RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
+      RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY
+    ].includes(property.value.rentalUnitSetupType),
+    isHostResidence: property.value.rentalUnitSetupType !== undefined && [
+      RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
+      RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
+      RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY
+    ].includes(property.value.rentalUnitSetupType)
+  }))
+
   const removeListingAtIndex = (index: number) => {
     property.value.listingDetails.splice(index, 1)
   }
@@ -120,6 +138,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     property,
     isUnitNumberRequired,
     propertySchema,
+    propertyTypeFeeTriggers,
     addNewEmptyListing,
     removeListingAtIndex,
     validateProperty,

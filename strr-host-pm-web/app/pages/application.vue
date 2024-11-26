@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ConnectStepper, FormReviewConfirm } from '#components'
+import { RentalUnitSetupType } from '~/enums/rental-unit-setup-types'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -14,7 +15,7 @@ const {
   validateStrataConfirmation,
   $reset: applicationReset
 } = useStrrStrataApplicationStore()
-const { property } = storeToRefs(useHostPropertyStore())
+const { property, propertyTypeFeeTriggers } = storeToRefs(useHostPropertyStore())
 // fee stuff
 const {
   addReplaceFee,
@@ -50,12 +51,12 @@ const setFeeBasedOnProperty = () => {
   if (!hostFee1.value || !hostFee2.value || !hostFee3.value) {
     return
   }
-  if (property.value.rentalUnitSpaceType === RentalUnitType.ENTIRE_HOME) {
-    if (property.value.isUnitOnPrincipalResidenceProperty) {
-      if (property.value.hostResidence === ResidenceType.SAME_UNIT) {
+  if (propertyTypeFeeTriggers.value.isWholeUnit) {
+    if (propertyTypeFeeTriggers.value.isUnitOnPrincipalResidenceProperty) {
+      if (propertyTypeFeeTriggers.value.isHostResidence === true) {
         removeFee(StrrFeeCode.STR_HOST_2)
         addReplaceFee(hostFee1.value)
-      } else if (property.value.hostResidence === ResidenceType.ANOTHER_UNIT) {
+      } else if (propertyTypeFeeTriggers.value.isHostResidence === false) { // explicit check so 'else' will run
         removeFee(StrrFeeCode.STR_HOST_1)
         addReplaceFee(hostFee2.value)
       } else {
@@ -64,7 +65,7 @@ const setFeeBasedOnProperty = () => {
         removeFee(StrrFeeCode.STR_HOST_1)
         removeFee(StrrFeeCode.STR_HOST_2)
       }
-    } else if (property.value.isUnitOnPrincipalResidenceProperty !== undefined) {
+    } else if (!propertyTypeFeeTriggers.value.isWholeUnit) {
       removeFee(StrrFeeCode.STR_HOST_1)
       addReplaceFee(hostFee2.value)
     } else {
@@ -73,7 +74,7 @@ const setFeeBasedOnProperty = () => {
       removeFee(StrrFeeCode.STR_HOST_2)
     }
   } else if (
-    property.value.rentalUnitSpaceType !== undefined &&
+    property.value.rentalUnitSetupType !== undefined &&
     property.value.numberOfRoomsForRent !== undefined &&
     property.value.numberOfRoomsForRent >= 0
   ) {
@@ -92,8 +93,8 @@ const setFeeBasedOnProperty = () => {
   }
 }
 // update fee stuff
-watch(() => property.value.rentalUnitSpaceType, (val) => {
-  if (val === RentalUnitType.SHARED_ACCOMMODATION && !property.value.numberOfRoomsForRent) {
+watch(() => property.value.rentalUnitSetupType, (val) => {
+  if (val === RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE && !property.value.numberOfRoomsForRent) {
     // this will trigger the watcher on numberOfRoomsForRent, which will call setFeeBasedOnProperty
     property.value.numberOfRoomsForRent = 0
   } else {
@@ -101,9 +102,13 @@ watch(() => property.value.rentalUnitSpaceType, (val) => {
   }
 })
 
-watch(() => property.value.isUnitOnPrincipalResidenceProperty, setFeeBasedOnProperty)
-watch(() => property.value.hostResidence, setFeeBasedOnProperty)
-watch(() => property.value.numberOfRoomsForRent, setFeeBasedOnProperty)
+watch(
+  [
+    propertyTypeFeeTriggers,
+    () => property.value.numberOfRoomsForRent
+  ],
+  setFeeBasedOnProperty
+)
 
 // stepper stuff
 // TODO: replace validation functions
