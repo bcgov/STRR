@@ -12,7 +12,7 @@ defaults:
     working-directory: ./strr-base-web
 
 jobs:
-  strata-ui-ci:
+  strr-base-web-ci:
     uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@main
     with:
       app_name: "strr-base-web-ui"

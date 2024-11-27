@@ -12,7 +12,7 @@ defaults:
     working-directory: ./strr-host-pm-web
 
 jobs:
-  strata-ui-ci:
+  strr-host-pm-ui-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@main
     with:
       app_name: "strr-hosts"
