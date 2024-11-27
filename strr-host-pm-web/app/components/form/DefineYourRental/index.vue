@@ -61,7 +61,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div data-testid="property-details">
+  <div data-testid="step-define-your-rental">
     <UForm
       ref="propertyFormRef"
       :schema="propertySchema"
@@ -71,24 +71,14 @@ onMounted(async () => {
       <ConnectPageSection>
         <FormDefineYourRentalUnitResiAddress :is-complete="isComplete" />
 
-        <UDivider :ui="{ border: { base: 'border-gray-100' } }" />
+        <FormDefineYourRentalReqs
+          :is-complete="isComplete"
+        />
 
-        <div class="space-y-10 py-10">
-          <fieldset class="flex flex-col gap-6 px-4 md:px-10">
-            <legend class="text-lg font-semibold">
-              {{ $t('strr.label.prRequirement') }}
-            </legend>
-
-            <UFormGroup
-              label="This property is in an area subject to the Principal Residence Requirement."
-              :ui="{ label: { base: 'font-normal' } }"
-            >
-              <UCheckbox
-                label="This property is exempt from  the Principal Residence Requirement"
-              />
-            </UFormGroup>
-          </fieldset>
-
+        <div
+          v-if="1 === -1"
+          class="space-y-10 py-10"
+        >
           <UDivider :ui="{ border: { base: 'border-gray-100' } }" />
 
           <!-- property type section -->
@@ -261,53 +251,6 @@ onMounted(async () => {
           </ConnectFormSection>
         </div>
       </ConnectPageSection>
-
-      <!-- supporting info section -->
-      <div class="flex flex-col gap-6">
-        <h3 class="text-lg font-semibold">
-          {{ $t('strr.label.supportingInfo') }}
-        </h3>
-
-        <ConnectPageSection :aria-label="$t('strr.label.supportingInfo')">
-          <div class="space-y-10 py-10">
-            <p class="px-4 md:px-10">
-              {{ $t('strr.text.requireBusLicense') }}
-            </p>
-
-            <!-- business license section -->
-            <ConnectFormSection
-              :title="$t('strr.label.businessLicense')"
-              :error="isComplete && hasFormErrors(propertyFormRef, ['businessLicense'])"
-            >
-              <ConnectFormFieldGroup
-                id="property-business-license"
-                v-model="property.businessLicense"
-                :aria-label="$t('strr.label.businessLicense')"
-                :help="$t('strr.hint.businessLicense')"
-                name="businessLicense"
-                :placeholder="$t('strr.label.businessLicense')"
-              />
-            </ConnectFormSection>
-
-            <!-- business license expiry section -->
-            <ConnectFormSection
-              v-if="property.businessLicense"
-              :title="$t('strr.label.businessLicenseDate')"
-              :error="isComplete && hasFormErrors(propertyFormRef, ['businessLicenseExpiryDate'])"
-            >
-              <ConnectFormDateInput
-                name="businessLicenseExpiryDate"
-                :initial-date="property.businessLicenseExpiryDate
-                  ? dateStringToDate(property.businessLicenseExpiryDate)
-                  : undefined"
-                :help="t('text.defaultDateFormat')"
-                :placeholder="t('strr.label.businessLicenseDate')"
-                @selection="property.businessLicenseExpiryDate = $event ? dateToString($event) : ''"
-              />
-            </ConnectFormSection>
-          </div>
-        </ConnectPageSection>
-      </div>
     </UForm>
   </div>
 </template>

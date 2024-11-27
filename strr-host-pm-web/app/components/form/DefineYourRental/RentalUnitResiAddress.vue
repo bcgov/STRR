@@ -46,7 +46,7 @@ const rentalAddressFormRef = ref<Form<z.output<typeof reqStore.rentalAddressSche
         'address.streetNumber'
       ])"
     >
-      <Transition name="collapse">
+      <TransitionCollapse>
         <UForm
           v-if="!reqStore.hasReqs"
           ref="rentalAddressFormRef"
@@ -93,7 +93,7 @@ const rentalAddressFormRef = ref<Form<z.output<typeof reqStore.rentalAddressSche
               class="flex w-full justify-end"
             >
               <UButton
-                label="Check Now"
+                :label="$t('btn.done')"
                 size="bcGov"
                 type="submit"
                 :loading="reqStore.loadingReqs"
@@ -101,60 +101,34 @@ const rentalAddressFormRef = ref<Form<z.output<typeof reqStore.rentalAddressSche
             </div>
           </div>
         </UForm>
-      </Transition>
+      </TransitionCollapse>
 
-      <Transition name="fade">
+      <TransitionFade>
         <UTable
           v-if="reqStore.hasReqs"
-          :columns="[{ label: 'Details', key: 'details' }, { label: 'Actions', key: 'actions' }]"
+          :columns="[{ label: $t('label.details'), key: 'details' }, { label: $t('label.actions'), key: 'actions' }]"
           :rows="[{ address: 'stuff' }]"
           :ui="{ wrapper: 'relative overflow-x-auto max-h-min' }"
         >
-          <template #details-data="{ row }">
-            <ConnectFormAddressDisplay
-              :address="reqStore.rentalAddress.address"
-              :use-location-desc-label="true"
-            />
+          <template #details-data>
+            <div class="flex flex-col">
+              <span>{{ reqStore.addressReqs.organizationNm }}</span>
+              <ConnectFormAddressDisplay
+                :address="reqStore.rentalAddress.address"
+                :use-location-desc-label="true"
+              />
+            </div>
           </template>
-          <template #actions-data="{ row }">
+          <template #actions-data>
             <UButton
-              label="Edit"
+              :label="$t('btn.edit')"
               variant="ghost"
               icon="i-mdi-pencil"
               @click="hostModal.openConfirmRestartApplicationModal()"
             />
           </template>
         </UTable>
-      </Transition>
+      </TransitionFade>
     </ConnectFormSection>
   </div>
 </template>
-<style>
-/* Collapse transition for the form */
-.collapse-enter-active,
-.collapse-leave-active {
-  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-}
-.collapse-enter-from,
-.collapse-leave-to {
-  max-height: 0;
-  opacity: 0;
-}
-.collapse-enter-to,
-.collapse-leave-from {
-  max-height: 1000px; /* Set to a high value to accommodate your form's height */
-  opacity: 1;
-}
-
-/* Fade transition for the table */
-.fade-enter-active {
-  transition: opacity 0.3s ease-in-out;
-}
-.fade-leave-active {
-  transition: opacity 0s ease-in-out;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

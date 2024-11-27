@@ -306,6 +306,53 @@ onMounted(async () => {
           </UFormGroup>
         </div>
       </ConnectPageSection>
+
+      <!-- supporting info section -->
+      <div class="flex flex-col gap-6">
+        <h3 class="text-lg font-semibold">
+          {{ $t('strr.label.supportingInfo') }}
+        </h3>
+
+        <ConnectPageSection :aria-label="$t('strr.label.supportingInfo')">
+          <div class="space-y-10 py-10">
+            <p class="px-4 md:px-10">
+              {{ $t('strr.text.requireBusLicense') }}
+            </p>
+
+            <!-- business license section -->
+            <ConnectFormSection
+              :title="$t('strr.label.businessLicense')"
+              :error="isComplete && hasFormErrors(propertyFormRef, ['businessLicense'])"
+            >
+              <ConnectFormFieldGroup
+                id="property-business-license"
+                v-model="property.businessLicense"
+                :aria-label="$t('strr.label.businessLicense')"
+                :help="$t('strr.hint.businessLicense')"
+                name="businessLicense"
+                :placeholder="$t('strr.label.businessLicense')"
+              />
+            </ConnectFormSection>
+
+            <!-- business license expiry section -->
+            <ConnectFormSection
+              v-if="property.businessLicense"
+              :title="$t('strr.label.businessLicenseDate')"
+              :error="isComplete && hasFormErrors(propertyFormRef, ['businessLicenseExpiryDate'])"
+            >
+              <ConnectFormDateInput
+                name="businessLicenseExpiryDate"
+                :initial-date="property.businessLicenseExpiryDate
+                  ? dateStringToDate(property.businessLicenseExpiryDate)
+                  : undefined"
+                :help="t('text.defaultDateFormat')"
+                :placeholder="t('strr.label.businessLicenseDate')"
+                @selection="property.businessLicenseExpiryDate = $event ? dateToString($event) : ''"
+              />
+            </ConnectFormSection>
+          </div>
+        </ConnectPageSection>
+      </div>
     </UForm>
   </div>
 </template>

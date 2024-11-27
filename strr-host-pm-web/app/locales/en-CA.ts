@@ -1,5 +1,10 @@
 /* eslint-disable max-len */
 export default {
+  alert: {
+    prRequired: {
+      title: 'Your property is in a location where the principal residence requirement applies.'
+    }
+  },
   feeSummary: {
     itemLabels: {
       HOSTREG_1: 'STR Application Fee',
@@ -168,7 +173,9 @@ export default {
     addIndividual: 'Add an Individual',
     view: 'View',
     saveStartApplication: 'Save & Start Application',
-    createNewReg: 'Create New Registration'
+    createNewReg: 'Create New Registration',
+    edit: 'Edit',
+    done: 'Done'
   },
   error: {
     createAccount: {
@@ -200,7 +207,14 @@ export default {
     dayCount: '0 days | 1 day | {count} days',
     lastStatusChange: 'Last Status Change',
     daysToExpiry: 'Days to Expiry (Pacific Time)',
-    property: 'Property'
+    property: 'Property',
+    details: 'Details',
+    done: 'Done',
+    exemptionReason: 'Exemption Reason',
+    strataRefCode: 'Strata-Titled Hotel Reference Code',
+    eligibleStrataHotel: 'Eligible strata-titled hotel or motel',
+    farmLandClass9: 'Farm land (BC Assessment Farm Class 9)',
+    fractOwnership: 'Fractional ownership'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page'
@@ -232,6 +246,13 @@ export default {
       title: '{boldStart}My Registration Applications{boldEnd} ({count})',
       emptyText: "You don't have any properties yet. Add a property above."
     }
+  },
+  text: {
+    thisPropIsExempt: 'This property is exempt from the principal residence requirement',
+    followingDocsRequired: 'The following documentation is required for this registration:'
+  },
+  hint: {
+    strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.'
   },
   page: {
     dashboardList: {

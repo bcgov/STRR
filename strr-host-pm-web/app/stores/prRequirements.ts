@@ -1,11 +1,23 @@
 import { z } from 'zod'
+import { FetchError } from 'ofetch'
 
 interface AddressRequirements {
-    isBusinessLicenceRequired: boolean
-    isPrincipalResidenceRequired: boolean
-    isStrProhibited: boolean
-    isStraaExempt: boolean | null
-    organizationNm: string
+  isBusinessLicenceRequired: boolean
+  isPrincipalResidenceRequired: boolean
+  isStrProhibited: boolean
+  isStraaExempt: boolean | null
+  organizationNm: string
+}
+
+interface AddressRequirementsError {
+  error?: FetchError
+  type: 'fetch' | 'unknown' // TODO: handle other error types
+}
+
+interface PrRequirements {
+  isPropertyPrExempt: boolean
+  prExemptionReason: PrExemptionReason | undefined
+  strataRefCode: string
 }
 
 export const usePrReqStore = defineStore('pr/requirements', () => {
@@ -16,8 +28,9 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
 
   const loadingReqs = ref<boolean>(false)
   const addressReqs = ref<AddressRequirements>({} as AddressRequirements)
+  const addressReqError = ref<AddressRequirementsError>({} as AddressRequirementsError)
 
-  const hasReqs = computed(() => addressReqs.value.organizationNm !== undefined)
+  const hasReqs = computed(() => addressReqs.value.organizationNm !== undefined) // TODO: confirm this will never be undefined in a response?
 
   const rentalAddressSchema = computed(() => z.object({
     address: getRequiredBCAddressSplitStreet(
@@ -55,6 +68,39 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
 
   const rentalAddress = ref(getEmptyRentalAddress())
 
+  // pr requirements/exemption stuff
+  const prRequirementsSchema = computed(() => z.object({
+    isPropertyPrExempt: z.boolean(),
+    prExemptionReason: prRequirements.value.isPropertyPrExempt
+      ? z.enum([
+        PrExemptionReason.STRATA_HOTEL,
+        PrExemptionReason.FARM_LAND,
+        PrExemptionReason.FRACTIONAL_OWNERSHIP
+      ])
+      : z.any().optional(),
+    strataRefCode: prRequirements.value.prExemptionReason === PrExemptionReason.STRATA_HOTEL
+      ? z
+        .string()
+        .trim()
+        .min(1, 'Strata Registration Number is required') // check for a non empty string
+        .regex(/^ST\d{9}$/, { // 'ST + 9 digits'
+          message: 'Please enter a valid format (eg: ST123456789)'
+        })
+      : z.string().optional()
+  }))
+
+  const getEmptyPrRequirements = (): PrRequirements => ({
+    isPropertyPrExempt: false,
+    prExemptionReason: undefined,
+    strataRefCode: ''
+  })
+
+  const prRequirements = ref(getEmptyPrRequirements())
+
+  // const documentReqs = computed(() => {
+  // TODO: compute doc reqs based of address reqs response ??? move this computed to the documents stroe probably
+  // })
+
   async function getAddressReqs () {
     try {
       loadingReqs.value = true
@@ -76,6 +122,11 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
       })
     } catch (e) {
       logFetchError(e, 'Unable to load address requirements')
+      if (e instanceof FetchError) {
+        addressReqError.value = { error: e, type: 'fetch' }
+      } else {
+        addressReqError.value = { type: 'unknown' }
+      }
     } finally {
       loadingReqs.value = false
     }
@@ -97,6 +148,8 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
   const $reset = () => {
     rentalAddress.value = getEmptyRentalAddress()
     addressReqs.value = {} as AddressRequirements
+    addressReqError.value = {} as AddressRequirementsError
+    prRequirements.value = getEmptyPrRequirements()
   }
 
   return {
@@ -105,6 +158,9 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
     loadingReqs,
     addressReqs,
     hasReqs,
+    addressReqError,
+    prRequirementsSchema,
+    prRequirements,
     getAddressReqs,
     // validateProperty,
     $reset
