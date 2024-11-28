@@ -11,9 +11,10 @@ export interface UiBlInfo {
 export interface UiUnitDetails {
   parcelIdentifier: string
   propertyType: PropertyType | undefined
-  ownershipType: OwnwershipType | undefined
+  ownershipType: OwnershipType | undefined
   numberOfRoomsForRent: number | undefined
   rentalUnitSetupType: RentalUnitSetupType | undefined
+  typeOfSpace: RentalUnitType | undefined
 }
 
 export interface UiHostProperty extends UiUnitDetails {

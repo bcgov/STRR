@@ -37,7 +37,7 @@ export interface ApiUnitDetails {
   businessLicense: string
   businessLicenseExpiryDate: string
   propertyType: PropertyType | undefined
-  ownershipType: OwnwershipType | undefined
+  ownershipType: OwnershipType | undefined
   rentalUnitSpaceType: RentalUnitType | undefined
   hostResidence: ResidenceType | undefined
   isUnitOnPrincipalResidenceProperty: boolean | undefined

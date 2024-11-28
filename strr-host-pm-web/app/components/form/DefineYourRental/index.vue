@@ -6,11 +6,10 @@ import { RentalUnitSetupType } from '~/enums/rental-unit-setup-types'
 const props = defineProps<{ isComplete: boolean }>()
 
 const { t } = useI18n()
-const { addNewEmptyListing, removeListingAtIndex } = useHostPropertyStore()
-const { property, isUnitNumberRequired, propertySchema } = storeToRefs(useHostPropertyStore())
+const propStore = useHostPropertyStore()
 const reqStore = usePropertyReqStore()
 
-const propertyFormRef = ref<Form<z.output<typeof propertySchema.value>>>()
+const unitDetailsFormRef = ref<Form<z.output<typeof propStore.unitDetailsSchema>>>()
 
 const propertyTypes = [
   { name: t('strr.label.accessDwelling'), value: PropertyType.ACCESSORY_DWELLING },
@@ -29,10 +28,10 @@ const rentalTypeOptions = [
   { value: RentalUnitType.SHARED_ACCOMMODATION, label: t('strr.text.sharedAccomodation') }
 ]
 const ownershipTypes = [
-  { label: t('strr.label.own'), value: OwnwershipType.OWN },
-  { label: t('strr.label.coown'), value: OwnwershipType.CO_OWN },
-  { label: t('strr.label.rent'), value: OwnwershipType.RENT },
-  { label: t('strr.label.other'), value: OwnwershipType.OTHER }
+  { label: t('strr.label.own'), value: OwnershipType.OWN },
+  { label: t('strr.label.coown'), value: OwnershipType.CO_OWN },
+  { label: t('strr.label.rent'), value: OwnershipType.RENT },
+  { label: t('strr.label.other'), value: OwnershipType.OTHER }
 ]
 
 const rentalUnitSetupTypes = [
@@ -51,7 +50,7 @@ const rentalUnitSetupTypes = [
 onMounted(async () => {
   // validate form if step marked as complete
   if (props.isComplete) {
-    await validateForm(propertyFormRef.value, props.isComplete)
+    await validateForm(unitDetailsFormRef.value, props.isComplete)
   }
 })
 </script>
@@ -59,9 +58,9 @@ onMounted(async () => {
 <template>
   <div data-testid="step-define-your-rental">
     <UForm
-      ref="propertyFormRef"
-      :schema="propertySchema"
-      :state="property"
+      ref="unitDetailsFormRef"
+      :schema="propStore.unitDetailsSchema"
+      :state="propStore.unitDetails"
       class="space-y-10"
     >
       <ConnectPageSection>
@@ -77,7 +76,8 @@ onMounted(async () => {
       >
         <div class="space-y-10 py-10">
           <!-- property nickname section -->
-          <ConnectFormSection
+          TODO: figure out what to do with the schema here
+          <!-- <ConnectFormSection
             :title="$t('label.propertyNickname')"
           >
             <ConnectFormFieldGroup
@@ -90,20 +90,20 @@ onMounted(async () => {
             />
           </ConnectFormSection>
 
-          <div class="h-px w-full border-b border-gray-100" />
+          <div class="h-px w-full border-b border-gray-100" /> -->
 
           <!-- property type section -->
           <ConnectFormSection
             :title="$t('strr.label.propertyType')"
-            :error="isComplete && hasFormErrors(propertyFormRef, ['propertyType'])"
+            :error="isComplete && hasFormErrors(unitDetailsFormRef, ['propertyType'])"
           >
             <UFormGroup id="property-type" v-slot="{ error }" name="propertyType">
               <USelectMenu
-                v-model="property.propertyType"
+                v-model="propStore.unitDetails.propertyType"
                 value-attribute="value"
                 class="max-w-bcGovInput"
                 size="lg"
-                :color="property.propertyType ? 'primary' : 'gray'"
+                :color="propStore.unitDetails.propertyType ? 'primary' : 'gray'"
                 :placeholder="$t('strr.label.propertyType')"
                 :options="propertyTypes"
                 option-attribute="name"
@@ -111,7 +111,7 @@ onMounted(async () => {
                 :aria-required="true"
                 :aria-invalid="error !== undefined"
                 :ui-menu="{
-                  label: property.propertyType ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'
+                  label: propStore.unitDetails.propertyType ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'
                 }"
               />
             </UFormGroup>
@@ -120,13 +120,13 @@ onMounted(async () => {
           <!-- type of space section -->
           <ConnectFormSection
             title="Type of Space"
-            :error="isComplete && hasFormErrors(propertyFormRef, ['propertyType'])"
+            :error="isComplete && hasFormErrors(unitDetailsFormRef, ['propertyType'])"
           >
             <UFormGroup>
               <URadioGroup
                 id="rental-type-radio-group"
-                v-model="property.rentalUnitSpaceType"
-                :class="isComplete && property.rentalUnitSpaceType === undefined
+                v-model="propStore.unitDetails.typeOfSpace"
+                :class="isComplete && propStore.unitDetails.typeOfSpace === undefined
                   ? 'border-red-600 border-2 p-2'
                   : 'p-2'"
                 :options="rentalTypeOptions"
@@ -144,13 +144,13 @@ onMounted(async () => {
           <!-- rental unit setup section -->
           <ConnectFormSection
             :title="$t('strr.label.rentalUnitSetup')"
-            :error="isComplete && hasFormErrors(propertyFormRef, ['rentalUnitSetupType'])"
+            :error="isComplete && hasFormErrors(unitDetailsFormRef, ['rentalUnitSetupType'])"
           >
             <UFormGroup id="rental-unit-setup" name="rentalUnitSetupType">
               <URadioGroup
                 id="rental-unit-setup-radio-group"
-                v-model="property.rentalUnitSetupType"
-                :class="isComplete && property.rentalUnitSetupType === undefined
+                v-model="propStore.unitDetails.rentalUnitSetupType"
+                :class="isComplete && propStore.unitDetails.rentalUnitSetupType === undefined
                   ? 'border-red-600 border-2 p-2'
                   : 'p-2'"
                 :options="rentalUnitSetupTypes"
@@ -164,11 +164,11 @@ onMounted(async () => {
           <!-- number of rooms for rent section -->
           <ConnectFormSection
             :title="$t('strr.label.numberOfRooms')"
-            :error="isComplete && hasFormErrors(propertyFormRef, ['numberOfRoomsForRent'])"
+            :error="isComplete && hasFormErrors(unitDetailsFormRef, ['numberOfRoomsForRent'])"
           >
             <ConnectFormFieldGroup
               id="property-rooms"
-              v-model="property.numberOfRoomsForRent"
+              v-model="propStore.unitDetails.numberOfRoomsForRent"
               :aria-label="$t('strr.label.numberOfRooms')"
               name="numberOfRoomsForRent"
               :placeholder="$t('strr.label.numberOfRooms')"
@@ -182,13 +182,13 @@ onMounted(async () => {
           <!-- ownership type section -->
           <ConnectFormSection
             :title="$t('strr.label.ownershipType')"
-            :error="isComplete && hasFormErrors(propertyFormRef, ['ownershipType'])"
+            :error="isComplete && hasFormErrors(unitDetailsFormRef, ['ownershipType'])"
           >
             <UFormGroup id="ownership-type" name="ownershipType">
               <URadioGroup
                 id="ownership-type-radio-group"
-                v-model="property.ownershipType"
-                :class="isComplete && property.ownershipType === undefined
+                v-model="propStore.unitDetails.ownershipType"
+                :class="isComplete && propStore.unitDetails.ownershipType === undefined
                   ? 'border-red-600 border-2 p-2'
                   : 'p-2'"
                 :options="ownershipTypes"
@@ -202,11 +202,11 @@ onMounted(async () => {
           <!-- parcel identifier (PID) section -->
           <ConnectFormSection
             :title="$t('strr.label.parcelId')"
-            :error="isComplete && hasFormErrors(propertyFormRef, ['parcelIdentifier'])"
+            :error="isComplete && hasFormErrors(unitDetailsFormRef, ['parcelIdentifier'])"
           >
             <ConnectFormFieldGroup
               id="property-parcel-id"
-              v-model="property.parcelIdentifier"
+              v-model="propStore.unitDetails.parcelIdentifier"
               mask="###-###-###"
               :aria-label="$t('strr.label.parcelIdentifierOpt')"
               :help="$t('strr.hint.parcelIdentifier')"

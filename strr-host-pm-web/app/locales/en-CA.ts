@@ -305,6 +305,7 @@ export default {
     parcelIdentifier: 'The parcel identifier must be a nine-digit number',
     propertyType: 'Please select the property type of this rental unit',
     onlineListings: 'Please enter a valid URL (i.e. https://www.bcregistry.gov.bc.ca)',
-    rentalUnitSetupType: 'Please select the setup type of this rental unit'
+    rentalUnitSetupType: 'Please select the setup type of the rental unit',
+    typeOfSpace: 'Please select the type of space of the unit'
   }
 }

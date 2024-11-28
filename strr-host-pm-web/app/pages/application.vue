@@ -15,7 +15,7 @@ const {
   validateStrataConfirmation,
   $reset: applicationReset
 } = useStrrStrataApplicationStore()
-const { property, propertyTypeFeeTriggers } = storeToRefs(useHostPropertyStore())
+const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(useHostPropertyStore())
 // fee stuff
 const {
   addReplaceFee,
@@ -74,12 +74,12 @@ const setFeeBasedOnProperty = () => {
       removeFee(StrrFeeCode.STR_HOST_2)
     }
   } else if (
-    property.value.rentalUnitSetupType !== undefined &&
-    property.value.numberOfRoomsForRent !== undefined &&
-    property.value.numberOfRoomsForRent >= 0
+    unitDetails.value.rentalUnitSetupType !== undefined &&
+    unitDetails.value.numberOfRoomsForRent !== undefined &&
+    unitDetails.value.numberOfRoomsForRent >= 0
   ) {
     // set fee quantity (0 is treated the same as 1)
-    hostFee3.value.quantity = property.value.numberOfRoomsForRent || 1
+    hostFee3.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
     hostFee3.value.quantityDesc = hostFee3.value.quantity > 1
       ? t('strr.word.room', hostFee3.value.quantity)
       : undefined
@@ -93,10 +93,10 @@ const setFeeBasedOnProperty = () => {
   }
 }
 // update fee stuff
-watch(() => property.value.rentalUnitSetupType, (val) => {
-  if (val === RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE && !property.value.numberOfRoomsForRent) {
+watch(() => unitDetails.value.rentalUnitSetupType, (val) => {
+  if (val === RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE && !unitDetails.value.numberOfRoomsForRent) {
     // this will trigger the watcher on numberOfRoomsForRent, which will call setFeeBasedOnProperty
-    property.value.numberOfRoomsForRent = 0
+    unitDetails.value.numberOfRoomsForRent = 0
   } else {
     setFeeBasedOnProperty()
   }
@@ -105,7 +105,7 @@ watch(() => property.value.rentalUnitSetupType, (val) => {
 watch(
   [
     propertyTypeFeeTriggers,
-    () => property.value.numberOfRoomsForRent
+    () => unitDetails.value.numberOfRoomsForRent
   ],
   setFeeBasedOnProperty
 )

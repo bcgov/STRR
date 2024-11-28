@@ -1,11 +1,12 @@
 import { z } from 'zod'
 import { RentalUnitSetupType } from '~/enums/rental-unit-setup-types'
-import type { UiHostProperty } from '~/interfaces/host-ui'
+import type { UiBlInfo, UiHostProperty } from '~/interfaces/host-ui'
 
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()
 
-  const rentalAddressSchema = computed(() => z.object({
+  // rental unit address stuff
+  const unitAddressSchema = computed(() => z.object({
     address: getRequiredBCAddressSplitStreet(
       t('validation.address.city'),
       t('validation.address.region'),
@@ -23,15 +24,68 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     })
   }))
 
-  const blSchema = z.object({
-    businessLicense: optionalOrEmptyString,
-    businessLicenseExpiryDate: property.value.businessLicense
-      ? getRequiredNonEmptyString(t('validation.businessLicenseExpiryDate'))
-      : optionalOrEmptyString
+  const getEmptyUnitAddress = (): { address: HostPropertyAddress } => ({
+    address: {
+      street: '',
+      streetNumber: '',
+      streetName: '',
+      unitNumber: '',
+      streetAdditional: '',
+      region: 'BC',
+      city: '',
+      country: 'CA',
+      postalCode: '',
+      locationDescription: '',
+      nickname: ''
+    }
   })
 
+  const unitAddress = ref<{ address: HostPropertyAddress }>(getEmptyUnitAddress())
+
+  const validateUnitAddress = (returnBool = false): MultiFormValidationResult | boolean => {
+    const result = validateSchemaAgainstState(
+      unitAddressSchema.value,
+      unitAddress.value,
+      'rental-unit-address-form'
+    )
+
+    if (returnBool) {
+      return result.success === true
+    } else {
+      return [result]
+    }
+  }
+
+  // business licence stuff
+  const blInfoSchema = z.object({
+    businessLicense: getRequiredNonEmptyString('business licence required'), // TODO: i18n
+    businessLicenseExpiryDate: getRequiredNonEmptyString(t('validation.businessLicenseExpiryDate'))
+  })
+
+  const getEmptyBlInfo = (): UiBlInfo => ({
+    businessLicense: '',
+    businessLicenseExpiryDate: ''
+  })
+
+  const blInfo = ref<UiBlInfo>(getEmptyBlInfo())
+
+  const validateBusinessLicence = (returnBool = false): MultiFormValidationResult | boolean => {
+    const result = validateSchemaAgainstState(
+      blInfoSchema,
+      blInfo.value,
+      'business-license-form'
+    )
+
+    if (returnBool) {
+      return result.success === true
+    } else {
+      return [result]
+    }
+  }
+
+  // unit details stuff
   const unitDetailsSchema = computed(() => z.object({
-    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
+    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')), // TODO: maybe move this outside of unit details???
     propertyType: z.enum([
       PropertyType.ACCESSORY_DWELLING,
       PropertyType.BED_AND_BREAKFAST,
@@ -46,8 +100,11 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     ], {
       errorMap: () => ({ message: t('validation.propertyType') })
     }),
-    ownershipType: z.enum([OwnwershipType.CO_OWN, OwnwershipType.OWN, OwnwershipType.RENT], {
+    ownershipType: z.enum([OwnershipType.CO_OWN, OwnershipType.OWN, OwnershipType.RENT], {
       errorMap: () => ({ message: t('validation.ownershipType') })
+    }),
+    typeOfSpace: z.enum([RentalUnitType.ENTIRE_HOME, RentalUnitType.SHARED_ACCOMMODATION], {
+      errorMap: () => ({ message: t('validation.typeOfSpace') })
     }),
     rentalUnitSetupType: z.enum([
       RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
@@ -61,135 +118,78 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       .int({ message: t('validation.numberOfRooms.invalidInput') }).min(0)
   }))
 
-  const getEmptyRentalAddress = () => ({
-    address: {
-      street: '',
-      streetNumber: '',
-      streetName: '',
-      unitNumber: '',
-      streetAdditional: '',
-      region: 'BC',
-      city: '',
-      country: 'CA',
-      postalCode: '',
-      locationDescription: '',
-      nickname: ''
-    }
-  })
-
-  const getEmptyProperty = (): UiHostProperty => ({
+  const getEmptyUnitDetails = (): UiUnitDetails => ({
     parcelIdentifier: '',
-    businessLicense: '',
-    businessLicenseExpiryDate: '',
     propertyType: undefined,
     ownershipType: undefined,
     rentalUnitSetupType: undefined,
-    numberOfRoomsForRent: undefined,
-    address: {
-      street: '',
-      streetNumber: '',
-      streetName: '',
-      unitNumber: '',
-      streetAdditional: '',
-      region: 'BC',
-      city: '',
-      country: 'CA',
-      postalCode: '',
-      locationDescription: '',
-      nickname: ''
-    },
-    listingDetails: [{ url: '' }]
+    typeOfSpace: undefined,
+    numberOfRoomsForRent: 0
   })
 
-  const rentalAddress = ref(getEmptyRentalAddress())
-  const property = ref<UiHostProperty>(getEmptyProperty())
-  const isUnitNumberRequired = computed(() => property.value.propertyType && [
+  const unitDetails = ref<UiUnitDetails>(getEmptyUnitDetails())
+
+  const validateUnitDetails = (returnBool = false): MultiFormValidationResult | boolean => {
+    const result = validateSchemaAgainstState(
+      unitDetailsSchema.value,
+      unitDetails.value,
+      'unit-details-form')
+
+    if (returnBool) {
+      return result.success === true
+    } else {
+      return [result]
+    }
+  }
+
+  const isUnitNumberRequired = computed(() => unitDetails.value.propertyType && [
     PropertyType.SECONDARY_SUITE,
     PropertyType.ACCESSORY_DWELLING,
     PropertyType.TOWN_HOME,
     PropertyType.CONDO_OR_APT,
     PropertyType.MULTI_UNIT_HOUSING,
-    PropertyType.STRATA_HOTEL].includes(property.value.propertyType)
+    PropertyType.STRATA_HOTEL].includes(unitDetails.value.propertyType)
   )
 
   const propertyTypeFeeTriggers = computed(() => ({
-    isWholeUnit: property.value.rentalUnitSetupType !== undefined && [
+    isWholeUnit: unitDetails.value.rentalUnitSetupType !== undefined && [
       RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
       RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY,
       RentalUnitSetupType.WHOLE_UNIT_DIFFERENT_PROPERTY
-    ].includes(property.value.rentalUnitSetupType),
-    isUnitOnPrincipalResidenceProperty: property.value.rentalUnitSetupType !== undefined && [
+    ].includes(unitDetails.value.rentalUnitSetupType),
+    isUnitOnPrincipalResidenceProperty: unitDetails.value.rentalUnitSetupType !== undefined && [
       RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
       RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
       RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY
-    ].includes(property.value.rentalUnitSetupType),
-    isHostResidence: property.value.rentalUnitSetupType !== undefined && [
+    ].includes(unitDetails.value.rentalUnitSetupType),
+    isHostResidence: unitDetails.value.rentalUnitSetupType !== undefined && [
       RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
       RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
       RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY
-    ].includes(property.value.rentalUnitSetupType)
+    ].includes(unitDetails.value.rentalUnitSetupType)
   }))
 
-  const removeListingAtIndex = (index: number) => {
-    property.value.listingDetails.splice(index, 1)
-  }
-
-  const addNewEmptyListing = () => {
-    property.value.listingDetails.push({ url: '' })
-  }
-
-  const validateRentalAddress = (returnBool = false): MultiFormValidationResult | boolean => {
-    const result = validateSchemaAgainstState(
-      rentalAddressSchema.value,
-      rentalAddress.value,
-      'rental-address-form')
-
-    if (returnBool) {
-      return result.success === true
-    } else {
-      return [result]
-    }
-  }
-
-  const validateBusinessLicence = (returnBool = false): MultiFormValidationResult | boolean => {
-    const result = validateSchemaAgainstState(
-      rentalAddressSchema.value,
-      rentalAddress.value,
-      'rental-address-form')
-
-    if (returnBool) {
-      return result.success === true
-    } else {
-      return [result]
-    }
-  }
-  const validateUnitDetails = (returnBool = false): MultiFormValidationResult | boolean => {
-    const result = validateSchemaAgainstState(
-      rentalAddressSchema.value,
-      rentalAddress.value,
-      'rental-address-form')
-
-    if (returnBool) {
-      return result.success === true
-    } else {
-      return [result]
-    }
-  }
-
   const $reset = () => {
-    property.value = getEmptyProperty()
+    unitAddress.value = getEmptyUnitAddress()
+    unitDetails.value = getEmptyUnitDetails()
+    blInfo.value = getEmptyBlInfo()
   }
 
   return {
-    property,
-    rentalAddress,
+    unitAddressSchema,
+    getEmptyUnitAddress,
+    unitAddress,
+    validateUnitAddress,
+    blInfoSchema,
+    getEmptyBlInfo,
+    blInfo,
+    validateBusinessLicence,
+    unitDetailsSchema,
+    getEmptyUnitDetails,
+    unitDetails,
+    validateUnitDetails,
     isUnitNumberRequired,
-    rentalAddressSchema,
-    propertySchema,
     propertyTypeFeeTriggers,
-    addNewEmptyListing,
-    removeListingAtIndex,
-    validateProperty,
     $reset
   }
 })

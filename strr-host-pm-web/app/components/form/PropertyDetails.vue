@@ -38,9 +38,9 @@ const propertyTypes = [
   { name: t('strr.label.townHome'), value: PropertyType.TOWN_HOME }
 ]
 const ownershipTypes = [
-  { name: t('strr.label.own'), value: OwnwershipType.OWN },
-  { name: t('strr.label.coown'), value: OwnwershipType.CO_OWN },
-  { name: t('strr.label.rent'), value: OwnwershipType.RENT }
+  { name: t('strr.label.own'), value: OwnershipType.OWN },
+  { name: t('strr.label.coown'), value: OwnershipType.CO_OWN },
+  { name: t('strr.label.rent'), value: OwnershipType.RENT }
 ]
 
 const listingDetailsErrorList = computed(() => {
