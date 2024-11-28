@@ -3,6 +3,14 @@ export default {
   alert: {
     prRequired: {
       title: 'Your property is in a location where the principal residence requirement applies.'
+    },
+    straaExempt: {
+      title: '{boldStart}Registration Not Required:{boldEnd} This address appears to be located on First Nations land and is therefore exempt from the Short-term Rental Accommodations Act. You do not need to register a short-term rental at this address.'
+    },
+    strProhibited: {
+      title: 'Some types of short-term rentals are not permitted by your local government.',
+      description: 'Contact your local government to understand what rules apply to short-term rentals in your community before you submit a registration application. Your registration will be denied if your short-term rental type is not permitted by your local government.',
+      note: '{boldStart}Note:{boldEnd} Currently, short-term rental application fees are {boldStart}non-refundable.{boldEnd}'
     }
   },
   feeSummary: {
@@ -175,7 +183,12 @@ export default {
     saveStartApplication: 'Save & Start Application',
     createNewReg: 'Create New Registration',
     edit: 'Edit',
-    done: 'Done'
+    done: 'Done',
+    exitReg: 'Exit Registration',
+    regDiffUnit: 'Register a Different Rental Unit',
+    contWithReg: 'Continue with Registration',
+    showDetails: 'Show Details',
+    hideDetails: 'Hide Details'
   },
   error: {
     createAccount: {

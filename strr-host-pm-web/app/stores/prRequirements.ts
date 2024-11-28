@@ -29,6 +29,8 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
   const loadingReqs = ref<boolean>(false)
   const addressReqs = ref<AddressRequirements>({} as AddressRequirements)
   const addressReqError = ref<AddressRequirementsError>({} as AddressRequirementsError)
+  const continueProhibitedApplication = ref<boolean>(false)
+  const showProhibitedAlertDetails = ref<boolean>(true)
 
   const hasReqs = computed(() => addressReqs.value.organizationNm !== undefined) // TODO: confirm this will never be undefined in a response?
 
@@ -150,6 +152,8 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
     addressReqs.value = {} as AddressRequirements
     addressReqError.value = {} as AddressRequirementsError
     prRequirements.value = getEmptyPrRequirements()
+    continueProhibitedApplication.value = false
+    showProhibitedAlertDetails.value = true
   }
 
   return {
@@ -161,6 +165,8 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
     addressReqError,
     prRequirementsSchema,
     prRequirements,
+    continueProhibitedApplication,
+    showProhibitedAlertDetails,
     getAddressReqs,
     // validateProperty,
     $reset

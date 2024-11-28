@@ -3,6 +3,7 @@ import type { Form } from '#ui/types'
 const props = defineProps<{ isComplete: boolean }>()
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const reqStore = usePrReqStore()
 
 const prReqFormRef = ref<Form<any>>()
@@ -28,14 +29,14 @@ watch(
     // reset exemption reason and ref code on isPropertyExempt change
     if (newVal.isPropertyPrExempt === false) {
       reqStore.prRequirements.prExemptionReason = undefined
-      reqStore.prRequirements.strataRegNumber = ''
-      prReqFormRef.value?.validate(['strataRegNumber', 'prExemptionReason'], { silent: true })
+      reqStore.prRequirements.strataRefCode = ''
+      prReqFormRef.value?.validate(['strataRefCode', 'prExemptionReason'], { silent: true })
     }
 
     // reset ref code on prExemptionReason change
     if (newVal.prExemptionReason !== PrExemptionReason.STRATA_HOTEL) {
-      reqStore.prRequirements.strataRegNumber = ''
-      prReqFormRef.value?.validate(['strataRegNumber'], { silent: true })
+      reqStore.prRequirements.strataRefCode = ''
+      prReqFormRef.value?.validate(['strataRefCode'], { silent: true })
     }
   },
   { deep: true }
@@ -51,11 +52,11 @@ onMounted(async () => {
 <template>
   <!-- TODO: figure out all different possible combinations of 'addressReqs' and edit the v-ifs accordingly -->
   <div
-    class="px-4 py-10 md:px-10"
     :class="{
       'border-t border-gray-100':
         reqStore.addressReqs.organizationNm !== undefined
-        || reqStore.addressReqError.type !== undefined
+        || reqStore.addressReqError.type !== undefined,
+      'px-4 py-10 md:px-10': reqStore.hasReqs
     }"
   >
     <!-- registration not required section (straa exempt) -->
@@ -64,27 +65,33 @@ onMounted(async () => {
       class="space-y-10"
     >
       <UAlert
-        title="You don’t need to register a short-term rental at this address."
         color="yellow"
         icon="i-mdi-check-circle"
         :close-button="null"
         variant="subtle"
         :ui="{
           inner: 'pt-0',
-          icon: { base: 'text-outcomes-approved' },
-          title: 'text-base font-semibold',
+          icon: { base: 'self-start text-outcomes-approved' },
+          title: 'text-base',
         }"
-      />
+      >
+        <template #title>
+          <ConnectI18nBold translation-path="alert.straaExempt.title" />
+        </template>
+      </UAlert>
 
+      <!-- TODO: confirm these buttons behave as expected -->
       <div class="flex justify-end gap-4">
         <UButton
-          label="Exit Registration"
+          :label="$t('btn.exitReg')"
           variant="outline"
           size="bcGov"
+          :to="localePath('/dashboard')"
         />
         <UButton
-          label="Register a Different Rental Unit"
+          :label="$t('btn.regDiffUnit')"
           size="bcGov"
+          @click="reqStore.$reset()"
         />
       </div>
     </div>
@@ -95,40 +102,71 @@ onMounted(async () => {
       class="space-y-10"
     >
       <UAlert
-        title="Short-term rentals are prohibited for this address."
         color="red"
         icon="i-mdi-alert"
         :close-button="null"
         variant="subtle"
         :ui="{
           inner: 'pt-0',
-          title: 'text-base font-semibold',
+          title: 'self-start text-base font-semibold',
         }"
       >
-        <template #description>
-          <div class="flex flex-col gap-4 text-base text-bcGovGray-700">
-            <p>You can continue to register your short-term rental for review, but your rental MUST MEET the following strict criteria for approval:</p>
-            <ul class="list-inside list-disc">
-              <li>Criteria 1</li>
-              <li>Criteria 2</li>
-              <li>Criteria 3</li>
-            </ul>
-            <p>Note: Currently, Short-Term Rental Application fees are non-refundable.</p>
+        <template #title>
+          <div class="flex items-start justify-between gap-4">
+            <p class="font-semibold">
+              {{ $t('alert.strProhibited.title') }}
+            </p>
+            <UButton
+              v-if="reqStore.continueProhibitedApplication"
+              :label="reqStore.showProhibitedAlertDetails ? $t('btn.hideDetails') : $t('btn.showDetails')"
+              variant="link"
+              :padded="false"
+              trailing-icon="i-mdi-caret-down"
+              @click="reqStore.showProhibitedAlertDetails = !reqStore.showProhibitedAlertDetails"
+            />
           </div>
+        </template>
+        <template #description>
+          <TransitionCollapse>
+            <div
+              v-if="reqStore.showProhibitedAlertDetails"
+              class="flex flex-col gap-4 pt-2 text-base text-bcGovGray-700"
+            >
+              <p>{{ $t('alert.strProhibited.description') }}</p>
+              <ConnectI18nBold translation-path="alert.strProhibited.note" />
+            </div>
+          </TransitionCollapse>
         </template>
       </UAlert>
 
-      <div class="flex justify-end gap-4">
-        <UButton
-          label="Exit Registration"
-          variant="outline"
-          size="bcGov"
-        />
-        <UButton
-          label="Continue with Registration"
-          size="bcGov"
-        />
-      </div>
+      <TransitionFade>
+        <div
+          v-if="!reqStore.continueProhibitedApplication"
+          class="flex justify-end gap-4"
+        >
+          <UButton
+            :label="$t('btn.exitReg')"
+            variant="outline"
+            size="bcGov"
+            :to="localePath('/dashboard')"
+          />
+          <UButton
+            :label="$t('btn.contWithReg')"
+            size="bcGov"
+            @click="() => {
+              reqStore.continueProhibitedApplication = true
+              reqStore.showProhibitedAlertDetails = false
+            }"
+          />
+        </div>
+
+        <div
+          v-else
+          class="flex h-20 w-full flex-col border border-black"
+        >
+          show required docs here maybe
+        </div>
+      </TransitionFade>
     </div>
 
     <!-- principal residence exempt (pr not required) section -->
