@@ -89,7 +89,7 @@ def get_str_requirements():
         str_data = ApprovalService.getSTRDataForAddress(address=address)
         if not str_data:
             return error_response(
-                message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR
+                message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.SERVICE_UNAVAILABLE
             )
         return ApprovalService.getSTRDataForAddress(address=address), HTTPStatus.OK
     except ExternalServiceException as service_exception:
