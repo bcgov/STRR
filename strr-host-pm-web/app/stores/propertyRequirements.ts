@@ -106,7 +106,7 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
   async function getPropertyReqs () {
     try {
       loadingReqs.value = true
-      propertyReqs.value = await $strrApi<PropertyRequirements>('/address/requirements', {
+      const res = await $strrApi<PropertyRequirements>('/address/requirements', {
         method: 'POST',
         body: {
           address: {
@@ -122,6 +122,13 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
           }
         }
       })
+
+      propertyReqs.value = res
+
+      // TODO: confirm these are the only scenarios we want to open the form without further user interaction
+      if (!res.isStrProhibited || !!res.isStraaExempt) {
+        continueApplication.value = true
+      }
     } catch (e) {
       logFetchError(e, 'Unable to load address requirements')
       if (e instanceof FetchError) {

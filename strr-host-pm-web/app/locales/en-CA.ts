@@ -158,7 +158,6 @@ export default {
       wholeUnitSameProperty: 'A whole unit on the same property as the Host Principal Residence (basement suite, secondary suite)',
       wholeUnitDiffProperty: 'Not on the same property as the Host Principal Residence',
       enterResiAddressToDetermineRequirement: 'Start by entering the residential address of rental unit to help determine if you need to register your short-term rental and if it is in an area subject to the {link}.',
-      rentalUnitSetupLegend: 'Select the set-up of the property, host principal residence, and rental unit.',
       requireBusLicense: 'Your local government requires a valid business licence to operate a short-term rental.'
     },
     word: {
@@ -230,7 +229,9 @@ export default {
     strataRefCode: 'Strata-Titled Hotel Reference Code',
     eligibleStrataHotel: 'Eligible strata-titled hotel or motel',
     farmLandClass9: 'Farm land (BC Assessment Farm Class 9)',
-    fractOwnership: 'Fractional ownership'
+    fractOwnership: 'Fractional ownership',
+    propertyNickname: 'Property Nickname',
+    propertyNicknameOpt: 'Property Nickname (Optional)'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page'
@@ -265,7 +266,8 @@ export default {
   },
   text: {
     thisPropIsExempt: 'This property is exempt from the principal residence requirement',
-    followingDocsRequired: 'The following documentation is required for this registration:'
+    followingDocsRequired: 'The following documentation is required for this registration:',
+    rentalUnitSetupLegend: 'Required: Select the set-up of the property, host principal residence, and rental unit.'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.'

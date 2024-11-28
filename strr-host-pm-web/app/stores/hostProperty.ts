@@ -23,12 +23,15 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     })
   }))
 
-  const propertySchema = computed(() => z.object({
-    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
+  const blSchema = z.object({
     businessLicense: optionalOrEmptyString,
     businessLicenseExpiryDate: property.value.businessLicense
       ? getRequiredNonEmptyString(t('validation.businessLicenseExpiryDate'))
-      : optionalOrEmptyString,
+      : optionalOrEmptyString
+  })
+
+  const unitDetailsSchema = computed(() => z.object({
+    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
     propertyType: z.enum([
       PropertyType.ACCESSORY_DWELLING,
       PropertyType.BED_AND_BREAKFAST,
@@ -55,24 +58,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       errorMap: () => ({ message: t('validation.rentalUnitSetupType') })
     }),
     numberOfRoomsForRent: z.number({ required_error: t('validation.numberOfRooms.empty') })
-      .int({ message: t('validation.numberOfRooms.invalidInput') }).min(0),
-    // TODO: update for street number/name/unit number
-    address: getRequiredBCAddressSplitStreet(
-      t('validation.address.city'),
-      t('validation.address.region'),
-      t('validation.address.postalCode'),
-      t('validation.address.country'),
-      t('validation.address.requiredBC.region'),
-      t('validation.address.requiredBC.country'),
-      t('validation.address.streetName'),
-      t('validation.address.streetNumber')
-    ).extend({
-      unitNumber: isUnitNumberRequired.value
-        ? getRequiredNonEmptyString(t('validation.address.unitNumber'))
-        : optionalOrEmptyString,
-      nickname: optionalOrEmptyString
-    }),
-    listingDetails: z.array(z.object({ url: getOptionalUrl(t('validation.onlineListings')) }))
+      .int({ message: t('validation.numberOfRooms.invalidInput') }).min(0)
   }))
 
   const getEmptyRentalAddress = () => ({
@@ -152,11 +138,36 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     property.value.listingDetails.push({ url: '' })
   }
 
-  const validateProperty = (returnBool = false): MultiFormValidationResult | boolean => {
+  const validateRentalAddress = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(
-      propertySchema.value,
-      property.value,
-      'property-form')
+      rentalAddressSchema.value,
+      rentalAddress.value,
+      'rental-address-form')
+
+    if (returnBool) {
+      return result.success === true
+    } else {
+      return [result]
+    }
+  }
+
+  const validateBusinessLicence = (returnBool = false): MultiFormValidationResult | boolean => {
+    const result = validateSchemaAgainstState(
+      rentalAddressSchema.value,
+      rentalAddress.value,
+      'rental-address-form')
+
+    if (returnBool) {
+      return result.success === true
+    } else {
+      return [result]
+    }
+  }
+  const validateUnitDetails = (returnBool = false): MultiFormValidationResult | boolean => {
+    const result = validateSchemaAgainstState(
+      rentalAddressSchema.value,
+      rentalAddress.value,
+      'rental-address-form')
 
     if (returnBool) {
       return result.success === true

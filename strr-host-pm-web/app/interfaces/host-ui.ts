@@ -3,10 +3,13 @@
 //   unitNumber: string
 // }
 
-export interface UiUnitDetails {
-  parcelIdentifier: string
+export interface UiBlInfo {
   businessLicense: string
   businessLicenseExpiryDate: string
+}
+
+export interface UiUnitDetails {
+  parcelIdentifier: string
   propertyType: PropertyType | undefined
   ownershipType: OwnwershipType | undefined
   numberOfRoomsForRent: number | undefined

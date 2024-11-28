@@ -268,7 +268,7 @@ onMounted(async () => {
         </fieldset>
       </UForm>
 
-      <UDivider />
+      <UDivider :ui="{ border: { base: 'border-gray-100' } }" />
 
       <!-- TODO: define list using required docs computed -->
       <div class="flex flex-col gap-4">

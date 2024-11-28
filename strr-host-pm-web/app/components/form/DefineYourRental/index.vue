@@ -8,6 +8,7 @@ const props = defineProps<{ isComplete: boolean }>()
 const { t } = useI18n()
 const { addNewEmptyListing, removeListingAtIndex } = useHostPropertyStore()
 const { property, isUnitNumberRequired, propertySchema } = storeToRefs(useHostPropertyStore())
+const reqStore = usePropertyReqStore()
 
 const propertyFormRef = ref<Form<z.output<typeof propertySchema.value>>>()
 
@@ -22,6 +23,10 @@ const propertyTypes = [
   { name: t('strr.label.singleFamily'), value: PropertyType.SINGLE_FAMILY_HOME },
   { name: t('strr.label.strataHotel'), value: PropertyType.STRATA_HOTEL },
   { name: t('strr.label.townHome'), value: PropertyType.TOWN_HOME }
+]
+const rentalTypeOptions = [
+  { value: RentalUnitType.ENTIRE_HOME, label: t('strr.text.entireHome') },
+  { value: RentalUnitType.SHARED_ACCOMMODATION, label: t('strr.text.sharedAccomodation') }
 ]
 const ownershipTypes = [
   { label: t('strr.label.own'), value: OwnwershipType.OWN },
@@ -42,15 +47,6 @@ const rentalUnitSetupTypes = [
     value: RentalUnitSetupType.WHOLE_UNIT_DIFFERENT_PROPERTY
   }
 ]
-
-const listingDetailsErrorList = computed(() => {
-  const errorList: string[] = []
-  const addPath = (_: any, index: number) => {
-    errorList.push(`listingDetails.${index}.url`)
-  }
-  property.value.listingDetails.forEach(addPath)
-  return errorList
-})
 
 onMounted(async () => {
   // validate form if step marked as complete
@@ -74,12 +70,27 @@ onMounted(async () => {
         <FormDefineYourRentalReqs
           :is-complete="isComplete"
         />
+      </ConnectPageSection>
 
-        <div
-          v-if="1 === -1"
-          class="space-y-10 py-10"
-        >
-          <UDivider :ui="{ border: { base: 'border-gray-100' } }" />
+      <ConnectPageSection
+        v-if="reqStore.continueApplication"
+      >
+        <div class="space-y-10 py-10">
+          <!-- property nickname section -->
+          <ConnectFormSection
+            :title="$t('label.propertyNickname')"
+          >
+            <ConnectFormFieldGroup
+              id="property-address-nickname"
+              v-model="property.address.nickname"
+              :aria-label="$t('label.propertyNicknameOpt')"
+              :help="$t('strr.hint.nickname')"
+              name="property.nickname"
+              :placeholder="$t('label.propertyNicknameOpt')"
+            />
+          </ConnectFormSection>
+
+          <div class="h-px w-full border-b border-gray-100" />
 
           <!-- property type section -->
           <ConnectFormSection
@@ -106,23 +117,27 @@ onMounted(async () => {
             </UFormGroup>
           </ConnectFormSection>
 
-          <!-- ownership type section -->
+          <!-- type of space section -->
           <ConnectFormSection
-            :title="$t('strr.label.ownershipType')"
-            :error="isComplete && hasFormErrors(propertyFormRef, ['ownershipType'])"
+            title="Type of Space"
+            :error="isComplete && hasFormErrors(propertyFormRef, ['propertyType'])"
           >
-            <UFormGroup id="ownership-type" name="ownershipType">
+            <UFormGroup>
               <URadioGroup
-                id="ownership-type-radio-group"
-                v-model="property.ownershipType"
-                :class="isComplete && property.ownershipType === undefined
+                id="rental-type-radio-group"
+                v-model="property.rentalUnitSpaceType"
+                :class="isComplete && property.rentalUnitSpaceType === undefined
                   ? 'border-red-600 border-2 p-2'
                   : 'p-2'"
-                :options="ownershipTypes"
-                :legend="$t('strr.text.ownershipTypeLegend')"
-                :ui="{ legend: 'sr-only' }"
+                :options="rentalTypeOptions"
+                :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
                 :ui-radio="{ inner: 'space-y-2' }"
-              />
+              >
+                <template #legend>
+                  <span class="sr-only">{{ $t('validation.required') }}</span>
+                  <span>{{ $t('strr.text.rentalType') }}</span>
+                </template>
+              </URadioGroup>
             </UFormGroup>
           </ConnectFormSection>
 
@@ -139,17 +154,10 @@ onMounted(async () => {
                   ? 'border-red-600 border-2 p-2'
                   : 'p-2'"
                 :options="rentalUnitSetupTypes"
-                :ui="{ legend: 'mb-3 text-default font-normal text-gray-700' }"
+                :legend="$t('text.rentalUnitSetupLegend')"
+                :ui="{ legend: 'sr-only' }"
                 :ui-radio="{ inner: 'space-y-2' }"
-              >
-                <template #legend>
-                  <div class="flex flex-col gap-2">
-                    <span class="sr-only">{{ $t('validation.required') }}</span>
-                    <span>{{ $t('strr.text.rentalUnitSetupLegend') }}</span>
-                    <span class="font-bold">{{ $t('strr.label.theRentalUnitIs') }}</span>
-                  </div>
-                </template>
-              </URadioGroup>
+              />
             </UFormGroup>
           </ConnectFormSection>
 
@@ -169,69 +177,26 @@ onMounted(async () => {
             />
           </ConnectFormSection>
 
-          <!-- property nickname section -->
-          <ConnectFormSection
-            :title="$t('strr.label.rentalUnitName')"
-          >
-            <ConnectFormFieldGroup
-              id="property-address-nickname"
-              v-model="property.address.nickname"
-              :aria-label="$t('strr.label.rentalUnitNameOpt')"
-              :help="$t('strr.hint.nickname')"
-              name="property.nickname"
-              :placeholder="$t('strr.label.rentalUnitNameOpt')"
-            />
-          </ConnectFormSection>
+          <div class="h-px w-full border-b border-gray-100" />
 
-          <!-- property website listings section -->
-          <!-- TODO: get hasFormErrors dynamically -->
+          <!-- ownership type section -->
           <ConnectFormSection
-            :title="$t('strr.section.subTitle.propertyListings')"
-            :error="isComplete && hasFormErrors(propertyFormRef, listingDetailsErrorList)"
+            :title="$t('strr.label.ownershipType')"
+            :error="isComplete && hasFormErrors(propertyFormRef, ['ownershipType'])"
           >
-            <div class="space-y-5">
-              <span>{{ $t('strr.text.listEachWebLink') }}</span>
-              <div
-                v-for="listing, i in property.listingDetails"
-                :key="'listing' + i"
-              >
-                <div class="space-y-5">
-                  <div class="flex flex-col gap-5 sm:flex-row-reverse">
-                    <div>
-                      <UButton
-                        v-if="i !== 0"
-                        :label="$t('word.Remove')"
-                        class="border border-blue-500 sm:border-0"
-                        color="primary"
-                        trailing-icon="i-mdi-close"
-                        variant="ghost"
-                        @click="removeListingAtIndex(i)"
-                      />
-                    </div>
-                    <div class="grow">
-                      <ConnectFormFieldGroup
-                        :id="'property-listing-link-' + i"
-                        v-model="listing.url"
-                        :aria-label="$t('strr.label.listingLinkOpt')"
-                        :help="$t('strr.hint.listingLink')"
-                        :name="`listingDetails.${i}.url`"
-                        :placeholder="$t('strr.label.listingLinkOpt')"
-                        :is-required="true"
-                      />
-                    </div>
-                  </div>
-                  <UButton
-                    v-if="i === property.listingDetails.length - 1"
-                    :label="$t('strr.label.addListing')"
-                    class="px-5 py-3"
-                    color="primary"
-                    icon="i-mdi-domain-plus"
-                    variant="outline"
-                    @click="addNewEmptyListing()"
-                  />
-                </div>
-              </div>
-            </div>
+            <UFormGroup id="ownership-type" name="ownershipType">
+              <URadioGroup
+                id="ownership-type-radio-group"
+                v-model="property.ownershipType"
+                :class="isComplete && property.ownershipType === undefined
+                  ? 'border-red-600 border-2 p-2'
+                  : 'p-2'"
+                :options="ownershipTypes"
+                :legend="$t('strr.text.ownershipTypeLegend')"
+                :ui="{ legend: 'sr-only' }"
+                :ui-radio="{ inner: 'space-y-2' }"
+              />
+            </UFormGroup>
           </ConnectFormSection>
 
           <!-- parcel identifier (PID) section -->
