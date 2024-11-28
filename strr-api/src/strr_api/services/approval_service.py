@@ -201,10 +201,12 @@ class ApprovalService:
         )
         try:
             token = res.json().get("access_token")
+            current_app.logger.info(f"Token: {token}")
             endpoint = f"{current_app.config.get('STR_DATA_API_URL')}/api/organizations/strrequirements?longitude={longitude}&latitude={latitude}"  # noqa: E501
             str_info_for_address = RestService.get(endpoint=endpoint, token=token).json()
             return str_info_for_address
-        except Exception:
+        except Exception as exception:
+            current_app.logger.error("Error while calling Data Portal API", exc_info=exception)
             return None
 
     @classmethod

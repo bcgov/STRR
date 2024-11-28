@@ -44,6 +44,7 @@ from flask import Blueprint, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
+from strr_api.enums.enum import ErrorMessage
 from strr_api.exceptions import ExternalServiceException, error_response
 from strr_api.schemas.utils import validate
 from strr_api.services.approval_service import ApprovalService
@@ -85,6 +86,11 @@ def get_str_requirements():
         address_line_1 = f"{address_line_1}{unit_address.get('streetNumber')} {unit_address.get('streetName')}"
         address_line_2 = unit_address.get("addressLineTwo", "")
         address = f"{address_line_1} {address_line_2}, {unit_address.get('city'), unit_address.get('province')}"
+        str_data = ApprovalService.getSTRDataForAddress(address=address)
+        if not str_data:
+            return error_response(
+                message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR
+            )
         return ApprovalService.getSTRDataForAddress(address=address), HTTPStatus.OK
     except ExternalServiceException as service_exception:
         logger.error("Error while getting STR requirements", exc_info=service_exception)
