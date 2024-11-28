@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { FetchError } from 'ofetch'
 
-interface AddressRequirements {
+interface PropertyRequirements {
   isBusinessLicenceRequired: boolean
   isPrincipalResidenceRequired: boolean
   isStrProhibited: boolean
@@ -9,7 +9,7 @@ interface AddressRequirements {
   organizationNm: string
 }
 
-interface AddressRequirementsError {
+interface PropertyRequirementsError {
   error?: FetchError
   type: 'fetch' | 'unknown' // TODO: handle other error types
 }
@@ -20,19 +20,19 @@ interface PrRequirements {
   strataRefCode: string
 }
 
-export const usePrReqStore = defineStore('pr/requirements', () => {
+export const usePropertyReqStore = defineStore('property/requirements', () => {
   const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
 
   const { isUnitNumberRequired } = storeToRefs(useHostPropertyStore())
 
   const loadingReqs = ref<boolean>(false)
-  const addressReqs = ref<AddressRequirements>({} as AddressRequirements)
-  const addressReqError = ref<AddressRequirementsError>({} as AddressRequirementsError)
-  const continueProhibitedApplication = ref<boolean>(false)
+  const propertyReqs = ref<PropertyRequirements>({} as PropertyRequirements)
+  const propertyReqError = ref<PropertyRequirementsError>({} as PropertyRequirementsError)
+  const continueApplication = ref<boolean>(false)
   const showProhibitedAlertDetails = ref<boolean>(true)
 
-  const hasReqs = computed(() => addressReqs.value.organizationNm !== undefined) // TODO: confirm this will never be undefined in a response?
+  const hasReqs = computed(() => propertyReqs.value.organizationNm !== undefined) // TODO: confirm this will never be undefined in a response?
 
   const rentalAddressSchema = computed(() => z.object({
     address: getRequiredBCAddressSplitStreet(
@@ -103,10 +103,10 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
   // TODO: compute doc reqs based of address reqs response ??? move this computed to the documents stroe probably
   // })
 
-  async function getAddressReqs () {
+  async function getPropertyReqs () {
     try {
       loadingReqs.value = true
-      addressReqs.value = await $strrApi<AddressRequirements>('/address/requirements', {
+      propertyReqs.value = await $strrApi<PropertyRequirements>('/address/requirements', {
         method: 'POST',
         body: {
           address: {
@@ -125,9 +125,9 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
     } catch (e) {
       logFetchError(e, 'Unable to load address requirements')
       if (e instanceof FetchError) {
-        addressReqError.value = { error: e, type: 'fetch' }
+        propertyReqError.value = { error: e, type: 'fetch' }
       } else {
-        addressReqError.value = { type: 'unknown' }
+        propertyReqError.value = { type: 'unknown' }
       }
     } finally {
       loadingReqs.value = false
@@ -149,10 +149,10 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
 
   const $reset = () => {
     rentalAddress.value = getEmptyRentalAddress()
-    addressReqs.value = {} as AddressRequirements
-    addressReqError.value = {} as AddressRequirementsError
+    propertyReqs.value = {} as PropertyRequirements
+    propertyReqError.value = {} as PropertyRequirementsError
     prRequirements.value = getEmptyPrRequirements()
-    continueProhibitedApplication.value = false
+    continueApplication.value = false
     showProhibitedAlertDetails.value = true
   }
 
@@ -160,14 +160,14 @@ export const usePrReqStore = defineStore('pr/requirements', () => {
     rentalAddress,
     rentalAddressSchema,
     loadingReqs,
-    addressReqs,
+    propertyReqs,
     hasReqs,
-    addressReqError,
+    propertyReqError,
     prRequirementsSchema,
     prRequirements,
-    continueProhibitedApplication,
+    continueApplication,
     showProhibitedAlertDetails,
-    getAddressReqs,
+    getPropertyReqs,
     // validateProperty,
     $reset
   }

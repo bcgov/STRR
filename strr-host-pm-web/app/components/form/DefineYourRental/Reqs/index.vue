@@ -4,7 +4,7 @@ const props = defineProps<{ isComplete: boolean }>()
 
 const { t } = useI18n()
 const localePath = useLocalePath()
-const reqStore = usePrReqStore()
+const reqStore = usePropertyReqStore()
 
 const prReqFormRef = ref<Form<any>>()
 const prExemptionOptions = [
@@ -44,7 +44,7 @@ watch(
 
 onMounted(async () => {
   // validate form if step marked as complete
-  if (props.isComplete && reqStore.addressReqs.isPrincipalResidenceRequired === true) {
+  if (props.isComplete && reqStore.propertyReqs.isPrincipalResidenceRequired === true) {
     await validateForm(prReqFormRef.value, props.isComplete)
   }
 })
@@ -54,14 +54,14 @@ onMounted(async () => {
   <div
     :class="{
       'border-t border-gray-100':
-        reqStore.addressReqs.organizationNm !== undefined
-        || reqStore.addressReqError.type !== undefined,
+        reqStore.propertyReqs.organizationNm !== undefined
+        || reqStore.propertyReqError.type !== undefined,
       'px-4 py-10 md:px-10': reqStore.hasReqs
     }"
   >
     <!-- registration not required section (straa exempt) -->
     <div
-      v-if="reqStore.addressReqs.isStraaExempt === true"
+      v-if="reqStore.propertyReqs.isStraaExempt === true"
       class="space-y-10"
     >
       <UAlert
@@ -98,7 +98,7 @@ onMounted(async () => {
 
     <!-- str prohibited section -->
     <div
-      v-if="reqStore.addressReqs.isStrProhibited === true"
+      v-else-if="reqStore.propertyReqs.isStrProhibited === true"
       class="space-y-10"
     >
       <UAlert
@@ -117,7 +117,7 @@ onMounted(async () => {
               {{ $t('alert.strProhibited.title') }}
             </p>
             <UButton
-              v-if="reqStore.continueProhibitedApplication"
+              v-if="reqStore.continueApplication"
               :label="reqStore.showProhibitedAlertDetails ? $t('btn.hideDetails') : $t('btn.showDetails')"
               variant="link"
               :padded="false"
@@ -141,7 +141,7 @@ onMounted(async () => {
 
       <TransitionFade>
         <div
-          v-if="!reqStore.continueProhibitedApplication"
+          v-if="!reqStore.continueApplication"
           class="flex justify-end gap-4"
         >
           <UButton
@@ -154,7 +154,7 @@ onMounted(async () => {
             :label="$t('btn.contWithReg')"
             size="bcGov"
             @click="() => {
-              reqStore.continueProhibitedApplication = true
+              reqStore.continueApplication = true
               reqStore.showProhibitedAlertDetails = false
             }"
           />
@@ -171,11 +171,10 @@ onMounted(async () => {
 
     <!-- principal residence exempt (pr not required) section -->
     <div
-      v-if="reqStore.addressReqs.isPrincipalResidenceRequired === false"
+      v-else-if="reqStore.propertyReqs.isPrincipalResidenceRequired === false"
       class="space-y-10"
     >
       <UAlert
-        title="Your property is in a location exempt from the principal residence requirement."
         color="yellow"
         icon="i-mdi-check-circle"
         :close-button="null"
@@ -185,19 +184,24 @@ onMounted(async () => {
           icon: { base: 'text-outcomes-approved' },
           title: 'text-base font-semibold',
         }"
-      />
+      >
+        <template #title>
+          <ConnectI18nBold translation-path="alert.prExempt.title" />
+        </template>
+      </UAlert>
 
+      <!-- TODO: define list using required docs computed -->
       <div class="flex flex-col gap-4">
-        <span>The following documentation is required for this registration:</span>
+        <span>{{ $t('text.followingDocsRequired') }}</span>
         <ul class="ml-4 list-inside list-disc">
-          <li>Local business licence number and expiry date</li>
+          <li>TODO: define rules for how this list is created</li>
         </ul>
       </div>
     </div>
 
     <!-- principal residence required section -->
     <div
-      v-if="reqStore.addressReqs.isPrincipalResidenceRequired === true"
+      v-else-if="reqStore.propertyReqs.isPrincipalResidenceRequired === true"
       class="space-y-10"
     >
       <UForm
@@ -276,8 +280,9 @@ onMounted(async () => {
     </div>
 
     <!-- error section -->
+    <!-- TODO: create different error messages for different responses -->
     <div
-      v-if="reqStore.addressReqError.type !== undefined"
+      v-else-if="reqStore.propertyReqError.type !== undefined"
       class="space-y-10"
     >
       <UAlert

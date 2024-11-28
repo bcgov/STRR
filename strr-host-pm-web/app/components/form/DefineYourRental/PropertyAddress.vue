@@ -3,7 +3,7 @@ import type { Form } from '#ui/types'
 import { z } from 'zod'
 
 const propStore = useHostPropertyStore()
-const reqStore = usePrReqStore()
+const reqStore = usePropertyReqStore()
 const hostModal = useHostPmModals()
 
 const props = defineProps<{ isComplete: boolean }>()
@@ -53,7 +53,7 @@ const rentalAddressFormRef = ref<Form<z.output<typeof reqStore.rentalAddressSche
           :schema="reqStore.rentalAddressSchema"
           :state="reqStore.rentalAddress"
           class="space-y-10"
-          @submit="reqStore.getAddressReqs()"
+          @submit="reqStore.getPropertyReqs()"
         >
           <!-- rental unit address section -->
 
@@ -112,7 +112,7 @@ const rentalAddressFormRef = ref<Form<z.output<typeof reqStore.rentalAddressSche
         >
           <template #details-data>
             <div class="flex flex-col">
-              <span>{{ reqStore.addressReqs.organizationNm }}</span>
+              <span>{{ reqStore.propertyReqs.organizationNm }}</span>
               <ConnectFormAddressDisplay
                 :address="reqStore.rentalAddress.address"
                 :use-location-desc-label="true"

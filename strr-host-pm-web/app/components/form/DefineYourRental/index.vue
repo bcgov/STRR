@@ -69,7 +69,7 @@ onMounted(async () => {
       class="space-y-10"
     >
       <ConnectPageSection>
-        <FormDefineYourRentalUnitResiAddress :is-complete="isComplete" />
+        <FormDefineYourRentalPropertyAddress :is-complete="isComplete" />
 
         <FormDefineYourRentalReqs
           :is-complete="isComplete"

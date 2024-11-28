@@ -11,6 +11,9 @@ export default {
       title: 'Some types of short-term rentals are not permitted by your local government.',
       description: 'Contact your local government to understand what rules apply to short-term rentals in your community before you submit a registration application. Your registration will be denied if your short-term rental type is not permitted by your local government.',
       note: '{boldStart}Note:{boldEnd} Currently, short-term rental application fees are {boldStart}non-refundable.{boldEnd}'
+    },
+    prExempt: {
+      title: "{boldStart}Exemption:{boldEnd} The provincial principal residence requirement does not apply to this address. Short-term rentals are allowed in any of the host's properties."
     }
   },
   feeSummary: {

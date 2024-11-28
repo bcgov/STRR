@@ -7,7 +7,7 @@ import {
 export const useHostPmModals = () => {
   const modal = useModal()
   const { t } = useI18n()
-  const reqStore = usePrReqStore()
+  const reqStore = usePropertyReqStore()
 
   function openHelpCreateAccountModal () {
     modal.open(ModalBase, {
