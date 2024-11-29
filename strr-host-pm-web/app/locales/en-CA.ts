@@ -290,8 +290,8 @@ export default {
     followingDocsRequired: 'The following documentation is required for this registration:',
     rentalUnitSetupLegend: 'Required: Select the set-up of the property, host principal residence, and rental unit.',
     typeOfSpaceLegend: 'Required: Select the type of space of the rental unit.',
-    proofOfPr: '{link} is required as the provincial principal residence requirement applies to this address. Note: Short-term rentals are limited to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property.',
-    thisPropIsInLocWithReqs: 'This property is in a location where the following requirements apply:'
+    thisPropIsInLocWithReqs: 'This property is in a location where the following requirements apply:',
+    thisPropCouldBeInLocWithReqs: 'This property could be in a location where the following requirements apply:'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.'
@@ -335,10 +335,17 @@ export default {
   requirements: {
     busLicence: {
       label: 'Business licence',
-      content: 'Your local government requires a business licence to operate a short-term rental at this address.'
+      content: {
+        normal: 'Your local government requires a business licence to operate a short-term rental at this address.',
+        override: 'Your local government may require a business licence to operate a short-term rental at this address.'
+      }
     },
     pr: {
-      label: 'Principal residence'
+      label: 'Principal residence',
+      content: {
+        normal: '{link} is required as the provincial principal residence requirement applies to this address. Note: Short-term rentals are limited to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property.',
+        override: '{link} is required if the provincial principal residence requirement applies to this address. Note: If the requirement applies, short-term rentals are limited to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property.'
+      }
     }
   },
   propertyType: {

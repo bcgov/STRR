@@ -6,7 +6,6 @@ const accordianRef = ref()
 
 function handleContinueApp () {
   reqStore.showUnitDetailsForm = true
-  reqStore.overrideApplicationWarning = true
   accordianRef.value?.buttonRefs[0].close()
 }
 </script>

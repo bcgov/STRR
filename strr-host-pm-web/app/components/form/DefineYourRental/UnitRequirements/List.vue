@@ -3,7 +3,12 @@ const reqStore = usePropertyReqStore()
 </script>
 <template>
   <div class="flex flex-col gap-4">
-    <span class="font-semibold">{{ $t('text.thisPropIsInLocWithReqs') }}</span>
+    <span class="font-semibold">
+      {{ reqStore.overrideApplicationWarning
+        ? $t('text.thisPropCouldBeInLocWithReqs')
+        : $t('text.thisPropIsInLocWithReqs')
+      }}
+    </span>
     <UAccordion
       :items="reqStore.requirementsList"
       multiple
@@ -40,7 +45,14 @@ const reqStore = usePropertyReqStore()
       </template>
 
       <template #pr>
-        <i18n-t keypath="text.proofOfPr" tag="p" scope="global">
+        <i18n-t
+          :keypath="reqStore.overrideApplicationWarning
+            ? 'requirements.pr.content.override'
+            : 'requirements.pr.content.normal'
+          "
+          tag="p"
+          scope="global"
+        >
           <template #link>
             <a
               href=""

@@ -132,7 +132,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   const validateUnitDetails = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(
-      unitDetailsSchema.value,
+      getUnitDetailsSchema(),
       unitDetails.value,
       'unit-details-form')
 
