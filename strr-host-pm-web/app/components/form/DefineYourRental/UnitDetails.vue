@@ -50,9 +50,18 @@ const rentalUnitSetupTypes = [
 // revalidate parcelIdentifer when user changes ownsership types
 watch(
   () => propStore.unitDetails.ownershipType,
-  () => {
-    if (propStore.unitDetails.parcelIdentifier !== '') {
-      unitDetailsFormRef.value?.validate('parcelIdentifier')
+  (newVal) => {
+    if (newVal &&
+        [OwnershipType.OWN, OwnershipType.CO_OWN].includes(newVal) &&
+        propStore.unitDetails.parcelIdentifier !== ''
+    ) {
+      unitDetailsFormRef.value?.validate('parcelIdentifier', { silent: true })
+    }
+    if (newVal &&
+        [OwnershipType.RENT, OwnershipType.OTHER].includes(newVal) &&
+        propStore.unitDetails.parcelIdentifier === ''
+    ) {
+      unitDetailsFormRef.value?.validate('parcelIdentifier', { silent: true })
     }
   }
 )
