@@ -149,12 +149,6 @@ const getPhoneNumber = (phone: ConnectPhone) => {
           variant="link"
           @click="expandAtIndex(index)"
         />
-        <!-- <UDropdown :items="[{ slot: 'remove' }]" :disabled="expand.openedRows.length" :ui="{ width }">
-          <UButton icon="i-mdi-chevron-down" variant="link" />
-          <template #item="{ item }">
-            <UButton :label="$t('word.remove')" icon="i-mdi-trashcan" @click="ownerStore.removeHostOwner(index)" />
-          </template>
-        </UDropdown> -->
         <UPopover :popper="{ placement: 'bottom-end' }">
           <UButton
             icon="i-mdi-menu-down"
