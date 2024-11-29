@@ -5,7 +5,7 @@ export default {
       title: 'Your property is in a location where the principal residence requirement applies.'
     },
     straaExempt: {
-      title: '{boldStart}Registration Not Required:{boldEnd} This address appears to be located on First Nations land and is therefore exempt from the Short-term Rental Accommodations Act. You do not need to register a short-term rental at this address.'
+      title: '{boldStart}Registration Not Required:{boldEnd} This address appears to be located on First Nations land and is therefore exempt from the {italicStart}Short-term Rental Accommodations Act{italicEnd}. You do not need to register a short-term rental at this address.'
     },
     strProhibited: {
       title: 'Some types of short-term rentals are not permitted by your local government.',
@@ -13,7 +13,7 @@ export default {
       note: '{boldStart}Note:{boldEnd} Currently, short-term rental application fees are {boldStart}non-refundable.{boldEnd}'
     },
     prExempt: {
-      title: "{boldStart}Exemption:{boldEnd} The provincial principal residence requirement does not apply to this address. Short-term rentals are allowed in any of the host's properties."
+      title: "Short-term rentals are allowed in any of the host's properties."
     }
   },
   feeSummary: {
@@ -167,7 +167,7 @@ export default {
     hint: {
       businessLicense: 'This is the business licence to operate a short-term rental as provided by your local government.',
       listingLink: 'e.g., http://www.airbnb.ca/your_listing123',
-      nickname: 'This is only to help you identify your rental unit, especially if you manage multiple properties. (e.g., My Guest Suite)',
+      nickname: 'e.g., My Guest Suite',
       parcelIdentifier: 'This is a nine-digit number that identifies the parcel in the land title of your property.'
     },
     review: {
@@ -206,7 +206,17 @@ export default {
         title: 'Error Uploading Document',
         description: 'Something went wrong when uploading the file, only pdfs and files less than 10mb are accepted.'
       }
-    }
+    },
+    reqFetch: {
+      unknown: {
+        title: 'An unexpected error occurred.',
+        description: 'Please refresh the page or try again later. If error persists, please contact us.'
+      },
+      addressNotFound: {
+        title: 'Address could not be found. You can continue to register, but make sure you understand all the rules and have all the required documentation.',
+        description: 'Make sure the address you have entered is correct or you can try again later. If error persists, please contact us.'
+      }
+    } // TODO: other errors???
   },
   label: {
     hotelName: 'Hotel Name',
@@ -230,11 +240,12 @@ export default {
     eligibleStrataHotel: 'Eligible strata-titled hotel or motel',
     farmLandClass9: 'Farm land (BC Assessment Farm Class 9)',
     fractOwnership: 'Fractional ownership',
-    propertyNickname: 'Property Nickname',
-    propertyNicknameOpt: 'Property Nickname (Optional)'
+    strUnitName: 'Short-Term Rental Unit Name',
+    strUnitNameOpt: 'Short-Term Rental Unit Name (Optional)'
   },
   link: {
-    strataHotelInfoPage: 'strata hotel information page'
+    strataHotelInfoPage: 'strata hotel information page',
+    proofOfPr: 'Proof of principal residence'
   },
   modal: {
     helpRegisteringStrata: {
@@ -267,7 +278,10 @@ export default {
   text: {
     thisPropIsExempt: 'This property is exempt from the principal residence requirement',
     followingDocsRequired: 'The following documentation is required for this registration:',
-    rentalUnitSetupLegend: 'Required: Select the set-up of the property, host principal residence, and rental unit.'
+    rentalUnitSetupLegend: 'Required: Select the set-up of the property, host principal residence, and rental unit.',
+    typeOfSpaceLegend: 'Required: Select the type of space of the rental unit.',
+    proofOfPr: '{link} is required as the provincial principal residence requirement applies to this address. Note: Short-term rentals are limited to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property.',
+    thisPropIsInLocWithReqs: 'This property is in a location where the following requirements apply:'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.'
@@ -307,5 +321,14 @@ export default {
     onlineListings: 'Please enter a valid URL (i.e. https://www.bcregistry.gov.bc.ca)',
     rentalUnitSetupType: 'Please select the setup type of the rental unit',
     typeOfSpace: 'Please select the type of space of the unit'
+  },
+  requirements: {
+    busLicence: {
+      label: 'Business licence',
+      content: 'Your local government requires a business licence to operate a short-term rental at this address.'
+    },
+    pr: {
+      label: 'Principal residence'
+    }
   }
 }

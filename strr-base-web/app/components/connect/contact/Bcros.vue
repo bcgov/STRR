@@ -3,21 +3,21 @@
     <ul class="space-y-1">
       <li>
         <span class="inline-flex items-center gap-1">
-          <UIcon name="i-mdi-phone" class="mr-2 size-5 text-blue-500" />
+          <UIcon name="i-mdi-phone" class="mr-2 size-4 text-blue-350" />
           {{ $t('contactInfo.bcRegGeneral.tollFree.title') }}
           <a class="text-blue-500 underline" href="tel:+1-877-526-1526">1-877-526-1526</a>
         </span>
       </li>
       <li>
         <span class="inline-flex items-center gap-1">
-          <UIcon name="i-mdi-phone" class="mr-2 size-5 text-blue-500" />
+          <UIcon name="i-mdi-phone" class="mr-2 size-4 text-blue-350" />
           {{ $t('contactInfo.bcRegGeneral.victoriaOffice.title') }}
           <a class="text-blue-500 underline" href="tel:+1-250-387-7848">250-387-7848</a>
         </span>
       </li>
       <li>
         <span class="inline-flex items-center gap-1">
-          <UIcon name="i-mdi-email" class="mr-2 size-5 text-blue-500" />
+          <UIcon name="i-mdi-email" class="mr-2 size-4 text-blue-350" />
           {{ $t('contactInfo.bcRegGeneral.email.title') }}
           <a
             class="text-blue-500 underline"

@@ -1,6 +1,4 @@
 import { z } from 'zod'
-import { RentalUnitSetupType } from '~/enums/rental-unit-setup-types'
-import type { UiBlInfo, UiHostProperty } from '~/interfaces/host-ui'
 
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()

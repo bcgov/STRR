@@ -8,6 +8,7 @@ export const useHostPmModals = () => {
   const modal = useModal()
   const { t } = useI18n()
   const reqStore = usePropertyReqStore()
+  const propStore = useHostPropertyStore()
 
   function openHelpCreateAccountModal () {
     modal.open(ModalBase, {
@@ -43,6 +44,7 @@ export const useHostPmModals = () => {
           label: 'Edit Address',
           handler: () => {
             reqStore.$reset()
+            propStore.$reset()
             close()
           } // TODO: reset other form state as well ?
         }

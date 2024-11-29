@@ -17,14 +17,14 @@ interface PropertyRequirementsError {
 interface PrRequirements {
   isPropertyPrExempt: boolean
   prExemptionReason: PrExemptionReason | undefined
-  strataRefCode: string
 }
 
 export const usePropertyReqStore = defineStore('property/requirements', () => {
   const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
 
-  const { isUnitNumberRequired } = storeToRefs(useHostPropertyStore())
+  // const { isUnitNumberRequired } = storeToRefs(useHostPropertyStore())
+  const propStore = useHostPropertyStore()
 
   const loadingReqs = ref<boolean>(false)
   const propertyReqs = ref<PropertyRequirements>({} as PropertyRequirements)
@@ -33,42 +33,18 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
   const showProhibitedAlertDetails = ref<boolean>(true)
 
   const hasReqs = computed(() => propertyReqs.value.organizationNm !== undefined) // TODO: confirm this will never be undefined in a response?
+  const hasReqError = computed(() => propertyReqError.value.type !== undefined)
 
-  const rentalAddressSchema = computed(() => z.object({
-    address: getRequiredBCAddressSplitStreet(
-      t('validation.address.city'),
-      t('validation.address.region'),
-      t('validation.address.postalCode'),
-      t('validation.address.country'),
-      t('validation.address.requiredBC.region'),
-      t('validation.address.requiredBC.country'),
-      t('validation.address.streetName'),
-      t('validation.address.streetNumber')
-    ).extend({
-      unitNumber: isUnitNumberRequired.value
-        ? getRequiredNonEmptyString(t('validation.address.unitNumber'))
-        : optionalOrEmptyString,
-      nickname: optionalOrEmptyString
-    })
-  }))
-
-  const getEmptyRentalAddress = () => ({
-    address: {
-      street: '',
-      streetNumber: '',
-      streetName: '',
-      unitNumber: '',
-      streetAdditional: '',
-      region: 'BC',
-      city: '',
-      country: 'CA',
-      postalCode: '',
-      locationDescription: '',
-      nickname: ''
+  const requirementsList = computed(() => {
+    const reqs = []
+    if (propertyReqs.value.isBusinessLicenceRequired) {
+      reqs.push({ label: t('requirements.busLicence.label'), content: t('requirements.busLicence.content') })
     }
+    if (propertyReqs.value.isPrincipalResidenceRequired) {
+      reqs.push({ label: t('requirements.pr.label'), slot: 'pr' })
+    }
+    return reqs
   })
-
-  const rentalAddress = ref(getEmptyRentalAddress())
 
   // pr requirements/exemption stuff
   const prRequirementsSchema = computed(() => z.object({
@@ -79,25 +55,15 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
         PrExemptionReason.FARM_LAND,
         PrExemptionReason.FRACTIONAL_OWNERSHIP
       ])
-      : z.any().optional(),
-    strataRefCode: prRequirements.value.prExemptionReason === PrExemptionReason.STRATA_HOTEL
-      ? z
-        .string()
-        .trim()
-        .min(1, 'Strata Registration Number is required') // check for a non empty string
-        .regex(/^ST\d{9}$/, { // 'ST + 9 digits'
-          message: 'Please enter a valid format (eg: ST123456789)'
-        })
-      : z.string().optional()
+      : z.any().optional()
   }))
 
   const getEmptyPrRequirements = (): PrRequirements => ({
     isPropertyPrExempt: false,
-    prExemptionReason: undefined,
-    strataRefCode: ''
+    prExemptionReason: undefined
   })
 
-  const prRequirements = ref(getEmptyPrRequirements())
+  const prRequirements = ref<PrRequirements>(getEmptyPrRequirements())
 
   // const documentReqs = computed(() => {
   // TODO: compute doc reqs based of address reqs response ??? move this computed to the documents stroe probably
@@ -110,15 +76,15 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
         method: 'POST',
         body: {
           address: {
-            unitNumber: rentalAddress.value.address.unitNumber,
-            streetNumber: rentalAddress.value.address.streetNumber,
-            streetName: rentalAddress.value.address.streetName,
-            addressLineTwo: rentalAddress.value.address.streetAdditional,
-            city: rentalAddress.value.address.city,
-            postalCode: rentalAddress.value.address.postalCode,
-            province: rentalAddress.value.address.region,
-            country: rentalAddress.value.address.country,
-            nickname: rentalAddress.value.address.nickname
+            unitNumber: propStore.unitAddress.address.unitNumber,
+            streetNumber: propStore.unitAddress.address.streetNumber,
+            streetName: propStore.unitAddress.address.streetName,
+            addressLineTwo: propStore.unitAddress.address.streetAdditional,
+            city: propStore.unitAddress.address.city,
+            postalCode: propStore.unitAddress.address.postalCode,
+            province: propStore.unitAddress.address.region,
+            country: propStore.unitAddress.address.country,
+            nickname: propStore.unitAddress.address.nickname
           }
         }
       })
@@ -155,7 +121,6 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
   // }
 
   const $reset = () => {
-    rentalAddress.value = getEmptyRentalAddress()
     propertyReqs.value = {} as PropertyRequirements
     propertyReqError.value = {} as PropertyRequirementsError
     prRequirements.value = getEmptyPrRequirements()
@@ -164,16 +129,16 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
   }
 
   return {
-    rentalAddress,
-    rentalAddressSchema,
     loadingReqs,
     propertyReqs,
     hasReqs,
+    hasReqError,
     propertyReqError,
     prRequirementsSchema,
     prRequirements,
     continueApplication,
     showProhibitedAlertDetails,
+    requirementsList,
     getPropertyReqs,
     // validateProperty,
     $reset
