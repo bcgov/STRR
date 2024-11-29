@@ -1,7 +1,6 @@
 // https://ui.nuxt.com/components/modal#control-programmatically
 import {
-  ModalBase,
-  ModalHelpRegisterStrataHotel
+  ModalBase
 } from '#components'
 
 export const useHostPmModals = () => {
@@ -19,31 +18,19 @@ export const useHostPmModals = () => {
     })
   }
 
-  function openhelpRegisteringStrataModal () {
-    modal.open(ModalBase, {
-      title: t('modal.helpRegisteringStrata.title'),
-      content: t('modal.helpRegisteringStrata.content'),
-      actions: [{ label: t('btn.close'), handler: () => close() }]
-    })
-  }
-
-  // might change the above modal to match this one
-  function openHelpRegisterStrataHotelModal () {
-    modal.open(ModalHelpRegisterStrataHotel, {
-      actions: [{ label: t('btn.close'), handler: () => close() }]
-    })
-  }
-
-  // TODO: update text when we get design, add different text for 'remove' option?
   // TODO reset stepper 'isComplete' when application state being reset
-  function openConfirmRestartApplicationModal () {
+  function openConfirmRestartApplicationModal (edit = true) { // maybe update edit param for different actions
     modal.open(ModalBase, {
-      title: 'Edit Rental Unit Address?',
-      content: 'Making any changes to the current rental unit address will reset the application, any progress you have will be lost. Would you like to continue?',
+      title: edit ? t('modal.editUnitAddress.title') : t('modal.removeUnitAddress.title'),
+      content: edit ? t('modal.editUnitAddress.content') : t('modal.removeUnitAddress.content'),
       actions: [
-        { label: t('btn.cancel'), handler: () => close() },
         {
-          label: 'Edit Address',
+          label: t('btn.cancel'),
+          handler: () => close(),
+          variant: 'outline'
+        },
+        {
+          label: edit ? t('modal.editUnitAddress.confirmBtn') : t('modal.removeUnitAddress.confirmBtn'),
           handler: () => {
             reqStore.$reset()
             propStore.$reset()
@@ -59,8 +46,6 @@ export const useHostPmModals = () => {
   }
 
   return {
-    openhelpRegisteringStrataModal,
-    openHelpRegisterStrataHotelModal,
     openHelpCreateAccountModal,
     openConfirmRestartApplicationModal,
     close

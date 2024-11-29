@@ -29,7 +29,7 @@ onMounted(async () => {
       <div class="rounded border border-gray-200 bg-white py-10 shadow">
         <ConnectFormSection :title="$t('label.strUnitName')">
           <div class="flex flex-col gap-4">
-            <span>Give your rental unit a name to help you identify it, especially if you manage multiple units.</span>
+            <span>{{ $t('text.giveUnitNickname') }}</span>
             <ConnectFormFieldGroup
               id="rental-unit-address-nickname"
               v-model="propStore.unitAddress.address.nickname"
@@ -46,7 +46,6 @@ onMounted(async () => {
         <ConnectFormSection
           :title="$t('strr.section.subTitle.rentalUnitResiAddress')"
           :error="isComplete && hasFormErrors(unitAddressFormRef, [
-            // 'address.nickname',
             'address.country',
             'address.city',
             'address.region',
@@ -108,11 +107,13 @@ onMounted(async () => {
                   :label="$t('btn.edit')"
                   variant="ghost"
                   icon="i-mdi-pencil"
-                  @click="hostModal.openConfirmRestartApplicationModal()"
+                  @click="hostModal.openConfirmRestartApplicationModal(true)"
                 />
                 <UDivider orientation="vertical" />
                 <UDropdown
-                  :items="[[{ label: 'Remove', click: () => hostModal.openConfirmRestartApplicationModal() }]]"
+                  :items="[
+                    [{ label: $t('label.remove'), click: () => hostModal.openConfirmRestartApplicationModal(false) }]
+                  ]"
                 >
                   <UButton
                     icon="i-mdi-caret-down"

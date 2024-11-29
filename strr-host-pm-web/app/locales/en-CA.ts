@@ -143,7 +143,8 @@ export default {
       prRequirement: 'Principal Residence Requirement',
       theRentalUnitIs: 'The rental unit is:',
       supportingInfo: 'Supporting Information',
-      other: 'Other'
+      other: 'Other',
+      remove: 'Remove'
     },
     text: {
       comingSoon: 'Short-Term Rental Registry will be available on December 15, 2024',
@@ -273,6 +274,16 @@ export default {
       triggerBtn: 'Help with setting up an account',
       title: 'Need Help?',
       content: 'If you need help with setting up your BC Registries and Online Services account, please contact us.'
+    },
+    editUnitAddress: {
+      title: 'Edit Rental Unit Address?',
+      content: 'Editing the rental unit address will reset this application. Any information you have entered will be lost. Are you sure you want to continue?',
+      confirmBtn: 'Yes, Edit Address'
+    },
+    removeUnitAddress: {
+      title: 'Remove Rental Unit Address?',
+      content: 'Removing the rental unit address will reset this application. Any information you have entered will be lost. Are you sure you want to continue?',
+      confirmBtn: 'Yes, Remove Address'
     }
   },
   table: {
@@ -287,7 +298,8 @@ export default {
     rentalUnitSetupLegend: 'Required: Select the set-up of the property, host principal residence, and rental unit.',
     typeOfSpaceLegend: 'Required: Select the type of space of the rental unit.',
     thisPropIsInLocWithReqs: 'This property is in a location where the following requirements apply:',
-    thisPropCouldBeInLocWithReqs: 'This property could be in a location where the following requirements apply:'
+    thisPropCouldBeInLocWithReqs: 'This property could be in a location where the following requirements apply:',
+    giveUnitNickname: 'Give your rental unit a name to help you identify it, especially if you manage multiple units.'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.'
