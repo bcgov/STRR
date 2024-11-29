@@ -1,29 +1,10 @@
 import { z } from 'zod'
 import { FetchError } from 'ofetch'
 
-interface PropertyRequirements {
-  isBusinessLicenceRequired: boolean
-  isPrincipalResidenceRequired: boolean
-  isStrProhibited: boolean
-  isStraaExempt: boolean | null
-  organizationNm: string
-}
-
-interface PropertyRequirementsError {
-  error?: FetchError
-  type: 'fetch' | 'unknown' // TODO: handle other error types
-}
-
-interface PrRequirements {
-  isPropertyPrExempt: boolean
-  prExemptionReason: PrExemptionReason | undefined
-}
-
 export const usePropertyReqStore = defineStore('property/requirements', () => {
   const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
 
-  // const { isUnitNumberRequired } = storeToRefs(useHostPropertyStore())
   const propStore = useHostPropertyStore()
 
   const loadingReqs = ref<boolean>(false)
@@ -116,19 +97,6 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     }
   }
 
-  // const validateProperty = (returnBool = false): MultiFormValidationResult | boolean => {
-  //   const result = validateSchemaAgainstState(
-  //     propertySchema.value,
-  //     property.value,
-  //     'property-form')
-
-  //   if (returnBool) {
-  //     return result.success === true
-  //   } else {
-  //     return [result]
-  //   }
-  // }
-
   const $reset = () => {
     propertyReqs.value = {} as PropertyRequirements
     propertyReqError.value = {} as PropertyRequirementsError
@@ -149,7 +117,6 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     requirementsList,
     overrideApplicationWarning,
     getPropertyReqs,
-    // validateProperty,
     $reset
   }
 })
