@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+// TODO: add validate functions to stepper
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()
 

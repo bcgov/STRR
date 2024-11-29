@@ -368,10 +368,20 @@ export default {
     BED_AND_BREAKFAST: 'Bed & Breakfast',
     FLOAT_HOME: 'Float Home'
   },
+  rentalUnitType: {
+    ENTIRE_HOME: 'Entire home (guests have the entire place to themselves)',
+    SHARED_ACCOMMODATION: 'Shared accommodation (guests rent a portion of the unit with access to common spaces that may be shared with the host or other guests)'
+  },
   rentalUnitSetupType: {
     WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence", // The whole Host Principal Residence
     UNIT_ON_PR_PROPERTY: 'This unit is not the host’s principal residence but it’s on the same property', // A whole unit on the same property as the Host Principal Residence (e.g., basement suite)
     UNIT_NOT_ON_PR_PROPERTY: 'This unit is not on the same property as the host’s principal residence'
+  },
+  ownershipType: {
+    RENT: 'Renter',
+    OWN: 'Owner',
+    CO_OWN: 'CO-owner',
+    OTHER: 'Other'
   },
   tooltip: {
     pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.'

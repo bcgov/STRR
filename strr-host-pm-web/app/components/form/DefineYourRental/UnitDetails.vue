@@ -10,26 +10,26 @@ const { getUnitDetailsSchema } = useHostPropertyStore()
 const unitDetailsFormRef = ref<Form<any>>()
 
 const propertyTypes = [
-  { name: t('strr.label.accessDwelling'), value: PropertyType.ACCESSORY_DWELLING },
-  { name: t('strr.label.bb'), value: PropertyType.BED_AND_BREAKFAST },
-  { name: t('strr.label.condoApt'), value: PropertyType.CONDO_OR_APT },
-  { name: t('strr.label.floatHome'), value: PropertyType.FLOAT_HOME },
-  { name: t('strr.label.multiHousing'), value: PropertyType.MULTI_UNIT_HOUSING },
-  { name: t('strr.label.recreational'), value: PropertyType.RECREATIONAL },
-  { name: t('strr.label.secondarySuite'), value: PropertyType.SECONDARY_SUITE },
-  { name: t('strr.label.singleFamily'), value: PropertyType.SINGLE_FAMILY_HOME },
-  { name: t('strr.label.strataHotel'), value: PropertyType.STRATA_HOTEL },
-  { name: t('strr.label.townHome'), value: PropertyType.TOWN_HOME }
+  { name: t(`propertyType.${PropertyType.ACCESSORY_DWELLING}`), value: PropertyType.ACCESSORY_DWELLING },
+  { name: t(`propertyType.${PropertyType.BED_AND_BREAKFAST}`), value: PropertyType.BED_AND_BREAKFAST },
+  { name: t(`propertyType.${PropertyType.CONDO_OR_APT}`), value: PropertyType.CONDO_OR_APT },
+  { name: t(`propertyType.${PropertyType.FLOAT_HOME}`), value: PropertyType.FLOAT_HOME },
+  { name: t(`propertyType.${PropertyType.MULTI_UNIT_HOUSING}`), value: PropertyType.MULTI_UNIT_HOUSING },
+  { name: t(`propertyType.${PropertyType.RECREATIONAL}`), value: PropertyType.RECREATIONAL },
+  { name: t(`propertyType.${PropertyType.SECONDARY_SUITE}`), value: PropertyType.SECONDARY_SUITE },
+  { name: t(`propertyType.${PropertyType.SINGLE_FAMILY_HOME}`), value: PropertyType.SINGLE_FAMILY_HOME },
+  { name: t(`propertyType.${PropertyType.STRATA_HOTEL}`), value: PropertyType.STRATA_HOTEL },
+  { name: t(`propertyType.${PropertyType.TOWN_HOME}`), value: PropertyType.TOWN_HOME }
 ]
 const rentalTypeOptions = [
-  { value: RentalUnitType.ENTIRE_HOME, label: t('strr.text.entireHome') },
-  { value: RentalUnitType.SHARED_ACCOMMODATION, label: t('strr.text.sharedAccomodation') }
+  { value: RentalUnitType.ENTIRE_HOME, label: t(`rentalUnitType.${RentalUnitType.ENTIRE_HOME}`) },
+  { value: RentalUnitType.SHARED_ACCOMMODATION, label: t(`rentalUnitType.${RentalUnitType.SHARED_ACCOMMODATION}`) }
 ]
 const ownershipTypes = [
-  { label: t('strr.label.own'), value: OwnershipType.OWN },
-  { label: t('strr.label.coown'), value: OwnershipType.CO_OWN },
-  { label: t('strr.label.rent'), value: OwnershipType.RENT },
-  { label: t('strr.label.other'), value: OwnershipType.OTHER }
+  { label: t(`ownershipType.${OwnershipType.OWN}`), value: OwnershipType.OWN },
+  { label: t(`ownershipType.${OwnershipType.CO_OWN}`), value: OwnershipType.CO_OWN },
+  { label: t(`ownershipType.${OwnershipType.RENT}`), value: OwnershipType.RENT },
+  { label: t(`ownershipType.${OwnershipType.OTHER}`), value: OwnershipType.OTHER }
 ]
 
 const rentalUnitSetupTypes = [
@@ -47,7 +47,7 @@ const rentalUnitSetupTypes = [
   }
 ]
 
-// revalidate parcelIdentifer whe user changes ownsership types
+// revalidate parcelIdentifer when user changes ownsership types
 watch(
   () => propStore.unitDetails.ownershipType,
   () => {
