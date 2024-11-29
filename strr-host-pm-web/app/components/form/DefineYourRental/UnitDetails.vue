@@ -45,9 +45,10 @@ const rentalUnitSetupTypes = [
   }
 ]
 
+// revalidate parcelIdentifer whe user changes ownsership types
 watch(
   () => propStore.unitDetails.ownershipType,
-  (newVal) => {
+  () => {
     if (propStore.unitDetails.parcelIdentifier !== '') {
       unitDetailsFormRef.value?.validate('parcelIdentifier')
     }
@@ -134,7 +135,7 @@ onMounted(async () => {
               id="rental-type-radio-group"
               v-model="propStore.unitDetails.typeOfSpace"
               :legend="$t('text.typeOfSpaceLegend')"
-              :class="isComplete && propStore.unitDetails.typeOfSpace === undefined
+              :class="isComplete && hasFormErrors(unitDetailsFormRef, ['typeOfSpace'])
                 ? 'border-red-600 border-2 p-2'
                 : 'p-2'"
               :options="rentalTypeOptions"
@@ -153,7 +154,7 @@ onMounted(async () => {
             <URadioGroup
               id="rental-unit-setup-radio-group"
               v-model="propStore.unitDetails.rentalUnitSetupType"
-              :class="isComplete && propStore.unitDetails.rentalUnitSetupType === undefined
+              :class="isComplete && hasFormErrors(unitDetailsFormRef, ['rentalUnitSetupType'])
                 ? 'border-red-600 border-2 p-2'
                 : 'p-2'"
               :options="rentalUnitSetupTypes"
@@ -191,7 +192,7 @@ onMounted(async () => {
             <URadioGroup
               id="ownership-type-radio-group"
               v-model="propStore.unitDetails.ownershipType"
-              :class="isComplete && propStore.unitDetails.ownershipType === undefined
+              :class="isComplete && hasFormErrors(unitDetailsFormRef, ['ownershipType'])
                 ? 'border-red-600 border-2 p-2'
                 : 'p-2'"
               :options="ownershipTypes"

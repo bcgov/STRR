@@ -34,6 +34,8 @@ export const useHostPmModals = () => {
     })
   }
 
+  // TODO: update text when we get design, add different text for 'remove' option?
+  // TODO reset stepper 'isComplete' when application state being reset
   function openConfirmRestartApplicationModal () {
     modal.open(ModalBase, {
       title: 'Edit Rental Unit Address?',
