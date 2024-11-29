@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
-import { z } from 'zod'
 const props = defineProps<{ isComplete: boolean }>()
 
 const { t } = useI18n()
 const reqStore = usePropertyReqStore()
 const propStore = useHostPropertyStore()
+const { getUnitDetailsSchema } = useHostPropertyStore()
 
-const unitDetailsFormRef = ref<Form<z.output<typeof propStore.unitDetailsSchema>>>()
+const unitDetailsFormRef = ref<Form<any>>()
 
 const propertyTypes = [
   { name: t('strr.label.accessDwelling'), value: PropertyType.ACCESSORY_DWELLING },
@@ -45,6 +45,15 @@ const rentalUnitSetupTypes = [
   }
 ]
 
+watch(
+  () => propStore.unitDetails.ownershipType,
+  (newVal) => {
+    if (propStore.unitDetails.parcelIdentifier !== '') {
+      unitDetailsFormRef.value?.validate('parcelIdentifier')
+    }
+  }
+)
+
 onMounted(async () => {
   // validate form if step marked as complete
   if (props.isComplete) {
@@ -56,7 +65,7 @@ onMounted(async () => {
   <UForm
     v-if="reqStore.showUnitDetailsForm"
     ref="unitDetailsFormRef"
-    :schema="propStore.unitDetailsSchema"
+    :schema="getUnitDetailsSchema()"
     :state="propStore.unitDetails"
     class="space-y-10"
   >
@@ -202,10 +211,14 @@ onMounted(async () => {
             id="property-parcel-id"
             v-model="propStore.unitDetails.parcelIdentifier"
             mask="###-###-###"
-            :aria-label="$t('strr.label.parcelIdentifierOpt')"
-            :help="$t('strr.hint.parcelIdentifier')"
             name="parcelIdentifier"
-            :placeholder="$t('strr.label.parcelIdentifierOpt')"
+            :help="$t('strr.hint.parcelIdentifier')"
+            :aria-label="propStore.isPIDRequired
+              ? $t('strr.label.parcelIdentifier')
+              : $t('strr.label.parcelIdentifierOpt')"
+            :placeholder="propStore.isPIDRequired
+              ? $t('strr.label.parcelIdentifier')
+              : $t('strr.label.parcelIdentifierOpt')"
           />
         </ConnectFormSection>
       </div>

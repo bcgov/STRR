@@ -82,8 +82,11 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   }
 
   // unit details stuff
-  const unitDetailsSchema = computed(() => z.object({
-    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')), // TODO: maybe move this outside of unit details???
+  const getUnitDetailsSchema = () => z.object({
+    parcelIdentifier: isPIDRequired.value
+      ? getRequiredPID(t('validation.parcelIdentifier'))
+      : getOptionalPID(t('validation.parcelIdentifier')),
+    // parcelIdentifier: getRequiredPID(t('validation.parcelIdentifier')),
     propertyType: z.enum([
       PropertyType.ACCESSORY_DWELLING,
       PropertyType.BED_AND_BREAKFAST,
@@ -98,7 +101,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     ], {
       errorMap: () => ({ message: t('validation.propertyType') })
     }),
-    ownershipType: z.enum([OwnershipType.CO_OWN, OwnershipType.OWN, OwnershipType.RENT], {
+    ownershipType: z.enum([OwnershipType.CO_OWN, OwnershipType.OWN, OwnershipType.RENT, OwnershipType.OTHER], {
       errorMap: () => ({ message: t('validation.ownershipType') })
     }),
     typeOfSpace: z.enum([RentalUnitType.ENTIRE_HOME, RentalUnitType.SHARED_ACCOMMODATION], {
@@ -114,7 +117,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     }),
     numberOfRoomsForRent: z.number({ required_error: t('validation.numberOfRooms.empty') })
       .int({ message: t('validation.numberOfRooms.invalidInput') }).min(0)
-  }))
+  })
 
   const getEmptyUnitDetails = (): UiUnitDetails => ({
     parcelIdentifier: '',
@@ -149,6 +152,11 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     PropertyType.STRATA_HOTEL].includes(unitDetails.value.propertyType)
   )
 
+  const isPIDRequired = computed(() => unitDetails.value.ownershipType && [
+    OwnershipType.OWN,
+    OwnershipType.CO_OWN
+  ].includes(unitDetails.value.ownershipType))
+
   const propertyTypeFeeTriggers = computed(() => ({
     isWholeUnit: unitDetails.value.rentalUnitSetupType !== undefined && [
       RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
@@ -182,11 +190,13 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     getEmptyBlInfo,
     blInfo,
     validateBusinessLicence,
-    unitDetailsSchema,
+    // unitDetailsSchema,
+    getUnitDetailsSchema,
     getEmptyUnitDetails,
     unitDetails,
     validateUnitDetails,
     isUnitNumberRequired,
+    isPIDRequired,
     propertyTypeFeeTriggers,
     $reset
   }
