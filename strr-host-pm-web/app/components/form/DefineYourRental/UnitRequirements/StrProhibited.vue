@@ -5,7 +5,8 @@ const localePath = useLocalePath()
 const accordianRef = ref()
 
 function handleContinueApp () {
-  reqStore.continueApplication = true
+  reqStore.showUnitDetailsForm = true
+  reqStore.overrideApplicationWarning = true
   accordianRef.value?.buttonRefs[0].close()
 }
 </script>
@@ -43,7 +44,7 @@ function handleContinueApp () {
 
           <template #trailing>
             <div
-              v-if="reqStore.continueApplication"
+              v-if="reqStore.showUnitDetailsForm"
               class="flex items-center gap-1"
             >
               <span class="text-blue-500">{{ open ? $t('btn.hideDetails') : $t('btn.showDetails') }}</span>
@@ -66,7 +67,7 @@ function handleContinueApp () {
     </UAccordion>
 
     <div
-      v-if="!reqStore.continueApplication"
+      v-if="!reqStore.showUnitDetailsForm"
       class="flex justify-end gap-4"
     >
       <UButton

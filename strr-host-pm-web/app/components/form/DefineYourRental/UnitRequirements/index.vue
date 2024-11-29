@@ -23,11 +23,11 @@ const reqStore = usePropertyReqStore()
     />
 
     <FormDefineYourRentalUnitRequirementsList
-      v-if="reqStore.requirementsList.length > 0"
+      v-if="reqStore.requirementsList.length > 0 && reqStore.showUnitDetailsForm === true"
     />
 
     <FormDefineYourRentalUnitRequirementsPrRequired
-      v-if="reqStore.propertyReqs.isPrincipalResidenceRequired === true"
+      v-if="reqStore.propertyReqs.isPrincipalResidenceRequired === true && reqStore.showUnitDetailsForm === true"
       :is-complete="isComplete"
     />
   </div>

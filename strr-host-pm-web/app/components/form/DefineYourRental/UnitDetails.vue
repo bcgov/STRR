@@ -54,7 +54,7 @@ onMounted(async () => {
 </script>
 <template>
   <UForm
-    v-if="reqStore.continueApplication"
+    v-if="reqStore.showUnitDetailsForm"
     ref="unitDetailsFormRef"
     :schema="propStore.unitDetailsSchema"
     :state="propStore.unitDetails"

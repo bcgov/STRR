@@ -4,8 +4,23 @@ const localePath = useLocalePath()
 
 const accordianRef = ref()
 
+const errorKey = computed(() => {
+  const type = reqStore.propertyReqError.type
+  const status = reqStore.propertyReqError.error?.status
+  if (type === 'fetch' && status !== undefined) {
+    if (status >= 400 && status < 500) {
+      return 'notFound'
+    } else if (status >= 500) {
+      return 500
+    }
+  }
+
+  return 'unknown'
+})
+
 function handleContinueApp () {
-  reqStore.continueApplication = true
+  reqStore.overrideApplicationWarning = true
+  reqStore.showUnitDetailsForm = true
   accordianRef.value?.buttonRefs[0].close()
 }
 </script>
@@ -40,15 +55,39 @@ function handleContinueApp () {
             <div class="flex items-center gap-2">
               <UIcon name="i-mdi-alert" class="size-5 shrink-0 self-start text-red-500" />
               <span class="text-left text-base font-semibold text-gray-700">
-                <!-- TODO: map erorrs to different text -->
-                {{ $t('error.reqFetch.unknown.title') }}
+                <i18n-t
+                  :keypath="`error.reqFetch.${errorKey}.title`"
+                  tag="p"
+                  scope="global"
+                  class="font-semibold"
+                >
+                  <template #linkAllRules>
+                    <a
+                      href=""
+                      target="_blank"
+                      class="text-bcGovColor-activeBlue underline"
+                    >
+                      {{ $t('link.allRules') }}
+                    </a>
+                  </template>
+                  <template #linkReqDocs>
+                    <a
+                      href=""
+                      target="_blank"
+                      class="text-bcGovColor-activeBlue underline"
+                    >
+                      {{ $t('link.reqDocs') }}
+                    </a>
+                  </template>
+                </i18n-t>
+                NEED LINK STILL
               </span>
             </div>
           </template>
 
           <template #trailing>
             <div
-              v-if="reqStore.continueApplication"
+              v-if="reqStore.showUnitDetailsForm"
               class="flex items-center gap-1"
             >
               <span class="text-blue-500">{{ open ? $t('btn.hideDetails') : $t('btn.showDetails') }}</span>
@@ -64,14 +103,14 @@ function handleContinueApp () {
 
       <template #item>
         <div class="flex flex-col gap-4 pt-2 text-base text-bcGovGray-700">
-          <ConnectI18nBold translation-path="error.reqFetch.unknown.description" />
+          <ConnectI18nBold :translation-path="`error.reqFetch.${errorKey}.description`" />
           <ConnectContactBcros />
         </div>
       </template>
     </UAccordion>
 
     <div
-      v-if="!reqStore.continueApplication"
+      v-if="!reqStore.showUnitDetailsForm"
       class="flex justify-end gap-4"
     >
       <UButton

@@ -29,18 +29,18 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
   const loadingReqs = ref<boolean>(false)
   const propertyReqs = ref<PropertyRequirements>({} as PropertyRequirements)
   const propertyReqError = ref<PropertyRequirementsError>({} as PropertyRequirementsError)
-  const continueApplication = ref<boolean>(false)
-  const showProhibitedAlertDetails = ref<boolean>(true)
+  const overrideApplicationWarning = ref<boolean>(false)
+  const showUnitDetailsForm = ref<boolean>(false)
 
   const hasReqs = computed(() => propertyReqs.value.organizationNm !== undefined) // TODO: confirm this will never be undefined in a response?
   const hasReqError = computed(() => propertyReqError.value.type !== undefined)
 
   const requirementsList = computed(() => {
     const reqs = []
-    if (propertyReqs.value.isBusinessLicenceRequired) {
+    if (propertyReqs.value.isBusinessLicenceRequired || overrideApplicationWarning.value === true) {
       reqs.push({ label: t('requirements.busLicence.label'), content: t('requirements.busLicence.content') })
     }
-    if (propertyReqs.value.isPrincipalResidenceRequired) {
+    if (propertyReqs.value.isPrincipalResidenceRequired || overrideApplicationWarning.value === true) {
       reqs.push({ label: t('requirements.pr.label'), slot: 'pr' })
     }
     return reqs
@@ -93,7 +93,7 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
 
       // TODO: confirm these are the only scenarios we want to open the form without further user interaction
       if (!res.isStrProhibited || !!res.isStraaExempt) {
-        continueApplication.value = true
+        showUnitDetailsForm.value = true
       }
     } catch (e) {
       logFetchError(e, 'Unable to load address requirements')
@@ -124,8 +124,8 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     propertyReqs.value = {} as PropertyRequirements
     propertyReqError.value = {} as PropertyRequirementsError
     prRequirements.value = getEmptyPrRequirements()
-    continueApplication.value = false
-    showProhibitedAlertDetails.value = true
+    showUnitDetailsForm.value = false
+    overrideApplicationWarning.value = false
   }
 
   return {
@@ -136,9 +136,9 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     propertyReqError,
     prRequirementsSchema,
     prRequirements,
-    continueApplication,
-    showProhibitedAlertDetails,
+    showUnitDetailsForm,
     requirementsList,
+    overrideApplicationWarning,
     getPropertyReqs,
     // validateProperty,
     $reset

@@ -212,9 +212,13 @@ export default {
         title: 'An unexpected error occurred.',
         description: 'Please refresh the page or try again later. If error persists, please contact us.'
       },
-      addressNotFound: {
-        title: 'Address could not be found. You can continue to register, but make sure you understand all the rules and have all the required documentation.',
+      notFound: {
+        title: 'Address could not be found. You can continue to register, but make sure you understand {linkAllRules} and have all the {linkReqDocs}.',
         description: 'Make sure the address you have entered is correct or you can try again later. If error persists, please contact us.'
+      },
+      500: {
+        title: 'Internal Server Error.',
+        description: 'Please refresh the page or try again later. If error persists, please contact us.'
       }
     } // TODO: other errors???
   },
@@ -245,7 +249,9 @@ export default {
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page',
-    proofOfPr: 'Proof of principal residence'
+    proofOfPr: 'Proof of principal residence',
+    allRules: 'all rules',
+    reqDocs: 'required documentation'
   },
   modal: {
     helpRegisteringStrata: {
