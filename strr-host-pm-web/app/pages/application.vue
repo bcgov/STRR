@@ -75,6 +75,9 @@ const setFeeBasedOnProperty = () => {
 watch(unitDetails, (newVal) => {
   if (newVal.typeOfSpace !== undefined && newVal.rentalUnitSetupType !== undefined) {
     setFeeBasedOnProperty()
+  } else {
+    removeFee(StrrFeeCode.STR_HOST_1)
+    removeFee(StrrFeeCode.STR_HOST_2)
   }
 }, { deep: true })
 

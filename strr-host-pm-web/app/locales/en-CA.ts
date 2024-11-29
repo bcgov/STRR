@@ -380,7 +380,7 @@ export default {
   ownershipType: {
     RENT: 'Renter',
     OWN: 'Owner',
-    CO_OWN: 'CO-owner',
+    CO_OWN: 'Co-owner',
     OTHER: 'Other'
   },
   tooltip: {

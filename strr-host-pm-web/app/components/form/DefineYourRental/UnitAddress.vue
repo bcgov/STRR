@@ -102,24 +102,30 @@ onMounted(async () => {
                   :use-location-desc-label="true"
                 />
               </div>
-              <div class="flex w-min">
+              <div class="flex divide-x">
                 <UButton
-                  :label="$t('btn.edit')"
-                  variant="ghost"
+                  :label="$t('word.Edit')"
+                  color="primary"
                   icon="i-mdi-pencil"
+                  variant="link"
                   @click="hostModal.openConfirmRestartApplicationModal(true)"
                 />
-                <UDivider orientation="vertical" />
-                <UDropdown
-                  :items="[
-                    [{ label: $t('label.remove'), click: () => hostModal.openConfirmRestartApplicationModal(false) }]
-                  ]"
-                >
+                <UPopover :popper="{ placement: 'bottom-end' }">
                   <UButton
-                    icon="i-mdi-caret-down"
-                    variant="ghost"
+                    icon="i-mdi-menu-down"
+                    :aria-label="$t('text.showMoreOptions')"
+                    variant="link"
                   />
-                </UDropdown>
+                  <template #panel>
+                    <UButton
+                      class="m-2"
+                      icon="i-mdi-trashcan"
+                      :label="$t('word.remove')"
+                      variant="link"
+                      @click="hostModal.openConfirmRestartApplicationModal(false)"
+                    />
+                  </template>
+                </UPopover>
               </div>
             </div>
           </TransitionFade>
