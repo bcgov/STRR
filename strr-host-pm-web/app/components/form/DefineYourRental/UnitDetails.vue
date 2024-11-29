@@ -223,6 +223,7 @@ onMounted(async () => {
               ? $t('strr.label.parcelIdentifier')
               : $t('strr.label.parcelIdentifierOpt')"
           />
+          <!-- TODO: add PID tooltip to hint, pass slots down to ConnectFormFieldGroup ?? -->
         </ConnectFormSection>
       </div>
     </ConnectPageSection>
