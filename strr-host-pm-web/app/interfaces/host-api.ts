@@ -10,7 +10,7 @@ export interface ApiHostBusinessDetails {
 }
 
 export interface ApiHostContactBusiness extends ApiHostBusinessDetails {
-  contactType: ContactType,
+  ownerType: OwnerType,
   name: {
     firstName: string
     middleName: string

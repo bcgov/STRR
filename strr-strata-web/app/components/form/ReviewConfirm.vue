@@ -198,7 +198,7 @@ onMounted(async () => {
         :error="isSectionInvalid('business-details-form')"
         :items="[
           {
-            title: $t('label.busNameLegal'),
+            title: $t('label.legalName'),
             slot: 'businessIdentifiers'
           },
           {

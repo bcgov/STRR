@@ -90,17 +90,29 @@ export default {
     },
     section: {
       title: {
-        buildings: 'Strata Hotel Buildings',
-        completingParty: 'Person Completing Strata Hotel Application',
-        property: 'Rental Unit Information',
-        primaryRep: 'Strata Hotel Representative',
-        secondaryRep: 'Secondary Strata Hotel Representative'
+        addBusiness: 'Add a Business',
+        addIndividual: 'Add an Individual',
+        contactIndividualDetails: "Contact Individual's Details",
+        property: 'Rental Unit Information'
       },
       subTitle: {
+        birthdate: 'Birthdate',
+        businessName: 'Business Legal Name',
+        completingParty: 'Completing Party',
+        craBusinessNumber: 'Canada Revenue Agency (CRA) Business Number',
+        craTaxNum: 'Canada Revenue Agency (CRA) Tax Number',
+        emailAddress: 'Email Address',
+        faxNumber: 'FaxNumber',
+        individualName: "Individual's Name",
+        individualPreferredName: "Individual's Preferred Name",
+        mailingAddress: 'Mailing Address',
+        phoneNumber: 'Phone Number',
         propertyAddress: 'Rental Unit Address',
         propertyDetails: 'Rental Unit Details',
         propertyListings: 'Online Listings',
-        rentalUnitResiAddress: 'Rental Unit Residential Address'
+        rentalUnitResiAddress: 'Rental Unit Residential Address',
+        residentialAddress: 'Residential Address',
+        role: 'Role'
       }
     },
     title: {
@@ -110,19 +122,26 @@ export default {
       default: 'TBD'
     },
     label: {
+      addBusiness: 'Add a Business',
+      addIndividual: 'Add a Individual',
       addListing: 'Add Another Listing',
       businessLicense: 'Business Licence Number',
       businessLicenseOpt: 'Local Government Business License (Optional)',
       businessLicenseDate: 'Business Licence Expiry Date',
-      host: 'Host',
+      contactIndName: "Contact Individual's Name",
       listingLinkOpt: 'Listing Link (Optional)',
       numberOfRooms: 'Number of Rooms for Rent',
       ownershipType: 'Ownership Type',
       nicknameOpt: 'Nickname (Optional)',
       parcelIdentifier: 'Parcel Identifier',
       parcelIdentifierOpt: 'Parcel Identifier (Optional)',
-      propertyManager: 'Property Manager',
       propertyType: 'Property Type',
+      role: {
+        CO_HOST: 'Co-host',
+        HOST: 'Host',
+        PROPERTY_MANAGER: 'Property Manager',
+        undefined: 'Not Selected'
+      },
       own: 'Own',
       coown: 'Co-Own',
       rent: 'Rent',
@@ -147,8 +166,15 @@ export default {
       remove: 'Remove'
     },
     text: {
+      applicationMustInclude: 'Your application must include the following:',
+      businessContactIndividual: 'Enter the information for the individual to be contacted at this business.',
       comingSoon: 'Short-Term Rental Registry will be available on December 15, 2024',
-      primaryContact: 'This is the primary contact person for the strata hotel.',
+      completingPartyInfo: 'Select this option if you are entering information for yourself.',
+      completingPartyCheckbox: 'I am adding my own information',
+      includeCompletingParty: 'The Completing Party',
+      includeHost: 'At least one Host (maximum two)',
+      includePropertyManager: 'If you have a Property Manager, you MUST also include the Property Manager (maximum one)',
+      individualBusinessInfo: 'Enter business information for this individual if lorem ipsum...',
       rentalType: 'What type of space is offered in this rental unit?',
       entireHome: 'Entire home (guests have the entire place to themselves)',
       sharedAccomodation: 'Shared accommodation (guests rent a portion of the unit with access to common spaces that may be shared with the host or other guests)',
@@ -167,6 +193,7 @@ export default {
     },
     hint: {
       businessLicense: 'This is the business licence to operate a short-term rental as provided by your local government.',
+      craTaxNumber: '9-digit Social Insurance Number (SIN), Individual Tax Number (ITN), Temporary Tax Number (TTN)',
       listingLink: 'e.g., http://www.airbnb.ca/your_listing123',
       nickname: 'e.g., My Guest Suite',
       parcelIdentifier: 'This is a nine-digit number that identifies the parcel in the land title of your property.'
@@ -329,6 +356,7 @@ export default {
     },
     businessLicense: 'Please enter a valid business license number',
     businessLicenseExpiryDate: 'Please select the expiry date for the business license',
+    dateOfBirth: 'Please enter the birthdate of this individual',
     numberOfRooms: {
       empty: 'Please specify the number of rooms available for rent',
       invalidInput: 'Please enter a valid number of rooms (e.g., 5)'
@@ -338,7 +366,8 @@ export default {
     propertyType: 'Please select the property type of this rental unit',
     onlineListings: 'Please enter a valid URL (i.e. https://www.bcregistry.gov.bc.ca)',
     rentalUnitSetupType: 'Please select the setup type of the rental unit',
-    typeOfSpace: 'Please select the type of space of the unit'
+    typeOfSpace: 'Please select the type of space of the unit',
+    ownerRole: 'Please select the role'
   },
   requirements: {
     busLicence: {

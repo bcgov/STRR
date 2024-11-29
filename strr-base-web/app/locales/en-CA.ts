@@ -8,6 +8,7 @@ export default {
     inactiveAccount: 'INACTIVE ACCOUNT'
   },
   btn: {
+    done: 'Done',
     getStarted: 'Get Started',
     goHome: 'Go Home',
     goBack: 'Go Back',
@@ -117,9 +118,13 @@ export default {
     genericLogin: 'Generic Login Image'
   },
   label: {
+    additionalInfo: 'Additional Information',
     applicationDate: 'Application Date',
+    born: 'Born',
+    details: 'Details',
     expiryDate: 'Expiry Date',
     registrationDate: 'Registration Date',
+    role: 'Role',
     note: 'Note',
     optional: 'Optional',
     characters: 'characters',
@@ -177,16 +182,20 @@ export default {
     },
     socialInsuranceNumber: 'Social Insurance Number (SIN)',
     taxNumber: 'Tax Number',
+    craBusTaxNumber: 'CRA Business Tax Number',
+    craTaxNumber: 'CRA Tax Number',
+    craTaxNumberExtra: 'CRA Tax Number (SIN, ITN, or TTN)',
     busName: 'Business Name',
-    busNameLegal: 'Legal Name',
+    busNameLegal: 'Business Legal Name',
     corpNum: 'Incorporation Number',
     busNum: 'Business Number',
-    busNumOpt: 'Business Number (Optional)',
+    busNumOpt: 'Canada Revenue Agency Business Number (Optional)',
     cpbcLicNum: 'CPBC Licence Number',
     registrationNum: 'Registration Number',
     applicationNum: 'Application Number',
     homeJurisdiction: 'Home Jurisdiction',
     homeJurisdictionOpt: 'Home Jurisdiction (Optional)',
+    legalName: 'Legal Name',
     name: 'Name',
     mailingAddress: 'Mailing Address',
     deliveryAddress: 'Delivery Address',
@@ -334,6 +343,7 @@ export default {
       hint: 'Example: William Smith may prefer to go by Bill Smith to their acquaintances'
     },
     sameAsBusMailing: 'Same as the business mailing address',
+    showMoreOptions: 'show more options',
     streetHint: 'Street address, PO box, rural route, or general delivery address',
     noAccountsFound: 'No accounts found, please click below to get started with an account.'
   },

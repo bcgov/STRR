@@ -24,11 +24,11 @@ on:
           - prod
 
 jobs:
-  strr-application-auto-approval-job-cd:
+  strr-auto-approval-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
     with:
       target: ${{ inputs.target }}
-      app_name: "strr-application-auto-approval-job"
+      app_name: "strr-auto-approval"
       working_directory: "./jobs/auto-approval"
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}

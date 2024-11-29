@@ -1,7 +1,7 @@
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
- name: strr-application-auto-approval-job-pipeline
+ name: strr-auto-approval-pipeline
 description: Deployment pipeline
 serialPipeline:
  stages:
@@ -14,7 +14,7 @@ serialPipeline:
    - values:
       deploy-env: "development"
       deploy-project-id: "bcrbk9-dev"
-      job-name: "strr-application-auto-approval-job-dev"
+      job-name: "strr-auto-approval-dev"
       cloudsql-instances: "bcrbk9-dev:northamerica-northeast1:strr-db-dev"
       run-command: "./run.sh"
       service-account: "sa-job@bcrbk9-dev.iam.gserviceaccount.com"
@@ -27,7 +27,7 @@ serialPipeline:
    - values:
       deploy-env: "test"
       deploy-project-id: "bcrbk9-test"
-      job-name: "strr-application-auto-approval-job-test"
+      job-name: "strr-auto-approval-test"
       cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
       run-command: "./run.sh"
       service-account: "sa-job@bcrbk9-test.iam.gserviceaccount.com"
@@ -40,7 +40,7 @@ serialPipeline:
    - values:
       deploy-env: "staging"
       deploy-project-id: "bcrbk9-tools"
-      job-name: "strr-application-auto-approval-job-sandbox"
+      job-name: "strr-auto-approval-sandbox"
       cloudsql-instances: "bcrbk9-tools:northamerica-northeast1:strr-db-sandbox"
       run-command: "./run.sh"
       service-account: "sa-job@bcrbk9-tools.iam.gserviceaccount.com"
@@ -53,7 +53,7 @@ serialPipeline:
    - values:
       deploy-env: "production"
       deploy-project-id: "bcrbk9-prod"
-      job-name: "strr-application-auto-approval-job-prod"
+      job-name: "strr-auto-approval-prod"
       cloudsql-instances: "bcrbk9-prod:northamerica-northeast1:strr-db-prod"
       run-command: "./run.sh"
       service-account: "sa-job@bcrbk9-prod.iam.gserviceaccount.com"

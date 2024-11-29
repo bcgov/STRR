@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.10",
+    "@nuxt/ui": "2.19.2",
     "@vuepic/vue-datepicker": "^9.0.3",
     "country-codes-list": "^1.6.11",
     "nuxt": "^3.12.3",

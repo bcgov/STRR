@@ -7,7 +7,7 @@ const strrModal = useStrrModals()
 const { handlePaymentRedirect } = useNavigate()
 
 const { validateContact } = useStrrContactStore()
-const { validateStrataBusiness } = useStrrStrataBusinessStore()
+const { validateOwner } = useHostOwnerStore()
 const { validateStrataDetails } = useStrrStrataDetailsStore()
 const {
   submitStrataApplication,
@@ -96,7 +96,7 @@ const steps = ref<Step[]>([
     icon: 'i-mdi-account-multiple-plus',
     complete: false,
     isValid: false,
-    validationFn: () => validateStrataBusiness(true) as boolean
+    validationFn: () => validateOwner()
   },
   {
     i18nPrefix: 'strr.step',
@@ -150,7 +150,7 @@ const handleStrataSubmit = async () => {
     // all step validations
     const validations = [
       validateContact(),
-      validateStrataBusiness(),
+      validateOwner(),
       validateStrataDetails(),
       validateStrataConfirmation()
     ]
@@ -256,8 +256,8 @@ setBreadcrumbs([
     <div v-if="activeStepIndex === 0" key="define-your-rental">
       <FormDefineYourRental :is-complete="activeStep.complete" />
     </div>
-    <div v-if="activeStepIndex === 1" key="business-details">
-      <!-- <FormBusinessDetails :is-complete="activeStep.complete" /> -->
+    <div v-if="activeStepIndex === 1" key="add-entities">
+      <FormAddOwners :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 2" key="principal-residence">
       <FormPrincipalResidence :is-complete="activeStep.complete" />

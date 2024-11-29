@@ -17,9 +17,9 @@ defaults:
     working-directory: ./jobs/auto-approval
 
 jobs:
-  strr-application-auto-approval-job-ci:
+  strr-auto-approval-ci:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
-      app_name: "strr-application-auto-approval-job"
+      app_name: "strr-auto-approval"
       working_directory: "./jobs/auto-approval"
       codecov_flag: "approvaljob"
