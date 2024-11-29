@@ -33,15 +33,17 @@ const ownershipTypes = [
 ]
 
 const rentalUnitSetupTypes = [
-  { label: t('strr.text.wholePr'), value: RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE },
-  { label: t('strr.text.roomInPr'), value: RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE },
   {
-    label: t('strr.text.wholeUnitSameProperty'),
-    value: RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY
+    label: t(`rentalUnitSetupType.${RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE}`),
+    value: RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE
   },
   {
-    label: t('strr.text.wholeUnitDiffProperty'),
-    value: RentalUnitSetupType.WHOLE_UNIT_DIFFERENT_PROPERTY
+    label: t(`rentalUnitSetupType.${RentalUnitSetupType.UNIT_ON_PR_PROPERTY}`),
+    value: RentalUnitSetupType.UNIT_ON_PR_PROPERTY
+  },
+  {
+    label: t(`rentalUnitSetupType.${RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY}`),
+    value: RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY
   }
 ]
 

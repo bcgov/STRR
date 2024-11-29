@@ -157,10 +157,6 @@ export default {
       hostUnit: 'Where does the property host live on the property?',
       listEachWebLink: 'Add the web link for the rental unit’s listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).',
       ownershipTypeLegend: 'Required, What is the ownership type of the property?',
-      wholePr: 'The whole Host Principal Residence',
-      roomInPr: 'A room or rooms in the Host Principal Residence',
-      wholeUnitSameProperty: 'A whole unit on the same property as the Host Principal Residence (basement suite, secondary suite)',
-      wholeUnitDiffProperty: 'Not on the same property as the Host Principal Residence',
       enterResiAddressToDetermineRequirement: 'Start by entering the residential address of rental unit to help determine if you need to register your short-term rental and if it is in an area subject to the {link}.',
       requireBusLicense: 'Your local government requires a valid business licence to operate a short-term rental.'
     },
@@ -359,5 +355,10 @@ export default {
     RECREATIONAL: 'Recreational',
     BED_AND_BREAKFAST: 'Bed & Breakfast',
     FLOAT_HOME: 'Float Home'
+  },
+  rentalUnitSetupType: {
+    WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence", // The whole Host Principal Residence
+    UNIT_ON_PR_PROPERTY: 'This unit is not the host’s principal residence but it’s on the same property', // A whole unit on the same property as the Host Principal Residence (e.g., basement suite)
+    UNIT_NOT_ON_PR_PROPERTY: 'This unit is not on the same property as the host’s principal residence'
   }
 }

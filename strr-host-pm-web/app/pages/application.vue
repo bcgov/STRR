@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ConnectStepper, FormReviewConfirm } from '#components'
-import { RentalUnitSetupType } from '~/enums/rental-unit-setup-types'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -51,40 +50,19 @@ const setFeeBasedOnProperty = () => {
   if (!hostFee1.value || !hostFee2.value || !hostFee3.value) {
     return
   }
-  if (propertyTypeFeeTriggers.value.isWholeUnit) {
-    if (propertyTypeFeeTriggers.value.isUnitOnPrincipalResidenceProperty) {
-      if (propertyTypeFeeTriggers.value.isHostResidence === true) {
-        removeFee(StrrFeeCode.STR_HOST_2)
-        addReplaceFee(hostFee1.value)
-      } else if (propertyTypeFeeTriggers.value.isHostResidence === false) { // explicit check so 'else' will run
-        removeFee(StrrFeeCode.STR_HOST_1)
-        addReplaceFee(hostFee2.value)
-      } else {
-        // property.value.hostResidence === undefined
-        // set placeholder
-        removeFee(StrrFeeCode.STR_HOST_1)
-        removeFee(StrrFeeCode.STR_HOST_2)
-      }
-    } else if (!propertyTypeFeeTriggers.value.isWholeUnit) {
-      removeFee(StrrFeeCode.STR_HOST_1)
-      addReplaceFee(hostFee2.value)
-    } else {
-      // set placeholder
-      removeFee(StrrFeeCode.STR_HOST_1)
-      removeFee(StrrFeeCode.STR_HOST_2)
-    }
-  } else if (
-    unitDetails.value.rentalUnitSetupType !== undefined &&
-    unitDetails.value.numberOfRoomsForRent !== undefined &&
-    unitDetails.value.numberOfRoomsForRent >= 0
-  ) {
-    // set fee quantity (0 is treated the same as 1)
+  if (propertyTypeFeeTriggers.value.isEntireHomeAndPrincipalResidence) {
+    removeFee(StrrFeeCode.STR_HOST_2)
+    addReplaceFee(hostFee1.value)
+  } else if (propertyTypeFeeTriggers.value.isEntireHomeAndNotPrincipalResidence) {
+    removeFee(StrrFeeCode.STR_HOST_1)
+    addReplaceFee(hostFee2.value)
+  } else if (propertyTypeFeeTriggers.value.isSharedAccommodation) {
+    removeFee(StrrFeeCode.STR_HOST_1)
+    removeFee(StrrFeeCode.STR_HOST_2)
     hostFee3.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
     hostFee3.value.quantityDesc = hostFee3.value.quantity > 1
       ? t('strr.word.room', hostFee3.value.quantity)
       : undefined
-    removeFee(StrrFeeCode.STR_HOST_1)
-    removeFee(StrrFeeCode.STR_HOST_2)
     addReplaceFee(hostFee3.value)
   } else {
     // set placeholder
@@ -92,23 +70,13 @@ const setFeeBasedOnProperty = () => {
     removeFee(StrrFeeCode.STR_HOST_2)
   }
 }
-// update fee stuff
-watch(() => unitDetails.value.rentalUnitSetupType, (val) => {
-  if (val === RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE && !unitDetails.value.numberOfRoomsForRent) {
-    // this will trigger the watcher on numberOfRoomsForRent, which will call setFeeBasedOnProperty
-    unitDetails.value.numberOfRoomsForRent = 0
-  } else {
+
+// manage fees only when typeofspace and rentalUnitSetupType change
+watch(unitDetails, (newVal) => {
+  if (newVal.typeOfSpace !== undefined && newVal.rentalUnitSetupType !== undefined) {
     setFeeBasedOnProperty()
   }
-})
-
-watch(
-  [
-    propertyTypeFeeTriggers,
-    () => unitDetails.value.numberOfRoomsForRent
-  ],
-  setFeeBasedOnProperty
-)
+}, { deep: true })
 
 // stepper stuff
 // TODO: replace validation functions

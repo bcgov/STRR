@@ -108,10 +108,9 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       errorMap: () => ({ message: t('validation.typeOfSpace') })
     }),
     rentalUnitSetupType: z.enum([
-      RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
       RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
-      RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY,
-      RentalUnitSetupType.WHOLE_UNIT_DIFFERENT_PROPERTY
+      RentalUnitSetupType.UNIT_ON_PR_PROPERTY,
+      RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY
     ], {
       errorMap: () => ({ message: t('validation.rentalUnitSetupType') })
     }),
@@ -158,21 +157,13 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   ].includes(unitDetails.value.ownershipType))
 
   const propertyTypeFeeTriggers = computed(() => ({
-    isWholeUnit: unitDetails.value.rentalUnitSetupType !== undefined && [
-      RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
-      RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY,
-      RentalUnitSetupType.WHOLE_UNIT_DIFFERENT_PROPERTY
-    ].includes(unitDetails.value.rentalUnitSetupType),
-    isUnitOnPrincipalResidenceProperty: unitDetails.value.rentalUnitSetupType !== undefined && [
-      RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
-      RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
-      RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY
-    ].includes(unitDetails.value.rentalUnitSetupType),
-    isHostResidence: unitDetails.value.rentalUnitSetupType !== undefined && [
-      RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
-      RentalUnitSetupType.ROOM_IN_PRINCIPAL_RESIDENCE,
-      RentalUnitSetupType.WHOLE_UNIT_SAME_PROPERTY
-    ].includes(unitDetails.value.rentalUnitSetupType)
+    isEntireHomeAndPrincipalResidence:
+      unitDetails.value.typeOfSpace === RentalUnitType.ENTIRE_HOME &&
+      unitDetails.value.rentalUnitSetupType === RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
+    isEntireHomeAndNotPrincipalResidence:
+      unitDetails.value.typeOfSpace === RentalUnitType.ENTIRE_HOME &&
+      unitDetails.value.rentalUnitSetupType !== RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
+    isSharedAccommodation: unitDetails.value.typeOfSpace === RentalUnitType.SHARED_ACCOMMODATION
   }))
 
   const $reset = () => {
