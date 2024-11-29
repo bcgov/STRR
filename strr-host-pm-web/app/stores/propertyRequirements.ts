@@ -37,10 +37,12 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
 
   const requirementsList = computed(() => {
     const reqs = []
-    if (propertyReqs.value.isBusinessLicenceRequired || overrideApplicationWarning.value === true) {
+    // TODO: need to define rules for when to display what information if user continues with application
+    // || overrideApplicationWarning.value === true
+    if (propertyReqs.value.isBusinessLicenceRequired) {
       reqs.push({ label: t('requirements.busLicence.label'), content: t('requirements.busLicence.content') })
     }
-    if (propertyReqs.value.isPrincipalResidenceRequired || overrideApplicationWarning.value === true) {
+    if (propertyReqs.value.isPrincipalResidenceRequired) {
       reqs.push({ label: t('requirements.pr.label'), slot: 'pr' })
     }
     return reqs

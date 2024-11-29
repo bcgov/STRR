@@ -86,6 +86,33 @@ onMounted(async () => {
               }"
             />
           </UFormGroup>
+
+          <UAlert
+            v-if="propStore.unitDetails.propertyType && [
+              PropertyType.SECONDARY_SUITE,
+              PropertyType.ACCESSORY_DWELLING,
+              PropertyType.TOWN_HOME,
+              PropertyType.MULTI_UNIT_HOUSING,
+              PropertyType.CONDO_OR_APT,
+              PropertyType.STRATA_HOTEL
+            ].includes(propStore.unitDetails.propertyType)"
+            class="mt-6"
+            color="yellow"
+            icon="i-mdi-alert"
+            :close-button="null"
+            variant="subtle"
+            :ui="{
+              inner: 'pt-0',
+            }"
+          >
+            <template #title>
+              <ConnectI18nBold
+                class="text-bcGovGray-700"
+                translation-path="alert.propertyTypeReqUnitNumber.title"
+                :propertytype="$t(`propertyType.${propStore.unitDetails.propertyType}`)"
+              />
+            </template>
+          </UAlert>
         </ConnectFormSection>
 
         <!-- type of space section -->

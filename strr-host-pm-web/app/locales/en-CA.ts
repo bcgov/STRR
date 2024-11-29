@@ -14,6 +14,9 @@ export default {
     },
     prExempt: {
       title: "Short-term rentals are allowed in any of the host's properties."
+    },
+    propertyTypeReqUnitNumber: { // camelcase prop not working with ConnectI18nBold component
+      title: '{boldStart}Important:{boldEnd} {propertytype} requires a unit number as part of the Rental Unit Residential Address above. If you do not include a unit number, your registration {boldStart}may be declined{boldEnd}.'
     }
   },
   feeSummary: {
@@ -336,5 +339,17 @@ export default {
     pr: {
       label: 'Principal residence'
     }
+  },
+  propertyType: {
+    SECONDARY_SUITE: 'Secondary Suite',
+    ACCESSORY_DWELLING: 'Accessory Dwelling',
+    TOWN_HOME: 'Town Home',
+    MULTI_UNIT_HOUSING: 'Multi Unit Housing',
+    CONDO_OR_APT: 'Condo or Apartment',
+    STRATA_HOTEL: 'Strata Hotel',
+    SINGLE_FAMILY_HOME: 'Single Family Home',
+    RECREATIONAL: 'Recreational',
+    BED_AND_BREAKFAST: 'Bed & Breakfast',
+    FLOAT_HOME: 'Float Home'
   }
 }
