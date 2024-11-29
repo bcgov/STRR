@@ -343,6 +343,7 @@ export default {
       hint: 'Example: William Smith may prefer to go by Bill Smith to their acquaintances'
     },
     sameAsBusMailing: 'Same as the business mailing address',
+    showMoreOptions: 'show more options',
     streetHint: 'Street address, PO box, rural route, or general delivery address',
     noAccountsFound: 'No accounts found, please click below to get started with an account.'
   },

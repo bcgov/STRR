@@ -152,7 +152,7 @@ const getPhoneNumber = (phone: ConnectPhone) => {
         <UPopover :popper="{ placement: 'bottom-end' }">
           <UButton
             icon="i-mdi-menu-down"
-            aria-label="show more options"
+            :aria-label="$t('text.showMoreOptions')"
             variant="link"
             :disabled="expand.openedRows.length || disableActions"
           />
