@@ -23,9 +23,14 @@ const props = defineProps<{
   disabledFields?: AddressField[],
   excludedFields?: AddressField[],
   // TODO: cleanup below strategies
+  hideStreetHint?: boolean,
   locationDescLabel?: boolean,
   unitNumbRequired?: boolean
 }>()
+
+const checkFieldsExcluded = (fields: AddressField[]) => {
+  return fields.every(field => props.excludedFields?.includes(field))
+}
 
 const { address: canadaPostAddress, enableAddressComplete } = useCanadaPostAddress()
 
@@ -105,7 +110,7 @@ const addId = useId()
   <div class="space-y-3">
     <!-- country menu -->
     <UFormGroup
-      v-if="!excludedFields?.includes('country')"
+      v-if="!checkFieldsExcluded(['country'])"
       :name="schemaPrefix + 'country'"
       class="grow"
     >
@@ -136,10 +141,13 @@ const addId = useId()
       </template>
     </UFormGroup>
     <!-- street number / name / unit number -->
-    <div class="flex flex-col gap-3 sm:flex-row">
+    <div
+      v-if="!checkFieldsExcluded(['streetNumber', 'streetName', 'unitNumber'])"
+      class="flex flex-col gap-3 sm:flex-row"
+    >
       <!-- street number input -->
       <ConnectFormFieldGroup
-        v-if="!excludedFields?.includes('streetNumber')"
+        v-if="!checkFieldsExcluded(['streetNumber'])"
         :id="id + '-streetNumber'"
         v-model="streetNumber"
         class="w-full grow"
@@ -154,7 +162,7 @@ const addId = useId()
       />
       <!-- street name input -->
       <ConnectFormFieldGroup
-        v-if="!excludedFields?.includes('streetName')"
+        v-if="!checkFieldsExcluded(['streetName'])"
         :id="id + '-streetName'"
         v-model="streetName"
         class="w-full grow"
@@ -169,7 +177,7 @@ const addId = useId()
       />
       <!-- unit number input -->
       <ConnectFormFieldGroup
-        v-if="!excludedFields?.includes('unitNumber')"
+        v-if="!checkFieldsExcluded(['unitNumber'])"
         :id="schemaPrefix + 'unitNumber'"
         v-model="unitNumber"
         class="w-full grow"
@@ -183,7 +191,7 @@ const addId = useId()
     </div>
     <!-- street input -->
     <UFormGroup
-      v-if="!excludedFields?.includes('street')"
+      v-if="!checkFieldsExcluded(['street'])"
       :name="schemaPrefix + 'street'"
       class="grow"
     >
@@ -204,7 +212,7 @@ const addId = useId()
         />
       </template>
       <template #help>
-        <span :id="schemaPrefix + 'street-' + addId">
+        <span v-if="!hideStreetHint" :id="schemaPrefix + 'street-' + addId">
           {{ $t('text.streetHint') }}
         </span>
       </template>
@@ -217,7 +225,7 @@ const addId = useId()
     </UFormGroup>
     <!-- street line 2 -->
     <UFormGroup
-      v-if="!excludedFields?.includes('streetAdditional')"
+      v-if="!checkFieldsExcluded(['streetAdditional'])"
       :name="schemaPrefix + 'streetAdditional'"
       class="grow"
     >
@@ -230,10 +238,10 @@ const addId = useId()
         :disabled="disabledFields?.includes('streetAdditional')"
       />
     </UFormGroup>
-    <div class="flex flex-col gap-3 sm:flex-row">
+    <div v-if="!checkFieldsExcluded(['city', 'region', 'postalCode'])" class="flex flex-col gap-3 sm:flex-row">
       <!-- city input -->
       <ConnectFormFieldGroup
-        v-if="!excludedFields?.includes('city')"
+        v-if="!checkFieldsExcluded(['city'])"
         :id="schemaPrefix + 'city'"
         v-model="city"
         class="w-full grow"
@@ -246,7 +254,7 @@ const addId = useId()
       />
       <!-- region input/menu -->
       <UFormGroup
-        v-if="!excludedFields?.includes('region')"
+        v-if="!checkFieldsExcluded(['region'])"
         :name="schemaPrefix + 'region'"
         class="w-full grow"
       >
@@ -291,7 +299,7 @@ const addId = useId()
       </UFormGroup>
       <!-- postal code input -->
       <ConnectFormFieldGroup
-        v-if="!excludedFields?.includes('postalCode')"
+        v-if="!checkFieldsExcluded(['postalCode'])"
         :id="schemaPrefix + 'postalCode'"
         v-model="postalCode"
         class="w-full grow"
@@ -306,7 +314,7 @@ const addId = useId()
     </div>
     <!-- delivery details input -->
     <UFormGroup
-      v-if="!excludedFields?.includes('locationDescription')"
+      v-if="!checkFieldsExcluded(['locationDescription'])"
       :name="schemaPrefix + 'locationDescription'"
     >
       <UTextarea

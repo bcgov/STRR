@@ -21,6 +21,10 @@ export default defineAppConfig({
       },
       gap: { sm: 'gap-x-2.5' }
     },
+    checkbox: {
+      wrapper: 'space-x-0',
+      base: 'size-5 cursor-pointer m-0'
+    },
     input: {
       file: {
         base: 'file:text-gray-700 file:pt-2'
@@ -36,6 +40,9 @@ export default defineAppConfig({
           outline: 'bg-primary-50 ring-0 border-primary-500 focus:border-b-2 focus:ring-0'
         }
       }
+    },
+    radio: {
+      base: 'size-5 cursor-pointer'
     },
     radioGroup: {
       wrapper: 'max-w-bcGovInput'

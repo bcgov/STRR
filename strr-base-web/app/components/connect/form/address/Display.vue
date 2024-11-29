@@ -7,11 +7,10 @@ const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
 const addressData = computed((): string[] => {
   return [
-    [
+    props.address.street || [
       [props.address.unitNumber, props.address.streetNumber].filter(val => !!val).join('-'),
-      props.address.street
+      props.address.streetName
     ].filter(val => !!val).join(' ') || '',
-    props.address.street || '',
     props.address.streetAdditional || '',
     [props.address.city, props.address.region, props.address.postalCode].filter(val => !!val).join(' ') || '',
     regionNamesInEnglish.of(props.address.country || '') || props.address.country || ''

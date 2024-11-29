@@ -82,10 +82,10 @@ onMounted(async () => {
             <ConnectFormFieldGroup
               id="platform-business-legal-name"
               v-model="platformBusiness.legalName"
-              :aria-label="$t('label.busNameLegal')"
+              :aria-label="$t('label.legalName')"
               :help="$t('strr.hint.businessLegalNamePlatform')"
               name="legalName"
-              :placeholder="$t('label.busNameLegal')"
+              :placeholder="$t('label.legalName')"
               :is-required="true"
             />
             <ConnectFormFieldGroup
