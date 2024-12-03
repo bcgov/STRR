@@ -17,9 +17,6 @@ dependencies:
   country-codes-list:
     specifier: ^1.6.11
     version: 1.6.11
-  lodash.isequal:
-    specifier: ^4.5.0
-    version: 4.5.0
   nuxt:
     specifier: ^3.12.3
     version: 3.12.3(@opentelemetry/api@1.9.0)(eslint@8.57.0)(rollup@4.18.0)(sass@1.77.6)(typescript@5.5.3)(vite@5.3.3)
@@ -58,9 +55,6 @@ devDependencies:
   '@testing-library/vue':
     specifier: ^8.1.0
     version: 8.1.0(vue@3.4.31)
-  '@types/lodash.isequal':
-    specifier: ^4.5.8
-    version: 4.5.8
   '@types/uuid':
     specifier: ^10.0.0
     version: 10.0.0
@@ -3578,16 +3572,6 @@ packages:
 
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
-    dev: true
-
-  /@types/lodash.isequal@4.5.8:
-    resolution: {integrity: sha512-uput6pg4E/tj2LGxCZo9+y27JNyB2OZuuI/T5F+ylVDYuqICLG2/ktjxx0v6GvVntAf8TvEzeQLcV0ffRirXuA==}
-    dependencies:
-      '@types/lodash': 4.17.13
-    dev: true
-
-  /@types/lodash@4.17.13:
-    resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==}
     dev: true
 
   /@types/mdast@4.0.4:
@@ -8483,10 +8467,6 @@ packages:
 
   /lodash.isarguments@3.1.0:
     resolution: {integrity: sha512-chi4NHZlZqZD18a0imDHnZPrDeBbTtVN7GXMwuGdRH9qotxAjYs3aVLKc7zNOG9eddR5Ksd8rvFEBc9SsggPpg==}
-
-  /lodash.isequal@4.5.0:
-    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
-    dev: false
 
   /lodash.isplainobject@4.0.6:
     resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}

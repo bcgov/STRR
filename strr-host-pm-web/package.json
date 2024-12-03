@@ -28,7 +28,6 @@
     "@pinia/testing": "^0.1.3",
     "@playwright/test": "^1.45.1",
     "@testing-library/vue": "^8.1.0",
-    "@types/lodash.isequal": "^4.5.8",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^7.15.0",
     "@vitest/coverage-v8": "1.6.0",
@@ -46,7 +45,6 @@
     "@nuxt/ui": "2.19.2",
     "@vuepic/vue-datepicker": "^9.0.3",
     "country-codes-list": "^1.6.11",
-    "lodash.isequal": "^4.5.0",
     "nuxt": "^3.12.3",
     "uuid": "^11.0.3",
     "vue-country-flag-next": "^2.3.2"
