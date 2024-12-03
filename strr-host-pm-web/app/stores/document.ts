@@ -1,16 +1,143 @@
 // import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
+// import isEqual from 'lodash.isequal'
 import type { ApiDocument } from '~/interfaces/host-api'
 import type { UiDocument } from '~/interfaces/ui-document'
 
-export const useDocumentStore = defineStore('host/application', () => {
+// const scen1 = {
+//   isBusinessLicenceRequired: false,
+//   isPrincipalResidenceRequired: true,
+//   isStrProhibited: true,
+//   isStraaExempt: null
+// }
+
+// const scen2 = {
+//   isBusinessLicenceRequired: false,
+//   isPrincipalResidenceRequired: false,
+//   isStrProhibited: false,
+//   isStraaExempt: true
+// }
+
+// const scen3 = {
+//   isBusinessLicenceRequired: true,
+//   isPrincipalResidenceRequired: true,
+//   isStrProhibited: false,
+//   isStraaExempt: null
+// }
+
+// const scen4 = {
+//   isBusinessLicenceRequired: false,
+//   isPrincipalResidenceRequired: true,
+//   isStrProhibited: false,
+//   isStraaExempt: null
+// }
+
+// const scen5 = {
+//   isBusinessLicenceRequired: true,
+//   isPrincipalResidenceRequired: false,
+//   isStrProhibited: false,
+//   isStraaExempt: null
+// }
+
+// const scen6 = {
+//   isBusinessLicenceRequired: false,
+//   isPrincipalResidenceRequired: false,
+//   isStrProhibited: false,
+//   isStraaExempt: null
+// }
+
+// const scen7 = {
+//   isBusinessLicenceRequired: true,
+//   isPrincipalResidenceRequired: true,
+//   isStrProhibited: true,
+//   isStraaExempt: null
+// }
+
+// if (isEqual(reqs, scen1)) {
+
+// }
+// if (isEqual(reqs, scen2)) {
+
+// }
+// if (isEqual(reqs, scen3)) {
+
+// }
+// if (isEqual(reqs, scen4)) {
+
+// }
+// if (isEqual(reqs, scen5)) {
+
+// }
+// if (isEqual(reqs, scen6)) {
+
+// }
+// if (isEqual(reqs, scen7)) {
+
+// }
+
+export const useDocumentStore = defineStore('host/document', () => {
   const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
   const strrModal = useStrrModals()
+  const reqStore = usePropertyReqStore()
 
   const storedDocuments = ref<UiDocument[]>([])
-  const apiDocuments = computed<ApiDocument[]>(() => storedDocuments.value.map(item => item.apiDoc))
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
+
+  const apiDocuments = computed(() => storedDocuments.value.map(item => ({ ...item.apiDoc, type: item.type }))) // ApiDocument[]
+
+  const requiredDocs = computed(() => {
+    const reqs = reqStore.propertyReqs
+
+    if (!reqStore.hasReqs) {
+      return []
+    }
+
+    if (reqs.isStraaExempt) {
+      return []
+    }
+
+    const exemptionReason = reqStore.prRequirements.prExemptionReason
+    const docs = []
+
+    if (reqs.isBusinessLicenceRequired) {
+      const isBlValid = apiDocuments.value.some(item => item.type === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)
+      docs.push({
+        isValid: isBlValid,
+        icon: isBlValid ? 'i-mdi-check' : 'i-mdi-close',
+        label: 'Local government short-term rental business licence'
+      }) // business licence
+    }
+    if (reqs.isPrincipalResidenceRequired && exemptionReason !== PrExemptionReason.FARM_LAND) {
+      const isPrValid = validatePrincipalResidenceDocuments()
+      docs.push({
+        isValid: isPrValid,
+        icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+        label: 'Proof of principal residence'
+      }) // proof of principal residence
+    }
+    if (exemptionReason === PrExemptionReason.STRATA_HOTEL) {
+      const isStrataValid = apiDocuments.value.some(item => item.type === DocumentUploadType.STRATA_HOTEL_DOCUMENTATION)
+      docs.push({
+        isValid: isStrataValid,
+        icon: isStrataValid ? 'i-mdi-check' : 'i-mdi-close',
+        label: 'Supporting strata-titled hotel or motel documentation'
+      }) // strata hotel proof
+    }
+    if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
+      const isFractValid = apiDocuments.value.some(
+        item => item.type === DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+      )
+      docs.push({
+        isValid: isFractValid,
+        icon: isFractValid ? 'i-mdi-check' : 'i-mdi-close',
+        label: 'Fractional ownership agreement'
+      }) // fractional ownership agreement
+    }
+
+    return docs
+    // }
+  })
 
   const docTypeOptions = [
     {
@@ -62,6 +189,14 @@ export const useDocumentStore = defineStore('host/application', () => {
       value: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
     },
     {
+      label: t(`form.pr.docType.${DocumentUploadType.STRATA_HOTEL_DOCUMENTATION}`),
+      value: DocumentUploadType.STRATA_HOTEL_DOCUMENTATION
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
+      value: DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+    },
+    {
       label: t(`form.pr.docType.${DocumentUploadType.OTHERS}`),
       value: DocumentUploadType.OTHERS
     }
@@ -87,7 +222,7 @@ export const useDocumentStore = defineStore('host/application', () => {
 
     selectedDocType.value = undefined
 
-    await sleep(3000) // dev only
+    await sleep(3000) // TODO: remove
     await postDocument(uiDoc)
   }
 
@@ -115,7 +250,6 @@ export const useDocumentStore = defineStore('host/application', () => {
       // create payload
       const formData = new FormData()
       formData.append('file', uiDoc.file)
-      formData.append('documentType', uiDoc.type)
 
       // submit file
       const res = await $strrApi<ApiDocument>('/documents', {
@@ -145,8 +279,37 @@ export const useDocumentStore = defineStore('host/application', () => {
     }
   }
 
+  function validatePrincipalResidenceDocuments (): boolean {
+    // either 2 docs from this list are required
+    const columnADocs = [
+      DocumentUploadType.BC_DRIVERS_LICENSE,
+      DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE,
+      DocumentUploadType.SPEC_TAX_CONFIRMATION,
+      DocumentUploadType.HOG_DECLARATION
+    ]
+
+    // or 1 doc from column A and 2 from this list are required
+    const columnBDocs = [
+      DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE,
+      DocumentUploadType.HOME_INSURANCE_SUMMARY,
+      DocumentUploadType.PROPERTY_TAX_NOTICE,
+      DocumentUploadType.UTILITY_BILL,
+      DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE,
+      DocumentUploadType.TENANCY_AGREEMENT,
+      DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT,
+      DocumentUploadType.OTHERS
+    ]
+
+    const columnACount = apiDocuments.value.filter(item => columnADocs.includes(item.type)).length
+    const columnBCount = apiDocuments.value.filter(item => columnBDocs.includes(item.type)).length
+
+    // validate at least 2 of column a docs OR validate at least 1 of column a and 2 of column b
+    return columnACount >= 2 || (columnACount >= 1 && columnBCount >= 2)
+  }
+
   const $reset = () => {
     storedDocuments.value = []
+    selectedDocType.value = undefined
   }
 
   return {
@@ -154,6 +317,7 @@ export const useDocumentStore = defineStore('host/application', () => {
     storedDocuments,
     selectedDocType,
     docTypeOptions,
+    requiredDocs,
     postDocument,
     deleteDocument,
     addStoredDocument,

@@ -56,9 +56,19 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   }
 
   // business licence stuff
+  const today = new Date()
+  const minBlDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1) // tomorrow
+  const maxBlDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()) // today + 1 year
+
   const blInfoSchema = z.object({
-    businessLicense: getRequiredNonEmptyString('business licence required'), // TODO: i18n
-    businessLicenseExpiryDate: getRequiredNonEmptyString(t('validation.businessLicenseExpiryDate'))
+    businessLicense: z.string().optional(),
+    businessLicenseExpiryDate: z
+      .string()
+      .refine((val) => {
+        if (!val) { return true } // optional
+        const date = new Date(val)
+        return date > today && date <= maxBlDate
+      }, { message: 'The expiry date must be greater than today and in less than 1 year.' })
   })
 
   const getEmptyBlInfo = (): UiBlInfo => ({
@@ -178,6 +188,8 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     getEmptyUnitAddress,
     unitAddress,
     validateUnitAddress,
+    minBlDate,
+    maxBlDate,
     blInfoSchema,
     getEmptyBlInfo,
     blInfo,

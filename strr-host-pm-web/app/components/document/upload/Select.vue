@@ -18,7 +18,7 @@ const emit = defineEmits<{
   change: [any]
 }>()
 
-const { open, onChange } = useFileDialog({
+const { open, onChange, reset } = useFileDialog({
   accept: props.accept,
   multiple: false,
   directory: false
@@ -29,6 +29,7 @@ onChange((files) => {
   if (file) {
     emit('change', file)
   }
+  reset()
 })
 </script>
 <template>

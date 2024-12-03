@@ -62,7 +62,9 @@ export default {
         TENANCY_AGREEMENT: 'Tenancy Agreement',
         RENT_RECEIPT_OR_BANK_STATEMENT: 'Rent Receipt or Bank Statement',
         LOCAL_GOVT_BUSINESS_LICENSE: 'Local Government Business License',
-        OTHERS: 'Other Proof Document (subject to review by registry staff)'
+        OTHERS: 'Other Proof Document (subject to review by registry staff)',
+        STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
+        FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement'
       }
     }
   },
@@ -72,19 +74,19 @@ export default {
       description: {
         0: 'Define Your Rental',
         1: 'Add Individuals and Businesses',
-        2: 'Principal Residence',
+        2: 'Add Supporting Documentation',
         3: 'Review and Confirm'
       },
       title: {
         0: 'Define Your Rental',
         1: 'Individuals and Businesses',
-        2: 'Principal Residence',
+        2: 'Add Supporting Documentation',
         3: 'Review and Confirm'
       },
       info: {
         0: 'Tell us about the short-term rental property. Note: If you have multiple short-term rental properties, you must submit a separate Short-Term Rental Registration for each rental property.',
         1: 'Add the individuals and businesses who will have a role in your short-term rental registration. The completing party must be a individual.',
-        2: 'TBD.',
+        2: 'Add all required documentation that supports your short-term rental registration.',
         3: 'Review and confirm all of the information you provided as shown below.'
       }
     },

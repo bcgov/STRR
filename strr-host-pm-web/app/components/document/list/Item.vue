@@ -33,7 +33,7 @@ defineEmits<{
             }"
           />
           <div class="flex flex-col">
-            <span class="text-sm">{{ $t(`form.pr.docType.${doc.type}`) }}</span>
+            <span class="text-sm font-semibold">{{ $t(`form.pr.docType.${doc.type}`) }}</span>
             <span>{{ doc.name }}</span>
           </div>
         </div>
@@ -41,7 +41,7 @@ defineEmits<{
       <UButton
         :label="'Remove'"
         variant="link"
-        trailing-icon="i-mdi-close"
+        icon="i-mdi-trashcan"
         :disabled="doc.loading"
         @click="$emit('remove', doc)"
       />
