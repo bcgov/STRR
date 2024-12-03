@@ -27,7 +27,10 @@ const reqStore = usePropertyReqStore()
     />
 
     <FormDefineYourRentalUnitRequirementsPrRequired
-      v-if="reqStore.propertyReqs.isPrincipalResidenceRequired === true && reqStore.showUnitDetailsForm === true"
+      v-if="
+        (reqStore.propertyReqs.isPrincipalResidenceRequired === true && reqStore.showUnitDetailsForm === true)
+          || reqStore.overrideApplicationWarning
+      "
       :is-complete="isComplete"
     />
   </div>

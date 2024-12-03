@@ -52,6 +52,9 @@ devDependencies:
   '@testing-library/vue':
     specifier: ^8.1.0
     version: 8.1.0(vue@3.4.31)
+  '@types/luxon':
+    specifier: ^3.4.2
+    version: 3.4.2
   '@types/uuid':
     specifier: ^10.0.0
     version: 10.0.0
@@ -3328,6 +3331,10 @@ packages:
 
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+    dev: true
+
+  /@types/luxon@3.4.2:
+    resolution: {integrity: sha512-TifLZlFudklWlMBfhubvgqTXRzLDI5pCbGa4P8a3wPyUQSW+1xQ5eDsreP9DWHX3tjq1ke96uYG/nwundroWcA==}
     dev: true
 
   /@types/mdast@4.0.4:

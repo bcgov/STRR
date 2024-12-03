@@ -260,7 +260,10 @@ setBreadcrumbs([
       <FormAddOwners :is-complete="activeStep.complete" />
     </div>
     <div v-if="activeStepIndex === 2" key="add-documents">
-      <FormAddDocuments :is-complete="activeStep.complete" />
+      <FormAddDocuments
+        :is-complete="activeStep.complete"
+        @return-to-start="stepperRef?.setActiveStep(0)"
+      />
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
       <FormReviewConfirm

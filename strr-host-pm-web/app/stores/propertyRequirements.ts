@@ -55,10 +55,6 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
 
   const prRequirements = ref<PrRequirements>(getEmptyPrRequirements())
 
-  // const documentReqs = computed(() => {
-  // TODO: compute doc reqs based of address reqs response ??? move this computed to the documents stroe probably
-  // })
-
   async function getPropertyReqs () {
     try {
       loadingReqs.value = true

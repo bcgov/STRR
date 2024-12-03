@@ -68,7 +68,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
         if (!val) { return true } // optional
         const date = new Date(val)
         return date > today && date <= maxBlDate
-      }, { message: 'The expiry date must be greater than today and in less than 1 year.' })
+      }, { message: t('validation.blExpiryDate') })
   })
 
   const getEmptyBlInfo = (): UiBlInfo => ({

@@ -1,79 +1,7 @@
 // import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
-// import isEqual from 'lodash.isequal'
 import type { ApiDocument } from '~/interfaces/host-api'
 import type { UiDocument } from '~/interfaces/ui-document'
-
-// const scen1 = {
-//   isBusinessLicenceRequired: false,
-//   isPrincipalResidenceRequired: true,
-//   isStrProhibited: true,
-//   isStraaExempt: null
-// }
-
-// const scen2 = {
-//   isBusinessLicenceRequired: false,
-//   isPrincipalResidenceRequired: false,
-//   isStrProhibited: false,
-//   isStraaExempt: true
-// }
-
-// const scen3 = {
-//   isBusinessLicenceRequired: true,
-//   isPrincipalResidenceRequired: true,
-//   isStrProhibited: false,
-//   isStraaExempt: null
-// }
-
-// const scen4 = {
-//   isBusinessLicenceRequired: false,
-//   isPrincipalResidenceRequired: true,
-//   isStrProhibited: false,
-//   isStraaExempt: null
-// }
-
-// const scen5 = {
-//   isBusinessLicenceRequired: true,
-//   isPrincipalResidenceRequired: false,
-//   isStrProhibited: false,
-//   isStraaExempt: null
-// }
-
-// const scen6 = {
-//   isBusinessLicenceRequired: false,
-//   isPrincipalResidenceRequired: false,
-//   isStrProhibited: false,
-//   isStraaExempt: null
-// }
-
-// const scen7 = {
-//   isBusinessLicenceRequired: true,
-//   isPrincipalResidenceRequired: true,
-//   isStrProhibited: true,
-//   isStraaExempt: null
-// }
-
-// if (isEqual(reqs, scen1)) {
-
-// }
-// if (isEqual(reqs, scen2)) {
-
-// }
-// if (isEqual(reqs, scen3)) {
-
-// }
-// if (isEqual(reqs, scen4)) {
-
-// }
-// if (isEqual(reqs, scen5)) {
-
-// }
-// if (isEqual(reqs, scen6)) {
-
-// }
-// if (isEqual(reqs, scen7)) {
-
-// }
 
 export const useDocumentStore = defineStore('host/document', () => {
   const { t } = useI18n()
@@ -105,24 +33,24 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: isBlValid,
         icon: isBlValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: 'Local government short-term rental business licence'
-      }) // business licence
+        label: t('label.localGovShortTermRentalBL')
+      })
     }
     if (reqs.isPrincipalResidenceRequired && exemptionReason !== PrExemptionReason.FARM_LAND) {
       const isPrValid = validatePrincipalResidenceDocuments()
       docs.push({
         isValid: isPrValid,
         icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: 'Proof of principal residence'
-      }) // proof of principal residence
+        label: t('label.proofOfPr')
+      })
     }
     if (exemptionReason === PrExemptionReason.STRATA_HOTEL) {
       const isStrataValid = apiDocuments.value.some(item => item.type === DocumentUploadType.STRATA_HOTEL_DOCUMENTATION)
       docs.push({
         isValid: isStrataValid,
         icon: isStrataValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: 'Supporting strata-titled hotel or motel documentation'
-      }) // strata hotel proof
+        label: t('label.supportingStrataDocs')
+      })
     }
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
       const isFractValid = apiDocuments.value.some(
@@ -131,12 +59,32 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: isFractValid,
         icon: isFractValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: 'Fractional ownership agreement'
-      }) // fractional ownership agreement
+        label: t('label.fractOwnAgreement')
+      })
     }
 
     return docs
-    // }
+  })
+
+  const potentialRequiredDocs = computed(() => {
+    const exemptionReason = reqStore.prRequirements.prExemptionReason
+    const docs = []
+
+    docs.push({ label: t('label.localGovShortTermRentalBL') })
+
+    if (exemptionReason !== PrExemptionReason.FARM_LAND) {
+      docs.push({ label: t('label.proofOfPr') })
+    }
+
+    if (exemptionReason === PrExemptionReason.STRATA_HOTEL) {
+      docs.push({ label: t('label.supportingStrataDocs') })
+    }
+
+    if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
+      docs.push({ label: t('label.fractOwnAgreement') })
+    }
+
+    return docs
   })
 
   const docTypeOptions = [
@@ -307,6 +255,14 @@ export const useDocumentStore = defineStore('host/document', () => {
     return columnACount >= 2 || (columnACount >= 1 && columnBCount >= 2)
   }
 
+  function validateRequiredDocuments () {
+    if (!requiredDocs.value.every(doc => doc.isValid === true)) {
+      return [{ path: 'documentUpload', message: t('validation.missingReqDocs') }]
+    } else {
+      return []
+    }
+  }
+
   const $reset = () => {
     storedDocuments.value = []
     selectedDocType.value = undefined
@@ -318,10 +274,12 @@ export const useDocumentStore = defineStore('host/document', () => {
     selectedDocType,
     docTypeOptions,
     requiredDocs,
+    potentialRequiredDocs,
     postDocument,
     deleteDocument,
     addStoredDocument,
     removeStoredDocument,
+    validateRequiredDocuments,
     $reset
   }
 })

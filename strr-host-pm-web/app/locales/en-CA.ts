@@ -86,7 +86,7 @@ export default {
       info: {
         0: 'Tell us about the short-term rental property. Note: If you have multiple short-term rental properties, you must submit a separate Short-Term Rental Registration for each rental property.',
         1: 'Add the individuals and businesses who will have a role in your short-term rental registration. The completing party must be a individual.',
-        2: 'Add all required documentation that supports your short-term rental registration.',
+        2: '',
         3: 'Review and confirm all of the information you provided as shown below.'
       }
     },
@@ -220,7 +220,8 @@ export default {
     regDiffUnit: 'Register a Different Rental Unit',
     contWithReg: 'Continue with Registration',
     showDetails: 'Show Details',
-    hideDetails: 'Hide Details'
+    hideDetails: 'Hide Details',
+    returnToStep: 'Return to the step to finish it'
   },
   error: {
     createAccount: {
@@ -275,13 +276,23 @@ export default {
     farmLandClass9: 'Farm land (BC Assessment Farm Class 9)',
     fractOwnership: 'Fractional ownership',
     strUnitName: 'Short-Term Rental Unit Name',
-    strUnitNameOpt: 'Short-Term Rental Unit Name (Optional)'
+    strUnitNameOpt: 'Short-Term Rental Unit Name (Optional)',
+    chooseDocs: 'Choose Supporting Documents',
+    fileUpload: 'File Upload',
+    localGovBL: 'Local Government Business Licence',
+    localGovShortTermRentalBL: 'Local government short-term rental business licence',
+    proofOfPr: 'Proof of principal residence',
+    supportingStrataDocs: 'Supporting strata-titled hotel or motel documentation',
+    fractOwnAgreement: 'Fractional ownership agreement',
+    businessLicenceNumberOpt: 'Business Licence Number (Optional)',
+    businessLicenceExpiryDateOpt: 'Business Licence Expiry Date (Optional)'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page',
     proofOfPr: 'Proof of principal residence',
     allRules: 'all rules',
-    reqDocs: 'required documentation'
+    reqDocs: 'required documentation',
+    learnMore: 'Learn More'
   },
   modal: {
     helpRegisteringStrata: {
@@ -324,14 +335,20 @@ export default {
   text: {
     thisPropIsExempt: 'This property is exempt from the principal residence requirement',
     followingDocsRequired: 'The following documentation is required for this registration:',
+    followingDocsMayBeRequired: 'The following documentation may be required for this registration:',
     rentalUnitSetupLegend: 'Required: Select the set-up of the property, host principal residence, and rental unit.',
     typeOfSpaceLegend: 'Required: Select the type of space of the rental unit.',
     thisPropIsInLocWithReqs: 'This property is in a location where the following requirements apply:',
     thisPropCouldBeInLocWithReqs: 'This property could be in a location where the following requirements apply:',
-    giveUnitNickname: 'Give your rental unit a name to help you identify it, especially if you manage multiple units.'
+    giveUnitNickname: 'Give your rental unit a name to help you identify it, especially if you manage multiple units.',
+    addAllReqDocs: 'Add all required documentation that supports your short-term rental registration. {link}',
+    toDetermineDocsReturnToStart: 'To determine the types of documentation you’ll need, please complete Step 1 of the application first.',
+    uploadReqDocs: 'Upload all required documentation to support your application.',
+    noDocsReq: 'No supporting documentation is required.'
   },
   hint: {
-    strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.'
+    strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
+    docUpload: 'File must be a PDF. Maximum 10 MB.'
   },
   page: {
     dashboardList: {
@@ -369,7 +386,9 @@ export default {
     onlineListings: 'Please enter a valid URL (i.e. https://www.bcregistry.gov.bc.ca)',
     rentalUnitSetupType: 'Please select the setup type of the rental unit',
     typeOfSpace: 'Please select the type of space of the unit',
-    ownerRole: 'Please select the role'
+    ownerRole: 'Please select the role',
+    missingReqDocs: 'Missing required documents. Please see above for details.',
+    blExpiryDate: 'The expiry date must be greater than today and in less than 1 year.'
   },
   requirements: {
     busLicence: {
