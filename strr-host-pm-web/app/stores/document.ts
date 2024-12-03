@@ -89,8 +89,16 @@ export const useDocumentStore = defineStore('host/document', () => {
 
   const docTypeOptions = [
     {
-      label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENSE}`),
-      value: DocumentUploadType.BC_DRIVERS_LICENSE
+      label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENCE}`),
+      value: DocumentUploadType.BC_DRIVERS_LICENCE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.BCSC}`),
+      value: DocumentUploadType.BCSC
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.COMBINED_BCSC_LICENCE}`),
+      value: DocumentUploadType.COMBINED_BCSC_LICENCE
     },
     {
       label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE}`),
@@ -125,6 +133,14 @@ export const useDocumentStore = defineStore('host/document', () => {
       value: DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
     },
     {
+      label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
+      value: DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.STRATA_HOTEL_DOCUMENTATION}`),
+      value: DocumentUploadType.STRATA_HOTEL_DOCUMENTATION
+    },
+    {
       label: t(`form.pr.docType.${DocumentUploadType.TENANCY_AGREEMENT}`),
       value: DocumentUploadType.TENANCY_AGREEMENT
     },
@@ -135,14 +151,6 @@ export const useDocumentStore = defineStore('host/document', () => {
     {
       label: t(`form.pr.docType.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`),
       value: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
-    },
-    {
-      label: t(`form.pr.docType.${DocumentUploadType.STRATA_HOTEL_DOCUMENTATION}`),
-      value: DocumentUploadType.STRATA_HOTEL_DOCUMENTATION
-    },
-    {
-      label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
-      value: DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
     },
     {
       label: t(`form.pr.docType.${DocumentUploadType.OTHERS}`),
@@ -230,7 +238,9 @@ export const useDocumentStore = defineStore('host/document', () => {
   function validatePrincipalResidenceDocuments (): boolean {
     // either 2 docs from this list are required
     const columnADocs = [
-      DocumentUploadType.BC_DRIVERS_LICENSE,
+      DocumentUploadType.BC_DRIVERS_LICENCE,
+      DocumentUploadType.BCSC,
+      DocumentUploadType.COMBINED_BCSC_LICENCE,
       DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE,
       DocumentUploadType.SPEC_TAX_CONFIRMATION,
       DocumentUploadType.HOG_DECLARATION
@@ -262,6 +272,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       return []
     }
   }
+
+  // TODO: stepper validation function
 
   const $reset = () => {
     storedDocuments.value = []

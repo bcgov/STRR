@@ -176,6 +176,7 @@ onMounted(async () => {
               v-if="docStore.requiredDocs.length === 0"
               class="px-4 md:px-10"
             >
+              <!-- TODO: get text or remove -->
               Lorem ipsum why would I want this provide this?
               <!-- {{ $t('strr.text.requireBusLicense') }} -->
             </p>

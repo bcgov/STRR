@@ -64,7 +64,9 @@ export default {
         LOCAL_GOVT_BUSINESS_LICENSE: 'Local Government Business License',
         OTHERS: 'Other Proof Document (subject to review by registry staff)',
         STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
-        FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement'
+        FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
+        BCSC: 'British Columbia Services Card',
+        COMBINED_BCSC_LICENCE: 'Combined BC Driver’s Licence and Services Card'
       }
     }
   },
