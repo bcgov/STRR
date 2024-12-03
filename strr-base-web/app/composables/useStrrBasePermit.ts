@@ -1,7 +1,7 @@
-import type { ApiApplicationResp, ApiRegistrationResp } from '~/interfaces/strr-api'
+import type { ApiApplicationBaseResp, ApiRegistrationResp } from '~/interfaces/strr-api'
 import { downloadFile } from '~/utils/download-file'
 
-export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationResp>() => {
+export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationBaseResp, B>() => {
   const {
     getAccountApplications,
     getAccountRegistrations,
@@ -11,7 +11,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
   // Typescript not unwrapping the generic ref properly without the 'as ...'
   const application = ref<A | undefined>(undefined) as Ref<A | undefined>
   const registration = ref<R | undefined>(undefined) as Ref<R | undefined>
-  const permitDetails = computed(() => registration.value || application.value?.registration)
+  const permitDetails = computed(() => registration.value || application.value?.registration as B)
 
   const isApplicationStatus = (statuses: ApplicationStatus[]) =>
     statuses.includes(application.value?.header.status as ApplicationStatus)
@@ -26,7 +26,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     !isApplicationStatus([ApplicationStatus.DRAFT, ApplicationStatus.PAYMENT_DUE]))
 
   const showPermitDetails = computed(() => !!registration.value ||
-    (!!application.value && !isApplicationStatus([ApplicationStatus.DECLINED, ApplicationStatus.DRAFT])))
+    (!!application.value && !isApplicationStatus([ApplicationStatus.DRAFT])))
 
   const loadPermitData = async (applicationId?: string, applicationType?: ApplicationType) => {
     if (applicationId) {

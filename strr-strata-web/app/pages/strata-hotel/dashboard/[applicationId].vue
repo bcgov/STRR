@@ -55,14 +55,13 @@ onMounted(async () => {
         isPaidApplication.value ? downloadApplicationReceipt : undefined)
     } else {
       setHeaderDetails(
-        permitDetails.value.status,
-        dateToStringPacific(permitDetails.value.expiryDate, 'DDD'),
+        registration.value.status,
+        dateToStringPacific(registration.value.expiryDate, 'DDD'),
         downloadApplicationReceipt)
     }
     // strata side details
     setSideHeaderDetails(
-      strataBusiness.value,
-      registration.value ? permitDetails.value : undefined,
+      registration.value,
       application.value?.header)
     // set sidebar accordian buildings
     buildings.value = getDashboardBuildings()

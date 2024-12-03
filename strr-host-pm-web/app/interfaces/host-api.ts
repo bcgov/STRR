@@ -10,7 +10,7 @@ export interface ApiHostBusinessDetails {
 }
 
 export interface ApiHostContactBusiness extends ApiHostBusinessDetails {
-  ownerType: OwnerType,
+  contactType: OwnerType,
   name: {
     firstName: string
     middleName: string
@@ -21,7 +21,8 @@ export interface ApiHostContactBusiness extends ApiHostBusinessDetails {
 }
 
 export interface ApiHostContactPerson extends ApiHostContactBusiness {
-  dateOfBirth: string
+  dateOfBirth?: string
+  socialInsuranceNumber?: string
 }
 
 export interface ApiPropertyManagerContact extends ApiParty, ApiHostContactDetails {}
@@ -46,6 +47,8 @@ export interface ApiUnitDetails {
 
 export interface ApiUnitAddress extends ApiAddress {
   nickname: string
+  streetName: string,
+  streetNumber: string,
   unitNumber: string
 }
 
@@ -72,4 +75,16 @@ export interface ApiHostApplication {
   unitAddress: ApiUnitAddress
   principalResidence: ApiResidence
   documents?: ApiDocument[]
+  propertyManager?: ApiPropertyManager
+}
+
+export interface HostApplicationPayload {
+  registration: ApiHostApplication
+}
+
+export interface HostApplicationResp extends HostApplicationPayload {
+  header: ApplicationHeader
+}
+
+export interface HostRegistrationResp extends ApiHostApplication, ApiExtraRegistrationDetails {
 }

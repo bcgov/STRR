@@ -1,4 +1,3 @@
-// TODO: move to strr-base-web layer
 export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
 
@@ -19,7 +18,7 @@ export const useStrrApi = () => {
       : resp.registrations
   }
 
-  const getAccountApplications = async <T extends { registration: ApiBaseRegistration }>(
+  const getAccountApplications = async <T extends ApiApplicationBaseResp>(
     id?: string,
     type?: ApplicationType
   ) => {

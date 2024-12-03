@@ -33,7 +33,6 @@ export function dateToString (date: Date | string, format = 'y-MM-dd') {
 export function dateToStringPacific (date: Date | string, format = 'y-MM-dd') {
   const locale = useNuxtApp().$i18n.locale.value
   const jsDate = DateTime.fromJSDate(new Date(date), { zone: 'UTC' }) // convert to jsdate, assume UTC timezone
-
   return jsDate
     .setZone('America/Vancouver') // convert to pacific
     .setLocale(locale)

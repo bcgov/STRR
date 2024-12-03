@@ -5,7 +5,7 @@ defineProps<{ item: ConnectAccordionItem, padLeft?: boolean }>()
   <div class="space-y-3">
     <div v-for="info, i in item.values" :key="`connect-accordian-info-${i}`">
       <div class="flex gap-2" :class="[padLeft && 'pl-10', info.class || '']">
-        <UIcon v-if="info.icon" :name="info.icon" class="text-2xl" :class="info.iconClass ?? ''" />
+        <UIcon v-if="info.icon" :name="info.icon" :class="info.iconClass ?? 'size-8'" />
         <div class="space-y-1">
           <!-- TODO: bcreg font doesn't have a semi-bold so this is either fully bold or not at all -->
           <p v-if="info.label" class="text-gray-900">

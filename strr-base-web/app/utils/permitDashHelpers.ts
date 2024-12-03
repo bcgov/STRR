@@ -49,7 +49,6 @@ export const setHeaderDetails = (
 }
 
 export const setSideHeaderDetails = (
-  business: StrrBusiness,
   registration?: ApiExtraRegistrationDetails,
   application?: ApplicationHeader
 ) => {
@@ -70,9 +69,6 @@ export const setSideHeaderDetails = (
       label: t('label.applicationDate'),
       value: dateToStringPacific(application.applicationDateTime, 'DDD')
     })
-  }
-  if (business.businessNumber) {
-    sideDetailsList.push({ label: t('label.busNum'), value: business.businessNumber })
   }
 
   sideDetails.value = sideDetailsList
@@ -129,19 +125,19 @@ export const getPartyItem = (party: Contact): ConnectAccordionItem => {
     values: [
       {
         icon: 'i-mdi-at',
-        iconClass: 'text-base mt-[2px]',
+        iconClass: 'size-5 mt-[2px]',
         text: party.emailAddress
       },
       {
         icon: 'i-mdi-phone',
-        iconClass: 'text-base mt-[2px]',
+        iconClass: 'size-5 mt-[2px]',
         text: `+${party.phone.countryCode} ${number}` +
           (party.phone.extension ? ` Ext. ${party.phone.extension}` : '')
       },
       ...(party.faxNumber
         ? [{
             icon: 'i-mdi-fax',
-            iconClass: 'text-base mt-[2px]',
+            iconClass: 'size-5 mt-[2px]',
             text: party.faxNumber
           }]
         : [])

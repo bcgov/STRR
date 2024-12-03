@@ -129,6 +129,7 @@ export default {
       businessLicenseOpt: 'Local Government Business License (Optional)',
       businessLicenseDate: 'Business Licence Expiry Date',
       contactIndName: "Contact Individual's Name",
+      individualsBusinesses: 'Individuals and Businesses',
       listingLinkOpt: 'Listing Link (Optional)',
       numberOfRooms: 'Number of Rooms for Rent',
       ownershipType: 'Ownership Type',
@@ -138,10 +139,11 @@ export default {
       propertyType: 'Property Type',
       role: {
         CO_HOST: 'Co-host',
-        HOST: 'Host',
+        HOST: 'Property Host',
         PROPERTY_MANAGER: 'Property Manager',
         undefined: 'Not Selected'
       },
+      room: 'Room | Rooms',
       own: 'Own',
       coown: 'Co-Own',
       rent: 'Rent',
@@ -155,6 +157,7 @@ export default {
       singleFamily: 'Single Family Home',
       strataHotel: 'Strata Hotel',
       townHome: 'Town Home',
+      rentalUnit: 'Rental Unit',
       rentalUnitSetup: 'Rental Unit Set-up',
       rentalUnitName: 'Rental Unit Name',
       rentalUnitNameOpt: 'Rental Unit Name (Optional)',

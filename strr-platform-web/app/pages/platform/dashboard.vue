@@ -56,14 +56,13 @@ onMounted(async () => {
         isPaidApplication.value ? downloadApplicationReceipt : undefined)
     } else {
       setHeaderDetails(
-        permitDetails.value.status,
-        dateToStringPacific(permitDetails.value.expiryDate, 'DDD'),
+        registration.value.status,
+        dateToStringPacific(registration.value.expiryDate, 'DDD'),
         downloadApplicationReceipt)
     }
     // add common side details
     setSideHeaderDetails(
-      platformBusiness.value,
-      registration.value ? permitDetails.value : undefined,
+      registration.value,
       application.value?.header)
     // add platform specific side details
     setPlatformSideHeaderDetails()

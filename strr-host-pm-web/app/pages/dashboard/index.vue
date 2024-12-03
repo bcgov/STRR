@@ -2,7 +2,7 @@
 const { t } = useI18n()
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
-const strataStore = useStrrStrataStore()
+const hostPermitStore = useHostPermitStore()
 const strrModal = useStrrModals()
 
 const columns = [
@@ -61,7 +61,7 @@ setBreadcrumbs([
 // can use watch param to handle pagination in future
 const { data: hostPmList, status } = await useAsyncData(
   'host-pm-list',
-  () => strataStore.loadHostPmList(), // TODO: update store name when/if store name changes
+  () => hostPermitStore.loadHostPmList(),
   {
     watch: [() => accountStore.currentAccount.id],
     default: () => []

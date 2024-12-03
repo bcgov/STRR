@@ -18,7 +18,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     showPermitDetails,
     loadPermitData,
     downloadApplicationReceipt
-  } = useStrrBasePermit<StrataRegistrationResp, StrataApplicationResp>()
+  } = useStrrBasePermit<StrataRegistrationResp, StrataApplicationResp, ApiBaseStrataApplication>()
 
   const loadStrata = async (applicationId: string) => {
     await loadPermitData(applicationId)
@@ -28,9 +28,11 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     }
     if (showPermitDetails.value) {
       // set relevant sub store values to active platform data
+      // @ts-expect-error - strataHotelRepresentatives[0] will always be defined here
       primaryRep.value = formatRepresentativeUI(permitDetails.value.strataHotelRepresentatives[0])
       // should only ever be 2 reps at most
       if (permitDetails.value.strataHotelRepresentatives?.length > 1) {
+        // @ts-expect-error - strataHotelRepresentatives[1] will always be defined here
         secondaryRep.value = formatRepresentativeUI(permitDetails.value.strataHotelRepresentatives[1])
       }
       strataBusiness.value = formatBusinessDetailsUI(permitDetails.value.businessDetails)

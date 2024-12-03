@@ -8,27 +8,24 @@ const {
   title,
   subtitles
 } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadStrata, $reset } = useStrrStrataStore()
+const permitStore = useHostPermitStore()
 const {
   application,
   registration,
   permitDetails,
   isPaidApplication,
   showPermitDetails
-} = storeToRefs(useStrrStrataStore())
-const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
-const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+} = storeToRefs(permitStore)
+const { unitAddress, unitDetails } = storeToRefs(useHostPropertyStore())
 
 const todos = ref<Todo[]>([])
-const buildings = ref<ConnectAccordionItem[]>([])
-const representatives = ref<ConnectAccordionItem[]>([])
-const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
+const property = ref<ConnectAccordionItem[]>([])
+const owners = ref<ConnectAccordionItem[]>([])
 
 onMounted(async () => {
   loading.value = true
-  $reset()
   const applicationId = route.params.applicationId as string
-  await loadStrata(applicationId)
+  await permitStore.loadHostData(applicationId)
   // set header stuff
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
@@ -37,39 +34,68 @@ onMounted(async () => {
   } else {
     // existing registration or application under the account
     // set left side of header
-    title.value = strataDetails.value.brand.name
-    const nonPlural = strataDetails.value.numberOfUnits === 1
+    const defaultName = `${permitDetails.value.unitAddress.streetNumber} ${permitDetails.value.unitAddress.streetName}`
+    title.value = permitDetails.value.unitAddress.nickname || defaultName
+
+    const rooms = unitDetails.value.numberOfRoomsForRent
     subtitles.value = [
-      { text: `${strataDetails.value.numberOfUnits} ${t('strr.word.unit', nonPlural ? 1 : 2)}` },
       {
-        text: strataDetails.value.brand.website.replace(/^https?:\/\/(www\.)/, ''),
-        icon: 'i-mdi-web',
-        link: true,
-        linkHref: strataDetails.value.brand.website
-      }
+        text: t(`propertyType.${unitDetails.value.propertyType}`)
+      },
+      ...(rooms !== undefined
+        ? [{ text: `${rooms} ${t('strr.label.room', rooms)}` }]
+        : []
+      )
     ]
     if (!registration.value) {
       setHeaderDetails(
         application.value?.header.hostStatus,
         undefined,
-        isPaidApplication.value ? downloadApplicationReceipt : undefined)
+        isPaidApplication.value ? permitStore.downloadApplicationReceipt : undefined)
     } else {
       setHeaderDetails(
-        permitDetails.value.status,
-        dateToStringPacific(permitDetails.value.expiryDate, 'MMMM Do, YYYY'),
-        downloadApplicationReceipt)
+        registration.value.status,
+        dateToStringPacific(registration.value.expiryDate, 'DDD'),
+        permitStore.downloadApplicationReceipt)
     }
-    // strata side details
-    setSideHeaderDetails(
-      strataBusiness.value || {} as StrrBusiness,
-      registration.value ? permitDetails.value : undefined,
-      application.value?.header)
-    // set sidebar accordian buildings
-    buildings.value = getDashboardBuildings()
+    // host side details
+    setSideHeaderDetails(registration.value, application.value?.header)
+    setHostSideHeaderDetails()
+    // set sidebar accordian property
+    property.value = [{
+      defaultOpen: true,
+      showAvatar: false,
+      label: t('label.property'),
+      values: [
+        {
+          icon: 'i-mdi-home-circle-outline',
+          iconClass: '-mt-1 size-8',
+          address: unitAddress.value.address
+        }
+      ]
+    }, {
+      defaultOpen: false,
+      showAvatar: false,
+      label: t('label.details'),
+      // TODO: needs design decisions
+      values: [
+        {
+          text: 'Property type?',
+          class: 'italic'
+        },
+        {
+          text: 'Type of space?',
+          class: 'italic'
+        },
+        {
+          text: 'Ownership type?',
+          class: 'italic'
+        }
+      ]
+    }]
     // set sidebar accordian reps
-    representatives.value = getDashboardRepresentives()
-    // set side bar completing party
-    completingParty.value = getDashboardCompParty()
+    owners.value = getHostPermitDashOwners()
+
     // update breadcrumbs with strata business name
     setBreadcrumbs([
       {
@@ -79,7 +105,7 @@ onMounted(async () => {
         external: true
       },
       { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
-      { label: strataBusiness.value?.legalName || t('text.notAvailable') }
+      { label: permitDetails.value.unitAddress.nickname || defaultName }
     ])
   }
 
@@ -120,37 +146,19 @@ setBreadcrumbs([
           :button="todo.button"
         />
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('strr.label.registeringBusiness')" :loading="loading">
-        <div class="rounded p-3">
-          <SummaryBusiness />
-        </div>
-      </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('strr.label.regOfficeAttSvc')" :loading="loading">
-        <div class="rounded p-3">
-          <SummaryRegOfficeAttorney />
-        </div>
-      </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
-      <ConnectDashboardSection :title="$t('label.completingParty')" :loading="loading">
-        <ConnectAccordion v-if="showPermitDetails && completingParty" :items="[completingParty]" />
-        <div v-else-if="!showPermitDetails" class="bg-white p-5 opacity-50">
-          <p class="text-sm">
-            {{ $t('text.completeFilingToDisplay') }}
-          </p>
-        </div>
-      </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('word.representatives')" :loading="loading">
-        <ConnectAccordion v-if="showPermitDetails" :items="representatives" multiple />
-        <div v-else class="w-full bg-white p-5 opacity-50">
-          <p class="text-sm">
-            {{ $t('text.completeFilingToDisplay') }}
-          </p>
-        </div>
-      </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('strr.label.building', 1)" :loading="loading">
-        <ConnectAccordion v-if="showPermitDetails" :items="buildings" multiple />
+      <ConnectDashboardSection :title="$t('strr.label.rentalUnit', 1)" :loading="loading">
+        <ConnectAccordion v-if="showPermitDetails" :items="property" />
         <div v-else class="bg-white p-5 opacity-50">
+          <p class="text-sm">
+            {{ $t('text.completeFilingToDisplay') }}
+          </p>
+        </div>
+      </ConnectDashboardSection>
+      <ConnectDashboardSection :title="$t('strr.label.individualsBusinesses')" :loading="loading">
+        <ConnectAccordion v-if="showPermitDetails" :items="owners" multiple />
+        <div v-else class="w-full bg-white p-5 opacity-50">
           <p class="text-sm">
             {{ $t('text.completeFilingToDisplay') }}
           </p>

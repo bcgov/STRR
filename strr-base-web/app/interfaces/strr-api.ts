@@ -80,7 +80,13 @@ export interface ApplicationHeader {
 }
 
 export interface ApiRegistrationResp extends ApiBaseRegistration, ApiExtraRegistrationDetails { }
-export interface ApiApplicationResp {
-  registration: ApiBaseApplication
+
+// NB: This is temporary.
+// Hoping the backend is updated for Hosts eventually so that its easier to share typing across all 3
+export interface ApiApplicationBaseResp {
+  registration: any
   header: ApplicationHeader
+}
+export interface ApiApplicationResp extends ApiApplicationBaseResp {
+  registration: ApiBaseApplication
 }

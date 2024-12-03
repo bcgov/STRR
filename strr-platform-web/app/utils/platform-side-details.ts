@@ -4,21 +4,15 @@ export const setPlatformSideHeaderDetails = () => {
   const { t } = useNuxtApp().$i18n
   const { sideDetails } = storeToRefs(useConnectDetailsHeaderStore())
   const { platformBusiness } = useStrrPlatformBusiness()
+  if (platformBusiness.businessNumber) {
+    sideDetails.value.push({ label: t('label.busNum'), value: platformBusiness.businessNumber })
+  }
   if (platformBusiness.cpbcLicenceNumber) {
     sideDetails.value.push({
       label: t('strr.label.cpbcNum'),
       value: platformBusiness.cpbcLicenceNumber
     })
   }
-  // TODO: may add back in
-  // sideDetails.value.push({
-  //   label: t('strr.label.noncomplianceEmail'),
-  //   value: platformBusiness.nonComplianceEmail
-  // })
-  // sideDetails.value.push({
-  //   label: t('strr.label.takedownEmail'),
-  //   value: platformBusiness.takeDownEmail
-  // })
   // TODO: add back in / update when implementing registration edits
   // if (isRegistration) {
   //   // add edit buttons to noncompliance / takedown emails

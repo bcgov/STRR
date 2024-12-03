@@ -1,16 +1,16 @@
 export function formatPhoneNumber (party: Contact): ApiPhone {
   return {
-    phoneNumber: party.phone.number,
-    phoneCountryCode: party.phone.countryCode ?? '',
-    extension: party.phone.extension ?? ''
+    phoneNumber: party.phone.number || '',
+    phoneCountryCode: party.phone.countryCode || '',
+    extension: party.phone.extension || ''
   }
 }
 
-export function formatPhoneNumberUI (party: ApiParty): ConnectPhone {
+export function formatPhoneNumberUI <T extends ApiPhone> (phone: T): ConnectPhone {
   return {
-    countryCode: party.phoneCountryCode,
-    number: party.phoneNumber,
-    extension: party.extension ?? ''
+    countryCode: phone.phoneCountryCode,
+    number: phone.phoneNumber,
+    extension: phone.extension ?? ''
   }
 }
 
