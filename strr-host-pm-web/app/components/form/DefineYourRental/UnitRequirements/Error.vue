@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const reqStore = usePropertyReqStore()
 const localePath = useLocalePath()
+const config = useRuntimeConfig().public
 
 const accordianRef = ref()
 
@@ -63,7 +64,7 @@ function handleContinueApp () {
                 >
                   <template #linkAllRules>
                     <a
-                      href="https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals"
+                      :href="config.housingAllRulesUrl"
                       target="_blank"
                       class="text-bcGovColor-activeBlue underline"
                     >
@@ -72,7 +73,7 @@ function handleContinueApp () {
                   </template>
                   <template #linkReqDocs>
                     <a
-                      href="https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals"
+                      :href="config.housingRequiredDocsUrl"
                       target="_blank"
                       class="text-bcGovColor-activeBlue underline"
                     >

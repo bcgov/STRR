@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
 
+const config = useRuntimeConfig().public
 const reqStore = usePropertyReqStore()
 const docStore = useDocumentStore()
 const propStore = useHostPropertyStore()
@@ -14,9 +15,7 @@ defineEmits<{
 const blFormRef = ref<Form<any>>()
 const docFormRef = ref<Form<any>>()
 
-const docUploadHelpId = useId()
-// eslint-disable-next-line max-len
-const learnMoreLink = 'https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/host-registration#documents'
+const docUploadHelpId = useId() // id for aria-describedby on doc select
 
 // revalidate uploaded documents when user adding/removing docs if step marked as complete
 watch(
@@ -44,7 +43,7 @@ onMounted(async () => {
         <template #link>
           <UButton
             :label="$t('link.learnMore')"
-            :to="learnMoreLink"
+            :to="config.housingLearnMoreUrl"
             :padded="false"
             variant="link"
             target="_blank"
