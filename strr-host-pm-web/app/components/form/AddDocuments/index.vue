@@ -143,6 +143,7 @@ onMounted(async () => {
                       :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
                       :is-required="docStore.requiredDocs.length > 0"
                       :help-id="docUploadHelpId"
+                      accept=".pdf"
                       @change="docStore.addStoredDocument"
                       @cancel="docStore.selectedDocType = undefined"
                     />
