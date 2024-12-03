@@ -154,6 +154,7 @@ class ErrorMessage(Enum):
     PLATFORM_ISSUE_CERTIFICATE_ERROR = "Certificate is not available for a platform registration."
     INVOICE_CREATION_ERROR = "Error while creating invoice."
     APPLICATION_NOT_MODIFIABLE = "Application cannot be modified."
+    ADDRESS_NOT_FOUND = "Address not found."
 
 
 class ApplicationRole(Enum):

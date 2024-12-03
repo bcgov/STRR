@@ -184,6 +184,8 @@ class ApprovalService:
         """Gets the STR data from data portal API."""
         geocode_response = GeoCoderService.get_geocode_by_address(address)
         longitude, latitude = cls.extract_longitude_and_latitude(geocode_response)
+        if not (latitude and longitude):
+            return None
         client_id = current_app.config.get("STR_DATA_API_CLIENT_ID")
         client_secret = current_app.config.get("STR_DATA_API_CLIENT_SECRET")
         token_url = current_app.config.get("STR_DATA_API_TOKEN_URL")
@@ -207,7 +209,7 @@ class ApprovalService:
             return str_info_for_address
         except Exception as exception:
             current_app.logger.error("Error while calling Data Portal API", exc_info=exception)
-            return None
+            raise exception
 
     @classmethod
     def _update_application_status_to_full_review(cls, application):

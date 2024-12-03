@@ -85,13 +85,11 @@ def get_str_requirements():
             address_line_1 = f"{unit_number}-"
         address_line_1 = f"{address_line_1}{unit_address.get('streetNumber')} {unit_address.get('streetName')}"
         address_line_2 = unit_address.get("addressLineTwo", "")
-        address = f"{address_line_1} {address_line_2}, {unit_address.get('city'), unit_address.get('province')}"
+        address = f"{address_line_1} {address_line_2}, {unit_address.get('city')}, {unit_address.get('province')}"
         str_data = ApprovalService.getSTRDataForAddress(address=address)
         if not str_data:
-            return error_response(
-                message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.SERVICE_UNAVAILABLE
-            )
+            return error_response(message=ErrorMessage.ADDRESS_NOT_FOUND.value, http_status=HTTPStatus.NOT_FOUND)
         return ApprovalService.getSTRDataForAddress(address=address), HTTPStatus.OK
     except ExternalServiceException as service_exception:
         logger.error("Error while getting STR requirements", exc_info=service_exception)
-        return error_response(service_exception.message, service_exception.status_code)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.SERVICE_UNAVAILABLE)

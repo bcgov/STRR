@@ -68,7 +68,7 @@ class GeoCoderService:
             "autoComplete=false&"
             "setBack=0&"
             "outputSRS=4326&"
-            "minScore=1&"
+            "minScore=95&"
             "provinceCode=BC"
         )
 
