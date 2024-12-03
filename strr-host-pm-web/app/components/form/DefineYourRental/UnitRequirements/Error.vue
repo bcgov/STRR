@@ -63,7 +63,7 @@ function handleContinueApp () {
                 >
                   <template #linkAllRules>
                     <a
-                      href=""
+                      href="https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals"
                       target="_blank"
                       class="text-bcGovColor-activeBlue underline"
                     >
@@ -72,7 +72,7 @@ function handleContinueApp () {
                   </template>
                   <template #linkReqDocs>
                     <a
-                      href=""
+                      href="https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals"
                       target="_blank"
                       class="text-bcGovColor-activeBlue underline"
                     >
@@ -80,7 +80,6 @@ function handleContinueApp () {
                     </a>
                   </template>
                 </i18n-t>
-                NEED LINK STILL
               </span>
             </div>
           </template>
@@ -104,7 +103,7 @@ function handleContinueApp () {
       <template #item>
         <div class="flex flex-col gap-4 pt-2 text-base text-bcGovGray-700">
           <ConnectI18nBold :translation-path="`error.reqFetch.${errorKey}.description`" />
-          <ConnectContactBcros />
+          <ContactSTRR />
         </div>
       </template>
     </UAccordion>

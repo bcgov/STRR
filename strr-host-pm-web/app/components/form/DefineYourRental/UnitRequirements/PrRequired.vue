@@ -57,6 +57,7 @@ onMounted(async () => {
         <UCheckbox
           v-model="reqStore.prRequirements.isPropertyPrExempt"
           :label="$t('text.thisPropIsExempt')"
+          :ui="{ wrapper: 'space-x-2' }"
         />
       </UFormGroup>
 

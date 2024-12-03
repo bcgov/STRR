@@ -14,6 +14,7 @@ defineEmits<{
 const blFormRef = ref<Form<any>>()
 const docFormRef = ref<Form<any>>()
 
+const docUploadHelpId = useId()
 // eslint-disable-next-line max-len
 const learnMoreLink = 'https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/host-registration#documents'
 
@@ -132,15 +133,31 @@ onMounted(async () => {
                 <div class="space-y-5">
                   <span aria-hidden="true">{{ $t('text.uploadReqDocs') }}</span>
                   <UFormGroup
-                    :help="$t('hint.docUpload')"
                     name="documentUpload"
                     :ui="{ help: 'mt-2 ml-10' }"
                   >
                     <DocumentUploadSelect
                       id="supporting-documents"
                       :label="$t('label.chooseDocs')"
+                      :is-invalid="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
+                      :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
+                      :is-required="docStore.requiredDocs.length > 0"
+                      :help-id="docUploadHelpId"
                       @change="docStore.addStoredDocument"
+                      @cancel="docStore.selectedDocType = undefined"
                     />
+
+                    <template #help>
+                      <span :id="docUploadHelpId">
+                        {{ $t('hint.docUpload') }}
+                      </span>
+                    </template>
+
+                    <template #error="{ error }">
+                      <span :id="docUploadHelpId">
+                        {{ error }}
+                      </span>
+                    </template>
                   </UFormGroup>
                   <DocumentList />
                 </div>

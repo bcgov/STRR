@@ -50,7 +50,7 @@ export default {
         STRATA_GUEST_SUITE: 'Strata corporation guest suite'
       },
       docType: {
-        BC_DRIVERS_LICENSE: "BC Driver's License",
+        BC_DRIVERS_LICENCE: "BC Driver's Licence",
         PROPERTY_ASSESSMENT_NOTICE: 'Property Assessment Notice',
         SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax Confirmation',
         HOG_DECLARATION: 'Home Owner Grant declaration',
@@ -246,8 +246,8 @@ export default {
         description: 'Please refresh the page or try again later. If error persists, please contact us.'
       },
       notFound: {
-        title: 'Address could not be found. You can continue to register, but make sure you understand {linkAllRules} and have all the {linkReqDocs}.',
-        description: 'Make sure the address you have entered is correct or you can try again later. If error persists, please contact us.'
+        title: 'Address could not be found. Make sure the address you have entered is correct. Check the {linkAllRules} to determine if you need to register. To continue to register, have the {linkReqDocs} ready.',
+        description: 'Alternatively, you can refresh the page or try again later. If error persists, please contact us.'
       },
       500: {
         title: 'Internal Server Error.',
@@ -292,7 +292,7 @@ export default {
   link: {
     strataHotelInfoPage: 'strata hotel information page',
     proofOfPr: 'Proof of principal residence',
-    allRules: 'all rules',
+    allRules: 'rules for short-term rental',
     reqDocs: 'required documentation',
     learnMore: 'Learn More'
   },
