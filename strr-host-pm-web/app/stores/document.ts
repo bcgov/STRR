@@ -8,6 +8,7 @@ export const useDocumentStore = defineStore('host/document', () => {
   const { $strrApi } = useNuxtApp()
   const strrModal = useStrrModals()
   const reqStore = usePropertyReqStore()
+  const propStore = useHostPropertyStore()
 
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
@@ -63,6 +64,18 @@ export const useDocumentStore = defineStore('host/document', () => {
       })
     }
 
+    if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
+      const isRentValid = apiDocuments.value.some(
+        item => [DocumentUploadType.TENANCY_AGREEMENT, DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT]
+          .includes(item.type)
+      )
+      docs.push({
+        isValid: isRentValid,
+        icon: isRentValid ? 'i-mdi-check' : 'i-mdi-close',
+        label: t('label.rentalAgreementOrRecept')
+      })
+    }
+
     return docs
   })
 
@@ -82,6 +95,10 @@ export const useDocumentStore = defineStore('host/document', () => {
 
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
       docs.push({ label: t('label.fractOwnAgreement') })
+    }
+
+    if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
+      docs.push({ label: t('label.rentalAgreementOrRecept') })
     }
 
     return docs

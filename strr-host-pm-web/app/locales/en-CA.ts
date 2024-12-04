@@ -290,7 +290,8 @@ export default {
     supportingStrataDocs: 'Supporting strata-titled hotel or motel documentation',
     fractOwnAgreement: 'Fractional ownership agreement',
     businessLicenceNumberOpt: 'Business Licence Number (Optional)',
-    businessLicenceExpiryDateOpt: 'Business Licence Expiry Date (Optional)'
+    businessLicenceExpiryDateOpt: 'Business Licence Expiry Date (Optional)',
+    rentalAgreementOrRecept: 'Tenancy (rental) agreement or receipt or bank statement showing payment of rent'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page',
