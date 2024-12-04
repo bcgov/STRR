@@ -1,7 +1,6 @@
 // import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
-import type { ApiDocument } from '~/interfaces/host-api'
-import type { UiDocument } from '~/interfaces/ui-document'
+import uniqBy from 'lodash.uniqby'
 
 export const useDocumentStore = defineStore('host/document', () => {
   const { t } = useI18n()
@@ -22,7 +21,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       return []
     }
 
-    if (reqs.isStraaExempt) {
+    if (reqs.isStraaExempt && propStore.unitDetails.ownershipType !== OwnershipType.RENT) {
       return []
     }
 
@@ -253,8 +252,8 @@ export const useDocumentStore = defineStore('host/document', () => {
   }
 
   function validatePrincipalResidenceDocuments (): boolean {
-    // either 2 docs from this list are required
-    const columnADocs = [
+    // either 2 unique docs from this list are required
+    const uniqueColumnADocs = [
       DocumentUploadType.BC_DRIVERS_LICENCE,
       DocumentUploadType.BCSC,
       DocumentUploadType.COMBINED_BCSC_LICENCE,
@@ -263,20 +262,38 @@ export const useDocumentStore = defineStore('host/document', () => {
       DocumentUploadType.HOG_DECLARATION
     ]
 
-    // or 1 doc from column A and 2 from this list are required
-    const columnBDocs = [
+    // or 1 doc from column A and 2 unique docs from this list are required
+    const uniqueColumnBDocs = [
       DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE,
       DocumentUploadType.HOME_INSURANCE_SUMMARY,
-      DocumentUploadType.PROPERTY_TAX_NOTICE,
-      DocumentUploadType.UTILITY_BILL,
-      DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE,
-      DocumentUploadType.TENANCY_AGREEMENT,
-      DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT,
-      DocumentUploadType.OTHERS
+      DocumentUploadType.PROPERTY_TAX_NOTICE
     ]
 
-    const columnACount = apiDocuments.value.filter(item => columnADocs.includes(item.type)).length
-    const columnBCount = apiDocuments.value.filter(item => columnBDocs.includes(item.type)).length
+    // or 1 doc from column A and 2 non-unique docs from this list are required
+    const nonUniqueColumnBDocs = [
+      DocumentUploadType.UTILITY_BILL,
+      DocumentUploadType.OTHERS,
+      DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
+    ]
+
+    // get unique column a docs
+    const columnAFilteredUnique = uniqBy(
+      apiDocuments.value.filter(item => uniqueColumnADocs.includes(item.type)),
+      'type'
+    )
+
+    // get unique column b docs
+    const columnBFilteredUnique = uniqBy(
+      apiDocuments.value.filter(item => uniqueColumnBDocs.includes(item.type)),
+      'type'
+    )
+
+    // get non-unique column b docs
+    const columnBFilteredNonUnique = apiDocuments.value.filter(item => nonUniqueColumnBDocs.includes(item.type))
+
+    // get doc count
+    const columnACount = columnAFilteredUnique.length
+    const columnBCount = columnBFilteredUnique.length + columnBFilteredNonUnique.length
 
     // validate at least 2 of column a docs OR validate at least 1 of column a and 2 of column b
     return columnACount >= 2 || (columnACount >= 1 && columnBCount >= 2)
