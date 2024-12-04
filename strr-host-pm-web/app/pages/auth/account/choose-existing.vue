@@ -80,13 +80,13 @@ function handleAccountSwitch (id: string) {
               :alt="account.label[0]"
               :ui="{
                 background: 'bg-blue-300 dark:bg-[#E0E7ED]',
-                text: 'font-semibold leading-none text-white dark:text-bcGovColor-darkGray truncate',
-                placeholder: 'font-semibold leading-none text-white truncate dark:text-bcGovColor-darkGray text-xl',
+                text: 'font-bold leading-none text-white dark:text-bcGovColor-darkGray truncate',
+                placeholder: 'font-bold leading-none text-white truncate dark:text-bcGovColor-darkGray text-xl',
                 rounded: 'rounded-sm'
               }"
             />
             <div class="flex w-full flex-col text-left">
-              <span class="text-lg font-semibold text-bcGovColor-darkGray">
+              <span class="text-lg font-bold text-bcGovColor-darkGray">
                 {{ account.label }}
               </span>
               <!-- TODO: Add mailing address ? -->

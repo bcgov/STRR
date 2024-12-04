@@ -166,7 +166,7 @@ async function handleItemSelect (row: any) {
           </template>
 
           <template #daysToExpiry-data="{ row }">
-            <span :class="{'font-semibold text-red-500': row.daysToExpiry.value <= 0}">
+            <span :class="{'font-bold text-red-500': row.daysToExpiry.value <= 0}">
               {{ row.daysToExpiry.label }}
             </span>
           </template>

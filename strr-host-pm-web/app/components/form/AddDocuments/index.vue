@@ -177,7 +177,7 @@ onMounted(async () => {
         :ui="{
           inner: 'pt-0',
           icon: { base: 'text-outcomes-approved' },
-          title: 'text-base font-semibold',
+          title: 'text-base font-bold',
         }"
       />
 

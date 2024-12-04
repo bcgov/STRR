@@ -4,7 +4,7 @@ const config = useRuntimeConfig().public
 </script>
 <template>
   <div class="flex flex-col gap-4">
-    <span class="font-semibold">
+    <span class="font-bold">
       {{ reqStore.overrideApplicationWarning
         ? $t('text.thisPropCouldBeInLocWithReqs')
         : $t('text.thisPropIsInLocWithReqs')

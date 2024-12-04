@@ -37,7 +37,7 @@ function handleContinueApp () {
           <template #leading>
             <div class="flex items-center gap-2">
               <UIcon name="i-mdi-alert" class="size-5 shrink-0 self-start text-red-500" />
-              <span class="text-left text-base font-semibold text-gray-700">{{ $t('alert.strProhibited.title') }}</span>
+              <span class="text-left text-base font-bold text-gray-700">{{ $t('alert.strProhibited.title') }}</span>
             </div>
           </template>
 

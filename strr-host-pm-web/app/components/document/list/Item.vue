@@ -33,7 +33,7 @@ defineEmits<{
             }"
           />
           <div class="flex flex-col">
-            <span class="text-sm font-semibold">{{ $t(`form.pr.docType.${doc.type}`) }}</span>
+            <span class="text-sm font-bold">{{ $t(`form.pr.docType.${doc.type}`) }}</span>
             <span>{{ doc.name }}</span>
           </div>
         </div>
