@@ -60,7 +60,8 @@ export default defineNuxtConfig({
       version: `STRR Host & Property Manager UI v${process.env.npm_package_version}`,
       housingLearnMoreUrl: process.env.NUXT_HOUSING_LEARN_MORE_URL,
       housingAllRulesUrl: process.env.NUXT_HOUSING_ALL_RULES_URL,
-      housingRequiredDocsUrl: process.env.NUXT_HOUSING_REQUIRED_DOCS_URL
+      housingRequiredDocsUrl: process.env.NUXT_HOUSING_REQUIRED_DOCS_URL,
+      housingProofOfPrUrl: process.env.NUXT_HOUSING_PROOF_OF_PR_URL
       // set by strr-base-web layer (still required in .env)
       // addressCompleteKey - NUXT_ADDRESS_COMPLETE_KEY
       // payApiURL - NUXT_PAY_API_VERSION

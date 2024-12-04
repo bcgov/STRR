@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const reqStore = usePropertyReqStore()
+const config = useRuntimeConfig().public
 </script>
 <template>
   <div class="flex flex-col gap-4">
@@ -55,7 +56,7 @@ const reqStore = usePropertyReqStore()
         >
           <template #link>
             <a
-              href=""
+              :href="config.housingProofOfPrUrl"
               target="_blank"
               class="text-bcGovColor-activeBlue underline"
             >
@@ -63,7 +64,6 @@ const reqStore = usePropertyReqStore()
             </a>
           </template>
         </i18n-t>
-        NEED LINK STILL
       </template>
     </UAccordion>
   </div>

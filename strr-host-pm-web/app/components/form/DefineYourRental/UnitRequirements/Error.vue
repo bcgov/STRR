@@ -31,7 +31,7 @@ function handleContinueApp () {
   >
     <UAccordion
       ref="accordianRef"
-      :items="[{ label: 'n/a' }]"
+      :items="[{ label: 'n/a', disabled: !reqStore.overrideApplicationWarning }]"
       default-open
       color="red"
       :ui="{
@@ -44,12 +44,12 @@ function handleContinueApp () {
     >
       <template #default="{ open }">
         <UButton
-          ref="buttonRef"
           variant="ghost"
           color="red"
           class="justify-between p-4"
           :ui="{
-            rounded: 'rounded-none'
+            rounded: 'rounded-none',
+            base: 'disabled:cursor-default disabled:opacity-100 aria-disabled:cursor-default aria-disabled:opacity-100',
           }"
         >
           <template #leading>
