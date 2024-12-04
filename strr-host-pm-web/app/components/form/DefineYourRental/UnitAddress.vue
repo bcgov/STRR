@@ -46,9 +46,7 @@ onMounted(async () => {
         <ConnectFormSection
           :title="$t('strr.section.subTitle.rentalUnitResiAddress')"
           :error="isComplete && hasFormErrors(unitAddressFormRef, [
-            'address.country',
             'address.city',
-            'address.region',
             'address.postalCode',
             'address.unitNumber',
             'address.streetName',
@@ -57,25 +55,22 @@ onMounted(async () => {
         >
           <TransitionCollapse>
             <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="flex flex-col gap-10">
-              <ConnectFormAddress
+              <FormUnitAddressManual
                 id="rental-property-address"
-                v-model:country="propStore.unitAddress.address.country"
                 v-model:street-number="propStore.unitAddress.address.streetNumber"
                 v-model:street-name="propStore.unitAddress.address.streetName"
                 v-model:unit-number="propStore.unitAddress.address.unitNumber"
                 v-model:street-additional="propStore.unitAddress.address.streetAdditional"
                 v-model:city="propStore.unitAddress.address.city"
-                v-model:region="propStore.unitAddress.address.region"
                 v-model:postal-code="propStore.unitAddress.address.postalCode"
                 class="max-w-bcGovInput"
                 :schema-prefix="'address.'"
                 :disabled-fields="
                   reqStore.loadingReqs
-                    ? ['country', 'street', 'streetName', 'streetNumber', 'unitNumber',
-                       'streetAdditional', 'city', 'region', 'postalCode', 'locationDescription']
-                    : ['country', 'region']
+                    ? ['streetName', 'streetNumber', 'unitNumber',
+                       'streetAdditional', 'city', 'postalCode', 'locationDescription']
+                    : []
                 "
-                :excluded-fields="['street']"
                 :form-ref="unitAddressFormRef"
                 :unit-number-required="propStore.isUnitNumberRequired"
               />

@@ -291,7 +291,12 @@ export default {
     fractOwnAgreement: 'Fractional ownership agreement',
     businessLicenceNumberOpt: 'Business Licence Number (Optional)',
     businessLicenceExpiryDateOpt: 'Business Licence Expiry Date (Optional)',
-    rentalAgreementOrRecept: 'Tenancy (rental) agreement or receipt or bank statement showing payment of rent'
+    rentalAgreementOrRecept: 'Tenancy (rental) agreement or receipt or bank statement showing payment of rent',
+    streetNameAndType: 'Street Name and Type',
+    siteNameOpt: 'Site Name (Optional)',
+    forNonCivicAddresses: 'For non-civic addresses',
+    locality: 'Locality',
+    additionalLocationDescription: 'Additional Location Description'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page',
