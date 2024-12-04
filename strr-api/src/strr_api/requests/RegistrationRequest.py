@@ -184,12 +184,15 @@ class ContactName:
 class ContactDetails:
     """ContactDetails payload object."""
 
-    def __init__(self, phoneNumber, emailAddress, preferredName=None, extension=None, faxNumber=None):
+    def __init__(
+        self, phoneNumber, emailAddress, preferredName=None, extension=None, faxNumber=None, phoneCountryCode=None
+    ):
         self.phoneNumber = phoneNumber
         self.emailAddress = emailAddress
         self.preferredName = preferredName
         self.extension = extension
         self.faxNumber = faxNumber
+        self.phoneCountryCode = phoneCountryCode
 
 
 class Contact:

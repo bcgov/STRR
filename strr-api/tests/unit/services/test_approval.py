@@ -38,7 +38,7 @@ from unittest.mock import patch
 
 import pytest
 
-from strr_api.enums.enum import OwnershipType, PaymentStatus
+from strr_api.enums.enum import PaymentStatus
 from strr_api.models import Application, Events
 from strr_api.services import ApprovalService
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header

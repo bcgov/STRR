@@ -26,8 +26,11 @@ CREATE_PLATFORM_REGISTRATION_REQUEST = os.path.join(
 CREATE_STRATA_HOTEL_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/strata_hotel_registration.json"
 )
-CREATE_HOST_REGISTRATION_BUSINESS_AS_HOST = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/business_as_host.json"
+CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/business_and_individual_as_hosts.json"
+)
+CREATE_REGISTRATION_BUSINESS_AS_COHOST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/business_and_business_as_hosts.json"
 )
 
 ACCOUNT_ID = 1234
@@ -43,7 +46,7 @@ MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)),
 
 
 def test_save_and_resume_applications(session, client, jwt):
-    with open(CREATE_HOST_REGISTRATION_BUSINESS_AS_HOST) as f:
+    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         headers["isDraft"] = True
@@ -527,7 +530,7 @@ def test_create_strata_hotel_registration_application_bad_request(session, clien
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_create_registration_application_with_business_as_a_host(session, client, jwt):
-    with open(CREATE_HOST_REGISTRATION_BUSINESS_AS_HOST) as f:
+    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
         json_data = json.load(f)
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -538,7 +541,7 @@ def test_create_registration_application_with_business_as_a_host(session, client
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_approve_registration_application_with_business_as_a_host(session, client, jwt):
-    with open(CREATE_HOST_REGISTRATION_BUSINESS_AS_HOST) as f:
+    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         json_data = json.load(f)
@@ -613,7 +616,7 @@ def test_create_application_invoice_failure(session, client, jwt):
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_save_and_resume_failed_for_paid_applications(session, client, jwt):
-    with open(CREATE_HOST_REGISTRATION_BUSINESS_AS_HOST) as f:
+    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         json_data = json.load(f)
@@ -624,3 +627,35 @@ def test_save_and_resume_failed_for_paid_applications(session, client, jwt):
 
         rv = client.put(f"/applications/{application_number}", json=json_data, headers=headers)
         assert HTTPStatus.BAD_REQUEST == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_create_business_as_cohost_registration(session, client, jwt):
+    with open(CREATE_REGISTRATION_BUSINESS_AS_COHOST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("registrationId") is not None
+        assert response_json.get("header").get("registrationNumber") is not None
+        assert response_json.get("header").get("hostStatus") == "Approved"
+        assert response_json.get("header").get("examinerStatus") == "Approved – Examined"
+        assert response_json.get("header").get("examinerActions") == ApplicationSerializer.EXAMINER_ACTIONS.get(
+            Application.Status.FULL_REVIEW_APPROVED
+        )
+        assert response_json.get("header").get("hostActions") == []

@@ -10,7 +10,7 @@ from sqlalchemy import Enum
 from sqlalchemy.orm import relationship
 
 from strr_api.common.enum import BaseEnum, auto
-from strr_api.enums.enum import OwnershipType, PropertyType, RegistrationStatus
+from strr_api.enums.enum import PropertyType, RegistrationStatus
 from strr_api.models.base_model import BaseModel
 
 from .db import db
@@ -64,6 +64,14 @@ class RentalProperty(Versioned, BaseModel):
         SAME_UNIT = auto()  # pylint: disable=invalid-name
         ANOTHER_UNIT = auto()  # pylint: disable=invalid-name
 
+    class OwnershipType(BaseEnum):
+        """Ownership Type."""
+
+        OWN = auto()  # pylint: disable=invalid-name
+        RENT = auto()  # pylint: disable=invalid-name
+        CO_OWN = auto()  # pylint: disable=invalid-name
+        OTHER = auto()  # pylint: disable=invalid-name
+
     __tablename__ = "rental_properties"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -71,9 +79,8 @@ class RentalProperty(Versioned, BaseModel):
     parcel_identifier = db.Column(db.String, nullable=True)
     local_business_licence = db.Column(db.String, nullable=True)
     local_business_licence_expiry_date = db.Column(db.Date, nullable=True)
-    # Enum: All or part of primary dwelling; Secondary suite; Accessory dwelling unit; Float home; Other
     property_type = db.Column(Enum(PropertyType), nullable=False)
-    ownership_type = db.Column(Enum(OwnershipType), nullable=False)  # Enum: own, rent, co-own
+    ownership_type = db.Column(db.Enum(OwnershipType), nullable=False)
     is_principal_residence = db.Column(db.Boolean, nullable=False, default=False)
     rental_act_accepted = db.Column(db.Boolean, nullable=False, default=False)
     pr_exempt_reason = db.Column(db.String, nullable=True)
@@ -120,7 +127,7 @@ class PropertyContact(Versioned, BaseModel):
     """Property Contacts"""
 
     class ContactType(BaseEnum):
-        """Enum of host residence option."""
+        """Enum of host types."""
 
         INDIVIDUAL = auto()  # pylint: disable=invalid-name
         BUSINESS = auto()  # pylint: disable=invalid-name
@@ -176,6 +183,10 @@ class Document(Versioned, BaseModel):
         RENT_RECEIPT_OR_BANK_STATEMENT = auto()  # pylint: disable=invalid-name
         LOCAL_GOVT_BUSINESS_LICENSE = auto()  # pylint: disable=invalid-name
         OTHERS = auto()  # pylint: disable=invalid-name
+        STRATA_HOTEL_DOCUMENTATION = auto()  # pylint: disable=invalid-name
+        FRACTIONAL_OWNERSHIP_AGREEMENT = auto()  # pylint: disable=invalid-name
+        BCSC = auto()  # pylint: disable=invalid-name
+        COMBINED_BCSC_LICENCE = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "documents"
 

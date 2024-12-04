@@ -1,7 +1,7 @@
 import json
 import os
 
-from strr_api.enums.enum import OwnershipType, PaymentStatus, PropertyType, RegistrationStatus
+from strr_api.enums.enum import PaymentStatus, PropertyType, RegistrationStatus
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Address, Application, Contact, Document, PropertyContact, Registration, RentalProperty, User
 
@@ -61,7 +61,7 @@ def fake_registration_pending(*args, **kwargs):
         rental_property=RentalProperty(
             id=1,
             property_type=PropertyType.SINGLE_FAMILY_HOME,
-            ownership_type=OwnershipType.OWN,
+            ownership_type=RentalProperty.OwnershipType.OWN,
             registration_id=1,
             is_principal_residence=True,
             rental_act_accepted=True,
@@ -182,7 +182,7 @@ def fake_registration(*args, **kwargs):
         rental_property=RentalProperty(
             id=1,
             property_type=PropertyType.SINGLE_FAMILY_HOME,
-            ownership_type=OwnershipType.OWN,
+            ownership_type=RentalProperty.OwnershipType.OWN,
             registration_id=1,
             is_principal_residence=True,
             rental_act_accepted=True,

@@ -56,6 +56,9 @@
             "preferredName": {
               "type": "string"
             },
+            "phoneCountryCode": {
+              "type": "string"
+            },
             "phoneNumber": {
               "type": "string"
             },
@@ -264,7 +267,8 @@
           "enum": [
             "OWN",
             "RENT",
-            "CO_OWN"
+            "CO_OWN",
+            "OTHER"
           ]
         },
         "strataHotelRegistrationNumber": {
@@ -347,7 +351,11 @@
               "TENANCY_AGREEMENT",
               "RENT_RECEIPT_OR_BANK_STATEMENT",
               "LOCAL_GOVT_BUSINESS_LICENSE",
-              "OTHERS"
+              "OTHERS",
+              "STRATA_HOTEL_DOCUMENTATION",
+              "FRACTIONAL_OWNERSHIP_AGREEMENT",
+              "BCSC",
+              "COMBINED_BCSC_LICENCE"
             ]
           }
         },

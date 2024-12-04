@@ -45,8 +45,8 @@ from typing import Any, Tuple
 import requests
 from flask import current_app
 
-from strr_api.enums.enum import OwnershipType, RegistrationType
-from strr_api.models import Application, AutoApprovalRecord, Events
+from strr_api.enums.enum import RegistrationType
+from strr_api.models import Application, AutoApprovalRecord, Events, RentalProperty
 from strr_api.requests import RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
@@ -119,7 +119,7 @@ class ApprovalService:
                     + ", "
                     + registration.unitAddress.province
                 )
-                auto_approval.renting = registration.unitDetails.ownershipType == OwnershipType.RENT
+                auto_approval.renting = registration.unitDetails.ownershipType == RentalProperty.OwnershipType.RENT
                 auto_approval.serviceProvider = (
                     registration.principalResidence.specifiedServiceProvider is not None
                     and registration.principalResidence.specifiedServiceProvider != "n/a"

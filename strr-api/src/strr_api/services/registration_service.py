@@ -337,6 +337,7 @@ class RegistrationService:
             preferredname=registration_request.primaryContact.details.preferredName,
             phone_extension=registration_request.primaryContact.details.extension,
             fax_number=registration_request.primaryContact.details.faxNumber,
+            phone_country_code=registration_request.primaryContact.details.phoneCountryCode,
             phone_number=registration_request.primaryContact.details.phoneNumber,
             date_of_birth=registration_request.primaryContact.dateOfBirth,
             social_insurance_number=registration_request.primaryContact.socialInsuranceNumber,
@@ -355,6 +356,7 @@ class RegistrationService:
             secondary_property_contact = PropertyContact()
             secondary_property_contact.is_primary = False
             secondary_property_contact.contact_type = registration_request.secondaryContact.contactType
+            secondary_property_contact.business_legal_name = registration_request.secondaryContact.businessLegalName
             secondary_property_contact.contact = Contact(
                 firstname=registration_request.secondaryContact.name.firstName,
                 lastname=registration_request.secondaryContact.name.lastName,
@@ -363,6 +365,7 @@ class RegistrationService:
                 preferredname=registration_request.secondaryContact.details.preferredName,
                 phone_extension=registration_request.secondaryContact.details.extension,
                 fax_number=registration_request.secondaryContact.details.faxNumber,
+                phone_country_code=registration_request.secondaryContact.details.phoneCountryCode,
                 phone_number=registration_request.secondaryContact.details.phoneNumber,
                 date_of_birth=registration_request.secondaryContact.dateOfBirth,
                 social_insurance_number=registration_request.secondaryContact.socialInsuranceNumber,

@@ -2,6 +2,9 @@
   "registration": {
     "registrationType": "HOST",
     "primaryContact": {
+      "contactType": "BUSINESS",
+      "businessLegalName": "Test Business",
+      "businessNumber": "123456789",
       "name": {
         "firstName": "The",
         "middleName": "First",
@@ -10,7 +13,6 @@
       "dateOfBirth": "1986-10-23",
       "details": {
         "preferredName": "Mickey",
-        "phoneCountryCode": "001",
         "phoneNumber": "604-999-9999",
         "extension": "x64",
         "faxNumber": "604-777-7777",
@@ -26,23 +28,25 @@
       }
     },
     "secondaryContact": {
+      "contactType": "BUSINESS",
+      "businessLegalName": "Test Business 2",
+      "businessNumber": "555555555",
       "name": {
         "firstName": "The",
-        "middleName": "Other",
+        "middleName": "First",
         "lastName": "Guy"
       },
       "dateOfBirth": "1986-10-23",
       "details": {
-        "preferredName": "Mouse",
-        "phoneCountryCode": "001",
-        "phoneNumber": "604-888-8888",
-        "extension": "",
-        "faxNumber": "",
-        "emailAddress": "test2@test.test"
+        "preferredName": "Mickey",
+        "phoneNumber": "604-999-9999",
+        "extension": "x64",
+        "faxNumber": "604-777-7777",
+        "emailAddress": "test@test.test"
       },
       "mailingAddress": {
         "country": "CA",
-        "address": "12766 227st",
+        "address": "12765 227st",
         "addressLineTwo": "",
         "city": "MAPLE RIDGE",
         "province": "BC",
@@ -82,28 +86,6 @@
       "nonPrincipalOption": "n/a",
       "specifiedServiceProvider": "n/a",
       "agreedToSubmit": true
-    },
-    "propertyManager": {
-      "businessLegalName": "Test Business",
-      "initiatedByPropertyManager": false,
-      "businessMailingAddress": {
-        "address": "123 GREENWELL ST MAPLE RIDGE",
-        "city": "MAPLE RIDGE",
-        "country": "CA",
-        "postalCode": "V2X 7N1",
-        "province": "BC"
-      },
-      "businessNumber": "123456789",
-      "contact": {
-        "emailAddress": "abc@def.com",
-        "extension": "",
-        "faxNumber": "",
-        "firstName": "Property",
-        "lastName": "Manager",
-        "middleName": "ABC",
-        "phoneNumber": "5567869456",
-        "preferredName": "Property Manager"
-      }
     }
   }
 }

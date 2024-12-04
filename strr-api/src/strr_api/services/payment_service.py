@@ -163,7 +163,8 @@ class PayService:
             else:
                 filing_type = HOST_REGISTRATION_FEE_2
         elif rental_unit_space_type == RentalProperty.RentalUnitSpaceType.SHARED_ACCOMMODATION:
-            quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
+            if registration_json.get("unitDetails").get("numberOfRoomsForRent"):
+                quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
             filing_type = HOST_REGISTRATION_FEE_1
         return filing_type, quantity
 

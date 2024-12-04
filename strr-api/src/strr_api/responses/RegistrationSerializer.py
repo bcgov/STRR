@@ -196,7 +196,9 @@ class RegistrationSerializer:
                 "middleName": primary_property_contact.contact.middlename,
                 "lastName": primary_property_contact.contact.lastname,
             },
-            "dateOfBirth": primary_property_contact.contact.date_of_birth,
+            "dateOfBirth": primary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
+            if primary_property_contact.contact.date_of_birth
+            else None,
             "socialInsuranceNumber": primary_property_contact.contact.social_insurance_number,
             "businessNumber": primary_property_contact.contact.business_number,
             "contactType": primary_property_contact.contact_type,
@@ -226,7 +228,9 @@ class RegistrationSerializer:
                     "middleName": secondary_property_contact.contact.middlename,
                     "lastName": secondary_property_contact.contact.lastname,
                 },
-                "dateOfBirth": secondary_property_contact.contact.date_of_birth,
+                "dateOfBirth": secondary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
+                if secondary_property_contact.contact.date_of_birth
+                else None,
                 "socialInsuranceNumber": secondary_property_contact.contact.social_insurance_number,
                 "contactType": secondary_property_contact.contact_type,
                 "businessNumber": secondary_property_contact.contact.business_number,

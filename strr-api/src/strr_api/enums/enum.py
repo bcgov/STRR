@@ -107,14 +107,6 @@ class PropertyType(Enum):
     FLOAT_HOME = "Float home"
 
 
-class OwnershipType(Enum):
-    """STRR Ownership Type."""
-
-    OWN = "own"
-    RENT = "rent"
-    CO_OWN = "co-own"
-
-
 class PaymentStatus(Enum):
     """Payment status codes."""
 
