@@ -76,46 +76,17 @@ onMounted(async () => {
         v-if="docStore.requiredDocs.length > 0 || reqStore.overrideApplicationWarning"
         class="flex flex-col gap-10"
       >
-        <div>
-          <p
-            aria-hidden="true"
-            class="font-bold"
-          >
-            {{
-              reqStore.overrideApplicationWarning
-                ? $t('text.followingDocsMayBeRequired')
-                : $t('text.followingDocsRequired')
-            }}
-          </p>
-          <ul
-            :aria-label="reqStore.overrideApplicationWarning
-              ? $t('text.followingDocsMayBeRequired')
-              : $t('text.followingDocsRequired') "
-            class="mt-5 list-outside list-disc space-y-3 pl-10"
-          >
-            <template v-if="!reqStore.overrideApplicationWarning">
-              <li
-                v-for="doc, i in docStore.requiredDocs"
-                :key="i"
-                :class="doc.isValid || (!doc.isValid && isComplete)
-                  ? 'flex items-center gap-1 list-none -ml-6'
-                  : ''"
-              >
-                <UIcon v-if="doc.isValid" name="i-mdi-check" class="size-5 text-green-600" />
-                <UIcon v-else-if="!doc.isValid && isComplete" name="i-mdi-close" class="mt-[2px] size-5 text-red-600" />
-                <span>{{ doc.label }}</span>
-              </li>
-            </template>
-            <template v-else>
-              <li
-                v-for="doc, i in docStore.potentialRequiredDocs"
-                :key="i"
-              >
-                <span>{{ doc.label }}</span>
-              </li>
-            </template>
-          </ul>
-        </div>
+        <ConnectChecklistValidated
+          v-if="!reqStore.overrideApplicationWarning"
+          :is-complete="isComplete"
+          :title="$t('text.followingDocsRequired')"
+          :items="docStore.requiredDocs"
+        />
+        <ConnectChecklistBasic
+          v-else
+          :title="$t('text.followingDocsMayBeRequired')"
+          :items="docStore.potentialRequiredDocs"
+        />
 
         <ConnectPageSection :aria-label="$t('text.uploadReqDocs')">
           <UForm

@@ -308,7 +308,9 @@ export default {
     Save: 'Save',
     Receipt: 'Receipt',
     Certify: 'Certify',
-    Leave: 'Leave'
+    Leave: 'Leave',
+    Valid: 'Valid',
+    Invalid: 'Invalid'
   },
   page: {
     notFound: {

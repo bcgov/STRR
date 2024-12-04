@@ -78,26 +78,26 @@ export const useDocumentStore = defineStore('host/document', () => {
     return docs
   })
 
-  const potentialRequiredDocs = computed(() => {
+  const potentialRequiredDocs = computed<string[]>(() => {
     const exemptionReason = reqStore.prRequirements.prExemptionReason
     const docs = []
 
-    docs.push({ label: t('label.localGovShortTermRentalBL') })
+    docs.push(t('label.localGovShortTermRentalBL'))
 
     if (exemptionReason !== PrExemptionReason.FARM_LAND) {
-      docs.push({ label: t('label.proofOfPr') })
+      docs.push(t('label.proofOfPr'))
     }
 
     if (exemptionReason === PrExemptionReason.STRATA_HOTEL) {
-      docs.push({ label: t('label.supportingStrataDocs') })
+      docs.push(t('label.supportingStrataDocs'))
     }
 
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
-      docs.push({ label: t('label.fractOwnAgreement') })
+      docs.push(t('label.fractOwnAgreement'))
     }
 
     if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
-      docs.push({ label: t('label.rentalAgreementOrRecept') })
+      docs.push(t('label.rentalAgreementOrRecept'))
     }
 
     return docs
