@@ -357,7 +357,10 @@ export default {
     addAllReqDocs: 'Add all required documentation that supports your short-term rental registration. {link}',
     toDetermineDocsReturnToStart: 'To determine the types of documentation you’ll need, please complete Step 1 of the application first.',
     uploadReqDocs: 'Upload all required documentation to support your application.',
-    noDocsReq: 'No supporting documentation is required.'
+    noDocsReq: 'No supporting documentation is required.',
+    unitAddressIntro: 'Include the Residential Address of your short-term rental by looking up the address, or if the address cannot be found in the lookup, you can enter the address manually.',
+    unitAddressIntroNote: 'Note: the address cannot be a Mailing Address (e.g., PO Box, etc.).',
+    unitAddressUnitNumberInfo: 'Unit Number is required if the short-term rental unit has a Unit Number. Enter a Site Name if the address does not have a Street Number and Name.'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',

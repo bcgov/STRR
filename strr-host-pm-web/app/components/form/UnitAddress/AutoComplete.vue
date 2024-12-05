@@ -73,7 +73,7 @@ const addId = useId()
     class="grow"
   >
     <template #default="{ error }">
-      <div class="flex items-center gap-4">
+      <div class="flex flex-col items-start gap-4 xl:flex-row xl:items-center">
         <UInput
           :id="id + '-street'"
           v-model="addressInput"

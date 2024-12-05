@@ -86,6 +86,10 @@ onMounted(async () => {
         >
           <TransitionCollapse>
             <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="flex max-w-bcGovInput flex-col gap-10">
+              <div class="flex flex-col gap-3">
+                <p>{{ $t('text.unitAddressIntro') }}</p>
+                <p>{{ $t('text.unitAddressIntroNote') }}</p>
+              </div>
               <FormUnitAddressAutoComplete
                 id="rental-property-address-lookup"
                 v-model:address-input="propStore.unitAddress.address.street"
@@ -106,6 +110,8 @@ onMounted(async () => {
                 v-if="propStore.useManualAddressInput"
                 class="flex flex-col gap-10"
               >
+                <p>{{ $t('text.unitAddressUnitNumberInfo') }}</p>
+
                 <FormUnitAddressManual
                   id="rental-property-address"
                   v-model:street-number="propStore.unitAddress.address.streetNumber"
