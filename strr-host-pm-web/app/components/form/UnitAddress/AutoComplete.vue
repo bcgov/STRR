@@ -20,7 +20,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   newAddress: [void]
-  useManual: [void]
 }>()
 
 const { address: canadaPostAddress, enableAddressComplete } = useCanadaPostAddress()
@@ -73,33 +72,22 @@ const addId = useId()
     class="grow"
   >
     <template #default="{ error }">
-      <div class="flex flex-col items-start gap-4 xl:flex-row xl:items-center">
-        <UInput
-          :id="id + '-street'"
-          v-model="addressInput"
-          size="lg"
-          :color="addressInput ? 'primary' : 'gray'"
-          :aria-label="$t('label.lookupResidentialAddress')"
-          :placeholder="$t('label.lookupResidentialAddress')"
-          :aria-required="true"
-          :aria-invalid="error !== undefined"
-          :aria-describedby="schemaPrefix + 'street-' + addId"
-          :disabled="disabled"
-          :loading="loading"
-          class="w-full grow"
-          @keypress.once="addressComplete(id + '-street')"
-          @click="addressComplete(id + '-street')"
-        />
-        <span>{{ $t('word.or') }}</span>
-        <UButton
-          :label="$t('label.enterAddressManually')"
-          variant="link"
-          class="underline"
-          :disabled="disabled"
-          :padded="false"
-          @click="$emit('useManual')"
-        />
-      </div>
+      <UInput
+        :id="id + '-street'"
+        v-model="addressInput"
+        size="lg"
+        :color="addressInput ? 'primary' : 'gray'"
+        :aria-label="$t('label.lookupResidentialAddress')"
+        :placeholder="$t('label.lookupResidentialAddress')"
+        :aria-required="true"
+        :aria-invalid="error !== undefined"
+        :aria-describedby="schemaPrefix + 'street-' + addId"
+        :disabled="disabled"
+        :loading="loading"
+        class="w-full grow"
+        @keypress.once="addressComplete(id + '-street')"
+        @click="addressComplete(id + '-street')"
+      />
     </template>
     <template #help>
       <span :id="schemaPrefix + 'street-' + addId">

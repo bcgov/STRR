@@ -90,21 +90,36 @@ onMounted(async () => {
                 <p>{{ $t('text.unitAddressIntro') }}</p>
                 <p>{{ $t('text.unitAddressIntroNote') }}</p>
               </div>
-              <FormUnitAddressAutoComplete
-                id="rental-property-address-lookup"
-                v-model:address-input="propStore.unitAddress.address.street"
-                v-model:street-number="propStore.unitAddress.address.streetNumber"
-                v-model:street-name="propStore.unitAddress.address.streetName"
-                v-model:unit-number="propStore.unitAddress.address.unitNumber"
-                v-model:city="propStore.unitAddress.address.city"
-                v-model:postal-code="propStore.unitAddress.address.postalCode"
-                :schema-prefix="'address.'"
-                :form-ref="unitAddressFormRef"
-                :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
-                :loading="reqStore.loadingReqs && !propStore.useManualAddressInput"
-                @new-address="handleNewAddress"
-                @use-manual="handleUseManual"
-              />
+              <div class="flex flex-col items-start gap-4 xl:flex-row">
+                <FormUnitAddressAutoComplete
+                  id="rental-property-address-lookup"
+                  v-model:address-input="propStore.unitAddress.address.street"
+                  v-model:street-number="propStore.unitAddress.address.streetNumber"
+                  v-model:street-name="propStore.unitAddress.address.streetName"
+                  v-model:unit-number="propStore.unitAddress.address.unitNumber"
+                  v-model:city="propStore.unitAddress.address.city"
+                  v-model:postal-code="propStore.unitAddress.address.postalCode"
+                  :schema-prefix="'address.'"
+                  :form-ref="unitAddressFormRef"
+                  :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
+                  :loading="reqStore.loadingReqs && !propStore.useManualAddressInput"
+                  @new-address="handleNewAddress"
+                  @use-manual="handleUseManual"
+                />
+                <span
+                  class="xl:translate-y-[calc(-50%+28px)]"
+                >
+                  {{ $t('word.or') }}
+                </span>
+                <UButton
+                  :label="$t('label.enterAddressManually')"
+                  variant="link"
+                  class="underline xl:translate-y-[calc(-50%+28px)]"
+                  :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
+                  :padded="false"
+                  @click="handleUseManual"
+                />
+              </div>
 
               <div
                 v-if="propStore.useManualAddressInput"
