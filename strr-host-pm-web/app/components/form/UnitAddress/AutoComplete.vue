@@ -58,7 +58,7 @@ watch(canadaPostAddress, (newAddress) => {
       }
     }
 
-    addressInput.value = newAddress.street + ' ' + newAddress.city + ' BC ' + newAddress.postalCode
+    addressInput.value = newAddress.street
 
     emit('newAddress')
   }
