@@ -296,7 +296,9 @@ export default {
     siteNameOpt: 'Site Name (Optional)',
     forNonCivicAddresses: 'For non-civic addresses',
     locality: 'Locality',
-    additionalLocationDescription: 'Additional Location Description'
+    additionalLocationDescription: 'Additional Location Description',
+    lookupResidentialAddress: 'Look up the Residential Address',
+    enterAddressManually: 'Enter the residental address manually'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page',
@@ -359,7 +361,8 @@ export default {
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
-    docUpload: 'File must be a PDF. Maximum 10 MB.'
+    docUpload: 'File must be a PDF. Maximum 10 MB.',
+    autocomplete: 'For example: 123 - 456 Street Name Victoria BC  V8V 2V2'
   },
   page: {
     dashboardList: {

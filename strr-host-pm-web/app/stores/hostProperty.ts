@@ -5,6 +5,8 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()
 
   // rental unit address stuff
+  const useManualAddressInput = ref<boolean>(false)
+
   const unitAddressSchema = computed(() => z.object({
     address: getRequiredBCAddressSplitStreet(
       t('validation.address.city'),
@@ -181,6 +183,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     unitAddress.value = getEmptyUnitAddress()
     unitDetails.value = getEmptyUnitDetails()
     blInfo.value = getEmptyBlInfo()
+    useManualAddressInput.value = false
   }
 
   return {
@@ -202,6 +205,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     isUnitNumberRequired,
     isPIDRequired,
     propertyTypeFeeTriggers,
+    useManualAddressInput,
     $reset
   }
 })

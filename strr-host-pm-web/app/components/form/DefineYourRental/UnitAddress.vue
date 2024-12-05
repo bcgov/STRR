@@ -15,6 +15,9 @@ onMounted(async () => {
   if (props.isComplete) {
     await validateForm(unitAddressFormRef.value, props.isComplete)
   }
+
+  // const el = document.getElementById('rental-property-address-lookup-street')
+  // console.log(el?.getBoundingClientRect())
 })
 </script>
 <template>
@@ -54,33 +57,60 @@ onMounted(async () => {
           ])"
         >
           <TransitionCollapse>
-            <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="flex flex-col gap-10">
-              <FormUnitAddressManual
-                id="rental-property-address"
+            <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="flex max-w-bcGovInput flex-col gap-10">
+              <FormUnitAddressAutoComplete
+                v-if="!propStore.useManualAddressInput"
+                id="rental-property-address-lookup"
                 v-model:street-number="propStore.unitAddress.address.streetNumber"
                 v-model:street-name="propStore.unitAddress.address.streetName"
                 v-model:unit-number="propStore.unitAddress.address.unitNumber"
-                v-model:street-additional="propStore.unitAddress.address.streetAdditional"
                 v-model:city="propStore.unitAddress.address.city"
                 v-model:postal-code="propStore.unitAddress.address.postalCode"
-                class="max-w-bcGovInput"
                 :schema-prefix="'address.'"
-                :disabled-fields="
-                  reqStore.loadingReqs
-                    ? ['streetName', 'streetNumber', 'unitNumber',
-                       'streetAdditional', 'city', 'postalCode', 'locationDescription']
-                    : []
-                "
                 :form-ref="unitAddressFormRef"
-                :unit-number-required="propStore.isUnitNumberRequired"
+                :disabled="reqStore.loadingReqs"
+                :loading="reqStore.loadingReqs"
+                @new-address="unitAddressFormRef?.submit()"
+                @use-manual="propStore.useManualAddressInput = true"
               />
-              <div class="flex w-full max-w-bcGovInput justify-end">
-                <UButton
-                  :label="$t('btn.done')"
-                  size="bcGov"
-                  type="submit"
-                  :loading="reqStore.loadingReqs"
+
+              <div
+                v-if="propStore.useManualAddressInput"
+                class="flex flex-col gap-10"
+              >
+                <FormUnitAddressManual
+                  id="rental-property-address"
+                  v-model:street-number="propStore.unitAddress.address.streetNumber"
+                  v-model:street-name="propStore.unitAddress.address.streetName"
+                  v-model:unit-number="propStore.unitAddress.address.unitNumber"
+                  v-model:street-additional="propStore.unitAddress.address.streetAdditional"
+                  v-model:city="propStore.unitAddress.address.city"
+                  v-model:postal-code="propStore.unitAddress.address.postalCode"
+                  :schema-prefix="'address.'"
+                  :disabled-fields="
+                    reqStore.loadingReqs
+                      ? ['streetName', 'streetNumber', 'unitNumber',
+                         'streetAdditional', 'city', 'postalCode', 'locationDescription']
+                      : []
+                  "
+                  :form-ref="unitAddressFormRef"
+                  :unit-number-required="propStore.isUnitNumberRequired"
                 />
+                <div class="flex w-full max-w-bcGovInput justify-end gap-4">
+                  <UButton
+                    :label="$t('btn.cancel')"
+                    size="bcGov"
+                    variant="outline"
+                    :disabled="reqStore.loadingReqs"
+                    @click="propStore.useManualAddressInput = false"
+                  />
+                  <UButton
+                    :label="$t('btn.done')"
+                    size="bcGov"
+                    type="submit"
+                    :loading="reqStore.loadingReqs"
+                  />
+                </div>
               </div>
             </div>
           </TransitionCollapse>
@@ -115,7 +145,7 @@ onMounted(async () => {
                     <UButton
                       class="m-2"
                       icon="i-mdi-trashcan"
-                      :label="$t('word.remove')"
+                      :label="$t('word.Remove')"
                       variant="link"
                       @click="hostModal.openConfirmRestartApplicationModal(false)"
                     />
