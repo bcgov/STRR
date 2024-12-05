@@ -120,7 +120,9 @@ export default {
   label: {
     additionalInfo: 'Additional Information',
     applicationDate: 'Application Date',
+    authorization: 'Authorization',
     born: 'Born',
+    confirmation: 'Confirmation',
     details: 'Details',
     expiryDate: 'Expiry Date',
     registrationDate: 'Registration Date',
@@ -467,6 +469,26 @@ export default {
       confirm: {
         infoAccuracy: 'I confirm that the information contained in the application for registration is accurate and true. I understand that, if I have provided inaccurate or false information, I may be the subject of enforcement action under Part 4 of the Short-Term Rental Accommodations Act. Enforcement action may include being ordered to pay an administrative penalty.',
         delistAndCancelBookings: 'I confirm agreement to delist and cancel existing bookings for unregistered listings as required under s. 17 (2) (a) and [relevant section of the forthcoming regulation].'
+      },
+      certify: {
+        1: {
+          title: 'Terms and Conditions.',
+          text: 'I agree to comply with the {link} of registration.'
+        },
+        2: {
+          title: 'Tax Auditing.',
+          text: 'I understand that my registration information will be shared with the Ministry of Finance and the Canada Revenue Agency for the purposes of tax auditing.'
+        },
+        3: {
+          title: 'Principal Residence Declaration.',
+          text: "As required by section 14 (2) of the Short-Term Rental Accommodations Act (the Act), I declare that I will comply with the principal residence requirement in the Act and provide the short-term rental accommodation services described in this registration in one or both of: a. the property host's principal residence, and b. not more than one secondary suite or accessory dwelling unit on the same property. I understand that if I do not comply with the principal residence requirement, I may be subject to enforcement action under Part 4 of the Act, including being ordered to pay an administrative penalty."
+        },
+        4: {
+          title: 'Accuracy of Information.',
+          text: 'I confirm that the information contained in the application for registration is accurate and true. I understand that if I have knowingly provided inaccurate or false information, I may be subject to enforcement action under Part 4 of the Short-Term Rental Accommodations Act.'
+        },
+        confirm: 'I, {name}, confirm that I understand and agree to all of the requirements listed above.',
+        authorization: 'I, {name}, have relevant knowledge of and am authorized to submit this registration.'
       }
     }
   }

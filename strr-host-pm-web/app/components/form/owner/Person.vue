@@ -41,14 +41,18 @@ watch(isCompParty, (val) => {
         <p>{{ $t('strr.text.completingPartyInfo') }}</p>
         <UFormGroup name="isCompParty">
           <!-- TODO: move checkbox to base/connect -->
-          <UCheckbox v-model="isCompParty" :disabled="owner.role === OwnerRole.CO_HOST">
+          <UCheckbox
+            v-model="isCompParty"
+            :disabled="owner.role === OwnerRole.CO_HOST"
+            :ui="{ inner: '*:pl-0' }"
+          >
             <template #label>
               <p
                 :class="[
                   owner.role === OwnerRole.CO_HOST
                     ? 'cursor-not-allowed opacity-50'
-                    : 'cursor-pointer',
-                  'pl-3 text-sm']"
+                    : '',
+                  'pl-3']"
               >
                 {{ $t('strr.text.completingPartyCheckbox') }}
               </p>

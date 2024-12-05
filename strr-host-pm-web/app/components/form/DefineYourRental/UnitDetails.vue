@@ -138,7 +138,7 @@ onMounted(async () => {
 
         <!-- type of space section -->
         <ConnectFormSection
-          title="Type of Space"
+          :title="$t('label.typeOfSpace')"
           :error="isComplete && hasFormErrors(unitDetailsFormRef, ['typeOfSpace'])"
         >
           <UFormGroup name="typeOfSpace">

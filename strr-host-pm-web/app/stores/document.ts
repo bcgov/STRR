@@ -12,7 +12,9 @@ export const useDocumentStore = defineStore('host/document', () => {
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
 
-  const apiDocuments = computed(() => storedDocuments.value.map(item => ({ ...item.apiDoc, type: item.type }))) // ApiDocument[]
+  const apiDocuments = computed(() => storedDocuments.value.map(item => ({
+    ...item.apiDoc, documentType: item.type
+  }))) // ApiDocument[]
 
   const requiredDocs = computed(() => {
     const reqs = reqStore.propertyReqs
@@ -28,8 +30,9 @@ export const useDocumentStore = defineStore('host/document', () => {
     const exemptionReason = reqStore.prRequirements.prExemptionReason
     const docs = []
 
-    if (reqs.isBusinessLicenceRequired) {
-      const isBlValid = apiDocuments.value.some(item => item.type === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)
+    if (reqs.isBusinessLicenseRequired) {
+      const isBlValid = apiDocuments.value.some(
+        item => item.documentType === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)
       docs.push({
         isValid: isBlValid,
         icon: isBlValid ? 'i-mdi-check' : 'i-mdi-close',
@@ -45,7 +48,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       })
     }
     if (exemptionReason === PrExemptionReason.STRATA_HOTEL) {
-      const isStrataValid = apiDocuments.value.some(item => item.type === DocumentUploadType.STRATA_HOTEL_DOCUMENTATION)
+      const isStrataValid = apiDocuments.value.some(
+        item => item.documentType === DocumentUploadType.STRATA_HOTEL_DOCUMENTATION)
       docs.push({
         isValid: isStrataValid,
         icon: isStrataValid ? 'i-mdi-check' : 'i-mdi-close',
@@ -54,7 +58,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
       const isFractValid = apiDocuments.value.some(
-        item => item.type === DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+        item => item.documentType === DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
       )
       docs.push({
         isValid: isFractValid,
@@ -66,7 +70,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
       const isRentValid = apiDocuments.value.some(
         item => [DocumentUploadType.TENANCY_AGREEMENT, DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT]
-          .includes(item.type)
+          .includes(item.documentType)
       )
       docs.push({
         isValid: isRentValid,
@@ -105,16 +109,16 @@ export const useDocumentStore = defineStore('host/document', () => {
 
   const docTypeOptions = [
     {
-      label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENCE}`),
-      value: DocumentUploadType.BC_DRIVERS_LICENCE
+      label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENSE}`),
+      value: DocumentUploadType.BC_DRIVERS_LICENSE
     },
     {
       label: t(`form.pr.docType.${DocumentUploadType.BCSC}`),
       value: DocumentUploadType.BCSC
     },
     {
-      label: t(`form.pr.docType.${DocumentUploadType.COMBINED_BCSC_LICENCE}`),
-      value: DocumentUploadType.COMBINED_BCSC_LICENCE
+      label: t(`form.pr.docType.${DocumentUploadType.COMBINED_BCSC_LICENSE}`),
+      value: DocumentUploadType.COMBINED_BCSC_LICENSE
     },
     {
       label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE}`),
@@ -228,7 +232,8 @@ export const useDocumentStore = defineStore('host/document', () => {
         method: 'POST',
         body: formData
       })
-
+      // api doesn't give documentType back
+      res.documentType = uiDoc.type
       // update ui object with backend response
       updateStoredDocument(uiDoc.id, 'apiDoc', res)
     } catch (e) {
@@ -254,9 +259,9 @@ export const useDocumentStore = defineStore('host/document', () => {
   function validatePrincipalResidenceDocuments (): boolean {
     // either 2 unique docs from this list are required
     const uniqueColumnADocs = [
-      DocumentUploadType.BC_DRIVERS_LICENCE,
+      DocumentUploadType.BC_DRIVERS_LICENSE,
       DocumentUploadType.BCSC,
-      DocumentUploadType.COMBINED_BCSC_LICENCE,
+      DocumentUploadType.COMBINED_BCSC_LICENSE,
       DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE,
       DocumentUploadType.SPEC_TAX_CONFIRMATION,
       DocumentUploadType.HOG_DECLARATION
@@ -284,19 +289,18 @@ export const useDocumentStore = defineStore('host/document', () => {
 
     // get unique column a docs
     const columnAFilteredUnique = uniqBy(
-      apiDocuments.value.filter(item => uniqueColumnADocs.includes(item.type)),
-      'type'
+      apiDocuments.value.filter(item => uniqueColumnADocs.includes(item.documentType)),
+      'documentType'
     )
 
     // get unique column b docs
     const columnBFilteredUnique = uniqBy(
-      apiDocuments.value.filter(item => uniqueColumnBDocs.includes(item.type)),
-      'type'
+      apiDocuments.value.filter(item => uniqueColumnBDocs.includes(item.documentType)),
+      'documentType'
     )
 
     // get non-unique column b docs
-    const columnBFilteredNonUnique = apiDocuments.value.filter(item => nonUniqueColumnBDocs.includes(item.type))
-
+    const columnBFilteredNonUnique = apiDocuments.value.filter(item => nonUniqueColumnBDocs.includes(item.documentType))
     // get doc count
     const columnACount = columnAFilteredUnique.length
     const columnBCount = columnBFilteredUnique.length + columnBFilteredNonUnique.length

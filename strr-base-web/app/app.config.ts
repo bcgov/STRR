@@ -23,7 +23,8 @@ export default defineAppConfig({
     },
     checkbox: {
       wrapper: 'space-x-0',
-      base: 'size-5 cursor-pointer m-0'
+      base: 'm-0 size-5 ',
+      inner: '*:-mt-[2px] *:pl-3 *:cursor-pointer'
     },
     input: {
       file: {
@@ -42,10 +43,13 @@ export default defineAppConfig({
       }
     },
     radio: {
-      base: 'size-5 cursor-pointer'
+      base: 'size-5 cursor-pointer',
+      inner: 'm-0',
+      label: '-mt-[2px] pl-3 text-base cursor-pointer'
     },
     radioGroup: {
-      wrapper: 'max-w-bcGovInput'
+      wrapper: 'max-w-bcGovInput',
+      fieldset: '*:mb-1'
     },
     select: {
       color: {

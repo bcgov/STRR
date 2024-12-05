@@ -20,13 +20,13 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     const reqs = []
     // TODO: need to define rules for when to display what information if user continues with application
     // || overrideApplicationWarning.value === true
-    if (propertyReqs.value.isBusinessLicenceRequired || overrideApplicationWarning.value) {
+    if (propertyReqs.value.isBusinessLicenseRequired || overrideApplicationWarning.value) {
       reqs.push(
         {
-          label: t('requirements.busLicence.label'),
+          label: t('requirements.busLicense.label'),
           content: overrideApplicationWarning.value
-            ? t('requirements.busLicence.content.override')
-            : t('requirements.busLicence.content.normal')
+            ? t('requirements.busLicense.content.override')
+            : t('requirements.busLicense.content.normal')
         }
       )
     }

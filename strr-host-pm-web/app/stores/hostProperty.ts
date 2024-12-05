@@ -75,7 +75,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     }
   }
 
-  // business licence stuff
+  // business license stuff
   const today = new Date()
   const minBlDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1) // tomorrow
   const maxBlDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()) // today + 1 year
@@ -98,7 +98,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   const blInfo = ref<UiBlInfo>(getEmptyBlInfo())
 
-  const validateBusinessLicence = (returnBool = false): MultiFormValidationResult | boolean => {
+  const validateBusinessLicense = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(
       blInfoSchema,
       blInfo.value,
@@ -226,7 +226,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     blInfoSchema,
     getEmptyBlInfo,
     blInfo,
-    validateBusinessLicence,
+    validateBusinessLicense,
     // unitDetailsSchema,
     getUnitDetailsSchema,
     getEmptyUnitDetails,

@@ -38,7 +38,7 @@ export function formatAddressUI (add: ApiAddress): ConnectAddress {
   }
 }
 
-export function formatParty (party: Contact): ApiParty {
+export function formatParty <T extends Contact> (party: T): ApiParty {
   return {
     firstName: party.firstName,
     middleName: party.middleName ?? '',

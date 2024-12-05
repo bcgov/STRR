@@ -2,23 +2,29 @@
 import type { Form } from '#ui/types'
 import { z } from 'zod'
 
-const accountStore = useConnectAccountStore()
-const contactStore = useStrrContactStore()
-const businessStore = useStrrStrataBusinessStore()
-const detailsStore = useStrrStrataDetailsStore()
-const applicationStore = useStrrStrataApplicationStore()
-
-const strataConfirmationFormRef = ref<Form<z.output<typeof applicationStore.confirmationSchema>>>()
-const sectionErrors = ref<MultiFormValidationResult>([])
-
 const props = defineProps<{ isComplete: boolean }>()
 
 defineEmits<{
   edit: [index: number]
 }>()
 
+const { t } = useI18n()
+const { hostTacUrl } = useRuntimeConfig().public
+// const accountStore = useConnectAccountStore()
+const propertyStore = useHostPropertyStore()
+const { blInfo, unitAddress, unitDetails } = storeToRefs(propertyStore)
+const { prRequirements, requirementsList } = storeToRefs(usePropertyReqStore())
+const ownerStore = useHostOwnerStore()
+const { hasCompParty, hostOwners } = storeToRefs(ownerStore)
+const documentsStore = useDocumentStore()
+const { storedDocuments } = storeToRefs(documentsStore)
+const applicationStore = useHostApplicationStore()
+
+const confirmationFormRef = ref<Form<z.output<typeof applicationStore.confirmationSchema>>>()
+const sectionErrors = ref<MultiFormValidationResult>([])
+
 const validateConfirmation = () => {
-  strataConfirmationFormRef.value?.validate(undefined, { silent: true })
+  confirmationFormRef.value?.validate(undefined, { silent: true })
 }
 
 const isSectionInvalid = (formId: string) => {
@@ -35,320 +41,238 @@ onMounted(async () => {
   }
 
   const validations = [
-    contactStore.validateContact(),
-    businessStore.validateStrataBusiness(),
-    detailsStore.validateStrataDetails()
+    propertyStore.validateBusinessLicense(),
+    propertyStore.validateUnitAddress(),
+    propertyStore.validateUnitDetails(),
+    ownerStore.validateOwners(),
+    applicationStore.validateUserConfirmation()
   ]
 
   const validationResults = await Promise.all(validations)
   sectionErrors.value = validationResults.flatMap(result => result as MultiFormValidationResult)
+  // add documents section error if applicable
+  if (documentsStore.validateRequiredDocuments().length > 0) {
+    sectionErrors.value.push({
+      formId: 'supporting-documents',
+      success: false,
+      errors: []
+    })
+  }
+})
+
+// step 1 items
+const exemptInfo = computed((): ConnectInfoTableItem[] => [
+  { label: '', info: '', slot: 'border' },
+  { label: t('label.exemption'), info: '', slot: 'exempt' },
+  { label: t('label.exemptionReason'), info: t(`label.exemptionReasonCode.${prRequirements.value.prExemptionReason}`) }
+])
+const propertyInfo = computed((): ConnectInfoTableItem[] => [
+  { label: t('label.strUnitName'), info: unitAddress.value.address.nickname || t('text.notEntered') },
+  { label: t('label.strUnitAddress'), info: '', slot: 'address' },
+  ...(prRequirements.value.isPropertyPrExempt
+    ? exemptInfo.value
+    : []
+  ),
+  { label: '', info: '', slot: 'border' },
+  { label: t('strr.label.propertyType'), info: t(`propertyType.${unitDetails.value.propertyType}`) },
+  { label: t('label.typeOfSpace'), info: t(`rentalUnitType.${unitDetails.value.typeOfSpace}`) },
+  { label: t('strr.label.rentalUnitSetup'), info: t(`rentalUnitSetupType.${unitDetails.value.rentalUnitSetupType}`) },
+  { label: t('strr.label.numberOfRooms'), info: unitDetails.value.numberOfRoomsForRent },
+  { label: '', info: '', slot: 'border' },
+  { label: t('strr.label.ownershipType'), info: t(`ownershipType.${unitDetails.value.ownershipType}`) },
+  { label: t('strr.label.parcelId'), info: unitDetails.value.parcelIdentifier || t('text.notEntered') }
+])
+
+// step 3 items
+const supportingInfo = computed(() => [
+  { label: t('strr.label.supportingDocs'), info: storedDocuments.value, slot: 'documents' },
+  { label: '', info: '', slot: 'border' },
+  { label: t('strr.label.businessLicense'), info: blInfo.value.businessLicense || t('text.notEntered') },
+  { label: t('strr.label.businessLicenseDate'), info: blInfo.value.businessLicenseExpiryDate || t('text.notEntered') }
+])
+
+// TODO: move to common util or store (also used in summary component)
+const getFullName = (owner: HostOwner) => {
+  return `${owner.firstName || ''} ${owner.middleName || ''} ${owner.lastName || ''}`.replaceAll('  ', ' ').trim()
+}
+const getCompPartyName = computed(() => {
+  const compPartyIdx = ownerStore.findCompPartyIndex()
+  if (hasCompParty.value && hostOwners.value[compPartyIdx]) {
+    return getFullName(hostOwners.value[compPartyIdx])
+  }
+  return `[${t('label.completingParty')}]`
 })
 </script>
 <template>
   <div class="space-y-10" data-testid="strata-review-confirm">
-    <UAlert
-      color="yellow"
-      icon="i-mdi-alert"
-      :close-button="null"
-      variant="subtle"
-      :ui="{
-        inner: 'pt-0',
-      }"
-    >
-      <template #description>
-        <ConnectI18nBold class="text-bcGovGray-900" translation-path="strr.review.alert.contactInfo" />
-      </template>
-    </UAlert>
-
-    <!-- person completing strata application -->
+    <!-- property details -->
     <ConnectPageSection
       :heading="{
-        label: $t('strr.section.title.completingParty'),
-        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
-        icon: 'i-mdi-account-plus',
-        padding: 'sm:px-8 py-4 px-4'
-      }"
-    >
-      <FormCommonReviewSection
-        :error="isSectionInvalid('completing-party-form')"
-        :items="[
-          {
-            title: $t('label.contactName'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: accountStore.userFullName
-          },
-          {
-            title: $t('label.phone.number'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: `+${contactStore.completingParty.phone.countryCode || '-'} ` +
-              contactStore.completingParty.phone.number +
-              ' ' + contactStore.completingParty.phone.extension || ''
-          },
-          {
-            title: $t('label.emailAddress'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: contactStore.completingParty.emailAddress
-          },
-        ]"
-        @edit="$emit('edit', 0)"
-      />
-    </ConnectPageSection>
-
-    <!-- primary strata rep section -->
-    <ConnectPageSection
-      :heading="{
-        label: $t('strr.section.title.primaryRep'),
-        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
-        icon: 'i-mdi-account-multiple-plus',
-        padding: 'sm:px-8 py-4 px-4'
-      }"
-    >
-      <FormCommonReviewSection
-        :error="isSectionInvalid('primary-rep-form')"
-        :items="[
-          {
-            title: $t('label.contactName'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: `${contactStore.primaryRep?.firstName || '-'} ` +
-              `${contactStore.primaryRep?.middleName || ''}` + ` ${contactStore.primaryRep?.lastName || ''}`
-          },
-          {
-            title: $t('label.phone.number'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: `+${contactStore.primaryRep?.phone.countryCode || '-'} ` +
-              `${contactStore.primaryRep?.phone.number || ''}` +
-              ' ' + `${contactStore.primaryRep?.phone.extension || ''}`
-          },
-          {
-            title: $t('label.emailAddress'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: contactStore.primaryRep?.emailAddress
-          },
-          {
-            title: $t('label.positionTitle'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: contactStore.primaryRep?.position
-          },
-          {
-            title: $t('label.faxNumber'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: contactStore.primaryRep?.faxNumber
-          },
-        ]"
-        @edit="$emit('edit', 0)"
-      />
-    </ConnectPageSection>
-
-    <!-- secondary strata rep section -->
-    <ConnectPageSection
-      v-if="contactStore.secondaryRep"
-      :heading="{
-        label: $t('strr.section.title.secondaryRep'),
-        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
-        icon: 'i-mdi-account-multiple-plus',
-        padding: 'sm:px-8 py-4 px-4'
-      }"
-    >
-      <FormCommonReviewSection
-        :error="isSectionInvalid('secondary-rep-form')"
-        :items="[
-          {
-            title: $t('label.contactName'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: `${contactStore.secondaryRep?.firstName || '-'} ` +
-              `${contactStore.secondaryRep?.middleName || ''}` + ` ${contactStore.secondaryRep?.lastName || ''}`
-          },
-          {
-            title: $t('label.phone.number'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: `+${contactStore.secondaryRep?.phone.countryCode || '-'} ` +
-              `${contactStore.secondaryRep?.phone.number || ''}` +
-              ' ' + `${contactStore.secondaryRep?.phone.extension || ''}`
-          },
-          {
-            title: $t('label.emailAddress'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: contactStore.secondaryRep?.emailAddress
-          },
-          {
-            title: $t('label.positionTitle'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: contactStore.secondaryRep?.position
-          },
-          {
-            title: $t('label.faxNumber'),
-            titleClass: 'font-bold text-bcGovGray-900',
-            content: contactStore.secondaryRep?.faxNumber
-          },
-        ]"
-        @edit="$emit('edit', 0)"
-      />
-    </ConnectPageSection>
-
-    <!-- business info section -->
-    <ConnectPageSection
-      :heading="{
-        label: $t('strr.section.title.businessInfo'),
-        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
-        icon: 'i-mdi-domain-plus',
-        padding: 'sm:px-8 py-4 px-4'
-      }"
-    >
-      <FormCommonReviewSection
-        :error="isSectionInvalid('business-details-form')"
-        :items="[
-          {
-            title: $t('label.busNameLegal'),
-            slot: 'businessIdentifiers'
-          },
-          {
-            title: $t('strr.section.subTitle.businessMailAddress'),
-            slot: 'businessMailAddress'
-          },
-          {
-            title: $t('strr.review.busInfo.attForSvcName'),
-            slot: 'regOfficeAtt'
-          }
-        ]"
-        @edit="$emit('edit', 1)"
-      >
-        <template #businessIdentifiers>
-          <div class="space-y-5">
-            <p>{{ businessStore.strataBusiness.legalName || '-' }}</p>
-            <ConnectInfoBox
-              :title="$t('label.homeJurisdiction')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="businessStore.strataBusiness.homeJurisdiction || '-'"
-            />
-            <ConnectInfoBox
-              :title="$t('label.busNum')"
-              title-class="font-bold text-bcGovGray-900"
-              :content="businessStore.strataBusiness.businessNumber || '-'"
-            />
-          </div>
-        </template>
-        <template #businessMailAddress>
-          <ConnectFormAddressDisplay
-            v-if="businessStore.strataBusiness.mailingAddress.street"
-            :address="businessStore.strataBusiness.mailingAddress"
-          />
-          <span v-else> - </span>
-        </template>
-        <template #regOfficeAtt>
-          <p>{{ businessStore.strataBusiness.regOfficeOrAtt.attorneyName || '-' }}</p>
-          <ConnectInfoBox
-            :title="$t('strr.section.subTitle.regOfficeAttSvcAddrress')"
-            title-class="font-bold text-bcGovGray-900"
-            class="mt-5"
-          >
-            <ConnectFormAddressDisplay
-              v-if="businessStore.strataBusiness.regOfficeOrAtt.mailingAddress.street"
-              :address="businessStore.strataBusiness.regOfficeOrAtt.mailingAddress"
-            />
-            <span v-else> - </span>
-          </ConnectInfoBox>
-        </template>
-      </FormCommonReviewSection>
-    </ConnectPageSection>
-
-    <!-- strata info section -->
-    <ConnectPageSection
-      :heading="{
-        label: $t('strr.section.title.details'),
-        labelClass: 'text-lg font-semibold text-bcGovColor-darkGray',
+        label: $t('strr.label.shortTermRental'),
+        labelClass: 'text-lg font-bold text-gray-900',
         icon: 'i-mdi-map-marker-plus-outline',
         padding: 'sm:px-8 py-4 px-4'
       }"
     >
       <FormCommonReviewSection
-        :error="isSectionInvalid('strata-details-form')"
-        :items="[
-          {
-            title: $t('strr.review.brand.name'),
-            slot: 'brand'
-          },
-          {
-            title: $t('strr.section.subTitle.numberOfUnits'),
-            content: detailsStore.strataDetails.numberOfUnits
-          },
-          {
-            title: $t('strr.section.subTitle.primaryStrataBuilding'),
-            slot: 'buildings',
-            contentClass: 'line-clamp-none'
-          },
-        ]"
-        @edit="$emit('edit', 2)"
+        :error="isSectionInvalid('rental-unit-address-form') || isSectionInvalid('unit-details-form')"
+        @edit="$emit('edit', 0)"
       >
-        <template #brand>
-          <p>{{ detailsStore.strataDetails.brand.name || '-' }}</p>
-          <ConnectInfoBox
-            :title="$t('strr.review.brand.site')"
-            title-class="font-bold text-bcGovGray-900"
-            :content="detailsStore.strataDetails.brand.website || '-'"
-            class="mt-5"
-          />
-        </template>
-        <template #buildings>
-          <div class="space-y-5">
-            <ConnectFormAddressDisplay
-              v-if="detailsStore.strataDetails.location.street"
-              :address="detailsStore.strataDetails.location"
-            />
-            <span v-else> - </span>
-            <ConnectInfoBox
-              v-for="building, i in detailsStore.strataDetails.buildings"
-              :key="`review-building-${i}`"
-              :title="`${$t('strr.section.subTitle.strataBuilding')} ${ i + 2 }`"
-              title-class="font-bold text-bcGovGray-900"
-            >
-              <ConnectFormAddressDisplay
-                v-if="building.street"
-                :address="building"
-              />
-              <span v-else> - </span>
-            </ConnectInfoBox>
-          </div>
-        </template>
+        <ConnectInfoTable :items="propertyInfo">
+          <template #label-border>
+            <div class="h-px w-full border-b border-gray-100" />
+          </template>
+          <template #info-border>
+            <div class="-ml-4 h-px w-full border-b border-gray-100" />
+          </template>
+          <template #info-address>
+            <ConnectFormAddressDisplay :address="unitAddress.address" />
+          </template>
+          <template #info-exempt>
+            <div class="flex gap-2">
+              <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
+              <p>{{ $t('text.thisPropIsExempt') }}</p>
+            </div>
+          </template>
+        </ConnectInfoTable>
       </FormCommonReviewSection>
     </ConnectPageSection>
-
-    <section class="space-y-6">
-      <h2>{{ $t('word.Certify') }}</h2>
-
-      <UForm
-        ref="strataConfirmationFormRef"
-        :state="applicationStore.confirmation"
-        :schema="applicationStore.confirmationSchema"
-        class="space-y-10 pb-10"
+    <!-- Individuals and Businesses -->
+    <ConnectPageSection
+      :heading="{
+        label: $t('strr.label.individualsBusinesses'),
+        labelClass: 'text-lg font-bold text-gray-900',
+        icon: 'i-mdi-account-multiple-plus',
+        padding: 'sm:px-8 py-4 px-4'
+      }"
+    >
+      <FormCommonReviewSection
+        :error="isSectionInvalid('host-owners')"
+        @edit="$emit('edit', 1)"
       >
-        <UFormGroup name="confirmInfoAccuracy">
+        <SummaryOwners v-if="ownerStore.hostOwners.length" />
+      </FormCommonReviewSection>
+    </ConnectPageSection>
+    <ConnectPageSection
+      :heading="{
+        label: $t('strr.label.supportingInfo'),
+        labelClass: 'text-lg font-bold text-gray-900',
+        icon: 'i-mdi-file-upload-outline',
+        padding: 'sm:px-8 py-4 px-4'
+      }"
+    >
+      <FormCommonReviewSection
+        :error="isSectionInvalid('business-license-form') || isSectionInvalid('supporting-documents')"
+        @edit="$emit('edit', 2)"
+      >
+        <ConnectInfoTable :items="supportingInfo">
+          <template #label-border>
+            <div class="h-px w-full border-b border-gray-100" />
+          </template>
+          <template #info-border>
+            <div class="-ml-4 h-px w-full border-b border-gray-100" />
+          </template>
+          <template #info-documents>
+            <div class="space-y-1">
+              <div v-if="!requirementsList.length">
+                <div class="flex gap-2">
+                  <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
+                  <p>{{ $t('text.noDocsReq') }}</p>
+                </div>
+              </div>
+              <div v-else-if="!storedDocuments.length">
+                <p>{{ $t('text.noDocsUploaded') }}</p>
+              </div>
+              <div v-for="doc in storedDocuments" :key="doc.id" class="flex w-full gap-2">
+                <UIcon
+                  name="i-mdi-paperclip"
+                  class="size-6 text-blue-500"
+                />
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold">{{ $t(`form.pr.docType.${doc.type}`) }}</span>
+                  <span>{{ doc.name }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </ConnectInfoTable>
+      </FormCommonReviewSection>
+    </ConnectPageSection>
+    <UForm
+      ref="confirmationFormRef"
+      :state="applicationStore.userConfirmation"
+      :schema="applicationStore.confirmationSchema"
+      class="space-y-10"
+    >
+      <ConnectTypographyH2 :text="$t('label.confirmation')" custom-class="text-lg font-bold" />
+      <ConnectFormSection
+        class="rounded bg-white py-5"
+        :error="isComplete && hasFormErrors(confirmationFormRef, ['agreedToRentalAct'])"
+      >
+        <ul class="list-outside list-decimal divide-y font-bold *:py-7">
+          <li>
+            <span class="font-bold">{{ $t('strr.review.certify.1.title') }}</span>&nbsp;
+            <span class="font-normal">
+              <i18n-t keypath="strr.review.certify.1.text" scope="global">
+                <template #link>
+                  <UButton
+                    :label="$t('link.hostTAC')"
+                    :to="hostTacUrl"
+                    :padded="false"
+                    variant="link"
+                    target="_blank"
+                    class="text-base underline"
+                  />
+                </template>
+              </i18n-t>
+            </span>
+          </li>
+          <li v-for="i of [2, 3, 4]" :key="i">
+            <p>
+              <span class="font-bold">{{ $t(`strr.review.certify.${i}.title`) }}</span>&nbsp;
+              <span class="font-normal">{{ $t(`strr.review.certify.${i}.text`) }}</span>
+            </p>
+          </li>
+          <li class="-ml-5 mt-2 list-none">
+            <UFormGroup name="agreedToRentalAct" class="mt-2">
+              <UCheckbox
+                v-model="applicationStore.userConfirmation.agreedToRentalAct"
+                aria-required="true"
+                :aria-invalid="hasFormErrors(confirmationFormRef, ['agreedToRentalAct'])"
+              >
+                <template #label>
+                  <i18n-t keypath="strr.review.certify.confirm" scope="global">
+                    <template #name>
+                      <b>{{ getCompPartyName }}</b>
+                    </template>
+                  </i18n-t>
+                </template>
+              </UCheckbox>
+            </UFormGroup>
+          </li>
+        </ul>
+      </ConnectFormSection>
+      <ConnectTypographyH2 :text="$t('label.authorization')" custom-class="text-lg font-bold" />
+      <ConnectFormSection
+        class="rounded bg-white py-12"
+        :error="isComplete && hasFormErrors(confirmationFormRef, ['agreedToSubmit'])"
+      >
+        <UFormGroup name="agreedToSubmit" class="-ml-5">
           <UCheckbox
-            v-model="applicationStore.confirmation.confirmInfoAccuracy"
-            :label="$t('strr.review.confirm.infoAccuracy')"
-            class="rounded bg-white p-4"
-            :class="hasFormErrors(strataConfirmationFormRef, ['confirmInfoAccuracy'])
-              ? 'outline outline-red-600'
-              : ''
-            "
+            v-model="applicationStore.userConfirmation.agreedToSubmit"
             aria-required="true"
-            :aria-invalid="hasFormErrors(strataConfirmationFormRef, ['confirmInfoAccuracy'])"
-          />
+            :aria-invalid="hasFormErrors(confirmationFormRef, ['agreedToSubmit'])"
+          >
+            <template #label>
+              <i18n-t keypath="strr.review.certify.authorization" scope="global">
+                <template #name>
+                  <b>{{ getCompPartyName }}</b>
+                </template>
+              </i18n-t>
+            </template>
+          </UCheckbox>
         </UFormGroup>
-
-        <UFormGroup name="confirmDelistAndCancelBookings">
-          <UCheckbox
-            v-model="applicationStore.confirmation.confirmDelistAndCancelBookings"
-            :label="$t('strr.review.confirm.delistAndCancelBookings')"
-            class="rounded bg-white p-4"
-            :class="hasFormErrors(strataConfirmationFormRef, ['confirmDelistAndCancelBookings'])
-              ? 'outline outline-red-600'
-              : ''
-            "
-            aria-required="true"
-            :aria-invalid="hasFormErrors(strataConfirmationFormRef, ['confirmDelistAndCancelBookings'])"
-          />
-        </UFormGroup>
-      </UForm>
-    </section>
+      </ConnectFormSection>
+    </UForm>
   </div>
 </template>

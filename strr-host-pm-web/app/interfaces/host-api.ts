@@ -1,12 +1,15 @@
+export interface ApiHostParty extends ApiParty {
+  preferredName: string
+}
+
+export interface ApiHostPartyWithAddress extends ApiHostParty {
+  mailingAddress: ApiAddress
+}
+
 export interface ApiHostContactDetails extends ApiPhone {
   preferredName: string
   faxNumber: string
   emailAddress: string
-}
-
-export interface ApiHostBusinessDetails {
-  businessLegalName: string
-  businessNumber: string
 }
 
 export interface ApiHostContactBusiness extends ApiHostBusinessDetails {
@@ -25,12 +28,19 @@ export interface ApiHostContactPerson extends ApiHostContactBusiness {
   socialInsuranceNumber?: string
 }
 
-export interface ApiPropertyManagerContact extends ApiParty, ApiHostContactDetails {}
+export interface ApiPropertyManagerBusiness {
+  legalName: string
+  businessNumber: string
+  mailingAddress: ApiAddress
+  primaryContact: ApiHostParty
+  secondaryContact?: ApiHostParty
+}
 
 export interface ApiPropertyManager extends ApiHostBusinessDetails {
-  businessMailingAddress: ApiAddress
   initiatedByPropertyManager: boolean
-  contact: ApiPropertyManagerContact
+  type: OwnerType
+  business?: ApiPropertyManagerBusiness // required if OwnerType.BUSINESS
+  contact?: ApiHostPartyWithAddress // required if OwnerType.INDIVIDUAL
 }
 
 export interface ApiUnitDetails {
@@ -53,6 +63,7 @@ export interface ApiUnitAddress extends ApiAddress {
 }
 
 export interface ApiDocument {
+  documentType: DocumentUploadType
   fileKey: string
   fileName: string
   fileType: string
@@ -69,13 +80,13 @@ export interface ApiResidence {
 export interface ApiHostApplication {
   registrationType: ApplicationType
   primaryContact: ApiHostContactPerson | ApiHostContactBusiness
-  secondaryContact: ApiHostContactPerson | ApiHostContactBusiness
-  listingDetails: { url: string }[]
+  secondaryContact?: ApiHostContactPerson | ApiHostContactBusiness
   unitDetails: ApiUnitDetails
   unitAddress: ApiUnitAddress
   principalResidence: ApiResidence
   documents?: ApiDocument[]
-  propertyManager?: ApiPropertyManager
+  propertyManager?: ApiPropertyManager,
+  listingDetails: string[]
 }
 
 export interface HostApplicationPayload {

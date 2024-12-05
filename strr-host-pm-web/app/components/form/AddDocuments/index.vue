@@ -176,10 +176,10 @@ onMounted(async () => {
               <ConnectFormFieldGroup
                 id="property-business-license"
                 v-model="propStore.blInfo.businessLicense"
-                :aria-label="$t('label.businessLicenceNumberOpt')"
+                :aria-label="$t('label.businessLicenseNumberOpt')"
                 :help="$t('strr.hint.businessLicense')"
                 name="businessLicense"
-                :placeholder="$t('label.businessLicenceNumberOpt')"
+                :placeholder="$t('label.businessLicenseNumberOpt')"
               />
             </ConnectFormSection>
 
@@ -192,7 +192,7 @@ onMounted(async () => {
                 :min-date="propStore.minBlDate"
                 :max-date="propStore.maxBlDate"
                 :help="$t('text.defaultDateFormat')"
-                :placeholder="$t('label.businessLicenceExpiryDateOpt')"
+                :placeholder="$t('label.businessLicenseExpiryDateOpt')"
                 @selection="propStore.blInfo.businessLicenseExpiryDate = $event ? dateToString($event) : ''"
               />
             </ConnectFormSection>

@@ -9,15 +9,15 @@ const prReqFormRef = ref<Form<any>>()
 const prExemptionOptions = [
   {
     value: PrExemptionReason.STRATA_HOTEL,
-    label: t('label.eligibleStrataHotel')
+    label: t(`label.exemptionReasonCode.${PrExemptionReason.STRATA_HOTEL}`)
   },
   {
     value: PrExemptionReason.FARM_LAND,
-    label: t('label.farmLandClass9')
+    label: t(`label.exemptionReasonCode.${PrExemptionReason.FARM_LAND}`)
   },
   {
     value: PrExemptionReason.FRACTIONAL_OWNERSHIP,
-    label: t('label.fractOwnership')
+    label: t(`label.exemptionReasonCode.${PrExemptionReason.FRACTIONAL_OWNERSHIP}`)
   }
 ]
 
@@ -57,7 +57,6 @@ onMounted(async () => {
         <UCheckbox
           v-model="reqStore.prRequirements.isPropertyPrExempt"
           :label="$t('text.thisPropIsExempt')"
-          :ui="{ wrapper: 'space-x-2' }"
         />
       </UFormGroup>
 

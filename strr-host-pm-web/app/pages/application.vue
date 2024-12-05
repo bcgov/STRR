@@ -4,17 +4,18 @@ import { ConnectStepper, FormReviewConfirm } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
-// const { handlePaymentRedirect } = useNavigate()
+const { handlePaymentRedirect } = useNavigate()
 
-const { validateContact } = useStrrContactStore()
-const { validateOwner } = useHostOwnerStore()
-// const { validateStrataDetails } = useStrrStrataDetailsStore()
-// const {
-//   submitStrataApplication,
-//   validateStrataConfirmation,
-//   $reset: applicationReset
-// } = useStrrStrataApplicationStore()
-const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(useHostPropertyStore())
+const propertyStore = useHostPropertyStore()
+const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(propertyStore)
+const { validateOwners } = useHostOwnerStore()
+const documentsStore = useDocumentStore()
+const {
+  submitApplication,
+  validateUserConfirmation,
+  $reset: applicationReset
+} = useHostApplicationStore()
+
 // fee stuff
 const {
   addReplaceFee,
@@ -32,7 +33,7 @@ const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 
 onMounted(async () => {
   // TODO: check for application id in the route query, if there then load the application
-  // applicationReset()
+  applicationReset()
   const [fee1, fee2] = await Promise.all([
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_1),
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_2)
@@ -82,27 +83,28 @@ watch(unitDetails, (newVal) => {
 }, { deep: true })
 
 // stepper stuff
-// TODO: replace validation functions
 const steps = ref<Step[]>([
   {
     i18nPrefix: 'strr.step',
     icon: 'i-mdi-domain-plus',
     complete: false,
     isValid: false,
-    validationFn: async () => await validateContact(true) as boolean
+    // TODO: replace validation function
+    validationFn: () => false
   },
   {
     i18nPrefix: 'strr.step',
     icon: 'i-mdi-account-multiple-plus',
     complete: false,
     isValid: false,
-    validationFn: () => validateOwner()
+    validationFn: () => validateOwners(true) as boolean
   },
   {
     i18nPrefix: 'strr.step',
     icon: 'i-mdi-map-marker-plus-outline',
     complete: false,
     isValid: false,
+    // TODO: replace validation function
     validationFn: () => false
   },
   {
@@ -110,7 +112,7 @@ const steps = ref<Step[]>([
     icon: 'i-mdi-text-box-check-outline',
     complete: false,
     isValid: false,
-    validationFn: () => false
+    validationFn: () => validateUserConfirmation(true) as boolean
   }
 ])
 const activeStepIndex = ref<number>(0)
@@ -119,7 +121,7 @@ const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
 const reviewFormRef = shallowRef<InstanceType<typeof FormReviewConfirm> | null>(null)
 
 // need to cleanup the setButtonControl somehow
-const handleStrataSubmit = async () => {
+const handleSubmit = async () => {
   let formErrors: MultiFormValidationResult = []
   try {
     // TODO: move button management into composable ?
@@ -147,16 +149,27 @@ const handleStrataSubmit = async () => {
     activeStep.value.complete = true // set final review step as active before validation
     reviewFormRef.value?.validateConfirmation() // validate confirmation checkboxes on submit
 
+    // TODO: use common fn for here and ReviewConfirm.vue
     // all step validations
     const validations = [
-      validateContact(),
-      validateOwner()
-      // validateStrataDetails(),
-      // validateStrataConfirmation()
+      propertyStore.validateBusinessLicense(),
+      propertyStore.validateUnitAddress(),
+      propertyStore.validateUnitDetails(),
+      validateOwners(),
+      validateUserConfirmation()
     ]
 
     const validationResults = await Promise.all(validations)
     formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
+    // add documents section error if applicable
+    if (documentsStore.validateRequiredDocuments().length > 0) {
+      formErrors.push({
+        formId: 'supporting-documents',
+        success: false,
+        errors: []
+      })
+    }
+
     const isApplicationValid = formErrors.every(result => result.success === true)
 
     console.info('is application valid: ', isApplicationValid, formErrors)
@@ -164,13 +177,13 @@ const handleStrataSubmit = async () => {
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
       console.info('Submit')
-      // const { paymentToken, filingId, applicationStatus } = await submitStrataApplication()
-      // const redirectPath = `/dashboard/${filingId}`
-      // if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
-      //   handlePaymentRedirect(paymentToken, redirectPath)
-      // } else {
-      //   await navigateTo(localePath(redirectPath))
-      // }
+      const { paymentToken, filingId, applicationStatus } = await submitApplication()
+      const redirectPath = `/dashboard/${filingId}`
+      if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
+        handlePaymentRedirect(paymentToken, redirectPath)
+      } else {
+        await navigateTo(localePath(redirectPath))
+      }
     } else {
       stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
     }
@@ -189,7 +202,7 @@ const handleStrataSubmit = async () => {
           variant: 'outline'
         },
         {
-          action: handleStrataSubmit,
+          action: handleSubmit,
           icon: 'i-mdi-chevron-right',
           label: t('btn.submitAndPay'),
           trailing: true
@@ -212,7 +225,7 @@ watch(activeStepIndex, (val) => {
   }
   const isLastStep = val === steps.value.length - 1
   buttons.push({
-    action: isLastStep ? handleStrataSubmit : () => stepperRef.value?.setNextStep(),
+    action: isLastStep ? handleSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
     label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${val + 1}`),
     trailing: true

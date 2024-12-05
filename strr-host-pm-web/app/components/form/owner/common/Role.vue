@@ -39,13 +39,13 @@ const radioOptions = computed(() => [
       :class="showError && role === undefined ? 'border-red-600 border-2' : ''"
       :options="radioOptions"
       :ui="{ fieldset: 'flex grow' }"
-      :ui-radio="{ wrapper: 'grow justify-center space-x-0' }"
+      :ui-radio="{ wrapper: 'grow justify-center space-x-0', label: 'pl-0' }"
     >
       <template #legend>
         <span class="sr-only">{{ $t('validation.required') }}</span>
       </template>
       <template #label="{ option }">
-        <p :class="[option.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer', 'pl-3 text-sm']">
+        <p :class="[option.disabled ? 'cursor-not-allowed opacity-50' : '', 'pl-3']">
           {{ option.label }}
         </p>
       </template>

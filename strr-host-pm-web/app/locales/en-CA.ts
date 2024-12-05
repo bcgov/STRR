@@ -50,7 +50,7 @@ export default {
         STRATA_GUEST_SUITE: 'Strata corporation guest suite'
       },
       docType: {
-        BC_DRIVERS_LICENCE: "BC Driver's Licence",
+        BC_DRIVERS_LICENSE: "BC Driver's License",
         PROPERTY_ASSESSMENT_NOTICE: 'Property Assessment Notice',
         SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax Confirmation',
         HOG_DECLARATION: 'Home Owner Grant declaration',
@@ -66,7 +66,7 @@ export default {
         STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
         FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
         BCSC: 'British Columbia Services Card',
-        COMBINED_BCSC_LICENCE: 'Combined BC Driver’s Licence and Services Card'
+        COMBINED_BCSC_LICENSE: 'Combined BC Driver’s License and Services Card'
       }
     }
   },
@@ -129,9 +129,9 @@ export default {
       addBusiness: 'Add a Business',
       addIndividual: 'Add a Individual',
       addListing: 'Add Another Listing',
-      businessLicense: 'Business Licence Number',
+      businessLicense: 'Business License Number',
       businessLicenseOpt: 'Local Government Business License (Optional)',
-      businessLicenseDate: 'Business Licence Expiry Date',
+      businessLicenseDate: 'Business License Expiry Date',
       contactIndName: "Contact Individual's Name",
       individualsBusinesses: 'Individuals and Businesses',
       listingLinkOpt: 'Listing Link (Optional)',
@@ -148,19 +148,8 @@ export default {
         undefined: 'Not Selected'
       },
       room: 'Room | Rooms',
-      own: 'Own',
-      coown: 'Co-Own',
-      rent: 'Rent',
-      accessDwelling: 'Accessory Dwelling',
-      bb: 'Bed & Breakfast',
-      condoApt: 'Condo or Apartment',
-      floatHome: 'Float Home',
-      multiHousing: 'Multi Unit Housing',
-      recreational: 'Recreational',
-      secondarySuite: 'Secondary Suite',
-      singleFamily: 'Single Family Home',
-      strataHotel: 'Strata Hotel',
-      townHome: 'Town Home',
+      shortTermRental: 'Short-Term Rental',
+      supportingDocs: 'Supporting Documents',
       rentalUnit: 'Rental Unit',
       rentalUnitSetup: 'Rental Unit Set-up',
       rentalUnitName: 'Rental Unit Name',
@@ -192,14 +181,14 @@ export default {
       listEachWebLink: 'Add the web link for the rental unit’s listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).',
       ownershipTypeLegend: 'Required, What is the ownership type of the property?',
       enterResiAddressToDetermineRequirement: 'Start by entering the residential address of rental unit to help determine if you need to register your short-term rental and if it is in an area subject to the {link}.',
-      requireBusLicense: 'Your local government requires a valid business licence to operate a short-term rental.'
+      requireBusLicense: 'Your local government requires a valid business license to operate a short-term rental.'
     },
     word: {
       room: 'room | rooms',
       unit: 'unit | units'
     },
     hint: {
-      businessLicense: 'This is the business licence to operate a short-term rental as provided by your local government.',
+      businessLicense: 'This is the business license to operate a short-term rental as provided by your local government.',
       craTaxNumber: '9-digit Social Insurance Number (SIN), Individual Tax Number (ITN), Temporary Tax Number (TTN)',
       listingLink: 'e.g., http://www.airbnb.ca/your_listing123',
       nickname: 'e.g., My Guest Suite',
@@ -275,22 +264,27 @@ export default {
     property: 'Property',
     details: 'Details',
     done: 'Done',
+    exemption: 'Exemption',
     exemptionReason: 'Exemption Reason',
+    exemptionReasonCode: {
+      FARM_LAND: 'Farm land (BC Assessment Farm Class 9)',
+      FRACTIONAL_OWNERSHIP: 'Fractional ownership',
+      STRATA_HOTEL: 'Eligible strata-titled hotel or motel'
+    },
     strataRefCode: 'Strata-Titled Hotel Reference Code',
-    eligibleStrataHotel: 'Eligible strata-titled hotel or motel',
-    farmLandClass9: 'Farm land (BC Assessment Farm Class 9)',
-    fractOwnership: 'Fractional ownership',
+    strUnitAddress: 'Short-Term Rental Unit Residential Address',
     strUnitName: 'Short-Term Rental Unit Name',
     strUnitNameOpt: 'Short-Term Rental Unit Name (Optional)',
+    typeOfSpace: 'Type of Space',
     chooseDocs: 'Choose Supporting Documents',
     fileUpload: 'File Upload',
-    localGovBL: 'Local Government Business Licence',
-    localGovShortTermRentalBL: 'Local government short-term rental business licence',
+    localGovBL: 'Local Government Business License',
+    localGovShortTermRentalBL: 'Local government short-term rental business license',
     proofOfPr: 'Proof of principal residence',
     supportingStrataDocs: 'Supporting strata-titled hotel or motel documentation',
     fractOwnAgreement: 'Fractional ownership agreement',
-    businessLicenceNumberOpt: 'Business Licence Number (Optional)',
-    businessLicenceExpiryDateOpt: 'Business Licence Expiry Date (Optional)',
+    businessLicenseNumberOpt: 'Business License Number (Optional)',
+    businessLicenseExpiryDateOpt: 'Business License Expiry Date (Optional)',
     rentalAgreementOrRecept: 'Tenancy (rental) agreement or receipt or bank statement showing payment of rent',
     streetNameAndType: 'Street Name and Type',
     siteNameOpt: 'Site Name (Optional)',
@@ -301,6 +295,7 @@ export default {
     enterAddressManually: 'Enter the residental address manually'
   },
   link: {
+    hostTAC: 'Terms and Conditions',
     strataHotelInfoPage: 'strata hotel information page',
     proofOfPr: 'Proof of principal residence',
     allRules: 'rules for short-term rental',
@@ -360,7 +355,8 @@ export default {
     noDocsReq: 'No supporting documentation is required.',
     unitAddressIntro: 'Include the Residential Address of your short-term rental by looking up the address, or if the address cannot be found in the lookup, you can enter the address manually.',
     unitAddressIntroNote: 'Note: the address cannot be a Mailing Address (e.g., PO Box, etc.).',
-    unitAddressUnitNumberInfo: 'Unit Number is required if the short-term rental unit has a Unit Number. Enter a Site Name if the address does not have a Street Number and Name.'
+    unitAddressUnitNumberInfo: 'Unit Number is required if the short-term rental unit has a Unit Number. Enter a Site Name if the address does not have a Street Number and Name.',
+    noDocsUploaded: 'No supporting documentation uploaded.'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
@@ -410,11 +406,11 @@ export default {
     addressIncompleteDropdown: 'The address provided is not complete. Please select one from the dropdown list.'
   },
   requirements: {
-    busLicence: {
-      label: 'Business licence',
+    busLicense: {
+      label: 'Business license',
       content: {
-        normal: 'Your local government requires a business licence to operate a short-term rental at this address.',
-        override: 'Your local government may require a business licence to operate a short-term rental at this address.'
+        normal: 'Your local government requires a business license to operate a short-term rental at this address.',
+        override: 'Your local government may require a business license to operate a short-term rental at this address.'
       }
     },
     pr: {
@@ -435,22 +431,26 @@ export default {
     SINGLE_FAMILY_HOME: 'Single Family Home',
     RECREATIONAL: 'Recreational',
     BED_AND_BREAKFAST: 'Bed & Breakfast',
-    FLOAT_HOME: 'Float Home'
+    FLOAT_HOME: 'Float Home',
+    undefined: 'Not Selected'
   },
   rentalUnitType: {
     ENTIRE_HOME: 'Entire home (guests have the entire place to themselves)',
-    SHARED_ACCOMMODATION: 'Shared accommodation (guests rent a portion of the unit with access to common spaces that may be shared with the host or other guests)'
+    SHARED_ACCOMMODATION: 'Shared accommodation (guests rent a portion of the unit with access to common spaces that may be shared with the host or other guests)',
+    undefined: 'Not Selected'
   },
   rentalUnitSetupType: {
     WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence", // The whole Host Principal Residence
     UNIT_ON_PR_PROPERTY: 'This unit is not the host’s principal residence but it’s on the same property', // A whole unit on the same property as the Host Principal Residence (e.g., basement suite)
-    UNIT_NOT_ON_PR_PROPERTY: 'This unit is not on the same property as the host’s principal residence'
+    UNIT_NOT_ON_PR_PROPERTY: 'This unit is not on the same property as the host’s principal residence',
+    undefined: 'Not Selected'
   },
   ownershipType: {
     RENT: 'Renter',
     OWN: 'Owner',
     CO_OWN: 'Co-owner',
-    OTHER: 'Other'
+    OTHER: 'Other',
+    undefined: 'Not Selected'
   },
   tooltip: {
     pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.'

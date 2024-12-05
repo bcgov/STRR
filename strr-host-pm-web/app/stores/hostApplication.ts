@@ -1,55 +1,96 @@
 import { z } from 'zod'
-import type { ApiDocument, ApiResidence } from '~/interfaces/host-api'
 
 export const useHostApplicationStore = defineStore('host/application', () => {
-  // const { t } = useI18n()
+  const { t } = useI18n()
+  const { postApplication } = useStrrApi()
 
-  const residenceSchema = z.object({
-    isPrincipalResidence: z.boolean(),
-    agreedToRentalAct: z.boolean(),
-    nonPrincipalOption: optionalOrEmptyString,
-    specifiedServiceProvider: optionalOrEmptyString,
-    agreedToSubmit: z.boolean()
+  const propertyStore = useHostPropertyStore()
+  const reqStore = usePropertyReqStore()
+  const ownerStore = useHostOwnerStore()
+  const documentStore = useDocumentStore()
+  const confirmationSchema = z.object({
+    agreedToRentalAct: z.boolean().refine(val => val, { message: t('validation.required') }),
+    agreedToSubmit: z.boolean().refine(val => val, { message: t('validation.required') })
   })
 
-  const getEmptyResidenceDetails = () => ({
-    isPrincipalResidence: undefined,
-    agreedToRentalAct: undefined,
-    nonPrincipalOption: '',
-    specifiedServiceProvider: '',
-    agreedToSubmit: undefined
+  const getEmptyConfirmation = () => ({
+    agreedToRentalAct: false,
+    agreedToSubmit: false
   })
 
-  const residenceDetails = ref<ApiResidence>(getEmptyResidenceDetails())
-  const documents = ref<ApiDocument[]>([])
+  const userConfirmation = ref(getEmptyConfirmation())
 
-  // TODO: add document schema?
-  // TODO: add document - takes file upload, post to api, push resp to documents ref
-  const removeDocumentAtIndex = (index: number) => {
-    documents.value.splice(index, 1)
+  const validateUserConfirmation = (returnBool = false): MultiFormValidationResult | boolean => {
+    const result = validateSchemaAgainstState(confirmationSchema, userConfirmation.value, 'confirmation-form')
+
+    if (returnBool) {
+      return result.success === true
+    } else {
+      return [result]
+    }
   }
 
-  // TODO: update for application pieces
-  // const validateApplication = (returnBool = false): MultiFormValidationResult | boolean => {
-  //   const result = validateSchemaAgainstState(propertySchema, property.value, 'property-form')
+  const createApplicationBody = (): HostApplicationPayload => {
+    const host = ownerStore.findByRole(OwnerRole.HOST)
+    const cohost = ownerStore.findByRole(OwnerRole.CO_HOST)
+    const propertyManger = ownerStore.findByRole(OwnerRole.PROPERTY_MANAGER)
 
-  //   if (returnBool) {
-  //     return result.success === true
-  //   } else {
-  //     return [result]
-  //   }
-  // }
+    return {
+      registration: {
+        registrationType: ApplicationType.HOST,
+        primaryContact: formatOwnerHostAPI(host as HostOwner),
+        ...(cohost
+          ? { secondaryContact: formatOwnerHostAPI(cohost) }
+          : {}
+        ),
+        ...(propertyManger
+          ? { propertyManager: formatOwnerPropertyManagerAPI(propertyManger) }
+          : {}
+        ),
+        unitAddress: formatHostUnitAddressApi(propertyStore.unitAddress.address),
+        unitDetails: formatHostUnitDetailsAPI(propertyStore.unitDetails, propertyStore.blInfo),
+        documents: documentStore.apiDocuments,
+        principalResidence: {
+          // TODO: confirm mapping - assuming this is if PR is required or not?
+          isPrincipalResidence: !reqStore.prRequirements.isPropertyPrExempt,
+          nonPrincipalOption: reqStore.prRequirements.prExemptionReason || '',
+          agreedToRentalAct: userConfirmation.value.agreedToRentalAct,
+          agreedToSubmit: userConfirmation.value.agreedToSubmit,
+          // TODO: No idea what this is supposed to be?
+          specifiedServiceProvider: ''
+        },
+        listingDetails: []
+      }
+    }
+  }
+
+  const submitApplication = async () => {
+    const body = createApplicationBody()
+
+    console.info('submitting application: ', body)
+
+    const res = await postApplication<HostApplicationPayload, HostApplicationResp>(body) as HostApplicationResp
+
+    const paymentToken = res.header.paymentToken
+    const filingId = res.header.applicationNumber
+    const applicationStatus = res.header.status
+
+    return { paymentToken, filingId, applicationStatus }
+  }
 
   const $reset = () => {
-    residenceDetails.value = getEmptyResidenceDetails()
-    documents.value = []
+    propertyStore.$reset()
+    reqStore.$reset()
+    ownerStore.$reset()
+    documentStore.$reset()
+    userConfirmation.value = getEmptyConfirmation()
   }
 
   return {
-    residenceDetails,
-    documents,
-    residenceSchema,
-    removeDocumentAtIndex,
+    userConfirmation,
+    confirmationSchema,
+    validateUserConfirmation,
+    submitApplication,
     $reset
   }
 })

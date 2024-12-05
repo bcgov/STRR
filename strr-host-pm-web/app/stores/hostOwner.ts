@@ -89,11 +89,27 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
     owner.value.lastName = userInfo.lastName
   }
 
-  const validateOwner = (): boolean => {
-    if (!hasHost.value || !hasCompParty.value) {
-      return false
+  const validateOwners = (returnBool = false): MultiFormValidationResult | boolean => {
+    let success = false
+    if (hasHost.value && hasCompParty.value) {
+      success = true
     }
-    return true
+
+    if (returnBool) {
+      return success
+    }
+    return [{
+      formId: 'host-owners',
+      success,
+      errors: [
+        ...(!hasCompParty.value
+          ? [{ message: 'Missing completing party', code: 'custom', path: ['owners.completingParty'] } as z.ZodIssue]
+          : []),
+        ...(!hasHost.value
+          ? [{ message: 'Missing property host', code: 'custom', path: ['owners.propertyHost'] } as z.ZodIssue]
+          : [])
+      ]
+    }]
   }
 
   const $reset = () => {
@@ -114,7 +130,7 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
     findCompPartyIndex,
     getHostOwnerSchema,
     getNewHostOwner,
-    validateOwner,
+    validateOwners,
     $reset
   }
 })
