@@ -21,7 +21,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       return []
     }
 
-    if (reqs.isStraaExempt && propStore.unitDetails.ownershipType !== OwnershipType.RENT) {
+    if (reqs.isStraaExempt) {
       return []
     }
 
@@ -194,7 +194,7 @@ export const useDocumentStore = defineStore('host/document', () => {
 
     selectedDocType.value = undefined
 
-    await sleep(3000) // TODO: remove
+    // await sleep(3000) // TODO: remove
     await postDocument(uiDoc)
   }
 
@@ -268,6 +268,12 @@ export const useDocumentStore = defineStore('host/document', () => {
       DocumentUploadType.HOME_INSURANCE_SUMMARY,
       DocumentUploadType.PROPERTY_TAX_NOTICE
     ]
+
+    // include rental docs as part of proof of pr only if ownership type === rent
+    if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
+      uniqueColumnBDocs.push(DocumentUploadType.TENANCY_AGREEMENT)
+      uniqueColumnBDocs.push(DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT)
+    }
 
     // or 1 doc from column A and 2 non-unique docs from this list are required
     const nonUniqueColumnBDocs = [
