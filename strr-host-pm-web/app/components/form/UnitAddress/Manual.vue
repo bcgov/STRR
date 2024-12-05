@@ -52,7 +52,7 @@ watch(postalCode, () => {
       <!-- unit number input -->
       <ConnectFormFieldGroup
         :id="schemaPrefix + 'unitNumber'"
-        v-model="unitNumber"
+        v-model.trim="unitNumber"
         class="w-full grow sm:w-1/4"
         :name="schemaPrefix + 'unitNumber'"
         :color="city ? 'primary' : 'gray'"
@@ -65,7 +65,7 @@ watch(postalCode, () => {
       <!-- street number input -->
       <ConnectFormFieldGroup
         :id="id + '-streetNumber'"
-        v-model="streetNumber"
+        v-model.trim="streetNumber"
         class="w-full grow sm:w-1/4"
         :name="schemaPrefix + 'streetNumber'"
         :color="city ? 'primary' : 'gray'"
@@ -77,7 +77,7 @@ watch(postalCode, () => {
       <!-- street name input -->
       <ConnectFormFieldGroup
         :id="id + '-streetName'"
-        v-model="streetName"
+        v-model.trim="streetName"
         class="w-full grow sm:w-1/2"
         :name="schemaPrefix + 'streetName'"
         :color="city ? 'primary' : 'gray'"
@@ -93,7 +93,7 @@ watch(postalCode, () => {
       class="grow"
     >
       <UInput
-        v-model="streetAdditional"
+        v-model.trim="streetAdditional"
         size="lg"
         :color="streetAdditional ? 'primary' : 'gray'"
         :placeholder="$t('label.siteNameOpt')"
@@ -111,7 +111,7 @@ watch(postalCode, () => {
       <!-- city input -->
       <ConnectFormFieldGroup
         :id="schemaPrefix + 'city'"
-        v-model="city"
+        v-model.trim="city"
         class="w-full grow"
         :name="schemaPrefix + 'city'"
         :color="city ? 'primary' : 'gray'"
@@ -139,7 +139,7 @@ watch(postalCode, () => {
       <!-- postal code input -->
       <ConnectFormFieldGroup
         :id="schemaPrefix + 'postalCode'"
-        v-model="postalCode"
+        v-model.trim="postalCode"
         v-maska="'@#@ #@#'"
         class="w-full grow"
         :name="schemaPrefix + 'postalCode'"
@@ -155,7 +155,7 @@ watch(postalCode, () => {
       :name="schemaPrefix + 'locationDescription'"
     >
       <UTextarea
-        v-model="locationDescription"
+        v-model.trim="locationDescription"
         :placeholder="$t('label.additionalLocationDescription')"
         :aria-label="$t('label.additionalLocationDescription')"
         :color="locationDescription ? 'primary' : 'gray'"

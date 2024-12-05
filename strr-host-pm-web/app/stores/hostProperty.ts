@@ -7,23 +7,41 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   // rental unit address stuff
   const useManualAddressInput = ref<boolean>(false)
 
-  const unitAddressSchema = computed(() => z.object({
-    address: getRequiredBCAddressSplitStreet(
-      t('validation.address.city'),
-      t('validation.address.region'),
-      t('validation.address.postalCode'),
-      t('validation.address.country'),
-      t('validation.address.requiredBC.region'),
-      t('validation.address.requiredBC.country'),
-      t('validation.address.streetName'),
-      t('validation.address.streetNumber')
-    ).extend({
-      unitNumber: isUnitNumberRequired.value
-        ? getRequiredNonEmptyString(t('validation.address.unitNumber'))
+  const getUnitAddressSchema = () => z.object({
+    address: z.object({
+      street:
+        useManualAddressInput.value
+          ? optionalOrEmptyString
+          : z.string().min(1, t('validation.residentialAddressRequired')),
+      streetAdditional: optionalOrEmptyString,
+      city: getRequiredNonEmptyString(t('validation.address.city')),
+      region: getRequiredNonEmptyString(t('validation.address.region')),
+      postalCode: getRequiredNonEmptyString(t('validation.address.postalCode')),
+      country: getRequiredNonEmptyString(t('validation.address.country')),
+      locationDescription: optionalOrEmptyString,
+      streetName: unitAddress.value.address.streetAdditional === ''
+        ? getRequiredNonEmptyString(t('validation.address.streetName'))
         : optionalOrEmptyString,
+      streetNumber: unitAddress.value.address.streetAdditional === ''
+        ? getRequiredNonEmptyString(t('validation.address.streetNumber'))
+        : optionalOrEmptyString,
+      unitNumber: optionalOrEmptyString,
       nickname: optionalOrEmptyString
+    }).superRefine((data, ctx) => {
+      const { city, postalCode, streetName, streetNumber } = data
+
+      // when using auto complete, show error unless autocomplete address selected, no partial strings/addresses
+      if (!useManualAddressInput.value) {
+        if (!city || !postalCode || !streetName || !streetNumber) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['street'],
+            message: t('validation.addressIncompleteDropdown')
+          })
+        }
+      }
     })
-  }))
+  })
 
   const getEmptyUnitAddress = (): { address: HostPropertyAddress } => ({
     address: {
@@ -45,7 +63,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   const validateUnitAddress = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(
-      unitAddressSchema.value,
+      getUnitAddressSchema(),
       unitAddress.value,
       'rental-unit-address-form'
     )
@@ -179,15 +197,27 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     isSharedAccommodation: unitDetails.value.typeOfSpace === RentalUnitType.SHARED_ACCOMMODATION
   }))
 
-  const $reset = () => {
+  const resetUnitAddress = () => {
     unitAddress.value = getEmptyUnitAddress()
+  }
+
+  const resetUnitDetails = () => {
     unitDetails.value = getEmptyUnitDetails()
+  }
+
+  const resetBlInfo = () => {
     blInfo.value = getEmptyBlInfo()
+  }
+
+  const $reset = () => {
+    resetUnitAddress()
+    resetUnitDetails()
+    resetBlInfo()
     useManualAddressInput.value = false
   }
 
   return {
-    unitAddressSchema,
+    getUnitAddressSchema,
     getEmptyUnitAddress,
     unitAddress,
     validateUnitAddress,
@@ -206,6 +236,9 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     isPIDRequired,
     propertyTypeFeeTriggers,
     useManualAddressInput,
+    resetUnitAddress,
+    resetUnitDetails,
+    resetBlInfo,
     $reset
   }
 })

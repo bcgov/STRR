@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
 
+const addressInput = defineModel<string>('addressInput', { required: false })
 const streetName = defineModel<string>('streetName', { required: false })
 const streetNumber = defineModel<string>('streetNumber', { required: false })
 const unitNumber = defineModel<string>('unitNumber', { required: false })
 const city = defineModel<string>('city')
 const postalCode = defineModel<string>('postalCode')
-
-const addressInput = ref<string>('')
 
 type AddressField = 'streetName' | 'streetNumber' | 'unitNumber' | 'streetAdditional' | 'city' | 'postalCode'
 

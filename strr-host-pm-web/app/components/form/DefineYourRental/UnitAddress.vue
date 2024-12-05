@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
-import { z } from 'zod'
 
 const propStore = useHostPropertyStore()
 const reqStore = usePropertyReqStore()
@@ -8,16 +7,44 @@ const hostModal = useHostPmModals()
 
 const props = defineProps<{ isComplete: boolean }>()
 
-const unitAddressFormRef = ref<Form<z.output<typeof propStore.unitAddressSchema>>>()
+const unitAddressFormRef = ref<Form<any>>()
+
+// clear form errors and submit when new address selected form autocomplete
+function handleNewAddress () {
+  unitAddressFormRef.value?.clear()
+  unitAddressFormRef.value?.submit()
+}
+
+// clear autocomplete input errors and open manual input
+function handleUseManual () {
+  unitAddressFormRef.value?.clear('address.street')
+  propStore.useManualAddressInput = true
+}
+
+// TODO: trigger validation when cancelling manual input ??
+// trigger validation on autocomplete input when cancelling manual input and clear address
+function handleCancelManual () {
+  // unitAddressFormRef.value?.validate('address.street', { silent: true })
+  propStore.resetUnitAddress()
+  propStore.useManualAddressInput = false
+}
+
+// clear street name/number errors when inputting address line 2 (name/number become optional)
+watch(
+  () => propStore.unitAddress.address.streetAdditional,
+  (newVal) => {
+    if (newVal !== undefined && newVal.trim() !== '') {
+      unitAddressFormRef.value?.clear('address.streetName')
+      unitAddressFormRef.value?.clear('address.streetNumber')
+    }
+  }
+)
 
 onMounted(async () => {
   // validate form if step marked as complete
   if (props.isComplete) {
     await validateForm(unitAddressFormRef.value, props.isComplete)
   }
-
-  // const el = document.getElementById('rental-property-address-lookup-street')
-  // console.log(el?.getBoundingClientRect())
 })
 </script>
 <template>
@@ -25,7 +52,7 @@ onMounted(async () => {
     <UForm
       ref="unitAddressFormRef"
       :state="propStore.unitAddress"
-      :schema="propStore.unitAddressSchema"
+      :schema="propStore.getUnitAddressSchema()"
       class="space-y-10"
       @submit="reqStore.getPropertyReqs()"
     >
@@ -53,14 +80,15 @@ onMounted(async () => {
             'address.postalCode',
             'address.unitNumber',
             'address.streetName',
-            'address.streetNumber'
+            'address.streetNumber',
+            'address.street'
           ])"
         >
           <TransitionCollapse>
             <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="flex max-w-bcGovInput flex-col gap-10">
               <FormUnitAddressAutoComplete
-                v-if="!propStore.useManualAddressInput"
                 id="rental-property-address-lookup"
+                v-model:address-input="propStore.unitAddress.address.street"
                 v-model:street-number="propStore.unitAddress.address.streetNumber"
                 v-model:street-name="propStore.unitAddress.address.streetName"
                 v-model:unit-number="propStore.unitAddress.address.unitNumber"
@@ -68,10 +96,10 @@ onMounted(async () => {
                 v-model:postal-code="propStore.unitAddress.address.postalCode"
                 :schema-prefix="'address.'"
                 :form-ref="unitAddressFormRef"
-                :disabled="reqStore.loadingReqs"
-                :loading="reqStore.loadingReqs"
-                @new-address="unitAddressFormRef?.submit()"
-                @use-manual="propStore.useManualAddressInput = true"
+                :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
+                :loading="reqStore.loadingReqs && !propStore.useManualAddressInput"
+                @new-address="handleNewAddress"
+                @use-manual="handleUseManual"
               />
 
               <div
@@ -102,7 +130,7 @@ onMounted(async () => {
                     size="bcGov"
                     variant="outline"
                     :disabled="reqStore.loadingReqs"
-                    @click="propStore.useManualAddressInput = false"
+                    @click="handleCancelManual"
                   />
                   <UButton
                     :label="$t('btn.done')"
