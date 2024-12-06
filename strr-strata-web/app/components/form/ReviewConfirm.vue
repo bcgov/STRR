@@ -343,34 +343,6 @@ onMounted(async () => {
           </i18n-t>
         </template>
       </ConnectFormCertify>
-
-      <!-- <UFormGroup name="confirmInfoAccuracy">
-          <UCheckbox
-            v-model="applicationStore.confirmation.confirmInfoAccuracy"
-            :label="$t('strr.review.confirm.infoAccuracy')"
-            class="rounded bg-white p-4"
-            :class="hasFormErrors(strataConfirmationFormRef, ['confirmInfoAccuracy'])
-              ? 'outline outline-red-600'
-              : ''
-            "
-            aria-required="true"
-            :aria-invalid="hasFormErrors(strataConfirmationFormRef, ['confirmInfoAccuracy'])"
-          />
-        </UFormGroup>
-
-        <UFormGroup name="confirmDelistAndCancelBookings">
-          <UCheckbox
-            v-model="applicationStore.confirmation.confirmDelistAndCancelBookings"
-            :label="$t('strr.review.confirm.delistAndCancelBookings')"
-            class="rounded bg-white p-4"
-            :class="hasFormErrors(strataConfirmationFormRef, ['confirmDelistAndCancelBookings'])
-              ? 'outline outline-red-600'
-              : ''
-            "
-            aria-required="true"
-            :aria-invalid="hasFormErrors(strataConfirmationFormRef, ['confirmDelistAndCancelBookings'])"
-          />
-        </UFormGroup> -->
     </UForm>
   </div>
 </template>
