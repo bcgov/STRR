@@ -393,8 +393,6 @@ class RegistrationService:
             property_manager.primary_contact = property_manager_primary_contact
 
         elif property_manager_info.propertyManagerType == PropertyManager.PropertyManagerType.INDIVIDUAL:
-            print("$$")
-            print(property_manager_info.contact.mailingAddress)
             property_manager_primary_contact = Contact(
                 firstname=property_manager_info.contact.firstName,
                 lastname=property_manager_info.contact.lastName,
