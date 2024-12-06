@@ -264,11 +264,19 @@ const getCompPartyName = computed(() => {
             :aria-invalid="hasFormErrors(confirmationFormRef, ['agreedToSubmit'])"
           >
             <template #label>
-              <ConnectI18nBold
-                class="text-bcGovGray-700"
-                translation-path="strr.review.certify.authorization"
-                :name="getCompPartyName"
-              />
+              <div>
+                <ConnectI18nBold
+                  class="text-bcGovGray-700"
+                  translation-path="strr.review.certify.authorization"
+                  :name="getCompPartyName"
+                />
+                <dl class="mt-4 flex gap-2">
+                  <dt class="font-bold">
+                    {{ $t('label.date') }}:
+                  </dt>
+                  <dd>{{ dateToStringPacific(new Date(), 'DDD') }}</dd>
+                </dl>
+              </div>
             </template>
           </UCheckbox>
         </UFormGroup>
