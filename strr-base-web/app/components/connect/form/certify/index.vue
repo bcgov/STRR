@@ -2,7 +2,7 @@
 const checkboxModel = defineModel<boolean>({ default: false })
 
 defineProps<{
-  title: string
+  title?: string
   items: Array<{
     label?: string
     i18nKey?:string
@@ -16,42 +16,37 @@ defineProps<{
 </script>
 <template>
   <section class="flex flex-col gap-6">
-    <h3 class="text-lg">
-      {{ title }}
-    </h3>
+    <ConnectTypographyH2 :text="title || $t('label.confirmation')" custom-class="text-lg font-bold" />
     <UCard
       :ui="{
         ring: hasError ? 'ring-2 ring-red-600' : 'ring-1 ring-gray-200',
         body: {
           base: 'divide-y divide-gray-200',
-          padding: 'px-4 py-4 sm:p-8'
+          padding: 'p-4 sm:p-8'
         }
       }"
     >
-      <ol class="list-inside list-decimal divide-y divide-gray-200 marker:font-bold">
+      <ol v-if="items.length" class="list-outside list-decimal divide-y divide-gray-200 pl-4 marker:font-bold">
         <li
           v-for="item, i in items"
           :id="`${name}-item-${i}`"
           :key="i"
-          class="py-4 first:pt-0"
+          class="py-5 first:pt-0 last:pb-8"
         >
-          <template v-if="item.slot">
-            <slot :name="item.slot" />
-          </template>
-          <template v-else>
+          <slot :name="item.slot || 'listLabel'">
             <ConnectI18nBold
               v-if="item.i18nKey"
               :translation-path="item.i18nKey"
               v-bind="item.i18nProps"
             />
             <span v-else>{{ item.label }}</span>
-          </template>
+          </slot>
         </li>
       </ol>
       <UFormGroup :name>
         <UCheckbox
           v-model="checkboxModel"
-          class="pt-4"
+          :class="items.length ? 'mt-8' : ''"
           aria-required="true"
           :aria-describedby="items.map((_, i) => `${name}-item-${i}`).join(' ')"
           :aria-invalid="hasError"

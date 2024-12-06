@@ -204,83 +204,55 @@ const getCompPartyName = computed(() => {
       :schema="applicationStore.confirmationSchema"
       class="space-y-10"
     >
-      <ConnectTypographyH2 :text="$t('label.confirmation')" custom-class="text-lg font-bold" />
-      <ConnectFormSection
-        class="rounded bg-white py-5"
-        :error="isComplete && hasFormErrors(confirmationFormRef, ['agreedToRentalAct'])"
+      <ConnectFormCertify
+        v-model="applicationStore.userConfirmation.agreedToRentalAct"
+        :items="[{ slot: 'item-1' }, { i18nKey: 'certify.2' }, { i18nKey: 'certify.3' }, { i18nKey: 'certify.4' }]"
+        :checkbox-label="{ key: 'certify.confirm', props: { name: getCompPartyName } }"
+        :has-error="isComplete && hasFormErrors(confirmationFormRef, ['agreedToRentalAct'])"
+        name="agreedToRentalAct"
       >
-        <ul class="list-outside list-decimal divide-y font-bold *:py-7">
-          <li>
-            <span class="font-bold">{{ $t('strr.review.certify.1.title') }}</span>&nbsp;
-            <span class="font-normal">
-              <i18n-t keypath="strr.review.certify.1.text" scope="global">
-                <template #link>
-                  <UButton
-                    :label="$t('link.hostTAC')"
-                    :to="hostTacUrl"
-                    :padded="false"
-                    variant="link"
-                    target="_blank"
-                    class="text-base underline"
-                  />
-                </template>
-              </i18n-t>
-            </span>
-          </li>
-          <li v-for="i of [2, 3, 4]" :key="i">
-            <p>
-              <span class="font-bold">{{ $t(`strr.review.certify.${i}.title`) }}</span>&nbsp;
-              <span class="font-normal">{{ $t(`strr.review.certify.${i}.text`) }}</span>
-            </p>
-          </li>
-          <li class="-ml-5 mt-2 list-none">
-            <UFormGroup name="agreedToRentalAct" class="mt-2">
-              <UCheckbox
-                v-model="applicationStore.userConfirmation.agreedToRentalAct"
-                aria-required="true"
-                :aria-invalid="hasFormErrors(confirmationFormRef, ['agreedToRentalAct'])"
-              >
-                <template #label>
-                  <i18n-t keypath="strr.review.certify.confirm" scope="global">
-                    <template #name>
-                      <b>{{ getCompPartyName }}</b>
-                    </template>
-                  </i18n-t>
-                </template>
-              </UCheckbox>
-            </UFormGroup>
-          </li>
-        </ul>
-      </ConnectFormSection>
-      <ConnectTypographyH2 :text="$t('label.authorization')" custom-class="text-lg font-bold" />
-      <ConnectFormSection
-        class="rounded bg-white py-12"
-        :error="isComplete && hasFormErrors(confirmationFormRef, ['agreedToSubmit'])"
-      >
-        <UFormGroup name="agreedToSubmit" class="-ml-5">
-          <UCheckbox
-            v-model="applicationStore.userConfirmation.agreedToSubmit"
-            aria-required="true"
-            :aria-invalid="hasFormErrors(confirmationFormRef, ['agreedToSubmit'])"
-          >
-            <template #label>
-              <div>
-                <ConnectI18nBold
-                  class="text-bcGovGray-700"
-                  translation-path="strr.review.certify.authorization"
-                  :name="getCompPartyName"
-                />
-                <dl class="mt-4 flex gap-2">
-                  <dt class="font-bold">
-                    {{ $t('label.date') }}:
-                  </dt>
-                  <dd>{{ dateToStringPacific(new Date(), 'DDD') }}</dd>
-                </dl>
-              </div>
+        <template #item-1>
+          <i18n-t keypath="certify.1" scope="global">
+            <template #terms>
+              <strong>{{ $t('certify.tac') }}.</strong>
             </template>
-          </UCheckbox>
-        </UFormGroup>
-      </ConnectFormSection>
+            <template #link>
+              <UButton
+                :label="$t('link.hostTAC')"
+                :to="hostTacUrl"
+                :padded="false"
+                variant="link"
+                target="_blank"
+                class="text-base underline"
+              />
+            </template>
+          </i18n-t>
+        </template>
+      </ConnectFormCertify>
+      <ConnectFormCertify
+        v-model="applicationStore.userConfirmation.agreedToSubmit"
+        :title="$t('label.authorization')"
+        :items="[]"
+        :checkbox-label="{ key: 'certify.authorization', props: { name: getCompPartyName } }"
+        :has-error="isComplete && hasFormErrors(confirmationFormRef, ['agreedToSubmit'])"
+        name="agreedToSubmit"
+      >
+        <template #checkboxLabel>
+          <div>
+            <ConnectI18nBold
+              class="text-bcGovGray-700"
+              translation-path="certify.authorization"
+              :name="getCompPartyName"
+            />
+            <dl class="mt-4 flex gap-2">
+              <dt class="font-bold">
+                {{ $t('label.date') }}:
+              </dt>
+              <dd>{{ dateToStringPacific(new Date(), 'DDD') }}</dd>
+            </dl>
+          </div>
+        </template>
+      </ConnectFormCertify>
     </UForm>
   </div>
 </template>
