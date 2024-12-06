@@ -328,43 +328,37 @@ onMounted(async () => {
       </FormCommonReviewSection>
     </ConnectPageSection>
 
-    <section class="space-y-6">
-      <h2>{{ $t('word.Certify') }}</h2>
-
-      <UForm
-        ref="platformConfirmationFormRef"
-        :state="platAppStore.platformConfirmation"
-        :schema="platAppStore.platformConfirmationSchema"
-        class="space-y-10 pb-10"
+    <UForm
+      ref="platformConfirmationFormRef"
+      :state="platAppStore.platformConfirmation"
+      :schema="platAppStore.platformConfirmationSchema"
+      class="space-y-10 pb-10"
+    >
+      <ConnectFormCertify
+        v-model="platAppStore.platformConfirmation.confirmation"
+        :title="$t('strr.label.confirmation')"
+        :items="[{ slot: 'item-1' }, { i18nKey: 'certify.2' }, { i18nKey: 'certify.3' }]"
+        :checkbox-label="{ key: 'certify.checkbox' }"
+        :has-error="hasFormErrors(platformConfirmationFormRef, ['confirmInfoAccuracy'])"
+        name="confirmation"
       >
-        <UFormGroup name="confirmInfoAccuracy">
-          <UCheckbox
-            v-model="platAppStore.platformConfirmation.confirmInfoAccuracy"
-            :label="tPlatReview('confirm.infoAccuracy')"
-            class="rounded bg-white p-4"
-            :class="hasFormErrors(platformConfirmationFormRef, ['confirmInfoAccuracy'])
-              ? 'outline outline-red-600'
-              : ''
-            "
-            aria-required="true"
-            :aria-invalid="hasFormErrors(platformConfirmationFormRef, ['confirmInfoAccuracy'])"
-          />
-        </UFormGroup>
-
-        <UFormGroup name="confirmDelistAndCancelBookings">
-          <UCheckbox
-            v-model="platAppStore.platformConfirmation.confirmDelistAndCancelBookings"
-            :label="tPlatReview('confirm.delistAndCancelBookings')"
-            class="rounded bg-white p-4"
-            :class="hasFormErrors(platformConfirmationFormRef, ['confirmDelistAndCancelBookings'])
-              ? 'outline outline-red-600'
-              : ''
-            "
-            aria-required="true"
-            :aria-invalid="hasFormErrors(platformConfirmationFormRef, ['confirmDelistAndCancelBookings'])"
-          />
-        </UFormGroup>
-      </UForm>
-    </section>
+        <template #item-1>
+          <i18n-t keypath="certify.1" scope="global">
+            <template #terms>
+              <strong>{{ $t('strr.label.termsAndCond') }}.</strong>
+            </template>
+            <template #link>
+              <a
+                :href="useRuntimeConfig().public.platformsTacUrl"
+                target="_blank"
+                class="text-bcGovColor-activeBlue underline"
+              >
+                {{ $t('strr.label.termsAndCond') }}
+              </a>
+            </template>
+          </i18n-t>
+        </template>
+      </ConnectFormCertify>
+    </UForm>
   </div>
 </template>
