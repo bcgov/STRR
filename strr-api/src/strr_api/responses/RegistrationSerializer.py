@@ -3,7 +3,7 @@ Registration response objects.
 """
 
 from strr_api.enums.enum import RegistrationType
-from strr_api.models import Platform, Registration, StrataHotel
+from strr_api.models import Platform, PropertyManager, Registration, StrataHotel
 
 
 class RegistrationSerializer:
@@ -206,6 +206,7 @@ class RegistrationSerializer:
             "details": {
                 "preferredName": primary_property_contact.contact.preferredname,
                 "phoneNumber": primary_property_contact.contact.phone_number,
+                "phoneCountryCode": primary_property_contact.contact.phone_country_code,
                 "extension": primary_property_contact.contact.phone_extension,
                 "faxNumber": primary_property_contact.contact.fax_number,
                 "emailAddress": primary_property_contact.contact.email,
@@ -237,13 +238,15 @@ class RegistrationSerializer:
                 "details": {
                     "preferredName": secondary_property_contact.contact.preferredname,
                     "phoneNumber": secondary_property_contact.contact.phone_number,
+                    "phoneCountryCode": secondary_property_contact.contact.phone_country_code,
                     "extension": secondary_property_contact.contact.phone_extension,
                     "faxNumber": secondary_property_contact.contact.fax_number,
                     "emailAddress": secondary_property_contact.contact.email,
                 },
                 "mailingAddress": {
                     "address": secondary_property_contact.contact.address.street_address,
-                    "addressLineTwo": secondary_property_contact.contact.address.street_address_additional,  # noqa: E501
+                    "addressLineTwo": secondary_property_contact.contact.address.street_address_additional,
+                    # noqa: E501
                     "city": secondary_property_contact.contact.address.city,
                     "postalCode": secondary_property_contact.contact.address.postal_code,
                     "province": secondary_property_contact.contact.address.province,
@@ -292,24 +295,52 @@ class RegistrationSerializer:
         }
 
         if property_manager := registration.rental_property.property_manager:
-            registration_data["propertyManager"] = {
-                "businessLegalName": property_manager.business_legal_name,
-                "businessNumber": property_manager.business_number,
-                "businessMailingAddress": {
-                    "address": property_manager.business_mailing_address.street_address,
-                    "city": property_manager.business_mailing_address.city,
-                    "postalCode": property_manager.business_mailing_address.postal_code,
-                    "province": property_manager.business_mailing_address.province,
-                    "country": property_manager.business_mailing_address.country,
-                },
-                "contact": {
-                    "firstName": property_manager.contact.firstname,
-                    "lastName": property_manager.contact.lastname,
-                    "middleName": property_manager.contact.middlename,
-                    "preferredName": property_manager.contact.preferredname,
-                    "phoneNumber": property_manager.contact.phone_number,
-                    "extension": property_manager.contact.phone_extension,
-                    "faxNumber": property_manager.contact.fax_number,
-                    "emailAddress": property_manager.contact.email,
-                },
-            }
+            if property_manager.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
+                registration_data["propertyManager"] = {
+                    "business": {
+                        "legalName": property_manager.business_legal_name,
+                        "businessNumber": property_manager.business_number,
+                        "mailingAddress": {
+                            "address": property_manager.business_mailing_address.street_address,
+                            "city": property_manager.business_mailing_address.city,
+                            "postalCode": property_manager.business_mailing_address.postal_code,
+                            "province": property_manager.business_mailing_address.province,
+                            "country": property_manager.business_mailing_address.country,
+                        },
+                        "primaryContact": {
+                            "firstName": property_manager.primary_contact.firstname,
+                            "lastName": property_manager.primary_contact.lastname,
+                            "middleName": property_manager.primary_contact.middlename,
+                            "preferredName": property_manager.primary_contact.preferredname,
+                            "phoneNumber": property_manager.primary_contact.phone_number,
+                            "phoneCountryCode": property_manager.primary_contact.phone_country_code,
+                            "extension": property_manager.primary_contact.phone_extension,
+                            "faxNumber": property_manager.primary_contact.fax_number,
+                            "emailAddress": property_manager.primary_contact.email,
+                        },
+                    }
+                }
+            else:
+                registration_data["propertyManager"] = {
+                    "contact": {
+                        "firstName": property_manager.primary_contact.firstname,
+                        "lastName": property_manager.primary_contact.lastname,
+                        "middleName": property_manager.primary_contact.middlename,
+                        "preferredName": property_manager.primary_contact.preferredname,
+                        "phoneNumber": property_manager.primary_contact.phone_number,
+                        "phoneCountrycode": property_manager.primary_contact.phone_country_code,
+                        "extension": property_manager.primary_contact.phone_extension,
+                        "faxNumber": property_manager.primary_contact.fax_number,
+                        "emailAddress": property_manager.primary_contact.email,
+                    }
+                }
+                if contact_mailing_address := property_manager.primary_contact.address:
+                    registration_data["propertyManager"]["contact"]["mailingAddress"] = {
+                        "address": contact_mailing_address.street_address,
+                        "city": contact_mailing_address.city,
+                        "postalCode": contact_mailing_address.postal_code,
+                        "province": contact_mailing_address.province,
+                        "country": contact_mailing_address.country,
+                    }
+
+            registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type

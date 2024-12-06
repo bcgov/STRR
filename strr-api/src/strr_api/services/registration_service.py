@@ -302,7 +302,7 @@ class RegistrationService:
         )
 
         if property_manager_info := registration_request.propertyManager:
-            property_manager = cls._createPropertyManager(property_manager_info)
+            property_manager = cls._create_property_manager(property_manager_info)
             rental_property.property_manager = property_manager
 
         primary_property_contact = PropertyContact()
@@ -364,8 +364,9 @@ class RegistrationService:
         return rental_property
 
     @classmethod
-    def _createPropertyManager(cls, property_manager_info):
+    def _create_property_manager(cls, property_manager_info):
         property_manager = PropertyManager(property_manager_type=property_manager_info.propertyManagerType)
+
         if property_manager_info.propertyManagerType == PropertyManager.PropertyManagerType.BUSINESS:
             property_manager.business_legal_name = (property_manager_info.business.legalName,)
             property_manager.business_number = (property_manager_info.business.businessNumber,)
@@ -378,20 +379,45 @@ class RegistrationService:
                 postal_code=property_manager_info.business.mailingAddress.postalCode,
             )
             primary_contact = property_manager_info.business.primaryContact
+            property_manager_primary_contact = Contact(
+                firstname=primary_contact.firstName,
+                lastname=primary_contact.lastName,
+                middlename=primary_contact.middleName,
+                preferredname=primary_contact.preferredName,
+                email=primary_contact.emailAddress,
+                phone_country_code=primary_contact.phoneCountryCode,
+                phone_number=primary_contact.phoneNumber,
+                phone_extension=primary_contact.extension,
+                fax_number=primary_contact.faxNumber,
+            )
+            property_manager.primary_contact = property_manager_primary_contact
 
         elif property_manager_info.propertyManagerType == PropertyManager.PropertyManagerType.INDIVIDUAL:
-            primary_contact = property_manager_info.contact
-        property_manager.primary_contact = Contact(
-            firstname=primary_contact.firstName,
-            lastname=primary_contact.lastName,
-            middlename=primary_contact.middleName,
-            preferredname=primary_contact.preferredName,
-            email=primary_contact.emailAddress,
-            phone_country_code=primary_contact.phoneCountryCode,
-            phone_number=primary_contact.phoneNumber,
-            phone_extension=primary_contact.extension,
-            fax_number=primary_contact.faxNumber,
-        )
+            print("$$")
+            print(property_manager_info.contact.mailingAddress)
+            property_manager_primary_contact = Contact(
+                firstname=property_manager_info.contact.firstName,
+                lastname=property_manager_info.contact.lastName,
+                middlename=property_manager_info.contact.middleName,
+                preferredname=property_manager_info.contact.preferredName,
+                email=property_manager_info.contact.emailAddress,
+                phone_country_code=property_manager_info.contact.phoneCountryCode,
+                phone_number=property_manager_info.contact.phoneNumber,
+                phone_extension=property_manager_info.contact.extension,
+                fax_number=property_manager_info.contact.faxNumber,
+            )
+
+            if property_manager_info.contact.mailingAddress:
+                property_manager_primary_contact.address = Address(
+                    country=property_manager_info.contact.mailingAddress.country,
+                    street_address=property_manager_info.contact.mailingAddress.address,
+                    street_address_additional=property_manager_info.contact.mailingAddress.addressLineTwo,
+                    city=property_manager_info.contact.mailingAddress.city,
+                    province=property_manager_info.contact.mailingAddress.province,
+                    postal_code=property_manager_info.contact.mailingAddress.postalCode,
+                )
+
+            property_manager.primary_contact = property_manager_primary_contact
         return property_manager
 
     @classmethod

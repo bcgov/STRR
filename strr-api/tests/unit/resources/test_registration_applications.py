@@ -14,8 +14,11 @@ from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_hea
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
 )
-CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration_property_manager.json"
+PROPERTY_MANAGER_INDIVIDUAL = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/property_manager_individual.json"
+)
+PROPERTY_MANAGER_BUSINESS = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/property_manager_business.json"
 )
 CREATE_HOST_REGISTRATION_MINIMUM_FIELDS_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration_minimum.json"
@@ -73,7 +76,8 @@ def test_staff_cannot_access_draft_applications(session, client, jwt):
     "request_json",
     [
         CREATE_HOST_REGISTRATION_REQUEST,
-        CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST,
+        PROPERTY_MANAGER_INDIVIDUAL,
+        PROPERTY_MANAGER_BUSINESS,
     ],
 )
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -101,7 +105,7 @@ def test_get_applications(session, client, jwt):
 
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
-    assert len(response_json.get("applications")) == 3
+    assert len(response_json.get("applications")) == 4
 
 
 def test_get_applications_by_registration_type(session, client, jwt):
@@ -111,7 +115,7 @@ def test_get_applications_by_registration_type(session, client, jwt):
 
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
-    assert len(response_json.get("applications")) == 3
+    assert len(response_json.get("applications")) == 4
 
     rv = client.get("/applications?registrationType=PLATFORM", headers=headers)
 
@@ -342,8 +346,10 @@ def test_examiner_reject_application(session, client, jwt):
     [
         (CREATE_HOST_REGISTRATION_REQUEST, True),
         (CREATE_HOST_REGISTRATION_REQUEST, False),
-        (CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST, True),
-        (CREATE_PROPERTY_MANAGER_HOST_REGISTRATION_REQUEST, False),
+        (PROPERTY_MANAGER_INDIVIDUAL, True),
+        (PROPERTY_MANAGER_INDIVIDUAL, False),
+        (PROPERTY_MANAGER_BUSINESS, True),
+        (PROPERTY_MANAGER_BUSINESS, False),
     ],
 )
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
