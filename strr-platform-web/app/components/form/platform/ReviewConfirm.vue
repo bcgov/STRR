@@ -339,7 +339,7 @@ onMounted(async () => {
         :title="$t('strr.label.confirmation')"
         :items="[{ slot: 'item-1' }, { i18nKey: 'certify.2' }, { i18nKey: 'certify.3' }]"
         :checkbox-label="{ key: 'certify.checkbox' }"
-        :has-error="hasFormErrors(platformConfirmationFormRef, ['confirmInfoAccuracy'])"
+        :has-error="hasFormErrors(platformConfirmationFormRef, ['confirmation'])"
         name="confirmation"
       >
         <template #item-1>

@@ -33,7 +33,7 @@ defineProps<{
           v-for="item, i in items"
           :id="`${name}-item-${i}`"
           :key="i"
-          class="py-3 first:pt-0"
+          class="py-4 first:pt-0"
         >
           <template v-if="item.slot">
             <slot :name="item.slot" />

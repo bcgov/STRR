@@ -69,8 +69,7 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     platContactStore.$reset()
     platBusinessStore.$reset()
     platDetailsStore.$reset()
-    platformConfirmation.confirmDelistAndCancelBookings = false
-    platformConfirmation.confirmInfoAccuracy = false
+    platformConfirmation.confirmation = false
   }
 
   return {

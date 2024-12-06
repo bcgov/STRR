@@ -118,6 +118,6 @@ export default {
     1: '{terms} I agree to comply with the {link} of registration.',
     2: '{boldStart}Accuracy of Information.{boldEnd} I confirm that the information contained in the application for registration is accurate and true. I understand that if I have knowingly provided inaccurate or false information, I may be subject to enforcement action under Part 4 of the {italicStart}Short-term Rental Accommodations Act{italicEnd}.',
     3: '{boldStart}Validating Registration.{boldEnd} I understand that under section 13(1) of the {italicStart}Short-term Rental Accommodations Act{italicEnd}, the platform service provider must validate that all platform offers have a valid registration number; and that under section 17(2)(a) of the Act, platform service providers must cease providing platform services with respect to a platform offer that does not have a valid registration number. ',
-    checkbox: 'I {name} confirm that I understand and agree to the above.'
+    checkbox: 'I confirm that I understand and agree to the above.'
   }
 }

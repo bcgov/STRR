@@ -56,7 +56,8 @@ export default defineNuxtConfig({
     public: {
       // Keys within public, will be also exposed to the client-side
       baseUrl: process.env.NUXT_BASE_URL,
-      version: `STRR Strata Hotel UI v${process.env.npm_package_version}`
+      version: `STRR Strata Hotel UI v${process.env.npm_package_version}`,
+      strataTacUrl: process.env.NUXT_STRATA_TAC_URL
       // set by strr-base-web layer (still required in .env)
       // addressCompleteKey - NUXT_ADDRESS_COMPLETE_KEY
       // payApiURL - NUXT_PAY_API_VERSION

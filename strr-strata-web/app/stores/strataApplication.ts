@@ -9,17 +9,12 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
   const businessStore = useStrrStrataBusinessStore()
   const detailsStore = useStrrStrataDetailsStore()
 
-  // TODO: update confirmation stuff for strata
   const confirmation = reactive({
-    confirmInfoAccuracy: false,
-    confirmDelistAndCancelBookings: false
+    confirmation: false
   })
 
   const confirmationSchema = z.object({
-    confirmInfoAccuracy: z.boolean().refine(val => val === true, {
-      message: t('validation.confirm')
-    }),
-    confirmDelistAndCancelBookings: z.boolean().refine(val => val === true, {
+    confirmation: z.boolean().refine(val => val === true, {
       message: t('validation.confirm')
     })
   })
@@ -84,8 +79,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
     contactStore.$reset()
     businessStore.$reset()
     detailsStore.$reset()
-    confirmation.confirmDelistAndCancelBookings = false
-    confirmation.confirmInfoAccuracy = false
+    confirmation.confirmation = false
   }
 
   return {

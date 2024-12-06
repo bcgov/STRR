@@ -60,7 +60,9 @@ export default {
       brandSite: 'Strata-Titled Hotel or Motel Website',
       numberOfUnits: 'Number of Rental Units',
       registeringBusiness: 'Registering Business',
-      regOfficeAttSvc: 'Registered Office or Attorney for Service'
+      regOfficeAttSvc: 'Registered Office or Attorney for Service',
+      confirmation: 'Confirmation',
+      termsAndCond: 'Terms and Conditions'
     },
     text: {
       comingSoon: 'Short-Term Rental Strata Hotel Registry will be available on December 15, 2024',
@@ -144,5 +146,10 @@ export default {
       name: 'Please enter a name',
       site: 'Please enter a valid full url for this brand (i.e. https://www.bcregistry.gov.bc.ca)'
     }
+  },
+  certify: {
+    1: '{terms} I agree to comply with the {link} of registration.',
+    2: '{boldStart}Accuracy of Information.{boldEnd} I confirm that the information contained in the application for registration is accurate and true. I understand that if I have knowingly provided inaccurate or false information, I may be subject to enforcement action under Part 4 of the {italicStart}Short-term Rental Accommodations Act{italicEnd}.',
+    checkbox: 'I confirm that I understand and agree to the above.'
   }
 }
