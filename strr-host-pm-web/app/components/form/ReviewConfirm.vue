@@ -264,11 +264,11 @@ const getCompPartyName = computed(() => {
             :aria-invalid="hasFormErrors(confirmationFormRef, ['agreedToSubmit'])"
           >
             <template #label>
-              <i18n-t keypath="strr.review.certify.authorization" scope="global">
-                <template #name>
-                  <b>{{ getCompPartyName }}</b>
-                </template>
-              </i18n-t>
+              <ConnectI18nBold
+                class="text-bcGovGray-700"
+                translation-path="strr.review.certify.authorization"
+                :name="getCompPartyName"
+              />
             </template>
           </UCheckbox>
         </UFormGroup>

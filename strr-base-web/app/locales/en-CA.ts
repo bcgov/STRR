@@ -488,7 +488,7 @@ export default {
           text: 'I confirm that the information contained in the application for registration is accurate and true. I understand that if I have knowingly provided inaccurate or false information, I may be subject to enforcement action under Part 4 of the Short-Term Rental Accommodations Act.'
         },
         confirm: 'I, {name}, confirm that I understand and agree to all of the requirements listed above.',
-        authorization: 'I, {name}, have relevant knowledge of and am authorized to submit this registration.'
+        authorization: 'I, {boldStart}{name}{boldEnd}, have relevant knowledge of and am authorized to submit this registration.'
       }
     }
   }
