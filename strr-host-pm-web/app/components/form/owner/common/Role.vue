@@ -22,11 +22,13 @@ const radioOptions = computed(() => [
         label: t(`strr.label.role.${OwnerRole.CO_HOST}`),
         disabled: (hasCoHost.value && originalRole !== OwnerRole.CO_HOST) || props.isCompParty
       }]
-    : [{
-        value: OwnerRole.PROPERTY_MANAGER,
-        label: t(`strr.label.role.${OwnerRole.PROPERTY_MANAGER}`),
-        disabled: hasPropertyManager.value && originalRole !== OwnerRole.PROPERTY_MANAGER
-      }])
+    : []
+  ),
+  {
+    value: OwnerRole.PROPERTY_MANAGER,
+    label: t(`strr.label.role.${OwnerRole.PROPERTY_MANAGER}`),
+    disabled: hasPropertyManager.value && originalRole !== OwnerRole.PROPERTY_MANAGER
+  }
 ])
 </script>
 

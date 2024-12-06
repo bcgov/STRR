@@ -104,7 +104,7 @@ watch(isCompParty, (val) => {
         id="host-owner-preferred-name"
         v-model="owner.preferredName"
         name="preferredName"
-        :placeholder="$t('label.preferredName')"
+        :placeholder="$t('label.preferredNameOpt')"
         :help="$t('text.preferredName.hint')"
         data-testid="preferredName"
       />
@@ -147,14 +147,16 @@ watch(isCompParty, (val) => {
           id="host-owner-taxNumber"
           v-model="owner.taxNumber"
           name="taxNumber"
-          :placeholder="$t('label.craTaxNumberExtra')"
+          :placeholder="$t('label.craTaxNumberOpt')"
           :help="$t('strr.hint.craTaxNumber')"
           mask="### ### ###"
         />
       </ConnectFormSection>
       <ConnectFormSection
-        v-if="owner.role !== OwnerRole.PROPERTY_MANAGER"
-        :title="$t('strr.section.subTitle.residentialAddress')"
+        v-if="owner.role !== OwnerRole.PROPERTY_MANAGER || owner.ownerType !== OwnerType.BUSINESS"
+        :title="owner.role === OwnerRole.HOST
+          ? $t('strr.section.subTitle.residentialAddress')
+          : $t('strr.section.subTitle.mailingAddress')"
         :error="showErrors && hasFormErrors(ownerFormRef, [
           'mailingAddress.country',
           'mailingAddress.street',
