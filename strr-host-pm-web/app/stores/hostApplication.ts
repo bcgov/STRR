@@ -56,7 +56,7 @@ export const useHostApplicationStore = defineStore('host/application', () => {
           nonPrincipalOption: reqStore.prRequirements.prExemptionReason || '',
           agreedToRentalAct: userConfirmation.value.agreedToRentalAct,
           agreedToSubmit: userConfirmation.value.agreedToSubmit,
-          // TODO: No idea what this is supposed to be?
+          // TODO: Not in new design - remove once it is no longer required to pass API validation
           specifiedServiceProvider: ''
         },
         listingDetails: []

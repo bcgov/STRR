@@ -12,9 +12,7 @@ export const useDocumentStore = defineStore('host/document', () => {
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
 
-  const apiDocuments = computed(() => storedDocuments.value.map(item => ({
-    ...item.apiDoc, documentType: item.type
-  }))) // ApiDocument[]
+  const apiDocuments = computed(() => storedDocuments.value.map(item => item.apiDoc))
 
   const requiredDocs = computed(() => {
     const reqs = reqStore.propertyReqs
@@ -232,7 +230,7 @@ export const useDocumentStore = defineStore('host/document', () => {
         method: 'POST',
         body: formData
       })
-      // api doesn't give documentType back
+      // api doesn't give documentType back in this response
       res.documentType = uiDoc.type
       // update ui object with backend response
       updateStoredDocument(uiDoc.id, 'apiDoc', res)
