@@ -96,7 +96,7 @@ class PropertyManagerContact:
         self.preferredName = preferredName
         self.extension = extension
         self.faxNumber = faxNumber
-        self.mailingAddress = MailingAddress(**mailingAddress)
+        self.mailingAddress = MailingAddress(**mailingAddress) if mailingAddress else None
 
 
 class PrincipalResidence:

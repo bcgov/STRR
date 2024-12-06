@@ -84,25 +84,29 @@
       "agreedToSubmit": true
     },
     "propertyManager": {
-      "businessLegalName": "Test Business",
       "initiatedByPropertyManager": false,
-      "businessMailingAddress": {
-        "address": "123 GREENWELL ST MAPLE RIDGE",
-        "city": "MAPLE RIDGE",
-        "country": "CA",
-        "postalCode": "V2X 7N1",
-        "province": "BC"
-      },
-      "businessNumber": "123456789",
-      "contact": {
-        "emailAddress": "abc@def.com",
-        "extension": "",
-        "faxNumber": "",
-        "firstName": "Property",
-        "lastName": "Manager",
-        "middleName": "ABC",
-        "phoneNumber": "5567869456",
-        "preferredName": "Property Manager"
+      "propertyManagerType": "BUSINESS",
+      "business": {
+        "legalName": "Test Business",
+        "mailingAddress": {
+          "address": "123 GREENWELL ST MAPLE RIDGE",
+          "city": "MAPLE RIDGE",
+          "country": "CA",
+          "postalCode": "V2X 7N1",
+          "province": "BC"
+        },
+        "businessNumber": "123456789",
+        "primaryContact": {
+          "emailAddress": "abc@def.com",
+          "extension": "",
+          "faxNumber": "",
+          "firstName": "Property",
+          "lastName": "Manager",
+          "middleName": "ABC",
+          "phoneNumber": "5567869456",
+          "phoneCountryCode": "001",
+          "preferredName": "Property Manager"
+        }
       }
     }
   }
