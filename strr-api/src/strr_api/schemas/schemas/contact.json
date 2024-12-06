@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://strr.gov.bc.ca/.well_known/schemas/contact",
+  "type": "object",
+  "title": "Contact Schema",
+  "properties": {
+    "firstName": {
+      "type": "string"
+    },
+    "middleName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "preferredName": {
+      "type": "string"
+    },
+    "phoneNumber": {
+      "type": "string"
+    },
+    "phoneCountryCode": {
+      "type": "string"
+    },
+    "extension": {
+      "type": "string"
+    },
+    "faxNumber": {
+      "type": "string"
+    },
+    "emailAddress": {
+      "type": "string",
+      "format": "email"
+    }
+  },
+  "required": [
+    "firstName",
+    "lastName",
+    "phoneNumber",
+    "emailAddress"
+  ]
+}

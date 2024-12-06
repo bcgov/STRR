@@ -108,17 +108,25 @@ class RentalProperty(Versioned, BaseModel):
 class PropertyManager(Versioned, BaseModel):
     """Property Manager"""
 
+    class PropertyManagerType(BaseEnum):
+        """Enum of property manager types."""
+
+        INDIVIDUAL = auto()  # pylint: disable=invalid-name
+        BUSINESS = auto()  # pylint: disable=invalid-name
+
     __tablename__ = "property_manager"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    property_manager_type = db.Column(db.Enum(PropertyManagerType))
+
     business_legal_name = db.Column(db.String(250), nullable=True)
     business_number = db.Column(db.String(100), nullable=True)
+    business_mailing_address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"))
 
-    business_mailing_address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
-    contact_id = db.Column(db.Integer, db.ForeignKey("contacts.id"), nullable=False)
+    primary_contact_id = db.Column(db.Integer, db.ForeignKey("contacts.id"))
 
     business_mailing_address = relationship("Address", foreign_keys=[business_mailing_address_id])
-    contact = relationship("Contact", foreign_keys=[contact_id])
+    primary_contact = relationship("Contact", foreign_keys=[primary_contact_id])
 
     rental_property = relationship("RentalProperty", back_populates="property_manager", uselist=False)
 

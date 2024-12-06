@@ -44,17 +44,31 @@ class PropertyManager:
 
     def __init__(
         self,
-        contact,
-        businessMailingAddress,
-        businessLegalName=None,
-        businessNumber=None,
+        propertyManagerType,
+        business=None,
+        contact=None,
         initiatedByPropertyManager=False,
     ):
-        self.contact = PropertyManagerContact(**contact)
-        self.businessMailingAddress = MailingAddress(**businessMailingAddress)
-        self.businessLegalName = businessLegalName
-        self.businessNumber = businessNumber
+        self.propertyManagerType = propertyManagerType
+        self.business = Business(**business) if business else None
+        self.contact = PropertyManagerContact(**contact) if contact else None
         self.initiatedByPropertyManager = initiatedByPropertyManager
+
+
+class Business:
+    """Business object"""
+
+    def __init__(
+        self,
+        mailingAddress,
+        legalName=None,
+        businessNumber=None,
+        primaryContact=None,
+    ):
+        self.mailingAddress = MailingAddress(**mailingAddress)
+        self.legalName = legalName
+        self.businessNumber = businessNumber
+        self.primaryContact = PropertyManagerContact(**primaryContact)
 
 
 class PropertyManagerContact:
@@ -70,15 +84,19 @@ class PropertyManagerContact:
         preferredName=None,
         extension=None,
         faxNumber=None,
+        phoneCountryCode=None,
+        mailingAddress=None,
     ):
         self.firstName = firstName
         self.lastName = lastName
         self.phoneNumber = phoneNumber
+        self.phoneCountryCode = phoneCountryCode
         self.emailAddress = emailAddress
         self.middleName = middleName
         self.preferredName = preferredName
         self.extension = extension
         self.faxNumber = faxNumber
+        self.mailingAddress = MailingAddress(**mailingAddress)
 
 
 class PrincipalResidence:

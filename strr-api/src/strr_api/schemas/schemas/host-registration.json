@@ -91,61 +91,43 @@
     "propertyManager": {
       "type": "object",
       "properties": {
-        "businessLegalName": {
-          "type": "string",
-          "description": "Business Legal Name"
-        },
         "initiatedByPropertyManager": {
           "type": "boolean"
         },
-        "businessNumber": {
+        "propertyManagerType": {
           "type": "string",
-          "description": "CRA Business Number"
+          "enum": [
+            "INDIVIDUAL",
+            "BUSINESS"
+          ]
         },
-        "businessMailingAddress": {
-          "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
-        },
-        "contact": {
+        "business": {
           "type": "object",
           "properties": {
-            "firstName": {
-              "type": "string"
-            },
-            "middleName": {
-              "type": "string"
-            },
-            "lastName": {
-              "type": "string"
-            },
-            "preferredName": {
-              "type": "string"
-            },
-            "phoneNumber": {
-              "type": "string"
-            },
-            "extension": {
-              "type": "string"
-            },
-            "faxNumber": {
-              "type": "string"
-            },
-            "emailAddress": {
+            "legalName": {
               "type": "string",
-              "format": "email"
+              "description": "Business Legal Name"
+            },
+            "businessNumber": {
+              "type": "string",
+              "description": "CRA Business Number"
+            },
+            "mailingAddress": {
+              "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
+            },
+            "primaryContact": {
+              "$ref": "https://strr.gov.bc.ca/.well_known/schemas/contact"
             }
           },
           "required": [
-            "firstName",
-            "lastName",
-            "phoneNumber",
-            "emailAddress"
+            "mailingAddress",
+            "primaryContact"
           ]
+        },
+        "contact": {
+          "$ref": "https://strr.gov.bc.ca/.well_known/schemas/contact"
         }
-      },
-      "required": [
-        "businessMailingAddress",
-        "contact"
-      ]
+      }
     },
     "rentalUnitAddress": {
       "type": "object",
