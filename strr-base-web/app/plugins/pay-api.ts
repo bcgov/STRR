@@ -1,6 +1,7 @@
 export default defineNuxtPlugin(() => {
   const payApiUrl = useRuntimeConfig().public.payApiURL
   const { $keycloak } = useNuxtApp()
+  const localePath = useLocalePath()
 
   const api = $fetch.create({
     baseURL: payApiUrl,
@@ -12,6 +13,11 @@ export default defineNuxtPlugin(() => {
         headers.set('Authorization', `Bearer ${$keycloak.token}`)
       } else {
         headers.Authorization = `Bearer ${$keycloak.token}`
+      }
+    },
+    async onResponseError ({ response }) {
+      if (response.status === 401) {
+        await navigateTo(localePath('/auth/login'))
       }
     }
   })

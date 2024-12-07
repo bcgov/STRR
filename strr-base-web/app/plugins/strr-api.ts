@@ -1,6 +1,7 @@
 export default defineNuxtPlugin(() => {
   const strrApiUrl = useRuntimeConfig().public.strrApiURL
   const accountStore = useConnectAccountStore()
+  const localePath = useLocalePath()
 
   const { $keycloak } = useNuxtApp()
 
@@ -17,6 +18,11 @@ export default defineNuxtPlugin(() => {
       } else {
         headers.Authorization = `Bearer ${$keycloak.token}`
         headers['Account-Id'] = accountStore.currentAccount.id
+      }
+    },
+    async onResponseError ({ response }) {
+      if (response.status === 401) {
+        await navigateTo(localePath('/auth/login'))
       }
     }
   })
