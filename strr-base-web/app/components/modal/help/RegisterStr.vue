@@ -4,11 +4,11 @@
       <i18n-t keypath="modal.help.registerStr.content" tag="p" scope="global">
         <template #link>
           <a
-            href="https://www.STRregistry.gov.bc.ca"
+            href="https://www.gov.bc.ca/STRRegistry"
             target="_blank"
             class="text-bcGovColor-activeBlue underline"
           >
-            STRregistry.gov.bc.ca
+            www.gov.bc.ca/STRRegistry
           </a>
         </template>
       </i18n-t>
