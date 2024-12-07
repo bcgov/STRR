@@ -8,6 +8,9 @@ const activeStepIndexModel = defineModel<number>('activeStepIndex', { default: 0
 const activeStepModel = defineModel<Step>('activeStep', { default: () => {} })
 
 const buttonRefs = ref<HTMLButtonElement[]>([])
+const stepperOlRef = ref<HTMLOListElement | null>(null)
+
+const stepperVisible = useElementVisibility(stepperOlRef)
 
 async function setActiveStep (newStep: number) {
   activeStepModel.value.complete = true // set currently active step to complete
@@ -72,7 +75,9 @@ function createStepAriaLabel (index: number) {
 
 watch(activeStepIndexModel, (newIndex) => {
   buttonRefs.value[newIndex]?.focus()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (!stepperVisible.value) { // only scroll if stepper outside of viewport
+    stepperOlRef.value?.scrollIntoView(true) // aligns top of stepper container to top of viewport
+  }
 })
 
 defineExpose({ setActiveStep, setNextStep, setPreviousStep, setStepValidity, buttonRefs })
@@ -85,12 +90,9 @@ onMounted(() => {
 </script>
 <template>
   <ol
+    ref="stepperOlRef"
     :aria-label="stepperLabel"
-    class="
-        flex w-full flex-row justify-between
-        rounded-[4px] bg-transparent px-0 pt-0
-        sm:bg-white sm:px-5 sm:pt-5
-      "
+    class="flex w-full flex-row justify-between rounded-[4px] bg-transparent px-0 pt-0 sm:bg-white sm:px-5 sm:pt-5"
     data-testid="stepper"
   >
     <li
