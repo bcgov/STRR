@@ -1,10 +1,22 @@
 /* eslint-disable max-len */
 export default {
+  act: {
+    foippa: 'Freedom of Information and Protection of Privacy Act'
+  },
   feeSummary: {
     itemLabels: {
       PLATREG_SM: 'Platform Application Fee',
       PLATREG_LG: 'Platform Application Fee',
       PLATREG_WV: 'Platform Application Fee'
+    }
+  },
+  modal: {
+    info: {
+      collectionNotice: {
+        triggerBtn: 'Information collection notice',
+        title: 'Information Collection Notice',
+        content: 'This personal information is being collected by the Ministry of Housing and Municipal Affairs under s. 33(1) of the {straAct} and s. 33(2)(e) of the {foippaAct} for the purpose of registering a platform service provider. If you have any questions about the collection of this personal information, please contact the Executive Director of the Short-Term Rental Branch, at {email}'
+      }
     }
   },
   strr: {
