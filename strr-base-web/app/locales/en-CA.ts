@@ -315,6 +315,18 @@ export default {
     Invalid: 'Invalid'
   },
   page: {
+    error: {
+      404: {
+        title: 'Page Not Found - Short-Term Rental Registry',
+        h1: '404 Page Not Found',
+        content: 'This page could not be found or does not exist.'
+      },
+      unknown: {
+        title: 'Unknown Error - Short-Term Rental Registry',
+        h1: 'Unknown Error',
+        content: 'An unknown error occured, please refresh the page or try again later.'
+      }
+    },
     notFound: {
       h1: 'Page Not Found'
     },
