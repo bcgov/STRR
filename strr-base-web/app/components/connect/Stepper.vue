@@ -93,6 +93,7 @@ watch(activeStepIndexModel, (newIndex) => {
   updateActiveBorderPosition()
 })
 
+// update separator position as stepper size changes
 useResizeObserver(stepperOlRef, () => {
   if (stepImageRefs.value && stepImageRefs.value[0] && buttonRefs.value && buttonRefs.value[0]) {
     separatorPosition.value = {
@@ -117,7 +118,7 @@ onMounted(() => {
   <ol
     ref="stepperOlRef"
     :aria-label="stepperLabel"
-    class="relative flex w-full flex-row justify-between rounded-[4px] bg-transparent sm:bg-white"
+    class="relative flex w-full flex-row justify-between overflow-hidden rounded-[4px] bg-transparent sm:bg-white"
     data-testid="stepper"
   >
     <div
