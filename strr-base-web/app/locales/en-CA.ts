@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
 export default {
   act: {
-    strrAccomodations: 'Short-Term Rental Accommodations Act'
+    strrAccomodations: 'Short-Term Rental Accommodations Act',
+    fippa: 'Freedom of Information and Protection of Privacy Act'
   },
   badge: {
     basicAccount: 'BASIC ACCOUNT',
@@ -288,7 +289,7 @@ export default {
       collectionNotice: {
         triggerBtn: 'Information collection notice',
         title: 'Information Collection Notice',
-        content: 'Any personal information required is collected to support the administration and enforcement of the {act}, under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at {email}.'
+        content: 'Any personal information required is collected to support the administration and enforcement of the {straAct}, under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at {email}.'
       }
     }
   },
