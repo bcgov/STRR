@@ -16,10 +16,9 @@ const {
   isPaidApplication,
   showPermitDetails
 } = storeToRefs(permitStore)
-const { unitAddress, unitDetails } = storeToRefs(useHostPropertyStore())
+const { unitAddress } = storeToRefs(useHostPropertyStore())
 
 const todos = ref<Todo[]>([])
-const property = ref<ConnectAccordionItem[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
 
 onMounted(async () => {
@@ -34,19 +33,9 @@ onMounted(async () => {
   } else {
     // existing registration or application under the account
     // set left side of header
-    const defaultName = `${permitDetails.value.unitAddress.streetNumber} ${permitDetails.value.unitAddress.streetName}`
-    title.value = permitDetails.value.unitAddress.nickname || defaultName
+    title.value = permitDetails.value.unitAddress.nickname || t('strr.label.unnamed')
+    subtitles.value = [{ text: getAddressDisplayParts(unitAddress.value.address, true).join(', ') }]
 
-    const rooms = unitDetails.value.numberOfRoomsForRent
-    subtitles.value = [
-      {
-        text: t(`propertyType.${unitDetails.value.propertyType}`)
-      },
-      ...(rooms !== undefined
-        ? [{ text: `${rooms} ${t('strr.label.room', rooms)}` }]
-        : []
-      )
-    ]
     if (!registration.value) {
       setHeaderDetails(
         application.value?.header.hostStatus,
@@ -55,44 +44,14 @@ onMounted(async () => {
     } else {
       setHeaderDetails(
         registration.value.status,
-        dateToStringPacific(registration.value.expiryDate, 'DDD'),
-        permitStore.downloadApplicationReceipt)
+        undefined,
+        permitStore.downloadApplicationReceipt,
+        permitStore.downloadRegistrationCert)
     }
-    // host side details
+
+    // host right side details
     setSideHeaderDetails(registration.value, application.value?.header)
-    setHostSideHeaderDetails()
-    // set sidebar accordian property
-    property.value = [{
-      defaultOpen: true,
-      showAvatar: false,
-      label: t('label.property'),
-      values: [
-        {
-          icon: 'i-mdi-home-circle-outline',
-          iconClass: '-mt-1 size-8',
-          address: unitAddress.value.address
-        }
-      ]
-    }, {
-      defaultOpen: false,
-      showAvatar: false,
-      label: t('label.details'),
-      // TODO: needs design decisions
-      values: [
-        {
-          text: 'Property type?',
-          class: 'italic'
-        },
-        {
-          text: 'Type of space?',
-          class: 'italic'
-        },
-        {
-          text: 'Ownership type?',
-          class: 'italic'
-        }
-      ]
-    }]
+
     // set sidebar accordian reps
     owners.value = getHostPermitDashOwners()
 
@@ -105,7 +64,7 @@ onMounted(async () => {
         external: true
       },
       { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
-      { label: permitDetails.value.unitAddress.nickname || defaultName }
+      { label: permitDetails.value.unitAddress.nickname || t('strr.label.unnamed') }
     ])
   }
 
@@ -146,16 +105,14 @@ setBreadcrumbs([
           :button="todo.button"
         />
       </ConnectDashboardSection>
+      <ConnectDashboardSection :title="$t('strr.label.shortTermRental')" :loading="loading">
+        <SummaryProperty class="px-10 py-5" />
+      </ConnectDashboardSection>
+      <ConnectDashboardSection :title="$t('strr.label.supportingInfo')" :loading="loading">
+        <SummarySupportingInfo class="px-10 py-5" />
+      </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
-      <ConnectDashboardSection :title="$t('strr.label.rentalUnit', 1)" :loading="loading">
-        <ConnectAccordion v-if="showPermitDetails" :items="property" />
-        <div v-else class="bg-white p-5 opacity-50">
-          <p class="text-sm">
-            {{ $t('text.completeFilingToDisplay') }}
-          </p>
-        </div>
-      </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('strr.label.individualsBusinesses')" :loading="loading">
         <ConnectAccordion v-if="showPermitDetails" :items="owners" multiple />
         <div v-else class="w-full bg-white p-5 opacity-50">

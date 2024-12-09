@@ -37,7 +37,7 @@ defineEmits<{
       :title="$t('strr.section.subTitle.role')"
       :error="showErrors && hasFormErrors(ownerFormRef, ['role'])"
     >
-      <FormOwnerCommonRole
+      <FormAddOwnersInputCommonRole
         v-model="owner.role"
         :is-comp-party="owner.isCompParty"
         :show-error="showErrors"
@@ -84,7 +84,7 @@ defineEmits<{
       </ConnectFormSection>
     </div>
     <ConnectFormSection v-if="showBtns" title=" ">
-      <FormOwnerCommonActionBtns
+      <FormAddOwnersInputCommonActionBtns
         class="max-w-bcGovInput"
         @cancel="$emit('cancel')"
         @done="$emit('done')"

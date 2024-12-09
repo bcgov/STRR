@@ -4,20 +4,14 @@ import { z } from 'zod'
 
 const props = defineProps<{ isComplete: boolean }>()
 
-defineEmits<{
-  edit: [index: number]
-}>()
+defineEmits<{ edit: [index: number] }>()
 
 const { t } = useI18n()
 const { hostTacUrl } = useRuntimeConfig().public
-// const accountStore = useConnectAccountStore()
 const propertyStore = useHostPropertyStore()
-const { blInfo, unitAddress, unitDetails } = storeToRefs(propertyStore)
-const { prRequirements, showUnitDetailsForm } = storeToRefs(usePropertyReqStore())
 const ownerStore = useHostOwnerStore()
 const { hasCompParty, hostOwners } = storeToRefs(ownerStore)
 const documentsStore = useDocumentStore()
-const { requiredDocs, storedDocuments } = storeToRefs(documentsStore)
 const applicationStore = useHostApplicationStore()
 
 const confirmationFormRef = ref<Form<z.output<typeof applicationStore.confirmationSchema>>>()
@@ -60,37 +54,6 @@ onMounted(async () => {
   }
 })
 
-// step 1 items
-const exemptInfo = computed((): ConnectInfoTableItem[] => [
-  { label: '', info: '', slot: 'border' },
-  { label: t('label.exemption'), info: '', slot: 'exempt' },
-  { label: t('label.exemptionReason'), info: t(`label.exemptionReasonCode.${prRequirements.value.prExemptionReason}`) }
-])
-const propertyInfo = computed((): ConnectInfoTableItem[] => [
-  { label: t('label.strUnitName'), info: unitAddress.value.address.nickname || t('text.notEntered') },
-  { label: t('label.strUnitAddress'), info: '', slot: 'address' },
-  ...(prRequirements.value.isPropertyPrExempt
-    ? exemptInfo.value
-    : []
-  ),
-  { label: '', info: '', slot: 'border' },
-  { label: t('strr.label.propertyType'), info: t(`propertyType.${unitDetails.value.propertyType}`) },
-  { label: t('label.typeOfSpace'), info: t(`rentalUnitType.${unitDetails.value.typeOfSpace}`) },
-  { label: t('strr.label.rentalUnitSetup'), info: t(`rentalUnitSetupType.${unitDetails.value.rentalUnitSetupType}`) },
-  { label: t('strr.label.numberOfRooms'), info: unitDetails.value.numberOfRoomsForRent },
-  { label: '', info: '', slot: 'border' },
-  { label: t('strr.label.ownershipType'), info: t(`ownershipType.${unitDetails.value.ownershipType}`) },
-  { label: t('strr.label.parcelId'), info: unitDetails.value.parcelIdentifier || t('text.notEntered') }
-])
-
-// step 3 items
-const supportingInfo = computed(() => [
-  { label: t('strr.label.supportingDocs'), info: storedDocuments.value, slot: 'documents' },
-  { label: '', info: '', slot: 'border' },
-  { label: t('strr.label.businessLicense'), info: blInfo.value.businessLicense || t('text.notEntered') },
-  { label: t('strr.label.businessLicenseDate'), info: blInfo.value.businessLicenseExpiryDate || t('text.notEntered') }
-])
-
 // TODO: move to common util or store (also used in summary component)
 const getFullName = (owner: HostOwner) => {
   return `${owner.firstName || ''} ${owner.middleName || ''} ${owner.lastName || ''}`.replaceAll('  ', ' ').trim()
@@ -105,7 +68,7 @@ const getCompPartyName = computed(() => {
 </script>
 <template>
   <div class="space-y-10" data-testid="strata-review-confirm">
-    <!-- property details -->
+    <!-- step 1: property details -->
     <ConnectPageSection
       :heading="{
         label: $t('strr.label.shortTermRental'),
@@ -118,26 +81,14 @@ const getCompPartyName = computed(() => {
         :error="isSectionInvalid('rental-unit-address-form') || isSectionInvalid('unit-details-form')"
         @edit="$emit('edit', 0)"
       >
-        <ConnectInfoTable :items="propertyInfo">
-          <template #label-border>
-            <div class="h-px w-full border-b border-gray-100" />
-          </template>
-          <template #info-border>
-            <div class="-ml-4 h-px w-full border-b border-gray-100" />
-          </template>
-          <template #info-address>
-            <ConnectFormAddressDisplay :address="unitAddress.address" />
-          </template>
-          <template #info-exempt>
-            <div class="flex gap-2">
-              <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
-              <p>{{ $t('text.thisPropIsExempt') }}</p>
-            </div>
-          </template>
-        </ConnectInfoTable>
+        <SummaryProperty />
       </FormCommonReviewSection>
     </ConnectPageSection>
-    <!-- Individuals and Businesses -->
+    <FormReviewProperty
+      :error="isSectionInvalid('rental-unit-address-form') || isSectionInvalid('unit-details-form')"
+      @edit="$emit('edit', 0)"
+    />
+    <!-- step 2: Individuals and Businesses -->
     <ConnectPageSection
       :heading="{
         label: $t('strr.label.individualsBusinesses'),
@@ -153,6 +104,7 @@ const getCompPartyName = computed(() => {
         <SummaryOwners v-if="ownerStore.hostOwners.length" />
       </FormCommonReviewSection>
     </ConnectPageSection>
+    <!-- step 3: supporting info -->
     <ConnectPageSection
       :heading="{
         label: $t('strr.label.supportingInfo'),
@@ -165,39 +117,10 @@ const getCompPartyName = computed(() => {
         :error="isSectionInvalid('business-license-form') || isSectionInvalid('supporting-documents')"
         @edit="$emit('edit', 2)"
       >
-        <ConnectInfoTable :items="supportingInfo">
-          <template #label-border>
-            <div class="h-px w-full border-b border-gray-100" />
-          </template>
-          <template #info-border>
-            <div class="-ml-4 h-px w-full border-b border-gray-100" />
-          </template>
-          <template #info-documents>
-            <div class="space-y-1">
-              <div v-if="!requiredDocs.length && showUnitDetailsForm">
-                <div class="flex gap-2">
-                  <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
-                  <p>{{ $t('text.noDocsReq') }}</p>
-                </div>
-              </div>
-              <div v-else-if="!storedDocuments.length">
-                <p>{{ $t('text.noDocsUploaded') }}</p>
-              </div>
-              <div v-for="doc in storedDocuments" :key="doc.id" class="flex w-full gap-2">
-                <UIcon
-                  name="i-mdi-paperclip"
-                  class="size-6 text-blue-500"
-                />
-                <div class="flex flex-col">
-                  <span class="text-sm font-bold">{{ $t(`form.pr.docType.${doc.type}`) }}</span>
-                  <span>{{ doc.name }}</span>
-                </div>
-              </div>
-            </div>
-          </template>
-        </ConnectInfoTable>
+        <SummarySupportingInfo />
       </FormCommonReviewSection>
     </ConnectPageSection>
+    <!-- certify -->
     <UForm
       ref="confirmationFormRef"
       :state="applicationStore.userConfirmation"

@@ -175,7 +175,7 @@ const getPhoneNumber = (phone: ConnectPhone) => {
       </div>
     </template>
     <template #expand="{ row, index }: { row: HostOwner, index: number }">
-      <FormOwner
+      <FormAddOwnersInput
         :set-owner="activeOwner || row"
         :owner-type="activeOwner?.ownerType || row.ownerType"
         :is-complete="false"

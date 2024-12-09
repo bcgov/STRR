@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ConnectStepper, FormReviewConfirm } from '#components'
+import { ConnectStepper, FormReview } from '#components'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -8,6 +8,7 @@ const { handlePaymentRedirect } = useNavigate()
 
 const propertyStore = useHostPropertyStore()
 const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(propertyStore)
+const { showUnitDetailsForm } = storeToRefs(usePropertyReqStore())
 const { validateOwners } = useHostOwnerStore()
 const documentsStore = useDocumentStore()
 const {
@@ -107,7 +108,8 @@ const steps = ref<Step[]>([
     isValid: false,
     validationFn: () => (
       propertyStore.validateBusinessLicense(true) as boolean &&
-      documentsStore.validateRequiredDocuments().length === 0)
+      documentsStore.validateRequiredDocuments().length === 0 &&
+      showUnitDetailsForm.value)
   },
   {
     i18nPrefix: 'strr.step',
@@ -120,7 +122,7 @@ const steps = ref<Step[]>([
 const activeStepIndex = ref<number>(0)
 const activeStep = ref<Step>(steps.value[activeStepIndex.value] as Step)
 const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
-const reviewFormRef = shallowRef<InstanceType<typeof FormReviewConfirm> | null>(null)
+const reviewFormRef = shallowRef<InstanceType<typeof FormReview> | null>(null)
 
 // need to cleanup the setButtonControl somehow
 const handleSubmit = async () => {
@@ -282,7 +284,7 @@ setBreadcrumbs([
       />
     </div>
     <div v-if="activeStepIndex === 3" key="review-confirm">
-      <FormReviewConfirm
+      <FormReview
         ref="reviewFormRef"
         :is-complete="activeStep.complete"
         @edit="stepperRef?.setActiveStep"

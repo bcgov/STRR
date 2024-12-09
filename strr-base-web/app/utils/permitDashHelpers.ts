@@ -1,7 +1,8 @@
 export const setHeaderDetails = (
   status?: string | RegistrationStatus,
   expiryDate?: string,
-  receiptAction?: Function
+  receiptAction?: Function,
+  certAction?: Function
 ) => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
@@ -24,28 +25,23 @@ export const setHeaderDetails = (
   if (expiryDate) {
     details.value.push({ text: `${t('label.expiryDate')} - ${expiryDate}` })
   }
-  if (receiptAction) {
-    bottomButtons.value = [
-      // TODO: add in later
-      // {
-      //   action: () => { console.info('View and Change') },
-      //   label: 'View and Change Platform Information',
-      //   icon: 'i-mdi-file-document-edit-outline'
-      // },
-      // FUTURE: add back in once certificate is built
-      // {
-      //   action: () => { console.info('Certificate') },
-      //   label: 'Certificate',
-      //   icon: 'i-mdi-file-download-outline'
-      // },
-      {
-        action: receiptAction,
-        label: t('word.Receipt'),
-        // TODO: find/replace with correct icon
-        icon: 'i-mdi-file-download-outline'
-      }
-    ]
-  }
+  bottomButtons.value = [
+    ...(certAction
+      ? [{
+          action: certAction,
+          label: t('btn.downloadCertificate'),
+          icon: 'i-mdi-file-download-outline'
+        }]
+      : []
+    ),
+    ...(receiptAction
+      ? [{
+          action: receiptAction,
+          label: t('btn.downloadReceipt'),
+          icon: 'i-mdi-file-download-outline'
+        }]
+      : [])
+  ]
 }
 
 export const setSideHeaderDetails = (
@@ -63,6 +59,15 @@ export const setSideHeaderDetails = (
       label: t('label.registrationDate'),
       value: dateToStringPacific(registration.startDate, 'DDD')
     })
+
+    if (registration.status === RegistrationStatus.ACTIVE) {
+      // @ts-expect-error - expiryDate is an iso string
+      const daysTillExpiry = dayCountdown(registration.expiryDate)
+      sideDetailsList.push({
+        label: t('label.daysToExpiry'),
+        value: t('label.dayCountCap', daysTillExpiry)
+      })
+    }
   } else if (application) {
     sideDetailsList.push({ label: t('label.applicationNum'), value: application.applicationNumber })
     sideDetailsList.push({

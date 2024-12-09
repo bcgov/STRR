@@ -92,7 +92,7 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
       />
     </div>
     <ConnectTransitionFade>
-      <FormOwner
+      <FormAddOwnersInput
         v-if="addingNewType"
         :set-owner="activeOwner"
         :owner-type="addingNewType"

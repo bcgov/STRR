@@ -35,6 +35,7 @@ export default {
     decline: 'Decline',
     close: 'Close',
     openHelpDocs: 'Read the Overview',
+    downloadCertificate: 'Download Certificate',
     downloadReceipt: 'Download Receipt',
     downloadReport: 'Download Report',
     info: {
@@ -123,6 +124,9 @@ export default {
     authorization: 'Authorization',
     born: 'Born',
     confirmation: 'Confirmation',
+    dayCount: '0 days | 1 day | {count} days',
+    daysToExpiry: 'Days to Expiry',
+    daysToExpiryExtra: 'Days to Expiry (Pacific Time)',
     details: 'Details',
     expiryDate: 'Expiry Date',
     registrationDate: 'Registration Date',
@@ -310,11 +314,13 @@ export default {
     No: 'No',
     Edit: 'Edit',
     Save: 'Save',
+    receipt: 'receipt',
     Receipt: 'Receipt',
     Certify: 'Certify',
     Leave: 'Leave',
     Valid: 'Valid',
-    Invalid: 'Invalid'
+    Invalid: 'Invalid',
+    certificate: 'certificate'
   },
   page: {
     error: {

@@ -3,19 +3,8 @@ const props = defineProps<{
   address: Partial<ConnectAddress>,
   useLocationDescLabel?: boolean
 }>()
-const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
-const addressData = computed((): string[] => {
-  return [
-    props.address.street || [
-      [props.address.unitNumber, props.address.streetNumber].filter(val => !!val).join('-'),
-      props.address.streetName
-    ].filter(val => !!val).join(' ') || '',
-    props.address.streetAdditional || '',
-    [props.address.city, props.address.region, props.address.postalCode].filter(val => !!val).join(' ') || '',
-    regionNamesInEnglish.of(props.address.country || '') || props.address.country || ''
-  ].filter(val => !!val)
-})
+const addressData = computed(() => getAddressDisplayParts(props.address))
 </script>
 <template>
   <div data-testid="address-display">

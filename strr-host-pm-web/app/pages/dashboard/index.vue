@@ -31,7 +31,7 @@ const columns = [
   },
   {
     key: 'daysToExpiry',
-    label: t('label.daysToExpiry'),
+    label: t('label.daysToExpiryExtra'),
     sortable: true,
     class: 'max-w-28'
   },

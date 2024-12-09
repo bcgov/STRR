@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import type { ApiHostApplication, HostApplicationResp, HostRegistrationResp } from '~/interfaces/host-api'
 import { formatHostUnitAddressUI, formatHostUnitDetailsUI } from '~/utils/host-formatting'
 
@@ -6,10 +7,12 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const { getAccountApplications } = useStrrApi()
   const ownerStore = useHostOwnerStore()
   const propertyStore = useHostPropertyStore()
-  // TODO: load application documents during 'loadHostsData'
+  const propertyReqStore = usePropertyReqStore()
   const documentStore = useDocumentStore()
   const { hostOwners } = storeToRefs(ownerStore)
   const { unitAddress, unitDetails } = storeToRefs(propertyStore)
+  const { prRequirements } = storeToRefs(propertyReqStore)
+  const { storedDocuments } = storeToRefs(documentStore)
 
   const {
     application,
@@ -18,7 +21,8 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     isPaidApplication,
     showPermitDetails,
     loadPermitData,
-    downloadApplicationReceipt
+    downloadApplicationReceipt,
+    downloadRegistrationCert
   } = useStrrBasePermit<HostRegistrationResp, HostApplicationResp, ApiHostApplication>()
 
   const loadHostData = async (applicationId: string) => {
@@ -38,6 +42,16 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       }
       unitDetails.value = formatHostUnitDetailsUI(permitDetails.value.unitDetails)
       unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
+      prRequirements.value.isPropertyPrExempt = permitDetails.value.principalResidence.isPrincipalResidence || false
+      prRequirements.value.prExemptionReason = permitDetails.value.principalResidence.nonPrincipalOption
+      storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({
+        file: {} as File,
+        apiDoc: val,
+        name: val.fileName,
+        type: val.documentType,
+        id: uuidv4(),
+        loading: false
+      })) || []
     }
   }
 
@@ -80,6 +94,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     isPaidApplication,
     showPermitDetails,
     downloadApplicationReceipt,
+    downloadRegistrationCert,
     loadHostData,
     loadHostPmList,
     $reset

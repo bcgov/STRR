@@ -85,7 +85,7 @@ onMounted(async () => {
       >
         <div class="py-10">
           <div v-if="owner.ownerType === OwnerType.INDIVIDUAL">
-            <FormOwnerPerson
+            <FormAddOwnersInputPerson
               v-model:owner="owner"
               v-model:owner-form-ref="ownerFormRef"
               :show-errors="showErrors"
@@ -96,7 +96,7 @@ onMounted(async () => {
             />
           </div>
           <div v-else>
-            <FormOwnerBusiness
+            <FormAddOwnersInputBusiness
               v-model:owner="owner"
               v-model:owner-form-ref="ownerFormRef"
               :show-btns="!owner.role"
@@ -120,7 +120,7 @@ onMounted(async () => {
                 <p class="ml-10">
                   {{ $t('strr.text.businessContactIndividual') }}
                 </p>
-                <FormOwnerPerson
+                <FormAddOwnersInputPerson
                   v-model:owner="owner"
                   v-model:owner-form-ref="ownerFormRef"
                   :show-errors="showErrors"

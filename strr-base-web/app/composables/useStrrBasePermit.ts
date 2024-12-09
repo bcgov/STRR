@@ -2,10 +2,12 @@ import type { ApiApplicationBaseResp, ApiRegistrationResp } from '~/interfaces/s
 import { downloadFile } from '~/utils/download-file'
 
 export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationBaseResp, B>() => {
+  const { t } = useI18n()
   const {
     getAccountApplications,
     getAccountRegistrations,
-    getApplicationReceipt
+    getApplicationReceipt,
+    getRegistrationCert
   } = useStrrApi()
 
   // Typescript not unwrapping the generic ref properly without the 'as ...'
@@ -55,7 +57,14 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
   const downloadApplicationReceipt = async () => {
     if (application.value && isPaidApplication.value) {
       const receipt = await getApplicationReceipt(application.value.header.applicationNumber)
-      downloadFile(receipt, `${application.value.header.applicationNumber}.pdf`)
+      downloadFile(receipt, `${t('word.receipt')}_${application.value.header.applicationNumber}.pdf`)
+    }
+  }
+
+  const downloadRegistrationCert = async () => {
+    if (registration.value) {
+      const certificate = await getRegistrationCert(registration.value.id)
+      downloadFile(certificate, `${t('word.certificate')}_${registration.value.id}.pdf`)
     }
   }
 
@@ -67,6 +76,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     isPaidApplication,
     showPermitDetails,
     downloadApplicationReceipt,
+    downloadRegistrationCert,
     isApplicationStatus,
     loadPermitData
   }

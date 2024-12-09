@@ -50,10 +50,19 @@ export const useStrrApi = () => {
       })
   }
 
+  const getRegistrationCert = async (registrationId: string | number) => {
+    return await $strrApi<Blob>(`/registrations/${registrationId}/certificate`)
+      .catch((e) => {
+        logFetchError(e, `Unable to get registration certificate for ${registrationId}`)
+        return undefined
+      })
+  }
+
   return {
     getAccountRegistrations,
     getAccountApplications,
     getApplicationReceipt,
+    getRegistrationCert,
     postApplication
   }
 }

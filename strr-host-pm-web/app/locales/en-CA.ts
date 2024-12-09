@@ -168,7 +168,8 @@ export default {
       theRentalUnitIs: 'The rental unit is:',
       supportingInfo: 'Supporting Information',
       other: 'Other',
-      remove: 'Remove'
+      remove: 'Remove',
+      unnamed: 'Unnamed'
     },
     text: {
       applicationMustInclude: 'Your application must include the following:',
@@ -271,9 +272,7 @@ export default {
     primaryContactInfo: 'Primary Contact Information',
     expired: 'Expired',
     expiresToday: 'Expires today',
-    dayCount: '0 days | 1 day | {count} days',
     lastStatusChange: 'Last Status Change',
-    daysToExpiry: 'Days to Expiry (Pacific Time)',
     property: 'Property',
     details: 'Details',
     done: 'Done',

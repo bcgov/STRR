@@ -75,7 +75,7 @@ export interface ApiDocument {
 export interface ApiResidence {
   isPrincipalResidence: boolean | undefined
   agreedToRentalAct: boolean | undefined
-  nonPrincipalOption: string
+  nonPrincipalOption: PrExemptionReason | undefined
   specifiedServiceProvider: string
   agreedToSubmit: boolean | undefined
 }
