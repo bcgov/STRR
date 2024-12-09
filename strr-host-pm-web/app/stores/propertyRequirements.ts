@@ -78,7 +78,7 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
       propertyReqs.value = res
 
       // TODO: confirm these are the only scenarios we want to open the form without further user interaction
-      if (!res.isStrProhibited || !!res.isStraaExempt) {
+      if (!res.isStrProhibited && !res.isStraaExempt) {
         showUnitDetailsForm.value = true
       }
     } catch (e) {
