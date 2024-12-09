@@ -3,19 +3,19 @@ export function formatOwnerHostAPI (owner: HostOwner): ApiHostContactPerson {
     contactType: owner.ownerType,
     name: {
       firstName: owner.firstName || '',
-      middleName: owner.middleName || '',
+      ...(owner.middleName ? { middleName: owner.middleName } : {}),
       lastName: owner.lastName || ''
     },
     details: {
-      preferredName: owner.preferredName || '',
+      ...(owner.preferredName ? { preferredName: owner.preferredName } : {}),
       emailAddress: owner.emailAddress || '',
       phoneCountryCode: owner.phone.countryCode || '',
       phoneNumber: owner.phone.number || '',
       extension: owner.phone.extension || '',
       faxNumber: owner.faxNumber || ''
     },
-    dateOfBirth: owner.dateOfBirth || '',
-    socialInsuranceNumber: owner.taxNumber || '',
+    ...(owner.dateOfBirth ? { dateOfBirth: owner.dateOfBirth } : {}),
+    ...(owner.taxNumber ? { socialInsuranceNumber: owner.taxNumber } : {}),
     mailingAddress: formatAddress(owner.mailingAddress)
   }
 }
@@ -47,23 +47,23 @@ export function formatOwnerHostUI (
 export function formatOwnerPropertyManagerAPI (owner: HostOwner): ApiPropertyManager {
   return {
     initiatedByPropertyManager: owner.isCompParty,
-    type: owner.ownerType,
+    propertyManagerType: owner.ownerType,
     ...(owner.ownerType === OwnerType.INDIVIDUAL
       ? {
           contact: {
             ...formatParty(owner),
-            preferredName: owner.preferredName || '',
+            ...(owner.preferredName ? { preferredName: owner.preferredName } : {}),
             mailingAddress: formatAddress(owner.mailingAddress)
           }
         }
       : {
           business: {
             legalName: owner.businessLegalName,
-            businessNumber: owner.businessNumber,
+            ...(owner.businessNumber ? { businessNumber: owner.businessNumber } : {}),
             mailingAddress: formatAddress(owner.mailingAddress),
             primaryContact: {
               ...formatParty(owner),
-              preferredName: owner.preferredName || ''
+              ...(owner.preferredName ? { preferredName: owner.preferredName } : {})
             }
           }
         }
@@ -73,7 +73,7 @@ export function formatOwnerPropertyManagerAPI (owner: HostOwner): ApiPropertyMan
 
 export function formatOwnerPropertyManagerUI (owner: ApiPropertyManager): HostOwner {
   return {
-    ownerType: owner.type,
+    ownerType: owner.propertyManagerType,
     firstName: owner.contact?.firstName || owner.business?.primaryContact?.firstName || '',
     middleName: owner.contact?.middleName || owner.business?.primaryContact?.middleName || '',
     lastName: owner.contact?.lastName || owner.business?.primaryContact?.lastName || '',
@@ -93,7 +93,6 @@ export function formatOwnerPropertyManagerUI (owner: ApiPropertyManager): HostOw
 
 export function formatHostUnitDetailsAPI (unitDetails: UiUnitDetails, blInfo: UiBlInfo): ApiUnitDetails {
   return {
-    parcelIdentifier: unitDetails.parcelIdentifier || '',
     propertyType: unitDetails.propertyType,
     ownershipType: unitDetails.ownershipType,
     numberOfRoomsForRent: unitDetails.numberOfRoomsForRent,
@@ -102,8 +101,9 @@ export function formatHostUnitDetailsAPI (unitDetails: UiUnitDetails, blInfo: Ui
       ? ResidenceType.SAME_UNIT
       : ResidenceType.ANOTHER_UNIT,
     rentalUnitSpaceType: unitDetails.typeOfSpace,
-    businessLicense: blInfo.businessLicense || '',
-    businessLicenseExpiryDate: blInfo.businessLicenseExpiryDate || ''
+    ...(unitDetails.parcelIdentifier ? { parcelIdentifier: unitDetails.parcelIdentifier } : {}),
+    ...(blInfo.businessLicense ? { businessLicense: blInfo.businessLicense } : {}),
+    ...(blInfo.businessLicenseExpiryDate ? { businessLicenseExpiryDate: blInfo.businessLicenseExpiryDate } : {})
   }
 }
 

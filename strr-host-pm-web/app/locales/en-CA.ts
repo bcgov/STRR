@@ -96,7 +96,7 @@ export default {
       },
       info: {
         0: 'Tell us about the short-term rental property. Note: If you have multiple short-term rental properties, you must submit a separate Short-Term Rental Registration for each rental property.',
-        1: 'Add the individuals and businesses who will have a role in your short-term rental registration. The completing party must be a individual.',
+        1: 'Add the individuals and businesses who will have a role in your short-term rental registration. The completing party must be an individual.',
         2: '',
         3: 'Review and confirm all of the information you provided as shown below.'
       }
@@ -136,7 +136,7 @@ export default {
     },
     label: {
       addBusiness: 'Add a Business',
-      addIndividual: 'Add a Individual',
+      addIndividual: 'Add an Individual',
       addListing: 'Add Another Listing',
       businessLicense: 'Business License Number',
       businessLicenseOpt: 'Local Government Business License (Optional)',
@@ -179,7 +179,6 @@ export default {
       includeCompletingParty: 'The Completing Party',
       includeHost: 'At least one Host (maximum two)',
       includePropertyManager: 'If you have a Property Manager, you MUST also include the Property Manager (maximum one)',
-      individualBusinessInfo: 'Enter business information for this individual if lorem ipsum...',
       rentalType: 'What type of space is offered in this rental unit?',
       entireHome: 'Entire home (guests have the entire place to themselves)',
       sharedAccomodation: 'Shared accommodation (guests rent a portion of the unit with access to common spaces that may be shared with the host or other guests)',
@@ -190,7 +189,12 @@ export default {
       listEachWebLink: 'Add the web link for the rental unit’s listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).',
       ownershipTypeLegend: 'Required, What is the ownership type of the property?',
       enterResiAddressToDetermineRequirement: 'Start by entering the residential address of rental unit to help determine if you need to register your short-term rental and if it is in an area subject to the {link}.',
-      requireBusLicense: 'Your local government requires a valid business license to operate a short-term rental.'
+      requireBusLicense: 'Your local government requires a valid business license to operate a short-term rental.',
+      helpOwnerBtn: 'Help with Adding Individuals and Businesses',
+      helpOwnerTitle: 'Adding Individuals and Businesses',
+      helpOwner1: 'A Property Host is anyone who has the legal right to the property, as the owner or renter of the property.',
+      helpOwner2: 'A Property Manager is a supplier host who is acting as an agent of the property host to manage the short-term rental.',
+      helpOwner3: 'See more information in the {link}.'
     },
     word: {
       room: 'room | rooms',
@@ -304,6 +308,7 @@ export default {
     enterAddressManually: 'Enter the residental address manually'
   },
   link: {
+    hostAccomodationsAct: 'Short-Term Rental Accommodations Act',
     hostTAC: 'Terms and Conditions',
     strataHotelInfoPage: 'strata hotel information page',
     proofOfPr: 'Proof of principal residence',

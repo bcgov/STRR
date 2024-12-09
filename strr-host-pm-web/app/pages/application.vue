@@ -86,11 +86,12 @@ watch(unitDetails, (newVal) => {
 const steps = ref<Step[]>([
   {
     i18nPrefix: 'strr.step',
-    icon: 'i-mdi-domain-plus',
+    icon: 'i-mdi-map-marker-plus-outline',
     complete: false,
     isValid: false,
-    // TODO: replace validation function
-    validationFn: () => false
+    validationFn: () => (
+      propertyStore.validateUnitAddress(true) as boolean &&
+      propertyStore.validateUnitDetails(true) as boolean)
   },
   {
     i18nPrefix: 'strr.step',
@@ -101,11 +102,12 @@ const steps = ref<Step[]>([
   },
   {
     i18nPrefix: 'strr.step',
-    icon: 'i-mdi-map-marker-plus-outline',
+    icon: 'i-mdi-file-upload-outline',
     complete: false,
     isValid: false,
-    // TODO: replace validation function
-    validationFn: () => false
+    validationFn: () => (
+      propertyStore.validateBusinessLicense(true) as boolean &&
+      documentsStore.validateRequiredDocuments().length === 0)
   },
   {
     i18nPrefix: 'strr.step',

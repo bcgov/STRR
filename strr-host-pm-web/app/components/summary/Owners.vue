@@ -3,7 +3,7 @@ const props = defineProps<{ editable?: boolean, disableActions?: boolean }>()
 
 const { t } = useI18n()
 const ownerStore = useHostOwnerStore()
-const { hostOwners } = storeToRefs(ownerStore)
+const { activeOwner, activeOwnerEditIndex, hostOwners } = storeToRefs(ownerStore)
 
 const columns = [
   { key: 'name', label: t('label.name') },
@@ -24,7 +24,13 @@ const expandAtIndex = (index: number) => {
   if (hostOwners.value[index]) {
     expand.value.openedRows = [hostOwners.value[index]]
   }
+  activeOwnerEditIndex.value = index
 }
+onMounted(() => {
+  if (props.editable) {
+    expandAtIndex(activeOwnerEditIndex.value)
+  }
+})
 
 const getNameIcon = (owner: HostOwner) => {
   if (owner.ownerType === OwnerType.BUSINESS) {
@@ -143,7 +149,7 @@ const getPhoneNumber = (phone: ConnectPhone) => {
       <div class="flex divide-x">
         <UButton
           :label="$t('word.Edit')"
-          :disabled="expand.openedRows.length || disableActions"
+          :disabled="!!expand.openedRows.length || disableActions"
           color="primary"
           icon="i-mdi-pencil"
           variant="link"
@@ -154,7 +160,7 @@ const getPhoneNumber = (phone: ConnectPhone) => {
             icon="i-mdi-menu-down"
             :aria-label="$t('text.showMoreOptions')"
             variant="link"
-            :disabled="expand.openedRows.length || disableActions"
+            :disabled="!!expand.openedRows.length || disableActions"
           />
           <template #panel>
             <UButton
@@ -170,12 +176,12 @@ const getPhoneNumber = (phone: ConnectPhone) => {
     </template>
     <template #expand="{ row, index }: { row: HostOwner, index: number }">
       <FormOwner
-        :set-owner="row"
-        :owner-type="row.ownerType"
+        :set-owner="activeOwner || row"
+        :owner-type="activeOwner?.ownerType || row.ownerType"
         :is-complete="false"
         hide-heading
-        @cancel="expandAtIndex(-1)"
-        @done="ownerStore.updateHostOwner($event, index), expandAtIndex(-1)"
+        @cancel="expandAtIndex(-1), activeOwner = undefined"
+        @done="ownerStore.updateHostOwner($event, index), expandAtIndex(-1), activeOwner = undefined"
       />
     </template>
   </UTable>

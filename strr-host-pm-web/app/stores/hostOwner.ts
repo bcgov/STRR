@@ -32,9 +32,7 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
       dateOfBirth: type === OwnerType.INDIVIDUAL && role === OwnerRole.HOST
         ? getRequiredNonEmptyString(t('validation.dateOfBirth'))
         : optionalOrEmptyString,
-      taxNumber: type === OwnerType.INDIVIDUAL && role === OwnerRole.HOST
-        ? getOptionalSin(t('validation.craTaxNumberIndividual'))
-        : optionalOrEmptyString
+      taxNumber: optionalOrEmptyString
     })
   }
 
@@ -59,6 +57,8 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
     taxNumber: ''
   })
 
+  const activeOwner = ref<HostOwner| undefined>(undefined)
+  const activeOwnerEditIndex = ref(-1)
   const hostOwners = ref<HostOwner[]>([])
 
   const findByRole = (ownerRole: OwnerRole) => hostOwners.value.find(val => val.role === ownerRole)
@@ -117,6 +117,8 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
   }
 
   return {
+    activeOwner,
+    activeOwnerEditIndex,
     hostOwners,
     hasHost,
     hasCoHost,

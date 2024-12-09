@@ -17,8 +17,14 @@ const emit = defineEmits<{
 }>()
 
 const { getHostOwnerSchema, getNewHostOwner } = useHostOwnerStore()
+const { activeOwner } = storeToRefs(useHostOwnerStore())
+
+// Only init 'showErrors' with 'isComplete' value if this owner was already initialized previously
+const showErrors = ref(activeOwner.value ? props.isComplete : false)
 
 const owner = ref<HostOwner>(props.setOwner ? { ...props.setOwner } : getNewHostOwner(false, props.ownerType))
+
+watch(owner, (val) => { activeOwner.value = val }, { immediate: true })
 watch(() => owner.value.role, (newVal, oldVal) => {
   // clear fields that change depending on the role
   if (newVal === OwnerRole.CO_HOST) {
@@ -42,10 +48,6 @@ watch(() => owner.value.role, (newVal, oldVal) => {
 const ownerSchema = computed(() => getHostOwnerSchema(owner.value.ownerType, owner.value.role))
 const ownerFormRef = ref<Form<z.output<typeof ownerSchema.value>>>()
 
-const showErrors = ref(false)
-// Only update 'showErrors' with 'isComplete' value if 'isComplete' changes after this component was initialized
-watch(() => props.isComplete, (val) => { showErrors.value = val })
-
 const saveOwner = async () => {
   const errors = await validateForm(ownerFormRef.value, true)
   if (!errors) {
@@ -56,6 +58,10 @@ const saveOwner = async () => {
     console.info(errors)
   }
 }
+
+onMounted(async () => {
+  await validateForm(ownerFormRef.value, showErrors.value)
+})
 </script>
 
 <template>
@@ -84,24 +90,10 @@ const saveOwner = async () => {
               v-model:owner-form-ref="ownerFormRef"
               :show-errors="showErrors"
               show-roles
-              :show-btns="owner.role !== OwnerRole.HOST"
+              show-btns
               @cancel="$emit('cancel')"
               @done="saveOwner()"
             />
-            <div v-if="owner.role === OwnerRole.HOST" class="mt-10 space-y-10">
-              <div class="h-px w-full border-b border-gray-100" />
-              <p class="ml-10">
-                {{ $t('strr.text.individualBusinessInfo') }}
-              </p>
-              <FormOwnerBusiness
-                v-model:owner="owner"
-                v-model:owner-form-ref="ownerFormRef"
-                :show-errors="showErrors"
-                show-btns
-                @cancel="$emit('cancel')"
-                @done="saveOwner()"
-              />
-            </div>
           </div>
           <div v-else>
             <FormOwnerBusiness

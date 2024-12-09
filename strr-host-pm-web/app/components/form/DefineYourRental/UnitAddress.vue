@@ -84,7 +84,7 @@ onMounted(async () => {
             'address.street'
           ])"
         >
-          <TransitionCollapse>
+          <ConnectTransitionCollapse>
             <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="flex max-w-bcGovInput flex-col gap-10">
               <div class="flex flex-col gap-3">
                 <p>{{ $t('text.unitAddressIntro') }}</p>
@@ -162,9 +162,9 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
-          </TransitionCollapse>
+          </ConnectTransitionCollapse>
 
-          <TransitionFade>
+          <ConnectTransitionFade>
             <div
               v-if="reqStore.hasReqs || reqStore.hasReqError"
               class="flex items-start justify-between"
@@ -202,7 +202,7 @@ onMounted(async () => {
                 </UPopover>
               </div>
             </div>
-          </TransitionFade>
+          </ConnectTransitionFade>
         </ConnectFormSection>
       </div>
     </UForm>
