@@ -16,7 +16,7 @@ export default {
       description: {
         0: 'Add Contact Information',
         1: 'Add Business Details',
-        2: 'Add Strata Information',
+        2: 'Add Strata Hotel Information',
         3: 'Review and Confirm'
       },
       title: {
@@ -150,7 +150,10 @@ export default {
     brand: {
       name: 'Please enter a name',
       site: 'Please enter a valid full url for this brand (i.e. https://www.bcregistry.gov.bc.ca)'
-    }
+    },
+    wholeNumber: 'Please enter a whole number (no decimals)',
+    min1Unit: 'The number of rental units must be greater than 0',
+    max5000Units: 'The number of rental units must not exceed 5000'
   },
   certify: {
     1: '{terms} I agree to comply with the {link} of registration.',

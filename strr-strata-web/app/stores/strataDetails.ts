@@ -6,7 +6,16 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
   const { getBrandSchema: getStrataBrandSchema } = useStrrBaseBrand()
 
   const strataDetailsSchema = z.object({
-    numberOfUnits: z.number({ required_error: t('validation.number') }),
+    numberOfUnits: z
+      .number(
+        {
+          required_error: t('validation.number'),
+          invalid_type_error: t('validation.number')
+        }
+      )
+      .int(t('validation.wholeNumber'))
+      .gt(0, t('validation.min1Unit'))
+      .lte(5000, t('validation.max5000Units')),
     brand: getStrataBrandSchema(),
     buildings: z.array(getRequiredAddress(
       t('validation.address.street'),

@@ -465,7 +465,7 @@ export default {
     },
     hint: {
       businessLegalNamePlatform: 'The full legal name of the platform service provider',
-      businessLegalNameStrataHotel: 'The full legal name of the business that is operating the strata-titled hotel or motel. Include corporate designations (e.g., “Ltd.”, “Inc.”, “LLC.”',
+      businessLegalNameStrataHotel: 'The full legal name of the business that is operating the strata-titled hotel or motel. Include corporate designations (e.g., “Ltd.”, “Inc.”, “LLC.”)',
       businessNumber: 'Canada Revenue Agency (CRA) Business Number',
       humeJurisdiction: 'The regional or federal jurisdiction where the business was incorporated or registered, if applicable',
       position: 'Enter your current job title or position'
