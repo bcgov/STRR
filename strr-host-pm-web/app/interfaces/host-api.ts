@@ -1,5 +1,5 @@
 export interface ApiHostParty extends ApiParty {
-  preferredName: string
+  preferredName?: string
 }
 
 export interface ApiHostPartyWithAddress extends ApiHostParty {
@@ -7,20 +7,23 @@ export interface ApiHostPartyWithAddress extends ApiHostParty {
 }
 
 export interface ApiHostContactDetails extends ApiPhone {
-  preferredName: string
+  preferredName?: string
   faxNumber: string
   emailAddress: string
 }
 
-export interface ApiHostContactBusiness extends ApiHostBusinessDetails {
-  contactType: OwnerType,
+export interface ApiHostBaseBusiness {
   name: {
     firstName: string
-    middleName: string
+    middleName?: string
     lastName: string
   }
   details: ApiHostContactDetails
   mailingAddress: ApiAddress
+}
+
+export interface ApiHostContactBusiness extends ApiHostBaseBusiness {
+  contactType: OwnerType
 }
 
 export interface ApiHostContactPerson extends ApiHostContactBusiness {
@@ -30,23 +33,23 @@ export interface ApiHostContactPerson extends ApiHostContactBusiness {
 
 export interface ApiPropertyManagerBusiness {
   legalName: string
-  businessNumber: string
+  businessNumber?: string
   mailingAddress: ApiAddress
   primaryContact: ApiHostParty
   secondaryContact?: ApiHostParty
 }
 
-export interface ApiPropertyManager extends ApiHostBusinessDetails {
+export interface ApiPropertyManager {
   initiatedByPropertyManager: boolean
-  type: OwnerType
+  propertyManagerType: OwnerType
   business?: ApiPropertyManagerBusiness // required if OwnerType.BUSINESS
   contact?: ApiHostPartyWithAddress // required if OwnerType.INDIVIDUAL
 }
 
 export interface ApiUnitDetails {
-  parcelIdentifier: string
-  businessLicense: string
-  businessLicenseExpiryDate: string
+  parcelIdentifier?: string
+  businessLicense?: string
+  businessLicenseExpiryDate?: string
   propertyType: PropertyType | undefined
   ownershipType: OwnershipType | undefined
   rentalUnitSpaceType: RentalUnitType | undefined
