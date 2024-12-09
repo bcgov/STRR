@@ -4,7 +4,7 @@
       <i18n-t keypath="modal.help.registerStr.content" tag="p" scope="global">
         <template #link>
           <a
-            href="https://www.gov.bc.ca/STRRegistry"
+            :href="useRuntimeConfig().public.bcGovStrrUrl"
             target="_blank"
             class="text-bcGovColor-activeBlue underline"
           >

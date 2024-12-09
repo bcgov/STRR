@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 export default {
   act: {
-    foippa: 'Freedom of Information and Protection of Privacy Act'
+    fippa: 'Freedom of Information and Protection of Privacy Act'
   },
   feeSummary: {
     itemLabels: {
@@ -15,7 +15,7 @@ export default {
       collectionNotice: {
         triggerBtn: 'Information collection notice',
         title: 'Information Collection Notice',
-        content: 'This personal information is being collected by the Ministry of Housing and Municipal Affairs under s. 33(1) of the {straAct} and s. 33(2)(e) of the {foippaAct} for the purpose of registering a platform service provider. If you have any questions about the collection of this personal information, please contact the Executive Director of the Short-Term Rental Branch, at {email}'
+        content: 'This personal information is being collected by the Ministry of Housing and Municipal Affairs under s. 33(1) of the {straAct} and s. 33(2)(e) of the {fippaAct} for the purpose of registering a platform service provider. If you have any questions about the collection of this personal information, please contact the Executive Director of the Short-Term Rental Branch, at {email}'
       }
     }
   },

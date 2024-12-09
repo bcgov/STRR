@@ -181,18 +181,12 @@ onMounted(() => {
           </div>
         </div>
         <p
-          class="hidden w-full px-4 pb-4 text-center text-sm leading-5 sm:block"
+          class="hidden w-full px-2 pb-4 text-center text-sm leading-5 sm:block"
           :class="index === activeStepIndexModel ? 'font-bold text-black' : 'text-blue-500'"
         >
           {{ step.label ? $t(step.label) : $t(`${step.i18nPrefix}.description.${index}`) }}
         </p>
       </button>
-      <!-- <div
-        v-if="index < stepsModel.length - 1"
-        class="mb-2 shrink-0 grow self-center sm:mb-10 md:mb-10"
-      >
-        <div class="h-px bg-gray-600" />
-      </div> -->
     </li>
   </ol>
   <div v-if="stepsModel[activeStepIndexModel]?.i18nPrefix" class="space-y-5 py-5">

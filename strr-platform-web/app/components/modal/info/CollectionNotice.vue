@@ -6,8 +6,8 @@
           <em class="italic">{{ $t('act.strrAccomodations') }}</em>
         </template>
 
-        <template #foippaAct>
-          <em class="italic">{{ $t('act.foippa') }}</em>
+        <template #fippaAct>
+          <em class="italic">{{ $t('act.fippa') }}</em>
         </template>
 
         <template #email>
