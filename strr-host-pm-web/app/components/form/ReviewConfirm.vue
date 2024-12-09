@@ -13,11 +13,11 @@ const { hostTacUrl } = useRuntimeConfig().public
 // const accountStore = useConnectAccountStore()
 const propertyStore = useHostPropertyStore()
 const { blInfo, unitAddress, unitDetails } = storeToRefs(propertyStore)
-const { prRequirements, requirementsList, showUnitDetailsForm } = storeToRefs(usePropertyReqStore())
+const { prRequirements, showUnitDetailsForm } = storeToRefs(usePropertyReqStore())
 const ownerStore = useHostOwnerStore()
 const { hasCompParty, hostOwners } = storeToRefs(ownerStore)
 const documentsStore = useDocumentStore()
-const { storedDocuments } = storeToRefs(documentsStore)
+const { requiredDocs, storedDocuments } = storeToRefs(documentsStore)
 const applicationStore = useHostApplicationStore()
 
 const confirmationFormRef = ref<Form<z.output<typeof applicationStore.confirmationSchema>>>()
@@ -174,7 +174,7 @@ const getCompPartyName = computed(() => {
           </template>
           <template #info-documents>
             <div class="space-y-1">
-              <div v-if="!requirementsList.length && showUnitDetailsForm">
+              <div v-if="!requiredDocs.length && showUnitDetailsForm">
                 <div class="flex gap-2">
                   <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
                   <p>{{ $t('text.noDocsReq') }}</p>
