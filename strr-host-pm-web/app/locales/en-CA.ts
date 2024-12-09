@@ -305,7 +305,8 @@ export default {
     locality: 'Locality',
     additionalLocationDescription: 'Additional Location Description',
     lookupResidentialAddress: 'Look up the Residential Address',
-    enterAddressManually: 'Enter the residental address manually'
+    enterAddressManually: 'Enter the residental address manually',
+    unnamed: 'Unnamed'
   },
   link: {
     hostAccomodationsAct: 'Short-Term Rental Accommodations Act',
@@ -350,7 +351,7 @@ export default {
   },
   table: {
     hostPmList: {
-      title: '{boldStart}My Registration Applications{boldEnd} ({count})',
+      title: '{boldStart}My Short-Term Rentals{boldEnd} ({count})',
       emptyText: "You don't have any properties yet. Add a property above."
     }
   },

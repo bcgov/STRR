@@ -2,6 +2,7 @@ import type { ApiHostApplication, HostApplicationResp, HostRegistrationResp } fr
 import { formatHostUnitAddressUI, formatHostUnitDetailsUI } from '~/utils/host-formatting'
 
 export const useHostPermitStore = defineStore('host/permit', () => {
+  const { t } = useI18n()
   const { getAccountApplications } = useStrrApi()
   const ownerStore = useHostOwnerStore()
   const propertyStore = useHostPropertyStore()
@@ -50,7 +51,8 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       }).then((response) => {
         if (response) {
           return (response as HostApplicationResp[]).map(app => ({
-            property: app.registration.unitAddress,
+            name: app.registration.unitAddress.nickname || t('label.unnamed'),
+            address: app.registration.unitAddress,
             number: app.header.registrationNumber || app.header.applicationNumber,
             date: app.header.registrationStartDate || app.header.applicationDateTime,
             lastStatusChange: getLastStatusChangeColumn(app.header),

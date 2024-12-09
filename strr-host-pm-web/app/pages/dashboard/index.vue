@@ -7,8 +7,12 @@ const strrModal = useStrrModals()
 
 const columns = [
   {
-    key: 'property',
-    label: t('label.property')
+    key: 'name',
+    label: t('label.name')
+  },
+  {
+    key: 'address',
+    label: t('label.address')
   },
   {
     key: 'number',
@@ -145,17 +149,17 @@ async function handleItemSelect (row: any) {
               color: 'text-bcGovColor-midGray',
               font: '',
               size: 'text-sm',
-            },
+            }
           }"
         >
-          <template #property-data="{ row }">
+          <template #address-data="{ row }">
             <div class="flex flex-col">
-              <span v-if="row.property.nickname">
-                {{ row.property.nickname }}
+              <span>
+                <!-- eslint-disable-next-line max-len -->
+                {{ `${row.address.unitNumber ? row.address.unitNumber + '-' : ''}${row.address.streetNumber} ${row.address.streetName}` }}
               </span>
               <span>
-                <!-- eslint-disable-next-line max-len-->
-                {{ `${row.property.streetNumber} ${row.property.streetName}${row.property.unitNumber ? ', Unit ' + row.property.unitNumber : ''}` }}
+                {{ row.address.city }}
               </span>
             </div>
           </template>
