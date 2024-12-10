@@ -44,6 +44,7 @@ export default defineAppConfig({
     },
     radio: {
       base: 'size-5 cursor-pointer',
+      border: 'border-primary-500',
       inner: 'm-0',
       label: '-mt-[2px] pl-3 text-base cursor-pointer'
     },

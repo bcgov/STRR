@@ -22,7 +22,9 @@ const { activeOwner } = storeToRefs(useHostOwnerStore())
 // Only init 'showErrors' with 'isComplete' value if this owner was already initialized previously
 const showErrors = ref(activeOwner.value ? props.isComplete : false)
 
-const owner = ref<HostOwner>(props.setOwner ? { ...props.setOwner } : getNewHostOwner(false, props.ownerType))
+const owner = ref<HostOwner>(props.setOwner
+  ? JSON.parse(JSON.stringify(props.setOwner))
+  : getNewHostOwner(false, props.ownerType))
 
 watch(owner, (val) => { activeOwner.value = val }, { immediate: true })
 watch(() => owner.value.role, (newVal, oldVal) => {
