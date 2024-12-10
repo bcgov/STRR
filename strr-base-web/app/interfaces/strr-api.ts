@@ -4,14 +4,18 @@ export interface ApiPhone {
   extension: string
 }
 
-export interface ApiAddress {
+export interface ApiBaseAddress {
   country: string
-  address: string
+  address?: string // Currently the api does not accept this during registration creation for unit address
   addressLineTwo: string
   city: string
   province: string
   postalCode: string,
   locationDescription: string
+}
+
+export interface ApiAddress extends ApiBaseAddress {
+  address: string
 }
 
 export interface ApiParty extends ApiPhone {

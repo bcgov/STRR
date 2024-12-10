@@ -14,8 +14,8 @@ export function formatPhoneNumberUI <T extends ApiPhone> (phone: T): ConnectPhon
   }
 }
 
-export function formatAddress (add: ConnectAddress): ApiAddress {
-  return {
+export function formatAddress <T extends ApiBaseAddress> (add: ConnectAddress) {
+  return <T>{
     country: add.country,
     address: add.street,
     addressLineTwo: add.streetAdditional,
@@ -26,12 +26,12 @@ export function formatAddress (add: ConnectAddress): ApiAddress {
   }
 }
 
-export function formatAddressUI (add: ApiAddress): ConnectAddress {
+export function formatAddressUI <T extends ApiBaseAddress> (add: T): ConnectAddress {
   return {
     country: add.country,
     city: add.city,
     postalCode: add.postalCode,
-    street: add.address,
+    street: add.address || '',
     streetAdditional: add.addressLineTwo,
     region: add.province,
     locationDescription: add.locationDescription

@@ -12,7 +12,8 @@ export interface ApiHostContactDetails extends ApiPhone {
   emailAddress: string
 }
 
-export interface ApiHostBaseBusiness {
+export interface ApiHostContactPerson {
+  contactType: OwnerType
   name: {
     firstName: string
     middleName?: string
@@ -20,15 +21,15 @@ export interface ApiHostBaseBusiness {
   }
   details: ApiHostContactDetails
   mailingAddress: ApiAddress
-}
-
-export interface ApiHostContactBusiness extends ApiHostBaseBusiness {
-  contactType: OwnerType
-}
-
-export interface ApiHostContactPerson extends ApiHostContactBusiness {
   dateOfBirth?: string
   socialInsuranceNumber?: string
+  businessLegalName?: string
+  businessNumber?: string
+}
+
+export interface ApiHostContactBusiness extends ApiHostContactPerson {
+  businessLegalName: string
+  businessNumber: string
 }
 
 export interface ApiPropertyManagerBusiness {
@@ -58,7 +59,7 @@ export interface ApiUnitDetails {
   numberOfRoomsForRent: number | undefined
 }
 
-export interface ApiUnitAddress extends ApiAddress {
+export interface ApiUnitAddress extends ApiBaseAddress {
   nickname: string
   streetName: string,
   streetNumber: string,

@@ -60,13 +60,15 @@ export const setSideHeaderDetails = (
       value: dateToStringPacific(registration.startDate, 'DDD')
     })
 
-    if (registration.status === RegistrationStatus.ACTIVE) {
-      // @ts-expect-error - expiryDate is an iso string
-      const daysTillExpiry = dayCountdown(registration.expiryDate)
-      sideDetailsList.push({
-        label: t('label.daysToExpiry'),
-        value: t('label.dayCountCap', daysTillExpiry)
-      })
+    if (application?.registrationEndDate) {
+      // @ts-expect-error - registrationEndDate is an iso datetime string
+      const daysTillExpiry = dayCountdown(application.registrationEndDate)
+      if (daysTillExpiry >= 0) {
+        sideDetailsList.push({
+          label: t('label.daysToExpiry'),
+          value: t('label.dayCount', daysTillExpiry)
+        })
+      }
     }
   } else if (application) {
     sideDetailsList.push({ label: t('label.applicationNum'), value: application.applicationNumber })

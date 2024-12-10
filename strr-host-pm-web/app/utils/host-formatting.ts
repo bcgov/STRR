@@ -1,4 +1,4 @@
-export function formatOwnerHostAPI (owner: HostOwner): ApiHostContactPerson {
+export function formatOwnerHostAPI (owner: HostOwner): ApiHostContactPerson | ApiHostContactBusiness {
   return {
     contactType: owner.ownerType,
     name: {
@@ -16,12 +16,14 @@ export function formatOwnerHostAPI (owner: HostOwner): ApiHostContactPerson {
     },
     ...(owner.dateOfBirth ? { dateOfBirth: owner.dateOfBirth } : {}),
     ...(owner.taxNumber ? { socialInsuranceNumber: owner.taxNumber } : {}),
-    mailingAddress: formatAddress(owner.mailingAddress)
+    mailingAddress: formatAddress(owner.mailingAddress),
+    ...(owner.businessLegalName ? { businessLegalName: owner.businessLegalName } : {}),
+    ...(owner.businessNumber ? { businessNumber: owner.businessNumber } : {})
   }
 }
 
 export function formatOwnerHostUI (
-  owner: ApiHostContactPerson,
+  owner: ApiHostContactPerson | ApiHostContactBusiness,
   isCompParty: boolean,
   isCoHost?: boolean
 ): HostOwner {
@@ -37,8 +39,8 @@ export function formatOwnerHostUI (
     dateOfBirth: owner.dateOfBirth || '',
     taxNumber: owner.socialInsuranceNumber || '',
     mailingAddress: formatAddressUI(owner.mailingAddress),
-    businessLegalName: '',
-    businessNumber: '',
+    businessLegalName: owner.businessLegalName || '',
+    businessNumber: owner.businessNumber || '',
     role: isCoHost ? OwnerRole.CO_HOST : OwnerRole.HOST,
     isCompParty
   }
@@ -132,8 +134,10 @@ export function formatHostUnitDetailsBlInfoUI (unitDetails: ApiUnitDetails): UiB
 }
 
 export function formatHostUnitAddressApi (unitAddress: HostPropertyAddress): ApiUnitAddress {
+  const baseAddress = formatAddress(unitAddress)
+  delete baseAddress.address // including this passes API validation, but causes a failure in the registration creation
   return {
-    ...formatAddress(unitAddress),
+    ...baseAddress,
     nickname: unitAddress.nickname || '',
     streetName: unitAddress.streetName || '',
     streetNumber: unitAddress.streetNumber || '',
@@ -142,14 +146,8 @@ export function formatHostUnitAddressApi (unitAddress: HostPropertyAddress): Api
 }
 
 export function formatHostUnitAddressUI (unitAddress: ApiUnitAddress): HostPropertyAddress {
-  if (!unitAddress.address) {
-    unitAddress.address = unitAddress.unitNumber
-      ? `${unitAddress.unitNumber}-${unitAddress.streetNumber} ${unitAddress.streetName}`
-      : `${unitAddress.streetNumber} ${unitAddress.streetName}`
-  }
-  const address = formatAddressUI(unitAddress)
   return {
-    ...address,
+    ...formatAddressUI(unitAddress),
     nickname: unitAddress.nickname || '',
     streetName: unitAddress.streetName || '',
     streetNumber: unitAddress.streetNumber || '',
