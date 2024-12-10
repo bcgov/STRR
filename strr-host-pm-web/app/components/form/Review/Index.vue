@@ -84,10 +84,6 @@ const getCompPartyName = computed(() => {
         <SummaryProperty />
       </FormCommonReviewSection>
     </ConnectPageSection>
-    <FormReviewProperty
-      :error="isSectionInvalid('rental-unit-address-form') || isSectionInvalid('unit-details-form')"
-      @edit="$emit('edit', 0)"
-    />
     <!-- step 2: Individuals and Businesses -->
     <ConnectPageSection
       :heading="{
