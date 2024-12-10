@@ -43,6 +43,7 @@ from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events, RentalProperty
 from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
+from strr_api.utils.date_util import DateUtil
 
 STRATA_HOTEL_REG = "STRATAREG"
 
@@ -191,7 +192,7 @@ class PayService:
             "Account-Id": str(application.payment_account),
         }
         payload = {
-            "filingDateTime": application.application_date.isoformat(),
+            "filingDateTime": DateUtil.format_as_string(application.application_date),
             "effectiveDateTime": "",
             "filingIdentifier": str(application.id),
         }
