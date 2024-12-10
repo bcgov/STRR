@@ -11,6 +11,7 @@ export interface ConnectAccordionItemValue {
 
 export interface ConnectAccordionItem extends AccordionItem {
   class?: string,
+  iconAvatar?: string,
   showAvatar: boolean,
   values: ConnectAccordionItemValue[]
 }

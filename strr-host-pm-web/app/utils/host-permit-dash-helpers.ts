@@ -8,6 +8,7 @@ export const getHostPermitDashOwners = (): ConnectAccordionItem[] => {
     const baseInfo = getPartyItem(owner)
     if (owner.ownerType === OwnerType.INDIVIDUAL) {
       // set individual things
+      baseInfo.iconAvatar = 'i-mdi-account'
       baseInfo.values.splice(0, 0, ...[
         ...(owner.preferredName
           ? [{ label: t('label.preferredName'), text: owner.preferredName }]
@@ -29,6 +30,7 @@ export const getHostPermitDashOwners = (): ConnectAccordionItem[] => {
       ])
     } else { // owner.ownerType === OwnerType.BUSINESS
       // set business things
+      baseInfo.iconAvatar = 'i-mdi-domain'
       baseInfo.values.splice(0, 0, ...[
         ...(owner.businessNumber
           ? [{ label: t('label.busNum'), text: owner.businessNumber }]
