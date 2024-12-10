@@ -34,10 +34,14 @@ onMounted(async () => {
   $reset()
   await loadPlatform()
   // set header stuff
+  todos.value = getTodoApplication(
+    '/platform/application',
+    '/platform/dashboard/' + application.value?.header.applicationNumber,
+    application.value?.header
+  )
   if (!permitDetails.value || !showPermitDetails.value) {
     // no registration or valid complete application under the account, set static header
     title.value = t('strr.title.dashboard')
-    todos.value = [getTodoApplication('/platform/application', application.value?.header)]
   } else {
     // existing registration or application under the account
     // set left side of header
