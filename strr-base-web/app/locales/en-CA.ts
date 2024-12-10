@@ -265,7 +265,9 @@ export default {
     createNewAccount: 'Create New Account',
     contToCreateAccount: 'Continue to Create Account',
     myStrr: 'My Short-term Rental Registry',
-    completingParty: 'Completing Party'
+    completingParty: 'Completing Party',
+    completePayment: 'Complete Payment',
+    payNow: 'Pay Now'
   },
   modal: {
     declineTos: {

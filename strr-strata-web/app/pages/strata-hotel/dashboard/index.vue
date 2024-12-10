@@ -141,7 +141,7 @@ async function handleItemSelect (row: any) {
             //   padding: 'px-0 py-0'
             // },
             td: {
-              base: 'whitespace-normal max-w-96 align-top',
+              base: 'whitespace-normal max-w-96 align-top overflow-hidden',
               padding: 'px-4 py-4',
               color: 'text-bcGovColor-midGray',
               font: '',

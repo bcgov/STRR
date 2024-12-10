@@ -30,10 +30,14 @@ onMounted(async () => {
   const applicationId = route.params.applicationId as string
   await loadStrata(applicationId)
   // set header stuff
+  todos.value = getTodoApplication(
+    '/strata-hotel/application',
+    '/strata-hotel/dashboard/' + application.value?.header.applicationNumber,
+    application.value?.header
+  )
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')
-    todos.value = [getTodoApplication('/strata-hotel/application', application.value?.header)]
   } else {
     // existing registration or application under the account
     // set left side of header
