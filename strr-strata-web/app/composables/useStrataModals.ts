@@ -1,6 +1,5 @@
 // https://ui.nuxt.com/components/modal#control-programmatically
 
-// currently no unique strata modals
 import {
 //   ModalBase,
   ModalErrorApplicationSubmit
