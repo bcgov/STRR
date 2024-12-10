@@ -3,7 +3,7 @@ import { ConnectStepper, FormReviewConfirm } from '#components'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
-const strrModal = useStrrModals()
+const strataModal = useStrataModals()
 const { handlePaymentRedirect } = useNavigate()
 
 const { validateContact } = useStrrContactStore()
@@ -114,7 +114,7 @@ const handleStrataSubmit = async () => {
     formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
     const isApplicationValid = formErrors.every(result => result.success === true)
 
-    console.info('is application valid: ', isApplicationValid, formErrors)
+    // console.info('is application valid: ', isApplicationValid, formErrors)
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
@@ -130,7 +130,7 @@ const handleStrataSubmit = async () => {
     }
   } catch (e) {
     logFetchError(e, 'Error creating strata application')
-    strrModal.openAppSubmitError(e)
+    strataModal.openApplicationSubmitErrorModal(e)
   } finally {
     // set buttons back to non loading state
     setButtonControl({

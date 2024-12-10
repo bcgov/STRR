@@ -64,7 +64,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
     // @ts-expect-error - temporary until we confirm requirements
     body.registration.completingParty.jobTitle = 'Completing Party Job Title'
 
-    console.info('submitting application: ', body)
+    // console.info('submitting application: ', body)
 
     const res = await postApplication<StrataApplicationPayload, StrataApplicationResp>(body) as StrataApplicationResp
 

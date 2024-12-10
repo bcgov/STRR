@@ -125,6 +125,22 @@ export default {
           p2: 'The Ministry may share the information with the local government of the area in which the strata-titled hotel or motel is located. If you have any questions about the collection of this personal information, please contact the Executive Director of the Short-Term Rental Branch, at {email}'
         }
       }
+    },
+    error: {
+      applicationSubmit: {
+        badRequest: {
+          title: 'Invalid Request',
+          content: 'There was an issue with the information submitted. Please review your input and try again.'
+        },
+        internal: {
+          title: 'Internal Server Error',
+          content: 'We encountered an issue processing your application. Please try again or come back later. If the problem persists, contact us.'
+        },
+        unknown: {
+          title: 'Unexpected Error',
+          content: 'An unexpected error occurred. Please refresh the page or try again later. If the problem persists, contact us.'
+        }
+      }
     }
   },
   table: {
