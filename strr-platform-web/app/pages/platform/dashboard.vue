@@ -79,7 +79,7 @@ onMounted(async () => {
           text: platformBusiness.value.nonComplianceEmail
         },
         ...(platformBusiness.value.nonComplianceEmailOptional
-          ? [{ class: '-mt-2 pl-8', text: platformBusiness.value.nonComplianceEmailOptional }]
+          ? [{ class: '-mt-2 pl-9', text: platformBusiness.value.nonComplianceEmailOptional }]
           : []),
         {
           icon: 'i-mdi-at',
@@ -87,7 +87,7 @@ onMounted(async () => {
           text: platformBusiness.value.takeDownEmail
         },
         ...(platformBusiness.value.takeDownEmailOptional
-          ? [{ class: '-mt-2 pl-8', text: platformBusiness.value.takeDownEmailOptional }]
+          ? [{ class: '-mt-2 pl-9', text: platformBusiness.value.takeDownEmailOptional }]
           : [])
       ]
     })
