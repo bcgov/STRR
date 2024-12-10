@@ -1,5 +1,5 @@
 export interface PropertyRequirements {
-  isBusinessLicenseRequired: boolean
+  isBusinessLicenceRequired: boolean
   isPrincipalResidenceRequired: boolean
   isStrProhibited: boolean
   isStraaExempt: boolean | null

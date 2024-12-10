@@ -28,7 +28,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     const exemptionReason = reqStore.prRequirements.prExemptionReason
     const docs = []
 
-    if (reqs.isBusinessLicenseRequired) {
+    if (reqs.isBusinessLicenceRequired) {
       const isBlValid = apiDocuments.value.some(
         item => item.documentType === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)
       docs.push({
