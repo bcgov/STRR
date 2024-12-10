@@ -37,7 +37,7 @@ export const useDocumentStore = defineStore('host/document', () => {
         label: t('label.localGovShortTermRentalBL')
       })
     }
-    if (reqs.isPrincipalResidenceRequired && exemptionReason !== PrExemptionReason.FARM_LAND) {
+    if (reqs.isPrincipalResidenceRequired && exemptionReason === undefined) {
       const isPrValid = validatePrincipalResidenceDocuments()
       docs.push({
         isValid: isPrValid,
@@ -86,7 +86,7 @@ export const useDocumentStore = defineStore('host/document', () => {
 
     docs.push(t('label.localGovShortTermRentalBL'))
 
-    if (exemptionReason !== PrExemptionReason.FARM_LAND) {
+    if (exemptionReason === undefined) {
       docs.push(t('label.proofOfPr'))
     }
 
