@@ -3,7 +3,7 @@ import { ConnectStepper, FormReviewConfirm } from '#components'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
-const strataModal = useStrataModals()
+const strrModal = useStrrModals()
 const { handlePaymentRedirect } = useNavigate()
 
 const { validateContact } = useStrrContactStore()
@@ -130,7 +130,7 @@ const handleStrataSubmit = async () => {
     }
   } catch (e) {
     logFetchError(e, 'Error creating strata application')
-    strataModal.openApplicationSubmitErrorModal(e)
+    strrModal.openAppSubmitError(e)
   } finally {
     // set buttons back to non loading state
     setButtonControl({

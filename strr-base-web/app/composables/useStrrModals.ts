@@ -2,7 +2,8 @@
 import {
   ModalBase,
   ModalHelpRegisterStr,
-  ModalInfoCollectionNotice
+  ModalInfoCollectionNotice,
+  ModalErrorApplicationSubmit
 } from '#components'
 
 export const useStrrModals = () => {
@@ -13,14 +14,9 @@ export const useStrrModals = () => {
   const accountStore = useConnectAccountStore()
   const config = useRuntimeConfig().public
 
-  function openAppSubmitError (e: any) {
-    modal.open(ModalBase, {
-      error: {
-        title: 'Error submitting application', // need to come up with different error messages for different scenarios
-        description: 'Some description here.'
-      },
-      content: e.data?.message ?? undefined,
-      actions: [{ label: t('btn.close'), handler: () => close() }]
+  function openAppSubmitError (e: unknown) {
+    modal.open(ModalErrorApplicationSubmit, {
+      error: e
     })
   }
 

@@ -175,12 +175,10 @@ const handleSubmit = async () => {
     }
 
     const isApplicationValid = formErrors.every(result => result.success === true)
-
-    console.info('is application valid: ', isApplicationValid, formErrors)
+    // console.info('is application valid: ', isApplicationValid, formErrors)
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
-      console.info('Submit')
       const { paymentToken, filingId, applicationStatus } = await submitApplication()
       const redirectPath = `/dashboard/${filingId}`
       if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {

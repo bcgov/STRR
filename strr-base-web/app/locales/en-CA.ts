@@ -293,6 +293,22 @@ export default {
         title: 'Information Collection Notice',
         content: 'Any personal information required is collected to support the administration and enforcement of the {straAct}, under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at {email}.'
       }
+    },
+    error: {
+      applicationSubmit: {
+        badRequest: {
+          title: 'Invalid Request',
+          content: 'There was an issue with the information submitted. Please review your input and try again.'
+        },
+        internal: {
+          title: 'Internal Server Error',
+          content: 'We encountered an issue processing your application. Please try again or come back later. If the problem persists, contact us.'
+        },
+        unknown: {
+          title: 'Unexpected Error',
+          content: 'An unexpected error occurred. Please refresh the page or try again later. If the problem persists, contact us.'
+        }
+      }
     }
   },
   word: {
