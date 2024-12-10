@@ -46,20 +46,6 @@ onMounted(async () => {
 </script>
 <template>
   <div class="space-y-10" data-testid="strata-review-confirm">
-    <UAlert
-      color="yellow"
-      icon="i-mdi-alert"
-      :close-button="null"
-      variant="subtle"
-      :ui="{
-        inner: 'pt-0',
-      }"
-    >
-      <template #description>
-        <ConnectI18nBold class="text-bcGovGray-900" translation-path="strr.review.alert.contactInfo" />
-      </template>
-    </UAlert>
-
     <!-- person completing strata application -->
     <ConnectPageSection
       :heading="{
