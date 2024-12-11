@@ -390,7 +390,15 @@ export default {
     streetHint: 'Street address, PO box, rural route, or general delivery address',
     noAccountsFound: 'No accounts found, please click below to get started with an account.'
   },
-  toast: {},
+  toast: {
+    invalidIdp: {
+      generic: 'Invalid login source. Please login with one of the options provided.',
+      BCROS: '', // TODO: more specific messages ???
+      IDIR: '',
+      BCSC: '',
+      BCEID: ''
+    }
+  },
   feeSummary: {
     title: 'Fee Summary',
     total: 'Total Fees',

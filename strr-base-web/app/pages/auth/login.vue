@@ -41,6 +41,14 @@ definePageMeta({
   middleware: 'login-page',
   hideBreadcrumbs: true
 })
+
+// show notification if user was redirected here with an invalid login
+onMounted(() => {
+  const invalidIdp = useRoute().query.invalidIdp
+  if (invalidIdp && LoginSource[invalidIdp as LoginSource] !== undefined) {
+    useToast().add({ title: t('toast.invalidIdp.generic') })
+  }
+})
 </script>
 <template>
   <div class="flex grow justify-center py-10">
