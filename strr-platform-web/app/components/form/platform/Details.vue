@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Form } from '#ui/types'
 import { z } from 'zod'
+import type { Form } from '#ui/types'
 const { t } = useI18n()
 const { addNewEmptyBrand, removeBrandAtIndex, platformDetailSchema } = useStrrPlatformDetails()
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
