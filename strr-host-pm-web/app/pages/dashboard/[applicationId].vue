@@ -31,6 +31,7 @@ onMounted(async () => {
     '/dashboard/' + application.value?.header.applicationNumber,
     application.value?.header
   )
+  console.log(todos.value)
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')

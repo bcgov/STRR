@@ -10,7 +10,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const propertyReqStore = usePropertyReqStore()
   const documentStore = useDocumentStore()
   const { hostOwners } = storeToRefs(ownerStore)
-  const { unitAddress, unitDetails } = storeToRefs(propertyStore)
+  const { blInfo, unitAddress, unitDetails } = storeToRefs(propertyStore)
   const { prRequirements } = storeToRefs(propertyReqStore)
   const { storedDocuments } = storeToRefs(documentStore)
 
@@ -41,8 +41,9 @@ export const useHostPermitStore = defineStore('host/permit', () => {
         hostOwners.value.push(formatOwnerPropertyManagerUI(permitDetails.value.propertyManager))
       }
       unitDetails.value = formatHostUnitDetailsUI(permitDetails.value.unitDetails)
+      blInfo.value = formatHostUnitDetailsBlInfoUI(permitDetails.value.unitDetails)
       unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
-      prRequirements.value.isPropertyPrExempt = permitDetails.value.principalResidence.isPrincipalResidence || false
+      prRequirements.value.isPropertyPrExempt = !permitDetails.value.principalResidence.isPrincipalResidence
       prRequirements.value.prExemptionReason = permitDetails.value.principalResidence.nonPrincipalOption
       storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({
         file: {} as File,

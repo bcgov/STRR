@@ -53,7 +53,7 @@ export const useHostApplicationStore = defineStore('host/application', () => {
         principalResidence: {
           // TODO: confirm mapping - assuming this is if PR is required or not?
           isPrincipalResidence: !reqStore.prRequirements.isPropertyPrExempt,
-          nonPrincipalOption: reqStore.prRequirements.prExemptionReason || '',
+          nonPrincipalOption: reqStore.prRequirements.prExemptionReason,
           agreedToRentalAct: userConfirmation.value.agreedToRentalAct,
           agreedToSubmit: userConfirmation.value.agreedToSubmit,
           // TODO: Not in new design - remove once it is no longer required to pass API validation
