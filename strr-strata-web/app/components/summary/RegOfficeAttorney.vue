@@ -4,10 +4,7 @@ const { t } = useI18n()
 const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 
 const columns = computed(() => [
-  ...(strataBusiness.value.regOfficeOrAtt?.attorneyName
-    ? [{ key: 'attorneyName', label: t('label.name') }]
-    : []
-  ),
+  { key: 'attorneyName', label: t('label.name') },
   { key: 'registeredOffice', label: t('label.address') }
 ])
 
@@ -15,19 +12,23 @@ const columns = computed(() => [
 <template>
   <UTable class="h-full" :rows="[strataBusiness]" :columns="columns">
     <template #attorneyName-data="{ row }">
-      <div class="flex space-x-2">
-        <div>
-          <!-- NOTE: must be wrapped in a div to remain consistent during screen width changes -->
-          <UIcon name="i-mdi-domain" class="-ml-4 text-lg" />
-        </div>
-        <p>{{ row.regOfficeOrAtt.attorneyName }}</p>
-      </div>
+      <ConnectInfoWithIcon
+        v-if="row.regOfficeOrAtt.attorneyName"
+        icon="i-mdi-account"
+        :content="row.regOfficeOrAtt.attorneyName"
+      />
+      <p v-else>
+        {{ $t('text.notEntered') }}
+      </p>
     </template>
     <template #registeredOffice-data="{ row }">
       <ConnectFormAddressDisplay
-        v-if="row.regOfficeOrAtt?.mailingAddress?.country"
+        v-if="row.regOfficeOrAtt?.mailingAddress?.street"
         :address="row.regOfficeOrAtt.mailingAddress"
       />
+      <p v-else>
+        {{ $t('text.notEntered') }}
+      </p>
     </template>
   </UTable>
 </template>

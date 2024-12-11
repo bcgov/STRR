@@ -17,6 +17,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
   } = useStrrBasePermit<PlatformRegistrationResp, PlatformApplicationResp, ApiBasePlatformApplication>()
 
   const loadPlatform = async () => {
+    $reset()
     await loadPermitData(undefined, ApplicationType.PLATFORM)
     if (application.value) {
       // set completing party info (this data is only in the application)

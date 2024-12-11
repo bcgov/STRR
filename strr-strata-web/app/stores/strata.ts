@@ -21,6 +21,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   } = useStrrBasePermit<StrataRegistrationResp, StrataApplicationResp, ApiBaseStrataApplication>()
 
   const loadStrata = async (applicationId: string) => {
+    $reset()
     await loadPermitData(applicationId)
     if (application.value) {
       // set completing party info (this data is only in the application)
