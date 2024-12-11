@@ -2,7 +2,7 @@ import type { ApiApplicationBaseResp, ApiRegistrationResp } from '~/interfaces/s
 import { downloadFile } from '~/utils/download-file'
 
 export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationBaseResp, B>() => {
-  const { t } = useI18n()
+  const t = useNuxtApp().$i18n.t // this was casuing an issue when using the composable in route middleware
   const {
     getAccountApplications,
     getAccountRegistrations,

@@ -21,7 +21,7 @@ useHead({
 </script>
 
 <template>
-  <NuxtLayout>
+  <NuxtLayout name="default">
     <div class="m-auto flex flex-col items-center gap-4">
       <h1>
         {{ $t(`page.error.${errorKey}.h1`) }}

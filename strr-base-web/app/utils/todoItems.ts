@@ -18,9 +18,7 @@ export const getTodoApplication = (
       button: {
         label: t('btn.beginApplication'),
         action: async () => {
-          if (applicationInfo) {
-            await navigateTo(localePath(applicationPath))
-          }
+          await navigateTo(localePath(applicationPath))
         }
       }
     })
@@ -32,7 +30,7 @@ export const getTodoApplication = (
       button: {
         label: t('btn.resumeApplication'),
         action: async () => {
-          if (applicationInfo) {
+          if (applicationInfo) { // TODO: alert if no application info
           // pass application number so that the application form can load in the saved data
             await navigateTo(
               { path: localePath(applicationPath), query: { applicationId: applicationInfo.applicationNumber } }
@@ -47,7 +45,7 @@ export const getTodoApplication = (
       title: t('label.completePayment'),
       subtitle: undefined, // TODO: add subtitle ?
       button: {
-        label: t('label.payNow'),
+        label: t('label.payNow'), // TODO: alert if no application info
         action: () => // TODO: how to complete payment for PAD accounts?
           handlePaymentRedirect(applicationInfo.paymentToken, payRedirectPath)
       }
