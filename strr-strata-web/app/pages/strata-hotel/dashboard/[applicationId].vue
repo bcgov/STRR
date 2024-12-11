@@ -8,7 +8,7 @@ const {
   title,
   subtitles
 } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadStrata, $reset } = useStrrStrataStore()
+const { downloadApplicationReceipt, loadStrata } = useStrrStrataStore()
 const {
   application,
   registration,
@@ -26,7 +26,6 @@ const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 
 onMounted(async () => {
   loading.value = true
-  $reset()
   const applicationId = route.params.applicationId as string
   await loadStrata(applicationId)
   // set header stuff
@@ -43,10 +42,11 @@ onMounted(async () => {
     // set left side of header
     title.value = strataDetails.value.brand.name
     const nonPlural = strataDetails.value.numberOfUnits === 1
+    const urlParts = strataDetails.value.brand.website.match(/^(https?:\/\/)(www\.)?(.+?(?=(\/)|$))/)
     subtitles.value = [
       { text: `${strataDetails.value.numberOfUnits} ${t('strr.word.unit', nonPlural ? 1 : 2)}` },
       {
-        text: strataDetails.value.brand.website.replace(/^https?:\/\/(www\.)/, ''),
+        text: urlParts && urlParts.length > 2 ? urlParts[3] || '' : '',
         icon: 'i-mdi-web',
         link: true,
         linkHref: strataDetails.value.brand.website

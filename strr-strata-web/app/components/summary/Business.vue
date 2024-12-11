@@ -7,26 +7,23 @@ const columns = computed(() => [
   { key: 'legalName', label: t('label.name') },
   { key: 'mailingAddress', label: t('label.mailingAddress') },
   { key: 'homeJurisdiction', label: t('label.homeJurisdiction') },
-  ...(strataBusiness.value.businessNumber
-    ? [{ key: 'businessNumber', label: t('label.busNum') }]
-    : []
-  )
+  { key: 'businessNumber', label: t('label.busNum') }
 ])
 
 </script>
 <template>
   <UTable class="h-full" :rows="[strataBusiness]" :columns="columns">
     <template #legalName-data="{ row }">
-      <div class="flex space-x-2">
-        <div>
-          <!-- NOTE: must be wrapped in a div to remain consistent during screen width changes -->
-          <UIcon name="i-mdi-domain" class="-ml-4 text-lg" />
-        </div>
-        <p>{{ row.legalName }}</p>
-      </div>
+      <ConnectInfoWithIcon icon="i-mdi-domain" :content="row.legalName" />
     </template>
     <template #mailingAddress-data="{ row }">
-      <ConnectFormAddressDisplay v-if="row.mailingAddress?.country" :address="row.mailingAddress" />
+      <ConnectFormAddressDisplay :address="row.mailingAddress" />
+    </template>
+    <template #homeJurisdiction-data="{ row }">
+      <p>{{ row.homeJurisdiction || $t('text.notEntered') }}</p>
+    </template>
+    <template #businessNumber-data="{ row }">
+      <p>{{ row.businessNumber || $t('text.notEntered') }}</p>
     </template>
   </UTable>
 </template>

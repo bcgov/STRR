@@ -4,7 +4,7 @@ const config = useRuntimeConfig().public
 const accountStore = useConnectAccountStore()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadPlatform, $reset } = useStrrPlatformStore()
+const { downloadApplicationReceipt, loadPlatform } = useStrrPlatformStore()
 const {
   application,
   registration,
@@ -31,7 +31,6 @@ watch(() => accountStore.currentAccount.id,
 
 onMounted(async () => {
   loading.value = true
-  $reset()
   await loadPlatform()
   // set header stuff
   todos.value = getTodoApplication(
