@@ -29,6 +29,7 @@ watch(isCompParty, (val) => {
   // set owner isCompParty and update the name with user creds
   owner.value.isCompParty = val
   ownerStore.SetOwnerNameWithUserCreds(owner)
+  ownerFormRef.value?.clear('firstName')
 })
 </script>
 

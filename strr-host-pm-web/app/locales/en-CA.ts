@@ -417,7 +417,8 @@ export default {
     missingReqDocs: 'Missing required documents. Please see above for details.',
     blExpiryDate: 'The expiry date must be greater than today and in less than 1 year.',
     residentialAddressRequired: 'Residential address is required',
-    addressIncompleteDropdown: 'The address provided is not complete. Please select one from the dropdown list.'
+    addressIncompleteDropdown: 'The address provided is not complete. Please select one from the dropdown list.',
+    sin: 'Please enter a valid 9-digit SIN, TTN, or ITN'
   },
   requirements: {
     busLicense: {

@@ -26,15 +26,15 @@ const owner = ref<HostOwner>(props.setOwner
   ? JSON.parse(JSON.stringify(props.setOwner))
   : getNewHostOwner(false, props.ownerType))
 
+const ownerSchema = computed(() => getHostOwnerSchema(owner.value.ownerType, owner.value.role))
+const ownerFormRef = ref<Form<z.output<typeof ownerSchema.value>>>()
+
 watch(owner, (val) => { activeOwner.value = val }, { immediate: true })
-watch(() => owner.value.role, (newVal, oldVal) => {
-  // clear fields that change depending on the role
-  if (newVal === OwnerRole.CO_HOST) {
-    owner.value.businessLegalName = ''
-    owner.value.businessNumber = ''
+watch(() => owner.value.role, async (newVal, oldVal) => {
+  // clear fields that change meaning depending on if the entity is a host
+  if ([newVal, oldVal].includes(OwnerRole.HOST)) {
     owner.value.taxNumber = ''
     owner.value.dateOfBirth = ''
-  } else if (oldVal !== OwnerRole.CO_HOST) {
     owner.value.mailingAddress = {
       street: '',
       streetAdditional: '',
@@ -44,11 +44,12 @@ watch(() => owner.value.role, (newVal, oldVal) => {
       postalCode: '',
       locationDescription: ''
     }
+    // Needs to trigger validate so that form registers the 'clear'
+    await ownerFormRef.value?.validate(['mailingAddress.postalCode', 'taxNumber'], { silent: true })
+    ownerFormRef.value?.clear('mailingAddress.postalCode')
+    ownerFormRef.value?.clear('taxNumber')
   }
 })
-
-const ownerSchema = computed(() => getHostOwnerSchema(owner.value.ownerType, owner.value.role))
-const ownerFormRef = ref<Form<z.output<typeof ownerSchema.value>>>()
 
 const saveOwner = async () => {
   const errors = await validateForm(ownerFormRef.value, true)
