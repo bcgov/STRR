@@ -23,7 +23,8 @@
         "app-inner-container",
         "connect-date-picker",
         "connect-date-picker__err",
-        "prose-bcGov"
+        "prose-bcGov",
+        "max-w-bcGovInput"
       ]
     }],
     "no-use-before-define": "off"

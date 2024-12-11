@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@daxiom/nuxt-core-layer-test':
-    specifier: ^0.0.10
-    version: 0.0.10(nuxt@3.12.3)(pinia@2.1.7)(rollup@4.18.0)(typescript@5.5.3)(vite@5.3.3)(vue@3.4.31)
+    specifier: ^0.0.11
+    version: 0.0.11(nuxt@3.12.3)(pinia@2.1.7)(rollup@4.18.0)(typescript@5.5.3)(vite@5.3.3)(vue@3.4.31)
   '@vuepic/vue-datepicker':
     specifier: ^9.0.3
     version: 9.0.3(vue@3.4.31)
@@ -639,8 +639,8 @@ packages:
       postcss-selector-parser: 6.1.0
     dev: false
 
-  /@daxiom/nuxt-core-layer-test@0.0.10(nuxt@3.12.3)(pinia@2.1.7)(rollup@4.18.0)(typescript@5.5.3)(vite@5.3.3)(vue@3.4.31):
-    resolution: {integrity: sha512-oazYOV72fBgxZrE8dKeI8Rg5okfiC8ZTumo9pfsYK0AeNpqKTojmrNFPu/kCqRnIgRQGGlAnlzTN9jErw3mrrQ==}
+  /@daxiom/nuxt-core-layer-test@0.0.11(nuxt@3.12.3)(pinia@2.1.7)(rollup@4.18.0)(typescript@5.5.3)(vite@5.3.3)(vue@3.4.31):
+    resolution: {integrity: sha512-2eK44vPM5SYNCCyM/xmrKKBris6KdbHPQf17ASW9ya7VDL8GonDRvWa+46RozinA+LlgPdKfhJMw2IWAgJ4ccQ==}
     dependencies:
       '@iconify-json/mdi': 1.1.68
       '@nuxt/content': 2.13.2(nuxt@3.12.3)(rollup@4.18.0)(vue@3.4.31)
@@ -2803,10 +2803,11 @@ packages:
 
   /@pinia-plugin-persistedstate/nuxt@1.2.1(@pinia/nuxt@0.5.1)(pinia@2.1.7)(rollup@4.18.0):
     resolution: {integrity: sha512-q8s+4aQW/AjBMyeqLL48/qzBR5lcgnvvf1525ovNuKf6Wl9CsoLjPKh/5X8vNoKGwSow4gP7lVmdYPQRypgjgg==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       '@pinia/nuxt': ^0.5.0
     dependencies:
-      '@nuxt/kit': 3.12.3(magicast@0.3.4)(rollup@4.18.0)
+      '@nuxt/kit': 3.12.4(rollup@4.18.0)
       '@pinia/nuxt': 0.5.1(rollup@4.18.0)(typescript@5.5.3)(vue@3.4.31)
       defu: 6.1.4
       pinia-plugin-persistedstate: 3.2.1(pinia@2.1.7)
