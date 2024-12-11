@@ -49,8 +49,7 @@ onMounted(async () => {
       setHeaderDetails(
         registration.value.status,
         undefined,
-        permitStore.downloadApplicationReceipt,
-        permitStore.downloadRegistrationCert)
+        permitStore.downloadApplicationReceipt)
     }
 
     // host right side details
