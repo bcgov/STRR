@@ -1,4 +1,26 @@
 export default defineAppConfig({
+  connect: {
+    core: {
+      login: {
+        redirectPath: '',
+        idps: () => []
+      },
+      header: {
+        options: {
+          localeSelect: false,
+          unauthenticated: {
+            whatsNew: false,
+            loginMenu: false,
+            createAccount: false
+          },
+          authenticated: {
+            notifications: true,
+            accountOptionsMenu: true
+          }
+        }
+      }
+    }
+  },
   strrBaseLayer: {
     page: {
       login: {
