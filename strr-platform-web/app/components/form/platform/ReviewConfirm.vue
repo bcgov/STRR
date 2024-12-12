@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Form } from '#ui/types'
 import { z } from 'zod'
+import type { Form } from '#ui/types'
 
 const { t } = useI18n()
 const tPlatReview = (path: string) => t(`strr.review.${path}`)

@@ -435,7 +435,7 @@ export default {
     business: {
       legalName: 'Please enter the legal name',
       jurisdiction: 'Please enter the business home jurisdiction',
-      cpbc: 'Please enter the CPBC number'
+      cpbc: 'Please enter a valid CPBC number'
     },
     email: 'Please enter a valid email',
     name: {

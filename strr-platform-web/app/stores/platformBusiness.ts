@@ -28,7 +28,10 @@ export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () =
     return getBaseBusinessSchema().extend({
       hasCpbc: z.boolean(),
       cpbcLicenceNumber: platformBusiness.value.hasCpbc
-        ? getRequiredNonEmptyString(t('validation.business.cpbc'))
+        ? z.string()
+          .regex(/^\d+$/, { message: t('validation.business.cpbc') })
+          .min(5, { message: t('validation.business.cpbc') })
+          .max(6, { message: t('validation.business.cpbc') })
         : optionalOrEmptyString,
       nonComplianceEmail: getRequiredEmail(t('validation.email')),
       nonComplianceEmailOptional: getOptionalEmail(t('validation.email')),
