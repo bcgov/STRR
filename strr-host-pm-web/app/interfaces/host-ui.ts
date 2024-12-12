@@ -9,7 +9,7 @@ export interface UiBlInfo {
 }
 
 export interface UiUnitDetails {
-  parcelIdentifier: string
+  parcelIdentifier?: string
   propertyType: PropertyType | undefined
   ownershipType: OwnershipType | undefined
   numberOfRoomsForRent: number | undefined

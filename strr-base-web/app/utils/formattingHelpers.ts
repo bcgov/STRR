@@ -40,23 +40,25 @@ export function formatAddressUI <T extends ApiBaseAddress> (add: T): ConnectAddr
 
 export function formatParty <T extends Contact> (party: T): ApiParty {
   return {
-    firstName: party.firstName,
-    middleName: party.middleName ?? '',
     lastName: party.lastName,
+    emailAddress: party.emailAddress,
     ...formatPhoneNumber(party),
-    faxNumber: party.faxNumber ?? '',
-    emailAddress: party.emailAddress
+    ...(party.firstName ? { firstName: party.firstName } : {}),
+    ...(party.middleName ? { middleName: party.middleName } : {}),
+    ...(party.preferredName ? { preferredName: party.preferredName } : {}),
+    ...(party.faxNumber ? { faxNumber: party.faxNumber } : {})
   }
 }
 
-export function formatPartyUI (party: ApiParty): Contact {
+export function formatPartyUI <T extends ApiParty> (party: T): Contact {
   return {
-    firstName: party.firstName,
-    middleName: party.middleName ?? '',
     lastName: party.lastName,
-    faxNumber: party.faxNumber ?? '',
     emailAddress: party.emailAddress,
-    phone: formatPhoneNumberUI(party)
+    phone: formatPhoneNumberUI(party),
+    ...(party.firstName ? { firstName: party.firstName } : {}),
+    ...(party.middleName ? { middleName: party.middleName } : {}),
+    ...(party.preferredName ? { preferredName: party.preferredName } : {}),
+    ...(party.faxNumber ? { faxNumber: party.faxNumber } : {})
   }
 }
 

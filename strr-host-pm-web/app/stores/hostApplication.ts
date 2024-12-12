@@ -48,17 +48,9 @@ export const useHostApplicationStore = defineStore('host/application', () => {
           : {}
         ),
         unitAddress: formatHostUnitAddressApi(propertyStore.unitAddress.address),
-        unitDetails: formatHostUnitDetailsAPI(propertyStore.unitDetails, propertyStore.blInfo),
+        unitDetails: formatHostUnitDetailsAPI(propertyStore.unitDetails, propertyStore.blInfo, reqStore.prRequirements),
         documents: documentStore.apiDocuments,
-        principalResidence: {
-          // TODO: confirm mapping - assuming this is if PR is required or not?
-          isPrincipalResidence: !reqStore.prRequirements.isPropertyPrExempt,
-          nonPrincipalOption: reqStore.prRequirements.prExemptionReason,
-          agreedToRentalAct: userConfirmation.value.agreedToRentalAct,
-          agreedToSubmit: userConfirmation.value.agreedToSubmit,
-          // TODO: Not in new design - remove once it is no longer required to pass API validation
-          specifiedServiceProvider: ''
-        },
+        strRequirements: reqStore.propertyReqs,
         listingDetails: []
       }
     }

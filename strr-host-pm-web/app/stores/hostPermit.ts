@@ -11,7 +11,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const documentStore = useDocumentStore()
   const { hostOwners } = storeToRefs(ownerStore)
   const { blInfo, unitAddress, unitDetails } = storeToRefs(propertyStore)
-  const { prRequirements } = storeToRefs(propertyReqStore)
+  const { prRequirements, propertyReqs } = storeToRefs(propertyReqStore)
   const { storedDocuments } = storeToRefs(documentStore)
 
   const {
@@ -43,8 +43,11 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       unitDetails.value = formatHostUnitDetailsUI(permitDetails.value.unitDetails)
       blInfo.value = formatHostUnitDetailsBlInfoUI(permitDetails.value.unitDetails)
       unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
-      prRequirements.value.isPropertyPrExempt = !permitDetails.value.principalResidence.isPrincipalResidence
-      prRequirements.value.prExemptionReason = permitDetails.value.principalResidence.nonPrincipalOption
+      prRequirements.value.isPropertyPrExempt = !!permitDetails.value.unitDetails.prExemptReason
+      prRequirements.value.prExemptionReason = permitDetails.value.unitDetails.prExemptReason
+      if (application.value?.registration.strRequirements) {
+        propertyReqs.value = application.value?.registration.strRequirements
+      }
       storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({
         file: {} as File,
         apiDoc: val,

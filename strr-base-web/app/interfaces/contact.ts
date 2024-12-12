@@ -1,7 +1,8 @@
 export interface Contact {
-  firstName: string
+  firstName?: string
   middleName?: string
   lastName: string
+  preferredName?: string
   phone: ConnectPhone
   faxNumber?: string
   emailAddress: string

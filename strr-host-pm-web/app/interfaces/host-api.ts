@@ -1,26 +1,9 @@
-export interface ApiHostParty extends ApiParty {
-  preferredName?: string
-}
-
-export interface ApiHostPartyWithAddress extends ApiHostParty {
+export interface ApiPartyWithAddress extends ApiParty {
   mailingAddress: ApiAddress
 }
 
-export interface ApiHostContactDetails extends ApiPhone {
-  preferredName?: string
-  faxNumber: string
-  emailAddress: string
-}
-
-export interface ApiHostContactPerson {
+export interface ApiHostContactPerson extends ApiPartyWithAddress {
   contactType: OwnerType
-  name: {
-    firstName: string
-    middleName?: string
-    lastName: string
-  }
-  details: ApiHostContactDetails
-  mailingAddress: ApiAddress
   dateOfBirth?: string
   socialInsuranceNumber?: string
   businessLegalName?: string
@@ -36,15 +19,15 @@ export interface ApiPropertyManagerBusiness {
   legalName: string
   businessNumber?: string
   mailingAddress: ApiAddress
-  primaryContact: ApiHostParty
-  secondaryContact?: ApiHostParty
+  primaryContact: ApiParty
+  secondaryContact?: ApiParty
 }
 
 export interface ApiPropertyManager {
   initiatedByPropertyManager: boolean
   propertyManagerType: OwnerType
   business?: ApiPropertyManagerBusiness // required if OwnerType.BUSINESS
-  contact?: ApiHostPartyWithAddress // required if OwnerType.INDIVIDUAL
+  contact?: ApiPartyWithAddress // required if OwnerType.INDIVIDUAL
 }
 
 export interface ApiUnitDetails {
@@ -57,6 +40,7 @@ export interface ApiUnitDetails {
   hostResidence: ResidenceType | undefined
   isUnitOnPrincipalResidenceProperty: boolean | undefined
   numberOfRoomsForRent: number | undefined
+  prExemptReason?: PrExemptionReason
 }
 
 export interface ApiUnitAddress extends ApiBaseAddress {
@@ -73,23 +57,15 @@ export interface ApiDocument {
   fileType: string
 }
 
-export interface ApiResidence {
-  isPrincipalResidence: boolean | undefined
-  agreedToRentalAct: boolean | undefined
-  nonPrincipalOption: PrExemptionReason | undefined
-  specifiedServiceProvider: string
-  agreedToSubmit: boolean | undefined
-}
-
 export interface ApiHostApplication {
   registrationType: ApplicationType
   primaryContact: ApiHostContactPerson | ApiHostContactBusiness
   secondaryContact?: ApiHostContactPerson | ApiHostContactBusiness
   unitDetails: ApiUnitDetails
   unitAddress: ApiUnitAddress
-  principalResidence: ApiResidence
-  documents?: ApiDocument[]
   propertyManager?: ApiPropertyManager,
+  strRequirements?: PropertyRequirements
+  documents: ApiDocument[]
   listingDetails: string[]
 }
 

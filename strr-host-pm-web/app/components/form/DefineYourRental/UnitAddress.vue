@@ -86,7 +86,7 @@ onMounted(async () => {
           ])"
         >
           <ConnectTransitionCollapse>
-            <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="flex max-w-bcGovInput flex-col gap-10">
+            <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="max-w-bcGovInput flex flex-col gap-10">
               <div class="flex flex-col gap-3">
                 <p>{{ $t('text.unitAddressIntro') }}</p>
                 <p>{{ $t('text.unitAddressIntroNote') }}</p>
@@ -146,7 +146,7 @@ onMounted(async () => {
                   :form-ref="unitAddressFormRef"
                   :unit-number-required="propStore.isUnitNumberRequired"
                 />
-                <div class="flex w-full max-w-bcGovInput justify-end gap-4">
+                <div class="max-w-bcGovInput flex w-full justify-end gap-4">
                   <UButton
                     :label="$t('btn.cancel')"
                     size="bcGov"

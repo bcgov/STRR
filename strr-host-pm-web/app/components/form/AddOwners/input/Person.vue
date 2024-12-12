@@ -66,7 +66,7 @@ watch(isCompParty, (val) => {
       :title="$t('strr.section.subTitle.individualName')"
       :error="showErrors && hasFormErrors(ownerFormRef, ['firstName', 'middleName', 'lastName'])"
     >
-      <div class="flex max-w-bcGovInput flex-col gap-3 sm:flex-row">
+      <div class="max-w-bcGovInput flex flex-col gap-3 sm:flex-row">
         <ConnectFormFieldGroup
           id="host-owner-first-name"
           v-model="owner.firstName"

@@ -1,6 +1,6 @@
 export interface HostOwner extends Contact {
   ownerType: OwnerType
-  preferredName: string
+  preferredName?: string
   mailingAddress: ConnectAddress
   businessLegalName: string
   businessNumber: string

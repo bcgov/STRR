@@ -19,11 +19,12 @@ export interface ApiAddress extends ApiBaseAddress {
 }
 
 export interface ApiParty extends ApiPhone {
-  firstName: string
+  firstName?: string
   lastName: string
-  middleName: string
+  middleName?: string
+  preferredName?: string
   emailAddress: string
-  faxNumber: string
+  faxNumber?: string
 }
 
 export interface ApiRep extends ApiParty {
