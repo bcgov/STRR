@@ -253,9 +253,9 @@ export default {
     platAppStepLabel: 'Platform Application Step Navigation',
     stepUnfinished: 'This step is unfinished.',
     returnStepToFinish: 'Return to this step to finish it',
-    loginBceid: 'Log in with BCeID',
-    loginBcsc: 'Log in with BC Services Card',
-    loginIdir: 'Log in with IDIR',
+    continueBceid: 'Continue with BCeID',
+    continueBcsc: 'Continue with BC Services Card',
+    continueIdir: 'Continue with IDIR',
     // Each app could overwrite this if they wanted
     login: 'Login',
     selectAccount: 'Select Account',
@@ -364,7 +364,7 @@ export default {
     },
     login: {
       // Each app could overwrite this if they wanted. Default would be different
-      h1: 'Log In to Short-Term Rental Registry'
+      h1: 'Short-Term Rental Registry'
     },
     tos: {
       title: 'Terms of Use - Short Term Rental Registry',

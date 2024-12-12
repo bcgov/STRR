@@ -6,7 +6,10 @@ export default defineAppConfig({
         redirectPath: '',
         options: {
           createAccount: true,
-          idps: ['bcsc', 'bceid', 'idir']
+          idps: ['bcsc', 'bceid', 'idir'],
+          bcscSubtext: undefined,
+          bceidSubtext: undefined,
+          idirSubtext: undefined
         }
       }
     }
@@ -95,19 +98,3 @@ export default defineAppConfig({
     }
   }
 })
-
-declare module 'nuxt/schema' {
-  interface AppConfig {
-    strrBaseLayer: {
-      page: {
-        login: {
-          redirectPath: string,
-          options: {
-            createAccount: boolean,
-            idps: Array<'bcsc' | 'bceid' | 'idir'>
-          }
-        }
-      }
-    }
-  }
-}

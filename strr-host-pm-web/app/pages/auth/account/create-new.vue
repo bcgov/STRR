@@ -91,7 +91,7 @@ useHead({
 })
 
 definePageMeta({
-  middleware: ['auth', 'check-tos'],
+  middleware: ['auth', 'check-tos', 'create-account-page'],
   hideBreadcrumbs: true
 })
 </script>

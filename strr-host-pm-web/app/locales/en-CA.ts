@@ -365,7 +365,8 @@ export default {
     unitAddressIntro: 'Include the Residential Address of your short-term rental by looking up the address, or if the address cannot be found in the lookup, you can enter the address manually.',
     unitAddressIntroNote: 'Note: the address cannot be a Mailing Address (e.g., PO Box, etc.).',
     unitAddressUnitNumberInfo: 'Unit Number is required if the short-term rental unit has a Unit Number. Enter a Site Name if the address does not have a Street Number and Name.',
-    noDocsUploaded: 'No supporting documentation uploaded.'
+    noDocsUploaded: 'No supporting documentation uploaded.',
+    bceidSubtext: 'Requires an existing BCeID login account'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',

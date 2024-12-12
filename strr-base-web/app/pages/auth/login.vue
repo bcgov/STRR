@@ -11,17 +11,20 @@ const redirectUrl = loginConfig.redirectPath
 
 const loginOptionsMap = {
   bcsc: {
-    label: t('label.loginBcsc'),
+    label: t('label.continueBcsc'),
+    subtext: loginConfig.options.bcscSubtext,
     icon: 'i-mdi-account-card-details-outline',
     click: () => keycloak.login(IdpHint.BCSC, redirectUrl)
   },
   bceid: {
-    label: t('label.loginBceid'),
+    label: t('label.continueBceid'),
+    subtext: loginConfig.options.bceidSubtext,
     icon: 'i-mdi-two-factor-authentication',
     click: () => keycloak.login(IdpHint.BCEID, redirectUrl)
   },
   idir: {
-    label: t('label.loginIdir'),
+    label: t('label.continueIdir'),
+    subtext: loginConfig.options.idirSubtext,
     icon: 'i-mdi-account-group-outline',
     click: () => keycloak.login(IdpHint.IDIR, redirectUrl)
   }
@@ -51,37 +54,49 @@ onMounted(() => {
 })
 </script>
 <template>
-  <div class="flex grow justify-center py-10">
-    <UCard class="my-auto max-w-md">
+  <div class="flex grow flex-col items-center justify-center py-10">
+    <div class="flex flex-col items-center gap-4">
       <h1>
         {{ $t('page.login.h1') }}
       </h1>
-      <img src="/img/BCReg_Generic_Login_image.jpg" class="py-4" :alt="$t('imageAlt.genericLogin')">
-      <div class="space-y-4 pt-2.5">
-        <UButton
-          v-for="(option, i) in options"
-          :key="option.label"
-          :color="i === 0 ? 'primary' : 'gray'"
-          block
-          :icon="option.icon"
-          :label="option.label"
-          :ui="{
-            gap: { sm: 'gap-x-2.5' }
-          }"
-          @click="option.click"
-        />
-        <UDivider
-          v-if="loginConfig.options.createAccount"
-          :label="$t('word.OR')"
-        />
-        <UButton
-          v-if="loginConfig.options.createAccount"
-          :label="$t('btn.createAnAccount')"
-          block
-          color="gray"
-          :to="createAccountUrl()"
-        />
-      </div>
-    </UCard>
+      <UCard class="my-auto max-w-md">
+        <img src="/img/BCReg_Generic_Login_image.jpg" class="pb-4" :alt="$t('imageAlt.genericLogin')">
+        <div class="space-y-4 pt-2.5">
+          <div
+            v-for="(option, i) in options"
+            :key="option.label"
+            class="flex flex-col items-center gap-1"
+          >
+            <UButton
+              :color="i === 0 ? 'primary' : 'gray'"
+              block
+              :icon="option.icon"
+              :label="option.label"
+              :ui="{
+                gap: { sm: 'gap-x-2.5' }
+              }"
+              @click="option.click"
+            />
+            <span
+              v-if="option.subtext"
+              class="text-xs"
+            >
+              {{ $t(option.subtext) }}
+            </span>
+          </div>
+          <UDivider
+            v-if="loginConfig.options.createAccount"
+            :label="$t('word.OR')"
+          />
+          <UButton
+            v-if="loginConfig.options.createAccount"
+            :label="$t('btn.createAnAccount')"
+            block
+            color="gray"
+            :to="createAccountUrl()"
+          />
+        </div>
+      </UCard>
+    </div>
   </div>
 </template>
