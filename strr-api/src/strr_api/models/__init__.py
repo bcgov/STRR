@@ -38,7 +38,6 @@ from .application import Application
 from .auto_approval_record import AutoApprovalRecord
 from .certificate import Certificate
 from .db import db  # noqa: I001
-from .dss import DSSOrganization
 from .events import Events
 from .ltsa import LTSARecord
 from .platforms import Platform, PlatformBrand, PlatformRegistration, PlatformRepresentative
@@ -61,7 +60,6 @@ __all__ = (
     "Contact",
     "Document",
     "Events",
-    "DSSOrganization",
     "AutoApprovalRecord",
     "LTSARecord",
     "Certificate",

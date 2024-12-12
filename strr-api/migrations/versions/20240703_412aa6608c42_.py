@@ -20,21 +20,8 @@ sql_script_dir = os.path.join(os.path.abspath(
 
 
 def upgrade():
-    connection = op.get_bind()
-    # create tables
-    sql_script_path = os.path.join(sql_script_dir, 'gis_ddl.sql')
-    with open(sql_script_path, 'r') as file:
-        ddl_script = file.read()
-
-    connection.execute(text(ddl_script))
-
-    # seed
-    sql_script_path = os.path.join(sql_script_dir, 'gis_seed.sql')
-    with open(sql_script_path, 'r') as file:
-        seed_script = file.read()
-
-    connection.execute(text(seed_script))
+    pass
 
 
 def downgrade():
-    op.drop_table('dss_organization')
+    pass

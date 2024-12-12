@@ -31,11 +31,10 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""The Legal API service.
+"""The STRR API.
 
-This module is the API for the Legal Entity system.
+This module is the API for the Short Term Rental Registry.
 """
-import logging
 import logging.config
 import os
 
@@ -43,7 +42,7 @@ import coloredlogs
 import sentry_sdk
 from flask import Flask
 from flask_cors import CORS
-from flask_migrate import Migrate, upgrade
+from flask_migrate import Migrate
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from .common.auth import jwt
@@ -79,9 +78,6 @@ def create_app(environment: Config = Production, **kwargs) -> Flask:
 
     if not app.config.get("TESTING", False):
         Migrate(app, db)
-        logger.info("Running migration upgrade.")
-        with app.app_context():
-            upgrade(directory="migrations", revision="head", sql=False, tag=None)
 
     strr_pay.init_app(app)
     babel.init_app(app)
