@@ -68,7 +68,7 @@ onMounted(() => {
             class="flex flex-col items-center gap-1"
           >
             <UButton
-              :color="i === 0 ? 'primary' : 'gray'"
+              :variant="i === 0 ? 'solid' : 'outline'"
               block
               :icon="option.icon"
               :label="option.label"
