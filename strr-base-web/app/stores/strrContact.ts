@@ -7,7 +7,7 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
   const { userFullName } = storeToRefs(useConnectAccountStore())
   const getContactSchema = (completingParty = false) => {
     return z.object({
-      firstName: getRequiredNonEmptyString(t('validation.name.first')),
+      firstName: optionalOrEmptyString,
       middleName: optionalOrEmptyString,
       lastName: getRequiredNonEmptyString(t('validation.name.last')),
       position: completingParty ? optionalOrEmptyString : getRequiredNonEmptyString(t('validation.position')),

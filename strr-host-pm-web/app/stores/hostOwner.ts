@@ -10,7 +10,7 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
       role: z.enum([OwnerRole.HOST, OwnerRole.CO_HOST, OwnerRole.PROPERTY_MANAGER], {
         errorMap: () => ({ message: t('validation.ownerRole') })
       }),
-      firstName: getRequiredNonEmptyString(t('validation.name.first')),
+      firstName: optionalOrEmptyString,
       middleName: optionalOrEmptyString,
       lastName: getRequiredNonEmptyString(t('validation.name.last')),
       preferredName: optionalOrEmptyString,

@@ -126,9 +126,9 @@ export const getPartyItem = (party: Contact): ConnectAccordionItem => {
     : party.phone.number
   return {
     showAvatar: true,
-    label: `${party.firstName || ''} ` +
+    label: (`${party.firstName || ''} ` +
       `${party.middleName || ''} ` +
-      `${party.lastName || ''}`.replaceAll('  ', '').trim(),
+      `${party.lastName || ''}`).replaceAll('  ', ' ').trim(),
     values: [
       {
         icon: 'i-mdi-at',
