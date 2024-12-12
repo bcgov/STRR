@@ -18,6 +18,4 @@ pnpm install
 Startup the development environment.
 ```bash
 pnpm run dev
-
-just adding this to test pr trigger will remove once doen
 ```
