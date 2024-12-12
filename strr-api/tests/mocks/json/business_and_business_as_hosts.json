@@ -5,19 +5,15 @@
       "contactType": "BUSINESS",
       "businessLegalName": "Test Business",
       "businessNumber": "123456789",
-      "name": {
-        "firstName": "The",
-        "middleName": "First",
-        "lastName": "Guy"
-      },
+      "firstName": "The",
+      "middleName": "First",
+      "lastName": "Guy",
       "dateOfBirth": "1986-10-23",
-      "details": {
-        "preferredName": "Mickey",
-        "phoneNumber": "604-999-9999",
-        "extension": "x64",
-        "faxNumber": "604-777-7777",
-        "emailAddress": "test@test.test"
-      },
+      "preferredName": "Mickey",
+      "phoneNumber": "604-999-9999",
+      "extension": "x64",
+      "faxNumber": "604-777-7777",
+      "emailAddress": "test@test.test",
       "mailingAddress": {
         "country": "CA",
         "address": "12766 227st",
@@ -31,19 +27,15 @@
       "contactType": "BUSINESS",
       "businessLegalName": "Test Business 2",
       "businessNumber": "555555555",
-      "name": {
-        "firstName": "The",
-        "middleName": "First",
-        "lastName": "Guy"
-      },
+      "firstName": "The",
+      "middleName": "First",
+      "lastName": "Guy",
       "dateOfBirth": "1986-10-23",
-      "details": {
-        "preferredName": "Mickey",
-        "phoneNumber": "604-999-9999",
-        "extension": "x64",
-        "faxNumber": "604-777-7777",
-        "emailAddress": "test@test.test"
-      },
+      "preferredName": "Mickey",
+      "phoneNumber": "604-999-9999",
+      "extension": "x64",
+      "faxNumber": "604-777-7777",
+      "emailAddress": "test@test.test",
       "mailingAddress": {
         "country": "CA",
         "address": "12765 227st",
@@ -79,13 +71,6 @@
       {
         "url": "https://www.airbnb.ca/rooms/26359027"
       }
-    ],
-    "principalResidence": {
-      "isPrincipalResidence": true,
-      "agreedToRentalAct": true,
-      "nonPrincipalOption": "n/a",
-      "specifiedServiceProvider": "n/a",
-      "agreedToSubmit": true
-    }
+    ]
   }
 }

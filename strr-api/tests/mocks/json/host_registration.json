@@ -2,20 +2,16 @@
   "registration": {
     "registrationType": "HOST",
     "primaryContact": {
-      "name": {
-        "firstName": "The",
-        "middleName": "First",
-        "lastName": "Guy"
-      },
+      "firstName": "The",
+      "middleName": "First",
+      "lastName": "Guy",
       "dateOfBirth": "1986-10-23",
-      "details": {
-        "preferredName": "Mickey",
-        "phoneCountryCode": "001",
-        "phoneNumber": "604-999-9999",
-        "extension": "x64",
-        "faxNumber": "604-777-7777",
-        "emailAddress": "test@test.test"
-      },
+      "preferredName": "Mickey",
+      "phoneCountryCode": "001",
+      "phoneNumber": "604-999-9999",
+      "extension": "x64",
+      "faxNumber": "604-777-7777",
+      "emailAddress": "test@test.test",
       "mailingAddress": {
         "country": "CA",
         "address": "12766 227st",
@@ -26,20 +22,16 @@
       }
     },
     "secondaryContact": {
-      "name": {
-        "firstName": "The",
-        "middleName": "Other",
-        "lastName": "Guy"
-      },
+      "firstName": "The",
+      "middleName": "Other",
+      "lastName": "Guy",
       "dateOfBirth": "1986-10-23",
-      "details": {
-        "preferredName": "Mouse",
-        "phoneCountryCode": "001",
-        "phoneNumber": "604-888-8888",
-        "extension": "",
-        "faxNumber": "",
-        "emailAddress": "test2@test.test"
-      },
+      "preferredName": "Mouse",
+      "phoneCountryCode": "001",
+      "phoneNumber": "604-888-8888",
+      "extension": "",
+      "faxNumber": "",
+      "emailAddress": "test2@test.test",
       "mailingAddress": {
         "country": "CA",
         "address": "12766 227st",
@@ -48,17 +40,6 @@
         "province": "BC",
         "postalCode": "V2X 6K6"
       }
-    },
-    "unitDetails": {
-      "parcelIdentifier": "000-460-991",
-      "businessLicense": "7777777",
-      "businessLicenseExpiryDate": "2025-01-01",
-      "propertyType": "SINGLE_FAMILY_HOME",
-      "ownershipType": "OWN",
-      "rentalUnitSpaceType": "ENTIRE_HOME",
-      "hostResidence": "SAME_UNIT",
-      "isUnitOnPrincipalResidenceProperty": true,
-      "numberOfRoomsForRent": 1
     },
     "unitAddress": {
       "nickname": "My Rental Property",
@@ -71,18 +52,30 @@
       "province": "BC",
       "postalCode": "V2X 7N1"
     },
+    "strRequirements": {
+      "isBusinessLicenceRequired": false,
+      "isPrincipalResidenceRequired": true,
+      "isStrProhibited": false,
+      "isStraaExempt": null,
+      "organizationNm": "City of Maple Ridge"
+    },
+    "unitDetails": {
+      "parcelIdentifier": "000-460-991",
+      "businessLicense": "7777777",
+      "businessLicenseExpiryDate": "2025-01-01",
+      "propertyType": "SINGLE_FAMILY_HOME",
+      "ownershipType": "OWN",
+      "rentalUnitSpaceType": "ENTIRE_HOME",
+      "hostResidence": "SAME_UNIT",
+      "isUnitOnPrincipalResidenceProperty": true,
+      "numberOfRoomsForRent": 1,
+      "prExemptReason": "FRACTIONAL_OWNERSHIP"
+    },
     "listingDetails": [
       {
         "url": "https://www.airbnb.ca/rooms/26359027"
       }
     ],
-    "principalResidence": {
-      "isPrincipalResidence": true,
-      "agreedToRentalAct": true,
-      "nonPrincipalOption": "n/a",
-      "specifiedServiceProvider": "n/a",
-      "agreedToSubmit": true
-    },
     "documents": [
       {
         "fileName": "Drivers License",
@@ -93,3 +86,4 @@
     ]
   }
 }
+

@@ -1,6 +1,7 @@
 # pylint: disable=C0103
 # pylint: disable=R0913
 # pylint: disable=R0917
+# pylint: disable=R0914
 """
 Registration request payload objects.
 """
@@ -22,21 +23,21 @@ class Registration:
         unitAddress,
         unitDetails,
         listingDetails,
-        principalResidence,
         secondaryContact=None,
         documents=[],  # pylint: disable=W0102
         registrationType=None,
         propertyManager=None,
+        strRequirements=None,
     ):
         self.primaryContact = Contact(**primaryContact)
         self.secondaryContact = Contact(**secondaryContact) if secondaryContact else None
         self.unitAddress = UnitAddress(**unitAddress)
         self.unitDetails = UnitDetails(**unitDetails)
         self.listingDetails = [ListingDetails(**item) for item in listingDetails]
-        self.principalResidence = PrincipalResidence(**principalResidence)
         self.documents = [Document(**document) for document in documents]
         self.registrationType = registrationType
         self.propertyManager = PropertyManager(**propertyManager) if propertyManager else None
+        self.strRequirements = strRequirements
 
 
 class PropertyManager:
@@ -99,24 +100,6 @@ class PropertyManagerContact:
         self.mailingAddress = MailingAddress(**mailingAddress) if mailingAddress else None
 
 
-class PrincipalResidence:
-    """PrincipalResidence payload object."""
-
-    def __init__(
-        self,
-        isPrincipalResidence,
-        agreedToRentalAct,
-        agreedToSubmit,
-        nonPrincipalOption=None,
-        specifiedServiceProvider=None,
-    ):
-        self.isPrincipalResidence = isPrincipalResidence
-        self.agreedToRentalAct = agreedToRentalAct
-        self.agreedToSubmit = agreedToSubmit
-        self.nonPrincipalOption = nonPrincipalOption
-        self.specifiedServiceProvider = specifiedServiceProvider
-
-
 class ListingDetails:
     """ListingDetails payload object."""
 
@@ -139,6 +122,7 @@ class UnitDetails:
         businessLicense=None,
         businessLicenseExpiryDate=None,
         strataHotelRegistrationNumber=None,
+        prExemptReason=None,
     ):
         self.propertyType = propertyType
         self.ownershipType = ownershipType
@@ -150,6 +134,7 @@ class UnitDetails:
         self.numberOfRoomsForRent = numberOfRoomsForRent
         self.businessLicenseExpiryDate = businessLicenseExpiryDate
         self.strataHotelRegistrationNumber = strataHotelRegistrationNumber
+        self.prExemptReason = prExemptReason
 
 
 class MailingAddress:
@@ -190,51 +175,42 @@ class UnitAddress:
         self.unitNumber = unitNumber
 
 
-class ContactName:
-    """ContactName payload object."""
+class Contact:
+    """Contact payload object."""
 
-    def __init__(self, firstName, lastName, middleName=None):
+    def __init__(
+        self,
+        firstName=None,
+        lastName=None,
+        middleName=None,
+        mailingAddress=None,
+        socialInsuranceNumber=None,
+        businessNumber=None,
+        businessLegalName=None,
+        contactType=None,
+        dateOfBirth=None,
+        phoneNumber=None,
+        emailAddress=None,
+        preferredName=None,
+        extension=None,
+        faxNumber=None,
+        phoneCountryCode=None,
+    ):
         self.firstName = firstName
         self.lastName = lastName
         self.middleName = middleName
-
-
-class ContactDetails:
-    """ContactDetails payload object."""
-
-    def __init__(
-        self, phoneNumber, emailAddress, preferredName=None, extension=None, faxNumber=None, phoneCountryCode=None
-    ):
+        self.dateOfBirth = dateOfBirth
+        self.socialInsuranceNumber = socialInsuranceNumber
+        self.businessNumber = businessNumber
+        self.businessLegalName = businessLegalName
+        self.contactType = contactType
         self.phoneNumber = phoneNumber
         self.emailAddress = emailAddress
         self.preferredName = preferredName
         self.extension = extension
         self.faxNumber = faxNumber
         self.phoneCountryCode = phoneCountryCode
-
-
-class Contact:
-    """Contact payload object."""
-
-    def __init__(
-        self,
-        name,
-        details,
-        mailingAddress,
-        socialInsuranceNumber=None,
-        businessNumber=None,
-        businessLegalName=None,
-        contactType=None,
-        dateOfBirth=None,
-    ):
-        self.name = ContactName(**name)
-        self.dateOfBirth = dateOfBirth
-        self.socialInsuranceNumber = socialInsuranceNumber
-        self.businessNumber = businessNumber
-        self.details = ContactDetails(**details)
         self.mailingAddress = MailingAddress(**mailingAddress)
-        self.businessLegalName = businessLegalName
-        self.contactType = contactType
 
 
 class Document:

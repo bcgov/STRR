@@ -16,6 +16,28 @@
     "preferredName": {
       "type": "string"
     },
+    "dateOfBirth": {
+      "type": "string",
+      "format": "date",
+      "description": "YYYY-MM-DD"
+    },
+    "socialInsuranceNumber": {
+      "type": "string"
+    },
+    "businessNumber": {
+      "type": "string"
+    },
+    "businessLegalName": {
+      "type": "string"
+    },
+    "contactType": {
+      "type": "string",
+      "enum": [
+        "INDIVIDUAL",
+        "BUSINESS"
+      ],
+      "default": "INDIVIDUAL"
+    },
     "phoneNumber": {
       "type": "string"
     },
@@ -31,10 +53,12 @@
     "emailAddress": {
       "type": "string",
       "format": "email"
+    },
+    "mailingAddress": {
+      "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
     }
   },
   "required": [
-    "firstName",
     "lastName",
     "phoneNumber",
     "emailAddress"

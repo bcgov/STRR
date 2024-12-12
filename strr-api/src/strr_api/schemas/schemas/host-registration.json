@@ -4,90 +4,6 @@
   "type": "object",
   "title": "Host Registration",
   "definitions": {
-    "contactName": {
-      "type": "object",
-      "properties": {
-        "firstName": {
-          "type": "string"
-        },
-        "middleName": {
-          "type": "string"
-        },
-        "lastName": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "firstName",
-        "lastName"
-      ]
-    },
-    "contact": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "$ref": "#/definitions/contactName"
-        },
-        "dateOfBirth": {
-          "type": "string",
-          "format": "date",
-          "description": "YYYY-MM-DD"
-        },
-        "socialInsuranceNumber": {
-          "type": "string"
-        },
-        "businessNumber": {
-          "type": "string"
-        },
-        "businessLegalName": {
-          "type": "string"
-        },
-        "contactType": {
-          "type": "string",
-          "enum": [
-            "INDIVIDUAL",
-            "BUSINESS"
-          ],
-          "default": "INDIVIDUAL"
-        },
-        "details": {
-          "type": "object",
-          "properties": {
-            "preferredName": {
-              "type": "string"
-            },
-            "phoneCountryCode": {
-              "type": "string"
-            },
-            "phoneNumber": {
-              "type": "string"
-            },
-            "extension": {
-              "type": "string"
-            },
-            "faxNumber": {
-              "type": "string"
-            },
-            "emailAddress": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "required": [
-            "phoneNumber",
-            "emailAddress"
-          ]
-        },
-        "mailingAddress": {
-          "$ref": "https://strr.gov.bc.ca/.well_known/schemas/address"
-        }
-      },
-      "required": [
-        "name",
-        "details",
-        "mailingAddress"
-      ]
-    },
     "propertyManager": {
       "type": "object",
       "properties": {
@@ -188,10 +104,10 @@
   },
   "properties": {
     "primaryContact": {
-      "$ref": "#/definitions/contact"
+      "$ref": "https://strr.gov.bc.ca/.well_known/schemas/contact"
     },
     "secondaryContact": {
-      "$ref": "#/definitions/contact"
+      "$ref": "https://strr.gov.bc.ca/.well_known/schemas/contact"
     },
     "unitAddress": {
       "$ref": "#/definitions/rentalUnitAddress"
@@ -255,6 +171,14 @@
         },
         "strataHotelRegistrationNumber": {
           "type": "string"
+        },
+        "prExemptReason": {
+          "type": "string",
+          "enum": [
+            "STRATA_HOTEL",
+            "FARM_LAND",
+            "FRACTIONAL_OWNERSHIP"
+          ]
         }
       },
       "required": [
@@ -277,31 +201,6 @@
           }
         }
       }
-    },
-    "principalResidence": {
-      "type": "object",
-      "properties": {
-        "isPrincipalResidence": {
-          "type": "boolean"
-        },
-        "agreedToRentalAct": {
-          "type": "boolean"
-        },
-        "nonPrincipalOption": {
-          "type": "string"
-        },
-        "specifiedServiceProvider": {
-          "type": "string"
-        },
-        "agreedToSubmit": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "isPrincipalResidence",
-        "agreedToRentalAct",
-        "agreedToSubmit"
-      ]
     },
     "documents": {
       "type": "array",
@@ -348,13 +247,32 @@
           "documentType"
         ]
       }
+    },
+    "strRequirements": {
+      "type": "object",
+      "properties": {
+        "isBusinessLicenceRequired": {
+          "type": ["boolean", "null"]
+        },
+        "isPrincipalResidenceRequired": {
+          "type": ["boolean", "null"]
+        },
+        "isStrProhibited": {
+          "type": ["boolean", "null"]
+        },
+        "isStraaExempt": {
+          "type": ["boolean", "null"]
+        },
+        "organizationNm": {
+          "type": ["string", "null"]
+        }
+      }
     }
   },
   "required": [
     "primaryContact",
     "unitAddress",
     "unitDetails",
-    "listingDetails",
-    "principalResidence"
+    "listingDetails"
   ]
 }

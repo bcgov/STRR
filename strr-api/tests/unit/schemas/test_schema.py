@@ -44,15 +44,6 @@ def test_validate_host_schema_error_missing_primary_contact():
         assert error
 
 
-def test_validate_host_schema_error_missing_principal_residence():
-    with open(HOST_REGISTRATION_REQUEST) as f:
-        data = json.load(f)
-        del data["registration"]["principalResidence"]
-        valid, error = utils.validate_schema(data, f"{REGISTRATION_SCHEMA}")
-        assert not valid
-        assert error
-
-
 def test_validate_host_schema_error_missing_unit_address():
     with open(HOST_REGISTRATION_REQUEST) as f:
         data = json.load(f)

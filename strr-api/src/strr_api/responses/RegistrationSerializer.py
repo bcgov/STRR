@@ -191,11 +191,9 @@ class RegistrationSerializer:
         secondary_property_contact = secondary_property_contacts[0] if secondary_property_contacts else None
 
         registration_data["primaryContact"] = {
-            "name": {
-                "firstName": primary_property_contact.contact.firstname,
-                "middleName": primary_property_contact.contact.middlename,
-                "lastName": primary_property_contact.contact.lastname,
-            },
+            "firstName": primary_property_contact.contact.firstname,
+            "middleName": primary_property_contact.contact.middlename,
+            "lastName": primary_property_contact.contact.lastname,
             "dateOfBirth": primary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
             if primary_property_contact.contact.date_of_birth
             else None,
@@ -203,14 +201,12 @@ class RegistrationSerializer:
             "businessNumber": primary_property_contact.contact.business_number,
             "contactType": primary_property_contact.contact_type,
             "businessLegalName": primary_property_contact.business_legal_name,
-            "details": {
-                "preferredName": primary_property_contact.contact.preferredname,
-                "phoneNumber": primary_property_contact.contact.phone_number,
-                "phoneCountryCode": primary_property_contact.contact.phone_country_code,
-                "extension": primary_property_contact.contact.phone_extension,
-                "faxNumber": primary_property_contact.contact.fax_number,
-                "emailAddress": primary_property_contact.contact.email,
-            },
+            "preferredName": primary_property_contact.contact.preferredname,
+            "phoneNumber": primary_property_contact.contact.phone_number,
+            "phoneCountryCode": primary_property_contact.contact.phone_country_code,
+            "extension": primary_property_contact.contact.phone_extension,
+            "faxNumber": primary_property_contact.contact.fax_number,
+            "emailAddress": primary_property_contact.contact.email,
             "mailingAddress": {
                 "address": primary_property_contact.contact.address.street_address,
                 "addressLineTwo": primary_property_contact.contact.address.street_address_additional,  # noqa: E501
@@ -224,25 +220,21 @@ class RegistrationSerializer:
         registration_data["secondaryContact"] = None
         if secondary_property_contact:
             registration_data["secondaryContact"] = {
-                "name": {
-                    "firstName": secondary_property_contact.contact.firstname,
-                    "middleName": secondary_property_contact.contact.middlename,
-                    "lastName": secondary_property_contact.contact.lastname,
-                },
+                "firstName": secondary_property_contact.contact.firstname,
+                "middleName": secondary_property_contact.contact.middlename,
+                "lastName": secondary_property_contact.contact.lastname,
                 "dateOfBirth": secondary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
                 if secondary_property_contact.contact.date_of_birth
                 else None,
                 "socialInsuranceNumber": secondary_property_contact.contact.social_insurance_number,
                 "contactType": secondary_property_contact.contact_type,
                 "businessNumber": secondary_property_contact.contact.business_number,
-                "details": {
-                    "preferredName": secondary_property_contact.contact.preferredname,
-                    "phoneNumber": secondary_property_contact.contact.phone_number,
-                    "phoneCountryCode": secondary_property_contact.contact.phone_country_code,
-                    "extension": secondary_property_contact.contact.phone_extension,
-                    "faxNumber": secondary_property_contact.contact.fax_number,
-                    "emailAddress": secondary_property_contact.contact.email,
-                },
+                "preferredName": secondary_property_contact.contact.preferredname,
+                "phoneNumber": secondary_property_contact.contact.phone_number,
+                "phoneCountryCode": secondary_property_contact.contact.phone_country_code,
+                "extension": secondary_property_contact.contact.phone_extension,
+                "faxNumber": secondary_property_contact.contact.fax_number,
+                "emailAddress": secondary_property_contact.contact.email,
                 "mailingAddress": {
                     "address": secondary_property_contact.contact.address.street_address,
                     "addressLineTwo": secondary_property_contact.contact.address.street_address_additional,
@@ -281,18 +273,12 @@ class RegistrationSerializer:
             "isUnitOnPrincipalResidenceProperty": registration.rental_property.is_unit_on_principal_residence_property,
             "numberOfRoomsForRent": registration.rental_property.number_of_rooms_for_rent,
             "strataHotelRegistrationNumber": registration.rental_property.strata_hotel_registration_number,
+            "prExemptReason": registration.rental_property.pr_exempt_reason,
         }
 
         registration_data["listingDetails"] = [
             {"url": platform.url} for platform in registration.rental_property.property_listings
         ]
-
-        registration_data["principalResidence"] = {
-            "isPrincipalResidence": registration.rental_property.is_principal_residence,
-            "agreedToRentalAct": registration.rental_property.rental_act_accepted,
-            "nonPrincipalOption": registration.rental_property.pr_exempt_reason,
-            "specifiedServiceProvider": registration.rental_property.service_provider,
-        }
 
         if property_manager := registration.rental_property.property_manager:
             if property_manager.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:

@@ -120,10 +120,6 @@ class ApprovalService:
                     + registration.unitAddress.province
                 )
                 auto_approval.renting = registration.unitDetails.ownershipType == RentalProperty.OwnershipType.RENT
-                auto_approval.serviceProvider = (
-                    registration.principalResidence.specifiedServiceProvider is not None
-                    and registration.principalResidence.specifiedServiceProvider != "n/a"
-                )
 
                 organization = cls.getSTRDataForAddress(address)
                 if organization:

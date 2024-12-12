@@ -2,17 +2,13 @@
   "registration": {
     "registrationType": "HOST",
     "primaryContact": {
-      "name": {
-        "firstName": "The",
-        "lastName": "Guy"
-      },
+      "firstName": "The",
+      "lastName": "Guy",
       "dateOfBirth": "1986-10-23",
       "socialInsuranceNumber": "666666666",
       "businessNumber": "123456789",
-      "details": {
-        "phoneNumber": "604-999-9999",
-        "emailAddress": "test@test.test"
-      },
+      "phoneNumber": "604-999-9999",
+      "emailAddress": "test@test.test",
       "mailingAddress": {
         "country": "CA",
         "address": "12766 227st",
@@ -39,11 +35,6 @@
       "postalCode": "V2X 7N1"
     },
     "listingDetails": [
-    ],
-    "principalResidence": {
-      "isPrincipalResidence": true,
-      "agreedToRentalAct": true,
-      "agreedToSubmit": true
-    }
+    ]
   }
 }

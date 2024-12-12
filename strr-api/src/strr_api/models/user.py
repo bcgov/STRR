@@ -55,7 +55,7 @@ class Contact(Versioned, db.Model):
     __tablename__ = "contacts"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    firstname = db.Column(db.String(1000), nullable=False)
+    firstname = db.Column(db.String(1000), nullable=True)
     lastname = db.Column(db.String(1000), nullable=False)
     middlename = db.Column(db.String(1000))
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=True)
