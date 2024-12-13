@@ -8,19 +8,21 @@ import {
 
 export const useStrrModals = () => {
   const modal = useModal()
-  const { t } = useI18n()
-  const connectNav = useConnectNav()
+  const t = useNuxtApp().$i18n.t
   const { redirect } = useNavigate()
   const accountStore = useConnectAccountStore()
   const config = useRuntimeConfig().public
 
   function openAppSubmitError (e: unknown) {
     modal.open(ModalErrorApplicationSubmit, {
+      // @ts-expect-error - actions prop is passed down from ModalInfoCollectionNotice -> ModalBase
+      actions: [{ label: t('btn.close'), handler: () => close() }],
       error: e
     })
   }
 
   function openCreateAccountModal () {
+    const connectNav = useConnectNav()
     modal.open(ModalBase, {
       title: t('label.createNewAccount'),
       content: t('strr.text.onlyPremiumAccountModalContent'),

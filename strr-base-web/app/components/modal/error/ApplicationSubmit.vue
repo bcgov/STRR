@@ -22,7 +22,7 @@ const getErrorKey = () => {
 const errorKey = getErrorKey()
 </script>
 <template>
-  <ModalBase :actions="[{ label: $t('btn.close'), handler: () => useStrrModals().close() }]">
+  <ModalBase>
     <div class="-mt-6 flex flex-col items-center gap-4 text-center">
       <UIcon
         name="i-mdi-alert-circle-outline"
