@@ -60,12 +60,6 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
   const submitStrataApplication = async () => {
     const body = createApplicationBody()
 
-    // TODO: confirm if jobTitle for completing party is required for strata application
-    // @ts-expect-error - temporary until we confirm requirements
-    body.registration.completingParty.jobTitle = 'Completing Party Job Title'
-
-    // console.info('submitting application: ', body)
-
     const res = await postApplication<StrataApplicationPayload, StrataApplicationResp>(body) as StrataApplicationResp
 
     const paymentToken = res.header.paymentToken
