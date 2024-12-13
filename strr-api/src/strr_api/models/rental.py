@@ -194,7 +194,7 @@ class Document(Versioned, BaseModel):
         STRATA_HOTEL_DOCUMENTATION = auto()  # pylint: disable=invalid-name
         FRACTIONAL_OWNERSHIP_AGREEMENT = auto()  # pylint: disable=invalid-name
         BCSC = auto()  # pylint: disable=invalid-name
-        COMBINED_BCSC_LICENCE = auto()  # pylint: disable=invalid-name
+        COMBINED_BCSC_LICENSE = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "documents"
 

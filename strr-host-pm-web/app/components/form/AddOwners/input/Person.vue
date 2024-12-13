@@ -16,16 +16,9 @@ defineEmits<{
 }>()
 
 const ownerStore = useHostOwnerStore()
-const { hostOwners, hasCompParty } = storeToRefs(ownerStore)
 
 const isCompParty = ref(owner.value.isCompParty)
 watch(isCompParty, (val) => {
-  if (val && hasCompParty.value) {
-    // if a different owner has it set to true as well then set the old one to false
-    const compPartyIndex = ownerStore.findCompPartyIndex()
-    // @ts-expect-error - ts doesn't recognize that the value must be defined in this case
-    hostOwners.value[compPartyIndex].isCompParty = false
-  }
   // set owner isCompParty and update the name with user creds
   owner.value.isCompParty = val
   ownerStore.SetOwnerNameWithUserCreds(owner)

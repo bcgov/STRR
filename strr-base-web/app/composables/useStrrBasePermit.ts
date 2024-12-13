@@ -7,7 +7,8 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     getAccountApplications,
     getAccountRegistrations,
     getApplicationReceipt,
-    getRegistrationCert
+    getRegistrationCert,
+    updatePaymentDetails
   } = useStrrApi()
 
   // Typescript not unwrapping the generic ref properly without the 'as ...'
@@ -34,6 +35,10 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     if (applicationId) {
       // Get specific application
       application.value = await getAccountApplications<A>(applicationId) as A
+      if (application.value.header.status === ApplicationStatus.PAYMENT_DUE) {
+        // there is a lag in the payment Q, trigger the strr api to grab the most current pay details
+        application.value = await updatePaymentDetails<A>(applicationId)
+      }
       if (application.value?.header.registrationId) {
         // Get linked registration if applicable
         registration.value = await getAccountRegistrations<R>(
