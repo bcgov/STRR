@@ -39,7 +39,6 @@
       "required": [
         "lastName",
         "emailAddress",
-        "jobTitle",
         "phoneNumber"
       ]
     },
