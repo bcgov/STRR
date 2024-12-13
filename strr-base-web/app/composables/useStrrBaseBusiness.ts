@@ -1,6 +1,4 @@
-// TODO: move to strr-base-web layer
 import { z } from 'zod'
-import { getRequiredAddress, getRequiredNonEmptyString, optionalOrEmptyString } from '~/utils/connect-validation'
 
 export const useStrrBaseBusiness = <T extends StrrBusiness>() => {
   const { t } = useI18n()
@@ -8,7 +6,7 @@ export const useStrrBaseBusiness = <T extends StrrBusiness>() => {
     return z.object({
       legalName: getRequiredNonEmptyString(t('validation.business.legalName')),
       homeJurisdiction: optionalOrEmptyString,
-      businessNumber: optionalOrEmptyString,
+      businessNumber: getOptionalBn15(t('validation.business.bn15')),
       mailingAddress: getRequiredAddress(
         t('validation.address.street'),
         t('validation.address.city'),

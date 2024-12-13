@@ -433,6 +433,7 @@ export default {
       site: 'Please enter a valid full url for this brand (i.e. https://www.bcregistry.gov.bc.ca)'
     },
     business: {
+      bn15: 'Please enter a valid 15-character business number (e.g., 123456789BC0001)',
       legalName: 'Please enter the legal name',
       jurisdiction: 'Please enter the business home jurisdiction',
       cpbc: 'Please enter a valid CPBC number'
@@ -492,7 +493,7 @@ export default {
     hint: {
       businessLegalNamePlatform: 'The full legal name of the platform service provider',
       businessLegalNameStrataHotel: 'The full legal name of the business that is operating the strata-titled hotel or motel. Include corporate designations (e.g., “Ltd.”, “Inc.”, “LLC.”)',
-      businessNumber: 'Canada Revenue Agency (CRA) Business Number',
+      businessNumber: '15-character business number (e.g., 123456789BC0001)',
       humeJurisdiction: 'The regional or federal jurisdiction where the business was incorporated or registered, if applicable',
       position: 'Enter your current job title or position'
     },

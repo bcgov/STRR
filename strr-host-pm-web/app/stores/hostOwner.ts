@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { getOptionalBn15 } from '../../../strr-base-web/app/utils/connect-validation/business-number'
 
 export const useHostOwnerStore = defineStore('host/owner', () => {
   // TODO: pull common pieces of this and useStrrContactStore into base composable
@@ -28,7 +29,7 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
       businessLegalName: type === OwnerType.BUSINESS
         ? getRequiredNonEmptyString(t('validation.business.legalName'))
         : optionalOrEmptyString,
-      businessNumber: optionalOrEmptyString,
+      businessNumber: getOptionalBn15(t('validation.business.bn15')),
       dateOfBirth: type === OwnerType.INDIVIDUAL && role === OwnerRole.HOST
         ? getRequiredNonEmptyString(t('validation.dateOfBirth'))
         : optionalOrEmptyString,

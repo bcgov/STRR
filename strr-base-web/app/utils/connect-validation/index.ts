@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 export * from './address'
+export * from './business-number'
 export * from './email'
 export * from './folio-number'
 export * from './name'

@@ -55,6 +55,8 @@ defineEmits<{
           :aria-label="$t('label.busNumOpt')"
           name="businessNumber"
           :placeholder="$t('label.busNumOpt')"
+          :help="$t('strr.hint.businessNumber')"
+          mask="#########@@####"
         />
       </ConnectFormSection>
       <ConnectFormSection
