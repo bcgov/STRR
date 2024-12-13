@@ -59,6 +59,8 @@ const countryListOptions: Array<ConnectPhoneCountry> = Object.keys(_countryListO
   }
 }).sort((a, b) => a.callingCode.localeCompare(b.callingCode))
 
+console.log(countryListOptions)
+
 const search = (q: string) => countryListOptions.filter((lo) => {
   return lo.callingCode.includes(q) ||
     lo.iso2?.includes(q) ||
