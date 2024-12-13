@@ -69,7 +69,17 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
   const hasPropertyManager = computed(() => !!findByRole(OwnerRole.PROPERTY_MANAGER))
   const hasCompParty = computed(() => findCompPartyIndex() !== -1)
 
+  const checkCompParty = (owner: HostOwner) => {
+    const compPartyIndex = findCompPartyIndex()
+    if (owner.isCompParty && compPartyIndex !== -1) {
+      // if a different owner has it set to true as well then set the old one to false
+      // @ts-expect-error - ts doesn't recognize that the value must be defined in this case
+      hostOwners.value[compPartyIndex].isCompParty = false
+    }
+  }
+
   const addHostOwner = (owner: HostOwner) => {
+    checkCompParty(owner)
     hostOwners.value.push(owner)
   }
 
@@ -78,6 +88,7 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
   }
 
   const updateHostOwner = (owner: HostOwner, index: number) => {
+    checkCompParty(owner)
     hostOwners.value.splice(index, 1, owner)
   }
 
