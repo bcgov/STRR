@@ -43,6 +43,7 @@ export const useStrrModals = () => {
   }
 
   function openConfirmDeclineTosModal () {
+    const keycloak = useKeycloak()
     modal.open(ModalBase, {
       title: t('modal.declineTos.title'),
       content: t('modal.declineTos.content'),
@@ -50,7 +51,9 @@ export const useStrrModals = () => {
         { label: t('btn.cancel'), variant: 'outline', handler: () => close() },
         {
           label: t('modal.declineTos.declineBtn'),
-          handler: () => navigateTo(config.declineTosRedirectUrl as string, { external: true })
+          handler: () => {
+            keycloak.logout(config.declineTosRedirectUrl as string)
+          }
         }
       ]
     })

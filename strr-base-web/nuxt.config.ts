@@ -91,8 +91,7 @@ export default defineNuxtConfig({
       environment: process.env.NUXT_ENVIRONMENT_HEADER || '',
       version: `STRR Base UI v${process.env.npm_package_version}`,
       housingStrrUrl: process.env.NUXT_REGISTRY_HOME_URL, // TODO: update to NUXT_HOUSING_STRR_URL once we get the housing strr url set
-      // TODO: move to app config for core layer ?
-      declineTosRedirectUrl: process.env.NUXT_REGISTRY_HOME_URL, // TODO: update to NUXT_HOUSING_STRR_URL once we get the housing strr url set,
+      declineTosRedirectUrl: process.env.NUXT_DECLINE_TOS_REDIRECT_URL,
       bcGovStrrUrl: process.env.NUXT_BCGOV_STRR_URL
       // set by layer - still required in .env
       // keycloakAuthUrl - NUXT_KEYCLOAK_AUTH_URL
