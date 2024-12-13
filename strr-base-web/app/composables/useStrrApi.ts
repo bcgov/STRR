@@ -58,11 +58,17 @@ export const useStrrApi = () => {
       })
   }
 
+  const updatePaymentDetails = async <T extends ApiApplicationBaseResp>(applicationNumber: string) => {
+    return await $strrApi<T>(`/applications/${applicationNumber}/payment-details`,
+      { method: 'PUT' })
+  }
+
   return {
     getAccountRegistrations,
     getAccountApplications,
     getApplicationReceipt,
     getRegistrationCert,
-    postApplication
+    postApplication,
+    updatePaymentDetails
   }
 }
