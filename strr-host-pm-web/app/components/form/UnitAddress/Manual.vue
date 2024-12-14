@@ -43,6 +43,7 @@ watch(postalCode, () => {
         data-testid="address-region-input"
         :aria-required="true"
         :disabled="true"
+        maxlength="1000"
       />
     </UFormGroup>
     <!-- unit number / street number / name & type -->
@@ -100,6 +101,7 @@ watch(postalCode, () => {
         :aria-label="$t('label.siteNameOpt')"
         :aria-describedby="schemaPrefix + 'streetAdditional-' + addId"
         :disabled="disabledFields?.includes('streetAdditional')"
+        maxlength="1000"
       />
       <template #help>
         <span :id="schemaPrefix + 'streetAdditional-' + addId">
@@ -134,6 +136,7 @@ watch(postalCode, () => {
           data-testid="address-region-input"
           :aria-required="true"
           :disabled="true"
+          maxlength="1000"
         />
       </UFormGroup>
       <!-- postal code input -->
@@ -162,6 +165,7 @@ watch(postalCode, () => {
         :disabled="disabledFields?.includes('locationDescription')"
         class="w-full"
         data-testid="address-location-description"
+        maxlength="1000"
       />
     </UFormGroup>
   </div>

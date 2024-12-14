@@ -85,6 +85,7 @@ const addId = useId()
         :disabled="disabled"
         :loading="loading"
         class="w-full grow"
+        maxlength="1000"
         @keypress.once="addressComplete(id + '-street')"
         @click="addressComplete(id + '-street')"
       />

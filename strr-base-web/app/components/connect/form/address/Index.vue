@@ -207,6 +207,7 @@ const addId = useId()
           :aria-invalid="error !== undefined"
           :aria-describedby="schemaPrefix + 'street-' + addId"
           :disabled="disabledFields?.includes('street')"
+          maxlength="1000"
           @keypress.once="addressComplete(id + '-street')"
           @click="addressComplete(id + '-street')"
         />
@@ -236,6 +237,7 @@ const addId = useId()
         :placeholder="$t('label.line2')"
         :aria-label="$t('label.line2')"
         :disabled="disabledFields?.includes('streetAdditional')"
+        maxlength="1000"
       />
     </UFormGroup>
     <div v-if="!checkFieldsExcluded(['city', 'region', 'postalCode'])" class="flex flex-col gap-3 sm:flex-row">
@@ -288,6 +290,7 @@ const addId = useId()
             :aria-invalid="error !== undefined"
             :aria-describedby="schemaPrefix + 'region-' + addId"
             :disabled="disabledFields?.includes('region')"
+            maxlength="1000"
           />
         </template>
 
@@ -329,6 +332,7 @@ const addId = useId()
         :disabled="disabledFields?.includes('locationDescription')"
         class="w-full"
         data-testid="address-location-description"
+        maxlength="1000"
       />
     </UFormGroup>
   </div>
