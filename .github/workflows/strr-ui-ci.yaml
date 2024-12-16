@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "strr-web/**"
+      - "strr-examiner-web/**"
   workflow_dispatch:
 
 defaults:
