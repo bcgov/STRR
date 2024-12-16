@@ -27,7 +27,7 @@ export default defineAppConfig({
         redirectPath: '/auth/account/choose-existing',
         options: {
           createAccount: false,
-          idps: () => ['bcsc', 'bceid', 'idir'] // function required to overwrite default value, will merge if no function
+          idps: () => ['bcsc', 'bceid'] // function required to overwrite default value, will merge if no function
         }
       }
     }
