@@ -18,3 +18,4 @@ class AutoApproval(BaseModel):
     organizationNm: Optional[str] = None
     titleCheck: Optional[bool] = None
     addressMatch: Optional[bool] = None
+    suggestedAction: Optional[str] = None

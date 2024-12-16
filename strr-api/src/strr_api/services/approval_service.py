@@ -46,11 +46,11 @@ import requests
 from flask import current_app
 
 from strr_api.enums.enum import RegistrationType
-from strr_api.models import Application, AutoApprovalRecord, Events, RentalProperty
+from strr_api.models import Application, AutoApprovalRecord, Document, Events, PropertyContact, RentalProperty
 from strr_api.requests import RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
-from strr_api.services import EventsService
+from strr_api.services import EventsService, LtsaService
 from strr_api.services.geocoder_service import GeoCoderService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.rest_service import RestService
@@ -104,22 +104,13 @@ class ApprovalService:
             if registration_type == RegistrationType.HOST.value:
                 registration_request = RegistrationRequest(**application_json)
                 registration = registration_request.registration
-                unit_number = registration.unitAddress.unitNumber
-                street_number = registration.unitAddress.streetNumber
-                street_name = registration.unitAddress.streetName
                 address_line_1 = ""
-                if unit_number:
+                if unit_number := registration.unitAddress.unitNumber:
                     address_line_1 = f"{unit_number}-"
-                address_line_1 = f"{address_line_1}{street_number} {street_name}"
-                address = (
-                    address_line_1
-                    + (" " + registration.unitAddress.addressLineTwo if registration.unitAddress.addressLineTwo else "")
-                    + ", "
-                    + registration.unitAddress.city
-                    + ", "
-                    + registration.unitAddress.province
+                address_line_1 = (
+                    f"{address_line_1}{registration.unitAddress.streetNumber} {registration.unitAddress.streetName}"
                 )
-                auto_approval.renting = registration.unitDetails.ownershipType == RentalProperty.OwnershipType.RENT
+                address = f"{address_line_1}, {registration.unitAddress.city}, {registration.unitAddress.province}"
 
                 organization = cls.getSTRDataForAddress(address)
                 if organization:
@@ -130,18 +121,27 @@ class ApprovalService:
                     if auto_approval.businessLicenseRequired:
                         auto_approval.businessLicenseProvided = registration.unitDetails.businessLicense is not None
 
-                # pid = registration.unitDetails.parcelIdentifier
-                # owner_name = (
-                #         registration.primaryContact.name.firstName + " " + registration.primaryContact.name.lastName
-                # )
-                # if pid:
-                #     ltsa_data = LtsaService.get_title_details_from_pid(pid)
-                #     if ltsa_data:
-                #         ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
-                #         if ltsa_response:
-                #             auto_approval.titleCheck = cls.check_full_name_exists_in_ownership_groups(
-                #                 ltsa_response, owner_name
-                #             )
+                    if auto_approval.strProhibited:
+                        auto_approval.suggestedAction = Application.Status.FULL_REVIEW
+                    else:
+                        if not auto_approval.prExempt:
+                            auto_approval.suggestedAction = Application.Status.FULL_REVIEW
+                        else:
+                            if not auto_approval.businessLicenseRequired:
+                                auto_approval.suggestedAction = Application.Status.AUTO_APPROVED
+                            else:
+                                if (
+                                    auto_approval.businessLicenseProvided
+                                    and ApprovalService._get_registration_documents(
+                                        registration, Document.DocumentType.LOCAL_GOVT_BUSINESS_LICENSE
+                                    )
+                                ):
+                                    auto_approval.suggestedAction = Application.Status.PROVISIONALLY_APPROVED
+                                else:
+                                    auto_approval.suggestedAction = Application.Status.FULL_REVIEW
+
+                auto_approval.renting = registration.unitDetails.ownershipType == RentalProperty.OwnershipType.RENT
+                cls._check_title_match(application, auto_approval, registration)
 
                 cls.save_approval_record_by_application(application.id, auto_approval)
                 cls._update_application_status_to_full_review(application)
@@ -174,6 +174,32 @@ class ApprovalService:
             except Exception as e:
                 current_app.logger.error("Error while updating application status to full review:", e)
             return application.status, None
+
+    @classmethod
+    def _get_registration_documents(cls, registration, document_types):
+        document = None
+        if registration.documents:
+            documents = [doc for doc in registration.documents if doc.documentType in document_types]
+            return documents
+        return document
+
+    @classmethod
+    def _check_title_match(cls, application, auto_approval, registration):
+        try:
+            pid = registration.unitDetails.parcelIdentifier
+            if pid and registration.primaryContact.contactType == PropertyContact.ContactType.INDIVIDUAL:
+                owner_name = registration.primaryContact.lastName
+                if first_name := registration.primaryContact.firstName:
+                    owner_name = f"{first_name} {owner_name}"
+                    ltsa_data = LtsaService.get_title_details_from_pid(pid)
+                    if ltsa_data:
+                        ltsa_response = LtsaService.build_ltsa_response(application.id, ltsa_data)
+                        if ltsa_response:
+                            auto_approval.titleCheck = cls.check_full_name_exists_in_ownership_groups(
+                                ltsa_response, owner_name
+                            )
+        except Exception as e:
+            current_app.logger.error("Error in title check:", e)
 
     @classmethod
     def getSTRDataForAddress(cls, address):
