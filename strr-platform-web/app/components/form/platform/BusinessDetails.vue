@@ -224,9 +224,27 @@ onMounted(async () => {
           :error="hasFormErrors(platformBusinessFormRef, ['nonComplianceEmail'])"
         >
           <div class="space-y-5">
-            <p>
-              {{ $t('strr.text.nonComplianceEmail') }}
-            </p>
+            <i18n-t tag="p" keypath="strr.text.nonComplianceEmail" scope="global">
+              <template #learnMore>
+                <UButton
+                  :to="useRuntimeConfig().public.platformsLearnMoreUrl"
+                  :external="true"
+                  target="_blank"
+                  variant="link"    
+                  :padded="false"
+                  trailing-icon="i-mdi-open-in-new"
+                  :label="$t('btn.learnMore')"
+                  :ui="{
+                    icon: {
+                      size: {
+                        sm: 'h-4 w-4'
+                      }
+                    },
+                    gap: { sm: 'gap-x-1.5' }
+                  }"
+                />
+              </template>
+            </i18n-t>
             <ConnectFormFieldGroup
               id="platform-business-noncompliance-email"
               v-model="platformBusiness.nonComplianceEmail"
@@ -252,7 +270,27 @@ onMounted(async () => {
           :error="hasFormErrors(platformBusinessFormRef, ['takeDownEmail'])"
         >
           <div class="space-y-5">
-            <p>{{ $t('strr.text.takedownEmail') }}</p>
+            <i18n-t tag="p" keypath="strr.text.takedownEmail" scope="global">
+              <template #learnMore>
+                <UButton
+                  :to="useRuntimeConfig().public.platformsLearnMoreUrl"
+                  target="_blank"
+                  :external="true"
+                  variant="link"
+                  :padded="false"
+                  trailing-icon="i-mdi-open-in-new"
+                  :label="$t('btn.learnMore')"
+                  :ui="{
+                    icon: {
+                      size: {
+                        sm: 'h-4 w-4'
+                      }
+                    },
+                    gap: { sm: 'gap-x-1.5' }
+                  }"
+                />
+              </template>
+            </i18n-t>
             <ConnectFormFieldGroup
               id="platform-business-takedown-email"
               v-model="platformBusiness.takeDownEmail"

@@ -95,10 +95,10 @@ export default {
       hasCpbc: 'Is the business licensed as a travel wholesaler under Consumer Protection BC (CPBC)?',
       isUserRep: 'Are you the platform service provider representative? ',
       listingSize: 'What is the total number of listings offered by the Platform Service Provider across all platforms as of today’s date?',
-      nonComplianceEmail: 'Provide an email address to receive Notices of Non-Compliance.',
+      nonComplianceEmail: 'Provide an email address to receive Notices of Non-Compliance. {learnMore}',
       nonComplianceEmailLong: 'This message will be sent to the supplier host and platform service provider by a local government to inform both parties that a listing is not compliant with a local government business licence requirement. No action is required from the platform service provider.',
       primaryContact: 'This is the primary contact person for the platform service provider.',
-      takedownEmail: 'Provide an email address to receive Takedown Requests.',
+      takedownEmail: 'Provide an email address to receive Takedown Requests. {learnMore}',
       takedownEmailLong: 'This message will be sent to the platform service provider by a local government to request the platform service provider cease providing platform services for a listing that is not compliant with a local government business licence requirement. The request may be sent within a period of 5-90 days after a Notice of Non-compliance was delivered. As per s.18 (3)(b) of the Short-term Rental Accommodations Act, platform service providers must comply with the request of the local government.',
       thousandOrMore: '1000 or more',
       '250-999': '250-999',
@@ -131,5 +131,8 @@ export default {
     2: '{boldStart}Accuracy of Information.{boldEnd} I confirm that the information contained in the application for registration is accurate and true. I understand that if I have knowingly provided inaccurate or false information, I may be subject to enforcement action under Part 4 of the {italicStart}Short-term Rental Accommodations Act{italicEnd}.',
     3: '{boldStart}Validating Registration.{boldEnd} I understand that under section 13(1) of the {italicStart}Short-term Rental Accommodations Act{italicEnd}, the platform service provider must validate that all platform offers have a valid registration number; and that under section 17(2)(a) of the Act, platform service providers must cease providing platform services with respect to a platform offer that does not have a valid registration number. ',
     checkbox: 'I confirm that I understand and agree to the above.'
+  },
+  btn: {
+    learnMore: 'Learn More'
   }
 }
