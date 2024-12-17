@@ -342,18 +342,6 @@ export default {
     certificate: 'certificate'
   },
   page: {
-    error: {
-      404: {
-        title: 'Page Not Found - Short-Term Rental Registry',
-        h1: '404 Page Not Found',
-        content: 'This page could not be found or does not exist.'
-      },
-      unknown: {
-        title: 'Unknown Error - Short-Term Rental Registry',
-        h1: 'Unknown Error',
-        content: 'An unknown error occured, please refresh the page or try again later.'
-      }
-    },
     notFound: {
       h1: 'Page Not Found'
     },
@@ -517,6 +505,20 @@ export default {
       confirm: {
         infoAccuracy: 'I confirm that the information contained in the application for registration is accurate and true. I understand that, if I have provided inaccurate or false information, I may be the subject of enforcement action under Part 4 of the Short-Term Rental Accommodations Act. Enforcement action may include being ordered to pay an administrative penalty.',
         delistAndCancelBookings: 'I confirm agreement to delist and cancel existing bookings for unregistered listings as required under s. 17 (2) (a) and [relevant section of the forthcoming regulation].'
+      }
+    }
+  },
+  ConnectPage: {
+    error: {
+      404: {
+        title: 'Page Not Found - Short-Term Rental Registry',
+        h1: '404 Page Not Found',
+        content: 'This page could not be found or does not exist.'
+      },
+      unknown: {
+        title: 'Unknown Error - Short-Term Rental Registry',
+        h1: 'Unknown Error',
+        content: 'An unknown error occured, please refresh the page or try again later.'
       }
     }
   }
