@@ -2,7 +2,7 @@
   "name": "strr-host-pm-web",
   "private": true,
   "type": "module",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
@@ -42,7 +42,7 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@daxiom/nuxt-core-layer-test": "^0.0.14",
+    "@daxiom/nuxt-core-layer-test": "^0.0.15",
     "@nuxt/ui": "2.19.2",
     "@vuepic/vue-datepicker": "^9.0.3",
     "country-codes-list": "^1.6.11",

@@ -20,8 +20,9 @@ export default defineNuxtConfig({
   ],
 
   extends: [
-    // ['../strr-base-web', { install: true }] // dev only
-    ['github:bcgov/STRR/strr-base-web', { install: true }]
+    ['github:bcgov/STRR/strr-base-web', { install: true }],
+    // '../strr-base-web', // dev only
+    '@daxiom/nuxt-core-layer-test' // extend again, this prevents the payApi plugin error
   ],
 
   imports: {
