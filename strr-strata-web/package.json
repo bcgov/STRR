@@ -2,7 +2,7 @@
   "name": "strr-strata-web",
   "private": true,
   "type": "module",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
@@ -41,7 +41,7 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@daxiom/nuxt-core-layer-test": "^0.0.11",
+    "@daxiom/nuxt-core-layer-test": "^0.0.14",
     "@vuepic/vue-datepicker": "^9.0.3",
     "country-codes-list": "^1.6.11",
     "nuxt": "^3.12.3",

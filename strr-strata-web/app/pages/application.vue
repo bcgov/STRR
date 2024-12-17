@@ -4,7 +4,7 @@ import { ConnectStepper, FormReviewConfirm } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
-const { handlePaymentRedirect } = useNavigate()
+const { handlePaymentRedirect } = useConnectNav()
 
 const { validateContact } = useStrrContactStore()
 const { validateStrataBusiness } = useStrrStrataBusinessStore()
