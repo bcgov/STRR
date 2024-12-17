@@ -9,7 +9,7 @@ import {
 export const useStrrModals = () => {
   const modal = useModal()
   const t = useNuxtApp().$i18n.t
-  const { redirect } = useNavigate()
+  const { handleExternalRedirect } = useConnectNav()
   const accountStore = useConnectAccountStore()
   const config = useRuntimeConfig().public
 
@@ -84,7 +84,7 @@ export const useStrrModals = () => {
       actions: [
         {
           label: t('modal.changeAccountConfirm.leaveBtn'),
-          handler: () => redirect(config.registryHomeURL + 'dashboard')
+          handler: () => handleExternalRedirect(config.registryHomeURL + 'dashboard')
         },
         {
           label: t('btn.cancel'),

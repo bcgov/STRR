@@ -23,8 +23,8 @@ const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 watch(() => accountStore.currentAccount.id,
   (newVal) => {
     if (newVal !== undefined) {
-      const { redirect } = useNavigate()
-      redirect(config.registryHomeURL + 'dashboard')
+      const { handleExternalRedirect } = useConnectNav()
+      handleExternalRedirect(config.registryHomeURL + 'dashboard')
     }
   }
 )

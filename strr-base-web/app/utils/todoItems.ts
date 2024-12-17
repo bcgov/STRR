@@ -40,7 +40,7 @@ export const getTodoApplication = (
       }
     })
   } else if (applicationInfo?.hostActions.includes(HostActions.SUBMIT_PAYMENT)) { // TODO: handle other host actions
-    const { handlePaymentRedirect } = useNavigate()
+    const { handlePaymentRedirect } = useConnectNav()
     todos.push({
       title: t('label.completePayment'),
       subtitle: undefined, // TODO: add subtitle ?
