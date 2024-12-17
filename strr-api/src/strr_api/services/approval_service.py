@@ -40,14 +40,14 @@
 
 """For a successfully paid registration, this service determines its auto-approval state."""
 from datetime import datetime
-from typing import Any, Tuple
+from typing import Any, List, Tuple
 
 import requests
 from flask import current_app
 
 from strr_api.enums.enum import RegistrationType
 from strr_api.models import Application, AutoApprovalRecord, Document, Events, PropertyContact, RentalProperty
-from strr_api.requests import RegistrationRequest
+from strr_api.requests import Registration, RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
 from strr_api.services import EventsService, LtsaService
@@ -119,7 +119,12 @@ class ApprovalService:
                     auto_approval.organizationNm = organization.get("organizationNm")
                     auto_approval.prExempt = not organization.get("isPrincipalResidenceRequired")
                     if auto_approval.businessLicenseRequired:
-                        auto_approval.businessLicenseProvided = registration.unitDetails.businessLicense is not None
+                        auto_approval.businessLicenseProvided = (
+                            registration.unitDetails.businessLicense is not None
+                            and ApprovalService._has_registration_documents(
+                                registration, [Document.DocumentType.LOCAL_GOVT_BUSINESS_LICENSE]
+                            )
+                        )
 
                     if auto_approval.strProhibited:
                         auto_approval.suggestedAction = Application.Status.FULL_REVIEW
@@ -130,12 +135,7 @@ class ApprovalService:
                             if not auto_approval.businessLicenseRequired:
                                 auto_approval.suggestedAction = Application.Status.AUTO_APPROVED
                             else:
-                                if (
-                                    auto_approval.businessLicenseProvided
-                                    and ApprovalService._get_registration_documents(
-                                        registration, Document.DocumentType.LOCAL_GOVT_BUSINESS_LICENSE
-                                    )
-                                ):
+                                if auto_approval.businessLicenseProvided:
                                     auto_approval.suggestedAction = Application.Status.PROVISIONALLY_APPROVED
                                 else:
                                     auto_approval.suggestedAction = Application.Status.FULL_REVIEW
@@ -176,12 +176,14 @@ class ApprovalService:
             return application.status, None
 
     @classmethod
-    def _get_registration_documents(cls, registration, document_types):
-        document = None
-        if registration.documents:
-            documents = [doc for doc in registration.documents if doc.documentType in document_types]
-            return documents
-        return document
+    def _has_registration_documents(cls, registration: Registration, document_types: List[str]) -> bool:
+        if not registration.documents:
+            return False
+        for doc_type in document_types:
+            filtered_docs = [doc for doc in registration.documents if doc.documentType == doc_type]
+            if not filtered_docs:
+                return False
+        return True
 
     @classmethod
     def _check_title_match(cls, application, auto_approval, registration):
