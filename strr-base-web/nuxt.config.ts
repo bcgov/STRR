@@ -1,8 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+// import { fileURLToPath } from 'url'
+// import { dirname, join } from 'path'
 
-const currentDir = dirname(fileURLToPath(import.meta.url))
+// const currentDir = dirname(fileURLToPath(import.meta.url))
 
 export default defineNuxtConfig({
   devtools: { enabled: false },
@@ -34,9 +34,7 @@ export default defineNuxtConfig({
     dirs: ['stores', 'composables', 'enums', 'interfaces', 'types', 'utils']
   },
 
-  css: [
-    join(currentDir, './app/assets/css/layout.css')
-  ],
+  css: [],
 
   app: {
     head: {

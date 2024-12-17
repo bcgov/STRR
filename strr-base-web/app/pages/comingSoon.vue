@@ -6,9 +6,9 @@ useHead({
   title: t('strr.title.comingSoon')
 })
 
-definePageMeta({
-  path: '/comingSoon'
-})
+// definePageMeta({
+//   path: '/comingSoon'
+// })
 
 setBreadcrumbs([
   {

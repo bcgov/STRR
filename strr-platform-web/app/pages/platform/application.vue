@@ -231,7 +231,6 @@ useHead({
 
 definePageMeta({
   layout: 'connect-form',
-  path: '/platform/application',
   middleware: ['auth', 'check-tos', 'require-premium-account', 'application-page']
 })
 

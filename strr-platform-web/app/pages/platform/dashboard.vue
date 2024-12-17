@@ -119,7 +119,6 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
-  path: '/platform/dashboard',
   middleware: ['auth', 'check-tos', 'require-premium-account']
 })
 

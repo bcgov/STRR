@@ -6,9 +6,9 @@ useHead({
   title: t('strr.title')
 })
 
-definePageMeta({
-  path: '/'
-})
+// definePageMeta({
+//   path: '/'
+// })
 
 setBreadcrumbs([
   { label: t('strr.title') }

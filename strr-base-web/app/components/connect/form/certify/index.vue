@@ -34,7 +34,7 @@ defineProps<{
           class="py-5 first:pt-0 last:pb-8"
         >
           <slot :name="item.slot || 'listLabel'">
-            <ConnectI18nBold
+            <ConnectI18nHelper
               v-if="item.i18nKey"
               :translation-path="item.i18nKey"
               v-bind="item.i18nProps"
@@ -53,7 +53,7 @@ defineProps<{
         >
           <template #label>
             <slot name="checkboxLabel">
-              <ConnectI18nBold
+              <ConnectI18nHelper
                 v-if="typeof checkboxLabel === 'object'"
                 :translation-path="checkboxLabel.key"
                 v-bind="checkboxLabel.props"

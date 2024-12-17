@@ -66,7 +66,7 @@ function handleAccountSwitch (id: string) {
       }"
     >
       <template #description>
-        <ConnectI18nBold class="text-bcGovColor-darkGray" translation-path="strr.text.onlyPremiumAccountWarning" />
+        <ConnectI18nHelper class="text-bcGovColor-darkGray" translation-path="strr.text.onlyPremiumAccountWarning" />
       </template>
     </UAlert>
 
