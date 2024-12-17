@@ -158,7 +158,7 @@ const getCompPartyName = computed(() => {
       >
         <template #checkboxLabel>
           <div>
-            <ConnectI18nBold
+            <ConnectI18nHelper
               class="text-bcGovGray-700"
               translation-path="certify.authorization"
               :name="getCompPartyName"

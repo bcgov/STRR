@@ -17,7 +17,7 @@ const localePath = useLocalePath()
       }"
     >
       <template #title>
-        <ConnectI18nBold translation-path="alert.straaExempt.title" />
+        <ConnectI18nHelper translation-path="alert.straaExempt.title" />
       </template>
     </UAlert>
 

@@ -101,7 +101,7 @@ async function handleItemSelect (row: any) {
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="font-normal">
-              <ConnectI18nBold translation-path="table.hostPmList.title" :count="hostPmList.length" />
+              <ConnectI18nHelper translation-path="table.hostPmList.title" :count="hostPmList.length" />
             </h2>
             <!-- TODO: filtering post-mvp ? -->
             <!-- <UInput

@@ -127,7 +127,7 @@ onMounted(async () => {
             }"
           >
             <template #title>
-              <ConnectI18nBold
+              <ConnectI18nHelper
                 class="text-bcGovGray-700"
                 translation-path="alert.propertyTypeReqUnitNumber.title"
                 :propertytype="$t(`propertyType.${propStore.unitDetails.propertyType}`)"

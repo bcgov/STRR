@@ -4,7 +4,7 @@ import { ConnectStepper, FormReview } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
-const { handlePaymentRedirect } = useNavigate()
+const { handlePaymentRedirect } = useConnectNav()
 
 const propertyStore = useHostPropertyStore()
 const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(propertyStore)

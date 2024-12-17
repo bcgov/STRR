@@ -103,7 +103,7 @@ function handleContinueApp () {
 
       <template #item>
         <div class="flex flex-col gap-4 pt-2 text-base text-bcGovGray-700">
-          <ConnectI18nBold :translation-path="`error.reqFetch.${errorKey}.description`" />
+          <ConnectI18nHelper :translation-path="`error.reqFetch.${errorKey}.description`" />
           <ContactSTRR />
         </div>
       </template>
