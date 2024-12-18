@@ -133,7 +133,7 @@ const getCompPartyName = computed(() => {
         <template #item-1>
           <i18n-t keypath="certify.1" scope="global">
             <template #terms>
-              <strong>{{ $t('certify.tac') }}.</strong>
+              <strong>{{ $t('certify.tac') }}</strong>
             </template>
             <template #link>
               <UButton

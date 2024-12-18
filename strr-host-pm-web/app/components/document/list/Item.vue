@@ -39,9 +39,8 @@ defineEmits<{
         </div>
       </div>
       <UButton
-        :label="'Remove'"
+        :label="$t('word.Remove')"
         variant="link"
-        icon="i-mdi-trashcan"
         :disabled="doc.loading"
         @click="$emit('remove', doc)"
       />
