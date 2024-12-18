@@ -315,10 +315,16 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
   }
 
-  // TODO: stepper validation function
+  // reset documents when requirements change
+  watch([() => reqStore.propertyReqs, () => reqStore.prRequirements], async () => {
+    await $reset()
+  }, { deep: true })
 
-  const $reset = () => {
-    storedDocuments.value = []
+  async function $reset () {
+    const docsToDelete = [...storedDocuments.value]
+    for (const doc of docsToDelete) {
+      await removeStoredDocument(doc)
+    }
     selectedDocType.value = undefined
   }
 
