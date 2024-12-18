@@ -14,7 +14,9 @@ defineProps({
   ariaLabel: { type: String, default: undefined },
   type: { type: String, default: 'text' },
   mask: { type: String, default: undefined },
-  maxlength: { type: Number, default: 1000 }
+  maxlength: { type: Number, default: 1000 },
+  min: { type: Number, default: undefined },
+  max: { type: Number, default: undefined }
 })
 
 defineExpose({ model })
@@ -38,6 +40,8 @@ defineExpose({ model })
     :aria-describedby="helpId"
     :aria-label="ariaLabel"
     :maxlength
+    :min
+    :max
   />
   <!-- :aria-errormessage="errorId" -->
   <!-- Doesnt look like aria-errormessage is well supported, need to look into this more -->

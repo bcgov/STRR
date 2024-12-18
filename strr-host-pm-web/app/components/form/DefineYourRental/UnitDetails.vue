@@ -117,13 +117,16 @@ onMounted(async () => {
               PropertyType.CONDO_OR_APT,
               PropertyType.STRATA_HOTEL
             ].includes(propStore.unitDetails.propertyType)"
-            class="mt-6"
+            class="mt-6 max-w-bcGovInput"
             color="yellow"
             icon="i-mdi-alert"
             :close-button="null"
             variant="subtle"
             :ui="{
               inner: 'pt-0',
+              icon: {
+                base: 'flex-shrink-0 w-5 h-5 self-start'
+              }
             }"
           >
             <template #title>
@@ -189,6 +192,8 @@ onMounted(async () => {
             :placeholder="$t('strr.label.numberOfRooms')"
             :is-required="true"
             type="number"
+            :min="0"
+            :max="5000"
           />
         </ConnectFormSection>
 

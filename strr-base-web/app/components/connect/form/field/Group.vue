@@ -21,7 +21,9 @@ const props = defineProps({
   ariaLabel: { type: String, default: undefined },
   type: { type: String, default: 'text' },
   mask: { type: String, default: undefined },
-  maxlength: { type: Number, default: 1000 }
+  maxlength: { type: Number, default: 1000 },
+  min: { type: Number, default: undefined },
+  max: { type: Number, default: undefined }
 })
 
 const inputId = useId()
@@ -48,6 +50,8 @@ const errorId = `${props.name}-error-${inputId}`
           :aria-label="ariaLabel"
           size="lg"
           :maxlength
+          :min
+          :max
         />
       </slot>
     </template>
