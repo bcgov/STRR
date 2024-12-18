@@ -143,6 +143,7 @@ const getPhoneNumber = (phone: ConnectPhone) => {
       <div class="space-y-3">
         <p v-if="row.isCompParty">
           {{ $t('label.completingParty') }}
+          ({{ getFullName(row) }})
         </p>
         <p>{{ $t(`strr.label.role.${row.role}`) }}</p>
       </div>
