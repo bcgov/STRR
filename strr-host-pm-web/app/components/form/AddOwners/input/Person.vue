@@ -167,11 +167,13 @@ watch(isCompParty, (val) => {
           v-model:city="owner.mailingAddress.city"
           v-model:region="owner.mailingAddress.region"
           v-model:postal-code="owner.mailingAddress.postalCode"
+          v-model:location-description="owner.mailingAddress.locationDescription"
           class="max-w-bcGovInput"
           :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
           :schema-prefix="'mailingAddress.'"
           :form-ref="ownerFormRef"
           hide-street-hint
+          :location-desc-label="owner.role === OwnerRole.HOST"
         />
       </ConnectFormSection>
       <ConnectFormSection

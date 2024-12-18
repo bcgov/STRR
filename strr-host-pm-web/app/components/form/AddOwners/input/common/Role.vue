@@ -41,7 +41,7 @@ const radioOptions = computed(() => [
       :class="showError && role === undefined ? 'border-red-600 border-2' : ''"
       :options="radioOptions"
       :ui="{ fieldset: 'flex grow' }"
-      :ui-radio="{ wrapper: 'grow justify-center space-x-0', label: 'pl-0' }"
+      :ui-radio="{ wrapper: 'grow justify-start -ml-2 space-x-0', label: 'pl-0' }"
     >
       <template #legend>
         <span class="sr-only">{{ $t('validation.required') }}</span>

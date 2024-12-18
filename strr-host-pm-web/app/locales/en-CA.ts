@@ -115,7 +115,7 @@ export default {
         craBusinessNumber: 'Canada Revenue Agency (CRA) Business Number',
         craTaxNum: 'Canada Revenue Agency (CRA) Tax Number',
         emailAddress: 'Email Address',
-        faxNumber: 'FaxNumber',
+        faxNumber: 'Fax Number',
         individualName: "Individual's Name",
         individualPreferredName: "Individual's Preferred Name",
         mailingAddress: 'Mailing Address',

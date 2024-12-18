@@ -86,7 +86,9 @@ const getPhoneNumber = (phone: ConnectPhone) => {
       </ConnectInfoWithIcon>
     </template>
     <template #details-data="{ row }: { row: HostOwner }">
-      <ConnectInfoWithIcon icon="i-mdi-email">
+      <ConnectInfoWithIcon 
+        :icon="row.role === OwnerRole.HOST ? 'i-mdi-map-marker-outline' : 'i-mdi-email'"
+      >
         <ConnectFormAddressDisplay v-if="row.mailingAddress?.country" :address="row.mailingAddress" />
       </ConnectInfoWithIcon>
       <div v-if="row.ownerType === OwnerType.INDIVIDUAL" class="mt-3 space-y-3">
@@ -165,8 +167,7 @@ const getPhoneNumber = (phone: ConnectPhone) => {
           <template #panel>
             <UButton
               class="m-2"
-              icon="i-mdi-trashcan"
-              :label="$t('word.remove')"
+              :label="$t('word.Remove')"
               variant="link"
               @click="ownerStore.removeHostOwner(index)"
             />

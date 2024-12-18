@@ -195,7 +195,6 @@ onMounted(async () => {
                   <template #panel>
                     <UButton
                       class="m-2"
-                      icon="i-mdi-trashcan"
                       :label="$t('word.Remove')"
                       variant="link"
                       @click="hostModal.openConfirmRestartApplicationModal(false)"
