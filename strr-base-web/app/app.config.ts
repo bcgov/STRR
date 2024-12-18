@@ -53,7 +53,8 @@ export default defineAppConfig({
     },
     radioGroup: {
       wrapper: 'max-w-bcGovInput',
-      fieldset: '*:mb-1'
+      fieldset: 'space-y-4 -mt-4',
+      legend: 'text-sm font-medium text-gray-700 dark:text-gray-200 mb-0'
     },
     select: {
       color: {

@@ -3,7 +3,7 @@ const reqStore = usePropertyReqStore()
 const config = useRuntimeConfig().public
 </script>
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4 border-y border-bcGovGray-300 pt-10">
     <span class="font-bold">
       {{ reqStore.overrideApplicationWarning
         ? $t('text.thisPropCouldBeInLocWithReqs')
@@ -14,13 +14,14 @@ const config = useRuntimeConfig().public
       :items="reqStore.requirementsList"
       multiple
       :ui="{
-        item: { padding: 'pt-1.5 pb-3 px-8' }
+        item: { padding: 'pt-1.5 pb-3 px-8' },
+        container: 'border-none'
       }"
     >
       <template #default="{ item, open }">
         <UButton
           variant="ghost"
-          class="justify-between px-2 py-4"
+          class="justify-between pr-2 pl-0 py-4 border-t border-bcGovGray-300"
           :ui="{
             rounded: 'rounded-none'
           }"
