@@ -15,7 +15,7 @@ const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
             <UButton
               v-for="(button, i) in leftButtons"
               :key="'left-button-' + i"
-              class="max-w-fit px-10 py-3"
+              class="max-w-fit px-7 py-3"
               :color="button.color || 'primary'"
               :icon="button.icon || ''"
               :label="button.label"
@@ -33,7 +33,7 @@ const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
             <UButton
               v-for="(button, i) in rightButtons"
               :key="'right-button-' + i"
-              class="max-w-fit px-10 py-3"
+              class="max-w-fit px-7 py-3"
               :class="button.class"
               block
               :color="button.color || 'primary'"
