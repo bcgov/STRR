@@ -108,6 +108,7 @@ onMounted(async () => {
                 :form-ref="strataDetailsFormRef"
                 :disabled-fields="['country', 'region']"
                 :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
+                :use-location-desc-label="true"
               />
               <UButton
                 v-if="!strataDetails.buildings.length"

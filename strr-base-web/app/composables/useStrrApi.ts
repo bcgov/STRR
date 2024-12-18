@@ -28,11 +28,12 @@ export const useStrrApi = () => {
         return undefined
       })
     }
-    // TODO: add type filter in call (need in api first)
-    const resp = await $strrApi<{ applications: T[] }>('/applications')
-    return type
-      ? resp.applications?.filter(app => app.registration.registrationType === type)
-      : resp.applications
+    const resp = await $strrApi<{ applications: T[] }>('/applications', {
+      query: {
+        registrationType: type
+      }
+    })
+    return resp.applications
   }
 
   const postApplication = async <T extends { registration: any }, R extends T>(body: T) => {

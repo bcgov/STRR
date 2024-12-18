@@ -66,7 +66,7 @@ export default {
     },
     text: {
       comingSoon: 'Short-Term Rental Strata Hotel Registry will be available on December 15, 2024',
-      isUserRep: 'Are you the strata-title hotel or motel representative?',
+      isUserRep: 'Are you the strata-titled hotel or motel representative?',
       primaryContact: 'This is the primary contact person for the strata-titled hotel or motel.',
       buildingsSubText: 'Enter the address for each building that is part of the strata-titled hotel or motel. Include all co-located buildings in your application.'
     },
