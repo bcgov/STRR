@@ -229,7 +229,8 @@ export default {
     contWithReg: 'Continue with Registration',
     showDetails: 'Show Details',
     hideDetails: 'Hide Details',
-    returnToStep: 'Return to the step to finish it'
+    returnToStep: 'Return to the step to finish it',
+    ariaViewDetails: 'View details for property: {name}, {address}'
   },
   error: {
     createAccount: {

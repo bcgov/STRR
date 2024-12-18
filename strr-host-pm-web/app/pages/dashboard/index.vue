@@ -178,6 +178,15 @@ async function handleItemSelect (row: any) {
           <template #actions-data="{ row }">
             <UButton
               :label="$t('btn.view')"
+              :aria-label="
+                $t('btn.ariaViewDetails', {
+                  name: row.name,
+                  address: `${row.address.unitNumber
+                    ? row.address.unitNumber + '-'
+                    : ''}${row.address.streetNumber} ${row.address.streetName}, ${row.address.city}`
+                })
+              "
+              :block="true"
               @click="handleItemSelect(row)"
             />
           </template>
