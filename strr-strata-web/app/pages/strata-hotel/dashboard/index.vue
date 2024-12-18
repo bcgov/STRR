@@ -30,7 +30,7 @@ const columns = [
     key: 'daysToExpiry',
     label: t('label.daysToExpiry'),
     sortable: true,
-    class: 'max-w-28'
+    class: 'w-40'
   },
   {
     key: 'actions',
@@ -151,7 +151,7 @@ async function handleItemSelect (row: any) {
         >
           <!-- using a slot for this so the nuxtui sort will still sort by datetime -->
           <template #lastStatusChange-data="{ row }">
-            {{ dateToStringPacific(row.lastStatusChange, 'DDD') }}
+            {{ dateToStringPacific(row.lastStatusChange, 'yyyy-dd-MM') }}
           </template>
 
           <template #daysToExpiry-data="{ row }">

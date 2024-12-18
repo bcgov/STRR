@@ -8,6 +8,7 @@ const strrModal = useStrrModals()
       :padded="false"
       icon="i-mdi-help-circle-outline"
       variant="link"
+      :ui="{ gap: { sm: 'gap-x-1' } }"
       @click="strrModal.openHelpRegisterModal()"
     />
 
@@ -21,6 +22,7 @@ const strrModal = useStrrModals()
       :padded="false"
       icon="i-mdi-information-circle-outline"
       variant="link"
+      :ui="{ gap: { sm: 'gap-x-1' } }"
       @click="strrModal.openInfoCollectionNoticeModal()"
     />
   </div>

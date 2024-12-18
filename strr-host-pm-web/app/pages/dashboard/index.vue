@@ -33,7 +33,7 @@ const columns = [
     key: 'daysToExpiry',
     label: t('label.daysToExpiryExtra'),
     sortable: true,
-    class: 'max-w-28'
+    class: 'w-40'
   },
   {
     key: 'actions',
@@ -92,7 +92,7 @@ async function handleItemSelect (row: any) {
 
     <div class="space-y-4">
       <UButton
-        :label="$t('btn.createNewReg')"
+        :label="$t('btn.registerAStr')"
         icon="i-mdi-plus"
         :to="localePath('/application')"
       />
@@ -166,7 +166,7 @@ async function handleItemSelect (row: any) {
 
           <!-- using a slot for this so the nuxtui sort will still sort by datetime -->
           <template #lastStatusChange-data="{ row }">
-            {{ dateToStringPacific(row.lastStatusChange, 'DDD') }}
+            {{ dateToStringPacific(row.lastStatusChange, 'yyyy-dd-MM') }}
           </template>
 
           <template #daysToExpiry-data="{ row }">

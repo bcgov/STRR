@@ -83,13 +83,13 @@ export default {
     step: {
       stepperLabel: 'Short-Term Rental Application Step Navigation',
       description: {
-        0: 'Define Your Rental',
+        0: 'Define Your Short-Term Rental',
         1: 'Add Individuals and Businesses',
         2: 'Add Supporting Documentation',
         3: 'Review and Confirm'
       },
       title: {
-        0: 'Define Your Rental',
+        0: 'Define Your Short-Term Rental',
         1: 'Individuals and Businesses',
         2: 'Add Supporting Documentation',
         3: 'Review and Confirm'
@@ -230,7 +230,8 @@ export default {
     showDetails: 'Show Details',
     hideDetails: 'Hide Details',
     returnToStep: 'Return to the step to finish it',
-    ariaViewDetails: 'View details for property: {name}, {address}'
+    ariaViewDetails: 'View details for property: {name}, {address}',
+    registerAStr: 'Register a Short-Term Rental'
   },
   error: {
     createAccount: {

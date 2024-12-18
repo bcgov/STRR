@@ -77,7 +77,7 @@ const getItemFee = (feeItem: ConnectFeeItem) => {
       </template>
     </UButton>
     <div
-      class="text-sm transition-all *:border-b *:border-bcGovGray-300"
+      class="divide-y divide-bcGovGray-300 text-sm transition-all"
       :class="folded ? 'h-[0px] overflow-hidden': 'px-4 pt-1'"
     >
       <div
