@@ -163,6 +163,8 @@ async function handleItemSelect (row: any) {
           <template #actions-data="{ row }">
             <UButton
               :label="$t('btn.view')"
+              :aria-label="$t('btn.ariaViewDetails', { name: row.strataName })"
+              :block="true"
               @click="handleItemSelect(row)"
             />
           </template>

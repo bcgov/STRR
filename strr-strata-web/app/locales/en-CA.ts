@@ -87,7 +87,8 @@ export default {
   },
   btn: {
     addStrataHotel: 'Add a strata-titled hotel or motel',
-    view: 'View'
+    view: 'View',
+    ariaViewDetails: 'View details for property: {name}`'
   },
   label: {
     strataName: 'Strata Name',
