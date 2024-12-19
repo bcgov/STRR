@@ -52,8 +52,8 @@ export default defineAppConfig({
       label: '-mt-[2px] pl-3 text-base cursor-pointer'
     },
     radioGroup: {
-      wrapper: 'max-w-bcGovInput',
-      fieldset: 'space-y-4 -mt-4',
+      wrapper: 'max-w-bcGovInput group',
+      fieldset: 'space-y-4 group-has-[legend]:-mt-4 [&:not(:has(legend))]:mt-1',
       legend: 'text-sm font-medium text-gray-700 dark:text-gray-200 mb-0'
     },
     select: {
