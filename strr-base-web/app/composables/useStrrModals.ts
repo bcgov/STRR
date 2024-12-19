@@ -72,27 +72,22 @@ export const useStrrModals = () => {
     })
   }
 
-  function openConfirmSwitchAccountModal (oldAccountId: string) {
+  function openConfirmSwitchAccountModal (newAccountId: string) {
     modal.open(ModalBase, {
       title: t('modal.changeAccountConfirm.title'),
       content: t('modal.changeAccountConfirm.content'),
-      persist: true,
-      closeFn: () => {
-        accountStore.switchCurrentAccount(oldAccountId)
-        modal.close()
-      },
       actions: [
         {
           label: t('modal.changeAccountConfirm.leaveBtn'),
-          handler: () => handleExternalRedirect(config.registryHomeURL + 'dashboard')
+          handler: () => {
+            accountStore.switchCurrentAccount(newAccountId)
+            handleExternalRedirect(config.registryHomeURL + 'dashboard')
+          }
         },
         {
           label: t('btn.cancel'),
           variant: 'outline',
-          handler: () => {
-            accountStore.switchCurrentAccount(oldAccountId)
-            modal.close()
-          }
+          handler: () => modal.close()
         }
       ]
     })

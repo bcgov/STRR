@@ -2,7 +2,7 @@
   "name": "strr-platform-web",
   "private": true,
   "type": "module",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
@@ -41,7 +41,7 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@daxiom/nuxt-core-layer-test": "^0.0.15",
+    "@daxiom/nuxt-core-layer-test": "^0.0.17",
     "@vuepic/vue-datepicker": "^9.0.3",
     "country-codes-list": "^1.6.11",
     "nuxt": "3.12.4",

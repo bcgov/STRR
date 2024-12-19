@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const { t } = useI18n()
 const config = useRuntimeConfig().public
-const accountStore = useConnectAccountStore()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
 const { downloadApplicationReceipt, loadPlatform } = useStrrPlatformStore()
@@ -19,15 +18,6 @@ const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
-
-watch(() => accountStore.currentAccount.id,
-  (newVal) => {
-    if (newVal !== undefined) {
-      const { handleExternalRedirect } = useConnectNav()
-      handleExternalRedirect(config.registryHomeURL + 'dashboard')
-    }
-  }
-)
 
 onMounted(async () => {
   loading.value = true
@@ -119,7 +109,8 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
-  middleware: ['auth', 'check-tos', 'require-premium-account']
+  middleware: ['auth', 'check-tos', 'require-premium-account'],
+  onAccountChange: (oldAccount: Account, newAccount: Account) => manageAccountChangeDashboard(oldAccount, newAccount)
 })
 
 setBreadcrumbs([

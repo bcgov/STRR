@@ -4,7 +4,6 @@ import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
-const accountStore = useConnectAccountStore()
 
 const { validateContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
@@ -214,16 +213,6 @@ watch(activeStepIndex, (val) => {
   setButtonControl({ leftButtons: [], rightButtons: buttons })
 }, { immediate: true })
 
-// manage account changes mid-application
-const originalAccountId = accountStore.currentAccount.id // TODO: find better solution than this
-watch(() => accountStore.currentAccount.id,
-  (newVal, oldVal) => {
-    if (newVal !== undefined && newVal !== originalAccountId) {
-      strrModal.openConfirmSwitchAccountModal(oldVal)
-    }
-  }
-)
-
 // page stuff
 useHead({
   title: t('strr.title.application')
@@ -231,7 +220,8 @@ useHead({
 
 definePageMeta({
   layout: 'connect-form',
-  middleware: ['auth', 'check-tos', 'require-premium-account', 'application-page']
+  middleware: ['auth', 'check-tos', 'require-premium-account', 'application-page'],
+  onAccountChange: (oldAccount: Account, newAccount: Account) => manageAccountChangeApplication(oldAccount, newAccount)
 })
 
 setBreadcrumbs([
