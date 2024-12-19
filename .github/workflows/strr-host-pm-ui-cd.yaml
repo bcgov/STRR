@@ -3,7 +3,6 @@ name: STRR HOST PM UI CD
 on:
   push:
     branches:
-      - main
       - feature*
       - hotfix*
       - release*

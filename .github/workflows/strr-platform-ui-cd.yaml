@@ -3,7 +3,6 @@ name: STRR PLATFORM UI CD
 on:
   push:
     branches:
-      - main
       - feature*
       - hotfix*
       - release*

@@ -3,7 +3,6 @@ name: STRR PAY CD
 on:
   push:
     branches:
-      - main
       - feature*
       - hotfix*
       - release*

@@ -3,7 +3,6 @@ name: STRR APPLICATION AUTO APPROVAL JOB CD
 on:
   push:
     branches:
-      - main
       - feature*
       - hotfix*
       - release*
