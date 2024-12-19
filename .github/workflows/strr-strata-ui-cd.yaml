@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      - feature*
+      - hotfix*
+      - release*
     paths:
       - "strr-strata-web/**"
   workflow_dispatch:
@@ -13,9 +16,17 @@ on:
         required: true
         type: choice
         options:
-        - dev
-        - test
-        - prod
+          - "dev"
+          - "test"
+          - "sandbox"
+          - "prod"
+      redeploy:
+        description: "Redeploy Application"
+        required: true
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 jobs:
   strata-ui-cd:
@@ -25,6 +36,7 @@ jobs:
       app_name: "strr-strata-hotel-ui"
       working_directory: "./strr-strata-web"
       node_version: 20
+      redeploy: ${{ inputs.redeploy }}
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}

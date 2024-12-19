@@ -1,4 +1,4 @@
-name: STRR UI CD
+name: STRR Examiner UI CD
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - hotfix*
       - release*
     paths:
-      - "strr-web/**"
+      - "strr-examiner-web/**"
   workflow_dispatch:
     inputs:
       target:
@@ -29,12 +29,13 @@ on:
           - "true"
 
 jobs:
-  strr-ui-cd:
+  examiner-ui-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/frontend-cd.yaml@main
     with:
       target: ${{ inputs.target }}
-      app_name: "strr-ui"
-      working_directory: "./strr-web"
+      app_name: "strr-examiner-ui"
+      working_directory: "./strr-examiner-web"
+      node_version: 20
       redeploy: ${{ inputs.redeploy }}
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}

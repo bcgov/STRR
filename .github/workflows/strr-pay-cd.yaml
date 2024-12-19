@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      - feature*
+      - hotfix*
+      - release*
     paths:
       - "queue_services/strr-pay/**"
   workflow_dispatch:
@@ -13,10 +16,17 @@ on:
         required: true
         type: choice
         options:
-          - dev
-          - test
-          - sandbox
-          - prod
+          - "dev"
+          - "test"
+          - "sandbox"
+          - "prod"
+      redeploy:
+        description: "Redeploy Application"
+        required: true
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 jobs:
   strr-pay-cd:
@@ -25,6 +35,7 @@ jobs:
       target: ${{ inputs.target }}
       app_name: "strr-pay"
       working_directory: "queue_services/strr-pay"
+      redeploy: ${{ inputs.redeploy }}
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}

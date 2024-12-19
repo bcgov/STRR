@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      - feature*
+      - hotfix*
+      - release*
     paths:
       - "jobs/auto-approval/**"
       - "src/strr_api/models/**"
@@ -18,10 +21,17 @@ on:
         required: true
         type: choice
         options:
-          - dev
-          - test
-          - sandbox
-          - prod
+          - "dev"
+          - "test"
+          - "sandbox"
+          - "prod"
+      redeploy:
+        description: "Redeploy Application"
+        required: true
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 jobs:
   strr-auto-approval-cd:
@@ -30,6 +40,7 @@ jobs:
       target: ${{ inputs.target }}
       app_name: "strr-auto-approval"
       working_directory: "./jobs/auto-approval"
+      redeploy: ${{ inputs.redeploy }}
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
