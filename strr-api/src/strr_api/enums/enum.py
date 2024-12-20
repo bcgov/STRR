@@ -69,6 +69,7 @@ class Role(Enum):
     STRR_EXAMINER = "strr_examiner"
     STRR_INVESTIGATOR = "strr_investigator"
     STRR_AUTOMATION_TESTER = "strr_automation_tester"
+    STRR_CANCEL_REGISTRATION = "strr_cancel_registration"
 
 
 class RegistrationStatus(Enum):
@@ -147,6 +148,7 @@ class ErrorMessage(Enum):
     INVOICE_CREATION_ERROR = "Error while creating invoice."
     APPLICATION_NOT_MODIFIABLE = "Application cannot be modified."
     ADDRESS_NOT_FOUND = "Address not found."
+    REGISTRATION_STATUS_UPDATE_NOT_ALLOWED = "Registration status cannot be updated to the specified status."
 
 
 class ApplicationRole(Enum):

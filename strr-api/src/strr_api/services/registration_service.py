@@ -483,6 +483,11 @@ class RegistrationService:
         return query.one_or_none()
 
     @classmethod
+    def get_registration_by_id(cls, registration_id):
+        """Get registration by id."""
+        return Registration.query.filter_by(id=registration_id).one_or_none()
+
+    @classmethod
     def is_registration_valid(cls, registration_number) -> bool:
         """Returns whether a registration number is valid."""
         is_valid = False
@@ -539,3 +544,21 @@ class RegistrationService:
     def serialize(cls, registration: Registration) -> dict:
         """Returns registration JSON."""
         return RegistrationSerializer.serialize(registration=registration)
+
+    @classmethod
+    def update_registration_status(cls, registration: Registration, status: str) -> Registration:
+        """Updates the registration status."""
+        event_status_map = {
+            "EXPIRED": Events.EventName.REGISTRATION_EXPIRED,
+            "SUSPENDED": Events.EventName.NON_COMPLIANCE_SUSPENDED,
+            "CANCELLED": Events.EventName.REGISTRATION_CANCELLED,
+        }
+        registration.status = status
+        registration.save()
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=event_status_map.get(status),
+            registration_id=registration.id,
+            visible_to_applicant=True,
+        )
+        return registration

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "0c77eed1-d596-4cec-a54e-d7e2b5cdd8c6",
+		"_postman_id": "f863e644-049a-42ce-a09c-47f9bbaabb03",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -909,7 +909,7 @@
 			"name": "Registration",
 			"item": [
 				{
-					"name": "Staff - Issue Certificate",
+					"name": "Update Registration Status",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -925,7 +925,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\"status\": \"APPROVED\"}",
+							"raw": "{\"status\": \"CANCELLED\"}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -933,55 +933,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_number}}/status",
-							"host": [
-								"{{api_url}}"
-							],
-							"path": [
-								"applications",
-								"{{application_number}}",
-								"status"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Certificate",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{staff_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"status\": \"APPROVED\"}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{api_url}}/registrations/{{registration_id}}/certificate",
+							"raw": "{{api_url}}/registrations/{{registration_id}}/status",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"registrations",
 								"{{registration_id}}",
-								"certificate"
+								"status"
 							]
 						}
 					},

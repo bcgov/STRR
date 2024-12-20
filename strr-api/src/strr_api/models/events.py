@@ -38,8 +38,9 @@ class Events(SimpleBaseModel):
         MORE_INFORMATION_REQUESTED = auto()
         REGISTRATION_CREATED = auto()
         CERTIFICATE_ISSUED = auto()
-        EXPIRED = auto()
+        REGISTRATION_EXPIRED = auto()
         NON_COMPLIANCE_SUSPENDED = auto()
+        REGISTRATION_CANCELLED = auto()
 
     __tablename__ = "events"
 

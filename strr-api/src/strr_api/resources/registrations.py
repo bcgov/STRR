@@ -45,7 +45,7 @@ from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ErrorMessage
+from strr_api.enums.enum import ErrorMessage, RegistrationStatus, Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
 from strr_api.responses import Events
@@ -267,6 +267,48 @@ def get_registration_events(registration_id):
         )
     except AuthException as auth_exception:
         return exception_response(auth_exception)
+
+
+@bp.route("/<registration_id>/status", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_CANCEL_REGISTRATION.value, Role.STRR_EXAMINER.value, Role.SYSTEM.value])
+def update_registration_status(registration_id):
+    """
+    Update registration status.
+    ---
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration Id
+    responses:
+      200:
+        description:
+      401:
+        description:
+      404:
+        description:
+    """
+
+    try:
+        json_input = request.get_json()
+        status = json_input.get("status")
+        if not status or status not in [RegistrationStatus.SUSPENDED.value, RegistrationStatus.CANCELLED.value]:
+            return error_response(
+                http_status=HTTPStatus.BAD_REQUEST, message=ErrorMessage.REGISTRATION_STATUS_UPDATE_NOT_ALLOWED.value
+            )
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        registration = RegistrationService.update_registration_status(registration, status.upper())
+        return RegistrationService.serialize(registration), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # TODO: Certificates are not supported for the MVP release. This functionality will be supported in a future release.

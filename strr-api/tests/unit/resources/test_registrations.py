@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from strr_api.enums.enum import PaymentStatus
+from strr_api.enums.enum import PaymentStatus, RegistrationStatus
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
@@ -342,3 +342,34 @@ def test_get_platform_registration_by_id(session, client, jwt):
 def test_get_registration_by_id_unauthorized(client):
     rv = client.get("/registrations/1")
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_cancel_registration(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("registrationId") is not None
+        assert response_json.get("header").get("registrationNumber") is not None
+        registration_id = response_json.get("header").get("registrationId")
+        status_update_request = {"status": RegistrationStatus.CANCELLED.value}
+        rv = client.put(f"/registrations/{registration_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.CANCELLED.value
