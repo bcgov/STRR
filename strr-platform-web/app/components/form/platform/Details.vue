@@ -95,7 +95,11 @@ onMounted(async () => {
           :title="$t('strr.section.subTitle.size')"
           :error="hasFormErrors(platformDetailsFormRef, ['listingSize'])"
         >
-          <UFormGroup name="listingSize">
+          <UFormGroup 
+            name="listingSize"
+            id="platform-listingSize" 
+            data-testid="platform-listingSize" 
+          >
             <URadioGroup
               v-model="platformDetails.listingSize"
               class="p-1"

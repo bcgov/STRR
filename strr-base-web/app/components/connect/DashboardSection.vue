@@ -2,7 +2,7 @@
 defineProps<{ title: string, titleNum?: number, loading: boolean }>()
 </script>
 <template>
-  <div class="space-y-2">
+  <section class="space-y-2">
     <slot name="header">
       <div class="flex gap-1">
         <ConnectTypographyH2 custom-class="text-lg font-bold" :text="title" />
@@ -21,5 +21,5 @@ defineProps<{ title: string, titleNum?: number, loading: boolean }>()
       </slot>
       <slot v-else name="default" />
     </div>
-  </div>
+  </section>
 </template>

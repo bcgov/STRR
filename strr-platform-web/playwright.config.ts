@@ -15,7 +15,7 @@ const devicesToTest = [
 ] satisfies Array<string | typeof devices[string]>
 
 export default defineConfig<ConfigOptions>({
-  globalSetup: './tests/e2e/test-utils/auth-setup',
+  // globalSetup: './tests/e2e/test-utils/auth-setup', // setup when booting test runner
   testDir: './tests/e2e',
   reporter: 'line',
   // Fail the build on CI if you accidentally left test.only in the source code.
@@ -35,11 +35,11 @@ export default defineConfig<ConfigOptions>({
     trace: 'on-first-retry',
     screenshot: 'off',
     // do not open browser
-    headless: true
+    headless: false
   },
   projects: devicesToTest.map(p => typeof p === 'string' ? ({ name: p, use: devices[p] }) : p),
-  webServer: {
-    // run dev server before starting tests
-    command: 'pnpm dev --port 3000'
-  }
+  // webServer: {
+  //   // run dev server before starting tests
+  //   command: 'pnpm dev --port 3000'
+  // }
 })

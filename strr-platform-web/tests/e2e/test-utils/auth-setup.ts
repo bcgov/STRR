@@ -1,8 +1,6 @@
-import { expect, type Browser, chromium, type Page } from '@playwright/test'
+import { type Browser, chromium, type Page } from '@playwright/test'
 import dotenv from 'dotenv'
-import { enI18n } from '../../mocks/i18n'
 // load default env
-// eslint-disable-next-line import/no-named-as-default-member
 dotenv.config()
 
 // checks if site is available before running setup
@@ -40,27 +38,21 @@ async function authSetup () {
   const page: Page = await context.newPage()
 
   // perform login steps
-  const username = process.env.PLAYWRIGHT_TEST_USERNAME
-  const password = process.env.PLAYWRIGHT_TEST_PASSWORD
+  const username = process.env.PLAYWRIGHT_TEST_USERNAME!
+  const password = process.env.PLAYWRIGHT_TEST_PASSWORD!
 
   // ensure user and pw exist
   if (!username || !password) {
     throw new Error('User or password is not set in environment variables.')
   }
 
-  await page.goto(baseURL + 'en-CA/platform/application/')
-  await expect(page.getByTestId('h1')).toContainText(enI18n.global.t('strr.title.application'))
-  await page.locator('[id="logged-out-options-dropdown"]').click()
-  await expect(page.getByRole('menuitem', { name: 'IDIR' })).toBeVisible() // will need to change this to BCeID
-  await page.getByRole('menuitem', { name: 'IDIR' }).click()
-  await expect(page.getByText('Log in with')).toBeVisible()
-  await page.locator('#user').fill(username)
+  await page.goto(baseURL + 'en-CA/auth/login')
+  await page.getByRole('button', { name: 'Continue with BC Services Card' }).click()
+  await page.getByLabel('Log in with Test with').click()
+  await page.getByLabel('Email or username').fill(username)
   await page.getByLabel('Password').fill(password)
   await page.getByRole('button', { name: 'Continue' }).click()
-
-  // wait for redirect
-  await page.waitForTimeout(3000)
-  expect(page.url()).toContain(baseURL)
+  await page.waitForURL(baseURL + '**')
 
   // write user data to file for re-use
   await page.context().storageState({ path: 'tests/e2e/.auth/user.json' })

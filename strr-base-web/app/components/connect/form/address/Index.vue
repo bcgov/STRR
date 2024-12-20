@@ -127,7 +127,7 @@ const addId = useId()
           :options="countries"
           :ui-menu="{ label: country ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'}"
           option-attribute="name"
-          data-testid="address-country"
+          :data-testid="id + '-country'"
           :aria-required="true"
           :aria-invalid="error !== undefined"
           :aria-describedby="schemaPrefix + 'country-' + addId"
@@ -199,6 +199,7 @@ const addId = useId()
         <UInput
           :id="id + '-street'"
           v-model="street"
+          :data-testid="id + '-street'"
           size="lg"
           :color="street ? 'primary' : 'gray'"
           :aria-label="$t('label.line1')"
@@ -232,6 +233,7 @@ const addId = useId()
     >
       <UInput
         v-model="streetAdditional"
+        :data-testid="id + '-streetAdditional'"
         size="lg"
         :color="streetAdditional ? 'primary' : 'gray'"
         :placeholder="$t('label.line2')"

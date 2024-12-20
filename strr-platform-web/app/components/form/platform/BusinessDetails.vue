@@ -106,7 +106,11 @@ onMounted(async () => {
               :help="$t('strr.hint.businessNumber')"
               mask="#########@@####"
             />
-            <UFormGroup id="platform-business-hasCpbc" name="hasCpbc">
+            <UFormGroup 
+              id="platform-business-hasCpbc" 
+              data-testid="platform-business-hasCpbc"
+              name="hasCpbc"
+            >
               <URadioGroup
                 v-model="platformBusiness.hasCpbc"
                 class="p-2"
@@ -171,7 +175,11 @@ onMounted(async () => {
           ])"
         >
           <div class="max-w-bcGovInput space-y-5">
-            <UFormGroup id="platform-business-hasRegOffAtt" name="hasRegOffAtt">
+            <UFormGroup 
+              id="platform-business-hasRegOffAtt" 
+              data-testid="platform-business-hasRegOffAtt" 
+              name="hasRegOffAtt"
+            >
               <URadioGroup
                 v-model="platformBusiness.hasRegOffAtt"
                 class="p-2"

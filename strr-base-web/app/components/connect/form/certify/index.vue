@@ -50,6 +50,7 @@ defineProps<{
           aria-required="true"
           :aria-describedby="items.map((_, i) => `${name}-item-${i}`).join(' ')"
           :aria-invalid="hasError"
+          :data-testid="name + '-checkbox'"
         >
           <template #label>
             <slot name="checkboxLabel">

@@ -27,6 +27,7 @@ defineExpose({ model })
     :id="id"
     v-model.trim="model"
     v-maska:model.unmasked="mask"
+    :data-testid="id"
     v-bind="$attrs"
     :type
     class="max-w-bcGovInput"
