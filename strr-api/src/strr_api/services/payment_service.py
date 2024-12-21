@@ -129,6 +129,9 @@ class PayService:
 
         payload = {"filingInfo": {"filingTypes": [filing_type_dict]}, "businessInfo": {"corpType": "STRR"}}
 
+        if application_json.get("header", {}).get("paymentMethod") == "DIRECT_PAY":
+            payload["paymentInfo"] = {"methodOfPayment": "DIRECT_PAY"}
+
         if UserService.is_automation_tester():
             payload["skipPayment"] = True
 
