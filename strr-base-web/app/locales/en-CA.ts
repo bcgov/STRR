@@ -527,13 +527,15 @@ export default {
       DIRECT_PAY: 'Credit Card',
       PAD: 'Pre-authorized Debit (PAD) {account}',
       BCOL: 'Online Banking',
-      JV: 'Journal Voucher'
+      JV: 'Journal Voucher',
+      undefined: 'Default'
     },
     payingWith: {
       DIRECT_PAY: 'Paying with Credit Card',
       PAD: 'Paying with Pre-authorized Debit (PAD) {account}',
       BCOL: 'Paying with Online Banking',
-      JV: 'Paying with Journal Voucher'
+      JV: 'Paying with Journal Voucher',
+      undefined: 'Paying with default method'
     }
   }
 }

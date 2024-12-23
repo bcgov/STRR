@@ -50,6 +50,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
       if (applications.length) {
         // Set active strata to the most recent application (ordered by api: newest to oldest)
         application.value = applications[0]
+        await updatePaymentDetails<A>(application.value?.header.applicationNumber as string)
         if (application.value?.header.registrationId) {
           // Get linked registration if applicable
           registration.value = await getAccountRegistrations<R>(
