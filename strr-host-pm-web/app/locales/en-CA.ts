@@ -28,12 +28,6 @@ export default {
     authorization: 'I, {boldStart}{name}{boldEnd}, have relevant knowledge of and am authorized to submit this registration.',
     tac: 'Terms and Conditions.'
   },
-  feeSummary: {
-    itemLabels: {
-      HOSTREG_1: 'STR Application Fee',
-      HOSTREG_2: 'STR Application Fee'
-    }
-  },
   form: {
     pr: {
       declaration: {
@@ -467,5 +461,13 @@ export default {
   },
   tooltip: {
     pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.'
+  },
+  ConnectFeeWidget: {
+    feeSummary: {
+      itemLabels: {
+        HOSTREG_1: 'STR Application Fee',
+        HOSTREG_2: 'STR Application Fee'
+      }
+    }
   }
 }

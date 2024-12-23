@@ -5,11 +5,6 @@ export default {
       strataApplication: 'STR Strata-Titled Hotel or Motel Application'
     }
   },
-  feeSummary: {
-    itemLabels: {
-      STRATAREG: 'Strata Hotel Application Fee'
-    }
-  },
   strr: {
     step: {
       stepperLabel: 'Strata Hotel Application Step Navigation',
@@ -160,5 +155,12 @@ export default {
     1: '{terms} I agree to comply with the {link} of registration.',
     2: '{boldStart}Accuracy of Information.{boldEnd} I confirm that the information contained in the application for registration is accurate and true. I understand that if I have knowingly provided inaccurate or false information, I may be subject to enforcement action under Part 4 of the {italicStart}Short-term Rental Accommodations Act{italicEnd}.',
     checkbox: 'I confirm that I understand and agree to the above.'
+  },
+  ConnectFeeWidget: {
+    feeSummary: {
+      itemLabels: {
+        STRATAREG: 'Strata Hotel Application Fee'
+      }
+    }
   }
 }
