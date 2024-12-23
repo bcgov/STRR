@@ -59,7 +59,7 @@ export const useHostApplicationStore = defineStore('host/application', () => {
   const submitApplication = async () => {
     const body = createApplicationBody()
 
-    console.info('submitting application: ', body)
+    // console.info('submitting application: ', body)
 
     const res = await postApplication<HostApplicationPayload, HostApplicationResp>(body) as HostApplicationResp
 

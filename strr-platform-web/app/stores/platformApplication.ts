@@ -33,6 +33,9 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
 
   const createApplicationBody = (): PlatformApplicationPayload => {
     const applicationBody: PlatformApplicationPayload = {
+      header: {
+        paymentMethod: useConnectFeeStore().userSelectedPaymentMethod
+      },
       registration: {
         registrationType: ApplicationType.PLATFORM,
         completingParty: formatParty(platContactStore.completingParty),
@@ -61,8 +64,13 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     const body = createApplicationBody()
 
     // console.info('submitting application: ', body)
+    const res = await postApplication<PlatformApplicationPayload, PlatformApplicationResp>(body)
 
-    return await postApplication<PlatformApplicationPayload, PlatformApplicationResp>(body)
+    const paymentToken = res.header.paymentToken
+    const filingId = res.header.applicationNumber
+    const applicationStatus = res.header.status
+
+    return { paymentToken, filingId, applicationStatus }
   }
 
   const $reset = () => {

@@ -43,6 +43,9 @@ export interface ApiBusinessDetails {
 }
 
 export interface ApiBaseRegistration {
+  header?: {
+    paymentMethod: ConnectPaymentMethod
+  }
   registrationType: ApplicationType
   businessDetails: ApiBusinessDetails
 }

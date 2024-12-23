@@ -4,6 +4,7 @@ import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
+const { handlePaymentRedirect } = useConnectNav()
 
 const { validateContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
@@ -163,9 +164,12 @@ const handlePlatformSubmit = async () => {
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
-      const response = await submitPlatformApplication()
-      if (response) {
-        return navigateTo(localePath('/platform/dashboard'))
+      const { paymentToken, applicationStatus } = await submitPlatformApplication()
+      const redirectPath = '/platform/dashboard'
+      if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
+        handlePaymentRedirect(paymentToken, redirectPath)
+      } else {
+        await navigateTo(localePath(redirectPath))
       }
     } else {
       stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
