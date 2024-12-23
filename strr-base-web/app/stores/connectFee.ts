@@ -115,41 +115,42 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     placeholderFeeItem.value.serviceFees = fees
   }
 
+  // alternate payment option stuff
   const userPaymentAccount = ref<ConnectPayAccount>({} as ConnectPayAccount)
   const userSelectedPaymentMethod = ref<ConnectPaymentMethod>(ConnectPaymentMethod.DIRECT_PAY)
-  const allowDirectPay = ref<boolean>(false)
-  const allowedPaymentMethods = computed<{ label: string, value: ConnectPaymentMethod }[]>(() => {
-    const methods = []
-    const defaultMethod = userPaymentAccount.value.paymentMethod
+  const allowAlternatePaymentMethod = ref<boolean>(false)
+  const allowedPaymentMethods = ref<{ label: string, value: ConnectPaymentMethod }[]>([])
 
-    if (defaultMethod !== undefined) {
-      const accountNum = userPaymentAccount.value.cfsAccount?.bankAccountNumber ?? ''
-      methods.push({
-        label: t(`ConnectFeeWidget.paymentMethod.${defaultMethod}`, { account: accountNum }),
-        value: defaultMethod
-      })
-
-      if (defaultMethod !== ConnectPaymentMethod.DIRECT_PAY) {
-        methods.push({
-          label: t(`ConnectFeeWidget.paymentMethod.${ConnectPaymentMethod.DIRECT_PAY}`),
-          value: ConnectPaymentMethod.DIRECT_PAY
-        })
-      }
-    }
-
-    return methods
-  })
-
-  const getUserPaymentAccount = async () => {
+  const initAlternatePaymentMethod = async () => {
     const accountId = useConnectAccountStore().currentAccount.id
     try {
+      // get payment account
       const res = await $payApi<ConnectPayAccount>(`/accounts/${accountId}`)
       userPaymentAccount.value = res
       userSelectedPaymentMethod.value = res.paymentMethod
 
-      console.log(userPaymentAccount.value)
+      // add options to allowedPaymentMethods
+      const defaultMethod = userPaymentAccount.value.paymentMethod
+      if (defaultMethod !== undefined) {
+        const accountNum = userPaymentAccount.value.cfsAccount?.bankAccountNumber ?? ''
+        allowedPaymentMethods.value.push({
+          label: t(`ConnectFeeWidget.paymentMethod.${defaultMethod}`, { account: accountNum }),
+          value: defaultMethod
+        })
+
+        // only add direct pay if not default option
+        if (defaultMethod !== ConnectPaymentMethod.DIRECT_PAY) {
+          allowedPaymentMethods.value.push({
+            label: t(`ConnectFeeWidget.paymentMethod.${ConnectPaymentMethod.DIRECT_PAY}`),
+            value: ConnectPaymentMethod.DIRECT_PAY
+          })
+        }
+      }
+
+      // only set allowed flag to true if previous steps didnt cause an error
+      allowAlternatePaymentMethod.value = true
     } catch (e) {
-      logFetchError(e, 'Error fetching user payment account')
+      logFetchError(e, 'Error initializing user payment account')
     }
   }
 
@@ -170,10 +171,10 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     setFeeQuantity,
     setPlaceholderFilingTypeCode,
     setPlaceholderServiceFee,
-    getUserPaymentAccount,
+    initAlternatePaymentMethod,
     userPaymentAccount,
     userSelectedPaymentMethod,
     allowedPaymentMethods,
-    allowDirectPay
+    allowAlternatePaymentMethod
   }
 })

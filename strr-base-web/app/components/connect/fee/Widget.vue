@@ -14,7 +14,7 @@ const {
   userSelectedPaymentMethod,
   allowedPaymentMethods,
   userPaymentAccount,
-  allowDirectPay
+  allowAlternatePaymentMethod
 } = storeToRefs(useConnectFeeStore())
 
 const isPlaceholderActive = ref(false)
@@ -147,7 +147,7 @@ const getItemFee = (feeItem: ConnectFeeItem) => {
           </p>
         </div>
         <USelectMenu
-          v-if="allowDirectPay && allowedPaymentMethods.length > 1"
+          v-if="allowAlternatePaymentMethod && allowedPaymentMethods.length > 1"
           v-slot="{ open }"
           v-model="userSelectedPaymentMethod"
           :options="allowedPaymentMethods"
