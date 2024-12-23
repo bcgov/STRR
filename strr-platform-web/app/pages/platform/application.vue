@@ -19,8 +19,11 @@ const {
   getFee,
   removeFee,
   setPlaceholderFilingTypeCode,
-  setPlaceholderServiceFee
+  setPlaceholderServiceFee,
+  getUserPaymentAccount,
 } = useConnectFeeStore()
+
+const { allowDirectPay } = storeToRefs(useConnectFeeStore())
 
 setPlaceholderFilingTypeCode(StrrFeeCode.STR_PLAT_SM)
 
@@ -28,6 +31,8 @@ const platFeeSm = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeLg = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeWv = ref<ConnectFeeItem | undefined>(undefined)
 onMounted(async () => {
+  await getUserPaymentAccount()
+  allowDirectPay.value = true
   applicationReset()
   const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_SM),

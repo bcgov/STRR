@@ -3,13 +3,6 @@ export default {
   act: {
     fippa: 'Freedom of Information and Protection of Privacy Act'
   },
-  feeSummary: {
-    itemLabels: {
-      PLATREG_SM: 'Platform Application Fee',
-      PLATREG_LG: 'Platform Application Fee',
-      PLATREG_WV: 'Platform Application Fee'
-    }
-  },
   modal: {
     info: {
       collectionNotice: {
@@ -134,5 +127,14 @@ export default {
   },
   btn: {
     learnMore: 'Learn More'
+  },
+  ConnectFeeWidget: {
+    feeSummary: {
+      itemLabels: {
+        PLATREG_SM: 'Platform Application Fee',
+        PLATREG_LG: 'Platform Application Fee',
+        PLATREG_WV: 'Platform Application Fee'
+      }
+    }
   }
 }

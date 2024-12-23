@@ -10,7 +10,11 @@ const {
   totalPriorityFees,
   totalProcessingFees,
   totalGst,
-  totalPst
+  totalPst,
+  userSelectedPaymentMethod,
+  allowedPaymentMethods,
+  userPaymentAccount,
+  allowDirectPay
 } = storeToRefs(useConnectFeeStore())
 
 const isPlaceholderActive = ref(false)
@@ -46,7 +50,7 @@ const getItemFee = (feeItem: ConnectFeeItem) => {
     return '$ -'
   }
   if (feeItem.waived) {
-    return t('feeSummary.noFee')
+    return t('ConnectFeeWidget.feeSummary.noFee')
   }
   return `$${(feeItem.filingFees * (feeItem.quantity || 1)).toFixed(2)}`
 }
@@ -62,8 +66,8 @@ const getItemFee = (feeItem: ConnectFeeItem) => {
       :role="isFoldable ? 'button' : 'title'"
       class="flex w-full bg-midnightBlue-900 py-2 pl-4 text-lg font-bold transition-all"
       :class="[folded ? 'rounded' : 'rounded-b-none rounded-t', isFoldable ? '' : 'pointer-events-none']"
-      :aria-label="$t('feeSummary.title')"
-      :label="$t('feeSummary.title')"
+      :aria-label="$t('ConnectFeeWidget.feeSummary.title')"
+      :label="$t('ConnectFeeWidget.feeSummary.title')"
       @click="toggleFolded"
     >
       <template #trailing>
@@ -76,72 +80,114 @@ const getItemFee = (feeItem: ConnectFeeItem) => {
         </div>
       </template>
     </UButton>
-    <div
-      class="divide-y divide-bcGovGray-300 text-sm transition-all"
-      :class="folded ? 'h-[0px] overflow-hidden': 'px-4 pt-1'"
-    >
-      <div
-        v-for="feeItem in feeItems"
-        :key="feeItem.filingTypeCode"
-        class="flex justify-between py-3"
-      >
-        <div>
-          <p class="font-bold">
-            {{ $t(`feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}
+    <ConnectTransitionCollapse>
+      <div v-if="!folded">
+        <div class="divide-y divide-bcGovGray-300 px-4 pt-1 text-sm">
+          <div
+            v-for="feeItem in feeItems"
+            :key="feeItem.filingTypeCode"
+            class="flex justify-between py-3"
+          >
+            <div>
+              <p class="font-bold">
+                {{ $t(`ConnectFeeWidget.feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}
+              </p>
+              <p v-if="feeItem.quantity !== undefined && feeItem.quantityDesc" class="pl-4 text-gray-600">
+                x {{ feeItem.quantity }} {{ feeItem.quantityDesc }}
+              </p>
+            </div>
+            <p>{{ getItemFee(feeItem) }}</p>
+          </div>
+          <ConnectFeeExtraFee
+            v-if="feeOptions.showFutureEffectiveFees"
+            :description="$t('ConnectFeeWidget.feeSummary.futureEffectiveFees')"
+            :fee="totalFutureEffectiveFees"
+            :show-fee-value="isPlaceholderActive"
+          />
+          <ConnectFeeExtraFee
+            v-if="feeOptions.showPriorityFees"
+            :description="$t('ConnectFeeWidget.feeSummary.priorityFees')"
+            :fee="totalPriorityFees"
+            :show-fee-value="isPlaceholderActive"
+          />
+          <ConnectFeeExtraFee
+            v-if="feeOptions.showProcessingFees"
+            :description="$t('ConnectFeeWidget.feeSummary.processingFees')"
+            :fee="totalProcessingFees"
+            :show-fee-value="isPlaceholderActive"
+          />
+          <ConnectFeeExtraFee
+            v-if="feeOptions.showServiceFees"
+            :description="$t('ConnectFeeWidget.feeSummary.serviceFees')"
+            :fee="isPlaceholderActive ? placeholderFeeItem.serviceFees : totalServiceFees"
+            show-fee-value
+          />
+          <ConnectFeeExtraFee
+            v-if="feeOptions.showPst"
+            :description="$t('ConnectFeeWidget.feeSummary.pst')"
+            :fee="totalPst"
+            :show-fee-value="isPlaceholderActive"
+          />
+          <ConnectFeeExtraFee
+            v-if="feeOptions.showGst"
+            :description="$t('ConnectFeeWidget.feeSummary.gst')"
+            :fee="totalGst"
+            :show-fee-value="isPlaceholderActive"
+          />
+        </div>
+        <div class="flex flex-row items-end justify-between border-y border-gray-300 p-3">
+          <p class="mb-1 font-bold">
+            {{ $t("ConnectFeeWidget.feeSummary.total") }}
           </p>
-          <p v-if="feeItem.quantity !== undefined && feeItem.quantityDesc" class="pl-4 text-gray-600">
-            x {{ feeItem.quantity }} {{ feeItem.quantityDesc }}
+          <p class="flex items-end text-sm text-bcGovGray-700">
+            <span class="mb-1">{{ $t("currency.cad") }}</span>
+            <b class="ml-[5px] flex items-end text-2xl text-black">
+              {{ !isPlaceholderActive ? `$${total.toFixed(2)}` : '$ -' }}
+            </b>
           </p>
         </div>
-        <p>{{ getItemFee(feeItem) }}</p>
+        <USelectMenu
+          v-if="allowDirectPay && allowedPaymentMethods.length > 1"
+          v-slot="{ open }"
+          v-model="userSelectedPaymentMethod"
+          :options="allowedPaymentMethods"
+          value-attribute="value"
+          :ui-menu="{
+            option: {
+              base: 'cursor-pointer',
+              size: 'text-xs'
+            },
+            base: '-mt-1',
+            rounded: 'rounded-b'
+          }"
+          :ui="{
+            size: { lg: 'h-min' },
+            color: {
+              gray: {
+                outline: 'bg-white ring-0 hover:bg-gray-200 hover:border-gray-600 focus:border-none focus:ring-0',
+              }
+            }
+          }"
+        >
+          <button
+            class="flex w-full items-center justify-between gap-4 py-2 pl-4 pr-2 text-left hover:bg-gray-100"
+          >
+            <span class="text-xs">
+              {{
+                $t(`ConnectFeeWidget.payingWith.${userSelectedPaymentMethod}`, {
+                  account: userPaymentAccount?.cfsAccount?.bankAccountNumber }
+                )
+              }}
+            </span>
+
+            <UIcon
+              name="i-mdi-caret-down"
+              class="size-5 text-blue-500 transition-transform"
+              :class="[open && 'rotate-180']"
+            />
+          </button>
+        </USelectMenu>
       </div>
-      <ConnectFeeExtraFee
-        v-if="feeOptions.showFutureEffectiveFees"
-        :description="$t('feeSummary.futureEffectiveFees')"
-        :fee="totalFutureEffectiveFees"
-        :show-fee-value="isPlaceholderActive"
-      />
-      <ConnectFeeExtraFee
-        v-if="feeOptions.showPriorityFees"
-        :description="$t('feeSummary.priorityFees')"
-        :fee="totalPriorityFees"
-        :show-fee-value="isPlaceholderActive"
-      />
-      <ConnectFeeExtraFee
-        v-if="feeOptions.showProcessingFees"
-        :description="$t('feeSummary.processingFees')"
-        :fee="totalProcessingFees"
-        :show-fee-value="isPlaceholderActive"
-      />
-      <ConnectFeeExtraFee
-        v-if="feeOptions.showServiceFees"
-        :description="$t('feeSummary.serviceFees')"
-        :fee="isPlaceholderActive ? placeholderFeeItem.serviceFees : totalServiceFees"
-        show-fee-value
-      />
-      <ConnectFeeExtraFee
-        v-if="feeOptions.showPst"
-        :description="$t('feeSummary.pst')"
-        :fee="totalPst"
-        :show-fee-value="isPlaceholderActive"
-      />
-      <ConnectFeeExtraFee
-        v-if="feeOptions.showGst"
-        :description="$t('feeSummary.gst')"
-        :fee="totalGst"
-        :show-fee-value="isPlaceholderActive"
-      />
-      <div class="flex flex-row items-end justify-between py-3">
-        <p class="mb-1 font-bold">
-          {{ $t("feeSummary.total") }}
-        </p>
-        <p class="flex items-end text-sm text-bcGovGray-700">
-          <span class="mb-1">{{ $t("currency.cad") }}</span>
-          <b class="ml-[5px] flex items-end text-2xl text-black">
-            {{ !isPlaceholderActive ? `$${total.toFixed(2)}` : '$ -' }}
-          </b>
-        </p>
-      </div>
-    </div>
+    </ConnectTransitionCollapse>
   </div>
 </template>

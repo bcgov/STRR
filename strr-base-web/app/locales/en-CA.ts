@@ -387,19 +387,6 @@ export default {
       BCEID: ''
     }
   },
-  feeSummary: {
-    title: 'Fee Summary',
-    total: 'Total Fees',
-    noFee: 'No Fee',
-    priorityFees: 'Priority Fees',
-    futureEffectiveFees: 'Future Effective Fees',
-    serviceFees: 'Service Fee',
-    itemLabels: {
-      PLACEHOLDER: 'Placeholder (Replace Me)', // each project using the connect fee widget should change the placeholder filingTypeCode
-      TEST: 'This is test entry',
-      undefined: 'Item Fee'
-    }
-  },
   validation: {
     required: 'Required',
     address: {
@@ -520,6 +507,33 @@ export default {
         h1: 'Unknown Error',
         content: 'An unknown error occured, please refresh the page or try again later.'
       }
+    }
+  },
+  ConnectFeeWidget: {
+    feeSummary: {
+      title: 'Fee Summary',
+      total: 'Total Fees',
+      noFee: 'No Fee',
+      priorityFees: 'Priority Fees',
+      futureEffectiveFees: 'Future Effective Fees',
+      serviceFees: 'Service Fee',
+      itemLabels: {
+        PLACEHOLDER: 'Placeholder (Replace Me)', // each project using the connect fee widget should change the placeholder filingTypeCode
+        TEST: 'This is test entry',
+        undefined: 'Item Fee'
+      }
+    },
+    paymentMethod: {
+      DIRECT_PAY: 'Credit Card',
+      PAD: 'Pre-authorized Debit (PAD) {account}',
+      BCOL: 'Online Banking',
+      JV: 'Journal Voucher'
+    },
+    payingWith: {
+      DIRECT_PAY: 'Paying with Credit Card',
+      PAD: 'Paying with Pre-authorized Debit (PAD) {account}',
+      BCOL: 'Paying with Online Banking',
+      JV: 'Paying with Journal Voucher'
     }
   }
 }

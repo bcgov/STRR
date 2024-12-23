@@ -1,5 +1,8 @@
+import { ConnectPaymentMethod } from '~/enums/connect-payment-method'
+
 export const useConnectFeeStore = defineStore('connect/fee', () => {
   const { $payApi } = useNuxtApp()
+  const { t } = useI18n()
 
   const feeOptions = ref({
     showFutureEffectiveFees: false,
@@ -112,6 +115,44 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     placeholderFeeItem.value.serviceFees = fees
   }
 
+  const userPaymentAccount = ref<ConnectPayAccount>({} as ConnectPayAccount)
+  const userSelectedPaymentMethod = ref<ConnectPaymentMethod>(ConnectPaymentMethod.DIRECT_PAY)
+  const allowDirectPay = ref<boolean>(false)
+  const allowedPaymentMethods = computed<{ label: string, value: ConnectPaymentMethod }[]>(() => {
+    const methods = []
+    const defaultMethod = userPaymentAccount.value.paymentMethod
+
+    if (defaultMethod !== undefined) {
+      const accountNum = userPaymentAccount.value.cfsAccount?.bankAccountNumber ?? ''
+      methods.push({
+        label: t(`ConnectFeeWidget.paymentMethod.${defaultMethod}`, { account: accountNum }),
+        value: defaultMethod
+      })
+
+      if (defaultMethod !== ConnectPaymentMethod.DIRECT_PAY) {
+        methods.push({
+          label: t(`ConnectFeeWidget.paymentMethod.${ConnectPaymentMethod.DIRECT_PAY}`),
+          value: ConnectPaymentMethod.DIRECT_PAY
+        })
+      }
+    }
+
+    return methods
+  })
+
+  const getUserPaymentAccount = async () => {
+    const accountId = useConnectAccountStore().currentAccount.id
+    try {
+      const res = await $payApi<ConnectPayAccount>(`/accounts/${accountId}`)
+      userPaymentAccount.value = res
+      userSelectedPaymentMethod.value = res.paymentMethod
+
+      console.log(userPaymentAccount.value)
+    } catch (e) {
+      logFetchError(e, 'Error fetching user payment account')
+    }
+  }
+
   return {
     feeOptions,
     fees,
@@ -128,6 +169,11 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     removeFee,
     setFeeQuantity,
     setPlaceholderFilingTypeCode,
-    setPlaceholderServiceFee
+    setPlaceholderServiceFee,
+    getUserPaymentAccount,
+    userPaymentAccount,
+    userSelectedPaymentMethod,
+    allowedPaymentMethods,
+    allowDirectPay
   }
 })
