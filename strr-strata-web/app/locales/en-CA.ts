@@ -97,7 +97,8 @@ export default {
     dayCount: '0 days | 1 day | {count} days',
     lastStatusChange: 'Last Status Change',
     daysToExpiry: 'Days to Expiry (Pacific Time)',
-    chooseDocs: 'Choose Supporting Documents'
+    chooseDocs: 'Choose Supporting Documents',
+    supportingDocs: 'Supporting Documentation'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page',
@@ -153,7 +154,8 @@ export default {
     },
     wholeNumber: 'Please enter a whole number (no decimals)',
     min1Unit: 'The number of rental units must be greater than 0',
-    max5000Units: 'The number of rental units must not exceed 5000'
+    max5000Units: 'The number of rental units must not exceed 5000',
+    min1Document: 'Must have at least one document'
   },
   certify: {
     1: '{terms} I agree to comply with the {link} of registration.',

@@ -134,7 +134,7 @@ setBreadcrumbs([
           <SummaryRegOfficeAttorney />
         </div>
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="'Supporting Documentation'" :loading="loading">
+      <ConnectDashboardSection :title="$t('label.supportingDocs')" :loading="loading">
         <div class="p-3">
           <div v-if="!documentStore.storedDocuments.length">
             <p>{{ $t('text.noDocsUploaded') }}</p>
