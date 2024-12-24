@@ -1,0 +1,3 @@
+export enum DocumentUploadType {
+  STRATA_HOTEL_DOCUMENTATION = 'STRATA_HOTEL_DOCUMENTATION'
+}

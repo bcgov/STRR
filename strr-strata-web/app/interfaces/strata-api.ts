@@ -24,3 +24,10 @@ export interface StrataApplicationPayload {
 export interface StrataApplicationResp extends StrataApplicationPayload {
   header: ApplicationHeader
 }
+
+export interface ApiDocument {
+  documentType: DocumentUploadType
+  fileKey: string
+  fileName: string
+  fileType: string
+}

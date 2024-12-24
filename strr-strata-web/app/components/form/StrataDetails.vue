@@ -4,21 +4,25 @@ import { z } from 'zod'
 
 const { addNewEmptyBuilding, removeBuildingAtIndex, strataDetailsSchema } = useStrrStrataDetailsStore()
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+const docStore = useDocumentStore()
+const { getDocumentSchema } = docStore
 
 const props = defineProps<{ isComplete: boolean }>()
 
 const strataDetailsFormRef = ref<Form<z.output<typeof strataDetailsSchema>>>()
+const documentFormRef = ref<Form<any>>()
 
 onMounted(async () => {
   // validate form if step marked as complete
   if (props.isComplete) {
     await validateForm(strataDetailsFormRef.value, props.isComplete)
+    await validateForm(documentFormRef.value, props.isComplete)
   }
 })
 </script>
 
 <template>
-  <div data-testid="strata-details">
+  <div data-testid="strata-details" class="space-y-10">
     <UForm
       ref="strataDetailsFormRef"
       :schema="strataDetailsSchema"
@@ -176,6 +180,82 @@ onMounted(async () => {
               </div>
             </ConnectFormSection>
           </div>
+        </div>
+      </ConnectPageSection>
+    </UForm>
+
+    <UForm
+      ref="documentFormRef"
+      :state="docStore.storedDocuments"
+      :schema="getDocumentSchema()"
+    >
+      <ConnectPageSection
+        class="bg-white"
+        :heading="{ label: 'Supporting Documentation', labelClass: 'font-bold md:ml-6' }"
+      >
+        <div class="space-y-10 py-10">
+          <ConnectFormSection
+            title="File Upload"
+            :error="hasFormErrors(documentFormRef, ['documents'])"
+          >
+            <div class="max-w-bcGovInput">
+              <UFormGroup
+                name="documents"
+                :ui="{
+                  help: 'mt-2 ml-10',
+                  label: { base: 'pt-0 font-normal' }
+                }"
+              >
+                <DocumentUploadButton
+                  id="supporting-documents"
+                  :label="$t('label.chooseDocs')"
+                  accept=".pdf"
+                  :is-required="true"
+                  :is-invalid="isComplete && hasFormErrors(documentFormRef, ['documents'])"
+                  help-id="supporting-documents-help"
+                  @change="(e: FileList) => e[0] ? docStore.addStoredDocument(e[0]) : undefined"
+                />
+
+                <template #label>
+                  <i18n-t keypath="text.addAllReqDocs" scope="global">
+                    <template #link>
+                      <UButton
+                        :label="$t('link.learnMore')"
+                        :to="useLocalePath()('/')"
+                        :padded="false"
+                        variant="link"
+                        target="_blank"
+                        class="underline"
+                        trailing-icon="i-mdi-open-in-new"
+                        :ui="{
+                          icon: { size: { sm: 'h-4 w-4' } },
+                          gap: { sm: 'gap-x-1.5' }
+                        }"
+                      />
+                    </template>
+                  </i18n-t>
+                </template>
+
+                <!--
+                      :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
+                      :is-required="docStore.requiredDocs.length > 0"
+                      :help-id="docUploadHelpId" -->
+
+                <template #help>
+                  <span id="supporting-documents-help">
+                    {{ $t('hint.docUpload') }}
+                  </span>
+                </template>
+
+                <template #error="{ error }">
+                  <span id="supporting-documents-help">
+                    {{ error }}
+                  </span>
+                </template>
+              </UFormGroup>
+              <DocumentList />
+            </div>
+          </ConnectFormSection>
         </div>
       </ConnectPageSection>
     </UForm>

@@ -232,16 +232,6 @@ export default {
       title: 'Error creating account',
       description: 'We could not create your account at this time. Please try again or if this issue persists, please contact us.'
     },
-    docUpload: {
-      fileSize: {
-        title: 'Error Uploading Document',
-        description: 'File size too large. Please only upload files less than 10mb.'
-      },
-      generic: {
-        title: 'Error Uploading Document',
-        description: 'Something went wrong when uploading the file, only pdfs and files less than 10mb are accepted.'
-      }
-    },
     reqFetch: {
       unknown: {
         title: 'An unexpected error occurred.',

@@ -96,10 +96,12 @@ export default {
     expiresToday: 'Expires today',
     dayCount: '0 days | 1 day | {count} days',
     lastStatusChange: 'Last Status Change',
-    daysToExpiry: 'Days to Expiry (Pacific Time)'
+    daysToExpiry: 'Days to Expiry (Pacific Time)',
+    chooseDocs: 'Choose Supporting Documents'
   },
   link: {
-    strataHotelInfoPage: 'strata hotel information page'
+    strataHotelInfoPage: 'strata hotel information page',
+    learnMore: 'Learn More'
   },
   modal: {
     helpRegisteringStrata: {
@@ -140,7 +142,8 @@ export default {
     streetHint: 'Street address, rural route, or general delivery address',
     selectAccount: {
       generic: 'Select the account you wish to use to register and manage your short-term rentals, or create a new account.'
-    }
+    },
+    addAllReqDocs: 'Upload supporting strata-titled hotel or motel documentation. {link}'
   },
   validation: {
     brand: {
@@ -155,6 +158,12 @@ export default {
     1: '{terms} I agree to comply with the {link} of registration.',
     2: '{boldStart}Accuracy of Information.{boldEnd} I confirm that the information contained in the application for registration is accurate and true. I understand that if I have knowingly provided inaccurate or false information, I may be subject to enforcement action under Part 4 of the {italicStart}Short-term Rental Accommodations Act{italicEnd}.',
     checkbox: 'I confirm that I understand and agree to the above.'
+  },
+  docType: {
+    STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation'
+  },
+  hint: {
+    docUpload: 'File must be a PDF. Maximum 10 MB.'
   },
   ConnectFeeWidget: {
     feeSummary: {

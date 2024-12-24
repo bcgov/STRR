@@ -114,6 +114,16 @@ export default {
     },
     tos: {
       load: 'Unable to load terms of use, please try again later.'
+    },
+    docUpload: {
+      fileSize: {
+        title: 'Error Uploading Document',
+        description: 'File size too large. Please only upload files less than 10mb.'
+      },
+      generic: {
+        title: 'Error Uploading Document',
+        description: 'Something went wrong when uploading the file, only pdfs and files less than 10mb are accepted.'
+      }
     }
   },
   imageAlt: {
