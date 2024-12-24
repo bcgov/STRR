@@ -97,6 +97,16 @@ export const useDocumentStore = defineStore('strata/document', () => {
     }
   )
 
+  const validateDocuments = (returnBool = false): MultiFormValidationResult | boolean => {
+    const result = validateSchemaAgainstState(getDocumentSchema(), storedDocuments.value, 'strata-documents-form')
+
+    if (returnBool) {
+      return result.success === true
+    } else {
+      return [result]
+    }
+  }
+
   async function $reset () {
     const docsToDelete = [...storedDocuments.value]
     for (const doc of docsToDelete) {
@@ -114,6 +124,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
     addStoredDocument,
     removeStoredDocument,
     getDocumentSchema,
+    validateDocuments,
     $reset
   }
 })

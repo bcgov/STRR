@@ -36,6 +36,9 @@ defineEmits<{
       <label
         for="file-input"
         class="absolute flex size-full items-center px-4 text-left text-bcGovGray-700"
+        :class="{
+          'text-red-600': isInvalid
+        }"
       >
         {{ label }}
       </label>

@@ -12,6 +12,14 @@ const props = defineProps<{ isComplete: boolean }>()
 const strataDetailsFormRef = ref<Form<z.output<typeof strataDetailsSchema>>>()
 const documentFormRef = ref<Form<any>>()
 
+// revalidate form to remove errors if field previously shows error
+watch(() => docStore.storedDocuments,
+  () => {
+    documentFormRef.value?.validate(undefined, { silent: true })
+  },
+  { deep: true }
+)
+
 onMounted(async () => {
   // validate form if step marked as complete
   if (props.isComplete) {
@@ -236,11 +244,6 @@ onMounted(async () => {
                   </i18n-t>
                 </template>
 
-                <!--
-                      :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
-                      :is-required="docStore.requiredDocs.length > 0"
-                      :help-id="docUploadHelpId" -->
-
                 <template #help>
                   <span id="supporting-documents-help">
                     {{ $t('hint.docUpload') }}
@@ -253,7 +256,7 @@ onMounted(async () => {
                   </span>
                 </template>
               </UFormGroup>
-              <DocumentList />
+              <DocumentList class="pt-4" />
             </div>
           </ConnectFormSection>
         </div>

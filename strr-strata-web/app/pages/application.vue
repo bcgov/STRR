@@ -9,6 +9,7 @@ const { handlePaymentRedirect } = useConnectNav()
 const { validateContact } = useStrrContactStore()
 const { validateStrataBusiness } = useStrrStrataBusinessStore()
 const { validateStrataDetails } = useStrrStrataDetailsStore()
+const { validateDocuments } = useDocumentStore()
 const {
   submitStrataApplication,
   validateStrataConfirmation,
@@ -58,7 +59,10 @@ const steps = ref<Step[]>([
     icon: 'i-mdi-map-marker-plus-outline',
     complete: false,
     isValid: false,
-    validationFn: () => validateStrataDetails(true) as boolean
+    validationFn: () => (
+      validateStrataDetails(true) as boolean &&
+      validateDocuments(true) as boolean
+    )
   },
   {
     i18nPrefix: 'strr.step',
