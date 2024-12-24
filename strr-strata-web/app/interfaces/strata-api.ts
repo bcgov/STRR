@@ -12,6 +12,7 @@ export interface ApiBaseStrataRegistration extends ApiBaseRegistration {
 
 export interface ApiBaseStrataApplication extends ApiBaseStrataRegistration {
   completingParty: ApiParty
+  documents: ApiDocument[]
 }
 
 export interface StrataRegistrationResp extends ApiBaseStrataRegistration, ApiExtraRegistrationDetails {

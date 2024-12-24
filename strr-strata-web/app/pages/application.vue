@@ -111,6 +111,7 @@ const handleStrataSubmit = async () => {
       validateContact(),
       validateStrataBusiness(),
       validateStrataDetails(),
+      validateDocuments(),
       validateStrataConfirmation()
     ]
 
@@ -118,7 +119,7 @@ const handleStrataSubmit = async () => {
     formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
     const isApplicationValid = formErrors.every(result => result.success === true)
 
-    // console.info('is application valid: ', isApplicationValid, formErrors)
+    console.info('is application valid: ', isApplicationValid, formErrors)
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {

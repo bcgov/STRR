@@ -8,6 +8,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
   const contactStore = useStrrContactStore()
   const businessStore = useStrrStrataBusinessStore()
   const detailsStore = useStrrStrataDetailsStore()
+  const documentStore = useDocumentStore()
 
   const confirmation = reactive({
     confirmation: false
@@ -38,7 +39,8 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
         completingParty: formatParty(contactStore.completingParty),
         businessDetails: formatBusinessDetails(businessStore.strataBusiness || {} as StrrBusiness),
         strataHotelRepresentatives: [],
-        strataHotelDetails: formatStrataDetails(detailsStore.strataDetails)
+        strataHotelDetails: formatStrataDetails(detailsStore.strataDetails),
+        documents: documentStore.apiDocuments
       }
     }
 
