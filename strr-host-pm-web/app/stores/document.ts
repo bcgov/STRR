@@ -317,14 +317,21 @@ export const useDocumentStore = defineStore('host/document', () => {
 
   // reset documents when requirements change
   watch([() => reqStore.propertyReqs, () => reqStore.prRequirements], async () => {
-    await $reset()
+    await resetApiDocs()
   }, { deep: true })
 
-  async function $reset () {
+  // use this to remove documents from store and from api
+  async function resetApiDocs () {
     const docsToDelete = [...storedDocuments.value]
     for (const doc of docsToDelete) {
       await removeStoredDocument(doc)
     }
+    selectedDocType.value = undefined
+  }
+
+  // use this to reset store only
+  function $reset () {
+    storedDocuments.value = []
     selectedDocType.value = undefined
   }
 
@@ -340,6 +347,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     addStoredDocument,
     removeStoredDocument,
     validateRequiredDocuments,
+    resetApiDocs,
     $reset
   }
 })

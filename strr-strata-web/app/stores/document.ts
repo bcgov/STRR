@@ -107,11 +107,17 @@ export const useDocumentStore = defineStore('strata/document', () => {
     }
   }
 
-  async function $reset () {
+  // use this to remove documents from store and from api
+  async function resetApiDocs () {
     const docsToDelete = [...storedDocuments.value]
     for (const doc of docsToDelete) {
       await removeStoredDocument(doc)
     }
+  }
+
+  // use this to reset store only
+  function $reset () {
+    storedDocuments.value = []
     // selectedDocType.value = undefined
   }
 
@@ -125,6 +131,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
     removeStoredDocument,
     getDocumentSchema,
     validateDocuments,
+    resetApiDocs,
     $reset
   }
 })

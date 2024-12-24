@@ -75,6 +75,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
     contactStore.$reset()
     businessStore.$reset()
     detailsStore.$reset()
+    documentStore.$reset()
     confirmation.confirmation = false
   }
 
