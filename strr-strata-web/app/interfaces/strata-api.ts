@@ -8,6 +8,7 @@ export interface ApiStrataDetails {
 export interface ApiBaseStrataRegistration extends ApiBaseRegistration {
   strataHotelRepresentatives: ApiRep[]
   strataHotelDetails: ApiStrataDetails
+  documents: ApiDocument[]
 }
 
 export interface ApiBaseStrataApplication extends ApiBaseStrataRegistration {

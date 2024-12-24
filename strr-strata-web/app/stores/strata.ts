@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { formatBusinessDetailsUI, formatStrataDetailsUI } from '~/utils/strata-formating'
 
 export const useStrrStrataStore = defineStore('strr/strata', () => {
@@ -6,9 +7,11 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   const contactStore = useStrrContactStore()
   const businessStore = useStrrStrataBusinessStore()
   const detailsStore = useStrrStrataDetailsStore()
+  const documentStore = useDocumentStore()
   const { completingParty, primaryRep, secondaryRep } = storeToRefs(contactStore)
   const { strataBusiness } = storeToRefs(businessStore)
   const { strataDetails } = storeToRefs(detailsStore)
+  const { storedDocuments } = storeToRefs(documentStore)
 
   const {
     application,
@@ -38,6 +41,15 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
       }
       strataBusiness.value = formatBusinessDetailsUI(permitDetails.value.businessDetails)
       strataDetails.value = formatStrataDetailsUI(permitDetails.value.strataHotelDetails)
+
+      storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({
+        file: {} as File,
+        apiDoc: val,
+        name: val.fileName,
+        type: val.documentType,
+        id: uuidv4(),
+        loading: false
+      })) || []
     }
   }
 

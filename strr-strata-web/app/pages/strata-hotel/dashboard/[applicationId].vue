@@ -18,6 +18,7 @@ const {
 } = storeToRefs(useStrrStrataStore())
 const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+const documentStore = useDocumentStore()
 
 const todos = ref<Todo[]>([])
 const buildings = ref<ConnectAccordionItem[]>([])
@@ -131,6 +132,24 @@ setBreadcrumbs([
       <ConnectDashboardSection :title="$t('strr.label.regOfficeAttSvc')" :loading="loading">
         <div class="rounded p-3">
           <SummaryRegOfficeAttorney />
+        </div>
+      </ConnectDashboardSection>
+      <ConnectDashboardSection :title="'Supporting Documentation'" :loading="loading">
+        <div class="p-3">
+          <div v-if="!documentStore.storedDocuments.length">
+            <p>{{ $t('text.noDocsUploaded') }}</p>
+          </div>
+          <div v-for="doc in documentStore.storedDocuments" :key="doc.id" class="flex w-full items-center gap-1">
+            <UIcon
+              name="i-mdi-paperclip"
+              class="size-5 shrink-0 text-blue-500"
+            />
+            <div class="flex flex-col gap-1">
+              <!-- TODO: can we leave out the name since there is only 1 document type? -->
+              <!-- <span class="text-sm font-bold">{{ $t(`docType.${doc.type}`) }}</span> -->
+              <span>{{ doc.name }}</span>
+            </div>
+          </div>
         </div>
       </ConnectDashboardSection>
     </div>

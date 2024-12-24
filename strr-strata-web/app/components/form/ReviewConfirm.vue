@@ -44,7 +44,6 @@ onMounted(async () => {
 
   const validationResults = await Promise.all(validations)
   sectionErrors.value = validationResults.flatMap(result => result as MultiFormValidationResult)
-  console.log(sectionErrors.value)
 })
 </script>
 <template>
