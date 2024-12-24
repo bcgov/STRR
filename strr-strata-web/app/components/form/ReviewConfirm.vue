@@ -7,6 +7,7 @@ const contactStore = useStrrContactStore()
 const businessStore = useStrrStrataBusinessStore()
 const detailsStore = useStrrStrataDetailsStore()
 const applicationStore = useStrrStrataApplicationStore()
+const documentStore = useDocumentStore()
 
 const strataConfirmationFormRef = ref<Form<z.output<typeof applicationStore.confirmationSchema>>>()
 const sectionErrors = ref<MultiFormValidationResult>([])
@@ -37,11 +38,13 @@ onMounted(async () => {
   const validations = [
     contactStore.validateContact(),
     businessStore.validateStrataBusiness(),
-    detailsStore.validateStrataDetails()
+    detailsStore.validateStrataDetails(),
+    documentStore.validateDocuments()
   ]
 
   const validationResults = await Promise.all(validations)
   sectionErrors.value = validationResults.flatMap(result => result as MultiFormValidationResult)
+  console.log(sectionErrors.value)
 })
 </script>
 <template>
@@ -247,7 +250,7 @@ onMounted(async () => {
       }"
     >
       <FormCommonReviewSection
-        :error="isSectionInvalid('strata-details-form')"
+        :error="isSectionInvalid('strata-details-form') || isSectionInvalid('strata-documents-form')"
         :items="[
           {
             title: $t('strr.review.brand.name'),
@@ -262,6 +265,10 @@ onMounted(async () => {
             slot: 'buildings',
             contentClass: 'line-clamp-none'
           },
+          {
+            title: 'Supporting Documents',
+            slot: 'documents'
+          }
         ]"
         @edit="$emit('edit', 2)"
       >
@@ -293,6 +300,24 @@ onMounted(async () => {
               />
               <span v-else> - </span>
             </ConnectInfoBox>
+          </div>
+        </template>
+        <template #documents>
+          <div class="pt-2">
+            <div v-if="!documentStore.storedDocuments.length">
+              <p>{{ $t('text.noDocsUploaded') }}</p>
+            </div>
+            <div v-for="doc in documentStore.storedDocuments" :key="doc.id" class="flex w-full gap-1">
+              <UIcon
+                name="i-mdi-paperclip"
+                class="size-5 shrink-0 text-blue-500"
+              />
+              <div class="flex flex-col">
+                <!-- TODO: can we leave out the name since there is only 1 document type? -->
+                <!-- <span class="text-sm font-bold">{{ $t(`docType.${doc.type}`) }}</span> -->
+                <span>{{ doc.name }}</span>
+              </div>
+            </div>
           </div>
         </template>
       </FormCommonReviewSection>

@@ -69,9 +69,9 @@ onMounted(async () => {
       id="completing-party-radio-group"
       v-model="isCompletingPartyRep"
       data-testid="completing-party-radio-group"
-      :class="isComplete && isCompletingPartyRep === undefined ? 'border-red-600 border-2 p-2' : 'p-2'"
+      :class="isComplete && isCompletingPartyRep === undefined ? 'border-red-600 border-2 p-2 pt-3' : 'p-2 pt-3'"
       :options="radioOptions"
-      :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
+      :ui="{ legend: 'text-default font-bold text-gray-700' }"
       :ui-radio="{ inner: 'space-y-2' }"
     >
       <template #legend>

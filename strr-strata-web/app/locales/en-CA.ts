@@ -143,7 +143,8 @@ export default {
     selectAccount: {
       generic: 'Select the account you wish to use to register and manage your short-term rentals, or create a new account.'
     },
-    addAllReqDocs: 'Upload supporting strata-titled hotel or motel documentation. {link}'
+    addAllReqDocs: 'Upload supporting strata-titled hotel or motel documentation. {link}',
+    noDocsUploaded: 'No supporting documentation uploaded.'
   },
   validation: {
     brand: {

@@ -145,9 +145,12 @@ onMounted(async () => {
               <URadioGroup
                 v-model="strataBusiness.hasRegOffAtt"
                 class="p-2"
-                :class="isComplete && strataBusiness.hasRegOffAtt === undefined ? 'border-red-600 border-2' : ''"
+                :class="isComplete && strataBusiness.hasRegOffAtt === undefined
+                  ? 'border-red-600 border-2 pt-4'
+                  : 'pt-4'
+                "
                 :options="getRadioOptions()"
-                :ui="{ legend: 'mb-3 text-default font-bold text-gray-700' }"
+                :ui="{ legend: 'text-default font-bold text-gray-700' }"
                 :ui-radio="{ inner: 'space-y-2' }"
               >
                 <template #legend>
