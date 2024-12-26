@@ -24,6 +24,19 @@ class RegistrationSerializer:
             "registration_number": registration.registration_number,
         }
 
+        documents = []
+        if registration.documents:
+            for doc in registration.documents:
+                documents.append(
+                    {
+                        "fileKey": doc.path,
+                        "fileName": doc.file_name,
+                        "fileType": doc.file_type,
+                        "documentType": doc.document_type,
+                    }
+                )
+        registration_data["documents"] = documents
+
         if registration.registration_type == RegistrationType.HOST.value:
             RegistrationSerializer.populate_host_registration_details(registration_data, registration)
 
@@ -169,18 +182,6 @@ class RegistrationSerializer:
     @classmethod
     def populate_host_registration_details(cls, registration_data: dict, registration: Registration):
         """Populates host registration details into response object."""
-        documents = []
-        if registration.documents:
-            for doc in registration.documents:
-                documents.append(
-                    {
-                        "fileKey": doc.path,
-                        "fileName": doc.file_name,
-                        "fileType": doc.file_type,
-                        "documentType": doc.document_type,
-                    }
-                )
-        registration_data["documents"] = documents
 
         primary_property_contact = list(filter(lambda x: x.is_primary is True, registration.rental_property.contacts))[
             0
