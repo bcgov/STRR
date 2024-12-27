@@ -12,7 +12,7 @@ export const useDocumentStore = defineStore('host/document', () => {
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
 
-  const apiDocuments = computed(() => storedDocuments.value.map(item => item.apiDoc))
+  const apiDocuments = computed<ApiDocument[]>(() => storedDocuments.value.map(item => item.apiDoc))
 
   const requiredDocs = computed(() => {
     const reqs = reqStore.propertyReqs

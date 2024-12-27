@@ -50,13 +50,6 @@ export interface ApiUnitAddress extends ApiBaseAddress {
   unitNumber: string
 }
 
-export interface ApiDocument {
-  documentType: DocumentUploadType
-  fileKey: string
-  fileName: string
-  fileType: string
-}
-
 export interface ApiHostApplication {
   registrationType: ApplicationType
   primaryContact: ApiHostContactPerson | ApiHostContactBusiness

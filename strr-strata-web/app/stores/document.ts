@@ -9,7 +9,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(DocumentUploadType.STRATA_HOTEL_DOCUMENTATION) // leaving this in case we want to add other types
 
-  const apiDocuments = computed(() => storedDocuments.value.map(item => item.apiDoc))
+  const apiDocuments = computed<ApiDocument[]>(() => storedDocuments.value.map(item => item.apiDoc))
 
   async function addStoredDocument (doc: File): Promise<void> {
     const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10mb

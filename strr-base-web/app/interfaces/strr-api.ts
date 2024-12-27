@@ -48,6 +48,7 @@ export interface ApiBaseRegistration {
   }
   registrationType: ApplicationType
   businessDetails: ApiBusinessDetails
+  documents?: ApiDocument[]
 }
 
 export interface ApiBaseApplication extends ApiBaseRegistration {
@@ -97,4 +98,11 @@ export interface ApiApplicationBaseResp {
 }
 export interface ApiApplicationResp extends ApiApplicationBaseResp {
   registration: ApiBaseApplication
+}
+
+export interface ApiDocument {
+  documentType: DocumentUploadType
+  fileKey: string
+  fileName: string
+  fileType: string
 }
