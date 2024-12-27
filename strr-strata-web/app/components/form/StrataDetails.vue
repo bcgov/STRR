@@ -199,7 +199,7 @@ onMounted(async () => {
     >
       <ConnectPageSection
         class="bg-white"
-        :heading="{ label: 'Supporting Documentation', labelClass: 'font-bold md:ml-6' }"
+        :heading="{ label: $t('label.supportingDocs'), labelClass: 'font-bold md:ml-6' }"
       >
         <div class="space-y-10 py-10">
           <ConnectFormSection
@@ -229,7 +229,7 @@ onMounted(async () => {
                     <template #link>
                       <UButton
                         :label="$t('link.learnMore')"
-                        :to="useLocalePath()('/')"
+                        :to="useRuntimeConfig().public.strataDocsUploadLearnMoreUrl"
                         :padded="false"
                         variant="link"
                         target="_blank"
