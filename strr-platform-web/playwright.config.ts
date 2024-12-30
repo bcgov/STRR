@@ -37,7 +37,7 @@ export default defineConfig<ConfigOptions>({
     // do not open browser
     headless: false
   },
-  projects: devicesToTest.map(p => typeof p === 'string' ? ({ name: p, use: devices[p] }) : p),
+  projects: devicesToTest.map(p => typeof p === 'string' ? ({ name: p, use: devices[p] }) : p)
   // webServer: {
   //   // run dev server before starting tests
   //   command: 'pnpm dev --port 3000'
