@@ -36,8 +36,9 @@
 # pylint: disable=R0917
 """Manages registration model interactions."""
 import random
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 
+from dateutil.relativedelta import relativedelta
 from flask import render_template
 from weasyprint import HTML
 
@@ -74,7 +75,8 @@ class RegistrationService:
     @classmethod
     def create_registration(cls, user_id, sbc_account_id, registration_request: dict):
         """Creates registration from an application."""
-        start_date = datetime.utcnow()
+        start_date = datetime.combine(datetime.now(), time(8, 0, 0))
+        expiry_date = datetime.combine(start_date + relativedelta(years=1) - relativedelta(days=1), time(23, 59, 59))
         registration_details = registration_request.get("registration")
         registration_type = registration_details.get("registrationType")
         registration_number = RegistrationService._get_registration_number(registration_details)
@@ -85,7 +87,7 @@ class RegistrationService:
             status=RegistrationStatus.ACTIVE,
             registration_number=registration_number,
             start_date=start_date,
-            expiry_date=start_date + Registration.DEFAULT_REGISTRATION_RENEWAL_PERIOD,
+            expiry_date=expiry_date,
             registration_type=registration_type,
         )
 
