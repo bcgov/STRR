@@ -32,7 +32,9 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
       dateOfBirth: type === OwnerType.INDIVIDUAL && role === OwnerRole.HOST
         ? getRequiredNonEmptyString(t('validation.dateOfBirth'))
         : optionalOrEmptyString,
-      taxNumber: getOptionalSin(t('validation.sin'))
+      taxNumber: type === OwnerType.INDIVIDUAL && role === OwnerRole.HOST 
+        ? getRequiredSin(t('validation.sin'))
+        : optionalOrEmptyString
     })
   }
 
