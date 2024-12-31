@@ -49,7 +49,7 @@ defineProps<{
           name="fullName"
           :placeholder="t('label.fullName')"
         />
-        <div v-else class="max-w-bcGovInput flex flex-col gap-3 sm:flex-row">
+        <div v-else class="flex max-w-bcGovInput flex-col gap-3 sm:flex-row">
           <ConnectFormFieldGroup
             v-if="firstName !== undefined"
             :id="idPrefix + '-first-name'"
@@ -118,6 +118,7 @@ defineProps<{
           :aria-label="t('label.faxNumberOpt')"
           name="faxNumber"
           :placeholder="t('label.faxNumberOpt')"
+          :mask="phone?.countryCode === '1' ? '(###) ###-####' : '##############'"
         />
         <ConnectFormFieldGroup
           v-if="emailAddress !== undefined"
