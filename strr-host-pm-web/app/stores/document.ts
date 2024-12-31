@@ -255,11 +255,15 @@ export const useDocumentStore = defineStore('host/document', () => {
   }
 
   function validatePrincipalResidenceDocuments (): boolean {
-    // either 2 unique docs from this list are required
-    const uniqueColumnADocs = [
+    // bc id cards only count as 1 document
+    const bcIdDocs = [
       DocumentUploadType.BC_DRIVERS_LICENSE,
       DocumentUploadType.BCSC,
-      DocumentUploadType.COMBINED_BCSC_LICENSE,
+      DocumentUploadType.COMBINED_BCSC_LICENSE
+    ]
+
+    // either 2 unique docs from this list are required
+    const uniqueColumnADocs = [
       DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE,
       DocumentUploadType.SPEC_TAX_CONFIRMATION,
       DocumentUploadType.HOG_DECLARATION
@@ -299,8 +303,14 @@ export const useDocumentStore = defineStore('host/document', () => {
 
     // get non-unique column b docs
     const columnBFilteredNonUnique = apiDocuments.value.filter(item => nonUniqueColumnBDocs.includes(item.documentType))
+
+    // get bc id docs
+    const bcIdDocsExist = apiDocuments.value.some((doc) => bcIdDocs.includes(doc.documentType))
+    // only count bcid docs as 1 document
+    const bcIdDocCount = bcIdDocsExist ? 1 : 0
+
     // get doc count
-    const columnACount = columnAFilteredUnique.length
+    const columnACount = columnAFilteredUnique.length + bcIdDocCount
     const columnBCount = columnBFilteredUnique.length + columnBFilteredNonUnique.length
 
     // validate at least 2 of column a docs OR validate at least 1 of column a and 2 of column b
