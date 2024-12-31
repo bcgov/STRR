@@ -197,6 +197,7 @@ watch(isCompParty, (val) => {
           :aria-label="$t('label.faxNumberOpt')"
           name="faxNumber"
           :placeholder="$t('label.faxNumberOpt')"
+          :mask="owner.phone.countryCode === '1' ? '(###) ###-####' : '##############'"
         />
       </ConnectFormSection>
       <ConnectFormSection
