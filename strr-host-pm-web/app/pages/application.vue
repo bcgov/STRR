@@ -63,9 +63,6 @@ const setFeeBasedOnProperty = () => {
     removeFee(StrrFeeCode.STR_HOST_1)
     removeFee(StrrFeeCode.STR_HOST_2)
     hostFee3.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
-    // hostFee3.value.quantityDesc = hostFee3.value.quantity > 1
-    //   ? t('strr.word.room', hostFee3.value.quantity)
-    //   : undefined
     addReplaceFee(hostFee3.value)
   } else {
     // set placeholder
