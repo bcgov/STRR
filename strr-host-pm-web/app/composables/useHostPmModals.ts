@@ -8,6 +8,7 @@ export const useHostPmModals = () => {
   const { t } = useI18n()
   const reqStore = usePropertyReqStore()
   const propStore = useHostPropertyStore()
+  const docStore = useDocumentStore()
 
   function openHelpCreateAccountModal () {
     modal.open(ModalBase, {
@@ -31,9 +32,10 @@ export const useHostPmModals = () => {
         },
         {
           label: edit ? t('modal.editUnitAddress.confirmBtn') : t('modal.removeUnitAddress.confirmBtn'),
-          handler: () => {
+          handler: async () => {
             reqStore.$reset()
             propStore.$reset()
+            await docStore.resetApiDocs()
             close()
           } // TODO: reset other form state as well ?
         }

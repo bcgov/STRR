@@ -81,7 +81,6 @@ onMounted(async () => {
     :state="propStore.unitDetails"
     class="space-y-10"
   >
-    <!-- v-if="reqStore.continueApplication" -->
     <ConnectPageSection>
       <div class="space-y-10 py-10">
         <!-- property type section -->

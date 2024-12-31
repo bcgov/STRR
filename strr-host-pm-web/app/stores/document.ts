@@ -315,11 +315,6 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
   }
 
-  // reset documents when requirements change
-  watch([() => reqStore.propertyReqs, () => reqStore.prRequirements], async () => {
-    await resetApiDocs()
-  }, { deep: true })
-
   // use this to remove documents from store and from api
   async function resetApiDocs () {
     const docsToDelete = [...storedDocuments.value]

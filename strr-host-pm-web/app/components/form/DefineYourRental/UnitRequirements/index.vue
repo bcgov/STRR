@@ -3,9 +3,7 @@ defineProps<{ isComplete: boolean }>()
 const reqStore = usePropertyReqStore()
 </script>
 <template>
-  <!-- TODO: test only the correct state is shown for the different provided scenarios -->
-  <!-- TODO: define correct order for v-ifs, manage with function ?? -->
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4" data-testid="property-requirements-section">
     <FormDefineYourRentalUnitRequirementsError
       v-if="reqStore.propertyReqError.type !== undefined"
     />
