@@ -53,6 +53,7 @@ const setFeeBasedOnProperty = () => {
     return
   }
   if (propertyTypeFeeTriggers.value.isEntireHomeAndPrincipalResidence) {
+    hostFee3.value.quantity = 1
     removeFee(StrrFeeCode.STR_HOST_2)
     addReplaceFee(hostFee1.value)
   } else if (propertyTypeFeeTriggers.value.isEntireHomeAndNotPrincipalResidence) {
@@ -62,15 +63,18 @@ const setFeeBasedOnProperty = () => {
     removeFee(StrrFeeCode.STR_HOST_1)
     removeFee(StrrFeeCode.STR_HOST_2)
     hostFee3.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
-    hostFee3.value.quantityDesc = hostFee3.value.quantity > 1
-      ? t('strr.word.room', hostFee3.value.quantity)
-      : undefined
+    // hostFee3.value.quantityDesc = hostFee3.value.quantity > 1
+    //   ? t('strr.word.room', hostFee3.value.quantity)
+    //   : undefined
     addReplaceFee(hostFee3.value)
   } else {
     // set placeholder
     removeFee(StrrFeeCode.STR_HOST_1)
     removeFee(StrrFeeCode.STR_HOST_2)
   }
+  hostFee3.value.quantityDesc = hostFee3.value.quantity !== undefined && hostFee3.value.quantity > 1
+    ? t('strr.word.room', hostFee3.value.quantity)
+    : undefined
 }
 
 // manage fees only when typeofspace and rentalUnitSetupType change
