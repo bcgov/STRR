@@ -65,7 +65,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       })
     }
 
-    if (propStore.unitDetails.ownershipType === OwnershipType.RENT && exemptionReason === undefined) {
+    if (propStore.unitDetails.ownershipType === OwnershipType.RENT && reqs.isPrincipalResidenceRequired && exemptionReason === undefined) {
       const isRentValid = apiDocuments.value.some(
         item => [DocumentUploadType.TENANCY_AGREEMENT, DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT]
           .includes(item.documentType)
