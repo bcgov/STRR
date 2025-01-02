@@ -30,7 +30,7 @@
     "@playwright/test": "^1.49.1",
     "@testing-library/vue": "^8.1.0",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/parser": "^7.15.0",
+    "@typescript-eslint/parser": "^8.19.0",
     "@vitest/coverage-v8": "1.6.0",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^8.57.0",
@@ -42,10 +42,14 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@daxiom/nuxt-core-layer-test": "^0.0.17",
-    "@vuepic/vue-datepicker": "^9.0.3",
+    "@daxiom/nuxt-core-layer-test": "^0.0.20",
     "country-codes-list": "^1.6.11",
-    "nuxt": "3.12.4",
+    "nuxt": "3.15.0",
     "vue-country-flag-next": "^2.3.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite": "5.4.11"
+    }
   }
 }
