@@ -276,18 +276,23 @@ export const useDocumentStore = defineStore('host/document', () => {
       DocumentUploadType.PROPERTY_TAX_NOTICE
     ]
 
-    // include rental docs as part of proof of pr only if ownership type === rent
-    if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
-      uniqueColumnBDocs.push(DocumentUploadType.TENANCY_AGREEMENT)
-      uniqueColumnBDocs.push(DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT)
-    }
-
     // or 1 doc from column A and 2 non-unique docs from this list are required
     const nonUniqueColumnBDocs = [
       DocumentUploadType.UTILITY_BILL,
       DocumentUploadType.OTHERS,
       DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
     ]
+
+    // rental docs only count as 1 document
+    const rentalDocs = [
+      DocumentUploadType.TENANCY_AGREEMENT,
+      DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
+    ]
+    // include rental docs as part of proof of pr only if ownership type === rent
+    // if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
+    //   uniqueColumnBDocs.push(DocumentUploadType.TENANCY_AGREEMENT)
+    //   uniqueColumnBDocs.push(DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT)
+    // }
 
     // get unique column a docs
     const columnAFilteredUnique = uniqBy(
@@ -309,9 +314,15 @@ export const useDocumentStore = defineStore('host/document', () => {
     // only count bcid docs as 1 document
     const bcIdDocCount = bcIdDocsExist ? 1 : 0
 
+    // get rental docs
+    const rentalDocsExist = propStore.unitDetails.ownershipType === OwnershipType.RENT 
+      && apiDocuments.value.some((doc) => rentalDocs.includes(doc.documentType))
+    // only count rental docs as 1 document
+    const rentalDocCount = rentalDocsExist ? 1 : 0  
+
     // get doc count
     const columnACount = columnAFilteredUnique.length + bcIdDocCount
-    const columnBCount = columnBFilteredUnique.length + columnBFilteredNonUnique.length
+    const columnBCount = columnBFilteredUnique.length + columnBFilteredNonUnique.length + rentalDocCount
 
     // validate at least 2 of column a docs OR validate at least 1 of column a and 2 of column b
     return columnACount >= 2 || (columnACount >= 1 && columnBCount >= 2)
