@@ -2,7 +2,7 @@
   "name": "strr-host-pm-web",
   "private": true,
   "type": "module",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
@@ -43,7 +43,7 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@daxiom/nuxt-core-layer-test": "^0.0.19",
+    "@daxiom/nuxt-core-layer-test": "^0.0.20",
     "country-codes-list": "^1.6.11",
     "lodash.uniqby": "^4.7.0",
     "nuxt": "^3.15.0",

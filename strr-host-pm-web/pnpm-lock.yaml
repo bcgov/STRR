@@ -9,8 +9,8 @@ overrides:
 
 dependencies:
   '@daxiom/nuxt-core-layer-test':
-    specifier: ^0.0.19
-    version: 0.0.19(nuxt@3.15.0)(rollup@4.29.1)(typescript@5.7.2)(vite@5.4.11)(vue@3.5.13)
+    specifier: ^0.0.20
+    version: 0.0.20(nuxt@3.15.0)(rollup@4.29.1)(typescript@5.7.2)(vite@5.4.11)(vue@3.5.13)
   country-codes-list:
     specifier: ^1.6.11
     version: 1.6.11
@@ -434,8 +434,8 @@ packages:
       postcss-selector-parser: 7.0.0
     dev: false
 
-  /@daxiom/nuxt-core-layer-test@0.0.19(nuxt@3.15.0)(rollup@4.29.1)(typescript@5.7.2)(vite@5.4.11)(vue@3.5.13):
-    resolution: {integrity: sha512-ixFNW387PxYtP7lAfvulwrO5VihLWGA0Q9ptFE1ww7SRShvlIBN9Ey6c6mfl42kYtL/dUgJwq9D5x3OaInVP0w==}
+  /@daxiom/nuxt-core-layer-test@0.0.20(nuxt@3.15.0)(rollup@4.29.1)(typescript@5.7.2)(vite@5.4.11)(vue@3.5.13):
+    resolution: {integrity: sha512-PBJZZps7cJmCry38F8dFMk3dtADg6beVsh0A1ucPRjubZs6I/dEpFy/rsAvCfOTMBR+sPApu/MCL4gfY4iIAxA==}
     dependencies:
       '@iconify-json/mdi': 1.2.2
       '@nuxt/content': 2.13.4(nuxt@3.15.0)(rollup@4.29.1)(vue@3.5.13)

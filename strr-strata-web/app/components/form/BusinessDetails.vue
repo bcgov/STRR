@@ -72,7 +72,7 @@ onMounted(async () => {
           :title="$t('strr.section.subTitle.businessIds')"
           :error="hasFormErrors(strataBusinessFormRef, ['legalName', 'homeJurisdiction'])"
         >
-          <div class="space-y-5">
+          <div class="space-y-5 max-w-bcGovInput">
             <ConnectFormFieldGroup
               id="strata-business-legal-name"
               v-model="strataBusiness.legalName"
