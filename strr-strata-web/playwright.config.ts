@@ -23,7 +23,7 @@ export default defineConfig<ConfigOptions>({
   // Retry on CI only.
   // retries: process.env.CI ? 2 : 0,
   retries: 3, // a11y tests are flaky
-
+  maxFailures: 1,
   // Opt out of parallel tests on CI.
   // workers: process.env.CI ? 1 : undefined,
   use: {
