@@ -72,7 +72,7 @@ onMounted(async () => {
           :title="$t('strr.section.subTitle.businessIds')"
           :error="hasFormErrors(strataBusinessFormRef, ['legalName', 'homeJurisdiction'])"
         >
-          <div class="space-y-5 max-w-bcGovInput">
+          <div class="max-w-bcGovInput space-y-5">
             <ConnectFormFieldGroup
               id="strata-business-legal-name"
               v-model="strataBusiness.legalName"
@@ -141,7 +141,11 @@ onMounted(async () => {
           ])"
         >
           <div class="max-w-bcGovInput space-y-5">
-            <UFormGroup id="strata-business-hasRegOffAtt" data-testid="strata-business-hasRegOffAtt" name="hasRegOffAtt">
+            <UFormGroup
+              id="strata-business-hasRegOffAtt"
+              data-testid="strata-business-hasRegOffAtt"
+              name="hasRegOffAtt"
+            >
               <URadioGroup
                 v-model="strataBusiness.hasRegOffAtt"
                 class="p-2"

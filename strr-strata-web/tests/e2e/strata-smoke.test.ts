@@ -1,13 +1,13 @@
 /* eslint-disable max-len */
-import { test, expect, type Page } from '@playwright/test'
-import dotenv from 'dotenv'
-import { getFakeBusinessDetails, getFakeContactDetails, getFakeStrataDetails } from './test-utils/faker'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { test, expect, type Page } from '@playwright/test'
+import { config as dotenvConfig } from 'dotenv'
+import { getFakeBusinessDetails, getFakeContactDetails, getFakeStrataDetails } from './test-utils/faker'
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
-// eslint-disable-next-line
-dotenv.config() // init env
+// load default env
+dotenvConfig()
 
 enum LoginSource {
   BCSC = 'BCSC',
@@ -272,7 +272,7 @@ loginMethods.forEach((loginMethod) => {
       const detailsHeader = page.getByTestId('connect-details-header')
       await expect(detailsHeader).toContainText(strataDetails.brand.name)
       const urlParts = strataDetails.brand.website.match(/^(https?:\/\/)(www\.)?(.+?(?=(\/)|$))/) // remove https from website name and trailing slashes
-      await expect(detailsHeader).toContainText(urlParts![3]!) 
+      await expect(detailsHeader).toContainText(urlParts![3]!)
       await expect(detailsHeader).toContainText(strataDetails.numberOfUnits!.toString())
       await expect(detailsHeader).toContainText('Pending Approval')
       await expect(detailsHeader.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
@@ -314,7 +314,7 @@ loginMethods.forEach((loginMethod) => {
       await expect(repSection).toContainText(secondaryRep.lastName)
       await expect(repSection).toContainText(secondaryRep.position)
       await expect(repSection).toContainText(secondaryRep.emailAddress)
-      
+
       // buildings sections
       const buildingsSection = page.locator('section').filter({ hasText: 'Buildings' })
       await expect(buildingsSection).toContainText(strataDetails.location.street)
@@ -323,7 +323,7 @@ loginMethods.forEach((loginMethod) => {
       await expect(buildingsSection).toContainText(strataDetails.buildings[0]!.street)
       await expect(buildingsSection).toContainText(strataDetails.buildings[0]!.postalCode)
     })
-    
+
     test('smoke test - Dashboard List View', async () => {
       page.waitForURL('**/strata-hotel/dashboard/**')
       await expect(page.getByTestId('h1')).toContainText(strataDetails.brand.name)

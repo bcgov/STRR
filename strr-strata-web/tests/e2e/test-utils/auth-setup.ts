@@ -1,7 +1,7 @@
 import { type Browser, chromium, type Page } from '@playwright/test'
-import dotenv from 'dotenv'
+import { config as dotenvConfig } from 'dotenv'
 // load default env
-dotenv.config()
+dotenvConfig()
 
 // checks if site is available before running setup
 async function isServerReady (url: string, timeout: number = 30000): Promise<boolean> {
