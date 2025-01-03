@@ -149,6 +149,11 @@ class ErrorMessage(Enum):
     APPLICATION_NOT_MODIFIABLE = "Application cannot be modified."
     ADDRESS_NOT_FOUND = "Address not found."
     REGISTRATION_STATUS_UPDATE_NOT_ALLOWED = "Registration status cannot be updated to the specified status."
+    PERMIT_NOT_FOUND = "Permit does not exist."
+    STREET_NUMBER_MISMATCH = "Street number does not match with the data in the permit."
+    POSTAL_CODE_MISMATCH = "Postal code does not match with the data in the permit."
+    ADDRESS_IN_STR_PROHIBITED_AREA = "Address is in a short term rentals prohibited area."
+    ADDRESS_LOOK_UP_FAILED = "Failed to look up the address."
 
 
 class ApplicationRole(Enum):

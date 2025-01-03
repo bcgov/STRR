@@ -56,8 +56,8 @@ bp = Blueprint("validation", __name__)
 @jwt.requires_auth
 def validate_listing():
     """
-    Matches the street number, postal code and unit number (optional) in the request with the
-    corresponding details in the permit.
+    If a permit number it specified, the API matches the street number, postal code and unit number (optional)
+    in the request with the corresponding details in the permit.
     ---
     tags:
       - validation
