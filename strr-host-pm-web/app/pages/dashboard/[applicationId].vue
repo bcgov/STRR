@@ -81,7 +81,12 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
-  middleware: ['auth', 'require-account']
+  middleware: ['auth', 'require-account'],
+  onAccountChange: async () => {
+    const { $router, $i18n } = useNuxtApp()
+    await $router.push(`/${$i18n.locale.value}/dashboard`)
+    return true
+  }
 })
 
 setBreadcrumbs([
