@@ -60,7 +60,7 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
               :padded="false"
               variant="link"
               target="_blank"
-              class="text-base underline italic"
+              class="text-base italic underline"
             />
           </template>
         </i18n-t>

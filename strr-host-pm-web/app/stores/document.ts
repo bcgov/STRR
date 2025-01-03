@@ -65,7 +65,10 @@ export const useDocumentStore = defineStore('host/document', () => {
       })
     }
 
-    if (propStore.unitDetails.ownershipType === OwnershipType.RENT && reqs.isPrincipalResidenceRequired && exemptionReason === undefined) {
+    if (
+      propStore.unitDetails.ownershipType === OwnershipType.RENT &&
+        reqs.isPrincipalResidenceRequired && exemptionReason === undefined
+    ) {
       const isRentValid = apiDocuments.value.some(
         item => [DocumentUploadType.TENANCY_AGREEMENT, DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT]
           .includes(item.documentType)
@@ -256,10 +259,10 @@ export const useDocumentStore = defineStore('host/document', () => {
 
   async function removeDocumentsByType (types: DocumentUploadType[]) {
     const docsToDelete = storedDocuments.value.filter(
-      (doc) => types.includes(doc.type)
+      doc => types.includes(doc.type)
     )
 
-    if (docsToDelete.length === 0){
+    if (docsToDelete.length === 0) {
       return
     }
 
@@ -305,7 +308,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     ...documentCategories.uniqueColumnA,
     ...documentCategories.uniqueColumnB,
     ...documentCategories.nonUniqueColumnB,
-    ...documentCategories.rental,
+    ...documentCategories.rental
   ]
 
   function validatePrincipalResidenceDocuments (): boolean {
@@ -322,18 +325,20 @@ export const useDocumentStore = defineStore('host/document', () => {
     )
 
     // get non-unique column b docs
-    const columnBFilteredNonUnique = apiDocuments.value.filter(item => documentCategories.nonUniqueColumnB.includes(item.documentType))
+    const columnBFilteredNonUnique = apiDocuments.value.filter(item =>
+      documentCategories.nonUniqueColumnB.includes(item.documentType)
+    )
 
     // get bc id docs
-    const bcIdDocsExist = apiDocuments.value.some((doc) => documentCategories.bcId.includes(doc.documentType))
+    const bcIdDocsExist = apiDocuments.value.some(doc => documentCategories.bcId.includes(doc.documentType))
     // only count bcid docs as 1 document
     const bcIdDocCount = bcIdDocsExist ? 1 : 0
 
     // get rental docs
-    const rentalDocsExist = propStore.unitDetails.ownershipType === OwnershipType.RENT 
-      && apiDocuments.value.some((doc) => documentCategories.rental.includes(doc.documentType))
+    const rentalDocsExist = propStore.unitDetails.ownershipType === OwnershipType.RENT &&
+      apiDocuments.value.some(doc => documentCategories.rental.includes(doc.documentType))
     // only count rental docs as 1 document
-    const rentalDocCount = rentalDocsExist ? 1 : 0  
+    const rentalDocCount = rentalDocsExist ? 1 : 0
 
     // get doc count
     const columnACount = columnAFilteredUnique.length + bcIdDocCount

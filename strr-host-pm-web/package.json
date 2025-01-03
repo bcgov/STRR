@@ -2,7 +2,7 @@
   "name": "strr-host-pm-web",
   "private": true,
   "type": "module",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
@@ -10,7 +10,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint": "eslint --ext \".ts,.vue\" --ignore-path .gitignore",
+    "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
     "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./tests/coverage/clover.xml ./coverage.xml",
     "test:unit": "vitest --dir tests/unit",

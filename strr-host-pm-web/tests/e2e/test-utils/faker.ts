@@ -74,7 +74,7 @@ export function getFakeOwner (ownerType: OwnerType, role: OwnerRole, isCompParty
   }
 }
 
-function getFakeExpiryDate() {
+function getFakeExpiryDate () {
   const now = new Date()
   // add 10 months
   now.setMonth(now.getMonth() + 10)
@@ -84,7 +84,7 @@ function getFakeExpiryDate() {
   return now.toISOString().split('T')[0]!
 }
 
-export function getFakeBlInfo(): UiBlInfo {
+export function getFakeBlInfo (): UiBlInfo {
   return {
     businessLicense: 'BC' + faker.number.int({ min: 10000, max: 99999 }).toString(),
     businessLicenseExpiryDate: getFakeExpiryDate()

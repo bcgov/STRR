@@ -1,16 +1,15 @@
 /* eslint-disable max-len */
-import { test, expect, type Page } from '@playwright/test'
-import { OwnerRole } from '../../app/enums/owner-role'
-import { OwnerType } from '../../app/enums/owner-type'
-import dotenv from 'dotenv'
-import { getFakeOwner, getFakePropertyNickname, getFakePid, getFakeBlInfo } from './test-utils/faker'
-import { uploadDocuments } from './test-utils/upload-documents'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-
+import { test, expect, type Page } from '@playwright/test'
+import { config as dotenvConfig } from 'dotenv'
+import { OwnerRole } from '../../app/enums/owner-role'
+import { OwnerType } from '../../app/enums/owner-type'
+import { getFakeOwner, getFakePropertyNickname, getFakePid, getFakeBlInfo } from './test-utils/faker'
+import { uploadDocuments } from './test-utils/upload-documents'
+// load default env
+dotenvConfig()
 const currentDir = dirname(fileURLToPath(import.meta.url))
-// eslint-disable-next-line
-dotenv.config() // init env
 
 enum LoginSource {
   BCSC = 'BCSC',
@@ -109,7 +108,7 @@ loginMethods.forEach((loginMethod) => {
       // enter address autocomplete
       await page.locator('#rental-property-address-lookup-street').click()
       await page.keyboard.type(lookupAddress, { delay: 100 }) // using .fill() doesnt trigger canada post api
-      await page.getByRole('option', { name: lookupAddress  }).click() // 'Panorama DrCoquitlam, BC, V3E 2W1'
+      await page.getByRole('option', { name: lookupAddress }).click() // 'Panorama DrCoquitlam, BC, V3E 2W1'
       await page.getByTestId('property-requirements-section').waitFor({ state: 'visible', timeout: 10000 }) // wait for autocomplete requirements to be displayed
 
       // fill out unit details
@@ -191,7 +190,7 @@ loginMethods.forEach((loginMethod) => {
       await cohostSection.getByRole('button', { name: 'Done', exact: true }).click()
       await expect(cohostSection).not.toBeVisible() // form should be hidden
       await expect(page.locator('table').filter({ hasText: 'Co-host' })).toBeVisible() // cohost party should be added to table
-      
+
       // add property manager
       await page.getByRole('button', { name: 'Add a Business', exact: true }).click()
       await expect(page.locator('section').filter({ hasText: 'Add a Business' })).toBeVisible()
@@ -287,7 +286,7 @@ loginMethods.forEach((loginMethod) => {
 
       // supporting info section
       const supportingInfoSection = page.locator('section').filter({ hasText: 'Supporting Information' })
-      requiredDocs.forEach(async item => {
+      requiredDocs.forEach(async (item) => {
         await expect(supportingInfoSection).toContainText(item.option)
       })
       await expect(supportingInfoSection).toContainText(blInfo.businessLicense)
@@ -332,7 +331,7 @@ loginMethods.forEach((loginMethod) => {
 
       // supporting info section
       const supportingInfoSection = page.locator('section').filter({ hasText: 'Supporting Information' })
-      requiredDocs.forEach(async item => {
+      requiredDocs.forEach(async (item) => {
         await expect(supportingInfoSection).toContainText(item.option)
       })
       await expect(supportingInfoSection).toContainText(blInfo.businessLicense)
@@ -364,7 +363,7 @@ loginMethods.forEach((loginMethod) => {
       await expect(ibSection).toContainText(propertManager.businessNumber)
       await expect(ibSection).toContainText(propertManager.businessLegalName)
     })
-    
+
     test('smoke test - Dashboard List View', async () => {
       page.waitForURL('**/dashboard/**')
       await expect(page.getByTestId('h1')).toContainText(nickname)

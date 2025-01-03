@@ -93,7 +93,6 @@ onMounted(async () => {
               </div>
               <div class="flex flex-col items-start gap-4 xl:flex-row">
                 <FormUnitAddressAutoComplete
-                  class="min-w-80"
                   id="rental-property-address-lookup"
                   v-model:address-input="propStore.unitAddress.address.street"
                   v-model:street-number="propStore.unitAddress.address.streetNumber"
@@ -101,6 +100,7 @@ onMounted(async () => {
                   v-model:unit-number="propStore.unitAddress.address.unitNumber"
                   v-model:city="propStore.unitAddress.address.city"
                   v-model:postal-code="propStore.unitAddress.address.postalCode"
+                  class="min-w-80"
                   :schema-prefix="'address.'"
                   :form-ref="unitAddressFormRef"
                   :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"

@@ -145,7 +145,7 @@ definePageMeta({
           v-model:first-name="state.firstName"
           v-model:last-name="state.lastName"
           v-model:phone="state.phone"
-          v-model:emailAddress="state.emailAddress"
+          v-model:email-address="state.emailAddress"
           id-prefix="create-account-form"
           name-divider
           prepopulate-name

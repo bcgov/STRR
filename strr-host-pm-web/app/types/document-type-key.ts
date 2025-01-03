@@ -1,4 +1,4 @@
-export type DocumentTypeKey = 
+export type DocumentTypeKey =
   | 'bcId'
   | 'uniqueColumnA'
   | 'uniqueColumnB'

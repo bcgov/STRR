@@ -145,7 +145,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       errorMap: () => ({ message: t('validation.rentalUnitSetupType') })
     }),
     numberOfRoomsForRent: z
-      .number({ 
+      .number({
         required_error: t('validation.numberOfRooms.empty'),
         invalid_type_error: t('validation.numberOfRooms.invalidInput')
       })

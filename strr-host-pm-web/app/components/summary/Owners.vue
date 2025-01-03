@@ -86,7 +86,7 @@ const getPhoneNumber = (phone: ConnectPhone) => {
       </ConnectInfoWithIcon>
     </template>
     <template #details-data="{ row }: { row: HostOwner }">
-      <ConnectInfoWithIcon 
+      <ConnectInfoWithIcon
         :icon="row.role === OwnerRole.HOST ? 'i-mdi-map-marker-outline' : 'i-mdi-email'"
       >
         <ConnectFormAddressDisplay v-if="row.mailingAddress?.country" :address="row.mailingAddress" />

@@ -243,7 +243,7 @@ watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
   if (showUnitDetailsForm.value && newVal !== undefined) {
     // remove all permanent residence proof docs when user select exemption reason
     const docsToDelete = [...documentsStore.prDocs]
-    
+
     switch (newVal) {
       case PrExemptionReason.FARM_LAND:
         // remove all exemption docs when farmland as reason
@@ -255,7 +255,7 @@ watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
       case PrExemptionReason.STRATA_HOTEL:
         docsToDelete.push(DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT)
         break
-      default: 
+      default:
         break
     }
     await documentsStore.removeDocumentsByType(docsToDelete)

@@ -21,7 +21,7 @@ const config = useRuntimeConfig().public
       <template #default="{ item, open }">
         <UButton
           variant="ghost"
-          class="justify-between pr-2 pl-0 py-4 border-t border-bcGovGray-300"
+          class="justify-between border-t border-bcGovGray-300 py-4 pl-0 pr-2"
           :ui="{
             rounded: 'rounded-none'
           }"

@@ -68,7 +68,10 @@ const getCompPartyName = computed(() => {
 })
 
 const agreedToRentalActListItems = computed(() => {
-  if (reqStore.hasReqs && (!reqStore.propertyReqs.isPrincipalResidenceRequired || reqStore.prRequirements.prExemptionReason !== undefined)) {
+  if (
+    reqStore.hasReqs &&
+      (!reqStore.propertyReqs.isPrincipalResidenceRequired || reqStore.prRequirements.prExemptionReason !== undefined)
+  ) {
     return [{ slot: 'item-1' }, { i18nKey: 'certify.2' }, { i18nKey: 'certify.4' }]
   } else {
     return [{ slot: 'item-1' }, { i18nKey: 'certify.2' }, { i18nKey: 'certify.3' }, { i18nKey: 'certify.4' }]
