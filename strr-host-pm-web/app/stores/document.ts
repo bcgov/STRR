@@ -254,69 +254,84 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
   }
 
-  function validatePrincipalResidenceDocuments (): boolean {
-    // bc id cards only count as 1 document
-    const bcIdDocs = [
+  async function removeDocumentsByType (types: DocumentUploadType[]) {
+    const docsToDelete = storedDocuments.value.filter(
+      (doc) => types.includes(doc.type)
+    )
+
+    if (docsToDelete.length === 0){
+      return
+    }
+
+    await Promise.all(docsToDelete.map(doc => removeStoredDocument(doc)))
+  }
+
+  const documentCategories: Record<DocumentTypeKey, DocumentUploadType[]> = {
+    bcId: [ // bc id cards only count as 1 document
       DocumentUploadType.BC_DRIVERS_LICENSE,
       DocumentUploadType.BCSC,
       DocumentUploadType.COMBINED_BCSC_LICENSE
-    ]
-
-    // either 2 unique docs from this list are required
-    const uniqueColumnADocs = [
+    ],
+    uniqueColumnA: [ // either 2 unique docs from this list are required
       DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE,
       DocumentUploadType.SPEC_TAX_CONFIRMATION,
       DocumentUploadType.HOG_DECLARATION
-    ]
-
-    // or 1 doc from column A and 2 unique docs from this list are required
-    const uniqueColumnBDocs = [
+    ],
+    uniqueColumnB: [ // or 1 doc from column A and 2 unique docs from this list are required
       DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE,
       DocumentUploadType.HOME_INSURANCE_SUMMARY,
       DocumentUploadType.PROPERTY_TAX_NOTICE
-    ]
-
-    // or 1 doc from column A and 2 non-unique docs from this list are required
-    const nonUniqueColumnBDocs = [
+    ],
+    nonUniqueColumnB: [ // or 1 doc from column A and 2 non-unique docs from this list are required
       DocumentUploadType.UTILITY_BILL,
       DocumentUploadType.OTHERS,
       DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
-    ]
-
-    // rental docs only count as 1 document
-    const rentalDocs = [
+    ],
+    rental: [ // rental docs only count as 1 document
       DocumentUploadType.TENANCY_AGREEMENT,
       DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
+    ],
+    exemption: [
+      DocumentUploadType.STRATA_HOTEL_DOCUMENTATION,
+      DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+    ],
+    bl: [
+      DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
     ]
-    // include rental docs as part of proof of pr only if ownership type === rent
-    // if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
-    //   uniqueColumnBDocs.push(DocumentUploadType.TENANCY_AGREEMENT)
-    //   uniqueColumnBDocs.push(DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT)
-    // }
+  }
 
+  const prDocs: DocumentUploadType[] = [
+    ...documentCategories.bcId,
+    ...documentCategories.uniqueColumnA,
+    ...documentCategories.uniqueColumnB,
+    ...documentCategories.nonUniqueColumnB,
+    ...documentCategories.rental,
+  ]
+
+  function validatePrincipalResidenceDocuments (): boolean {
     // get unique column a docs
     const columnAFilteredUnique = uniqBy(
-      apiDocuments.value.filter(item => uniqueColumnADocs.includes(item.documentType)),
+      apiDocuments.value.filter(item => documentCategories.uniqueColumnA.includes(item.documentType)),
       'documentType'
     )
 
     // get unique column b docs
     const columnBFilteredUnique = uniqBy(
-      apiDocuments.value.filter(item => uniqueColumnBDocs.includes(item.documentType)),
+      apiDocuments.value.filter(item => documentCategories.uniqueColumnB.includes(item.documentType)),
       'documentType'
     )
 
     // get non-unique column b docs
-    const columnBFilteredNonUnique = apiDocuments.value.filter(item => nonUniqueColumnBDocs.includes(item.documentType))
+    const columnBFilteredNonUnique = apiDocuments.value.filter(item => documentCategories.nonUniqueColumnB.includes(item.documentType))
 
     // get bc id docs
-    const bcIdDocsExist = apiDocuments.value.some((doc) => bcIdDocs.includes(doc.documentType))
+    const bcIdDocsExist = apiDocuments.value.some((doc) => documentCategories.bcId.includes(doc.documentType))
     // only count bcid docs as 1 document
     const bcIdDocCount = bcIdDocsExist ? 1 : 0
 
     // get rental docs
     const rentalDocsExist = propStore.unitDetails.ownershipType === OwnershipType.RENT 
-      && apiDocuments.value.some((doc) => rentalDocs.includes(doc.documentType))
+      && apiDocuments.value.some((doc) => documentCategories.rental.includes(doc.documentType))
     // only count rental docs as 1 document
     const rentalDocCount = rentalDocsExist ? 1 : 0  
 
@@ -358,12 +373,15 @@ export const useDocumentStore = defineStore('host/document', () => {
     docTypeOptions,
     requiredDocs,
     potentialRequiredDocs,
+    documentCategories,
+    prDocs,
     postDocument,
     deleteDocument,
     addStoredDocument,
     removeStoredDocument,
     validateRequiredDocuments,
     resetApiDocs,
+    removeDocumentsByType,
     $reset
   }
 })

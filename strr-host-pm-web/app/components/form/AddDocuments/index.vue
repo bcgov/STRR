@@ -160,14 +160,14 @@ onMounted(async () => {
           :state="propStore.blInfo"
         >
           <div class="space-y-10 py-10">
-            <p
+            <!-- <p
               v-if="docStore.requiredDocs.length === 0"
               class="px-4 md:px-10"
             >
-              <!-- TODO: get text or remove -->
-              Lorem ipsum why would I want this provide this?
+               TODO: get text or remove -->
+              <!-- Lorem ipsum why would I want this provide this? -->
               <!-- {{ $t('strr.text.requireBusLicense') }} -->
-            </p>
+            <!-- </p>  -->
 
             <ConnectFormSection
               :title="$t('label.localGovBL')"

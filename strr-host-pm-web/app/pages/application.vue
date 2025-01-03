@@ -8,7 +8,7 @@ const { handlePaymentRedirect } = useConnectNav()
 
 const propertyStore = useHostPropertyStore()
 const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(propertyStore)
-const { showUnitDetailsForm } = storeToRefs(usePropertyReqStore())
+const { showUnitDetailsForm, prRequirements } = storeToRefs(usePropertyReqStore())
 const { validateOwners } = useHostOwnerStore()
 const documentsStore = useDocumentStore()
 const {
@@ -236,6 +236,39 @@ watch(activeStepIndex, (val) => {
 
   setButtonControl({ leftButtons: [], rightButtons: buttons })
 }, { immediate: true })
+
+// remove unnecessary docs when/if exemption options change
+watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
+  // only execute if unit details form shown - (application has been started)
+  if (showUnitDetailsForm.value && newVal !== undefined) {
+    // remove all permanent residence proof docs when user select exemption reason
+    const docsToDelete = [...documentsStore.prDocs]
+    
+    switch (newVal) {
+      case PrExemptionReason.FARM_LAND:
+        // remove all exemption docs when farmland as reason
+        docsToDelete.push(...documentsStore.documentCategories.exemption)
+        break
+      case PrExemptionReason.FRACTIONAL_OWNERSHIP:
+        docsToDelete.push(DocumentUploadType.STRATA_HOTEL_DOCUMENTATION)
+        break
+      case PrExemptionReason.STRATA_HOTEL:
+        docsToDelete.push(DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT)
+        break
+      default: 
+        break
+    }
+    await documentsStore.removeDocumentsByType(docsToDelete)
+  }
+})
+
+// remove rental docs if ownership type !== rent
+watch(() => unitDetails.value.ownershipType, async (newVal) => {
+  // only execute if unit details form shown - (application has been started)
+  if (showUnitDetailsForm.value && newVal !== undefined && newVal !== OwnershipType.RENT) {
+    await documentsStore.removeDocumentsByType(documentsStore.documentCategories.rental)
+  }
+})
 
 // page stuff
 useHead({
