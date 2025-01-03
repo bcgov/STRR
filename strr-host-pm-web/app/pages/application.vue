@@ -240,15 +240,11 @@ watch(activeStepIndex, (val) => {
 // remove unnecessary docs when/if exemption options change
 watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
   // only execute if unit details form shown - (application has been started)
-  if (showUnitDetailsForm.value && newVal !== undefined) {
+  if (showUnitDetailsForm.value) {
     // remove all permanent residence proof docs when user select exemption reason
     const docsToDelete = [...documentsStore.prDocs]
 
     switch (newVal) {
-      case PrExemptionReason.FARM_LAND:
-        // remove all exemption docs when farmland as reason
-        docsToDelete.push(...documentsStore.documentCategories.exemption)
-        break
       case PrExemptionReason.FRACTIONAL_OWNERSHIP:
         docsToDelete.push(DocumentUploadType.STRATA_HOTEL_DOCUMENTATION)
         break
@@ -256,6 +252,10 @@ watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
         docsToDelete.push(DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT)
         break
       default:
+        // remove all exemption docs when reason is farm land or undefined
+        // (undefined when user has checked and then unchecked theyre exempt)
+        // will need to be updated if any of the exemption docs rules change
+        docsToDelete.push(...documentsStore.documentCategories.exemption)
         break
     }
     await documentsStore.removeDocumentsByType(docsToDelete)
