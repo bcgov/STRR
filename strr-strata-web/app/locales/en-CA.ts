@@ -98,7 +98,9 @@ export default {
     lastStatusChange: 'Last Status Change',
     daysToExpiry: 'Days to Expiry (Pacific Time)',
     chooseDocs: 'Choose Supporting Documents',
-    supportingDocs: 'Supporting Documentation'
+    chooseDocsOpt: 'Choose Supporting Documents (Optional)',
+    supportingDocs: 'Supporting Documentation',
+    fileUpload: 'File Upload'
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page',

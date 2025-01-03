@@ -90,7 +90,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
   }
 
   const getDocumentSchema = () => z.array(z.any()).refine(
-    val => val.length >= 1,
+    val => val.length >= 0, // 0 is optional, set to 1 to require at least 1 doc
     {
       message: t('validation.min1Document'),
       path: ['documents']
