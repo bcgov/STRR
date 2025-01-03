@@ -1,15 +1,12 @@
 /* eslint-disable max-len */
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
 import { test, expect, type Page } from '@playwright/test'
 import { config as dotenvConfig } from 'dotenv'
-import { OwnerRole } from '../../app/enums/owner-role'
-import { OwnerType } from '../../app/enums/owner-type'
-import { getFakeOwner, getFakePropertyNickname, getFakePid, getFakeBlInfo } from './test-utils/faker'
-import { uploadDocuments } from './test-utils/upload-documents'
+import { OwnerRole } from '../../../app/enums/owner-role'
+import { OwnerType } from '../../../app/enums/owner-type'
+import { getFakeOwner, getFakePropertyNickname, getFakePid, getFakeBlInfo } from '../test-utils/faker'
+import { uploadDocuments } from '../test-utils/upload-documents'
 // load default env
 dotenvConfig()
-const currentDir = dirname(fileURLToPath(import.meta.url))
 
 enum LoginSource {
   BCSC = 'BCSC',
@@ -235,7 +232,7 @@ loginMethods.forEach((loginMethod) => {
 
       // upload required docs
       const fileSection = page.locator('section').filter({ hasText: 'File Upload' })
-      await uploadDocuments(currentDir, page, fileSection, requiredDocs)
+      await uploadDocuments(page, fileSection, requiredDocs)
 
       // fill out business licence info
       const blSection = page.locator('section').filter({ hasNotText: 'File Upload', hasText: 'Local Government Business License' })
