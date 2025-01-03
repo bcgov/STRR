@@ -106,8 +106,8 @@ onMounted(async () => {
               :help="$t('strr.hint.businessNumber')"
               mask="#########@@####"
             />
-            <UFormGroup 
-              id="platform-business-hasCpbc" 
+            <UFormGroup
+              id="platform-business-hasCpbc"
               data-testid="platform-business-hasCpbc"
               name="hasCpbc"
             >
@@ -175,9 +175,9 @@ onMounted(async () => {
           ])"
         >
           <div class="max-w-bcGovInput space-y-5">
-            <UFormGroup 
-              id="platform-business-hasRegOffAtt" 
-              data-testid="platform-business-hasRegOffAtt" 
+            <UFormGroup
+              id="platform-business-hasRegOffAtt"
+              data-testid="platform-business-hasRegOffAtt"
               name="hasRegOffAtt"
             >
               <URadioGroup
@@ -238,7 +238,7 @@ onMounted(async () => {
                   :to="useRuntimeConfig().public.platformsLearnMoreUrl"
                   :external="true"
                   target="_blank"
-                  variant="link"    
+                  variant="link"
                   :padded="false"
                   trailing-icon="i-mdi-open-in-new"
                   :label="$t('btn.learnMore')"

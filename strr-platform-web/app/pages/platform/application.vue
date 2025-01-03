@@ -21,7 +21,7 @@ const {
   removeFee,
   setPlaceholderFilingTypeCode,
   setPlaceholderServiceFee,
-  initAlternatePaymentMethod,
+  initAlternatePaymentMethod
 } = useConnectFeeStore()
 
 setPlaceholderFilingTypeCode(StrrFeeCode.STR_PLAT_SM)

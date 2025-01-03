@@ -1,4 +1,4 @@
-import { faker, fakerEN_CA } from '@faker-js/faker'
+import { faker, fakerEN_CA as fakerCa } from '@faker-js/faker'
 
 export function getFakeContactDetails (): StrrContact {
   const firstName = faker.person.firstName()
@@ -24,9 +24,9 @@ function getFakeAddress () {
   return {
     street: faker.location.streetAddress(),
     streetAdditional: '',
-    city: fakerEN_CA.location.city(),
-    region: fakerEN_CA.location.state(),
-    postalCode: fakerEN_CA.location.zipCode(),
+    city: fakerCa.location.city(),
+    region: fakerCa.location.state(),
+    postalCode: fakerCa.location.zipCode(),
     country: 'CA',
     locationDescription: faker.lorem.sentence(),
     streetName: faker.location.street(),
@@ -61,7 +61,7 @@ export function getFakePlatformDetails (): { brands: StrrBrand[], listingSize: s
   const brandCount = faker.number.int({ min: 1, max: 3 })
   const brands = Array.from({ length: brandCount }, () => ({
     name: faker.company.name(),
-    website: faker.internet.url(),
+    website: faker.internet.url()
   }))
   return {
     brands,
