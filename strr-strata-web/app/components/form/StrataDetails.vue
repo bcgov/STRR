@@ -202,7 +202,10 @@ onMounted(async () => {
         :heading="{ label: $t('label.supportingDocs'), labelClass: 'font-bold md:ml-6' }"
       >
         <div class="space-y-10 py-10">
-          <ConnectFormSection :title="$t('label.fileUpload')">
+          <ConnectFormSection 
+            :title="$t('label.fileUpload')"
+            :error="hasFormErrors(documentFormRef, ['documents'])"
+          >
             <div class="max-w-bcGovInput">
               <UFormGroup
                 name="documents"
@@ -215,6 +218,8 @@ onMounted(async () => {
                   id="supporting-documents"
                   :label="$t('label.chooseDocsOpt')"
                   accept=".pdf"
+                  :is-required="false"
+                  :is-invalid="isComplete && hasFormErrors(documentFormRef, ['documents'])"
                   help-id="supporting-documents-help"
                   @change="(e: FileList | null) => e && e[0] ? docStore.addStoredDocument(e[0]) : undefined"
                 />
