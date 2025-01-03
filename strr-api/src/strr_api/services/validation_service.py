@@ -126,19 +126,14 @@ class ValidationService:
         address = f"{address_line_1} {address_line_2}, {address_json.get('locality')}, BC"
         str_data = ApprovalService.getSTRDataForAddress(address=address)
         if str_data:
+            response = {"address": address_json}
             if str_data.get("isStrProhibited"):
-                errors.append(
-                    {
-                        "code": ErrorMessage.ADDRESS_IN_STR_PROHIBITED_AREA.name,
-                        "message": ErrorMessage.ADDRESS_IN_STR_PROHIBITED_AREA.value,
-                    }
-                )
-            elif str_data.get("isStraaExempt"):
-                response["isExempt"] = True
+                response["strProhibited"] = True
+            else:
+                response["strExempt"] = str_data.get("isStraaExempt")
         else:
             errors.append(
                 {"code": ErrorMessage.ADDRESS_LOOK_UP_FAILED.name, "message": ErrorMessage.ADDRESS_LOOK_UP_FAILED.value}
             )
-        if errors:
             response["errors"] = errors
         return response
