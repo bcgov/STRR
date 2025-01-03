@@ -19,7 +19,7 @@ const phoneId = useId()
 defineExpose({ number })
 </script>
 <template>
-  <div class="max-w-bcGovInput flex w-full flex-col gap-3 sm:flex-row">
+  <div class="flex w-full max-w-bcGovInput flex-col gap-3 sm:flex-row">
     <UFormGroup :name="name + '.countryCode'" class="grow sm:max-w-[130px]">
       <template #default="{ error }">
         <ConnectFormPhoneNumberCountryCode

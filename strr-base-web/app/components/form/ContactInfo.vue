@@ -93,7 +93,7 @@ onMounted(async () => {
             v-model:first-name="completingParty.firstName"
             v-model:last-name="completingParty.lastName"
             v-model:phone="completingParty.phone"
-            v-model:emailAddress="completingParty.emailAddress"
+            v-model:email-address="completingParty.emailAddress"
             id-prefix="platform-completing-party"
             name-divider
             prepopulate-name
@@ -117,7 +117,7 @@ onMounted(async () => {
             v-model:middle-name="primaryRep.middleName"
             v-model:last-name="primaryRep.lastName"
             v-model:phone="primaryRep.phone"
-            v-model:emailAddress="primaryRep.emailAddress"
+            v-model:email-address="primaryRep.emailAddress"
             v-model:fax-number="primaryRep.faxNumber"
             v-model:position="primaryRep.position"
             id-prefix="platform-primary-rep"
@@ -169,7 +169,7 @@ onMounted(async () => {
             v-model:middle-name="secondaryRep.middleName"
             v-model:last-name="secondaryRep.lastName"
             v-model:phone="secondaryRep.phone"
-            v-model:emailAddress="secondaryRep.emailAddress"
+            v-model:email-address="secondaryRep.emailAddress"
             v-model:fax-number="secondaryRep.faxNumber"
             v-model:position="secondaryRep.position"
             id-prefix="platform-secondary-rep"
