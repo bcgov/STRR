@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "629e451d-4185-4cba-9389-f42c174c2890",
+		"_postman_id": "dc3093f8-dbf6-41f2-856f-5b275d10df79",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -1360,6 +1360,48 @@
 							"path": [
 								"users",
 								"tos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Validation",
+			"item": [
+				{
+					"name": "Real Time Validation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"identifier\": \"H872640770\",\n    \"address\": {\n        \"number\": 2435,\n        \"postalCode\": \"V4A 8H4\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/permits/validatePermit",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"permits",
+								"validatePermit"
 							]
 						}
 					},

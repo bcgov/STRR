@@ -48,6 +48,7 @@ from .ops import bp as ops_endpoint
 from .registrations import bp as registrations_endpoint
 from .str_address_requirements import bp as str_address_requirements
 from .users import bp as users_endpoint
+from .validation import bp as validation_endpoint
 
 
 def register_endpoints(app: Flask):
@@ -100,6 +101,11 @@ def register_endpoints(app: Flask):
     app.register_blueprint(
         url_prefix="/address",
         blueprint=str_address_requirements,
+    )
+
+    app.register_blueprint(
+        url_prefix="/permits",
+        blueprint=validation_endpoint,
     )
 
     app.register_blueprint(meta_endpoint)

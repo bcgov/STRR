@@ -490,6 +490,11 @@ class RegistrationService:
         return Registration.query.filter_by(id=registration_id).one_or_none()
 
     @classmethod
+    def find_by_registration_number(cls, registration_number):
+        """Get registration by registration number."""
+        return Registration.query.filter_by(registration_number=registration_number).one_or_none()
+
+    @classmethod
     def is_registration_valid(cls, registration_number) -> bool:
         """Returns whether a registration number is valid."""
         is_valid = False
