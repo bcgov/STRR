@@ -10,7 +10,6 @@ from strr_api.enums.enum import PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
-
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
 )
