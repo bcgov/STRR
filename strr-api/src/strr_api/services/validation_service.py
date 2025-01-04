@@ -130,7 +130,10 @@ class ValidationService:
             if str_data.get("isStrProhibited"):
                 response["strProhibited"] = True
             else:
-                response["strExempt"] = str_data.get("isStraaExempt")
+                if str_data.get("isStraaExempt"):
+                    response["strExempt"] = True
+                else:
+                    response["strExempt"] = False
         else:
             errors.append(
                 {"code": ErrorMessage.ADDRESS_LOOK_UP_FAILED.name, "message": ErrorMessage.ADDRESS_LOOK_UP_FAILED.value}
