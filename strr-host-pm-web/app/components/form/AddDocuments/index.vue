@@ -78,6 +78,7 @@ onMounted(async () => {
       >
         <ConnectChecklistValidated
           v-if="!reqStore.overrideApplicationWarning"
+          data-testid="required-docs-checklist"
           :is-complete="isComplete"
           :title="$t('text.followingDocsRequired')"
           :items="docStore.requiredDocs"

@@ -137,6 +137,7 @@ const agreedToRentalActListItems = computed(() => {
     >
       <ConnectFormCertify
         v-model="applicationStore.userConfirmation.agreedToRentalAct"
+        data-testid="section-agreed-to-rental-act"
         :items="agreedToRentalActListItems"
         :checkbox-label="{ key: 'certify.confirm', props: { name: getCompPartyName } }"
         :has-error="isComplete && hasFormErrors(confirmationFormRef, ['agreedToRentalAct'])"

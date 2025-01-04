@@ -10,7 +10,7 @@ function handleContinueApp () {
 }
 </script>
 <template>
-  <div class="space-y-10">
+  <div class="space-y-10" data-testid="alert-str-prohibited">
     <UAccordion
       ref="accordianRef"
       :items="[{ label: 'n/a' }]"
@@ -70,12 +70,14 @@ function handleContinueApp () {
       class="flex justify-end gap-4"
     >
       <UButton
+        data-testid="btn-exit-registration"
         :label="$t('btn.exitReg')"
         variant="outline"
         size="bcGov"
         :to="localePath('/dashboard')"
       />
       <UButton
+        data-testid="btn-continue-registration"
         :label="$t('btn.contWithReg')"
         size="bcGov"
         @click="handleContinueApp"

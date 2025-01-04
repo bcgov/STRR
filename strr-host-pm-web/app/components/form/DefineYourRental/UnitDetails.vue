@@ -77,6 +77,7 @@ onMounted(async () => {
   <UForm
     v-if="reqStore.showUnitDetailsForm"
     ref="unitDetailsFormRef"
+    data-testid="form-unit-details"
     :schema="getUnitDetailsSchema()"
     :state="propStore.unitDetails"
     class="space-y-10"
