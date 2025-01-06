@@ -117,8 +117,12 @@ export default {
     },
     docUpload: {
       fileSize: {
-        title: 'Error Uploading Document',
-        description: 'File size too large. Please only upload files less than 10mb.'
+        title: 'File Too Large',
+        description: 'The selected file exceeds the maximum allowed size of 10 MB. Please choose a smaller file.'
+      },
+      fileType: {
+        title: 'Invalid File Type',
+        description: 'Only PDF files are supported. Please upload a PDF document.'
       },
       generic: {
         title: 'Error Uploading Document',

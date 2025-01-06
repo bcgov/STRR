@@ -8,15 +8,18 @@ const props = defineProps({
   size: { type: String, default: 'lg' },
   helpId: { type: String, default: undefined },
   ariaLabel: { type: String, default: undefined },
-  accept: { type: String, default: undefined },
-  error: { type: Boolean, default: false }
+  accept: { type: String, default: undefined }, // e.g., 'application/pdf, image/png'
+  error: { type: Boolean, default: false },
+  maxFileSize: { type: Number, default: 10 * 1024 * 1024 } // 10mb
 })
 
 const docStore = useDocumentStore()
 
 const emit = defineEmits<{
-  change: [any]
+  change: [File]
   cancel: [void]
+  error: ['fileSize' | 'fileType']
+  reset: [void]
 }>()
 
 const { open, onChange, onCancel, reset } = useFileDialog({
@@ -31,9 +34,34 @@ onCancel(() => {
 
 onChange((files) => {
   const file = files?.[0]
-  if (file) {
-    emit('change', file)
+
+  if (!file) {
+    emit('reset') // cleanup side effects (selected doc type)
+    reset() // cleanup useFileDialog
+    return
   }
+
+  // validate file type
+  if (props.accept) {
+    const acceptedTypes = props.accept.split(',').map(type => type.trim())
+    if (!acceptedTypes.includes(file.type)) {
+      emit('error', 'fileType')
+      emit('reset')
+      reset()
+      return
+    }
+  }
+
+  // validate file size
+  if (file.size > props.maxFileSize) {
+    emit('error', 'fileSize')
+    emit('reset')
+    reset()
+    return
+  }
+
+  emit('change', file)
+  emit('reset')
   reset()
 })
 </script>
@@ -56,14 +84,11 @@ onChange((files) => {
       :aria-invalid="isInvalid"
       value-attribute="value"
       :aria-describedby="helpId"
-      :ui-menu="{
-        label: true ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'
-      }"
       class="w-full"
       @change="open()"
     >
       <template #label>
-        <span>{{ label }}</span>
+        <span :class="!!error ? 'text-red-600' : 'text-gray-700'">{{ label }}</span>
       </template>
     </USelectMenu>
   </div>

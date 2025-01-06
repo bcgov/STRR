@@ -26,7 +26,7 @@ defineEmits<{
               ? 'i-heroicons-arrow-path-20-solid'
               : 'i-mdi-check-circle'
             "
-            class="size-6"
+            class="size-6 shrink-0"
             :class="{
               'animate-spin': doc.loading,
               'text-green-500': !doc.loading
@@ -34,7 +34,7 @@ defineEmits<{
           />
           <div class="flex flex-col">
             <span class="text-sm font-bold">{{ $t(`form.pr.docType.${doc.type}`) }}</span>
-            <span>{{ doc.name }}</span>
+            <span class="line-clamp-1">{{ doc.name }}</span>
           </div>
         </div>
       </div>

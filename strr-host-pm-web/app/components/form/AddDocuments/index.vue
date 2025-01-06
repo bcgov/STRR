@@ -5,6 +5,7 @@ const config = useRuntimeConfig().public
 const reqStore = usePropertyReqStore()
 const docStore = useDocumentStore()
 const propStore = useHostPropertyStore()
+const strrModal = useStrrModals()
 
 const props = defineProps<{ isComplete: boolean }>()
 
@@ -101,7 +102,7 @@ onMounted(async () => {
                 :title="$t('label.fileUpload')"
                 :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
               >
-                <div class="space-y-5">
+                <div class="max-w-bcGovInput space-y-5">
                   <span aria-hidden="true">{{ $t('text.uploadReqDocs') }}</span>
                   <UFormGroup
                     name="documentUpload"
@@ -114,9 +115,13 @@ onMounted(async () => {
                       :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
                       :is-required="docStore.requiredDocs.length > 0"
                       :help-id="docUploadHelpId"
-                      accept=".pdf"
+                      accept="application/pdf"
                       @change="docStore.addStoredDocument"
                       @cancel="docStore.selectedDocType = undefined"
+                      @error="e => strrModal.openErrorModal(
+                        $t(`error.docUpload.${e}.title`), $t(`error.docUpload.${e}.description`), false
+                      )"
+                      @reset="docStore.selectedDocType = undefined"
                     />
 
                     <template #help>

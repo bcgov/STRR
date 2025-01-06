@@ -180,12 +180,6 @@ export const useDocumentStore = defineStore('host/document', () => {
   ]
 
   async function addStoredDocument (doc: File): Promise<void> {
-    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10mb
-    if (doc.size > MAX_FILE_SIZE) {
-      strrModal.openErrorModal(t('error.docUpload.fileSize.title'), t('error.docUpload.fileSize.description'), false)
-      return
-    }
-
     const uiDoc: UiDocument = {
       file: doc,
       apiDoc: {} as ApiDocument,
