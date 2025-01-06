@@ -140,13 +140,14 @@ class UnitDetails:
 class MailingAddress:
     """MailingAddress payload object."""
 
-    def __init__(self, address, city, postalCode, province, country, addressLineTwo=None):
+    def __init__(self, address, city, postalCode, province, country, addressLineTwo=None, locationDescription=None):
         self.address = address
         self.city = city
         self.postalCode = postalCode
         self.province = province
         self.country = country
         self.addressLineTwo = addressLineTwo
+        self.locationDescription = locationDescription
 
 
 class UnitAddress:
@@ -163,6 +164,7 @@ class UnitAddress:
         addressLineTwo=None,
         nickname=None,
         unitNumber=None,
+        locationDescription=None,
     ):
         self.nickname = nickname
         self.streetNumber = streetNumber
@@ -173,6 +175,7 @@ class UnitAddress:
         self.country = country
         self.addressLineTwo = addressLineTwo
         self.unitNumber = unitNumber
+        self.locationDescription = locationDescription
 
 
 class Contact:
