@@ -2,6 +2,7 @@
 import type { Form } from '#ui/types'
 import { z } from 'zod'
 
+const strataModal = useStrataModals()
 const { addNewEmptyBuilding, removeBuildingAtIndex, strataDetailsSchema } = useStrrStrataDetailsStore()
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 const docStore = useDocumentStore()
@@ -202,7 +203,7 @@ onMounted(async () => {
         :heading="{ label: $t('label.supportingDocs'), labelClass: 'font-bold md:ml-6' }"
       >
         <div class="space-y-10 py-10">
-          <ConnectFormSection 
+          <ConnectFormSection
             :title="$t('label.fileUpload')"
             :error="hasFormErrors(documentFormRef, ['documents'])"
           >
@@ -217,11 +218,12 @@ onMounted(async () => {
                 <DocumentUploadButton
                   id="supporting-documents"
                   :label="$t('label.chooseDocsOpt')"
-                  accept=".pdf"
+                  accept="application/pdf"
                   :is-required="false"
                   :is-invalid="isComplete && hasFormErrors(documentFormRef, ['documents'])"
                   help-id="supporting-documents-help"
-                  @change="(e: FileList | null) => e && e[0] ? docStore.addStoredDocument(e[0]) : undefined"
+                  @change="(e: File[]) => e[0] ? docStore.addStoredDocument(e[0]) : undefined"
+                  @error="strataModal.openStrataDocUploadErrorModal"
                 />
 
                 <template #label>

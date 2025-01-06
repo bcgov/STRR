@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
   id: { type: String, required: true },
   isDisabled: { type: Boolean, default: false },
   isRequired: { type: Boolean, default: false },
@@ -7,15 +7,65 @@ defineProps({
   label: { type: String, default: '' },
   helpId: { type: String, default: undefined },
   ariaLabel: { type: String, default: undefined },
-  accept: { type: String, default: undefined },
+  accept: { type: String, default: undefined }, // e.g., 'application/pdf, image/png'
   multiple: { type: Boolean, default: false },
-  directory: { type: Boolean, default: false }
+  directory: { type: Boolean, default: false },
+  maxFileSize: { type: Number, default: 10 * 1024 * 1024 } // in bytes - default 10mb
 })
 
-defineEmits<{
-  change: [files: FileList | null]
+const emit = defineEmits<{
+  change: [files: File[]]
   cancel: [void]
+  error: [Array<{ file: File, reason: 'fileType' | 'fileSize' }>]
+  reset: [void]
 }>()
+
+const inputRef = useTemplateRef('inputRef')
+
+function onChange (e: Event) {
+  const files = (e.target as HTMLInputElement).files
+
+  if (!files || files.length === 0) {
+    emit('reset')
+    return
+  }
+
+  const validFiles: File[] = []
+  const invalidFiles: Array<{ file: File, reason: 'fileType' | 'fileSize' }> = []
+
+  const acceptedTypes: string[] = props.accept ? props.accept.split(',').map(type => type.trim()) : []
+
+  for (const file of files) {
+    // validate file type
+    if (acceptedTypes.length && !acceptedTypes.includes(file.type)) {
+      invalidFiles.push({ file, reason: 'fileType' })
+      continue
+    }
+
+    // validate file size
+    if (file.size > props.maxFileSize) {
+      invalidFiles.push({ file, reason: 'fileSize' })
+      continue
+    }
+
+    validFiles.push(file)
+  }
+
+  if (invalidFiles.length > 0) {
+    emit('error', invalidFiles)
+  }
+
+  if (validFiles.length > 0) {
+    emit('change', validFiles)
+  }
+
+  // TODO: assign valid files to file input or maybe use aria-describedby ?
+  // reset to remove invalid files, this currently also removes valid files as well so will need some improvement
+  if (inputRef.value) {
+    inputRef.value.value = ''
+  }
+  emit('reset')
+}
 </script>
 <template>
   <div
@@ -44,6 +94,7 @@ defineEmits<{
       </label>
       <input
         id="file-input"
+        ref="inputRef"
         type="file"
         class="absolute size-full cursor-pointer opacity-0 ring-0 focus:outline-none focus:ring-0"
         :accept
@@ -55,7 +106,7 @@ defineEmits<{
         :aria-describedby="helpId"
         :disabled="isDisabled"
         @cancel="$emit('cancel')"
-        @change="(e) => $emit('change', (e.target as HTMLInputElement).files)"
+        @change="onChange"
       >
     </div>
   </div>

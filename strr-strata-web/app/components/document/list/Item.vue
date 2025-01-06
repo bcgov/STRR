@@ -34,7 +34,7 @@ defineEmits<{
           />
           <div class="flex flex-col">
             <span class="text-sm font-bold">{{ $t(`docType.${doc.type}`) }}</span>
-            <span>{{ doc.name }}</span>
+            <span class="line-clamp-1">{{ doc.name }}</span>
           </div>
         </div>
       </div>

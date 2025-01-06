@@ -10,7 +10,7 @@ const props = defineProps({
   ariaLabel: { type: String, default: undefined },
   accept: { type: String, default: undefined }, // e.g., 'application/pdf, image/png'
   error: { type: Boolean, default: false },
-  maxFileSize: { type: Number, default: 10 * 1024 * 1024 } // 10mb
+  maxFileSize: { type: Number, default: 10 * 1024 * 1024 } // in bytes - default 10mb
 })
 
 const docStore = useDocumentStore()
