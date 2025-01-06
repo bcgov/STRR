@@ -5,42 +5,15 @@ import { OwnerRole } from '../../../app/enums/owner-role'
 import { OwnerType } from '../../../app/enums/owner-type'
 import { getFakeOwner, getFakePropertyNickname, getFakePid, getFakeBlInfo } from '../test-utils/faker'
 import { uploadDocuments } from '../test-utils/upload-documents'
+import { loginMethods } from '../test-utils/constants'
+import { LoginSource } from '../enums/login-source'
+import {
+  getH2,
+  getPropertyRequirementsList
+} from '../test-utils/getters'
+import { fillStep2 } from '../test-utils/fill-form'
 // load default env
 dotenvConfig()
-
-enum LoginSource {
-  BCSC = 'BCSC',
-  BCEID = 'BCEID'
-}
-
-async function authSetup (loginMethod: LoginSource, page: Page) {
-  const baseURL = process.env.NUXT_BASE_URL!
-
-  await page.goto(baseURL + 'en-CA/auth/login')
-
-  if (loginMethod === LoginSource.BCSC) {
-    const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME!
-    const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD!
-    await page.getByRole('button', { name: 'Continue with BC Services Card' }).click()
-    await page.getByLabel('Log in with Test with').click()
-    await page.getByLabel('Email or username').fill(username)
-    await page.getByLabel('Password').fill(password)
-    await page.getByRole('button', { name: 'Continue' }).click()
-  } else if (loginMethod === LoginSource.BCEID) {
-    const username = process.env.PLAYWRIGHT_TEST_BCEID_USERNAME!
-    const password = process.env.PLAYWRIGHT_TEST_BCEID_PASSWORD!
-    await page.getByRole('button', { name: 'Continue with BCeID' }).click()
-    await page.locator('#user').fill(username)
-    await page.getByLabel('Password').fill(password)
-    await page.getByRole('button', { name: 'Continue' }).click()
-  }
-
-  await page.waitForURL(baseURL + '**')
-  await page.context().storageState({ path: 'tests/e2e/.auth/user.json' })
-}
-
-// Strata allows bcsc and bceid
-const loginMethods = [LoginSource.BCSC, LoginSource.BCEID]
 
 loginMethods.forEach((loginMethod) => {
   test.describe(`STRR Host Smoke Test - Scenario 3 - ${loginMethod}`, () => {
@@ -56,7 +29,7 @@ loginMethods.forEach((loginMethod) => {
     const testPid = getFakePid()
     const completingParty = getFakeOwner(OwnerType.INDIVIDUAL, OwnerRole.HOST, true)
     const cohost = getFakeOwner(OwnerType.INDIVIDUAL, OwnerRole.CO_HOST, false)
-    const propertManager = getFakeOwner(OwnerType.BUSINESS, OwnerRole.PROPERTY_MANAGER, false)
+    const propertyManager = getFakeOwner(OwnerType.BUSINESS, OwnerRole.PROPERTY_MANAGER, false)
     const blInfo = getFakeBlInfo()
     const requiredDocs = [
       { option: 'Local Government Business License', filename: 'fake-business-licence' },
@@ -66,17 +39,14 @@ loginMethods.forEach((loginMethod) => {
 
     let page: Page
 
+    const storageStatePath = loginMethod === LoginSource.BCSC
+      ? 'tests/e2e/.auth/bcsc-user.json'
+      : 'tests/e2e/.auth/bceid-user.json'
+
     test.beforeAll(async ({ browser }) => {
-      const context = await browser.newContext({ storageState: undefined }) // start fresh
+      const context = await browser.newContext({ storageState: storageStatePath }) // used saved auth state
       page = await context.newPage()
-
-      // get auth state
-      await authSetup(loginMethod, page)
-
-      await page.goto('./') // start at home page // uses base url set in playwright config
     })
-
-    const getH2 = () => page.getByTestId('h2').first()
 
     test('smoke test - Select Account', async () => {
       page.goto('./en-CA/auth/account/choose-existing') // should be redirected to select account page
@@ -97,7 +67,7 @@ loginMethods.forEach((loginMethod) => {
       page.waitForURL('**/application')
       // check for step 1 content
       await expect(page.getByTestId('h1')).toContainText('Short-Term Rental Registration')
-      await expect(getH2()).toContainText('Define Your Short-Term Rental')
+      await expect(getH2(page)).toContainText('Define Your Short-Term Rental')
 
       // fill in rental unit nickname
       await page.getByTestId('rental-unit-address-nickname').fill(nickname)
@@ -109,10 +79,9 @@ loginMethods.forEach((loginMethod) => {
       await page.getByTestId('property-requirements-section').waitFor({ state: 'visible', timeout: 10000 }) // wait for autocomplete requirements to be displayed
 
       // assert unit requirements list shows principal residence and business licence
-      const getPropertyRequirementsList = () => page.getByTestId('property-requirements-list')
-      await expect(getPropertyRequirementsList()).toBeVisible() // requirements list should now be visible
-      await expect(getPropertyRequirementsList().getByRole('button', { name: 'Principal residence' })).toBeVisible()
-      await expect(getPropertyRequirementsList().getByRole('button', { name: 'Business License' })).toBeVisible()
+      await expect(getPropertyRequirementsList(page)).toBeVisible() // requirements list should now be visible
+      await expect(getPropertyRequirementsList(page).getByRole('button', { name: 'Principal residence' })).toBeVisible()
+      await expect(getPropertyRequirementsList(page).getByRole('button', { name: 'Business License' })).toBeVisible()
 
       // fill out unit details
       await page.getByLabel('Property Type').click()
@@ -125,116 +94,24 @@ loginMethods.forEach((loginMethod) => {
 
       // finalize step 1
       page.getByRole('button', { name: 'Add Individuals and Businesses', exact: true }).click()
-      await expect(getH2()).toContainText('Individuals and Businesses')
+      await expect(getH2(page)).toContainText('Individuals and Businesses')
     })
 
     test('smoke test - Application Step 2', async () => {
       // check for step 2 content
-      await expect(getH2()).toContainText('Individuals and Businesses')
+      await expect(getH2(page)).toContainText('Individuals and Businesses')
 
-      // fill out completing party
-      await page.getByRole('button', { name: 'Add an Individual', exact: true }).click()
-      await expect(page.locator('section').filter({ hasText: 'Add an Individual' })).toBeVisible()
-      const compPartySection = page.locator('section').filter({ hasText: 'Add an Individual' })
-      // add host role birth date and SIN
-      await compPartySection.locator('input[type="checkbox"][name="isCompParty"]').check()
-      await compPartySection.getByTestId('host-owner-preferred-name').fill(completingParty.preferredName!)
-      await compPartySection.locator('input[type="radio"][value="HOST"]').check()
-      await compPartySection.getByTestId('date-select').fill(completingParty.dateOfBirth)
-      await compPartySection.getByTestId('host-owner-taxNumber').fill(completingParty.taxNumber)
-      // add host mailing address
-      await compPartySection.getByTestId('host-owner-address-country').click()
-      await compPartySection.getByRole('option', { name: 'Canada' }).click()
-      await compPartySection.getByTestId('host-owner-address-street').fill(completingParty.mailingAddress.street)
-      await compPartySection.getByTestId('mailingAddress.city').fill(completingParty.mailingAddress.city)
-      await compPartySection.getByTestId('address-region-select').click()
-      await compPartySection.getByRole('option', { name: completingParty.mailingAddress.region }).click()
-      await compPartySection.getByTestId('mailingAddress.postalCode').fill(completingParty.mailingAddress.postalCode)
-      await compPartySection.getByTestId('address-location-description').fill(completingParty.mailingAddress.locationDescription)
-      // add host contact info
-      await compPartySection.getByTestId('phone-countryCode').fill(completingParty.phone.countryCode!)
-      await compPartySection.getByRole('option').first().click()
-      await compPartySection.getByTestId('phone-number').fill(completingParty.phone.number)
-      await compPartySection.getByTestId('phone-extension').fill(completingParty.phone.extension!)
-      await compPartySection.getByTestId('host-owner-fax-number').fill(completingParty.faxNumber!)
-      await compPartySection.getByTestId('host-owner-email').fill(completingParty.emailAddress)
-      // done filling completing party
-      await compPartySection.getByRole('button', { name: 'Done', exact: true }).click()
-      await expect(compPartySection).not.toBeVisible() // form should be hidden
-      await expect(page.locator('table').filter({ hasText: 'Completing Party' })).toBeVisible() // completing party should be added to table
-
-      // add cohost
-      await page.getByRole('button', { name: 'Add an Individual', exact: true }).click()
-      await expect(page.locator('section').filter({ hasText: 'Add an Individual' })).toBeVisible()
-      const cohostSection = page.locator('section').filter({ hasText: 'Add an Individual' })
-      // fill cohost name and role
-      await cohostSection.getByTestId('host-owner-first-name').fill(cohost.firstName!)
-      await cohostSection.getByTestId('host-owner-middle-name').fill(cohost.middleName!)
-      await cohostSection.getByTestId('host-owner-last-name').fill(cohost.lastName!)
-      await cohostSection.getByTestId('host-owner-preferred-name').fill(cohost.preferredName!)
-      await cohostSection.locator('input[type="radio"][value="CO_HOST"]').check()
-      // add cohost mailing address
-      await cohostSection.getByTestId('host-owner-address-country').click()
-      await cohostSection.getByRole('option', { name: 'Canada' }).click()
-      await cohostSection.getByTestId('host-owner-address-street').fill(cohost.mailingAddress.street)
-      await cohostSection.getByTestId('mailingAddress.city').fill(cohost.mailingAddress.city)
-      await cohostSection.getByTestId('address-region-select').click()
-      await cohostSection.getByRole('option', { name: cohost.mailingAddress.region }).click()
-      await cohostSection.getByTestId('mailingAddress.postalCode').fill(cohost.mailingAddress.postalCode)
-      await cohostSection.getByTestId('address-location-description').fill(cohost.mailingAddress.locationDescription)
-      // add cohost contact info
-      await cohostSection.getByTestId('phone-countryCode').fill(cohost.phone.countryCode!)
-      await cohostSection.getByRole('option').first().click()
-      await cohostSection.getByTestId('phone-number').fill(cohost.phone.number)
-      await cohostSection.getByTestId('phone-extension').fill(cohost.phone.extension!)
-      await cohostSection.getByTestId('host-owner-fax-number').fill(cohost.faxNumber!)
-      await cohostSection.getByTestId('host-owner-email').fill(cohost.emailAddress)
-      // done filling cohost
-      await cohostSection.getByRole('button', { name: 'Done', exact: true }).click()
-      await expect(cohostSection).not.toBeVisible() // form should be hidden
-      await expect(page.locator('table').filter({ hasText: 'Co-host' })).toBeVisible() // cohost party should be added to table
-
-      // add property manager
-      await page.getByRole('button', { name: 'Add a Business', exact: true }).click()
-      await expect(page.locator('section').filter({ hasText: 'Add a Business' })).toBeVisible()
-      const pmSection = page.locator('section').filter({ hasText: 'Add a Business' })
-      // add business name, pm role and business number
-      await pmSection.getByTestId('host-owner-businessLegalName').fill(propertManager.businessLegalName)
-      await pmSection.locator('input[type="radio"][value="PROPERTY_MANAGER"]').check()
-      await pmSection.getByTestId('owner-host-businessNumber').fill(propertManager.businessNumber)
-      // add business address
-      await pmSection.getByTestId('host-owner-address-country').click()
-      await pmSection.getByRole('option', { name: 'Canada' }).click()
-      await pmSection.getByTestId('host-owner-address-street').fill(propertManager.mailingAddress.street)
-      await pmSection.getByTestId('mailingAddress.city').fill(propertManager.mailingAddress.city)
-      await pmSection.getByTestId('address-region-select').click()
-      await pmSection.getByRole('option', { name: propertManager.mailingAddress.region }).click()
-      await pmSection.getByTestId('mailingAddress.postalCode').fill(propertManager.mailingAddress.postalCode)
-      await pmSection.getByTestId('address-location-description').fill(propertManager.mailingAddress.locationDescription)
-      // add contact info and individuals name
-      await pmSection.getByTestId('host-owner-first-name').fill(propertManager.firstName!)
-      await pmSection.getByTestId('host-owner-middle-name').fill(propertManager.middleName!)
-      await pmSection.getByTestId('host-owner-last-name').fill(propertManager.lastName!)
-      await pmSection.getByTestId('host-owner-preferred-name').fill(propertManager.preferredName!)
-      await pmSection.getByTestId('phone-countryCode').fill(propertManager.phone.countryCode!)
-      await pmSection.getByRole('option').first().click()
-      await pmSection.getByTestId('phone-number').fill(propertManager.phone.number)
-      await pmSection.getByTestId('phone-extension').fill(propertManager.phone.extension!)
-      await pmSection.getByTestId('host-owner-fax-number').fill(propertManager.faxNumber!)
-      await pmSection.getByTestId('host-owner-email').fill(propertManager.emailAddress)
-      // done filling property manager
-      await pmSection.getByRole('button', { name: 'Done', exact: true }).click()
-      await expect(pmSection).not.toBeVisible() // form should be hidden
-      await expect(page.locator('table').filter({ hasText: 'Property Manager' })).toBeVisible() // Property Manager should be added to table
+      // complete step 2
+      await fillStep2(page, completingParty, cohost, propertyManager)
 
       // finalize step 2
       page.getByRole('button', { name: 'Add Supporting Documentation', exact: true }).click()
-      await expect(getH2()).toContainText('Add Supporting Documentation')
+      await expect(getH2(page)).toContainText('Add Supporting Documentation')
     })
 
     test('smoke test - Application Step 3', async () => {
       // check and fill step 3 - supporting documents
-      await expect(getH2()).toContainText('Add Supporting Documentation')
+      await expect(getH2(page)).toContainText('Add Supporting Documentation')
 
       // requirements checklist should have 2 items (proof of pr + business license only)
       const requiredDocsList = page.getByTestId('required-docs-checklist').locator('ul')
@@ -253,12 +130,12 @@ loginMethods.forEach((loginMethod) => {
 
       // finalize step 3
       page.getByRole('button', { name: 'Review and Confirm', exact: true }).click()
-      await expect(getH2()).toContainText('Review and Confirm')
+      await expect(getH2(page)).toContainText('Review and Confirm')
     })
 
     test('smoke test - Application Step 4', async () => {
       // check and fill step 4 - review and submit
-      await expect(getH2()).toContainText('Review and Confirm')
+      await expect(getH2(page)).toContainText('Review and Confirm')
 
       // rental unit details
       const strSection = page.locator('section').filter({ hasText: 'Short-Term Rental' }).first()
@@ -285,13 +162,13 @@ loginMethods.forEach((loginMethod) => {
       await expect(ibSection).toContainText(cohost.mailingAddress.street)
       await expect(ibSection).toContainText(cohost.mailingAddress.postalCode)
       // property manager
-      await expect(ibSection).toContainText(propertManager.firstName!)
-      await expect(ibSection).toContainText(propertManager.lastName)
-      await expect(ibSection).toContainText(propertManager.emailAddress)
-      await expect(ibSection).toContainText(propertManager.mailingAddress.street)
-      await expect(ibSection).toContainText(propertManager.mailingAddress.postalCode)
-      await expect(ibSection).toContainText(propertManager.businessNumber)
-      await expect(ibSection).toContainText(propertManager.businessLegalName)
+      await expect(ibSection).toContainText(propertyManager.firstName!)
+      await expect(ibSection).toContainText(propertyManager.lastName)
+      await expect(ibSection).toContainText(propertyManager.emailAddress)
+      await expect(ibSection).toContainText(propertyManager.mailingAddress.street)
+      await expect(ibSection).toContainText(propertyManager.mailingAddress.postalCode)
+      await expect(ibSection).toContainText(propertyManager.businessNumber)
+      await expect(ibSection).toContainText(propertyManager.businessLegalName)
 
       // supporting info section
       const supportingInfoSection = page.locator('section').filter({ hasText: 'Supporting Information' })
@@ -366,14 +243,14 @@ loginMethods.forEach((loginMethod) => {
       await expect(ibSection).toContainText(cohost.mailingAddress.street)
       await expect(ibSection).toContainText(cohost.mailingAddress.postalCode)
       // property manager
-      await expect(ibSection).toContainText(propertManager.firstName!)
-      await expect(ibSection).toContainText(propertManager.lastName)
-      await expect(ibSection).toContainText(propertManager.preferredName!)
-      await expect(ibSection).toContainText(propertManager.emailAddress)
-      await expect(ibSection).toContainText(propertManager.mailingAddress.street)
-      await expect(ibSection).toContainText(propertManager.mailingAddress.postalCode)
-      await expect(ibSection).toContainText(propertManager.businessNumber)
-      await expect(ibSection).toContainText(propertManager.businessLegalName)
+      await expect(ibSection).toContainText(propertyManager.firstName!)
+      await expect(ibSection).toContainText(propertyManager.lastName)
+      await expect(ibSection).toContainText(propertyManager.preferredName!)
+      await expect(ibSection).toContainText(propertyManager.emailAddress)
+      await expect(ibSection).toContainText(propertyManager.mailingAddress.street)
+      await expect(ibSection).toContainText(propertyManager.mailingAddress.postalCode)
+      await expect(ibSection).toContainText(propertyManager.businessNumber)
+      await expect(ibSection).toContainText(propertyManager.businessLegalName)
     })
 
     test('smoke test - Dashboard List View', async () => {

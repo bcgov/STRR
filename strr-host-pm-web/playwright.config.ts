@@ -15,7 +15,7 @@ const devicesToTest = [
 ] satisfies Array<string | typeof devices[string]>
 
 export default defineConfig<ConfigOptions>({
-  // globalSetup: './tests/e2e/test-utils/auth-setup', // setup when booting test runner
+  globalSetup: './tests/e2e/test-utils/global-setup', // setup when booting test runner
   testDir: './tests/e2e',
   reporter: 'line',
   // Fail the build on CI if you accidentally left test.only in the source code.
