@@ -2946,7 +2946,7 @@ url = ["furl (>=0.4.1)"]
 
 [[package]]
 name = "strr-api"
-version = "0.0.29"
+version = "0.0.34"
 description = ""
 optional = false
 python-versions = "^3.11"
@@ -2983,7 +2983,7 @@ weasyprint = "^62.3"
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
 reference = "main"
-resolved_reference = "996bc6b51c850b381932d8273c02cd11deb57286"
+resolved_reference = "539f006a61c77ce77382cf6d65bb15c7f0b6f916"
 subdirectory = "strr-api"
 
 [[package]]
