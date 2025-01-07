@@ -86,6 +86,7 @@ onMounted(async () => {
         />
         <ConnectChecklistBasic
           v-else
+          data-testid="potential-docs-checklist"
           :title="$t('text.followingDocsMayBeRequired')"
           :items="docStore.potentialRequiredDocs"
         />

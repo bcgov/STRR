@@ -6,6 +6,7 @@ const reqStore = usePropertyReqStore()
   <div class="flex flex-col gap-4" data-testid="property-requirements-section">
     <FormDefineYourRentalUnitRequirementsError
       v-if="reqStore.propertyReqError.type !== undefined"
+      class="mt-10"
     />
 
     <FormDefineYourRentalUnitRequirementsStraaExempt

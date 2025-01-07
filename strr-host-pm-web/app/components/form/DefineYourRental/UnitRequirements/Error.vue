@@ -27,6 +27,7 @@ function handleContinueApp () {
 </script>
 <template>
   <div
+    data-testid="alert-address-not-found"
     class="space-y-10"
   >
     <UAccordion
@@ -114,12 +115,14 @@ function handleContinueApp () {
       class="flex justify-end gap-4"
     >
       <UButton
+        data-testid="btn-exit-registration"
         :label="$t('btn.exitReg')"
         variant="outline"
         size="bcGov"
         :to="localePath('/dashboard')"
       />
       <UButton
+        data-testid="btn-continue-registration"
         :label="$t('btn.contWithReg')"
         size="bcGov"
         @click="handleContinueApp"
