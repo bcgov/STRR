@@ -146,6 +146,7 @@ onMounted(async () => {
 
       <UAlert
         v-else
+        data-testid="alert-no-docs-required"
         color="yellow"
         :title="$t('text.noDocsReq')"
         icon="i-mdi-check-circle"

@@ -18,6 +18,7 @@ const reqStore = usePropertyReqStore()
 
     <FormDefineYourRentalUnitRequirementsPrExempt
       v-else-if="reqStore.propertyReqs.isPrincipalResidenceRequired === false && reqStore.requirementsList.length === 0"
+      class="mt-10"
     />
 
     <FormDefineYourRentalUnitRequirementsList

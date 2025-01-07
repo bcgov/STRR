@@ -1,5 +1,6 @@
 <template>
   <UAlert
+    data-testid="alert-pr-exempt"
     color="yellow"
     icon="i-mdi-check-circle"
     :close-button="null"

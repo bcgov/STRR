@@ -18,7 +18,7 @@ function handleNewAddress () {
 // clear autocomplete input errors and open manual input
 function handleUseManual () {
   unitAddressFormRef.value?.clear('address.street')
-  propStore.resetUnitAddress()
+  propStore.resetUnitAddress(true)
   propStore.useManualAddressInput = true
 }
 
@@ -26,7 +26,7 @@ function handleUseManual () {
 // trigger validation on autocomplete input when cancelling manual input and clear address
 function handleCancelManual () {
   // unitAddressFormRef.value?.validate('address.street', { silent: true })
-  propStore.resetUnitAddress()
+  propStore.resetUnitAddress(true)
   propStore.useManualAddressInput = false
 }
 

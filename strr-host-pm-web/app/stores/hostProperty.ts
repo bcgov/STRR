@@ -202,8 +202,12 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     isSharedAccommodation: unitDetails.value.typeOfSpace === RentalUnitType.SHARED_ACCOMMODATION
   }))
 
-  const resetUnitAddress = () => {
+  const resetUnitAddress = (preserveNickname = false) => {
+    const nickname = unitAddress.value.address.nickname
     unitAddress.value = getEmptyUnitAddress()
+    if (preserveNickname) {
+      unitAddress.value.address.nickname = nickname
+    }
   }
 
   const resetUnitDetails = () => {
