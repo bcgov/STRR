@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { t } = useI18n()
 const { blInfo } = storeToRefs(useHostPropertyStore())
-const { showUnitDetailsForm } = storeToRefs(usePropertyReqStore())
+const { overrideApplicationWarning, showUnitDetailsForm } = storeToRefs(usePropertyReqStore())
 const { requiredDocs, storedDocuments } = storeToRefs(useDocumentStore())
 
 // step 3 items
@@ -22,7 +22,7 @@ const supportingInfo = computed(() => [
     </template>
     <template #info-documents>
       <div class="space-y-1">
-        <div v-if="!requiredDocs.length && showUnitDetailsForm">
+        <div v-if="!requiredDocs.length && !overrideApplicationWarning && showUnitDetailsForm">
           <div class="flex gap-2">
             <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
             <p>{{ $t('text.noDocsReq') }}</p>
