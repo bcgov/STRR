@@ -16,7 +16,7 @@ import { fillStep2 } from '../test-utils/fill-form'
 dotenvConfig()
 
 loginMethods.forEach((loginMethod) => {
-  test.describe(`STRR Host Smoke Test - Scenario 3 - ${loginMethod}`, () => {
+  test.describe(`Host Smoke - Scenario 3 - YesBL_YesPR_NotProh_NotExempt - ${loginMethod}`, () => {
     // address constants
     const nickname = getFakePropertyNickname()
     const lookupAddress = '2618 Panorama Dr'

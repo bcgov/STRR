@@ -4,6 +4,7 @@ const localePath = useLocalePath()
 <template>
   <div
     class="space-y-10"
+    data-testid="alert-str-exempt"
   >
     <UAlert
       color="yellow"
@@ -23,6 +24,7 @@ const localePath = useLocalePath()
 
     <div class="flex justify-end gap-4">
       <UButton
+        data-testid="btn-exit-registration"
         :label="$t('btn.exitReg')"
         variant="outline"
         size="bcGov"
