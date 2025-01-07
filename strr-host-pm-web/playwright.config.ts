@@ -26,16 +26,17 @@ export default defineConfig<ConfigOptions>({
   maxFailures: 1,
   // Opt out of parallel tests on CI.
   // workers: process.env.CI ? 1 : undefined,
+  workers: 1, // TODO: figure out why tests fail when run in parallel
   use: {
     nuxt: {
       rootDir: fileURLToPath(new URL('.', import.meta.url))
     },
-    actionTimeout: 0,
+    actionTimeout: 2000,
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'off',
     // do not open browser
-    headless: false
+    headless: true
   },
   projects: devicesToTest.map(p => typeof p === 'string' ? ({ name: p, use: devices[p] }) : p)
   // webServer: {
