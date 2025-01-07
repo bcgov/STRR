@@ -19,6 +19,16 @@ export const useHostApplicationStore = defineStore('host/application', () => {
   })
 
   const userConfirmation = ref(getEmptyConfirmation())
+  watch(
+    () => (
+      !reqStore.propertyReqs.isPrincipalResidenceRequired ||
+      reqStore.prRequirements.prExemptionReason !== undefined
+    ),
+    () => {
+      // A change has been made to the list of agreed terms so the user will need to reconfirm
+      userConfirmation.value.agreedToRentalAct = false
+    }
+  )
 
   const validateUserConfirmation = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(confirmationSchema, userConfirmation.value, 'confirmation-form')

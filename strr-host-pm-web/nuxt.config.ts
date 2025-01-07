@@ -39,9 +39,8 @@ export default defineNuxtConfig({
   },
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: true }],
-    // '../strr-base-web', // dev only
-    '@daxiom/nuxt-core-layer-test'
+    ['github:bcgov/STRR/strr-base-web', { install: true }]
+    // '../strr-base-web' // dev only
   ],
 
   imports: {

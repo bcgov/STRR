@@ -166,7 +166,7 @@ async function handleItemSelect (row: any) {
 
           <!-- using a slot for this so the nuxtui sort will still sort by datetime -->
           <template #lastStatusChange-data="{ row }">
-            {{ dateToStringPacific(row.lastStatusChange, 'yyyy-dd-MM') }}
+            {{ dateToStringPacific(row.lastStatusChange) }}
           </template>
 
           <template #daysToExpiry-data="{ row }">

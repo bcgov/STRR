@@ -26,7 +26,7 @@ defineEmits<{
               ? 'i-heroicons-arrow-path-20-solid'
               : 'i-mdi-check-circle'
             "
-            class="size-6"
+            class="size-6 shrink-0"
             :class="{
               'animate-spin': doc.loading,
               'text-green-500': !doc.loading
