@@ -9,7 +9,7 @@ import {
 dotenvConfig()
 
 loginMethods.forEach((loginMethod) => {
-  test.describe(`Host Smoke - Scenario 2 - NoBL_NoPR_NoProh_YesExempt - ${loginMethod}`, () => {
+  test.describe(`Host Smoke - Scenario 2 - NoBL_NoPR_NotProh_YesExempt - ${loginMethod}`, () => {
     // address constants
     const lookupAddress = '6-2727 Lakeshore Rd'
 
