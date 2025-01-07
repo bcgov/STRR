@@ -35,28 +35,22 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     if (applicationId) {
       // Get specific application
       application.value = await getAccountApplications<A>(applicationId) as A
-      if (application.value.header.status === ApplicationStatus.PAYMENT_DUE) {
-        // there is a lag in the payment Q, trigger the strr api to grab the most current pay details
-        application.value = await updatePaymentDetails<A>(applicationId)
-      }
-      if (application.value?.header.registrationId) {
-        // Get linked registration if applicable
-        registration.value = await getAccountRegistrations<R>(
-          application.value.header.registrationId) as R
-      }
     } else {
       // Get most recent application
       const applications = await getAccountApplications<A>(undefined, applicationType) as A[]
       if (applications.length) {
         // Set active strata to the most recent application (ordered by api: newest to oldest)
         application.value = applications[0]
-        await updatePaymentDetails<A>(application.value?.header.applicationNumber as string)
-        if (application.value?.header.registrationId) {
-          // Get linked registration if applicable
-          registration.value = await getAccountRegistrations<R>(
-            application.value.header.registrationId) as R
-        }
       }
+    }
+    if (application.value?.header.status === ApplicationStatus.PAYMENT_DUE) {
+      // there is a lag in the payment Q, trigger the strr api to grab the most current pay details
+      application.value = await updatePaymentDetails<A>(application.value.header.applicationNumber)
+    }
+    if (application.value?.header.registrationId) {
+      // Get linked registration if applicable
+      registration.value = await getAccountRegistrations<R>(
+        application.value.header.registrationId) as R
     }
   }
 
