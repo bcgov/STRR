@@ -59,7 +59,7 @@ export default defineNuxtConfig({
       baseUrl: process.env.NUXT_BASE_URL,
       version: `STRR Strata Hotel UI v${process.env.npm_package_version}`,
       strataTacUrl: process.env.NUXT_STRATA_TAC_URL,
-      strataDocsUploadLearnMoreUrl: process.env.NUXT_STRATA_DOCS_UPLOAD_LEARN_MORE_URL
+      doesPrApplyUrl: process.env.NUXT_DOES_PR_APPLY_URL
       // set by strr-base-web layer (still required in .env)
       // addressCompleteKey - NUXT_ADDRESS_COMPLETE_KEY
       // payApiURL - NUXT_PAY_API_VERSION

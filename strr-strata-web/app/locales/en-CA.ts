@@ -104,7 +104,8 @@ export default {
   },
   link: {
     strataHotelInfoPage: 'strata hotel information page',
-    learnMore: 'Learn More'
+    learnMore: 'Learn More',
+    doesPrApply: 'Does the principal residence requirement apply?'
   },
   modal: {
     helpRegisteringStrata: {
@@ -146,7 +147,7 @@ export default {
     selectAccount: {
       generic: 'Select the account you wish to use to register and manage your short-term rentals, or create a new account.'
     },
-    addAllReqDocs: 'Upload supporting strata-titled hotel or motel documentation. {link}',
+    addAllReqDocs: 'If the strata hotel is located in an area with the principal residence requirement, add all required documentation that supports your short-term rental registration. {link}',
     noDocsUploaded: 'No supporting documentation uploaded.'
   },
   validation: {

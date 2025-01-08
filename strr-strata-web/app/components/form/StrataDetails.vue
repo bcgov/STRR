@@ -230,8 +230,8 @@ onMounted(async () => {
                   <i18n-t keypath="text.addAllReqDocs" scope="global">
                     <template #link>
                       <UButton
-                        :label="$t('link.learnMore')"
-                        :to="useRuntimeConfig().public.strataDocsUploadLearnMoreUrl"
+                        :label="$t('link.doesPrApply')"
+                        :to="useRuntimeConfig().public.doesPrApplyUrl"
                         :padded="false"
                         variant="link"
                         target="_blank"
