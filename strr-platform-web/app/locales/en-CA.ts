@@ -99,7 +99,7 @@ export default {
       selectAccountForStrr: 'Select the account you wish to use to register your Short-term rental platform.',
       onlyPremiumAccountWarning: '{boldStart}Note:{boldEnd} Only Premium accounts using Pre-authorized Debit (PAD) can be used to register Short-term Rental Registry Platforms.',
       onlyPremiumAccountModalContent: 'You must create a BC Registries Premium Account that uses a Pre-authorized Debit (PAD) payment method.',
-      listEachPlatform: 'Please list each platform operated by the platform service provider.'
+      listEachPlatform: 'List each platform operating in B.C. by the platform service provider.'
     },
     review: {
       platInfo: {
