@@ -66,12 +66,15 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     }
   }
 
-  const submitApplication = async () => {
+  const submitApplication = async (isDraft = false, applicationId?: string) => {
     const body = createApplicationBody()
 
     // console.info('submitting application: ', body)
-
-    const res = await postApplication<HostApplicationPayload, HostApplicationResp>(body) as HostApplicationResp
+    const res = await postApplication<HostApplicationPayload, HostApplicationResp>(
+      body,
+      isDraft,
+      applicationId
+    ) as HostApplicationResp
 
     const paymentToken = res.header.paymentToken
     const filingId = res.header.applicationNumber

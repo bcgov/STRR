@@ -72,8 +72,16 @@ const { data: hostPmList, status } = await useAsyncData(
   }
 )
 
+function isDraft (status: string) {
+  return status === 'Draft'
+}
+
 async function handleItemSelect (row: any) {
-  await navigateTo(localePath('/dashboard/' + row.applicationNumber))
+  if (isDraft(row.status)) {
+    await navigateTo(localePath('/application?applicationId=' + row.applicationNumber))
+  } else {
+    await navigateTo(localePath('/dashboard/' + row.applicationNumber))
+  }
 }
 </script>
 <template>
@@ -176,19 +184,37 @@ async function handleItemSelect (row: any) {
           </template>
 
           <template #actions-data="{ row }">
-            <UButton
-              :label="$t('btn.view')"
-              :aria-label="
-                $t('btn.ariaViewDetails', {
-                  name: row.name,
-                  address: `${row.address.unitNumber
-                    ? row.address.unitNumber + '-'
-                    : ''}${row.address.streetNumber} ${row.address.streetName}, ${row.address.city}`
-                })
-              "
-              :block="true"
-              @click="handleItemSelect(row)"
-            />
+            <div class="flex flex-col gap-px lg:flex-row">
+              <UButton
+                :class="isDraft(row.status) ? 'justify-center grow lg:rounded-r-none' : ''"
+                :label="isDraft(row.status) ? $t('label.resumeDraft') : $t('btn.view')"
+                :aria-label="
+                  $t('btn.ariaViewDetails', {
+                    name: row.name,
+                    address: `${row.address.unitNumber
+                      ? row.address.unitNumber + '-'
+                      : ''}${row.address.streetNumber} ${row.address.streetName}, ${row.address.city}`
+                  })
+                "
+                :block="!isDraft(row.status)"
+                @click="handleItemSelect(row)"
+              />
+              <UPopover v-if="isDraft(row.status)" :popper="{ placement: 'bottom-end' }">
+                <UButton
+                  class="grow justify-center lg:flex-none lg:rounded-l-none"
+                  icon="i-mdi-menu-down"
+                  :aria-label="$t('text.showMoreOptions')"
+                />
+                <template #panel>
+                  <UButton
+                    class="m-2"
+                    :label="$t('word.Delete')"
+                    variant="link"
+                    @click="console.log('delete', row.applicationNumber)"
+                  />
+                </template>
+              </UPopover>
+            </div>
           </template>
         </UTable>
       </ConnectPageSection>

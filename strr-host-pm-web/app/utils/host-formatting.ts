@@ -74,10 +74,14 @@ export function formatHostUnitDetailsAPI (
     propertyType: unitDetails.propertyType,
     ownershipType: unitDetails.ownershipType,
     numberOfRoomsForRent: unitDetails.numberOfRoomsForRent,
-    isUnitOnPrincipalResidenceProperty: unitDetails.rentalUnitSetupType !== RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY,
-    hostResidence: unitDetails.rentalUnitSetupType === RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE
-      ? ResidenceType.SAME_UNIT
-      : ResidenceType.ANOTHER_UNIT,
+    isUnitOnPrincipalResidenceProperty: unitDetails.rentalUnitSetupType === undefined
+      ? undefined
+      : unitDetails.rentalUnitSetupType !== RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY,
+    hostResidence: unitDetails.rentalUnitSetupType === undefined
+      ? undefined
+      : unitDetails.rentalUnitSetupType === RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE
+        ? ResidenceType.SAME_UNIT
+        : ResidenceType.ANOTHER_UNIT,
     rentalUnitSpaceType: unitDetails.typeOfSpace,
     ...(unitDetails.parcelIdentifier ? { parcelIdentifier: unitDetails.parcelIdentifier } : {}),
     ...(blInfo.businessLicense ? { businessLicense: blInfo.businessLicense } : {}),
@@ -87,12 +91,13 @@ export function formatHostUnitDetailsAPI (
 }
 
 export function formatHostUnitDetailsUI (unitDetails: ApiUnitDetails): UiUnitDetails {
-  // TODO: review rentalSetupType mapping
-  const rentalSetupType = unitDetails.isUnitOnPrincipalResidenceProperty
-    ? unitDetails.hostResidence === ResidenceType.SAME_UNIT
-      ? RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE
-      : RentalUnitSetupType.UNIT_ON_PR_PROPERTY
-    : RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY
+  const rentalSetupType = unitDetails.isUnitOnPrincipalResidenceProperty === undefined
+    ? undefined
+    : unitDetails.isUnitOnPrincipalResidenceProperty
+      ? unitDetails.hostResidence === ResidenceType.SAME_UNIT
+        ? RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE
+        : RentalUnitSetupType.UNIT_ON_PR_PROPERTY
+      : RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY
   return {
     propertyType: unitDetails.propertyType,
     ownershipType: unitDetails.ownershipType,
@@ -123,11 +128,17 @@ export function formatHostUnitAddressApi (unitAddress: HostPropertyAddress): Api
 }
 
 export function formatHostUnitAddressUI (unitAddress: ApiUnitAddress): HostPropertyAddress {
+  const baseAddress = formatAddressUI(unitAddress)
+  const street = baseAddress.street
+    ? baseAddress.street
+    : `${unitAddress.unitNumber ? unitAddress.unitNumber + '-' : ''}` +
+      `${unitAddress.streetNumber || ''} ${unitAddress.streetName}`
   return {
-    ...formatAddressUI(unitAddress),
+    ...baseAddress,
     nickname: unitAddress.nickname || '',
     streetName: unitAddress.streetName || '',
     streetNumber: unitAddress.streetNumber || '',
-    unitNumber: unitAddress.unitNumber || ''
+    unitNumber: unitAddress.unitNumber || '',
+    street
   }
 }

@@ -11,7 +11,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const documentStore = useDocumentStore()
   const { hostOwners } = storeToRefs(ownerStore)
   const { blInfo, unitAddress, unitDetails } = storeToRefs(propertyStore)
-  const { prRequirements, propertyReqs } = storeToRefs(propertyReqStore)
+  const { prRequirements, propertyReqs, showUnitDetailsForm } = storeToRefs(propertyReqStore)
   const { storedDocuments } = storeToRefs(documentStore)
 
   const {
@@ -25,10 +25,10 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     downloadRegistrationCert
   } = useStrrBasePermit<HostRegistrationResp, HostApplicationResp, ApiHostApplication>()
 
-  const loadHostData = async (applicationId: string) => {
+  const loadHostData = async (applicationId: string, loadDraft = false) => {
     $reset()
     await loadPermitData(applicationId)
-    if (showPermitDetails.value) {
+    if (showPermitDetails.value || loadDraft) {
       // set sub store values
       hostOwners.value.push(formatOwnerHostUI(
         permitDetails.value.primaryContact,
@@ -43,10 +43,16 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       unitDetails.value = formatHostUnitDetailsUI(permitDetails.value.unitDetails)
       blInfo.value = formatHostUnitDetailsBlInfoUI(permitDetails.value.unitDetails)
       unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
+      showUnitDetailsForm.value = !!unitAddress.value
       prRequirements.value.isPropertyPrExempt = !!permitDetails.value.unitDetails.prExemptReason
       prRequirements.value.prExemptionReason = permitDetails.value.unitDetails.prExemptReason
-      if (application.value?.registration.strRequirements) {
+      if (application.value?.registration.strRequirements && unitAddress.value?.address?.streetName) {
         propertyReqs.value = application.value?.registration.strRequirements
+        if (Object.keys(application.value.registration.strRequirements).length === 0) {
+          // run the requirements check again in case it has errors (errors are not saved by the api)
+          showUnitDetailsForm.value = false
+          await propertyReqStore.getPropertyReqs()
+        }
       }
       storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({
         file: {} as File,

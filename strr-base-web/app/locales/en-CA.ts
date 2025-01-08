@@ -60,6 +60,7 @@ export default {
     save: 'Save',
     saveExit: 'Save and Resume Later',
     beginApplication: 'Begin Application',
+    resume: 'Resume',
     resumeApplication: 'Resume Application',
     acceptTos: {
       main: 'Accept Terms of Use',

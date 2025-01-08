@@ -25,12 +25,14 @@ defineProps<{
           </p>
         </slot>
       </div>
-      <UButton
-        :label="button.label"
-        :color="button.colour || 'primary'"
-        :icon="button.icon"
-        @click="button.action()"
-      />
+      <div>
+        <UButton
+          :label="button.label"
+          :color="button.colour || 'primary'"
+          :icon="button.icon"
+          @click="button.action()"
+        />
+      </div>
     </div>
     <slot />
   </div>

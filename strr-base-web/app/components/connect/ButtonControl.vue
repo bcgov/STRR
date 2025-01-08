@@ -9,9 +9,9 @@ const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
 <template>
   <div class="bg-white py-10" data-testid="button-control">
     <div class="app-inner-container">
-      <div class="grid grid-cols-2">
-        <div v-if="leftButtons.length > 0" class="col-start-1">
-          <div class="flex gap-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div v-if="leftButtons.length > 0">
+          <div class="flex justify-center gap-4 md:justify-start">
             <UButton
               v-for="(button, i) in leftButtons"
               :key="'left-button-' + i"
@@ -28,8 +28,8 @@ const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
             />
           </div>
         </div>
-        <div class="col-span-1 col-start-2">
-          <div v-if="rightButtons.length > 0" class="flex justify-end gap-4">
+        <div v-if="rightButtons.length > 0" class="col-span-1">
+          <div class="flex justify-center gap-4 md:justify-end">
             <UButton
               v-for="(button, i) in rightButtons"
               :key="'right-button-' + i"
@@ -37,6 +37,7 @@ const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
               :class="button.class"
               block
               :color="button.color || 'primary'"
+              :disabled="button.disabled || false"
               :icon="button.icon || ''"
               :label="button.label"
               :loading="button.loading || false"
