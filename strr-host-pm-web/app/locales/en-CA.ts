@@ -10,7 +10,7 @@ export default {
     },
     strProhibited: {
       title: 'Some types of short-term rentals are not permitted by your local government.',
-      description: 'Contact your local government to understand what rules apply to short-term rentals in your community before you submit a registration application. Your registration will be denied if your short-term rental type is not permitted by your local government.',
+      description: 'Contact your local government to understand what rules apply to short-term rentals in your community before you submit a registration application. Your registration may be denied or later cancelled if your short-term rental type is not permitted by your local government.',
       note: '{boldStart}Note:{boldEnd} Currently, short-term rental application fees are {boldStart}non-refundable.{boldEnd}'
     },
     prExempt: {
@@ -54,7 +54,7 @@ export default {
         STRATA_GUEST_SUITE: 'Strata corporation guest suite'
       },
       docType: {
-        BC_DRIVERS_LICENSE: "BC Driver's License",
+        BC_DRIVERS_LICENSE: "BC Driver's Licence",
         PROPERTY_ASSESSMENT_NOTICE: 'Property Assessment Notice',
         SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax Confirmation',
         HOG_DECLARATION: 'Home Owner Grant declaration',
@@ -65,12 +65,12 @@ export default {
         GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE: 'Government or Crown Corporation Official Notice',
         TENANCY_AGREEMENT: 'Tenancy Agreement',
         RENT_RECEIPT_OR_BANK_STATEMENT: 'Rent Receipt or Bank Statement',
-        LOCAL_GOVT_BUSINESS_LICENSE: 'Local Government Business License',
+        LOCAL_GOVT_BUSINESS_LICENSE: 'Local Government Business Licence',
         OTHERS: 'Other Proof Document (subject to review by registry staff)',
         STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
         FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
         BCSC: 'British Columbia Services Card',
-        COMBINED_BCSC_LICENSE: 'Combined BC Driver’s License and Services Card'
+        COMBINED_BCSC_LICENSE: 'Combined BC Driver’s Licence and Services Card'
       }
     }
   },
@@ -133,9 +133,9 @@ export default {
       addBusiness: 'Add a Business',
       addIndividual: 'Add an Individual',
       addListing: 'Add Another Listing',
-      businessLicense: 'Business License Number',
-      businessLicenseOpt: 'Local Government Business License (Optional)',
-      businessLicenseDate: 'Business License Expiry Date',
+      businessLicense: 'Business Licence Number',
+      businessLicenseOpt: 'Local Government Business Licence (Optional)',
+      businessLicenseDate: 'Business Licence Expiry Date',
       contactIndName: "Contact Individual's Name",
       individualsBusinesses: 'Individuals and Businesses',
       listingLinkOpt: 'Listing Link (Optional)',
@@ -184,8 +184,6 @@ export default {
       hostUnit: 'Where does the property host live on the property?',
       listEachWebLink: 'Add the web link for the rental unit’s listing on a short-term rental platform (e.g., airbnb.ca/your_listing123). You can add multiple links if this rental unit is listed on multiple platforms (e.g., Airbnb, VRBO, Expedia, etc.).',
       ownershipTypeLegend: 'Required, What is the ownership type of the property?',
-      enterResiAddressToDetermineRequirement: 'Start by entering the residential address of rental unit to help determine if you need to register your short-term rental and if it is in an area subject to the {link}.',
-      requireBusLicense: 'Your local government requires a valid business license to operate a short-term rental.',
       helpOwnerBtn: 'Help with Adding Individuals and Businesses',
       helpOwnerTitle: 'Adding Individuals and Businesses',
       helpOwner1: 'A Property Host is anyone who has the legal right to the property, as the owner or renter of the property.',
@@ -197,11 +195,11 @@ export default {
       unit: 'unit | units'
     },
     hint: {
-      businessLicense: 'This is the business license to operate a short-term rental as provided by your local government.',
+      businessLicense: 'This is the business licence to operate a short-term rental as provided by your local government.',
       craTaxNumber: '9-digit Social Insurance Number (SIN), Individual Tax Number (ITN), Temporary Tax Number (TTN)',
       listingLink: 'e.g., http://www.airbnb.ca/your_listing123',
       nickname: 'e.g., My Guest Suite',
-      parcelIdentifier: 'This is a nine-digit number that identifies the parcel in the land title of your property.'
+      parcelIdentifier: 'This is a nine-digit number that identifies the parcel in the land title of your property. {tooltip}'
     },
     review: {
       brand: {
@@ -278,13 +276,13 @@ export default {
     typeOfSpace: 'Type of Space',
     chooseDocs: 'Choose Supporting Documents',
     fileUpload: 'File Upload',
-    localGovBL: 'Local Government Business License',
-    localGovShortTermRentalBL: 'Local government short-term rental business license',
+    localGovBL: 'Local Government Business Licence',
+    localGovShortTermRentalBL: 'Local government short-term rental business licence',
     proofOfPr: 'Proof of principal residence',
     supportingStrataDocs: 'Supporting strata-titled hotel or motel documentation',
     fractOwnAgreement: 'Fractional ownership agreement',
-    businessLicenseNumberOpt: 'Business License Number (Optional)',
-    businessLicenseExpiryDateOpt: 'Business License Expiry Date (Optional)',
+    businessLicenseNumberOpt: 'Business Licence Number (Optional)',
+    businessLicenseExpiryDateOpt: 'Business Licence Expiry Date (Optional)',
     rentalAgreementOrRecept: 'Tenancy (rental) agreement or receipt or bank statement showing payment of rent',
     streetNameAndType: 'Street Name and Type',
     siteNameOpt: 'Site Name (Optional)',
@@ -384,8 +382,8 @@ export default {
       required: 'Please enter an account name',
       exists: 'An account with this name already exists'
     },
-    businessLicense: 'Please enter a valid business license number',
-    businessLicenseExpiryDate: 'Please select the expiry date for the business license',
+    businessLicense: 'Please enter a valid business licence number',
+    businessLicenseExpiryDate: 'Please select the expiry date for the business licence',
     dateOfBirth: 'Please enter the birthdate of this individual',
     numberOfRooms: {
       empty: 'Please specify the number of rooms available for rent',
@@ -406,36 +404,36 @@ export default {
   },
   requirements: {
     busLicense: {
-      label: 'Business license',
+      label: 'Business licence',
       content: {
-        normal: 'Your local government requires a business license to operate a short-term rental at this address.',
-        override: 'Your local government may require a business license to operate a short-term rental at this address.'
+        normal: 'A local government business licence is required to register a short-term rental at this address.',
+        override: 'A local government business licence may be required to register a short-term rental at this address.'
       }
     },
     pr: {
       label: 'Principal residence',
       content: {
-        normal: '{link} is required as the provincial principal residence requirement applies to this address. Note: Short-term rentals are limited to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property.',
-        override: '{link} is required if the provincial principal residence requirement applies to this address. Note: If the requirement applies, short-term rentals are limited to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property.'
+        normal: '{link} is required to register this address. The provincial principal residence requirement limits short-term rentals in this area to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property, unless you qualify for an exemption.',
+        override: '{link} may be required to register this address. The provincial principal residence requirement could limit short-term rentals in this area to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property, unless you qualify for an exemption.'
       }
     }
   },
   propertyType: {
     SECONDARY_SUITE: 'Secondary Suite',
-    ACCESSORY_DWELLING: 'Accessory Dwelling',
-    TOWN_HOME: 'Town Home',
-    MULTI_UNIT_HOUSING: 'Multi Unit Housing',
+    ACCESSORY_DWELLING: 'Accessory Dwelling Unit',
+    TOWN_HOME: 'Townhome',
+    MULTI_UNIT_HOUSING: 'Multi-unit Housing (e.g., Duplex, triplex)',
     CONDO_OR_APT: 'Condo or Apartment',
     STRATA_HOTEL: 'Strata Hotel',
     SINGLE_FAMILY_HOME: 'Single Family Home',
-    RECREATIONAL: 'Recreational',
-    BED_AND_BREAKFAST: 'Bed & Breakfast',
+    RECREATIONAL: 'Recreational (e.g. cabin, cottage)',
+    BED_AND_BREAKFAST: 'Bed and Breakfast',
     FLOAT_HOME: 'Float Home',
     undefined: 'Not Selected'
   },
   rentalUnitType: {
-    ENTIRE_HOME: 'Entire home (guests have the entire place to themselves)',
-    SHARED_ACCOMMODATION: 'Shared accommodation (guests rent a portion of the unit with access to common spaces that may be shared with the host or other guests)',
+    ENTIRE_HOME: 'Entire Home (guests rent an entire residence for themselves)',
+    SHARED_ACCOMMODATION: 'Room in a Home (guest rent only a portion of a residence (e.g. a bedroom) and may share common spaces with the host or other guests. If you select this option, you will be charged a fee per room.)',
     undefined: 'Not Selected'
   },
   rentalUnitSetupType: {

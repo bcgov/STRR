@@ -58,9 +58,8 @@ function handleContinueApp () {
       </template>
 
       <template #item>
-        <div class="flex flex-col gap-4 pt-2 text-base text-bcGovGray-700">
+        <div class="flex flex-col gap-4 text-base text-bcGovGray-700">
           <p>{{ $t('alert.strProhibited.description') }}</p>
-          <ConnectI18nHelper translation-path="alert.strProhibited.note" />
         </div>
       </template>
     </UAccordion>

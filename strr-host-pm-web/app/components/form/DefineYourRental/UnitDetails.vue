@@ -10,16 +10,16 @@ const { getUnitDetailsSchema } = useHostPropertyStore()
 const unitDetailsFormRef = ref<Form<any>>()
 
 const propertyTypes = [
-  { name: t(`propertyType.${PropertyType.ACCESSORY_DWELLING}`), value: PropertyType.ACCESSORY_DWELLING },
-  { name: t(`propertyType.${PropertyType.BED_AND_BREAKFAST}`), value: PropertyType.BED_AND_BREAKFAST },
-  { name: t(`propertyType.${PropertyType.CONDO_OR_APT}`), value: PropertyType.CONDO_OR_APT },
-  { name: t(`propertyType.${PropertyType.FLOAT_HOME}`), value: PropertyType.FLOAT_HOME },
-  { name: t(`propertyType.${PropertyType.MULTI_UNIT_HOUSING}`), value: PropertyType.MULTI_UNIT_HOUSING },
-  { name: t(`propertyType.${PropertyType.RECREATIONAL}`), value: PropertyType.RECREATIONAL },
-  { name: t(`propertyType.${PropertyType.SECONDARY_SUITE}`), value: PropertyType.SECONDARY_SUITE },
   { name: t(`propertyType.${PropertyType.SINGLE_FAMILY_HOME}`), value: PropertyType.SINGLE_FAMILY_HOME },
+  { name: t(`propertyType.${PropertyType.SECONDARY_SUITE}`), value: PropertyType.SECONDARY_SUITE },
+  { name: t(`propertyType.${PropertyType.ACCESSORY_DWELLING}`), value: PropertyType.ACCESSORY_DWELLING },
+  { name: t(`propertyType.${PropertyType.TOWN_HOME}`), value: PropertyType.TOWN_HOME },
+  { name: t(`propertyType.${PropertyType.MULTI_UNIT_HOUSING}`), value: PropertyType.MULTI_UNIT_HOUSING },
+  { name: t(`propertyType.${PropertyType.CONDO_OR_APT}`), value: PropertyType.CONDO_OR_APT },
+  { name: t(`propertyType.${PropertyType.RECREATIONAL}`), value: PropertyType.RECREATIONAL },
+  { name: t(`propertyType.${PropertyType.BED_AND_BREAKFAST}`), value: PropertyType.BED_AND_BREAKFAST },
   { name: t(`propertyType.${PropertyType.STRATA_HOTEL}`), value: PropertyType.STRATA_HOTEL },
-  { name: t(`propertyType.${PropertyType.TOWN_HOME}`), value: PropertyType.TOWN_HOME }
+  { name: t(`propertyType.${PropertyType.FLOAT_HOME}`), value: PropertyType.FLOAT_HOME }
 ]
 const rentalTypeOptions = [
   { value: RentalUnitType.ENTIRE_HOME, label: t(`rentalUnitType.${RentalUnitType.ENTIRE_HOME}`) },
@@ -229,15 +229,24 @@ onMounted(async () => {
             v-model="propStore.unitDetails.parcelIdentifier"
             mask="###-###-###"
             name="parcelIdentifier"
-            :help="$t('strr.hint.parcelIdentifier')"
             :aria-label="propStore.isPIDRequired
               ? $t('strr.label.parcelIdentifier')
               : $t('strr.label.parcelIdentifierOpt')"
             :placeholder="propStore.isPIDRequired
               ? $t('strr.label.parcelIdentifier')
               : $t('strr.label.parcelIdentifierOpt')"
-          />
-          <!-- TODO: add PID tooltip to hint, pass slots down to ConnectFormFieldGroup ?? -->
+          >
+            <template #help>
+              <span>
+                {{ $t('strr.hint.parcelIdentifier') }}
+                <span class="inline-flex align-text-top">
+                  <ConnectTooltip :text="$t('tooltip.pid')" :popper="{ placement: 'right' }">
+                    <UIcon name="i-mdi-info-outline" class="ml-0.5 size-4 shrink-0 text-blue-500" />
+                  </ConnectTooltip>
+                </span>
+              </span>
+            </template>
+          </ConnectFormFieldGroup>
         </ConnectFormSection>
       </div>
     </ConnectPageSection>

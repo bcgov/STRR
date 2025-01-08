@@ -56,9 +56,11 @@ const errorId = `${props.name}-error-${inputId}`
       </slot>
     </template>
 
-    <template v-if="help" #help>
+    <template v-if="help || $slots.help" #help>
       <span :id="helpId">
-        {{ help }}
+        <slot name="help">
+          {{ help }}
+        </slot>
       </span>
     </template>
 
