@@ -18,7 +18,10 @@ const localePath = useLocalePath()
       }"
     >
       <template #title>
-        <ConnectI18nHelper translation-path="alert.straaExempt.title" />
+        <div class="flex flex-col gap-2">
+          <ConnectI18nHelper translation-path="alert.straaExempt.title" />
+          <ConnectI18nHelper translation-path="alert.straaExempt.note" />
+        </div>
       </template>
     </UAlert>
 

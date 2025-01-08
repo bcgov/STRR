@@ -5,7 +5,8 @@ export default {
       title: 'Your property is in a location where the principal residence requirement applies.'
     },
     straaExempt: {
-      title: '{boldStart}Registration Not Required:{boldEnd} This address appears to be located on First Nations land and is therefore exempt from the {italicStart}Short-term Rental Accommodations Act{italicEnd}. You do not need to register a short-term rental at this address.'
+      title: '{boldStart}Registration Not Required:{boldEnd} This address appears to be located on First Nations land and is therefore exempt from the {italicStart}Short-term Rental Accommodations Act{italicEnd}. You do not need to register a short-term rental at this address.',
+      note: 'Please check with the First Nations for any applicable Short-Term Rental regulations.'
     },
     strProhibited: {
       title: 'Some types of short-term rentals are not permitted by your local government.',
@@ -79,17 +80,17 @@ export default {
       description: {
         0: 'Define Your Short-Term Rental',
         1: 'Add Individuals and Businesses',
-        2: 'Add Supporting Documentation',
+        2: 'Add Supporting Information',
         3: 'Review and Confirm'
       },
       title: {
         0: 'Define Your Short-Term Rental',
         1: 'Individuals and Businesses',
-        2: 'Add Supporting Documentation',
+        2: 'Add Supporting Information',
         3: 'Review and Confirm'
       },
       info: {
-        0: 'Tell us about the short-term rental property. Note: If you have multiple short-term rental properties, you must submit a separate Short-Term Rental Registration for each rental property.',
+        0: 'Tell us about the short-term rental unit. If you have multiple short-term rental units, you must submit a separate registration for each one. However, if you rent multiple rooms at the same address, you can register them together.',
         1: 'Add the individuals and businesses who will have a role in your short-term rental registration. The completing party must be an individual.',
         2: '',
         3: 'Review and confirm all of the information you provided as shown below.'
@@ -117,7 +118,7 @@ export default {
         propertyAddress: 'Rental Unit Address',
         propertyDetails: 'Rental Unit Details',
         propertyListings: 'Online Listings',
-        rentalUnitResiAddress: 'Rental Unit Residential Address',
+        rentalUnitResiAddress: 'Short-Term Rental Unit Residential Address',
         residentialAddress: 'Residential Address',
         role: 'Role'
       }
@@ -272,8 +273,8 @@ export default {
     },
     strataRefCode: 'Strata-Titled Hotel Reference Code',
     strUnitAddress: 'Short-Term Rental Unit Residential Address',
-    strUnitName: 'Short-Term Rental Unit Name',
-    strUnitNameOpt: 'Short-Term Rental Unit Name (Optional)',
+    strUnitName: 'Short-Term Rental Unit Nickname',
+    strUnitNameOpt: 'Short-Term Rental Unit Nickname (Optional)',
     typeOfSpace: 'Type of Space',
     chooseDocs: 'Choose Supporting Documents',
     fileUpload: 'File Upload',
@@ -291,7 +292,7 @@ export default {
     locality: 'Locality',
     additionalLocationDescription: 'Additional Location Description',
     lookupResidentialAddress: 'Look up the Residential Address',
-    enterAddressManually: 'Enter the residental address manually',
+    enterAddressManually: 'Enter the residential address manually',
     unnamed: 'Unnamed'
   },
   link: {
@@ -344,7 +345,7 @@ export default {
     typeOfSpaceLegend: 'Required: Select the type of space of the rental unit.',
     thisPropIsInLocWithReqs: 'This property is in a location where the following requirements apply:',
     thisPropCouldBeInLocWithReqs: 'This property could be in a location where the following requirements apply:',
-    giveUnitNickname: 'Give your rental unit a name to help you identify it, especially if you manage multiple units.',
+    giveUnitNickname: 'Give your rental unit a nickname to help you identify it, especially if you manage multiple units.',
     addAllReqDocs: 'Add all required documentation that supports your short-term rental registration. {link}',
     toDetermineDocsReturnToStart: 'To determine the types of documentation you’ll need, please complete Step 1 of the application first.',
     uploadReqDocs: 'Upload all required documentation to support your application.',
