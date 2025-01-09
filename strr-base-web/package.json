@@ -12,7 +12,7 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint --ext .ts,.vue app --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
-    "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./tests/coverage/clover.xml ./coverage.xml",
+    "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./coverage/clover.xml ./coverage.xml",
     "test:unit": "vitest --dir tests/unit",
     "test:unit:cov": "vitest run --dir tests/unit --coverage",
     "test:e2e": "npx playwright test",
