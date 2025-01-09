@@ -208,15 +208,13 @@ async function handleItemSelect (row: any) {
               <UButton
                 :class="isDraft(row.status) ? 'justify-center grow lg:rounded-r-none' : ''"
                 :label="isDraft(row.status) ? $t('label.resumeDraft') : $t('btn.view')"
-                :aria-label="
-                  $t('btn.ariaViewDetails', {
+                :aria-label="isDraft(row.status)
+                  ? $t('btn.ariaResumeDraft', { number: row.applicationNumber })
+                  : $t('btn.ariaViewDetails', {
                     name: row.name,
-                    address: row.address.streetName
-                      ? `${row.address.unitNumber
-                        ? row.address.unitNumber + '-'
-                        : ''}${row.address.streetNumber} ${row.address.streetName}, ${row.address.city}`
-                      : '',
-                    number: row.applicationNumber
+                    address: `${row.address.unitNumber
+                      ? row.address.unitNumber + '-'
+                      : ''}${row.address.streetNumber} ${row.address.streetName}, ${row.address.city}`
                   })
                 "
                 :block="!isDraft(row.status)"
