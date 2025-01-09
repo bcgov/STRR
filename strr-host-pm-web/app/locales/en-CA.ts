@@ -168,14 +168,15 @@ export default {
       completingParty: 'Person completing form'
     },
     text: {
-      applicationMustInclude: 'Your application must include the following:',
+      applicationMustInclude: 'Your registration must include the following:',
       businessContactIndividual: 'Enter the information for the individual to be contacted at this business.',
       comingSoon: 'Short-Term Rental Registry will be available on December 15, 2024',
       completingPartyInfo: 'Select this option if you are entering information for yourself.',
       completingPartyCheckbox: 'I am adding my own information',
-      includeCompletingParty: 'The Completing Party',
-      includeHost: 'At least one Host (maximum two)',
-      includePropertyManager: 'If you have a Property Manager, you MUST also include the Property Manager (maximum one)',
+      includeCompletingParty: 'Person Completing the Form',
+      includeHost: 'The Property Host',
+      includeCohost: 'The Co-host (if applicable)',
+      includePropertyManager: 'The Property Manager (if applicable)',
       rentalType: 'What type of space is offered in this rental unit?',
       entireHome: 'Entire home (guests have the entire place to themselves)',
       sharedAccomodation: 'Shared accommodation (guests rent a portion of the unit with access to common spaces that may be shared with the host or other guests)',
@@ -442,9 +443,9 @@ export default {
     undefined: 'Not Selected'
   },
   rentalUnitSetupType: {
-    WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence", // The whole Host Principal Residence
-    UNIT_ON_PR_PROPERTY: 'This unit is not the host’s principal residence but it’s on the same property', // A whole unit on the same property as the Host Principal Residence (e.g., basement suite)
-    UNIT_NOT_ON_PR_PROPERTY: 'This unit is not on the same property as the host’s principal residence',
+    WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence or a room within the host's principal residence", // TODO: update enum to not be whole pr ???
+    UNIT_ON_PR_PROPERTY: "This unit is not the host's principal residence but it's on the same property",
+    UNIT_NOT_ON_PR_PROPERTY: "This unit is not on same property as host's principal residence",
     undefined: 'Not Selected'
   },
   ownershipType: {
