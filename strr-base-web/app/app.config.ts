@@ -16,8 +16,8 @@ export default defineAppConfig({
     feeWidget: {
       itemLabelTooltip: {
         test: {
-          keypath: '',
-          link: ''
+          i18nkey: '',
+          hrefRtcKey: ''
         }
       }
     }
