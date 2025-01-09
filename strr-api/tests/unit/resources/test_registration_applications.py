@@ -64,6 +64,24 @@ def test_save_and_resume_applications(session, client, jwt):
         assert HTTPStatus.OK == rv.status_code
 
 
+def test_delete_draft_applications(session, client, jwt):
+    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        headers["isDraft"] = True
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        rv = client.delete(f"/applications/{application_number}", headers=headers)
+        response_json = {}
+        assert response_json == {}
+        assert HTTPStatus.NO_CONTENT == rv.status_code
+
+
 def test_staff_cannot_access_draft_applications(session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     rv = client.get("/applications/search", headers=headers)
@@ -665,3 +683,22 @@ def test_create_business_as_cohost_registration(session, client, jwt):
             Application.Status.FULL_REVIEW_APPROVED
         )
         assert response_json.get("header").get("hostActions") == []
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_delete_payment_pending_applications(session, client, jwt):
+    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        rv = client.delete(f"/applications/{application_number}", headers=headers)
+        response_json = rv.json
+        print(response_json)
+        assert HTTPStatus.BAD_REQUEST == rv.status_code
+        assert response_json["message"] == "Application in the current status cannot be deleted."

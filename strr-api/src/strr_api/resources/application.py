@@ -226,6 +226,47 @@ def get_application_details(application_number):
         return exception_response(auth_exception)
 
 
+@bp.route("/<application_number>", methods=("DELETE",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def delete_application(application_number):
+    """
+    Deletes an application if it is in DRAFT state
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+    """
+
+    try:
+        account_id = request.headers.get("Account-Id", None)
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        if application.status != ApplicationModel.Status.DRAFT:
+            return error_response(
+                message=ErrorMessage.APPLICATION_CANNOT_BE_DELETED.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        application.delete()
+        return jsonify({}), HTTPStatus.NO_CONTENT
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+
+
 @bp.route("/<application_number>/payment-details", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")

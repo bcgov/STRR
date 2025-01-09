@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "dc3093f8-dbf6-41f2-856f-5b275d10df79",
+		"_postman_id": "88d4eae6-c393-4523-a210-2f3d0c6593da",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -363,6 +363,40 @@
 							]
 						},
 						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_number}}",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_number}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Draft Application",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "Account-Id",

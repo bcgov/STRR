@@ -154,6 +154,7 @@ class ErrorMessage(Enum):
     POSTAL_CODE_MISMATCH = "Postal code does not match with the data in the permit."
     ADDRESS_IN_STR_PROHIBITED_AREA = "Address is in a short term rentals prohibited area."
     ADDRESS_LOOK_UP_FAILED = "Failed to look up the address."
+    APPLICATION_CANNOT_BE_DELETED = "Application in the current status cannot be deleted."
 
 
 class ApplicationRole(Enum):
