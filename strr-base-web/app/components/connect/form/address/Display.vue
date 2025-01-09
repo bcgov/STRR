@@ -4,7 +4,22 @@ const props = defineProps<{
   useLocationDescLabel?: boolean
 }>()
 
-const addressData = computed(() => getAddressDisplayParts(props.address))
+const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
+
+const addressData = computed(() => {
+  return [
+    `${props.address.street},` || [
+      [props.address.unitNumber, props.address.streetNumber].filter(val => !!val).join('-'),
+      `${props.address.streetName},`
+    ].filter(val => !!val).join(' ') || '',
+    props.address.streetAdditional ? `${props.address.streetAdditional},` : '',
+    [
+      `${props.address.city},`,
+      `${props.address.region}\u00A0`, props.address.postalCode
+    ].filter(val => !!val).join(' ') || '',
+    props.address.country ? (regionNamesInEnglish.of(props.address.country) || props.address.country) : ''
+  ].filter(val => !!val)
+})
 </script>
 <template>
   <div data-testid="address-display">
