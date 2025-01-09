@@ -66,7 +66,7 @@ const getFeeItemLabelTooltip = (typeCode: string) => {
     }
     return {
       keypath: tooltip.i18nkey,
-      link: link || undefined
+      link
     }
   }
   return undefined
