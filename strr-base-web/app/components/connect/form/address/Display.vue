@@ -8,14 +8,17 @@ const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'region' })
 
 const addressData = computed(() => {
   return [
-    `${props.address.street},` || [
-      [props.address.unitNumber, props.address.streetNumber].filter(val => !!val).join('-'),
-      `${props.address.streetName},`
-    ].filter(val => !!val).join(' ') || '',
+    props.address.street
+      ? `${props.address.street},`
+      : [
+          [props.address.unitNumber, props.address.streetNumber].filter(val => !!val).join('-'),
+          props.address.streetName ? `${props.address.streetName},` : undefined
+        ].filter(val => !!val).join(' ') || '',
     props.address.streetAdditional ? `${props.address.streetAdditional},` : '',
     [
-      `${props.address.city},`,
-      `${props.address.region}\u00A0`, props.address.postalCode
+      props.address.city ? `${props.address.city},` : undefined,
+      props.address.region ? `${props.address.region}\u00A0` : undefined,
+      props.address.postalCode
     ].filter(val => !!val).join(' ') || '',
     props.address.country ? (regionNamesInEnglish.of(props.address.country) || props.address.country) : ''
   ].filter(val => !!val)

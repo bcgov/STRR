@@ -137,6 +137,7 @@ onMounted(async () => {
                   v-model:street-additional="propStore.unitAddress.address.streetAdditional"
                   v-model:city="propStore.unitAddress.address.city"
                   v-model:postal-code="propStore.unitAddress.address.postalCode"
+                  v-model:location-description="propStore.unitAddress.address.locationDescription"
                   :schema-prefix="'address.'"
                   :disabled-fields="
                     reqStore.loadingReqs
