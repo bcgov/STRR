@@ -22,6 +22,7 @@ const {
 const permitStore = useHostPermitStore()
 
 const applicationId = route.query.applicationId as string
+const loading = ref(false)
 
 // fee stuff
 const {
@@ -39,7 +40,7 @@ const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 
 onMounted(async () => {
-  // loading.value = true
+  loading.value = true
   applicationReset()
   if (applicationId) {
     await permitStore.loadHostData(applicationId, true)
@@ -55,7 +56,7 @@ onMounted(async () => {
   if (hostFee1.value) {
     setPlaceholderServiceFee(hostFee1.value.serviceFees)
   }
-  // loading.value = false
+  loading.value = false
 })
 
 const setFeeBasedOnProperty = () => {
@@ -295,7 +296,8 @@ setBreadcrumbs([
 ])
 </script>
 <template>
-  <div class="space-y-8 py-8 sm:py-10">
+  <ConnectSpinner v-if="loading" overlay />
+  <div v-else class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
     <ModalGroupHelpAndInfo />
     <ConnectStepper

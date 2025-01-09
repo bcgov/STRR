@@ -4,6 +4,7 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const hostPermitStore = useHostPermitStore()
 const strrModal = useStrrModals()
+const { deleteApplication } = useStrrApi()
 
 const columns = [
   {
@@ -63,7 +64,7 @@ setBreadcrumbs([
 ])
 
 // can use watch param to handle pagination in future
-const { data: hostPmList, status } = await useAsyncData(
+const { data: hostPmList, status, refresh } = await useAsyncData(
   'host-pm-list',
   () => hostPermitStore.loadHostPmList(),
   {
@@ -74,6 +75,25 @@ const { data: hostPmList, status } = await useAsyncData(
 
 function isDraft (status: string) {
   return status === 'Draft'
+}
+
+const deleting = ref(false)
+async function deleteDraft (row: any) {
+  try {
+    deleting.value = true
+    row.class = 'bg-red-50 animate-pulse'
+    row.disabled = true
+    await Promise.all([
+      new Promise(resolve => setTimeout(resolve, 500)),
+      await deleteApplication(row.applicationNumber)
+    ])
+  } catch (e) {
+    logFetchError(e, `Error deleting application ${row.applicationNumber}`)
+    strrModal.openAppSubmitError(e)
+  } finally {
+    refresh()
+    deleting.value = false
+  }
 }
 
 async function handleItemSelect (row: any) {
@@ -142,7 +162,7 @@ async function handleItemSelect (row: any) {
           ref="tableRef"
           :columns="selectedColumns"
           :rows="hostPmList"
-          :loading="status === 'pending'"
+          :loading="status === 'pending' || deleting"
           :empty-state="{ icon: '', label: $t('table.hostPmList.emptyText') }"
           :sort="{ column: 'date', direction: 'desc' }"
           :ui="{
@@ -200,6 +220,7 @@ async function handleItemSelect (row: any) {
                   })
                 "
                 :block="!isDraft(row.status)"
+                :disabled="row.disabled"
                 @click="handleItemSelect(row)"
               />
               <UPopover v-if="isDraft(row.status)" :popper="{ placement: 'bottom-end' }">
@@ -207,6 +228,7 @@ async function handleItemSelect (row: any) {
                   class="grow justify-center lg:flex-none lg:rounded-l-none"
                   icon="i-mdi-menu-down"
                   :aria-label="$t('text.showMoreOptions')"
+                  :disabled="row.disabled"
                 />
                 <template #panel>
                   <!-- TODO: not focusable via keyboard tab, should be fixed in nuxt/ui v3 -->
@@ -215,7 +237,7 @@ async function handleItemSelect (row: any) {
                     :label="$t('word.Remove')"
                     :aria-label="$t('word.Remove')"
                     variant="link"
-                    @click="console.log('remove', row.applicationNumber)"
+                    @click="deleteDraft(row)"
                   />
                 </template>
               </UPopover>

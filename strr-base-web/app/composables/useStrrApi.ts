@@ -49,6 +49,10 @@ export const useStrrApi = () => {
     })
   }
 
+  const deleteApplication = async (applicationId: string) => {
+    return await $strrApi(`/applications/${applicationId}`, { method: 'DELETE' })
+  }
+
   const getApplicationReceipt = async (applicationNumber: string) => {
     return await $strrApi<Blob>(`/applications/${applicationNumber}/payment/receipt`)
       .catch((e) => {
@@ -71,6 +75,7 @@ export const useStrrApi = () => {
   }
 
   return {
+    deleteApplication,
     getAccountRegistrations,
     getAccountApplications,
     getApplicationReceipt,
