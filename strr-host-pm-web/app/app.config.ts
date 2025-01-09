@@ -43,6 +43,18 @@ export default defineAppConfig({
           bceidSubtext: 'text.bceidSubtext'
         }
       }
+    },
+    feeWidget: {
+      itemLabelTooltip: () => ({
+        HOSTREG_1: {
+          i18nkey: 'link.viewFeeSchedule',
+          hrefRtcKey: 'hostFeesUrl'
+        },
+        HOSTREG_2: {
+          i18nkey: 'link.viewFeeSchedule',
+          hrefRtcKey: 'hostFeesUrl'
+        }
+      })
     }
   },
   ui: {}

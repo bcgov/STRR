@@ -306,7 +306,8 @@ export default {
     allRules: 'rules for short-term rental',
     reqDocs: 'required documentation',
     learnMore: 'Learn More',
-    viewRequiredDocs: 'View required documents'
+    viewRequiredDocs: 'View required documents',
+    viewFeeSchedule: 'View fee schedule'
   },
   modal: {
     info: {

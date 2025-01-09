@@ -12,6 +12,9 @@ declare module 'nuxt/schema' {
             idirSubtext: string | undefined
           }
         }
+      },
+      feeWidget?: {
+        itemLabelTooltip: Record<string, { i18nkey: string, hrefRtcKey?: keyof PublicRuntimeConfig }> // typeCode
       }
     }
   }
@@ -31,6 +34,9 @@ declare module 'nuxt/schema' {
             idirSubtext: string | undefined
           }
         }
+      },
+      feeWidget?: {
+        itemLabelTooltip: Record<string, { i18nkey: string, hrefRtcKey?: keyof PublicRuntimeConfig }> // typeCode
       }
     }
   }

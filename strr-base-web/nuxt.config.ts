@@ -109,7 +109,7 @@ export default defineNuxtConfig({
     }
   },
 
-  piniaPersistedstate: {
+  piniaPluginPersistedstate: {
     storage: 'sessionStorage'
   },
 

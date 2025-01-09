@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const fwConfig = useAppConfig().strrBaseLayer.feeWidget
+const rtc = useRuntimeConfig().public
 const {
   feeOptions,
   fees,
@@ -55,6 +57,20 @@ const getItemFee = (feeItem: ConnectFeeItem) => {
   return `$${(feeItem.filingFees * (feeItem.quantity || 1)).toFixed(2)}`
 }
 
+const getFeeItemLabelTooltip = (typeCode: string) => {
+  const tooltip = fwConfig?.itemLabelTooltip[typeCode]
+  if (tooltip) {
+    let link: string | undefined
+    if (tooltip?.hrefRtcKey && tooltip?.hrefRtcKey in rtc) {
+      link = rtc[tooltip.hrefRtcKey] as string
+    }
+    return {
+      keypath: tooltip.i18nkey,
+      link: link || undefined
+    }
+  }
+  return undefined
+}
 </script>
 <template>
   <div
@@ -89,8 +105,36 @@ const getItemFee = (feeItem: ConnectFeeItem) => {
             class="flex justify-between py-3"
           >
             <div>
-              <p class="font-bold">
-                {{ $t(`ConnectFeeWidget.feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}
+              <p class="flex items-center gap-1 font-bold">
+                <span>{{ $t(`ConnectFeeWidget.feeSummary.itemLabels.${feeItem.filingTypeCode}`) }}</span>
+                <UPopover
+                  v-if="getFeeItemLabelTooltip(feeItem.filingTypeCode)"
+                  mode="hover"
+                  :popper="{ placement: 'right' }"
+                  :ui="{
+                    rounded: 'rounded',
+                    background: 'bg-gray-700/90',
+                    base: 'overflow-hidden focus:outline-none relative'
+                  }"
+                >
+                  <UIcon name="i-mdi-info-outline" class="size-5 shrink-0 translate-y-0.5 text-blue-500" />
+
+                  <template #panel>
+                    <div class="p-4 text-sm font-normal text-white">
+                      <UButton
+                        v-if="getFeeItemLabelTooltip(feeItem.filingTypeCode)?.link"
+                        :label="$t(`${getFeeItemLabelTooltip(feeItem.filingTypeCode)?.keypath}`)"
+                        :to="getFeeItemLabelTooltip(feeItem.filingTypeCode)?.link"
+                        variant="link"
+                        color="white"
+                        target="_blank"
+                        :padded="false"
+                        class="underline"
+                      />
+                      <span v-else>{{ $t(`${getFeeItemLabelTooltip(feeItem.filingTypeCode)?.keypath}`) }}</span>
+                    </div>
+                  </template>
+                </UPopover>
               </p>
               <p v-if="feeItem.quantity !== undefined && feeItem.quantityDesc" class="pl-4 text-gray-600">
                 x {{ feeItem.quantity }} {{ feeItem.quantityDesc }}

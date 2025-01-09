@@ -64,7 +64,8 @@ export default defineNuxtConfig({
       housingRequiredDocsUrl: process.env.NUXT_HOUSING_REQUIRED_DOCS_URL,
       housingProofOfPrUrl: process.env.NUXT_HOUSING_PROOF_OF_PR_URL,
       hostTacUrl: process.env.NUXT_HOST_TAC_URL,
-      hostAccActUrl: process.env.NUXT_HOST_ACC_ACT_SUMMARY
+      hostAccActUrl: process.env.NUXT_HOST_ACC_ACT_SUMMARY,
+      hostFeesUrl: process.env.NUXT_HOST_FEES_URL
       // set by strr-base-web layer (still required in .env)
       // addressCompleteKey - NUXT_ADDRESS_COMPLETE_KEY
       // payApiURL - NUXT_PAY_API_VERSION
