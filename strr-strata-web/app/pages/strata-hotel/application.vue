@@ -5,6 +5,7 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
 const { handlePaymentRedirect } = useConnectNav()
+const { setButtonControl } = useButtonControl()
 
 const { validateContact } = useStrrContactStore()
 const { validateStrataBusiness } = useStrrStrataBusinessStore()

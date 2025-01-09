@@ -44,10 +44,10 @@ watch(() => props.setMinDate, (val) => { minDate.value = val || null })
   </div>
 </template>
 <style lang="scss">
-@import '@vuepic/vue-datepicker/dist/main.css';
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@use '@vuepic/vue-datepicker/dist/main.css' as *;
+@use 'tailwindcss/base' as *;
+@use 'tailwindcss/components' as *;
+@use 'tailwindcss/utilities' as *;
 
 .connect-date-picker {
 

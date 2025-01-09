@@ -6,6 +6,8 @@ const route = useRoute()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
 const { handlePaymentRedirect } = useConnectNav()
+const { setButtonControl, handleButtonLoading } = useButtonControl()
+const ldStore = useConnectLaunchdarklyStore()
 
 const propertyStore = useHostPropertyStore()
 const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(propertyStore)
@@ -133,27 +135,6 @@ const activeStep = ref<Step>(steps.value[activeStepIndex.value] as Step)
 const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
 const reviewFormRef = shallowRef<InstanceType<typeof FormReview> | null>(null)
 
-// TODO: move button management into composable ?
-const handleButtonLoading = (reset: boolean, buttonGrp?: 'left' | 'right', buttonIndex?: number) => {
-  // set button control for loading / disabling buttons on submit or save or reset to default
-  const updateButtonGrp = (buttonArray: ConnectBtnControlItem[], grp: 'left' | 'right') => {
-    for (const [index, element] of buttonArray.entries()) {
-      if (reset) {
-        element.disabled = false
-        element.loading = false
-      } else {
-        element.loading = (grp === buttonGrp) && index === buttonIndex
-        element.disabled = !element.loading
-      }
-    }
-  }
-  const buttonControl = getButtonControl()
-  // update left buttons with loading / disabled as required
-  updateButtonGrp(buttonControl.leftButtons, 'left')
-  // update right buttons with loading / disabled as required
-  updateButtonGrp(buttonControl.rightButtons, 'right')
-}
-
 const saveApplication = async (resumeLater = false) => {
   handleButtonLoading(false, 'left', resumeLater ? 1 : 2)
   // prevent flicker of buttons by waiting half a second
@@ -248,11 +229,13 @@ watch(activeStepIndex, (val) => {
   })
 
   setButtonControl({
-    leftButtons: [
-      { action: () => navigateTo(localePath('/dashboard')), label: t('btn.cancel'), variant: 'outline' },
-      { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
-      { action: saveApplication, label: t('btn.save'), variant: 'outline' }
-    ],
+    leftButtons: ldStore.getStoredFlag('enable-save-draft')
+      ? [
+          { action: () => navigateTo(localePath('/dashboard')), label: t('btn.cancel'), variant: 'outline' },
+          { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
+          { action: saveApplication, label: t('btn.save'), variant: 'outline' }
+        ]
+      : [],
     rightButtons: buttons
   })
 }, { immediate: true })

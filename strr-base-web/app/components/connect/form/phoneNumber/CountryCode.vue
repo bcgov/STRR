@@ -73,8 +73,15 @@ onMounted(() => {
   if (countryIso2.value !== undefined) {
     selectCountry(countryIso2.value)
   } else if (countryCallingCode.value) {
-    selectedCountry.value = {
-      callingCode: `+${countryCallingCode.value}`
+    // Set a country based on the calling code if available
+    const iso2 = search(countryCallingCode.value)[0]?.iso2
+    if (iso2) {
+      selectCountry(iso2)
+    } else {
+      selectedCountry.value = {
+        callingCode: countryCallingCode.value,
+        label: `+${countryCallingCode.value}`
+      }
     }
   }
 })

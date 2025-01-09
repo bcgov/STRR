@@ -57,7 +57,11 @@ export const useHostApplicationStore = defineStore('host/application', () => {
           ? { propertyManager: formatOwnerPropertyManagerAPI(propertyManger) }
           : {}
         ),
-        unitAddress: formatHostUnitAddressApi(propertyStore.unitAddress.address),
+        // @ts-expect-error - can be undefined for drafts edge case
+        unitAddress: reqStore.showUnitDetailsForm
+          // only save the entered address if it was fully entered / user selected continue registration
+          ? formatHostUnitAddressApi(propertyStore.unitAddress.address)
+          : undefined,
         unitDetails: formatHostUnitDetailsAPI(propertyStore.unitDetails, propertyStore.blInfo, reqStore.prRequirements),
         documents: documentStore.apiDocuments,
         strRequirements: reqStore.propertyReqs,

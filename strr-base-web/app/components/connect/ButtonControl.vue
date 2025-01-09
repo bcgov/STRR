@@ -10,7 +10,7 @@ const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
   <div class="bg-white py-10" data-testid="button-control">
     <div class="app-inner-container">
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div v-if="leftButtons.length > 0">
+        <div>
           <div class="flex justify-center gap-4 md:justify-start">
             <UButton
               v-for="(button, i) in leftButtons"
@@ -28,7 +28,7 @@ const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
             />
           </div>
         </div>
-        <div v-if="rightButtons.length > 0" class="col-span-1">
+        <div>
           <div class="flex justify-center gap-4 md:justify-end">
             <UButton
               v-for="(button, i) in rightButtons"

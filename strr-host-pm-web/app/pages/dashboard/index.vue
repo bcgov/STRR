@@ -191,9 +191,12 @@ async function handleItemSelect (row: any) {
                 :aria-label="
                   $t('btn.ariaViewDetails', {
                     name: row.name,
-                    address: `${row.address.unitNumber
-                      ? row.address.unitNumber + '-'
-                      : ''}${row.address.streetNumber} ${row.address.streetName}, ${row.address.city}`
+                    address: row.address.streetName
+                      ? `${row.address.unitNumber
+                        ? row.address.unitNumber + '-'
+                        : ''}${row.address.streetNumber} ${row.address.streetName}, ${row.address.city}`
+                      : '',
+                    number: row.applicationNumber
                   })
                 "
                 :block="!isDraft(row.status)"
@@ -206,11 +209,13 @@ async function handleItemSelect (row: any) {
                   :aria-label="$t('text.showMoreOptions')"
                 />
                 <template #panel>
+                  <!-- TODO: not focusable via keyboard tab, should be fixed in nuxt/ui v3 -->
                   <UButton
                     class="m-2"
-                    :label="$t('word.Delete')"
+                    :label="$t('word.Remove')"
+                    :aria-label="$t('word.Remove')"
                     variant="link"
-                    @click="console.log('delete', row.applicationNumber)"
+                    @click="console.log('remove', row.applicationNumber)"
                   />
                 </template>
               </UPopover>
