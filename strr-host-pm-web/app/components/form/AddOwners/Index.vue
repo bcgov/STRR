@@ -52,7 +52,8 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
       <template #text>
         <p>{{ $t('strr.text.helpOwner1') }}</p>
         <p>{{ $t('strr.text.helpOwner2') }}</p>
-        <i18n-t keypath="strr.text.helpOwner3" scope="global">
+        <p>{{ $t('strr.text.helpOwner3') }}</p>
+        <i18n-t keypath="strr.text.helpOwner4" scope="global">
           <template #link>
             <UButton
               :label="$t('link.hostAccomodationsAct')"

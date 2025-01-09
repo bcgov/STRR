@@ -43,7 +43,7 @@ onMounted(async () => {
       <i18n-t keypath="text.addAllReqDocs" scope="global">
         <template #link>
           <UButton
-            :label="$t('link.learnMore')"
+            :label="$t('link.viewRequiredDocs')"
             :to="config.housingLearnMoreUrl"
             :padded="false"
             variant="link"
