@@ -232,8 +232,8 @@ async function handleItemSelect (row: any) {
                   <!-- TODO: not focusable via keyboard tab, should be fixed in nuxt/ui v3 -->
                   <UButton
                     class="m-2"
-                    :label="$t('word.Remove')"
-                    :aria-label="$t('word.Remove')"
+                    :label="$t('btn.deleteApplication')"
+                    :aria-label="$t('btn.deleteApplication')"
                     variant="link"
                     @click="deleteDraft(row)"
                   />

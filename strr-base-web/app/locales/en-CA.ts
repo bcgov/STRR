@@ -36,6 +36,7 @@ export default {
     decline: 'Decline',
     close: 'Close',
     openHelpDocs: 'Read the Overview',
+    deleteApplication: 'Delete Application',
     downloadCertificate: 'Download Certificate',
     downloadReceipt: 'Download Receipt',
     downloadReport: 'Download Report',

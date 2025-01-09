@@ -42,9 +42,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       }
       unitDetails.value = formatHostUnitDetailsUI(permitDetails.value.unitDetails)
       blInfo.value = formatHostUnitDetailsBlInfoUI(permitDetails.value.unitDetails)
-      if (permitDetails.value.unitAddress) {
-        unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
-      }
+      unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
       showUnitDetailsForm.value = !!unitAddress.value?.address?.streetName
       prRequirements.value.isPropertyPrExempt = !!permitDetails.value.unitDetails.prExemptReason
       prRequirements.value.prExemptionReason = permitDetails.value.unitDetails.prExemptReason

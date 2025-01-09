@@ -132,7 +132,7 @@ export function formatHostUnitAddressUI (unitAddress: ApiUnitAddress): HostPrope
   const street = baseAddress.street
     ? baseAddress.street
     : `${unitAddress.unitNumber ? unitAddress.unitNumber + '-' : ''}` +
-      `${unitAddress.streetNumber || ''} ${unitAddress.streetName}`
+      `${unitAddress.streetNumber || ''} ${unitAddress.streetName}`.trim()
   return {
     ...baseAddress,
     nickname: unitAddress.nickname || '',
