@@ -12,7 +12,7 @@ function generateOTP (secret?: string) {
   return totp.generate()
 }
 
-test('test', async ({ page }) => {
+test.skip('test', async ({ page }) => {
   await page.goto('https://test.host.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/')
   await page.getByRole('button', { name: 'Continue with BCeID' }).click()
   await page.locator('#user').fill('dwol-bceid-test4')

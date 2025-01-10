@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import {
   loginMethods,
   getH2,
@@ -11,24 +11,15 @@ loginMethods.forEach((loginMethod) => {
     // address constants
     const lookupAddress = '6-2727 Lakeshore Rd'
 
-    let page: Page
-
-    test.beforeAll(async ({ browser }) => {
-      const context = await browser.newContext({ storageState: undefined }) // start fresh
-      page = await context.newPage()
-    })
-
-    test('smoke test - Complete Login', async () => {
+    test('Assert Str Exempt Scenario', async ({ page }) => {
+      // Complete Login
       await completeLogin(page, loginMethod)
-    })
 
-    test('smoke test - Select Account', async () => {
+      // Choose Account
       await chooseAccount(page, loginMethod)
-    })
 
-    test('smoke test - Application Step 1', async () => {
-      page.goto('./en-CA/application') // go to application
-      page.waitForURL('**/application')
+      // Complete Application Step 1
+      await page.goto('./en-CA/application') // go to application
       // check for step 1 content
       await expect(page.getByTestId('h1')).toContainText('Short-Term Rental Registration')
       await expect(getH2(page)).toContainText('Define Your Short-Term Rental')

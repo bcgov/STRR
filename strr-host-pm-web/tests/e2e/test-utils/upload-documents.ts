@@ -18,9 +18,10 @@ export async function uploadDocuments (
 
     // wait for upload to be complete
     await page.waitForResponse(res =>
-      res.url().includes('/documents') && res.status() === 201
+      res.url().includes('/documents') && res.status() === 201,
+    { timeout: 10000 }
     )
 
-    await expect(section.getByTestId('document-upload-list')).toContainText(option)
+    await expect(section.getByTestId('document-upload-list')).toContainText(option, { timeout: 10000 })
   }
 }

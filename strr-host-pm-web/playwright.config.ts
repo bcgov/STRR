@@ -30,7 +30,7 @@ export default defineConfig<ConfigOptions>({
   maxFailures: 1,
   // Opt out of parallel tests on CI.
   // workers: process.env.CI ? 1 : undefined,
-  workers: 1, // TODO: figure out why tests fail when run in parallel
+  // workers: 1, // TODO: figure out why tests fail when run in parallel
   use: {
     nuxt: {
       rootDir: fileURLToPath(new URL('.', import.meta.url))
