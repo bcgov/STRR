@@ -1,12 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
-import { config as dotenvConfig } from 'dotenv'
-import { loginMethods } from '../test-utils/constants'
-import { LoginSource } from '../enums/login-source'
 import {
-  getH2
-} from '../test-utils/getters'
-// load default env
-dotenvConfig()
+  loginMethods,
+  getH2,
+  completeLogin,
+  chooseAccount
+} from '../test-utils'
 
 loginMethods.forEach((loginMethod) => {
   test.describe(`Host Smoke - Scenario 2 - NoBL_NoPR_NotProh_YesExempt - ${loginMethod}`, () => {
@@ -15,27 +13,17 @@ loginMethods.forEach((loginMethod) => {
 
     let page: Page
 
-    const storageStatePath = loginMethod === LoginSource.BCSC
-      ? 'tests/e2e/.auth/bcsc-user.json'
-      : 'tests/e2e/.auth/bceid-user.json'
-
     test.beforeAll(async ({ browser }) => {
-      const context = await browser.newContext({ storageState: storageStatePath }) // used saved auth state
+      const context = await browser.newContext({ storageState: undefined }) // start fresh
       page = await context.newPage()
     })
 
-    test('smoke test - Select Account', async () => {
-      page.goto('./en-CA/auth/account/choose-existing') // should be redirected to select account page
-      await expect(page.getByTestId('h1')).toContainText('Existing Account Found')
+    test('smoke test - Complete Login', async () => {
+      await completeLogin(page, loginMethod)
+    })
 
-      if (loginMethod === LoginSource.BCSC) {
-        const accountName = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME
-        await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
-      } else {
-        const accountName = process.env.PLAYWRIGHT_TEST_BCEID_PREMIUM_ACCOUNT_NAME
-        await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
-      }
-      page.waitForURL('**/dashboard/**') // should be redirect to dashboard
+    test('smoke test - Select Account', async () => {
+      await chooseAccount(page, loginMethod)
     })
 
     test('smoke test - Application Step 1', async () => {

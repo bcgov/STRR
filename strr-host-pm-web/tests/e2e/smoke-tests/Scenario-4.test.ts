@@ -1,19 +1,24 @@
 /* eslint-disable max-len */
 import { test, expect, type Page } from '@playwright/test'
-import { config as dotenvConfig } from 'dotenv'
 import { OwnerRole } from '../../../app/enums/owner-role'
 import { OwnerType } from '../../../app/enums/owner-type'
-import { getFakeOwner, getFakePropertyNickname, getFakePid, getFakeBlInfo } from '../test-utils/faker'
-import { uploadDocuments } from '../test-utils/upload-documents'
-import { loginMethods } from '../test-utils/constants'
-import { LoginSource } from '../enums/login-source'
 import {
+  loginMethods,
   getH2,
-  getPropertyRequirementsList
-} from '../test-utils/getters'
-import { fillStep2 } from '../test-utils/fill-form'
-// load default env
-dotenvConfig()
+  getPropertyRequirementsList,
+  getFakeOwner,
+  getFakePropertyNickname,
+  getFakePid,
+  getFakeBlInfo,
+  uploadDocuments,
+  completeLogin,
+  chooseAccount,
+  fillStep2
+} from '../test-utils'
+import { enI18n } from '~~/tests/mocks/i18n'
+
+// pull text from i18n keys instead of hard coding, this will only need to be updated if the i18n key changes
+const i18nText = enI18n.global.messages.value['en-CA']
 
 loginMethods.forEach((loginMethod) => {
   test.describe(`Host Smoke - Scenario 4 - NoBL_YesPR_NotProh_NotExempt - ${loginMethod}`, () => {
@@ -21,9 +26,9 @@ loginMethods.forEach((loginMethod) => {
     const nickname = getFakePropertyNickname()
     const lookupAddress = '34992 Bernina Crt'
     // unit details contants
-    const propertyType = 'Single Family Home'
-    const typeOfSpace = 'Entire home (guests have the entire place to themselves)'
-    const rentalUnitSetupType = "This unit is the host's principal residence"
+    const propertyType = i18nText.propertyType.SINGLE_FAMILY_HOME // 'Single Family Home'
+    const typeOfSpace = i18nText.rentalUnitType.ENTIRE_HOME // 'Entire Home (guests rent an entire residence for themselves)'
+    const rentalUnitSetupType = i18nText.rentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE // "This unit is the host's principal residence or a room within the host's principal residence"
     const numberOfRooms = '4'
     const ownershipType = 'Owner'
     const testPid = getFakePid()
@@ -32,33 +37,23 @@ loginMethods.forEach((loginMethod) => {
     const propertyManager = getFakeOwner(OwnerType.BUSINESS, OwnerRole.PROPERTY_MANAGER, false)
     const blInfo = getFakeBlInfo()
     const requiredDocs = [
-      { option: 'British Columbia Services Card', filename: 'fake-bc-services-card' },
-      { option: 'Property Assessment Notice', filename: 'fake-property-assessment-notice' }
+      { option: i18nText.form.pr.docType.BCSC, filename: 'fake-bc-services-card' }, // 'British Columbia Services Card'
+      { option: i18nText.form.pr.docType.PROPERTY_ASSESSMENT_NOTICE, filename: 'fake-property-assessment-notice' } // 'Property Assessment Notice'
     ]
 
     let page: Page
 
-    const storageStatePath = loginMethod === LoginSource.BCSC
-      ? 'tests/e2e/.auth/bcsc-user.json'
-      : 'tests/e2e/.auth/bceid-user.json'
-
     test.beforeAll(async ({ browser }) => {
-      const context = await browser.newContext({ storageState: storageStatePath }) // used saved auth state
+      const context = await browser.newContext({ storageState: undefined }) // start fresh
       page = await context.newPage()
     })
 
-    test('smoke test - Select Account', async () => {
-      page.goto('./en-CA/auth/account/choose-existing') // should be redirected to select account page
-      await expect(page.getByTestId('h1')).toContainText('Existing Account Found')
+    test('smoke test - Complete Login', async () => {
+      await completeLogin(page, loginMethod)
+    })
 
-      if (loginMethod === LoginSource.BCSC) {
-        const accountName = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME
-        await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
-      } else {
-        const accountName = process.env.PLAYWRIGHT_TEST_BCEID_PREMIUM_ACCOUNT_NAME
-        await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
-      }
-      page.waitForURL('**/dashboard/**') // should be redirect to dashboard
+    test('smoke test - Select Account', async () => {
+      await chooseAccount(page, loginMethod)
     })
 
     test('smoke test - Application Step 1', async () => {
@@ -80,7 +75,7 @@ loginMethods.forEach((loginMethod) => {
       // assert unit requirements list shows principal residence and business licence
       await expect(getPropertyRequirementsList(page)).toBeVisible() // requirements list should now be visible
       await expect(getPropertyRequirementsList(page).getByRole('button', { name: 'Principal residence' })).toBeVisible()
-      await expect(getPropertyRequirementsList(page).getByRole('button', { name: 'Business License' })).not.toBeVisible() // business license should not be visible
+      await expect(getPropertyRequirementsList(page).getByRole('button', { name: 'Business Licence' })).not.toBeVisible() // business license should not be visible
 
       // fill out unit details
       await page.getByLabel('Property Type').click()
@@ -104,13 +99,13 @@ loginMethods.forEach((loginMethod) => {
       await fillStep2(page, completingParty, cohost, propertyManager)
 
       // finalize step 2
-      page.getByRole('button', { name: 'Add Supporting Documentation', exact: true }).click()
-      await expect(getH2(page)).toContainText('Add Supporting Documentation')
+      page.getByRole('button', { name: 'Add Supporting Information', exact: true }).click()
+      await expect(getH2(page)).toContainText('Add Supporting Information')
     })
 
     test('smoke test - Application Step 3', async () => {
       // check and fill step 3 - supporting documents
-      await expect(getH2(page)).toContainText('Add Supporting Documentation')
+      await expect(getH2(page)).toContainText('Add Supporting Information')
 
       // requirements checklist should have 1 item only (proof of pr)
       const requiredDocsList = page.getByTestId('required-docs-checklist').locator('ul')
@@ -123,7 +118,7 @@ loginMethods.forEach((loginMethod) => {
       await uploadDocuments(page, fileSection, requiredDocs)
 
       // fill out business licence info
-      const blSection = page.locator('section').filter({ hasNotText: 'File Upload', hasText: 'Local Government Business License' })
+      const blSection = page.locator('section').filter({ hasNotText: 'File Upload', hasText: 'Local Government Business Licence' })
       await blSection.getByTestId('property-business-license').fill(blInfo.businessLicense)
       await blSection.getByTestId('date-select').fill(blInfo.businessLicenseExpiryDate)
 

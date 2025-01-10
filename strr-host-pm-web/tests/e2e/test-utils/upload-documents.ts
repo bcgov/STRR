@@ -10,7 +10,7 @@ export async function uploadDocuments (
 
   for (const { option, filename } of files) {
     const fileChooserPromise = page.waitForEvent('filechooser')
-    await section.getByLabel('Choose Supporting Documents').click()
+    await section.getByLabel('Choose type of supporting document to upload').click()
     await section.getByRole('option', { name: option }).click()
 
     const fileChooser = await fileChooserPromise

@@ -1,6 +1,9 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
 import type { ConfigOptions } from '@nuxt/test-utils/playwright'
+import { config as dotenvConfig } from 'dotenv'
+// load default env
+dotenvConfig()
 
 const devicesToTest = [
   'Desktop Chrome'
@@ -15,8 +18,9 @@ const devicesToTest = [
 ] satisfies Array<string | typeof devices[string]>
 
 export default defineConfig<ConfigOptions>({
-  globalSetup: './tests/e2e/test-utils/global-setup', // setup when booting test runner
+  // globalSetup: './tests/e2e/test-utils/global-setup', // setup when booting test runner
   testDir: './tests/e2e',
+  testIgnore: ['./tests/e2e/test-utils/**'],
   reporter: 'line',
   // Fail the build on CI if you accidentally left test.only in the source code.
   forbidOnly: !!process.env.CI,
@@ -32,7 +36,7 @@ export default defineConfig<ConfigOptions>({
       rootDir: fileURLToPath(new URL('.', import.meta.url))
     },
     actionTimeout: 2000,
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.NUXT_BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'off',
     // do not open browser

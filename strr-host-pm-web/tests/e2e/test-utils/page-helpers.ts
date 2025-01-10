@@ -1,5 +1,65 @@
 import { expect, type Page } from '@playwright/test'
+import { config as dotenvConfig } from 'dotenv'
 /* eslint-disable max-len */
+import { LoginSource } from '../enums/login-source'
+import { generateOTP } from './generate-otp'
+// load default env
+dotenvConfig()
+
+export async function completeLogin (page: Page, loginMethod: LoginSource) {
+  const baseUrl = process.env.NUXT_BASE_URL!
+  const username = loginMethod === LoginSource.BCSC
+    ? process.env.PLAYWRIGHT_TEST_BCSC_USERNAME!
+    : process.env.PLAYWRIGHT_TEST_BCEID_USERNAME!
+  const password = loginMethod === LoginSource.BCSC
+    ? process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD!
+    : process.env.PLAYWRIGHT_TEST_BCEID_PASSWORD!
+  const environment = process.env.NUXT_ENVIRONMENT_HEADER!.toLowerCase()
+  const otpSecret = process.env.PLAYWRIGHT_TEST_BCEID_OTP_SECRET!
+
+  await page.goto('en-CA/auth/login')
+
+  if (loginMethod === LoginSource.BCSC) {
+    await page.getByRole('button', { name: 'Continue with BC Services Card' }).click()
+    await page.getByLabel('Log in with Test with').click()
+    await page.getByLabel('Email or username').fill(username)
+    await page.getByLabel('Password').fill(password)
+    await page.getByRole('button', { name: 'Continue' }).click()
+  } else if (loginMethod === LoginSource.BCEID) {
+    await page.getByRole('button', { name: 'Continue with BCeID' }).click()
+    await page.locator('#user').fill(username)
+    await page.getByLabel('Password').fill(password)
+    await page.getByRole('button', { name: 'Continue' }).click()
+    if (environment.toLowerCase() !== 'development') {
+      const accountActivity = page.getByText('To complete login with your')
+      if (accountActivity) {
+        await page.getByRole('button', { name: 'Continue' }).click()
+      }
+      const otp = generateOTP(otpSecret)
+      await page.getByLabel('One-time code').click()
+      await page.getByLabel('One-time code').fill(otp)
+      await page.getByRole('button', { name: 'Sign In' }).click()
+    }
+  }
+
+  await page.waitForURL(baseUrl + '**')
+}
+
+export async function chooseAccount (page: Page, loginMethod: LoginSource) {
+  await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'networkidle' })
+
+  await expect(page.getByTestId('h1')).toContainText('Existing Account Found')
+
+  if (loginMethod === LoginSource.BCSC) {
+    const accountName = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME
+    await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
+  } else {
+    const accountName = process.env.PLAYWRIGHT_TEST_BCEID_PREMIUM_ACCOUNT_NAME
+    await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
+  }
+  page.waitForURL('**/dashboard/**') // should be redirect to dashboard
+}
+
 export const fillStep2 = async (
   page: Page,
   completingParty: HostOwner,
@@ -35,7 +95,7 @@ export const fillStep2 = async (
   // done filling completing party
   await compPartySection.getByRole('button', { name: 'Done', exact: true }).click()
   await expect(compPartySection).not.toBeVisible() // form should be hidden
-  await expect(page.locator('table').filter({ hasText: 'Completing Party' })).toBeVisible() // completing party should be added to table
+  await expect(page.locator('table').filter({ hasText: 'Person completing form' })).toBeVisible() // completing party should be added to table
 
   // add cohost
   await page.getByRole('button', { name: 'Add an Individual', exact: true }).click()
