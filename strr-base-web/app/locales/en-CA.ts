@@ -9,6 +9,7 @@ export default {
     inactiveAccount: 'INACTIVE ACCOUNT'
   },
   btn: {
+    ariaResumeDraft: 'Resume Draft for {number}',
     done: 'Done',
     getStarted: 'Get Started',
     goHome: 'Go Home',

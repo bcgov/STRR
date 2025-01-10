@@ -25,6 +25,7 @@ export interface PlatformRegistrationResp extends ApiBasePlatformRegistration, A
 }
 
 export interface PlatformApplicationPayload {
+  header: { paymentMethod: ConnectPaymentMethod }
   registration: ApiBasePlatformApplication
 }
 

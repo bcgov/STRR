@@ -4,6 +4,7 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strataStore = useStrrStrataStore()
 const strrModal = useStrrModals()
+const { deleteApplication } = useStrrApi()
 
 const columns = [
   {
@@ -60,7 +61,7 @@ setBreadcrumbs([
 ])
 
 // can use watch param to handle pagination in future
-const { data: strataHotelList, status } = await useAsyncData(
+const { data: strataHotelList, status, refresh } = await useAsyncData(
   'strata-hotel-list',
   () => strataStore.loadStrataHotelList(),
   {
@@ -69,8 +70,35 @@ const { data: strataHotelList, status } = await useAsyncData(
   }
 )
 
+function isDraft (status: string) {
+  return status === 'Draft'
+}
+
+const deleting = ref(false)
+async function deleteDraft (row: any) {
+  try {
+    deleting.value = true
+    row.class = 'bg-red-50 animate-pulse'
+    row.disabled = true
+    await Promise.all([
+      new Promise(resolve => setTimeout(resolve, 500)),
+      await deleteApplication(row.applicationNumber)
+    ])
+  } catch (e) {
+    logFetchError(e, `Error deleting application ${row.applicationNumber}`)
+    strrModal.openAppSubmitError(e)
+  } finally {
+    refresh()
+    deleting.value = false
+  }
+}
+
 async function handleItemSelect (row: any) {
-  await navigateTo(localePath('/strata-hotel/dashboard/' + row.applicationNumber))
+  if (isDraft(row.status)) {
+    await navigateTo(localePath('/strata-hotel/application?applicationId=' + row.applicationNumber))
+  } else {
+    await navigateTo(localePath('/strata-hotel/dashboard/' + row.applicationNumber))
+  }
 }
 </script>
 <template>
@@ -131,7 +159,7 @@ async function handleItemSelect (row: any) {
           ref="tableRef"
           :columns="selectedColumns"
           :rows="strataHotelList"
-          :loading="status === 'pending'"
+          :loading="status === 'pending' || deleting"
           :empty-state="{ icon: '', label: $t('table.strataHotelList.emptyText') }"
           :sort="{ column: 'lastStatusChange', direction: 'desc' }"
           :ui="{
@@ -161,12 +189,37 @@ async function handleItemSelect (row: any) {
           </template>
 
           <template #actions-data="{ row }">
-            <UButton
-              :label="$t('btn.view')"
-              :aria-label="$t('btn.ariaViewDetails', { name: row.strataName })"
-              :block="true"
-              @click="handleItemSelect(row)"
-            />
+            <div class="flex flex-col gap-px lg:flex-row">
+              <UButton
+                :class="isDraft(row.status) ? 'justify-center grow lg:rounded-r-none' : ''"
+                :label="isDraft(row.status) ? $t('label.resumeDraft') : $t('btn.view')"
+                :aria-label="isDraft(row.status)
+                  ? $t('btn.ariaResumeDraft', { number: row.applicationNumber })
+                  : $t('btn.ariaViewDetails', { name: row.strataName })
+                "
+                :block="!isDraft(row.status)"
+                :disabled="row.disabled"
+                @click="handleItemSelect(row)"
+              />
+              <UPopover v-if="isDraft(row.status)" :popper="{ placement: 'bottom-end' }">
+                <UButton
+                  class="grow justify-center lg:flex-none lg:rounded-l-none"
+                  icon="i-mdi-menu-down"
+                  :aria-label="$t('text.showMoreOptions')"
+                  :disabled="row.disabled"
+                />
+                <template #panel>
+                  <!-- TODO: not focusable via keyboard tab, should be fixed in nuxt/ui v3 -->
+                  <UButton
+                    class="m-2"
+                    :label="$t('btn.deleteApplication')"
+                    :aria-label="$t('btn.deleteApplication')"
+                    variant="link"
+                    @click="deleteDraft(row)"
+                  />
+                </template>
+              </UPopover>
+            </div>
           </template>
         </UTable>
       </ConnectPageSection>

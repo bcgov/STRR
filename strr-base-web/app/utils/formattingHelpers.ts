@@ -52,11 +52,11 @@ export function formatParty <T extends Contact> (party: T): ApiParty {
 
 export function formatPartyUI <T extends ApiParty> (party: T): Contact {
   return {
-    lastName: party.lastName,
+    firstName: party.firstName || '',
+    lastName: party.lastName || '',
+    middleName: party.middleName || '',
     emailAddress: party.emailAddress,
     phone: formatPhoneNumberUI(party),
-    ...(party.firstName ? { firstName: party.firstName } : {}),
-    ...(party.middleName ? { middleName: party.middleName } : {}),
     ...(party.preferredName ? { preferredName: party.preferredName } : {}),
     ...(party.faxNumber ? { faxNumber: party.faxNumber } : {})
   }

@@ -29,7 +29,14 @@ export function formatBusinessDetailsUI (bus: ApiPlatformBusinessDetails): PlatB
     takeDownEmail: bus.takeDownRequestEmail,
     takeDownEmailOptional: bus.takeDownRequestOptionalEmail ?? '',
     mailingAddress: formatAddressUI(bus.mailingAddress),
-    hasRegOffAtt: !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress,
+    hasRegOffAtt: !!bus.registeredOfficeOrAttorneyForServiceDetails.attorneyName ||
+      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.address ||
+      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.addressLineTwo ||
+      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.city ||
+      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.country ||
+      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.postalCode ||
+      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.province ||
+      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.locationDescription,
     regOfficeOrAtt: {
       sameAsMailAddress: isSameAddress(
         bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress, bus.mailingAddress),

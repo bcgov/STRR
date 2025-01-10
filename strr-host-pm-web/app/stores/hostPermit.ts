@@ -30,10 +30,12 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     await loadPermitData(applicationId)
     if (showPermitDetails.value || loadDraft) {
       // set sub store values
-      hostOwners.value.push(formatOwnerHostUI(
-        permitDetails.value.primaryContact,
-        !permitDetails.value.propertyManager?.initiatedByPropertyManager
-      ))
+      if (permitDetails.value.primaryContact) {
+        hostOwners.value.push(formatOwnerHostUI(
+          permitDetails.value.primaryContact,
+          !permitDetails.value.propertyManager?.initiatedByPropertyManager
+        ))
+      }
       if (permitDetails.value.secondaryContact) {
         hostOwners.value.push(formatOwnerHostUI(permitDetails.value.secondaryContact, false, true))
       }
@@ -43,10 +45,10 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       unitDetails.value = formatHostUnitDetailsUI(permitDetails.value.unitDetails)
       blInfo.value = formatHostUnitDetailsBlInfoUI(permitDetails.value.unitDetails)
       unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
-      showUnitDetailsForm.value = !!unitAddress.value?.address?.streetName
+      showUnitDetailsForm.value = !!unitAddress.value.address.street || !!unitAddress.value.address.streetAdditional
       prRequirements.value.isPropertyPrExempt = !!permitDetails.value.unitDetails.prExemptReason
       prRequirements.value.prExemptionReason = permitDetails.value.unitDetails.prExemptReason
-      if (application.value?.registration.strRequirements && unitAddress.value?.address?.streetName) {
+      if (application.value?.registration.strRequirements && showUnitDetailsForm.value) {
         propertyReqs.value = application.value?.registration.strRequirements
         if (Object.keys(application.value.registration.strRequirements).length === 0) {
           // run the requirements check again in case it has errors (errors are not saved by the api)
@@ -75,7 +77,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       }).then((response) => {
         if (response) {
           return (response as HostApplicationResp[]).map(app => ({
-            name: app.registration.unitAddress.nickname || t('label.unnamed'),
+            name: app.registration.unitAddress?.nickname || t('label.unnamed'),
             address: app.registration.unitAddress,
             number: app.header.registrationNumber || app.header.applicationNumber,
             date: app.header.registrationStartDate || app.header.applicationDateTime,

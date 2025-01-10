@@ -2,10 +2,12 @@
 import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 
 const { t } = useI18n()
+const route = useRoute()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
 const { handlePaymentRedirect } = useConnectNav()
-const { setButtonControl } = useButtonControl()
+const { setButtonControl, handleButtonLoading } = useButtonControl()
+const ldStore = useConnectLaunchdarklyStore()
 
 const { validateContact } = useStrrContactStore()
 const { validatePlatformBusiness } = useStrrPlatformBusiness()
@@ -15,6 +17,11 @@ const {
   validatePlatformConfirmation,
   $reset: applicationReset
 } = useStrrPlatformApplication()
+const permitStore = useStrrPlatformStore()
+
+const applicationId = ref(route.query.applicationId as string)
+const loading = ref(false)
+
 // fee stuff
 const {
   addReplaceFee,
@@ -31,9 +38,13 @@ const platFeeSm = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeLg = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeWv = ref<ConnectFeeItem | undefined>(undefined)
 onMounted(async () => {
+  loading.value = true
   await initAlternatePaymentMethod()
 
   applicationReset()
+  if (applicationId.value) {
+    await permitStore.loadPlatform(applicationId.value, true)
+  }
   const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_SM),
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_LG),
@@ -51,6 +62,7 @@ onMounted(async () => {
     platFeeWv.value.serviceFees = platFeeSm.value.serviceFees
     setPlaceholderServiceFee(platFeeSm.value.serviceFees)
   }
+  loading.value = false
 })
 
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
@@ -122,31 +134,31 @@ const activeStep = ref<Step>(steps.value[activeStepIndex.value] as Step)
 const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
 const reviewFormRef = shallowRef<InstanceType<typeof FormPlatformReviewConfirm> | null>(null)
 
-// need to cleanup the setButtonControl somehow
+const saveApplication = async (resumeLater = false) => {
+  handleButtonLoading(false, 'left', resumeLater ? 1 : 2)
+  // prevent flicker of buttons by waiting half a second
+  try {
+    const [, { filingId }] = await Promise.all([
+      new Promise(resolve => setTimeout(resolve, 500)),
+      submitPlatformApplication(true, applicationId.value)
+    ])
+    applicationId.value = filingId
+    if (resumeLater) {
+      await navigateTo(localePath('/platform/dashboard'))
+    }
+  } catch (e) {
+    logFetchError(e, 'Error saving host application')
+    strrModal.openAppSubmitError(e)
+  } finally {
+    handleButtonLoading(true)
+  }
+}
+
 const handlePlatformSubmit = async () => {
   let formErrors: MultiFormValidationResult = []
   try {
-    // TODO: move button management into composable ?
     // set buttons to loading state
-    setButtonControl({
-      leftButtons: [],
-      rightButtons: [
-        {
-          action: () => undefined, // is disabled
-          icon: 'i-mdi-chevron-left',
-          label: t('btn.back'),
-          variant: 'outline',
-          disabled: true
-        },
-        {
-          action: () => undefined, // is disabled
-          icon: 'i-mdi-chevron-right',
-          label: t('btn.submitAndPay'),
-          trailing: true,
-          loading: true
-        }
-      ]
-    })
+    handleButtonLoading(false, 'right', 1)
 
     activeStep.value.complete = true // set final review step as active before validation
     reviewFormRef.value?.validateConfirmation() // validate confirmation checkboxes on submit
@@ -180,23 +192,7 @@ const handlePlatformSubmit = async () => {
     strrModal.openAppSubmitError(e)
   } finally {
     // set buttons back to non loading state
-    setButtonControl({
-      leftButtons: [],
-      rightButtons: [
-        {
-          action: () => stepperRef.value?.setPreviousStep(),
-          icon: 'i-mdi-chevron-left',
-          label: t('btn.back'),
-          variant: 'outline'
-        },
-        {
-          action: handlePlatformSubmit,
-          icon: 'i-mdi-chevron-right',
-          label: t('btn.submitAndPay'),
-          trailing: true
-        }
-      ]
-    })
+    handleButtonLoading(true)
   }
 }
 
@@ -218,7 +214,20 @@ watch(activeStepIndex, (val) => {
     trailing: true
   })
 
-  setButtonControl({ leftButtons: [], rightButtons: buttons })
+  setButtonControl({
+    leftButtons: ldStore.getStoredFlag('enable-save-draft')
+      ? [
+          {
+            action: () => navigateTo(localePath('/platform/dashboard')),
+            label: t('btn.cancel'),
+            variant: 'outline'
+          },
+          { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
+          { action: saveApplication, label: t('btn.save'), variant: 'outline' }
+        ]
+      : [],
+    rightButtons: buttons
+  })
 }, { immediate: true })
 
 // page stuff
@@ -244,7 +253,8 @@ setBreadcrumbs([
 ])
 </script>
 <template>
-  <div class="space-y-8 py-8 sm:py-10">
+  <ConnectSpinner v-if="loading" overlay />
+  <div v-else class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1 :text="$t('strr.title.application')" class="my-5" />
     <ModalGroupHelpAndInfo />
     <ConnectStepper

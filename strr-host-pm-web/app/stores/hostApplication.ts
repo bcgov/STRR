@@ -48,7 +48,10 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     return {
       registration: {
         registrationType: ApplicationType.HOST,
-        primaryContact: formatOwnerHostAPI(host as HostOwner),
+        ...(host
+          ? { primaryContact: formatOwnerHostAPI(host as HostOwner) }
+          : {}
+        ),
         ...(cohost
           ? { secondaryContact: formatOwnerHostAPI(cohost) }
           : {}

@@ -227,7 +227,6 @@ export default {
     showDetails: 'Show Details',
     hideDetails: 'Hide Details',
     returnToStep: 'Return to the step to finish it',
-    ariaResumeDraft: 'Resume Draft for {number}',
     ariaViewDetails: 'View details for property: {name}, {address}',
     registerAStr: 'Register a Short-Term Rental'
   },

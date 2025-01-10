@@ -63,7 +63,8 @@ export interface ApiHostApplication {
 }
 
 export interface HostApplicationPayload {
-  registration: ApiHostApplication
+  // Draft applications will not have all fields defined yet
+  registration: Partial<ApiHostApplication>
 }
 
 export interface HostApplicationResp extends HostApplicationPayload {
