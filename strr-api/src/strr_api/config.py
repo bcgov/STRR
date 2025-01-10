@@ -128,6 +128,8 @@ class Config:  # pylint: disable=too-few-public-methods
     STR_DATA_API_TOKEN_URL = os.getenv("STR_DATA_API_TOKEN_URL", "")
     STR_DATA_API_URL = os.getenv("STR_DATA_API_URL", "")
 
+    BULK_VALIDATION_REQUESTS_BUCKET = os.getenv("BULK_VALIDATION_REQUESTS_BUCKET")
+
 
 class Production(Config):  # pylint: disable=too-few-public-methods
     """Production class configuration that should override vars for production."""
