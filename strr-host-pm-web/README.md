@@ -63,8 +63,8 @@ PLAYWRIGHT_TEST_BCEID_PASSWORD=""
 PLAYWRIGHT_TEST_BCEID_PREMIUM_ACCOUNT_NAME=""
 PLAYWRIGHT_TEST_BCEID_OTP_SECRET=""
 
-# The url the tests will run against
-NUXT_BASE_URL="local/dev/test"
+# The full url the tests will run against (local/dev/test/sandbox)
+NUXT_BASE_URL=""
 ```
 
 ### Authentication
