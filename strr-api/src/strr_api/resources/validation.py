@@ -37,9 +37,10 @@ STRR Permit Validation API.
 """
 
 import logging
+from http import HTTPStatus
 
 from flasgger import swag_from
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
@@ -79,6 +80,54 @@ def validate_listing():
         request_json = request.get_json()
         response, status = ValidationService.validate_listing(request_json)
         return response, status
+
+    except Exception as service_exception:
+        logger.error(service_exception)
+        return exception_response(service_exception)
+
+
+@bp.route("/batchValidate", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def validate_batch():
+    """
+    Validates the batch of permits.
+    ---
+    tags:
+      - validation
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+    responses:
+      200:
+        description:
+      400:
+        description:
+      401:
+        description:
+    """
+
+    try:
+        request_json = request.get_json()
+        control_dict = request_json.get("controls")
+        errors = []
+        if not control_dict or not control_dict.get("permitsSubmitted") or not control_dict.get("callBackUrl"):
+            errors.append({"code": "INVALID_REQUEST", "message": "'control' object does not have required attributes."})
+
+        permits_dict = request_json.get("permits")
+
+        if not permits_dict:
+            errors.append({"code": "INVALID_REQUEST", "message": "'permits' object not present in the request."})
+
+        if errors:
+            response = {"errors": errors}
+            return response, HTTPStatus.BAD_REQUEST
+
+        ValidationService.save_bulk_validation_request(request_json)
+        return jsonify({}), HTTPStatus.ACCEPTED
 
     except Exception as service_exception:
         logger.error(service_exception)

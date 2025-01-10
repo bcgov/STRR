@@ -47,17 +47,22 @@ class GCPStorageService:
     """Service to save and load files from gcp buckets."""
 
     @classmethod
-    def registration_documents_bucket(cls):
+    def get_bucket(cls, bucket_id):
         """Get gcp bucket for saving or deleting registration documents."""
 
         scope = current_app.config.get("GCP_CS_SA_SCOPE")
-        bucket_id = current_app.config.get("GCP_CS_BUCKET_ID")
 
         service_account_info = json.loads(base64.b64decode(current_app.config.get("GCP_AUTH_KEY")).decode("utf-8"))
         credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=[scope])
         storage_client = storage.Client(credentials=credentials)
         bucket = storage_client.bucket(bucket_id)
         return bucket
+
+    @classmethod
+    def registration_documents_bucket(cls):
+        """Get gcp bucket for saving or deleting registration documents."""
+        bucket_id = current_app.config.get("GCP_CS_BUCKET_ID")
+        return GCPStorageService.get_bucket(bucket_id)
 
     @classmethod
     def upload_registration_document(cls, file_type, file_contents):
@@ -94,3 +99,16 @@ class GCPStorageService:
             return contents
         except Exception as e:
             raise ExternalServiceException(message="Error fetching registration document from gcp bucket.") from e
+
+    @classmethod
+    def upload_file(cls, file_type, file_contents, bucket_id):
+        """Save the document to the specified bucket."""
+
+        try:
+            bucket = cls.get_bucket(bucket_id)
+            blob_name = str(uuid.uuid4())
+            blob = bucket.blob(blob_name)
+            blob.upload_from_string(data=file_contents, content_type=file_type)
+            return blob_name
+        except Exception as e:
+            raise ExternalServiceException(message="Error uploading document to cloud storage bucket.") from e

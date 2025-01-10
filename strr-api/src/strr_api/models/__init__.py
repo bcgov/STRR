@@ -36,6 +36,7 @@ from .account_roles import AccountRoles
 from .address import Address
 from .application import Application
 from .auto_approval_record import AutoApprovalRecord
+from .bulk_validation import BulkValidation
 from .certificate import Certificate
 from .db import db  # noqa: I001
 from .events import Events
@@ -50,6 +51,7 @@ __all__ = (
     "AccountRoles",
     "Address",
     "Application",
+    "BulkValidation",
     "User",
     "RentalProperty",
     "Address",

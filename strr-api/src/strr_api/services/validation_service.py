@@ -33,11 +33,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """Permit Validation Service."""
 import copy
+import json
+from datetime import datetime
 from http import HTTPStatus
 
 from strr_api.enums.enum import ErrorMessage, RegistrationType
-from strr_api.models import Registration
+from strr_api.models import Registration, BulkValidation
 from strr_api.services.approval_service import ApprovalService
+from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.utils.date_util import DateUtil
 
@@ -140,3 +143,15 @@ class ValidationService:
             )
             response["errors"] = errors
         return response
+
+    @classmethod
+    def save_bulk_validation_request(cls, request_json):
+        file_key = GCPStorageService.upload_file(
+            file_type="application/json",
+            file_contents=json.dumps(request_json),
+            bucket_id="strr_bulk_validation_requests_dev",
+        )
+        bulk_validation = BulkValidation()
+        bulk_validation.request_file_id = file_key
+        bulk_validation.request_timestamp = datetime.utcnow()
+        bulk_validation.save()
