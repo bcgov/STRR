@@ -52,23 +52,4 @@ export async function authSetup (
   await page.waitForURL(baseUrl + '**')
   await page.context().storageState({ path: `tests/e2e/.auth/${storagePath}.json` })
   await browser.close()
-
-  // await page.goto(baseUrl + 'en-CA/auth/login')
-
-  // if (loginMethod === LoginSource.BCSC) {
-  //   await page.getByRole('button', { name: 'Continue with BC Services Card' }).click()
-  //   await page.getByLabel('Log in with Test with').click()
-  //   await page.getByLabel('Email or username').fill(username)
-  //   await page.getByLabel('Password').fill(password)
-  //   await page.getByRole('button', { name: 'Continue' }).click()
-  // } else if (loginMethod === LoginSource.BCEID) {
-  //   await page.getByRole('button', { name: 'Continue with BCeID' }).click()
-  //   await page.locator('#user').fill(username)
-  //   await page.getByLabel('Password').fill(password)
-  //   await page.getByRole('button', { name: 'Continue' }).click()
-  // }
-
-  // await page.waitForURL(baseUrl + '**')
-  // await page.context().storageState({ path: `tests/e2e/.auth/${storagePath}.json` })
-  // await browser.close()
 }

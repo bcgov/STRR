@@ -87,4 +87,4 @@ To use this auth state in other tests:
 - Tests using BCEID login that rely on a OTP (test/prod environments) should use the saved auth user state. Generating a new OTP for each test on login can cause the tests to fail.
 - A maximum of 4 workers seems to be the sweet spot for tests to pass without colliding with each other.
 - Setting to 1 worker will fully disable running tests in parallel.
-- Using the Playwright extension/testing tab do not execute the global setup and save the auth state. You must run `pnpm:e2e` to at least create the auth files before running tests with the extension.
+- Using the Playwright extension/testing tab does not execute the global setup and save the auth state. You must run `pnpm:e2e` to at least create the auth files before running tests with the extension.
