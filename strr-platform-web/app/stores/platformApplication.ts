@@ -60,11 +60,15 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
     return applicationBody
   }
 
-  const submitPlatformApplication = async () => {
+  const submitPlatformApplication = async (isDraft = false, applicationId?: string) => {
     const body = createApplicationBody()
 
     // console.info('submitting application: ', body)
-    const res = await postApplication<PlatformApplicationPayload, PlatformApplicationResp>(body)
+    const res = await postApplication<PlatformApplicationPayload, PlatformApplicationResp>(
+      body,
+      isDraft,
+      applicationId
+    )
 
     const paymentToken = res.header.paymentToken
     const filingId = res.header.applicationNumber

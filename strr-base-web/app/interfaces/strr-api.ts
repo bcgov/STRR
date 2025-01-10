@@ -77,6 +77,7 @@ export interface ApplicationHeader {
   isCertificateIssued: boolean
   name: string
   paymentAccount: string
+  paymentMethod: ConnectPaymentMethod
   paymentStatus: string
   paymentToken: number // invoice id
   status: ApplicationStatus

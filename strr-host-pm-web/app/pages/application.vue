@@ -21,7 +21,7 @@ const {
 } = useHostApplicationStore()
 const permitStore = useHostPermitStore()
 
-const applicationId = route.query.applicationId as string
+const applicationId = ref(route.query.applicationId as string)
 const loading = ref(false)
 
 // fee stuff
@@ -42,8 +42,8 @@ const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 onMounted(async () => {
   loading.value = true
   applicationReset()
-  if (applicationId) {
-    await permitStore.loadHostData(applicationId, true)
+  if (applicationId.value) {
+    await permitStore.loadHostData(applicationId.value, true)
   }
   const [fee1, fee2] = await Promise.all([
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_1),
@@ -140,10 +140,11 @@ const saveApplication = async (resumeLater = false) => {
   handleButtonLoading(false, 'left', resumeLater ? 1 : 2)
   // prevent flicker of buttons by waiting half a second
   try {
-    await Promise.all([
+    const [, { filingId }] = await Promise.all([
       new Promise(resolve => setTimeout(resolve, 500)),
-      submitApplication(true, applicationId)
+      submitApplication(true, applicationId.value)
     ])
+    applicationId.value = filingId
     if (resumeLater) {
       await navigateTo(localePath('/dashboard'))
     }

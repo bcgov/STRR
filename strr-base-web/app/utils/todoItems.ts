@@ -33,7 +33,10 @@ export const getTodoApplication = (
           if (applicationInfo) { // TODO: alert if no application info
           // pass application number so that the application form can load in the saved data
             await navigateTo(
-              { path: localePath(applicationPath), query: { applicationId: applicationInfo.applicationNumber } }
+              {
+                path: localePath(applicationPath),
+                query: { override: 'true', applicationId: applicationInfo.applicationNumber }
+              }
             )
           }
         }

@@ -2,7 +2,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
   const contactStore = useStrrContactStore()
   const businessStore = useStrrPlatformBusiness()
   const detailsStore = useStrrPlatformDetails()
-  const { completingParty, primaryRep, secondaryRep } = storeToRefs(contactStore)
+  const { completingParty, primaryRep, secondaryRep, isCompletingPartyRep } = storeToRefs(contactStore)
   const { platformBusiness } = storeToRefs(businessStore)
   const { platformDetails } = storeToRefs(detailsStore)
 
@@ -16,23 +16,43 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     loadPermitData
   } = useStrrBasePermit<PlatformRegistrationResp, PlatformApplicationResp, ApiBasePlatformApplication>()
 
-  const loadPlatform = async () => {
+  const loadPlatform = async (applicationId?: string, loadDraft = false) => {
     $reset()
-    await loadPermitData(undefined, ApplicationType.PLATFORM)
+    await loadPermitData(applicationId, ApplicationType.PLATFORM)
     if (application.value) {
       // set completing party info (this data is only in the application)
       completingParty.value = formatPartyUI(application.value.registration.completingParty)
     }
-    if (showPermitDetails.value) {
+    if (showPermitDetails.value || loadDraft) {
       // set relevant sub store values to active platform data
-      // @ts-expect-error - platformRepresentatives[0] will always be defined here
-      primaryRep.value = formatRepresentativeUI(permitDetails.value.platformRepresentatives[0])
+      if (permitDetails.value.platformRepresentatives?.length > 0) {
+        // @ts-expect-error - platformRepresentatives[0] will always be defined here
+        primaryRep.value = formatRepresentativeUI(permitDetails.value.platformRepresentatives[0])
+        // set isCompletingPartyRep if primary rep contact info is the same as the completing party info
+        isCompletingPartyRep.value = primaryRep.value.firstName === completingParty.value.firstName &&
+          primaryRep.value.middleName === completingParty.value.middleName &&
+          primaryRep.value.lastName === completingParty.value.lastName &&
+          primaryRep.value.emailAddress === completingParty.value.emailAddress &&
+          primaryRep.value.phone.countryCode === completingParty.value.phone.countryCode &&
+          primaryRep.value.phone.number === completingParty.value.phone.number &&
+          primaryRep.value.phone.extension === completingParty.value.phone.extension
+      }
       // should only ever be 2 reps at most
       if (permitDetails.value.platformRepresentatives?.length > 1) {
         // @ts-expect-error - platformRepresentatives[1] will always be defined here
         secondaryRep.value = formatRepresentativeUI(permitDetails.value.platformRepresentatives[1])
       }
       platformBusiness.value = formatBusinessDetailsUI(permitDetails.value.businessDetails)
+      if (loadDraft) {
+        if (!platformBusiness.value.hasCpbc) {
+          // api does not save this value so we have to assume it was not selected yet for drafts
+          platformBusiness.value.hasCpbc = undefined
+        }
+        if (!platformBusiness.value.hasRegOffAtt) {
+          // api does not save this value so we have to assume it was not selected yet for drafts
+          platformBusiness.value.hasRegOffAtt = undefined
+        }
+      }
       platformDetails.value = permitDetails.value.platformDetails
     }
   }
