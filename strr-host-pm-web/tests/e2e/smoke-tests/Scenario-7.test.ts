@@ -9,7 +9,6 @@ import {
   getFakePropertyNickname,
   getFakePid,
   getFakeBlInfo,
-  completeLogin,
   chooseAccount,
   completeStep1,
   completeStep2,
@@ -25,10 +24,14 @@ const i18nText = enI18n.global.messages.value['en-CA']
 
 loginMethods.forEach((loginMethod) => {
   test.describe(`Host Smoke - Scenario 7 - YesBL_YesPR_YesProh_NotExempt - ${loginMethod}`, () => {
+    // use saved login state
+    test.use({ storageState: `tests/e2e/.auth/${loginMethod.toLowerCase()}-user.json` })
+
+    // create test data
     // address constants
     const nickname = getFakePropertyNickname()
     const lookupAddress = '2295 Arbutus Rd'
-    // unit details contants
+    // unit details constants
     const propertyType = i18nText.propertyType.SINGLE_FAMILY_HOME // 'Single Family Home'
     const typeOfSpace = i18nText.rentalUnitType.ENTIRE_HOME // 'Entire Home (guests rent an entire residence for themselves)'
     const rentalUnitSetupType = i18nText.rentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE // "This unit is the host's principal residence or a room within the host's principal residence"
@@ -46,9 +49,6 @@ loginMethods.forEach((loginMethod) => {
     ]
 
     test('Complete Application Flow', async ({ page }) => {
-      // Complete Login
-      await completeLogin(page, loginMethod)
-
       // Choose Account
       await chooseAccount(page, loginMethod)
 

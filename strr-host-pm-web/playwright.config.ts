@@ -18,7 +18,7 @@ const devicesToTest = [
 ] satisfies Array<string | typeof devices[string]>
 
 export default defineConfig<ConfigOptions>({
-  // globalSetup: './tests/e2e/test-utils/global-setup', // setup when booting test runner
+  globalSetup: './tests/e2e/test-utils/global-setup', // setup when booting test runner
   testDir: './tests/e2e',
   testIgnore: ['./tests/e2e/test-utils/**'],
   reporter: 'line',
@@ -27,10 +27,10 @@ export default defineConfig<ConfigOptions>({
   // Retry on CI only.
   // retries: process.env.CI ? 2 : 0,
   retries: 3, // a11y tests are flaky
-  maxFailures: 1,
-  // Opt out of parallel tests on CI.
-  // workers: process.env.CI ? 1 : undefined,
-  // workers: 1, // TODO: figure out why tests fail when run in parallel
+  // maxFailures: 1,
+  // workers: process.env.CI ? 1 : undefined, // Opt out of parallel tests on CI.
+  // setting workers to 1 disables running tests in parallel
+  workers: 4, // 4 seems to be the sweet spot
   use: {
     nuxt: {
       rootDir: fileURLToPath(new URL('.', import.meta.url))

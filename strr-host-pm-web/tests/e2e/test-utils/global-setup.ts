@@ -35,17 +35,11 @@ async function globalSetup () {
 
   await Promise.all([
     authSetup(
-      baseUrl,
       LoginSource.BCSC,
-      process.env.PLAYWRIGHT_TEST_BCSC_USERNAME!,
-      process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD!,
       'bcsc-user'
     ),
     authSetup(
-      baseUrl,
       LoginSource.BCEID,
-      process.env.PLAYWRIGHT_TEST_BCEID_USERNAME!,
-      process.env.PLAYWRIGHT_TEST_BCEID_PASSWORD!,
       'bceid-user'
     )
   ])

@@ -9,7 +9,6 @@ import {
   getFakePropertyNickname,
   getFakePid,
   getFakeBlInfo,
-  completeLogin,
   chooseAccount,
   completeStep1,
   completeStep2,
@@ -25,6 +24,10 @@ const i18nText = enI18n.global.messages.value['en-CA']
 
 loginMethods.forEach((loginMethod) => {
   test.describe(`Host Smoke - Scenario 5 - YesBL_NoPR_NotProh_NotExempt - ${loginMethod}`, () => {
+    // use saved login state
+    test.use({ storageState: `tests/e2e/.auth/${loginMethod.toLowerCase()}-user.json` })
+
+    // create test data
     // address constants
     const nickname = getFakePropertyNickname()
     const lookupAddress = '1291 Bear Creek Rd'
@@ -44,9 +47,6 @@ loginMethods.forEach((loginMethod) => {
     ]
 
     test('Complete Application Flow', async ({ page }) => {
-      // Complete Login
-      await completeLogin(page, loginMethod)
-
       // Choose Account
       await chooseAccount(page, loginMethod)
 

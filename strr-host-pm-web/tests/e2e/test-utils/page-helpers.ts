@@ -20,7 +20,7 @@ export async function completeLogin (page: Page, loginMethod: LoginSource) {
   const environment = process.env.NUXT_ENVIRONMENT_HEADER!.toLowerCase()
   const otpSecret = process.env.PLAYWRIGHT_TEST_BCEID_OTP_SECRET!
 
-  await page.goto('en-CA/auth/login')
+  await page.goto('en-CA/auth/login', { waitUntil: 'networkidle', timeout: 60000 })
 
   if (loginMethod === LoginSource.BCSC) {
     await page.getByRole('button', { name: 'Continue with BC Services Card' }).click()
@@ -49,7 +49,7 @@ export async function completeLogin (page: Page, loginMethod: LoginSource) {
 }
 
 export async function chooseAccount (page: Page, loginMethod: LoginSource) {
-  await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'networkidle' })
+  await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'networkidle', timeout: 60000 })
 
   await expect(page.getByTestId('h1')).toContainText('Existing Account Found')
 
@@ -101,7 +101,7 @@ export const completeStep1 = async (
     await page.getByTestId('address.postalCode').fill(lookupAddress.postalCode)
     await page.getByRole('button', { name: 'Done', exact: true }).click()
   }
-  await page.getByTestId('property-requirements-section').waitFor({ state: 'visible', timeout: 10000 }) // wait for autocomplete requirements to be displayed
+  await page.getByTestId('property-requirements-section').waitFor({ state: 'visible', timeout: 30000 }) // wait for autocomplete requirements to be displayed
 
   // execute scenario specific actions/assertions
   await scenarioSpecificItems()
@@ -365,7 +365,7 @@ export const assertDashboardDetailsView = async (
   await expect(detailsHeader.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
 
   // assert todos
-  const todoSection = page.locator('section').filter({ hasText: 'To Do' })
+  const todoSection = page.locator('section').filter({ hasText: 'To Do (0)' })
   await expect(todoSection).toContainText('You don’t have anything to do yet')
   await expect(todoSection).toContainText('Filings that require your attention will appear here')
 
@@ -432,12 +432,13 @@ export const assertDashboardListView = async (
     postalCode: string;
   }
 ) => {
-  page.waitForURL('**/dashboard/**')
+  await page.waitForURL('**/dashboard/**')
   await expect(page.getByTestId('h1')).toContainText(nickname)
   await expect(page).toHaveURL(/.*\/dashboard\/.*/)
 
   // go back to list view
   await page.getByRole('link', { name: 'My Short-Term Rental Registry' }).click()
+  await page.waitForURL('**/dashboard/**')
   await expect(page.getByTestId('h1')).toContainText('My Short-Term Rental Registry')
   const listSection = page.locator('section').filter({ hasText: 'My Short-Term Rentals' })
   await expect(listSection).toContainText(nickname)
