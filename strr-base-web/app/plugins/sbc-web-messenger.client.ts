@@ -1,12 +1,11 @@
 // TODO: get ld flag working, organize plugin, comments, test, etc
 export default defineNuxtPlugin(async () => {
-  const { ldClient, getStoredFlag } = useConnectLaunchdarklyStore()
-  await ldClient?.waitUntilReady()
+  // const { ldClient, getStoredFlag } = useConnectLaunchdarklyStore()
+  // await ldClient?.waitUntilReady()
   const rtc = useRuntimeConfig().public
-  const msgConfig = useAppConfig().strrBaseLayer.sbcWebMsg
+  // const msgConfig = useAppConfig().strrBaseLayer.sbcWebMsg
 
-  const ldFlag = getStoredFlag('enable-sbc-web-messenger')
-  console.log('ld flag: ', ldFlag)
+  // const ldFlag = getStoredFlag('enable-sbc-web-messenger')
 
   const genesysUrl = rtc.genesysUrl
   const environmentKey = rtc.genesysEnvironmentKey
@@ -32,7 +31,7 @@ export default defineNuxtPlugin(async () => {
     // check if exists already
     const scriptExists = document.querySelector(`script[src="${genesysUrl}"]`)
     if (scriptExists) {
-      console.warn('SBC Web Messenger script already exists in the document.')
+      console.warn('Genesys script already exists in the document.')
       return
     }
 
@@ -42,8 +41,8 @@ export default defineNuxtPlugin(async () => {
     }
     window.Genesys.t = Date.now()
     window.Genesys.c = {
-      environment: environmentKey as string,
-      deploymentId: deploymentKey as string
+      environment: environmentKey,
+      deploymentId: deploymentKey
     }
     const ys = document.createElement('script')
     ys.async = true
