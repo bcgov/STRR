@@ -1,11 +1,11 @@
 // TODO: get ld flag working, organize plugin, comments, test, etc
 export default defineNuxtPlugin(async () => {
-  // const { ldClient, getStoredFlag } = useConnectLaunchdarklyStore()
-  // await ldClient?.waitUntilReady()
+  const { ldClient, getStoredFlag } = useConnectLaunchdarklyStore()
+  await ldClient?.waitUntilReady()
   const rtc = useRuntimeConfig().public
   const msgConfig = useAppConfig().strrBaseLayer.sbcWebMsg
 
-  // const ldFlag = getStoredFlag('enable-sbc-web-messenger')
+  const ldFlag = getStoredFlag('enable-sbc-web-messenger')
 
   const genesysUrl = rtc.genesysUrl
   const environmentKey = rtc.genesysEnvironmentKey
@@ -41,8 +41,8 @@ export default defineNuxtPlugin(async () => {
     }
     window.Genesys.t = Date.now()
     window.Genesys.c = {
-      environment: environmentKey,
-      deploymentId: deploymentKey
+      environment: 'prod-cac1',
+      deploymentId: '1c8e851a-5bc8-4d50-bc7b-2f6365e04124'
     }
     const ys = document.createElement('script')
     ys.async = true
@@ -72,19 +72,23 @@ export default defineNuxtPlugin(async () => {
 
   const router = useRouter()
 
+  const allowedRoutes = useAppConfig().strrBaseLayer.sbcWebMsg.allowedRoutes
+
   const isRouteAllowed = (path: string): boolean => {
-    if (msgConfig.allowedRoutes === undefined) {
+    if (allowedRoutes === undefined) {
       return true
     }
-    return msgConfig.allowedRoutes.some(route => path.includes(route))
+    return allowedRoutes.some(route => path.includes(route))
   }
 
   router.beforeEach((to, from, next) => {
-    if (isRouteAllowed(to.path)) {
-      initGenesys()
-    } else {
-      removeGenesys()
-    }
+    console.log('route: ', to.path)
+    initGenesys()
+    // if (isRouteAllowed(to.path)) {
+    //   initGenesys()
+    // } else {
+    //   removeGenesys()
+    // }
     next()
   })
 })
