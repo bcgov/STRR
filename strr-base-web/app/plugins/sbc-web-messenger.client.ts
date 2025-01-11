@@ -3,7 +3,7 @@ export default defineNuxtPlugin(async () => {
   // const { ldClient, getStoredFlag } = useConnectLaunchdarklyStore()
   // await ldClient?.waitUntilReady()
   const rtc = useRuntimeConfig().public
-  // const msgConfig = useAppConfig().strrBaseLayer.sbcWebMsg
+  const msgConfig = useAppConfig().strrBaseLayer.sbcWebMsg
 
   // const ldFlag = getStoredFlag('enable-sbc-web-messenger')
 
@@ -72,13 +72,11 @@ export default defineNuxtPlugin(async () => {
 
   const router = useRouter()
 
-  const allowedRoutes = useAppConfig().strrBaseLayer.sbcWebMsg.allowedRoutes
-
   const isRouteAllowed = (path: string): boolean => {
-    if (allowedRoutes === undefined) {
+    if (msgConfig.allowedRoutes === undefined) {
       return true
     }
-    return allowedRoutes.some(route => path.includes(route))
+    return msgConfig.allowedRoutes.some(route => path.includes(route))
   }
 
   router.beforeEach((to, from, next) => {
