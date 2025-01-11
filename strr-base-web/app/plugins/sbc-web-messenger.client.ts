@@ -6,6 +6,7 @@ export default defineNuxtPlugin(async () => {
   const msgConfig = useAppConfig().strrBaseLayer.sbcWebMsg
 
   const ldFlag = getStoredFlag('enable-sbc-web-messenger')
+  console.log('ld flag: ', ldFlag)
 
   const genesysUrl = rtc.genesysUrl
   const environmentKey = rtc.genesysEnvironmentKey
@@ -17,10 +18,10 @@ export default defineNuxtPlugin(async () => {
   }
 
   const initGenesys = () => {
-    if (!msgConfig.enable || !ldFlag) {
-      console.warn('SBC Web Messenger has been disabled.')
-      return
-    }
+    // if (!msgConfig.enable || !ldFlag) {
+    //   console.warn('SBC Web Messenger has been disabled.')
+    //   return
+    // }
 
     // prevent duplicate
     if (window._genesysJs) {
@@ -31,7 +32,7 @@ export default defineNuxtPlugin(async () => {
     // check if exists already
     const scriptExists = document.querySelector(`script[src="${genesysUrl}"]`)
     if (scriptExists) {
-      console.warn('Genesys script already exists in the document.')
+      console.warn('SBC Web Messenger script already exists in the document.')
       return
     }
 
@@ -41,8 +42,8 @@ export default defineNuxtPlugin(async () => {
     }
     window.Genesys.t = Date.now()
     window.Genesys.c = {
-      environment: 'prod-cac1',
-      deploymentId: '1c8e851a-5bc8-4d50-bc7b-2f6365e04124'
+      environment: environmentKey as string,
+      deploymentId: deploymentKey as string
     }
     const ys = document.createElement('script')
     ys.async = true
