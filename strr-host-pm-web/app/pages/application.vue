@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ConnectStepper, FormReview } from '#components'
-
 const { t } = useI18n()
 const route = useRoute()
 const localePath = useLocalePath()

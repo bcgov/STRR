@@ -15,6 +15,10 @@ declare module 'nuxt/schema' {
       },
       feeWidget?: {
         itemLabelTooltip: Record<string, { i18nkey: string, hrefRtcKey?: keyof PublicRuntimeConfig }> // typeCode
+      },
+      sbcWebMsg: {
+        enable: boolean,
+        allowedRoutes: string[] | undefined
       }
     }
   }
@@ -37,6 +41,24 @@ declare module 'nuxt/schema' {
       },
       feeWidget?: {
         itemLabelTooltip: Record<string, { i18nkey: string, hrefRtcKey?: keyof PublicRuntimeConfig }> // typeCode
+      },
+      sbcWebMsg: {
+        enable: boolean,
+        allowedRoutes: string[] | undefined
+      }
+    }
+  }
+}
+
+declare global {
+  interface Window {
+    _genesysJs: string
+    Genesys: {
+      q?: any[]
+      t?: number
+      c?: {
+        environment: string
+        deploymentId: string
       }
     }
   }

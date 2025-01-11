@@ -55,6 +55,10 @@ export default defineAppConfig({
           hrefRtcKey: 'hostFeesUrl'
         }
       })
+    },
+    sbcWebMsg: {
+      enable: true,
+      allowedRoutes: ['application', 'dashboard']
     }
   },
   ui: {}
