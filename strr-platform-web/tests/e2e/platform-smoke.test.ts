@@ -23,7 +23,7 @@ loginMethods.forEach((loginMethod) => {
     const businessDetails = getFakeBusinessDetails()
     const platformDetails = getFakePlatformDetails()
 
-    test.only('Complete Application Flow', async ({ page }) => {
+    test('Complete Application Flow', async ({ page }) => {
       // choose account
       await chooseAccount(page, loginMethod)
 
