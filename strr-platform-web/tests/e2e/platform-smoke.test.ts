@@ -1,5 +1,4 @@
 import { test } from '@playwright/test'
-import { config as dotenvConfig } from 'dotenv'
 import {
   getFakeBusinessDetails,
   getFakeContactDetails,
@@ -12,8 +11,6 @@ import {
   completeStep4,
   assertDashboardDetailsView
 } from './test-utils'
-// load default env
-dotenvConfig()
 
 loginMethods.forEach((loginMethod) => {
   test.describe(`STRR Platform Smoke Test - ${loginMethod}`, () => {
