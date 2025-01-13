@@ -23,10 +23,7 @@ export default defineAppConfig({
     },
     sbcWebMsg: {
       enable: true,
-      allowedRoutes: undefined,
-      genesysUrl: 'https://apps.cac1.pure.cloud/genesys-bootstrap/genesys.min.js',
-      genesysEnvironmentKey: 'prod-cac1',
-      genesysDeploymentKey: '56973fe6-5b18-4395-bd10-707243b2f680'
+      allowedRoutes: undefined
     }
   },
   ui: {
