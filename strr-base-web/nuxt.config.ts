@@ -91,9 +91,12 @@ export default defineNuxtConfig({
       housingStrrUrl: process.env.NUXT_REGISTRY_HOME_URL, // TODO: update to NUXT_HOUSING_STRR_URL once we get the housing strr url set
       declineTosRedirectUrl: process.env.NUXT_DECLINE_TOS_REDIRECT_URL,
       bcGovStrrUrl: process.env.NUXT_BCGOV_STRR_URL,
-      genesysUrl: process.env.NUXT_GENESYS_URL,
-      genesysEnvironmentKey: process.env.NUXT_GENESYS_ENVIRONMENT_KEY,
-      genesysDeploymentKey: process.env.NUXT_GENESYS_DEPLOYMENT_KEY
+      genesysUrl: 'https://apps.cac1.pure.cloud/genesys-bootstrap/genesys.min.js',
+      genesysEnvironmentKey: 'prod-cac1',
+      genesysDeploymentKey: '1c8e851a-5bc8-4d50-bc7b-2f6365e04124'
+      // genesysUrl: process.env.NUXT_GENESYS_URL,
+      // genesysEnvironmentKey: process.env.NUXT_GENESYS_ENVIRONMENT_KEY || '',
+      // genesysDeploymentKey: process.env.NUXT_GENESYS_DEPLOYMENT_KEY || ''
       // set by layer - still required in .env
       // keycloakAuthUrl - NUXT_KEYCLOAK_AUTH_URL
       // keycloakClientId - NUXT_KEYCLOAK_CLIENTID

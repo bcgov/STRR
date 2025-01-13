@@ -18,7 +18,10 @@ declare module 'nuxt/schema' {
       },
       sbcWebMsg: {
         enable: boolean,
-        allowedRoutes: string[] | undefined
+        allowedRoutes: string[] | undefined,
+        genesysUrl: string,
+        genesysEnvironmentKey: string,
+        genesysDeploymentKey: string
       }
     }
   }
@@ -44,7 +47,10 @@ declare module 'nuxt/schema' {
       },
       sbcWebMsg: {
         enable: boolean,
-        allowedRoutes: string[] | undefined
+        allowedRoutes: string[] | undefined,
+        genesysUrl: string,
+        genesysEnvironmentKey: string,
+        genesysDeploymentKey: string
       }
     }
   }
