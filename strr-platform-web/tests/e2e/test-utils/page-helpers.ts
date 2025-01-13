@@ -44,6 +44,7 @@ export async function completeStep1 (
   )
   await completingPartySection.getByTestId('phone-countryCode').fill(completingParty.phone.countryCode!)
   await completingPartySection.getByRole('option').first().click()
+  await completingPartySection.getByTestId('phone-number').click()
   await completingPartySection.getByTestId('phone-number').fill(completingParty.phone.number)
   await completingPartySection.getByTestId('phone-extension').fill(completingParty.phone.extension!)
   await completingPartySection.getByTestId('platform-completing-party-party-email').fill(completingParty.emailAddress)
