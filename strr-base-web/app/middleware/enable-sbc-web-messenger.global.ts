@@ -15,7 +15,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       window.Genesys = window.Genesys || function (...args: any) {
         (window.Genesys.q = window.Genesys.q || []).push(args)
       }
-      window.Genesys.t = Date.now()
+      window.Genesys.t = new Date().getTime()
       window.Genesys.c = {
         environment: environmentKey,
         deploymentId: deploymentKey
@@ -28,17 +28,25 @@ export default defineNuxtRouteMiddleware(async (to) => {
       localStorage.removeItem('_actmu')
     }
 
-    const removeWebMsg = () => {
-      const script = document.querySelector(`script[src="${genesysUrl}"]`)
-      if (script) {
-        script.remove()
-      }
+    // TODO: how to remove ?
+    // const removeWebMsg = () => {
+    // const scripts = document.querySelectorAll('script[src^="https://apps.cac1.pure.cloud"]')
+    // scripts.forEach(script => script.remove())
 
-      // clean up // TODO: cleanup
-      delete window.Genesys
-      delete window._genesysJs
-      localStorage.removeItem('_actmu')
-    }
+    // const el1 = document.getElementById('genesys-thirdparty')
+    // if (el1) {
+    //   el1.remove()
+    // }
+
+    // const el2 = document.getElementById('genesys-messenger')
+    // if (el2) {
+    //   el2.remove()
+    // }
+
+    // delete window.Genesys
+    // delete window._genesysJs
+    // localStorage.removeItem('_actmu')
+    // }
 
     const isRouteAllowed = (path: string): boolean => {
       if (msgConfig.allowedRoutes === undefined) {
@@ -48,12 +56,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
 
     if (isRouteAllowed(to.path)) {
-      console.log('init')
       initWebMsg()
     } else {
-      // TODO: make this work
-      removeWebMsg()
-      console.log('remove')
+      // TODO: how to remove ?
+      // removeWebMsg()
     }
   }
 })

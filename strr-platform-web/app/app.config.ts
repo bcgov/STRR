@@ -42,6 +42,10 @@ export default defineAppConfig({
           idps: () => ['bceid', 'bcsc'] // function required to overwrite default value, will merge if no function
         }
       }
+    },
+    sbcWebMsg: {
+      enable: true,
+      allowedRoutes: ['application', 'dashboard']
     }
   },
   ui: {

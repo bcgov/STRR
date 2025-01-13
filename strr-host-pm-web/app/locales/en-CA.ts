@@ -5,8 +5,8 @@ export default {
       title: 'Your property is in a location where the principal residence requirement applies.'
     },
     straaExempt: {
-      title: '{boldStart}Registration Not Required:{boldEnd} This address appears to be located on First Nations land and is therefore exempt from the {italicStart}Short-term Rental Accommodations Act{italicEnd}. You do not need to register a short-term rental at this address.',
-      note: 'Please check with the First Nations for any applicable Short-Term Rental regulations.'
+      title: '{boldStart}Registration Not Required:{boldEnd} This address appears to be located on First Nation land and is therefore exempt from the {italicStart}Short-term Rental Accommodations Act{italicEnd}. You do not need to register a short-term rental at this address.',
+      note: 'Please check with the First Nation for any applicable Short-Term Rental regulations.'
     },
     strProhibited: {
       title: 'Some types of short-term rentals are not permitted by your local government.',
