@@ -92,8 +92,8 @@ export default defineNuxtConfig({
       declineTosRedirectUrl: process.env.NUXT_DECLINE_TOS_REDIRECT_URL,
       bcGovStrrUrl: process.env.NUXT_BCGOV_STRR_URL,
       genesysUrl: process.env.NUXT_GENESYS_URL,
-      genesysEnvironmentKey: process.env.NUXT_GENESYS_ENVIRONMENT_KEY || '',
-      genesysDeploymentKey: process.env.NUXT_GENESYS_DEPLOYMENT_KEY || ''
+      genesysEnvironmentKey: process.env.NUXT_GENESYS_ENVIRONMENT_KEY,
+      genesysDeploymentKey: process.env.NUXT_GENESYS_DEPLOYMENT_KEY
       // set by layer - still required in .env
       // keycloakAuthUrl - NUXT_KEYCLOAK_AUTH_URL
       // keycloakClientId - NUXT_KEYCLOAK_CLIENTID

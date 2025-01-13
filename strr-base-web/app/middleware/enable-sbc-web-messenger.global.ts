@@ -11,6 +11,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const deploymentKey = rtc.genesysDeploymentKey as string
 
     const initWebMsg = () => {
+      if (!genesysUrl || !environmentKey || !deploymentKey) {
+        console.warn('Missing Sbc Web Messenger config, aborting setup.')
+      }
+
       window._genesysJs = 'Genesys'
       window.Genesys = window.Genesys || function (...args: any) {
         (window.Genesys.q = window.Genesys.q || []).push(args)
