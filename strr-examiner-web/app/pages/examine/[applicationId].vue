@@ -8,8 +8,9 @@ import { useExaminerStore } from '~/store/examiner'
 
 const { t } = useI18n()
 const route = useRoute()
+const { getAccountApplication } = useStrrApi()
 const { loading } = storeToRefs(useConnectDetailsHeaderStore())
-const { getApplication, approveApplication, rejectApplication } = useExaminerStore()
+const { approveApplication, rejectApplication } = useExaminerStore()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -49,7 +50,7 @@ const rejectApplicationHandler = async () => {
 
 const fetchApplication = async (applicationNumber: string): Promise<void> => {
   applicationId = applicationNumber
-  application.value = await getApplication(applicationNumber)
+  application.value = await getAccountApplication(applicationNumber)
 }
 
 onMounted(async () => {

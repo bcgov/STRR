@@ -3,7 +3,6 @@ import { formatBusinessDetailsUI, formatStrataDetailsUI } from '~/utils/strata-f
 
 export const useStrrStrataStore = defineStore('strr/strata', () => {
   // TODO: move common pieces of strata and platform to base layer composable
-  const { getAccountApplications } = useStrrApi()
   const contactStore = useStrrContactStore()
   const businessStore = useStrrStrataBusinessStore()
   const detailsStore = useStrrStrataDetailsStore()
@@ -67,29 +66,6 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     }
   }
 
-  const loadStrataHotelList = async () => {
-    // Load the full list of strata hotel applications
-    return await getAccountApplications<StrataApplicationResp>(undefined, ApplicationType.STRATA_HOTEL)
-      .catch((e) => {
-        logFetchError(e, 'Unable to load account applications')
-        return undefined
-      })
-      .then((response) => {
-        if (response) {
-          return (response as StrataApplicationResp[]).map(app => ({
-            strataName: app.registration.strataHotelDetails.brand.name,
-            number: app.header.registrationNumber || app.header.applicationNumber,
-            date: app.header.registrationStartDate || app.header.applicationDateTime,
-            lastStatusChange: getLastStatusChangeColumn(app.header),
-            daysToExpiry: getDaysToExpiryColumn(app.header),
-            status: app.header.registrationStatus || app.header.hostStatus,
-            applicationNumber: app.header.applicationNumber // always used for view action
-          }))
-        }
-        return []
-      })
-  }
-
   const $reset = () => {
     contactStore.$reset()
     businessStore.$reset()
@@ -106,7 +82,6 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     showPermitDetails,
     downloadApplicationReceipt,
     loadStrata,
-    loadStrataHotelList,
     $reset
   }
 })

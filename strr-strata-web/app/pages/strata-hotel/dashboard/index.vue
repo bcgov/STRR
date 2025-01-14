@@ -2,9 +2,9 @@
 const { t } = useI18n()
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
-const strataStore = useStrrStrataStore()
 const strrModal = useStrrModals()
 const { deleteApplication } = useStrrApi()
+const { limit, page, getApplicationList } = useStrrBasePermitList<StrataApplicationResp>(ApplicationType.STRATA_HOTEL)
 
 const columns = [
   {
@@ -60,15 +60,49 @@ setBreadcrumbs([
   { label: t('page.dashboardList.h1') }
 ])
 
-// can use watch param to handle pagination in future
-const { data: strataHotelList, status, refresh } = await useAsyncData(
-  'strata-hotel-list',
-  () => strataStore.loadStrataHotelList(),
+const { data: strataHotelListResp, status, refresh } = await useAsyncData(
+  'strata-hotel-list-resp',
+  getApplicationList,
   {
-    watch: [() => accountStore.currentAccount.id],
-    default: () => []
+    watch: [() => accountStore.currentAccount.id, limit, page],
+    default: () => ({ applications: [], total: 0 })
   }
 )
+
+const mapApplicationsList = () => {
+  if (!strataHotelListResp.value?.applications) {
+    return []
+  }
+  return (strataHotelListResp.value.applications).map(app => ({
+    strataName: app.registration.strataHotelDetails.brand.name,
+    number: app.header.registrationNumber || app.header.applicationNumber,
+    lastStatusChange: getLastStatusChangeColumn(app.header),
+    daysToExpiry: getDaysToExpiryColumn(app.header),
+    status: app.header.registrationStatus || app.header.hostStatus,
+    applicationNumber: app.header.applicationNumber // always used for view action
+  }))
+}
+
+// Shouldn't use computed here because table sorting updates it which causes issues with vue tracking
+const strataList = ref(mapApplicationsList())
+watch(strataHotelListResp, () => { strataList.value = mapApplicationsList() })
+
+function manualSort (params: { column: string, direction: 'asc' | 'desc' }) {
+  // FUTURE: call api - this function is temporary
+  if (params.column === null) {
+    // resetting sort
+    strataList.value = mapApplicationsList()
+  }
+  const stringCompareFn = (a: string | undefined, b: string | undefined) => {
+    return (a || '').toUpperCase().localeCompare((b || '').toUpperCase())
+  }
+  return strataList.value.sort((a, b) => stringCompareFn(
+    // @ts-expect-error - 'a[params.column]' should always be a string or undefined
+    params.direction === 'asc' ? a[params.column] : b[params.column],
+    // @ts-expect-error - 'b[params.column]' should always be a string or undefined
+    params.direction === 'asc' ? b[params.column] : a[params.column]
+  ))
+}
 
 function isDraft (status: string) {
   return status === 'Draft'
@@ -126,57 +160,87 @@ async function handleItemSelect (row: any) {
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="font-normal">
-              <ConnectI18nHelper translation-path="table.strataHotelList.title" :count="strataHotelList.length" />
+              <ConnectI18nHelper
+                translation-path="table.strataHotelList.title"
+                :count="strataHotelListResp?.total || 0"
+              />
             </h2>
             <!-- TODO: filtering post-mvp ? -->
             <!-- <UInput
               placeholder="Find"
             /> -->
-            <USelectMenu
-              v-slot="{ open }"
-              v-model="selectedColumns"
-              :options="columns"
-              multiple
-              :ui="{ trigger: 'flex items-center w-full' }"
-            >
-              <UButton
-                color="white"
-                class="h-[42px] flex-1 justify-between text-gray-700"
-                :aria-label="$t('btn.colsToShow.aria', { count: selectedColumns.length })"
+            <div class="flex gap-3">
+              <UPagination
+                v-if="strataHotelListResp.total > limit"
+                v-model="page"
+                :page-count="limit"
+                size="lg"
+                :total="strataHotelListResp?.total || 0"
+                :ui="{
+                  base: 'h-[42px]',
+                  default: {
+                    activeButton: { class: 'rounded' }
+                  }
+                }"
+              />
+              <USelectMenu
+                v-slot="{ open }"
+                v-model="selectedColumns"
+                :options="columns"
+                multiple
+                :ui="{ trigger: 'flex items-center w-full' }"
               >
-                <span>{{ $t('btn.colsToShow.label') }}</span>
+                <UButton
+                  color="white"
+                  class="h-[42px] flex-1 justify-between text-gray-700"
+                  :aria-label="$t('btn.colsToShow.aria', { count: selectedColumns.length })"
+                >
+                  <span>{{ $t('btn.colsToShow.label') }}</span>
 
-                <UIcon
-                  name="i-mdi-caret-down"
-                  class="size-5 text-gray-700 transition-transform"
-                  :class="[open && 'rotate-180']"
-                />
-              </UButton>
-            </USelectMenu>
+                  <UIcon
+                    name="i-mdi-caret-down"
+                    class="size-5 text-gray-700 transition-transform"
+                    :class="[open && 'rotate-180']"
+                  />
+                </UButton>
+              </USelectMenu>
+            </div>
           </div>
         </template>
         <UTable
           ref="tableRef"
           :columns="selectedColumns"
-          :rows="strataHotelList"
+          :rows="strataList"
           :loading="status === 'pending' || deleting"
           :empty-state="{ icon: '', label: $t('table.strataHotelList.emptyText') }"
-          :sort="{ column: 'lastStatusChange', direction: 'desc' }"
+          :sort-button="{ // have to add this because updating ui/default/sortButton/class isn't working
+            icon: 'i-heroicons-arrows-up-down-20-solid',
+            trailing: true,
+            square: true,
+            color: 'black',
+            variant: 'ghost',
+            // @ts-expect-error - class is a valid field (as of nuxt/ui 2.20)
+            class: 'font-bold'
+          }"
           :ui="{
             wrapper: 'relative overflow-x-auto h-[512px]',
             thead: 'sticky top-0 bg-white z-10',
-            // th: {
-            //   padding: 'px-0 py-0'
-            // },
+            th: { padding: 'p-2' },
             td: {
               base: 'whitespace-normal max-w-96 align-top overflow-hidden',
-              padding: 'px-4 py-4',
+              padding: 'p-4',
               color: 'text-bcGovColor-midGray',
               font: '',
               size: 'text-sm',
             },
           }"
+          @update:sort="manualSort"
         >
+          <template #actions-header>
+            <div class="text-center">
+              <span>{{ $t('label.actions') }}</span>
+            </div>
+          </template>
           <!-- using a slot for this so the nuxtui sort will still sort by datetime -->
           <template #lastStatusChange-data="{ row }">
             {{ dateToStringPacific(row.lastStatusChange) }}

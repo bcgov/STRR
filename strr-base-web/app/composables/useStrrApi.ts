@@ -18,7 +18,7 @@ export const useStrrApi = () => {
       : resp.registrations
   }
 
-  const getAccountApplications = async <T extends ApiApplicationBaseResp>(
+  const getAccountApplication = async <T extends ApiApplicationBaseResp>(
     id?: string,
     type?: ApplicationType
   ) => {
@@ -28,12 +28,26 @@ export const useStrrApi = () => {
         return undefined
       })
     }
-    const resp = await $strrApi<{ applications: T[] }>('/applications', {
-      query: {
-        registrationType: type
+    // No specific ID given so get the most recent application for the account
+    return await getAccountApplications(1, 1, type).then((resp) => {
+      if (resp.applications?.length) {
+        return resp.applications[0]
       }
+    }).catch((e) => {
+      logFetchError(e, 'Unable to get most recent account application details')
+      return undefined
     })
-    return resp.applications
+  }
+
+  const getAccountApplications = async <T extends ApiApplicationBaseResp>(
+    limit = 50,
+    page = 1,
+    registrationType?: ApplicationType,
+    status?: ApplicationStatus
+  ) => {
+    return await $strrApi<{ applications: T[], total: number }>('/applications', {
+      query: { limit, page, registrationType, status }
+    })
   }
 
   const postApplication = async <T extends { registration: any }, R extends T>(
@@ -77,6 +91,7 @@ export const useStrrApi = () => {
   return {
     deleteApplication,
     getAccountRegistrations,
+    getAccountApplication,
     getAccountApplications,
     getApplicationReceipt,
     getRegistrationCert,

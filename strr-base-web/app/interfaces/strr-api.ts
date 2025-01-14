@@ -101,6 +101,13 @@ export interface ApiApplicationResp extends ApiApplicationBaseResp {
   registration: ApiBaseApplication
 }
 
+export interface ApiApplicationsListResp {
+  applications: ApiApplicationResp[]
+  limit: number
+  page: number
+  total: number
+}
+
 export interface ApiDocument {
   documentType: DocumentUploadType
   fileKey: string

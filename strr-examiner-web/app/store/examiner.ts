@@ -3,19 +3,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const { $strrApi } = useNuxtApp()
 
-  const getAllApplications = async () => {
-    return await getAccountApplications()
-  }
-
-  const getApplication = async (applicationNumber: string): Promise<ApiApplicationResp> => {
-    return (await getAccountApplications(applicationNumber)) as ApiApplicationResp
-  }
-
   // Fetch next Application to examiner when navigating to Examiner tab
-  const getNextApplication = async (): Promise<string> => {
-    const applications = await getAccountApplications(undefined, ApplicationType.HOST) as ApiApplicationBaseResp[]
-    // for now just get the first available Host Application
-    return applications[0].header.applicationNumber
+  const getNextApplication = async (): Promise<string | undefined> => {
+    // TODO: update when requirements are flushed out and backend is updated.
+    const resp = await getAccountApplications(undefined, undefined, ApplicationType.HOST, ApplicationStatus.FULL_REVIEW)
+    return resp.applications[0]?.header.applicationNumber
   }
 
   const approveApplication = async (applicationNumber: string): Promise<void> => {
@@ -47,8 +39,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   return {
-    getAllApplications,
-    getApplication,
     approveApplication,
     rejectApplication,
     getNextApplication,

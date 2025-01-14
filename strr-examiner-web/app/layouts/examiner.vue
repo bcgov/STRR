@@ -39,7 +39,7 @@ async function onChange (index: number) {
 
 </script>
 <template>
-  <div>
+  <div class="app-container">
     <ConnectHeaderWrapper>
       <div class="flex items-center justify-between">
         <ConnectHeaderLogoHomeLink />
@@ -74,7 +74,7 @@ async function onChange (index: number) {
 
     <ConnectSystemBanner />
 
-    <main class="app-inner-container app-body">
+    <main class="app-inner-container app-body bg-white">
       <NuxtErrorBoundary>
         <slot />
         <template #error="{ error }">

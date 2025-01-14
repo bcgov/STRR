@@ -2,18 +2,20 @@
 const { t } = useI18n()
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
-const hostPermitStore = useHostPermitStore()
 const strrModal = useStrrModals()
 const { deleteApplication } = useStrrApi()
+const { limit, page, getApplicationList } = useStrrBasePermitList<HostApplicationResp>(ApplicationType.HOST)
 
 const columns = [
   {
     key: 'name',
-    label: t('label.name')
+    label: t('label.name'),
+    sortable: true
   },
   {
     key: 'address',
-    label: t('label.address')
+    label: t('label.address'),
+    sortable: true
   },
   {
     key: 'number',
@@ -63,15 +65,67 @@ setBreadcrumbs([
   { label: t('page.dashboardList.h1') }
 ])
 
-// can use watch param to handle pagination in future
-const { data: hostPmList, status, refresh } = await useAsyncData(
-  'host-pm-list',
-  () => hostPermitStore.loadHostPmList(),
+const { data: hostPmListResp, status, refresh } = await useAsyncData(
+  'host-pm-list-resp',
+  getApplicationList,
   {
-    watch: [() => accountStore.currentAccount.id],
-    default: () => []
+    watch: [() => accountStore.currentAccount.id, limit, page],
+    default: () => ({ applications: [], total: 0 })
   }
 )
+const mapApplicationsList = () => {
+  if (!hostPmListResp.value?.applications) {
+    return []
+  }
+  return (hostPmListResp.value.applications).map(app => ({
+    name: app.registration.unitAddress?.nickname || t('label.unnamed'),
+    address: app.registration.unitAddress,
+    number: app.header.registrationNumber || app.header.applicationNumber,
+    lastStatusChange: getLastStatusChangeColumn(app.header),
+    daysToExpiry: getDaysToExpiryColumn(app.header),
+    status: app.header.registrationStatus || app.header.hostStatus,
+    applicationNumber: app.header.applicationNumber // always used for view action
+  }))
+}
+
+// Shouldn't use computed here because table sorting updates it which causes issues with vue tracking
+const hostPmList = ref(mapApplicationsList())
+watch(hostPmListResp, () => { hostPmList.value = mapApplicationsList() })
+
+function manualSort (params: { column: string, direction: 'asc' | 'desc' }) {
+  // FUTURE: call api - this function is temporary
+  if (params.column === null) {
+    // resetting sort
+    hostPmList.value = mapApplicationsList()
+  }
+  const stringCompareFn = (a: string | undefined, b: string | undefined) => {
+    return (a || '').toUpperCase().localeCompare((b || '').toUpperCase())
+  }
+  const getAddressString = (address: ApiUnitAddress | undefined) => {
+    return [
+      address?.unitNumber,
+      address?.streetNumber,
+      address?.streetName,
+      address?.city].filter(val => !!val).join() || ''
+  }
+  if (params.column === 'address') {
+    return hostPmList.value.sort((a, b) => stringCompareFn(
+      params.direction === 'asc' ? getAddressString(a.address) : getAddressString(b.address),
+      params.direction === 'asc' ? getAddressString(b.address) : getAddressString(a.address)))
+  }
+  if (params.column === 'daysToExpiry') {
+    return hostPmList.value.sort((a, b) => stringCompareFn(
+      params.direction === 'asc' ? a.daysToExpiry.label : b.daysToExpiry.label,
+      params.direction === 'asc' ? b.daysToExpiry.label : a.daysToExpiry.label
+    ))
+  }
+  return hostPmList.value.sort((a, b) => stringCompareFn(
+    // @ts-expect-error - 'a[params.column]' should always be a string or undefined
+    params.direction === 'asc' ? a[params.column] : b[params.column],
+    // @ts-expect-error - 'b[params.column]' should always be a string or undefined
+    params.direction === 'asc' ? b[params.column] : a[params.column]
+  ))
+}
 
 function isDraft (status: string) {
   return status === 'Draft'
@@ -129,33 +183,48 @@ async function handleItemSelect (row: any) {
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="font-normal">
-              <ConnectI18nHelper translation-path="table.hostPmList.title" :count="hostPmList.length" />
+              <ConnectI18nHelper translation-path="table.hostPmList.title" :count="hostPmListResp?.total || 0" />
             </h2>
             <!-- TODO: filtering post-mvp ? -->
             <!-- <UInput
               placeholder="Find"
             /> -->
-            <USelectMenu
-              v-slot="{ open }"
-              v-model="selectedColumns"
-              :options="columns"
-              multiple
-              :ui="{ trigger: 'flex items-center w-full' }"
-            >
-              <UButton
-                color="white"
-                class="h-[42px] flex-1 justify-between text-gray-700"
-                :aria-label="$t('btn.colsToShow.aria', { count: selectedColumns.length })"
+            <div class="flex gap-3">
+              <UPagination
+                v-if="hostPmListResp.total > limit"
+                v-model="page"
+                :page-count="limit"
+                size="lg"
+                :total="hostPmListResp?.total || 0"
+                :ui="{
+                  base: 'h-[42px]',
+                  default: {
+                    activeButton: { class: 'rounded' }
+                  }
+                }"
+              />
+              <USelectMenu
+                v-slot="{ open }"
+                v-model="selectedColumns"
+                :options="columns"
+                multiple
+                :ui="{ trigger: 'flex items-center w-full' }"
               >
-                <span>{{ $t('btn.colsToShow.label') }}</span>
+                <UButton
+                  color="white"
+                  class="h-[42px] flex-1 justify-between text-gray-700"
+                  :aria-label="$t('btn.colsToShow.aria', { count: selectedColumns.length })"
+                >
+                  <span>{{ $t('btn.colsToShow.label') }}</span>
 
-                <UIcon
-                  name="i-mdi-caret-down"
-                  class="size-5 text-gray-700 transition-transform"
-                  :class="[open && 'rotate-180']"
-                />
-              </UButton>
-            </USelectMenu>
+                  <UIcon
+                    name="i-mdi-caret-down"
+                    class="size-5 text-gray-700 transition-transform"
+                    :class="[open && 'rotate-180']"
+                  />
+                </UButton>
+              </USelectMenu>
+            </div>
           </div>
         </template>
         <UTable
@@ -164,22 +233,35 @@ async function handleItemSelect (row: any) {
           :rows="hostPmList"
           :loading="status === 'pending' || deleting"
           :empty-state="{ icon: '', label: $t('table.hostPmList.emptyText') }"
-          :sort="{ column: 'date', direction: 'desc' }"
+          :sort-button="{ // have to add this because updating ui/default/sortButton/class isn't working
+            icon: 'i-heroicons-arrows-up-down-20-solid',
+            trailing: true,
+            square: true,
+            color: 'black',
+            variant: 'ghost',
+            // @ts-expect-error - class is a valid field (as of nuxt/ui 2.20)
+            class: 'font-bold'
+          }"
+          sort-mode="manual"
           :ui="{
             wrapper: 'relative overflow-x-auto h-[512px]',
             thead: 'sticky top-0 bg-white z-10',
-            // th: {
-            //   padding: 'px-0 py-0'
-            // },
+            th: { padding: 'p-2' },
             td: {
               base: 'whitespace-normal max-w-96 align-top',
-              padding: 'px-4 py-4',
+              padding: 'p-4',
               color: 'text-bcGovColor-midGray',
               font: '',
               size: 'text-sm',
             }
           }"
+          @update:sort="manualSort"
         >
+          <template #actions-header>
+            <div class="text-center">
+              <span>{{ $t('label.actions') }}</span>
+            </div>
+          </template>
           <template #address-data="{ row }">
             <div class="flex flex-col">
               <span>

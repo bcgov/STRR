@@ -3,8 +3,6 @@ import type { ApiHostApplication, HostApplicationResp, HostRegistrationResp } fr
 import { formatHostUnitAddressUI, formatHostUnitDetailsUI } from '~/utils/host-formatting'
 
 export const useHostPermitStore = defineStore('host/permit', () => {
-  const { t } = useI18n()
-  const { getAccountApplications } = useStrrApi()
   const ownerStore = useHostOwnerStore()
   const propertyStore = useHostPropertyStore()
   const propertyReqStore = usePropertyReqStore()
@@ -67,30 +65,6 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     }
   }
 
-  const loadHostPmList = async () => {
-    // TODO: implement pagination
-    // Load the full list of host applications (up to 50 maximum)
-    return await getAccountApplications<HostApplicationResp>(undefined, ApplicationType.HOST)
-      .catch((e) => {
-        logFetchError(e, 'Unable to load account applications')
-        return undefined
-      }).then((response) => {
-        if (response) {
-          return (response as HostApplicationResp[]).map(app => ({
-            name: app.registration.unitAddress?.nickname || t('label.unnamed'),
-            address: app.registration.unitAddress,
-            number: app.header.registrationNumber || app.header.applicationNumber,
-            date: app.header.registrationStartDate || app.header.applicationDateTime,
-            lastStatusChange: getLastStatusChangeColumn(app.header),
-            daysToExpiry: getDaysToExpiryColumn(app.header),
-            status: app.header.registrationStatus || app.header.hostStatus,
-            applicationNumber: app.header.applicationNumber // always used for view action
-          }))
-        }
-        return []
-      })
-  }
-
   const $reset = () => {
     ownerStore.$reset()
     propertyStore.$reset()
@@ -108,7 +82,6 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     downloadApplicationReceipt,
     downloadRegistrationCert,
     loadHostData,
-    loadHostPmList,
     $reset
   }
 })

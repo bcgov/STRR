@@ -4,7 +4,7 @@ import { downloadFile } from '~/utils/download-file'
 export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationBaseResp, B>() => {
   const t = useNuxtApp().$i18n.t // this was casuing an issue when using the composable in route middleware
   const {
-    getAccountApplications,
+    getAccountApplication,
     getAccountRegistrations,
     getApplicationReceipt,
     getRegistrationCert,
@@ -32,17 +32,9 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     (!!application.value && !isApplicationStatus([ApplicationStatus.DRAFT])))
 
   const loadPermitData = async (applicationId?: string, applicationType?: ApplicationType) => {
-    if (applicationId) {
-      // Get specific application
-      application.value = await getAccountApplications<A>(applicationId) as A
-    } else {
-      // Get most recent application
-      const applications = await getAccountApplications<A>(undefined, applicationType) as A[]
-      if (applications.length) {
-        // Set active strata to the most recent application (ordered by api: newest to oldest)
-        application.value = applications[0]
-      }
-    }
+    // Get application
+    application.value = await getAccountApplication<A>(applicationId, applicationType) as A
+
     if (application.value?.header.status === ApplicationStatus.PAYMENT_DUE) {
       // there is a lag in the payment Q, trigger the strr api to grab the most current pay details
       application.value = await updatePaymentDetails<A>(application.value.header.applicationNumber)
