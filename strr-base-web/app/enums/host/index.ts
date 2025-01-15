@@ -1,4 +1,3 @@
-export * from './document-upload-type'
 export * from './owner-role'
 export * from './owner-type'
 export * from './ownership-type'
