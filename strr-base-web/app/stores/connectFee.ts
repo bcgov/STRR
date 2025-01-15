@@ -116,21 +116,42 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
   }
 
   // alternate payment option stuff
+  const PAD_PENDING_STATES = [ConnectPayCfsStatus.PENDING, ConnectPayCfsStatus.PENDING_PAD_ACTIVATION]
   const userPaymentAccount = ref<ConnectPayAccount>({} as ConnectPayAccount)
   const userSelectedPaymentMethod = ref<ConnectPaymentMethod>(ConnectPaymentMethod.DIRECT_PAY)
   const allowAlternatePaymentMethod = ref<boolean>(false)
   const allowedPaymentMethods = ref<{ label: string, value: ConnectPaymentMethod }[]>([])
 
+  watch(userSelectedPaymentMethod, () => {
+    // if pad in confirmation period then set selected payment to CC
+    if (PAD_PENDING_STATES.includes(userPaymentAccount.value?.cfsAccount?.status)) {
+      userSelectedPaymentMethod.value = ConnectPaymentMethod.DIRECT_PAY
+      // show modal for user
+      useStrrModals().openErrorModal(
+        t('modal.padConfirmationPeriod.title'),
+        t('modal.padConfirmationPeriod.content'),
+        false
+      )
+    }
+  })
+
+  const $resetAlternatePayOptions = () => {
+    userPaymentAccount.value = {} as ConnectPayAccount
+    userSelectedPaymentMethod.value = ConnectPaymentMethod.DIRECT_PAY
+    allowAlternatePaymentMethod.value = false
+    allowedPaymentMethods.value = []
+  }
+
   const initAlternatePaymentMethod = async () => {
+    $resetAlternatePayOptions()
     const accountId = useConnectAccountStore().currentAccount.id
     try {
       // get payment account
       const res = await $payApi<ConnectPayAccount>(`/accounts/${accountId}`)
       userPaymentAccount.value = res
-      userSelectedPaymentMethod.value = res.paymentMethod
 
       // add options to allowedPaymentMethods
-      const defaultMethod = userPaymentAccount.value.paymentMethod
+      let defaultMethod = userPaymentAccount.value.paymentMethod
       if (defaultMethod !== undefined) {
         const accountNum = userPaymentAccount.value.cfsAccount?.bankAccountNumber ?? ''
         allowedPaymentMethods.value.push({
@@ -144,8 +165,13 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
             label: t(`ConnectFeeWidget.paymentMethod.${ConnectPaymentMethod.DIRECT_PAY}`),
             value: ConnectPaymentMethod.DIRECT_PAY
           })
+          // if pad in confirmation period then set default payment to CC
+          if (PAD_PENDING_STATES.includes(res.cfsAccount.status)) {
+            defaultMethod = ConnectPaymentMethod.DIRECT_PAY
+          }
         }
       }
+      userSelectedPaymentMethod.value = defaultMethod
 
       // only set allowed flag to true if previous steps didnt cause an error
       allowAlternatePaymentMethod.value = true

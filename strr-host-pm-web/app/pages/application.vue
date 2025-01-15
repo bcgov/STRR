@@ -27,6 +27,7 @@ const loading = ref(false)
 const {
   addReplaceFee,
   getFee,
+  initAlternatePaymentMethod,
   removeFee,
   setPlaceholderFilingTypeCode,
   setPlaceholderServiceFee
@@ -40,6 +41,7 @@ const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 
 onMounted(async () => {
   loading.value = true
+  await initAlternatePaymentMethod()
   applicationReset()
   if (applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
@@ -281,7 +283,14 @@ useHead({
 
 definePageMeta({
   layout: 'connect-form',
-  middleware: ['auth', 'require-account']
+  middleware: ['auth', 'require-account'],
+  onAccountChange: (_: Account, newAccount: Account) => {
+    useStrrModals().openConfirmSwitchAccountModal(
+      newAccount.id,
+      useLocalePath()('/dashboard')
+    )
+    return false
+  }
 })
 
 setBreadcrumbs([

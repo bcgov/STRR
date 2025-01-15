@@ -311,6 +311,10 @@ export default {
         content: 'Any personal information required is collected to support the administration and enforcement of the {straAct}, under the authority of section 33(1) of that Act. Any questions about the collection of any information can be directed to the Executive Director of the Short-Term Rental Branch, at {email}.'
       }
     },
+    padConfirmationPeriod: {
+      title: 'PAD Account in Confirmation Period',
+      content: 'This account will not be able to perform any PAD transactions until the mandatory (3) day confirmation period has ended. Until then you may continue to pay using credit card.'
+    },
     error: {
       applicationSubmit: {
         badRequest: {

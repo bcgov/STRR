@@ -27,13 +27,15 @@ const loading = ref(false)
 const {
   addReplaceFee,
   getFee,
-  setPlaceholderFilingTypeCode
+  setPlaceholderFilingTypeCode,
+  initAlternatePaymentMethod
 } = useConnectFeeStore()
 
 const strataFee = ref<ConnectFeeItem | undefined>(undefined)
 
 onMounted(async () => {
   loading.value = true
+  await initAlternatePaymentMethod()
   applicationReset()
   if (applicationId.value) {
     await permitStore.loadStrata(applicationId.value, true)
@@ -196,7 +198,14 @@ useHead({
 
 definePageMeta({
   layout: 'connect-form',
-  middleware: ['auth', 'require-account']
+  middleware: ['auth', 'require-account'],
+  onAccountChange: (_: Account, newAccount: Account) => {
+    useStrrModals().openConfirmSwitchAccountModal(
+      newAccount.id,
+      useLocalePath()('/strata-hotel/dashboard')
+    )
+    return false
+  }
 })
 
 setBreadcrumbs([
