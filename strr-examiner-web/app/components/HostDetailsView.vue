@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { isEmpty } from 'lodash'
+import { ConnectPageSection, ConnectTransitionCollapse, HostDetailsOwners } from '#components'
 import { useExaminerStore } from '~/store/examiner'
+import type { HostDetailsDisplayItem } from '~/types/host-details-display-item'
 
 const props = defineProps<{ application: HostApplicationResp }>()
 
@@ -40,11 +42,16 @@ const getPrExemptReason = (): string =>
 const getOwnershipType = (): string =>
   registration?.unitDetails.ownershipType === OwnershipType.RENT ? `${t('ownershipType.RENT')}.` : ''
 
+const showExpansion = ref<boolean>(false)
+const displayItem = ref<HostDetailsDisplayItem>(undefined)
+const displayDetailsItem = (item: HostDetailsDisplayItem) => {
+  displayItem.value = item
+  showExpansion.value = true
+}
 </script>
-
 <template>
   <div>
-    <div class="text-bcGovColor-midGray grid grid-cols-4 gap-x-5 divide-x text-sm">
+    <div class="grid grid-cols-4 gap-x-5 divide-x text-sm text-bcGovColor-midGray">
       <div class="space-y-2">
         <strong>{{ t('strr.label.rentalUnit').toUpperCase() }}</strong>
         <div class="w-[150px]">
@@ -63,9 +70,14 @@ const getOwnershipType = (): string =>
           <UIcon name="i-mdi-map-marker-outline" />
           {{ displayFullAddress(registration?.primaryContact.mailingAddress) }}
         </div>
-        <div>
-          <UIcon name="i-mdi-account" />
-          {{ displayContactFullName(registration?.primaryContact) }}
+        <div class="flex items-center gap-1">
+          <UIcon name="i-mdi-account" class="size-5 shrink-0 text-gray-700" />
+          <UButton
+            :label="displayContactFullName(registration?.primaryContact)"
+            :padded="false"
+            variant="link"
+            @click="displayDetailsItem('primaryContact')"
+          />
         </div>
         <div>
           <UIcon name="i-mdi-at" />
@@ -102,95 +114,95 @@ const getOwnershipType = (): string =>
       </div>
 
       <div class="space-y-2 pl-5">
-        <div v-if="registration?.secondaryContact">
-          <UIcon name="i-mdi-account-multiple-outline" />
-          {{ registration?.secondaryContact?.contactType === OwnerType.INDIVIDUAL
-            ? displayContactFullName(registration?.secondaryContact) :
-              registration?.secondaryContact?.businessLegalName }}
+        <div v-if="registration?.secondaryContact" class="flex items-center gap-1">
+          <UIcon name="i-mdi-account-multiple-outline" class="size-5 shrink-0 text-gray-700" />
+          <UButton
+            :label="registration?.secondaryContact?.contactType === OwnerType.INDIVIDUAL
+              ? displayContactFullName(registration?.secondaryContact)
+              : registration?.secondaryContact?.businessLegalName"
+            :padded="false"
+            variant="link"
+            @click="displayDetailsItem('secondaryContact')"
+          />
         </div>
 
-        <div>
-          <UIcon name="i-mdi-at" />
-          {{ registration?.propertyManager?.propertyManagerType === OwnerType.INDIVIDUAL
-            ? displayContactFullName(registration?.propertyManager.contact) :
-              registration?.propertyManager?.business?.legalName }}
+        <div v-if="registration?.propertyManager?.propertyManagerType" class="flex items-center gap-1">
+          <UIcon name="i-mdi-at" class="size-5 shrink-0 text-gray-700" />
+          <UButton
+            :label="registration?.propertyManager?.propertyManagerType === OwnerType.INDIVIDUAL
+              ? displayContactFullName(registration?.propertyManager.contact)
+              : registration?.propertyManager?.business?.legalName"
+            :padded="false"
+            variant="link"
+            @click="displayDetailsItem('propertyManager')"
+          />
         </div>
       </div>
     </div>
 
-    <div class="mt-6 divide-y">
-      <ApplicationDetailsSection v-if="strRequirements?.isStrProhibited" :label="t('strr.label.strProhibited')">
-        {{ t('strr.label.strProhibitedAction') }}
-      </ApplicationDetailsSection>
+    <ConnectTransitionCollapse>
+      <ConnectPageSection v-if="showExpansion" class="my-10">
+        <HostDetailsOwners
+          :application="props.application.registration"
+          :display="displayItem"
+          @close="showExpansion = false"
+        />
+      </ConnectPageSection>
+    </ConnectTransitionCollapse>
 
-      <ApplicationDetailsSection
-        v-if="strRequirements?.isBusinessLicenceRequired"
-        :label="t('strr.label.businessLicence')"
-      >
-        <div class="flex gap-x-8">
-          <UButton
-            v-if="businessLicenceDoc"
-            class="mr-4 gap-x-1 p-0"
-            variant="link"
-            icon="mdi-file-document-outline"
-            @click="openDocInNewTab(businessLicenceDoc)"
-          >
-            {{ t(`documentLabels.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`) }}
-          </UButton>
-          <span v-if="unitDetails.businessLicense">
-            {{ t('strr.label.businessLicenceNumber') }} {{ unitDetails.businessLicense }}
-          </span>
-          <span v-if="unitDetails.businessLicenseExpiryDate">
-            {{ t('strr.label.businessLicenceExpiryDate') }}
-            {{ dateToString(unitDetails.businessLicenseExpiryDate, 'MMM dd, yyyy') }}
-          </span>
-        </div>
-      </ApplicationDetailsSection>
+    <ConnectPageSection>
+      <div class="divide-y px-10 py-6">
+        <ApplicationDetailsSection v-if="strRequirements?.isStrProhibited" :label="t('strr.label.strProhibited')">
+          {{ t('strr.label.strProhibitedAction') }}
+        </ApplicationDetailsSection>
 
-      <ApplicationDetailsSection :label="t('strr.label.prRequirement')">
-        <div v-if="!isEmpty(strRequirements)">
-          {{ getPrRequired() }}
-          {{ getPrExemptReason() }}
-          {{ getOwnershipType() }}
-        </div>
+        <ApplicationDetailsSection
+          v-if="strRequirements?.isBusinessLicenceRequired"
+          :label="t('strr.label.businessLicence')"
+        >
+          <div class="flex gap-x-8">
+            <UButton
+              v-if="businessLicenceDoc"
+              class="mr-4 gap-x-1 p-0"
+              variant="link"
+              icon="mdi-file-document-outline"
+              @click="openDocInNewTab(businessLicenceDoc)"
+            >
+              {{ t(`documentLabels.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`) }}
+            </UButton>
+            <span v-if="unitDetails.businessLicense">
+              {{ t('strr.label.businessLicenceNumber') }} {{ unitDetails.businessLicense }}
+            </span>
+            <span v-if="unitDetails.businessLicenseExpiryDate">
+              {{ t('strr.label.businessLicenceExpiryDate') }}
+              {{ dateToString(unitDetails.businessLicenseExpiryDate, 'MMM dd, yyyy') }}
+            </span>
+          </div>
+        </ApplicationDetailsSection>
 
-        <div v-if="!isEmpty(registration.documents)" class="mt-2">
-          <UButton
-            v-for="document in
-              registration.documents.filter(doc => doc.documentType !== DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)"
-            :key="document.fileKey"
-            class="mr-4 gap-x-1 p-0"
-            variant="link"
-            icon="mdi-file-document-outline"
-            @click="openDocInNewTab(document)"
-          >
-            {{ t(`documentLabels.${document.documentType}`) }}
-          </UButton>
-        </div>
-      </ApplicationDetailsSection>
+        <ApplicationDetailsSection :label="t('strr.label.prRequirement')">
+          <div v-if="!isEmpty(strRequirements)">
+            {{ getPrRequired() }}
+            {{ getPrExemptReason() }}
+            {{ getOwnershipType() }}
+          </div>
 
-      <ApplicationDetailsSection label="" hide-checkbox class="pt-8">
-        <div class="flex justify-end gap-x-2">
-          <UButton
-            icon="i-mdi-close"
-            :label="t('btn.decline')"
-            color="red"
-            variant="outline"
-            size="lg"
-            @click="emit('rejectApplication')"
-          />
-          <UButton
-            icon="i-mdi-check"
-            :label="t('btn.approve')"
-            color="green"
-            variant="outline"
-            size="lg"
-            @click="emit('approveApplication')"
-          />
-        </div>
-      </ApplicationDetailsSection>
-    </div>
+          <div v-if="!isEmpty(registration.documents)" class="mt-2">
+            <UButton
+              v-for="document in registration.documents.filter(
+                doc => doc.documentType !== DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
+              )"
+              :key="document.fileKey"
+              class="mr-4 gap-x-1 p-0"
+              variant="link"
+              icon="mdi-file-document-outline"
+              @click="openDocInNewTab(document)"
+            >
+              {{ t(`documentLabels.${document.documentType}`) }}
+            </UButton>
+          </div>
+        </ApplicationDetailsSection>
+      </div>
+    </ConnectPageSection>
   </div>
 </template>
-
-<style scoped></style>

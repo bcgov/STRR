@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { RoutesE } from '~/enums/routes'
 import { useExaminerStore } from '~/store/examiner'
 
 const { isAuthenticated } = useKeycloak()
@@ -74,7 +73,7 @@ async function onChange (index: number) {
 
     <ConnectSystemBanner />
 
-    <main class="app-inner-container app-body bg-white">
+    <main class="app-inner-container app-body">
       <NuxtErrorBoundary>
         <slot />
         <template #error="{ error }">
@@ -84,6 +83,7 @@ async function onChange (index: number) {
         </template>
       </NuxtErrorBoundary>
     </main>
+    <ConnectButtonControl v-if="$route.path.includes(RoutesE.EXAMINE)" />
     <ConnectFooter />
   </div>
 </template>

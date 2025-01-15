@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import PlatformDetailsView from '~/components/PlatformDetailsView.vue'
 import StrataHotelDetailsView from '~/components/StrataHotelDetailsView.vue'
-import type { ApiHostApplication } from '~/interfaces/host-i'
 import type { ApiBasePlatformRegistration } from '~/interfaces/platform-i'
 import type { ApiBaseStrataApplication } from '~/interfaces/strata-i'
 import { useExaminerStore } from '~/store/examiner'
@@ -11,6 +10,7 @@ const route = useRoute()
 const { getAccountApplication } = useStrrApi()
 const { loading } = storeToRefs(useConnectDetailsHeaderStore())
 const { approveApplication, rejectApplication } = useExaminerStore()
+const { setButtonControl, handleButtonLoading } = useButtonControl() // TODO: set button loading states
 
 useHead({
   title: t('page.dashboardList.title')
@@ -70,6 +70,27 @@ const registration = computed(
     undefined => application.value?.registration
 )
 
+watch(application, () => {
+  setButtonControl({
+    leftButtons: [],
+    rightButtons: [
+      {
+        action: rejectApplicationHandler,
+        label: t('btn.decline'),
+        variant: 'outline',
+        color: 'red',
+        icon: 'i-mdi-close'
+      },
+      {
+        action: approveApplicationHandler,
+        label: t('btn.approve'),
+        variant: 'outline',
+        color: 'green',
+        icon: 'i-mdi-check'
+      }
+    ]
+  })
+}, { immediate: true, deep: true })
 </script>
 
 <template>

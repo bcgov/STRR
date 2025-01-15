@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { RoutesE } from '~/enums/routes'
-import type { HostApplicationResp } from '~/interfaces/host-i'
 import type { ApiBasePlatformApplication, PlatformApplicationResp } from '~/interfaces/platform-i'
 import type { StrataApplicationResp } from '~/interfaces/strata-i'
 import { displayFullUnitAddress } from '~/utils/format-helper'
