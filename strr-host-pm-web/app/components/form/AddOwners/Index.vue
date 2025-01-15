@@ -99,11 +99,6 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
       />
     </div>
     <ConnectTransitionFade>
-      <SummaryOwners
-        v-if="!hostOwners.length && addingNewType === undefined"
-        :editable="false"
-        :disable-actions="true"
-      />
       <FormAddOwnersInput
         v-if="addingNewType"
         :set-owner="activeOwner"
@@ -111,6 +106,11 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
         :is-complete="isComplete"
         @cancel="addingNewType = undefined, activeOwner = undefined"
         @done="contactStore.addHostOwner($event), addingNewType = undefined, activeOwner = undefined"
+      />
+      <SummaryOwners
+        v-else-if="!hostOwners.length"
+        :editable="false"
+        :disable-actions="true"
       />
     </ConnectTransitionFade>
     <SummaryOwners v-if="hostOwners.length" editable :disable-actions="addingNewType !== undefined" />
