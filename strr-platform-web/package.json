@@ -2,7 +2,7 @@
   "name": "strr-platform-web",
   "private": true,
   "type": "module",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",

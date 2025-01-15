@@ -17,8 +17,7 @@ declare module 'nuxt/schema' {
         itemLabelTooltip: Record<string, { i18nkey: string, hrefRtcKey?: keyof PublicRuntimeConfig }> // typeCode
       },
       sbcWebMsg: {
-        enable: boolean,
-        allowedRoutes: string[] | undefined
+        enable: boolean
       }
     }
   }
@@ -43,8 +42,7 @@ declare module 'nuxt/schema' {
         itemLabelTooltip: Record<string, { i18nkey: string, hrefRtcKey?: keyof PublicRuntimeConfig }> // typeCode
       },
       sbcWebMsg: {
-        enable: boolean,
-        allowedRoutes: string[] | undefined
+        enable: boolean
       }
     }
   }

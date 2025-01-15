@@ -2,7 +2,7 @@
   "name": "strr-strata-web",
   "private": true,
   "type": "module",
-  "version": "0.0.41",
+  "version": "0.0.42",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",

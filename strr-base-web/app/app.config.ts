@@ -22,8 +22,7 @@ export default defineAppConfig({
       }
     },
     sbcWebMsg: {
-      enable: false,
-      allowedRoutes: undefined
+      enable: false
     }
   },
   ui: {

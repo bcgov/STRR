@@ -57,8 +57,7 @@ export default defineAppConfig({
       })
     },
     sbcWebMsg: {
-      enable: true,
-      allowedRoutes: ['application', 'dashboard']
+      enable: true
     }
   },
   ui: {}
