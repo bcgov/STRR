@@ -99,6 +99,11 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
       />
     </div>
     <ConnectTransitionFade>
+      <SummaryOwners
+        v-if="!hostOwners.length && addingNewType === undefined"
+        :editable="false"
+        :disable-actions="true"
+      />
       <FormAddOwnersInput
         v-if="addingNewType"
         :set-owner="activeOwner"

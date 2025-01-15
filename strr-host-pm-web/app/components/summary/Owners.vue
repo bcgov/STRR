@@ -6,8 +6,8 @@ const ownerStore = useHostOwnerStore()
 const { activeOwner, activeOwnerEditIndex, hostOwners } = storeToRefs(ownerStore)
 
 const columns = [
-  { key: 'name', label: t('label.name') },
-  { key: 'details', label: t('label.details') },
+  { key: 'name', label: t('label.individualOrBusiness') },
+  { key: 'details', label: t('label.contactDetails') },
   { key: 'additionalInfo', label: t('label.additionalInfo') },
   { key: 'role', label: t('label.role') },
   ...(props.editable ? [{ key: 'action' }] : [])
@@ -64,6 +64,10 @@ const getPhoneNumber = (phone: ConnectPhone) => {
     :columns="columns"
     :expand-button="{ class: 'hidden' }"
     :ui="{ td: { padding: 'first:p-0' } }"
+    :empty-state="{
+      label: $t('text.noIndividualsOrBusinesses'),
+      icon: ''
+    }"
   >
     <template #name-data="{ row }: { row: HostOwner }">
       <ConnectInfoWithIcon :icon="getNameIcon(row)">

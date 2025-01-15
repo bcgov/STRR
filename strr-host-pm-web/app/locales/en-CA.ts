@@ -91,7 +91,7 @@ export default {
       },
       info: {
         0: 'Tell us about the short-term rental unit. If you have multiple short-term rental units, you must submit a separate registration for each one. However, if you rent multiple rooms at the same address, you can register them together.',
-        1: 'Add all the individuals and businesses who will have a role in your short-term rental registration. The person completing the form must be an individual.',
+        1: 'List all of the individuals and businesses who have a role in your short-term rental registration. The person completing the form must be an individual.',
         2: '',
         3: 'Review and confirm all of the information you provided as shown below.'
       }
@@ -168,7 +168,7 @@ export default {
       completingParty: 'Person completing form'
     },
     text: {
-      applicationMustInclude: 'Your registration must include the following:',
+      applicationMustInclude: 'You must provide the names and details of the following individuals and / or businesses:',
       businessContactIndividual: 'Enter the information for the individual to be contacted at this business.',
       comingSoon: 'Short-Term Rental Registry will be available on December 15, 2024',
       completingPartyInfo: 'Select this option if you are entering information for yourself.',
@@ -295,7 +295,9 @@ export default {
     lookupResidentialAddress: 'Look up the Residential Address',
     enterAddressManually: 'Enter the residential address manually',
     unnamed: 'Unnamed',
-    completingParty: 'Person completing form'
+    completingParty: 'Person completing form',
+    individualOrBusiness: 'Individual or Business',
+    contactDetails: 'Contact Details'
   },
   link: {
     hostAccomodationsAct: 'Short-Term Rental Accommodations Act',
@@ -358,7 +360,8 @@ export default {
     unitAddressIntroNote: 'Note: the address cannot be a Mailing Address (e.g., PO Box, etc.).',
     unitAddressUnitNumberInfo: 'Unit Number is required if the short-term rental unit has a Unit Number. Enter a Site Name if the address does not have a Street Number and Name.',
     noDocsUploaded: 'No supporting documentation uploaded.',
-    bceidSubtext: 'Requires an existing BCeID login account'
+    bceidSubtext: 'Requires an existing BCeID login account',
+    noIndividualsOrBusinesses: 'You don’t have any individuals or businesses listed yet. Select “Add an individual” or “Add a business” above.'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
