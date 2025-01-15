@@ -2,6 +2,7 @@
 import type { Form } from '#ui/types'
 import { z } from 'zod'
 
+const rtc = useRuntimeConfig().public
 const strataModal = useStrataModals()
 const { addNewEmptyBuilding, removeBuildingAtIndex, strataDetailsSchema } = useStrrStrataDetailsStore()
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
@@ -228,10 +229,24 @@ onMounted(async () => {
 
                 <template #label>
                   <i18n-t keypath="text.addAllReqDocs" scope="global">
-                    <template #link>
+                    <template #reqDocsLink>
+                      <UButton
+                        :label="$t('link.reqDocs')"
+                        :to="rtc.requiredDocsUrl"
+                        :padded="false"
+                        variant="link"
+                        target="_blank"
+                        class="underline"
+                        :ui="{
+                          icon: { size: { sm: 'h-4 w-4' } },
+                          gap: { sm: 'gap-x-1.5' }
+                        }"
+                      />
+                    </template>
+                    <template #prReqLink>
                       <UButton
                         :label="$t('link.doesPrApply')"
-                        :to="useRuntimeConfig().public.doesPrApplyUrl"
+                        :to="rtc.doesPrApplyUrl"
                         :padded="false"
                         variant="link"
                         target="_blank"
