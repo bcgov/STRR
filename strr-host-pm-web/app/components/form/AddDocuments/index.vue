@@ -77,21 +77,22 @@ onMounted(async () => {
         v-if="docStore.requiredDocs.length > 0 || reqStore.overrideApplicationWarning"
         class="flex flex-col gap-10"
       >
-        <ConnectChecklistValidated
-          v-if="!reqStore.overrideApplicationWarning"
-          data-testid="required-docs-checklist"
-          :is-complete="isComplete"
-          :title="$t('text.followingDocsRequired')"
-          :items="docStore.requiredDocs"
-        />
-        <ConnectChecklistBasic
-          v-else
-          data-testid="potential-docs-checklist"
-          :title="$t('text.followingDocsMayBeRequired')"
-          :items="docStore.potentialRequiredDocs"
-        />
-
         <ConnectPageSection :aria-label="$t('text.uploadReqDocs')">
+          <div class="px-4 pt-10 md:px-10">
+            <ConnectChecklistValidated
+              v-if="!reqStore.overrideApplicationWarning"
+              data-testid="required-docs-checklist"
+              :is-complete="isComplete"
+              :title="$t('text.followingDocsRequired')"
+              :items="docStore.requiredDocs"
+            />
+            <ConnectChecklistBasic
+              v-else
+              data-testid="potential-docs-checklist"
+              :title="$t('text.followingDocsMayBeRequired')"
+              :items="docStore.potentialRequiredDocs"
+            />
+          </div>
           <UForm
             ref="docFormRef"
             :state="docStore.requiredDocs"
@@ -168,6 +169,9 @@ onMounted(async () => {
           :state="propStore.blInfo"
         >
           <div class="space-y-10 py-10">
+            <p class="px-4 md:px-10">
+              {{ $t('text.ifYouHaveBl') }}
+            </p>
             <ConnectFormSection
               :title="$t('label.localGovBL')"
               :error="isComplete && hasFormErrors(blFormRef, ['businessLicense', 'businessLicenseExpiryDate'])"

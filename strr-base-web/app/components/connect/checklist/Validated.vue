@@ -39,12 +39,12 @@ const checklistItemId = `-connect-requirement-checklist-item-${listId}`
         <UIcon
           v-if="item.isValid"
           :name="item.validIcon || 'i-mdi-check'"
-          :class="item.validIconClass || 'size-5 text-green-600'"
+          :class="item.validIconClass || 'size-5 text-green-600 shrink-0 self-start'"
         />
         <UIcon
           v-else-if="!item.isValid && isComplete"
           :name="item.invalidIcon || 'i-mdi-close'"
-          :class="item.invalidIconClass || 'mt-[2px] size-5 text-red-600'"
+          :class="item.invalidIconClass || 'mt-[2px] size-5 text-red-600 shrink-0 self-start'"
         />
         <span aria-hidden="true">{{ item.label }}</span>
       </li>

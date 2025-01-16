@@ -35,13 +35,13 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
     label: t('strr.text.includeCohost'),
     isValid: hasCoHost.value,
     invalidIcon: 'i-mdi-information-outline',
-    invalidIconClass: 'mt-[2px] size-5 text-blue-500'
+    invalidIconClass: 'mt-[2px] size-5 text-blue-500 shrink-0 self-start'
   },
   {
     label: t('strr.text.includePropertyManager'),
     isValid: hasPropertyManager.value,
     invalidIcon: 'i-mdi-information-outline',
-    invalidIconClass: 'mt-[2px] size-5 text-blue-500'
+    invalidIconClass: 'mt-[2px] size-5 text-blue-500 shrink-0 self-start'
   }
 ])
 

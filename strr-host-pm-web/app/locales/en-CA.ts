@@ -139,7 +139,7 @@ export default {
       contactIndName: "Contact Individual's Name",
       individualsBusinesses: 'Individuals and Businesses',
       listingLinkOpt: 'Listing Link (Optional)',
-      numberOfRooms: 'Number of Rooms for Rent',
+      numberOfRooms: 'Number of Bedrooms for Rent',
       ownershipType: 'Ownership Type',
       nicknameOpt: 'Nickname (Optional)',
       parcelIdentifier: 'Parcel Identifier',
@@ -361,7 +361,8 @@ export default {
     unitAddressUnitNumberInfo: 'Unit Number is required if the short-term rental unit has a Unit Number. Enter a Site Name if the address does not have a Street Number and Name.',
     noDocsUploaded: 'No supporting documentation uploaded.',
     bceidSubtext: 'Requires an existing BCeID login account',
-    noIndividualsOrBusinesses: 'You don’t have any individuals or businesses listed yet. Select “Add an individual” or “Add a business” above.'
+    noIndividualsOrBusinesses: 'You don’t have any individuals or businesses listed yet. Select “Add an individual” or “Add a business” above.',
+    ifYouHaveBl: 'If you have a business licence for your short-term rental, add your information here.'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
