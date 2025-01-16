@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { isEmpty } from 'lodash'
 import { ConnectPageSection, ConnectTransitionCollapse, HostDetailsOwners } from '#components'
-import { useExaminerStore } from '~/store/examiner'
+import { useExaminerStore } from '~/stores/examiner'
 import type { HostDetailsDisplayItem } from '~/types/host-details-display-item'
 
 const props = defineProps<{ application: HostApplicationResp }>()
@@ -50,8 +50,8 @@ const displayDetailsItem = (item: HostDetailsDisplayItem) => {
 }
 </script>
 <template>
-  <div>
-    <div class="text-bcGovColor-midGray mb-6 grid grid-cols-4 gap-x-5 divide-x bg-white p-4 text-sm">
+  <div class="app-inner-container">
+    <div class="grid grid-cols-4 gap-x-5 divide-x py-4 text-sm text-bcGovColor-midGray">
       <div class="space-y-2">
         <strong>{{ t('strr.label.rentalUnit').toUpperCase() }}</strong>
         <div class="w-[150px]">
@@ -150,7 +150,7 @@ const displayDetailsItem = (item: HostDetailsDisplayItem) => {
       </ConnectPageSection>
     </ConnectTransitionCollapse>
 
-    <ConnectPageSection>
+    <!-- <ConnectPageSection>
       <div class="divide-y px-10 py-6">
         <ApplicationDetailsSection v-if="strRequirements?.isStrProhibited" :label="t('strr.label.strProhibited')">
           {{ t('strr.label.strProhibitedAction') }}
@@ -203,6 +203,6 @@ const displayDetailsItem = (item: HostDetailsDisplayItem) => {
           </div>
         </ApplicationDetailsSection>
       </div>
-    </ConnectPageSection>
+    </ConnectPageSection> -->
   </div>
 </template>

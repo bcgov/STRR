@@ -1,9 +1,7 @@
 <script setup lang="ts">
-
 const headerOptions = useAppConfig().connect.core.header.options
 provide(headerOptionsSymbol, headerOptions)
 const { isAuthenticated } = useKeycloak()
-
 </script>
 <template>
   <div class="app-container">
@@ -33,7 +31,6 @@ const { isAuthenticated } = useKeycloak()
         </template>
       </NuxtErrorBoundary>
     </main>
-    <ConnectButtonControl v-if="$route.path.includes(RoutesE.EXAMINE)" />
     <ConnectFooter />
   </div>
 </template>

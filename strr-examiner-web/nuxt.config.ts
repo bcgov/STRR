@@ -44,13 +44,14 @@ export default defineNuxtConfig({
   ],
 
   imports: {
-    dirs: ['stores', 'composables', 'enums', 'interfaces', 'utils']
+    dirs: ['stores', 'composables', 'enums', 'interfaces', 'utils', 'types']
   },
 
   routeRules: {
     '/': { redirect: '/en-CA/dashboard' },
     '/en-CA': { redirect: '/en-CA/dashboard' },
-    '/fr-CA': { redirect: '/fr-CA/dashboard' }
+    '/fr-CA**': { redirect: '/en-CA/dashboard' },
+    '/en-CA/examine': { redirect: '/en-CA/examine/startNew' }
   },
 
   runtimeConfig: {

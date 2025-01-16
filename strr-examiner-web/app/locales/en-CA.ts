@@ -422,5 +422,10 @@ export default {
     STRATA_HOTEL: 'PR Exempt - Strata Hotel.',
     FARM_LAND: 'PR Exempt - Class 9 Farmland.',
     FRACTIONAL_OWNERSHIP: 'PR Exempt - Fractional Ownership.'
+  },
+  applicationType: {
+    HOST: 'Host',
+    PLATFORM: 'Platform',
+    STRATA_HOTEL: 'Strata Hotel'
   }
 }

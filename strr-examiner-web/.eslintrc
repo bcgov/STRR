@@ -25,7 +25,8 @@
         "connect-date-picker__err",
         "prose-bcGov",
         "list-alpha",
-        "list-upperAlpha"
+        "list-upperAlpha",
+        "max-w-bcGovInput"
       ]
     }],
     "no-use-before-define": "off"

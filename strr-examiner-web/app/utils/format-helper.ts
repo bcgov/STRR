@@ -9,7 +9,11 @@ export function displayContactFullName (contact: {
   firstName?: string
   middleName?: string
   lastName?: string
-}): string | undefined {
+} | undefined): string | undefined {
+  if (!contact) {
+    return undefined
+  }
+
   const { firstName, middleName, lastName } = contact
   if (!firstName && !middleName && !lastName) {
     return undefined

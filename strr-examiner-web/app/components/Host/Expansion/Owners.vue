@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HostDetailsDisplayItem } from '~/types/host-details-display-item'
 const props = defineProps<{
-  application: ApiHostApplication
+  application: HostApplicationResp
   display: HostDetailsDisplayItem
 }>()
 
@@ -48,15 +48,15 @@ const getPhoneNumber = (phone: ConnectPhone) => {
 const hostOwners = computed<HostOwner[]>(() => {
   if (props.display === 'primaryContact') {
     return [formatOwnerHostUI(
-      props.application.primaryContact,
-      !props.application.propertyManager?.initiatedByPropertyManager
+      props.application.registration.primaryContact!, // there will always be a primary contact
+      !props.application.registration.propertyManager?.initiatedByPropertyManager
     )]
   }
   if (props.display === 'secondaryContact') {
-    return [formatOwnerHostUI(props.application.secondaryContact!, false, true)]
+    return [formatOwnerHostUI(props.application.registration.secondaryContact!, false, true)]
   }
   if (props.display === 'propertyManager') {
-    return [formatOwnerPropertyManagerUI(props.application.propertyManager!)]
+    return [formatOwnerPropertyManagerUI(props.application.registration.propertyManager!)]
   }
   return []
 })

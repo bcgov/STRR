@@ -1,15 +1,6 @@
 <script setup lang="ts">
-
-const props = defineProps<{ application: ApiApplicationBaseResp }>()
-
-const { t } = useI18n()
-const { header, registration } = props.application
-
-const displayApplicationType = {
-  [ApplicationType.HOST]: t('strr.label.host'),
-  [ApplicationType.PLATFORM]: t('strr.label.platform'),
-  [ApplicationType.STRATA_HOTEL]: t('strr.label.strataHotel')
-}
+import { type HousApplicationResponse } from '~/types/application-response'
+defineProps<{ application: HousApplicationResponse }>()
 
 const getBadgeColor = (status: ApplicationStatus): string => {
   switch (status) {
@@ -23,38 +14,30 @@ const getBadgeColor = (status: ApplicationStatus): string => {
       return 'primary'
   }
 }
-
-const getApplicationName = (): string => {
-  switch (registration.registrationType) {
-    case ApplicationType.STRATA_HOTEL:
-      return registration.businessDetails.legalName
-    case ApplicationType.HOST:
-      return registration.unitAddress?.nickname || ''
-    case ApplicationType.PLATFORM:
-      return registration.businessDetails?.legalName || ''
-    default:
-      return ''
-  }
-}
-
 </script>
-
 <template>
-  <div class="border-b bg-white px-4 py-6">
-    <div class="mb-2 text-2xl">
-      <strong>
-        {{ header?.applicationNumber }} |
-      </strong>
-      {{ getApplicationName() }}
+  <div class="border-b bg-white py-6">
+    <div v-if="application.registration.registrationType === ApplicationType.HOST" class="app-inner-container">
+      <div class="mb-2 text-2xl">
+        <strong>
+          {{ application.header?.applicationNumber }} |
+        </strong>
+        {{ application.registration.unitAddress?.nickname }}
+      </div>
+      <div class="text-sm">
+        <UBadge
+          class="mr-3 font-bold"
+          :label="application.header.examinerStatus"
+          :color="getBadgeColor(application.header.status)"
+        />
+        <strong>Type:</strong>
+        {{ $t(`applicationType.${application.registration?.registrationType}`) }} |
+        <strong>Submitted:</strong> {{ dateToString(application.header.applicationDateTime, 'y-MM-dd t') }}
+        ({{ dayCountdown(application.header.applicationDateTime.toString(), true) }} days ago)
+      </div>
     </div>
-    <div class="text-sm">
-      <UBadge class="mr-3 font-bold" :label="header.examinerStatus" :color="getBadgeColor(header.status)" />
-      <strong>Type:</strong>
-      {{ displayApplicationType[registration?.registrationType as keyof typeof displayApplicationType] }} |
-      <strong>Submitted:</strong> {{ dateToString(header.applicationDateTime, 'y-MM-dd t') }}
-      ({{ dayCountdown(header.applicationDateTime.toString(), true) }} days ago)
+    <div v-else>
+      Complete Strata/Platform Header
     </div>
   </div>
 </template>
-
-<style scoped></style>
