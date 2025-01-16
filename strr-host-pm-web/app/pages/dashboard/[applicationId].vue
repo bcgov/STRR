@@ -84,8 +84,6 @@ definePageMeta({
   middleware: ['auth', 'require-account'],
   onAccountChange: async () => {
     const { $router, $i18n } = useNuxtApp()
-    useStrrModals().openErrorModal('test', 'test', false)
-
     await $router.push(`/${$i18n.locale.value}/dashboard`)
     return true
   }
