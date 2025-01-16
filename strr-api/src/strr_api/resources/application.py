@@ -37,6 +37,7 @@ STRR Application Resource.
 """
 
 import logging
+from datetime import datetime, timezone
 from http import HTTPStatus
 from io import BytesIO
 from typing import Optional
@@ -125,6 +126,8 @@ def create_application(application_number: Optional[str] = None):
                     message=ErrorMessage.APPLICATION_NOT_MODIFIABLE.value,
                     http_status=HTTPStatus.BAD_REQUEST,
                 )
+            # update application date
+            application.application_date = datetime.now(timezone.utc)
 
         # Validate only the final submissions
         if not is_draft:
