@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { RoutesE } from '~/enums/routes'
-import { useExaminerStore } from '~/store/examiner'
 
 const { isAuthenticated } = useKeycloak()
 

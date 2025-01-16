@@ -50,8 +50,8 @@ export default defineNuxtConfig({
   routeRules: {
     '/': { redirect: '/en-CA/dashboard' },
     '/en-CA': { redirect: '/en-CA/dashboard' },
-    '/fr-CA**': { redirect: '/en-CA/dashboard' },
-    '/en-CA/examine': { redirect: '/en-CA/examine/startNew' }
+    '/fr-CA**': { redirect: '/en-CA/dashboard' }, // No French version yet – redirect all French routes to dashboard
+    '/en-CA/examine': { redirect: '/en-CA/examine/startNew' } // When navigating directly to examine, add 'startNew' as the slug
   },
 
   runtimeConfig: {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isEmpty } from 'lodash'
+import isEmpty from 'lodash'
 import { RoutesE } from '~/enums/routes'
 import type { ApiBasePlatformApplication, PlatformApplicationResp } from '~/interfaces/platform-i'
 import type { StrataApplicationResp } from '~/interfaces/strata-i'

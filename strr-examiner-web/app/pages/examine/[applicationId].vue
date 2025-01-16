@@ -73,7 +73,6 @@ const manageApplication = async (id: string, action: 'approve' | 'reject') => {
 watch(
   () => application.value.header.applicationNumber,
   (newVal) => {
-    // any change to application where the id is not undefined
     if (newVal) {
       // update route slug with new application id
       window.history.replaceState(history.state, '', localePath(`${RoutesE.EXAMINE}/${newVal}`))

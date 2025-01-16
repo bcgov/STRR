@@ -12,12 +12,12 @@ const localePath = useLocalePath()
         <UHorizontalNavigation
           v-if="isAuthenticated"
           :links="[
-            { label: 'Dashboard', to: localePath(RoutesE.DASHBOARD), active: $route.path.includes(RoutesE.DASHBOARD) },
             {
               label: 'Examine',
               to: localePath(`${RoutesE.EXAMINE}/startNew`),
               active: $route.path.includes(RoutesE.EXAMINE)
             },
+            { label: 'Search', to: localePath(RoutesE.DASHBOARD), active: $route.path.includes(RoutesE.DASHBOARD) }
           ]"
           :ui="{
             wrapper: 'w-min',
