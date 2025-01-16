@@ -17,15 +17,15 @@ definePageMeta({
 })
 
 const initialMount = ref(true) // flag for whether to fetch next or specific application on mount - true until initial application is loaded
-const showExpansion = ref<boolean>(false) // show/hide expansion items
-const expansionItem = ref<ExpansionItem | undefined>(undefined) // expansion component to display
-const expansionProps: Ref<Record<string, unknown>> = ref({}) // any props passed to expansion components
+// const showExpansion = ref<boolean>(false) // show/hide expansion items
+// const expansionItem = ref<ExpansionItem | undefined>(undefined) // expansion component to display
+// const expansionProps: Ref<Record<string, unknown>> = ref({}) // any props passed to expansion components
 
-const manageExpansion = (e: OpenExpansionEvent) => {
-  expansionItem.value = e[0] // set expansion component to open
-  expansionProps.value = e[1] // bind any custom props
-  showExpansion.value = true
-}
+// const manageExpansion = (e: OpenExpansionEvent) => {
+//   expansionItem.value = e[0] // set expansion component to open
+//   expansionProps.value = e[1] // bind any custom props
+//   showExpansion.value = true
+// }
 
 // TODO: fix typing
 const { data, status, error, refresh } = await useAsyncData<HousApplicationResponse>(
@@ -123,18 +123,19 @@ watch(
         <HostSubHeader
           v-if="application?.registration.registrationType === ApplicationType.HOST"
           :application
-          @open-expansion="manageExpansion"
         />
+        <!-- @open-expansion="manageExpansion" -->
       </div>
 
       <div class="app-inner-container space-y-10 py-10">
-        <ExpansionContainer
+        <ConnectExpansionRoot />
+        <!-- <ExpansionContainer
           v-model="showExpansion"
           v-bind="expansionProps"
           :application
           :expansion-item="expansionItem"
           @close="showExpansion = false"
-        />
+        /> -->
 
         <!-- TODO: other supporting info -->
         <HostSupportingInfo

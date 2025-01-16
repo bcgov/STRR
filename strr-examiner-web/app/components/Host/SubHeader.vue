@@ -1,11 +1,13 @@
 <script setup lang="ts">
 const props = defineProps<{ application: HostApplicationResp }>()
 const reg = props.application.registration
-defineEmits<{
-  openExpansion: [OpenExpansionEvent]
-}>()
+// defineEmits<{
+//   openExpansion: [OpenExpansionEvent]
+// }>()
 
 const { t } = useI18n()
+
+const hostExp = useHostExpansion()
 </script>
 <template>
   <div class="app-inner-container">
@@ -34,8 +36,9 @@ const { t } = useI18n()
             :label="displayContactFullName(reg.primaryContact!)"
             :padded="false"
             variant="link"
-            @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'primaryContact' }])"
+            @click="hostExp.openHostOwners(application, 'primaryContact')"
           />
+          <!-- @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'primaryContact' }])" -->
         </div>
         <div>
           <UIcon name="i-mdi-at" />
@@ -84,8 +87,9 @@ const { t } = useI18n()
               : reg?.secondaryContact?.businessLegalName"
             :padded="false"
             variant="link"
-            @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'secondaryContact' }])"
+            @click="hostExp.openHostOwners(application, 'secondaryContact')"
           />
+          <!-- @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'secondaryContact' }])" -->
         </div>
 
         <div v-if="reg?.propertyManager?.propertyManagerType" class="flex items-center gap-1">
@@ -96,8 +100,9 @@ const { t } = useI18n()
               : reg?.propertyManager?.business?.legalName"
             :padded="false"
             variant="link"
-            @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'propertyManager' }])"
+            @click="hostExp.openHostOwners(application, 'propertyManager')"
           />
+          <!-- @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'propertyManager' }])" -->
         </div>
       </div>
     </div>

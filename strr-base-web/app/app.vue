@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { expansionInjectionKey } from '~/composables/useStrrExpansion'
+
 const i18nHead = useLocaleHead({
   addDirAttribute: true,
   addSeoAttributes: true
@@ -11,6 +13,13 @@ useHead({
     dir: () => i18nHead.value.htmlAttrs!.dir
   }
 })
+
+// provide initial expansion state
+const initialExpansionState = shallowRef<ExpansionState>({
+  component: 'div',
+  props: {}
+})
+provide(expansionInjectionKey, initialExpansionState)
 
 onMounted(async () => {
   const msgConfig = useAppConfig().strrBaseLayer.sbcWebMsg
