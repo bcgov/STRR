@@ -34,6 +34,9 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
 
   const createApplicationBody = () => {
     const applicationBody: StrataApplicationPayload = {
+      header: {
+        paymentMethod: useConnectFeeStore().userSelectedPaymentMethod
+      },
       registration: {
         registrationType: ApplicationType.STRATA_HOTEL,
         completingParty: formatParty(contactStore.completingParty),

@@ -18,6 +18,7 @@ export interface StrataRegistrationResp extends ApiBaseStrataRegistration, ApiEx
 }
 
 export interface StrataApplicationPayload {
+  header: { paymentMethod: ConnectPaymentMethod }
   registration: ApiBaseStrataApplication
 }
 

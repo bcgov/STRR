@@ -177,7 +177,7 @@ const handlePlatformSubmit = async () => {
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
-      const { paymentToken, applicationStatus } = await submitPlatformApplication()
+      const { paymentToken, applicationStatus } = await submitPlatformApplication(false, applicationId.value)
       const redirectPath = '/platform/dashboard'
       if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
         handlePaymentRedirect(paymentToken, redirectPath)

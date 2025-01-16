@@ -46,6 +46,9 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     const propertyManger = ownerStore.findByRole(OwnerRole.PROPERTY_MANAGER)
 
     return {
+      header: {
+        paymentMethod: useConnectFeeStore().userSelectedPaymentMethod
+      },
       registration: {
         registrationType: ApplicationType.HOST,
         ...(host

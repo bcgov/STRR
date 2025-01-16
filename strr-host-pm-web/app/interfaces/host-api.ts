@@ -63,6 +63,7 @@ export interface ApiHostApplication {
 }
 
 export interface HostApplicationPayload {
+  header: { paymentMethod: ConnectPaymentMethod }
   // Draft applications will not have all fields defined yet
   registration: Partial<ApiHostApplication>
 }
