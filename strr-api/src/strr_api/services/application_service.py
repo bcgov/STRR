@@ -76,6 +76,7 @@ class ApplicationService:
             application.application_number = Application.generate_unique_application_number()
         application.payment_account = account_id
         application.submitter_id = user.id
+        application.application_date = datetime.now(timezone.utc)
         application.type = ApplicationType.REGISTRATION.value
         application.application_json = request_json
         application.save()
