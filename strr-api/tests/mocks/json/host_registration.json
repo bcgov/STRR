@@ -1,4 +1,7 @@
 {
+  "header": {
+    "paymentMethod": "DIRECT_PAY"
+  },
   "registration": {
     "registrationType": "HOST",
     "primaryContact": {

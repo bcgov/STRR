@@ -10,7 +10,7 @@ Registration request payload objects.
 class RegistrationRequest:
     """RegistrationRequest payload object."""
 
-    def __init__(self, registration):
+    def __init__(self, registration, header=None):
         self.registration = Registration(**registration)
 
 
