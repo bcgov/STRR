@@ -18,18 +18,18 @@ definePageMeta({
 
 const initialMount = ref(true) // flag for whether to fetch next or specific application on mount - true until initial application is loaded
 
-const { data: application, status, error, refresh } = useAsyncData<
+const { data: application, status, error, refresh } = await useLazyAsyncData<
   HousApplicationResponse | undefined, ApplicationError
 >(
   'application-details-view',
-  async () => {
+  () => {
     const slug = route.params.applicationId as string | undefined
     // On initial mount, if the applicationId is not 'startNew', try to fetch specific application by id
     if (initialMount.value && slug && slug !== 'startNew') {
-      return await $strrApi<HousApplicationResponse>(`/applications/${slug}`)
+      return $strrApi<HousApplicationResponse>(`/applications/${slug}`)
     }
     // if slug is 'startNew' or refresh is executed, fetch next application
-    return await getNextApplication()
+    return getNextApplication()
   }
 )
 
