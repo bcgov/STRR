@@ -3,7 +3,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const { $strrApi } = useNuxtApp()
 
-  const getNextApplication = async (): Promise<string | undefined> => {
+  const getNextApplication = async (): Promise<HousApplicationResponse | undefined> => {
     // TODO: update when requirements are flushed out and backend is updated.
     const resp = await getAccountApplications(undefined, undefined, ApplicationType.HOST, ApplicationStatus.FULL_REVIEW)
     return resp.applications[0]

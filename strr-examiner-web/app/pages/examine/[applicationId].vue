@@ -3,9 +3,9 @@ const strrModal = useStrrModals()
 const localePath = useLocalePath()
 const { t } = useI18n()
 const route = useRoute()
-const { getAccountApplication } = useStrrApi()
 const { approveApplication, rejectApplication, getNextApplication } = useExaminerStore()
 const { setButtonControl, handleButtonLoading } = useButtonControl()
+const { $strrApi } = useNuxtApp()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -13,37 +13,26 @@ useHead({
 
 definePageMeta({
   layout: 'examine',
-  middleware: ['auth', 'require-account']
+  middleware: ['auth', 'require-account'],
+  key: 'examiner-view'
 })
 
 const initialMount = ref(true) // flag for whether to fetch next or specific application on mount - true until initial application is loaded
-// const showExpansion = ref<boolean>(false) // show/hide expansion items
-// const expansionItem = ref<ExpansionItem | undefined>(undefined) // expansion component to display
-// const expansionProps: Ref<Record<string, unknown>> = ref({}) // any props passed to expansion components
 
-// const manageExpansion = (e: OpenExpansionEvent) => {
-//   expansionItem.value = e[0] // set expansion component to open
-//   expansionProps.value = e[1] // bind any custom props
-//   showExpansion.value = true
-// }
-
-// TODO: fix typing
-const { data, status, error, refresh } = await useAsyncData<HousApplicationResponse>(
-  'application-to-review',
-  () => {
+const { data: application, status, error, refresh } = useLazyAsyncData<
+  HousApplicationResponse | undefined, ApplicationError
+>(
+  'application-details-view',
+  async () => {
     const slug = route.params.applicationId as string | undefined
     // On initial mount, if the applicationId is not 'startNew', try to fetch specific application by id
     if (initialMount.value && slug && slug !== 'startNew') {
-      return getAccountApplication(slug)
+      return await $strrApi<HousApplicationResponse>(`/applications/${slug}`)
     }
     // if slug is 'startNew' or refresh is executed, fetch next application
-    return getNextApplication()
+    return await getNextApplication()
   }
 )
-
-// workaround for typing - temporary
-// TODO: remove once typing is fixed
-const application = computed(() => data.value as HousApplicationResponse)
 
 // approve/reject/other? applications and refresh data
 const manageApplication = async (id: string, action: 'approve' | 'reject') => {
@@ -71,27 +60,32 @@ const manageApplication = async (id: string, action: 'approve' | 'reject') => {
 
 // update route and bottom buttons when new application
 watch(
-  () => application.value.header.applicationNumber,
-  (newVal) => {
-    if (newVal) {
+  [application, error],
+  ([newVal, _]) => {
+    // if watch triggered, this means initial page mount is complete, set flag to false
+    initialMount.value = false
+
+    if (newVal && newVal.header.applicationNumber) {
       // update route slug with new application id
-      window.history.replaceState(history.state, '', localePath(`${RoutesE.EXAMINE}/${newVal}`))
-      // if watch triggered, this means initial page mount is complete, set flag to false
-      initialMount.value = false
+      window.history.replaceState(
+        history.state,
+        '',
+        localePath(`${RoutesE.EXAMINE}/${newVal.header.applicationNumber}`)
+      )
 
       // set buttons actions to use new application id
       setButtonControl({
         leftButtons: [],
         rightButtons: [
           {
-            action: () => manageApplication(newVal, 'reject'),
+            action: () => manageApplication(newVal.header.applicationNumber, 'reject'),
             label: t('btn.decline'),
             variant: 'outline',
             color: 'red',
             icon: 'i-mdi-close'
           },
           {
-            action: () => manageApplication(newVal, 'approve'),
+            action: () => manageApplication(newVal.header.applicationNumber, 'approve'),
             label: t('btn.approve'),
             variant: 'outline',
             color: 'green',
@@ -100,19 +94,46 @@ watch(
         ]
       })
     }
-  },
-  { immediate: true }
+  }
 )
 </script>
 <template>
   <div class="app-body">
     <ConnectSpinner
-      v-if="status === 'pending' || status === 'idle'"
+      v-if="initialMount || status === 'pending'"
       overlay
     />
-    <!-- TODO: error state -->
-    <div v-else-if="error">
-      Some Error State
+    <!-- TODO: improve error state -->
+    <div v-else-if="error" class="m-auto flex max-w-screen-sm flex-col">
+      <ConnectPageSection
+        :heading="{
+          label: 'Error Fetching Application',
+          labelClass: 'text-lg font-bold text-gray-900',
+          icon: 'i-mdi-alert-circle-outline',
+          iconClass: 'text-red-600 size-6 shrink-0',
+          padding: 'sm:px-8 py-4 px-4'
+        }"
+      >
+        <div class="flex flex-col space-y-2 p-10 text-left">
+          <span>Status: {{ error.statusCode }}</span>
+          <pre>Details: {{ error.data }}</pre>
+          <UButton
+            label="Return to Dashboard"
+            :to="localePath(RoutesE.DASHBOARD)"
+            icon="i-mdi-home"
+            :block="true"
+          />
+          <UButton
+            label="Try Again"
+            icon="i-mdi-refresh"
+            :block="true"
+            @click="() => {
+              initialMount = true
+              refresh()
+            }"
+          />
+        </div>
+      </ConnectPageSection>
     </div>
     <main v-else>
       <div class="bg-white">
@@ -124,18 +145,10 @@ watch(
           v-if="application?.registration.registrationType === ApplicationType.HOST"
           :application
         />
-        <!-- @open-expansion="manageExpansion" -->
       </div>
 
       <div class="app-inner-container space-y-10 py-10">
         <ConnectExpansionRoot />
-        <!-- <ExpansionContainer
-          v-model="showExpansion"
-          v-bind="expansionProps"
-          :application
-          :expansion-item="expansionItem"
-          @close="showExpansion = false"
-        /> -->
 
         <!-- TODO: other supporting info -->
         <HostSupportingInfo

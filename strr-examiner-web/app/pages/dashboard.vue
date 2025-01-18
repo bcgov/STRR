@@ -16,7 +16,8 @@ useHead({
 
 definePageMeta({
   layout: 'examiner',
-  middleware: ['auth', 'require-account']
+  middleware: ['auth', 'require-account'],
+  key: 'main-dashboard'
 })
 
 const { data: applicationListResp, status } = await useAsyncData(
@@ -140,6 +141,12 @@ async function handleRowSelect (row: any) {
 </script>
 <template>
   <div class="h-full space-y-8 py-8 sm:space-y-10 sm:py-10">
+    <UButton
+      label="Force Error"
+      color="red"
+      variant="outline"
+      :to="localePath('/examine/123')"
+    />
     <div class="flex justify-end gap-3">
       <UPagination
         v-if="applicationListResp.total > limit"

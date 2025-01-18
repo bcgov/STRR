@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import type { HostDetailsDisplayItem } from '~/types/host-details-display-item'
 const props = defineProps<{
   application: HostApplicationResp
-  display: HostDetailsDisplayItem
+  display: 'primaryContact' | 'secondaryContact' | 'propertyManager'
 }>()
 
 defineEmits<{
