@@ -20,11 +20,13 @@ export const useStrrApi = () => {
 
   const getAccountApplication = async <T extends ApiApplicationBaseResp>(
     id?: string,
-    type?: ApplicationType
+    type?: ApplicationType,
+    rethrow = false
   ) => {
     if (id) {
       return await $strrApi<T>(`/applications/${id}`).catch((e) => {
         logFetchError(e, `Unable to get application details for ${id}`)
+        if (rethrow) { throw (e) }
         return undefined
       })
     }
@@ -35,6 +37,7 @@ export const useStrrApi = () => {
       }
     }).catch((e) => {
       logFetchError(e, 'Unable to get most recent account application details')
+      if (rethrow) { throw (e) }
       return undefined
     })
   }
