@@ -198,7 +198,7 @@ useHead({
 
 definePageMeta({
   layout: 'connect-form',
-  middleware: ['auth', 'require-account'],
+  middleware: ['auth', 'check-tos', 'require-account'],
   onAccountChange: (_: Account, newAccount: Account) => {
     useStrrModals().openConfirmSwitchAccountModal(
       newAccount.id,

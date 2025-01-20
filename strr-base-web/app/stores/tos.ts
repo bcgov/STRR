@@ -16,6 +16,7 @@ interface TOSGetResponse {
 // await $authApi('/documents/termsofuse')
 
 export const useTosStore = defineStore('strr/terms-of-service', () => {
+  const { getToken } = useKeycloak()
   const { $strrApi } = useNuxtApp()
   const loading = ref<boolean>(false)
   const tos = ref<TOSGetResponse>({} as TOSGetResponse)
@@ -25,6 +26,7 @@ export const useTosStore = defineStore('strr/terms-of-service', () => {
       loading.value = true
       // make sure user is in auth before fetching tos
       await $strrApi('/users', { method: 'POST' }) // TODO: fix in core layer
+      await getToken(true) // force token refresh
       tos.value = await $strrApi<TOSGetResponse>('/users/tos')
     } catch {
       // handled with fallback content on tos page
