@@ -25,7 +25,8 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/eslint-module',
     '@nuxt/test-utils/module',
-    '@nuxt/image'
+    '@nuxt/image',
+    '@zadigetvoltaire/nuxt-gtm'
   ],
 
   extends: ['@daxiom/nuxt-core-layer-test'],
@@ -75,6 +76,13 @@ export default defineNuxtConfig({
   colorMode: {
     preference: 'light',
     fallback: 'light'
+  },
+
+  gtm: {
+    enabled: !!process.env.NUXT_GTM_ID?.trim(),
+    id: process.env.NUXT_GTM_ID?.trim() as string,
+    debug: true,
+    defer: true
   },
 
   runtimeConfig: {
