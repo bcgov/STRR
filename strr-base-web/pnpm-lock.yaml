@@ -14,6 +14,9 @@ dependencies:
   '@vuepic/vue-datepicker':
     specifier: ^10.0.0
     version: 10.0.0(vue@3.5.13)
+  '@zadigetvoltaire/nuxt-gtm':
+    specifier: ^0.0.13
+    version: 0.0.13(nuxt@3.15.0)(rollup@4.29.1)(vue@3.5.13)
   country-codes-list:
     specifier: ^1.6.11
     version: 1.6.11
@@ -67,9 +70,6 @@ devDependencies:
   '@vue/test-utils':
     specifier: ^2.4.6
     version: 2.4.6
-  '@zadigetvoltaire/nuxt-gtm':
-    specifier: ^0.0.13
-    version: 0.0.13(nuxt@3.15.0)(rollup@4.29.1)(vue@3.5.13)
   eslint:
     specifier: ^8.56.0
     version: 8.57.1
@@ -924,7 +924,7 @@ packages:
 
   /@gtm-support/core@2.3.1:
     resolution: {integrity: sha512-eD0hndQjhgKm5f/7IA9fZYujmHiVMY+fnYv4mdZSmz5XJQlS4TiTmpdZx2l7I2A9rI9J6Ysz8LpXYYNo/Xq4LQ==}
-    dev: true
+    dev: false
 
   /@gtm-support/vue-gtm@2.2.0(vue@3.5.13):
     resolution: {integrity: sha512-7nhBTRkTG0mD+7r7JvNalJz++YwszZk0oP1HIY6fCgz6wNKxT6LuiXCqdPrZmNPe/WbPIKuqxGZN5s+i6NZqow==}
@@ -938,7 +938,7 @@ packages:
       vue: 3.5.13(typescript@5.7.2)
     optionalDependencies:
       vue-router: 4.5.0(vue@3.5.13)
-    dev: true
+    dev: false
 
   /@headlessui/tailwindcss@0.2.1(tailwindcss@3.4.17):
     resolution: {integrity: sha512-2+5+NZ+RzMyrVeCZOxdbvkUSssSxGvcUxphkIfSVLpRiKsj+/63T2TOL9dBYMXVfj/CGr6hMxSRInzXv6YY7sA==}
@@ -3511,7 +3511,7 @@ packages:
       - rollup
       - supports-color
       - vue
-    dev: true
+    dev: false
 
   /abbrev@2.0.0:
     resolution: {integrity: sha512-6/mh1E2u2YgEsCHdY0Yx5oW+61gZU+1vXaoiHHrpKeuRNNgFvS+/jrwHiQhB5apAf5oB7UB7E19ol2R2LKH8hQ==}
@@ -9881,7 +9881,7 @@ packages:
       '@polka/url': 1.0.0-next.28
       mrmime: 2.0.0
       totalist: 3.0.1
-    dev: true
+    dev: false
 
   /sirv@3.0.0:
     resolution: {integrity: sha512-BPwJGUeDaDCHihkORDchNyyTvWFhcusy1XMmhEVTQTwGeybFbp8YEmB+njbPnth1FibULBSBVwCQni25XlCUDg==}
