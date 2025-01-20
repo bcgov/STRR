@@ -67,6 +67,18 @@ PLAYWRIGHT_TEST_BCEID_OTP_SECRET=""
 NUXT_BASE_URL=""
 ```
 
+#### Important
+
+Sbc Web Messenger (Genesys) interferes with the test environment by causing extra network traffic (preventing `waitUntil: 'networkidle'` from being met) and in some cases, blocks the submit/next-step buttons during an application. 
+
+Please set the following environment variables to be an **empty** string while running any e2e tests, doing so will prevent the messenger from mounting.
+
+```
+NUXT_GENESYS_URL=""
+NUXT_GENESYS_ENVIRONMENT_KEY=""
+NUXT_GENESYS_DEPLOYMENT_KEY=""
+```
+
 ### Authentication
 
 The test runner creates a saved authentication state (storageState) stored in JSON files located at tests/e2e/.auth/. This state is used by the current smoke tests (as of 2025/01/10) to maintain the authenticated session without re-entering credentials or OTPs repeatedly.
