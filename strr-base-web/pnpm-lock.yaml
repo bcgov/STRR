@@ -23,6 +23,9 @@ dependencies:
   luxon:
     specifier: ^3.5.0
     version: 3.5.0
+  nuxt-gtag:
+    specifier: ^3.0.2
+    version: 3.0.2(rollup@4.29.1)
   vue-country-flag-next:
     specifier: ^2.3.2
     version: 2.3.2(vue@3.5.13)
@@ -82,9 +85,6 @@ devDependencies:
   nuxt:
     specifier: ^3.15.0
     version: 3.15.0(eslint@8.57.1)(rollup@4.29.1)(sass@1.83.0)(typescript@5.7.2)(vite@5.4.11)
-  nuxt-gtag:
-    specifier: 3.0.2
-    version: 3.0.2(rollup@4.29.1)
   playwright-core:
     specifier: ^1.49.1
     version: 1.49.1
@@ -8116,7 +8116,7 @@ packages:
       - magicast
       - rollup
       - supports-color
-    dev: true
+    dev: false
 
   /nuxt@3.15.0(eslint@8.57.1)(rollup@4.29.1)(sass@1.83.0)(typescript@5.7.2)(vite@5.4.11):
     resolution: {integrity: sha512-pjP/2zEjr57ensZZ1F4b7KldocM9S4SOtukgi9zau1OFlyolUmEgMFbHnwmEKqzuZ1OPTaRS3/1S6B7GUVbbRg==}

@@ -37,7 +37,6 @@
     "eslint-plugin-tailwindcss": "^3.17.4",
     "happy-dom": "^14.12.3",
     "nuxt": "^3.15.0",
-    "nuxt-gtag": "3.0.2",
     "playwright-core": "^1.49.1",
     "sass": "^1.77.6",
     "typescript": "^5.5.3",
@@ -49,6 +48,7 @@
     "@zadigetvoltaire/nuxt-gtm": "^0.0.13",
     "country-codes-list": "^1.6.11",
     "luxon": "^3.5.0",
+    "nuxt-gtag": "^3.0.2",
     "vue-country-flag-next": "^2.3.2"
   },
   "pnpm": {
