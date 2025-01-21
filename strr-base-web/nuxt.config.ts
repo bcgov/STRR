@@ -25,9 +25,9 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/eslint-module',
     '@nuxt/test-utils/module',
-    '@nuxt/image',
-    '@zadigetvoltaire/nuxt-gtm',
-    'nuxt-gtag'
+    '@nuxt/image'
+    // '@zadigetvoltaire/nuxt-gtm',
+    // 'nuxt-gtag'
   ],
 
   extends: ['@daxiom/nuxt-core-layer-test'],
