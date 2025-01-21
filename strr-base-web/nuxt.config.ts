@@ -79,17 +79,17 @@ export default defineNuxtConfig({
     fallback: 'light'
   },
 
-  gtm: {
-    enabled: !!process.env.NUXT_GTM_ID?.trim(),
-    id: process.env.NUXT_GTM_ID?.trim() as string,
-    debug: true,
-    defer: true
-  },
+  // gtm: {
+  //   enabled: !!process.env.NUXT_GTM_ID?.trim(),
+  //   id: process.env.NUXT_GTM_ID?.trim() as string,
+  //   debug: true,
+  //   defer: true
+  // },
 
-  gtag: {
-    enabled: !!process.env.NUXT_GTAG_ID?.trim(),
-    id: process.env.NUXT_GTAG_ID?.trim()
-  },
+  // gtag: {
+  //   enabled: !!process.env.NUXT_GTAG_ID?.trim(),
+  //   id: process.env.NUXT_GTAG_ID?.trim()
+  // },
 
   runtimeConfig: {
     public: {
