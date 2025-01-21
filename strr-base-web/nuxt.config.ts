@@ -25,9 +25,9 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/eslint-module',
     '@nuxt/test-utils/module',
-    '@nuxt/image'
-    // '@zadigetvoltaire/nuxt-gtm',
-    // 'nuxt-gtag'
+    '@nuxt/image',
+    '@zadigetvoltaire/nuxt-gtm',
+    'nuxt-gtag'
   ],
 
   extends: ['@daxiom/nuxt-core-layer-test'],
@@ -79,17 +79,17 @@ export default defineNuxtConfig({
     fallback: 'light'
   },
 
-  // gtm: {
-  //   enabled: !!process.env.NUXT_GTM_ID?.trim(),
-  //   id: process.env.NUXT_GTM_ID?.trim() as string,
-  //   debug: true,
-  //   defer: true
-  // },
+  gtm: {
+    enabled: !!process.env.NUXT_GTM_ID?.trim(),
+    id: process.env.NUXT_GTM_ID?.trim() as string,
+    debug: true,
+    defer: true
+  },
 
-  // gtag: {
-  //   enabled: !!process.env.NUXT_GTAG_ID?.trim(),
-  //   id: process.env.NUXT_GTAG_ID?.trim()
-  // },
+  gtag: {
+    enabled: !!process.env.NUXT_GTAG_ID?.trim(),
+    id: process.env.NUXT_GTAG_ID?.trim()
+  },
 
   runtimeConfig: {
     public: {
