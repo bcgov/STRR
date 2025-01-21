@@ -8,7 +8,7 @@ import { displayFullUnitAddress } from '~/utils/format-helper'
 const localePath = useLocalePath()
 const { t } = useI18n()
 // TODO: ApplicationStatus.FULL_REVIEW is temporary until we have reqs defined
-const { limit, page, getApplicationList } = useStrrBasePermitList(undefined, ApplicationStatus.FULL_REVIEW)
+const { limit, page, getApplicationList } = useStrrBasePermitList(undefined, undefined)
 
 useHead({
   title: t('page.dashboardList.title')

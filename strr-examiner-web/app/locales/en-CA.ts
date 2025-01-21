@@ -110,6 +110,7 @@ export default {
       nicknameOpt: 'Nickname (Optional)',
       parcelIdentifier: 'Parcel Identifier',
       parcelIdentifierOpt: 'Parcel Identifier (Optional)',
+      platforms: 'Platforms',
       propertyType: 'Property Type',
       role: {
         CO_HOST: 'Co-host',
@@ -162,7 +163,17 @@ export default {
       completingParty: 'Completing Party',
       additionalInformation: 'Additional Information',
       strataCategory: 'Category:',
-      numberOfRentalUnits: 'Number of Rental Units:'
+      numberOfRentalUnits: 'Number of Rental Units:',
+      cpbcLicenseNum: 'CPBC Licence #',
+      listingSize: {
+        THOUSAND_AND_ABOVE: '1,000 or more',
+        BETWEEN_250_AND_999: '250-999',
+        LESS_THAN_250: 'under 250',
+        null: 'None'
+      },
+      totalNumberOfListings: 'Total Number of Listings',
+      noticeOfNonCompliance: 'Notice of Non-Compliance',
+      takedownRequest: 'Takedown Request'
     },
     text: {
       applicationMustInclude: 'Your application must include the following:',
@@ -205,6 +216,7 @@ export default {
   },
   btn: {
     view: 'View',
+    viewAllPlatforms: 'View all platforms',
     edit: 'Edit',
     done: 'Done',
     showDetails: 'Show Details',

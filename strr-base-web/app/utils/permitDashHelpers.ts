@@ -120,10 +120,15 @@ export const getDashboardAddresses = (business: StrrBusiness) => {
   return addresses
 }
 
+export function getPhoneDisplay (phone: ConnectPhone) {
+  const number = phone.countryCode === '1'
+    ? phone.number.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
+    : phone.number
+  return `+${phone.countryCode} ${number}` +
+    (phone.extension ? ` Ext. ${phone.extension}` : '')
+}
+
 export const getPartyItem = (party: Contact): ConnectAccordionItem => {
-  const number = party.phone.countryCode === '1'
-    ? party.phone.number.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
-    : party.phone.number
   return {
     showAvatar: true,
     label: (`${party.firstName || ''} ` +
@@ -138,8 +143,7 @@ export const getPartyItem = (party: Contact): ConnectAccordionItem => {
       {
         icon: 'i-mdi-phone',
         iconClass: 'size-5 mt-[2px]',
-        text: `+${party.phone.countryCode} ${number}` +
-          (party.phone.extension ? ` Ext. ${party.phone.extension}` : '')
+        text: getPhoneDisplay(party.phone)
       },
       ...(party.faxNumber
         ? [{

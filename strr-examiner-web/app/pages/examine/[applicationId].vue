@@ -29,7 +29,7 @@ const { data: application, status, error, refresh } = await useLazyAsyncData<
       return $strrApi<HousApplicationResponse>(`/applications/${slug}`)
     }
     // if slug is 'startNew' or refresh is executed, fetch next application
-    return getNextApplication()
+    return getNextApplication<HousApplicationResponse>()
   }
 )
 
@@ -148,6 +148,10 @@ watch(
           :application
         />
         <!-- @open-expansion="manageExpansion" -->
+        <PlatformSubHeader
+          v-if="application?.registration.registrationType === ApplicationType.PLATFORM"
+          :application
+        />
       </div>
 
       <div class="app-inner-container space-y-10 py-10">
@@ -173,8 +177,3 @@ watch(
     </main>
   </div>
 </template>
-<style scoped>
-dl>dt {
-  @apply font-bold text-black
-}
-</style>

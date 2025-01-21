@@ -79,3 +79,7 @@ export function formatRepresentativeUI (rep: ApiRep): StrrContact {
 export function isSameAddress (addr1: object, addr2: object) {
   return Object.values(addr1).toString() === Object.values(addr2).toString()
 }
+
+export function getFullName (contact: Contact) {
+  return `${contact.firstName || ''} ${contact.middleName || ''} ${contact.lastName || ''}`.replaceAll('  ', ' ').trim()
+}
