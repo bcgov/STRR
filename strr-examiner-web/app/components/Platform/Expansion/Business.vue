@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
-defineProps<{ title: string, business: ApiPlatformBusinessDetails, hasRegOffice: boolean }>()
+defineProps<{ business: ApiPlatformBusinessDetails, hasRegOffice: boolean }>()
 </script>
 <template>
-  <ConnectFormSection :title>
+  <CommonExpansionTemplate :label="$t('strr.label.business')">
     <div class="flex space-x-10 *:space-y-1">
       <div>
         <strong class="text-gray-900">{{ $t('strr.label.business').toUpperCase() }}</strong>
@@ -37,5 +37,5 @@ defineProps<{ title: string, business: ApiPlatformBusinessDetails, hasRegOffice:
         </ConnectInfoWithIcon>
       </div>
     </div>
-  </ConnectFormSection>
+  </CommonExpansionTemplate>
 </template>

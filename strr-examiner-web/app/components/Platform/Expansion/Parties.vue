@@ -9,7 +9,7 @@ defineProps<{
 }>()
 </script>
 <template>
-  <ConnectFormSection :title>
+  <CommonExpansionTemplate :label="$t('strr.label.individuals')">
     <div class="flex space-x-10 *:space-y-1">
       <div v-if="primaryRep">
         <strong class="text-gray-900">{{ $t('strr.label.representative').toUpperCase() }}</strong>
@@ -40,5 +40,5 @@ defineProps<{
         <ConnectInfoWithIcon icon="i-mdi-at" :content="completingParty.emailAddress" />
       </div>
     </div>
-  </ConnectFormSection>
+  </CommonExpansionTemplate>
 </template>

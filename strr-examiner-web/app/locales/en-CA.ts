@@ -103,6 +103,7 @@ export default {
       businessLicenseOpt: 'Local Government Business License (Optional)',
       businessLicenseDate: 'Business Licence Expiry Date',
       contactIndName: "Contact Individual's Name",
+      individuals: 'Individuals',
       individualsBusinesses: 'Individuals and Businesses',
       listingLinkOpt: 'Listing Link (Optional)',
       numberOfRooms: 'Number of Rooms for Rent',

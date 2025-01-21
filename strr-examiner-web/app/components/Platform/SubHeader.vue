@@ -40,18 +40,18 @@ const isCompPartyRep = (
   primaryRep?.phone.extension === compParty.phone.extension
 )
 
-const { open: expOpen, close: expClose } = useStrrExpansion()
+const { open: expOpen } = useStrrExpansion()
 
 const expandBrands = () => {
   expOpen(
     PlatformExpansionBrands,
-    { application: props.application, title: 'PLATFORMS', brands: reg.platformDetails.brands })
+    { application: props.application, brands: reg.platformDetails.brands })
 }
 
 const expandBusiness = () => {
   expOpen(
     PlatformExpansionBusiness,
-    { application: props.application, title: 'BUSINESS', business: reg.businessDetails, hasRegOffice })
+    { application: props.application, business: reg.businessDetails, hasRegOffice })
 }
 
 const expandParties = () => {
@@ -59,7 +59,6 @@ const expandParties = () => {
     PlatformExpansionParties,
     {
       application: props.application,
-      title: 'INDIVIDUALS',
       primaryRep,
       secondaryRep: secondRep,
       completingParty: compParty
@@ -104,7 +103,7 @@ const expandParties = () => {
         />
       </ConnectInfoWithIcon>
       <UButton
-        v-if="reg.platformDetails.brands.length > 2"
+        v-if="reg.platformDetails.brands.length > 3"
         :label="$t('btn.viewAllPlatforms')"
         :padded="false"
         variant="link"

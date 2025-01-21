@@ -1,14 +1,15 @@
 <script setup lang="ts">
 
-defineProps<{ title: string, brands: StrrBrand[] }>()
+defineProps<{ brands: StrrBrand[] }>()
 </script>
 <template>
-  <ConnectFormSection :title>
-    <div class="grid grid-flow-col grid-rows-6 gap-x-5 gap-y-1">
+  <CommonExpansionTemplate :label="$t('strr.label.platforms')">
+    <div class="grid auto-cols-min grid-flow-col grid-rows-6 gap-x-10 gap-y-1">
       <ConnectInfoWithIcon
         v-for="brand in brands"
         :key="brand.name"
         icon="i-mdi-web"
+        class="whitespace-nowrap"
       >
         <UButton
           class="underline underline-offset-2"
@@ -22,5 +23,5 @@ defineProps<{ title: string, brands: StrrBrand[] }>()
         />
       </ConnectInfoWithIcon>
     </div>
-  </ConnectFormSection>
+  </CommonExpansionTemplate>
 </template>
