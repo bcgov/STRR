@@ -40,67 +40,52 @@ from http import HTTPStatus
 from flask import current_app
 
 from strr_api.enums.enum import ErrorMessage, RegistrationType
-from strr_api.models import BulkValidation, Registration
-from strr_api.services.approval_service import ApprovalService
+from strr_api.models import BulkValidation, RealTimeValidation, Registration
+from strr_api.schemas.utils import validate
 from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.utils.date_util import DateUtil
 
 
 class ValidationService:
-    """The class contains methods to validate the listing details."""
+    """The class contains methods to validate the permit details."""
 
     @classmethod
-    def validate_listing(cls, request_json):
-        """Validate the request. For a request with identifier, only unit number and postal code are
-        mandatory. For a request without identifier, street number, streetname, city are mandatory."""
+    def validate_permit(cls, request_json):
+        """Validate the details in the request against the data in the permit.
+        Street number and postal code are mandatory fields. If the optional unit number
+        is present in the request, it will validated against the permit unit number."""
 
         response = {}
+        status_code = HTTPStatus.OK
 
-        errors = ValidationService._validate_request(request_json)
-        if errors:
+        [valid, errors] = validate(request_json, "real_time_validation")
+
+        if not valid:
             response["errors"] = errors
-            return response, HTTPStatus.BAD_REQUEST
+            status_code = HTTPStatus.BAD_REQUEST
 
-        if registration_number := request_json.get("identifier"):
-            registration = RegistrationService.find_by_registration_number(registration_number)
-            if not registration:
+        else:
+            registration = RegistrationService.find_by_registration_number(request_json.get("identifier"))
+            if registration:
+                response = ValidationService._check_permit_details(request_json, registration)
+            else:
                 response["errors"] = [
                     {"code": ErrorMessage.PERMIT_NOT_FOUND.name, "message": ErrorMessage.PERMIT_NOT_FOUND.value}
                 ]
-                return response, HTTPStatus.NOT_FOUND
+                status_code = HTTPStatus.NOT_FOUND
 
-            response = ValidationService._check_permit_details(request_json, registration)
-        else:
-            response = ValidationService._check_strr_requirements_for_listing(request_json.get("address"))
+        ValidationService.create_real_time_validation_audit_record(request_json, response, status_code)
 
-        return response, HTTPStatus.OK
-
-    @classmethod
-    def _validate_request(cls, request_json):
-        errors = []
-        error_message = "Field {0} is missing in the address object."
-        identifier = request_json.get("identifier")
-        address_json = request_json.get("address")
-        if not address_json.get("number"):
-            errors.append({"code": "INVALID_REQUEST", "message": error_message.format("number")})
-        if not address_json.get("postalCode"):
-            errors.append({"code": "INVALID_REQUEST", "message": error_message.format("postalCode")})
-
-        if not identifier:
-            if not address_json.get("street"):
-                errors.append({"code": "INVALID_REQUEST", "message": error_message.format("street")})
-            if not address_json.get("locality"):
-                errors.append({"code": "INVALID_REQUEST", "message": error_message.format("locality")})
-        return errors
+        return response, status_code
 
     @classmethod
     def _check_permit_details(cls, request_json: dict, registration: Registration):
-        response = {}
+        response = copy.deepcopy(request_json)
         errors = []
         address_json = request_json.get("address")
         if registration.registration_type == RegistrationType.HOST.value:
-            if str(address_json.get("number")) != registration.rental_property.address.street_number:
+            if str(address_json.get("streetNumber")) != registration.rental_property.address.street_number:
                 errors.append(
                     {
                         "code": ErrorMessage.STREET_NUMBER_MISMATCH.name,
@@ -111,39 +96,20 @@ class ValidationService:
                 errors.append(
                     {"code": ErrorMessage.POSTAL_CODE_MISMATCH.name, "message": ErrorMessage.POSTAL_CODE_MISMATCH.value}
                 )
+
+            if unit_number := address_json.get("unitNumber", None):
+                if unit_number != registration.rental_property.address.unit_number:
+                    errors.append(
+                        {
+                            "code": ErrorMessage.UNIT_NUMBER_MISMATCH.name,
+                            "message": ErrorMessage.UNIT_NUMBER_MISMATCH.value,
+                        }
+                    )
         if errors:
             response["errors"] = errors
         else:
-            response = copy.deepcopy(request_json)
             response["status"] = registration.status.name
             response["validUntil"] = DateUtil.as_legislation_timezone(registration.expiry_date).strftime("%Y-%m-%d")
-        return response
-
-    @classmethod
-    def _check_strr_requirements_for_listing(cls, address_json: dict):
-        errors = []
-        response = {}
-        address_line_1 = ""
-        if unit_number := address_json.get("unit"):
-            address_line_1 = f"{unit_number}-"
-        address_line_1 = f"{address_line_1}{address_json.get('number')} {address_json.get('street')}"
-        address_line_2 = address_json.get("streetAdditional", "")
-        address = f"{address_line_1} {address_line_2}, {address_json.get('locality')}, BC"
-        str_data = ApprovalService.getSTRDataForAddress(address=address)
-        if str_data:
-            response = {"address": address_json}
-            if str_data.get("isStrProhibited"):
-                response["strProhibited"] = True
-            else:
-                if str_data.get("isStraaExempt"):
-                    response["strExempt"] = True
-                else:
-                    response["strExempt"] = False
-        else:
-            errors.append(
-                {"code": ErrorMessage.ADDRESS_LOOK_UP_FAILED.name, "message": ErrorMessage.ADDRESS_LOOK_UP_FAILED.value}
-            )
-            response["errors"] = errors
         return response
 
     @classmethod
@@ -158,3 +124,13 @@ class ValidationService:
         bulk_validation.request_file_id = file_key
         bulk_validation.request_timestamp = datetime.utcnow()
         bulk_validation.save()
+
+    @classmethod
+    def create_real_time_validation_audit_record(cls, request, response, status):
+        """Creates the real time validation audit record."""
+
+        real_time_validation = RealTimeValidation()
+        real_time_validation.request_json = request
+        real_time_validation.response_json = response
+        real_time_validation.status_code = status
+        real_time_validation.save()

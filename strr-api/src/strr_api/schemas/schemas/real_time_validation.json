@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://strr.gov.bc.ca/.well_known/schemas/real_time_validation",
+  "type": "object",
+  "title": "Real Time Validation Request",
+  "definitions": {
+    "address": {
+      "type": "object",
+      "properties": {
+        "unitNumber": {
+          "type": ["string", "null"],
+          "description": "Unit Number."
+        },
+        "streetNumber": {
+          "type": "string",
+          "description": "Street Number."
+        },
+        "streetName": {
+          "type": ["string", "null"],
+          "description": "Street address and name."
+        },
+        "city": {
+          "type": ["string", "null"],
+          "description": "City, Town, or Village."
+        },
+        "postalCode": {
+          "type": "string",
+          "maxLength": 15,
+          "description": "Postal Code in A1A 1A1 format for Canada, or zip code for US addresses."
+        },
+        "province": {
+          "type": ["string", "null"],
+          "maxLength": 2,
+          "description": "The 2-letter province code (ISO 3166-2) for this address."
+        },
+        "country": {
+          "type": ["string", "null"],
+          "maxLength": 2,
+          "description": "The 2-letter country code (ISO 3166-1) for this address."
+        }
+      },
+      "required": [
+        "streetNumber",
+        "postalCode"
+      ]
+    }
+  },
+  "properties": {
+    "identifier": {
+      "type": "string",
+      "description": "Registration number"
+    },
+    "address": {
+      "$ref": "#/definitions/address"
+    }
+  },
+  "required": [
+    "identifier",
+    "address"
+  ]
+}

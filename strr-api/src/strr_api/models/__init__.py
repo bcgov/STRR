@@ -42,6 +42,7 @@ from .db import db  # noqa: I001
 from .events import Events
 from .ltsa import LTSARecord
 from .platforms import Platform, PlatformBrand, PlatformRegistration, PlatformRepresentative
+from .real_time_validation import RealTimeValidation
 from .rental import Document, PropertyContact, PropertyListing, PropertyManager, Registration, RentalProperty
 from .strata_hotels import StrataHotel, StrataHotelBuilding, StrataHotelRegistration, StrataHotelRepresentative
 from .user import Contact, User
@@ -69,6 +70,7 @@ __all__ = (
     "PlatformBrand",
     "PlatformRegistration",
     "PlatformRepresentative",
+    "RealTimeValidation",
     "StrataHotel",
     "StrataHotelRegistration",
     "StrataHotelBuilding",

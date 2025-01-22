@@ -4,8 +4,6 @@ from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
-import pytest
-
 from strr_api.enums.enum import PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
@@ -27,10 +25,10 @@ MOCK_PAYMENT_COMPLETED_RESPONSE = {
 
 def test_permit_does_not_exist(session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-    validate_permit_request = {"identifier": "H123", "address": {"number": 2435, "postalCode": "V4A 8H4"}}
+    validate_permit_request = {"identifier": "H123", "address": {"streetNumber": "2435", "postalCode": "V4A 8H4"}}
     rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
-    assert rv.status_code == HTTPStatus.NOT_FOUND
     response_json = rv.json
+    assert rv.status_code == HTTPStatus.NOT_FOUND
     assert len(response_json.get("errors")) == 1
     assert response_json.get("errors")[0].get("code") == "PERMIT_NOT_FOUND"
     assert response_json.get("errors")[0].get("message") == "Permit does not exist."
@@ -64,7 +62,7 @@ def test_permit_exists(session, client, jwt):
 
         validate_permit_request = {
             "identifier": registration_number,
-            "address": {"number": 12166, "postalCode": "V2X 7N1"},
+            "address": {"streetNumber": "12166", "postalCode": "V2X 7N1"},
         }
 
         rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
@@ -103,7 +101,7 @@ def test_permit_details_mismatch(session, client, jwt):
 
         validate_permit_request = {
             "identifier": registration_number,
-            "address": {"number": 12165, "postalCode": "V2X 7N2"},
+            "address": {"streetNumber": "12165", "postalCode": "V2X 7N2"},
         }
         rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
         assert rv.status_code == HTTPStatus.OK
@@ -128,44 +126,14 @@ def test_invalid_request_with_identifier(session, client, jwt):
     assert rv.status_code == HTTPStatus.BAD_REQUEST
     response_json = rv.json
     assert len(response_json.get("errors")) == 1
-    assert response_json.get("errors")[0].get("code") == "INVALID_REQUEST"
-    assert response_json.get("errors")[0].get("message") == "Field number is missing in the address object."
+    assert response_json.get("errors")[0].get("message") == "'streetNumber' is a required property"
 
 
 def test_invalid_request_without_identifier(session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-    validate_permit_request = {"address": {"number": 2435, "postalCode": "V4A 8H4"}}
+    validate_permit_request = {"address": {"streetNumber": "2435", "postalCode": "V4A 8H4"}}
     rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
     assert rv.status_code == HTTPStatus.BAD_REQUEST
     response_json = rv.json
-    assert len(response_json.get("errors")) == 2
-    assert response_json.get("errors")[0].get("code") == "INVALID_REQUEST"
-    assert response_json.get("errors")[0].get("message") == "Field street is missing in the address object."
-    assert response_json.get("errors")[1].get("code") == "INVALID_REQUEST"
-    assert response_json.get("errors")[1].get("message") == "Field locality is missing in the address object."
-
-
-def test_str_prohibited_without_permit(session, client, jwt):
-    with patch("strr_api.services.approval_service.ApprovalService.getSTRDataForAddress") as mockGetSTRDataForAddress:
-        mockGetSTRDataForAddress.return_value = {"isStrProhibited": True}
-        headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        validate_permit_request = {
-            "address": {"number": 2435, "postalCode": "V4A 8H4", "street": "Test", "locality": "Test"}
-        }
-        rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
-        assert rv.status_code == HTTPStatus.OK
-        response_json = rv.json
-        assert response_json.get("strProhibited") is True
-
-
-def test_str_exempt_without_permit(session, client, jwt):
-    with patch("strr_api.services.approval_service.ApprovalService.getSTRDataForAddress") as mockGetSTRDataForAddress:
-        mockGetSTRDataForAddress.return_value = {"isStraaExempt": True}
-        headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        validate_permit_request = {
-            "address": {"number": 2435, "postalCode": "V4A 8H4", "street": "Test", "locality": "Test"}
-        }
-        rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
-        assert rv.status_code == HTTPStatus.OK
-        response_json = rv.json
-        assert response_json.get("strExempt") is True
+    assert len(response_json.get("errors")) == 1
+    assert response_json.get("errors")[0].get("message") == "'identifier' is a required property"

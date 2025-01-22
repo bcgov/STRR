@@ -78,7 +78,7 @@ def validate_listing():
 
     try:
         request_json = request.get_json()
-        response, status = ValidationService.validate_listing(request_json)
+        response, status = ValidationService.validate_permit(request_json)
         return response, status
 
     except Exception as service_exception:
