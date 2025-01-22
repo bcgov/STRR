@@ -56,10 +56,6 @@ onMounted(async () => {
   if (platFeeWv.value && platFeeSm.value) {
     // NOTE: setting 'waived' changes the text to 'No Fee' instead of $0.00
     platFeeWv.value.waived = true
-    // NOTE: service fee is variable and dependent on the account
-    // Pay api incorrectly sets the service fee for $0 fee codes to 0,
-    // so we are manually setting it to the service fee value from a non-zero fee code
-    platFeeWv.value.serviceFees = platFeeSm.value.serviceFees
     setPlaceholderServiceFee(platFeeSm.value.serviceFees)
   }
   loading.value = false
