@@ -12,8 +12,8 @@ const props = defineProps<{
   searchable?: boolean
 }>()
 
-const emit = defineEmits<{
-  reset: [void]
+defineEmits<{
+  sort: [void]
 }>()
 
 const filterModel = defineModel({ type: Array<any>, required: true, default: [] })
@@ -27,7 +27,6 @@ const fullOptions = computed(() => {
 function onChange (e: string[]) {
   if (e.includes('reset')) {
     filterModel.value = []
-    emit('reset')
   }
 }
 </script>
@@ -36,6 +35,7 @@ function onChange (e: string[]) {
     <TableHeaderLabel
       :column
       :sort
+      @sort="$emit('sort')"
     />
     <div class="p-2 font-normal">
       <USelectMenu
@@ -94,7 +94,6 @@ function onChange (e: string[]) {
                 border: 'border border-gray-500'
               }"
             />
-            <!-- :aria-label="$t('btn.colsToShow.checkbox.aria', { column: option })" -->
             <span>{{ option.label }}</span>
           </div>
         </template>

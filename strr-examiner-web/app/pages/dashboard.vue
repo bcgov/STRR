@@ -115,34 +115,38 @@ const getHostPrRequirements = (hostApplication: ApiHostApplication): string => {
 const applications = computed(() => mapApplicationsList())
 
 const columns = [
-  { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable: false },
+  { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable: true },
   { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable: true },
   { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable: true },
-  { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable: false },
-  // { key: 'propertyHost', label: t('page.dashboardList.columns.propertyHost'), sortable: false },
-  // { key: 'propertyManager', label: t('page.dashboardList.columns.propertyManager'), sortable: false },
-  { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: false },
-  { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: false },
-  { key: 'status', label: t('page.dashboardList.columns.status'), sortable: false },
-  { key: 'lastModified', label: 'Last Modified', sortable: false },
-  { key: 'adjudicator', label: 'Adjudicator', sortable: false }
+  { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable: true },
+  // { key: 'propertyHost', label: t('page.dashboardList.columns.propertyHost'), sortable: true },
+  // { key: 'propertyManager', label: t('page.dashboardList.columns.propertyManager'), sortable: true },
+  { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: true },
+  { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: true },
+  { key: 'status', label: t('page.dashboardList.columns.status'), sortable: true },
+  { key: 'lastModified', label: 'Last Modified', sortable: true },
+  { key: 'adjudicator', label: 'Adjudicator', sortable: true }
 ]
 
 const selectedColumns = ref([...columns])
+const sort = ref<TableSort>({ column: 'submissionDate', direction: 'asc' as const })
 
 async function handleRowSelect (row: any) {
   status.value = 'pending'
   await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
 }
 
-const sort = ref<TableSort>({ column: 'registrationType', direction: 'asc' as const })
-
-watch(
-  () => exStore.tableFilters,
-  (newVal) => {
-    console.log('new filters: ', newVal)
-  }, { deep: true }
-)
+function handleColumnSort (column: string) {
+  sort.value = {
+    column,
+    direction:
+      sort.value.column === column
+        ? sort.value.direction === 'asc'
+          ? 'desc'
+          : 'asc'
+        : 'desc'
+  }
+}
 </script>
 <template>
   <div class="h-full space-y-8 py-8 sm:space-y-10 sm:py-10">
@@ -215,6 +219,7 @@ watch(
           v-model="exStore.tableFilters.registrationNumber"
           :column
           :sort
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 
@@ -228,6 +233,7 @@ watch(
             { label: 'Strata', value: 'Strata' },
             { label: 'Platform', value: 'Platform' }
           ]"
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 
@@ -235,6 +241,7 @@ watch(
         <TableHeaderSelect
           v-model="exStore.tableFilters.requirements"
           :column
+          :sort
           :options="[
             { label: 'Host', value: undefined, disabled: true },
             { label: 'PR (Host)', value: 'pr-host' },
@@ -253,6 +260,7 @@ watch(
             { label: 'PR (Strata)', value: 'pr-strata' },
             { label: 'None (Strata)', value: 'none-strata' },
           ]"
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 
@@ -261,6 +269,7 @@ watch(
           v-model="exStore.tableFilters.applicantName"
           :column
           :sort
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 
@@ -269,6 +278,7 @@ watch(
           v-model="exStore.tableFilters.propertyAddress"
           :column
           :sort
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 
@@ -282,6 +292,7 @@ watch(
             { label: 'Strata', value: 'Strata' },
             { label: 'Platform', value: 'Platform' }
           ]"
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 
@@ -299,6 +310,7 @@ watch(
             { label: '2 years', duration: { years: 3 } },
             { label: '5 years', duration: { years: 5 } }
           ]"
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 
@@ -317,6 +329,7 @@ watch(
             { label: '7 days', duration: { days: 7 } },
             { label: '30 days', duration: { days: 30 } }
           ]"
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 
@@ -333,6 +346,7 @@ watch(
             { label: 'Person 4', value: 'person-4' },
             { label: 'Person 5', value: 'person-5' },
           ]"
+          @sort="handleColumnSort(column.key)"
         />
       </template>
 

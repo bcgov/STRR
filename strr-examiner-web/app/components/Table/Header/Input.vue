@@ -6,15 +6,14 @@ defineProps<{
   sort?: TableSort
 }>()
 
-const emit = defineEmits<{
-  reset: [void]
+defineEmits<{
+  sort: [void]
 }>()
 
 const filterModel = defineModel({ type: String, required: true, default: '' })
 
 function handleReset () {
   filterModel.value = ''
-  emit('reset')
 }
 </script>
 <template>
@@ -22,6 +21,7 @@ function handleReset () {
     <TableHeaderLabel
       :column
       :sort
+      @sort="$emit('sort')"
     />
     <div class="p-2 font-normal">
       <UInput

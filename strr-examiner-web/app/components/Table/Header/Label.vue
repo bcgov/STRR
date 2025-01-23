@@ -5,17 +5,28 @@ defineProps<{
   column: TableColumn
   sort?: TableSort
 }>()
+
+defineEmits<{
+  sort: [void]
+}>()
 </script>
 <template>
   <div class="flex h-14 items-center">
     <button
-      v-if="column.sortable && sort?.column === column.key"
+      v-if="column.sortable"
       class="inline-flex size-full items-center justify-between p-2 ring-inset
-      ring-blue-500 focus-within:ring-2 hover:bg-gray-300 focus:outline-none "
+      ring-blue-500 hover:bg-gray-300 focus:outline-none focus-visible:ring-2"
+      @click="$emit('sort')"
     >
-      <span class="text-gray-900">{{ column.label }}</span>
+      <span
+        :class="sort?.column === column.key ? 'text-bcGovGray-900' : 'text-[#757575]'"
+      >
+        {{ column.label }}
+      </span>
+      <!-- <pre>{{ sort }}</pre> -->
       <UIcon
-        name="i-mdi-arrow-down"
+        v-if="sort?.column === column.key"
+        :name="sort?.direction === 'asc' ? 'i-mdi-arrow-up' : 'i-mdi-arrow-down'"
         class="size-5 shrink-0 text-gray-900"
       />
     </button>

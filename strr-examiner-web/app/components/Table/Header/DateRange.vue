@@ -10,6 +10,10 @@ defineProps<{
   ranges: Range[]
 }>()
 
+defineEmits<{
+  sort: [void]
+}>()
+
 const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null, end: null } })
 </script>
 <template>
@@ -17,6 +21,7 @@ const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null,
     <TableHeaderLabel
       :column
       :sort
+      @sort="$emit('sort')"
     />
     <div class="p-2 font-normal">
       <TestDateRangePicker
