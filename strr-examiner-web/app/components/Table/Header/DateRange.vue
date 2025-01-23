@@ -1,0 +1,28 @@
+<script setup lang="ts">
+// @ts-ignore
+import type { DatePickerRangeObject } from 'v-calendar/dist/types/src/use/datePicker'
+import type { TableColumn } from '#ui/types'
+import type { TableSort, Range } from '#imports'
+
+defineProps<{
+  column: TableColumn
+  sort?: TableSort
+  ranges: Range[]
+}>()
+
+const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null, end: null } })
+</script>
+<template>
+  <div class="flex flex-col divide-y divide-gray-300">
+    <TableHeaderLabel
+      :column
+      :sort
+    />
+    <div class="p-2 font-normal">
+      <TestDateRangePicker
+        v-model="filterModel"
+        :ranges
+      />
+    </div>
+  </div>
+</template>

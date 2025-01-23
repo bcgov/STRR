@@ -45,7 +45,8 @@
     "@daxiom/nuxt-core-layer-test": "^0.0.21",
     "country-codes-list": "^1.6.11",
     "nuxt": "^3.15.0",
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.3",
+    "v-calendar": "^3.1.2"
   },
   "pnpm": {
     "overrides": {

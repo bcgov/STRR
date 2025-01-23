@@ -3,6 +3,18 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const { $strrApi } = useNuxtApp()
 
+  const tableFilters = reactive({
+    registrationNumber: '',
+    registrationType: [],
+    requirements: [],
+    applicantName: '',
+    propertyAddress: '',
+    status: [],
+    submissionDate: { start: null, end: null },
+    lastModified: { start: null, end: null },
+    adjudicator: []
+  })
+
   const getNextApplication = async <T extends ApiApplicationBaseResp>(): Promise<T | undefined> => {
     // TODO: update when requirements are flushed out and backend is updated.
     const resp = await getAccountApplications<T>(
@@ -47,6 +59,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   return {
+    tableFilters,
     approveApplication,
     rejectApplication,
     getNextApplication,

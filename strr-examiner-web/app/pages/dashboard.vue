@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import isEmpty from 'lodash/isEmpty'
-import { RoutesE } from '~/enums/routes'
-import type { ApiBasePlatformApplication, PlatformApplicationResp } from '~/interfaces/platform-i'
-import type { StrataApplicationResp } from '~/interfaces/strata-i'
-import { displayFullUnitAddress } from '~/utils/format-helper'
+import isEmpty from 'lodash'
+import { sub } from 'date-fns'
+import { dateToString, dateToStringPacific } from '#imports'
 
 const localePath = useLocalePath()
 const { t } = useI18n()
@@ -47,9 +45,8 @@ const mapApplicationsList = () => {
 
       let requirements = ''
       let applicantName = ''
-      let propertyHost = t('page.dashboardList.na')
-      let propertyManager = t('page.dashboardList.na')
       let propertyAddress = ''
+      let adjucator = ''
       if (registrationType === ApplicationType.HOST) {
         const hostApplication: ApiHostApplication = application.registration as ApiHostApplication
         applicantName = displayContactFullName(hostApplication.primaryContact) || ''
@@ -57,19 +54,20 @@ const mapApplicationsList = () => {
         requirements = isEmpty(hostApplication.strRequirements)
           ? t('page.dashboardList.requirements.host.none')
           : getHostPrRequirements(hostApplication)
-        propertyHost = displayContactFullName(hostApplication.primaryContact) || ''
-        propertyManager = getHostPropertyManager(hostApplication.propertyManager as ApiPropertyManager)
+        adjucator = 'host'
       } else if (registrationType === ApplicationType.PLATFORM) {
         const platformApplication = application.registration as ApiBasePlatformApplication
         applicantName = platformApplication.businessDetails.legalName
         propertyAddress = displayFullAddress(platformApplication.businessDetails.mailingAddress) || '-'
         requirements = t(`page.dashboardList.requirements.platform.${platformApplication.platformDetails.listingSize}`)
+        adjucator = 'platform'
       } else if (registrationType === ApplicationType.STRATA_HOTEL) {
         const strataApplication = application.registration as ApiBaseStrataApplication
         applicantName = strataApplication.businessDetails.legalName
         propertyAddress = displayFullAddress(strataApplication.strataHotelDetails.location) || '-'
         // TODO: update Strata requirements once backend is ready
         requirements = '-'
+        adjucator = 'strata'
       }
 
       return {
@@ -78,11 +76,11 @@ const mapApplicationsList = () => {
         registrationType: t(`registrationType.${registrationType}`),
         requirements,
         applicantName,
-        propertyHost,
-        propertyManager,
         propertyAddress,
         status: examinerStatus || status,
-        submissionDate: dateToString(applicationDateTime, 'MMMM d, yyyy')
+        submissionDate: application.header.applicationDateTime,
+        lastModified: getLastStatusChangeColumn(application.header),
+        adjucator
       }
     })
 }
@@ -106,28 +104,28 @@ const getHostPrRequirements = (hostApplication: ApiHostApplication): string => {
   // default value where there are no requirements
   t('page.dashboardList.requirements.host.none')
 }
+// const getHostPropertyManager = (propertyManager: ApiPropertyManager): string => {
+//   if (!propertyManager) { return '' }
 
-// Get Property Manager info for the Host application
-const getHostPropertyManager = (propertyManager: ApiPropertyManager): string => {
-  if (!propertyManager) { return 'N/A' }
-
-  return propertyManager.propertyManagerType === OwnerType.INDIVIDUAL
-    ? displayContactFullName(propertyManager.contact as ApiPartyWithAddress) || 'N/A'
-    : propertyManager.business?.legalName || 'N/A'
-}
+//   return propertyManager.propertyManagerType === OwnerType.INDIVIDUAL
+//     ? displayContactFullName(propertyManager.contact as ApiPartyWithAddress) || ''
+//     : propertyManager.business?.legalName || ''
+// }
 
 const applications = computed(() => mapApplicationsList())
 
 const columns = [
   { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable: false },
-  { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable: false },
-  { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable: false },
+  { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable: true },
+  { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable: true },
   { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable: false },
-  { key: 'propertyHost', label: t('page.dashboardList.columns.propertyHost'), sortable: false },
-  { key: 'propertyManager', label: t('page.dashboardList.columns.propertyManager'), sortable: false },
+  // { key: 'propertyHost', label: t('page.dashboardList.columns.propertyHost'), sortable: false },
+  // { key: 'propertyManager', label: t('page.dashboardList.columns.propertyManager'), sortable: false },
   { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: false },
+  { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: false },
   { key: 'status', label: t('page.dashboardList.columns.status'), sortable: false },
-  { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: false }
+  { key: 'lastModified', label: 'Last Modified', sortable: false },
+  { key: 'adjudicator', label: 'Adjudicator', sortable: false }
 ]
 
 const selectedColumns = ref([...columns])
@@ -137,6 +135,14 @@ async function handleRowSelect (row: any) {
   await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
 }
 
+const sort = ref<TableSort>({ column: 'registrationType', direction: 'asc' as const })
+
+watch(
+  () => exStore.tableFilters,
+  (newVal) => {
+    console.log('new filters: ', newVal)
+  }, { deep: true }
+)
 </script>
 <template>
   <div class="h-full space-y-8 py-8 sm:space-y-10 sm:py-10">
@@ -185,9 +191,11 @@ async function handleRowSelect (row: any) {
     </div>
     <UTable
       ref="tableRef"
+      v-model:sort="sort"
       :columns="selectedColumns"
       :rows="applications"
       :loading="status === 'pending'"
+      sort-mode="manual"
       :ui="{
         wrapper: 'relative overflow-x-auto h-[512px] bg-white',
         thead: 'sticky top-0 bg-white z-10',
@@ -202,8 +210,149 @@ async function handleRowSelect (row: any) {
       }"
       @select="handleRowSelect"
     >
+      <template #registrationNumber-header="{ column }">
+        <TableHeaderInput
+          v-model="exStore.tableFilters.registrationNumber"
+          :column
+          :sort
+        />
+      </template>
+
+      <template #registrationType-header="{ column }">
+        <TableHeaderSelect
+          v-model="exStore.tableFilters.registrationType"
+          :column
+          :sort
+          :options="[
+            { label: 'Host', value: 'Host' },
+            { label: 'Strata', value: 'Strata' },
+            { label: 'Platform', value: 'Platform' }
+          ]"
+        />
+      </template>
+
+      <template #requirements-header="{ column }">
+        <TableHeaderSelect
+          v-model="exStore.tableFilters.requirements"
+          :column
+          :options="[
+            { label: 'Host', value: undefined, disabled: true },
+            { label: 'PR (Host)', value: 'pr-host' },
+            { label: 'PR Exempt - Farm', value: 'pr-exempt-farm' },
+            { label: 'PR Exempt - Strata', value: 'pr-exempt-strata' },
+            { label: 'PR Exempt - Fractional', value: 'pr-exempt-fractional' },
+            { label: 'BL', value: 'bl' },
+            { label: 'Prohibited', value: 'prohibited' },
+            { label: 'None (Host)', value: 'none-host' },
+            // { label: 'None (Host)', value: undefined }, // TODO: implement ?
+            { label: 'Platform', value: undefined, disabled: true },
+            { label: 'Major', value: 'major' },
+            { label: 'Medium', value: 'medium' },
+            { label: 'Minor', value: 'minor' },
+            { label: 'Strata', value: undefined, disabled: true },
+            { label: 'PR (Strata)', value: 'pr-strata' },
+            { label: 'None (Strata)', value: 'none-strata' },
+          ]"
+        />
+      </template>
+
+      <template #applicantName-header="{ column }">
+        <TableHeaderInput
+          v-model="exStore.tableFilters.applicantName"
+          :column
+          :sort
+        />
+      </template>
+
+      <template #propertyAddress-header="{ column }">
+        <TableHeaderInput
+          v-model="exStore.tableFilters.propertyAddress"
+          :column
+          :sort
+        />
+      </template>
+
+      <template #status-header="{ column }">
+        <TableHeaderSelect
+          v-model="exStore.tableFilters.status"
+          :column
+          :sort
+          :options="[
+            { label: 'Host', value: 'Host' },
+            { label: 'Strata', value: 'Strata' },
+            { label: 'Platform', value: 'Platform' }
+          ]"
+        />
+      </template>
+
+      <template #submissionDate-header="{ column }">
+        <TableHeaderDateRange
+          v-model="exStore.tableFilters.submissionDate"
+          :column
+          :sort
+          :ranges="[
+            { label: 'Today', duration: { days: 0 } },
+            { label: '7 days', duration: { days: 7 } },
+            { label: '30 days', duration: { days: 30 } },
+            { label: '90 days', duration: { days: 90 } },
+            { label: '1 year', duration: { years: 1 } },
+            { label: '2 years', duration: { years: 3 } },
+            { label: '5 years', duration: { years: 5 } }
+          ]"
+        />
+      </template>
+
+      <template #lastModified-header="{ column }">
+        <TableHeaderDateRange
+          v-model="exStore.tableFilters.lastModified"
+          :column
+          :sort
+          :ranges="[
+            { label: 'Today', duration: { days: 0 } },
+            {
+              label: 'Yesterday',
+              duration: { start: sub(new Date(), { days: 1 }), end: sub(new Date(), { days: 1 }) }
+            },
+            { label: '2 days', duration: { days: 2 } },
+            { label: '7 days', duration: { days: 7 } },
+            { label: '30 days', duration: { days: 30 } }
+          ]"
+        />
+      </template>
+
+      <template #adjudicator-header="{ column }">
+        <TableHeaderSelect
+          v-model="exStore.tableFilters.adjudicator"
+          :column
+          :sort
+          searchable
+          :options="[
+            { label: 'Person 1', value: 'person-1' },
+            { label: 'Person 2', value: 'person-2' },
+            { label: 'Person 3', value: 'person-3' },
+            { label: 'Person 4', value: 'person-4' },
+            { label: 'Person 5', value: 'person-5' },
+          ]"
+        />
+      </template>
+
+      <!-- row slots -->
       <template #registrationNumber-data="{ row }">
         {{ row.registrationNumber ? `${row.registrationNumber} / ` : '' }}{{ row.applicationNumber }}
+      </template>
+
+      <template #submissionDate-data="{ row }">
+        <div class="flex flex-col">
+          <span>{{ dateToStringPacific(row.submissionDate) }}</span>
+          <span>{{ dateToString(row.submissionDate, 't') }}</span>
+        </div>
+      </template>
+
+      <template #lastModified-data="{ row }">
+        <div class="flex flex-col">
+          <span>{{ dateToStringPacific(row.lastModified) }}</span>
+          <span>{{ dateToString(row.lastModified, 't') }}</span>
+        </div>
       </template>
     </UTable>
   </div>
