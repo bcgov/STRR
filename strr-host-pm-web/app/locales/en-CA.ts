@@ -17,7 +17,8 @@ export default {
       title: "Short-term rentals are allowed in any of the host's properties."
     },
     propertyTypeReqUnitNumber: { // camelcase prop (propertytype) not working with ConnectI18nHelper component
-      title: '{boldStart}Important:{boldEnd} {propertytype} requires a unit number as part of the Rental Unit Residential Address above. If you do not include a unit number, your registration {boldStart}may be declined{boldEnd}.'
+      always: '{boldStart}Important:{boldEnd} {propertytype} requires a unit number as part of the Rental Unit Residential Address above. If you do not include a unit number, your registration {boldStart}may be declined{boldEnd}.',
+      maybe: '{boldStart}Important:{boldEnd} If your {propertytype} includes a unit number, make sure to enter it as part of the Rental Unit Residential Address above. You may submit your application without a unit number if none exists.'
     }
   },
   certify: {

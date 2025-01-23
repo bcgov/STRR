@@ -109,14 +109,7 @@ onMounted(async () => {
           </UFormGroup>
 
           <UAlert
-            v-if="propStore.unitDetails.propertyType && [
-              PropertyType.SECONDARY_SUITE,
-              PropertyType.ACCESSORY_DWELLING,
-              PropertyType.TOWN_HOME,
-              PropertyType.MULTI_UNIT_HOUSING,
-              PropertyType.CONDO_OR_APT,
-              PropertyType.STRATA_HOTEL
-            ].includes(propStore.unitDetails.propertyType)"
+            v-if="propStore.isUnitNumberRequired"
             class="mt-6 max-w-bcGovInput"
             color="yellow"
             icon="i-mdi-alert"
@@ -132,7 +125,12 @@ onMounted(async () => {
             <template #title>
               <ConnectI18nHelper
                 class="text-bcGovGray-700"
-                translation-path="alert.propertyTypeReqUnitNumber.title"
+                :translation-path="
+                  [PropertyType.SECONDARY_SUITE, PropertyType.ACCESSORY_DWELLING]
+                    .includes(propStore.unitDetails.propertyType!) ?
+                      'alert.propertyTypeReqUnitNumber.maybe' :
+                      'alert.propertyTypeReqUnitNumber.always'
+                "
                 :propertytype="$t(`propertyType.${propStore.unitDetails.propertyType}`)"
               />
             </template>
