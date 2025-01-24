@@ -23,7 +23,7 @@ function handleReset () {
       :sort
       @sort="$emit('sort')"
     />
-    <div class="p-2 font-normal">
+    <div class="h-[58px] p-2 font-normal">
       <UInput
         v-model="filterModel"
         :placeholder="column.label"

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import isEmpty from 'lodash'
 import { sub } from 'date-fns'
-import { dateToString, dateToStringPacific } from '#imports'
+import { dateToString, dateToStringPacific, ApplicationType, ApplicationStatus } from '#imports'
 
 const localePath = useLocalePath()
 const { t } = useI18n()
+const { $strrApi } = useNuxtApp()
 // TODO: ApplicationStatus.FULL_REVIEW is temporary until we have reqs defined
-const { limit, page, getApplicationList } = useStrrBasePermitList(undefined, undefined)
+// const { limit, page, getApplicationList } = useStrrBasePermitList(undefined, undefined) // leaving this for reference
+// const { getAccountApplications } = useStrrApi() // leaving this for reference
+const exStore = useExaminerStore()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -17,13 +20,61 @@ definePageMeta({
   middleware: ['auth']
 })
 
+// leaving this for reference
+// const { data: applicationListResp, status } = await useAsyncData(
+//   'application-list-resp',
+//   getApplicationList,
+//   {
+//     watch: [limit, page],
+//     default: () => ({ applications: [], total: 0 })
+//   }
+// )
+
+// text currently matches anything, same as existing examiners app
+// cannot combine search and registration type at this point in time
 const { data: applicationListResp, status } = await useAsyncData(
   'application-list-resp',
-  getApplicationList,
+  useDebounceFn(() => {
+    if (exStore.tableFilters.registrationType.length) { // fetch applications by type if type provided
+      return $strrApi('/applications', {
+        query: {
+          limit: exStore.tableLimit,
+          page: exStore.tablePage,
+          registrationType: exStore.tableFilters.registrationType[0], // api only allows 1 at a time
+          status: exStore.tableFilters.status[0] // api only allows 1 at a time
+        }
+      })
+    } else { // else try to fetch by search
+      return $strrApi('/applications/search', {
+        query: {
+          limit: exStore.tableLimit,
+          page: exStore.tablePage,
+          status: exStore.tableFilters.status[0], // api only allows 1 at a time
+          text: exStore.tableFilters.registrationNumber.length > 2 ? exStore.tableFilters.registrationNumber : undefined // min length 3 required
+        }
+      })
+    }
+  }, 500),
   {
-    watch: [limit, page],
+    watch: [
+      () => exStore.tableLimit,
+      () => exStore.tablePage,
+      () => exStore.tableFilters.registrationType,
+      () => exStore.tableFilters.status,
+      () => exStore.tableFilters.registrationNumber
+    ],
+    // deep: true, watch: [() => exStore.tableFilters] // can do this once the rest of the table filters are added
     default: () => ({ applications: [], total: 0 })
   }
+)
+
+// reset page when filters change
+watch(
+  () => exStore.tableFilters,
+  () => {
+    exStore.tablePage = 1
+  },
+  { deep: true }
 )
 
 const mapApplicationsList = () => {
@@ -45,12 +96,12 @@ const mapApplicationsList = () => {
 
       let requirements = ''
       let applicantName = ''
-      let propertyAddress = ''
+      let propertyAddress
       let adjucator = ''
       if (registrationType === ApplicationType.HOST) {
         const hostApplication: ApiHostApplication = application.registration as ApiHostApplication
         applicantName = displayContactFullName(hostApplication.primaryContact) || ''
-        propertyAddress = displayFullUnitAddress(hostApplication.unitAddress) || '-'
+        propertyAddress = hostApplication.unitAddress // displayFullUnitAddress(hostApplication.unitAddress) || '-'
         requirements = isEmpty(hostApplication.strRequirements)
           ? t('page.dashboardList.requirements.host.none')
           : getHostPrRequirements(hostApplication)
@@ -58,13 +109,13 @@ const mapApplicationsList = () => {
       } else if (registrationType === ApplicationType.PLATFORM) {
         const platformApplication = application.registration as ApiBasePlatformApplication
         applicantName = platformApplication.businessDetails.legalName
-        propertyAddress = displayFullAddress(platformApplication.businessDetails.mailingAddress) || '-'
+        propertyAddress = platformApplication.businessDetails.mailingAddress // displayFullAddress(platformApplication.businessDetails.mailingAddress) || '-'
         requirements = t(`page.dashboardList.requirements.platform.${platformApplication.platformDetails.listingSize}`)
         adjucator = 'platform'
       } else if (registrationType === ApplicationType.STRATA_HOTEL) {
         const strataApplication = application.registration as ApiBaseStrataApplication
         applicantName = strataApplication.businessDetails.legalName
-        propertyAddress = displayFullAddress(strataApplication.strataHotelDetails.location) || '-'
+        propertyAddress = strataApplication.strataHotelDetails.location // displayFullAddress(strataApplication.strataHotelDetails.location) || '-'
         // TODO: update Strata requirements once backend is ready
         requirements = '-'
         adjucator = 'strata'
@@ -159,9 +210,9 @@ function handleColumnSort (column: string) {
     />
     <div class="flex justify-end gap-3">
       <UPagination
-        v-if="applicationListResp.total > limit"
-        v-model="page"
-        :page-count="limit"
+        v-if="applicationListResp.total > exStore.tableLimit"
+        v-model="exStore.tablePage"
+        :page-count="exStore.tableLimit"
         size="lg"
         :total="applicationListResp?.total || 0"
         :ui="{
@@ -203,7 +254,7 @@ function handleColumnSort (column: string) {
       :ui="{
         wrapper: 'relative overflow-x-auto h-[512px] bg-white',
         thead: 'sticky top-0 bg-white z-10',
-        th: { padding: 'px-2 py-4' },
+        th: { padding: 'px-0 py-0' },
         td: {
           base: 'whitespace-normal max-w-96 align-top',
           padding: 'p-2',
@@ -229,9 +280,9 @@ function handleColumnSort (column: string) {
           :column
           :sort
           :options="[
-            { label: 'Host', value: 'Host' },
-            { label: 'Strata', value: 'Strata' },
-            { label: 'Platform', value: 'Platform' }
+            { label: 'Host', value: ApplicationType.HOST },
+            { label: 'Strata', value: ApplicationType.STRATA_HOTEL },
+            { label: 'Platform', value: ApplicationType.PLATFORM }
           ]"
           @sort="handleColumnSort(column.key)"
         />
@@ -251,7 +302,6 @@ function handleColumnSort (column: string) {
             { label: 'BL', value: 'bl' },
             { label: 'Prohibited', value: 'prohibited' },
             { label: 'None (Host)', value: 'none-host' },
-            // { label: 'None (Host)', value: undefined }, // TODO: implement ?
             { label: 'Platform', value: undefined, disabled: true },
             { label: 'Major', value: 'major' },
             { label: 'Medium', value: 'medium' },
@@ -287,10 +337,19 @@ function handleColumnSort (column: string) {
           v-model="exStore.tableFilters.status"
           :column
           :sort
+          :default="[ApplicationStatus.FULL_REVIEW]"
           :options="[
-            { label: 'Host', value: 'Host' },
-            { label: 'Strata', value: 'Strata' },
-            { label: 'Platform', value: 'Platform' }
+            { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },
+            { label: 'Provisional Review', value: ApplicationStatus.PROVISIONAL_REVIEW },
+            { label: 'Payment Due', value: ApplicationStatus.PAYMENT_DUE },
+            { label: 'Provsional', value: ApplicationStatus.PROVISIONAL },
+            { label: 'Paid', value: ApplicationStatus.PAID },
+            { label: 'Additional Info Requested', value: ApplicationStatus.ADDITIONAL_INFO_REQUESTED },
+            { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
+            { label: 'Draft', value: ApplicationStatus.DRAFT },
+            { label: 'Declined', value: ApplicationStatus.DECLINED },
+            { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
+            { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED }
           ]"
           @sort="handleColumnSort(column.key)"
         />
@@ -353,6 +412,13 @@ function handleColumnSort (column: string) {
       <!-- row slots -->
       <template #registrationNumber-data="{ row }">
         {{ row.registrationNumber ? `${row.registrationNumber} / ` : '' }}{{ row.applicationNumber }}
+      </template>
+
+      <template #propertyAddress-data="{ row }">
+        <ConnectFormAddressDisplay
+          :address="row.propertyAddress"
+          omit-country
+        />
       </template>
 
       <template #submissionDate-data="{ row }">

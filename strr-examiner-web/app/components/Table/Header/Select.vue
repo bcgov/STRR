@@ -10,6 +10,7 @@ const props = defineProps<{
   }>
   sort?: TableSort
   searchable?: boolean
+  default?: Array<any>
 }>()
 
 defineEmits<{
@@ -26,7 +27,7 @@ const fullOptions = computed(() => {
 
 function onChange (e: string[]) {
   if (e.includes('reset')) {
-    filterModel.value = []
+    filterModel.value = props.default ?? []
   }
 }
 </script>
@@ -37,7 +38,7 @@ function onChange (e: string[]) {
       :sort
       @sort="$emit('sort')"
     />
-    <div class="p-2 font-normal">
+    <div class="h-[58px] p-2 font-normal">
       <USelectMenu
         v-model="filterModel"
         :options="fullOptions"

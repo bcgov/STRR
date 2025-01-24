@@ -3,13 +3,15 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const { $strrApi } = useNuxtApp()
 
+  const tableLimit = ref(50)
+  const tablePage = ref(1)
   const tableFilters = reactive({
     registrationNumber: '',
     registrationType: [],
     requirements: [],
     applicantName: '',
     propertyAddress: '',
-    status: [],
+    status: [ApplicationStatus.FULL_REVIEW],
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
     adjudicator: []
@@ -60,10 +62,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   return {
     tableFilters,
+    tableLimit,
+    tablePage,
     approveApplication,
     rejectApplication,
     getNextApplication,
     getDocument,
     openDocInNewTab
   }
-})
+}, { persist: true }) // will persist data in session storage

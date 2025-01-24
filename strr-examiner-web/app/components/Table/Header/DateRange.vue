@@ -23,8 +23,8 @@ const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null,
       :sort
       @sort="$emit('sort')"
     />
-    <div class="p-2 font-normal">
-      <TestDateRangePicker
+    <div class="h-[58px] p-2 font-normal">
+      <DateRangePicker
         v-model="filterModel"
         :ranges
       />

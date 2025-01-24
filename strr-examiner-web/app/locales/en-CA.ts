@@ -327,9 +327,11 @@ export default {
       },
       requirements: {
         platform: {
+          GREATER_THAN_THOUSAND: 'Major platform', // old enum ?
           THOUSAND_AND_ABOVE: 'Major platform',
           BETWEEN_250_AND_999: 'Medium platform',
-          LESS_THAN_250: 'Minor platform'
+          LESS_THAN_250: 'Minor platform',
+          undefined: '-'
         },
         host: {
           pr: 'PR',
