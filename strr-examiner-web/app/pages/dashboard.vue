@@ -194,7 +194,7 @@ function handleColumnSort (column: string) {
       :to="localePath('/examine/123')"
     />
     <h1>Search</h1>
-    <ConnectPageSection>
+    <ConnectPageSection :aria-label="`Application list, ${applicationListResp?.total || 0} results`">
       <template #header>
         <div class="flex flex-wrap items-center justify-between">
           <UButton
