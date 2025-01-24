@@ -23,7 +23,6 @@ defineEmits<{
       >
         {{ column.label }}
       </span>
-      <!-- <pre>{{ sort }}</pre> -->
       <UIcon
         v-if="sort?.column === column.key"
         :name="sort?.direction === 'asc' ? 'i-mdi-arrow-up' : 'i-mdi-arrow-down'"
