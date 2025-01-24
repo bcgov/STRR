@@ -60,6 +60,23 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     URL.revokeObjectURL(url)
   }
 
+  const resetFilters = () => {
+    Object.assign(
+      tableFilters,
+      {
+        registrationNumber: '',
+        registrationType: [],
+        requirements: [],
+        applicantName: '',
+        propertyAddress: '',
+        status: [ApplicationStatus.FULL_REVIEW],
+        submissionDate: { start: null, end: null },
+        lastModified: { start: null, end: null },
+        adjudicator: []
+      }
+    )
+  }
+
   return {
     tableFilters,
     tableLimit,
@@ -68,6 +85,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     rejectApplication,
     getNextApplication,
     getDocument,
-    openDocInNewTab
+    openDocInNewTab,
+    resetFilters
   }
 }, { persist: true }) // will persist data in session storage
