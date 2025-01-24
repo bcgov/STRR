@@ -134,6 +134,7 @@ class ApprovalService:
                         else:
                             if not auto_approval.businessLicenseRequired:
                                 auto_approval.suggestedAction = Application.Status.AUTO_APPROVED
+
                             else:
                                 if auto_approval.businessLicenseProvided:
                                     auto_approval.suggestedAction = Application.Status.PROVISIONALLY_APPROVED
@@ -141,26 +142,31 @@ class ApprovalService:
                                     auto_approval.suggestedAction = Application.Status.FULL_REVIEW
 
                 auto_approval.renting = registration.unitDetails.ownershipType == RentalProperty.OwnershipType.RENT
+
                 cls._check_title_match(application, auto_approval, registration)
 
                 cls.save_approval_record_by_application(application.id, auto_approval)
-                cls._update_application_status_to_full_review(application)
+
+                if auto_approval.suggestedAction == Application.Status.AUTO_APPROVED:
+                    registration_id = cls._approve_application(
+                        application=application,
+                        status=Application.Status.AUTO_APPROVED,
+                        event=Events.EventName.AUTO_APPROVAL_APPROVED,
+                    )
+                elif auto_approval.suggestedAction == Application.Status.PROVISIONALLY_APPROVED:
+                    registration_id = cls._approve_application(
+                        application=application,
+                        status=Application.Status.PROVISIONAL_REVIEW,
+                        event=Events.EventName.AUTO_APPROVAL_PROVISIONAL,
+                    )
+                else:
+                    cls._update_application_status_to_full_review(application)
 
             elif registration_type == RegistrationType.PLATFORM.value:
-                application.status = Application.Status.AUTO_APPROVED
-                registration = RegistrationService.create_registration(
-                    application.submitter_id, application.payment_account, application.application_json
-                )
-                registration_id = registration.id
-                application.registration_id = registration.id
-                application.decision_date = datetime.utcnow()
-                application.save()
-
-                EventsService.save_event(
-                    event_type=Events.EventType.APPLICATION,
-                    event_name=Events.EventName.AUTO_APPROVAL_APPROVED,
-                    application_id=application.id,
-                    visible_to_applicant=False,
+                registration_id = cls._approve_application(
+                    application=application,
+                    status=Application.Status.AUTO_APPROVED,
+                    event=Events.EventName.AUTO_APPROVAL_APPROVED,
                 )
             elif registration_type == RegistrationType.STRATA_HOTEL.value:
                 cls._update_application_status_to_full_review(application)
@@ -174,6 +180,23 @@ class ApprovalService:
             except Exception as e:
                 current_app.logger.error("Error while updating application status to full review:", e)
             return application.status, None
+
+    @classmethod
+    def _approve_application(cls, application, status, event):
+        application.status = status
+        registration = RegistrationService.create_registration(
+            application.submitter_id, application.payment_account, application.application_json
+        )
+        application.registration_id = registration.id
+        application.decision_date = datetime.utcnow()
+        application.save()
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=event,
+            application_id=application.id,
+            visible_to_applicant=False,
+        )
+        return registration.id
 
     @classmethod
     def _has_registration_documents(cls, registration: Registration, document_types: List[str]) -> bool:

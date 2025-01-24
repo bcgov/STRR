@@ -39,7 +39,7 @@ EVENT_MESSAGES = {
     "PAYMENT_COMPLETE": "Payment completed.",
     "PENDING_AUTO_APPROVAL_PROCESSING": "Pending Auto Approval processing.",
     "AUTO_APPROVAL_FULL_REVIEW": "Application marked for full review by the auto approval process.",
-    "AUTO_APPROVAL_PROVISIONAL": "Application conditionally approved by the auto approval process.",
+    "AUTO_APPROVAL_PROVISIONAL": "Application marked for provisional review by the auto approval process.",
     "AUTO_APPROVAL_APPROVED": "Application approved by the auto approval process.",
     "FULL_REVIEW_IN_PROGRESS": "Full Review in progress.",
     "MANUALLY_APPROVED": "Application approved by staff.",
