@@ -130,7 +130,7 @@ const { data: applicationListResp, status } = await useAsyncData(
         requirements: getRequirementsColumn(app),
         applicantName: getApplicantNameColumn(app),
         propertyAddress: getPropertyAddressColumn(app),
-        status: app.header.registrationStatus || app.header.hostStatus, // TODO: should this have registration status ?
+        status: app.header.registrationStatus || app.header.hostStatus, // TODO: should this have registration status? maybe this should just return app.header.status?
         submissionDate: app.header.applicationDateTime,
         lastModified: getLastStatusChangeColumn(app.header),
         adjudicator: '-' // TODO: get adjudicator
