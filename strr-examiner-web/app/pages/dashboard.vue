@@ -124,19 +124,17 @@ const { data: applicationListResp, status } = await useAsyncData(
         return { applications: [], total: 0 }
       }
 
-      const applications = res.applications.map((app: HousApplicationResponse) => {
-        return {
-          applicationNumber: app.header.registrationNumber || app.header.applicationNumber,
-          registrationType: t(`registrationType.${app.registration.registrationType}`),
-          requirements: getRequirementsColumn(app),
-          applicantName: getApplicantNameColumn(app),
-          propertyAddress: getPropertyAddressColumn(app),
-          status: app.header.registrationStatus || app.header.hostStatus, // TODO: should this have registration status ?
-          submissionDate: app.header.applicationDateTime,
-          lastModified: getLastStatusChangeColumn(app.header),
-          adjudicator: '-' // TODO: get adjudicator
-        }
-      })
+      const applications = res.applications.map((app: HousApplicationResponse) => ({
+        applicationNumber: app.header.registrationNumber || app.header.applicationNumber,
+        registrationType: t(`registrationType.${app.registration.registrationType}`),
+        requirements: getRequirementsColumn(app),
+        applicantName: getApplicantNameColumn(app),
+        propertyAddress: getPropertyAddressColumn(app),
+        status: app.header.registrationStatus || app.header.hostStatus, // TODO: should this have registration status ?
+        submissionDate: app.header.applicationDateTime,
+        lastModified: getLastStatusChangeColumn(app.header),
+        adjudicator: '-' // TODO: get adjudicator
+      }))
 
       return { applications, total: res.total }
     }
