@@ -199,7 +199,9 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     isEntireHomeAndNotPrincipalResidence:
       unitDetails.value.typeOfSpace === RentalUnitType.ENTIRE_HOME &&
       unitDetails.value.rentalUnitSetupType !== RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
-    isSharedAccommodation: unitDetails.value.typeOfSpace === RentalUnitType.SHARED_ACCOMMODATION
+    isSharedAccommodation: unitDetails.value.typeOfSpace === RentalUnitType.SHARED_ACCOMMODATION,
+    isBBorRecProperty: unitDetails.value.propertyType &&
+      [PropertyType.BED_AND_BREAKFAST, PropertyType.RECREATIONAL].includes(unitDetails.value.propertyType)
   }))
 
   const resetUnitAddress = (preserveNickname = false) => {

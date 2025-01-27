@@ -38,6 +38,7 @@ setPlaceholderFilingTypeCode(StrrFeeCode.STR_HOST_1)
 const hostFee1 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
+const hostFee4 = ref<ConnectFeeItem | undefined>(undefined)
 
 onMounted(async () => {
   loading.value = true
@@ -46,53 +47,61 @@ onMounted(async () => {
   if (applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
   }
-  const [fee1, fee2] = await Promise.all([
+  const [fee1, fee2, fee3] = await Promise.all([
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_1),
-    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_2)
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_2),
+    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_3)
   ])
   hostFee1.value = fee1
   hostFee2.value = fee2
-  // TODO: expecting new fee code for this
-  hostFee3.value = fee1
+  hostFee3.value = fee1 // TODO: expecting new fee code for this (hostFee3)
+  hostFee4.value = fee3
   if (hostFee1.value) {
     setPlaceholderServiceFee(hostFee1.value.serviceFees)
   }
   loading.value = false
 })
 
+const resetFees = () => {
+  if (hostFee3.value) {
+    hostFee3.value.quantity = 1
+  }
+  removeFee(StrrFeeCode.STR_HOST_1)
+  removeFee(StrrFeeCode.STR_HOST_2)
+  removeFee(StrrFeeCode.STR_HOST_3)
+}
+
 const setFeeBasedOnProperty = () => {
-  if (!hostFee1.value || !hostFee2.value || !hostFee3.value) {
+  if (!hostFee1.value || !hostFee2.value || !hostFee3.value || !hostFee4.value) {
     return
   }
+  resetFees()
   if (propertyTypeFeeTriggers.value.isEntireHomeAndPrincipalResidence) {
-    hostFee3.value.quantity = 1
-    removeFee(StrrFeeCode.STR_HOST_2)
     addReplaceFee(hostFee1.value)
   } else if (propertyTypeFeeTriggers.value.isEntireHomeAndNotPrincipalResidence) {
-    removeFee(StrrFeeCode.STR_HOST_1)
     addReplaceFee(hostFee2.value)
   } else if (propertyTypeFeeTriggers.value.isSharedAccommodation) {
-    removeFee(StrrFeeCode.STR_HOST_1)
-    removeFee(StrrFeeCode.STR_HOST_2)
-    hostFee3.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
-    addReplaceFee(hostFee3.value)
+    if (propertyTypeFeeTriggers.value.isBBorRecProperty) {
+      addReplaceFee(hostFee4.value)
+    } else {
+      hostFee3.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
+      addReplaceFee(hostFee3.value)
+    }
   } else {
     // set placeholder
-    removeFee(StrrFeeCode.STR_HOST_1)
-    removeFee(StrrFeeCode.STR_HOST_2)
+    resetFees()
   }
   hostFee3.value.quantityDesc = hostFee3.value.quantity !== undefined && hostFee3.value.quantity > 1
     ? t('strr.word.room', hostFee3.value.quantity)
     : undefined
 }
 
-// manage fees only when typeofspace and rentalUnitSetupType change
+// manage fees only when typeOfSpace, rentalUnitSetupType or propertyType change
 watch(unitDetails, (newVal) => {
-  if (newVal.typeOfSpace !== undefined && newVal.rentalUnitSetupType !== undefined) {
+  if (newVal.typeOfSpace && newVal.rentalUnitSetupType && newVal.propertyType) {
     setFeeBasedOnProperty()
   } else {
-    removeFee(StrrFeeCode.STR_HOST_1)
-    removeFee(StrrFeeCode.STR_HOST_2)
+    resetFees()
   }
 }, { deep: true })
 

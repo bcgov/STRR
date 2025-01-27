@@ -53,6 +53,10 @@ export default defineAppConfig({
         HOSTREG_2: {
           i18nkey: 'link.viewFeeSchedule',
           hrefRtcKey: 'hostFeesUrl'
+        },
+        HOSTREG_3: {
+          i18nkey: 'link.viewFeeSchedule',
+          hrefRtcKey: 'hostFeesUrl'
         }
       })
     },

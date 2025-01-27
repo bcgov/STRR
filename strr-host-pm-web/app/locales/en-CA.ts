@@ -444,7 +444,7 @@ export default {
   },
   rentalUnitType: {
     ENTIRE_HOME: 'Entire Home (guests rent an entire residence for themselves)',
-    SHARED_ACCOMMODATION: 'Room in a Home (guest rent only a portion of a residence (e.g. a bedroom) and may share common spaces with the host or other guests. If you select this option, you will be charged a fee per room.)',
+    SHARED_ACCOMMODATION: 'Room in a Home (guest rent only a portion of a residence (e.g. a bedroom) and may share common spaces with the host or other guests. If you select this option, you will be charged a fee per room.',
     undefined: 'Not Selected'
   },
   rentalUnitSetupType: {
@@ -467,7 +467,8 @@ export default {
     feeSummary: {
       itemLabels: {
         HOSTREG_1: 'STR Application Fee',
-        HOSTREG_2: 'STR Application Fee'
+        HOSTREG_2: 'STR Application Fee',
+        HOSTREG_3: 'STR Application Fee'
       }
     }
   }
