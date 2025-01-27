@@ -38,7 +38,7 @@ import requests
 from flask import Flask
 from flask_jwt_oidc import JwtManager
 
-from strr_api.enums.enum import RegistrationType, PropertyType
+from strr_api.enums.enum import PropertyType, RegistrationType
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events, RentalProperty
 from strr_api.services.events_service import EventsService
