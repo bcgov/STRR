@@ -38,7 +38,7 @@ import requests
 from flask import Flask
 from flask_jwt_oidc import JwtManager
 
-from strr_api.enums.enum import RegistrationType
+from strr_api.enums.enum import RegistrationType, PropertyType
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events, RentalProperty
 from strr_api.services.events_service import EventsService
@@ -46,6 +46,8 @@ from strr_api.services.user_service import UserService
 from strr_api.utils.date_util import DateUtil
 
 STRATA_HOTEL_REG = "STRATAREG"
+
+HOST_REGISTRATION_FEE_3 = "HOSTREG_3"
 
 HOST_REGISTRATION_FEE_2 = "HOSTREG_2"
 
@@ -164,9 +166,12 @@ class PayService:
             else:
                 filing_type = HOST_REGISTRATION_FEE_2
         elif rental_unit_space_type == RentalProperty.RentalUnitSpaceType.SHARED_ACCOMMODATION:
-            if registration_json.get("unitDetails").get("numberOfRoomsForRent"):
-                quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
             filing_type = HOST_REGISTRATION_FEE_1
+            property_type = registration_json.get("unitDetails").get("propertyType")
+            if property_type in {PropertyType.BED_AND_BREAKFAST, PropertyType.RECREATIONAL}:
+                filing_type = HOST_REGISTRATION_FEE_3    
+            elif registration_json.get("unitDetails").get("numberOfRoomsForRent"):
+                quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
         return filing_type, quantity
 
     def get_payment_details_by_invoice_id(self, user_jwt: JwtManager, account_id, invoice_id: int):
