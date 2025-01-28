@@ -169,7 +169,7 @@ class PayService:
             filing_type = HOST_REGISTRATION_FEE_1
             property_type = registration_json.get("unitDetails").get("propertyType")
             if property_type in {PropertyType.BED_AND_BREAKFAST.name, PropertyType.RECREATIONAL.name}:
-                filing_type = HOST_REGISTRATION_FEE_3    
+                filing_type = HOST_REGISTRATION_FEE_3
             elif registration_json.get("unitDetails").get("numberOfRoomsForRent"):
                 quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
         return filing_type, quantity
