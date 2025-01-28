@@ -33,6 +33,7 @@ geoalchemy2 = "^0.15.1"
 weasyprint = "^62.3"
 sqlalchemy-utils = "^0.41.2"
 sql-versioning = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/sql-versioning", branch = "main" }
+gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 
 [tool.poetry.group.test.dependencies]
 freezegun = "^1.2.2"
