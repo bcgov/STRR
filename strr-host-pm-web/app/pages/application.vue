@@ -54,8 +54,8 @@ onMounted(async () => {
   ])
   hostFee1.value = fee1
   hostFee2.value = fee2
-  hostFee3.value = fee1 // TODO: expecting new fee code for this (hostFee3)
-  hostFee4.value = fee3
+  hostFee3.value = fee3
+  hostFee4.value = fee1 // TODO: expecting new fee code for this (hostFee4 - shared accommodation)
   if (hostFee1.value) {
     setPlaceholderServiceFee(hostFee1.value.serviceFees)
   }
@@ -63,9 +63,6 @@ onMounted(async () => {
 })
 
 const resetFees = () => {
-  if (hostFee3.value) {
-    hostFee3.value.quantity = 1
-  }
   removeFee(StrrFeeCode.STR_HOST_1)
   removeFee(StrrFeeCode.STR_HOST_2)
   removeFee(StrrFeeCode.STR_HOST_3)
@@ -82,17 +79,17 @@ const setFeeBasedOnProperty = () => {
     addReplaceFee(hostFee2.value)
   } else if (propertyTypeFeeTriggers.value.isSharedAccommodation) {
     if (propertyTypeFeeTriggers.value.isBBorRecProperty) {
-      addReplaceFee(hostFee4.value)
-    } else {
-      hostFee3.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
       addReplaceFee(hostFee3.value)
+    } else {
+      hostFee4.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
+      addReplaceFee(hostFee4.value)
     }
   } else {
     // set placeholder
     resetFees()
   }
-  hostFee3.value.quantityDesc = hostFee3.value.quantity !== undefined && hostFee3.value.quantity > 1
-    ? t('strr.word.room', hostFee3.value.quantity)
+  hostFee4.value.quantityDesc = hostFee4.value.quantity !== undefined && hostFee4.value.quantity > 1
+    ? t('strr.word.room', hostFee4.value.quantity)
     : undefined
 }
 
