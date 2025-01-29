@@ -73,7 +73,7 @@ def worker():
         #
         # Decision here is to return a 200,
         # so the event is removed from the Queue
-        logger.info('get_simple_cloud_event returned none')
+        logger.info("get_simple_cloud_event returned none")
         return {}, HTTPStatus.OK
 
     logger.info(f"received ce: {str(ce)}")
@@ -87,43 +87,43 @@ def worker():
     if not (application := Application.find_by_application_number(email_info.application_number)):
         # no application matching the application number
         logger.error(f"Error: application {email_info.application_number} not found.")
-        return jsonify(
-            {"message": f"Application number ({email_info.application_number}) not found."}
-        ), HTTPStatus.NOT_FOUND
+        return (
+            jsonify(
+                {"message": f"Application number ({email_info.application_number}) not found."}
+            ),
+            HTTPStatus.NOT_FOUND,
+        )
 
     app_dict = ApplicationSerializer.to_dict(application)
 
     template = Path(
         f"{current_app.config['EMAIL_TEMPLATE_PATH']}/strr-{email_info.email_type}.md"
-    ).read_text('utf-8')
+    ).read_text("utf-8")
     filled_template = substitute_template_parts(template)
     jinja_template = Template(filled_template, autoescape=True)
     html_out = jinja_template.render(
         application_num=application.application_number,
-        ops_email=current_app.config['EMAIL_HOUSING_OPS_EMAIL'],
-        toll_free_tel=current_app.config['EMAIL_TOLL_FREE_TEL'],
-        vic_office_tel=current_app.config['EMAIL_VICTORIA_OFFICE_TEL']
+        ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
+        toll_free_tel=current_app.config["EMAIL_TOLL_FREE_TEL"],
+        vic_office_tel=current_app.config["EMAIL_VICTORIA_OFFICE_TEL"],
     )
     email = {
-        'recipients': _get_email_recipients(app_dict),
+        "recipients": _get_email_recipients(app_dict),
         # requestBy is how the notify-api determines which GC Notify account to use
-        'requestBy': current_app.config['EMAIL_STRR_REQUEST_BY'],
-        'content': {
-            'subject': email_info.email_type,
-            'body': f'{html_out}'
-        },
+        "requestBy": current_app.config["EMAIL_STRR_REQUEST_BY"],
+        "content": {"subject": email_info.email_type, "body": f"{html_out}"},
     }
 
     # 4. Send email via notify-api
     token = AuthService.get_service_client_token()
     resp = requests.post(
-        current_app.config['NOTIFY_SVC_URL'],
+        current_app.config["NOTIFY_SVC_URL"],
         json=email,
         headers={
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {token}',
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}",
         },
-        timeout=current_app.config['NOTIFY_API_TIMEOUT']
+        timeout=current_app.config["NOTIFY_API_TIMEOUT"],
     )
 
     if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
@@ -139,22 +139,25 @@ def _get_email_recipients(app_dict: dict):
     "Return the email recipients in a string separated by commas."
     recipients: list[str] = []
     # FUTURE: update for different registration types
-    if app_dict['registration']['registrationType'] == Registration.RegistrationType.HOST.value:
+    if app_dict["registration"]["registrationType"] == Registration.RegistrationType.HOST.value:
         # Host recipients
         # the primary contact email should always be there (this is the primary host)
-        recipients.append(app_dict['registration']['primaryContact']['emailAddress'])
-        if property_manager := app_dict['registration'].get('propertyManager'):
+        recipients.append(app_dict["registration"]["primaryContact"]["emailAddress"])
+        if property_manager := app_dict["registration"].get("propertyManager"):
             # will have a person or business email
-            email = property_manager.get('contact', {}).get('emailAddress') \
-                or property_manager['business']['primaryContact']['emailAddress']
+            email = (
+                property_manager.get("contact", {}).get("emailAddress")
+                or property_manager["business"]["primaryContact"]["emailAddress"]
+            )
             recipients.append(email)
 
-    return ','.join(recipients)
+    return ",".join(recipients)
 
 
 @dataclass
 class EmailInfo:
     """Email Info class"""
+
     application_number: str = None
     email_type: str = None
 
@@ -186,16 +189,13 @@ def substitute_template_parts(template_code: str) -> str:
     - template parts should only be one level deep
     parts. There is no recursive search and replace.
     """
-    template_parts = [
-        'strr-title-application-status-change',
-        'strr-footer'
-    ]
+    template_parts = ["strr-title-application-status-change", "strr-footer"]
 
     # substitute template parts - marked up by [[filename.md]]
     for template_part in template_parts:
         template_part_code = Path(
             f"{current_app.config['EMAIL_TEMPLATE_PATH']}/common/{template_part}.md"
-        ).read_text('utf-8')
-        template_code = template_code.replace(f'[[{template_part}.md]]', template_part_code)
+        ).read_text("utf-8")
+        template_code = template_code.replace(f"[[{template_part}.md]]", template_part_code)
 
     return template_code
