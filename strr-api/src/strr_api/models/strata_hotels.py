@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 from sql_versioning import Versioned
-from sqlalchemy import Enum # new import
+from sqlalchemy import Enum
 from sqlalchemy.orm import relationship
 
-from strr_api.common.enum import BaseEnum, auto # new import
+from strr_api.common.enum import BaseEnum, auto
 from strr_api.models.base_model import BaseModel
 
 from .db import db
