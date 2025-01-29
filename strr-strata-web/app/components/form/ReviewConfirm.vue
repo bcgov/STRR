@@ -286,7 +286,7 @@ onMounted(async () => {
             :title="$t('strr.label.strataHotelCategory')"
             title-class="font-bold text-bcGovGray-900"
             :content="detailsStore.strataDetails.category ?
-              $t(`strataHotelCategoryReview.${detailsStore.strataDetails.category}`) :
+              $t(`strataHotelCategory.${detailsStore.strataDetails.category}`) :
               '-'"
             class="mt-5"
           />
