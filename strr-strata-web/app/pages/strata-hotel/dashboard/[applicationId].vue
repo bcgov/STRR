@@ -45,6 +45,7 @@ onMounted(async () => {
     const nonPlural = strataDetails.value.numberOfUnits === 1
     const urlParts = strataDetails.value.brand.website.match(/^(https?:\/\/)(www\.)?(.+?(?=(\/)|$))/)
     subtitles.value = [
+      { text: t(`strataHotelCategoryReview.${strataDetails.value.category}`) },
       { text: `${strataDetails.value.numberOfUnits} ${t('strr.word.unit', nonPlural ? 1 : 2)}` },
       {
         text: urlParts && urlParts.length > 2 ? urlParts[3] || '' : '',

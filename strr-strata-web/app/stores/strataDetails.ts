@@ -30,7 +30,15 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
       t('validation.address.region'),
       t('validation.address.postalCode'),
       t('validation.address.country')
-    )
+    ),
+    category: z.enum(
+      [
+        StrataHotelCategory.FULL_SERVICE,
+        StrataHotelCategory.MULTI_UNIT_NON_PR,
+        StrataHotelCategory.POST_DECEMBER_2023
+      ], {
+        errorMap: () => ({ message: t('validation.category') })
+      })
   })
 
   const getEmptyStrataDetails = () => ({
@@ -45,7 +53,8 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
       postalCode: '',
       locationDescription: ''
     },
-    numberOfUnits: undefined
+    numberOfUnits: undefined,
+    category: undefined
   })
 
   const strataDetails = ref<StrataDetails>(getEmptyStrataDetails())

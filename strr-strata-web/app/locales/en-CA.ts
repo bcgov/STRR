@@ -58,13 +58,18 @@ export default {
       regOfficeAttSvc: 'Registered Office or Attorney for Service',
       confirmation: 'Confirmation',
       termsAndCond: 'Terms and Conditions',
-      termsAndCondLowerCase: 'terms and conditions'
+      termsAndCondLowerCase: 'terms and conditions',
+      strataHotelCategory: 'Strata Hotel Category'
     },
     text: {
       comingSoon: 'Short-Term Rental Strata Hotel Registry will be available on December 15, 2024',
       isUserRep: 'Are you the strata-titled hotel or motel representative?',
       primaryContact: 'This is the primary contact person for the strata-titled hotel or motel.',
-      buildingsSubText: 'Enter the address for each building that is part of the strata-titled hotel or motel. Include all co-located buildings in your application.'
+      buildingsSubText: 'Enter the address for each building that is part of the strata-titled hotel or motel. Include all co-located buildings in your application.',
+      selectStrataHotelCategory: {
+        a11y: 'Required: Identify the type of strata-titled hotel or motel.',
+        link: 'Learn more about strata hotel categories'
+      }
     },
     word: {
       unit: 'unit | units'
@@ -160,7 +165,8 @@ export default {
     wholeNumber: 'Please enter a whole number (no decimals)',
     min1Unit: 'The number of rental units must be greater than 0',
     max5000Units: 'The number of rental units must not exceed 5000',
-    min1Document: 'Must have at least one document'
+    min1Document: 'Must have at least one document',
+    category: 'Please select a category'
   },
   certify: {
     1: '{terms} I confirm that I am duly authorized to register this Strata-Titled Hotel or Motel and to agree to the {link1} of registration on behalf of the Strata-Titled Hotel or Motel. I agree to comply, and the Strata-Titled Hotel or Motel agrees to comply, with the {link2} of registration.',
@@ -169,6 +175,16 @@ export default {
   },
   docType: {
     STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation'
+  },
+  strataHotelCategory: {
+    FULL_SERVICE: 'Category 1: Strata hotel with a staffed front desk, housekeeping services, and a platform.',
+    MULTI_UNIT_NON_PR: 'Category 2: Strata hotel with two or more strata lots that cannot be used as a principal residence.',
+    POST_DECEMBER_2023: 'Category 3: New strata hotel development since December 2023.'
+  },
+  strataHotelCategoryReview: {
+    FULL_SERVICE: 'Category 1',
+    MULTI_UNIT_NON_PR: 'Category 2',
+    POST_DECEMBER_2023: 'Category 3'
   },
   hint: {
     docUpload: 'File must be a PDF. Maximum 10 MB.'

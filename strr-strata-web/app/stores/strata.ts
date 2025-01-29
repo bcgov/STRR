@@ -53,6 +53,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
         // api does not save this value so we have to assume it was not selected yet for drafts
         strataBusiness.value.hasRegOffAtt = undefined
       }
+
       strataDetails.value = formatStrataDetailsUI(permitDetails.value.strataHotelDetails)
 
       storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({

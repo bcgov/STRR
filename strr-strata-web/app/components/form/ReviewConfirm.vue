@@ -257,7 +257,7 @@ onMounted(async () => {
           },
           {
             title: $t('strr.section.subTitle.numberOfUnits'),
-            content: detailsStore.strataDetails.numberOfUnits
+            slot: 'numberOfUnits'
           },
           {
             title: $t('strr.section.subTitle.primaryStrataBuilding'),
@@ -277,6 +277,17 @@ onMounted(async () => {
             :title="$t('strr.review.brand.site')"
             title-class="font-bold text-bcGovGray-900"
             :content="detailsStore.strataDetails.brand.website || '-'"
+            class="mt-5"
+          />
+        </template>
+        <template #numberOfUnits>
+          <p>{{ detailsStore.strataDetails.numberOfUnits || '-' }}</p>
+          <ConnectInfoBox
+            :title="$t('strr.label.strataHotelCategory')"
+            title-class="font-bold text-bcGovGray-900"
+            :content="detailsStore.strataDetails.category ?
+              $t(`strataHotelCategoryReview.${detailsStore.strataDetails.category}`) :
+              '-'"
             class="mt-5"
           />
         </template>

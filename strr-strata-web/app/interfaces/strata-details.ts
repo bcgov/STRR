@@ -1,6 +1,7 @@
 export interface StrataDetails {
   brand: StrrBrand,
-  buildings: ConnectAddress[],
+  buildings: ConnectAddress[]
   location: ConnectAddress
   numberOfUnits: number | undefined
+  category: StrataHotelCategory | undefined
 }

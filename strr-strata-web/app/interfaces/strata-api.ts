@@ -3,6 +3,7 @@ export interface ApiStrataDetails {
   buildings: ApiAddress[]
   location: ApiAddress
   numberOfUnits: number
+  category: StrataHotelCategory | undefined
 }
 
 export interface ApiBaseStrataRegistration extends ApiBaseRegistration {

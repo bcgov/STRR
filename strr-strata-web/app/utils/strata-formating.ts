@@ -41,7 +41,8 @@ export function formatStrataDetails (details: StrataDetails): ApiStrataDetails {
     brand: details.brand,
     buildings: details.buildings.map(building => (formatAddress(building))),
     location: formatAddress(details.location),
-    numberOfUnits: details.numberOfUnits as number
+    numberOfUnits: details.numberOfUnits as number,
+    category: details.category
   }
 }
 
@@ -50,6 +51,7 @@ export function formatStrataDetailsUI (details: ApiStrataDetails): StrataDetails
     brand: details.brand,
     buildings: details.buildings.map(building => (formatAddressUI(building))),
     location: formatAddressUI(details.location),
-    numberOfUnits: details.numberOfUnits as number
+    numberOfUnits: details.numberOfUnits as number,
+    category: details.category
   }
 }

@@ -72,6 +72,55 @@ onMounted(async () => {
           </ConnectFormSection>
           <div class="h-px w-full border-b border-gray-100" />
           <ConnectFormSection
+            :title="$t('strr.label.strataHotelCategory')"
+            :error="hasFormErrors(strataDetailsFormRef, ['category'])"
+          >
+            <UFormGroup
+              id="strata-details-category"
+              data-testid="strata-details-category"
+              name="category"
+            >
+              <URadioGroup
+                v-model="strataDetails.category"
+                class="p-2"
+                :class="isComplete && strataDetails.category === undefined
+                  ? 'border-red-600 border-2 pt-4'
+                  : 'pt-4'
+                "
+                :options="[
+                  {
+                    label: $t(`strataHotelCategory.${StrataHotelCategory.FULL_SERVICE}`),
+                    value: StrataHotelCategory.FULL_SERVICE
+                  },
+                  {
+                    label: $t(`strataHotelCategory.${StrataHotelCategory.MULTI_UNIT_NON_PR}`),
+                    value: StrataHotelCategory.MULTI_UNIT_NON_PR
+                  },
+                  {
+                    label: $t(`strataHotelCategory.${StrataHotelCategory.POST_DECEMBER_2023}`),
+                    value: StrataHotelCategory.POST_DECEMBER_2023
+                  }
+                ]"
+                :ui-radio="{ inner: 'space-y-2' }"
+              >
+                <template #legend>
+                  <span class="sr-only">{{ $t('strr.text.selectStrataHotelCategory.a11y') }}</span>
+                  <UButton
+                    :label="$t('strr.text.selectStrataHotelCategory.link')"
+                    :to="rtc.requiredDocsUrl"
+                    target="_blank"
+                    trailing-icon="i-mdi-open-in-new"
+                    variant="link"
+                    class="text-base underline"
+                    :padded="false"
+                    :ui="{ gap: { sm: 'gap-x-1.5' } }"
+                  />
+                </template>
+              </URadioGroup>
+            </UFormGroup>
+          </ConnectFormSection>
+          <div class="h-px w-full border-b border-gray-100" />
+          <ConnectFormSection
             :title="$t('strr.section.subTitle.numberOfUnits')"
             :error="hasFormErrors(strataDetailsFormRef, ['numberOfUnits'])"
           >

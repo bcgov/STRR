@@ -1,5 +1,12 @@
 import { faker, fakerEN_CA as fakerCa } from '@faker-js/faker'
 
+// enum not being resolved when defined outside of this file for some reason
+enum StrataHotelCategory {
+  FULL_SERVICE = 'FULL_SERVICE',
+  MULTI_UNIT_NON_PR = 'MULTI_UNIT_NON_PR',
+  POST_DECEMBER_2023 = 'POST_DECEMBER_2023'
+}
+
 export function getFakeContactDetails (): StrrContact {
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
@@ -59,6 +66,9 @@ export function getFakeStrataDetails (): StrataDetails {
     },
     buildings: [getFakeAddress(), getFakeAddress()],
     location: getFakeAddress(),
-    numberOfUnits: faker.number.int({ min: 10, max: 5000 })
+    numberOfUnits: faker.number.int({ min: 10, max: 5000 }),
+    category: faker.helpers.arrayElement(
+      [StrataHotelCategory.FULL_SERVICE, StrataHotelCategory.MULTI_UNIT_NON_PR, StrataHotelCategory.POST_DECEMBER_2023]
+    )
   }
 }

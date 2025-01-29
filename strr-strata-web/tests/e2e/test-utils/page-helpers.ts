@@ -9,7 +9,7 @@ import { enI18n } from '~~/tests/mocks/i18n'
 const i18nText = enI18n.global.messages.value['en-CA']
 
 export async function chooseAccount (page: Page, loginMethod: LoginSource) {
-  await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'networkidle', timeout: 60000 })
+  await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'load', timeout: 60000 })
 
   await expect(page.getByTestId('h1')).toContainText('Select Account')
 
@@ -138,6 +138,7 @@ export async function completeStep3 (
   const strataDetailsSection = page.locator('section').filter({ hasText: 'Strata-Titled Hotel or Motel Details' })
   await strataDetailsSection.getByTestId('strata-brand-name').fill(strataDetails.brand.name)
   await strataDetailsSection.getByTestId('strata-brand-site').fill(strataDetails.brand.website)
+  await strataDetailsSection.locator(`input[type="radio"][value="${strataDetails.category}"]`).check()
   await strataDetailsSection.getByTestId('strata-details-numberOfUnits')
     .fill(strataDetails.numberOfUnits!.toString())
 
@@ -229,6 +230,7 @@ export async function completeStep4 (
   await expect(strataDetailsSection).toContainText(strataDetails.buildings[0]!.street)
   await expect(strataDetailsSection).toContainText(strataDetails.buildings[0]!.city)
   await expect(strataDetailsSection).toContainText(strataDetails.buildings[0]!.postalCode)
+  await expect(strataDetailsSection).toContainText(i18nText.strataHotelCategoryReview[strataDetails.category!])
   await expect(strataDetailsSection).toContainText('fake-strata-hotel-docs.pdf')
 
   // Check certify checkbox
@@ -258,6 +260,7 @@ export const assertDashboardDetailsView = async (
   const urlParts = strataDetails.brand.website.match(/^(https?:\/\/)(www\.)?(.+?(?=(\/)|$))/) // remove https from website name and trailing slashes
   await expect(detailsHeader).toContainText(urlParts![3]!)
   await expect(detailsHeader).toContainText(strataDetails.numberOfUnits!.toString())
+  await expect(detailsHeader).toContainText(i18nText.strataHotelCategoryReview[strataDetails.category!])
   await expect(detailsHeader).toContainText('Pending Approval')
   await expect(detailsHeader.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
 
