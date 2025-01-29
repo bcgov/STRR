@@ -51,12 +51,15 @@ class EmailService:
     """Service to handle email logic and to interact with the email queue."""
 
     @staticmethod
-    def sendApplicationStatusUpdateEmail(application: Application):
-        """Send email notification for the application if applicable. Assumes the application.status has been changed."""
+    def send_application_status_update_email(application: Application):
+        """Send email notification for the application if applicable.
+
+        Assumes the application.status has been changed."""
         if application.status in APPLICATION_EMAIL_STATES:
             try:
                 gcp_queue_publisher.publish_to_queue(
-                    # NOTE: if registrationType / status typing (str vs enum) is updated in the model 'emailType' may need changes
+                    # NOTE: if registrationType / status typing (str vs enum)
+                    #       is updated in the model 'emailType' may need changes
                     gcp_queue_publisher.QueueMessage(
                         source=EMAIL_SOURCE,
                         message_type=EMAIL_TYPE,
@@ -68,4 +71,4 @@ class EmailService:
                     )
                 )
             except Exception as err:
-                logger.error(f"Failed to publish email notification: {err.with_traceback(None)}")
+                logger.error("Failed to publish email notification: %s", err.with_traceback(None))

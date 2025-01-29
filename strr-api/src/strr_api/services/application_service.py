@@ -198,7 +198,7 @@ class ApplicationService:
             application_id=application.id,
         )
 
-        EmailService.sendApplicationStatusUpdateEmail(application)
+        EmailService.send_application_status_update_email(application)
 
         return application
 
