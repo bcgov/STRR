@@ -4,6 +4,11 @@
 
 // const currentDir = dirname(fileURLToPath(import.meta.url))
 
+// disable gtm if dev or test env or missing gtm id
+const isTestOrDev = ['test', 'development'].includes((process.env.NUXT_ENVIRONMENT_HEADER || '').toLowerCase())
+const isGtmIdEmpty = !(process.env.NUXT_GTM_ID?.trim() || '')
+const isGtmEnabled = !(isTestOrDev || isGtmIdEmpty)
+
 export default defineNuxtConfig({
   devtools: { enabled: false },
   ssr: false,
@@ -80,8 +85,8 @@ export default defineNuxtConfig({
   },
 
   gtm: {
-    enabled: !!process.env.NUXT_GTM_ID?.trim(),
-    id: process.env.NUXT_GTM_ID?.trim() as string,
+    enabled: isGtmEnabled,
+    id: isGtmEnabled ? process.env.NUXT_GTM_ID?.trim() as string : 'GTM-UNDEFINED',
     debug: true,
     defer: true
   },
