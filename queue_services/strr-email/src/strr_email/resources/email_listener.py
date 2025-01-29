@@ -39,11 +39,15 @@ from http import HTTPStatus
 from pathlib import Path
 import re
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint
+from flask import current_app
+from flask import jsonify
+from flask import request
 from jinja2 import Template
 import requests
 from simple_cloudevent import SimpleCloudEvent
-from strr_api.models import Application, Registration
+from strr_api.models import Application
+from strr_api.models import Registration
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import AuthService
 from structured_logging import StructuredLogging
