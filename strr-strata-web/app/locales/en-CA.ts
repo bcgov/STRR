@@ -176,12 +176,12 @@ export default {
   docType: {
     STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation'
   },
-  strataHotelCategory: {
+  strataHotelCategory: { // need to include this for tests to pass
     FULL_SERVICE: 'Category 1: Strata hotel with a staffed front desk, housekeeping services, and a platform.',
     MULTI_UNIT_NON_PR: 'Category 2: Strata hotel with two or more strata lots that cannot be used as a principal residence.',
     POST_DECEMBER_2023: 'Category 3: New strata hotel development since December 2023.'
   },
-  strataHotelCategoryReview: {
+  strataHotelCategoryReview: { // need to include this for tests to pass
     FULL_SERVICE: 'Category 1',
     MULTI_UNIT_NON_PR: 'Category 2',
     POST_DECEMBER_2023: 'Category 3',
