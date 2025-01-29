@@ -3,10 +3,11 @@ import { fileURLToPath } from 'url'
 import { expect, type Page } from '@playwright/test'
 import { LoginSource } from '../enums/login-source'
 import { getH2 } from './getters'
-import { enI18n } from '~~/tests/mocks/i18n'
+import { enI18n, baseEnI18n } from '~~/tests/mocks/i18n'
 
 // pull text from i18n keys instead of hard coding, this will only need to be updated if the i18n key changes
 const i18nText = enI18n.global.messages.value['en-CA']
+const baseI18nText = baseEnI18n.global.messages.value['en-CA']
 
 export async function chooseAccount (page: Page, loginMethod: LoginSource) {
   await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'load', timeout: 60000 })
@@ -230,7 +231,7 @@ export async function completeStep4 (
   await expect(strataDetailsSection).toContainText(strataDetails.buildings[0]!.street)
   await expect(strataDetailsSection).toContainText(strataDetails.buildings[0]!.city)
   await expect(strataDetailsSection).toContainText(strataDetails.buildings[0]!.postalCode)
-  await expect(strataDetailsSection).toContainText(i18nText.strataHotelCategoryReview[strataDetails.category!])
+  await expect(strataDetailsSection).toContainText(baseI18nText.strataHotelCategoryReview[strataDetails.category!])
   await expect(strataDetailsSection).toContainText('fake-strata-hotel-docs.pdf')
 
   // Check certify checkbox
@@ -260,7 +261,7 @@ export const assertDashboardDetailsView = async (
   const urlParts = strataDetails.brand.website.match(/^(https?:\/\/)(www\.)?(.+?(?=(\/)|$))/) // remove https from website name and trailing slashes
   await expect(detailsHeader).toContainText(urlParts![3]!)
   await expect(detailsHeader).toContainText(strataDetails.numberOfUnits!.toString())
-  await expect(detailsHeader).toContainText(i18nText.strataHotelCategoryReview[strataDetails.category!])
+  await expect(detailsHeader).toContainText(baseI18nText.strataHotelCategoryReview[strataDetails.category!])
   await expect(detailsHeader).toContainText('Pending Approval')
   await expect(detailsHeader.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
 
