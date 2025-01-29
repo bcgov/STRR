@@ -41,7 +41,7 @@ from typing import Optional
 from flask import current_app
 from simple_cloudevent import SimpleCloudEvent
 
-from .gcp_queue import GcpQueue, queue
+from strr_api.services.gcp_queue import GcpQueue, queue
 
 
 @dataclass
