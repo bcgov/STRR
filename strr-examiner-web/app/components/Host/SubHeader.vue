@@ -1,9 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{ application: HostApplicationResp }>()
 const reg = props.application.registration
-// defineEmits<{
-//   openExpansion: [OpenExpansionEvent]
-// }>()
 
 const { t } = useI18n()
 
@@ -38,7 +35,6 @@ const hostExp = useHostExpansion()
             variant="link"
             @click="hostExp.openHostOwners(application, 'primaryContact')"
           />
-          <!-- @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'primaryContact' }])" -->
         </div>
         <div>
           <UIcon name="i-mdi-at" />
@@ -89,7 +85,6 @@ const hostExp = useHostExpansion()
             variant="link"
             @click="hostExp.openHostOwners(application, 'secondaryContact')"
           />
-          <!-- @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'secondaryContact' }])" -->
         </div>
 
         <div v-if="reg?.propertyManager?.propertyManagerType" class="flex items-center gap-1">
@@ -102,7 +97,6 @@ const hostExp = useHostExpansion()
             variant="link"
             @click="hostExp.openHostOwners(application, 'propertyManager')"
           />
-          <!-- @click="$emit('openExpansion', [ExpansionItem.HOST_OWNERS, { display: 'propertyManager' }])" -->
         </div>
       </div>
     </div>
