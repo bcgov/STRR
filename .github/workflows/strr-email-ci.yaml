@@ -1,0 +1,20 @@
+name: STRR EMAIL CI
+
+on:
+  pull_request:
+    paths:
+      - "queue_services/strr-email/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./queue_services/strr-email
+
+jobs:
+  strr-email-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    with:
+      app_name: "strr-email"
+      working_directory: "./queue_services/strr-email"
+      codecov_flag: "strremail"
