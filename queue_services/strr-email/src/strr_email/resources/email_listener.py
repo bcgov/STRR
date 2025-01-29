@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-"""This Module processes eventarc messages for bulk validation file upload.
+"""This Module processes and sends email messages via the notify-api.
 """
 from dataclasses import dataclass
 from http import HTTPStatus
@@ -102,6 +102,7 @@ def worker():
     )
     email = {
         'recipients': _get_email_recipients(app_dict),
+        # requestBy is how the notify-api determines which GC Notify account to use
         'requestBy': current_app.config['EMAIL_STRR_REQUEST_BY'],
         'content': {
             'subject': email_info.email_type,
@@ -133,6 +134,7 @@ def worker():
 def _get_email_recipients(app_dict: dict):
     "Return the email recipients in a string separated by commas."
     recipients: list[str] = []
+    # FUTURE: update for different registration types
     if app_dict['registration']['registrationType'] == Registration.RegistrationType.HOST.value:
         # Host recipients
         # the primary contact email should always be there (this is the primary host)
@@ -153,16 +155,15 @@ class EmailInfo:
     email_type: str = None
 
 
-def get_email_info(ce: SimpleCloudEvent):
-    """Return a PaymentToken if enclosed in the cloud event."""
-    # TODO: need to verify type / should it be under bc.registry..?
-    if (ce.type == "strr.email") and (data := ce.data) and isinstance(data, dict):
+def get_email_info(ce: SimpleCloudEvent) -> EmailInfo | None:
+    """Return an EmailInfo if enclosed in the cloud event."""
+    if (data := ce.data) and isinstance(data, dict):
         converted = dict_keys_to_snake_case(data)
         return EmailInfo(**converted)
     return None
 
 
-def dict_keys_to_snake_case(d: dict):
+def dict_keys_to_snake_case(d: dict) -> dict[str, str]:
     """Convert the keys of a dict to snake_case"""
     pattern = re.compile(r"(?<!^)(?=[A-Z])")
     converted = {}

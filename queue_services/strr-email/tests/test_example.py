@@ -1,4 +1,4 @@
-"""Tests for example functionalities in the strr_pay package."""
+"""Tests for example functionalities in the strr_email package."""
 
 
 def test_placeholder():

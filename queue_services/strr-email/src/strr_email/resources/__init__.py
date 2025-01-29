@@ -31,9 +31,9 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""Batch permit validator module.
+"""Email queue listener module.
 
-Provides the service that applies payments to applications.
+Provides the service that processes and sends email notifications for STRR.
 """
 from flask import Flask
 

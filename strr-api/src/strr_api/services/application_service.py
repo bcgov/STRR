@@ -32,22 +32,17 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Service to interact with the applications model."""
-import logging
 from datetime import datetime, timezone
 from typing import Optional
-
-from flask import current_app
 
 from strr_api.enums.enum import ApplicationType, PaymentStatus
 from strr_api.models import Application, Events, User
 from strr_api.models.application import ApplicationSerializer
 from strr_api.models.dataclass import ApplicationSearch
-from strr_api.services import gcp_queue_publisher
+from strr_api.services.email_service import EmailService
 from strr_api.services.events_service import EventsService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.user_service import UserService
-
-logger = logging.getLogger("api")
 
 APPLICATION_TERMINAL_STATES = [
     Application.Status.FULL_REVIEW_APPROVED,
@@ -62,7 +57,6 @@ APPLICATION_STATES_STAFF_ACTION = [
     Application.Status.ADDITIONAL_INFO_REQUESTED,
 ]
 APPLICATION_UNPAID_STATES = [Application.Status.DRAFT, Application.Status.PAYMENT_DUE]
-APPLICATION_EMAIL_STATES = [Application.Status.FULL_REVIEW_APPROVED]
 
 
 class ApplicationService:
@@ -203,24 +197,9 @@ class ApplicationService:
             event_name=ApplicationService._get_event_name(application.status),
             application_id=application.id,
         )
-        
-        # Send email notification if applicable
-        if application.status in APPLICATION_EMAIL_STATES:
-            try:
-                gcp_queue_publisher.publish_to_queue(
-                    # NOTE: if registrationType / status typing (str vs enum) is updated in the model 'emailType' may need changes
-                    gcp_queue_publisher.QueueMessage(
-                        source="strr-api",
-                        message_type="strr.email",
-                        payload={
-                          "applicationNumber": application.application_number,
-                          "emailType": f"{application.registration_type.value}_{application.status}"
-                        },
-                        topic=current_app.config.get("GCP_EMAIL_TOPIC")
-                    )
-                )
-            except Exception as err:
-                logger.error(f"Failed to publish email notification: {err.with_traceback(None)}")
+
+        EmailService.sendApplicationStatusUpdateEmail(application)
+
         return application
 
     @staticmethod

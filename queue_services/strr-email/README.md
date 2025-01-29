@@ -3,7 +3,7 @@
 
 # Application Name
 
-BC Registries  - batch-permit-validator
+BC Registries  - strr-email
 
 ## Technology Stack Used
 * Python, Flask

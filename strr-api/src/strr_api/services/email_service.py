@@ -31,49 +31,41 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-"""This module provides Queue type services."""
-
-import uuid
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Optional
+"""This module provides Email type services."""
+import logging
 
 from flask import current_app
-from simple_cloudevent import SimpleCloudEvent
 
-from .gcp_queue import GcpQueue, queue
+from strr_api.models import Application
+from strr_api.services import gcp_queue_publisher
 
+logger = logging.getLogger("api")
 
-@dataclass
-class QueueMessage:
-    """Queue message data class."""
+APPLICATION_EMAIL_STATES = [Application.Status.FULL_REVIEW_APPROVED]
 
-    source: str
-    message_type: str
-    payload: dict
-    topic: str
-    ordering_key: Optional[str] = None
+EMAIL_SOURCE = "strr-api"
+EMAIL_TYPE = "strr.email"
 
 
-def publish_to_queue(queue_message: QueueMessage):
-    """Publish to GCP PubSub Queue using queue."""
-    if queue_message.topic is None:
-        current_app.logger.info("Skipping queue message topic not set.")
-        return
+class EmailService:
+    """Service to handle email logic and to interact with the email queue."""
 
-    # Create a SimpleCloudEvent from the QueueMessage
-    cloud_event = SimpleCloudEvent(
-        id=str(uuid.uuid4()),
-        source=queue_message.source,
-        # Intentionally blank, this field has been moved to topic.
-        subject=None,
-        time=datetime.now(tz=timezone.utc).isoformat(),
-        type=queue_message.message_type,
-        data=queue_message.payload,
-    )
-
-    kwargs = {}
-    if queue_message.ordering_key:
-        kwargs.update({"ordering_key": queue_message.ordering_key})
-
-    queue.publish(queue_message.topic, GcpQueue.to_queue_message(cloud_event), **kwargs)
+    @staticmethod
+    def sendApplicationStatusUpdateEmail(application: Application):
+        """Send email notification for the application if applicable. Assumes the application.status has been changed."""
+        if application.status in APPLICATION_EMAIL_STATES:
+            try:
+                gcp_queue_publisher.publish_to_queue(
+                    # NOTE: if registrationType / status typing (str vs enum) is updated in the model 'emailType' may need changes
+                    gcp_queue_publisher.QueueMessage(
+                        source=EMAIL_SOURCE,
+                        message_type=EMAIL_TYPE,
+                        payload={
+                            "applicationNumber": application.application_number,
+                            "emailType": f"{application.registration_type.value}_{application.status}",
+                        },
+                        topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+                    )
+                )
+            except Exception as err:
+                logger.error(f"Failed to publish email notification: {err.with_traceback(None)}")

@@ -37,6 +37,7 @@ Test-Suite to ensure that the GCP Queue Service layer is working as expected.
 """
 import json
 import os
+import random
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
@@ -97,13 +98,23 @@ def test_publish_to_queue_no_topic(app, mock_credentials, mock_publisher_client)
             mock_publisher.publish.assert_not_called()
 
 
-@pytest.mark.parametrize('registration_type, old_status, new_status, expect_email', [
-    (Registration.RegistrationType.HOST, Application.Status.FULL_REVIEW, Application.Status.FULL_REVIEW_APPROVED, True)
-])
-def test_gcp_publish_on_status_change(app, mock_credentials, mock_publisher_client, registration_type, old_status, new_status, expect_email):
+@pytest.mark.parametrize(
+    "registration_type, old_status, new_status, expect_email",
+    [
+        (
+            Registration.RegistrationType.HOST,
+            Application.Status.FULL_REVIEW,
+            Application.Status.FULL_REVIEW_APPROVED,
+            True,
+        )
+    ],
+)
+def test_gcp_publish_on_status_change(
+    app, mock_credentials, mock_publisher_client, registration_type, old_status, new_status, expect_email
+):
     """Test that application status updates trigger an email notification when necessary."""
-    orig_topic = app.config['GCP_EMAIL_TOPIC']
-    app.config['GCP_EMAIL_TOPIC'] = "test"
+    orig_topic = app.config["GCP_EMAIL_TOPIC"]
+    app.config["GCP_EMAIL_TOPIC"] = "test"
     with patch.object(GcpQueue, "publish") as mock_publisher:
         with app.app_context():
             # FUTURE: when adding tests for other registration types update this based on registration_type
@@ -114,7 +125,7 @@ def test_gcp_publish_on_status_change(app, mock_credentials, mock_publisher_clie
                     firstname="Test",
                     lastname="User",
                     iss="test",
-                    sub="subStaffEmailTest",
+                    sub=f"subStaffEmail{random.randint(0, 99999)}",
                     idp_userid="testUserID",
                     login_source="testLogin",
                 )
@@ -136,4 +147,4 @@ def test_gcp_publish_on_status_change(app, mock_credentials, mock_publisher_clie
                 else:
                     mock_publisher.publish.assert_not_called()
     # set back to original topic
-    app.config['GCP_EMAIL_TOPIC'] = orig_topic
+    app.config["GCP_EMAIL_TOPIC"] = orig_topic
