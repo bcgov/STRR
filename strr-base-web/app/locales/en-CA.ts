@@ -284,7 +284,8 @@ export default {
     myStrr: 'My Short-term Rental Registry',
     completingParty: 'Completing Party',
     completePayment: 'Complete Payment',
-    payNow: 'Pay Now'
+    payNow: 'Pay Now',
+    strataHotelCategory: 'Strata Hotel Category'
   },
   modal: {
     declineTos: {
@@ -515,6 +516,17 @@ export default {
         delistAndCancelBookings: 'I confirm agreement to delist and cancel existing bookings for unregistered listings as required under s. 17 (2) (a) and [relevant section of the forthcoming regulation].'
       }
     }
+  },
+  strataHotelCategory: {
+    FULL_SERVICE: 'Category 1: Strata hotel with a staffed front desk, housekeeping services, and a platform.',
+    MULTI_UNIT_NON_PR: 'Category 2: Strata hotel with two or more strata lots that cannot be used as a principal residence.',
+    POST_DECEMBER_2023: 'Category 3: New strata hotel development since December 2023.'
+  },
+  strataHotelCategoryReview: {
+    FULL_SERVICE: 'Category 1',
+    MULTI_UNIT_NON_PR: 'Category 2',
+    POST_DECEMBER_2023: 'Category 3',
+    undefined: 'Uncategorized'
   },
   ConnectPage: {
     error: {
