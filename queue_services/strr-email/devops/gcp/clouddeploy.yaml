@@ -42,7 +42,7 @@ serialPipeline:
       deploy-project-id: "bcrbk9-tools"
       service-name: "strr-email-sandbox"
       container-name: "strr-email-sandbox"
-      cloudsql-instances: "bcrbk9-tools:northamerica-northeast1:strr-db-sandbox"
+      cloudsql-instances: "bcrbk9-tools:us-central1:strr-db-sandbox"
       service-account: "sa-api@bcrbk9-tools.iam.gserviceaccount.com"
  - targetId: bcrbk9-prod
    profiles: [prod]
