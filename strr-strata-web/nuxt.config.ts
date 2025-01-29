@@ -39,8 +39,8 @@ export default defineNuxtConfig({
   },
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: true }],
-    // '../strr-base-web', // dev only
+    // ['github:bcgov/STRR/strr-base-web', { install: true }],
+    '../strr-base-web', // dev only
     '@daxiom/nuxt-core-layer-test' // extend again, this prevents the payApi plugin error
   ],
 
@@ -83,6 +83,11 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
       include: ['zod', 'uuid', 'vitest']
+    },
+    server: {
+      watch: {
+        usePolling: true
+      }
     }
   }
 })

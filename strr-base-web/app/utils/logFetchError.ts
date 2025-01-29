@@ -1,12 +1,33 @@
-import { FetchError } from 'ofetch'
 export function logFetchError (error: unknown, message: string) {
-  if (error instanceof FetchError) {
-    const e = error as FetchError
-    const status = e.response?.status ?? 'Unknown Status'
-    const statusText = e.response?.statusText ?? 'Unknown Status Text'
-    const hasMessage = e.data?.message !== undefined
+  let status = 'Unknown Status'
+  let statusText = 'Unknown Status Text'
+  let hasMessage = false
 
-    console.error(`${message}: ${status} - ${statusText} ${hasMessage ? `--- ${JSON.stringify(e.data)}` : ''}`)
+  if (error && typeof error === 'object' && 'response' in error && typeof (error as any).response === 'object') {
+    const response = (error as any).response
+
+    if ('status' in response && typeof response.status === 'number') {
+      status = response.status
+    }
+
+    if ('statusText' in response && typeof response.statusText === 'string') {
+      statusText = response.statusText
+    }
+
+    if (
+      'data' in error &&
+      (error as any).data &&
+      typeof (error as any).data === 'object' &&
+      'message' in (error as any).data
+    ) {
+      hasMessage = (error as any).data.message !== undefined
+    }
+
+    console.error(
+      `${message}: ${status} - ${statusText} ${
+        hasMessage ? `--- ${JSON.stringify((error as any).data)}` : ''
+      }`
+    )
   } else {
     console.error(message)
   }

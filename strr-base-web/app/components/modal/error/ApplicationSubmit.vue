@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { FetchError } from 'ofetch'
-
 const props = defineProps<{
   error: unknown
 }>()
 
 const getErrorKey = () => {
-  if (props.error instanceof FetchError) {
-    const code = props.error.statusCode
-    if (code) {
+  const error = props.error
+
+  if (error && typeof error === 'object') {
+    const hasStatusCode = 'statusCode' in error
+
+    if (hasStatusCode) {
+      const code = error.statusCode as number
       if (code > 399 && code < 500) {
         return 'badRequest'
       } else if (code >= 500) {
