@@ -20,6 +20,7 @@ export function logFetchError (error: unknown, message: string) {
       typeof (error as any).data === 'object' &&
       'message' in (error as any).data
     ) {
+      statusText = statusText || (error as any).data.message
       hasMessage = (error as any).data.message !== undefined
     }
 

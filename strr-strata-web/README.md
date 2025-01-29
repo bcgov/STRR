@@ -69,7 +69,7 @@ NUXT_BASE_URL=""
 
 #### Important
 
-Sbc Web Messenger (Genesys) interferes with the test environment by causing extra network traffic (preventing `waitUntil: 'load'` from being met) and in some cases, blocks the submit/next-step buttons during an application. 
+Sbc Web Messenger (Genesys) interferes with the test environment by causing extra network traffic (preventing `waitUntil: 'networkidle'` from being met) and in some cases, blocks the submit/next-step buttons during an application. 
 
 Please set the following environment variables to be an **empty** string while running any e2e tests, doing so will prevent the messenger from mounting.
 
