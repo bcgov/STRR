@@ -184,7 +184,8 @@ export default {
   strataHotelCategoryReview: {
     FULL_SERVICE: 'Category 1',
     MULTI_UNIT_NON_PR: 'Category 2',
-    POST_DECEMBER_2023: 'Category 3'
+    POST_DECEMBER_2023: 'Category 3',
+    undefined: 'Uncategorized'
   },
   hint: {
     docUpload: 'File must be a PDF. Maximum 10 MB.'
