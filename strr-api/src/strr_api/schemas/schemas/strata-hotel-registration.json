@@ -122,9 +122,9 @@
         "category": {
           "type": "string",
           "enum": [
-            "CATEGORY_1",
-            "CATEGORY_2",
-            "CATEGORY_3"
+            "FULL_SERVICE",
+            "MULTI_UNIT_NON_PR",
+            "POST_DECEMBER_2023"
           ]
         }
       },

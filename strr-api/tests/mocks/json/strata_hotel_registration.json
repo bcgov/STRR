@@ -75,7 +75,7 @@
         "locationDescription": "Test Location"
       },
       "numberOfUnits": 50,
-      "category": "CATEGORY_2",
+      "category": "MULTI_UNIT_NON_PR",
       "buildings": [
         {
           "country": "CA",
