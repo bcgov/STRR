@@ -92,9 +92,8 @@ class Config:  # pylint: disable=too-few-public-methods
 
     EMAIL_TEMPLATE_PATH = os.getenv("EMAIL_TEMPLATE_PATH", "email-templates")
     EMAIL_HOUSING_OPS_EMAIL = os.getenv("EMAIL_HOUSING_OPS_EMAIL", "")
-    EMAIL_TOLL_FREE_TEL = os.getenv("EMAIL_TOLL_FREE_TEL", "")
-    EMAIL_VICTORIA_OFFICE_TEL = os.getenv("EMAIL_VICTORIA_OFFICE_TEL", "")
     EMAIL_STRR_REQUEST_BY = os.getenv("EMAIL_STRR_REQUEST_BY", "STRR")
+    EMAIL_SUBJECT_PREFIX = os.getenv("EMAIL_SUBJECT_PREFIX", "[BC Short-Term Rental Services]")
 
     KEYCLOAK_AUTH_TOKEN_URL = os.getenv("KEYCLOAK_AUTH_TOKEN_URL")
     STRR_SERVICE_ACCOUNT_CLIENT_ID = os.getenv("STRR_SERVICE_ACCOUNT_CLIENT_ID")
@@ -131,6 +130,16 @@ class Config:  # pylint: disable=too-few-public-methods
         SQLALCHEMY_DATABASE_URI = (
             f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
         )
+
+    TAC_URL_HOST = os.getenv(
+        "TAC_URL_HOST",
+        "https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/registry-toc-hosts"
+    )
+    TAC_URL_PLATFORM = os.getenv(
+        "TAC_URL_PLATFORM",
+        "https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/registry-toc-platforms"
+    )
+    STRR_REGISTRAR_NAME = os.getenv("STRR_REGISTRAR_NAME", "Trevor Lammie")
 
 
 class DevConfig(Config):  # pylint: disable=too-few-public-methods

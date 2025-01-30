@@ -51,6 +51,7 @@ from strr_api.requests import Registration, RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
 from strr_api.responses.LTSAResponse import LtsaResponse
 from strr_api.services import EventsService, LtsaService
+from strr_api.services.email_service import EmailService
 from strr_api.services.geocoder_service import GeoCoderService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.rest_service import RestService
@@ -203,6 +204,8 @@ class ApprovalService:
             registration_id=registration.id,
             visible_to_applicant=False,
         )
+        EmailService.send_application_status_update_email(application)
+
         return registration.id
 
     @classmethod

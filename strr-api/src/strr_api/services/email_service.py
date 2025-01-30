@@ -36,12 +36,21 @@ import logging
 
 from flask import current_app
 
-from strr_api.models import Application
+from strr_api.models import Application, Registration
 from strr_api.services import gcp_queue_publisher
 
 logger = logging.getLogger("api")
 
-APPLICATION_EMAIL_STATES = [Application.Status.FULL_REVIEW_APPROVED]
+APPLICATION_EMAIL_STATES = {
+    Registration.RegistrationType.HOST: [
+        Application.Status.AUTO_APPROVED,
+        Application.Status.FULL_REVIEW_APPROVED,
+        Application.Status.PROVISIONAL_REVIEW
+    ],
+    Registration.RegistrationType.PLATFORM: [
+        Application.Status.AUTO_APPROVED
+    ]
+}
 
 EMAIL_SOURCE = "strr-api"
 EMAIL_TYPE = "strr.email"
@@ -55,7 +64,7 @@ class EmailService:
         """Send email notification for the application if applicable.
 
         Assumes the application.status has been changed."""
-        if application.status in APPLICATION_EMAIL_STATES:
+        if application.status in APPLICATION_EMAIL_STATES.get(application.registration_type, []):
             try:
                 gcp_queue_publisher.publish_to_queue(
                     # NOTE: if registrationType / status typing (str vs enum)
