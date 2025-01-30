@@ -11,10 +11,12 @@ const reqStore = usePropertyReqStore()
 
     <FormDefineYourRentalUnitRequirementsStraaExempt
       v-else-if="reqStore.propertyReqs.isStraaExempt === true"
+      class="mt-10"
     />
 
     <FormDefineYourRentalUnitRequirementsStrProhibited
       v-else-if="reqStore.propertyReqs.isStrProhibited === true"
+      class="mt-10"
     />
 
     <FormDefineYourRentalUnitRequirementsPrExempt

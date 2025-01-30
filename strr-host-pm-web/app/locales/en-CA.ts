@@ -9,9 +9,7 @@ export default {
       note: 'Please check with the First Nation for any applicable Short-Term Rental regulations.'
     },
     strProhibited: {
-      title: 'Some types of short-term rentals are not permitted by your local government.',
-      description: 'Contact your local government to understand what rules apply to short-term rentals in your community before you submit a registration application. Your registration may be denied or later cancelled if your short-term rental type is not permitted by your local government.',
-      note: '{boldStart}Note:{boldEnd} Currently, short-term rental application fees are {boldStart}non-refundable.{boldEnd}'
+      title: 'Local government by-laws apply for short-term rentals at this address. Ensure your rental follows all local government rules. If you have questions contact your local government.'
     },
     prExempt: {
       title: "Short-term rentals are allowed in any of the host's properties."

@@ -4,7 +4,7 @@ const config = useRuntimeConfig().public
 </script>
 <template>
   <div
-    class="flex flex-col gap-4 border-y border-bcGovGray-300 pt-10"
+    class="flex flex-col gap-4 border-b border-bcGovGray-300 pt-10"
     data-testid="property-requirements-list"
   >
     <span class="font-bold">
