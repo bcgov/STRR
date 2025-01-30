@@ -141,7 +141,7 @@ export default {
       numberOfRooms: 'Number of Bedrooms for Rent',
       ownershipType: 'Ownership Type',
       nicknameOpt: 'Nickname (Optional)',
-      parcelIdentifier: 'Parcel Identifier',
+      parcelIdentifier: 'Parcel Identifier (Required if one exists)',
       parcelIdentifierOpt: 'Parcel Identifier (Optional)',
       propertyType: 'Property Type',
       role: {

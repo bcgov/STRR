@@ -113,10 +113,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   // unit details stuff
   const getUnitDetailsSchema = () => z.object({
-    parcelIdentifier: isPIDRequired.value
-      ? getRequiredPID(t('validation.parcelIdentifier'))
-      : getOptionalPID(t('validation.parcelIdentifier')),
-    // parcelIdentifier: getRequiredPID(t('validation.parcelIdentifier')),
+    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
     propertyType: z.enum([
       PropertyType.ACCESSORY_DWELLING,
       PropertyType.BED_AND_BREAKFAST,
@@ -187,7 +184,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     PropertyType.STRATA_HOTEL].includes(unitDetails.value.propertyType)
   )
 
-  const isPIDRequired = computed(() => unitDetails.value.ownershipType && [
+  const isOwnerOrCoOwner = computed(() => unitDetails.value.ownershipType && [
     OwnershipType.OWN,
     OwnershipType.CO_OWN
   ].includes(unitDetails.value.ownershipType))
@@ -244,7 +241,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     unitDetails,
     validateUnitDetails,
     isUnitNumberRequired,
-    isPIDRequired,
+    isOwnerOrCoOwner,
     propertyTypeFeeTriggers,
     useManualAddressInput,
     resetUnitAddress,

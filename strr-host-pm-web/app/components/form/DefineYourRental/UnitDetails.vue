@@ -227,10 +227,10 @@ onMounted(async () => {
             v-model="propStore.unitDetails.parcelIdentifier"
             mask="###-###-###"
             name="parcelIdentifier"
-            :aria-label="propStore.isPIDRequired
+            :aria-label="(!propStore.unitDetails.ownershipType || propStore.isOwnerOrCoOwner)
               ? $t('strr.label.parcelIdentifier')
               : $t('strr.label.parcelIdentifierOpt')"
-            :placeholder="propStore.isPIDRequired
+            :placeholder="(!propStore.unitDetails.ownershipType || propStore.isOwnerOrCoOwner)
               ? $t('strr.label.parcelIdentifier')
               : $t('strr.label.parcelIdentifierOpt')"
           >
