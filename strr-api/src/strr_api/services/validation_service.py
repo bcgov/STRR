@@ -68,7 +68,7 @@ class ValidationService:
         else:
             registration = RegistrationService.find_by_registration_number(request_json.get("identifier"))
             if registration:
-                response = ValidationService._check_permit_details(request_json, registration)
+                response = ValidationService.check_permit_details(request_json, registration)
             else:
                 response["errors"] = [
                     {"code": ErrorMessage.PERMIT_NOT_FOUND.name, "message": ErrorMessage.PERMIT_NOT_FOUND.value}
@@ -80,7 +80,7 @@ class ValidationService:
         return response, status_code
 
     @classmethod
-    def _check_permit_details(cls, request_json: dict, registration: Registration):
+    def check_permit_details(cls, request_json: dict, registration: Registration):
         response = copy.deepcopy(request_json)
         errors = []
         address_json = request_json.get("address")

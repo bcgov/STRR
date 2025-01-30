@@ -36,6 +36,7 @@ import base64
 import json
 import uuid
 
+from datetime import timedelta
 from flask import current_app
 from google.cloud import storage
 from google.oauth2 import service_account
@@ -112,3 +113,13 @@ class GCPStorageService:
             return blob_name
         except Exception as e:
             raise ExternalServiceException(message="Error uploading document to cloud storage bucket.") from e
+
+    @classmethod
+    def get_presigned_url(cls, bucket_id, blob_name, expiration_minutes):
+        bucket = cls.get_bucket(bucket_id)
+        blob = bucket.blob(blob_name)
+
+        # Generate the signed URL
+        url = blob.generate_signed_url(version="v4", expiration=timedelta(minutes=expiration_minutes), method="GET")
+
+        return url

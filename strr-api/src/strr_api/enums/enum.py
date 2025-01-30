@@ -156,6 +156,7 @@ class ErrorMessage(Enum):
     ADDRESS_IN_STR_PROHIBITED_AREA = "Address is in a short term rentals prohibited area."
     ADDRESS_LOOK_UP_FAILED = "Failed to look up the address."
     APPLICATION_CANNOT_BE_DELETED = "Application in the current status cannot be deleted."
+    STRR_REQUIREMENTS_FETCH_ERROR = "Unable to retrieve the short term rental requirements for the address."
 
 
 class ApplicationRole(Enum):

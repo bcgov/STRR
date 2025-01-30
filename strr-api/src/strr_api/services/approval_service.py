@@ -196,6 +196,13 @@ class ApprovalService:
             application_id=application.id,
             visible_to_applicant=False,
         )
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.REGISTRATION_CREATED,
+            application_id=application.id,
+            registration_id=registration.id,
+            visible_to_applicant=False,
+        )
         return registration.id
 
     @classmethod
