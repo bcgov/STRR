@@ -34,19 +34,19 @@
 #
 """This Module processes and sends email messages via the notify-api.
 """
-import re
 from dataclasses import dataclass
 from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
+import re
 
-import pytz
-import requests
 from flask import Blueprint
 from flask import current_app
 from flask import jsonify
 from flask import request
 from jinja2 import Template
+import pytz
+import requests
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.models import Application
 from strr_api.models import Registration
@@ -61,10 +61,10 @@ bp = Blueprint("worker", __name__)
 logger = StructuredLogging.get_logger()
 
 EMAIL_SUBJECT = {
-    "HOST_AUTO_APPROVED": "Application Approved",
-    "HOST_FULL_REVIEW_APPROVED": "Application Approved",
-    "HOST_PROVISIONAL_REVIEW": "Application Provisionally Approved",
-    "PLATFORM_AUTO_APPROVED": "Application Approved"
+    "HOST_AUTO_APPROVED": "Short-Term Rental Registration Approved",
+    "HOST_FULL_REVIEW_APPROVED": "Short-Term Rental Registration Approved",
+    "HOST_PROVISIONAL_REVIEW": "Short-Term Rental Registration Provisionally Approved",
+    "PLATFORM_AUTO_APPROVED": "Short-Term Rental Platform Registration Approved",
 }
 
 
@@ -122,15 +122,15 @@ def worker():
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         registrar_name=current_app.config["STRR_REGISTRAR_NAME"],
     )
-    subject = f"{current_app.config['EMAIL_SUBJECT_PREFIX']} {EMAIL_SUBJECT.get(email_info.email_type, '')}".strip()
+    subject = (
+        f"{application.application_number} - "
+        + f"{current_app.config['EMAIL_SUBJECT_PREFIX']} {EMAIL_SUBJECT.get(email_info.email_type, '')}".strip()
+    )
     email = {
         "recipients": _get_email_recipients(app_dict),
         # requestBy is how the notify-api determines which GC Notify account to use
         "requestBy": current_app.config["EMAIL_STRR_REQUEST_BY"],
-        "content": {
-            "subject": subject,
-            "body": f"{html_out}"
-        },
+        "content": {"subject": subject, "body": f"{html_out}"},
     }
 
     # 4. Send email via notify-api
@@ -142,7 +142,7 @@ def worker():
             "Content-Type": "application/json",
             "Authorization": f"Bearer {token}",
         },
-        timeout=current_app.config["NOTIFY_API_TIMEOUT"]
+        timeout=current_app.config["NOTIFY_API_TIMEOUT"],
     )
 
     if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
@@ -157,49 +157,55 @@ def worker():
 def _get_address_street(app_dict: dict, reg_type: Registration.RegistrationType) -> str | None:
     """Return the unit, street number and street name of the application address as a string."""
     if reg_type != Registration.RegistrationType.HOST:
-        return ''
+        return ""
     address = app_dict["registration"]["unitAddress"]
     # addressLineTwo == 'locality' for this address and changes the required fields
     street_name = address.get("streetName") or address.get("addressLineTwo")
     street_num = address.get("streetNumber")
     if (unit := address.get("unitNumber")) and street_num:
         return f"{unit}-{street_num} {street_name}"
-    elif unit:
+    if unit:
         # Not sure if this is valid but the UI currently allows this scenario
         return f"{street_name}, #{unit}"
     return f"{street_num or ''} {street_name}".strip()
 
+
 def _get_address_street_2(app_dict, reg_type: Registration.RegistrationType) -> str | None:
     """Return the locality if both a street name and locality were given in the address (rare edge case)."""
-    if reg_type != Registration.RegistrationType.HOST:
-        return ''
-    address = app_dict["registration"]["unitAddress"]
-    if locality := address.get("addressLineTwo") and address.get("streetName"):
-        return locality
-    
+    if reg_type == Registration.RegistrationType.HOST:
+        address = app_dict["registration"]["unitAddress"]
+        if locality := address.get("addressLineTwo") and address.get("streetName"):
+            return locality
+    return None
+
 
 def _get_address_region(app_dict: dict, reg_type: Registration.RegistrationType) -> str:
     """Return city, region and postal code of the application address as a string."""
     if reg_type != Registration.RegistrationType.HOST:
-        return ''
+        return ""
     address = app_dict["registration"]["unitAddress"]
-    return f"{address.get("city", '')}, {address.get("province", '')} {address.get("postalCode", '')}"
+    return (
+        f"{address.get("city", '')}, {address.get("province", '')} {address.get("postalCode", '')}"
+    )
+
 
 def _get_expiry_date(app_dict: dict, reg_type: Registration.RegistrationType) -> str:
     """Return the expiry date as a formatted string."""
     if reg_type != Registration.RegistrationType.PLATFORM:
-        return ''
-    date_time = datetime.fromisoformat(
-        app_dict["header"]["registrationEndDate"]
-    ).astimezone(pytz.timezone('America/Vancouver'))
-    return date_time.strftime('%Y-%m-%d')
-    
+        return ""
+    date_time = datetime.fromisoformat(app_dict["header"]["registrationEndDate"]).astimezone(
+        pytz.timezone("America/Vancouver")
+    )
+
+    return date_time.strftime("%B %-d, %Y")
+
 
 def _get_service_provider(app_dict: dict, reg_type: Registration.RegistrationType) -> str:
     """Return the service provider as a string."""
     if reg_type != Registration.RegistrationType.PLATFORM:
-        return ''
+        return ""
     return app_dict["registration"]["businessDetails"]["legalName"]
+
 
 def _get_email_recipients(app_dict: dict) -> str:
     "Return the email recipients in a string separated by commas."
@@ -211,8 +217,10 @@ def _get_email_recipients(app_dict: dict) -> str:
         recipients.append(reg["primaryContact"]["emailAddress"])
         if property_manager := reg.get("propertyManager"):
             # will have a person or business email
-            email = property_manager.get("contact", {}).get("emailAddress") \
+            email = (
+                property_manager.get("contact", {}).get("emailAddress")
                 or property_manager["business"]["primaryContact"]["emailAddress"]
+            )
             recipients.append(email)
 
     elif reg["registrationType"] == Registration.RegistrationType.PLATFORM.value:
@@ -224,13 +232,15 @@ def _get_email_recipients(app_dict: dict) -> str:
 
     return ",".join(recipients)
 
+
 def _get_tac_url(application: Application) -> str:
     """Return the relevant terms and conditions url for the application."""
     if application.registration_type == Registration.RegistrationType.HOST:
         return current_app.config["TAC_URL_HOST"]
-    elif application.registration_type == Registration.RegistrationType.PLATFORM:
+    if application.registration_type == Registration.RegistrationType.PLATFORM:
         return current_app.config["TAC_URL_PLATFORM"]
     return ""
+
 
 @dataclass
 class EmailInfo:
@@ -271,7 +281,7 @@ def substitute_template_parts(template_code: str) -> str:
         "strr-footer",
         "strr-important-deadlines",
         "strr-important-next-steps",
-        "strr-tac"
+        "strr-tac",
     ]
 
     # substitute template parts - marked up by [[filename.md]]

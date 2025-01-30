@@ -45,11 +45,9 @@ APPLICATION_EMAIL_STATES = {
     Registration.RegistrationType.HOST: [
         Application.Status.AUTO_APPROVED,
         Application.Status.FULL_REVIEW_APPROVED,
-        Application.Status.PROVISIONAL_REVIEW
+        Application.Status.PROVISIONAL_REVIEW,
     ],
-    Registration.RegistrationType.PLATFORM: [
-        Application.Status.AUTO_APPROVED
-    ]
+    Registration.RegistrationType.PLATFORM: [Application.Status.AUTO_APPROVED],
 }
 
 EMAIL_SOURCE = "strr-api"

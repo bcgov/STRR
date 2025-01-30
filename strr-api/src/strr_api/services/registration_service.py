@@ -40,7 +40,7 @@ from datetime import datetime, time, timezone
 
 from dateutil.relativedelta import relativedelta
 from flask import render_template
-# from weasyprint import HTML
+from weasyprint import HTML
 
 from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, RegistrationType
 from strr_api.models import (
@@ -522,7 +522,6 @@ class RegistrationService:
             "host": primary_property_contact.contact.full_name(),
         }
         rendered_template = render_template("certificate.html", **data)
-        return
         pdf_binary = HTML(string=rendered_template).render().write_pdf()
 
         certificate = Certificate(
