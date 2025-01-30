@@ -81,6 +81,7 @@ class ValidationService:
 
     @classmethod
     def check_permit_details(cls, request_json: dict, registration: Registration):
+        """Checks the data in the request against the permit details."""
         response = copy.deepcopy(request_json)
         errors = []
         address_json = request_json.get("address")

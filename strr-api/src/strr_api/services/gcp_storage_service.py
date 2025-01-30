@@ -35,8 +35,8 @@
 import base64
 import json
 import uuid
-
 from datetime import timedelta
+
 from flask import current_app
 from google.cloud import storage
 from google.oauth2 import service_account
@@ -116,6 +116,7 @@ class GCPStorageService:
 
     @classmethod
     def get_presigned_url(cls, bucket_id, blob_name, expiration_minutes):
+        """Gets the presigned url for a file."""
         bucket = cls.get_bucket(bucket_id)
         blob = bucket.blob(blob_name)
 
