@@ -55,10 +55,18 @@ HOST_REGISTRATION_JSON = os.path.join(
 
 
 @pytest.fixture()
-def mock_gcp_publisher():
-    """Mock the publish_to_queue function in the gcp_queue_publisher service."""
-    with patch("strr_api.services.gcp_queue_publisher.publish_to_queue") as publisher:
+def mock_publisher_client():
+    """Mock the PublisherClient used in GcpQueue."""
+    with patch("google.cloud.pubsub_v1.PublisherClient") as publisher:
         yield publisher.return_value
+
+
+@pytest.fixture()
+def mock_credentials():
+    """Mock Credentials."""
+    with patch("google.auth.jwt.Credentials") as mock:
+        mock.from_service_account_info.return_value = MagicMock()
+        yield mock
 
 
 @pytest.mark.parametrize(
@@ -68,40 +76,74 @@ def mock_gcp_publisher():
             Registration.RegistrationType.HOST,
             Application.Status.FULL_REVIEW_APPROVED,
             True,
+        ),
+        (
+            Registration.RegistrationType.HOST,
+            Application.Status.AUTO_APPROVED,
+            True,
+        ),
+        (
+            Registration.RegistrationType.HOST,
+            Application.Status.PROVISIONAL_REVIEW,
+            True,
+        ),
+        (
+            Registration.RegistrationType.HOST,
+            Application.Status.FULL_REVIEW,
+            False,
+        ),
+        (
+            Registration.RegistrationType.PLATFORM,
+            Application.Status.AUTO_APPROVED,
+            True,
+        ),
+        (
+            Registration.RegistrationType.PLATFORM,
+            Application.Status.PAID,
+            False,
+        ),
+        (
+            Registration.RegistrationType.STRATA_HOTEL,
+            Application.Status.FULL_REVIEW_APPROVED,
+            False,
         )
     ],
 )
 def test_email_queue_publish(
-    app, mock_gcp_publisher, registration_type, status, expect_email
+    app, mock_publisher_client, mock_credentials, registration_type, status, expect_email
 ):
     """Test that the email service calls the publisher service as expected."""
-    with app.app_context():
-        # FUTURE: when adding tests for other registration types update this based on registration_type
-        with open(HOST_REGISTRATION_JSON) as f:
+    orig_topic = app.config["GCP_EMAIL_TOPIC"]
+    app.config["GCP_EMAIL_TOPIC"] = "test"
+    with patch.object(GcpQueue, "publish") as mock_publisher:
+        with app.app_context():
             # init fake staff user
-            staff_user = User(
+            user = User(
                 username="testUser",
                 firstname="Test",
                 lastname="User",
                 iss="test",
-                sub=f"subStaffEmail{random.randint(0, 99999)}",
+                sub=f"sub{random.randint(0, 99999)}",
                 idp_userid="testUserID",
                 login_source="testLogin",
             )
-            staff_user.save()
+            user.save()
             # init fake application
             application = Application()
             application.registration_type = registration_type
-            application.status = old_status
+            application.status = status
             application.application_number = Application.generate_unique_application_number()
-            application.application_json = json.load(f)
-            application.submitter_id = staff_user.id
+            application.application_json = { "fake": "lala" }
+            application.submitter_id = user.id
             application.payment_account = 1
             application.type = "registration"
             application.save()
             # update status and check email trigger
-            ApplicationService.update_application_status(application, new_status, staff_user)
+            EmailService.send_application_status_update_email(application)
             if expect_email:
-                mock_gcp_publisher.assert_called_once_with("test", ANY)
+                mock_publisher.assert_called_once_with("test", ANY)
             else:
-                mock_gcp_publisher.publish.assert_not_called()
+                mock_publisher.publish.assert_not_called()
+
+    # set back to original topic
+    app.config["GCP_EMAIL_TOPIC"] = orig_topic
