@@ -143,3 +143,5 @@ venv/
 htmlcov/
 
 **/__pycache__
+
+.python-version
