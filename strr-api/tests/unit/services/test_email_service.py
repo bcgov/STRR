@@ -106,12 +106,10 @@ def mock_credentials():
             Registration.RegistrationType.STRATA_HOTEL,
             Application.Status.FULL_REVIEW_APPROVED,
             False,
-        )
+        ),
     ],
 )
-def test_email_queue_publish(
-    app, mock_publisher_client, mock_credentials, registration_type, status, expect_email
-):
+def test_email_queue_publish(app, mock_publisher_client, mock_credentials, registration_type, status, expect_email):
     """Test that the email service calls the publisher service as expected."""
     orig_topic = app.config["GCP_EMAIL_TOPIC"]
     app.config["GCP_EMAIL_TOPIC"] = "test"
