@@ -280,7 +280,13 @@ export default {
     supportingStrataDocs: 'Supporting strata-titled hotel or motel documentation',
     fractOwnAgreement: 'Fractional ownership agreement',
     businessLicenceNumberOpt: 'Business Licence Number (Optional)',
-    businessLicenceExpiryDateOpt: 'Business Licence Expiry Date (Optional)'
+    businessLicenceExpiryDateOpt: 'Business Licence Expiry Date (Optional)',
+    resultsInTable: 'Results in Table: {boldStart}{count}{boldEnd}',
+    search: 'Search',
+    applicationListSectionAria: 'Application list, {count} results',
+    clearAllFilters: 'Clear All Filters',
+    findInApplication: 'Find in application...',
+    tableLimitDisplay: 'Display:'
   },
   link: {
     learnMore: 'Learn More'

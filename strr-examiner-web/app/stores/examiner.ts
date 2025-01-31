@@ -6,6 +6,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const tableLimit = ref(50)
   const tablePage = ref(1)
   const tableFilters = reactive({
+    searchText: '',
     registrationNumber: '',
     registrationType: [],
     requirements: [],
@@ -33,7 +34,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           limit: tableLimit.value,
           page: tablePage.value,
           status: tableFilters.status[0], // api only allows 1 at a time
-          text: tableFilters.registrationNumber.length > 2 ? tableFilters.registrationNumber : undefined // min length 3 required
+          text: tableFilters.searchText.length > 2 ? tableFilters.searchText : undefined // min length 3 required
         }
       })
     }
@@ -86,6 +87,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     Object.assign(
       tableFilters,
       {
+        searchText: '',
         registrationNumber: '',
         registrationType: [],
         requirements: [],

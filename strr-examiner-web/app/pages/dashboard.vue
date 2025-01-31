@@ -8,6 +8,11 @@ const { t } = useI18n()
 // const { limit, page, getApplicationList } = useStrrBasePermitList(undefined, undefined) // leaving this for reference
 // const { getAccountApplications } = useStrrApi() // leaving this for reference
 const exStore = useExaminerStore()
+const ldStore = useConnectLaunchdarklyStore()
+const enableTableFilters = computed<boolean>(() => {
+  const flag = ldStore.getStoredFlag('enable-examiner-table-filters')
+  return flag ?? false
+})
 
 useHead({
   title: t('page.dashboardList.title')
@@ -94,7 +99,8 @@ const { data: applicationListResp, status } = await useAsyncData(
       () => exStore.tablePage,
       () => exStore.tableFilters.registrationType,
       () => exStore.tableFilters.status,
-      () => exStore.tableFilters.registrationNumber
+      () => exStore.tableFilters.registrationNumber,
+      () => exStore.tableFilters.searchText
     ],
     // deep: true, watch: [() => exStore.tableFilters] // can do this once the rest of the table filters are added
     default: () => ({ applications: [], total: 0 }),
@@ -129,19 +135,36 @@ watch(
   { deep: true }
 )
 
-const columns = [
-  { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable: true },
-  { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable: true },
-  { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable: true },
-  { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable: true },
-  { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: true },
-  { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: true },
-  { key: 'status', label: t('page.dashboardList.columns.status'), sortable: true },
-  { key: 'lastModified', label: 'Last Modified', sortable: true },
-  { key: 'adjudicator', label: 'Adjudicator', sortable: true }
-]
+// TODO: set to constant instead of computed when table filters are done
+const columns = computed(() => {
+  if (enableTableFilters.value) {
+    return [
+      { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable: true },
+      { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable: true },
+      { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable: true },
+      { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable: true },
+      { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: true },
+      { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: true },
+      { key: 'status', label: t('page.dashboardList.columns.status'), sortable: true },
+      { key: 'lastModified', label: 'Last Modified', sortable: true }
+      // { key: 'adjudicator', label: 'Adjudicator', sortable: true } // TODO: add column when api is ready
+    ]
+  } else {
+    return [
+      { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable: false },
+      { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable: false },
+      { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable: false },
+      { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable: false },
+      { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: false },
+      { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: false },
+      { key: 'status', label: t('page.dashboardList.columns.status'), sortable: false },
+      { key: 'lastModified', label: 'Last Modified', sortable: false }
+      // { key: 'adjudicator', label: 'Adjudicator', sortable: false } // TODO: add column when api is ready
+    ]
+  }
+})
 
-const selectedColumns = ref([...columns])
+const selectedColumns = ref([...columns.value])
 const sort = ref<TableSort>({ column: 'submissionDate', direction: 'asc' as const })
 
 async function handleRowSelect (row: any) {
@@ -167,30 +190,60 @@ function handleColumnSort (column: string) {
     class="flex grow flex-col justify-center space-y-8 py-8 sm:space-y-10 sm:py-10"
     data-testid="examiner-dashboard-page"
   >
-    <UButton
-      v-if="false"
-      label="Force Error"
-      color="red"
-      variant="outline"
-      :to="localePath('/examine/123')"
-    />
-    <h1>Search</h1>
-    <ConnectPageSection :aria-label="`Application list, ${applicationListResp?.total || 0} results`">
+    <h1>{{ $t('label.search') }}</h1>
+    <ConnectPageSection
+      :aria-label="$t('label.applicationListSectionAria', { count: applicationListResp?.total || 0 })"
+    >
       <template #header>
-        <div class="flex flex-wrap items-center justify-between">
-          <UButton
-            label="Clear All Filters"
-            icon="i-mdi-close"
-            variant="link"
-            @click="exStore.resetFilters"
-          />
-          <div class="flex flex-wrap items-center justify-start gap-3 text-gray-900 sm:justify-end">
-            <span class="font-bold">Results in Table: {{ applicationListResp?.total || 0 }}</span>
+        <div class="flex flex-wrap items-center justify-between gap-3 text-gray-900">
+          <div class="flex flex-wrap items-center gap-3">
+            <UInput
+              v-model="exStore.tableFilters.searchText"
+              :placeholder="$t('label.findInApplication')"
+              :aria-label="$t('label.findInApplication')"
+              color="white"
+              size="sm"
+            >
+              <template #trailing>
+                <UIcon name="i-mdi-search" class="size-5 shrink-0 text-bcGovColor-activeBlue" />
+              </template>
+            </UInput>
+            <ConnectI18nHelper translation-path="label.resultsInTable" :count="applicationListResp?.total || 0" />
+            <UButton
+              :label="$t('label.clearAllFilters')"
+              icon="i-mdi-close"
+              variant="link"
+              :padded="false"
+              :ui="{ gap: { sm: 'gap-x-1' } }"
+              @click="exStore.resetFilters"
+            />
+          </div>
+          <div class="flex flex-wrap items-center gap-3 text-gray-900">
+            <UPagination
+              v-if="applicationListResp.total > exStore.tableLimit"
+              v-model="exStore.tablePage"
+              :page-count="exStore.tableLimit"
+              size="lg"
+              :total="applicationListResp?.total || 0"
+              :ui="{
+                base: 'h-[42px]',
+                default: {
+                  activeButton: { class: 'rounded' }
+                }
+              }"
+              data-testid="applications-pagination"
+            />
             <div class="flex items-center gap-2">
-              <span>Display:</span>
+              <span>{{ $t('label.tableLimitDisplay') }}</span>
               <USelectMenu
                 v-model="exStore.tableLimit"
-                :options="[25, 50, 75, 100]"
+                value-attribute="value"
+                :options="[
+                  {label: '25', value: 25 },
+                  {label: '50', value: 50 },
+                  {label: '75', value: 75 },
+                  {label: '100', value: 100 },
+                ]"
               >
                 <template #default="{ open }">
                   <!-- TODO: aria labels? -->
@@ -208,20 +261,6 @@ function handleColumnSort (column: string) {
                 </template>
               </USelectMenu>
             </div>
-            <UPagination
-              v-if="applicationListResp.total > exStore.tableLimit"
-              v-model="exStore.tablePage"
-              :page-count="exStore.tableLimit"
-              size="lg"
-              :total="applicationListResp?.total || 0"
-              :ui="{
-                base: 'h-[42px]',
-                default: {
-                  activeButton: { class: 'rounded' }
-                }
-              }"
-              data-testid="applications-pagination"
-            />
             <USelectMenu
               v-slot="{ open }"
               v-model="selectedColumns"
@@ -256,7 +295,7 @@ function handleColumnSort (column: string) {
         :ui="{
           wrapper: 'relative overflow-x-auto h-[512px] bg-white',
           thead: 'sticky top-0 bg-white z-10',
-          th: { padding: 'px-0 py-0' },
+          th: { padding: enableTableFilters ? 'px-0 py-0' : 'px-2 py-3' },
           td: {
             base: 'whitespace-normal max-w-96 align-top',
             padding: 'p-2',
@@ -268,7 +307,7 @@ function handleColumnSort (column: string) {
         data-testid="applications-table"
         @select="handleRowSelect"
       >
-        <template #registrationNumber-header="{ column }">
+        <template v-if="enableTableFilters" #registrationNumber-header="{ column }">
           <TableHeaderInput
             v-model="exStore.tableFilters.registrationNumber"
             :column
@@ -277,7 +316,7 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <template #registrationType-header="{ column }">
+        <template v-if="enableTableFilters" #registrationType-header="{ column }">
           <TableHeaderSelect
             v-model="exStore.tableFilters.registrationType"
             :column
@@ -291,7 +330,7 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <template #requirements-header="{ column }">
+        <template v-if="enableTableFilters" #requirements-header="{ column }">
           <TableHeaderSelect
             v-model="exStore.tableFilters.requirements"
             :column
@@ -317,7 +356,7 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <template #applicantName-header="{ column }">
+        <template v-if="enableTableFilters" #applicantName-header="{ column }">
           <TableHeaderInput
             v-model="exStore.tableFilters.applicantName"
             :column
@@ -326,7 +365,7 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <template #propertyAddress-header="{ column }">
+        <template v-if="enableTableFilters" #propertyAddress-header="{ column }">
           <TableHeaderInput
             v-model="exStore.tableFilters.propertyAddress"
             :column
@@ -335,7 +374,7 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <template #status-header="{ column }">
+        <template v-if="enableTableFilters" #status-header="{ column }">
           <TableHeaderSelect
             v-model="exStore.tableFilters.status"
             :column
@@ -358,7 +397,7 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <template #submissionDate-header="{ column }">
+        <template v-if="enableTableFilters" #submissionDate-header="{ column }">
           <TableHeaderDateRange
             v-model="exStore.tableFilters.submissionDate"
             :column
@@ -376,7 +415,7 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <template #lastModified-header="{ column }">
+        <template v-if="enableTableFilters" #lastModified-header="{ column }">
           <TableHeaderDateRange
             v-model="exStore.tableFilters.lastModified"
             :column
@@ -395,7 +434,7 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <template #adjudicator-header="{ column }">
+        <template v-if="enableTableFilters" #adjudicator-header="{ column }">
           <TableHeaderSelect
             v-model="exStore.tableFilters.adjudicator"
             :column
