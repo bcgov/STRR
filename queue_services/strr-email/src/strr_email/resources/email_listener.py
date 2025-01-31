@@ -39,13 +39,13 @@ from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 import re
+from zoneinfo import ZoneInfo
 
 from flask import Blueprint
 from flask import current_app
 from flask import jsonify
 from flask import request
 from jinja2 import Template
-import pytz
 import requests
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.models import Application
@@ -174,7 +174,7 @@ def _get_address_extra(app_dict, reg_type: Registration.RegistrationType) -> str
     """Return the locality if both a street name and locality were given in the address (rare edge case)."""
     if reg_type == Registration.RegistrationType.HOST:
         address = app_dict["registration"]["unitAddress"]
-        if locality := address.get("addressLineTwo") and address.get("streetName"):
+        if (locality := address.get("addressLineTwo")) and address.get("streetName"):
             return locality
     return None
 
@@ -193,9 +193,8 @@ def _get_expiry_date(app_dict: dict, reg_type: Registration.RegistrationType) ->
     """Return the expiry date as a formatted string."""
     if reg_type != Registration.RegistrationType.PLATFORM:
         return ""
-    date_time = datetime.fromisoformat(app_dict["header"]["registrationEndDate"]).astimezone(
-        pytz.timezone("America/Vancouver")
-    )
+    date_time = datetime.fromisoformat(
+        app_dict["header"]["registrationEndDate"]).astimezone(ZoneInfo("America/Vancouver"))
 
     return date_time.strftime("%B %-d, %Y")
 
@@ -279,7 +278,7 @@ def substitute_template_parts(template_code: str) -> str:
     """
     template_parts = [
         "strr-host-approval",
-        "strr-host-approval-body"
+        "strr-host-approval-body",
         "strr-footer",
         "strr-important-deadlines",
         "strr-important-next-steps",
