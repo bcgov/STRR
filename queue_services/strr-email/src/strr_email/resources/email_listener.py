@@ -193,8 +193,9 @@ def _get_expiry_date(app_dict: dict, reg_type: Registration.RegistrationType) ->
     """Return the expiry date as a formatted string."""
     if reg_type != Registration.RegistrationType.PLATFORM:
         return ""
-    date_time = datetime.fromisoformat(
-        app_dict["header"]["registrationEndDate"]).astimezone(ZoneInfo("America/Vancouver"))
+    date_time = datetime.fromisoformat(app_dict["header"]["registrationEndDate"]).astimezone(
+        ZoneInfo("America/Vancouver")
+    )
 
     return date_time.strftime("%B %-d, %Y")
 

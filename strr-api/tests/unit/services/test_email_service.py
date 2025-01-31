@@ -133,7 +133,7 @@ def test_email_queue_publish(
             application.registration_type = registration_type
             application.status = status
             application.application_number = Application.generate_unique_application_number()
-            application.application_json = { "fake": "lala" }
+            application.application_json = {"fake": "lala"}
             application.submitter_id = user.id
             application.payment_account = 1
             application.type = "registration"
