@@ -100,7 +100,7 @@ def test_process_auto_approval_platform_application(session, client, jwt):
 
             assert application_status == "AUTO_APPROVED"
             assert registration_id
-            assert mock_email.called()
+            assert mock_email.called
 
 
 def test_process_auto_approval_host_application(session, client, jwt):
