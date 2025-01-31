@@ -73,25 +73,29 @@ watch(
       )
 
       // set buttons actions to use new application id
-      setButtonControl({
-        leftButtons: [],
-        rightButtons: [
-          {
-            action: () => manageApplication(newVal.header.applicationNumber, 'reject'),
-            label: t('btn.decline'),
-            variant: 'outline',
-            color: 'red',
-            icon: 'i-mdi-close'
-          },
-          {
-            action: () => manageApplication(newVal.header.applicationNumber, 'approve'),
-            label: t('btn.approve'),
-            variant: 'outline',
-            color: 'green',
-            icon: 'i-mdi-check'
-          }
-        ]
-      })
+      if (newVal.registration.registrationType === ApplicationType.HOST) { // TODO: update when strata approval is ready (what to do with platforms ???)
+        setButtonControl({
+          leftButtons: [],
+          rightButtons: [
+            {
+              action: () => manageApplication(newVal.header.applicationNumber, 'reject'),
+              label: t('btn.decline'),
+              variant: 'outline',
+              color: 'red',
+              icon: 'i-mdi-close'
+            },
+            {
+              action: () => manageApplication(newVal.header.applicationNumber, 'approve'),
+              label: t('btn.approve'),
+              variant: 'outline',
+              color: 'green',
+              icon: 'i-mdi-check'
+            }
+          ]
+        })
+      } else {
+        setButtonControl({ leftButtons: [], rightButtons: [] })
+      }
     }
   }
 )
