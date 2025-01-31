@@ -105,30 +105,32 @@ def test_process_auto_approval_platform_application(session, client, jwt):
 
 def test_process_auto_approval_host_application(session, client, jwt):
     """Test the auto-approval process for various scenarios."""
-    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
-        with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
-            with patch(
-                "strr_api.services.approval_service.ApprovalService.getSTRDataForAddress",
-                return_value={
-                    "isBusinessLicenceRequired": False,
-                    "isStrProhibited": False,
-                    "organizationNm": "TEST",
-                    "isPrincipalResidenceRequired": True,
-                },
-            ):
-                headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-                headers["Account-Id"] = ACCOUNT_ID
-                json_data = json.load(f)
-                rv = client.post("/applications", json=json_data, headers=headers)
-                response_json = rv.json
-                application_number = response_json.get("header").get("applicationNumber")
+    with patch.object(EmailService, "send_application_status_update_email") as mock_email:
+        with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+            with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
+                with patch(
+                    "strr_api.services.approval_service.ApprovalService.getSTRDataForAddress",
+                    return_value={
+                        "isBusinessLicenceRequired": False,
+                        "isStrProhibited": False,
+                        "organizationNm": "TEST",
+                        "isPrincipalResidenceRequired": True,
+                    },
+                ):
+                    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+                    headers["Account-Id"] = ACCOUNT_ID
+                    json_data = json.load(f)
+                    rv = client.post("/applications", json=json_data, headers=headers)
+                    response_json = rv.json
+                    application_number = response_json.get("header").get("applicationNumber")
 
-                application = Application.find_by_application_number(application_number=application_number)
-                application.payment_status = PaymentStatus.COMPLETED.value
-                application.status = Application.Status.PAID
-                application.save()
+                    application = Application.find_by_application_number(application_number=application_number)
+                    application.payment_status = PaymentStatus.COMPLETED.value
+                    application.status = Application.Status.PAID
+                    application.save()
 
-                application_status, registration_id = ApprovalService.process_auto_approval(application=application)
+                    application_status, registration_id = ApprovalService.process_auto_approval(application=application)
 
-                # assert application_status == Application.Status.FULL_REVIEW
-                assert not registration_id
+                    # assert application_status == Application.Status.FULL_REVIEW
+                    assert not registration_id
+                    assert mock_email.called
