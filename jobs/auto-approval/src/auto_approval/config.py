@@ -111,6 +111,9 @@ class _Config:  # pylint: disable=too-few-public-methods
             f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
         )
 
+    # projects/<project_id-env>/topics/<topic_name>
+    GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC")
+
     TESTING = False
     DEBUG = False
 
@@ -148,6 +151,7 @@ class TestConfig(_Config):  # pylint: disable=too-few-public-methods
 
     COLIN_URL = os.getenv("COLIN_URL_TEST", "")
     LEGAL_URL = os.getenv("LEGAL_URL_TEST", "")
+    GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC_TEST", None)
 
 
 class ProdConfig(_Config):  # pylint: disable=too-few-public-methods
