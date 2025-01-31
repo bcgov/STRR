@@ -114,7 +114,7 @@ def worker():
         application_num=application.application_number,
         reg_num=app_dict.get("header", {}).get("registrationNumber"),
         address_street=_get_address_street(app_dict, application.registration_type),
-        address_street_2=_get_address_street_2(app_dict, application.registration_type),
+        address_street_extra=_get_address_extra(app_dict, application.registration_type),
         address_region=_get_address_region(app_dict, application.registration_type),
         expiry_date=_get_expiry_date(app_dict, application.registration_type),
         service_provider=_get_service_provider(app_dict, application.registration_type),
@@ -170,7 +170,7 @@ def _get_address_street(app_dict: dict, reg_type: Registration.RegistrationType)
     return f"{street_num or ''} {street_name}".strip()
 
 
-def _get_address_street_2(app_dict, reg_type: Registration.RegistrationType) -> str | None:
+def _get_address_extra(app_dict, reg_type: Registration.RegistrationType) -> str | None:
     """Return the locality if both a street name and locality were given in the address (rare edge case)."""
     if reg_type == Registration.RegistrationType.HOST:
         address = app_dict["registration"]["unitAddress"]
@@ -278,6 +278,8 @@ def substitute_template_parts(template_code: str) -> str:
     parts. There is no recursive search and replace.
     """
     template_parts = [
+        "strr-host-approval",
+        "strr-host-approval-body"
         "strr-footer",
         "strr-important-deadlines",
         "strr-important-next-steps",

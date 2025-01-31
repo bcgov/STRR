@@ -6,8 +6,8 @@
   {{ reg_num }}
 
   ^**Short-Term Rental Address:** 
-  {% if address_street_2 %}{{ address_street }}
-  {{ address_street_2 }}
+  {% if address_street_extra %}{{ address_street }}
+  {{ address_street_extra }}
   {{ address_region }}
   {% else %}{{ address_street }}
   {{ address_region }}
