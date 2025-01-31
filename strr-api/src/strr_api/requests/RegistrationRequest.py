@@ -121,6 +121,7 @@ class UnitDetails:
         parcelIdentifier=None,
         businessLicense=None,
         businessLicenseExpiryDate=None,
+        blExemptReason=None,
         strataHotelRegistrationNumber=None,
         prExemptReason=None,
     ):
@@ -133,6 +134,7 @@ class UnitDetails:
         self.isUnitOnPrincipalResidenceProperty = isUnitOnPrincipalResidenceProperty
         self.numberOfRoomsForRent = numberOfRoomsForRent
         self.businessLicenseExpiryDate = businessLicenseExpiryDate
+        self.blExemptReason = blExemptReason
         self.strataHotelRegistrationNumber = strataHotelRegistrationNumber
         self.prExemptReason = prExemptReason
 

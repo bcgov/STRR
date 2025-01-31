@@ -267,6 +267,7 @@ class RegistrationSerializer:
             )
             if registration.rental_property.local_business_licence_expiry_date
             else None,
+            "blExemptReason": registration.rental_property.bl_exempt_reason,
             "propertyType": registration.rental_property.property_type.name,
             "ownershipType": registration.rental_property.ownership_type.name,
             "rentalUnitSpaceType": registration.rental_property.space_type,
