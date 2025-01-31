@@ -133,4 +133,5 @@ def test_process_auto_approval_host_application(session, client, jwt):
 
                     # assert application_status == Application.Status.FULL_REVIEW
                     assert not registration_id
-                    assert mock_email.called
+                    # NOTE: application is not auto approved so no email is sent
+                    assert not mock_email.called
