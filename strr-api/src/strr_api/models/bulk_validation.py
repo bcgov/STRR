@@ -2,6 +2,7 @@
 Bulk Validation Model.
 """
 from __future__ import annotations
+
 from typing import Optional
 
 from sqlalchemy.sql import text
@@ -33,6 +34,6 @@ class BulkValidation(BaseModel):
     status = db.Column(db.Enum(Status), nullable=False, index=True, default=Status.NOT_PROCESSED)
 
     @classmethod
-    def get_record_by_request_file_id (cls, request_file_key: str) -> Optional[BulkValidation]:
+    def get_record_by_request_file_id(cls, request_file_key: str) -> Optional[BulkValidation]:
         """Returns the record with the specified request file key."""
         return cls.query.filter_by(request_file_id=request_file_key).one_or_none()
