@@ -32,13 +32,14 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-# pylint: disable=logging-fstring-interpolation, W0612, W0511, W0718
+# pylint: disable=logging-fstring-interpolation, W0612, W0511, W0718, W0212
 
 """This Module processes eventarc messages for bulk validation file upload.
 """
 import concurrent.futures
 import copy
 from datetime import datetime
+from functools import partial
 from http import HTTPStatus
 import json
 import logging
@@ -90,34 +91,35 @@ def worker():
     return {}, HTTPStatus.OK
 
 
-def process_record(record: dict):
+def process_record(record: dict, app):
     """Processes the individual record."""
     response = copy.deepcopy(record)
     try:
+        with app.app_context():
+            # Validate the record based on whether the identifier is present or not.
+            valid, errors = _validate_record(record)
+            if errors:
+                response["errors"] = errors
+                return response
 
-        # Validate the record based on whether the identifier is present or not.
-        valid, errors = _validate_record(record)
-        if errors:
-            response["errors"] = errors
-            return response
+            if identifier := record.get("identifier"):
+                registration = RegistrationService.find_by_registration_number(identifier)
 
-        if identifier := record.get("identifier"):
-            registration = RegistrationService.find_by_registration_number(identifier)
-            if registration:
-                response = ValidationService.check_permit_details(record, registration)
+                if registration:
+                    response = ValidationService.check_permit_details(record, registration)
+                else:
+                    response["errors"] = [
+                        {
+                            "code": ErrorMessage.PERMIT_NOT_FOUND.name,
+                            "message": ErrorMessage.PERMIT_NOT_FOUND.value,
+                        }
+                    ]
             else:
-                response["errors"] = [
-                    {
-                        "code": ErrorMessage.PERMIT_NOT_FOUND.name,
-                        "message": ErrorMessage.PERMIT_NOT_FOUND.value,
-                    }
-                ]
-        else:
-            str_requirements = get_strr_requirements(record.get("address"))
-            response.update(str_requirements)
-            logging.info("STR requirements updated for record: %s", response)
+                str_requirements = get_strr_requirements(record.get("address"))
+                response.update(str_requirements)
+                logging.info("STR requirements updated for record: %s", response)
 
-        return response
+            return response
 
     except Exception as e:
         logging.error(f"Processing error for the record  {record}: {e}")
@@ -161,7 +163,8 @@ def get_strr_requirements(unit_address: dict):
 def process_chunk(chunk, max_workers=5):
     """Process a chunk of records in parallel."""
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        return list(executor.map(process_record, chunk))
+        process_record_args = partial(process_record, app=current_app._get_current_object())
+        return list(executor.map(process_record_args, chunk))
 
 
 def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK_SIZE):

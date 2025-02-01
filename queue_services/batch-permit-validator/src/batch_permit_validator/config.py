@@ -124,6 +124,27 @@ class Config:  # pylint: disable=too-few-public-methods
     BULK_VALIDATION_REQUESTS_BUCKET = os.getenv("BULK_VALIDATION_REQUESTS_BUCKET")
     BULK_VALIDATION_RESPONSE_BUCKET = os.getenv("BULK_VALIDATION_RESPONSE_BUCKET")
 
+    JWT_OIDC_WELL_KNOWN_CONFIG = os.getenv("JWT_OIDC_WELL_KNOWN_CONFIG")
+    JWT_OIDC_ALGORITHMS = os.getenv("JWT_OIDC_ALGORITHMS")
+    JWT_OIDC_JWKS_URI = os.getenv("JWT_OIDC_JWKS_URI")
+    JWT_OIDC_ISSUER = os.getenv("JWT_OIDC_ISSUER")
+    JWT_OIDC_AUDIENCE = os.getenv("JWT_OIDC_AUDIENCE")
+    JWT_OIDC_CLIENT_SECRET = os.getenv("JWT_OIDC_CLIENT_SECRET")
+    JWT_OIDC_CACHING_ENABLED = os.getenv("JWT_OIDC_CACHING_ENABLED")
+    JWT_OIDC_TOKEN_URL = os.getenv("JWT_OIDC_TOKEN_URL")
+    JWT_OIDC_JWKS_CACHE_TIMEOUT = int(os.getenv("JWT_OIDC_JWKS_CACHE_TIMEOUT", "6000"))
+    JWT_OIDC_USERNAME = os.getenv("JWT_OIDC_USERNAME", "username")
+    JWT_OIDC_FIRSTNAME = os.getenv("JWT_OIDC_FIRSTNAME", "firstname")
+    JWT_OIDC_LASTNAME = os.getenv("JWT_OIDC_LASTNAME", "lastname")
+
+    KEYCLOAK_AUTH_TOKEN_URL = os.getenv("KEYCLOAK_AUTH_TOKEN_URL")
+    STRR_SERVICE_ACCOUNT_CLIENT_ID = os.getenv("STRR_SERVICE_ACCOUNT_CLIENT_ID")
+    STRR_SERVICE_ACCOUNT_SECRET = os.getenv("STRR_SERVICE_ACCOUNT_SECRET")
+
+    # GEOCODER
+    GEOCODER_SVC_URL = os.getenv("GEOCODER_API_URL", "")
+    GEOCODER_SVC_AUTH_KEY = os.getenv("GEOCODER_API_AUTH_KEY", "")
+
 
 class DevConfig(Config):  # pylint: disable=too-few-public-methods
     """Creates the Development Config object."""
