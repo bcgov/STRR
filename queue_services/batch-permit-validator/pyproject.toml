@@ -24,8 +24,8 @@ protobuf = "3.19.5"
 isort = "^5.13.2"
 pylint = "^3.0.3"
 flake8-pyproject = "^1.2.3"
-gcp-queue = { git = "https://github.com/thorwolpert/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
-structured-logging = { git = "https://github.com/thorwolpert/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
+gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
+structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 

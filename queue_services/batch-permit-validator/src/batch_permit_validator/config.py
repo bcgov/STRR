@@ -31,6 +31,9 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+
+# pylint: disable=line-too-long
+
 """All of the configuration for the service is captured here.
 
 All items are loaded, or have Constants defined here that
@@ -110,6 +113,16 @@ class Config:  # pylint: disable=too-few-public-methods
         SQLALCHEMY_DATABASE_URI = (
             f"postgresql+pg8000://{DB_USER}:{ DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
         )
+
+    GCP_CS_PROJECT_ID = os.getenv("GCP_CS_PROJECT_ID")
+    GCP_CS_SA_SCOPE = os.getenv("GCP_CS_SA_SCOPE")
+    GCP_AUTH_KEY = os.getenv("GCP_AUTH_KEY")
+    STR_DATA_API_CLIENT_ID = os.getenv("STR_DATA_API_CLIENT_ID")
+    STR_DATA_API_CLIENT_SECRET = os.getenv("STR_DATA_API_CLIENT_SECRET")
+    STR_DATA_API_TOKEN_URL = os.getenv("STR_DATA_API_TOKEN_URL")
+    STR_DATA_API_URL = os.getenv("STR_DATA_API_URL")
+    BULK_VALIDATION_REQUESTS_BUCKET = os.getenv("BULK_VALIDATION_REQUESTS_BUCKET")
+    BULK_VALIDATION_RESPONSE_BUCKET = os.getenv("BULK_VALIDATION_RESPONSE_BUCKET")
 
 
 class DevConfig(Config):  # pylint: disable=too-few-public-methods
