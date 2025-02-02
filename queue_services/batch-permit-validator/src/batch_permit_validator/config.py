@@ -95,55 +95,10 @@ class Config:  # pylint: disable=too-few-public-methods
     PUBLISHER_AUDIENCE = os.getenv(
         "PUBLISHER_AUDIENCE", "https://pubsub.googleapis.com/google.pubsub.v1.Publisher"
     )
-    # SUB_AUDIENCE = os.getenv("SUB_AUDIENCE", "")
-    # SUB_SERVICE_ACCOUNT = os.getenv("SUB_SERVICE_ACCOUNT", "")
 
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    # POSTGRESQL
-    DB_USER = os.getenv("DATABASE_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_NAME", "")
-    DB_HOST = os.getenv("DATABASE_HOST", "")
-    DB_PORT = os.getenv("DATABASE_PORT", "5432")
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
-    else:
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{ DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        )
-
-    GCP_CS_PROJECT_ID = os.getenv("GCP_CS_PROJECT_ID")
-    GCP_CS_SA_SCOPE = os.getenv("GCP_CS_SA_SCOPE")
-    GCP_AUTH_KEY = os.getenv("GCP_AUTH_KEY")
-    STR_DATA_API_CLIENT_ID = os.getenv("STR_DATA_API_CLIENT_ID")
-    STR_DATA_API_CLIENT_SECRET = os.getenv("STR_DATA_API_CLIENT_SECRET")
-    STR_DATA_API_TOKEN_URL = os.getenv("STR_DATA_API_TOKEN_URL")
-    STR_DATA_API_URL = os.getenv("STR_DATA_API_URL")
-    BULK_VALIDATION_REQUESTS_BUCKET = os.getenv("BULK_VALIDATION_REQUESTS_BUCKET")
-    BULK_VALIDATION_RESPONSE_BUCKET = os.getenv("BULK_VALIDATION_RESPONSE_BUCKET")
-
-    JWT_OIDC_WELL_KNOWN_CONFIG = os.getenv("JWT_OIDC_WELL_KNOWN_CONFIG")
-    JWT_OIDC_ALGORITHMS = os.getenv("JWT_OIDC_ALGORITHMS")
-    JWT_OIDC_JWKS_URI = os.getenv("JWT_OIDC_JWKS_URI")
-    JWT_OIDC_ISSUER = os.getenv("JWT_OIDC_ISSUER")
-    JWT_OIDC_AUDIENCE = os.getenv("JWT_OIDC_AUDIENCE")
-    JWT_OIDC_CLIENT_SECRET = os.getenv("JWT_OIDC_CLIENT_SECRET")
-    JWT_OIDC_CACHING_ENABLED = os.getenv("JWT_OIDC_CACHING_ENABLED")
-    JWT_OIDC_TOKEN_URL = os.getenv("JWT_OIDC_TOKEN_URL")
-    JWT_OIDC_JWKS_CACHE_TIMEOUT = int(os.getenv("JWT_OIDC_JWKS_CACHE_TIMEOUT", "6000"))
-    JWT_OIDC_USERNAME = os.getenv("JWT_OIDC_USERNAME", "username")
-    JWT_OIDC_FIRSTNAME = os.getenv("JWT_OIDC_FIRSTNAME", "firstname")
-    JWT_OIDC_LASTNAME = os.getenv("JWT_OIDC_LASTNAME", "lastname")
-
-    KEYCLOAK_AUTH_TOKEN_URL = os.getenv("KEYCLOAK_AUTH_TOKEN_URL")
-    STRR_SERVICE_ACCOUNT_CLIENT_ID = os.getenv("STRR_SERVICE_ACCOUNT_CLIENT_ID")
-    STRR_SERVICE_ACCOUNT_SECRET = os.getenv("STRR_SERVICE_ACCOUNT_SECRET")
-
-    # GEOCODER
-    GEOCODER_SVC_URL = os.getenv("GEOCODER_API_URL", "")
-    GEOCODER_SVC_AUTH_KEY = os.getenv("GEOCODER_API_AUTH_KEY", "")
+    GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
+    GCP_CLOUD_RUN_JOB_LOCATION = os.getenv("GCP_CLOUD_RUN_JOB_LOCATION")
+    GCP_CLOUD_RUN_JOB_NAME = os.getenv("GCP_CLOUD_RUN_JOB_NAME")
 
 
 class DevConfig(Config):  # pylint: disable=too-few-public-methods
