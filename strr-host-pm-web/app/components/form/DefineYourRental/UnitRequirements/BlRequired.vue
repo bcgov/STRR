@@ -91,8 +91,9 @@ onMounted(async () => {
                     && reqStore.blRequirements.blExemptType === BlExemptionReason.OTHER"
                   v-model="reqStore.blRequirements.blExemptReason"
                   maxlength="1000"
+                  :aria-label="t('label.blExemptionReasonOtherPlaceholder')"
                   :placeholder="t('label.blExemptionReasonOtherPlaceholder')"
-                  class="ml-4 w-[520px]"
+                  class="ml-4 sm:w-fit md:w-[520px]"
                 />
               </div>
             </template>
