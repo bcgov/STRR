@@ -149,7 +149,22 @@
               :title="tReview('numberOfRoomsForRent')"
               :content="String(applicationDetails?.unitDetails.numberOfRoomsForRent) || '-'"
             />
-            <div class="grid grid-rows-subgrid d:row-span-3">
+            <BcrosFormSectionReviewItem
+              v-if="applicationDetails.unitDetails.blExemptReason"
+              title="Business License Exemption"
+              :content="applicationDetails.unitDetails.blExemptReason"
+            />
+            <BcrosFormSectionReviewItem :title="tReview('propertyType')">
+              <p data-test-id="property-type">
+                {{ applicationDetails?.unitDetails.propertyType
+                  ? tPropertyForm(
+                    propertyTypeMap[applicationDetails?.unitDetails.propertyType as keyof PropertyTypeMapI]
+                  )
+                  : '-'
+                }}
+              </p>
+            </BcrosFormSectionReviewItem>
+            <div class="grid grid-rows-subgrid d:row-span-2">
               <BcrosFormSectionReviewItem :title="tReview('listing')">
                 <template v-if="applicationDetails.listingDetails[0]?.url.length > 0">
                   <a
@@ -168,16 +183,6 @@
                 </p>
               </BcrosFormSectionReviewItem>
             </div>
-            <BcrosFormSectionReviewItem :title="tReview('propertyType')">
-              <p data-test-id="property-type">
-                {{ applicationDetails?.unitDetails.propertyType
-                  ? tPropertyForm(
-                    propertyTypeMap[applicationDetails?.unitDetails.propertyType as keyof PropertyTypeMapI]
-                  )
-                  : '-'
-                }}
-              </p>
-            </BcrosFormSectionReviewItem>
             <BcrosFormSectionReviewItem
               :title="tReview('ownershipType')"
               :content="getOwnershipTypeDisplay(applicationDetails?.unitDetails.ownershipType, tApplicationDetails)"
