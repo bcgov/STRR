@@ -26,8 +26,7 @@ pylint = "^3.0.3"
 flake8-pyproject = "^1.2.3"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
-strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
-nanoid = "^2.0.0"
+google-cloud-run = "0.10.5"
 
 
 [tool.poetry.group.dev.dependencies]

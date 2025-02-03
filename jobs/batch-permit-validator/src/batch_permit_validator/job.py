@@ -11,21 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Batch Permit Validator Job."""
-import os
-import sys
+# pylint: disable=logging-fstring-interpolation, W0612, W0511, W0718, W0212
 
-from batch_permit_validator.config import CONFIGURATION
+"""Batch Permit Validator Job."""
+
 import concurrent.futures
 import copy
+import json
+import os
+import sys
 from datetime import datetime
 from functools import partial
-import json
 
-from flask import current_app, Flask
-from strr_api.models import db
+from flask import Flask, current_app
 from strr_api.enums.enum import ErrorMessage
-from strr_api.models import BulkValidation
+from strr_api.models import BulkValidation, db
 from strr_api.schemas.utils import validate
 from strr_api.services.approval_service import ApprovalService
 from strr_api.services.gcp_storage_service import GCPStorageService
@@ -33,6 +33,7 @@ from strr_api.services.registration_service import RegistrationService
 from strr_api.services.validation_service import ValidationService
 from structured_logging import StructuredLogging
 
+from batch_permit_validator.config import CONFIGURATION
 
 logger = StructuredLogging.get_logger()
 
@@ -60,7 +61,7 @@ def register_shellcontext(app):
     app.shell_context_processor(shell_context)
 
 
-def process_file(app, file_name):
+def _process_file(file_name):
     validation_request_bucket = GCPStorageService.get_bucket(
         current_app.config.get("BULK_VALIDATION_REQUESTS_BUCKET")
     )
@@ -76,15 +77,16 @@ def run():
         app = create_app()
         with app.app_context():
             logger.info("Starting batch permit validator job")
-            file_name = sys.argv[
-                1:
-            ][0]  # sys.argv[0] is the script name, so we take everything after that
-            logger.info(file_name)
+            file_name = sys.argv[1:][
+                0
+            ]  # sys.argv[0] is the script name, so we take everything after that
+            logger.info(f"Processing file {file_name}")
             if file_name:
-                process_file(app=app, file_name=file_name)
+                _process_file(file_name=file_name)
             else:
                 logger.error("Empty file name.")
     except Exception as err:  # pylint: disable=broad-except
+        logger.error(err, logger.error(err, stack_info=True, exc_info=True))
         logger.error(f"Unexpected error: {str(err)}")
 
 

@@ -42,12 +42,14 @@ import json
 from flask import Blueprint
 from flask import current_app
 from flask import request
-from google.cloud import run_v1
+from google.cloud import run_v2
 from structured_logging import StructuredLogging
 
 bp = Blueprint("worker", __name__)
 
 logger = StructuredLogging.get_logger()
+
+TIMEOUT_IN_SECONDS = 45 * 60
 
 
 @bp.route("/", methods=("POST",))
@@ -62,28 +64,46 @@ def worker():
     request_bytes = request.data.decode().replace("'", '"')
     ce = json.loads(request_bytes)
     file_name = ce.get("name")
+    logger.info(f"File Name: {file_name}")
     if not file_name:
         return {"error": "Invalid File Name"}, HTTPStatus.BAD_REQUEST
 
-    trigger_batch_permit_validator_job(message=file_name)
+    _trigger_batch_permit_validator_job(file_name=file_name)
+
+    logger.info(f"Finished processing : {str(ce)}")
+    return {}, HTTPStatus.OK
 
 
-def trigger_batch_permit_validator_job(message=""):
-    client = run_v1.JobsClient()
-    project_id = current_app.config.get("GCP_PROJECT_ID")
-    location = current_app.config.get("GCP_CLOUD_RUN_JOB_LOCATION")
-    job_name = current_app.config.get("GCP_CLOUD_RUN_JOB_NAME")
-    parent = f"projects/{project_id}/locations/{location}"
-
-    execution = {"name": f"{parent}/jobs/{job_name}/executions", "parameters": [message]}
-
-    logger.info(f"execution: {execution}")
-    logger.info(f"Triggering job '{job_name}' with arguments: {execution['parameters']}")
-
+def _trigger_batch_permit_validator_job(file_name=""):
     try:
-        # Trigger the job execution
-        response = client.run_job(name=execution["name"], job=job_name)
-        logger.info(f"Job '{job_name}' triggered successfully!")
-        logger.info(f"Execution details: {response}")
+        client = run_v2.JobsClient()
+
+        project_id = current_app.config.get("GCP_PROJECT_ID")
+        location = current_app.config.get("GCP_CLOUD_RUN_JOB_LOCATION")
+        job_name = current_app.config.get("GCP_CLOUD_RUN_JOB_NAME")
+        parent = f"projects/{project_id}/locations/{location}/jobs/{job_name}"
+
+        overrides = {
+            "container_overrides": [{"args": [file_name]}],
+            "timeout": str(TIMEOUT_IN_SECONDS) + "s",
+            "task_count": 1,
+        }
+
+        logger.info(overrides)
+
+        # Initialize request argument(s)
+        job_request = run_v2.RunJobRequest(
+            name=parent,
+            overrides=overrides,
+        )
+
+        # Make the request
+        client.run_job(request=job_request)
+
+        # Output the execution details
+        logger.info(f"Execution triggered for job {job_name}")
+
     except Exception as e:
+        logger.error(e, stack_info=True, exc_info=True)
         logger.error(f"Error triggering job: {e}")
+        raise e
