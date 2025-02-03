@@ -160,6 +160,7 @@ export default {
       rentalUnitNameOpt: 'Rental Unit Name (Optional)',
       parcelId: 'Parcel Identifier (PID)',
       prRequirement: 'Principal Residence Requirement',
+      businessLicence: 'Business Licence',
       theRentalUnitIs: 'The rental unit is:',
       supportingInfo: 'Supporting Information',
       other: 'Other',
@@ -267,11 +268,19 @@ export default {
     done: 'Done',
     exemption: 'Exemption',
     exemptionReason: 'Exemption Reason',
+    prExemption: 'Principal Residence Exemption',
+    prExemptionReason: 'Principal Residence Exemption Reason',
     exemptionReasonCode: {
       FARM_LAND: 'Farm land (BC Assessment Farm Class 9)',
       FRACTIONAL_OWNERSHIP: 'Fractional ownership',
-      STRATA_HOTEL: 'Eligible strata-titled hotel or motel'
+      STRATA_HOTEL: 'Eligible strata-titled hotel or motel',
+      undefined: 'Not Selected'
     },
+    blExemption: 'Business Licence Exemption',
+    blExemptionReason: 'Business Licence Exemption Reason',
+    blExemptionReasonOver30: 'This short-term rental does not offer bookings of under 30 days',
+    blExemptionReasonOther: 'Other',
+    blExemptionReasonOtherPlaceholder: 'Reason',
     strataRefCode: 'Strata-Titled Hotel Reference Code',
     strUnitAddress: 'Short-Term Rental Unit Residential Address',
     strUnitName: 'Short-Term Rental Unit Nickname',
@@ -345,6 +354,7 @@ export default {
   },
   text: {
     thisPropIsExempt: 'This property is exempt from the principal residence requirement',
+    businessLicNotRequired: 'This short-term rental does not require a business licence',
     followingDocsRequired: 'The following documentation is required for this registration:',
     followingDocsMayBeRequired: 'The following documentation may be required for this registration:',
     rentalUnitSetupLegend: 'Required: Select the set-up of the property, host principal residence, and rental unit.',
@@ -388,6 +398,7 @@ export default {
     }
   },
   validation: {
+    required: 'Required',
     accountName: {
       required: 'Please enter an account name',
       exists: 'An account with this name already exists'

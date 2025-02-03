@@ -101,9 +101,17 @@ setBreadcrumbs([
 ])
 </script>
 <template>
-  <div class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10">
+  <div
+    id="host-dashboard-page"
+    class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10"
+  >
     <div class="grow space-y-10">
-      <ConnectDashboardSection :title="$t('label.todo')" :title-num="todos.length" :loading="loading">
+      <ConnectDashboardSection
+        id="to-do-section"
+        :title="$t('label.todo')"
+        :title-num="todos.length"
+        :loading="loading"
+      >
         <TodoEmpty v-if="!todos.length" />
         <Todo
           v-for="todo in todos"
@@ -113,15 +121,27 @@ setBreadcrumbs([
           :button="todo.button"
         />
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('strr.label.shortTermRental')" :loading="loading">
+      <ConnectDashboardSection
+        id="short-term-rental-section"
+        :title="$t('strr.label.shortTermRental')"
+        :loading="loading"
+      >
         <SummaryProperty class="px-10 py-5" />
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('strr.label.supportingInfo')" :loading="loading">
+      <ConnectDashboardSection
+        id="supporting-info-section"
+        :title="$t('strr.label.supportingInfo')"
+        :loading="loading"
+      >
         <SummarySupportingInfo class="px-10 py-5" />
       </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
-      <ConnectDashboardSection :title="$t('strr.label.individualsBusinesses')" :loading="loading">
+      <ConnectDashboardSection
+        id="individuals-business-section"
+        :title="$t('strr.label.individualsBusinesses')"
+        :loading="loading"
+      >
         <ConnectAccordion v-if="showPermitDetails" :items="owners" multiple />
         <div v-else class="w-full bg-white p-5 opacity-50">
           <p class="text-sm">

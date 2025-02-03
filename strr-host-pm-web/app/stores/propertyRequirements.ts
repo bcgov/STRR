@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { FetchError } from 'ofetch'
+import type { BusinessLicenceRequirements } from '~/interfaces/business-licence-requirements'
 
 export const usePropertyReqStore = defineStore('property/requirements', () => {
   const { t } = useI18n()
@@ -24,6 +25,7 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
       reqs.push(
         {
           label: t('requirements.busLicense.label'),
+          id: 'bl-requirement',
           content: overrideApplicationWarning.value
             ? t('requirements.busLicense.content.override')
             : t('requirements.busLicense.content.normal')
@@ -48,12 +50,28 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
       : z.any().optional()
   }))
 
+  // business licence requirements when bl not required option is selected
+  const blRequirementsSchema = computed(() => z.object({
+    isBusinessLicenceExempt: z.boolean(),
+    blExemptReason: blRequirements.value.isBusinessLicenceExempt
+      ? z.string()
+        .min(1, { message: t('validation.required') })
+      : z.any().optional()
+  }))
+
   const getEmptyPrRequirements = (): PrRequirements => ({
     isPropertyPrExempt: false,
     prExemptionReason: undefined
   })
 
+  const getEmptyBlRequirements = (): BusinessLicenceRequirements => ({
+    isBusinessLicenceExempt: false,
+    blExemptType: undefined,
+    blExemptReason: ''
+  })
+
   const prRequirements = ref<PrRequirements>(getEmptyPrRequirements())
+  const blRequirements = ref<BusinessLicenceRequirements>(getEmptyBlRequirements())
 
   async function getPropertyReqs () {
     try {
@@ -97,6 +115,7 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     propertyReqs.value = {} as PropertyRequirements
     propertyReqError.value = {} as PropertyRequirementsError
     prRequirements.value = getEmptyPrRequirements()
+    blRequirements.value = getEmptyBlRequirements()
     showUnitDetailsForm.value = false
     overrideApplicationWarning.value = false
   }
@@ -108,7 +127,9 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     hasReqError,
     propertyReqError,
     prRequirementsSchema,
+    blRequirementsSchema,
     prRequirements,
+    blRequirements,
     showUnitDetailsForm,
     requirementsList,
     overrideApplicationWarning,

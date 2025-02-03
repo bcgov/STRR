@@ -24,6 +24,7 @@ const reqStore = usePropertyReqStore()
 
     <FormDefineYourRentalUnitRequirementsList
       v-if="reqStore.requirementsList.length > 0 && reqStore.showUnitDetailsForm === true"
+      :is-complete="isComplete"
     />
 
     <FormDefineYourRentalUnitRequirementsPrRequired
