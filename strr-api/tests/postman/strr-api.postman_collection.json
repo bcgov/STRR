@@ -593,7 +593,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{staff_token}}",
 									"type": "string"
 								}
 							]
@@ -607,27 +607,14 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1",
+							"raw": "{{api_url}}/applications/{{application_number}}/existing-host-registrations",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
-								"search"
-							],
-							"query": [
-								{
-									"key": "text",
-									"value": "018-851-570"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								},
-								{
-									"key": "page",
-									"value": "1"
-								}
+								"{{application_number}}",
+								"existing-host-registrations"
 							]
 						}
 					},

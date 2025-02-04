@@ -315,7 +315,7 @@ class RegistrationSerializer:
                         "middleName": property_manager.primary_contact.middlename,
                         "preferredName": property_manager.primary_contact.preferredname,
                         "phoneNumber": property_manager.primary_contact.phone_number,
-                        "phoneCountrycode": property_manager.primary_contact.phone_country_code,
+                        "phoneCountryCode": property_manager.primary_contact.phone_country_code,
                         "extension": property_manager.primary_contact.phone_extension,
                         "faxNumber": property_manager.primary_contact.fax_number,
                         "emailAddress": property_manager.primary_contact.email,

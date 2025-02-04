@@ -36,7 +36,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from strr_api.enums.enum import ApplicationType, PaymentStatus
-from strr_api.models import Application, Events, User
+from strr_api.models import Application, Events, Registration, User
 from strr_api.models.application import ApplicationSerializer
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.models.rental import PropertyContact
@@ -66,7 +66,13 @@ class ApplicationService:
     @staticmethod
     def serialize(application: Application) -> dict:
         """Returns application JSON."""
-        return ApplicationSerializer.to_dict(application)
+        app_dict = ApplicationSerializer.to_dict(application)
+        # add number of existing host registrations
+        if application.registration_type == Registration.RegistrationType.HOST:
+            app_dict["header"]["existingHostRegistrations"] = ApplicationService.get_existing_host_registrations_count(
+                app_dict
+            )
+        return app_dict
 
     @staticmethod
     def save_application(account_id: int, request_json: dict, application: Application) -> Application:
@@ -230,10 +236,12 @@ class ApplicationService:
         }
 
     @staticmethod
-    def find_existing_host_registrations(application: Application) -> list[dict]:
+    def get_existing_host_registrations(application: Application) -> list[dict]:
         """Return all the existing host registrations for the host of the given application."""
         application_json = ApplicationService.serialize(application)
-        if application_json["registration"]["primaryContact"]["contactType"] == PropertyContact.ContactType.BUSINESS.value:
+        contact_type = application_json["registration"]["primaryContact"].get("contactType")
+        # NOTE: contactType may not be set
+        if contact_type == PropertyContact.ContactType.BUSINESS.value:
             # TODO: does not not have anything to compare against when the host is a business
             return []
 
@@ -242,7 +250,19 @@ class ApplicationService:
             return []
 
         registrations = RegistrationService.find_all_by_host_sin(host_sin)
-        return [
-            RegistrationService.serialize(reg)
-            for reg in registrations
-        ]
+        return [RegistrationService.serialize(reg) for reg in registrations]
+
+    @staticmethod
+    def get_existing_host_registrations_count(application_dict: dict) -> int:
+        """Return the count of existing host registrations for the host of the given application."""
+        contact_type = application_dict["registration"]["primaryContact"].get("contactType")
+        # NOTE: contactType may not be set
+        if contact_type == PropertyContact.ContactType.BUSINESS.value:
+            # TODO: does not not have anything to compare against when the host is a business
+            return 0
+
+        host_sin = application_dict["registration"]["primaryContact"].get("socialInsuranceNumber")
+        if not host_sin:
+            return 0
+
+        return RegistrationService.find_all_by_host_sin(host_sin, True)

@@ -784,7 +784,7 @@ def find_existing_host_registrations(application_number: str):
         if not application:
             raise AuthException()
 
-        existing_host_registrations = ApplicationService.find_existing_host_registrations(application)
+        existing_host_registrations = ApplicationService.get_existing_host_registrations(application)
         return jsonify(existing_host_registrations), HTTPStatus.OK
     except AuthException as auth_exception:
         return exception_response(auth_exception)
