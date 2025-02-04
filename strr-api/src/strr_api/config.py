@@ -151,6 +151,7 @@ class Development(Config):  # pylint: disable=too-few-public-methods
     DEVELOPMENT = True
     DEBUG = True
 
+
 class Migration(Config):  # pylint: disable=too-few-public-methods
     """Config for db migration."""
 
@@ -169,6 +170,7 @@ class Migration(Config):  # pylint: disable=too-few-public-methods
         )
     else:
         SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
 
 class Testing(Config):  # pylint: disable=too-few-public-methods
     """Testing class configuration that should override vars for Testing."""
