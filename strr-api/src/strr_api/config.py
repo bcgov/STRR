@@ -77,8 +77,6 @@ class Config:  # pylint: disable=too-few-public-methods
     else:
         SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-    GCP_AUTH_KEY = os.getenv("GCP_AUTH_KEY", None)
-
     LD_SDK_KEY = os.getenv("LD_SDK_KEY", None)
 
     SENTRY_DSN = os.getenv("SENTRY_DSN", None)
@@ -121,6 +119,8 @@ class Config:  # pylint: disable=too-few-public-methods
     GCP_CS_SA_SCOPE = os.getenv("GCP_CS_SA_SCOPE")
     GCP_CS_BUCKET_ID = os.getenv("GCP_CS_BUCKET_ID")
     GCP_AUTH_KEY = os.getenv("GCP_AUTH_KEY")
+    # projects/<project_id-env>/topics/<topic_name>
+    GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC")
 
     # DATA PORTAL API
     STR_DATA_API_CLIENT_ID = os.getenv("STR_DATA_API_CLIENT_ID", "")
@@ -152,6 +152,26 @@ class Development(Config):  # pylint: disable=too-few-public-methods
     DEBUG = True
 
 
+class Migration(Config):  # pylint: disable=too-few-public-methods
+    """Config for db migration."""
+
+    TESTING = False
+    DEBUG = True
+
+    # POSTGRESQL
+    DB_USER = os.getenv("DATABASE_USERNAME", "")
+    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
+    DB_NAME = os.getenv("DATABASE_NAME", "")
+    DB_HOST = os.getenv("DATABASE_HOST", "")
+    DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
+    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
+        SQLALCHEMY_DATABASE_URI = (
+            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
+        )
+    else:
+        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+
 class Testing(Config):  # pylint: disable=too-few-public-methods
     """Testing class configuration that should override vars for Testing."""
 
@@ -176,6 +196,8 @@ class Testing(Config):  # pylint: disable=too-few-public-methods
     KEYCLOAK_AUTH_TOKEN_URL = "https://test-token-url"
     STRR_SERVICE_ACCOUNT_CLIENT_ID = "service-account"
     STRR_SERVICE_ACCOUNT_SECRET = "fake"
+
+    GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC_TEST", None)
 
     # JWT OIDC settings
     # JWT_OIDC_TEST_MODE will set jwt_manager to use
