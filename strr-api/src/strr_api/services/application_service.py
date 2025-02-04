@@ -39,6 +39,7 @@ from strr_api.enums.enum import ApplicationType, PaymentStatus
 from strr_api.models import Application, Events, User
 from strr_api.models.application import ApplicationSerializer
 from strr_api.models.dataclass import ApplicationSearch
+from strr_api.models.rental import PropertyContact
 from strr_api.services.email_service import EmailService
 from strr_api.services.events_service import EventsService
 from strr_api.services.registration_service import RegistrationService
@@ -227,3 +228,21 @@ class ApplicationService:
             "applications": search_results,
             "total": paginated_result.total,
         }
+
+    @staticmethod
+    def find_existing_host_registrations(application: Application) -> list[dict]:
+        """Return all the existing host registrations for the host of the given application."""
+        application_json = ApplicationService.serialize(application)
+        if application_json["registration"]["primaryContact"]["contactType"] == PropertyContact.ContactType.BUSINESS.value:
+            # TODO: does not not have anything to compare against when the host is a business
+            return []
+
+        host_sin = application_json["registration"]["primaryContact"].get("socialInsuranceNumber")
+        if not host_sin:
+            return []
+
+        registrations = RegistrationService.find_all_by_host_sin(host_sin)
+        return [
+            RegistrationService.serialize(reg)
+            for reg in registrations
+        ]

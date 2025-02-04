@@ -752,3 +752,41 @@ def search_applications():
         return jsonify(application_list), HTTPStatus.OK
     except ExternalServiceException as external_exception:
         return exception_response(external_exception)
+
+
+@bp.route("/<application_number>/existing-host-registrations", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def find_existing_host_registrations(application_number: str):
+    """
+    Get existing host registrations for the application number.
+    ---
+    tags:
+      - application, registration
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+
+    try:
+        account_id = request.headers.get("Account-Id", None)
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
+        if not application:
+            raise AuthException()
+
+        existing_host_registrations = ApplicationService.find_existing_host_registrations(application)
+        return jsonify(existing_host_registrations), HTTPStatus.OK
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except ExternalServiceException as external_exception:
+        return exception_response(external_exception)

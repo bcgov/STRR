@@ -569,3 +569,15 @@ class RegistrationService:
             visible_to_applicant=True,
         )
         return registration
+
+    @staticmethod
+    def find_all_by_host_sin(sin: str) -> list[Registration]:
+        """Return all registrations with the given host SIN."""
+        return Registration.query \
+            .join(RentalProperty) \
+            .join(PropertyContact) \
+            .join(Contact) \
+            .filter(Registration.status.in_([RegistrationStatus.ACTIVE, RegistrationStatus.SUSPENDED])) \
+            .filter(PropertyContact.is_primary == True) \
+            .filter(PropertyContact.contact_type == PropertyContact.ContactType.INDIVIDUAL) \
+            .filter(Contact.social_insurance_number == sin).all()
