@@ -607,14 +607,15 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/{{application_number}}/existing-host-registrations",
+							"raw": "{{api_url}}/applications/{{application_number}}/host/related-registrations",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
 								"applications",
 								"{{application_number}}",
-								"existing-host-registrations"
+								"host",
+								"related-registrations"
 							]
 						}
 					},

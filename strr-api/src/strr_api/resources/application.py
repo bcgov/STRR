@@ -56,6 +56,7 @@ from strr_api.exceptions import (
     exception_response,
 )
 from strr_api.models import Application as ApplicationModel
+from strr_api.models import Registration
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.responses import AutoApprovalRecord, Events, LTSARecord
 from strr_api.schemas.utils import validate
@@ -754,12 +755,12 @@ def search_applications():
         return exception_response(external_exception)
 
 
-@bp.route("/<application_number>/existing-host-registrations", methods=("GET",))
+@bp.route("/<application_number>/host/related-registrations", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
 @jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
-def find_existing_host_registrations(application_number: str):
+def get_related_registrations(application_number: str):
     """
     Get existing host registrations for the application number.
     ---
@@ -784,9 +785,14 @@ def find_existing_host_registrations(application_number: str):
         if not application:
             raise AuthException()
 
+        if application.registration_type != Registration.RegistrationType.HOST:
+            raise ValidationException(message="This application is an invalid registration type for this endpoint.")
+
         existing_host_registrations = ApplicationService.get_existing_host_registrations(application)
         return jsonify(existing_host_registrations), HTTPStatus.OK
     except AuthException as auth_exception:
         return exception_response(auth_exception)
+    except ValidationException as validation_exception:
+        return exception_response(validation_exception)
     except ExternalServiceException as external_exception:
         return exception_response(external_exception)
