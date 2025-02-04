@@ -1500,7 +1500,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"recipients\": \"kial@daxiom.com,kial.jinnah@gov.bc.ca\",\n    \"requestBy\": \"kial.jinnah@gov.bc.ca\",\n    \"content\": {\"subject\": \"Test 3\", \"body\": \"#TBD Your application has been approved.\"}\n}",
+							"raw": "{\n    \"recipients\": \"your@email.com,your.second@email.com\",\n    \"requestBy\": \"STRR\",\n    \"content\": {\"subject\": \"Test Subject\", \"body\": \"#TBD Your application has been approved.\"}\n}",
 							"options": {
 								"raw": {
 									"language": "json"
