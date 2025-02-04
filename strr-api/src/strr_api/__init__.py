@@ -64,31 +64,31 @@ def create_app(environment: Config = Production, **kwargs) -> Flask:
     CORS(app)
     app.config.from_object(environment)
 
-    # Configure Sentry
-    if dsn := app.config.get("SENTRY_DSN", None):
-        sentry_sdk.init(
-            dsn=dsn,
-            integrations=[FlaskIntegration()],
-            release=f"strr-api@{get_run_version()}",
-            send_default_pii=False,
-            environment=app.config.get("POD_NAMESPACE", "unknown"),
-        )
-
     db.init_app(app)
-
-    if not app.config.get("TESTING", False):
+    if app.config.get("POD_NAMESPACE", "production") == "migration":
+        logger.info("Running in migration mode")
         Migrate(app, db)
+    else:
+        # Configure Sentry
+        if dsn := app.config.get("SENTRY_DSN", None):
+            sentry_sdk.init(
+                dsn=dsn,
+                integrations=[FlaskIntegration()],
+                release=f"strr-api@{get_run_version()}",
+                send_default_pii=False,
+                environment=app.config.get("POD_NAMESPACE", "unknown"),
+            )
 
-    strr_pay.init_app(app)
-    babel.init_app(app)
-    register_endpoints(app)
-    setup_jwt_manager(app, jwt)
+        strr_pay.init_app(app)
+        babel.init_app(app)
+        register_endpoints(app)
+        setup_jwt_manager(app, jwt)
 
-    @app.after_request
-    def add_version(response):  # pylint: disable=unused-variable
-        version = get_run_version()
-        response.headers["API"] = f"strr-api/{version}"
-        return response
+        @app.after_request
+        def add_version(response):  # pylint: disable=unused-variable
+            version = get_run_version()
+            response.headers["API"] = f"strr-api/{version}"
+            return response
 
     return app
 
