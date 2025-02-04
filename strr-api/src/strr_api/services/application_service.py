@@ -239,13 +239,13 @@ class ApplicationService:
     def get_existing_host_registrations(application: Application) -> list[dict]:
         """Return all the existing host registrations for the host of the given application."""
         application_json = ApplicationService.serialize(application)
-        contact_type = application_json["registration"]["primaryContact"].get("contactType")
+        contact_type = application_json.get("registration", {}).get("primaryContact", {}).get("contactType")
         # NOTE: contactType may not be set
         if contact_type == PropertyContact.ContactType.BUSINESS.value:
             # TODO: does not not have anything to compare against when the host is a business
             return []
 
-        host_sin = application_json["registration"]["primaryContact"].get("socialInsuranceNumber")
+        host_sin = application_json.get("registration", {}).get("primaryContact", {}).get("socialInsuranceNumber")
         if not host_sin:
             return []
 
@@ -255,13 +255,13 @@ class ApplicationService:
     @staticmethod
     def get_existing_host_registrations_count(application_dict: dict) -> int:
         """Return the count of existing host registrations for the host of the given application."""
-        contact_type = application_dict["registration"]["primaryContact"].get("contactType")
+        contact_type = application_dict.get("registration", {}).get("primaryContact", {}).get("contactType")
         # NOTE: contactType may not be set
         if contact_type == PropertyContact.ContactType.BUSINESS.value:
             # TODO: does not not have anything to compare against when the host is a business
             return 0
 
-        host_sin = application_dict["registration"]["primaryContact"].get("socialInsuranceNumber")
+        host_sin = application_dict.get("registration", {}).get("primaryContact", {}).get("socialInsuranceNumber")
         if not host_sin:
             return 0
 
