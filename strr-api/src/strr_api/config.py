@@ -151,6 +151,24 @@ class Development(Config):  # pylint: disable=too-few-public-methods
     DEVELOPMENT = True
     DEBUG = True
 
+class Migration(Config):  # pylint: disable=too-few-public-methods
+    """Config for db migration."""
+
+    TESTING = False
+    DEBUG = True
+
+    # POSTGRESQL
+    DB_USER = os.getenv("DATABASE_USERNAME", "")
+    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
+    DB_NAME = os.getenv("DATABASE_NAME", "")
+    DB_HOST = os.getenv("DATABASE_HOST", "")
+    DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
+    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
+        SQLALCHEMY_DATABASE_URI = (
+            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
+        )
+    else:
+        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 class Testing(Config):  # pylint: disable=too-few-public-methods
     """Testing class configuration that should override vars for Testing."""
