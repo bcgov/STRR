@@ -92,6 +92,7 @@ class Config:  # pylint: disable=too-few-public-methods
 
     EMAIL_TEMPLATE_PATH = os.getenv("EMAIL_TEMPLATE_PATH", "email-templates")
     EMAIL_HOUSING_OPS_EMAIL = os.getenv("EMAIL_HOUSING_OPS_EMAIL", "")
+    EMAIL_HOUSING_RECIPIENT_EMAIL = os.getenv("EMAIL_HOUSING_RECIPIENT_EMAIL", "registry.str@gov.bc.ca")
     EMAIL_STRR_REQUEST_BY = os.getenv("EMAIL_STRR_REQUEST_BY", "STRR")
     EMAIL_SUBJECT_PREFIX = os.getenv("EMAIL_SUBJECT_PREFIX", "")
 

@@ -122,10 +122,11 @@ def worker():
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         registrar_name=current_app.config["STRR_REGISTRAR_NAME"],
     )
+    subject_number = app_dict.get("header", {}).get("registrationNumber") or application.application_number
     subject = (
-        f"{application.application_number} - "
-        + f"{current_app.config['EMAIL_SUBJECT_PREFIX']} {EMAIL_SUBJECT.get(email_info.email_type, '')}".strip()
-    )
+        f"{current_app.config['EMAIL_SUBJECT_PREFIX']}"
+        + f"{subject_number} - {EMAIL_SUBJECT.get(email_info.email_type, '')}"
+    ).strip()
     email = {
         "recipients": _get_email_recipients(app_dict),
         # requestBy is how the notify-api determines which GC Notify account to use
@@ -210,6 +211,10 @@ def _get_service_provider(app_dict: dict, reg_type: Registration.RegistrationTyp
 def _get_email_recipients(app_dict: dict) -> str:
     "Return the email recipients in a string separated by commas."
     recipients: list[str] = []
+
+    if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
+        recipients.append(housing_recipient_email)
+
     reg = app_dict["registration"]
     if reg["registrationType"] == Registration.RegistrationType.HOST.value:
         # Host recipients - completing party is always the host or property manager
