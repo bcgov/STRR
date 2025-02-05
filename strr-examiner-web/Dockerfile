@@ -10,11 +10,9 @@ RUN npm uninstall -g corepack pnpm && \
 COPY . /app
 WORKDIR /app
 
-# Install dependencies with ignore-scripts first
-RUN pnpm install --ignore-scripts
-
-# Then run nuxt prepare separately
-RUN npm exec nuxt prepare
+# Install dependencies and prepare Nuxt
+RUN pnpm install --ignore-scripts && \
+    pnpm exec nuxt prepare
 
 RUN mkdir /app/config
 EXPOSE 8000
