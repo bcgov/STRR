@@ -1,4 +1,5 @@
 name: STRR Examiner UI CI
+
 on:
   pull_request:
     paths:
@@ -11,20 +12,7 @@ defaults:
     working-directory: ./strr-examiner-web
 
 jobs:
-  setup-env:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Update Corepack with npm
-        run: |
-          npm i -g corepack@0.31.0
-          corepack enable
-
   examiner-ui-ci:
-    needs: setup-env
     uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@main
     with:
       app_name: "strr-examiner-ui"
