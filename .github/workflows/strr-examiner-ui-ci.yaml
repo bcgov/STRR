@@ -1,5 +1,4 @@
 name: STRR Examiner UI CI
-
 on:
   pull_request:
     paths:
@@ -12,7 +11,21 @@ defaults:
     working-directory: ./strr-examiner-web
 
 jobs:
+  setup-pnpm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Setup PNPM
+        run: |
+          npm install -g corepack@latest
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
   examiner-ui-ci:
+    needs: setup-pnpm
     uses: bcgov/bcregistry-sre/.github/workflows/frontend-ci.yaml@main
     with:
       app_name: "strr-examiner-ui"
