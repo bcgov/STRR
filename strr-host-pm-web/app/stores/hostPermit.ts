@@ -51,9 +51,10 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       blRequirements.value.isBusinessLicenceExempt = !!permitDetails.value.unitDetails.blExemptReason
 
       // populate BL Exempt radio buttons selection and reason
+      blRequirements.value.blExemptType =
       permitDetails.value.unitDetails.blExemptReason === t('label.blExemptionReasonOver30')
-        ? blRequirements.value.blExemptType = BlExemptionReason.OVER_30_DAYS
-        : blRequirements.value.blExemptType = BlExemptionReason.OTHER
+        ? BlExemptionReason.OVER_30_DAYS
+        : BlExemptionReason.OTHER
 
       blRequirements.value.blExemptReason = permitDetails.value.unitDetails?.blExemptReason ?? ''
       if (application.value?.registration.strRequirements && showUnitDetailsForm.value) {
