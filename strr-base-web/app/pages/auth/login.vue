@@ -35,6 +35,8 @@ const options = computed(() => {
   return items.map(key => loginOptionsMap[key]) // order by idps array
 })
 
+const isSessionExpired = sessionStorage.getItem(ConnectStorageKeys.CONNECT_SESSION_EXPIRED)
+
 // page stuff
 useHead({
   title: t('page.login.h1')
@@ -59,6 +61,22 @@ onMounted(() => {
       <h1>
         {{ $t('page.login.h1') }}
       </h1>
+      <UAlert
+        v-if="isSessionExpired"
+        data-testid="alert-session-expired"
+        color="yellow"
+        icon="i-mdi-alert"
+        :close-button="null"
+        variant="subtle"
+        title="Session Expired"
+        description="Your session has expired. Please log in again to continue."
+        :ui="{
+          inner: 'pt-0',
+          icon: { base: 'self-start text-outcomes-caution' },
+          title: 'text-base font-bold',
+          description: 'text-gray-900'
+        }"
+      />
       <UCard class="my-auto max-w-md">
         <img src="/img/BCReg_Generic_Login_image.jpg" class="pb-4" :alt="$t('imageAlt.genericLogin')">
         <div class="space-y-4 pt-2.5">

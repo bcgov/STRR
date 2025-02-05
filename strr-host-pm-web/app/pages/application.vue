@@ -154,6 +154,9 @@ const saveApplication = async (resumeLater = false) => {
     applicationId.value = filingId
     if (resumeLater) {
       await navigateTo(localePath('/dashboard'))
+    } else {
+      // update route meta to save application before session expires with new application id
+      setOnBeforeSessionExpired(() => submitApplication(true, filingId))
     }
   } catch (e) {
     logFetchError(e, 'Error saving host application')
@@ -298,6 +301,9 @@ definePageMeta({
     return false
   }
 })
+
+// save application before session expires
+setOnBeforeSessionExpired(() => submitApplication(true, applicationId.value))
 
 setBreadcrumbs([
   {

@@ -43,7 +43,7 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@daxiom/nuxt-core-layer-test": "^0.0.21",
+    "@daxiom/nuxt-core-layer-test": "^0.0.24",
     "@vuepic/vue-datepicker": "^10.0.0",
     "@zadigetvoltaire/nuxt-gtm": "^0.0.13",
     "country-codes-list": "^1.6.11",
