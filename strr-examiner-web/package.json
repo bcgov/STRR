@@ -9,7 +9,7 @@
     "dev": "nuxt dev --port 3000",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "prepare": "nuxt prepare",
     "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
     "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./tests/coverage/clover.xml ./coverage.xml",

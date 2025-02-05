@@ -8,7 +8,8 @@ RUN npm install -g pnpm@10.0.0
 COPY . /app
 WORKDIR /app
 
-RUN pnpm install
+RUN pnpm install --ignore-scripts
+RUN pnpm run prepare
 RUN mkdir /app/config
 EXPOSE 8000
 CMD [ "npm", "run", "dev"]
