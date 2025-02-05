@@ -2,9 +2,8 @@ FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-# Update corepack before enabling it
-RUN npm install -g corepack@latest
 RUN corepack enable
+RUN corepack prepare pnpm@10.0.0 --activate
 
 COPY . /app
 WORKDIR /app
