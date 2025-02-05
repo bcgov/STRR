@@ -29,6 +29,12 @@ on:
           - "true"
 
 jobs:
+  pre-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disable Corepack
+        run: corepack disable
+
   examiner-ui-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/frontend-cd.yaml@main
     with:
