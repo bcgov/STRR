@@ -68,8 +68,8 @@ onMounted(() => {
         icon="i-mdi-alert"
         :close-button="null"
         variant="subtle"
-        title="Session Expired"
-        description="Your session has expired. Please log in again to continue."
+        :title="$t('label.sessionExpired')"
+        :description="$t('text.sessionExpired')"
         :ui="{
           inner: 'pt-0',
           icon: { base: 'self-start text-outcomes-caution' },

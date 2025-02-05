@@ -285,7 +285,8 @@ export default {
     completingParty: 'Completing Party',
     completePayment: 'Complete Payment',
     payNow: 'Pay Now',
-    strataHotelCategory: 'Strata Hotel Category'
+    strataHotelCategory: 'Strata Hotel Category',
+    sessionExpired: 'Session Expired'
   },
   modal: {
     declineTos: {
@@ -398,7 +399,8 @@ export default {
     sameAsBusMailing: 'Same as the business mailing address',
     showMoreOptions: 'show more options',
     streetHint: 'Street address, PO box, rural route, or general delivery address',
-    noAccountsFound: 'No accounts found, please click below to get started with an account.'
+    noAccountsFound: 'No accounts found, please click below to get started with an account.',
+    sessionExpired: 'Your session has expired. Please log in again to continue.'
   },
   toast: {
     invalidIdp: {
