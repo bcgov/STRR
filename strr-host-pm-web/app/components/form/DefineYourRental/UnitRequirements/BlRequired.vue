@@ -52,7 +52,7 @@ onMounted(async () => {
   <UForm
     ref="blReqFormRef"
     :state="reqStore.blRequirements"
-    :schema="isComplete ? reqStore.blRequirementsSchema : {}"
+    :schema="isComplete ? reqStore.blRequirementsSchema : undefined"
     class="space-y-10"
   >
     <fieldset class="flex flex-col gap-6">
