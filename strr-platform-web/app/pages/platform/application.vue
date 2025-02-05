@@ -141,6 +141,9 @@ const saveApplication = async (resumeLater = false) => {
     applicationId.value = filingId
     if (resumeLater) {
       await navigateTo(localePath('/platform/dashboard'))
+    } else {
+      // update route meta to save application before session expires with new application id
+      setOnBeforeSessionExpired(() => submitPlatformApplication(true, filingId))
     }
   } catch (e) {
     logFetchError(e, 'Error saving host application')
@@ -236,6 +239,9 @@ definePageMeta({
   middleware: ['auth', 'check-tos', 'require-premium-account', 'application-page'],
   onAccountChange: (oldAccount: Account, newAccount: Account) => manageAccountChangeApplication(oldAccount, newAccount)
 })
+
+// save application before session expires
+setOnBeforeSessionExpired(() => submitPlatformApplication(true, applicationId.value))
 
 setBreadcrumbs([
   {

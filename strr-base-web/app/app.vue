@@ -21,8 +21,6 @@ const initialExpansionState = shallowRef<ExpansionState>({
 })
 provide(expansionInjectionKey, initialExpansionState)
 
-watchEffect(() => console.log(useRoute().meta))
-
 onMounted(async () => {
   const msgConfig = useAppConfig().strrBaseLayer.sbcWebMsg
 

@@ -104,7 +104,7 @@ const saveApplication = async (resumeLater = false) => {
       await navigateTo(localePath('/strata-hotel/dashboard'))
     } else {
       // update route meta to save application before session expires with new application id
-      setOnBeforeSessionExpired(() => submitStrataApplication(true, applicationId.value))
+      setOnBeforeSessionExpired(() => submitStrataApplication(true, filingId))
     }
   } catch (e) {
     logFetchError(e, 'Error saving host application')
