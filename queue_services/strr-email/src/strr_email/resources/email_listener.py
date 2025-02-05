@@ -126,7 +126,7 @@ def worker():
         app_dict.get("header", {}).get("registrationNumber") or application.application_number
     )
     subject = (
-        f"{current_app.config['EMAIL_SUBJECT_PREFIX']}"
+        f"{current_app.config['EMAIL_SUBJECT_PREFIX']} "
         + f"{subject_number} - {EMAIL_SUBJECT.get(email_info.email_type, '')}"
     ).strip()
     email = {
