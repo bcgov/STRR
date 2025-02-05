@@ -1,17 +1,20 @@
 FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV COREPACK_ENABLE_STRICT=0
 
-# Install pnpm directly and disable corepack
-RUN npm uninstall -g corepack && \
+# Remove corepack and install pnpm directly
+RUN npm uninstall -g corepack pnpm && \
+    npm install -g npm@latest && \
     npm install -g pnpm@10.0.0
 
 COPY . /app
 WORKDIR /app
 
-# Install dependencies and run postinstall script
-RUN COREPACK_ENABLE_STRICT=0 pnpm install
+# Install dependencies with ignore-scripts first
+RUN pnpm install --ignore-scripts
+
+# Then run nuxt prepare separately
+RUN npm exec nuxt prepare
 
 RUN mkdir /app/config
 EXPOSE 8000

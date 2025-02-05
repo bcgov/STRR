@@ -9,8 +9,6 @@
     "dev": "nuxt dev --port 3000",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "prepare": "nuxt prepare",
-    "postinstall": "COREPACK_ENABLE_STRICT=0 nuxt prepare",
     "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
     "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./tests/coverage/clover.xml ./coverage.xml",
@@ -53,6 +51,5 @@
     "overrides": {
       "vite": "5.4.11"
     }
-  },
-  "packageManager": "pnpm@9.15.0"
+  }
 }
