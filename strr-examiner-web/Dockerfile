@@ -10,11 +10,8 @@ RUN npm uninstall -g corepack && \
 COPY . /app
 WORKDIR /app
 
-# Install dependencies without running any scripts
-RUN COREPACK_ENABLE_STRICT=0 pnpm install --ignore-scripts
-
-# Run prepare manually without using pnpm
-RUN node .output/server/index.mjs prepare
+# Install dependencies and run postinstall script
+RUN COREPACK_ENABLE_STRICT=0 pnpm install
 
 RUN mkdir /app/config
 EXPOSE 8000
