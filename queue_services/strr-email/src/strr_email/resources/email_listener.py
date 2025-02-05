@@ -291,6 +291,7 @@ def substitute_template_parts(template_code: str) -> str:
         "strr-important-deadlines",
         "strr-important-next-steps",
         "strr-tac",
+        "strr-provisional-approval-info",
     ]
 
     # substitute template parts - marked up by [[filename.md]]

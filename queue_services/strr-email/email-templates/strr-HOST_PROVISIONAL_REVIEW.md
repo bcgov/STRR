@@ -3,4 +3,20 @@ Your application to register the short-term rental described below is **_provisi
 
 ---
 
-[[strr-host-approval-body.md]]
+[[strr-important-next-steps.md]]
+
+---
+
+[[strr-important-deadlines.md]]
+
+---
+
+[[strr-provisional-approval-info.md]]
+
+---
+
+[[strr-tac.md]]
+
+---
+
+[[strr-footer.md]]
