@@ -102,6 +102,9 @@ const saveApplication = async (resumeLater = false) => {
     applicationId.value = filingId
     if (resumeLater) {
       await navigateTo(localePath('/strata-hotel/dashboard'))
+    } else {
+      // update route meta to save application before session expires with new application id
+      setOnBeforeSessionExpired(() => submitStrataApplication(true, applicationId.value))
     }
   } catch (e) {
     logFetchError(e, 'Error saving host application')
@@ -207,6 +210,9 @@ definePageMeta({
     return false
   }
 })
+
+// save application before session expires
+setOnBeforeSessionExpired(() => submitStrataApplication(true, applicationId.value))
 
 setBreadcrumbs([
   {
