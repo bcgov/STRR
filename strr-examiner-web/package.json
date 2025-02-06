@@ -8,11 +8,11 @@
     "node": ">=20.0.0",
     "pnpm": ">=8.0.0"
   },"scripts": {
-  "build-check": "nuxt build",
-  "build": "nuxt generate",
-  "dev": "nuxt dev --port 3000",
-  "generate": "nuxt generate",
-  "preview": "nuxt preview",
+  "build-check": "npx pnpm build",
+  "build": "nuxi generate",
+  "dev": "npx pnpm dev --port 3000",
+  "generate": "npx pnpm generate",
+  "preview": "npx pnpm preview",
   "postinstall": "npx nuxi prepare",
   "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
   "lint:fix": "eslint --fix --ext .ts,.vue app tests --ignore-path .gitignore",
