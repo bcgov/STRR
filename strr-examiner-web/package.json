@@ -3,13 +3,17 @@
   "private": true,
   "type": "module",
   "version": "0.0.19",
+  "packageManager": "pnpm@8.15.4",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
     "dev": "nuxt dev --port 3000",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "prestart": "npm install -g corepack@0.31.0 && corepack enable",
     "postinstall": "nuxt prepare",
     "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
@@ -52,6 +56,11 @@
   "pnpm": {
     "overrides": {
       "vite": "5.4.11"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "vue": "3"
+      }
     }
   }
 }
