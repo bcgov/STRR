@@ -7,22 +7,21 @@
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=8.0.0"
-  },
-  "scripts": {
-    "build-check": "nuxt build",
-    "build": "nuxt generate",
-    "dev": "nuxt dev --port 3000",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
-    "lint:fix": "pnpm lint --fix",
-    "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./tests/coverage/clover.xml ./coverage.xml",
-    "test:unit": "vitest --dir tests/unit",
-    "test:unit:cov": "vitest run --dir tests/unit --coverage",
-    "test:e2e": "npx playwright test",
-    "test:e2e:ui": "npx playwright test --ui"
-  },
+  },"scripts": {
+  "build-check": "nuxt build",
+  "build": "nuxt generate",
+  "dev": "nuxt dev --port 3000",
+  "generate": "nuxt generate",
+  "preview": "nuxt preview",
+  "postinstall": "npx nuxi prepare",
+  "lint": "npx pnpm lint",
+  "lint:fix": "npx pnpm lint --fix",
+  "test": "npx pnpm vitest --dir tests/unit --passWithNoTests --coverage && cp ./tests/coverage/clover.xml ./coverage.xml",
+  "test:unit": "npx pnpm vitest --dir tests/unit",
+  "test:unit:cov": "npx pnpm vitest run --dir tests/unit --coverage",
+  "test:e2e": "npx pnpm playwright test",
+  "test:e2e:ui": "npx pnpm playwright test --ui"
+},
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
     "@nuxt/devtools": "^1.3.9",
@@ -45,6 +44,7 @@
     "eslint-plugin-tailwindcss": "^3.17.4",
     "happy-dom": "^14.12.3",
     "playwright-core": "^1.45.1",
+    "pnpm": "9.15.0",
     "sass": "^1.77.6",
     "typescript": "^5.5.3",
     "vitest": "^1.6.0"
