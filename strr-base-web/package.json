@@ -9,12 +9,12 @@
     "pnpm": ">=8.0.0"
   },
   "scripts": {
-    "build-check": "nuxt build",
-    "build": "nuxt generate",
-    "dev": "nuxt dev --port 3000",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "build-check": "npx pnpm build",
+    "build": "nuxi generate",
+    "dev": "npx pnpm dev --port 3000",
+    "generate": "npx pnpm generate",
+    "preview": "npx pnpm preview",
+    "postinstall": "npx pnpm prepare",
     "lint": "eslint --ext .ts,.vue app --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
     "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./coverage/clover.xml ./coverage.xml",
