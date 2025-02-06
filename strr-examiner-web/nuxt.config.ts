@@ -10,7 +10,9 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/eslint-module',
     '@nuxt/test-utils/module',
-    '@nuxt/image'
+    '@nuxt/image',
+    '@zadigetvoltaire/nuxt-gtm',
+    'nuxt-gtag'
   ],
 
   // Adding UI and Tailwind configs
