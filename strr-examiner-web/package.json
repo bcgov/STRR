@@ -10,7 +10,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "preinstall": "npm uninstall -g corepack || true && corepack disable || true",
-    "postinstall": "nuxt prepare && corepack disable || true",
+    "postinstall": "pnpm nuxt prepare && corepack disable || true",
     "check:corepack": "corepack --version && echo 'Corepack is enabled' || echo 'Corepack is not installed'",
     "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
