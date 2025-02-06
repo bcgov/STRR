@@ -14,7 +14,6 @@
     "dev": "nuxt dev --port 3000",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "preinstall": "node -e \"if(process.env.CI){require('child_process').execSync('npm install -g pnpm@9.15.0')}\"",
     "postinstall": "nuxt prepare",
     "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",

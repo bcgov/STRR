@@ -15,22 +15,6 @@ export default defineNuxtConfig({
     'nuxt-gtag'
   ],
 
-  // Adding UI and Tailwind configs
-  ui: {
-    global: true
-  },
-
-  // tailwindcss: {
-  //   exposeConfig: true,
-  //   config: {
-  //     darkMode: 'class',
-  //     content: [
-  //       './components/**/*.{vue,js,ts}',
-  //       './layouts/**/*.vue',
-  //       './pages/**/*.vue'
-  //     ]
-  //   }
-  // },
 
   i18n: {
     locales: [
