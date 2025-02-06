@@ -13,6 +13,23 @@ export default defineNuxtConfig({
     '@nuxt/image'
   ],
 
+  // Adding UI and Tailwind configs
+  ui: {
+    global: true
+  },
+
+  // tailwindcss: {
+  //   exposeConfig: true,
+  //   config: {
+  //     darkMode: 'class',
+  //     content: [
+  //       './components/**/*.{vue,js,ts}',
+  //       './layouts/**/*.vue',
+  //       './pages/**/*.vue'
+  //     ]
+  //   }
+  // },
+
   i18n: {
     locales: [
       {
@@ -81,8 +98,16 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
+    optimizeDeps: {
       include: ['zod', 'uuid', 'vitest']
+    },
+    build: {
+      cssCodeSplit: true,
+      rollupOptions: {
+        output: {
+          assetFileNames: `assets/[name].[hash][extname]`
+        }
+      }
     },
     server: {
       watch: {
