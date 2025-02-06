@@ -101,13 +101,19 @@ export default defineNuxtConfig({
 
   vite: {
     optimizeDeps: {
-      include: ['zod', 'uuid', 'vitest']
+      include: ['zod', 'uuid', 'vitest'],
+      exclude: ['@nuxt/ui-edge']
     },
     build: {
       cssCodeSplit: true,
       rollupOptions: {
+        external: [
+          'vue-country-flag-next',
+          '@vuepic/vue-datepicker',
+          'luxon'
+        ],
         output: {
-          assetFileNames: `assets/[name].[hash][extname]`
+          assetFileNames: 'assets/[name].[hash][extname]'
         }
       }
     },

@@ -14,12 +14,18 @@ importers:
       '@daxiom/nuxt-core-layer-test':
         specifier: ^0.0.21
         version: 0.0.21(change-case@5.4.4)(db0@0.2.3)(ioredis@5.4.2)(magicast@0.3.5)(nuxt@3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.3)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.34.4)(sass@1.84.0)(terser@5.38.0)(typescript@5.7.3)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.0)))(rollup@4.34.4)(typescript@5.7.3)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.0))(vue@3.5.13(typescript@5.7.3))
+      '@vuepic/vue-datepicker':
+        specifier: ^11.0.1
+        version: 11.0.1(vue@3.5.13(typescript@5.7.3))
       '@zadigetvoltaire/nuxt-gtm':
         specifier: ^0.0.13
         version: 0.0.13(magicast@0.3.5)(nuxt@3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.3)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.34.4)(sass@1.84.0)(terser@5.38.0)(typescript@5.7.3)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.0)))(rollup@4.34.4)(vue@3.5.13(typescript@5.7.3))
       country-codes-list:
         specifier: ^1.6.11
         version: 1.6.12
+      luxon:
+        specifier: ^3.5.0
+        version: 3.5.0
       nuxt:
         specifier: ^3.15.0
         version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.3)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.34.4)(sass@1.84.0)(terser@5.38.0)(typescript@5.7.3)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.0))
@@ -32,6 +38,9 @@ importers:
       v-calendar:
         specifier: ^3.1.2
         version: 3.1.2(@popperjs/core@2.11.8)(vue@3.5.13(typescript@5.7.3))
+      vue-country-flag-next:
+        specifier: ^2.3.2
+        version: 2.3.2(vue@3.5.13(typescript@5.7.3))
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.9.1
@@ -1654,6 +1663,12 @@ packages:
   '@vue/test-utils@2.4.6':
     resolution: {integrity: sha512-FMxEjOpYNYiFe0GkaHsnJPXFHxQ6m4t8vI/ElPGpMWxZKpmRvQ33OIrvRXemy6yha03RxhOlQuy+gZMC3CQSow==}
 
+  '@vuepic/vue-datepicker@11.0.1':
+    resolution: {integrity: sha512-xtGbgZAftBiU1H8pwM54vOCutLzEHsHiolRuDn+memTjqpfzT0x1Ml1tykJ53PLvdkCTyb6sB+1muv5Gsd4nQA==}
+    engines: {node: '>=18.12.0'}
+    peerDependencies:
+      vue: '>=3.3.0'
+
   '@vueuse/core@11.3.0':
     resolution: {integrity: sha512-7OC4Rl1f9G8IT6rUfi9JrKiXy4bfmHhZ5x2Ceojy0jnd3mHNEvV4JaRygH362ror6/NZ+Nl+n13LPzGiPN8cKA==}
 
@@ -2400,6 +2415,9 @@ packages:
   date-fns@2.30.0:
     resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
     engines: {node: '>=0.11'}
+
+  date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
 
   db0@0.2.3:
     resolution: {integrity: sha512-PunuHESDNefmwVy1LDpY663uWwKt2ogLGoB6NOz2sflGREWqDreMwDgF8gfkXxgNXW+dqviyiJGm924H1BaGiw==}
@@ -3875,6 +3893,10 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  luxon@3.5.0:
+    resolution: {integrity: sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==}
+    engines: {node: '>=12'}
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -5971,6 +5993,12 @@ packages:
 
   vue-component-type-helpers@2.2.0:
     resolution: {integrity: sha512-cYrAnv2me7bPDcg9kIcGwjJiSB6Qyi08+jLDo9yuvoFQjzHiPTzML7RnkJB1+3P6KMsX/KbCD4QE3Tv/knEllw==}
+
+  vue-country-flag-next@2.3.2:
+    resolution: {integrity: sha512-Lv12L1VTwlBgizpZ3xPEPO3zuIETaJmeSiPuLOWLLgu2EakwU/o72iKYiKcdZ6BXiSkfss+Ski5fDzjuxZ1DcA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      vue: ^3.0.0
 
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
@@ -8325,6 +8353,11 @@ snapshots:
       js-beautify: 1.15.1
       vue-component-type-helpers: 2.2.0
 
+  '@vuepic/vue-datepicker@11.0.1(vue@3.5.13(typescript@5.7.3))':
+    dependencies:
+      date-fns: 4.1.0
+      vue: 3.5.13(typescript@5.7.3)
+
   '@vueuse/core@11.3.0(vue@3.5.13(typescript@5.7.3))':
     dependencies:
       '@types/web-bluetooth': 0.0.20
@@ -9165,6 +9198,8 @@ snapshots:
   date-fns@2.30.0:
     dependencies:
       '@babel/runtime': 7.26.7
+
+  date-fns@4.1.0: {}
 
   db0@0.2.3: {}
 
@@ -10954,6 +10989,8 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  luxon@3.5.0: {}
 
   lz-string@1.5.0: {}
 
@@ -13708,6 +13745,10 @@ snapshots:
       ufo: 1.5.4
 
   vue-component-type-helpers@2.2.0: {}
+
+  vue-country-flag-next@2.3.2(vue@3.5.13(typescript@5.7.3)):
+    dependencies:
+      vue: 3.5.13(typescript@5.7.3)
 
   vue-demi@0.14.10(vue@3.5.13(typescript@5.7.3)):
     dependencies:
