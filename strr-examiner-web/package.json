@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.0.19",
-  "packageManager": "pnpm@8.15.4",
+  "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=8.0.0"
@@ -14,6 +14,7 @@
     "dev": "nuxt dev --port 3000",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "preinstall": "node -e \"if(process.env.CI){require('child_process').execSync('npm install -g pnpm@9.15.0')}\"",
     "postinstall": "nuxt prepare",
     "lint": "eslint --ext .ts,.vue app tests --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
