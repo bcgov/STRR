@@ -14,7 +14,7 @@
     "dev": "npx pnpm dev --port 3000",
     "generate": "npx pnpm generate",
     "preview": "npx pnpm preview",
-    "postinstall": "npx pnpm prepare",
+    "postinstall": "npx nuxi prepare",
     "lint": "eslint --ext .ts,.vue app --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
     "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./coverage/clover.xml ./coverage.xml",
