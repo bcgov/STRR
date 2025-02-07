@@ -36,6 +36,7 @@ jobs:
       app_name: "strr-platform-ui"
       working_directory: "./strr-platform-web"
       node_version: 20
+      pnpm_version: 10.0.0
       redeploy: ${{ inputs.redeploy }}
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
