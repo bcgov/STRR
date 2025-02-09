@@ -50,10 +50,5 @@
     "nuxt": "^3.15.0",
     "uuid": "^11.0.3",
     "vue-country-flag-next": "^2.3.2"
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "5.4.11"
-    }
   }
 }
