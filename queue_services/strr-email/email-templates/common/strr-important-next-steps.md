@@ -1,5 +1,5 @@
 # Important Next Steps
-1. Go to a platform that your short-term rental is listed on (e.g., https\://str-platform-example.com).
+1. Go to a platform that your short-term rental is listed on (e.g., https[]()://str-platform-example[]().com).
 
 1. Follow the platform instructions to update your listing with your registration information below.
   ^**Registration Number:** 
