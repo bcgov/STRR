@@ -72,7 +72,8 @@
       "hostResidence": "SAME_UNIT",
       "isUnitOnPrincipalResidenceProperty": true,
       "numberOfRoomsForRent": 1,
-      "prExemptReason": "FRACTIONAL_OWNERSHIP"
+      "prExemptReason": "FRACTIONAL_OWNERSHIP",
+      "blExemptReason": "This short-term rental does not offer bookings of under 30 days"
     },
     "listingDetails": [
       {

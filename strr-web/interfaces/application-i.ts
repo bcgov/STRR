@@ -68,6 +68,7 @@ export interface HostApplicationDetailsI {
     hostResidence: string | undefined
     numberOfRoomsForRent: number
     prExemptReason?: PrExemptionReason
+    blExemptReason?: string
   }
   documents?: DocumentUploadI[]
 }

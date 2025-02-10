@@ -9,7 +9,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const documentStore = useDocumentStore()
   const { hostOwners } = storeToRefs(ownerStore)
   const { blInfo, unitAddress, unitDetails } = storeToRefs(propertyStore)
-  const { prRequirements, propertyReqs, showUnitDetailsForm } = storeToRefs(propertyReqStore)
+  const { prRequirements, propertyReqs, blRequirements, showUnitDetailsForm } = storeToRefs(propertyReqStore)
   const { storedDocuments } = storeToRefs(documentStore)
 
   const {
@@ -22,6 +22,8 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     downloadApplicationReceipt,
     downloadRegistrationCert
   } = useStrrBasePermit<HostRegistrationResp, HostApplicationResp, ApiHostApplication>()
+
+  const { t } = useI18n()
 
   const loadHostData = async (applicationId: string, loadDraft = false) => {
     $reset()
@@ -46,6 +48,15 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       showUnitDetailsForm.value = !!unitAddress.value.address.street || !!unitAddress.value.address.streetAdditional
       prRequirements.value.isPropertyPrExempt = !!permitDetails.value.unitDetails.prExemptReason
       prRequirements.value.prExemptionReason = permitDetails.value.unitDetails.prExemptReason
+      blRequirements.value.isBusinessLicenceExempt = !!permitDetails.value.unitDetails.blExemptReason
+
+      // populate BL Exempt radio buttons selection and reason
+      blRequirements.value.blExemptType =
+      permitDetails.value.unitDetails.blExemptReason === t('label.blExemptionReasonOver30')
+        ? BlExemptionReason.OVER_30_DAYS
+        : BlExemptionReason.OTHER
+
+      blRequirements.value.blExemptReason = permitDetails.value.unitDetails?.blExemptReason ?? ''
       if (application.value?.registration.strRequirements && showUnitDetailsForm.value) {
         propertyReqs.value = application.value?.registration.strRequirements
         if (Object.keys(application.value.registration.strRequirements).length === 0) {

@@ -36,7 +36,7 @@ const headers = [
     <template #info-data="{ row }: { row: ConnectInfoTableItem }">
       <div class="ml-4">
         <slot :name="'info-' + row.slot" :row="row">
-          <p>
+          <p class="text-wrap">
             {{ row.info }}
           </p>
         </slot>

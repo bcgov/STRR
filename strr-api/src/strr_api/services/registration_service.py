@@ -289,6 +289,7 @@ class RegistrationService:
             ).date()
             if registration_request.unitDetails.businessLicenseExpiryDate
             else None,
+            bl_exempt_reason=registration_request.unitDetails.blExemptReason,
             space_type=registration_request.unitDetails.rentalUnitSpaceType,
             host_residence=registration_request.unitDetails.hostResidence,
             is_unit_on_principal_residence_property=registration_request.unitDetails.isUnitOnPrincipalResidenceProperty,

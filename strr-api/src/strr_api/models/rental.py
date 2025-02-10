@@ -79,6 +79,7 @@ class RentalProperty(Versioned, BaseModel):
     parcel_identifier = db.Column(db.String, nullable=True)
     local_business_licence = db.Column(db.String, nullable=True)
     local_business_licence_expiry_date = db.Column(db.Date, nullable=True)
+    bl_exempt_reason = db.Column(db.String, nullable=True)
     property_type = db.Column(Enum(PropertyType), nullable=False)
     ownership_type = db.Column(db.Enum(OwnershipType), nullable=False)
     is_principal_residence = db.Column(db.Boolean, nullable=False, default=False)

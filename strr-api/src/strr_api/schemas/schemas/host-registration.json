@@ -125,6 +125,11 @@
           "type": "string",
           "format": "date"
         },
+        "blExemptReason": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "BL Exemption Reason."
+        },
         "rentalUnitSpaceType": {
           "type": "string",
           "enum": [

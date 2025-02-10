@@ -2,17 +2,34 @@
 const { t } = useI18n()
 const propertyStore = useHostPropertyStore()
 const { unitAddress, unitDetails } = storeToRefs(propertyStore)
-const { prRequirements } = storeToRefs(usePropertyReqStore())
+const { prRequirements, blRequirements } = storeToRefs(usePropertyReqStore())
 
 // step 1 items
 const exemptInfo = computed((): ConnectInfoTableItem[] => [
   { label: '', info: '', slot: 'border' },
-  { label: t('label.exemption'), info: '', slot: 'exempt' },
-  { label: t('label.exemptionReason'), info: t(`label.exemptionReasonCode.${prRequirements.value.prExemptionReason}`) }
+  { label: t('label.prExemption'), info: '', slot: 'prExempt' },
+  {
+    label: t('label.prExemptionReason'),
+    info: t(`label.exemptionReasonCode.${prRequirements.value.prExemptionReason}`)
+  }
 ])
+
+const blExemptInfo = computed((): ConnectInfoTableItem[] => [
+  { label: '', info: '', slot: 'border' },
+  { label: t('label.blExemption'), info: '', slot: 'blExempt' },
+  {
+    label: t('label.blExemptionReason'),
+    info: blRequirements.value.blExemptReason || t('label.exemptionReasonCode.undefined')
+  }
+])
+
 const propertyInfo = computed((): ConnectInfoTableItem[] => [
   { label: t('label.strUnitName'), info: unitAddress.value.address.nickname || t('text.notEntered') },
   { label: t('label.strUnitAddress'), info: '', slot: 'address' },
+  ...(blRequirements.value.isBusinessLicenceExempt
+    ? blExemptInfo.value
+    : []
+  ),
   ...(prRequirements.value.isPropertyPrExempt
     ? exemptInfo.value
     : []
@@ -38,7 +55,13 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
     <template #info-address>
       <ConnectFormAddressDisplay :address="unitAddress.address" />
     </template>
-    <template #info-exempt>
+    <template #info-blExempt>
+      <div class="flex gap-2">
+        <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
+        <p>{{ $t('text.thisPropIsExempt') }}</p>
+      </div>
+    </template>
+    <template #info-prExempt>
       <div class="flex gap-2">
         <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
         <p>{{ $t('text.thisPropIsExempt') }}</p>
