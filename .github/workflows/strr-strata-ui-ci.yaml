@@ -19,3 +19,4 @@ jobs:
       working_directory: "./strr-strata-web"
       codecov_flag: "strrstrataui"
       node_version: 20
+      pnpm_version: 10.0.0
