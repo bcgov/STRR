@@ -20,6 +20,7 @@ import copy
 import json
 import os
 import sys
+import traceback
 from datetime import datetime
 from functools import partial
 
@@ -34,6 +35,7 @@ from strr_api.services.validation_service import ValidationService
 from structured_logging import StructuredLogging
 
 from batch_permit_validator.config import CONFIGURATION
+from batch_permit_validator.validation_cache import ValidationCache
 
 logger = StructuredLogging.get_logger()
 
@@ -90,7 +92,7 @@ def run():
         logger.error(f"Unexpected error: {str(err)}")
 
 
-def process_record(record: dict, app):
+def process_record(record: dict, validation_cache: ValidationCache, app):
     """Processes the individual record."""
     response = copy.deepcopy(record)
     try:
@@ -118,7 +120,9 @@ def process_record(record: dict, app):
                         }
                     ]
             else:
-                str_requirements = get_strr_requirements(record.get("address"))
+                str_requirements = get_strr_requirements(
+                    record.get("address"), validation_cache
+                )
                 response.update(str_requirements)
                 logger.info("STR requirements updated for record: %s", response)
 
@@ -144,8 +148,7 @@ def _validate_record(record: dict):
     return valid, errors
 
 
-def get_strr_requirements(unit_address: dict):
-    # TODO: Cache this.
+def get_strr_requirements(unit_address: dict, validation_cache):
     """Call Data Portal API to get the STR requirements."""
     address_line_1 = ""
     if unit_number := unit_address.get("unitNumber"):
@@ -154,20 +157,31 @@ def get_strr_requirements(unit_address: dict):
     address = (
         f"{address_line_1}, {unit_address.get('city')}, {unit_address.get('province')}"
     )
-    str_data = ApprovalService.getSTRDataForAddress(address=address)
-    if not str_data:
-        return {
-            "code": ErrorMessage.STRR_REQUIREMENTS_FETCH_ERROR.name,
-            "message": ErrorMessage.STRR_REQUIREMENTS_FETCH_ERROR.value,
-        }
+    cached_data = validation_cache.cache.get(address)
+
+    if cached_data:
+        # If the key exists, return the cached data.
+        logger.info(f"Key exists :::: {address}")
+        str_data = json.loads(cached_data)
+    else:
+        logger.info(f"Key does not exist :::: {address}")
+        str_data = ApprovalService.getSTRDataForAddress(address=address)
+        if not str_data:
+            return {
+                "code": ErrorMessage.STRR_REQUIREMENTS_FETCH_ERROR.name,
+                "message": ErrorMessage.STRR_REQUIREMENTS_FETCH_ERROR.value,
+            }
+        validation_cache.cache.set(address, json.dumps(str_data))
     return {"isStraaExempt": str_data.get("isStraaExempt")}
 
 
-def process_chunk(chunk, max_workers=5):
+def process_chunk(chunk, validation_cache, max_workers=5):
     """Process a chunk of records in parallel."""
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         process_record_args = partial(
-            process_record, app=current_app._get_current_object()
+            process_record,
+            validation_cache=validation_cache,
+            app=current_app._get_current_object(),
         )
         return list(executor.map(process_record_args, chunk))
 
@@ -175,6 +189,7 @@ def process_chunk(chunk, max_workers=5):
 def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK_SIZE):
     """Read JSON in chunks, validate in parallel, and write results incrementally."""
     try:
+        validation_cache = ValidationCache()
         permits = request_json.get("permits")
         total_records = len(permits)
 
@@ -188,7 +203,7 @@ def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK
 
             results = []
 
-            result = process_chunk(chunk)
+            result = process_chunk(chunk, validation_cache)
             results.extend(result)
 
             logger.info(f"Chunk {idx // chunk_size + 1} processed!")
@@ -204,12 +219,13 @@ def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK
         }
         logger.info(f"Response: {callback_queue_message}")
 
-        # TODO: Publish to the queue
+        # TODO: Is a queue needed here. May be possible to call the callback directly.??
 
         logger.info("Processing completed successfully!")
 
     except Exception as e:
         _update_bulk_validation_record(request_file_key, BulkValidation.Status.ERROR)
+        logger.error(traceback.format_exc())
         logger.error(f"Error reading JSON file: {e}")
 
 
