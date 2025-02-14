@@ -9,8 +9,9 @@ const { setButtonControl, handleButtonLoading } = useButtonControl()
 const ldStore = useConnectLaunchdarklyStore()
 
 const propertyStore = useHostPropertyStore()
+const propertyReqStore = usePropertyReqStore()
 const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(propertyStore)
-const { showUnitDetailsForm, prRequirements } = storeToRefs(usePropertyReqStore())
+const { showUnitDetailsForm, prRequirements } = storeToRefs(propertyReqStore)
 const { validateOwners } = useHostOwnerStore()
 const documentsStore = useDocumentStore()
 const {
@@ -111,7 +112,9 @@ const steps = ref<Step[]>([
     isValid: false,
     validationFn: () => (
       propertyStore.validateUnitAddress(true) as boolean &&
-      propertyStore.validateUnitDetails(true) as boolean)
+      propertyStore.validateUnitDetails(true) as boolean &&
+      propertyReqStore.validatePrRequirements(true) as boolean
+    )
   },
   {
     i18nPrefix: 'strr.step',

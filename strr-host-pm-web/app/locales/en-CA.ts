@@ -280,6 +280,7 @@ export default {
     blExemptionReasonOver30: 'This short-term rental does not offer bookings of under 30 days',
     blExemptionReasonOther: 'Other',
     blExemptionReasonOtherPlaceholder: 'Reason',
+    StrataHotelCategory: 'Strata Hotel Category',
     strataRefCode: 'Strata-Titled Hotel Reference Code',
     strUnitAddress: 'Short-Term Rental Unit Residential Address',
     strUnitName: 'Short-Term Rental Unit Nickname',
@@ -316,7 +317,8 @@ export default {
     reqDocs: 'required documentation',
     learnMore: 'Learn More',
     viewRequiredDocs: 'View required documents',
-    viewFeeSchedule: 'View fee schedule'
+    viewFeeSchedule: 'View fee schedule',
+    selectStrataHotelCategory: 'Learn more about strata hotel categories'
   },
   modal: {
     info: {
@@ -403,6 +405,7 @@ export default {
       exists: 'An account with this name already exists'
     },
     businessLicense: 'Please enter a valid business licence number',
+    strataHotelCategory: 'Please select a category',
     businessLicenseExpiryDate: 'Please select the expiry date for the business licence',
     dateOfBirth: 'Please enter the birthdate of this individual',
     numberOfRooms: {

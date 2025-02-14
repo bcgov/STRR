@@ -38,12 +38,16 @@ const getHostPrRequirements = (hostApplication: ApiHostApplication): string => {
     hostApplication.strRequirements as PropertyRequirements
 
   const { prExemptReason } = hostApplication.unitDetails
+  const { strataHotelCategory } = hostApplication.unitDetails
 
   // build an array of requirements and join non-empty strings with '/'
   return [
     isPrincipalResidenceRequired ? t('page.dashboardList.requirements.host.pr') : '',
     prExemptReason
       ? t(`page.dashboardList.requirements.host.${prExemptReason}`)
+      : '',
+    strataHotelCategory
+      ? t(`strataHotelCategoryReview.${strataHotelCategory}`)
       : '',
     isBusinessLicenceRequired ? t('page.dashboardList.requirements.host.bl') : '',
     isStrProhibited ? t('page.dashboardList.requirements.host.prohibited') : ''

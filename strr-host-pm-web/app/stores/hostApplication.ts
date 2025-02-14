@@ -68,7 +68,8 @@ export const useHostApplicationStore = defineStore('host/application', () => {
           propertyStore.unitDetails,
           propertyStore.blInfo,
           reqStore.prRequirements,
-          reqStore.blRequirements
+          reqStore.blRequirements,
+          reqStore.strataHotelCategory
         ),
         documents: documentStore.apiDocuments,
         strRequirements: reqStore.propertyReqs,

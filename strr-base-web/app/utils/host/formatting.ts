@@ -68,7 +68,8 @@ export function formatOwnerPropertyManagerUI (owner: ApiPropertyManager): HostOw
 export function formatHostUnitDetailsAPI (
   unitDetails: UiUnitDetails,
   blInfo: UiBlInfo,
-  prReqs: PrRequirements
+  prReqs: PrRequirements,
+  strataHotelCategories: StrataHotelCategories
 ): ApiUnitDetails {
   return {
     propertyType: unitDetails.propertyType,
@@ -86,7 +87,8 @@ export function formatHostUnitDetailsAPI (
     ...(unitDetails.parcelIdentifier ? { parcelIdentifier: unitDetails.parcelIdentifier } : {}),
     ...(blInfo.businessLicense ? { businessLicense: blInfo.businessLicense } : {}),
     ...(blInfo.businessLicenseExpiryDate ? { businessLicenseExpiryDate: blInfo.businessLicenseExpiryDate } : {}),
-    ...(prReqs.isPropertyPrExempt && prReqs.prExemptionReason ? { prExemptReason: prReqs.prExemptionReason } : {})
+    ...(prReqs.isPropertyPrExempt && prReqs.prExemptionReason ? { prExemptReason: prReqs.prExemptionReason } : {}),
+    ...(strataHotelCategories.category ? { strataHotelCategory: strataHotelCategories.category } : {})
   }
 }
 

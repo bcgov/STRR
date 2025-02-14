@@ -1,5 +1,12 @@
 import { faker, fakerEN_CA as fakerCa } from '@faker-js/faker'
 
+export const strataHotelCategory = {
+  FULL_SERVICE: 'Category 1: Strata hotel with a staffed front desk, housekeeping services and a platform',
+  MULTI_UNIT_NON_PR: 'Category 2: Strata hotel with two or more strata lots that cannot be used as a ,' +
+                     'principal residence',
+  POST_DECEMBER_2023: 'Category 3: New strata hotel development since December 2023'
+}
+
 export function getFakeContactDetails (): StrrContact {
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()

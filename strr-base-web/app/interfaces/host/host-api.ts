@@ -41,6 +41,7 @@ export interface ApiUnitDetails {
   isUnitOnPrincipalResidenceProperty: boolean | undefined
   numberOfRoomsForRent: number | undefined
   prExemptReason?: PrExemptionReason
+  strataHotelCategory?: StrataHotelCategory
 }
 
 export interface ApiUnitAddress extends ApiBaseAddress {

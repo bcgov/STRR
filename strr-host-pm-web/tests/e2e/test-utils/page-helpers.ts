@@ -82,7 +82,7 @@ export const completeStep1 = async (
   await page.goto('./en-CA/application') // go to application
 
   // check for step 1 content
-  await expect(page.getByTestId('h1')).toContainText('Short-Term Rental Registration')
+  await expect(page.getByTestId('h1')).toContainText('Short-Term Rental Registration', { timeout: 30000 })
   await expect(getH2(page)).toContainText('Define Your Short-Term Rental')
 
   // fill in rental unit nickname

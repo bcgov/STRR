@@ -2,7 +2,7 @@
 const { t } = useI18n()
 const propertyStore = useHostPropertyStore()
 const { unitAddress, unitDetails } = storeToRefs(propertyStore)
-const { prRequirements, blRequirements } = storeToRefs(usePropertyReqStore())
+const { prRequirements, blRequirements, strataHotelCategory } = storeToRefs(usePropertyReqStore())
 
 // step 1 items
 const exemptInfo = computed((): ConnectInfoTableItem[] => [
@@ -23,6 +23,17 @@ const blExemptInfo = computed((): ConnectInfoTableItem[] => [
   }
 ])
 
+const strataHotelInfo = computed((): ConnectInfoTableItem[] =>
+  prRequirements.value.prExemptionReason === PrExemptionReason.STRATA_HOTEL
+    ? [
+        {
+          label: t('label.StrataHotelCategory'),
+          info: t(`strataHotelCategoryReview.${strataHotelCategory.value.category}`)
+        }
+      ]
+    : []
+)
+
 const propertyInfo = computed((): ConnectInfoTableItem[] => [
   { label: t('label.strUnitName'), info: unitAddress.value.address.nickname || t('text.notEntered') },
   { label: t('label.strUnitAddress'), info: '', slot: 'address' },
@@ -34,6 +45,7 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
     ? exemptInfo.value
     : []
   ),
+  ...(strataHotelInfo.value),
   { label: '', info: '', slot: 'border' },
   { label: t('strr.label.propertyType'), info: t(`propertyType.${unitDetails.value.propertyType}`) },
   { label: t('label.typeOfSpace'), info: t(`rentalUnitType.${unitDetails.value.typeOfSpace}`) },

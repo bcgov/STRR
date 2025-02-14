@@ -39,6 +39,11 @@ const getPrExemptReason = (): string =>
     ? t(`prExemptReason.${reg.unitDetails.prExemptReason}`)
     : t('prExemptReason.notExempt')
 
+const getStrataHotelCategory = (): string =>
+  reg?.unitDetails?.strataHotelCategory
+    ? t(`strataHotelCategoryReview.${reg.unitDetails.strataHotelCategory}`)
+    : ''
+
 const getOwnershipType = (): string =>
   reg?.unitDetails?.ownershipType === OwnershipType.RENT ? `${t('ownershipType.RENT')}.` : ''
 </script>
@@ -98,6 +103,10 @@ const getOwnershipType = (): string =>
               {{ getPrRequired() }}
               {{ getPrExemptReason() }}
               {{ getOwnershipType() }}
+            </div>
+            <div v-if="getStrataHotelCategory()" class="mt-2">
+              <span class="font-semibold">{{ t('label.strataHotelCategory') }}:</span>
+              <span class="ml-2">{{ getStrataHotelCategory() }}</span>
             </div>
 
             <div

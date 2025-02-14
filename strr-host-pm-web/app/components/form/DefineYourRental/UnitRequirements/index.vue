@@ -36,5 +36,12 @@ const reqStore = usePropertyReqStore()
       "
       :is-complete="isComplete"
     />
+    <FormDefineYourRentalUnitRequirementsStrataHotelCategory
+      v-if="
+        reqStore.prRequirements.isPropertyPrExempt &&
+          reqStore.prRequirements.prExemptionReason === PrExemptionReason.STRATA_HOTEL
+      "
+      :is-complete="isComplete"
+    />
   </div>
 </template>

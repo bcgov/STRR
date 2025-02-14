@@ -28,7 +28,12 @@ watch(
     // reset exemption reason and ref code on isPropertyExempt change
     if (newVal.isPropertyPrExempt === false) {
       reqStore.prRequirements.prExemptionReason = undefined
+      reqStore.strataHotelCategory.category = undefined
       prReqFormRef.value?.validate(['prExemptionReason'], { silent: true })
+    }
+    // reset strata hotel category when changing exemption reason
+    if (newVal.prExemptionReason !== PrExemptionReason.STRATA_HOTEL) {
+      reqStore.strataHotelCategory.category = undefined
     }
   },
   { deep: true }
@@ -41,12 +46,14 @@ onMounted(async () => {
   }
 })
 </script>
+
 <template>
   <UForm
     ref="prReqFormRef"
     :state="reqStore.prRequirements"
     :schema="reqStore.prRequirementsSchema"
     class="space-y-10"
+    data-testid="pr-required-form"
   >
     <fieldset class="flex flex-col gap-6">
       <legend class="sr-only">
@@ -57,6 +64,7 @@ onMounted(async () => {
         <UCheckbox
           v-model="reqStore.prRequirements.isPropertyPrExempt"
           :label="$t('text.thisPropIsExempt')"
+          data-testid="pr-exempt-checkbox"
         />
       </UFormGroup>
 
@@ -65,11 +73,13 @@ onMounted(async () => {
         :title="$t('label.exemptionReason')"
         class="-mx-4 md:-mx-10"
         :error="isComplete && hasFormErrors(prReqFormRef, ['prExemptionReason'])"
+        data-testid="exemption-section"
       >
         <UFormGroup name="prExemptionReason">
           <URadioGroup
             v-model="reqStore.prRequirements.prExemptionReason"
             :options="prExemptionOptions"
+            data-testid="exemption-radio-group"
           />
         </UFormGroup>
       </ConnectFormSection>

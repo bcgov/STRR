@@ -9,7 +9,13 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const documentStore = useDocumentStore()
   const { hostOwners } = storeToRefs(ownerStore)
   const { blInfo, unitAddress, unitDetails } = storeToRefs(propertyStore)
-  const { prRequirements, propertyReqs, blRequirements, showUnitDetailsForm } = storeToRefs(propertyReqStore)
+  const {
+    prRequirements,
+    propertyReqs,
+    blRequirements,
+    showUnitDetailsForm,
+    strataHotelCategory
+  } = storeToRefs(propertyReqStore)
   const { storedDocuments } = storeToRefs(documentStore)
 
   const {
@@ -57,6 +63,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
         : BlExemptionReason.OTHER
 
       blRequirements.value.blExemptReason = permitDetails.value.unitDetails?.blExemptReason ?? ''
+      strataHotelCategory.value.category = permitDetails.value.unitDetails.strataHotelCategory
       if (application.value?.registration.strRequirements && showUnitDetailsForm.value) {
         propertyReqs.value = application.value?.registration.strRequirements
         if (Object.keys(application.value.registration.strRequirements).length === 0) {
