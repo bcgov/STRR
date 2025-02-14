@@ -276,6 +276,7 @@ class RegistrationSerializer:
             "numberOfRoomsForRent": registration.rental_property.number_of_rooms_for_rent,
             "strataHotelRegistrationNumber": registration.rental_property.strata_hotel_registration_number,
             "prExemptReason": registration.rental_property.pr_exempt_reason,
+            "strataHotelCategory": registration.rental_property.strata_hotel_category,
         }
 
         registration_data["listingDetails"] = [

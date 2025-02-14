@@ -124,6 +124,7 @@ class UnitDetails:
         blExemptReason=None,
         strataHotelRegistrationNumber=None,
         prExemptReason=None,
+        strataHotelCategory=None,
     ):
         self.propertyType = propertyType
         self.ownershipType = ownershipType
@@ -137,6 +138,7 @@ class UnitDetails:
         self.blExemptReason = blExemptReason
         self.strataHotelRegistrationNumber = strataHotelRegistrationNumber
         self.prExemptReason = prExemptReason
+        self.strataHotelCategory = strataHotelCategory
 
 
 class MailingAddress:

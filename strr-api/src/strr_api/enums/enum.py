@@ -15,6 +15,8 @@
 
 from enum import Enum
 
+from strr_api.common.enum import BaseEnum, auto
+
 
 class AuthHeaderType(Enum):
     """Authorization header types."""
@@ -163,3 +165,11 @@ class ApplicationRole(Enum):
     """STRR Application Roles."""
 
     HOST = "HOST"
+
+
+class StrataHotelCategory(BaseEnum):
+    """Enum of the strata hotel category."""
+
+    FULL_SERVICE = auto()  # pylint: disable=invalid-name
+    MULTI_UNIT_NON_PR = auto()  # pylint: disable=invalid-name
+    POST_DECEMBER_2023 = auto()  # pylint: disable=invalid-name

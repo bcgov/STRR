@@ -299,6 +299,7 @@ class RegistrationService:
             pr_exempt_reason=registration_request.unitDetails.prExemptReason,
             property_listings=[PropertyListing(url=listing.url) for listing in registration_request.listingDetails],
             strata_hotel_registration_number=registration_request.unitDetails.strataHotelRegistrationNumber,
+            strata_hotel_category=registration_request.unitDetails.strataHotelCategory,
         )
 
         if property_manager_info := registration_request.propertyManager:

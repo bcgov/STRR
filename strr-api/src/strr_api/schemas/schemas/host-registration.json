@@ -184,6 +184,14 @@
             "FARM_LAND",
             "FRACTIONAL_OWNERSHIP"
           ]
+        },
+        "strataHotelCategory": {
+          "type": "string",
+          "enum": [
+            "FULL_SERVICE",
+            "MULTI_UNIT_NON_PR",
+            "POST_DECEMBER_2023"
+          ]
         }
       },
       "required": [
