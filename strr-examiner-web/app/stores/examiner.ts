@@ -12,7 +12,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     requirements: [],
     applicantName: '',
     propertyAddress: '',
-    status: [ApplicationStatus.FULL_REVIEW],
+    status: [],
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
     adjudicator: []
