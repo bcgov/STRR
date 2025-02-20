@@ -159,6 +159,7 @@ class ErrorMessage(Enum):
     ADDRESS_LOOK_UP_FAILED = "Failed to look up the address."
     APPLICATION_CANNOT_BE_DELETED = "Application in the current status cannot be deleted."
     STRR_REQUIREMENTS_FETCH_ERROR = "Unable to retrieve the short term rental requirements for the address."
+    INVALID_NOC_CONTENT = "Invalid content."
 
 
 class ApplicationRole(Enum):

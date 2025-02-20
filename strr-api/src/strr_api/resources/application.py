@@ -843,3 +843,45 @@ def get_related_registrations(application_number: str):
         return exception_response(validation_exception)
     except ExternalServiceException as external_exception:
         return exception_response(external_exception)
+
+
+@bp.route("/<application_number>/notice-of-consideration", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def send_notice_of_consideration(application_number: str):
+    """
+    Send a Notice of consideration for the specified application.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+    try:
+        UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        json_input = request.get_json()
+        content = json_input.get("content", "").strip()
+        if not content:
+            return error_response(
+                message=ErrorMessage.INVALID_NOC_CONTENT.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        application = ApplicationService.get_application(application_number)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        application = ApplicationService.send_notice_of_consideration(application, content)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error("Error in sending NoC: ", exception)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
