@@ -22,17 +22,17 @@ using a third party service call. The information changes very rarely. Inorder t
 this information can be cached in Cloud Memorystore for Redis after the first service call and can be looked up in the cache
 for the subsequent calls.
 
-The batch permit validator splits the records to chunks and process them in parallel. There are high chances of hitting
-the rate limits for the external API. Once the data regarding whether an address is exempt or not, this data will be 
-cached and the API will not be called for the subsequent requests for the same address.
-
 In addition to this, the cache may be stored to use the basic permit information that will be used by the validator.
 Registration information does not change for a year, unless the registration is suspended/cancelled for non compliance.
 This will significantly reduce the db calls resulting in an improved performance.
 
-## Steps
-1. Batch Permit Validator receives a request from the platform
-2. For each record in the json, the validator does the following
+## Details
+The batch permit validator splits the records to chunks and process them in parallel. There are high chances of hitting
+the rate limits for the external API. Once the data regarding whether an address is exempt or not, this data will be 
+cached and the API will not be called for the subsequent requests for the same address.
+
+When the Batch Permit Validator receives a request from the platform, for each record in the json, 
+the validator does the following
    * If a permit identifier is not present, it checks the cache whether the address entry exists. If the entry exists,
      the information in the cache will be used to process that record. If the entry is not present, the validator calls
      the external API, use the response for processing and saves the response in the cache to prevent the further
