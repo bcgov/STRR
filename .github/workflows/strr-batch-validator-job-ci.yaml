@@ -1,0 +1,25 @@
+name: STRR BATCH VALIDATOR JOB CI
+
+on:
+  pull_request:
+    paths:
+      - "jobs/batch-permit-validator/**"
+      - "src/strr_api/models/**"
+      - "src/strr_api/services/**"
+      - "src/strr_api/enums/**"
+      - "src/strr_api/exceptions/**"
+      - "src/strr_api/utils/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./jobs/batch-permit-validator
+
+jobs:
+  strr-auto-approval-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    with:
+      app_name: "strr-batch-validator"
+      working_directory: "./jobs/batch-permit-validator"
+      codecov_flag: "validatorjob"
