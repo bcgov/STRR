@@ -1,0 +1,20 @@
+name: STRR BATCH VALIDATOR LISTENER CI
+
+on:
+  pull_request:
+    paths:
+      - "queue_services/batch-permit-validator/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./queue_services/batch-permit-validator
+
+jobs:
+  strr-pay-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    with:
+      app_name: "batch-permit-validator-listener"
+      working_directory: "./queue_services/batch-permit-validator"
+      codecov_flag: "strrbatchlistener"
