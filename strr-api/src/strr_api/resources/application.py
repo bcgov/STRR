@@ -882,6 +882,6 @@ def send_notice_of_consideration(application_number: str):
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
         application = ApplicationService.send_notice_of_consideration(application, content)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
-    except Exception as exception:
-        logger.error("Error in sending NoC: ", exception)
+    except Exception:
+        logger.error("Error in sending NoC: ", exc_info=True)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)

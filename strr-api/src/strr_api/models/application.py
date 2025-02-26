@@ -223,6 +223,7 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: "Approved – Provisional",
         Application.Status.FULL_REVIEW: "Pending Approval",
         Application.Status.DECLINED: "Declined",
+        Application.Status.NOC_PENDING: "Notice of Consideration - Pending",
     }
 
     HOST_ACTIONS = {Application.Status.PAYMENT_DUE: ["SUBMIT_PAYMENT"]}
@@ -237,11 +238,13 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
         Application.Status.FULL_REVIEW: "Full Examination",
         Application.Status.DECLINED: "Declined",
+        Application.Status.NOC_PENDING: "Notice of Consideration - Pending",
     }
 
     EXAMINER_ACTIONS = {
         Application.Status.FULL_REVIEW_APPROVED: [],
         Application.Status.FULL_REVIEW: ["APPROVE", "REJECT"],
+        Application.Status.NOC_PENDING: ["APPROVE", "REJECT"],
     }
 
     @staticmethod

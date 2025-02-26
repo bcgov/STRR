@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "c3eced10-1e79-4b42-9195-c5f5a96088db",
+		"_postman_id": "e1efdb4c-c185-4c29-95d3-15f2ded359cd",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "6835935",
-		"_collection_link": "https://warped-escape-616276.postman.co/workspace/bc-registries~8ef8e652-492a-4d19-b978-d4f0da255b2c/collection/6835935-c3eced10-1e79-4b42-9195-c5f5a96088db?action=share&source=collection_link&creator=6835935"
+		"_exporter_id": "31792407"
 	},
 	"item": [
 		{
@@ -1207,6 +1206,44 @@
 								"{{application_number}}",
 								"payment",
 								"receipt"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notice of Consideration",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"content\": \"Test NOC\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_number}}/notice-of-consideration",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_number}}",
+								"notice-of-consideration"
 							]
 						}
 					},
