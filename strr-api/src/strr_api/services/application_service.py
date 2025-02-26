@@ -282,4 +282,5 @@ class ApplicationService:
         notice_of_consideration.save()
         application.status = Application.Status.NOC_PENDING
         application.save()
+        EmailService.send_notice_of_consideration_for_application(application)
         return application

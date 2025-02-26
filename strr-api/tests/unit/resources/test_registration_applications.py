@@ -704,9 +704,12 @@ def test_delete_payment_pending_applications(session, client, jwt):
         assert response_json["message"] == "Application in the current status cannot be deleted."
 
 
-@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_examiner_send_notice_of_consideration(session, client, jwt):
+@patch("strr_api.services.strr_pay.create_invoice")
+@patch("strr_api.services.email_service.EmailService.send_notice_of_consideration_for_application")
+def test_examiner_send_notice_of_consideration(mock_noc, mock_invoice, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        mock_invoice.return_value = MOCK_INVOICE_RESPONSE
+        mock_noc.return_value = {}
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
         json_data = json.load(f)
