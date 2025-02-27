@@ -81,6 +81,19 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
   }
 
+  /**
+   * Update the status of a registration.
+   *
+   * @param {number} registrationId - The registrationId for the registration to be updated.
+   * @param {string} status - RegistrationStatus value (SUSPENDED or CANCELLED).
+   */
+  const updateRegistrationStatus = async (registrationId: number, status: RegistrationStatus): Promise<void> => {
+    await $strrApi(`/registrations/${registrationId}/status`, {
+      method: 'PUT',
+      body: { status }
+    })
+  }
+
   const openDocInNewTab = async (applicationNumber: string, supportingDocument: ApiDocument) => {
     const file = await getDocument(applicationNumber, supportingDocument.fileKey)
     const blob = new Blob([file], { type: 'application/pdf' })
@@ -117,6 +130,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     getNextApplication,
     getDocument,
     openDocInNewTab,
-    resetFilters
+    resetFilters,
+    updateRegistrationStatus
   }
 }, { persist: true }) // will persist data in session storage

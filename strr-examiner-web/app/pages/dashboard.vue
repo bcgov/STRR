@@ -190,7 +190,11 @@ const sort = ref<TableSort>({ column: 'submissionDate', direction: 'asc' as cons
 
 async function handleRowSelect (row: any) {
   status.value = 'pending'
-  await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
+  if (row.registrationNumber) {
+    await navigateTo(localePath(`${RoutesE.REGISTRATION}/${row.applicationNumber}`))
+  } else {
+    await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
+  }
 }
 
 function handleColumnSort (column: string) {
