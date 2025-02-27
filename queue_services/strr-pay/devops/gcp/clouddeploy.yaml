@@ -31,6 +31,19 @@ serialPipeline:
       container-name: "strr-pay-test"
       cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
       service-account: "sa-api@bcrbk9-test.iam.gserviceaccount.com"
+ - targetId: bcrbk9-test
+   profiles: [uat]
+   strategy:
+    standard:
+      verify: false
+   deployParameters:
+   - values:
+      deploy-env: "uat"
+      deploy-project-id: "bcrbk9-test"
+      service-name: "strr-pay-uat"
+      container-name: "strr-pay-uat"
+      cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
+      service-account: "sa-api@bcrbk9-test.iam.gserviceaccount.com"
  - targetId: bcrbk9-sandbox
    profiles: [sandbox]
    strategy:
