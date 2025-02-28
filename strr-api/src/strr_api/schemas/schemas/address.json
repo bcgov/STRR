@@ -24,7 +24,6 @@
     },
     "province": {
       "type": "string",
-      "maxLength": 2,
       "description": "The 2-letter province code (ISO 3166-2) for this address."
     },
     "country": {
