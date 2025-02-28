@@ -7,8 +7,7 @@ defineProps<{
 <template>
   <main>
     <div class="bg-white">
-      <slot name="header">
-      </slot>
+      <slot name="header" />
       <HostSubHeader
         v-if="application?.registration.registrationType === ApplicationType.HOST"
         :application="application"
