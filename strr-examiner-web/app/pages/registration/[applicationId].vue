@@ -3,8 +3,8 @@ const strrModal = useStrrModals()
 const localePath = useLocalePath()
 const { t } = useI18n()
 const route = useRoute()
-const { approveApplication, rejectApplication, getNextApplication, getApplicationById } = useExaminerStore()
 const { setButtonControl, handleButtonLoading } = useButtonControl()
+const { updateRegistrationStatus, getApplicationById } = useExaminerStore()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -15,26 +15,21 @@ definePageMeta({
   middleware: ['auth']
 })
 
-const initialMount = ref(true) // flag for whether to fetch next or specific application on mount - true until initial application is loaded
+const initialMount = ref(true)
 
 const { data: application, status, error, refresh } = await useLazyAsyncData<
   HousApplicationResponse | undefined, ApplicationError
 >(
-  'application-details-view',
+  'registration-details-view',
   async () => {
-    const slug = route.params.applicationId as string | undefined
-    // On initial mount, if the applicationId is not 'startNew', try to fetch specific application by id
-    if (initialMount.value && slug && slug !== 'startNew') {
-      return await getApplicationById(slug)
-    }
-    // if slug is 'startNew' or refresh is executed, fetch next application
-    return await getNextApplication<HousApplicationResponse>()
+    // slug will be there, otherwise the route will not be rendered and redirected to dashboard
+    const slug = route.params.applicationId as string
+    return await getApplicationById(slug)
   }
 )
 
-// approve/reject/other? applications and refresh data
-const manageApplication = async (
-  id: string, action: 'approve' | 'reject',
+const manageRegistration = async (
+  id: number, action: 'cancel' | 'suspend',
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
@@ -42,13 +37,12 @@ const manageApplication = async (
     // update bottom buttons to loading state
     handleButtonLoading(false, buttonPosition, buttonIndex)
 
-    if (action === 'approve') {
-      await approveApplication(id)
-    } else if (action === 'reject') {
-      await rejectApplication(id)
-    } // other actions
+    if (action === 'cancel') {
+      await updateRegistrationStatus(id, RegistrationStatus.CANCELLED)
+    } else if (action === 'suspend') {
+      await updateRegistrationStatus(id, RegistrationStatus.SUSPENDED)
+    }
 
-    // fetch new application on success success
     refresh()
   } catch (error) {
     console.error(error)
@@ -60,46 +54,42 @@ const manageApplication = async (
   }
 }
 
-// update route and bottom buttons when new application
 watch(
   [application, error],
   ([newVal, _]) => {
-    // if watch triggered, this means initial page mount is complete, set flag to false
     initialMount.value = false
 
     if (newVal && newVal.header.applicationNumber) {
-      // update route slug with new application id
       window.history.replaceState(
         history.state,
         '',
-        localePath(`${RoutesE.EXAMINE}/${newVal.header.applicationNumber}`)
+        localePath(`${RoutesE.REGISTRATION}/${newVal.header.applicationNumber}`)
       )
-
-      // set buttons actions to use new application id
-      if (newVal.registration.registrationType === ApplicationType.HOST ||
-        newVal.registration.registrationType === ApplicationType.STRATA_HOTEL) { // TODO: what to do with platforms ?
-        setButtonControl({
-          leftButtons: [],
-          rightButtons: [
-            {
-              action: () => manageApplication(newVal.header.applicationNumber, 'reject', 'left', 0),
-              label: t('btn.decline'),
-              variant: 'outline',
-              color: 'red',
-              icon: 'i-mdi-close'
-            },
-            {
-              action: () => manageApplication(newVal.header.applicationNumber, 'approve', 'right', 1),
-              label: t('btn.approve'),
-              variant: 'outline',
-              color: 'green',
-              icon: 'i-mdi-check'
-            }
-          ]
-        })
-      } else {
-        setButtonControl({ leftButtons: [], rightButtons: [] })
-      }
+    }
+    if (newVal && newVal.header.registrationStatus !== RegistrationStatus.SUSPENDED &&
+        newVal.header.registrationStatus !== RegistrationStatus.CANCELLED &&
+        newVal.header.registrationStatus !== RegistrationStatus.EXPIRED) {
+      setButtonControl({
+        leftButtons: [],
+        rightButtons: [
+          {
+            action: () => manageRegistration(newVal.header.registrationId!, 'cancel', 'left', 0),
+            label: t('btn.cancel'),
+            variant: 'outline',
+            color: 'red',
+            icon: 'i-mdi-close'
+          },
+          {
+            action: () => manageRegistration(newVal.header.registrationId!, 'suspend', 'right', 1),
+            label: t('btn.suspend'),
+            variant: 'outline',
+            color: 'blue',
+            icon: 'i-mdi-pause'
+          }
+        ]
+      })
+    } else {
+      setButtonControl({ leftButtons: [], rightButtons: [] })
     }
   }
 )
@@ -147,7 +137,7 @@ watch(
       :application="application"
     >
       <template #header>
-        <ApplicationInfoHeader :application="application" />
+        <RegistrationInfoHeader :application="application" />
       </template>
     </ApplicationDetailsView>
   </div>

@@ -88,6 +88,10 @@ export interface ApplicationHeader {
   registrationNumber?: string
   registrationStartDate?: Date
   registrationStatus?: RegistrationStatus
+  reviewer?: {
+    username: string
+    displayName: string
+  }
 }
 
 export interface ApiRegistrationResp extends ApiBaseRegistration, ApiExtraRegistrationDetails { }
