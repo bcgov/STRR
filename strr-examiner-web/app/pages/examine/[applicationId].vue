@@ -3,9 +3,8 @@ const strrModal = useStrrModals()
 const localePath = useLocalePath()
 const { t } = useI18n()
 const route = useRoute()
-const { approveApplication, rejectApplication, getNextApplication } = useExaminerStore()
+const { approveApplication, rejectApplication, getNextApplication, getApplicationById } = useExaminerStore()
 const { setButtonControl, handleButtonLoading } = useButtonControl()
-const { $strrApi } = useNuxtApp()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -22,22 +21,26 @@ const { data: application, status, error, refresh } = await useLazyAsyncData<
   HousApplicationResponse | undefined, ApplicationError
 >(
   'application-details-view',
-  () => {
+  async () => {
     const slug = route.params.applicationId as string | undefined
     // On initial mount, if the applicationId is not 'startNew', try to fetch specific application by id
     if (initialMount.value && slug && slug !== 'startNew') {
-      return $strrApi<HousApplicationResponse>(`/applications/${slug}`)
+      return await getApplicationById(slug)
     }
     // if slug is 'startNew' or refresh is executed, fetch next application
-    return getNextApplication<HousApplicationResponse>()
+    return await getNextApplication<HousApplicationResponse>()
   }
 )
 
 // approve/reject/other? applications and refresh data
-const manageApplication = async (id: string, action: 'approve' | 'reject') => {
+const manageApplication = async (
+  id: string, action: 'approve' | 'reject',
+  buttonPosition: 'left' | 'right',
+  buttonIndex: number
+) => {
   try {
     // update bottom buttons to loading state
-    handleButtonLoading(false, 'right', 1)
+    handleButtonLoading(false, buttonPosition, buttonIndex)
 
     if (action === 'approve') {
       await approveApplication(id)
@@ -79,14 +82,14 @@ watch(
           leftButtons: [],
           rightButtons: [
             {
-              action: () => manageApplication(newVal.header.applicationNumber, 'reject'),
+              action: () => manageApplication(newVal.header.applicationNumber, 'reject', 'left', 0),
               label: t('btn.decline'),
               variant: 'outline',
               color: 'red',
               icon: 'i-mdi-close'
             },
             {
-              action: () => manageApplication(newVal.header.applicationNumber, 'approve'),
+              action: () => manageApplication(newVal.header.applicationNumber, 'approve', 'right', 1),
               label: t('btn.approve'),
               variant: 'outline',
               color: 'green',

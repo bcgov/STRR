@@ -4,8 +4,7 @@ const localePath = useLocalePath()
 const { t } = useI18n()
 const route = useRoute()
 const { setButtonControl, handleButtonLoading } = useButtonControl()
-const { updateRegistrationStatus } = useExaminerStore()
-const { $strrApi } = useNuxtApp()
+const { updateRegistrationStatus, getApplicationById } = useExaminerStore()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -22,27 +21,33 @@ const { data: application, status, error, refresh } = await useLazyAsyncData<
   HousApplicationResponse | undefined, ApplicationError
 >(
   'registration-details-view',
-  () => {
-    const slug = route.params.applicationId as string | undefined
-    return $strrApi<HousApplicationResponse>(`/applications/${slug}`)
+  async () => {
+    // slug will be there, otherwise the route will not be rendered and redirected to dashboard
+    const slug = route.params.applicationId as string
+    return await getApplicationById(slug)
   }
 )
 
-const manageRegistration = async (id: number, action: 'cancel' | 'suspend') => {
+const manageRegistration = async (
+  id: number, action: 'cancel' | 'suspend',
+  buttonPosition: 'left' | 'right',
+  buttonIndex: number
+) => {
   try {
     // update bottom buttons to loading state
-    handleButtonLoading(false, 'right', 1)
+    handleButtonLoading(false, buttonPosition, buttonIndex)
 
     if (action === 'cancel') {
       await updateRegistrationStatus(id, RegistrationStatus.CANCELLED)
     } else if (action === 'suspend') {
       await updateRegistrationStatus(id, RegistrationStatus.SUSPENDED)
     }
+
     refresh()
   } catch (error) {
     console.error(error)
     // TODO: improve error message/flow
-    strrModal.openErrorModal('Error', 'An error occured approving or rejecting this application.', false)
+    strrModal.openErrorModal('Error', 'An error occurred approving or rejecting this application.', false)
   } finally {
     // reset bottom buttons loading state
     handleButtonLoading(true)
@@ -61,20 +66,21 @@ watch(
         localePath(`${RoutesE.REGISTRATION}/${newVal.header.applicationNumber}`)
       )
     }
-    if (newVal?.header.registrationStatus !== RegistrationStatus.SUSPENDED &&
-        newVal?.header.registrationStatus !== RegistrationStatus.CANCELLED) {
+    if (newVal && newVal.header.registrationStatus !== RegistrationStatus.SUSPENDED &&
+        newVal.header.registrationStatus !== RegistrationStatus.CANCELLED &&
+        newVal.header.registrationStatus !== RegistrationStatus.EXPIRED) {
       setButtonControl({
         leftButtons: [],
         rightButtons: [
           {
-            action: () => manageRegistration(newVal.header.registrationId!, 'cancel'),
+            action: () => manageRegistration(newVal.header.registrationId!, 'cancel', 'left', 0),
             label: t('btn.cancel'),
             variant: 'outline',
             color: 'red',
             icon: 'i-mdi-close'
           },
           {
-            action: () => manageRegistration(newVal.header.registrationId!, 'suspend'),
+            action: () => manageRegistration(newVal.header.registrationId!, 'suspend', 'right', 1),
             label: t('btn.suspend'),
             variant: 'outline',
             color: 'blue',

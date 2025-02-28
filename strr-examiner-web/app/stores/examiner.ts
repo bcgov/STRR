@@ -67,6 +67,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
   }
 
+  const getApplicationById = async (applicationNumber: string): Promise<HousApplicationResponse> => {
+    return await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}`, {
+      method: 'GET'
+    })
+  }
+
   /**
    * Get/Download Supporting Document file for the Application.
    *
@@ -128,6 +134,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     rejectApplication,
     fetchApplications,
     getNextApplication,
+    getApplicationById,
     getDocument,
     openDocInNewTab,
     resetFilters,
