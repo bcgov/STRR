@@ -18,7 +18,7 @@ Your application to register the short-term rental is currently under review. **
 # Important Next Steps
 It appears your application does not meet all the registration requirements. The following issues need your attention.
 
-^ {{noc_content | escape }}
+{{noc_content | escape }}
 
 Please **email** [Registry.STR@gov.bc.ca](mailto:Registry.STR@gov.bc.ca) all necessary information or documents to address each issue listed above.
 
