@@ -24,7 +24,7 @@ Please **email** [Registry.STR@gov.bc.ca](mailto:Registry.STR@gov.bc.ca) all nec
 
 ---
 # Important Deadlines
-### Submission Deadline: {{noc_expiry_date}} 12:01 am Pacific time. ###
+**Submission Deadline: {{noc_expiry_date}} 12:01 am Pacific time.**
 
 You have an opportunity to be heard. Please provide the required information or documents by the deadline noted above. If we do not receive the necessary information by the deadline, your application **may be refused** without further notice*.
 
