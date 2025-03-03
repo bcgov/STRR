@@ -65,6 +65,7 @@ EMAIL_SUBJECT = {
     "HOST_FULL_REVIEW_APPROVED": "Short-Term Rental Registration Approved",
     "HOST_PROVISIONAL_REVIEW": "Short-Term Rental Registration Provisionally Approved",
     "PLATFORM_AUTO_APPROVED": "Short-Term Rental Platform Registration Approved",
+    "NOC": "Short-Term Rental Notice of Consideration",
 }
 
 
@@ -104,6 +105,12 @@ def worker():
         )
 
     app_dict = ApplicationSerializer.to_dict(application)
+    noc_content = ""
+    noc_expiry_date = ""
+
+    if noc := application.noc:
+        noc_content = noc.content
+        noc_expiry_date = noc.end_date.strftime("%B %d, %Y")
 
     template = Path(
         f'{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{email_info.email_type}.md'
@@ -120,6 +127,8 @@ def worker():
         service_provider=_get_service_provider(app_dict, application.registration_type),
         tac_url=_get_tac_url(application),
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
+        noc_content=noc_content,
+        noc_expiry_date=noc_expiry_date,
     )
     subject_number = (
         app_dict.get("header", {}).get("registrationNumber") or application.application_number
