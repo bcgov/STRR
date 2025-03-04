@@ -1,11 +1,14 @@
 <script setup lang="ts">
 const props = defineProps<{
-  application: StrataApplicationResp
+  data: StrataApplicationPayload | StrataHotelRegistrationResp
 }>()
+const isApplication = 'registration' in props.data
 
 const { t } = useI18n()
 
-const { buildings } = props.application.registration.strataHotelDetails
+const { buildings } = isApplication
+  ? props.data.registration.strataHotelDetails
+  : props.data.strataHotelDetails
 
 const getBuildingLabel = (index: number) => {
   return index === 0

@@ -234,7 +234,9 @@ export default {
     showDetails: 'Show Details',
     hideDetails: 'Hide Details',
     decline: 'Refuse',
-    approve: 'Approve'
+    approve: 'Approve',
+    cancel: 'Cancel',
+    suspend: 'Suspend'
   },
   error: {
     createAccount: {

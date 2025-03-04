@@ -1,10 +1,10 @@
 import { StrataExpansionBusiness, StrataExpansionIndividuals, StrataExpansionBuildings } from '#components'
 
-export const useStrataExpansion = (app: StrataApplicationResp) => {
+export const useStrataExpansion = (reg: ApiBaseStrataApplication | StrataHotelRegistrationResp) => {
   const exp = useStrrExpansion()
 
   const open = (component: any) => {
-    exp.open(component, { application: app })
+    exp.open(component, { data: reg })
   }
 
   const openBusiness = () => open(StrataExpansionBusiness)

@@ -54,7 +54,7 @@ export const setSideHeaderDetails = (
   const { sideDetails } = storeToRefs(useConnectDetailsHeaderStore())
   const sideDetailsList = []
   if (registration) {
-    sideDetailsList.push({ label: t('label.registrationNum'), value: registration.registration_number })
+    sideDetailsList.push({ label: t('label.registrationNum'), value: registration.registrationNumber })
     sideDetailsList.push({
       label: t('label.registrationDate'),
       value: dateToStringPacific(registration.startDate, 'DDD')
