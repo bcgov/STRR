@@ -100,6 +100,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
   }
 
+  /**
+   * Get a registration by registrationId.
+   *
+   * @param {number} registrationId - The registrationId for the registration.
+   */
+  const getRegistrationById = async (registrationId: number): Promise<HousRegistrationResponse> => {
+    return await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
+      method: 'GET'
+    })
+  }
+
   const openDocInNewTab = async (applicationNumber: string, supportingDocument: ApiDocument) => {
     const file = await getDocument(applicationNumber, supportingDocument.fileKey)
     const blob = new Blob([file], { type: 'application/pdf' })
@@ -138,6 +149,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     getDocument,
     openDocInNewTab,
     resetFilters,
-    updateRegistrationStatus
+    updateRegistrationStatus,
+    getRegistrationById
   }
 }, { persist: true }) // will persist data in session storage

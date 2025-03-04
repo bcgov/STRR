@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { useFlags } from '~/composables/useFlags'
 
-const props = defineProps<{ application: HostApplicationResp }>()
-const reg = props.application.registration
-const { header } = props.application
-
+const props = defineProps<{
+  data: HostApplicationResp | HostRegistrationResp
+}>()
+const isApplication = 'registration' in props.data
+const reg = isApplication
+  ? props.data.registration as HostApplicationResp
+  : props.data as HostRegistrationResp
+const existingHostRegistrations = isApplication
+  ? props.data.header.existingHostRegistrations
+  : props.data.existingHostRegistrations
 const { t } = useI18n()
-const alertFlags = reactive(useFlags(props.application as HostApplicationResp))
+const alertFlags = reactive(useFlags(
+  props.data, isApplication
+))
 
 const hostExp = useHostExpansion()
 </script>
@@ -56,7 +64,7 @@ const hostExp = useHostExpansion()
             :label="displayContactFullName(reg.primaryContact!)"
             :padded="false"
             variant="link"
-            @click="hostExp.openHostOwners(application, 'primaryContact')"
+            @click="hostExp.openHostOwners(data, 'primaryContact', isApplication)"
           />
         </div>
         <div>
@@ -99,7 +107,7 @@ const hostExp = useHostExpansion()
         <div><strong>{{ t('strr.label.pid') }}</strong> {{ reg.unitDetails?.parcelIdentifier }}</div>
         <div class="flex gap-x-1">
           <strong>{{ t('strr.label.registeredRentals') }}</strong>
-          {{ header.existingHostRegistrations }}
+          {{ existingHostRegistrations }}
           <AlertFlag
             v-if="alertFlags.isRegLimitExceeded"
             :tooltip-text="t('strr.alertFlags.exceedsRegistrationLimit')"
@@ -124,7 +132,7 @@ const hostExp = useHostExpansion()
               : displayContactFullName(reg?.secondaryContact)"
             :padded="false"
             variant="link"
-            @click="hostExp.openHostOwners(application, 'secondaryContact')"
+            @click="hostExp.openHostOwners(data, 'secondaryContact', isApplication)"
           />
         </div>
 
@@ -136,7 +144,7 @@ const hostExp = useHostExpansion()
               : reg?.propertyManager?.business?.legalName"
             :padded="false"
             variant="link"
-            @click="hostExp.openHostOwners(application, 'propertyManager')"
+            @click="hostExp.openHostOwners(data, 'propertyManager', isApplication)"
           />
         </div>
       </div>

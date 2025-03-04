@@ -131,6 +131,7 @@ const { data: applicationListResp, status } = await useAsyncData(
       const applications = res.applications.map((app: HousApplicationResponse) => ({
         applicationNumber: app.header.applicationNumber,
         registrationNumber: app.header.registrationNumber,
+        registrationId: app.header.registrationId,
         registrationType: t(`registrationType.${app.registration.registrationType}`),
         requirements: getRequirementsColumn(app),
         applicantName: getApplicantNameColumn(app),
@@ -191,7 +192,7 @@ const sort = ref<TableSort>({ column: 'submissionDate', direction: 'asc' as cons
 async function handleRowSelect (row: any) {
   status.value = 'pending'
   if (row.registrationNumber) {
-    await navigateTo(localePath(`${RoutesE.REGISTRATION}/${row.applicationNumber}`))
+    await navigateTo(localePath(`${RoutesE.REGISTRATION}/${row.registrationId}`))
   } else {
     await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
   }

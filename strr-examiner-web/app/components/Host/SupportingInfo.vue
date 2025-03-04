@@ -5,17 +5,19 @@ import { useExaminerStore } from '~/stores/examiner'
 import { useFlags } from '~/composables/useFlags'
 
 const props = defineProps<{
-  application: HostApplicationResp | undefined
+  data: HostApplicationResp | HostRegistrationResp | undefined
 }>()
-const reg = props.application?.registration
 
+const isApplication = props.data ? 'registration' in props.data : false
+const reg = props.data ? (isApplication ? props.data.registration : props.data) : undefined
+const header = props.data?.header
 const { t } = useI18n()
 const { getDocument } = useExaminerStore()
-const alertFlags = reactive(useFlags(props.application as HostApplicationResp))
+const alertFlags = reactive(useFlags(props.data, isApplication))
 
 const openDocInNewTab = async (supportingDocument: ApiDocument) => {
-  if (props.application !== undefined) {
-    const file = await getDocument(props.application.header.applicationNumber, supportingDocument.fileKey)
+  if (props.data !== undefined) {
+    const file = await getDocument(header.applicationNumber!, supportingDocument.fileKey)
     const blob = new Blob([file], { type: 'application/pdf' })
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')
@@ -138,12 +140,12 @@ const getBlSectionSubLabel = (): string =>
               </span>
             </div>
             <div
-              v-if="!isEmpty(reg?.documents)"
+              v-if="reg.documents && !isEmpty(reg.documents)"
               class="mt-2"
               data-testid="pr-req-documents"
             >
               <UButton
-                v-for="document in application.registration.documents.filter(
+                v-for="document in reg.documents.filter(
                   doc => doc.documentType !== DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
                 )"
                 :key="document.fileKey"
