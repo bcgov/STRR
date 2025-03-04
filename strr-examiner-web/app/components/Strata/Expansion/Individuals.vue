@@ -1,9 +1,13 @@
 <script setup lang="ts">
 const props = defineProps<{
-  application: StrataApplicationResp
+  data: StrataApplicationPayload | StrataHotelRegistrationResp
 }>()
+const isApplication = 'registration' in props.data
+const reg = isApplication
+  ? props.data.registration
+  : props.data
 
-const { strataHotelRepresentatives, completingParty } = props.application.registration
+const { strataHotelRepresentatives, completingParty } = reg
 
 </script>
 

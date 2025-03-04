@@ -1,5 +1,12 @@
-export const useFlags = (application: HostApplicationResp) => {
+export const useFlags = (data: HostApplicationResp | HousRegistrationResponse, isApplication: boolean) => {
   const REGISTRATIONS_LIMIT = 2
+
+  const registration = isApplication
+    ? (data as HostApplicationResp).registration
+    : data as HousRegistrationResponse
+  const existingHostRegistrations = isApplication
+    ? (data as HostApplicationResp).header.existingHostRegistrations
+    : (data as HostRegistrationResp).existingHostRegistrations
 
   /**
    * @description Requirement: If Property Type is condo or apartment, multi-unit housing,
@@ -13,20 +20,20 @@ export const useFlags = (application: HostApplicationResp) => {
       PropertyType.STRATA_HOTEL
     ]
     return (
-      unitNumberRequired.includes(application.registration.unitDetails.propertyType) &&
-      !application.registration.unitAddress?.unitNumber
+      unitNumberRequired.includes(registration.unitDetails.propertyType) &&
+      !registration.unitAddress?.unitNumber
     )
   })
 
-  const isProhibited = computed(() => application.registration.strRequirements?.isStrProhibited)
+  const isProhibited = computed(() => registration.strRequirements?.isStrProhibited)
 
   /**
    * @description Requirement: address in Principal Residence area without PR exemption,
    * when rental unit setup is "not on same property as host".
    */
   const isNotSameProperty = computed((): boolean => {
-    const { isPrincipalResidenceRequired } = application.registration?.strRequirements as PropertyRequirements
-    const { prExemptReason, hostResidence } = application.registration.unitDetails as ApiUnitDetails
+    const { isPrincipalResidenceRequired } = registration?.strRequirements as PropertyRequirements
+    const { prExemptReason, hostResidence } = registration.unitDetails as ApiUnitDetails
 
     return isPrincipalResidenceRequired && !prExemptReason && hostResidence === ResidenceType.ANOTHER_UNIT
   })
@@ -35,13 +42,13 @@ export const useFlags = (application: HostApplicationResp) => {
    * @description Requirement: Host is a business
    */
   const isHostTypeBusiness = computed(
-    (): boolean => application.registration.primaryContact?.contactType === OwnerType.BUSINESS
+    (): boolean => registration.primaryContact?.contactType === OwnerType.BUSINESS
   )
 
   /**
    * @description Requirement: Host exceeds registration limit
    */
-  const isRegLimitExceeded = computed((): boolean => application.header.existingHostRegistrations > REGISTRATIONS_LIMIT)
+  const isRegLimitExceeded = computed((): boolean => (existingHostRegistrations ?? 0) > REGISTRATIONS_LIMIT)
 
   return {
     isUnitNumberMissing,

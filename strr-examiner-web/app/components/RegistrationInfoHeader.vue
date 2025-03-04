@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { type HousApplicationResponse } from '~/types/application-response'
 
-const props = defineProps<{ application: HousApplicationResponse }>()
-const { header, registration } = props.application
+const props = defineProps<{ data: HousRegistrationResponse }>()
+const { header } = props.data
+const registration = props.data
 
 const getBadgeColor = (status: RegistrationStatus): string => {
   switch (status) {
@@ -22,11 +22,11 @@ const getBadgeColor = (status: RegistrationStatus): string => {
 const getApplicationName = (): string => {
   switch (registration.registrationType) {
     case ApplicationType.STRATA_HOTEL:
-      return (registration as ApiBaseStrataApplication).businessDetails.legalName
+      return (registration as StrataHotelRegistrationResp).businessDetails?.legalName || ''
     case ApplicationType.HOST:
-      return (registration as ApiHostApplication).unitAddress?.nickname || ''
+      return (registration as HostRegistrationResp).unitAddress?.nickname || ''
     case ApplicationType.PLATFORM:
-      return (registration as ApiBasePlatformApplication).businessDetails?.legalName || ''
+      return (registration as PlatformRegistrationResp).businessDetails?.legalName || ''
     default:
       return ''
   }
@@ -52,7 +52,7 @@ const getRegistrationType = (): string => {
       <div class="mb-2">
         <div class="mb-2 text-2xl">
           <strong>
-            {{ header?.registrationNumber }} |
+            {{ registration.registrationNumber }} |
           </strong>
           {{ getApplicationName() }}
           <UButton
@@ -60,7 +60,7 @@ const getRegistrationType = (): string => {
             icon="mdi-web"
             :padded="false"
             variant="link"
-            :to="(application.registration as ApiBaseStrataApplication).strataHotelDetails.brand.website"
+            :to="(registration as StrataHotelRegistrationResp).strataHotelDetails?.brand.website"
             target="_blank"
             data-testid="strata-brand-website"
           />
@@ -68,13 +68,13 @@ const getRegistrationType = (): string => {
         <div class="text-sm">
           <UBadge
             class="mr-3 font-bold"
-            :label="header.registrationStatus"
-            :color="getBadgeColor(header.registrationStatus!)"
+            :label="header.examinerStatus"
+            :color="getBadgeColor(registration.status!)"
           />
           <strong>Registration Date:</strong>
-          {{ dateToString(header.registrationStartDate, 'y-MM-dd t') }}
-          <strong>Expiry Date:</strong> {{ dateToString(header.registrationEndDate, 'y-MM-dd t') }}
-          ({{ dayCountdown(header.registrationEndDate.toString()) }} days left)
+          {{ dateToString(registration.startDate, 'y-MM-dd t') }}
+          <strong>Expiry Date:</strong> {{ dateToString(registration.expiryDate, 'y-MM-dd t') }}
+          ({{ dayCountdown(registration.expiryDate.toString()) }} days left)
         </div>
       </div>
       <div class="text-sm">

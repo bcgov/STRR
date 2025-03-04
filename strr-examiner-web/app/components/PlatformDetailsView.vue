@@ -1,7 +1,12 @@
 <script setup lang="ts">
-const props = defineProps<{ application: PlatformApplicationResp }>()
 
-const { header, registration } = props.application
+const props = defineProps<{ data: PlatformApplicationResp | PlatformRegistrationResp }>()
+
+const { header } = props.data
+const isApplication = 'registration' in props.data
+const registration = isApplication
+  ? props.data.registration
+  : props.data
 
 </script>
 

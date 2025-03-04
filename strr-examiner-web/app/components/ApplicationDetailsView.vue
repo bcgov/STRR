@@ -1,7 +1,16 @@
 <script setup lang="ts">
-defineProps<{
-  application: HousApplicationResponse
+const props = defineProps<{
+  data: HousApplicationResponse | HousRegistrationResponse
 }>()
+
+const isApplication = 'registration' in props.data
+const reg = isApplication
+  ? props.data.registration
+  : props.data
+
+const getStrataData = (): StrataApplicationResp | StrataHotelRegistrationResp => {
+  return props.data as StrataApplicationResp | StrataHotelRegistrationResp
+}
 </script>
 
 <template>
@@ -9,17 +18,17 @@ defineProps<{
     <div class="bg-white">
       <slot name="header" />
       <HostSubHeader
-        v-if="application?.registration.registrationType === ApplicationType.HOST"
-        :application="application"
+        v-if="reg.registrationType === ApplicationType.HOST"
+        :data="data"
       />
       <StrataSubHeader
-        v-if="application?.registration.registrationType === ApplicationType.STRATA_HOTEL"
-        :application="application"
+        v-if="reg.registrationType === ApplicationType.STRATA_HOTEL"
+        :data="getStrataData()"
       />
       <!-- @open-expansion="manageExpansion" -->
       <PlatformSubHeader
-        v-if="application?.registration.registrationType === ApplicationType.PLATFORM"
-        :application="application"
+        v-if="reg.registrationType === ApplicationType.PLATFORM"
+        :data="data"
       />
     </div>
 
@@ -27,19 +36,19 @@ defineProps<{
       <ConnectExpansionRoot />
 
       <HostSupportingInfo
-        v-if="application?.registration.registrationType === ApplicationType.HOST"
-        :application="application"
+        v-if="reg.registrationType === ApplicationType.HOST"
+        :data="data"
       />
 
       <StrataSupportingInfo
-        v-if="application?.registration.registrationType === ApplicationType.STRATA_HOTEL"
-        :application="application"
+        v-if="reg.registrationType === ApplicationType.STRATA_HOTEL"
+        :data="getStrataData()"
       />
 
       <!--
         <PlatformDetailsView
-        v-if="application?.registration.registrationType === ApplicationType.PLATFORM"
-        :application="application"
+        v-if="reg.registrationType === ApplicationType.PLATFORM"
+        :data="data"
       />-->
     </div>
   </main>
