@@ -31,7 +31,7 @@ serialPipeline:
       cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
       run-command: "./run.sh"
       service-account: "sa-job@bcrbk9-test.iam.gserviceaccount.com"
- - targetId: bcrbk9-test
+ - targetId: bcrbk9-uat
    profiles: [uat]
    strategy:
     standard:
