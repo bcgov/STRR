@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const props = defineProps<{
-  application: StrataApplicationResp
+  data: StrataApplicationPayload | StrataHotelRegistrationResp
 }>()
+const reg = props.data
 
-const { registration } = props.application
-const { businessDetails } = registration
+const businessDetails = reg.businessDetails
 
 const attorney = businessDetails.registeredOfficeOrAttorneyForServiceDetails
 const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)

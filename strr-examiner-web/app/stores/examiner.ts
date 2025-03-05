@@ -67,6 +67,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
   }
 
+  const getApplicationById = async (applicationNumber: string): Promise<HousApplicationResponse> => {
+    return await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}`, {
+      method: 'GET'
+    })
+  }
+
   /**
    * Get/Download Supporting Document file for the Application.
    *
@@ -78,6 +84,30 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return await $strrApi(`/applications/${applicationNumber}/documents/${fileKey}`, {
       method: 'GET',
       responseType: 'blob'
+    })
+  }
+
+  /**
+   * Update the status of a registration.
+   *
+   * @param {number} registrationId - The registrationId for the registration to be updated.
+   * @param {string} status - RegistrationStatus value (SUSPENDED or CANCELLED).
+   */
+  const updateRegistrationStatus = async (registrationId: number, status: RegistrationStatus): Promise<void> => {
+    await $strrApi(`/registrations/${registrationId}/status`, {
+      method: 'PUT',
+      body: { status }
+    })
+  }
+
+  /**
+   * Get a registration by registrationId.
+   *
+   * @param {number} registrationId - The registrationId for the registration.
+   */
+  const getRegistrationById = async (registrationId: number): Promise<HousRegistrationResponse> => {
+    return await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
+      method: 'GET'
     })
   }
 
@@ -115,8 +145,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     rejectApplication,
     fetchApplications,
     getNextApplication,
+    getApplicationById,
     getDocument,
     openDocInNewTab,
-    resetFilters
+    resetFilters,
+    updateRegistrationStatus,
+    getRegistrationById
   }
 }, { persist: true }) // will persist data in session storage

@@ -1,7 +1,12 @@
 <script setup lang="ts">
-const props = defineProps<{ application: PlatformApplicationResp }>()
 
-const { header, registration } = props.application
+const props = defineProps<{ data: PlatformApplicationResp | PlatformRegistrationResp }>()
+
+const { header } = props.data
+const isApplication = 'registration' in props.data
+const registration = isApplication
+  ? props.data.registration
+  : props.data
 
 </script>
 
@@ -23,7 +28,7 @@ const { header, registration } = props.application
         </dl>
       </div>
 
-      <div>
+      <div v-if="isApplication">
         <dl class="grid grid-cols-[repeat(2,auto)] gap-x-4 pl-5">
           <dt>Completing Party</dt>
           <dd />
@@ -48,7 +53,7 @@ const { header, registration } = props.application
           <dd>{{ displayContactFullName(registration?.platformRepresentatives[0]) }}</dd>
 
           <dt>Email:</dt>
-          <dd>{{ registration?.completingParty.emailAddress }}</dd>
+          <dd>{{ registration?.platformRepresentatives[0].emailAddress }}</dd>
         </dl>
       </div>
     </div>

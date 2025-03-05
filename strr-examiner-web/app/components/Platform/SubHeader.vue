@@ -5,11 +5,14 @@ import {
   PlatformExpansionParties
 } from '#components'
 
-const props = defineProps<{ application: HousApplicationResponse }>()
-const reg = props.application.registration as ApiBasePlatformApplication
+const props = defineProps<{ data: PlatformApplicationResp | PlatformRegistrationResp}>()
+const isApplication = 'registration' in props.data
+const reg = isApplication
+  ? props.data.registration as ApiBasePlatformApplication
+  : props.data as PlatformRegistrationResp
 
 // business data extra formatting
-const regOffice = reg.businessDetails.registeredOfficeOrAttorneyForServiceDetails
+const regOffice = reg.businessDetails!.registeredOfficeOrAttorneyForServiceDetails
 const hasRegOffice = !!regOffice.attorneyName ||
   !!regOffice.mailingAddress.address ||
   !!regOffice.mailingAddress.addressLineTwo ||
@@ -20,17 +23,19 @@ const hasRegOffice = !!regOffice.attorneyName ||
   !!regOffice.mailingAddress.locationDescription
 
 // party data extra formatting
-const compParty = formatPartyUI(reg.completingParty)
-
-const primaryRep = reg.platformRepresentatives.length && reg.platformRepresentatives[0]
-  ? formatRepresentativeUI(reg.platformRepresentatives[0])
+const compParty = isApplication
+  ? formatPartyUI(reg.completingParty)
   : undefined
 
-const secondRep = reg.platformRepresentatives.length > 1 && reg.platformRepresentatives[1]
-  ? formatRepresentativeUI(reg.platformRepresentatives[1])
+const primaryRep = reg.platformRepresentatives!.length && reg.platformRepresentatives![0]
+  ? formatRepresentativeUI(reg.platformRepresentatives![0])
   : undefined
 
-const isCompPartyRep = (
+const secondRep = reg.platformRepresentatives!.length > 1 && reg.platformRepresentatives![1]
+  ? formatRepresentativeUI(reg.platformRepresentatives![1])
+  : undefined
+
+const isCompPartyRep = !!compParty && !!primaryRep && (
   primaryRep?.firstName === compParty.firstName &&
   primaryRep?.middleName === compParty.middleName &&
   primaryRep?.lastName === compParty.lastName &&
@@ -45,20 +50,19 @@ const { open: expOpen } = useStrrExpansion()
 const expandBrands = () => {
   expOpen(
     PlatformExpansionBrands,
-    { application: props.application, brands: reg.platformDetails.brands })
+    { brands: reg.platformDetails!.brands })
 }
 
 const expandBusiness = () => {
   expOpen(
     PlatformExpansionBusiness,
-    { application: props.application, business: reg.businessDetails, hasRegOffice })
+    { business: reg.businessDetails, hasRegOffice })
 }
 
 const expandParties = () => {
   expOpen(
     PlatformExpansionParties,
     {
-      application: props.application,
       primaryRep,
       secondaryRep: secondRep,
       completingParty: compParty
@@ -75,7 +79,7 @@ const expandParties = () => {
     :col3-labels="[
       $t('strr.label.representative'),
       ...(secondRep ? [$t('strr.label.secondaryRepresentative')] : []),
-      ...(!isCompPartyRep ? [$t('strr.label.completingParty')] : [])
+      ...(!isCompPartyRep && compParty ? [$t('strr.label.completingParty')] : [])
     ]"
     :col4-labels="[$t('strr.label.noticeOfNonCompliance'), $t('strr.label.takedownRequest')]"
   >
@@ -84,10 +88,10 @@ const expandParties = () => {
         <dt class="font-bold text-gray-900">
           {{ $t('strr.label.totalNumberOfListings') }}:
         </dt>
-        <dd>{{ $t(`strr.label.listingSize.${reg.platformDetails.listingSize}`) }}</dd>
+        <dd>{{ $t(`strr.label.listingSize.${reg.platformDetails!.listingSize}`) }}</dd>
       </dl>
       <ConnectInfoWithIcon
-        v-for="brand in reg.platformDetails.brands.slice(0, 3)"
+        v-for="brand in reg.platformDetails!.brands.slice(0, 3)"
         :key="brand.name"
         icon="i-mdi-web"
       >
@@ -103,7 +107,7 @@ const expandParties = () => {
         />
       </ConnectInfoWithIcon>
       <UButton
-        v-if="reg.platformDetails.brands.length > 3"
+        v-if="reg.platformDetails!.brands.length > 3"
         :label="$t('btn.viewAllPlatforms')"
         :padded="false"
         variant="link"
@@ -113,14 +117,14 @@ const expandParties = () => {
     <template #col2-0>
       <ConnectInfoWithIcon icon="i-mdi-domain">
         <UButton
-          :label="reg.businessDetails.legalName"
+          :label="reg.businessDetails!.legalName"
           :padded="false"
           variant="link"
           @click="expandBusiness"
         />
       </ConnectInfoWithIcon>
       <ConnectInfoWithIcon icon="i-mdi-email-outline">
-        <ConnectFormAddressDisplay :address="formatAddressUI(reg.businessDetails.mailingAddress)" omit-country />
+        <ConnectFormAddressDisplay :address="formatAddressUI(reg.businessDetails!.mailingAddress)" omit-country />
       </ConnectInfoWithIcon>
     </template>
     <template v-if="hasRegOffice" #col2-1>
@@ -153,7 +157,7 @@ const expandParties = () => {
         />
       </ConnectInfoWithIcon>
     </template>
-    <template v-if="!isCompPartyRep" #col3-2>
+    <template v-if="compParty && !isCompPartyRep" #col3-2>
       <ConnectInfoWithIcon icon="i-mdi-account">
         <UButton
           :label="getFullName(compParty)"
@@ -166,19 +170,19 @@ const expandParties = () => {
       </ConnectInfoWithIcon>
     </template>
     <template #col4-0>
-      <ConnectInfoWithIcon icon="i-mdi-at" :content="reg.businessDetails.noticeOfNonComplianceEmail" />
+      <ConnectInfoWithIcon icon="i-mdi-at" :content="reg.businessDetails!.noticeOfNonComplianceEmail" />
       <ConnectInfoWithIcon
-        v-if="reg.businessDetails.noticeOfNonComplianceOptionalEmail"
+        v-if="reg.businessDetails!.noticeOfNonComplianceOptionalEmail"
         icon="i-mdi-at"
-        :content="reg.businessDetails.noticeOfNonComplianceOptionalEmail"
+        :content="reg.businessDetails!.noticeOfNonComplianceOptionalEmail"
       />
     </template>
     <template #col4-1>
-      <ConnectInfoWithIcon icon="i-mdi-at" :content="reg.businessDetails.takeDownRequestEmail" />
+      <ConnectInfoWithIcon icon="i-mdi-at" :content="reg.businessDetails!.takeDownRequestEmail" />
       <ConnectInfoWithIcon
-        v-if="reg.businessDetails.takeDownRequestOptionalEmail"
+        v-if="reg.businessDetails!.takeDownRequestOptionalEmail"
         icon="i-mdi-at"
-        :content="reg.businessDetails.takeDownRequestOptionalEmail"
+        :content="reg.businessDetails!.takeDownRequestOptionalEmail"
       />
     </template>
   </CommonSubHeaderTemplate>
