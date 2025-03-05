@@ -45,7 +45,7 @@ serialPipeline:
       container-name: "strr-api-test"
       cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
       service-account: "sa-api@bcrbk9-test.iam.gserviceaccount.com"
- - targetId: bcrbk9-test
+ - targetId: bcrbk9-uat
    profiles: [uat]
    strategy:
     standard:
