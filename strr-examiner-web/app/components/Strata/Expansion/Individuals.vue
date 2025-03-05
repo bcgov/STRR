@@ -2,12 +2,13 @@
 const props = defineProps<{
   data: StrataApplicationPayload | StrataHotelRegistrationResp
 }>()
-const isApplication = 'registration' in props.data
-const reg = isApplication
-  ? props.data.registration
-  : props.data
+const isApplication = 'completingParty' in props.data
+const reg = props.data
 
-const { strataHotelRepresentatives, completingParty } = reg
+const { strataHotelRepresentatives } = reg
+const compParty = isApplication
+  ? reg.completingParty
+  : undefined
 
 </script>
 
@@ -45,20 +46,20 @@ const { strataHotelRepresentatives, completingParty } = reg
           :content="rep?.emailAddress"
         />
       </div>
-      <div class="space-y-2">
+      <div v-if="isApplication" class="space-y-2">
         <b>{{ $t('strr.label.completingParty').toUpperCase() }}</b>
         <ConnectInfoWithIcon
           icon="i-mdi-account"
-          :content="displayContactFullName(completingParty)"
+          :content="displayContactFullName(compParty)"
         />
         <ConnectInfoWithIcon
-          v-if="completingParty.phoneNumber"
+          v-if="compParty.phoneNumber"
           icon="i-mdi-phone"
-          :content="displayPhoneAndExt(completingParty.phoneNumber)"
+          :content="displayPhoneAndExt(compParty.phoneNumber)"
         />
         <ConnectInfoWithIcon
           icon="i-mdi-envelope-outline"
-          :content="completingParty.emailAddress"
+          :content="compParty.emailAddress"
         />
       </div>
     </div>

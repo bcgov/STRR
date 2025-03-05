@@ -118,7 +118,7 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
             />
           </ConnectInfoWithIcon>
         </div>
-        <div class="space-y-2">
+        <div v-if="isApplication" class="space-y-2">
           <!-- Completing Party -->
           <b>{{ $t('strr.label.completingParty').toUpperCase() }}</b>
           <ConnectInfoWithIcon

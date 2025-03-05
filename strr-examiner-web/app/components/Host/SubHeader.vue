@@ -10,7 +10,7 @@ const reg = isApplication
   : props.data as HostRegistrationResp
 const existingHostRegistrations = isApplication
   ? props.data.header.existingHostRegistrations
-  : props.data.existingHostRegistrations
+  : undefined
 const { t } = useI18n()
 const alertFlags = reactive(useFlags(
   props.data, isApplication
@@ -99,13 +99,13 @@ const hostExp = useHostExpansion()
         <div>
           {{ t(`hostResidence.${reg.unitDetails?.hostResidence}`) }}
           <AlertFlag
-            v-if="alertFlags.isNotSameProperty"
+            v-if="isApplication && alertFlags.isNotSameProperty"
             :tooltip-text="t('strr.alertFlags.hostAddressNotSame')"
             data-testid="flag-host-address-not-same"
           />
         </div>
         <div><strong>{{ t('strr.label.pid') }}</strong> {{ reg.unitDetails?.parcelIdentifier }}</div>
-        <div class="flex gap-x-1">
+        <div v-if="isApplication" class="flex gap-x-1">
           <strong>{{ t('strr.label.registeredRentals') }}</strong>
           {{ existingHostRegistrations }}
           <AlertFlag

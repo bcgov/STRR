@@ -20,10 +20,8 @@ export interface HostRegistrationResp extends ApiExtraRegistrationDetails {
   unitDetails?: ApiUnitDetails
   listingDetails?: { url: string }[]
   propertyManager?: ApiPropertyManager
-  strRequirements?: PropertyRequirements
   documents?: ApiDocument[]
   id: number
-  existingHostRegistrations?: number
 }
 
 export interface StrataHotelRegistrationResp extends ApiExtraRegistrationDetails {
@@ -34,7 +32,6 @@ export interface StrataHotelRegistrationResp extends ApiExtraRegistrationDetails
   strataHotelDetails?: ApiStrataDetails
   documents?: ApiDocument[]
   id: number
-  completingParty?: ApiParty
 }
 
 export interface PlatformRegistrationResp extends ApiExtraRegistrationDetails {
@@ -45,5 +42,4 @@ export interface PlatformRegistrationResp extends ApiExtraRegistrationDetails {
   platformDetails?: ApiPlatformDetails
   documents?: ApiDocument[]
   id: number
-  completingParty?: ApiParty
 }

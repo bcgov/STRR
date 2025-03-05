@@ -125,7 +125,7 @@ const getBlSectionSubLabel = (): string =>
       >
         <template #icon>
           <AlertFlag
-            v-if="alertFlags.isNotSameProperty || alertFlags.isHostTypeBusiness"
+            v-if="(isApplication && alertFlags.isNotSameProperty) || alertFlags.isHostTypeBusiness"
             data-testid="flag-pr-requirement"
           />
         </template>
@@ -159,7 +159,7 @@ const getBlSectionSubLabel = (): string =>
             </div>
           </div>
           <div
-            v-if="alertFlags.isNotSameProperty"
+            v-if="isApplication && alertFlags.isNotSameProperty"
             class="ml-3 w-1/3 font-bold text-red-600"
           >
             {{ t('strr.alertFlags.notSameProperty') }}

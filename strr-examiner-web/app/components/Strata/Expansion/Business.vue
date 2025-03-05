@@ -2,10 +2,7 @@
 const props = defineProps<{
   data: StrataApplicationPayload | StrataHotelRegistrationResp
 }>()
-const isApplication = 'registration' in props.data
-const reg = isApplication
-  ? props.data.registration
-  : props.data
+const reg = props.data
 
 const businessDetails = reg.businessDetails
 

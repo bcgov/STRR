@@ -5,7 +5,7 @@ import {
   PlatformExpansionParties
 } from '#components'
 
-const props = defineProps<{ data: HousApplicationResponse | PlatformRegistrationResp}>()
+const props = defineProps<{ data: PlatformApplicationResp | PlatformRegistrationResp}>()
 const isApplication = 'registration' in props.data
 const reg = isApplication
   ? props.data.registration as ApiBasePlatformApplication
@@ -23,7 +23,9 @@ const hasRegOffice = !!regOffice.attorneyName ||
   !!regOffice.mailingAddress.locationDescription
 
 // party data extra formatting
-const compParty = formatPartyUI(reg.completingParty)
+const compParty = isApplication
+  ? formatPartyUI(reg.completingParty)
+  : undefined
 
 const primaryRep = reg.platformRepresentatives!.length && reg.platformRepresentatives![0]
   ? formatRepresentativeUI(reg.platformRepresentatives![0])
@@ -33,7 +35,7 @@ const secondRep = reg.platformRepresentatives!.length > 1 && reg.platformReprese
   ? formatRepresentativeUI(reg.platformRepresentatives![1])
   : undefined
 
-const isCompPartyRep = (
+const isCompPartyRep = !!compParty && !!primaryRep && (
   primaryRep?.firstName === compParty.firstName &&
   primaryRep?.middleName === compParty.middleName &&
   primaryRep?.lastName === compParty.lastName &&
@@ -77,7 +79,7 @@ const expandParties = () => {
     :col3-labels="[
       $t('strr.label.representative'),
       ...(secondRep ? [$t('strr.label.secondaryRepresentative')] : []),
-      ...(!isCompPartyRep ? [$t('strr.label.completingParty')] : [])
+      ...(!isCompPartyRep && compParty ? [$t('strr.label.completingParty')] : [])
     ]"
     :col4-labels="[$t('strr.label.noticeOfNonCompliance'), $t('strr.label.takedownRequest')]"
   >
@@ -155,7 +157,7 @@ const expandParties = () => {
         />
       </ConnectInfoWithIcon>
     </template>
-    <template v-if="!isCompPartyRep" #col3-2>
+    <template v-if="compParty && !isCompPartyRep" #col3-2>
       <ConnectInfoWithIcon icon="i-mdi-account">
         <UButton
           :label="getFullName(compParty)"

@@ -6,7 +6,7 @@ export const useFlags = (data: HostApplicationResp | HousRegistrationResponse, i
     : data as HousRegistrationResponse
   const existingHostRegistrations = isApplication
     ? (data as HostApplicationResp).header.existingHostRegistrations
-    : (data as HostRegistrationResp).existingHostRegistrations
+    : undefined
 
   /**
    * @description Requirement: If Property Type is condo or apartment, multi-unit housing,

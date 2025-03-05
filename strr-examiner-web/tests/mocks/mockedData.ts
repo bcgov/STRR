@@ -295,7 +295,6 @@ export const mockHostRegistration: HostRegistrationResp = {
     organizationNm: 'City of Vancouver'
   },
   documents: mockDocuments,
-  existingHostRegistrations: 2,
   listingDetails: [],
   sbc_account_id: 12345,
   updatedDate: MOCK_DATES.APPLICATION_DATE,
@@ -358,8 +357,7 @@ export const mockPlatformRegistration: PlatformRegistrationResp = {
   },
   sbc_account_id: 12345,
   updatedDate: MOCK_DATES.APPLICATION_DATE,
-  user_id: 123,
-  completingParty: COMPLETING_PARTY
+  user_id: 123
 }
 
 export const mockStrataHotelRegistration: StrataHotelRegistrationResp = {
@@ -388,8 +386,7 @@ export const mockStrataHotelRegistration: StrataHotelRegistrationResp = {
   strataHotelRepresentatives: [STRATA_REP] as ApiRep[],
   sbc_account_id: 12345,
   updatedDate: MOCK_DATES.STRATA_APPLICATION_DATE,
-  user_id: 123,
-  completingParty: COMPLETING_PARTY
+  user_id: 123
 }
 
 export const mockExpiredRegistration: HostRegistrationResp = {

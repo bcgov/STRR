@@ -28,7 +28,7 @@ const registration = isApplication
         </dl>
       </div>
 
-      <div>
+      <div v-if="isApplication">
         <dl class="grid grid-cols-[repeat(2,auto)] gap-x-4 pl-5">
           <dt>Completing Party</dt>
           <dd />
@@ -53,7 +53,7 @@ const registration = isApplication
           <dd>{{ displayContactFullName(registration?.platformRepresentatives[0]) }}</dd>
 
           <dt>Email:</dt>
-          <dd>{{ registration?.completingParty.emailAddress }}</dd>
+          <dd>{{ registration?.platformRepresentatives[0].emailAddress }}</dd>
         </dl>
       </div>
     </div>
