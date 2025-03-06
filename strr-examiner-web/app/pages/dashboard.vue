@@ -431,7 +431,9 @@ function handleColumnSort (column: string) {
               { label: 'Draft', value: ApplicationStatus.DRAFT },
               { label: 'Declined', value: ApplicationStatus.DECLINED },
               { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
-              { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED }
+              { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
+              { label: 'Notice of Consideration - Pending', value: ApplicationStatus.NOC_PENDING },
+              { label: 'Notice of Consideration - Expired', value: ApplicationStatus.NOC_EXPIRED }
             ]"
             @sort="handleColumnSort(column.key)"
           />

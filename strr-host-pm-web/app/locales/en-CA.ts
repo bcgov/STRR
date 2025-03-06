@@ -165,7 +165,8 @@ export default {
       other: 'Other',
       remove: 'Remove',
       unnamed: 'Unnamed',
-      completingParty: 'Person completing form'
+      completingParty: 'Person completing form',
+      added: 'ADDED'
     },
     text: {
       applicationMustInclude: 'You must provide the names and details of the following individuals and / or businesses:',
