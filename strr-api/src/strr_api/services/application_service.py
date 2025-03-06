@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Service to interact with the applications model."""
+import copy
 from datetime import datetime, time, timedelta, timezone
 from typing import Optional
 
@@ -283,4 +284,13 @@ class ApplicationService:
         application.status = Application.Status.NOC_PENDING
         application.save()
         EmailService.send_notice_of_consideration_for_application(application)
+        return application
+
+    @staticmethod
+    def update_document_list(application: Application, document: str) -> Application:
+        """Updates the document list of an application."""
+        application_json = copy.deepcopy(application.application_json)
+        application_json.get("registration").get("documents", []).append(document)
+        application.application_json = application_json
+        application.save()
         return application

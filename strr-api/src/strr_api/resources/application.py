@@ -581,6 +581,61 @@ def upload_registration_supporting_document(application_number):
         return exception_response(service_exception)
 
 
+@bp.route("/<application_number>/documents", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def update_registration_supporting_document(application_number):
+    """
+    Upload a supporting document for a STRR application.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: The file to upload
+    consumes:
+      - multipart/form-data
+    responses:
+      200:
+        description:
+      400:
+        description:
+      401:
+        description:
+    """
+
+    try:
+        account_id = request.headers.get("Account-Id", None)
+        file = validate_document_upload(request.files)
+
+        # only allow upload for registrations that belong to the user
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
+        if not application:
+            raise AuthException()
+
+        filename = secure_filename(file.filename)
+
+        document = DocumentService.upload_document(filename, file.content_type, file.read())
+        application = ApplicationService.update_document_list(application=application, document=document)
+
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except ValidationException as auth_exception:
+        return exception_response(auth_exception)
+    except ExternalServiceException as service_exception:
+        return exception_response(service_exception)
+
+
 @bp.route("/<application_number>/documents/<file_key>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
