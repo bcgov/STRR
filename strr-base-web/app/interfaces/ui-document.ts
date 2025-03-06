@@ -1,3 +1,4 @@
+import type { DocumentUploadStep } from '~/enums/document-upload-step'
 export interface UiDocument {
   file: File
   apiDoc: ApiDocument
