@@ -616,6 +616,9 @@ def update_registration_supporting_document(application_number):
     try:
         account_id = request.headers.get("Account-Id", None)
         file = validate_document_upload(request.files)
+        document_type = request.form.get("documentType", "")
+        upload_step = request.form.get("uploadStep", "")
+        upload_date = request.form.get("uploadDate", "")
 
         # only allow upload for registrations that belong to the user
         application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
@@ -625,6 +628,10 @@ def update_registration_supporting_document(application_number):
         filename = secure_filename(file.filename)
 
         document = DocumentService.upload_document(filename, file.content_type, file.read())
+        document["documentType"] = document_type
+        document["uploadStep"] = upload_step
+        document["uploadDate"] = upload_date
+
         application = ApplicationService.update_document_list(application=application, document=document)
 
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
