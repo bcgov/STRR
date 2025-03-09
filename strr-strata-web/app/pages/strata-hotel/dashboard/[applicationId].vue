@@ -25,6 +25,8 @@ const buildings = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 
+const isFileUploadOpen = ref(false)
+
 onMounted(async () => {
   loading.value = true
   const applicationId = route.params.applicationId as string
@@ -140,23 +142,58 @@ setBreadcrumbs([
           <SummaryRegOfficeAttorney />
         </div>
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('label.supportingDocs')" :loading="loading">
-        <div class="p-3">
-          <div v-if="!documentStore.storedDocuments.length">
-            <p>{{ $t('text.noDocsUploaded') }}</p>
-          </div>
-          <div v-for="doc in documentStore.storedDocuments" :key="doc.id" class="flex w-full items-center gap-1">
-            <UIcon
-              name="i-mdi-paperclip"
-              class="size-5 shrink-0 text-blue-500"
-            />
-            <div class="flex flex-col gap-1">
-              <!-- TODO: can we leave out the name since there is only 1 document type? -->
-              <!-- <span class="text-sm font-bold">{{ $t(`docType.${doc.type}`) }}</span> -->
-              <span>{{ doc.name }}</span>
+      <ConnectDashboardSection
+        id="supporting-documents"
+        :title="$t('label.supportingDocs')"
+        :loading="loading"
+      >
+        <div class="flex justify-between p-3">
+          <div
+            id="support-document-list"
+            class="space-y-1"
+          >
+            <div v-if="!documentStore.storedDocuments.length">
+              <p>{{ $t('text.noDocsUploaded') }}</p>
+            </div>
+            <div
+              v-for="doc in documentStore.storedDocuments"
+              :key="doc.id"
+              class="flex w-full items-center gap-1"
+            >
+              <UIcon
+                name="i-mdi-paperclip"
+                class="size-5 shrink-0 text-blue-500"
+              />
+              <div class="flex gap-1">
+                <!-- TODO: can we leave out the name since there is only 1 document type? -->
+                <!-- <span class="text-sm font-bold">{{ $t(`docType.${doc.type}`) }}</span> -->
+                <span>{{ doc.name }}</span>
+                <UBadge
+                  v-if="doc.uploadStep === DocumentUploadStep.NOC"
+                  :label="`${ t('strr.label.added')} ` + doc.uploadDate"
+                  size="sm"
+                  class="ml-1 px-3 py-0 font-bold"
+                />
+              </div>
             </div>
           </div>
+
+          <div
+            v-if="application?.header.status === ApplicationStatus.NOC_PENDING"
+          >
+            <UButton
+              :label="t('btn.addNewDocuments')"
+              icon="mdi-plus"
+              :disabled="isFileUploadOpen"
+              @click="isFileUploadOpen = true"
+            />
+          </div>
         </div>
+        <UploadAdditionalDocuments
+          v-if="isFileUploadOpen"
+          id="upload-noc-documents"
+          @close-upload="isFileUploadOpen = false"
+        />
       </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
