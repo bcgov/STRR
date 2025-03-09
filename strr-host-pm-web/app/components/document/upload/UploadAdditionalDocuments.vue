@@ -3,16 +3,16 @@ import { v4 as uuidv4 } from 'uuid'
 import type { Form } from '#ui/types'
 const { t } = useI18n()
 
+const docStore = useDocumentStore()
+const { application } = storeToRefs(useHostPermitStore())
+const strrModal = useStrrModals()
 const docUploadHelpId = useId() // id for aria-describedby on doc select
 const docFormRef = ref<Form<any>>()
 const showError = ref(false)
-const strrModal = useStrrModals()
 const documentList = ref<UiDocument[]>([])
-const docStore = useDocumentStore()
 
 const emit = defineEmits<{
-  submit: [UiDocument[]],
-  cancel: [void]
+  closeUpload: [void]
 }>()
 
 const addDocumentToList = (doc: File) => {
@@ -40,15 +40,20 @@ const removeDocumentFromList = (uiDoc: UiDocument) => {
 
 const cancelDocumentsUpload = () => {
   documentList.value = []
-  emit('cancel')
+  emit('closeUpload')
 }
 
-const submitDocuments = () => {
+const submitDocuments = async () => {
   if (documentList.value.length > 0) {
-    emit('submit', documentList.value)
+    const applicationNumber = application.value!.header.applicationNumber
+
+    for (const doc of documentList.value) {
+      await docStore.addDocumentToApplication(doc, applicationNumber)
+    }
+    documentList.value = []
+    emit('closeUpload')
   } else {
     showError.value = true
-    docFormRef.value?.submit() // submit the form to reset validation
   }
 }
 
@@ -68,11 +73,14 @@ const validateDocuments = () => {
       :validate="validateDocuments"
       :validate-on="['submit']"
     >
-      <div class="">
+      <div>
         <ConnectFormSection class="!p-0">
           <div class="max-w-bcGovInput space-y-5">
             <span aria-hidden="true">{{ t('text.uploadReqDocs') }}</span>
-            <UFormGroup name="documentUpload" :ui="{ help: 'mt-2 ml-10' }">
+            <UFormGroup
+              name="documentUpload"
+              :ui="{ help: 'mt-2 ml-10' }"
+            >
               <DocumentUploadSelect
                 id="additional-documents"
                 :label="t('label.chooseDocs')"
