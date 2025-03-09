@@ -8,7 +8,6 @@ const { requiredDocs, storedDocuments } = storeToRefs(useDocumentStore())
 
 const permiStore = useHostPermitStore()
 const { application } = storeToRefs(permiStore)
-const docStore = useDocumentStore()
 
 const isFileUploadOpen = ref(false)
 
@@ -39,20 +38,6 @@ const supportingInfo = computed(() => {
   }
   return items
 })
-
-const handleSubmitDocuments = async (documents: UiDocument[]) => {
-  const applicationNumber = application.value!.header.applicationNumber
-
-  for (const doc of documents) {
-    await docStore.addDocumentToApplication(doc, applicationNumber)
-  }
-  documents = []
-  isFileUploadOpen.value = false
-}
-
-const handleCancelDocumentsUpload = () => {
-  isFileUploadOpen.value = false
-}
 
 </script>
 <template>
@@ -125,8 +110,7 @@ const handleCancelDocumentsUpload = () => {
     >
       <UploadAdditionalDocuments
         id="upload-noc-documents"
-        @cancel="handleCancelDocumentsUpload"
-        @submit="handleSubmitDocuments($event)"
+        @close-upload="isFileUploadOpen = false"
       />
     </template>
     <template #info-license />
