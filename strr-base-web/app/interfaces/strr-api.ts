@@ -117,7 +117,7 @@ export interface ApiDocument {
   documentType: DocumentUploadType
   fileKey: string
   fileName: string
-  fileType: string,
+  fileType: string
   uploadStep?: DocumentUploadStep
   uploadDate?: string
 }

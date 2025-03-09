@@ -78,7 +78,9 @@ export const useHostPermitStore = defineStore('host/permit', () => {
         name: val.fileName,
         type: val.documentType,
         id: uuidv4(),
-        loading: false
+        loading: false,
+        ...(val.uploadStep ? { uploadStep: val.uploadStep } : {}),
+        ...(val.uploadDate ? { uploadDate: val.uploadDate } : {})
       })) || []
     }
   }
