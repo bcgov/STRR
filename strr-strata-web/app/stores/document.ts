@@ -48,6 +48,46 @@ export const useDocumentStore = defineStore('strata/document', () => {
     }
   }
 
+  /**
+   * Add a document to a specified application.
+   *
+   * Upload a `uiDoc` with the given `applicationNumber` (via PUT method)
+   *
+   * @param {UiDocument} uiDoc - The document to upload, containing file data and metadata.
+   * @param {string} applicationNumber - The id of the application to which the document is being added.
+   * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
+   */
+  async function addDocumentToApplication (uiDoc: UiDocument, applicationNumber: string): Promise<void> {
+    try {
+      uiDoc.loading = true
+
+      // create payload
+      const formData = new FormData()
+      formData.append('file', uiDoc.file)
+      formData.append('documentType', uiDoc.type)
+      formData.append('uploadStep', uiDoc.uploadStep)
+      if (uiDoc.uploadDate) {
+        formData.append('uploadDate', uiDoc.uploadDate)
+      }
+
+      // submit file
+      const res = await $strrApi<ApiDocument>(`/applications/${applicationNumber}/documents`, {
+        method: 'PUT',
+        body: formData
+      })
+
+      uiDoc.apiDoc = res
+      storedDocuments.value.push(uiDoc)
+    } catch (e) {
+      logFetchError(e, 'Error uploading document')
+      strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      await removeStoredDocument(uiDoc)
+    } finally {
+      // cleanup loading on ui object
+      uiDoc.loading = false
+    }
+  }
+
   async function postDocument (uiDoc: UiDocument): Promise<void> {
     try {
       // create payload
@@ -119,6 +159,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
     apiDocuments,
     storedDocuments,
     selectedDocType,
+    addDocumentToApplication,
     postDocument,
     deleteDocument,
     addStoredDocument,

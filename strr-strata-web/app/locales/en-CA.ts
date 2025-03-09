@@ -59,7 +59,8 @@ export default {
       confirmation: 'Confirmation',
       termsAndCond: 'Terms and Conditions',
       termsAndCondLowerCase: 'terms and conditions',
-      strataHotelCategory: 'Strata Hotel Category'
+      strataHotelCategory: 'Strata Hotel Category',
+      added: 'ADDED'
     },
     text: {
       comingSoon: 'Short-Term Rental Strata Hotel Registry will be available on December 15, 2024',
@@ -89,7 +90,10 @@ export default {
   btn: {
     addStrataHotel: 'Add a strata-titled hotel or motel',
     view: 'View',
-    ariaViewDetails: 'View details for property: {name}`'
+    ariaViewDetails: 'View details for property: {name}`',
+    addNewDocuments: 'Add New Documents',
+    cancel: 'Cancel',
+    submti: 'Submit'
   },
   label: {
     strataName: 'Strata Name',
@@ -155,7 +159,9 @@ export default {
       generic: 'Select the account you wish to use to register and manage your short-term rentals, or create a new account.'
     },
     addAllReqDocs: 'If the strata hotel is located in an area with the principal residence requirement, add all {reqDocsLink} that supports your short-term rental registration. {prReqLink}',
-    noDocsUploaded: 'No supporting documentation uploaded.'
+    noDocsUploaded: 'No supporting documentation uploaded.',
+    uploadReqDocs: 'Upload all required documentation to support your registration.',
+    missingDocuments: 'Missing required documents.'
   },
   validation: {
     brand: {
