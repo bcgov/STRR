@@ -69,7 +69,8 @@ export default {
         STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
         FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
         BCSC: 'British Columbia Services Card',
-        COMBINED_BCSC_LICENSE: 'Combined BC Driver’s Licence and Services Card'
+        COMBINED_BCSC_LICENSE: 'Combined BC Driver’s Licence and Services Card',
+        undefined: 'N/A'
       }
     }
   },
@@ -217,11 +218,14 @@ export default {
     addCompParty: 'Start by adding a Completing Party',
     addBusiness: 'Add a Business',
     addIndividual: 'Add an Individual',
+    addNewDocuments: 'Add New Documents',
     view: 'View',
     saveStartApplication: 'Save & Start Application',
     createNewReg: 'Create New Registration',
     edit: 'Edit',
     done: 'Done',
+    cancel: 'Cancel',
+    submti: 'Submit',
     exitReg: 'Exit Registration',
     regDiffUnit: 'Register a Different Rental Unit',
     contWithReg: 'Continue with Registration',
@@ -368,6 +372,7 @@ export default {
     toDetermineDocsReturnToStart: 'To determine the types of documentation you’ll need, please complete Step 1 of the application first.',
     uploadReqDocs: 'Upload all required documentation to support your registration.',
     noDocsReq: 'No supporting documentation is required.',
+    missingDocuments: 'Missing required documents.',
     unitAddressIntro: 'Include the Residential Address of your short-term rental by looking up the address, or if the address cannot be found in the lookup, you can enter the address manually.',
     unitAddressIntroNote: 'Note: the address cannot be a Mailing Address (e.g., PO Box, etc.).',
     unitAddressUnitNumberInfo: 'Unit Number is required if the short-term rental unit has a Unit Number. Enter a Site Name if the address does not have a Street Number and Name.',

@@ -6,6 +6,6 @@ export interface UiDocument {
   id: string
   loading: boolean
   type: DocumentUploadType,
-  uploadStep: DocumentUploadStep,
+  uploadStep?: DocumentUploadStep,
   uploadDate?: string
 }

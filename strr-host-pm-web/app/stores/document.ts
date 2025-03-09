@@ -180,14 +180,19 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
   ]
 
-  async function addStoredDocument (doc: File): Promise<void> {
+  async function addStoredDocument (
+    doc: File,
+    uploadStep: DocumentUploadStep = DocumentUploadStep.APPLICATION
+  ): Promise<void> {
     const uiDoc: UiDocument = {
       file: doc,
       apiDoc: {} as ApiDocument,
       name: doc.name,
       type: selectedDocType.value!,
       id: uuidv4(),
-      loading: true
+      loading: true,
+      uploadStep,
+      uploadDate: new Date().toISOString().split('T')[0]
     }
 
     storedDocuments.value.push(uiDoc)
@@ -217,11 +222,53 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
   }
 
+  /**
+   * Add a document to a specified application.
+   *
+   * Upload a `uiDoc` with the given `applicationNumber` (via PUT method)
+   *
+   * @param {UiDocument} uiDoc - The document to upload, containing file data and metadata.
+   * @param {string} applicationNumber - The id of the application to which the document is being added.
+   * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
+   */
+  async function addDocumentToApplication (uiDoc: UiDocument, applicationNumber: string): Promise<void> {
+    try {
+      uiDoc.loading = true
+
+      // create payload
+      const formData = new FormData()
+      formData.append('file', uiDoc.file)
+      formData.append('documentType', uiDoc.type)
+      uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
+      uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
+
+      // submit file
+      const res = await $strrApi<ApiDocument>(`/applications/${applicationNumber}/documents`, {
+        method: 'PUT',
+        body: formData
+      })
+
+      uiDoc.apiDoc = res
+      storedDocuments.value.push(uiDoc)
+    } catch (e) {
+      logFetchError(e, 'Error uploading document')
+      strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      await removeStoredDocument(uiDoc)
+    } finally {
+      // cleanup loading on ui object
+      uiDoc.loading = false
+    }
+  }
+
   async function postDocument (uiDoc: UiDocument): Promise<void> {
     try {
       // create payload
       const formData = new FormData()
       formData.append('file', uiDoc.file)
+      // TODO: update api to accept and return the following form data fields
+      // formData.append('documentType', uiDoc.type)
+      // uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
+      // uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
 
       // submit file
       const res = await $strrApi<ApiDocument>('/documents', {
@@ -366,9 +413,9 @@ export const useDocumentStore = defineStore('host/document', () => {
     potentialRequiredDocs,
     documentCategories,
     prDocs,
-    postDocument,
     deleteDocument,
     addStoredDocument,
+    addDocumentToApplication,
     removeStoredDocument,
     validateRequiredDocuments,
     resetApiDocs,
