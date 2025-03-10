@@ -14,6 +14,7 @@
 """NOC Expiry Job."""
 import logging
 import os
+import traceback
 from datetime import datetime
 
 from flask import Flask
@@ -56,10 +57,17 @@ def update_status_for_noc_expired_applications(app):
     ).all()
     cut_off_datetime = DateUtil.as_legislation_timezone(datetime.utcnow())
     for application in applications:
-        if application.noc.end_date < cut_off_datetime:
-            app.logger.info(f"Updating status for application {str(application.id)}")
-            application.status = Application.Status.NOC_EXPIRED
-            application.save()
+        try:
+            app.logger.info(f"Processing application # {str(application.id)}")
+            if application.noc.end_date < cut_off_datetime:
+                app.logger.info(
+                    f"Updating status for application {str(application.id)}"
+                )
+                application.status = Application.Status.NOC_EXPIRED
+                application.save()
+        except Exception as err:  # pylint: disable=broad-except
+            app.logger.error(f"Unexpected error: {str(err)}")
+            app.logger.error(traceback.format_exc())
 
 
 def run():
@@ -67,7 +75,7 @@ def run():
     try:
         app = create_app()
         with app.app_context():
-            app.logger.info("Starting auto approval job")
+            app.logger.info("Starting NOC expiry job")
             update_status_for_noc_expired_applications(app)
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")
