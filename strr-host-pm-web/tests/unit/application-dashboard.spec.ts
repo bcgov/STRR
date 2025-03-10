@@ -9,7 +9,7 @@ import {
   UBadge
 } from '#components'
 
-import UploadAdditionalDocuments from '~/components/document/upload/UploadAdditionalDocuments.vue'
+import BaseUploadAdditionalDocuments from '#baseWeb/components/BaseUploadAdditionalDocuments.vue'
 
 vi.mock('@/stores/hostPermit', () => ({
   useHostPermitStore: () => ({
@@ -136,13 +136,13 @@ describe('Dashboard Application Page', () => {
     const AddNewDocButton = '[data-test-id="add-noc-doc-btn"]'
     expect(wrapper.find(AddNewDocButton).exists()).toBe(true)
     expect(wrapper.find(AddNewDocButton).attributes().disabled).not.toBeDefined()
-    expect(wrapper.findComponent(UploadAdditionalDocuments).exists()).toBe(false) // button is not disabled
+    expect(wrapper.findComponent(BaseUploadAdditionalDocuments).exists()).toBe(false) // button is not disabled
 
     // cleck Add New Document button to open Upload Additional Document
     wrapper.find(AddNewDocButton).trigger('click')
     await nextTick()
 
-    expect(wrapper.findComponent(UploadAdditionalDocuments).exists()).toBe(true)
+    expect(wrapper.findComponent(BaseUploadAdditionalDocuments).exists()).toBe(true)
     expect(wrapper.find(AddNewDocButton).attributes().disabled).toBeDefined() // button is disabled
 
     const documentsList = wrapper.find('#stored-documents-list')

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import UploadAdditionalDocuments from '~/components/document/upload/UploadAdditionalDocuments.vue'
+import Select from '../document/upload/Select.vue'
 
 const { t } = useI18n()
 const { blInfo } = storeToRefs(useHostPropertyStore())
 const { overrideApplicationWarning, showUnitDetailsForm, blRequirements } = storeToRefs(usePropertyReqStore())
 const { requiredDocs, storedDocuments } = storeToRefs(useDocumentStore())
 
-const permiStore = useHostPermitStore()
-const { application } = storeToRefs(permiStore)
-
 const isFileUploadOpen = ref(false)
+
+const docStore = useDocumentStore()
+const { application } = storeToRefs(useHostPermitStore())
 
 // step 3 items
 const supportingInfo = computed(() => {
@@ -108,8 +108,13 @@ const supportingInfo = computed(() => {
       v-if="isFileUploadOpen"
       #info-upload
     >
-      <UploadAdditionalDocuments
-        id="upload-noc-documents"
+      <BaseUploadAdditionalDocuments
+        :component="Select"
+        :application-number="application!.header.applicationNumber"
+        :upload="docStore.addDocumentToApplication"
+        :doc-type="docStore.selectedDocType"
+        :doc-store="docStore"
+        @reset-doc-type="docStore.selectedDocType = undefined"
         @close-upload="isFileUploadOpen = false"
       />
     </template>

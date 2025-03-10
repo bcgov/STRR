@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Button from '~/components/document/upload/Button.vue'
 const { t } = useI18n()
 const route = useRoute()
 const config = useRuntimeConfig().public
@@ -189,9 +190,16 @@ setBreadcrumbs([
             />
           </div>
         </div>
-        <UploadAdditionalDocuments
+        <BaseUploadAdditionalDocuments
           v-if="isFileUploadOpen"
-          id="upload-noc-documents"
+          :component="Button"
+          is-strata
+          :application-number="application!.header.applicationNumber"
+          :upload="documentStore.addDocumentToApplication"
+          :doc-type="documentStore.selectedDocType"
+          :doc-store="documentStore"
+          class="p-3"
+          @reset-doc-type="documentStore.selectedDocType = undefined"
           @close-upload="isFileUploadOpen = false"
         />
       </ConnectDashboardSection>
