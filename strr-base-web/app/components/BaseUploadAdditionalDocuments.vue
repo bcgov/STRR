@@ -4,8 +4,6 @@ import type { DefineComponent } from 'vue'
 import type { Form } from '#ui/types'
 const { t } = useI18n()
 
-// const docStore = useDocumentStore()
-// const { application } = storeToRefs(useHostPermitStore())
 const strrModal = useStrrModals()
 const docUploadHelpId = useId() // id for aria-describedby on doc select
 const docFormRef = ref<Form<any>>()
@@ -13,17 +11,14 @@ const showError = ref(false)
 const documentList = ref<UiDocument[]>([])
 
 const props = defineProps<{
-  component: DefineComponent,
+  component: DefineComponent, // either DocumentUploadSelect (Host) or DocumentUploadButton (Strata)
   applicationNumber: string,
-  isStrata?: boolean,
-  upload:(uiDoc: UiDocument, applicationNumber: string) => void,
-  docStore: {
-    selectedDocType: DocumentUploadType | undefined
-    addDocumentToApplication: (doc: UiDocument, applicationNumber: string) => Promise<void>
-  }
+  isStrata?: boolean, // needed to determine which logic to use
+  selectedDocType: DocumentUploadType | undefined
 }>()
 
 const emit = defineEmits<{
+  uploadDocument: [uiDoc: UiDocument, applicationNumber: string],
   closeUpload: [void],
   resetDocType: [void]
 }>()
@@ -33,7 +28,7 @@ const addDocumentToList = (doc: File) => {
     file: doc,
     apiDoc: {} as ApiDocument,
     name: doc.name,
-    type: props.isStrata ? DocumentUploadType.STRATA_HOTEL_DOCUMENTATION : props.docStore.selectedDocType!,
+    type: props.isStrata ? DocumentUploadType.STRATA_HOTEL_DOCUMENTATION : props.selectedDocType!,
     id: uuidv4(),
     loading: false,
     uploadStep: DocumentUploadStep.NOC,
@@ -41,7 +36,6 @@ const addDocumentToList = (doc: File) => {
   }
 
   documentList.value.push(uiDoc)
-  // props.docStore.setSelectedDocType(undefined)
   emit('resetDocType')
   showError.value = false
   docFormRef.value?.submit() // submit the form to reset validation
@@ -54,7 +48,6 @@ const removeDocumentFromList = (uiDoc: UiDocument) => {
 
 const cancelDocumentsUpload = () => {
   documentList.value = []
-  // selectedDocType.value = undefined
   emit('resetDocType')
   emit('closeUpload')
 }
@@ -62,7 +55,8 @@ const cancelDocumentsUpload = () => {
 const submitDocuments = async () => {
   if (documentList.value.length > 0) {
     for (const doc of documentList.value) {
-      await props.upload(doc, props.applicationNumber)
+      // upload document using docStore's addDocumentToApplication() funtion
+      await emit('uploadDocument', doc, props.applicationNumber)
     }
     documentList.value = []
     emit('closeUpload')
@@ -105,38 +99,6 @@ const validateDocuments = () => {
               name="documentUpload"
               :ui="{ help: 'mt-2 ml-10' }"
             >
-              <!-- <component
-                :is="component"
-                v-if="props.isMultiple"
-                id="additional-documents"
-                :label="t('label.chooseDocs')"
-                :is-invalid="showError"
-                :error="showError"
-                :help-id="docUploadHelpId"
-                accept="application/pdf"
-                @change="addDocumentToList"
-                @cancel="emit('resetDocType')"
-                @error="e => strrModal.openErrorModal(
-                  t(`error.docUpload.${e}.title`), t(`error.docUpload.${e}.description`), false
-                )"
-                @reset="emit('resetDocType')"
-              />
-
-              <component
-                :is="component"
-                v-else
-                id="upload-documents"
-                :label="t('label.chooseDocs')"
-                accept="application/pdf"
-                :is-required="false"
-                :is-invalid="showError"
-                help-id="supporting-documents-help"
-                @change="(e: File[]) => e[0] ? addDocumentToList(e[0]) : undefined"
-                @error="e => strrModal.openErrorModal(
-                  t(`error.docUpload.${e}.title`), t(`error.docUpload.${e}.description`), false
-                )"
-              /> -->
-
               <component
                 :is="component"
                 id="upload-additional-documents"

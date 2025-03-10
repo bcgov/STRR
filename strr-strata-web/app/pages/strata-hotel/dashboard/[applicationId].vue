@@ -195,10 +195,9 @@ setBreadcrumbs([
           :component="Button"
           is-strata
           :application-number="application!.header.applicationNumber"
-          :upload="documentStore.addDocumentToApplication"
-          :doc-type="documentStore.selectedDocType"
-          :doc-store="documentStore"
+          :selected-doc-type="documentStore.selectedDocType"
           class="p-3"
+          @upload-document="documentStore.addDocumentToApplication"
           @reset-doc-type="documentStore.selectedDocType = undefined"
           @close-upload="isFileUploadOpen = false"
         />

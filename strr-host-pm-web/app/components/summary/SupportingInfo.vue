@@ -111,9 +111,8 @@ const supportingInfo = computed(() => {
       <BaseUploadAdditionalDocuments
         :component="Select"
         :application-number="application!.header.applicationNumber"
-        :upload="docStore.addDocumentToApplication"
-        :doc-type="docStore.selectedDocType"
-        :doc-store="docStore"
+        :selected-doc-type="docStore.selectedDocType"
+        @upload-document="docStore.addDocumentToApplication"
         @reset-doc-type="docStore.selectedDocType = undefined"
         @close-upload="isFileUploadOpen = false"
       />
