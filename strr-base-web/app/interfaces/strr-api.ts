@@ -118,4 +118,6 @@ export interface ApiDocument {
   fileKey: string
   fileName: string
   fileType: string
+  uploadStep?: DocumentUploadStep
+  uploadDate?: string
 }
