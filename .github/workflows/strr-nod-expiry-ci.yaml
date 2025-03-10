@@ -17,7 +17,7 @@ defaults:
     working-directory: ./jobs/noc_expiry
 
 jobs:
-  strr-auto-approval-ci:
+  strr-noc-expiry-ci:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
       app_name: "strr-noc-expiry"
