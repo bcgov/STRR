@@ -1,7 +1,7 @@
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
- name: strr-batch-permit-job-pipeline
+ name: batch-permit-job-pipeline
 description: Deployment pipeline
 serialPipeline:
  stages:
