@@ -26,15 +26,12 @@ export const useExaminerActions = () => {
     buttonIndex: number,
     refresh: () => void,
     additionalArgs: Args = [] as unknown as Args,
-    validateFn?: () => Promise<boolean> | MultiFormValidationResult | boolean
+    validateFn?: () => Promise<boolean>
   ) => {
     try {
       handleButtonLoading(false, buttonPosition, buttonIndex)
-      if (validateFn) {
-        const isValid = await validateFn() as boolean
-        if (!isValid) {
-          return
-        }
+      if (validateFn && !(await validateFn())) {
+        return
       }
       await actionFn(item.id, ...additionalArgs)
       refresh()

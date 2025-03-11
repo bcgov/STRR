@@ -55,10 +55,7 @@ const handleApplicationAction = (
       refresh()
     }
     additionalArgs = [nocContent.value.content]
-    validateFn = async () => {
-      const errors = await validateForm(nocFormRef.value, true)
-      return !errors
-    }
+    validateFn = async () => await validateForm(nocFormRef.value, true).then(errors => !errors)
   } else if (action === ApplicationActionsE.APPROVE) {
     actionFn = approveApplication
   } else if (action === ApplicationActionsE.REJECT) {
