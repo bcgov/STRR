@@ -6,10 +6,9 @@ import ApplicationDashboard from '~/pages/dashboard/[applicationId].vue'
 import {
   ConnectDashboardSection, Todo, TodoEmpty, SummaryProperty,
   SummarySupportingInfo, ConnectAccordion,
-  UBadge
+  UBadge,
+  BaseUploadAdditionalDocuments
 } from '#components'
-
-import BaseUploadAdditionalDocuments from '#baseWeb/components/BaseUploadAdditionalDocuments.vue'
 
 vi.mock('@/stores/hostPermit', () => ({
   useHostPermitStore: () => ({
