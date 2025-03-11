@@ -67,7 +67,7 @@ serialPipeline:
       deploy-env: "production"
       deploy-project-id: "bcrbk9-prod"
       service-name: "batch-permit-listener-prod"
-      container-name: "sbatch-permit-listener-prod"
+      container-name: "batch-permit-listener-prod"
       cloudsql-instances: "bcrbk9-prod:northamerica-northeast1:strr-db-prod"
       service-account: "sa-api@bcrbk9-prod.iam.gserviceaccount.com"
       max-scale: "10"
