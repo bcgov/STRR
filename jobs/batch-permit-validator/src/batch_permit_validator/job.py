@@ -225,7 +225,7 @@ def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK
                 source="batch-permit-validator",
                 message_type="strr.batchPermitValidationResult",
                 payload=callback_queue_message,
-                topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+                topic=current_app.config.get("BULK_VALIDATION_RESPONSE_TOPIC"),
             )
         )
 
