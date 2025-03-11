@@ -34,7 +34,7 @@ on:
           - "true"
 
 jobs:
-  strr-permit-job-cd:
+  batch-permit-job-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
     with:
       target: ${{ inputs.target }}

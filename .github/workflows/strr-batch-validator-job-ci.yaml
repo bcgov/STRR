@@ -17,7 +17,7 @@ defaults:
     working-directory: ./jobs/batch-permit-validator
 
 jobs:
-  strr-batch-permit-job-ci:
+  batch-permit-job-ci:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
       app_name: "batch-permit-job"
