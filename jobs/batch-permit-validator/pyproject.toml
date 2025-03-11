@@ -23,6 +23,7 @@ structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", 
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 flake8-pyproject = "^1.2.3"
+redis = "^5.2.1"
 
 [tool.poetry.group.test.dependencies]
 freezegun = "^1.4.0"

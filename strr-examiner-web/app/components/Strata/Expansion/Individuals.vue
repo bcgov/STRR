@@ -1,9 +1,10 @@
 <script setup lang="ts">
-const props = defineProps<{
-  application: StrataApplicationResp
-}>()
-
-const { strataHotelRepresentatives, completingParty } = props.application.registration
+const exStore = useExaminerStore()
+const { isApplication, activeReg } = storeToRefs(exStore)
+const { strataHotelRepresentatives } = activeReg.value
+const compParty = isApplication.value
+  ? activeReg.value.completingParty
+  : undefined
 
 </script>
 
@@ -41,20 +42,20 @@ const { strataHotelRepresentatives, completingParty } = props.application.regist
           :content="rep?.emailAddress"
         />
       </div>
-      <div class="space-y-2">
+      <div v-if="isApplication" class="space-y-2">
         <b>{{ $t('strr.label.completingParty').toUpperCase() }}</b>
         <ConnectInfoWithIcon
           icon="i-mdi-account"
-          :content="displayContactFullName(completingParty)"
+          :content="displayContactFullName(compParty)"
         />
         <ConnectInfoWithIcon
-          v-if="completingParty.phoneNumber"
+          v-if="compParty.phoneNumber"
           icon="i-mdi-phone"
-          :content="displayPhoneAndExt(completingParty.phoneNumber)"
+          :content="displayPhoneAndExt(compParty.phoneNumber)"
         />
         <ConnectInfoWithIcon
           icon="i-mdi-envelope-outline"
-          :content="completingParty.emailAddress"
+          :content="compParty.emailAddress"
         />
       </div>
     </div>

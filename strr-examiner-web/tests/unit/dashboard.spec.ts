@@ -42,7 +42,7 @@ describe('Examiner Dashboard Page', () => {
     const getPrReq = (reg: ApiHostApplication) => wrapper.vm.getHostPrRequirements(reg)
 
     const prRequirements = getPrReq(mockApplications[0]?.registration)
-    expect(prRequirements).toBe('PR/BL')
+    expect(prRequirements).toBe('PR, BL')
 
     const prRequirements2 = getPrReq({
       ...mockApplications[0]?.registration,
@@ -55,7 +55,7 @@ describe('Examiner Dashboard Page', () => {
       }
     })
 
-    expect(prRequirements2).toBe('BL/Prohibited')
+    expect(prRequirements2).toBe('BL, Prohibited')
 
     const prRequirements3 = getPrReq({
       ...mockApplications[0]?.registration,
@@ -72,7 +72,7 @@ describe('Examiner Dashboard Page', () => {
       }
     })
 
-    expect(prRequirements3).toBe('PR-ex-farm/BL/Prohibited')
+    expect(prRequirements3).toBe('PR-ex-farm, BL, Prohibited')
   })
 
   it('renders the Dashboard page and applications table', () => {

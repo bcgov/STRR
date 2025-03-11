@@ -1,3 +1,5 @@
+import type { ApplicationSortBy, ApplicationSortOrder } from '~/enums/applications-sort-e'
+
 export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
 
@@ -43,10 +45,19 @@ export const useStrrApi = () => {
     limit = 50,
     page = 1,
     registrationType?: ApplicationType,
-    status?: ApplicationStatus
+    status?: ApplicationStatus,
+    sortBy?: ApplicationSortBy,
+    sortOrder?: ApplicationSortOrder
   ) => {
     return await $strrApi<{ applications: T[], total: number }>('/applications', {
-      query: { limit, page, registrationType, status }
+      query: {
+        limit,
+        page,
+        registrationType,
+        status,
+        sortBy,
+        sortOrder
+      }
     })
   }
 

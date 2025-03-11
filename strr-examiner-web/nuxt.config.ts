@@ -51,7 +51,8 @@ export default defineNuxtConfig({
     '/': { redirect: '/en-CA/dashboard' },
     '/en-CA': { redirect: '/en-CA/dashboard' },
     '/fr-CA**': { redirect: '/en-CA/dashboard' }, // No French version yet – redirect all French routes to dashboard
-    '/en-CA/examine': { redirect: '/en-CA/examine/startNew' } // When navigating directly to examine, add 'startNew' as the slug
+    '/en-CA/examine': { redirect: '/en-CA/examine/startNew' }, // When navigating directly to examine, add 'startNew' as the slug
+    '/en-CA/registration': { redirect: '/en-CA/dashboard' } // Redirect to dashboard when navigating directly to registration
   },
 
   runtimeConfig: {

@@ -1,14 +1,13 @@
 <script setup lang="ts">
 
-const props = defineProps<{ application: StrataApplicationResp }>()
+const exStore = useExaminerStore()
+const { activeReg, isApplication } = storeToRefs(exStore)
 
-const { registration } = props.application
-const { businessDetails } = registration
+const businessDetails = activeReg.value?.businessDetails
+const strataExpansion = useStrataExpansion()
 
-const strataExpansion = useStrataExpansion(props.application)
-
-const attorney = businessDetails.registeredOfficeOrAttorneyForServiceDetails
-const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)
+const attorney = businessDetails?.registeredOfficeOrAttorneyForServiceDetails || {}
+const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mailingAddress).some(Boolean) : false
 
 </script>
 
@@ -18,14 +17,17 @@ const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)
     class="app-inner-container"
   >
     <div class="grid grid-cols-4 gap-x-5 divide-x bg-white py-4 text-sm text-bcGovColor-midGray">
-      <div class="space-y-2">
+      <div
+        data-testid="strata-primary-building"
+        class="space-y-2"
+      >
         <b>{{ $t('strr.label.primaryBuilding').toUpperCase() }}</b>
         <ConnectInfoWithIcon
           icon="i-mdi-map-marker-outline"
-          :content="displayFullAddress(registration?.strataHotelDetails.location)"
+          :content="displayFullAddress(activeReg?.strataHotelDetails.location)"
         />
         <UButton
-          v-if="registration?.strataHotelDetails.buildings.length > 0"
+          v-if="activeReg?.strataHotelDetails.buildings.length > 0"
           :label="$t('strr.label.viewAllBuildings')"
           :padded="false"
           variant="link"
@@ -80,7 +82,7 @@ const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)
             class="whitespace-nowrap"
           >
             <UButton
-              :label="displayContactFullName(registration?.strataHotelRepresentatives[0])"
+              :label="displayContactFullName(activeReg?.strataHotelRepresentatives[0])"
               :padded="false"
               variant="link"
               @click="strataExpansion.openIndividuals()"
@@ -88,17 +90,17 @@ const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)
           </ConnectInfoWithIcon>
 
           <ConnectInfoWithIcon
-            v-if="registration?.strataHotelRepresentatives[0]?.phoneNumber"
+            v-if="activeReg?.strataHotelRepresentatives[0]?.phoneNumber"
             icon="i-mdi-phone"
-            :content="displayPhoneAndExt(registration?.strataHotelRepresentatives[0]?.phoneNumber)"
+            :content="displayPhoneAndExt(activeReg?.strataHotelRepresentatives[0]?.phoneNumber)"
           />
 
           <ConnectInfoWithIcon
             icon="i-mdi-at"
-            :content="registration?.strataHotelRepresentatives[0]?.emailAddress"
+            :content="activeReg?.strataHotelRepresentatives[0]?.emailAddress"
           />
         </div>
-        <div v-if="registration?.strataHotelRepresentatives[1]" class="space-y-2">
+        <div v-if="activeReg?.strataHotelRepresentatives[1]" class="space-y-2">
           <!-- Second Representative if available -->
           <b>{{ $t('strr.label.secondaryRepresentative').toUpperCase() }}</b>
           <ConnectInfoWithIcon
@@ -106,14 +108,14 @@ const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)
             class="whitespace-nowrap"
           >
             <UButton
-              :label="displayContactFullName(registration?.strataHotelRepresentatives[1])"
+              :label="displayContactFullName(activeReg?.strataHotelRepresentatives[1])"
               :padded="false"
               variant="link"
               @click="strataExpansion.openIndividuals()"
             />
           </ConnectInfoWithIcon>
         </div>
-        <div class="space-y-2">
+        <div v-if="isApplication" class="space-y-2">
           <!-- Completing Party -->
           <b>{{ $t('strr.label.completingParty').toUpperCase() }}</b>
           <ConnectInfoWithIcon
@@ -121,7 +123,7 @@ const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)
             class="whitespace-nowrap"
           >
             <UButton
-              :label="displayContactFullName(registration?.completingParty)"
+              :label="displayContactFullName(activeReg?.completingParty)"
               :padded="false"
               variant="link"
               @click="strataExpansion.openIndividuals()"
@@ -134,11 +136,11 @@ const hasAttorneyAddress = Object.values(attorney.mailingAddress).some(Boolean)
         <b>{{ $t('strr.label.additionalInformation').toUpperCase() }}</b>
         <div>
           <b>{{ $t('strr.label.numberOfRentalUnits') }}</b>
-          {{ registration.strataHotelDetails.numberOfUnits }}
+          {{ activeReg.strataHotelDetails.numberOfUnits }}
         </div>
         <div>
           <b>{{ $t('label.strataHotelCategory') }}:</b>
-          {{ $t(`strataHotelCategoryReview.${registration.strataHotelDetails.category}`) }}
+          {{ $t(`strataHotelCategoryReview.${activeReg.strataHotelDetails.category}`) }}
         </div>
       </div>
     </div>

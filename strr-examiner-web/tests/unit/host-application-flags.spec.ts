@@ -7,7 +7,11 @@ import { HostSubHeader, HostSupportingInfo } from '#components'
 
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
-    getNextApplication: vi.fn().mockResolvedValue(mockHostApplicationWithFlags)
+    getNextApplication: vi.fn().mockResolvedValue(mockHostApplicationWithFlags),
+    activeReg: ref(mockHostApplicationWithFlags.registration),
+    activeHeader: ref(mockHostApplicationWithFlags.header),
+    activeRecord: ref(mockHostApplicationWithFlags),
+    isApplication: ref(true)
   })
 }))
 

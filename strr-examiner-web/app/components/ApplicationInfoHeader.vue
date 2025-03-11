@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { type HousApplicationResponse } from '~/types/application-response'
 
-const props = defineProps<{ application: HousApplicationResponse }>()
-const { header, registration } = props.application
+const exStore = useExaminerStore()
+const { activeHeader, activeReg } = storeToRefs(exStore)
 
 const getBadgeColor = (status: ApplicationStatus): string => {
   switch (status) {
@@ -18,13 +17,13 @@ const getBadgeColor = (status: ApplicationStatus): string => {
 }
 
 const getApplicationName = (): string => {
-  switch (registration.registrationType) {
+  switch (activeReg.value.registrationType) {
     case ApplicationType.STRATA_HOTEL:
-      return (registration as ApiBaseStrataApplication).businessDetails.legalName
+      return (activeReg.value as ApiBaseStrataApplication).businessDetails.legalName
     case ApplicationType.HOST:
-      return (registration as ApiHostApplication).unitAddress?.nickname || ''
+      return (activeReg.value as ApiHostApplication).unitAddress?.nickname || ''
     case ApplicationType.PLATFORM:
-      return (registration as ApiBasePlatformApplication).businessDetails?.legalName || ''
+      return (activeReg.value as ApiBasePlatformApplication).businessDetails?.legalName || ''
     default:
       return ''
   }
@@ -36,15 +35,15 @@ const getApplicationName = (): string => {
     <div class="app-inner-container">
       <div class="mb-2 text-2xl">
         <strong>
-          {{ header?.applicationNumber }} |
+          {{ activeHeader?.applicationNumber }} |
         </strong>
         {{ getApplicationName() }}
         <UButton
-          v-if="registration.registrationType === ApplicationType.STRATA_HOTEL"
+          v-if="activeReg.registrationType === ApplicationType.STRATA_HOTEL"
           icon="mdi-web"
           :padded="false"
           variant="link"
-          :to="(application.registration as ApiBaseStrataApplication).strataHotelDetails.brand.website"
+          :to="(activeReg as ApiBaseStrataApplication).strataHotelDetails.brand.website"
           target="_blank"
           data-testid="strata-brand-website"
         />
@@ -52,13 +51,13 @@ const getApplicationName = (): string => {
       <div class="text-sm">
         <UBadge
           class="mr-3 font-bold"
-          :label="header.examinerStatus"
-          :color="getBadgeColor(header.status)"
+          :label="activeHeader.examinerStatus"
+          :color="getBadgeColor(activeHeader.status)"
         />
         <strong>Type:</strong>
-        {{ $t(`applicationType.${application.registration?.registrationType}`) }} |
-        <strong>Submitted:</strong> {{ dateToString(header.applicationDateTime, 'y-MM-dd t') }}
-        ({{ dayCountdown(header.applicationDateTime.toString(), true) }} days ago)
+        {{ $t(`applicationType.${activeReg?.registrationType}`) }} |
+        <strong>Submitted:</strong> {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd t') }}
+        ({{ dayCountdown(activeHeader.applicationDateTime.toString(), true) }} days ago)
       </div>
     </div>
   </div>

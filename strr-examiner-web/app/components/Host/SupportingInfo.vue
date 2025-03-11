@@ -4,18 +4,15 @@ import { ConnectPageSection } from '#components'
 import { useExaminerStore } from '~/stores/examiner'
 import { useFlags } from '~/composables/useFlags'
 
-const props = defineProps<{
-  application: HostApplicationResp | undefined
-}>()
-const reg = props.application?.registration
-
+const exStore = useExaminerStore()
+const { getDocument } = exStore
+const { activeReg, activeHeader, isApplication } = storeToRefs(exStore)
 const { t } = useI18n()
-const { getDocument } = useExaminerStore()
-const alertFlags = reactive(useFlags(props.application as HostApplicationResp))
+const alertFlags = reactive(useFlags())
 
 const openDocInNewTab = async (supportingDocument: ApiDocument) => {
-  if (props.application !== undefined) {
-    const file = await getDocument(props.application.header.applicationNumber, supportingDocument.fileKey)
+  if (activeReg.value !== undefined) {
+    const file = await getDocument(activeHeader.value.applicationNumber!, supportingDocument.fileKey)
     const blob = new Blob([file], { type: 'application/pdf' })
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')
@@ -23,45 +20,53 @@ const openDocInNewTab = async (supportingDocument: ApiDocument) => {
   }
 }
 
-const businessLicenceDoc = reg?.documents
-  ? reg.documents
+const businessLicenceDoc = activeReg.value?.documents
+  ? activeReg.value.documents
     .find(doc => doc.documentType === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)
   : undefined
 
 // Principal Residence Requirements:
-const getPrRequired = (): string =>
-  reg?.strRequirements?.isPrincipalResidenceRequired
+const getPrRequired = (): string => {
+  if (!isApplication.value) {
+    return ''
+  }
+  return activeReg.value?.strRequirements?.isPrincipalResidenceRequired
     ? t('pr.required')
     : t('pr.notRequired')
+}
 
-const getBlRequired = (): string =>
-  reg?.strRequirements?.isBusinessLicenceRequired
+const getBlRequired = (): string => {
+  if (!isApplication.value) {
+    return ''
+  }
+  return activeReg.value?.strRequirements?.isBusinessLicenceRequired
     ? t('pr.required')
     : t('pr.notRequired')
+}
 
-const blExemptReason = reg?.unitDetails?.blExemptReason
-const prExemptReason = reg?.unitDetails?.prExemptReason
+const blExemptReason = activeReg.value?.unitDetails?.blExemptReason
+const prExemptReason = activeReg.value?.unitDetails?.prExemptReason
 
 const getPrExemptReason = (label: string): string =>
   t(`prExemptReason.${label}`)
 
 const getPrExempt = (): string =>
-  reg?.unitDetails?.prExemptReason
+  activeReg.value?.unitDetails?.prExemptReason
     ? t('pr.exempt')
     : t('pr.notExempt')
 
 const getBlExempt = (): string =>
-  reg?.unitDetails?.blExemptReason
+  activeReg.value?.unitDetails?.blExemptReason
     ? t('pr.exempt')
     : t('pr.notExempt')
 
 const getStrataHotelCategory = (): string =>
-  reg?.unitDetails?.strataHotelCategory
-    ? t(`strataHotelCategoryReview.${reg.unitDetails.strataHotelCategory}`)
+  activeReg.value?.unitDetails?.strataHotelCategory
+    ? t(`strataHotelCategoryReview.${activeReg.value.unitDetails.strataHotelCategory}`)
     : ''
 
 const getOwnershipType = (): string =>
-  reg?.unitDetails?.ownershipType === OwnershipType.RENT ? `${t('ownershipType.RENT')}.` : ''
+  activeReg.value?.unitDetails?.ownershipType === OwnershipType.RENT ? `${t('ownershipType.RENT')}.` : ''
 
 const getPrSectionSubLabel = (): string =>
   `${getPrRequired()} ${getPrExempt()} ${getOwnershipType()}`
@@ -74,7 +79,7 @@ const getBlSectionSubLabel = (): string =>
   <ConnectPageSection>
     <div class="divide-y px-10 py-6">
       <ApplicationDetailsSection
-        v-if="reg?.strRequirements?.isStrProhibited"
+        v-if="activeReg?.strRequirements?.isStrProhibited"
         :label="t('strr.label.strProhibited')"
         data-testid="str-prohibited-section"
       >
@@ -85,7 +90,7 @@ const getBlSectionSubLabel = (): string =>
       </ApplicationDetailsSection>
 
       <ApplicationDetailsSection
-        v-if="reg?.strRequirements?.isBusinessLicenceRequired"
+        v-if="activeReg?.strRequirements?.isBusinessLicenceRequired"
         :label="t('strr.label.businessLicence')"
         :sub-label="getBlSectionSubLabel()"
         data-testid="business-lic-section"
@@ -105,12 +110,12 @@ const getBlSectionSubLabel = (): string =>
             >
               {{ t(`documentLabels.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`) }}
             </UButton>
-            <span v-if="reg.unitDetails?.businessLicense">
-              {{ t('strr.label.businessLicenceNumber') }} {{ reg.unitDetails.businessLicense }}
+            <span v-if="activeReg.unitDetails?.businessLicense">
+              {{ t('strr.label.businessLicenceNumber') }} {{ activeReg?.unitDetails.businessLicense }}
             </span>
-            <span v-if="reg.unitDetails?.businessLicenseExpiryDate">
+            <span v-if="activeReg.unitDetails?.businessLicenseExpiryDate">
               {{ t('strr.label.businessLicenceExpiryDate') }}
-              {{ dateToString(reg.unitDetails.businessLicenseExpiryDate, 'MMM dd, yyyy') }}
+              {{ dateToString(activeReg.unitDetails.businessLicenseExpiryDate, 'MMM dd, yyyy') }}
             </span>
           </template>
         </div>
@@ -123,29 +128,27 @@ const getBlSectionSubLabel = (): string =>
       >
         <template #icon>
           <AlertFlag
-            v-if="alertFlags.isNotSameProperty || alertFlags.isHostTypeBusiness"
+            v-if="(isApplication && alertFlags.isNotSameProperty) || alertFlags.isHostTypeBusiness"
             data-testid="flag-pr-requirement"
           />
         </template>
         <div class="flex">
           <div>
-            <div v-if="prExemptReason">
-              <span>
+            <div class="flex gap-x-8">
+              <span v-if="prExemptReason">
                 <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ getPrExemptReason(prExemptReason) }}
               </span>
-            </div>
-            <div v-if="getStrataHotelCategory()" class="mt-2">
-              <span>
+              <span v-if="getStrataHotelCategory()">
                 <strong>{{ t('label.strataHotelCategory') }}:</strong> {{ getStrataHotelCategory() }}
               </span>
             </div>
             <div
-              v-if="!isEmpty(reg?.documents)"
+              v-if="activeReg.documents && !isEmpty(activeReg.documents)"
               class="mt-2"
               data-testid="pr-req-documents"
             >
               <UButton
-                v-for="document in application.registration.documents.filter(
+                v-for="document in activeReg.documents.filter(
                   doc => doc.documentType !== DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
                 )"
                 :key="document.fileKey"
@@ -159,7 +162,7 @@ const getBlSectionSubLabel = (): string =>
             </div>
           </div>
           <div
-            v-if="alertFlags.isNotSameProperty"
+            v-if="isApplication && alertFlags.isNotSameProperty"
             class="ml-3 w-1/3 font-bold text-red-600"
           >
             {{ t('strr.alertFlags.notSameProperty') }}

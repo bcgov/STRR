@@ -13,29 +13,75 @@ const mockDocuments: ApiDocument[] = [
   }
 ]
 
-const primaryContactPerson: ApiHostContactPerson = {
+const MOCK_DATES = {
+  APPLICATION_DATE: new Date('2025-01-01T10:30:00.000000+00:00'),
+  STRATA_APPLICATION_DATE: new Date('2025-01-14T19:58:57.549356+00:00'),
+  START_DATE: new Date('2025-01-01T10:30:00.000000+00:00'),
+  EXPIRY_DATE: new Date('2026-01-01T10:30:00.000000+00:00')
+}
+
+const MOCK_MAILING_ADDRESS: ApiAddress = {
+  address: '456 Elm St',
+  addressLineTwo: '',
+  city: 'Victoria',
+  country: 'CA',
+  locationDescription: 'Near the park',
+  postalCode: 'V8W 1A1',
+  province: 'BC'
+}
+
+const MOCK_UNIT_ADDRESS: ApiUnitAddress = {
+  addressLineTwo: '',
+  city: 'Vancouver',
+  country: 'CA',
+  locationDescription: '',
+  nickname: 'Downtown Unit',
+  postalCode: 'V6B 1A1',
+  province: 'BC',
+  streetName: 'Robson St',
+  streetNumber: '456',
+  unitNumber: '101'
+}
+
+const MOCK_HOTEL_ADDRESS: ApiAddress = {
+  address: '789 Pine St',
+  addressLineTwo: '',
+  city: 'Kelowna',
+  country: 'CA',
+  locationDescription: 'Near the lake',
+  postalCode: 'V1Y 1A1',
+  province: 'BC'
+}
+
+const MOCK_EXAMINER_USER = {
+  username: 'examiner1',
+  displayName: 'Examiner One'
+}
+
+const MOCK_COMPLETING_PARTY = {
+  emailAddress: 'alice@example.com',
+  extension: '789',
+  firstName: 'Alice',
+  lastName: 'Johnson',
+  phoneCountryCode: '+61',
+  phoneNumber: '412345678'
+}
+
+const mockPrimaryContactPerson: ApiHostContactPerson = {
   contactType: OwnerType.INDIVIDUAL,
   dateOfBirth: '1985-05-15',
   emailAddress: 'alice.smith@example.com',
   extension: '',
   firstName: 'Alice',
   lastName: 'Smith',
-  mailingAddress: {
-    address: '123 Main St',
-    addressLineTwo: '',
-    city: 'Vancouver',
-    country: 'CA',
-    locationDescription: '',
-    postalCode: 'V5K 0A1',
-    province: 'BC'
-  },
+  mailingAddress: MOCK_MAILING_ADDRESS,
   phoneCountryCode: '1',
   phoneNumber: '6041234567',
   socialInsuranceNumber: '123 456 789'
 }
 
-const primaryContactBusiness: ApiHostContactBusiness = {
-  ...primaryContactPerson,
+const mockPrimaryContactBusiness: ApiHostContactBusiness = {
+  ...mockPrimaryContactPerson,
   contactType: OwnerType.BUSINESS,
   businessLegalName: 'ABC Rentals',
   businessNumber: '123123123'
@@ -43,7 +89,7 @@ const primaryContactBusiness: ApiHostContactBusiness = {
 
 export const mockHostApplication: HostApplicationResp = {
   header: {
-    applicationDateTime: new Date('2025-01-01T10:30:00.000000+00:00'),
+    applicationDateTime: MOCK_DATES.APPLICATION_DATE,
     applicationNumber: '12345678901234',
     decisionDate: undefined,
     examinerActions: ['APPROVE'],
@@ -62,7 +108,7 @@ export const mockHostApplication: HostApplicationResp = {
   registration: {
     documents: mockDocuments,
     listingDetails: [],
-    primaryContact: primaryContactPerson,
+    primaryContact: mockPrimaryContactPerson,
     registrationType: ApplicationType.HOST,
     strRequirements: {
       isBusinessLicenceRequired: true,
@@ -71,18 +117,7 @@ export const mockHostApplication: HostApplicationResp = {
       isStraaExempt: false,
       organizationNm: 'City of Vancouver'
     },
-    unitAddress: {
-      addressLineTwo: '',
-      city: 'Vancouver',
-      country: 'CA',
-      locationDescription: '',
-      nickname: 'Downtown Unit',
-      postalCode: 'V6B 1A1',
-      province: 'BC',
-      streetName: 'Robson St',
-      streetNumber: '456',
-      unitNumber: '101'
-    },
+    unitAddress: MOCK_UNIT_ADDRESS,
     unitDetails: {
       hostResidence: ResidenceType.SAME_UNIT,
       isUnitOnPrincipalResidenceProperty: true,
@@ -128,7 +163,7 @@ export const mockHostApplicationWithFlags: HostApplicationResp = {
   },
   registration: {
     ...mockHostApplication.registration,
-    primaryContact: primaryContactBusiness, // flag
+    primaryContact: mockPrimaryContactBusiness, // flag
     strRequirements: {
       isBusinessLicenceRequired: true, // flag
       isPrincipalResidenceRequired: true,
@@ -137,16 +172,41 @@ export const mockHostApplicationWithFlags: HostApplicationResp = {
       organizationNm: 'City of Vancouver'
     },
     unitAddress: {
-      ...mockHostApplication.registration.unitAddress,
+      ...MOCK_UNIT_ADDRESS,
       unitNumber: '' // flag
     } as ApiUnitAddress
   }
 }
 
+const MOCK_DOE_ENTERPRISES_BUSINESS: ApiBusinessDetails = {
+  businessNumber: '987654321',
+  homeJurisdiction: 'BC',
+  legalName: 'Doe Enterprises',
+  mailingAddress: MOCK_MAILING_ADDRESS,
+  registeredOfficeOrAttorneyForServiceDetails: {
+    attorneyName: 'Jane Smith',
+    mailingAddress: MOCK_MAILING_ADDRESS
+  }
+}
+
+const MOCK_STRATA_HOTEL_BRAND = {
+  name: 'Luxury Stays',
+  website: 'https://luxurystays.com'
+}
+
+const MOCK_STRATA_REP = {
+  lastName: 'Smith',
+  emailAddress: 'jane.smith@example.com',
+  firstName: 'Jane',
+  middleName: 'B',
+  preferredName: '',
+  faxNumber: '987-654-3210'
+}
+
 export const mockStrataApplication: StrataApplicationResp =
 {
   header: {
-    applicationDateTime: new Date('2025-01-14T19:58:57.549356+00:00'),
+    applicationDateTime: MOCK_DATES.STRATA_APPLICATION_DATE,
     applicationNumber: '12345678901234',
     decisionDate: undefined,
     examinerActions: [],
@@ -163,68 +223,19 @@ export const mockStrataApplication: StrataApplicationResp =
     paymentMethod: ConnectPaymentMethod.DIRECT_PAY
   },
   registration: {
-    businessDetails: {
-      businessNumber: '987654321',
-      homeJurisdiction: 'BC',
-      legalName: 'Doe Enterprises',
-      mailingAddress: {
-        address: '123 Main St',
-        addressLineTwo: 'Suite 100',
-        city: 'Vancouver',
-        country: 'CA',
-        locationDescription: 'Downtown',
-        postalCode: 'V5K 0A1',
-        province: 'BC'
-      },
-      registeredOfficeOrAttorneyForServiceDetails: {
-        attorneyName: 'Jane Smith',
-        mailingAddress: {
-          address: '456 Elm St',
-          addressLineTwo: '',
-          city: 'Victoria',
-          country: 'CA',
-          locationDescription: 'Near the park',
-          postalCode: 'V8W 1A1',
-          province: 'BC'
-        }
-      }
-    },
-    completingParty: {
-      emailAddress: 'alice@example.com',
-      extension: '789',
-      firstName: 'Alice',
-      lastName: 'Johnson',
-      phoneCountryCode: '+61',
-      phoneNumber: '412345678'
-    },
-    documents: [],
+    businessDetails: MOCK_DOE_ENTERPRISES_BUSINESS,
+    completingParty: MOCK_COMPLETING_PARTY,
+    documents: mockDocuments,
     registrationType: ApplicationType.STRATA_HOTEL,
     strataHotelDetails: {
-      brand: {
-        name: 'Luxury Stays',
-        website: 'https://luxurystays.com'
-      },
+      brand: MOCK_STRATA_HOTEL_BRAND,
       buildings: [],
-      location: {
-        address: '789 Pine St',
-        addressLineTwo: '',
-        city: 'Kelowna',
-        country: 'CA',
-        locationDescription: 'Near the lake',
-        postalCode: 'V1Y 1A1',
-        province: 'BC'
-      },
-      numberOfUnits: 1,
-      category: StrataHotelCategory.FULL_SERVICE
+      location: MOCK_HOTEL_ADDRESS,
+      numberOfUnits: 10,
+      category: StrataHotelCategory.FULL_SERVICE,
+      documents: []
     },
-    strataHotelRepresentatives: [{
-      lastName: 'Smith',
-      emailAddress: 'jane.smith@example.com',
-      firstName: 'Jane',
-      middleName: 'B',
-      preferredName: '',
-      faxNumber: '987-654-3210'
-    }] as ApiRep[]
+    strataHotelRepresentatives: [MOCK_STRATA_REP] as ApiRep[]
   }
 }
 
@@ -232,3 +243,178 @@ export const mockApplications: ApiApplicationBaseResp [] = [
   mockHostApplication,
   mockStrataApplication
 ]
+
+const createRegistrationHeader = (
+  applicationDateTime: Date,
+  examinerStatus: string,
+  hostStatus: string,
+  examinerActions: string[]
+) => {
+  const header: any = {
+    applicationDateTime,
+    applicationNumber: '12345678901234',
+    examinerActions,
+    examinerStatus,
+    hostActions: [],
+    hostStatus,
+    reviewer: MOCK_EXAMINER_USER
+  }
+  return header
+}
+
+export const mockHostRegistration: HostRegistrationResp = {
+  header: createRegistrationHeader(
+    MOCK_DATES.APPLICATION_DATE,
+    'Registered',
+    'Registered',
+    ['CANCEL', 'SUSPEND']
+  ),
+  id: 12345,
+  registrationType: ApplicationType.HOST,
+  status: RegistrationStatus.ACTIVE,
+  startDate: MOCK_DATES.START_DATE,
+  expiryDate: MOCK_DATES.EXPIRY_DATE,
+  registrationNumber: 'REG12345678',
+  primaryContact: mockPrimaryContactPerson,
+  unitAddress: MOCK_UNIT_ADDRESS,
+  unitDetails: {
+    hostResidence: ResidenceType.SAME_UNIT,
+    isUnitOnPrincipalResidenceProperty: true,
+    numberOfRoomsForRent: 2,
+    ownershipType: OwnershipType.OWN,
+    parcelIdentifier: '123-456-789',
+    propertyType: PropertyType.CONDO_OR_APT,
+    rentalUnitSpaceType: RentalUnitType.ENTIRE_HOME,
+    businessLicense: '123123123'
+  },
+  strRequirements: {
+    isBusinessLicenceRequired: true,
+    isPrincipalResidenceRequired: true,
+    isStrProhibited: false,
+    isStraaExempt: false,
+    organizationNm: 'City of Vancouver'
+  },
+  documents: mockDocuments,
+  listingDetails: [],
+  sbc_account_id: 12345,
+  updatedDate: MOCK_DATES.APPLICATION_DATE,
+  user_id: 123
+}
+
+export const mockPlatformRegistration: PlatformRegistrationResp = {
+  header: createRegistrationHeader(
+    MOCK_DATES.APPLICATION_DATE,
+    'Registered',
+    'Registered',
+    ['CANCEL', 'SUSPEND']
+  ),
+  id: 12346,
+  registrationType: ApplicationType.PLATFORM,
+  status: RegistrationStatus.ACTIVE,
+  startDate: MOCK_DATES.START_DATE,
+  expiryDate: MOCK_DATES.EXPIRY_DATE,
+  registrationNumber: 'REG87654321',
+  documents: [],
+  businessDetails: {
+    legalName: 'Test Platform Inc.',
+    businessNumber: '987654321',
+    homeJurisdiction: 'BC',
+    mailingAddress: {
+      address: '123 Tech St',
+      addressLineTwo: 'Suite 200',
+      city: 'Victoria',
+      country: 'CA',
+      locationDescription: 'Downtown',
+      postalCode: 'V8V 1A1',
+      province: 'BC'
+    },
+    registeredOfficeOrAttorneyForServiceDetails: {
+      attorneyName: 'Jane Smith',
+      mailingAddress: MOCK_MAILING_ADDRESS
+    }
+  },
+  platformRepresentatives: [{
+    lastName: 'Jones',
+    emailAddress: 'bob.jones@example.com',
+    firstName: 'Bob',
+    middleName: '',
+    preferredName: 'Bobby',
+    faxNumber: ''
+  }] as ApiRep[],
+  platformDetails: {
+    brands: [
+      {
+        name: 'Provider A',
+        website: 'http://abc.com'
+      },
+      {
+        name: 'Provider B',
+        website: 'http://xyz.com'
+      }
+    ],
+    listingSize: ListingSize.THOUSAND_AND_ABOVE,
+    documents: mockDocuments
+  },
+  sbc_account_id: 12345,
+  updatedDate: MOCK_DATES.APPLICATION_DATE,
+  user_id: 123
+}
+
+export const mockStrataHotelRegistration: StrataHotelRegistrationResp = {
+  header: createRegistrationHeader(
+    MOCK_DATES.STRATA_APPLICATION_DATE,
+    'Suspended',
+    'Suspended',
+    ['REINSTATE', 'CANCEL']
+  ),
+  id: 12347,
+  registrationType: ApplicationType.STRATA_HOTEL,
+  status: RegistrationStatus.ACTIVE,
+  startDate: MOCK_DATES.START_DATE,
+  expiryDate: MOCK_DATES.EXPIRY_DATE,
+  registrationNumber: 'REG54321876',
+  documents: [],
+  businessDetails: MOCK_DOE_ENTERPRISES_BUSINESS,
+  strataHotelDetails: {
+    brand: MOCK_STRATA_HOTEL_BRAND,
+    buildings: [],
+    location: MOCK_HOTEL_ADDRESS,
+    numberOfUnits: 1,
+    category: StrataHotelCategory.FULL_SERVICE,
+    documents: []
+  },
+  strataHotelRepresentatives: [MOCK_STRATA_REP] as ApiRep[],
+  sbc_account_id: 12345,
+  updatedDate: MOCK_DATES.STRATA_APPLICATION_DATE,
+  user_id: 123
+}
+
+export const mockExpiredRegistration: HostRegistrationResp = {
+  ...mockHostRegistration,
+  status: RegistrationStatus.EXPIRED,
+  header: {
+    ...mockHostRegistration.header,
+    examinerStatus: 'Expired',
+    hostStatus: 'Expired'
+  }
+}
+
+export const mockSuspendedRegistration: HostRegistrationResp = {
+  ...mockHostRegistration,
+  status: RegistrationStatus.SUSPENDED,
+  header: {
+    ...mockHostRegistration.header,
+    examinerStatus: 'Suspended',
+    hostStatus: 'Suspended'
+  }
+}
+
+export const mockCancelledRegistration: HostRegistrationResp = {
+  ...mockHostRegistration,
+  status: RegistrationStatus.CANCELLED,
+  header: {
+    ...mockHostRegistration.header,
+    examinerStatus: 'Cancelled',
+    hostStatus: 'Cancelled'
+  }
+}

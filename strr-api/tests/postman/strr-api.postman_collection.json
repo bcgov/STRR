@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "c3eced10-1e79-4b42-9195-c5f5a96088db",
+		"_postman_id": "16206b52-8feb-4cbd-a845-6c17fa6a3e90",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "6835935",
-		"_collection_link": "https://warped-escape-616276.postman.co/workspace/bc-registries~8ef8e652-492a-4d19-b978-d4f0da255b2c/collection/6835935-c3eced10-1e79-4b42-9195-c5f5a96088db?action=share&source=collection_link&creator=6835935"
+		"_exporter_id": "31792407"
 	},
 	"item": [
 		{
@@ -286,7 +285,7 @@
 					"response": []
 				},
 				{
-					"name": "List applications",
+					"name": "List applications (sort by application_date ascending)",
 					"event": [
 						{
 							"listen": "test",
@@ -296,6 +295,110 @@
 									"",
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains applications array\", function () {",
+									"    pm.expect(jsonData).to.have.property('applications');",
+									"    pm.expect(jsonData.applications).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Default sort is by application_date ascending\", function () {",
+									"    if (jsonData.applications.length < 2) {",
+									"        pm.test.skip(\"Not enough applications to verify sorting\");",
+									"        return;",
+									"    }",
+									"    ",
+									"    let isSorted = true;",
+									"    for (let i = 1; i < jsonData.applications.length; i++) {",
+									"        const prevDate = new Date(jsonData.applications[i-1].header.applicationDateTime);",
+									"        const currDate = new Date(jsonData.applications[i].header.applicationDateTime);",
+									"        if (prevDate > currDate) {",
+									"            isSorted = false;",
+									"            break;",
+									"        }",
+									"    }",
+									"    pm.expect(isSorted).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/applications?sortBy=application_date&sortOrder=asc",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications"
+							],
+							"query": [
+								{
+									"key": "sortBy",
+									"value": "application_date"
+								},
+								{
+									"key": "sortOrder",
+									"value": "asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List applications (default sort)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Response contains applications array\", function () {",
+									"    pm.expect(jsonData).to.have.property('applications');",
+									"    pm.expect(jsonData.applications).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Applications are sorted by id in descending order\", function () {",
+									"    if (jsonData.applications.length < 2) {",
+									"        pm.test.skip(\"Not enough applications to verify sorting\");",
+									"        return;",
+									"    }",
+									"    ",
+									"    let isSorted = true;",
+									"    for (let i = 1; i < jsonData.applications.length; i++) {",
+									"        const prevId = jsonData.applications[i-1].header.registrationId || 0;",
+									"        const currId = jsonData.applications[i].header.registrationId || 0;",
+									"        if (prevId < currId) {",
+									"            isSorted = false;",
+									"            break;",
+									"        }",
+									"    }",
+									"    pm.expect(isSorted).to.be.true;",
 									"});"
 								],
 								"type": "text/javascript",
@@ -449,6 +552,45 @@
 				},
 				{
 					"name": "Search Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains applications array\", function () {",
+									"    pm.expect(jsonData).to.have.property('applications');",
+									"    pm.expect(jsonData.applications).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Applications are sorted by id in descending order by default\", function () {",
+									"    if (jsonData.applications.length < 2) {",
+									"        pm.test.skip(\"Not enough applications to verify sorting\");",
+									"        return;",
+									"    }",
+									"    ",
+									"    let isSorted = true;",
+									"    for (let i = 1; i < jsonData.applications.length; i++) {",
+									"        const prevId = jsonData.applications[i-1].header.registrationId || 0;",
+									"        const currId = jsonData.applications[i].header.registrationId || 0;",
+									"        if (prevId < currId) {",
+									"            isSorted = false;",
+									"            break;",
+									"        }",
+									"    }",
+									"    pm.expect(isSorted).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -489,6 +631,101 @@
 								{
 									"key": "page",
 									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Applications (sort by application_date ascending)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains applications array\", function () {",
+									"    pm.expect(jsonData).to.have.property('applications');",
+									"    pm.expect(jsonData.applications).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Applications are sorted by application_date in ascending order\", function () {",
+									"    if (jsonData.applications.length < 2) {",
+									"        pm.test.skip(\"Not enough applications to verify sorting\");",
+									"        return;",
+									"    }",
+									"    ",
+									"    let isSorted = true;",
+									"    for (let i = 1; i < jsonData.applications.length; i++) {",
+									"        const prevDate = new Date(jsonData.applications[i-1].header.applicationDateTime);",
+									"        const currDate = new Date(jsonData.applications[i].header.applicationDateTime);",
+									"        if (prevDate > currDate) {",
+									"            isSorted = false;",
+									"            break;",
+									"        }",
+									"    }",
+									"    pm.expect(isSorted).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1&sortBy=application_date&sortOrder=asc",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"search"
+							],
+							"query": [
+								{
+									"key": "text",
+									"value": "018-851-570"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "sortBy",
+									"value": "application_date"
+								},
+								{
+									"key": "sortOrder",
+									"value": "asc"
 								}
 							]
 						}
@@ -969,6 +1206,44 @@
 								"{{application_number}}",
 								"payment",
 								"receipt"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Notice of Consideration",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"content\": \"Test NOC\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_number}}/notice-of-consideration",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_number}}",
+								"notice-of-consideration"
 							]
 						}
 					},

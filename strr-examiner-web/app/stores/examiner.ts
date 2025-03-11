@@ -5,6 +5,18 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const tableLimit = ref(50)
   const tablePage = ref(1)
+  const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)
+  const isApplication = computed<boolean>(() => {
+    return !!activeRecord.value && 'registration' in activeRecord.value
+  })
+  const activeReg = computed(() => {
+    return isApplication.value
+      ? activeRecord.value?.registration
+      : activeRecord.value
+  })
+  const activeHeader = computed(() => {
+    return activeRecord.value?.header
+  })
   const tableFilters = reactive({
     searchText: '',
     registrationNumber: '',
@@ -12,7 +24,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     requirements: [],
     applicantName: '',
     propertyAddress: '',
-    status: [ApplicationStatus.FULL_REVIEW],
+    status: [], // show all statuses
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
     adjudicator: []
@@ -25,7 +37,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           limit: tableLimit.value,
           page: tablePage.value,
           registrationType: tableFilters.registrationType[0], // api only allows 1 at a time
-          status: tableFilters.status[0] // api only allows 1 at a time
+          status: tableFilters.status[0], // api only allows 1 at a time
+          sortBy: ApplicationSortBy.APPLICATION_DATE,
+          sortOrder: ApplicationSortOrder.ASC
         }
       })
     } else { // else try to fetch by search
@@ -34,7 +48,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           limit: tableLimit.value,
           page: tablePage.value,
           status: tableFilters.status[0], // api only allows 1 at a time
-          text: tableFilters.searchText.length > 2 ? tableFilters.searchText : undefined // min length 3 required
+          text: tableFilters.searchText.length > 2 ? tableFilters.searchText : undefined, // min length 3 required
+          sortBy: ApplicationSortBy.APPLICATION_DATE,
+          sortOrder: ApplicationSortOrder.ASC
         }
       })
     }
@@ -43,8 +59,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const getNextApplication = async <T extends ApiApplicationBaseResp>(): Promise<T | undefined> => {
     // TODO: update when requirements are flushed out and backend is updated.
     const resp = await getAccountApplications<T>(
-      undefined, undefined, ApplicationType.HOST, ApplicationStatus.FULL_REVIEW)
-    return resp.applications[0]
+      undefined, undefined, ApplicationType.HOST, ApplicationStatus.FULL_REVIEW,
+      ApplicationSortBy.APPLICATION_DATE, ApplicationSortOrder.ASC
+    )
+    const nextApplication = resp.applications[0]
+    activeRecord.value = nextApplication
+    return nextApplication
   }
 
   const approveApplication = async (applicationNumber: string): Promise<void> => {
@@ -61,6 +81,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
   }
 
+  const getApplicationById = async (applicationNumber: string): Promise<HousApplicationResponse> => {
+    const resp = await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}`, {
+      method: 'GET'
+    })
+    activeRecord.value = resp
+    return resp
+  }
+
   /**
    * Get/Download Supporting Document file for the Application.
    *
@@ -73,6 +101,32 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       method: 'GET',
       responseType: 'blob'
     })
+  }
+
+  /**
+   * Update the status of a registration.
+   *
+   * @param {number} registrationId - The registrationId for the registration to be updated.
+   * @param {string} status - RegistrationStatus value (SUSPENDED or CANCELLED).
+   */
+  const updateRegistrationStatus = async (registrationId: number, status: RegistrationStatus): Promise<void> => {
+    await $strrApi(`/registrations/${registrationId}/status`, {
+      method: 'PUT',
+      body: { status }
+    })
+  }
+
+  /**
+   * Get a registration by registrationId.
+   *
+   * @param {number} registrationId - The registrationId for the registration.
+   */
+  const getRegistrationById = async (registrationId: string): Promise<HousRegistrationResponse> => {
+    const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
+      method: 'GET'
+    })
+    activeRecord.value = resp
+    return resp
   }
 
   const openDocInNewTab = async (applicationNumber: string, supportingDocument: ApiDocument) => {
@@ -105,12 +159,19 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     tableFilters,
     tableLimit,
     tablePage,
+    isApplication,
+    activeRecord,
+    activeReg,
+    activeHeader,
     approveApplication,
     rejectApplication,
     fetchApplications,
     getNextApplication,
+    getApplicationById,
     getDocument,
     openDocInNewTab,
-    resetFilters
+    resetFilters,
+    updateRegistrationStatus,
+    getRegistrationById
   }
 }, { persist: true }) // will persist data in session storage

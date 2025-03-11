@@ -65,6 +65,7 @@ EMAIL_SUBJECT = {
     "HOST_FULL_REVIEW_APPROVED": "Short-Term Rental Registration Approved",
     "HOST_PROVISIONAL_REVIEW": "Short-Term Rental Registration Provisionally Approved",
     "PLATFORM_AUTO_APPROVED": "Short-Term Rental Platform Registration Approved",
+    "NOC": "Short-Term Rental Notice of Consideration",
 }
 
 
@@ -104,9 +105,15 @@ def worker():
         )
 
     app_dict = ApplicationSerializer.to_dict(application)
+    noc_content = ""
+    noc_expiry_date = ""
+
+    if noc := application.noc:
+        noc_content = noc.content
+        noc_expiry_date = noc.end_date.strftime("%B %d, %Y")
 
     template = Path(
-        f"{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{email_info.email_type}.md"
+        f'{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{email_info.email_type}.md'
     ).read_text("utf-8")
     filled_template = substitute_template_parts(template)
     jinja_template = Template(filled_template, autoescape=True)
@@ -120,7 +127,8 @@ def worker():
         service_provider=_get_service_provider(app_dict, application.registration_type),
         tac_url=_get_tac_url(application),
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
-        registrar_name=current_app.config["STRR_REGISTRAR_NAME"],
+        noc_content=noc_content,
+        noc_expiry_date=noc_expiry_date,
     )
     subject_number = (
         app_dict.get("header", {}).get("registrationNumber") or application.application_number
@@ -188,7 +196,7 @@ def _get_address_region(app_dict: dict, reg_type: Registration.RegistrationType)
         return ""
     address = app_dict["registration"]["unitAddress"]
     return (
-        f"{address.get("city", '')}, {address.get("province", '')} {address.get("postalCode", '')}"
+        f'{address.get("city", "")}, {address.get("province", "")} {address.get("postalCode", "")}'
     )
 
 
@@ -297,7 +305,7 @@ def substitute_template_parts(template_code: str) -> str:
     # substitute template parts - marked up by [[filename.md]]
     for template_part in template_parts:
         template_part_code = Path(
-            f"{current_app.config["EMAIL_TEMPLATE_PATH"]}/common/{template_part}.md"
+            f"{current_app.config['EMAIL_TEMPLATE_PATH']}/common/{template_part}.md"
         ).read_text("utf-8")
         template_code = template_code.replace(f"[[{template_part}.md]]", template_part_code)
 

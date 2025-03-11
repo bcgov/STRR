@@ -58,7 +58,7 @@ export interface ApiBaseApplication extends ApiBaseRegistration {
 export interface ApiExtraRegistrationDetails {
   expiryDate: Date
   id: number
-  registration_number: string
+  registrationNumber: string
   sbc_account_id: number
   startDate: Date
   status: RegistrationStatus,
@@ -72,7 +72,7 @@ export interface ApplicationHeader {
   decisionDate: Date | undefined
   examinerActions: string[]
   examinerStatus: string
-  existingHostRegistrations: number
+  existingHostRegistrations?: number
   hostActions: string[] // SUBMIT_PAYMENT is currently the only case where this has anything
   hostStatus: string
   isCertificateIssued: boolean
@@ -88,6 +88,10 @@ export interface ApplicationHeader {
   registrationNumber?: string
   registrationStartDate?: Date
   registrationStatus?: RegistrationStatus
+  reviewer?: {
+    username: string
+    displayName: string
+  }
 }
 
 export interface ApiRegistrationResp extends ApiBaseRegistration, ApiExtraRegistrationDetails { }
@@ -113,5 +117,7 @@ export interface ApiDocument {
   documentType: DocumentUploadType
   fileKey: string
   fileName: string
-  fileType: string
+  fileType: string,
+  uploadStep?: DocumentUploadStep
+  uploadDate?: string
 }

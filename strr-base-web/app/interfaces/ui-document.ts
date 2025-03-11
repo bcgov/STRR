@@ -4,5 +4,7 @@ export interface UiDocument {
   name: string
   id: string
   loading: boolean
-  type: DocumentUploadType
+  type: DocumentUploadType,
+  uploadStep?: DocumentUploadStep,
+  uploadDate?: string
 }

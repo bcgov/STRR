@@ -182,6 +182,11 @@ def test_examiner_issue_certificate_for_host_registration(session, client, jwt):
         response_json = rv.json
         assert response_json.get("header").get("examinerActions") == []
         assert response_json.get("header").get("hostActions") == []
+        rv = client.get(f"/registrations/{registration_id}", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("examinerActions") == ["SUSPEND", "CANCEL"]
+        assert response_json.get("header").get("hostActions") == []
 
 
 @pytest.mark.skip(reason="Skipping the test until certificate generation is supported")

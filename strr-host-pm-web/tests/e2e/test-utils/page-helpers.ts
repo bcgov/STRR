@@ -107,7 +107,7 @@ export const completeStep1 = async (
   await scenarioSpecificItems()
 
   // fill out unit details
-  await page.getByLabel('Property Type').click()
+  await page.getByLabel('Rental Unit Type').click()
   await page.getByRole('option', { name: propertyType }).click()
   await page.locator('#rental-type-radio-group').getByLabel(typeOfSpace).check() // 'Entire home (guests have the entire place to themselves)'
   await page.locator('#rental-unit-setup-radio-group').getByLabel(rentalUnitSetupType).check() // "This unit is the host's principal residence"

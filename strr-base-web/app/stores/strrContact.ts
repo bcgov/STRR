@@ -4,7 +4,6 @@ import type { Contact, StrrContact } from '#imports'
 
 export const useStrrContactStore = defineStore('strr/contact', () => {
   const { t } = useI18n()
-  const { userFullName } = storeToRefs(useConnectAccountStore())
   const getContactSchema = (completingParty = false) => {
     return z.object({
       firstName: optionalOrEmptyString,
@@ -17,33 +16,12 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
     })
   }
 
-  const getUserNameChunks = () => {
-    let firstName = ''
-    let lastName = ''
-    const nameChunks = userFullName.value.split(' ')
-    if (nameChunks.length > 0) {
-      firstName = nameChunks[0] as string
-    }
-    for (let i = 0; i < nameChunks.length; i++) {
-      if (i === 0) {
-        firstName = nameChunks[i] as string
-      } else {
-        // add other name chunks as last name
-        lastName += ' ' + nameChunks[i] as string
-      }
-    }
-    return {
-      firstName,
-      lastName
-    }
-  }
-
   const getNewContact = (isActiveUser = false): Contact => {
-    const { firstName, lastName } = getUserNameChunks()
+    const { kcUser } = useKeycloak()
     return {
-      firstName: isActiveUser ? firstName : '',
+      firstName: isActiveUser ? kcUser.value.firstName : '',
       middleName: '',
-      lastName: isActiveUser ? lastName : '',
+      lastName: isActiveUser ? kcUser.value.lastName : '',
       phone: {
         countryIso2: '',
         countryCode: '',

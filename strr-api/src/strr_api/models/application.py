@@ -72,6 +72,8 @@ class Application(BaseModel):
         FULL_REVIEW = auto()  # pylint: disable=invalid-name
         DECLINED = auto()  # pylint: disable=invalid-name
         PROVISIONAL = auto()  # pylint: disable=invalid-name
+        NOC_PENDING = auto()  # pylint: disable=invalid-name
+        NOC_EXPIRED = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "application"
 
@@ -124,6 +126,8 @@ class Application(BaseModel):
         foreign_keys=[registration_id],
     )
 
+    noc = db.relationship("NoticeOfConsideration", back_populates="application", uselist=False)
+
     @classmethod
     def find_by_id(cls, application_id: int) -> Application | None:
         """Return the application by id."""
@@ -166,7 +170,11 @@ class Application(BaseModel):
             query = query.filter_by(status=filter_criteria.status.upper())
         if filter_criteria.registration_type:
             query = query.filter_by(registration_type=filter_criteria.registration_type.upper())
-        query = query.order_by(Application.id.desc())
+        sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
+        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
 
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
         return paginated_result
@@ -193,7 +201,11 @@ class Application(BaseModel):
             query = query.filter_by(status=filter_criteria.status.upper())
         else:
             query = query.filter(Application.status != Application.Status.DRAFT)
-        query = query.order_by(Application.id.desc())
+        sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
+        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
         return paginated_result
 
@@ -211,6 +223,8 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: "Approved – Provisional",
         Application.Status.FULL_REVIEW: "Pending Approval",
         Application.Status.DECLINED: "Declined",
+        Application.Status.NOC_PENDING: "Notice of Consideration - Pending",
+        Application.Status.NOC_EXPIRED: "Notice of Consideration - Expired",
     }
 
     HOST_ACTIONS = {Application.Status.PAYMENT_DUE: ["SUBMIT_PAYMENT"]}
@@ -225,11 +239,15 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
         Application.Status.FULL_REVIEW: "Full Examination",
         Application.Status.DECLINED: "Declined",
+        Application.Status.NOC_PENDING: "Notice of Consideration - Pending",
+        Application.Status.NOC_EXPIRED: "Notice of Consideration - Expired",
     }
 
     EXAMINER_ACTIONS = {
         Application.Status.FULL_REVIEW_APPROVED: [],
-        Application.Status.FULL_REVIEW: ["APPROVE", "REJECT"],
+        Application.Status.FULL_REVIEW: ["APPROVE", "REJECT", "SEND_NOC"],
+        Application.Status.NOC_PENDING: ["APPROVE", "REJECT"],
+        Application.Status.NOC_EXPIRED: ["APPROVE", "REJECT"],
     }
 
     @staticmethod
@@ -295,5 +313,9 @@ class ApplicationSerializer:
             application_dict["header"]["registrationStatus"] = application.registration.status.value
             application_dict["header"]["registrationNumber"] = application.registration.registration_number
             application_dict["header"]["isCertificateIssued"] = bool(application.registration.certificates)
+
+        if application.noc:
+            application_dict["header"]["nocStartDate"] = application.noc.start_date.strftime("%Y-%m-%d")
+            application_dict["header"]["nocEndDate"] = application.noc.end_date.strftime("%Y-%m-%d")
 
         return application_dict

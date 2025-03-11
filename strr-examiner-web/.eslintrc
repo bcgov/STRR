@@ -26,7 +26,9 @@
         "prose-bcGov",
         "list-alpha",
         "list-upperAlpha",
-        "max-w-bcGovInput"
+        "max-w-bcGovInput",
+        "text-bcGovColor-activeBlue",
+        "text-bcGovColor-midGray"
       ]
     }],
     "no-use-before-define": "off"

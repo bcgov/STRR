@@ -11,6 +11,7 @@ export interface ApiPlatformBusinessDetails extends ApiBusinessDetails {
 export interface ApiPlatformDetails {
   brands: StrrBrand[]
   listingSize: ListingSize
+  documents: ApiDocument[]
 }
 
 export interface ApiBasePlatformRegistration extends ApiBaseRegistration {

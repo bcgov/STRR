@@ -31,6 +31,19 @@ serialPipeline:
       cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
       run-command: "./run.sh"
       service-account: "sa-job@bcrbk9-test.iam.gserviceaccount.com"
+ - targetId: bcrbk9-uat
+   profiles: [uat]
+   strategy:
+    standard:
+      verify: false
+   deployParameters:
+   - values:
+      deploy-env: "uat"
+      deploy-project-id: "bcrbk9-test"
+      job-name: "strr-auto-approval-uat"
+      cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
+      run-command: "./run.sh"
+      service-account: "sa-job@bcrbk9-test.iam.gserviceaccount.com"
  - targetId: bcrbk9-sandbox
    profiles: [sandbox]
    strategy:

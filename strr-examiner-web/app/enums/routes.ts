@@ -1,4 +1,5 @@
 export enum RoutesE {
     DASHBOARD = '/dashboard',
-    EXAMINE = '/examine'
+    EXAMINE = '/examine',
+    REGISTRATION = '/registration'
   }

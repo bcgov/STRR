@@ -1,5 +1,10 @@
-export const useFlags = (application: HostApplicationResp) => {
+export const useFlags = () => {
+  const exStore = useExaminerStore()
+  const { activeReg, isApplication, activeHeader } = storeToRefs(exStore)
   const REGISTRATIONS_LIMIT = 2
+  const existingHostRegistrations = isApplication.value
+    ? activeHeader.value.existingHostRegistrations
+    : undefined
 
   /**
    * @description Requirement: If Property Type is condo or apartment, multi-unit housing,
@@ -13,20 +18,20 @@ export const useFlags = (application: HostApplicationResp) => {
       PropertyType.STRATA_HOTEL
     ]
     return (
-      unitNumberRequired.includes(application.registration.unitDetails.propertyType) &&
-      !application.registration.unitAddress?.unitNumber
+      unitNumberRequired.includes(activeReg.value.unitDetails.propertyType) &&
+      !activeReg.value.unitAddress?.unitNumber
     )
   })
 
-  const isProhibited = computed(() => application.registration.strRequirements?.isStrProhibited)
+  const isProhibited = computed(() => activeReg.value.strRequirements?.isStrProhibited)
 
   /**
    * @description Requirement: address in Principal Residence area without PR exemption,
    * when rental unit setup is "not on same property as host".
    */
   const isNotSameProperty = computed((): boolean => {
-    const { isPrincipalResidenceRequired } = application.registration?.strRequirements as PropertyRequirements
-    const { prExemptReason, hostResidence } = application.registration.unitDetails as ApiUnitDetails
+    const { isPrincipalResidenceRequired } = activeReg.value?.strRequirements as PropertyRequirements
+    const { prExemptReason, hostResidence } = activeReg.value.unitDetails as ApiUnitDetails
 
     return isPrincipalResidenceRequired && !prExemptReason && hostResidence === ResidenceType.ANOTHER_UNIT
   })
@@ -35,13 +40,13 @@ export const useFlags = (application: HostApplicationResp) => {
    * @description Requirement: Host is a business
    */
   const isHostTypeBusiness = computed(
-    (): boolean => application.registration.primaryContact?.contactType === OwnerType.BUSINESS
+    (): boolean => activeReg.value.primaryContact?.contactType === OwnerType.BUSINESS
   )
 
   /**
    * @description Requirement: Host exceeds registration limit
    */
-  const isRegLimitExceeded = computed((): boolean => application.header.existingHostRegistrations > REGISTRATIONS_LIMIT)
+  const isRegLimitExceeded = computed((): boolean => (existingHostRegistrations ?? 0) > REGISTRATIONS_LIMIT)
 
   return {
     isUnitNumberMissing,

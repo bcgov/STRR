@@ -80,6 +80,8 @@ from strr_api.validators.RegistrationRequestValidator import validate_request
 logger = logging.getLogger("api")
 bp = Blueprint("applications", __name__)
 
+VALID_SORT_FIELDS = ["application_date", "id", "application_number", "decision_date"]
+
 
 @bp.route("", methods=("POST",))
 @bp.route("/<string:application_number>", methods=["POST", "PUT"])
@@ -167,6 +169,17 @@ def get_applications():
         name: Account-Id
         required: true
         type: string
+      - in: query
+        name: sortBy
+        type: string
+        default: id
+        description: Field to sort by (e.g., application_date, id, status)
+      - in: query
+        name: sortOrder
+        type: string
+        enum: [asc, desc]
+        default: desc
+        description: Sort order (ascending or descending)
     responses:
       200:
         description:
@@ -182,8 +195,19 @@ def get_applications():
         page = request.args.get("page", 1)
         limit = request.args.get("limit", 50)
         registration_type = request.args.get("registrationType")
+        sort_by = request.args.get("sortBy", "id")
+        sort_order = request.args.get("sortOrder", "desc")
+        if sort_by not in VALID_SORT_FIELDS:
+            sort_by = "id"
+        if sort_order not in ["asc", "desc"]:
+            sort_order = "desc"
         filter_criteria = ApplicationSearch(
-            status=status, page=int(page), limit=int(limit), registration_type=registration_type
+            status=status,
+            page=int(page),
+            limit=int(limit),
+            registration_type=registration_type,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         application_list = ApplicationService.list_applications(account_id, filter_criteria=filter_criteria)
         return jsonify(application_list), HTTPStatus.OK
@@ -557,6 +581,68 @@ def upload_registration_supporting_document(application_number):
         return exception_response(service_exception)
 
 
+@bp.route("/<application_number>/documents", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def update_registration_supporting_document(application_number):
+    """
+    Upload a supporting document for a STRR application.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: The file to upload
+    consumes:
+      - multipart/form-data
+    responses:
+      200:
+        description:
+      400:
+        description:
+      401:
+        description:
+    """
+
+    try:
+        account_id = request.headers.get("Account-Id", None)
+        file = validate_document_upload(request.files)
+        document_type = request.form.get("documentType", "")
+        upload_step = request.form.get("uploadStep", "")
+        upload_date = request.form.get("uploadDate", "")
+
+        # only allow upload for registrations that belong to the user
+        application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
+        if not application:
+            raise AuthException()
+
+        filename = secure_filename(file.filename)
+
+        document = DocumentService.upload_document(filename, file.content_type, file.read())
+        document["documentType"] = document_type
+        document["uploadStep"] = upload_step
+        document["uploadDate"] = upload_date
+
+        application = ApplicationService.update_document_list(application=application, document=document)
+
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except ValidationException as auth_exception:
+        return exception_response(auth_exception)
+    except ExternalServiceException as service_exception:
+        return exception_response(service_exception)
+
+
 @bp.route("/<application_number>/documents/<file_key>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
@@ -730,6 +816,17 @@ def search_applications():
         name: limit
         type: integer
         default: 50
+      - in: query
+        name: sortBy
+        type: string
+        default: id
+        description: Field to sort by (e.g., application_date, id, status)
+      - in: query
+        name: sortOrder
+        type: string
+        enum: [asc, desc]
+        default: desc
+        description: Sort order (ascending or descending)
     responses:
       200:
         description:
@@ -743,11 +840,23 @@ def search_applications():
         status = request.args.get("status", None)
         page = request.args.get("page", 1)
         limit = request.args.get("limit", 50)
-
+        sort_by = request.args.get("sortBy", "id")
+        sort_order = request.args.get("sortOrder", "desc")
+        if sort_by not in VALID_SORT_FIELDS:
+            sort_by = "id"
+        if sort_order not in ["asc", "desc"]:
+            sort_order = "desc"
         if search_text and len(search_text) < 3:
             return error_response(HTTPStatus.BAD_REQUEST, "Search term must be at least 3 characters long.")
 
-        filter_criteria = ApplicationSearch(status=status, page=int(page), limit=int(limit), search_text=search_text)
+        filter_criteria = ApplicationSearch(
+            status=status,
+            page=int(page),
+            limit=int(limit),
+            search_text=search_text,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
 
         application_list = ApplicationService.search_applications(filter_criteria=filter_criteria)
         return jsonify(application_list), HTTPStatus.OK
@@ -796,3 +905,45 @@ def get_related_registrations(application_number: str):
         return exception_response(validation_exception)
     except ExternalServiceException as external_exception:
         return exception_response(external_exception)
+
+
+@bp.route("/<application_number>/notice-of-consideration", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def send_notice_of_consideration(application_number: str):
+    """
+    Send a Notice of consideration for the specified application.
+    ---
+    tags:
+      - application
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+    try:
+        UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        json_input = request.get_json()
+        content = json_input.get("content", "").strip()
+        if not content:
+            return error_response(
+                message=ErrorMessage.INVALID_NOC_CONTENT.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        application = ApplicationService.get_application(application_number)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        application = ApplicationService.send_notice_of_consideration(application, content)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except Exception:
+        logger.error("Error in sending NoC: ", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)

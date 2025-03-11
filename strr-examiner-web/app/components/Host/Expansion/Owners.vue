@@ -1,12 +1,12 @@
 <script setup lang="ts">
 const props = defineProps<{
-  application: HostApplicationResp
   display: 'primaryContact' | 'secondaryContact' | 'propertyManager'
 }>()
-
 defineEmits<{
   close: [void]
 }>()
+const exStore = useExaminerStore()
+const { activeReg } = storeToRefs(exStore)
 
 const { t } = useI18n()
 
@@ -47,15 +47,15 @@ const getPhoneNumber = (phone: ConnectPhone) => {
 const hostOwners = computed<HostOwner[]>(() => {
   if (props.display === 'primaryContact') {
     return [formatOwnerHostUI(
-      props.application.registration.primaryContact!, // there will always be a primary contact
-      !props.application.registration.propertyManager?.initiatedByPropertyManager
+      activeReg.value.primaryContact!, // there will always be a primary contact
+      !activeReg.value.propertyManager?.initiatedByPropertyManager
     )]
   }
   if (props.display === 'secondaryContact') {
-    return [formatOwnerHostUI(props.application.registration.secondaryContact!, false, true)]
+    return [formatOwnerHostUI(activeReg.value.secondaryContact!, false, true)]
   }
   if (props.display === 'propertyManager') {
-    return [formatOwnerPropertyManagerUI(props.application.registration.propertyManager!)]
+    return [formatOwnerPropertyManagerUI(activeReg.value.propertyManager!)]
   }
   return []
 })

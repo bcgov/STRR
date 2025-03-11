@@ -1,0 +1,93 @@
+<script setup lang="ts">
+
+const exStore = useExaminerStore()
+const { activeReg, activeHeader } = storeToRefs(exStore)
+
+const getBadgeColor = (status: RegistrationStatus): string => {
+  switch (status) {
+    case RegistrationStatus.EXPIRED:
+      return 'red'
+    case RegistrationStatus.ACTIVE:
+      return 'green'
+    case RegistrationStatus.SUSPENDED:
+      return 'blue'
+    case RegistrationStatus.CANCELLED:
+      return 'red'
+    default:
+      return 'primary'
+  }
+}
+
+const getApplicationName = (): string => {
+  switch (activeReg.value.registrationType) {
+    case ApplicationType.STRATA_HOTEL:
+      return (activeReg.value as StrataHotelRegistrationResp).businessDetails?.legalName || ''
+    case ApplicationType.HOST:
+      return (activeReg.value as HostRegistrationResp).unitAddress?.nickname || ''
+    case ApplicationType.PLATFORM:
+      return (activeReg.value as PlatformRegistrationResp).businessDetails?.legalName || ''
+    default:
+      return ''
+  }
+}
+
+const getRegistrationType = (): string => {
+  switch (activeReg.value.registrationType) {
+    case ApplicationType.STRATA_HOTEL:
+      return 'Strata Hotel'
+    case ApplicationType.HOST:
+      return 'Host'
+    case ApplicationType.PLATFORM:
+      return 'Platform'
+    default:
+      return '-'
+  }
+}
+
+</script>
+<template>
+  <div class="border-b bg-white py-6">
+    <div class="app-inner-container">
+      <div class="mb-2">
+        <div class="mb-2 text-2xl">
+          <strong>
+            {{ activeReg.registrationNumber }} |
+          </strong>
+          {{ getApplicationName() }}
+          <UButton
+            v-if="activeReg.registrationType === ApplicationType.STRATA_HOTEL"
+            icon="mdi-web"
+            :padded="false"
+            variant="link"
+            :to="(activeReg as StrataHotelRegistrationResp).strataHotelDetails?.brand.website"
+            target="_blank"
+            data-testid="strata-brand-website"
+          />
+        </div>
+        <div class="text-sm">
+          <UBadge
+            class="mr-3 font-bold"
+            :label="activeHeader.examinerStatus"
+            :color="getBadgeColor(activeReg.status!)"
+          />
+          <strong>Registration Date:</strong>
+          {{ dateToString(activeReg.startDate, 'y-MM-dd t') }}
+          <strong>Expiry Date:</strong> {{ dateToString(activeReg.expiryDate, 'y-MM-dd t') }}
+          ({{ dayCountdown(activeReg.expiryDate.toString()) }} days left)
+        </div>
+      </div>
+      <div class="text-sm">
+        <strong>Application Number:</strong>
+        {{ activeHeader.applicationNumber }} |
+        <strong>Type:</strong>
+        {{ getRegistrationType() }} |
+        <strong>Submitted:</strong>
+        {{ activeHeader.applicationDateTime }} |
+        <template v-if="activeHeader.reviewer?.username">
+          <strong>Approved By:</strong>
+          {{ activeHeader.reviewer.username }}
+        </template>
+      </div>
+    </div>
+  </div>
+</template>

@@ -32,11 +32,14 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Service to interact with the applications model."""
-from datetime import datetime, timezone
+import copy
+from datetime import datetime, time, timedelta, timezone
 from typing import Optional
 
+import pytz
+
 from strr_api.enums.enum import ApplicationType, PaymentStatus
-from strr_api.models import Application, Events, Registration, User
+from strr_api.models import Application, Events, NoticeOfConsideration, Registration, User
 from strr_api.models.application import ApplicationSerializer
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.models.rental import PropertyContact
@@ -266,3 +269,28 @@ class ApplicationService:
             return 0
 
         return RegistrationService.find_all_by_host_sin(host_sin, True)
+
+    @staticmethod
+    def send_notice_of_consideration(application: Application, content: str) -> Application:
+        """Sends the notice of consideration."""
+        notice_of_consideration = NoticeOfConsideration()
+        notice_of_consideration.content = content
+        notice_of_consideration.application_id = application.id
+        notice_of_consideration.start_date = datetime.combine(
+            datetime.now(pytz.timezone("America/Vancouver")) + timedelta(days=1), time(0, 1, 0)
+        )
+        notice_of_consideration.end_date = notice_of_consideration.start_date + timedelta(days=8)
+        notice_of_consideration.save()
+        application.status = Application.Status.NOC_PENDING
+        application.save()
+        EmailService.send_notice_of_consideration_for_application(application)
+        return application
+
+    @staticmethod
+    def update_document_list(application: Application, document: str) -> Application:
+        """Updates the document list of an application."""
+        application_json = copy.deepcopy(application.application_json)
+        application_json.get("registration").get("documents", []).append(document)
+        application.application_json = application_json
+        application.save()
+        return application

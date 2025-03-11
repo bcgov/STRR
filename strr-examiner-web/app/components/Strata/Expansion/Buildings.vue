@@ -1,11 +1,9 @@
 <script setup lang="ts">
-const props = defineProps<{
-  application: StrataApplicationResp
-}>()
-
 const { t } = useI18n()
+const exStore = useExaminerStore()
+const { activeReg } = storeToRefs(exStore)
 
-const { buildings } = props.application.registration.strataHotelDetails
+const { buildings } = activeReg.value.strataHotelDetails
 
 const getBuildingLabel = (index: number) => {
   return index === 0

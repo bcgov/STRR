@@ -70,7 +70,7 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
     <template #info-blExempt>
       <div class="flex gap-2">
         <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
-        <p>{{ $t('text.thisPropIsExempt') }}</p>
+        <p>{{ $t('text.businessLicNotRequired') }}</p>
       </div>
     </template>
     <template #info-prExempt>

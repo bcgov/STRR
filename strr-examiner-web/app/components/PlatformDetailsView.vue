@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const props = defineProps<{ application: PlatformApplicationResp }>()
 
-const { header, registration } = props.application
+const exStore = useExaminerStore()
+const { isApplication, activeHeader, activeReg } = storeToRefs(exStore)
 
 </script>
 
@@ -13,29 +13,29 @@ const { header, registration } = props.application
       <div>
         <dl class="grid grid-cols-[repeat(2,auto)] gap-x-4">
           <dt>Status:</dt>
-          <dd>{{ header?.hostStatus }}</dd>
+          <dd>{{ activeHeader?.hostStatus }}</dd>
 
           <dt>Submitted:</dt>
-          <dd>{{ dateToString(header?.applicationDateTime || '') }}</dd>
+          <dd>{{ dateToString(activeHeader?.applicationDateTime || '') }}</dd>
 
           <dt>Registration Type:</dt>
-          <dd>{{ registration?.registrationType }}</dd>
+          <dd>{{ activeReg?.registrationType }}</dd>
         </dl>
       </div>
 
-      <div>
+      <div v-if="isApplication">
         <dl class="grid grid-cols-[repeat(2,auto)] gap-x-4 pl-5">
           <dt>Completing Party</dt>
           <dd />
 
           <dt>Name:</dt>
-          <dd>{{ displayContactFullName(registration?.completingParty) }}</dd>
+          <dd>{{ displayContactFullName(activeReg?.completingParty) }}</dd>
 
           <dt>Email:</dt>
-          <dd>{{ registration?.completingParty.emailAddress }}</dd>
+          <dd>{{ activeReg?.completingParty.emailAddress }}</dd>
 
           <dt>Phone:</dt>
-          <dd>{{ registration?.completingParty.phoneNumber }}</dd>
+          <dd>{{ activeReg?.completingParty.phoneNumber }}</dd>
         </dl>
       </div>
 
@@ -45,10 +45,10 @@ const { header, registration } = props.application
           <dd />
 
           <dt>Name:</dt>
-          <dd>{{ displayContactFullName(registration?.platformRepresentatives[0]) }}</dd>
+          <dd>{{ displayContactFullName(activeReg?.platformRepresentatives[0]) }}</dd>
 
           <dt>Email:</dt>
-          <dd>{{ registration?.completingParty.emailAddress }}</dd>
+          <dd>{{ activeReg?.platformRepresentatives[0].emailAddress }}</dd>
         </dl>
       </div>
     </div>
@@ -60,8 +60,8 @@ const { header, registration } = props.application
       >
         <div class="flex items-center justify-between">
           <div class="flex">
-            {{ registration?.businessDetails?.legalName }} |
-            {{ displayFullAddress(registration?.businessDetails.mailingAddress) }}
+            {{ activeReg?.businessDetails?.legalName }} |
+            {{ displayFullAddress(activeReg?.businessDetails.mailingAddress) }}
           </div>
         </div>
       </ApplicationDetailsSection>

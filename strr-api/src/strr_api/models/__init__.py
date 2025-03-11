@@ -41,6 +41,7 @@ from .certificate import Certificate
 from .db import db  # noqa: I001
 from .events import Events
 from .ltsa import LTSARecord
+from .notice_of_consideration import NoticeOfConsideration
 from .platforms import Platform, PlatformBrand, PlatformRegistration, PlatformRepresentative
 from .real_time_validation import RealTimeValidation
 from .rental import Document, PropertyContact, PropertyListing, PropertyManager, Registration, RentalProperty
@@ -66,6 +67,7 @@ __all__ = (
     "AutoApprovalRecord",
     "LTSARecord",
     "Certificate",
+    "NoticeOfConsideration",
     "Platform",
     "PlatformBrand",
     "PlatformRegistration",
