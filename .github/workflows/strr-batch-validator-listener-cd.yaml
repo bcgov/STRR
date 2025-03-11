@@ -1,4 +1,4 @@
-name: STRR BATCH VALIDATOR LISTENER CD
+name: BATCH PERMIT LISTENER CD
 
 on:
   push:
@@ -29,11 +29,11 @@ on:
           - "true"
 
 jobs:
-  strr-batch-permit-listener-cd:
+  batch-permit-listener-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-cd.yaml@main
     with:
       target: ${{ inputs.target }}
-      app_name: "strr-batch-permit-validator-listener"
+      app_name: "batch-permit-listener"
       working_directory: "queue_services/batch-permit-validator"
       redeploy: ${{ inputs.redeploy }}
     secrets:

@@ -1,4 +1,4 @@
-name: STRR BATCH VALIDATOR JOB CD
+name: BATCH PERMIT JOB CD
 
 on:
   push:
@@ -34,11 +34,11 @@ on:
           - "true"
 
 jobs:
-  strr-batch-permit-job-cd:
+  strr-permit-job-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
     with:
       target: ${{ inputs.target }}
-      app_name: "strr-batch-permit-validator"
+      app_name: "batch-permit-job"
       working_directory: "./jobs/batch-permit-validator"
       redeploy: ${{ inputs.redeploy }}
     secrets:
