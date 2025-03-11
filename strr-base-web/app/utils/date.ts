@@ -25,7 +25,7 @@ export function dateToString (date: Date | string, format = 'y-MM-dd') {
   const luxonFormat = format.replace('a', 't')
   const formattedDate = DateTime.fromJSDate(new Date(date)).toFormat(luxonFormat)
   if (format.includes('a')) {
-    return formattedDate.replace(/AM|PM/g, (match) => match.toLowerCase())
+    return formattedDate.replace(/AM|PM/g, match => match.toLowerCase())
   }
   return formattedDate
 }

@@ -45,13 +45,15 @@ const handleApplicationAction = (
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
-  const actionFn = action === 'SEND_NOC'
-    ? sendNoticeOfConsideration
-    : action === 'APPROVE'
-      ? approveApplication
-      : action === 'REJECT'
-        ? rejectApplication
-        : undefined
+  let actionFn
+  if (action === 'SEND_NOC') {
+    actionFn = sendNoticeOfConsideration
+  } else if (action === 'APPROVE') {
+    actionFn = approveApplication
+  } else if (action === 'REJECT') {
+    actionFn = rejectApplication
+  }
+
   const additionalArgs = action === 'SEND_NOC' ? [nocContent.value.content] : []
   const validateFn = action === 'SEND_NOC'
     ? validateNocContent
