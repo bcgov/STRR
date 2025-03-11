@@ -15,6 +15,6 @@ jobs:
   strr-batch-permit-listener-ci:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
-      app_name: "batch-permit-validator-listener"
+      app_name: "strr-batch-permit-validator-listener"
       working_directory: "./queue_services/batch-permit-validator"
       codecov_flag: "strrbatchlistener"
