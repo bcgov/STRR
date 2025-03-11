@@ -20,6 +20,6 @@ jobs:
   strr-batch-permit-job-ci:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
-      app_name: "strr-batch-validator"
+      app_name: "strr-batch-permit-validator"
       working_directory: "./jobs/batch-permit-validator"
       codecov_flag: "validatorjob"
