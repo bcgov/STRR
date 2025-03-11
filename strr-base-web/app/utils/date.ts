@@ -22,7 +22,12 @@ export function dateStringToDate (dateString: string): Date | null {
  * https://moment.github.io/luxon/#/formatting?id=table-of-tokens
 */
 export function dateToString (date: Date | string, format = 'y-MM-dd') {
-  return DateTime.fromJSDate(new Date(date)).toFormat(format)
+  const luxonFormat = format.replace('a', 't')
+  const formattedDate = DateTime.fromJSDate(new Date(date)).toFormat(luxonFormat)
+  if (format.includes('a')) {
+    return formattedDate.replace(/AM|PM/g, (match) => match.toLowerCase())
+  }
+  return formattedDate
 }
 
 /** Convert the date to pacific time and return as a string in the desired format

@@ -236,9 +236,16 @@ export default {
     decline: 'Refuse',
     approve: 'Approve',
     cancel: 'Cancel',
-    suspend: 'Suspend'
+    suspend: 'Suspend',
+    sendNotice: 'Send Notice'
   },
   error: {
+    action: {
+      approve: 'An error occurred approving this application.',
+      reject: 'An error occurred rejecting this application.',
+      send_noc: 'An error occurred sending the Notice of Consideration for this application.',
+      cancel: 'An error occurred cancelling this registration.'
+    },
     createAccount: {
       title: 'Error creating account',
       description: 'We could not create your account at this time. Please try again or if this issue persists, please contact us.'
@@ -311,6 +318,10 @@ export default {
       triggerBtn: 'Help with setting up an account',
       title: 'Need Help?',
       content: 'If you need help with setting up your BC Registries and Online Services account, please contact us.'
+    },
+    noc: {
+      title: 'Email to Completing Party',
+      placeholder: 'Email Body Text'
     }
   },
   table: {
@@ -386,7 +397,8 @@ export default {
     typeOfSpace: 'Please select the type of space of the unit',
     ownerRole: 'Please select the role',
     missingReqDocs: 'Missing required documents. Please see above for details.',
-    blExpiryDate: 'The expiry date must be greater than today and in less than 1 year.'
+    blExpiryDate: 'The expiry date must be greater than today and in less than 1 year.',
+    nocContent: 'Please enter email body text'
   },
   registrationType: {
     HOST: 'Host',

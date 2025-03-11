@@ -1,5 +1,6 @@
 export const useExaminerActions = () => {
   const strrModal = useStrrModals()
+  const { t } = useI18n()
   const { handleButtonLoading } = useButtonControl()
 
   /**
@@ -22,15 +23,27 @@ export const useExaminerActions = () => {
     buttonPosition: 'left' | 'right',
     buttonIndex: number,
     refresh: () => void,
-    additionalArgs: Args = [] as unknown as Args
+    additionalArgs: Args = [] as unknown as Args,
+    validateFn?: () => Promise<boolean> | MultiFormValidationResult | boolean
   ) => {
     try {
       handleButtonLoading(false, buttonPosition, buttonIndex)
+      if (validateFn) {
+        let isValid = true
+        if (action === 'SEND_NOC') {
+          isValid = await validateFn() as boolean
+        }
+        if (!isValid) {
+          handleButtonLoading(true)
+          return
+        }
+      }
       await actionFn(item.id, ...additionalArgs)
       refresh()
     } catch (error) {
       console.error(error)
-      strrModal.openErrorModal('Error', `An error occurred ${action.toLowerCase()}ing this item.`, false)
+      const errMsg = t(`error.action.${action.toLowerCase()}`)
+      strrModal.openErrorModal('Error', errMsg, false)
     } finally {
       handleButtonLoading(true)
     }

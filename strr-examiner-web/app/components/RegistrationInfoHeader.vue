@@ -71,8 +71,8 @@ const getRegistrationType = (): string => {
             :color="getBadgeColor(activeReg.status!)"
           />
           <strong>Registration Date:</strong>
-          {{ dateToString(activeReg.startDate, 'y-MM-dd t') }}
-          <strong>Expiry Date:</strong> {{ dateToString(activeReg.expiryDate, 'y-MM-dd t') }}
+          {{ dateToString(activeReg.startDate, 'y-MM-dd a') }} |
+          <strong>Expiry Date:</strong> {{ dateToString(activeReg.expiryDate, 'y-MM-dd a') }}
           ({{ dayCountdown(activeReg.expiryDate.toString()) }} days left)
         </div>
       </div>
@@ -82,9 +82,9 @@ const getRegistrationType = (): string => {
         <strong>Type:</strong>
         {{ getRegistrationType() }} |
         <strong>Submitted:</strong>
-        {{ activeHeader.applicationDateTime }} |
+        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a') }}
         <template v-if="activeHeader.reviewer?.username">
-          <strong>Approved By:</strong>
+          | <strong>Approved By:</strong>
           {{ activeHeader.reviewer.username }}
         </template>
       </div>

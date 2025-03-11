@@ -3,7 +3,15 @@ const { t } = useI18n()
 const route = useRoute()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
-const { approveApplication, rejectApplication, getNextApplication, getApplicationById } = useExaminerStore()
+const {
+  approveApplication,
+  rejectApplication,
+  getNextApplication,
+  getApplicationById,
+  sendNoticeOfConsideration,
+  validateNocContent
+} = useExaminerStore()
+const { nocContent } = storeToRefs(useExaminerStore())
 
 useHead({
   title: t('page.dashboardList.title')
@@ -33,11 +41,21 @@ const { data: application, status, error, refresh } = await useLazyAsyncData<
 
 const handleApplicationAction = (
   id: string,
-  action: 'APPROVE' | 'REJECT',
+  action: 'APPROVE' | 'REJECT' | 'SEND_NOC',
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
-  const actionFn = action === 'APPROVE' ? approveApplication : rejectApplication
+  const actionFn = action === 'SEND_NOC'
+    ? sendNoticeOfConsideration
+    : action === 'APPROVE'
+      ? approveApplication
+      : action === 'REJECT'
+        ? rejectApplication
+        : undefined
+  const additionalArgs = action === 'SEND_NOC' ? [nocContent.value.content] : []
+  const validateFn = action === 'SEND_NOC'
+    ? validateNocContent
+    : undefined
   return manageAction(
     { id },
     action,
@@ -45,7 +63,8 @@ const handleApplicationAction = (
     buttonPosition,
     buttonIndex,
     refresh,
-    []
+    additionalArgs,
+    validateFn
   )
 }
 
@@ -57,12 +76,16 @@ watch(
     initialMount.value = false
     updateRouteAndButtons(RoutesE.EXAMINE, {
       approve: {
-        action: (id: string) => handleApplicationAction(id, 'APPROVE', 'right', 0),
+        action: (id: string) => handleApplicationAction(id, 'APPROVE', 'right', 2),
         label: t('btn.approve')
       },
       reject: {
         action: (id: string) => handleApplicationAction(id, 'REJECT', 'right', 1),
         label: t('btn.decline')
+      },
+      sendNotice: {
+        action: (id: string) => handleApplicationAction(id, 'SEND_NOC', 'right', 0),
+        label: t('btn.sendNotice')
       }
     })
   }
@@ -84,12 +107,13 @@ watch(
         refresh()
       }"
     />
-    <ApplicationDetailsView
-      v-else
-    >
-      <template #header>
-        <ApplicationInfoHeader />
-      </template>
-    </ApplicationDetailsView>
+    <template v-else>
+      <ApplicationDetailsView>
+        <template #header>
+          <ApplicationInfoHeader />
+        </template>
+      </ApplicationDetailsView>
+      <ComposeNoc />
+    </template>
   </div>
 </template>

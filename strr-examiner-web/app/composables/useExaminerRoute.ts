@@ -15,8 +15,8 @@ export const useExaminerRoute = () => {
         action: (id: string) => void
         label: string
       }
-      suspend?: {
-        action: (id: number) => void
+      sendNotice?: {
+        action: (id: string) => void
         label: string
       }
       cancel?: {
@@ -31,13 +31,15 @@ export const useExaminerRoute = () => {
     }
 
     let id: string | number | undefined
-    let examinerActions: string[] | undefined = []
-    if (isApplication.value) {
+    let examinerActions: string[] = []
+    if (isApplication.value && activeHeader.value) {
       id = activeHeader.value.applicationNumber
-    } else {
+    } else if (activeReg.value) {
       id = activeReg.value.id
     }
-    examinerActions = activeHeader.value.examinerActions || []
+    if (activeHeader.value && activeHeader.value.examinerActions) {
+      examinerActions = activeHeader.value.examinerActions
+    }
 
     if (id) {
       window.history.replaceState(
@@ -50,41 +52,45 @@ export const useExaminerRoute = () => {
         const leftButtons: ConnectBtnControlItem[] = []
         const rightButtons: ConnectBtnControlItem[] = []
 
-        examinerActions.forEach((action) => {
-          if (action === 'APPROVE' && buttonConfig.approve) {
-            rightButtons.push({
-              action: () => buttonConfig.approve.action(id as string),
-              label: buttonConfig.approve.label,
-              variant: 'outline',
-              color: 'green',
-              icon: 'i-mdi-check'
-            })
-          } else if (action === 'REJECT' && buttonConfig.reject) {
-            rightButtons.push({
-              action: () => buttonConfig.reject.action(id as string),
-              label: buttonConfig.reject.label,
-              variant: 'outline',
-              color: 'red',
-              icon: 'i-mdi-close'
-            })
-          } else if (action === 'SUSPEND' && buttonConfig.suspend) {
-            rightButtons.push({
-              action: () => buttonConfig.suspend.action(id as number),
-              label: buttonConfig.suspend.label,
-              variant: 'outline',
-              color: 'blue',
-              icon: 'i-mdi-pause'
-            })
-          } else if (action === 'CANCEL' && buttonConfig.cancel) {
-            rightButtons.push({
-              action: () => buttonConfig.cancel.action(id as number),
-              label: buttonConfig.cancel.label,
-              variant: 'outline',
-              color: 'red',
-              icon: 'i-mdi-close'
-            })
-          }
-        })
+        if (examinerActions.includes('SEND_NOC') && buttonConfig.sendNotice) {
+          rightButtons.push({
+            action: () => buttonConfig.sendNotice.action(id as string),
+            label: buttonConfig.sendNotice.label,
+            variant: 'outline',
+            color: 'blue',
+            icon: 'i-mdi-send'
+          })
+        }
+
+        if (examinerActions.includes('REJECT') && buttonConfig.reject) {
+          rightButtons.push({
+            action: () => buttonConfig.reject.action(id as string),
+            label: buttonConfig.reject.label,
+            variant: 'outline',
+            color: 'red',
+            icon: 'i-mdi-close'
+          })
+        }
+
+        if (examinerActions.includes('APPROVE') && buttonConfig.approve) {
+          rightButtons.push({
+            action: () => buttonConfig.approve.action(id as string),
+            label: buttonConfig.approve.label,
+            variant: 'outline',
+            color: 'green',
+            icon: 'i-mdi-check'
+          })
+        }
+
+        if (examinerActions.includes('CANCEL') && buttonConfig.cancel) {
+          rightButtons.push({
+            action: () => buttonConfig.cancel.action(id as number),
+            label: buttonConfig.cancel.label,
+            variant: 'outline',
+            color: 'red',
+            icon: 'i-mdi-close'
+          })
+        }
 
         setButtonControl({
           leftButtons,

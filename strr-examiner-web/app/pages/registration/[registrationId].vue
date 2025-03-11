@@ -29,11 +29,11 @@ const { data: registration, status, error, refresh } = await useLazyAsyncData<
 
 const handleRegistrationAction = (
   id: number,
-  action: 'CANCEL' | 'SUSPEND',
+  action: 'CANCEL',
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
-  const status = action === 'CANCEL' ? RegistrationStatus.CANCELLED : RegistrationStatus.SUSPENDED
+  const status = RegistrationStatus.CANCELLED
   return manageAction(
     { id },
     action,
@@ -52,12 +52,8 @@ watch(
 
     updateRouteAndButtons(RoutesE.REGISTRATION, {
       cancel: {
-        action: (id: number) => handleRegistrationAction(id, 'CANCEL', 'right', 1),
+        action: (id: number) => handleRegistrationAction(id, 'CANCEL', 'right', 0),
         label: t('btn.cancel')
-      },
-      suspend: {
-        action: (id: number) => handleRegistrationAction(id, 'SUSPEND', 'right', 0),
-        label: t('btn.suspend')
       }
     })
   }

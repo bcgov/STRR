@@ -92,6 +92,8 @@ export interface ApplicationHeader {
     username: string
     displayName: string
   }
+  nocStartDate?: Date
+  nocEndDate?: Date
 }
 
 export interface ApiRegistrationResp extends ApiBaseRegistration, ApiExtraRegistrationDetails { }

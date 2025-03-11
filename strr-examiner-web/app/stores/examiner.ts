@@ -1,6 +1,8 @@
+import { z } from 'zod'
+
 export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { getAccountApplications } = useStrrApi()
-
+  const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
 
   const tableLimit = ref(50)
@@ -17,6 +19,25 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const activeHeader = computed(() => {
     return activeRecord.value?.header
   })
+  const nocContent = reactive({
+    content: ''
+  })
+  const showNocModal = ref(true)
+  const nocFormRef = ref()
+
+  const sendNocSchema = computed(() => z.object({
+    content: z.string().min(1, { message: t('validation.nocContent') })
+  }))
+
+  const validateNocContent = async (): Promise<boolean> => {
+    try {
+      await nocFormRef.value.validate()
+      return true
+    } catch (error) {
+      return false
+    }
+  }
+
   const tableFilters = reactive({
     searchText: '',
     registrationNumber: '',
@@ -87,6 +108,21 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
     activeRecord.value = resp
     return resp
+  }
+
+  /**
+   * Send a Notice of Consideration for the specified application.
+   *
+   * @param {string} applicationNumber - The application number.
+   * @param {string} content - The content of the Notice of Consideration.
+   * @returns {Promise<void>}
+   */
+  const sendNoticeOfConsideration = async (applicationNumber: string, content: string): Promise<void> => {
+    await $strrApi(`/applications/${applicationNumber}/notice-of-consideration`, {
+      method: 'POST',
+      body: { content }
+    })
+    nocContent.content = ''
   }
 
   /**
@@ -163,8 +199,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     activeRecord,
     activeReg,
     activeHeader,
+    sendNocSchema,
+    validateNocContent,
+    nocContent,
+    nocFormRef,
+    showNocModal,
     approveApplication,
     rejectApplication,
+    sendNoticeOfConsideration,
     fetchApplications,
     getNextApplication,
     getApplicationById,
