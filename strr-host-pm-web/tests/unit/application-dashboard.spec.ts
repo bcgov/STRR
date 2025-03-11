@@ -10,8 +10,6 @@ import {
   BaseUploadAdditionalDocuments
 } from '#components'
 
-import BaseUploadAdditionalDocuments from '#baseWeb/components/BaseUploadAdditionalDocuments.vue'
-
 vi.mock('@/stores/hostPermit', () => ({
   useHostPermitStore: () => ({
     loadHostData: vi.fn(),
