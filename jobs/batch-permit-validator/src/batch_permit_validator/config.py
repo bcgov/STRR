@@ -114,6 +114,9 @@ class _Config:  # pylint: disable=too-few-public-methods
     REDIS_HOST = os.getenv("REDIS_HOST", "")
     REDIS_PORT = os.getenv("REDIS_PORT", "")
 
+    # projects/<project_id-env>/topics/<topic_name>
+    GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC")
+
     TESTING = False
     DEBUG = False
 

@@ -135,7 +135,7 @@ def send_bulk_validation_response():
         return {}, HTTPStatus.OK
 
     response = requests.post(
-        validation_response.callBackUrl, data={"file": validation_response.preSignedUrl}, timeout=10
+        validation_response.call_back_url, data={"file": validation_response.pre_signed_url}, timeout=10
     )
 
     if response.status_code != 200:
@@ -149,8 +149,8 @@ def send_bulk_validation_response():
 class BulkValidationResponse:
     """Bulk Validation Response class"""
 
-    callBackUrl: Optional[str] = None
-    preSignedUrl: Optional[str] = None
+    call_back_url: Optional[str] = None
+    pre_signed_url: Optional[str] = None
 
 
 def get_bulk_validation_response(ce: SimpleCloudEvent):

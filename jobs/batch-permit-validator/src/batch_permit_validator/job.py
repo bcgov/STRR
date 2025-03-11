@@ -32,6 +32,7 @@ from strr_api.services.approval_service import ApprovalService
 from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.validation_service import ValidationService
+from strr_api.services import gcp_queue_publisher
 from structured_logging import StructuredLogging
 
 from batch_permit_validator.config import CONFIGURATION
@@ -219,9 +220,16 @@ def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK
         }
         logger.info(f"Response: {callback_queue_message}")
 
-        # TODO: Is a queue needed here. May be possible to call the callback directly.??
+        gcp_queue_publisher.publish_to_queue(
+            gcp_queue_publisher.QueueMessage(
+                source="batch-permit-validator",
+                message_type="strr.batchPermitValidationResult",
+                payload=callback_queue_message,
+                topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+            )
+        )
 
-        logger.info("Processing completed successfully!")
+        logger.info("Published response to the queue successfully!")
 
     except Exception as e:
         _update_bulk_validation_record(request_file_key, BulkValidation.Status.ERROR)
