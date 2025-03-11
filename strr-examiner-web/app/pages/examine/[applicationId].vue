@@ -8,10 +8,9 @@ const {
   rejectApplication,
   getNextApplication,
   getApplicationById,
-  sendNoticeOfConsideration,
-  validateNocContent
+  sendNoticeOfConsideration
 } = useExaminerStore()
-const { nocContent } = storeToRefs(useExaminerStore())
+const { nocContent, nocFormRef } = storeToRefs(useExaminerStore())
 
 useHead({
   title: t('page.dashboardList.title')
@@ -41,30 +40,38 @@ const { data: application, status, error, refresh } = await useLazyAsyncData<
 
 const handleApplicationAction = (
   id: string,
-  action: 'APPROVE' | 'REJECT' | 'SEND_NOC',
+  action: ApplicationActionsE,
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
   let actionFn
-  if (action === 'SEND_NOC') {
+  let validateFn
+  let refreshFn = refresh
+  let additionalArgs: any[] = []
+  if (action === ApplicationActionsE.SEND_NOC) {
     actionFn = sendNoticeOfConsideration
-  } else if (action === 'APPROVE') {
+    refreshFn = () => {
+      nocContent.value.content = ''
+      refresh()
+    }
+    additionalArgs = [nocContent.value.content]
+    validateFn = async () => {
+      const errors = await validateForm(nocFormRef.value, true)
+      return !errors
+    }
+  } else if (action === ApplicationActionsE.APPROVE) {
     actionFn = approveApplication
-  } else if (action === 'REJECT') {
+  } else if (action === ApplicationActionsE.REJECT) {
     actionFn = rejectApplication
   }
 
-  const additionalArgs = action === 'SEND_NOC' ? [nocContent.value.content] : []
-  const validateFn = action === 'SEND_NOC'
-    ? validateNocContent
-    : undefined
   return manageAction(
     { id },
     action,
     actionFn,
     buttonPosition,
     buttonIndex,
-    refresh,
+    refreshFn,
     additionalArgs,
     validateFn
   )
@@ -78,15 +85,15 @@ watch(
     initialMount.value = false
     updateRouteAndButtons(RoutesE.EXAMINE, {
       approve: {
-        action: (id: string) => handleApplicationAction(id, 'APPROVE', 'right', 2),
+        action: (id: string) => handleApplicationAction(id, ApplicationActionsE.APPROVE, 'right', 1),
         label: t('btn.approve')
       },
       reject: {
-        action: (id: string) => handleApplicationAction(id, 'REJECT', 'right', 1),
+        action: (id: string) => handleApplicationAction(id, ApplicationActionsE.REJECT, 'right', 0),
         label: t('btn.decline')
       },
       sendNotice: {
-        action: (id: string) => handleApplicationAction(id, 'SEND_NOC', 'right', 0),
+        action: (id: string) => handleApplicationAction(id, ApplicationActionsE.SEND_NOC, 'right', 0),
         label: t('btn.sendNotice')
       }
     })

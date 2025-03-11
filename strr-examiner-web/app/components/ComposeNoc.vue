@@ -1,8 +1,13 @@
 <script setup lang="ts">
-const { sendNocSchema, validateNocContent } = useExaminerStore()
+const { sendNocSchema } = useExaminerStore()
 const { nocContent, showNocModal, nocFormRef } = storeToRefs(useExaminerStore())
 const { t } = useI18n()
 
+const handleInput = () => {
+  if (nocContent.value.content.length > 1 && nocFormRef.value) {
+    nocFormRef.value.clear()
+  }
+}
 </script>
 
 <template>
@@ -12,7 +17,7 @@ const { t } = useI18n()
         ref="nocFormRef"
         :schema="sendNocSchema"
         :state="nocContent"
-        @input="validateNocContent()"
+        :validate-on="['submit']"
       >
         <div class="flex">
           <div class="flex w-1/5 flex-col items-center">
@@ -29,6 +34,7 @@ const { t } = useI18n()
                 auto-resize
                 resize
                 :rows="3"
+                @update:model-value="handleInput"
               />
             </UFormGroup>
           </div>

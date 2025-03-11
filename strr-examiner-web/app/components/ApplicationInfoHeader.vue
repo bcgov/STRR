@@ -13,7 +13,7 @@ const getBadgeColor = (status: ApplicationStatus): string => {
       return 'green'
     case ApplicationStatus.NOC_PENDING:
     case ApplicationStatus.NOC_EXPIRED:
-      return 'orange'
+      return 'yellow'
     default:
       return 'primary'
   }
@@ -36,7 +36,7 @@ const nocCountdown = computed(() => {
   const daysLeft = dayCountdown(activeHeader.value.nocEndDate.toString(), false)
   return {
     days: daysLeft,
-    isExpired: daysLeft < 0
+    isExpired: activeHeader.value.status === ApplicationStatus.NOC_EXPIRED
   }
 })
 
@@ -70,8 +70,9 @@ const nocCountdown = computed(() => {
         <strong>Submitted:</strong> {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a') }}
         ({{ dayCountdown(activeHeader.applicationDateTime.toString(), true) }} days ago)
         <template v-if="activeHeader.nocEndDate">
-          | <strong>NOC Expiry:</strong> <span :class="{ 'font-bold text-red-500': nocCountdown.isExpired }">
-            {{ nocCountdown.isExpired ? 'EXPIRED' : `${nocCountdown.days} days left` }}</span>
+          | <strong>NOC Expiry:</strong> {{ dateToString(activeHeader.nocEndDate, 'y-MM-dd a') }}
+          <span v-if="!nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
+          <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
         </template>
       </div>
     </div>

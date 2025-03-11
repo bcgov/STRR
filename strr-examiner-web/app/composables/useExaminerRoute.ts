@@ -1,3 +1,5 @@
+import { ApplicationActionsE, RegistrationActionsE } from '@/enums/actions'
+
 export const useExaminerRoute = () => {
   const localePath = useLocalePath()
   const { setButtonControl } = useButtonControl()
@@ -52,7 +54,7 @@ export const useExaminerRoute = () => {
         const leftButtons: ConnectBtnControlItem[] = []
         const rightButtons: ConnectBtnControlItem[] = []
 
-        if (examinerActions.includes('SEND_NOC') && buttonConfig.sendNotice) {
+        if (examinerActions.includes(ApplicationActionsE.SEND_NOC) && buttonConfig.sendNotice) {
           rightButtons.push({
             action: () => buttonConfig.sendNotice.action(id as string),
             label: buttonConfig.sendNotice.label,
@@ -62,7 +64,7 @@ export const useExaminerRoute = () => {
           })
         }
 
-        if (examinerActions.includes('REJECT') && buttonConfig.reject) {
+        if (examinerActions.includes(ApplicationActionsE.REJECT) && buttonConfig.reject) {
           rightButtons.push({
             action: () => buttonConfig.reject.action(id as string),
             label: buttonConfig.reject.label,
@@ -72,7 +74,7 @@ export const useExaminerRoute = () => {
           })
         }
 
-        if (examinerActions.includes('APPROVE') && buttonConfig.approve) {
+        if (examinerActions.includes(ApplicationActionsE.APPROVE) && buttonConfig.approve) {
           rightButtons.push({
             action: () => buttonConfig.approve.action(id as string),
             label: buttonConfig.approve.label,
@@ -82,7 +84,7 @@ export const useExaminerRoute = () => {
           })
         }
 
-        if (examinerActions.includes('CANCEL') && buttonConfig.cancel) {
+        if (examinerActions.includes(RegistrationActionsE.CANCEL) && buttonConfig.cancel) {
           rightButtons.push({
             action: () => buttonConfig.cancel.action(id as number),
             label: buttonConfig.cancel.label,

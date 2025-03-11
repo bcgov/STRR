@@ -1,3 +1,5 @@
+import { ApplicationActionsE, RegistrationActionsE } from '@/enums/actions'
+
 export const useExaminerActions = () => {
   const strrModal = useStrrModals()
   const { t } = useI18n()
@@ -18,7 +20,7 @@ export const useExaminerActions = () => {
    */
   const manageAction = async <T extends { id: string | number }, Args extends any[] = []>(
     item: T,
-    action: string,
+    action: ApplicationActionsE | RegistrationActionsE,
     actionFn: (id: T['id'], ...args: Args) => Promise<void>,
     buttonPosition: 'left' | 'right',
     buttonIndex: number,
@@ -29,12 +31,8 @@ export const useExaminerActions = () => {
     try {
       handleButtonLoading(false, buttonPosition, buttonIndex)
       if (validateFn) {
-        let isValid = true
-        if (action === 'SEND_NOC') {
-          isValid = await validateFn() as boolean
-        }
+        const isValid = await validateFn() as boolean
         if (!isValid) {
-          handleButtonLoading(true)
           return
         }
       }

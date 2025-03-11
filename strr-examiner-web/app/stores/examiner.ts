@@ -23,20 +23,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     content: ''
   })
   const showNocModal = ref(true)
-  const nocFormRef = ref()
-
+  const nocFormRef = ref<Form<any>>()
   const sendNocSchema = computed(() => z.object({
     content: z.string().min(1, { message: t('validation.nocContent') })
   }))
-
-  const validateNocContent = async (): Promise<boolean> => {
-    try {
-      await nocFormRef.value.validate()
-      return true
-    } catch (error) {
-      return false
-    }
-  }
 
   const tableFilters = reactive({
     searchText: '',
@@ -122,7 +112,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       method: 'POST',
       body: { content }
     })
-    nocContent.content = ''
   }
 
   /**
@@ -200,7 +189,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     activeReg,
     activeHeader,
     sendNocSchema,
-    validateNocContent,
     nocContent,
     nocFormRef,
     showNocModal,
