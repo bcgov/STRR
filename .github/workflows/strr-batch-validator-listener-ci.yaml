@@ -12,7 +12,7 @@ defaults:
     working-directory: ./queue_services/batch-permit-validator
 
 jobs:
-  strr-pay-ci:
+  strr-batch-permit-listener-ci:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
       app_name: "batch-permit-validator-listener"
