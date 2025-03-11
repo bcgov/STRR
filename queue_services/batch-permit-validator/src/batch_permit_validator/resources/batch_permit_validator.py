@@ -32,18 +32,25 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-# pylint: disable=logging-fstring-interpolation, W0612, W0511, W0718, W0212
+# pylint: disable=logging-fstring-interpolation, W0612, W0511, W0718, W0212, C0103
 
-"""This Module processes eventarc messages for bulk validation file upload.
+"""This Module handles messages related to bulk validation file upload.
 """
+from dataclasses import dataclass
 from http import HTTPStatus
 import json
+import re
+from typing import Optional
 
 from flask import Blueprint
 from flask import current_app
 from flask import request
 from google.cloud import run_v2
+import requests
+from simple_cloudevent import SimpleCloudEvent
 from structured_logging import StructuredLogging
+
+from batch_permit_validator.services import gcp_queue
 
 bp = Blueprint("worker", __name__)
 
@@ -107,3 +114,63 @@ def _trigger_batch_permit_validator_job(file_name=""):
         logger.error(e, stack_info=True, exc_info=True)
         logger.error(f"Error triggering job: {e}")
         raise e
+
+
+@bp.route("/bulk-validation-response", methods=("POST",))
+def send_bulk_validation_response():
+    """Process the incoming bulk validation response event."""
+    if not request.data:
+        # logger(request, "INFO", f"No incoming raw msg.")
+        return {}, HTTPStatus.OK
+
+    logger.info(f"Incoming raw msg: {str(request.data)}")
+
+    # 1. Get cloud event
+    if not (ce := gcp_queue.get_simple_cloud_event(request, wrapped=True)):
+        return {}, HTTPStatus.OK
+    logger.info(f"received ce: {str(ce)}")
+
+    # 2. Get validation response information
+    if not (validation_response := get_bulk_validation_response(ce)):
+        return {}, HTTPStatus.OK
+
+    response = requests.post(
+        validation_response.callBackUrl, data={"file": validation_response.preSignedUrl}, timeout=10
+    )
+
+    if response.status_code != 200:
+        return {}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    logger.info(f"completed ce: {str(ce)}")
+    return {}, HTTPStatus.OK
+
+
+@dataclass
+class BulkValidationResponse:
+    """Bulk Validation Response class"""
+
+    callBackUrl: Optional[str] = None
+    preSignedUrl: Optional[str] = None
+
+
+def get_bulk_validation_response(ce: SimpleCloudEvent):
+    """Return a BulkValidationResponse if enclosed in the cloud event."""
+    # pylint: disable=fixme
+    if (
+        (ce.type == "strr.batchPermitValidationResult")
+        and (data := ce.data)
+        and isinstance(data, dict)
+    ):
+        converted = dict_keys_to_snake_case(data)
+        pt = BulkValidationResponse(**converted)
+        return pt
+    return None
+
+
+def dict_keys_to_snake_case(d: dict):
+    """Convert the keys of a dict to snake_case"""
+    pattern = re.compile(r"(?<!^)(?=[A-Z])")
+    converted = {}
+    for k, v in d.items():
+        converted[pattern.sub("_", k).lower()] = v
+    return converted
