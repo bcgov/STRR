@@ -1,4 +1,4 @@
-name: STRR BATCH VALIDATOR LISTENER CI
+name: BATCH PERMIT LISTENER CI
 
 on:
   pull_request:
