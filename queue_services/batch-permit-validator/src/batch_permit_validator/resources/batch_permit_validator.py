@@ -65,12 +65,16 @@ def worker():
     if not request.data:
         return {}, HTTPStatus.OK
 
-    logger.info(f"Incoming raw msg: {str(request.data)}")
-
-    # 1. Get cloud event
-    request_bytes = request.data.decode().replace("'", '"')
-    ce = json.loads(request_bytes)
-    file_name = ce.get("name")
+    logger.info(f"Incoming raw msg: {request.get_json()}")
+    ce = request.get_json()
+    logger.info(ce)
+    file_name = (
+        ce.get("message", {})
+        .get("attributes", {})
+        .get(
+            "objectId",
+        )
+    )
     logger.info(f"File Name: {file_name}")
     if not file_name:
         return {"error": "Invalid File Name"}, HTTPStatus.BAD_REQUEST
@@ -135,7 +139,9 @@ def send_bulk_validation_response():
         return {}, HTTPStatus.OK
 
     response = requests.post(
-        validation_response.call_back_url, data={"file": validation_response.pre_signed_url}, timeout=10
+        validation_response.call_back_url,
+        data={"file": validation_response.pre_signed_url},
+        timeout=10,
     )
 
     if response.status_code != 200:
