@@ -231,7 +231,7 @@ function handleColumnSort (column: string) {
               size="sm"
             >
               <template #trailing>
-                <UIcon name="i-mdi-search" class="size-5 shrink-0 pr-2 text-bcGovColor-activeBlue" />
+                <UIcon name="i-mdi-search" class="text-bcGovColor-activeBlue size-5 shrink-0 pr-2" />
               </template>
             </UInput>
             <ConnectI18nHelper
@@ -497,7 +497,7 @@ function handleColumnSort (column: string) {
         <template #registrationNumber-data="{ row }">
           <div
             v-if="row.registrationNumber"
-            class="flex items-center whitespace-nowrap font-bold text-bcGovColor-activeBlue underline"
+            class="text-bcGovColor-activeBlue flex items-center whitespace-nowrap font-bold underline"
           >
             <UIcon name="i-mdi-check-circle" class="mr-1 text-green-700" />{{ row.registrationNumber }} /
           </div>
