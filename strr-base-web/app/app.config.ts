@@ -25,6 +25,19 @@ export default defineAppConfig({
       enable: false
     }
   },
+  theme: {
+    extend: {
+      colors: {
+        yellow: {
+          500: '#FCBA19'
+        },
+        gray: {
+          950: '#212529'
+        }
+
+      }
+    }
+  },
   ui: {
     strategy: 'merge',
     button: {
@@ -34,6 +47,13 @@ export default defineAppConfig({
         }
       },
       gap: { sm: 'gap-x-2.5' }
+    },
+    badge: {
+      color: {
+        yellow: {
+          solid: 'text-gray-950 bg-yellow-500'
+        }
+      }
     },
     checkbox: {
       wrapper: 'space-x-0',

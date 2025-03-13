@@ -11,6 +11,7 @@ defineProps<ConnectDetailHeaderItem>()
       v-if="chip"
       :label="text"
       :color="chipColour || 'primary'"
+      class="font-bold uppercase"
       :class="itemClass || 'px-3'"
     />
     <a
