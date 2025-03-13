@@ -229,11 +229,19 @@ function handleColumnSort (column: string) {
               :aria-label="$t('label.findInApplication')"
               color="white"
               size="sm"
-            >
-              <template #trailing>
-                <UIcon name="i-mdi-search" class="size-5 shrink-0 pr-2 text-bcGovColor-activeBlue" />
-              </template>
-            </UInput>
+              trailing
+              icon="i-mdi-search"
+              :ui="{
+                icon: {
+                  base: 'text-bcGovColor-activeBlue',
+                  trailing: {
+                    padding: {
+                      sm: 'pr-2'
+                    }
+                  }
+                },
+              }"
+            />
             <ConnectI18nHelper
               class="text-sm"
               translation-path="label.resultsInTable"
