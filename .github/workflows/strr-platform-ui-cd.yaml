@@ -9,6 +9,7 @@ on:
       - release*
     paths:
       - "strr-platform-web/**"
+      - "strr-base-web/**"
   workflow_dispatch:
     inputs:
       target:

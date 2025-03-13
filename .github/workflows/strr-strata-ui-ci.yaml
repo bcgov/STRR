@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "strr-strata-web/**"
+      - "strr-base-web/**"
   workflow_dispatch:
 
 defaults:
