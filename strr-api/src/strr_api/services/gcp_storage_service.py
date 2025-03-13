@@ -34,6 +34,8 @@
 """Manages Auth service interactions."""
 import base64
 import json
+import logging
+import traceback
 import uuid
 from datetime import timedelta
 
@@ -42,6 +44,8 @@ from google.cloud import storage
 from google.oauth2 import service_account
 
 from strr_api.exceptions import ExternalServiceException
+
+logger = logging.getLogger("api")
 
 
 class GCPStorageService:
@@ -76,6 +80,7 @@ class GCPStorageService:
             blob.upload_from_string(data=file_contents, content_type=file_type)
             return blob_name
         except Exception as e:
+            logger.error(traceback.format_exc())
             raise ExternalServiceException(message="Error uploading registration document to gcp bucket.") from e
 
     @classmethod
@@ -87,6 +92,7 @@ class GCPStorageService:
             blob = registration_documents_bucket.blob(blob_name)
             blob.delete()
         except Exception as e:
+            logger.error(traceback.format_exc())
             raise ExternalServiceException(message="Error deleting registration document from gcp bucket.") from e
 
     @classmethod
@@ -99,6 +105,7 @@ class GCPStorageService:
             contents = blob.download_as_bytes()
             return contents
         except Exception as e:
+            logger.error(traceback.format_exc())
             raise ExternalServiceException(message="Error fetching registration document from gcp bucket.") from e
 
     @classmethod
@@ -112,6 +119,7 @@ class GCPStorageService:
             blob.upload_from_string(data=file_contents, content_type=file_type)
             return blob_name
         except Exception as e:
+            logger.error(traceback.format_exc())
             raise ExternalServiceException(message="Error uploading document to cloud storage bucket.") from e
 
     @classmethod

@@ -106,6 +106,7 @@ class ValidationService:
                             "message": ErrorMessage.UNIT_NUMBER_MISMATCH.value,
                         }
                     )
+
         if errors:
             response["errors"] = errors
         else:

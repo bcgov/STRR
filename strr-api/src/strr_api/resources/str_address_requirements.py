@@ -40,7 +40,7 @@ import logging
 from http import HTTPStatus
 
 from flasgger import swag_from
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
@@ -51,13 +51,15 @@ from strr_api.services.approval_service import ApprovalService
 
 logger = logging.getLogger("api")
 bp = Blueprint("str-requirements", __name__)
+bp_with_version = Blueprint("str-requirements-version", __name__)
 
 
-@bp.route("/requirements", methods=["POST"])
+@bp.route("/<path:action>", methods=["POST"])
+@bp_with_version.route("/<path:action>", methods=["POST"])
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
-def get_str_requirements():
+def get_str_requirements(action):
     """
     Returns the Short Term Rental requirements for this address.
     ---
@@ -74,6 +76,13 @@ def get_str_requirements():
       400:
         description:
     """
+    if action not in ["requirements", ":requirements"]:
+        return jsonify(errors="Invalid action requested."), HTTPStatus.BAD_REQUEST
+
+    return _get_address_requirements()
+
+
+def _get_address_requirements():
     try:
         address_json = request.get_json()
         [valid, errors] = validate(address_json, "rental_unit_address")

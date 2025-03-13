@@ -39,7 +39,6 @@ STRR Permit Validation API.
 import logging
 from http import HTTPStatus
 
-from flasgger import swag_from
 from flask import Blueprint, jsonify, request
 from flask_cors import cross_origin
 
@@ -48,38 +47,45 @@ from strr_api.exceptions import exception_response
 from strr_api.services.validation_service import ValidationService
 
 logger = logging.getLogger("api")
-bp = Blueprint("validation", __name__)
+bp = Blueprint(
+    "validation",
+    __name__,
+)
+bp_with_version = Blueprint(
+    "validation_with_version",
+    __name__,
+)
 
 
 @bp.route("/<path:action>", methods=("POST",))
+@bp_with_version.route("/<path:action>", methods=("POST",))
 @cross_origin(origin="*")
 @jwt.requires_auth
 def validate_action(action):
     """Choose the correct validation function to call."""
+
     class PermitType:
+        """Permit Type."""
+
         single_permit = ":validatePermit"
         batch_permit = ":batchValidate"
 
     valid_actions = (PermitType.single_permit, PermitType.batch_permit)
 
     if action not in valid_actions:
-        return jsonify(errors='Invalid action requested.'), HTTPStatus.BAD_REQUEST
-    
+        return jsonify(errors="Invalid action requested."), HTTPStatus.BAD_REQUEST
+
     match action:
         case PermitType.single_permit:
             return validate_listing()
-        
+
         case PermitType.batch_permit:
             return validate_batch()
-        
+
         case _:
-            return jsonify(errors='Action not implemented.'), HTTPStatus.BAD_REQUEST
+            return jsonify(errors="Action not implemented."), HTTPStatus.BAD_REQUEST
 
 
-@bp.route("/validatePermit", methods=("POST",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
 def validate_listing():
     """
     If a permit number it specified, the API matches the street number, postal code and unit number (optional)
@@ -111,10 +117,6 @@ def validate_listing():
         return exception_response(service_exception)
 
 
-@bp.route("/batchValidate", methods=("POST",))
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
 def validate_batch():
     """
     Validates the batch of permits.

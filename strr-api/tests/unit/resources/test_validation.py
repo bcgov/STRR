@@ -26,7 +26,14 @@ MOCK_PAYMENT_COMPLETED_RESPONSE = {
 def test_permit_does_not_exist(session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     validate_permit_request = {"identifier": "H123", "address": {"streetNumber": "2435", "postalCode": "V4A 8H4"}}
-    rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
+    rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
+    response_json = rv.json
+    assert rv.status_code == HTTPStatus.NOT_FOUND
+    assert len(response_json.get("errors")) == 1
+    assert response_json.get("errors")[0].get("code") == "PERMIT_NOT_FOUND"
+    assert response_json.get("errors")[0].get("message") == "Permit does not exist."
+
+    rv = client.post("/v1/permits/:validatePermit", json=validate_permit_request, headers=headers)
     response_json = rv.json
     assert rv.status_code == HTTPStatus.NOT_FOUND
     assert len(response_json.get("errors")) == 1
@@ -65,7 +72,7 @@ def test_permit_exists(session, client, jwt):
             "address": {"streetNumber": "12166", "postalCode": "V2X 7N1"},
         }
 
-        rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
+        rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
         assert rv.status_code == HTTPStatus.OK
         response_json = rv.json
 
@@ -103,7 +110,7 @@ def test_permit_details_mismatch(session, client, jwt):
             "identifier": registration_number,
             "address": {"streetNumber": "12165", "postalCode": "V2X 7N2"},
         }
-        rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
+        rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
         assert rv.status_code == HTTPStatus.OK
         response_json = rv.json
 
@@ -122,7 +129,13 @@ def test_permit_details_mismatch(session, client, jwt):
 def test_invalid_request_with_identifier(session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     validate_permit_request = {"identifier": "H123", "address": {"postalCode": "V4A 8H4"}}
-    rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
+    rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
+    assert rv.status_code == HTTPStatus.BAD_REQUEST
+    response_json = rv.json
+    assert len(response_json.get("errors")) == 1
+    assert response_json.get("errors")[0].get("message") == "'streetNumber' is a required property"
+
+    rv = client.post("/v1/permits/:validatePermit", json=validate_permit_request, headers=headers)
     assert rv.status_code == HTTPStatus.BAD_REQUEST
     response_json = rv.json
     assert len(response_json.get("errors")) == 1
@@ -132,7 +145,7 @@ def test_invalid_request_with_identifier(session, client, jwt):
 def test_invalid_request_without_identifier(session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     validate_permit_request = {"address": {"streetNumber": "2435", "postalCode": "V4A 8H4"}}
-    rv = client.post("/permits/validatePermit", json=validate_permit_request, headers=headers)
+    rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
     assert rv.status_code == HTTPStatus.BAD_REQUEST
     response_json = rv.json
     assert len(response_json.get("errors")) == 1
@@ -143,12 +156,10 @@ def test_action_invalid(client, jwt):
     "Test that an invalid action is not allowed."
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
-    
     validate_permit_request = {
-            "identifier": "H1234567",
-            "address": {"streetNumber": "12166", "postalCode": "V2X 7N1"},
-        }
-
+        "identifier": "H1234567",
+        "address": {"streetNumber": "12166", "postalCode": "V2X 7N1"},
+    }
     rv = client.post("/permits/:UnknownAction", json=validate_permit_request, headers=headers)
     assert rv.status_code == HTTPStatus.BAD_REQUEST
     response_json = rv.json
