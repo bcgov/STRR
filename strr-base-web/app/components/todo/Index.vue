@@ -1,8 +1,9 @@
 <script setup lang="ts">
 defineProps<{
+  id: string,
   title: string,
   subtitle?: string,
-  button: {
+  button?: {
     label: string,
     action: Function,
     colour?: string,
@@ -12,7 +13,10 @@ defineProps<{
 </script>
 <template>
   <div class="p-5">
-    <div class="flex">
+    <div
+      class="flex"
+      :data-test-id="id"
+    >
       <div class="grow space-y-2">
         <slot name="title">
           <h3 class="text-lg font-bold">
@@ -20,16 +24,19 @@ defineProps<{
           </h3>
         </slot>
         <slot name="subtitle">
-          <p v-if="subtitle">
-            {{ subtitle }}
+          <p v-if="subtitle" class="text-sm">
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <span v-html="subtitle" />
           </p>
         </slot>
       </div>
       <div>
         <UButton
+          v-if="button"
           :label="button.label"
           :color="button.colour || 'primary'"
           :icon="button.icon"
+          variant="link"
           @click="button.action()"
         />
       </div>

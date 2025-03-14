@@ -402,6 +402,14 @@ export default {
     noAccountsFound: 'No accounts found, please click below to get started with an account.',
     sessionExpired: 'Your session has expired. Please log in again to continue.'
   },
+  todos: {
+    noc: { // Notice of Consideration
+      title1: 'Notice of Consideration - Due by ',
+      title2: ' at 12:01 am PT',
+      general: "You have received a Notice of Consideration {boldStart}email{boldEnd} about issues with your application. Please review it carefully and {linkStart}add any required documents{linkEnd} below by selecting {boldStart}'Add new document'{boldEnd}.", // used for Host and Strata
+      host: "{newLine}{newLine}Make sure to select the correct document category when uploading. If submitting a {boldStart}Statement Document{boldEnd}, upload it under {boldStart}'Other Proof Document'{boldEnd}." // Host only specific addition
+    }
+  },
   toast: {
     invalidIdp: {
       generic: 'Invalid login source. Please login with one of the options provided.',

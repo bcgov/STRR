@@ -4,7 +4,8 @@ import { HostActions } from '~/enums/host-actions'
 export const getTodoApplication = (
   applicationPath: string,
   payRedirectPath: string,
-  applicationInfo?: ApplicationHeader
+  applicationInfo?: ApplicationHeader,
+  applicationType?: ApplicationType
 ) => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
@@ -13,6 +14,7 @@ export const getTodoApplication = (
 
   if (!applicationInfo) {
     todos.push({
+      id: 'todo-begin-app',
       title: t('strr.title.application'),
       subtitle: undefined,
       button: {
@@ -24,6 +26,7 @@ export const getTodoApplication = (
     })
   } else if (applicationInfo?.status === ApplicationStatus.DRAFT) {
     todos.push({
+      id: 'todo-resume-app',
       title: t('strr.title.application'),
       // NOTE: currently this status could only ever be DRAFT as there is no review process for platforms
       subtitle: applicationInfo.status,
@@ -45,6 +48,7 @@ export const getTodoApplication = (
   } else if (applicationInfo?.hostActions.includes(HostActions.SUBMIT_PAYMENT)) { // TODO: handle other host actions
     const { handlePaymentRedirect } = useConnectNav()
     todos.push({
+      id: 'todo-complete-payment',
       title: t('label.completePayment'),
       subtitle: undefined, // TODO: add subtitle ?
       button: {
@@ -53,6 +57,27 @@ export const getTodoApplication = (
           handlePaymentRedirect(applicationInfo.paymentToken, payRedirectPath)
       }
     })
+  }
+
+  if (applicationInfo?.status === ApplicationStatus.NOC_EXPIRED) {
+    const nocEndDate = dateToStringPacific(applicationInfo!.nocEndDate as Date, 'DDD')
+    const isHost = applicationType === ApplicationType.HOST
+
+    const translationProps = {
+      newLine: '<br/>',
+      boldStart: '<strong>',
+      boldEnd: '</strong>',
+      linkStart: "<a href='#summary-supporting-info' class='text-blue-500 underline'>",
+      linkEnd: '</a>'
+    }
+
+    const nocTodo: Todo = {
+      id: 'todo-noc-add-docs',
+      title: `${t('todos.noc.title1')}${nocEndDate}${t('todos.noc.title2')}`,
+      subtitle: `${t('todos.noc.general', translationProps)}${isHost ? t('todos.noc.host', translationProps) : ''}`
+    }
+
+    todos.push(nocTodo)
   }
 
   return todos
