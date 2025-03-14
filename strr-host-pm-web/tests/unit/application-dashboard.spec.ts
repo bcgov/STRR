@@ -118,6 +118,7 @@ describe('Dashboard Application Page', () => {
     await wrapper.vm.$forceUpdate()
     expect(wrapper.findComponent(TodoEmpty).exists()).toBe(false)
     expect(wrapper.findComponent(Todo).exists()).toBe(true)
+    expect(wrapper.findComponent(Todo).find('[data-test-id="todo-resume-app"]').exists()).toBe(true)
   })
 
   it('renders dashboard with additional documents upload for NOC', async () => {
@@ -125,12 +126,17 @@ describe('Dashboard Application Page', () => {
       ...mockApplication.header,
       applicationNumber: 'ABC123',
       status: ApplicationStatus.NOC_PENDING,
-      hostActions: []
+      hostActions: [],
+      nocEndDate: new Date('2025-01-01')
     }
     wrapper = await mountSuspended(ApplicationDashboard, {
       global: { plugins: [baseEnI18n] }
     })
     await wrapper.vm.$forceUpdate()
+
+    expect(wrapper.findComponent(TodoEmpty).exists()).toBe(false)
+    expect(wrapper.findComponent(Todo).exists()).toBe(true)
+    expect(wrapper.findComponent(Todo).find('[data-test-id="todo-noc-add-docs"]').exists()).toBe(true)
 
     const AddNewDocButton = '[data-test-id="add-noc-doc-btn"]'
     expect(wrapper.find(AddNewDocButton).exists()).toBe(true)

@@ -130,6 +130,7 @@ setBreadcrumbs([
         <TodoEmpty v-if="!todos.length" />
         <Todo
           v-for="todo in todos"
+          :id="todo.id"
           :key="todo.title"
           :title="todo.title"
           :subtitle="todo.subtitle"
