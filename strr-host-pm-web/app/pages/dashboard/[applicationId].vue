@@ -29,7 +29,8 @@ onMounted(async () => {
   todos.value = getTodoApplication(
     '/application',
     '/dashboard/' + application.value?.header.applicationNumber,
-    application.value?.header
+    application.value?.header,
+    ApplicationType.HOST
   )
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
@@ -117,10 +118,11 @@ setBreadcrumbs([
         <TodoEmpty v-if="!todos.length" data-test-id="todo-empty" />
         <Todo
           v-for="todo in todos"
+          :id="todo.id"
           :key="todo.title"
           :title="todo.title"
           :subtitle="todo.subtitle"
-          :button="todo.button"
+          :button="todo?.button"
         />
       </ConnectDashboardSection>
       <ConnectDashboardSection
@@ -137,7 +139,11 @@ setBreadcrumbs([
         :title="$t('strr.label.supportingInfo')"
         :loading="loading"
       >
-        <SummarySupportingInfo class="px-10 py-5" data-test-id="summary-supporting-info" />
+        <SummarySupportingInfo
+          id="summary-supporting-info"
+          class="px-10 py-5"
+          data-test-id="summary-supporting-info"
+        />
       </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
