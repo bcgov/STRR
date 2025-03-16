@@ -178,7 +178,8 @@ export default {
       },
       totalNumberOfListings: 'Total Number of Listings',
       noticeOfNonCompliance: 'Notice of Non-Compliance',
-      takedownRequest: 'Takedown Request'
+      takedownRequest: 'Takedown Request',
+      added: 'ADDED'
     },
     text: {
       applicationMustInclude: 'Your application must include the following:',

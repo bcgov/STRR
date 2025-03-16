@@ -20,7 +20,7 @@ const openDocInNewTab = async (supportingDocument: ApiDocument) => {
   }
 }
 
-const businessLicenceDoc = activeReg.value?.documents
+const businessLicenceDoc = activeReg.value?.documents.length > 0
   ? activeReg.value.documents
     .find(doc => doc.documentType === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)
   : undefined
@@ -73,6 +73,9 @@ const getPrSectionSubLabel = (): string =>
 
 const getBlSectionSubLabel = (): string =>
   `${getBlRequired()} ${getBlExempt()}`
+
+const hasPRFlags = computed(() =>
+  (isApplication.value && alertFlags.isNotSameProperty) || alertFlags.isHostTypeBusiness)
 
 </script>
 <template>
@@ -132,46 +135,62 @@ const getBlSectionSubLabel = (): string =>
             data-testid="flag-pr-requirement"
           />
         </template>
-        <div class="flex">
-          <div>
-            <div class="flex gap-x-8">
-              <span v-if="prExemptReason">
-                <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ getPrExemptReason(prExemptReason) }}
-              </span>
-              <span v-if="getStrataHotelCategory()">
-                <strong>{{ t('label.strataHotelCategory') }}:</strong> {{ getStrataHotelCategory() }}
-              </span>
-            </div>
-            <div
-              v-if="activeReg.documents && !isEmpty(activeReg.documents)"
-              class="mt-2"
-              data-testid="pr-req-documents"
+        <div class="flex gap-y-2">
+          <div
+            v-if="prExemptReason || getStrataHotelCategory()"
+            class="flex gap-x-8"
+          >
+            <span v-if="prExemptReason">
+              <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ getPrExemptReason(prExemptReason) }}
+            </span>
+            <span v-if="getStrataHotelCategory()">
+              <strong>{{ t('label.strataHotelCategory') }}:</strong> {{ getStrataHotelCategory() }}
+            </span>
+          </div>
+          <div
+            v-if="activeReg.documents && !isEmpty(activeReg.documents)"
+            class="flex flex-wrap gap-y-1"
+            data-testid="pr-req-documents"
+          >
+            <span
+              v-for="document in activeReg.documents.filter(
+                (doc: ApiDocument) => doc.documentType !== DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
+              )"
+              :key="document.fileKey"
+              class="mr-4 flex whitespace-nowrap"
             >
               <UButton
-                v-for="document in activeReg.documents.filter(
-                  doc => doc.documentType !== DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
-                )"
-                :key="document.fileKey"
-                class="mr-4 gap-x-1 p-0"
+                class="gap-x-1 p-0"
                 variant="link"
                 icon="mdi-file-document-outline"
                 @click="openDocInNewTab(document)"
               >
                 {{ t(`documentLabels.${document.documentType}`) }}
               </UButton>
+              <UBadge
+                v-if="document.uploadStep === DocumentUploadStep.NOC"
+                :label="`${ t('strr.label.added')} ` + document.uploadDate"
+                size="sm"
+                class="ml-1 px-3 py-0 font-bold"
+              />
+            </span>
+          </div>
+          <div
+            v-if="hasPRFlags"
+            class="w-full space-y-5"
+          >
+            <div
+              v-if="isApplication && alertFlags.isNotSameProperty"
+              class="font-bold text-red-600"
+            >
+              {{ t('strr.alertFlags.notSameProperty') }}
             </div>
-          </div>
-          <div
-            v-if="isApplication && alertFlags.isNotSameProperty"
-            class="ml-3 w-1/3 font-bold text-red-600"
-          >
-            {{ t('strr.alertFlags.notSameProperty') }}
-          </div>
-          <div
-            v-if="alertFlags.isHostTypeBusiness"
-            class="ml-3 w-1/3 font-bold text-red-600"
-          >
-            {{ t('strr.alertFlags.hostIsBusiness') }}
+            <div
+              v-if="alertFlags.isHostTypeBusiness"
+              class="font-bold text-red-600"
+            >
+              {{ t('strr.alertFlags.hostIsBusiness') }}
+            </div>
           </div>
         </div>
       </ApplicationDetailsSection>

@@ -9,7 +9,7 @@ const props = defineProps<{ label: string, subLabel?: string }>()
     <div class="block min-w-[25px]">
       <slot name="icon" />
     </div>
-    <div class="flex w-1/5 flex-col items-start justify-start">
+    <div class="flex w-1/5 flex-none flex-col items-start justify-start">
       <span class="text-sm font-bold">{{ props.label }}</span>
       <span class="text-sm">{{ props.subLabel }}</span>
     </div>

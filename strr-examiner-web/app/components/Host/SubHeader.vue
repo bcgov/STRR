@@ -3,9 +3,6 @@ import { useFlags } from '~/composables/useFlags'
 
 const exStore = useExaminerStore()
 const { isApplication, activeReg, activeHeader } = storeToRefs(exStore)
-const existingHostRegistrations = isApplication.value
-  ? activeHeader.value.existingHostRegistrations
-  : undefined
 const { t } = useI18n()
 const alertFlags = reactive(useFlags())
 
@@ -79,7 +76,10 @@ const hostExp = useHostExpansion()
         </div>
       </div>
 
-      <div class="space-y-2 pl-5">
+      <div
+        id="home-details"
+        class="space-y-2 pl-5"
+      >
         <div>
           {{ t(`propertyType.${activeReg.unitDetails?.propertyType}`) }}
         </div>
@@ -101,17 +101,17 @@ const hostExp = useHostExpansion()
         <div><strong>{{ t('strr.label.pid') }}</strong> {{ activeReg.unitDetails?.parcelIdentifier }}</div>
         <div v-if="isApplication" class="flex gap-x-1">
           <strong>{{ t('strr.label.registeredRentals') }}</strong>
-          {{ existingHostRegistrations }}
+          {{ (activeHeader as ApplicationHeader)?.existingHostRegistrations }}
           <AlertFlag
             v-if="alertFlags.isRegLimitExceeded"
             :tooltip-text="t('strr.alertFlags.exceedsRegistrationLimit')"
             data-testid="flag-exceeds-reg-limit"
           />
         </div>
-        <div>
+        <!-- TODO: Get number of PR registered rentals -->
+        <!-- <div>
           <strong>{{ t('strr.label.prRegisteredRentals') }}</strong>
-          <!-- TODO: Get number of PR registered rentals -->
-        </div>
+        </div> -->
       </div>
 
       <div
