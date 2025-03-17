@@ -172,6 +172,7 @@ const hasPRFlags = computed(() =>
                 :label="`${ t('strr.label.added')} ` + document.uploadDate"
                 size="sm"
                 class="ml-1 px-3 py-0 font-bold"
+                data-testid="supporting-doc-date-badge"
               />
             </span>
           </div>

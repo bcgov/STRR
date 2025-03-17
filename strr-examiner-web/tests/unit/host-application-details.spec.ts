@@ -1,9 +1,12 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import {
   mockHostApplication,
   mockWithPrExemptAndStrataHotel,
-  mockWithBlExempt
+  mockWithBlExempt,
+  mockDocumentsNOC,
+  mockHostApplicationNOCExpired
 } from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
 import ApplicationDetails from '~/pages/examine/[applicationId].vue'
@@ -35,11 +38,15 @@ vi.stubGlobal('URL', {
 describe('Examiner - Host Application Details Page', () => {
   let wrapper: any
 
+  // helper function to set mock data, mount the wrapper and wait for promises to resolve
+  const setupMockAndMount = async (mockData: HostApplicationResp = mockHostApplication) => {
+    currentMockData = mockData
+    wrapper = await mountSuspended(ApplicationDetails, { global: { plugins: [enI18n] } })
+    await flushPromises()
+  }
+
   beforeAll(async () => {
-    currentMockData = mockHostApplication
-    wrapper = await mountSuspended(ApplicationDetails, {
-      global: { plugins: [enI18n] }
-    })
+    await setupMockAndMount()
   })
 
   it('renders Application Details page and its components', () => {
@@ -123,5 +130,15 @@ describe('Examiner - Host Application Details Page', () => {
       global: { plugins: [enI18n] }
     })
     expect(prWrapper.exists()).toBe(true)
+  })
+
+  it('render NOC uploaded docs with date badges', async () => {
+    // setup new mock application for NOC Expired with additional uploaded documents
+    await setupMockAndMount(mockHostApplicationNOCExpired)
+
+    const hostSupportingInfo = wrapper.findComponent(HostSupportingInfo)
+    expect(hostSupportingInfo.exists()).toBe(true)
+    expect(hostSupportingInfo.findTestId('pr-req-documents').exists()).toBe(true)
+    expect(hostSupportingInfo.findAll('[data-testid="supporting-doc-date-badge"]').length).toBe(mockDocumentsNOC.length)
   })
 })

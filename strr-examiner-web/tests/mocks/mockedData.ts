@@ -1,4 +1,4 @@
-const mockDocuments: ApiDocument[] = [
+export const mockDocuments: ApiDocument[] = [
   {
     documentType: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE,
     fileKey: 'abc12345-6789-0abc-def1-234567890abc',
@@ -10,6 +10,33 @@ const mockDocuments: ApiDocument[] = [
     fileKey: 'abc12345-6789-0abc-def1-345245das',
     fileName: 'property-assessment.pdf',
     fileType: 'application/pdf'
+  }
+]
+
+export const mockDocumentsNOC: ApiDocument[] = [
+  {
+    documentType: DocumentUploadType.BCSC,
+    fileKey: 'e6543ead-286e-4cc1-r4563-3ccae1e49b9f',
+    fileName: 'Supporting_Document_1.pdf',
+    fileType: 'application/pdf',
+    uploadDate: '2025-03-09',
+    uploadStep: DocumentUploadStep.NOC
+  },
+  {
+    documentType: DocumentUploadType.BC_DRIVERS_LICENSE,
+    fileKey: 'a1f22e9d-9fa4-4605-87d2-33ee7c05f51a',
+    fileName: 'Supporting_Document_2.pdf',
+    fileType: 'application/pdf',
+    uploadDate: '2025-03-09',
+    uploadStep: DocumentUploadStep.NOC
+  },
+  {
+    documentType: DocumentUploadType.COMBINED_BCSC_LICENSE,
+    fileKey: '34637354-f9ab-425e-8da4-32c33d46fcaa',
+    fileName: 'Supporting_Document_3.pdf',
+    fileType: 'application/pdf',
+    uploadDate: '2025-03-09',
+    uploadStep: DocumentUploadStep.NOC
   }
 ]
 
@@ -175,6 +202,21 @@ export const mockHostApplicationWithFlags: HostApplicationResp = {
       ...MOCK_UNIT_ADDRESS,
       unitNumber: '' // flag
     } as ApiUnitAddress
+  }
+}
+
+export const mockHostApplicationNOCExpired: HostApplicationResp = {
+  ...mockHostApplication,
+  header: {
+    ...mockHostApplication.header,
+    status: ApplicationStatus.NOC_EXPIRED
+  },
+  registration: {
+    ...mockHostApplication.registration,
+    documents: [
+      ...mockDocuments,
+      ...mockDocumentsNOC
+    ]
   }
 }
 
