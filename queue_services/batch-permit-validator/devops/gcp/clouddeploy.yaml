@@ -51,7 +51,7 @@ serialPipeline:
       verify: false
    deployParameters:
    - values:
-      deploy-env: "staging"
+      deploy-env: "sandbox"
       deploy-project-id: "bcrbk9-tools"
       service-name: "batch-permit-listener-sandbox"
       container-name: "batch-permit-listener-sandbox"
