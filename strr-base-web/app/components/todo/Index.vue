@@ -19,7 +19,7 @@ defineProps<{
     >
       <div class="grow space-y-2">
         <slot name="title">
-          <h3 class="text-lg font-bold">
+          <h3 class="text-base font-bold">
             {{ title }}
           </h3>
         </slot>
