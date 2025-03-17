@@ -12,7 +12,7 @@ defineProps<{
 }>()
 </script>
 <template>
-  <div class="p-5">
+  <div class="p-6">
     <div
       class="flex"
       :data-test-id="id"
