@@ -98,7 +98,9 @@ const hostExp = useHostExpansion()
             data-testid="flag-host-address-not-same"
           />
         </div>
-        <div><strong>{{ t('strr.label.pid') }}</strong> {{ activeReg.unitDetails?.parcelIdentifier }}</div>
+        <div v-if="activeReg.unitDetails?.parcelIdentifier">
+          <strong>{{ t('strr.label.pid') }}</strong> {{ activeReg.unitDetails?.parcelIdentifier }}
+        </div>
         <div v-if="isApplication" class="flex gap-x-1">
           <strong>{{ t('strr.label.registeredRentals') }}</strong>
           {{ (activeHeader as ApplicationHeader)?.existingHostRegistrations }}
