@@ -13,7 +13,7 @@ import ApplicationDetails from '~/pages/examine/[applicationId].vue'
 import {
   ApplicationInfoHeader, HostSubHeader, HostSupportingInfo,
   StrataSubHeader, PlatformSubHeader, UBadge, UButton,
-  StrataSupportingInfo
+  StrataSupportingInfo, SupportingDocuments
 } from '#components'
 
 let currentMockData = mockHostApplication
@@ -24,7 +24,13 @@ vi.mock('@/stores/examiner', () => ({
     activeReg: ref(currentMockData.registration),
     activeHeader: ref(currentMockData.header),
     activeRecord: ref(currentMockData),
-    isApplication: ref(true)
+    isApplication: ref(true),
+    openDocInNewTab: vi.fn().mockImplementation(() => {
+      const url = URL.createObjectURL(new Blob(['test']))
+      window.open(url, '_blank')
+      URL.revokeObjectURL(url)
+      setTimeout(() => URL.revokeObjectURL(url), 100)
+    })
   })
 }))
 
@@ -54,6 +60,7 @@ describe('Examiner - Host Application Details Page', () => {
     expect(wrapper.findComponent(ApplicationInfoHeader).exists()).toBe(true)
     expect(wrapper.findComponent(HostSubHeader).exists()).toBe(true)
     expect(wrapper.findComponent(HostSupportingInfo).exists()).toBe(true)
+    expect(wrapper.findComponent(SupportingDocuments).exists()).toBe(true)
     expect(wrapper.findComponent(StrataSubHeader).exists()).toBe(false)
     expect(wrapper.findComponent(StrataSupportingInfo).exists()).toBe(false)
     expect(wrapper.findComponent(PlatformSubHeader).exists()).toBe(false)
@@ -91,7 +98,8 @@ describe('Examiner - Host Application Details Page', () => {
     expect(hostSupportingInfo.exists()).toBe(true)
     expect(hostSupportingInfo.findTestId('str-prohibited-section').exists()).toBe(false)
     expect(hostSupportingInfo.findTestId('business-lic-section').exists()).toBe(true)
-    expect(hostSupportingInfo.findTestId('open-business-lic-btn').exists()).toBe(true)
+    expect(hostSupportingInfo.findTestId('bl-documents').exists()).toBe(true)
+    expect(hostSupportingInfo.findTestId('open-business-lic-btn-0').exists()).toBe(true)
     expect(hostSupportingInfo.findTestId('business-lic-section').text())
       .toContain(mockHostApplication.registration.unitDetails!.businessLicense)
     expect(hostSupportingInfo.findTestId('business-lic-section').findAllComponents(UButton).length).toBe(1)
@@ -102,7 +110,9 @@ describe('Examiner - Host Application Details Page', () => {
 
   it('opens document in new tab when business license button is clicked', async () => {
     const hostSupportingInfo = wrapper.findComponent(HostSupportingInfo)
-    const businessLicBtn = hostSupportingInfo.findTestId('open-business-lic-btn')
+    expect(hostSupportingInfo.findTestId('bl-documents').exists()).toBe(true)
+    expect(hostSupportingInfo.findTestId('open-business-lic-btn-0').exists()).toBe(true)
+    const businessLicBtn = hostSupportingInfo.findTestId('open-business-lic-btn-0')
     await businessLicBtn.trigger('click')
     expect(mockOpen).toHaveBeenCalledWith('blob:url', '_blank')
   })
