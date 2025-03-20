@@ -2,7 +2,7 @@
   "name": "strr-examiner-web",
   "private": true,
   "type": "module",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
@@ -47,5 +47,6 @@
     "nuxt": "^3.15.0",
     "uuid": "^11.0.3",
     "v-calendar": "^3.1.2"
-  }
+  },
+  "packageManager": "pnpm@9.13.2+sha1.969cc200a41db98449afee1bfa7578b3ce6ff330"
 }
