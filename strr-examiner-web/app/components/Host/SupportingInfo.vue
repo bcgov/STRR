@@ -5,25 +5,9 @@ import { useExaminerStore } from '~/stores/examiner'
 import { useFlags } from '~/composables/useFlags'
 
 const exStore = useExaminerStore()
-const { getDocument } = exStore
-const { activeReg, activeHeader, isApplication } = storeToRefs(exStore)
+const { activeReg, isApplication } = storeToRefs(exStore)
 const { t } = useI18n()
 const alertFlags = reactive(useFlags())
-
-const openDocInNewTab = async (supportingDocument: ApiDocument) => {
-  if (activeReg.value !== undefined) {
-    const file = await getDocument(activeHeader.value.applicationNumber!, supportingDocument.fileKey)
-    const blob = new Blob([file], { type: 'application/pdf' })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
-    URL.revokeObjectURL(url)
-  }
-}
-
-const businessLicenceDoc = activeReg.value?.documents.length > 0
-  ? activeReg.value.documents
-    .find(doc => doc.documentType === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)
-  : undefined
 
 // Principal Residence Requirements:
 const getPrRequired = (): string => {
@@ -44,19 +28,21 @@ const getBlRequired = (): string => {
     : t('pr.notRequired')
 }
 
-const blExemptReason = activeReg.value?.unitDetails?.blExemptReason
 const prExemptReason = activeReg.value?.unitDetails?.prExemptReason
+const businessLicenseExemptReason = activeReg.value?.unitDetails?.blExemptReason
+const businessLicenseNum = activeReg.value.unitDetails?.businessLicense
+const businessLicenseExpiryDate = activeReg.value.unitDetails?.businessLicenseExpiryDate
 
 const getPrExemptReason = (label: string): string =>
   t(`prExemptReason.${label}`)
 
 const getPrExempt = (): string =>
-  activeReg.value?.unitDetails?.prExemptReason
+  prExemptReason
     ? t('pr.exempt')
     : t('pr.notExempt')
 
 const getBlExempt = (): string =>
-  activeReg.value?.unitDetails?.blExemptReason
+  businessLicenseExemptReason
     ? t('pr.exempt')
     : t('pr.notExempt')
 
@@ -77,6 +63,45 @@ const getBlSectionSubLabel = (): string =>
 const hasPRFlags = computed(() =>
   (isApplication.value && alertFlags.isNotSameProperty) || alertFlags.isHostTypeBusiness)
 
+const hasBusinessLicenseDocument = computed((): boolean =>
+  activeReg.value.documents.some((doc: ApiDocument) =>
+    doc.documentType === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
+  )
+)
+
+const hasBlSection = computed((): boolean =>
+  hasBusinessLicenseDocument.value ||
+  businessLicenseExemptReason ||
+  businessLicenseNum ||
+  businessLicenseExpiryDate
+)
+
+// only BL docs during initial application submission, do not show badges
+const businessLicenseDocumentsConfig: SupportingDocumentsConfig = {
+  includeTypes: [DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE],
+  excludeUploadStep: [DocumentUploadStep.NOC]
+}
+
+// only BL docs during NOC Pending, show badges for NOC docs
+const businessLicenseNocDocumentsConfig: SupportingDocumentsConfig = {
+  includeTypes: [DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE],
+  includeUploadStep: [DocumentUploadStep.NOC],
+  includeDateBadge: [DocumentUploadStep.NOC]
+}
+
+// all documents during initial application, excluding BL (they are in its own section)
+const applicationDocumentsConfig: SupportingDocumentsConfig = {
+  excludeTypes: [DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE],
+  excludeUploadStep: [DocumentUploadStep.NOC]
+}
+
+// only NOC documents with date badges, excluding BL (they are in its own section)
+const nocDocumentsConfig: SupportingDocumentsConfig = {
+  excludeTypes: [DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE],
+  includeUploadStep: [DocumentUploadStep.NOC],
+  includeDateBadge: [DocumentUploadStep.NOC]
+}
+
 </script>
 <template>
   <ConnectPageSection>
@@ -93,35 +118,34 @@ const hasPRFlags = computed(() =>
       </ApplicationDetailsSection>
 
       <ApplicationDetailsSection
-        v-if="activeReg?.strRequirements?.isBusinessLicenceRequired"
+        v-if="hasBlSection"
         :label="t('strr.label.businessLicence')"
         :sub-label="getBlSectionSubLabel()"
         data-testid="business-lic-section"
       >
         <div class="flex gap-x-8">
-          <span v-if="blExemptReason">
-            <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ blExemptReason }}
+          <div v-if="businessLicenseExemptReason">
+            <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ businessLicenseExemptReason }}
+          </div>
+          <span v-if="businessLicenseNum">
+            {{ t('strr.label.businessLicenceNumber') }} {{ businessLicenseNum }}
           </span>
-          <template v-else>
-            <UButton
-              v-if="businessLicenceDoc"
-              class="mr-4 gap-x-1 p-0"
-              variant="link"
-              icon="mdi-file-document-outline"
-              data-testid="open-business-lic-btn"
-              @click="openDocInNewTab(businessLicenceDoc)"
-            >
-              {{ t(`documentLabels.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`) }}
-            </UButton>
-            <span v-if="activeReg.unitDetails?.businessLicense">
-              {{ t('strr.label.businessLicenceNumber') }} {{ activeReg?.unitDetails.businessLicense }}
-            </span>
-            <span v-if="activeReg.unitDetails?.businessLicenseExpiryDate">
-              {{ t('strr.label.businessLicenceExpiryDate') }}
-              {{ dateToString(activeReg.unitDetails.businessLicenseExpiryDate, 'MMM dd, yyyy') }}
-            </span>
-          </template>
+          <span v-if="businessLicenseExpiryDate">
+            {{ t('strr.label.businessLicenceExpiryDate') }}
+            {{ dateToString(businessLicenseExpiryDate, 'MMM dd, yyyy') }}
+          </span>
+          <SupportingDocuments
+            class="mb-1 flex flex-wrap gap-y-1"
+            data-testid="bl-documents"
+            :config="businessLicenseDocumentsConfig"
+          />
         </div>
+
+        <SupportingDocuments
+          class="mb-1 flex flex-wrap gap-y-1"
+          data-testid="bl-noc-documents"
+          :config="businessLicenseNocDocumentsConfig"
+        />
       </ApplicationDetailsSection>
 
       <ApplicationDetailsSection
@@ -135,10 +159,10 @@ const hasPRFlags = computed(() =>
             data-testid="flag-pr-requirement"
           />
         </template>
-        <div class="flex gap-y-2">
+        <div class="flex">
           <div
             v-if="prExemptReason || getStrataHotelCategory()"
-            class="flex gap-x-8"
+            class="mb-2 flex gap-x-8"
           >
             <span v-if="prExemptReason">
               <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ getPrExemptReason(prExemptReason) }}
@@ -149,32 +173,18 @@ const hasPRFlags = computed(() =>
           </div>
           <div
             v-if="activeReg.documents && !isEmpty(activeReg.documents)"
-            class="flex flex-wrap gap-y-1"
             data-testid="pr-req-documents"
           >
-            <span
-              v-for="document in activeReg.documents.filter(
-                (doc: ApiDocument) => doc.documentType !== DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
-              )"
-              :key="document.fileKey"
-              class="mr-4 flex whitespace-nowrap"
-            >
-              <UButton
-                class="gap-x-1 p-0"
-                variant="link"
-                icon="mdi-file-document-outline"
-                @click="openDocInNewTab(document)"
-              >
-                {{ t(`documentLabels.${document.documentType}`) }}
-              </UButton>
-              <UBadge
-                v-if="document.uploadStep === DocumentUploadStep.NOC"
-                :label="`${ t('strr.label.added')} ` + document.uploadDate"
-                size="sm"
-                class="ml-1 px-3 py-0 font-bold"
-                data-testid="supporting-doc-date-badge"
-              />
-            </span>
+            <SupportingDocuments
+              class="mb-1 flex gap-y-1"
+              data-testid="initial-app-documents"
+              :config="applicationDocumentsConfig"
+            />
+            <SupportingDocuments
+              class="flex flex-wrap gap-y-1"
+              data-testid="noc-documents"
+              :config="nocDocumentsConfig"
+            />
           </div>
           <div
             v-if="hasPRFlags"

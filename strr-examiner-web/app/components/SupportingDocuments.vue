@@ -2,7 +2,7 @@
 import isEmpty from 'lodash/isEmpty'
 
 const props = defineProps<{
-  excludeTypes?: DocumentUploadType[]
+  config?: SupportingDocumentsConfig
 }>()
 
 const { t } = useI18n()
@@ -12,23 +12,48 @@ const { activeReg, activeHeader } = storeToRefs(exStore)
 const { applicationNumber } = activeHeader.value
 const { documents } = activeReg.value as { documents: ApiDocument[] }
 
-const filteredDocuments = props.excludeTypes
-  ? documents.filter(doc => !props.excludeTypes?.includes(doc.documentType))
-  : documents
+// filters documents based on the provided configuration
+const filterDocumentsByConfig = (config: SupportingDocumentsConfig): ApiDocument[] => {
+  const { includeTypes = [], excludeTypes = [], includeUploadStep = [], excludeUploadStep = [] } = config
 
+  return documents.filter((doc: ApiDocument) => {
+    const includeType = includeTypes.length ? includeTypes.includes(doc.documentType) : true
+    const excludeType = excludeTypes.includes(doc.documentType)
+    const includeStep = includeUploadStep.length
+      ? includeUploadStep.includes(doc.uploadStep as DocumentUploadStep)
+      : true
+    const excludeStep = excludeUploadStep.includes(doc.uploadStep as DocumentUploadStep)
+
+    return includeType && !excludeType && includeStep && !excludeStep
+  })
+}
+// optionally filter documents based on config, or return all documents
+const filteredDocuments = computed(() => props.config ? filterDocumentsByConfig(props.config) : documents)
 </script>
 
 <template>
   <div v-if="!isEmpty(filteredDocuments)">
-    <UButton
-      v-for="document in filteredDocuments"
+    <span
+      v-for="(document, index) in filteredDocuments"
       :key="document.fileKey"
-      class="mr-4 gap-x-1 p-0"
-      variant="link"
-      icon="mdi-file-document-outline"
-      @click="openDocInNewTab(applicationNumber!, document)"
+      class="mr-4 flex whitespace-nowrap"
     >
-      {{ t(`documentLabels.${document.documentType}`) }}
-    </UButton>
+      <UButton
+        class="gap-x-1 p-0"
+        variant="link"
+        icon="mdi-file-document-outline"
+        :data-testid="`open-business-lic-btn-${index}`"
+        @click="openDocInNewTab(applicationNumber!, document)"
+      >
+        {{ t(`documentLabels.${document.documentType}`) }}
+      </UButton>
+      <UBadge
+        v-if="document.uploadStep && props.config?.includeDateBadge?.includes(document.uploadStep)"
+        :label="`${ t('strr.label.added')} ` + document.uploadDate"
+        size="sm"
+        class="ml-2 px-3 py-0 font-bold"
+        data-testid="supporting-doc-date-badge"
+      />
+    </span>
   </div>
 </template>
