@@ -462,7 +462,8 @@ export default {
     TENANCY_AGREEMENT: 'Tenancy Agreement',
     RENT_RECEIPT_OR_BANK_STATEMENT: 'Rent Receipt or Bank Statement',
     LOCAL_GOVT_BUSINESS_LICENSE: 'Business License',
-    OTHERS: 'Other'
+    OTHERS: 'Other',
+    undefined: 'N/A'
   },
   pr: {
     required: 'Required.',

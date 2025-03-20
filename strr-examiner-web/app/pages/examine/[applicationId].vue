@@ -33,8 +33,12 @@ const { data: application, status, error, refresh } = await useLazyAsyncData<
     if (initialMount.value && slug && slug !== 'startNew') {
       return await getApplicationById(slug)
     }
-    // if slug is 'startNew' or refresh is executed, fetch next application
-    return await getNextApplication<HousApplicationResponse>()
+    // if slug is 'startNew' (navigated to Examine tab) - get next application
+    if (slug && slug === 'startNew') {
+      return await getNextApplication<HousApplicationResponse>()
+    }
+    // refresh the application with new data
+    return await getApplicationById(route.params.applicationId as string)
   }
 )
 

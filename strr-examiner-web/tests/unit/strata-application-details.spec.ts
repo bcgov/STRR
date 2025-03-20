@@ -11,6 +11,7 @@ import {
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     getNextApplication: vi.fn().mockResolvedValue(mockStrataApplication),
+    getApplicationById: vi.fn().mockResolvedValue(mockStrataApplication),
     activeReg: ref(mockStrataApplication.registration),
     activeHeader: ref(mockStrataApplication.header),
     activeRecord: ref(mockStrataApplication),

@@ -20,6 +20,7 @@ vi.mock('@/stores/examiner', () => ({
     approveApplication: vi.fn(),
     rejectApplication: vi.fn(),
     getNextApplication: vi.fn().mockResolvedValue(mockApplications[0]),
+    getApplicationById: vi.fn().mockResolvedValue(mockApplications[0]),
     getDocument: vi.fn(),
     openDocInNewTab: vi.fn(),
     resetFilters: vi.fn()

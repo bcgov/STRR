@@ -35,7 +35,7 @@ definePageMeta({
 
 const getHostPrRequirements = (hostApplication: ApiHostApplication): string => {
   const { isBusinessLicenceRequired, isPrincipalResidenceRequired, isStrProhibited } =
-    hostApplication.strRequirements as PropertyRequirements
+    hostApplication?.strRequirements as PropertyRequirements
 
   const { prExemptReason } = hostApplication.unitDetails
   const { strataHotelCategory } = hostApplication.unitDetails
