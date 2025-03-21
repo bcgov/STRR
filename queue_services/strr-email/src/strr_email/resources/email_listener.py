@@ -129,6 +129,7 @@ def worker():
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         noc_content=noc_content,
         noc_expiry_date=noc_expiry_date,
+        rental_nickname=_get_rental_nickname(app_dict, application.registration_type),
     )
     subject_number = (
         app_dict.get("header", {}).get("registrationNumber") or application.application_number
@@ -163,6 +164,14 @@ def worker():
 
     logger.info(f"completed ce: {str(ce)}")
     return {}, HTTPStatus.OK
+
+
+def _get_rental_nickname(app_dict, reg_type: Registration.RegistrationType) -> str | None:
+    """Return the rental unit nick name."""
+    if reg_type == Registration.RegistrationType.HOST:
+        if nick_name := app_dict.get("registration").get("unitAddress").get("nickname"):
+            return nick_name
+    return None
 
 
 def _get_address_street(app_dict: dict, reg_type: Registration.RegistrationType) -> str | None:

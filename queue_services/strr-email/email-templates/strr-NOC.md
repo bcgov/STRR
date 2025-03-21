@@ -3,6 +3,11 @@
 **Application Number:**
 {{application_num}}
 
+{% if rental_nickname %}
+**Short-Term Rental Nickname:**
+{{rental_nickname}}
+{% endif %}
+
 **Short-Term Rental Address:**  
 {% if address_street_extra %}{{ address_street }}
   {{ address_street_extra }}
@@ -20,7 +25,9 @@ It appears your application does not meet all the registration requirements. The
 
 {{noc_content | escape }}
 
-Please **email** [Registry.STR@gov.bc.ca](mailto:Registry.STR@gov.bc.ca) all necessary information or documents to address each issue listed above.
+Please **log in** to your [Short Term Rental Registry Dashboard](https://host.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) to **upload your documents and submissions** before the due date.
+
+If you need help uploading your documents or have any questions, please contact [Registry.STR@gov.bc.ca](mailto:Registry.STR@gov.bc.ca).
 
 ---
 # Important Deadlines
