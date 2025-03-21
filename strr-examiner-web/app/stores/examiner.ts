@@ -4,6 +4,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { getAccountApplications } = useStrrApi()
   const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
+  const strrModal = useStrrModals()
 
   const tableLimit = ref(50)
   const tablePage = ref(1)
@@ -97,6 +98,22 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       method: 'PUT',
       body: { status: ApplicationStatus.FULL_REVIEW_APPROVED }
     })
+  }
+
+  const downloadReceipt = async (applicationNumber: string) => {
+    try {
+      const resp = await $strrApi<Blob>(`/applications/${applicationNumber}/payment/receipt`, {
+        method: 'GET',
+        responseType: 'blob'
+      })
+      const blob = new Blob([resp], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      logFetchError(e, t('error.downloadReceipt.description'))
+      strrModal.openErrorModal('Error', t('error.downloadReceipt.description'), false)
+    }
   }
 
   const rejectApplication = async (applicationNumber: string): Promise<void> => {
@@ -206,6 +223,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     nocContent,
     nocFormRef,
     showNocModal,
+    downloadReceipt,
     approveApplication,
     rejectApplication,
     sendNoticeOfConsideration,

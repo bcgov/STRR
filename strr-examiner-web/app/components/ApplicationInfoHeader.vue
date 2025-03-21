@@ -44,20 +44,32 @@ const nocCountdown = computed(() => {
 <template>
   <div class="border-b bg-white py-6">
     <div class="app-inner-container">
-      <div class="mb-2 text-2xl">
-        <strong>
-          {{ activeHeader?.applicationNumber }} |
-        </strong>
-        {{ getApplicationName() }}
+      <div class="flex justify-between mb-2 text-2xl">
+        <div>
+          <strong>
+            {{ activeHeader?.applicationNumber }} |
+          </strong>
+          {{ getApplicationName() }}
+          <UButton
+            v-if="activeReg.registrationType === ApplicationType.STRATA_HOTEL"
+            icon="mdi-web"
+            :padded="false"
+            variant="link"
+            :to="(activeReg as ApiBaseStrataApplication).strataHotelDetails.brand.website"
+            target="_blank"
+            data-testid="strata-brand-website"
+          />
+        </div>
         <UButton
-          v-if="activeReg.registrationType === ApplicationType.STRATA_HOTEL"
-          icon="mdi-web"
+          icon="i-mdi-receipt-text-outline"
           :padded="false"
           variant="link"
-          :to="(activeReg as ApiBaseStrataApplication).strataHotelDetails.brand.website"
-          target="_blank"
-          data-testid="strata-brand-website"
-        />
+          data-testid="view-receipt-button"
+          class="underline"
+          @click="exStore.downloadReceipt(activeHeader?.applicationNumber)"
+        >
+          View Receipt
+        </UButton>
       </div>
       <div class="text-sm">
         <UBadge

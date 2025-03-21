@@ -251,6 +251,9 @@ export default {
       title: 'Error creating account',
       description: 'We could not create your account at this time. Please try again or if this issue persists, please contact us.'
     },
+    downloadReceipt: {
+      description: 'We could not download the receipt at this time. If error persists, please contact us.'
+    },
     reqFetch: {
       unknown: {
         title: 'An unexpected error occurred.',
