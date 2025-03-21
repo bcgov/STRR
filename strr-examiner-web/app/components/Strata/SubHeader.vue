@@ -36,7 +36,10 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
       </div>
 
       <div class="space-y-4 pl-5">
-        <div class="space-y-2">
+        <div
+          data-testid="strata-business"
+          class="space-y-2"
+        >
           <b>{{ $t('strr.label.business').toUpperCase() }}</b>
           <ConnectInfoWithIcon
             icon="i-mdi-domain"
@@ -45,6 +48,7 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
             <UButton
               :label="businessDetails?.legalName"
               :padded="false"
+              class="whitespace-normal text-left"
               variant="link"
               @click="strataExpansion.openBusiness()"
             />
@@ -57,6 +61,7 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
         </div>
         <div
           v-if="attorney.attorneyName || hasAttorneyAddress"
+          data-testid="strata-attorney"
           class="space-y-2"
         >
           <b>{{ $t('strr.label.attorneyForService').toUpperCase() }}</b>
@@ -84,6 +89,7 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
             <UButton
               :label="displayContactFullName(activeReg?.strataHotelRepresentatives[0])"
               :padded="false"
+              class="whitespace-normal text-left"
               variant="link"
               @click="strataExpansion.openIndividuals()"
             />
@@ -110,6 +116,7 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
             <UButton
               :label="displayContactFullName(activeReg?.strataHotelRepresentatives[1])"
               :padded="false"
+              class="whitespace-normal text-left"
               variant="link"
               @click="strataExpansion.openIndividuals()"
             />
@@ -125,6 +132,7 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
             <UButton
               :label="displayContactFullName(activeReg?.completingParty)"
               :padded="false"
+              class="whitespace-normal text-left"
               variant="link"
               @click="strataExpansion.openIndividuals()"
             />

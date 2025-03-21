@@ -93,7 +93,7 @@ const expandParties = () => {
         icon="i-mdi-web"
       >
         <UButton
-          class="underline underline-offset-2"
+          class="whitespace-normal text-left underline underline-offset-2"
           icon="i-mdi-open-in-new"
           :label="brand.name"
           :padded="false"
@@ -116,6 +116,7 @@ const expandParties = () => {
         <UButton
           :label="activeReg.businessDetails.legalName"
           :padded="false"
+          class="whitespace-normal text-left"
           variant="link"
           @click="expandBusiness"
         />
@@ -139,6 +140,7 @@ const expandParties = () => {
           :label="getFullName(primaryRep)"
           :icon="isCompPartyRep ? 'i-mdi-playlist-check' : ''"
           :padded="false"
+          class="whitespace-normal text-left"
           trailing
           variant="link"
           @click="expandParties"
@@ -152,6 +154,7 @@ const expandParties = () => {
         <UButton
           :label="getFullName(secondRep)"
           :padded="false"
+          class="whitespace-normal text-left"
           variant="link"
           @click="expandParties"
         />
@@ -163,6 +166,7 @@ const expandParties = () => {
           :label="getFullName(compParty)"
           icon="i-mdi-playlist-check"
           :padded="false"
+          class="whitespace-normal text-left"
           trailing
           variant="link"
           @click="expandParties"

@@ -53,6 +53,7 @@ const hostExp = useHostExpansion()
           <UButton
             :label="displayContactFullName(activeReg.primaryContact!)"
             :padded="false"
+            class="whitespace-normal text-left"
             variant="link"
             @click="hostExp.openHostOwners('primaryContact')"
           />
@@ -127,6 +128,7 @@ const hostExp = useHostExpansion()
               ? activeReg?.secondaryContact?.businessLegalName
               : displayContactFullName(activeReg?.secondaryContact)"
             :padded="false"
+            class="whitespace-normal text-left"
             variant="link"
             @click="hostExp.openHostOwners('secondaryContact')"
           />
@@ -139,6 +141,7 @@ const hostExp = useHostExpansion()
               ? displayContactFullName(activeReg?.propertyManager.contact)
               : activeReg?.propertyManager?.business?.legalName"
             :padded="false"
+            class="whitespace-normal text-left"
             variant="link"
             @click="hostExp.openHostOwners('propertyManager')"
           />
