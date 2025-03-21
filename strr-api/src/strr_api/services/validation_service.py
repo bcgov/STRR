@@ -34,6 +34,7 @@
 """Permit Validation Service."""
 import copy
 import json
+import re
 from datetime import datetime
 from http import HTTPStatus
 
@@ -80,7 +81,7 @@ class ValidationService:
         return response, status_code
 
     @classmethod
-    def check_permit_details(cls, request_json: dict, registration: Registration):
+    def check_permit_details(cls, request_json: dict, registration: Registration):  # pylint: disable=R0912
         """Checks the data in the request against the permit details."""
         response = copy.deepcopy(request_json)
         errors = []
@@ -107,12 +108,49 @@ class ValidationService:
                         }
                     )
 
+        if registration.registration_type == RegistrationType.STRATA_HOTEL.value:
+            match_found = False
+            strata_hotel = registration.strata_hotel_registration.strata_hotel
+            location = strata_hotel.location
+
+            if (
+                str(address_json.get("streetNumber")) == str(cls._extract_street_number(location.street_address))
+                and address_json.get("postalCode") == location.postal_code
+            ):
+                match_found = True
+
+            if not match_found:
+                for building in strata_hotel.buildings:
+                    if (
+                        str(address_json.get("streetNumber"))
+                        == str(cls._extract_street_number(building.address.street_address))
+                        and address_json.get("postalCode") == building.address.postal_code
+                    ):
+                        match_found = True
+                        break
+
+            if not match_found:
+                errors.append(
+                    {
+                        "code": ErrorMessage.ADDRESS_MISMATCH.name,
+                        "message": ErrorMessage.ADDRESS_MISMATCH.value,
+                    }
+                )
+
         if errors:
             response["errors"] = errors
         else:
             response["status"] = registration.status.name
             response["validUntil"] = DateUtil.as_legislation_timezone(registration.expiry_date).strftime("%Y-%m-%d")
         return response
+
+    @classmethod
+    def _extract_street_number(cls, address):
+        street_number = ""
+        match = re.match(r"(\d+)", address)
+        if match:
+            street_number = match.group(1)
+        return street_number
 
     @classmethod
     def save_bulk_validation_request(cls, request_json):
