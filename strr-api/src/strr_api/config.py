@@ -129,7 +129,7 @@ class Config:  # pylint: disable=too-few-public-methods
     STR_DATA_API_URL = os.getenv("STR_DATA_API_URL", "")
 
     BULK_VALIDATION_REQUESTS_BUCKET = os.getenv("BULK_VALIDATION_REQUESTS_BUCKET")
-    NOC_EXPIRY_DAYS = os.getenv("NOC_EXPIRY_DAYS", 8)
+    NOC_EXPIRY_DAYS = os.getenv("NOC_EXPIRY_DAYS", "8")
 
 
 class Production(Config):  # pylint: disable=too-few-public-methods
