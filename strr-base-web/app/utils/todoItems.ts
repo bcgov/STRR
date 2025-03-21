@@ -67,8 +67,10 @@ export const getTodoApplication = (
       newLine: '<br/>',
       boldStart: '<strong>',
       boldEnd: '</strong>',
-      linkStart: "<a href='#summary-supporting-info' class='text-blue-500 underline'>",
-      linkEnd: '</a>'
+      linkStart: "<button type='button'" +
+        "onClick=\"document.getElementById('summary-supporting-info').scrollIntoView({ behavior: 'smooth' })\"" +
+        "class='text-blue-500 underline'>",
+      linkEnd: '</button>'
     }
 
     const nocTodo: Todo = {
