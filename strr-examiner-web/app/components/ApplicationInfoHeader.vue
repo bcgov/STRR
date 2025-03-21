@@ -44,7 +44,7 @@ const nocCountdown = computed(() => {
 <template>
   <div class="border-b bg-white py-6">
     <div class="app-inner-container">
-      <div class="flex justify-between mb-2 text-2xl">
+      <div class="mb-2 flex justify-between text-2xl">
         <div>
           <strong>
             {{ activeHeader?.applicationNumber }} |
@@ -61,12 +61,13 @@ const nocCountdown = computed(() => {
           />
         </div>
         <UButton
+          v-if="activeHeader?.status !== ApplicationStatus.PAYMENT_DUE"
           icon="i-mdi-receipt-text-outline"
           :padded="false"
           variant="link"
           data-testid="view-receipt-button"
           class="underline"
-          @click="exStore.downloadReceipt(activeHeader?.applicationNumber)"
+          @click="exStore.viewReceipt(activeHeader?.applicationNumber)"
         >
           View Receipt
         </UButton>

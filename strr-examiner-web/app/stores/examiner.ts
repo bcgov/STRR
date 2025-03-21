@@ -100,7 +100,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
   }
 
-  const downloadReceipt = async (applicationNumber: string) => {
+  const viewReceipt = async (applicationNumber: string) => {
     try {
       const resp = await $strrApi<Blob>(`/applications/${applicationNumber}/payment/receipt`, {
         method: 'GET',
@@ -223,7 +223,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     nocContent,
     nocFormRef,
     showNocModal,
-    downloadReceipt,
+    viewReceipt,
     approveApplication,
     rejectApplication,
     sendNoticeOfConsideration,
