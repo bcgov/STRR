@@ -2,7 +2,7 @@
   "name": "strr-examiner-web",
   "private": true,
   "type": "module",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
