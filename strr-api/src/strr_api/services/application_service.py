@@ -37,6 +37,7 @@ from datetime import datetime, time, timedelta, timezone
 from typing import Optional
 
 import pytz
+from flask import current_app
 
 from strr_api.enums.enum import ApplicationType, PaymentStatus
 from strr_api.models import Application, Events, NoticeOfConsideration, Registration, User
@@ -279,7 +280,8 @@ class ApplicationService:
         notice_of_consideration.start_date = datetime.combine(
             datetime.now(pytz.timezone("America/Vancouver")) + timedelta(days=1), time(0, 1, 0)
         )
-        notice_of_consideration.end_date = notice_of_consideration.start_date + timedelta(days=8)
+        days = current_app.config.get("NOC_EXPIRY_DAYS", 8)
+        notice_of_consideration.end_date = notice_of_consideration.start_date + timedelta(days=int(days))
         notice_of_consideration.save()
         application.status = Application.Status.NOC_PENDING
         application.save()

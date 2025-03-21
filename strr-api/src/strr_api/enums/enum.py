@@ -160,6 +160,7 @@ class ErrorMessage(Enum):
     APPLICATION_CANNOT_BE_DELETED = "Application in the current status cannot be deleted."
     STRR_REQUIREMENTS_FETCH_ERROR = "Unable to retrieve the short term rental requirements for the address."
     INVALID_NOC_CONTENT = "Invalid content."
+    ADDRESS_MISMATCH = "Address does not match with the data in the permit."
 
 
 class ApplicationRole(Enum):
