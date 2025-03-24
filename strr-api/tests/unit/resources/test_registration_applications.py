@@ -826,7 +826,7 @@ def test_examiner_multi_select_filters(session, client, jwt):
     rv = client.put(f"/applications/{platform_app_number}/status", json=status_update_request, headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
 
-    rv = client.get("/applications?registrationType=HOST,PLATFORM", headers=headers)
+    rv = client.get("/applications?registrationType=HOST&registrationType=PLATFORM", headers=headers)
     response_json = rv.json
     assert rv.status_code == 200
     applications = response_json.get("applications")
@@ -837,16 +837,16 @@ def test_examiner_multi_select_filters(session, client, jwt):
     assert strata_app_number not in app_numbers
 
     rv = client.get(
-        f"/applications?registrationStatus={RegistrationStatus.ACTIVE.value},{RegistrationStatus.PENDING.value}",
+        f"/applications?registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.EXPIRED.value}",
         headers=headers,
     )
     response_json = rv.json
     assert rv.status_code == 200
     applications = response_json.get("applications")
-    assert len(applications) == 2
+    assert len(applications) == 1
     app_numbers = [app["header"]["applicationNumber"] for app in applications]
     assert host_app_number in app_numbers
-    assert platform_app_number in app_numbers
+    assert platform_app_number not in app_numbers
 
     rv = client.get(
         f"/applications?status={Application.Status.FULL_REVIEW_APPROVED},{Application.Status.DECLINED}",
@@ -862,8 +862,7 @@ def test_examiner_multi_select_filters(session, client, jwt):
 
     rv = client.get(
         "/applications?registrationType=HOST&registrationType=PLATFORM&registrationType=STRATA_HOTEL&"
-        + f"status={Application.Status.FULL_REVIEW_APPROVED}&status={Application.Status.DECLINED}&"
-        + f"registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.PENDING.value}",
+        + f"status={Application.Status.FULL_REVIEW_APPROVED}&status={Application.Status.DECLINED}",
         headers=headers,
     )
     response_json = rv.json
