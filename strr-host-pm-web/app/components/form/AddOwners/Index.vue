@@ -10,7 +10,8 @@ const {
   hasHost,
   hasCoHost,
   hasCompParty,
-  hasPropertyManager
+  hasPropertyManager,
+  isCraNumberOptional
 } = storeToRefs(contactStore)
 
 const editingIndex = ref<number | undefined>(undefined)
@@ -104,7 +105,7 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
         :set-owner="activeOwner"
         :owner-type="addingNewType"
         :is-complete="isComplete"
-        @cancel="addingNewType = undefined, activeOwner = undefined"
+        @cancel="addingNewType = undefined, activeOwner = undefined, isCraNumberOptional = false"
         @done="contactStore.addHostOwner($event), addingNewType = undefined, activeOwner = undefined"
       />
       <SummaryOwners

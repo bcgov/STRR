@@ -20,7 +20,7 @@ export const getHostPermitDashOwners = (): ConnectAccordionItem[] => {
         ),
         ...(owner.taxNumber
           ? [{ label: t('label.craTaxNumber'), text: owner.taxNumber }]
-          : []
+          : [{ label: t('label.craTaxNumber'), text: t('label.noCraTaxNumber') }]
         ),
         {
           icon: owner.role === OwnerRole.HOST ? 'i-mdi-map-marker-outline' : 'i-mdi-email-outline',

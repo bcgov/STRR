@@ -1,7 +1,7 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { baseEnI18n } from '../mocks/i18n'
-import { mockApplication } from '../mocks/mockedData'
+import { mockApplication, mockHostOwner } from '../mocks/mockedData'
 import ApplicationDashboard from '~/pages/dashboard/[applicationId].vue'
 import {
   ConnectDashboardSection, Todo, TodoEmpty, SummaryProperty,
@@ -173,5 +173,24 @@ describe('Dashboard Application Page', () => {
 
     expect(documentsList.findAll('[data-test-id="stored-document"]').length).toBe(3) // should show additional doc
     expect(documentsList.findAllComponents(UBadge).length).toBe(1) // should show date badge for NOC doc
+  })
+
+  it('renders dashboard with No CRA Tax Number', async () => {
+    vi.mock('@/stores/hostOwner', () => ({
+      useHostOwnerStore: () => ({
+        validateOwners: () => true,
+        hostOwners: [{
+          ...mockHostOwner,
+          taxNumber: '' // no tax number owner
+        }]
+      })
+    }))
+
+    const individualAndBusinessInfo = wrapper.find('[data-test-id="individuals-business-section"]')
+    expect(individualAndBusinessInfo.exists()).toBe(true)
+    expect(individualAndBusinessInfo.text()).toContain(mockHostOwner.dateOfBirth)
+    expect(individualAndBusinessInfo.text()).toContain(mockHostOwner.emailAddress)
+    // have to assert against the content as there is no other means to unit test it
+    expect(individualAndBusinessInfo.text()).toContain('No CRA Tax Number')
   })
 })

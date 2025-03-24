@@ -311,7 +311,8 @@ export default {
     unnamed: 'Unnamed',
     completingParty: 'Person completing form',
     individualOrBusiness: 'Individual or Business',
-    contactDetails: 'Contact Details'
+    contactDetails: 'Contact Details',
+    noCraTaxNumber: 'No CRA Tax Number'
   },
   link: {
     hostAccomodationsAct: 'Short-Term Rental Accommodations Act',

@@ -13,7 +13,7 @@ const mockDocuments: ApiDocument[] = [
   }
 ]
 
-const primaryContactPerson: ApiHostContactPerson = {
+const mockPrimaryContactPerson: ApiHostContactPerson = {
   contactType: OwnerType.INDIVIDUAL,
   dateOfBirth: '1985-05-15',
   emailAddress: 'alice.smith@example.com',
@@ -55,7 +55,7 @@ export const mockApplication: HostApplicationResp = {
   registration: {
     documents: mockDocuments,
     listingDetails: [],
-    primaryContact: primaryContactPerson,
+    primaryContact: mockPrimaryContactPerson,
     registrationType: ApplicationType.HOST,
     strRequirements: {
       isBusinessLicenceRequired: true,
@@ -87,5 +87,38 @@ export const mockApplication: HostApplicationResp = {
       businessLicense: '123123123',
       strataHotelCategory: StrataHotelCategory.FULL_SERVICE
     }
+  }
+}
+
+const mockMailingAddress: ConnectAddress = {
+  street: '456 Elm St',
+  streetAdditional: 'Suite 200',
+  city: 'Victoria',
+  region: 'BC',
+  postalCode: 'V1V2B2',
+  country: 'CA',
+  locationDescription: 'Next to the library',
+  streetName: 'Elm St',
+  streetNumber: '456',
+  unitNumber: '200'
+}
+
+export const mockHostOwner: HostOwner = {
+  ownerType: OwnerType.INDIVIDUAL,
+  preferredName: 'Jane Smith',
+  mailingAddress: mockMailingAddress,
+  businessLegalName: 'Jane Smith Consulting',
+  businessNumber: '987654321',
+  dateOfBirth: '1990-05-15',
+  role: OwnerRole.HOST,
+  isCompParty: true,
+  taxNumber: '123456789',
+  firstName: 'Jane',
+  middleName: 'A.',
+  lastName: 'Smith',
+  faxNumber: '555-987-6543',
+  emailAddress: 'jane.smith@example.com',
+  phone: {
+    number: '555-123-4567'
   }
 }
