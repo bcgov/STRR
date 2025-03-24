@@ -13,7 +13,7 @@ const hostExp = useHostExpansion()
     data-testid="host-sub-header"
     class="app-inner-container"
   >
-    <div class="grid grid-cols-4 gap-x-5 divide-x py-4 text-sm text-bcGovColor-midGray">
+    <div class="text-bcGovColor-midGray grid grid-cols-4 gap-x-5 divide-x py-4 text-sm">
       <div
         id="rental-unit-details"
         class="space-y-2"
@@ -48,12 +48,12 @@ const hostExp = useHostExpansion()
           <UIcon name="i-mdi-map-marker-outline" />
           {{ displayFullAddress(activeReg.primaryContact?.mailingAddress) }}
         </div>
-        <div class="flex items-center gap-1">
+        <div class="flex gap-1">
           <UIcon name="i-mdi-account" class="size-5 shrink-0 text-gray-700" />
           <UButton
             :label="displayContactFullName(activeReg.primaryContact!)"
             :padded="false"
-            class="whitespace-normal text-left"
+            class="w-full whitespace-normal text-left"
             variant="link"
             @click="hostExp.openHostOwners('primaryContact')"
           />
@@ -121,27 +121,27 @@ const hostExp = useHostExpansion()
         id="additional-details"
         class="space-y-2 pl-5"
       >
-        <div v-if="activeReg?.secondaryContact" class="flex items-center gap-1">
+        <div v-if="activeReg?.secondaryContact" class="flex gap-1">
           <UIcon name="i-mdi-account-multiple-outline" class="size-5 shrink-0 text-gray-700" />
           <UButton
             :label="activeReg?.secondaryContact?.contactType === OwnerType.BUSINESS
               ? activeReg?.secondaryContact?.businessLegalName
               : displayContactFullName(activeReg?.secondaryContact)"
             :padded="false"
-            class="whitespace-normal text-left"
+            class="w-full whitespace-normal text-left"
             variant="link"
             @click="hostExp.openHostOwners('secondaryContact')"
           />
         </div>
 
-        <div v-if="activeReg?.propertyManager?.propertyManagerType" class="flex items-center gap-1">
-          <UIcon name="i-mdi-at" class="size-5 shrink-0 text-gray-700" />
+        <div v-if="activeReg?.propertyManager?.propertyManagerType" class="flex gap-1">
+          <UIcon name="i-real-estate-agent" class="size-5 shrink-0 text-gray-700" />
           <UButton
             :label="activeReg?.propertyManager?.propertyManagerType === OwnerType.INDIVIDUAL
               ? displayContactFullName(activeReg?.propertyManager.contact)
               : activeReg?.propertyManager?.business?.legalName"
             :padded="false"
-            class="whitespace-normal text-left"
+            class="w-full whitespace-normal text-left"
             variant="link"
             @click="hostExp.openHostOwners('propertyManager')"
           />
