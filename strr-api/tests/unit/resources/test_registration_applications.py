@@ -133,7 +133,8 @@ def test_get_applications_by_registration_type(session, client, jwt):
 
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
-    assert len(response_json.get("applications")) == 4
+    # This will exclude Draft applications
+    assert len(response_json.get("applications")) == 3
 
     rv = client.get("/applications?registrationType=PLATFORM", headers=headers)
 
