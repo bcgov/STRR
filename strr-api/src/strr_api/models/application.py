@@ -196,7 +196,7 @@ class Application(BaseModel):
             return query
 
         search_term = search_term.strip()
-        return query.filter(
+        query = query.filter(
             db.or_(
                 Application.application_number.ilike(f"%{search_term}%"),
                 db.exists().where(
@@ -207,6 +207,7 @@ class Application(BaseModel):
                 ),
             )
         )
+        return query.filter(Application.status != Application.Status.DRAFT)
 
     @classmethod
     def _filter_by_registration_statuses(cls, registration_statuses: List[str], query: Query) -> Query:
@@ -215,11 +216,12 @@ class Application(BaseModel):
             return query
 
         registration_statuses = [status.upper() for status in registration_statuses if status]
-        return query.filter(
+        query = query.filter(
             db.exists().where(
                 (Registration.id == Application.registration_id) & (Registration.status.in_(registration_statuses))
             )
         )
+        return query.filter(Application.status != Application.Status.DRAFT)
 
     @classmethod
     def _filter_by_registration_types(cls, registration_types: List[str], query: Query) -> Query:
@@ -228,7 +230,8 @@ class Application(BaseModel):
             return query
 
         registration_types = [type.upper() for type in registration_types if type]
-        return query.filter(Application.registration_type.in_(registration_types))
+        query = query.filter(Application.registration_type.in_(registration_types))
+        return query.filter(Application.status != Application.Status.DRAFT)
 
     @classmethod
     def _filter_by_statuses(cls, statuses: List[str], query: Query) -> Query:
