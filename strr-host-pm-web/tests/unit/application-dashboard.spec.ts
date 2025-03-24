@@ -175,7 +175,7 @@ describe('Dashboard Application Page', () => {
     expect(documentsList.findAllComponents(UBadge).length).toBe(1) // should show date badge for NOC doc
   })
 
-  it('renders dashboard with No CRA Tax Number', async () => {
+  it('renders dashboard with No CRA Tax Number', () => {
     vi.mock('@/stores/hostOwner', () => ({
       useHostOwnerStore: () => ({
         validateOwners: () => true,
