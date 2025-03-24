@@ -790,3 +790,89 @@ def test_examiner_filter_record_number_application(session, client, jwt):
         response_json = rv.json
         assert rv.status_code == 200
         assert len(response_json.get("applications")) == 0
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_multi_select_filters(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        host_app_number = rv.json.get("header").get("applicationNumber")
+
+    with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        platform_app_number = rv.json.get("header").get("applicationNumber")
+
+    with open(CREATE_STRATA_HOTEL_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        strata_app_number = rv.json.get("header").get("applicationNumber")
+
+    for app_number in [host_app_number, platform_app_number, strata_app_number]:
+        application = Application.find_by_application_number(application_number=app_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+
+    status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+    rv = client.put(f"/applications/{host_app_number}/status", json=status_update_request, headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+
+    status_update_request = {"status": Application.Status.PROVISIONAL_REVIEW}
+    rv = client.put(f"/applications/{platform_app_number}/status", json=status_update_request, headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+
+    rv = client.get("/applications?registrationType=HOST,PLATFORM", headers=headers)
+    response_json = rv.json
+    assert rv.status_code == 200
+    applications = response_json.get("applications")
+    assert len(applications) == 2
+    app_numbers = [app["header"]["applicationNumber"] for app in applications]
+    assert host_app_number in app_numbers
+    assert platform_app_number in app_numbers
+    assert strata_app_number not in app_numbers
+
+    rv = client.get(
+        f"/applications?registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.PENDING.value}",
+        headers=headers
+    )
+    response_json = rv.json
+    assert rv.status_code == 200
+    applications = response_json.get("applications")
+    assert len(applications) == 2
+    app_numbers = [app["header"]["applicationNumber"] for app in applications]
+    assert host_app_number in app_numbers
+    assert platform_app_number in app_numbers
+
+    rv = client.get(
+        f"/applications?status={Application.Status.FULL_REVIEW_APPROVED},{Application.Status.PROVISIONAL_REVIEW}",
+        headers=headers
+    )
+    response_json = rv.json
+    assert rv.status_code == 200
+    applications = response_json.get("applications")
+    assert len(applications) == 2
+    app_numbers = [app["header"]["applicationNumber"] for app in applications]
+    assert host_app_number in app_numbers
+    assert platform_app_number in app_numbers
+
+    rv = client.get(
+        "/applications?registrationType=HOST&registrationType=PLATFORM&registrationType=STRATA_HOTEL&" +
+        f"status={Application.Status.FULL_REVIEW_APPROVED}&status={Application.Status.PROVISIONAL_REVIEW}&" +
+        f"registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.PENDING.value}",
+        headers=headers
+    )
+    response_json = rv.json
+    assert rv.status_code == 200
+    applications = response_json.get("applications")
+    assert len(applications) == 2
+    app_numbers = [app["header"]["applicationNumber"] for app in applications]
+    assert host_app_number in app_numbers
+    assert platform_app_number in app_numbers
+    host_app = next(app for app in applications if app["header"]["applicationNumber"] == host_app_number)
+    platform_app = next(app for app in applications if app["header"]["applicationNumber"] == platform_app_number)
+    assert host_app["header"]["status"] == Application.Status.FULL_REVIEW_APPROVED
+    assert platform_app["header"]["status"] == Application.Status.PROVISIONAL_REVIEW

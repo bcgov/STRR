@@ -32,6 +32,7 @@
 """ Data Class
 """
 from dataclasses import dataclass
+from typing import List
 
 
 @dataclass
@@ -40,10 +41,10 @@ class ApplicationSearch:
 
     page: int
     limit: int
-    status: str
+    statuses: List[str] = None
     sort_by: str = "id"
     sort_order: str = "desc"
     search_text: str = None
-    registration_type: str = None
-    registration_status: str = None
+    registration_types: List[str] = None
+    registration_statuses: List[str] = None
     record_number: str = None

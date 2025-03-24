@@ -186,17 +186,23 @@ def get_applications():
         description: Application or Registration Number filter
       - in: query
         name: registrationType
-        type: string
-        enum: [HOST, PLATFORM, STRATA_HOTEL]
+        type: array
+        items:
+          type: string
+          enum: [HOST, PLATFORM, STRATA_HOTEL]
         description: Registration type filter
       - in: query
         name: registrationStatus
-        type: string
-        enum: [ACTIVE, EXPIRED, SUSPENDED, CANCELLED]
+        type: array
+        items:
+          type: string
+          enum: [ACTIVE, EXPIRED, SUSPENDED, CANCELLED]
         description: Registration status filter
       - in: query
         name: status
-        type: string
+        type: array
+        items:
+          type: string
         description: Application status filter
       - in: query
         name: page
@@ -219,11 +225,11 @@ def get_applications():
 
     try:
         account_id = request.headers.get("Account-Id", None)
-        status = request.args.get("status", None)
+        status_values = request.args.getlist("status")
         page = request.args.get("page", 1)
         limit = request.args.get("limit", 50)
-        registration_type = request.args.get("registrationType")
-        registration_status = request.args.get("registrationStatus")
+        registration_types = request.args.getlist("registrationType")
+        registration_statuses = request.args.getlist("registrationStatus")
         record_number = request.args.get("recordNumber", None)
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
@@ -232,11 +238,11 @@ def get_applications():
         if sort_order not in ["asc", "desc"]:
             sort_order = "desc"
         filter_criteria = ApplicationSearch(
-            status=status,
+            statuses=status_values,
             page=int(page),
             limit=int(limit),
-            registration_type=registration_type,
-            registration_status=registration_status,
+            registration_types=registration_types,
+            registration_statuses=registration_statuses,
             record_number=record_number,
             sort_by=sort_by,
             sort_order=sort_order,
@@ -833,7 +839,10 @@ def search_applications():
     parameters:
       - in: query
         name: status
-        enum: [PAYMENT_DUE, PAID, AUTO_APPROVED, PROVISIONALLY_APPROVED, FULL_REVIEW_APPROVED, PROVISIONAL_REVIEW, DECLINED]  # noqa: E501
+        type: array
+        items:
+          type: string
+          enum: [PAYMENT_DUE, PAID, AUTO_APPROVED, PROVISIONALLY_APPROVED, FULL_REVIEW_APPROVED, PROVISIONAL_REVIEW, DECLINED]  # noqa: E501
         description: Application Status Filter.
       - in: query
         name: text
@@ -854,9 +863,18 @@ def search_applications():
         description: Application or Registration Number filter
       - in: query
         name: registrationStatus
-        type: string
-        enum: [ACTIVE, EXPIRED, SUSPENDED, CANCELLED]
+        type: array
+        items:
+          type: string
+          enum: [ACTIVE, EXPIRED, SUSPENDED, CANCELLED]
         description: Registration status filter
+      - in: query
+        name: registrationType
+        type: array
+        items:
+          type: string
+          enum: [HOST, PLATFORM, STRATA_HOTEL]
+        description: Registration type filter
       - in: query
         name: sortBy
         type: string
@@ -878,11 +896,12 @@ def search_applications():
     try:
         UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         search_text = request.args.get("text", None)
-        status = request.args.get("status", None)
+        status_values = request.args.getlist("status")
         page = request.args.get("page", 1)
         limit = request.args.get("limit", 50)
         record_number = request.args.get("recordNumber", None)
-        registration_status = request.args.get("registrationStatus")
+        registration_statuses = request.args.getlist("registrationStatus")
+        registration_types = request.args.getlist("registrationType")
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
         if sort_by not in VALID_SORT_FIELDS:
@@ -893,12 +912,13 @@ def search_applications():
             return error_response(HTTPStatus.BAD_REQUEST, "Search term must be at least 3 characters long.")
 
         filter_criteria = ApplicationSearch(
-            status=status,
+            statuses=status_values,
             page=int(page),
             limit=int(limit),
             search_text=search_text,
             record_number=record_number,
-            registration_status=registration_status,
+            registration_statuses=registration_statuses,
+            registration_types=registration_types,
             sort_by=sort_by,
             sort_order=sort_order,
         )

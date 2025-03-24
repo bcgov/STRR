@@ -35,6 +35,7 @@
 from __future__ import annotations
 
 import copy
+from typing import List
 
 from nanoid import generate
 from sqlalchemy import func
@@ -166,14 +167,14 @@ class Application(BaseModel):
         query = cls.query
         if not is_examiner:
             query = query.filter_by(payment_account=account_id)
-        if filter_criteria.status:
-            query = query.filter_by(status=filter_criteria.status.upper())
-        if filter_criteria.registration_type:
-            query = query.filter_by(registration_type=filter_criteria.registration_type.upper())
+        if filter_criteria.statuses:
+            query = cls._filter_by_statuses(filter_criteria.statuses, query)
+        if filter_criteria.registration_types:
+            query = cls._filter_by_registration_types(filter_criteria.registration_types, query)
         if filter_criteria.record_number:
             query = cls._filter_by_application_registration_number(filter_criteria.record_number, query)
-        if filter_criteria.registration_status:
-            query = cls._filter_by_registration_status(filter_criteria.registration_status, query)
+        if filter_criteria.registration_statuses:
+            query = cls._filter_by_registration_statuses(filter_criteria.registration_statuses, query)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
@@ -208,21 +209,48 @@ class Application(BaseModel):
         )
 
     @classmethod
-    def _filter_by_registration_status(cls, search_term: str, query: Query) -> Query:
-        """Filter query by registration status."""
-        if not search_term:
+    def _filter_by_registration_statuses(cls, registration_statuses: List[str], query: Query) -> Query:
+        """Filter query by registration statuses."""
+        if not registration_statuses:
             return query
 
+        registration_statuses = [status.upper() for status in registration_statuses if status]
         return query.filter(
-            db.exists().where((Registration.id == Application.registration_id) & (Registration.status == search_term))
+            db.exists().where(
+                (Registration.id == Application.registration_id) & (Registration.status.in_(registration_statuses))
+            )
         )
+
+    @classmethod
+    def _filter_by_registration_types(cls, registration_types: List[str], query: Query) -> Query:
+        """Filter query by registration types."""
+        if not registration_types:
+            return query
+
+        registration_types = [type.upper() for type in registration_types if type]
+        return query.filter(Application.registration_type.in_(registration_types))
+
+    @classmethod
+    def _filter_by_statuses(cls, statuses: List[str], query: Query) -> Query:
+        """Filter query by application statuses."""
+        if not statuses:
+            return query
+
+        statuses = [status.upper() for status in statuses if status]
+        return query.filter(Application.status.in_(statuses))
 
     @classmethod
     def search_applications(cls, filter_criteria: ApplicationSearch):
         """Returns the applications matching the search criteria."""
         query = cls.query
-        if filter_criteria.status and filter_criteria.status.upper() == Application.Status.DRAFT:
-            filter_criteria.status = None
+        if filter_criteria.statuses:
+            statuses = [status.upper() for status in filter_criteria.statuses if status]
+            # Remove DRAFT if present
+            if Application.Status.DRAFT in statuses:
+                statuses.remove(Application.Status.DRAFT)
+            query = cls._filter_by_statuses(statuses, query)
+        else:
+            query = query.filter(Application.status != Application.Status.DRAFT)
         if filter_criteria.search_text:
             query = query.filter(
                 db.or_(
@@ -230,14 +258,12 @@ class Application(BaseModel):
                     Application.application_number.ilike(f"%{filter_criteria.search_text}%"),
                 )
             )
-        if filter_criteria.status:
-            query = query.filter_by(status=filter_criteria.status.upper())
-        else:
-            query = query.filter(Application.status != Application.Status.DRAFT)
+        if filter_criteria.registration_types:
+            query = cls._filter_by_registration_types(filter_criteria.registration_types, query)
         if filter_criteria.record_number:
             query = cls._filter_by_application_registration_number(filter_criteria.record_number, query)
-        if filter_criteria.registration_status:
-            query = cls._filter_by_registration_status(filter_criteria.registration_status, query)
+        if filter_criteria.registration_statuses:
+            query = cls._filter_by_registration_statuses(filter_criteria.registration_statuses, query)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())

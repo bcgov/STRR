@@ -345,7 +345,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications?sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&status=PAID",
+							"raw": "{{api_url}}/applications?sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&status=AUTO_APPROVED",
 							"host": [
 								"{{api_url}}"
 							],
@@ -370,8 +370,24 @@
 									"value": "HOST"
 								},
 								{
+									"key": "registrationType",
+									"value": "PLATFORM"
+								},
+								{
+									"key": "registrationStatus",
+									"value": "ACTIVE"
+								},
+								{
+									"key": "registrationStatus",
+									"value": "SUSPENDED"
+								},
+								{
 									"key": "status",
 									"value": "PAID"
+								},
+								{
+									"key": "status",
+									"value": "AUTO_APPROVED"
 								}
 							]
 						}
@@ -724,7 +740,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1&sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST",
+							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1&sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&status=AUTO_APPROVED",
 							"host": [
 								"{{api_url}}"
 							],
@@ -760,6 +776,26 @@
 								{
 									"key": "registrationType",
 									"value": "HOST"
+								},
+								{
+									"key": "registrationType",
+									"value": "PLATFORM"
+								},
+								{
+									"key": "registrationStatus",
+									"value": "ACTIVE"
+								},
+								{
+									"key": "registrationStatus",
+									"value": "SUSPENDED"
+								},
+								{
+									"key": "status",
+									"value": "PAID"
+								},
+								{
+									"key": "status",
+									"value": "AUTO_APPROVED"
 								}
 							]
 						}
