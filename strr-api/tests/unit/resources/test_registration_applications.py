@@ -791,6 +791,7 @@ def test_examiner_filter_record_number_application(session, client, jwt):
         assert rv.status_code == 200
         assert len(response_json.get("applications")) == 0
 
+
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_examiner_multi_select_filters(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
@@ -836,8 +837,8 @@ def test_examiner_multi_select_filters(session, client, jwt):
     assert strata_app_number not in app_numbers
 
     rv = client.get(
-        f"/applications?registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.PENDING.value}",
-        headers=headers
+        f"/applications?registrationStatus={RegistrationStatus.ACTIVE.value},{RegistrationStatus.PENDING.value}",
+        headers=headers,
     )
     response_json = rv.json
     assert rv.status_code == 200
@@ -849,7 +850,7 @@ def test_examiner_multi_select_filters(session, client, jwt):
 
     rv = client.get(
         f"/applications?status={Application.Status.FULL_REVIEW_APPROVED},{Application.Status.PROVISIONAL_REVIEW}",
-        headers=headers
+        headers=headers,
     )
     response_json = rv.json
     assert rv.status_code == 200
@@ -860,10 +861,10 @@ def test_examiner_multi_select_filters(session, client, jwt):
     assert platform_app_number in app_numbers
 
     rv = client.get(
-        "/applications?registrationType=HOST&registrationType=PLATFORM&registrationType=STRATA_HOTEL&" +
-        f"status={Application.Status.FULL_REVIEW_APPROVED}&status={Application.Status.PROVISIONAL_REVIEW}&" +
-        f"registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.PENDING.value}",
-        headers=headers
+        "/applications?registrationType=HOST&registrationType=PLATFORM&registrationType=STRATA_HOTEL&"
+        + f"status={Application.Status.FULL_REVIEW_APPROVED}&status={Application.Status.PROVISIONAL_REVIEW}&"
+        + f"registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.PENDING.value}",
+        headers=headers,
     )
     response_json = rv.json
     assert rv.status_code == 200
