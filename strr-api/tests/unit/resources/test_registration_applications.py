@@ -837,7 +837,8 @@ def test_examiner_multi_select_filters(session, client, jwt):
     assert strata_app_number not in app_numbers
 
     rv = client.get(
-        f"/applications?registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.EXPIRED.value}",
+        f"/applications?registrationStatus={RegistrationStatus.ACTIVE.value}&"
+        + f"registrationStatus={RegistrationStatus.EXPIRED.value}",
         headers=headers,
     )
     response_json = rv.json
