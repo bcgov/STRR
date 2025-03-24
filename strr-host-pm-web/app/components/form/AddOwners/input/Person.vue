@@ -76,7 +76,7 @@ watch(
       :title="$t('strr.section.subTitle.individualName')"
       :error="showErrors && hasFormErrors(ownerFormRef, ['firstName', 'middleName', 'lastName'])"
     >
-      <div class="flex max-w-bcGovInput flex-col gap-3 sm:flex-row">
+      <div class="max-w-bcGovInput flex flex-col gap-3 sm:flex-row">
         <ConnectFormFieldGroup
           id="host-owner-first-name"
           v-model="owner.firstName"
@@ -162,7 +162,7 @@ watch(
           :help="$t('strr.hint.craTaxNumber')"
           mask="### ### ###"
         />
-        <UFormGroup name="test">
+        <UFormGroup name="optionalCraTaxNumber">
           <UCheckbox
             v-model="isCraNumberOptional"
             label="This individual does not have a CRA Tax Number"
