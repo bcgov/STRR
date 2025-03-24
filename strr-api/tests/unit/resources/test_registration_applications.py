@@ -822,7 +822,7 @@ def test_examiner_multi_select_filters(session, client, jwt):
     rv = client.put(f"/applications/{host_app_number}/status", json=status_update_request, headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
 
-    status_update_request = {"status": Application.Status.PROVISIONAL_REVIEW}
+    status_update_request = {"status": Application.Status.DECLINED}
     rv = client.put(f"/applications/{platform_app_number}/status", json=status_update_request, headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
 
@@ -849,7 +849,7 @@ def test_examiner_multi_select_filters(session, client, jwt):
     assert platform_app_number in app_numbers
 
     rv = client.get(
-        f"/applications?status={Application.Status.FULL_REVIEW_APPROVED},{Application.Status.PROVISIONAL_REVIEW}",
+        f"/applications?status={Application.Status.FULL_REVIEW_APPROVED},{Application.Status.DECLINED}",
         headers=headers,
     )
     response_json = rv.json
@@ -862,7 +862,7 @@ def test_examiner_multi_select_filters(session, client, jwt):
 
     rv = client.get(
         "/applications?registrationType=HOST&registrationType=PLATFORM&registrationType=STRATA_HOTEL&"
-        + f"status={Application.Status.FULL_REVIEW_APPROVED}&status={Application.Status.PROVISIONAL_REVIEW}&"
+        + f"status={Application.Status.FULL_REVIEW_APPROVED}&status={Application.Status.DECLINED}&"
         + f"registrationStatus={RegistrationStatus.ACTIVE.value}&registrationStatus={RegistrationStatus.PENDING.value}",
         headers=headers,
     )
@@ -876,4 +876,4 @@ def test_examiner_multi_select_filters(session, client, jwt):
     host_app = next(app for app in applications if app["header"]["applicationNumber"] == host_app_number)
     platform_app = next(app for app in applications if app["header"]["applicationNumber"] == platform_app_number)
     assert host_app["header"]["status"] == Application.Status.FULL_REVIEW_APPROVED
-    assert platform_app["header"]["status"] == Application.Status.PROVISIONAL_REVIEW
+    assert platform_app["header"]["status"] == Application.Status.DECLINED
