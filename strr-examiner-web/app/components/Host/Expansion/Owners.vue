@@ -72,7 +72,10 @@ const hostOwners = computed<HostOwner[]>(() => {
       // @ts-expect-error, class is valid attr
       class: 'hidden'
     }"
-    :ui="{ td: { padding: 'first:p-0' } }"
+    :ui="{ td: {
+      base: 'align-text-top',
+      padding: 'first:p-0'
+    }}"
   >
     <template #actions-header>
       <UButton
