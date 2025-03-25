@@ -13,10 +13,6 @@ defineEmits<{
 
 const filterModel = defineModel({ type: String, required: true, default: '' })
 
-const isDisabled = computed(() => {
-  return disable
-})
-
 function handleReset () {
   filterModel.value = ''
 }
@@ -29,10 +25,10 @@ function handleReset () {
       @sort="$emit('sort')"
     />
     <div class="h-[58px] p-2 font-normal">
-      <template v-if="isDisabled">
+      <template v-if="disable">
         <UButton
           variant="select_menu_trigger"
-          class="flex-1 justify-between"
+          class="w-full justify-between"
           disabled
         >
           <span class="truncate">{{ column.label }}</span>

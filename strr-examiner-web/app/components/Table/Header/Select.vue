@@ -25,10 +25,6 @@ const fullOptions = computed(() => {
   return props.options
 })
 
-const isDisabled = computed(() => {
-  return props.disable
-})
-
 const displayLabel = computed(() => {
   if (filterModel.value.length === 0) {
     return props.column.label
@@ -64,7 +60,7 @@ onMounted(() => {
       @sort="$emit('sort')"
     />
     <div class="h-[58px] p-2 font-normal">
-      <template v-if="isDisabled">
+      <template v-if="props.disable">
         <UButton
           variant="select_menu_trigger"
           class="flex-1 justify-between"
@@ -108,9 +104,9 @@ onMounted(() => {
             <UButton
               v-if="filterModel.length > 0"
               variant="ghost"
-              size="xs"
+              size="sm"
               icon="i-mdi-close"
-              class="-ml-4 text-blue-500 hover:text-blue-600"
+              class="-ml-5 text-blue-500 hover:text-blue-700"
               @click="clearFilter"
             />
           </UButton>

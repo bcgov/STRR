@@ -15,10 +15,6 @@ defineEmits<{
   sort: [void]
 }>()
 
-const isDisabled = computed(() => {
-  return disable
-})
-
 const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null, end: null } })
 </script>
 <template>
@@ -29,7 +25,7 @@ const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null,
       @sort="$emit('sort')"
     />
     <div class="h-[58px] p-2 font-normal">
-      <template v-if="isDisabled">
+      <template v-if="disable">
         <UButton
           variant="select_menu_trigger"
           class="flex-1 justify-between"
