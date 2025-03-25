@@ -91,6 +91,13 @@ const hostOwners = computed<HostOwner[]>(() => {
             <ConnectInfoBox v-if="row.preferredName" :title="$t('label.preferredName')" :content="row.preferredName" />
             <ConnectInfoBox v-if="row.dateOfBirth" :title="$t('label.born')" :content="row.dateOfBirth" />
             <ConnectInfoBox v-if="row.taxNumber" :title="$t('label.craTaxNumber')" :content="row.taxNumber" />
+            <ConnectInfoBox
+              v-else
+              data-testid="no-cra-tax-numner"
+              class="sm:!pr-0"
+              :title="$t('label.craTaxNumber')"
+              :content="$t('label.noCraTaxNumber')"
+            />
           </div>
           <div v-else>
             <p>{{ row.businessLegalName }}</p>

@@ -307,7 +307,8 @@ export default {
     applicationListSectionAria: 'Application list, {count} results',
     clearAllFilters: 'Clear All Filters',
     findInApplication: 'Find in application...',
-    tableLimitDisplay: 'Display:'
+    tableLimitDisplay: 'Display:',
+    noCraTaxNumber: 'No CRA Tax Number'
   },
   link: {
     learnMore: 'Learn More'
