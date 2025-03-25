@@ -46,12 +46,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   })
 
   const fetchApplications = () => {
-    let statusValue = tableFilters.status
-    let regStatus = []
-    if (Object.values(RegistrationStatus).includes(statusValue as any)) {
-      regStatus = statusValue
-      statusValue = []
-    }
+    const regStatus: any[] = []
+    const statusValue = tableFilters.status.filter((status) => {
+      if (Object.values(RegistrationStatus).includes(status as any)) {
+        regStatus.push(status)
+        return false
+      }
+      return true
+    })
     if (tableFilters.registrationType.length) { // fetch applications by type if type provided
       return $strrApi('/applications', {
         query: {
