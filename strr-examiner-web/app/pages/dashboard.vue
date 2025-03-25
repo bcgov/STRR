@@ -13,6 +13,26 @@ const enableTableFilters = computed<boolean>(() => {
   const flag = ldStore.getStoredFlag('enable-examiner-table-filters')
   return flag ?? false
 })
+const enablePropertyAddressFilter = computed<boolean>(() => {
+  const flag = ldStore.getStoredFlag('enable-examiner-address-filter')
+  return flag ?? false
+})
+const enableApplicantFilter = computed<boolean>(() => {
+  const flag = ldStore.getStoredFlag('enable-examiner-applicant-filter')
+  return flag ?? false
+})
+const enableRequirementFilter = computed<boolean>(() => {
+  const flag = ldStore.getStoredFlag('enable-examiner-requirement-filter')
+  return flag ?? false
+})
+const enableSubmissionDateFilter = computed<boolean>(() => {
+  const flag = ldStore.getStoredFlag('enable-examiner-submission-date-filter')
+  return flag ?? false
+})
+const enableLastModifiedFilter = computed<boolean>(() => {
+  const flag = ldStore.getStoredFlag('enable-examiner-last-modified-filter')
+  return flag ?? false
+})
 
 useHead({
   title: t('page.dashboardList.title')
@@ -338,7 +358,7 @@ function handleColumnSort (column: string) {
           label: 'No matching applications or registrations found.'
         }"
         :ui="{
-          wrapper: 'relative bg-white overflow-auto h-auto max-h-[calc(74svh)]',
+          wrapper: 'relative bg-white overflow-visible h-auto max-h-[calc(74svh)]',
           thead: 'sticky top-0 bg-white z-10 shadow-sm',
           th: {
             base: 'h-[72px]',
@@ -400,6 +420,7 @@ function handleColumnSort (column: string) {
               { label: 'PR (Strata)', value: 'pr-strata' },
               { label: 'None (Strata)', value: 'none-strata' },
             ]"
+            :disable="!enableRequirementFilter"
             @sort="handleColumnSort(column.key)"
           />
         </template>
@@ -409,6 +430,7 @@ function handleColumnSort (column: string) {
             v-model="exStore.tableFilters.applicantName"
             :column
             :sort
+            :disable="!enableApplicantFilter"
             @sort="handleColumnSort(column.key)"
           />
         </template>
@@ -418,6 +440,7 @@ function handleColumnSort (column: string) {
             v-model="exStore.tableFilters.propertyAddress"
             :column
             :sort
+            :disable="!enablePropertyAddressFilter"
             @sort="handleColumnSort(column.key)"
           />
         </template>
@@ -427,7 +450,7 @@ function handleColumnSort (column: string) {
             v-model="exStore.tableFilters.status"
             :column
             :sort
-            :default="[ApplicationStatus.FULL_REVIEW]"
+            :default="[]"
             :options="[
               { label: 'Application Status', value: undefined, disabled: true },
               { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },
@@ -437,7 +460,6 @@ function handleColumnSort (column: string) {
               { label: 'Paid', value: ApplicationStatus.PAID },
               { label: 'Additional Info Requested', value: ApplicationStatus.ADDITIONAL_INFO_REQUESTED },
               { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
-              { label: 'Draft', value: ApplicationStatus.DRAFT },
               { label: 'Declined', value: ApplicationStatus.DECLINED },
               { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
               { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
@@ -467,6 +489,7 @@ function handleColumnSort (column: string) {
               { label: '2 years', duration: { years: 3 } },
               { label: '5 years', duration: { years: 5 } }
             ]"
+            :disable="!enableSubmissionDateFilter"
             @sort="handleColumnSort(column.key)"
           />
         </template>
@@ -486,6 +509,7 @@ function handleColumnSort (column: string) {
               { label: '7 days', duration: { days: 7 } },
               { label: '30 days', duration: { days: 30 } }
             ]"
+            :disable="!enableLastModifiedFilter"
             @sort="handleColumnSort(column.key)"
           />
         </template>

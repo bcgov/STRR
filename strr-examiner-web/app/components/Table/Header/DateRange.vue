@@ -4,15 +4,20 @@ import type { DatePickerRangeObject } from 'v-calendar/dist/types/src/use/datePi
 import type { TableColumn } from '#ui/types'
 import type { TableSort, Range } from '#imports'
 
-defineProps<{
+const { disable } = defineProps<{
   column: TableColumn
   sort?: TableSort
   ranges: Range[]
+  disable?: boolean
 }>()
 
 defineEmits<{
   sort: [void]
 }>()
+
+const isDisabled = computed(() => {
+  return disable
+})
 
 const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null, end: null } })
 </script>
@@ -24,7 +29,21 @@ const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null,
       @sort="$emit('sort')"
     />
     <div class="h-[58px] p-2 font-normal">
+      <template v-if="isDisabled">
+        <UButton
+          variant="select_menu_trigger"
+          class="flex-1 justify-between"
+          disabled
+        >
+          <span class="truncate">{{ column.label }}</span>
+          <UIcon
+            name="i-mdi-lock"
+            class="size-5 shrink-0 text-gray-500"
+          />
+        </UButton>
+      </template>
       <DateRangePicker
+        v-else
         v-model="filterModel"
         :ranges
       />

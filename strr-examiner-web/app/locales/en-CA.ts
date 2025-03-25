@@ -308,7 +308,8 @@ export default {
     clearAllFilters: 'Clear All Filters',
     findInApplication: 'Find in application...',
     tableLimitDisplay: 'Display:',
-    noCraTaxNumber: 'No CRA Tax Number'
+    noCraTaxNumber: 'No CRA Tax Number',
+    multipleFilter: 'Multiple'
   },
   link: {
     learnMore: 'Learn More'
