@@ -13,7 +13,7 @@ const hostExp = useHostExpansion()
     data-testid="host-sub-header"
     class="app-inner-container"
   >
-    <div class="grid grid-cols-4 gap-x-5 divide-x py-4 text-sm text-bcGovColor-midGray">
+    <div class="text-bcGovColor-midGray grid grid-cols-4 gap-x-5 divide-x py-4 text-sm">
       <div
         id="rental-unit-details"
         class="space-y-2"
@@ -135,7 +135,7 @@ const hostExp = useHostExpansion()
         </div>
 
         <div v-if="activeReg?.propertyManager?.propertyManagerType" class="flex gap-1">
-          <UIcon name="i-real-estate-agent" class="size-5 shrink-0 text-gray-700" />
+          <UIcon name="i-mdi-at" class="size-5 shrink-0 text-gray-700" />
           <UButton
             :label="activeReg?.propertyManager?.propertyManagerType === OwnerType.INDIVIDUAL
               ? displayContactFullName(activeReg?.propertyManager.contact)
