@@ -587,3 +587,38 @@ class RegistrationService:
         if count_only:
             return query.count()
         return query.all()
+
+    @staticmethod
+    def create_registration_for_permit_validation(registration, user_id):
+        """Creates registration with minimum details for permit validation"""
+        registration_obj = Registration(
+            sbc_account_id=registration.get("sbc_account_id"),
+            status=registration.get("status"),
+            registration_number=registration.get("registration_number"),
+            start_date=registration.get("start_date"),
+            expiry_date=registration.get("expiry_date"),
+            registration_type=registration.get("registration_type"),
+            user_id=user_id,
+        )
+        registration_obj.rental_property = RentalProperty(
+            address=Address(
+                country=registration.get("country"),
+                street_address=registration.get("street_address"),
+                street_number=registration.get("street_number"),
+                unit_number=registration.get("unit_number"),
+                street_address_additional=registration.get("street_address_additional"),
+                city=registration.get("city"),
+                province=registration.get("province"),
+                postal_code=registration.get("postalcode"),
+            ),
+            nickname=registration.get("nickname"),
+            parcel_identifier=registration.get("parcel_identifier"),
+            space_type=registration.get("space_type"),
+            host_residence=registration.get("host_residence"),
+            is_unit_on_principal_residence_property=registration.get("is_unit_on_principal_residence_property"),
+            number_of_rooms_for_rent=registration.get("number_of_rooms_for_rent"),
+            property_type=registration.get("property_type"),
+            ownership_type=registration.get("ownership_type"),
+            pr_exempt_reason=registration.get("pr_exempt_reason"),
+        )
+        registration_obj.save()

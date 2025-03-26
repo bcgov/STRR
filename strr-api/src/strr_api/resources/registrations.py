@@ -37,6 +37,7 @@ This module provides a simple flask blueprint with a single 'home' route that re
 """
 
 import logging
+import traceback
 from http import HTTPStatus
 from io import BytesIO
 
@@ -357,3 +358,24 @@ def update_registration_status(registration_id):
 #         )
 #     except AuthException as auth_exception:
 #         return exception_response(auth_exception)
+
+
+@bp.route("/permit-validation-registration", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def create_registration_for_permit_validation():
+    """
+    Create minimum registration for permit validation.
+    """
+    try:
+        json_input = request.get_json()
+        registrations = json_input.get("registrations")
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        for registration in registrations:
+            RegistrationService.create_registration_for_permit_validation(registration, user.id)
+        return {}, HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
+        logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
