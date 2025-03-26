@@ -82,9 +82,11 @@ onMounted(() => {
         clear-search-on-close
         :ui="{
           popper: {
-            strategy: 'fixed'
+            strategy: 'fixed',
+            placement: 'bottom-start',
+            offset: 4
           },
-          dropdown: 'w-fit'
+          dropdown: `min-w-[${initialWidth}] z-[100] overflow-visible`
         }"
       >
         <template #default="{ open }">
