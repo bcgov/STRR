@@ -80,14 +80,6 @@ onMounted(() => {
         multiple
         :searchable
         clear-search-on-close
-        :ui="{
-          popper: {
-            strategy: 'fixed',
-            placement: 'bottom-start',
-            offset: 4
-          },
-          dropdown: `min-w-[${initialWidth}] z-[100] overflow-visible`
-        }"
       >
         <template #default="{ open }">
           <!-- TODO: aria labels? -->
@@ -132,7 +124,7 @@ onMounted(() => {
           </div>
           <div
             v-else
-            class="flex cursor-pointer items-center gap-2 px-4 py-2"
+            class="flex cursor-pointer items-center gap-2 px-2 py-1"
           >
             <UCheckbox
               :model-value="selected"
