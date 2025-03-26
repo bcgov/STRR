@@ -124,7 +124,7 @@ onMounted(() => {
           </div>
           <div
             v-else
-            class="flex cursor-pointer items-center gap-2 px-2 py-1"
+            class="flex cursor-pointer items-center gap-2 px-1 py-1"
           >
             <UCheckbox
               :model-value="selected"

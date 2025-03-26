@@ -375,7 +375,7 @@ function handleColumnSort (column: string) {
           },
           td: {
             base: 'whitespace-normal max-w-96 align-middle h-[72px]',
-            padding: 'p-2',
+            padding: 'py-2 pl-2 pr-4',
             color: 'text-bcGovColor-midGray',
             font: '',
             size: 'text-sm',
