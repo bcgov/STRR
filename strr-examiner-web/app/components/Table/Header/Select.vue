@@ -80,6 +80,12 @@ onMounted(() => {
         multiple
         :searchable
         clear-search-on-close
+        :ui="{
+          popper: {
+            strategy: 'fixed'
+          },
+          dropdown: 'w-fit'
+        }"
       >
         <template #default="{ open }">
           <!-- TODO: aria labels? -->

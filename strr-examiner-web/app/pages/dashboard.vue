@@ -367,7 +367,7 @@ function handleColumnSort (column: string) {
           label: 'No matching applications or registrations found.'
         }"
         :ui="{
-          wrapper: 'relative bg-white overflow-auto h-auto max-h-[calc(74svh)]',
+          wrapper: 'relative bg-white overflow-auto h-auto min-h-[calc(50svh)] max-h-[calc(74svh)]',
           thead: 'sticky top-0 bg-white z-10 shadow-sm',
           th: {
             base: 'h-[72px]',
