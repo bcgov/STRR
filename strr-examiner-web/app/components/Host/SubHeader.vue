@@ -13,7 +13,7 @@ const hostExp = useHostExpansion()
     data-testid="host-sub-header"
     class="app-inner-container"
   >
-    <div class="text-bcGovColor-midGray grid grid-cols-4 gap-x-5 divide-x py-4 text-sm">
+    <div class="grid grid-cols-4 gap-x-5 divide-x py-4 text-sm text-bcGovColor-midGray">
       <div
         id="rental-unit-details"
         class="space-y-2"

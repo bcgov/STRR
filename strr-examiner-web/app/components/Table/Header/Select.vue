@@ -63,15 +63,12 @@ onMounted(() => {
       <template v-if="props.disable">
         <UButton
           variant="select_menu_trigger"
-          class="flex-1 justify-between"
+          class="w-full flex-1 justify-between"
           disabled
-        >
-          <span class="truncate">{{ displayLabel }}</span>
-          <UIcon
-            name="i-mdi-lock"
-            class="size-5 shrink-0 text-gray-500"
-          />
-        </UButton>
+          :label="displayLabel"
+          trailing-icon="i-mdi-lock"
+          :ui="{ label: 'text-center truncate flex-grow-0' }"
+        />
       </template>
       <USelectMenu
         v-else
@@ -90,25 +87,32 @@ onMounted(() => {
             ref="filterColumnRef"
             variant="select_menu_trigger"
             class="flex-1 justify-between"
-            :style="{ width: initialWidth }"
             :class="{
               'border-b-2 border-blue-500': open || filterModel.length > 0
             }"
+            :style="{ width: initialWidth }"
+            :ui="{
+              trailing: {
+                wrapper: 'shrink-0 flex-grow-0 justify-end'
+              }
+            }"
           >
             <span class="truncate">{{ displayLabel }}</span>
-            <UIcon
-              name="i-mdi-caret-down"
-              class="size-5 shrink-0 text-gray-700 transition-transform"
-              :class="[open && 'rotate-180']"
-            />
-            <UButton
-              v-if="filterModel.length > 0"
-              variant="ghost"
-              size="sm"
-              icon="i-mdi-close"
-              class="-ml-5 text-blue-500 hover:text-blue-700"
-              @click="clearFilter"
-            />
+            <template #trailing>
+              <UIcon
+                name="i-mdi-caret-down"
+                class="size-5 shrink-0 text-gray-700 transition-transform"
+                :class="[open && 'rotate-180']"
+              />
+              <UButton
+                v-if="filterModel.length > 0"
+                variant="ghost"
+                size="sm"
+                icon="i-mdi-close"
+                class="-ml-5 text-blue-500 hover:text-blue-700"
+                @click="clearFilter"
+              />
+            </template>
           </UButton>
         </template>
         <template #option="{ option, selected }">

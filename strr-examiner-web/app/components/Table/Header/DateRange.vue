@@ -28,15 +28,12 @@ const filterModel = defineModel<DatePickerRangeObject>({ default: { start: null,
       <template v-if="disable">
         <UButton
           variant="select_menu_trigger"
-          class="flex-1 justify-between"
+          class="w-full flex-1 justify-between"
           disabled
-        >
-          <span class="truncate">{{ column.label }}</span>
-          <UIcon
-            name="i-mdi-lock"
-            class="size-5 shrink-0 text-gray-500"
-          />
-        </UButton>
+          :label="column.label"
+          trailing-icon="i-mdi-lock"
+          :ui="{ label: 'text-center truncate flex-grow-0' }"
+        />
       </template>
       <DateRangePicker
         v-else

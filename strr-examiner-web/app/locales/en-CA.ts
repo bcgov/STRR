@@ -374,7 +374,8 @@ export default {
           STRATA_HOTEL: 'PR-ex-strata',
           FARM_LAND: 'PR-ex-farm',
           FRACTIONAL_OWNERSHIP: 'PR-ex-fractional'
-        }
+        },
+        invalid: 'Invalid'
       }
     },
     chooseAccount: {

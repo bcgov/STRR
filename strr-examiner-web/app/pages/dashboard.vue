@@ -114,17 +114,26 @@ const getPropertyAddressColumn = (app: HousApplicationResponse) => {
 }
 
 const getRequirementsColumn = (app: HousApplicationResponse) => {
+  let result = ''
+  let listingSize = ''
   switch (app.registration.registrationType) {
     case ApplicationType.HOST:
-      return isEmpty((app.registration as ApiHostApplication).strRequirements)
+      result = isEmpty((app.registration as ApiHostApplication).strRequirements)
         ? t('page.dashboardList.requirements.host.none')
         : getHostPrRequirements((app.registration as ApiHostApplication))
+      break
     case ApplicationType.STRATA_HOTEL:
-      return '-'
-    default: // platform t(`page.dashboardList.requirements.platform.${platformApplication.platformDetails.listingSize}`)
-      // eslint-disable-next-line max-len
-      return t(`page.dashboardList.requirements.platform.${(app.registration as ApiBasePlatformApplication).platformDetails.listingSize}`)
+      result = '-'
+      break
+    default:
+      listingSize = (app.registration as ApiBasePlatformApplication).platformDetails.listingSize
+      result = t(`page.dashboardList.requirements.platform.${listingSize}`)
   }
+  if (result.startsWith('page.dashboardList.requirements.platform.') ||
+    result.startsWith('page.dashboardList.requirements.host.')) {
+    result = t('page.dashboardList.requirements.invalid')
+  }
+  return result
 }
 
 // text currently matches anything, same as existing examiners app
@@ -358,7 +367,7 @@ function handleColumnSort (column: string) {
           label: 'No matching applications or registrations found.'
         }"
         :ui="{
-          wrapper: 'relative bg-white overflow-visible h-auto max-h-[calc(74svh)]',
+          wrapper: 'relative bg-white overflow-auto h-auto max-h-[calc(74svh)]',
           thead: 'sticky top-0 bg-white z-10 shadow-sm',
           th: {
             base: 'h-[72px]',
