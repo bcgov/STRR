@@ -90,7 +90,10 @@ class ValidationService:
         errors = []
         address_json = request_json.get("address")
         if registration.registration_type == RegistrationType.HOST.value:
-            if str(address_json.get("streetNumber")) != registration.rental_property.address.street_number:
+            if (
+                registration.rental_property.address.street_number
+                and str(address_json.get("streetNumber")) != registration.rental_property.address.street_number
+            ):
                 errors.append(
                     {
                         "code": ErrorMessage.STREET_NUMBER_MISMATCH.name,
