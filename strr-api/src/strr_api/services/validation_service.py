@@ -40,7 +40,7 @@ from http import HTTPStatus
 
 from flask import current_app
 
-from strr_api.enums.enum import ErrorMessage, RegistrationType
+from strr_api.enums.enum import ErrorMessage, RegistrationStatus, RegistrationType
 from strr_api.models import BulkValidation, RealTimeValidation, Registration
 from strr_api.schemas.utils import validate
 from strr_api.services.gcp_storage_service import GCPStorageService
@@ -84,6 +84,9 @@ class ValidationService:
     def check_permit_details(cls, request_json: dict, registration: Registration):  # pylint: disable=R0912
         """Checks the data in the request against the permit details."""
         response = copy.deepcopy(request_json)
+        if registration.status != RegistrationStatus.ACTIVE:
+            response["status"] = registration.status.name
+            return response
         errors = []
         address_json = request_json.get("address")
         if registration.registration_type == RegistrationType.HOST.value:
