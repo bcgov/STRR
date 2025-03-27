@@ -119,14 +119,14 @@ class ValidationService:
             location = strata_hotel.location
 
             if str(address_json.get("streetNumber")) == str(
-                cls._extract_street_number(location.street_address)
+                cls._extract_street_number(cls._get_text_after_hyphen(location.street_address))
             ) and address_json.get("postalCode", "").replace(" ", "") == location.postal_code.replace(" ", ""):
                 match_found = True
 
             if not match_found:
                 for building in strata_hotel.buildings:
                     if str(address_json.get("streetNumber")) == str(
-                        cls._extract_street_number(building.address.street_address)
+                        cls._extract_street_number(cls._get_text_after_hyphen(building.address.street_address))
                     ) and address_json.get("postalCode", "").replace(" ", "") == building.address.postal_code.replace(
                         " ", ""
                     ):
@@ -147,6 +147,12 @@ class ValidationService:
             response["status"] = registration.status.name
             response["validUntil"] = DateUtil.as_legislation_timezone(registration.expiry_date).strftime("%Y-%m-%d")
         return response
+
+    @classmethod
+    def _get_text_after_hyphen(cls, addressLine):
+        if "-" in addressLine:
+            return addressLine.split("-", 1)[1].strip()
+        return addressLine
 
     @classmethod
     def _extract_street_number(cls, address):
