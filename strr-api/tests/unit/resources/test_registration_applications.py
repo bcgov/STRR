@@ -857,10 +857,10 @@ def test_assign_and_unassign_application(session, client, jwt):
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
         rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.UNAUTHORIZED == rv.status_code
+        assert HTTPStatus.BAD_REQUEST == rv.status_code
 
         rv = client.put(f"/applications/{application_number}/unassign", headers=staff_headers)
-        assert HTTPStatus.UNAUTHORIZED == rv.status_code
+        assert HTTPStatus.BAD_REQUEST == rv.status_code
 
         application = Application.find_by_application_number(application_number=application_number)
         application.status = Application.Status.FULL_REVIEW
