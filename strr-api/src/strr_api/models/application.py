@@ -47,6 +47,7 @@ from strr_api.common.enum import BaseEnum, auto
 from strr_api.models.base_model import BaseModel
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.models.rental import Registration
+from strr_api.models.user import User
 
 from .db import db
 
@@ -175,6 +176,8 @@ class Application(BaseModel):
             query = cls._filter_by_application_registration_number(filter_criteria.record_number, query)
         if filter_criteria.registration_statuses:
             query = cls._filter_by_registration_statuses(filter_criteria.registration_statuses, query)
+        if filter_criteria.assignee:
+            query = cls._filter_by_assignee(filter_criteria.assignee, query)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
@@ -243,6 +246,14 @@ class Application(BaseModel):
         return query.filter(Application.status.in_(statuses))
 
     @classmethod
+    def _filter_by_assignee(cls, assignee: str, query: Query) -> Query:
+        """Filter query by assignee."""
+        if not assignee:
+            return query
+
+        return query.filter(db.exists().where(db.and_(User.id == Application.reviewer_id, User.username == assignee)))
+
+    @classmethod
     def search_applications(cls, filter_criteria: ApplicationSearch):
         """Returns the applications matching the search criteria."""
         query = cls.query
@@ -267,6 +278,8 @@ class Application(BaseModel):
             query = cls._filter_by_application_registration_number(filter_criteria.record_number, query)
         if filter_criteria.registration_statuses:
             query = cls._filter_by_registration_statuses(filter_criteria.registration_statuses, query)
+        if filter_criteria.assignee:
+            query = cls._filter_by_assignee(filter_criteria.assignee, query)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())

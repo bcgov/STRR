@@ -41,6 +41,8 @@ class Events(SimpleBaseModel):
         REGISTRATION_EXPIRED = auto()
         NON_COMPLIANCE_SUSPENDED = auto()
         REGISTRATION_CANCELLED = auto()
+        APPLICATION_REVIEWER_ASSIGNED = auto()
+        APPLICATION_REVIEWER_UNASSIGNED = auto()
 
     __tablename__ = "events"
 

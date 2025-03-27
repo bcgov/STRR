@@ -62,6 +62,7 @@ APPLICATION_STATES_STAFF_ACTION = [
     Application.Status.ADDITIONAL_INFO_REQUESTED,
 ]
 APPLICATION_UNPAID_STATES = [Application.Status.DRAFT, Application.Status.PAYMENT_DUE]
+APPLICATION_ASSIGN_STATES = [Application.Status.FULL_REVIEW, Application.Status.PROVISIONAL_REVIEW]
 
 
 class ApplicationService:
@@ -295,4 +296,34 @@ class ApplicationService:
         application_json.get("registration").get("documents", []).append(document)
         application.application_json = application_json
         application.save()
+        return application
+
+    @staticmethod
+    def assign_application(application: Application, reviewer_id: int) -> Application:
+        """Updates the reviewer of an application."""
+        application.reviewer_id = reviewer_id
+        application.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.APPLICATION_REVIEWER_ASSIGNED,
+            application_id=application.id,
+            user_id=reviewer_id,
+        )
+
+        return application
+
+    @staticmethod
+    def unassign_application(application: Application, user_id: int) -> Application:
+        """Unassigns the reviewer from an application."""
+        application.reviewer_id = None
+        application.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.APPLICATION_REVIEWER_UNASSIGNED,
+            application_id=application.id,
+            user_id=user_id,
+        )
+
         return application

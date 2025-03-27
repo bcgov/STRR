@@ -843,3 +843,35 @@ def test_examiner_multi_select_filters(session, client, jwt):
             RegistrationStatus.EXPIRED.value,
         ]
         assert application["registration"]["registrationType"] in ["HOST", "PLATFORM"]
+
+
+@patch("strr_api.services.user_service.UserService.get_or_create_user_by_jwt")
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_assign_and_unassign_application(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        application_number = rv.json.get("header").get("applicationNumber")
+
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+    assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+    rv = client.put(f"/applications/{application_number}/unassign", headers=staff_headers)
+    assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+    application = Application.find_by_application_number(application_number=application_number)
+    application.status = Application.Status.FULL_REVIEW
+    application.save()
+
+    rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    assert rv.json.get("header").get("reviewer").get("username") == "test-user"
+
+    # Unassign application
+    rv = client.put(f"/applications/{application_number}/unassign", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    assert rv.json.get("header").get("reviewer") == {}

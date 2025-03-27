@@ -345,7 +345,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications?sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&status=AUTO_APPROVED",
+							"raw": "{{api_url}}/applications?sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&status=AUTO_APPROVED&assignee={{username}}",
 							"host": [
 								"{{api_url}}"
 							],
@@ -386,8 +386,8 @@
 									"value": "PAID"
 								},
 								{
-									"key": "status",
-									"value": "AUTO_APPROVED"
+									"key": "assignee",
+									"value": "{{username}}"
 								}
 							]
 						}
@@ -740,7 +740,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1&sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&status=AUTO_APPROVED",
+							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1&sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&status=AUTO_APPROVED&assignee={{username}}",
 							"host": [
 								"{{api_url}}"
 							],
@@ -794,8 +794,8 @@
 									"value": "PAID"
 								},
 								{
-									"key": "status",
-									"value": "AUTO_APPROVED"
+									"key": "assignee",
+									"value": "{{username}}"
 								}
 							]
 						}
@@ -1314,6 +1314,120 @@
 								"applications",
 								"{{application_number}}",
 								"notice-of-consideration"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains application with assigned reviewer\", function () {",
+									"    pm.expect(jsonData).to.have.property('header');",
+									"    pm.expect(jsonData.header).to.have.property('applicationNumber');",
+									"    pm.expect(jsonData.header.reviewer.username).to.equal(pm.environment.get(\"username\"));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_number}}/assign",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_number}}",
+								"assign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unassign Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains application with no reviewer\", function () {",
+									"    pm.expect(jsonData).to.have.property('header');",
+									"    pm.expect(jsonData.header).to.have.property('applicationNumber');",
+									"    pm.expect(jsonData.header.reviewer).to.deep.equal({});",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_number}}/unassign",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_number}}",
+								"unassign"
 							]
 						}
 					},

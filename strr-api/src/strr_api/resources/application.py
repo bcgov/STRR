@@ -71,6 +71,7 @@ from strr_api.services import (
     strr_pay,
 )
 from strr_api.services.application_service import (
+    APPLICATION_ASSIGN_STATES,
     APPLICATION_STATES_STAFF_ACTION,
     APPLICATION_TERMINAL_STATES,
     APPLICATION_UNPAID_STATES,
@@ -182,6 +183,10 @@ def get_applications():
         default: desc
         description: Sort order (ascending or descending)
       - in: query
+        name: assignee
+        type: string
+        description: Assignee Filter
+      - in: query
         name: recordNumber
         type: string
         description: Application or Registration Number filter
@@ -234,6 +239,7 @@ def get_applications():
         record_number = request.args.get("recordNumber", None)
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
+        assignee = request.args.get("assignee", None)
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -247,6 +253,7 @@ def get_applications():
             record_number=record_number,
             sort_by=sort_by,
             sort_order=sort_order,
+            assignee=assignee,
         )
         application_list = ApplicationService.list_applications(account_id, filter_criteria=filter_criteria)
         return jsonify(application_list), HTTPStatus.OK
@@ -887,6 +894,10 @@ def search_applications():
         enum: [asc, desc]
         default: desc
         description: Sort order (ascending or descending)
+      - in: query
+        name: assignee
+        type: string
+        description: Assignee Filter
     responses:
       200:
         description:
@@ -905,6 +916,7 @@ def search_applications():
         registration_types = request.args.getlist("registrationType")
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
+        assignee = request.args.get("assignee", None)
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -922,6 +934,7 @@ def search_applications():
             registration_types=registration_types,
             sort_by=sort_by,
             sort_order=sort_order,
+            assignee=assignee,
         )
 
         application_list = ApplicationService.search_applications(filter_criteria=filter_criteria)
@@ -1012,4 +1025,97 @@ def send_notice_of_consideration(application_number: str):
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception:
         logger.error("Error in sending NoC: ", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<application_number>/assign", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def assign_application(application_number: str):
+    """
+    Update the reviewer of an application.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
+        application = ApplicationService.get_application(application_number)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        if not application.status or application.status.upper() not in APPLICATION_ASSIGN_STATES:
+            return error_response(
+                message=ErrorMessage.APPLICATION_ASSIGN_STATUS.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+
+        application = ApplicationService.assign_application(application, user.id)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except Exception:
+        logger.error("Error assigning application reviewer: ", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<application_number>/unassign", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def unassign_application(application_number: str):
+    """
+    Unassign the reviewer from an application.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
+        application = ApplicationService.get_application(application_number)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        if not application.status or application.status.upper() not in APPLICATION_ASSIGN_STATES:
+            return error_response(
+                message=ErrorMessage.APPLICATION_ASSIGN_STATUS.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        if not application.reviewer_id:
+            return error_response(
+                message="Application is not assigned to any reviewer",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+
+        application = ApplicationService.unassign_application(application, user.id)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except Exception:
+        logger.error("Error unassigning application reviewer: ", exc_info=True)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
