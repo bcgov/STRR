@@ -94,7 +94,9 @@ class ValidationService:
                         "message": ErrorMessage.STREET_NUMBER_MISMATCH.value,
                     }
                 )
-            if address_json.get("postalCode") != registration.rental_property.address.postal_code:
+            if address_json.get("postalCode", "").replace(
+                " ", ""
+            ) != registration.rental_property.address.postal_code.replace(" ", ""):
                 errors.append(
                     {"code": ErrorMessage.POSTAL_CODE_MISMATCH.name, "message": ErrorMessage.POSTAL_CODE_MISMATCH.value}
                 )
@@ -113,18 +115,17 @@ class ValidationService:
             strata_hotel = registration.strata_hotel_registration.strata_hotel
             location = strata_hotel.location
 
-            if (
-                str(address_json.get("streetNumber")) == str(cls._extract_street_number(location.street_address))
-                and address_json.get("postalCode") == location.postal_code
-            ):
+            if str(address_json.get("streetNumber")) == str(
+                cls._extract_street_number(location.street_address)
+            ) and address_json.get("postalCode", "").replace(" ", "") == location.postal_code.replace(" ", ""):
                 match_found = True
 
             if not match_found:
                 for building in strata_hotel.buildings:
-                    if (
-                        str(address_json.get("streetNumber"))
-                        == str(cls._extract_street_number(building.address.street_address))
-                        and address_json.get("postalCode") == building.address.postal_code
+                    if str(address_json.get("streetNumber")) == str(
+                        cls._extract_street_number(building.address.street_address)
+                    ) and address_json.get("postalCode", "").replace(" ", "") == building.address.postal_code.replace(
+                        " ", ""
                     ):
                         match_found = True
                         break
