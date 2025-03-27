@@ -152,10 +152,10 @@ class ValidationService:
         return response
 
     @classmethod
-    def _get_text_after_hyphen(cls, addressLine):
-        if "-" in addressLine:
-            return addressLine.split("-", 1)[1].strip()
-        return addressLine
+    def _get_text_after_hyphen(cls, address_line):
+        if "-" in address_line:
+            return address_line.split("-", 1)[1].strip()
+        return address_line
 
     @classmethod
     def _extract_street_number(cls, address):
