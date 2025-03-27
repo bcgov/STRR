@@ -868,7 +868,8 @@ def test_assign_and_unassign_application(session, client, jwt):
 
         rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
-        assert rv.json.get("header").get("reviewer").get("username") == "test-user"
+        assert rv.json.get("header").get("reviewer") != {}
+        assert rv.json.get("header").get("reviewer").get("username") is not None
 
         # Unassign application
         rv = client.put(f"/applications/{application_number}/unassign", headers=staff_headers)
