@@ -7,7 +7,9 @@ import {
   mockWithPrExemptAndStrataHotel,
   mockWithBlExempt,
   mockDocumentsNOC,
-  mockHostApplicationNOCExpired
+  mockHostApplicationNOCExpired,
+  mockHostApplicationWithReviewer,
+  mockHostApplicationWithoutReviewer
 } from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
 import ApplicationDetails from '~/pages/examine/[applicationId].vue'
@@ -19,15 +21,20 @@ import {
 
 let currentMockData = mockHostApplication
 const mockViewReceipt = vi.fn()
+const mockAssignApplication = vi.fn().mockImplementation(() => Promise.resolve())
+const mockGetApplicationById = vi.fn().mockImplementation(() => Promise.resolve(currentMockData))
+const mockGetNextApplication = vi.fn().mockImplementation(() => Promise.resolve(currentMockData))
+
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
-    getNextApplication: vi.fn().mockImplementation(() => Promise.resolve(currentMockData)),
-    getApplicationById: vi.fn().mockResolvedValue(currentMockData),
+    getNextApplication: mockGetNextApplication,
+    getApplicationById: mockGetApplicationById,
     getDocument: vi.fn().mockResolvedValue(new Blob(['test'], { type: 'application/pdf' })),
     activeReg: ref(currentMockData.registration),
     activeHeader: ref(currentMockData.header),
     activeRecord: ref(currentMockData),
     isApplication: ref(true),
+    assignApplication: mockAssignApplication,
     viewReceipt: mockViewReceipt,
     openDocInNewTab: vi.fn().mockImplementation(() => {
       const url = URL.createObjectURL(new Blob(['test']))
@@ -168,5 +175,31 @@ describe('Examiner - Host Application Details Page', () => {
 
     await receiptButton.trigger('click')
     expect(mockViewReceipt).toHaveBeenCalledWith(currentMockData.header.applicationNumber)
+  })
+
+  it('renders application details with reviewer information', async () => {
+    await setupMockAndMount(mockHostApplicationWithReviewer)
+    expect(wrapper.exists()).toBe(true)
+    expect(wrapper.findComponent(ApplicationInfoHeader).exists()).toBe(true)
+    const appHeaderInfo = wrapper.findComponent(ApplicationInfoHeader)
+    expect(appHeaderInfo.exists()).toBe(true)
+    const appHeaderInfoText = appHeaderInfo.text()
+    expect(appHeaderInfoText).toContain('Assignee: examiner1')
+  })
+
+  it('renders application details without reviewer information', async () => {
+    await setupMockAndMount(mockHostApplicationWithoutReviewer)
+    expect(wrapper.exists()).toBe(true)
+    expect(wrapper.findComponent(ApplicationInfoHeader).exists()).toBe(true)
+    const appHeaderInfo = wrapper.findComponent(ApplicationInfoHeader)
+    expect(appHeaderInfo.exists()).toBe(true)
+    const appHeaderInfoText = appHeaderInfo.text()
+    expect(appHeaderInfoText).not.toContain('Assignee: examiner1')
+  })
+
+  it('auto-assigns application to current examiner when no reviewer exists', async () => {
+    await setupMockAndMount(mockHostApplicationWithoutReviewer)
+    expect(mockAssignApplication).toHaveBeenCalledWith(mockHostApplicationWithoutReviewer.header.applicationNumber)
+    expect(mockGetApplicationById).toHaveBeenCalled()
   })
 })

@@ -113,6 +113,10 @@ const getPropertyAddressColumn = (app: HousApplicationResponse) => {
   }
 }
 
+const getAdjudicatorColumn = (header: ApplicationHeader) => {
+  return header.reviewer?.username || '-'
+}
+
 const getRequirementsColumn = (app: HousApplicationResponse) => {
   let result = ''
   let listingSize = ''
@@ -148,7 +152,8 @@ const { data: applicationListResp, status } = await useAsyncData(
       () => exStore.tableFilters.registrationType,
       () => exStore.tableFilters.status,
       () => exStore.tableFilters.registrationNumber,
-      () => exStore.tableFilters.searchText
+      () => exStore.tableFilters.searchText,
+      () => exStore.tableFilters.adjudicator
     ],
     // deep: true, watch: [() => exStore.tableFilters] // can do this once the rest of the table filters are added
     default: () => ({ applications: [], total: 0 }),
@@ -168,7 +173,7 @@ const { data: applicationListResp, status } = await useAsyncData(
         status: app.header.registrationStatus ? app.header.examinerStatus : app.header.hostStatus, // TODO: should this have registration status? maybe this should just return app.header.status?
         submissionDate: app.header.applicationDateTime,
         lastModified: getLastStatusChangeColumn(app.header),
-        adjudicator: '-' // TODO: get adjudicator
+        adjudicator: getAdjudicatorColumn(app.header)
       }))
 
       return { applications, total: res.total }
@@ -196,8 +201,8 @@ const columns = computed(() => {
       { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: true },
       { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: true },
       { key: 'status', label: t('page.dashboardList.columns.status'), sortable: true },
-      { key: 'lastModified', label: 'Last Modified', sortable: true }
-      // { key: 'adjudicator', label: 'Adjudicator', sortable: true } // TODO: add column when api is ready
+      { key: 'lastModified', label: 'Last Modified', sortable: true },
+      { key: 'adjudicator', label: t('page.dashboardList.columns.adjudicator'), sortable: true }
     ]
   } else {
     return [
@@ -208,8 +213,8 @@ const columns = computed(() => {
       { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: false },
       { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: false },
       { key: 'status', label: t('page.dashboardList.columns.status'), sortable: false },
-      { key: 'lastModified', label: 'Last Modified', sortable: false }
-      // { key: 'adjudicator', label: 'Adjudicator', sortable: false } // TODO: add column when api is ready
+      { key: 'lastModified', label: 'Last Modified', sortable: false },
+      { key: 'adjudicator', label: t('page.dashboardList.columns.adjudicator'), sortable: false }
     ]
   }
 })
@@ -524,18 +529,10 @@ function handleColumnSort (column: string) {
         </template>
 
         <template v-if="enableTableFilters" #adjudicator-header="{ column }">
-          <TableHeaderSelect
+          <TableHeaderInput
             v-model="exStore.tableFilters.adjudicator"
             :column
             :sort
-            searchable
-            :options="[
-              { label: 'Person 1', value: 'person-1' },
-              { label: 'Person 2', value: 'person-2' },
-              { label: 'Person 3', value: 'person-3' },
-              { label: 'Person 4', value: 'person-4' },
-              { label: 'Person 5', value: 'person-5' },
-            ]"
             @sort="handleColumnSort(column.key)"
           />
         </template>

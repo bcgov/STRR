@@ -87,6 +87,10 @@ const nocCountdown = computed(() => {
           <span v-if="!nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
           <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
         </template>
+        <template v-if="activeHeader.reviewer?.username">
+          | <strong>Assignee:</strong>
+          {{ activeHeader.reviewer.username }}
+        </template>
       </div>
     </div>
   </div>

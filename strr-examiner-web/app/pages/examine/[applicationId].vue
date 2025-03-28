@@ -8,9 +8,10 @@ const {
   rejectApplication,
   getNextApplication,
   getApplicationById,
-  sendNoticeOfConsideration
+  sendNoticeOfConsideration,
+  assignApplication
 } = useExaminerStore()
-const { nocContent, nocFormRef } = storeToRefs(useExaminerStore())
+const { nocContent, nocFormRef, activeHeader } = storeToRefs(useExaminerStore())
 
 useHead({
   title: t('page.dashboardList.title')
@@ -82,6 +83,12 @@ const handleApplicationAction = (
 watch(
   [application, error],
   () => {
+    // During initial loading, auto assign application to current examiner if no reviewer exists
+    if (initialMount.value && activeHeader.value && !activeHeader.value.reviewer?.username) {
+      assignApplication(activeHeader.value.applicationNumber!).then(() => {
+        refresh()
+      })
+    }
     // if watch triggered, this means initial page mount is complete, set flag to false
     initialMount.value = false
     updateRouteAndButtons(RoutesE.EXAMINE, {

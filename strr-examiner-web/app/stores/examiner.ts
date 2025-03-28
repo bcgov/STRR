@@ -42,7 +42,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     status: [], // show all statuses
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
-    adjudicator: []
+    adjudicator: ''
   })
 
   const fetchApplications = () => {
@@ -65,7 +65,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           sortBy: ApplicationSortBy.APPLICATION_DATE,
           sortOrder: ApplicationSortOrder.ASC,
           address: tableFilters.propertyAddress,
-          recordNumber: tableFilters.registrationNumber
+          recordNumber: tableFilters.registrationNumber,
+          assignee: tableFilters.adjudicator
         }
       })
     } else { // else try to fetch by search
@@ -79,7 +80,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           sortBy: ApplicationSortBy.APPLICATION_DATE,
           sortOrder: ApplicationSortOrder.ASC,
           address: tableFilters.propertyAddress,
-          recordNumber: tableFilters.registrationNumber
+          recordNumber: tableFilters.registrationNumber,
+          assignee: tableFilters.adjudicator
         }
       })
     }
@@ -163,6 +165,38 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   /**
+   * Assign the current user as the reviewer of an application.
+   *
+   * @param {string} applicationNumber - The application number to assign.
+   */
+  const assignApplication = async (applicationNumber: string): Promise<void> => {
+    try {
+      await $strrApi(`/applications/${applicationNumber}/assign`, {
+        method: 'PUT'
+      })
+    } catch (e) {
+      logFetchError(e, t('error.assignApplication'))
+      strrModal.openErrorModal('Error', t('error.assignApplication'), false)
+    }
+  }
+
+  /**
+   * Unassign the reviewer from an application.
+   *
+   * @param {string} applicationNumber - The application number to unassign.
+   */
+  const unassignApplication = async (applicationNumber: string): Promise<void> => {
+    try {
+      await $strrApi(`/applications/${applicationNumber}/unassign`, {
+        method: 'PUT'
+      })
+    } catch (e) {
+      logFetchError(e, t('error.unAssignApplication'))
+      strrModal.openErrorModal('Error', t('error.unAssignApplication'), false)
+    }
+  }
+
+  /**
    * Update the status of a registration.
    *
    * @param {number} registrationId - The registrationId for the registration to be updated.
@@ -209,7 +243,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         status: [],
         submissionDate: { start: null, end: null },
         lastModified: { start: null, end: null },
-        adjudicator: []
+        adjudicator: ''
       }
     )
   }
@@ -237,6 +271,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     openDocInNewTab,
     resetFilters,
     updateRegistrationStatus,
-    getRegistrationById
+    getRegistrationById,
+    assignApplication,
+    unassignApplication
   }
 }, { persist: true }) // will persist data in session storage

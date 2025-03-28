@@ -1,6 +1,10 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mockApplications } from '../mocks/mockedData'
+import {
+  mockApplications,
+  mockHostApplicationWithReviewer,
+  mockHostApplicationWithoutReviewer
+} from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
 import Dashboard from '~/pages/dashboard.vue'
 
@@ -23,7 +27,8 @@ vi.mock('@/stores/examiner', () => ({
     getApplicationById: vi.fn().mockResolvedValue(mockApplications[0]),
     getDocument: vi.fn(),
     openDocInNewTab: vi.fn(),
-    resetFilters: vi.fn()
+    resetFilters: vi.fn(),
+    assignApplication: vi.fn()
   })
 }))
 
@@ -93,5 +98,22 @@ describe('Examiner Dashboard Page', () => {
     expect(applicationText).toContain(header.hostStatus)
     expect(applicationText).toContain(displayContactFullName(registration.primaryContact))
     expect(applicationText).toContain(registration.unitAddress.city)
+  })
+
+  it('renders the assignee column correctly', () => {
+    expect(wrapper.findTestId('applications-table').exists()).toBe(true)
+    const { applications } = wrapper.vm.applicationListResp.value
+    const appWithReviewer = applications.find(app =>
+      app.adjudicator === mockHostApplicationWithReviewer.header.reviewer?.username
+    )
+    expect(appWithReviewer).toBeDefined()
+    expect(appWithReviewer?.adjudicator).toBe(mockHostApplicationWithReviewer.header.reviewer?.username)
+    const appWithoutReviewer = applications.find(app =>
+      app.applicationNumber === mockHostApplicationWithoutReviewer.header.applicationNumber
+    )
+    expect(appWithoutReviewer).toBeDefined()
+    expect(appWithoutReviewer?.adjudicator).toBe('-')
+    const applicationText = wrapper.findTestId('applications-table').text()
+    expect(applicationText).toContain(mockHostApplicationWithReviewer.header.reviewer?.username)
   })
 })

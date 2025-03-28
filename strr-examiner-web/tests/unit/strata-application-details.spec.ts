@@ -12,6 +12,7 @@ vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     getNextApplication: vi.fn().mockResolvedValue(mockStrataApplication),
     getApplicationById: vi.fn().mockResolvedValue(mockStrataApplication),
+    assignApplication: vi.fn().mockImplementation(() => Promise.resolve()),
     activeReg: ref(mockStrataApplication.registration),
     activeHeader: ref(mockStrataApplication.header),
     activeRecord: ref(mockStrataApplication),
@@ -26,6 +27,7 @@ describe('Examiner - Strata Application Details Page', () => {
     wrapper = await mountSuspended(ApplicationDetails, {
       global: { plugins: [enI18n] }
     })
+    await nextTick()
   })
 
   it('renders Application Details page and its components', () => {

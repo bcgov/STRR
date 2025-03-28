@@ -9,6 +9,7 @@ vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     getNextApplication: vi.fn().mockResolvedValue(mockHostApplicationWithFlags),
     getApplicationById: vi.fn().mockResolvedValue(mockHostApplicationWithFlags),
+    assignApplication: vi.fn().mockImplementation(() => Promise.resolve()),
     activeReg: ref(mockHostApplicationWithFlags.registration),
     activeHeader: ref(mockHostApplicationWithFlags.header),
     activeRecord: ref(mockHostApplicationWithFlags),
@@ -23,6 +24,7 @@ describe('Host Application Alert Flags', () => {
     wrapper = await mountSuspended(ApplicationDetails, {
       global: { plugins: [enI18n] }
     })
+    await nextTick()
   })
 
   it('renders alert flags', () => {

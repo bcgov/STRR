@@ -281,9 +281,27 @@ export const mockStrataApplication: StrataApplicationResp =
   }
 }
 
+export const mockHostApplicationWithReviewer: HostApplicationResp = {
+  ...mockHostApplication,
+  header: {
+    ...mockHostApplication.header,
+    reviewer: MOCK_EXAMINER_USER
+  }
+}
+
+export const mockHostApplicationWithoutReviewer: HostApplicationResp = {
+  ...mockHostApplication,
+  header: {
+    ...mockHostApplication.header,
+    reviewer: {}
+  }
+}
+
 export const mockApplications: ApiApplicationBaseResp [] = [
   mockHostApplication,
-  mockStrataApplication
+  mockStrataApplication,
+  mockHostApplicationWithReviewer,
+  mockHostApplicationWithoutReviewer
 ]
 
 const createRegistrationHeader = (
