@@ -146,6 +146,14 @@ def validate_batch():
 
         permits_dict = request_json.get("permits")
 
+        if control_dict.get("permitsSubmitted") != len(permits_dict):
+            errors.append(
+                {
+                    "code": "INVALID_REQUEST",
+                    "message": "Value of 'permitsSubmitted' does not match the number of permits submitted for verification.",
+                }
+            )
+
         if not permits_dict:
             errors.append({"code": "INVALID_REQUEST", "message": "'permits' object not present in the request."})
 
