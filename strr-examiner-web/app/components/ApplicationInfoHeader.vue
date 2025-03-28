@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+const { t } = useI18n()
 const exStore = useExaminerStore()
 const { activeHeader, activeReg } = storeToRefs(exStore)
 
@@ -78,17 +79,18 @@ const nocCountdown = computed(() => {
           :label="activeHeader.examinerStatus"
           :color="getBadgeColor(activeHeader.status)"
         />
-        <strong>Type:</strong>
+        <strong>{{ t('strr.label.applicationType') }}</strong>
         {{ $t(`applicationType.${activeReg?.registrationType}`) }} |
-        <strong>Submitted:</strong> {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a') }}
+        <strong>{{ t('strr.label.submitted') }}</strong>
+        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a') }}
         ({{ dayCountdown(activeHeader.applicationDateTime.toString(), true) }} days ago)
         <template v-if="activeHeader.nocEndDate">
-          | <strong>NOC Expiry:</strong> {{ dateToString(activeHeader.nocEndDate, 'y-MM-dd a') }}
+          | <strong>{{ t('strr.label.nocExpiry') }}</strong> {{ dateToString(activeHeader.nocEndDate, 'y-MM-dd a') }}
           <span v-if="!nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
           <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
         </template>
         <template v-if="activeHeader.reviewer?.username">
-          | <strong>Assignee:</strong>
+          | <strong>{{ t('strr.label.assignee') }}</strong>
           {{ activeHeader.reviewer.username }}
         </template>
       </div>

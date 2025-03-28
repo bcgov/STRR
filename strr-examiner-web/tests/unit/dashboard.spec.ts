@@ -104,7 +104,7 @@ describe('Examiner Dashboard Page', () => {
     expect(wrapper.findTestId('applications-table').exists()).toBe(true)
     const { applications } = wrapper.vm.applicationListResp.value
     const appWithReviewer = applications.find(app =>
-      app.adjudicator === mockHostApplicationWithReviewer.header.reviewer?.username
+      app.adjudicator === mockHostApplicationWithReviewer.header.reviewer.username
     )
     expect(appWithReviewer).toBeDefined()
     expect(appWithReviewer?.adjudicator).toBe(mockHostApplicationWithReviewer.header.reviewer?.username)

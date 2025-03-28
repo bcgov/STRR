@@ -5,6 +5,7 @@ interface ApiRegistrationHeader {
   examinerActions: string[]
   applicationNumber?: string
   applicationDateTime?: string
+  status: ApplicationStatus
   reviewer?: {
     username: string
     displayName: string
