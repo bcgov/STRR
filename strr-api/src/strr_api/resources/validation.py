@@ -150,7 +150,7 @@ def validate_batch():
             errors.append(
                 {
                     "code": "INVALID_REQUEST",
-                    "message": "Value of 'permitsSubmitted' does not match the number of permits submitted for verification.",
+                    "message": "Value of 'permitsSubmitted' does not match the number of permits submitted for verification.",  # noqa: E501
                 }
             )
 
