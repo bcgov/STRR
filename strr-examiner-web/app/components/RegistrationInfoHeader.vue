@@ -2,7 +2,8 @@
 
 const { t } = useI18n()
 const exStore = useExaminerStore()
-const { activeReg, activeHeader } = storeToRefs(exStore)
+const { activeReg, activeHeader, isFilingHistoryOpen } = storeToRefs(exStore)
+const { toggleFilingHistory } = useHostExpansion()
 
 const getBadgeColor = (status: RegistrationStatus): string => {
   switch (status) {
@@ -50,20 +51,37 @@ const getRegistrationType = (): string => {
   <div class="border-b bg-white py-6">
     <div class="app-inner-container">
       <div class="mb-2">
-        <div class="mb-2 flex justify-between text-2xl">
-          <div>
-            <strong>
-              {{ activeReg.registrationNumber }} |
-            </strong>
-            {{ getApplicationName() }}
-            <UButton
+        <div class="mb-4 flex justify-between text-2xl leading-none">
+          <div class="flex items-center space-x-3">
+            <span class="border-r-2 border-gray-700 pr-3 font-bold">
+              {{ activeReg.registrationNumber }}
+            </span>
+            <span
+              v-if="getApplicationName()"
+              class="border-r-2 border-gray-700 pr-3"
+            >
+              {{ getApplicationName() }}
+            </span>
+            <span
               v-if="activeReg.registrationType === ApplicationType.STRATA_HOTEL"
-              icon="mdi-web"
+              class="border-r-2 border-gray-700 pr-3"
+            >
+              <UButton
+                icon="mdi-web"
+                :padded="false"
+                variant="link"
+                :to="(activeReg as StrataHotelRegistrationResp).strataHotelDetails?.brand.website"
+                target="_blank"
+                data-testid="strata-brand-website"
+              />
+            </span>
+            <UButton
+              :label="isFilingHistoryOpen ? $t('btn.hideHistory') : $t('btn.showHistory')"
               :padded="false"
               variant="link"
-              :to="(activeReg as StrataHotelRegistrationResp).strataHotelDetails?.brand.website"
-              target="_blank"
-              data-testid="strata-brand-website"
+              icon="i-mdi-history"
+              size="sm"
+              @click="toggleFilingHistory()"
             />
           </div>
           <UButton
@@ -75,7 +93,7 @@ const getRegistrationType = (): string => {
             class="gap-1 underline"
             @click="exStore.viewReceipt(activeHeader?.applicationNumber)"
           >
-            View Receipt
+            {{ $t('btn.viewReceipt') }}
           </UButton>
         </div>
         <div class="text-sm">

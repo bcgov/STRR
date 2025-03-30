@@ -244,7 +244,10 @@ export default {
     approve: 'Approve',
     cancel: 'Cancel',
     suspend: 'Suspend',
-    sendNotice: 'Send Notice'
+    sendNotice: 'Send Notice',
+    viewReceipt: 'View Receipt',
+    showHistory: 'Show History',
+    hideHistory: 'Hide History'
   },
   error: {
     action: {
@@ -317,7 +320,8 @@ export default {
     findInApplication: 'Find in application...',
     tableLimitDisplay: 'Display:',
     noCraTaxNumber: 'No CRA Tax Number',
-    multipleFilter: 'Multiple'
+    multipleFilter: 'Multiple',
+    history: 'History'
   },
   link: {
     learnMore: 'Learn More'

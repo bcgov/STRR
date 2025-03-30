@@ -5,7 +5,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
   const strrModal = useStrrModals()
-
+  const isFilingHistoryOpen = ref(false) // track state of Filing Histroy between different expansion panels
   const tableLimit = ref(50)
   const tablePage = ref(1)
   const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)
@@ -225,6 +225,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return resp
   }
 
+  const getApplicationFilingHistory = async (applicationNumber: string): Promise<FilingHistoryEvent[]> => {
+    return await $strrApi<FilingHistoryEvent[]>(`/applications/${applicationNumber}/events`, {
+      method: 'GET'
+    })
+  }
+
   const openDocInNewTab = async (applicationNumber: string, supportingDocument: ApiDocument) => {
     const file = await getDocument(applicationNumber, supportingDocument.fileKey)
     const blob = new Blob([file], { type: 'application/pdf' })
@@ -276,6 +282,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     updateRegistrationStatus,
     getRegistrationById,
     assignApplication,
-    unassignApplication
+    unassignApplication,
+    getApplicationFilingHistory,
+    isFilingHistoryOpen
   }
 }, { persist: true }) // will persist data in session storage
