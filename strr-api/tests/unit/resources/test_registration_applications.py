@@ -930,7 +930,10 @@ def test_requirements_filter(session, client, jwt):
     response_json = rv.json
     applications = response_json["applications"]
     for application in applications:
-        assert application["registration"]["strRequirements"]["isStraaExempt"] is True
+        assert application["registration"]["strRequirements"]["isStraaExempt"] is True or (
+            application["registration"]["strRequirements"]["isBusinessLicenceRequired"] is False
+            and application["registration"]["strRequirements"]["isPrincipalResidenceRequired"] is False
+        )
 
     rv = client.get("/applications?requirement=PR&requirement=BL", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code

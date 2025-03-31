@@ -248,13 +248,25 @@ class Application(BaseModel):
             StrrRequirement.BL.value: {"registration": {"strRequirements": {"isBusinessLicenceRequired": True}}},
             StrrRequirement.PR.value: {"registration": {"strRequirements": {"isPrincipalResidenceRequired": True}}},
             StrrRequirement.PROHIBITED.value: {"registration": {"strRequirements": {"isStrProhibited": True}}},
-            StrrRequirement.NO_REQ.value: {"registration": {"strRequirements": {"isStraaExempt": True}}},
         }
         pr_exempt_mapping = {
             StrrRequirement.PR_EXEMPT_STRATA_HOTEL.value: "STRATA_HOTEL",
             StrrRequirement.PR_EXEMPT_FARM_LAND.value: "FARM_LAND",
             StrrRequirement.PR_EXEMPT_FRACTIONAL_OWNERSHIP.value: "FRACTIONAL_OWNERSHIP",
         }
+
+        if req == StrrRequirement.NO_REQ.value:
+            return db.or_(
+                Application.application_json["registration"]["strRequirements"]["isStraaExempt"].astext == "true",
+                db.and_(
+                    Application.application_json["registration"]["strRequirements"]["isBusinessLicenceRequired"].astext
+                    == "false",
+                    Application.application_json["registration"]["strRequirements"][
+                        "isPrincipalResidenceRequired"
+                    ].astext
+                    == "false",
+                ),
+            )
 
         if req in host_req_mapping:
             return Application.application_json.contains(host_req_mapping[req])
