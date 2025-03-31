@@ -187,6 +187,12 @@ def get_applications():
         type: string
         description: Assignee Filter
       - in: query
+        name: requirement
+        type: array
+        items:
+          type: string
+        description: Requirement filter
+      - in: query
         name: recordNumber
         type: string
         description: Application or Registration Number filter
@@ -240,6 +246,7 @@ def get_applications():
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
         assignee = request.args.get("assignee", None)
+        requirements = request.args.getlist("requirement", None)
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -254,6 +261,7 @@ def get_applications():
             sort_by=sort_by,
             sort_order=sort_order,
             assignee=assignee,
+            requirements=requirements,
         )
         application_list = ApplicationService.list_applications(account_id, filter_criteria=filter_criteria)
         return jsonify(application_list), HTTPStatus.OK
@@ -898,6 +906,12 @@ def search_applications():
         name: assignee
         type: string
         description: Assignee Filter
+      - in: query
+        name: requirement
+        type: array
+        items:
+          type: string
+        description: Requirement filter
     responses:
       200:
         description:
@@ -917,6 +931,7 @@ def search_applications():
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
         assignee = request.args.get("assignee", None)
+        requirements = request.args.getlist("requirement", None)
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -935,6 +950,7 @@ def search_applications():
             sort_by=sort_by,
             sort_order=sort_order,
             assignee=assignee,
+            requirements=requirements,
         )
 
         application_list = ApplicationService.search_applications(filter_criteria=filter_criteria)

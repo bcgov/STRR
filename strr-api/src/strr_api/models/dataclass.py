@@ -49,3 +49,4 @@ class ApplicationSearch:
     registration_statuses: List[str] = None
     record_number: str = None
     assignee: str = None
+    requirements: list[str] = None

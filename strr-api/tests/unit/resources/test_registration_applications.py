@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 from datetime import datetime
@@ -875,3 +876,75 @@ def test_assign_and_unassign_application(session, client, jwt):
         rv = client.put(f"/applications/{application_number}/unassign", headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         assert rv.json.get("header").get("reviewer") == {}
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_requirements_filter(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+
+        bl_json_data = copy.deepcopy(json_data)
+        bl_json_data["registration"]["strRequirements"]["isBusinessLicenceRequired"] = True
+        rv = client.post("/applications", json=bl_json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        prohibited_json_data = copy.deepcopy(json_data)
+        prohibited_json_data["registration"]["strRequirements"]["isStrProhibited"] = True
+        rv = client.post("/applications", json=prohibited_json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        exempt_json_data = copy.deepcopy(json_data)
+        exempt_json_data["registration"]["strRequirements"]["isStraaExempt"] = True
+        exempt_json_data["registration"]["strRequirements"]["isBusinessLicenceRequired"] = False
+        exempt_json_data["registration"]["strRequirements"]["isPrincipalResidenceRequired"] = False
+        exempt_json_data["registration"]["strRequirements"]["isStrProhibited"] = False
+        rv = client.post("/applications", json=exempt_json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv = client.get("/applications?requirements=PR", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    applications = rv.json
+    for application in applications:
+        assert application["registration"]["strRequirements"]["isPrincipalResidenceRequired"] is True
+
+    rv = client.get("/applications?requirements=BL", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    applications = rv.json
+    for application in applications:
+        assert application["registration"]["strRequirements"]["isBusinessLicenceRequired"] is True
+
+    rv = client.get("/applications?requirements=PROHIBITED", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    applications = rv.json
+    for application in applications:
+        assert application["registration"]["strRequirements"]["isStrProhibited"] is True
+
+    rv = client.get("/applications?requirements=NO_REQ", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    applications = rv.json
+    for application in applications:
+        assert application["registration"]["strRequirements"]["isStraaExempt"] is True
+
+    rv = client.get("/applications?requirements=PR,BL", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    for application in applications:
+        assert application["registration"]["strRequirements"]["isPrincipalResidenceRequired"] is True
+        assert application["registration"]["strRequirements"]["isBusinessLicenceRequired"] is True
+
+    rv = client.get("/applications?requirements=PR_EXEMPT_FRACTIONAL_OWNERSHIP", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    for application in applications:
+        assert application["registration"]["unitDetails"]["prExemptReason"] == "FRACTIONAL_OWNERSHIP"
+
+    rv = client.get("/applications?requirements=PLATFORM_MAJOR", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    for application in applications:
+        assert application["registration"]["platformDetails"]["listingSize"] == "THOUSAND_AND_ABOVE"
+
+    rv = client.get("/applications?requirements=STRATA_NO_PR", headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    for application in applications:
+        assert application["registration"]["strataHotelDetails"]["category"] == "MULTI_UNIT_NON_PR"

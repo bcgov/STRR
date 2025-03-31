@@ -48,6 +48,15 @@ class Registration(Versioned, BaseModel):
     strata_hotel_registration = relationship("StrataHotelRegistration", back_populates="registration", uselist=False)
     documents = relationship("Document", back_populates="registration")
 
+    __table_args__ = (
+        db.Index(
+            "idx_gin_registration_number_trgm",
+            "registration_number",
+            postgresql_using="gin",
+            postgresql_ops={"registration_number": "gin_trgm_ops"},
+        ),
+    )
+
 
 class RentalProperty(Versioned, BaseModel):
     """Rental Property"""

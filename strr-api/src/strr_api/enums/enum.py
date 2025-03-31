@@ -176,3 +176,20 @@ class StrataHotelCategory(BaseEnum):
     FULL_SERVICE = auto()  # pylint: disable=invalid-name
     MULTI_UNIT_NON_PR = auto()  # pylint: disable=invalid-name
     POST_DECEMBER_2023 = auto()  # pylint: disable=invalid-name
+
+
+class StrrRequirement(Enum):
+    """STRR Requirement."""
+
+    BL = "BL"
+    PR = "PR"
+    PROHIBITED = "PROHIBITED"
+    NO_REQ = "NO_REQ"
+    PR_EXEMPT_STRATA_HOTEL = "PR_EXEMPT_STRATA_HOTEL"
+    PR_EXEMPT_FARM_LAND = "PR_EXEMPT_FARM_LAND"
+    PR_EXEMPT_FRACTIONAL_OWNERSHIP = "PR_EXEMPT_FRACTIONAL_OWNERSHIP"
+    PLATFORM_MAJOR = "PLATFORM_MAJOR"
+    PLATFORM_MINOR = "PLATFORM_MINOR"
+    PLATFORM_MEDIUM = "PLATFORM_MEDIUM"
+    STRATA_PR = "STRATA_PR"
+    STRATA_NO_PR = "STRATA_NO_PR"
