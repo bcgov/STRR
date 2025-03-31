@@ -115,7 +115,7 @@ class Application(BaseModel):
             "application_json",
             postgresql_using="gin",
             postgresql_ops={"application_json": "jsonb_path_ops"},
-        )
+        ),
     )
 
     submitter = db.relationship(
