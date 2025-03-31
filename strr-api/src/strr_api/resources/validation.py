@@ -39,11 +39,12 @@ STRR Permit Validation API.
 import logging
 from http import HTTPStatus
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
 from strr_api.exceptions import exception_response
+from strr_api.services.user_service import UserService
 from strr_api.services.validation_service import ValidationService
 
 logger = logging.getLogger("api")
@@ -69,6 +70,8 @@ def validate_action(action):
 
         single_permit = ":validatePermit"
         batch_permit = ":batchValidate"
+
+    UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
 
     valid_actions = (PermitType.single_permit, PermitType.batch_permit)
 
