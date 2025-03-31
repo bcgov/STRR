@@ -26,32 +26,33 @@ const enableRequirementFilter = computed<boolean>(() => {
   return flag ?? false
 })
 
+const hostOptions = [
+  { label: 'Host', value: undefined, disabled: true },
+  { label: 'PR', value: 'PR' },
+  { label: 'PR Exempt - Farm', value: 'PR_EXEMPT_FARM_LAND' },
+  { label: 'PR Exempt - Strata', value: 'PR_EXEMPT_STRATA_HOTEL' },
+  { label: 'PR Exempt - Fractional', value: 'PR_EXEMPT_FRACTIONAL_OWNERSHIP' },
+  { label: 'BL', value: 'BL' },
+  { label: 'Prohibited', value: 'PROHIBITED' },
+  { label: 'No requirements', value: 'NO_REQ' }
+]
+
+const platformOptions = [
+  { label: 'Platform', value: undefined, disabled: true },
+  { label: 'Major', value: 'PLATFORM_MAJOR' },
+  { label: 'Medium', value: 'PLATFORM_MEDIUM' },
+  { label: 'Minor', value: 'PLATFORM_MINOR' }
+]
+
+const strataOptions = [
+  { label: 'Strata', value: undefined, disabled: true },
+  { label: 'PR', value: 'STRATA_PR' },
+  { label: 'No requirements', value: 'STRATA_NO_PR' }
+]
+
 const requirementOptions = computed(() => {
   const registrationType = exStore.tableFilters.registrationType
 
-  const hostOptions = [
-    { label: 'Host', value: undefined, disabled: true },
-    { label: 'PR', value: 'PR' },
-    { label: 'PR Exempt - Farm', value: 'PR_EXEMPT_FARM_LAND' },
-    { label: 'PR Exempt - Strata', value: 'PR_EXEMPT_STRATA_HOTEL' },
-    { label: 'PR Exempt - Fractional', value: 'PR_EXEMPT_FRACTIONAL_OWNERSHIP' },
-    { label: 'BL', value: 'BL' },
-    { label: 'Prohibited', value: 'PROHIBITED' },
-    { label: 'No requirements', value: 'NO_REQ' }
-  ]
-
-  const platformOptions = [
-    { label: 'Platform', value: undefined, disabled: true },
-    { label: 'Major', value: 'PLATFORM_MAJOR' },
-    { label: 'Medium', value: 'PLATFORM_MEDIUM' },
-    { label: 'Minor', value: 'PLATFORM_MINOR' }
-  ]
-
-  const strataOptions = [
-    { label: 'Strata', value: undefined, disabled: true },
-    { label: 'PR', value: 'STRATA_PR' },
-    { label: 'No requirements', value: 'STRATA_NO_PR' }
-  ]
   if (!registrationType || registrationType.length === 0) {
     return [...hostOptions, ...platformOptions, ...strataOptions]
   }
