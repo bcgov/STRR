@@ -54,14 +54,15 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       }
       return true
     })
-    if (tableFilters.registrationType.length) { // fetch applications by type if type provided
-      return $strrApi('/applications', {
+    if (tableFilters.searchText && tableFilters.searchText.length > 2) {
+      return $strrApi('/applications/search', {
         query: {
           limit: tableLimit.value,
           page: tablePage.value,
           registrationType: tableFilters.registrationType,
           status: statusValue,
           registrationStatus: regStatus,
+          text: tableFilters.searchText,
           sortBy: ApplicationSortBy.APPLICATION_DATE,
           sortOrder: ApplicationSortOrder.ASC,
           address: tableFilters.propertyAddress,
@@ -69,14 +70,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           assignee: tableFilters.adjudicator
         }
       })
-    } else { // else try to fetch by search
-      return $strrApi('/applications/search', {
+    } else {
+      return $strrApi('/applications', {
         query: {
           limit: tableLimit.value,
           page: tablePage.value,
+          registrationType: tableFilters.registrationType,
           status: statusValue,
           registrationStatus: regStatus,
-          text: tableFilters.searchText.length > 2 ? tableFilters.searchText : undefined, // min length 3 required
           sortBy: ApplicationSortBy.APPLICATION_DATE,
           sortOrder: ApplicationSortOrder.ASC,
           address: tableFilters.propertyAddress,

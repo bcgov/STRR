@@ -465,6 +465,7 @@ function handleColumnSort (column: string) {
             :column
             :sort
             :default="[]"
+            class="break-words"
             :options="[
               { label: 'Application Status', value: undefined, disabled: true },
               { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },

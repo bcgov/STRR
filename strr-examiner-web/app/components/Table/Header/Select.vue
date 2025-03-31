@@ -47,7 +47,7 @@ onMounted(() => {
   nextTick(() => {
     if (filterColumnRef.value) {
       const measuredWidth = Math.round(filterColumnRef.value.$el.getBoundingClientRect().width)
-      initialWidth.value = `${measuredWidth}px`
+      initialWidth.value = measuredWidth > 200 ? '200px' : `${measuredWidth}px`
     }
   })
 })
