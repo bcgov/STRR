@@ -265,6 +265,7 @@ export default {
     },
     assignApplication: 'An error occurred assigning this application.',
     unAssignApplication: 'An error occurred unassigning this application.',
+    filingHistory: 'An error occurred while retrieving the filing history.',
     reqFetch: {
       unknown: {
         title: 'An unexpected error occurred.',

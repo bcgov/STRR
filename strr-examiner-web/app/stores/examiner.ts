@@ -226,9 +226,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getApplicationFilingHistory = async (applicationNumber: string): Promise<FilingHistoryEvent[]> => {
-    return await $strrApi<FilingHistoryEvent[]>(`/applications/${applicationNumber}/events`, {
-      method: 'GET'
-    })
+    try {
+      return await $strrApi<FilingHistoryEvent[]>(`/applications/${applicationNumber}/events`, {
+        method: 'GET'
+      })
+    } catch (e) {
+      logFetchError(e, t('error.filingHistory'))
+      return []
+    }
   }
 
   const openDocInNewTab = async (applicationNumber: string, supportingDocument: ApiDocument) => {

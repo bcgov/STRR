@@ -478,3 +478,25 @@ export const mockCancelledRegistration: HostRegistrationResp = {
     hostStatus: 'Cancelled'
   }
 }
+
+export const mockFilingHistory: FilingHistoryEvent[] =
+  [
+    {
+      createdDate: '2025-03-20T23:21:13.496375',
+      eventName: FilingHistoryEventName.INVOICE_GENERATED,
+      eventType: FilingHistoryEventType.APPLICATION,
+      message: 'Invoice generated.'
+    },
+    {
+      createdDate: '2025-03-20T23:21:14.008389',
+      eventName: FilingHistoryEventName.PAYMENT_COMPLETE,
+      eventType: FilingHistoryEventType.APPLICATION,
+      message: 'Payment completed.'
+    },
+    {
+      createdDate: '2025-03-20T23:25:24.559788',
+      eventName: FilingHistoryEventName.AUTO_APPROVAL_FULL_REVIEW,
+      eventType: FilingHistoryEventType.APPLICATION,
+      message: 'Application marked for full review by the auto approval process.'
+    }
+  ]

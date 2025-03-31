@@ -15,11 +15,9 @@ const HIDDEN_EVENTS: FilingHistoryEventName[] = [
 const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEvent[]>(
   'application-filing-history',
   async () => {
-    const allFilingHistroy = activeHeader.value?.applicationNumber
-      ? await getApplicationFilingHistory(activeHeader.value.applicationNumber)
-      : []
-
-    return allFilingHistroy.filter(event => !HIDDEN_EVENTS.includes(event.eventName))
+    if (!activeHeader.value?.applicationNumber) { return [] }
+    const allFilingHistroy = await getApplicationFilingHistory(activeHeader.value.applicationNumber)
+    return allFilingHistroy.filter(event => !HIDDEN_EVENTS.includes(event.eventName)).reverse()
   }
 )
 
@@ -50,7 +48,7 @@ const historyTableColumns: { key: keyof FilingHistoryEvent }[] = [
         <UTable
           :rows="filingHistory"
           :columns="historyTableColumns"
-          :empty-state="{ icon: '', label: 'No history available.' }"
+          :empty-state="{ icon: '', label: 'Error retrieving history. Please try again later.' }"
           :ui="{
             wrapper: 'relative overflow-x-auto h-auto',
             divide: 'divide-none',
@@ -62,6 +60,7 @@ const historyTableColumns: { key: keyof FilingHistoryEvent }[] = [
               base: 'hidden'
             }
           }"
+          data-testid="history-table"
         >
           <template #createdDate-data="{ row }">
             {{ dateToString(row.createdDate, 'MMM dd, yyyy') }}

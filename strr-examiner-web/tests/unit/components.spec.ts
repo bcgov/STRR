@@ -2,22 +2,41 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, vi, expect } from 'vitest'
 import filter from 'lodash/filter'
 import { enI18n } from '../mocks/i18n'
-import { mockDocuments, mockDocumentsNOC, mockHostApplication } from '../mocks/mockedData'
+import { mockDocuments, mockDocumentsNOC, mockFilingHistory, mockHostApplication } from '../mocks/mockedData'
 import SupportingDocuments from '~/components/SupportingDocuments.vue'
-import { UBadge, UButton } from '#components'
+import { HostExpansionFilingHistory, UBadge, UButton } from '#components'
+
+vi.mock('@/stores/examiner', () => ({
+  useExaminerStore: () => ({
+    activeReg: ref(mockHostApplication.registration),
+    activeHeader: ref(mockHostApplication.header),
+    activeRecord: ref(mockHostApplication),
+    getApplicationFilingHistory: vi.fn().mockResolvedValue(mockFilingHistory),
+    isFilingHistoryOpen: ref(true)
+  })
+}))
+
+describe('FilingHistory Component', async () => {
+  const filingHistoryWrapper = await mountSuspended(HostExpansionFilingHistory, {
+    global: { plugins: [enI18n] }
+  })
+
+  it('should display Filing Histroy table', () => {
+    expect(filingHistoryWrapper.exists()).toBe(true)
+
+    const historyTableRows = filingHistoryWrapper.find('[data-testid="history-table"]').findAll('tbody tr')
+    expect(historyTableRows.length).toBe(2) // only 2 events because AUTO_APPROVAL_FULL_REVIEW is hidden by the requirement
+
+    // events should be in reverse order
+    expect(historyTableRows.at(0)?.text()).toContain(mockFilingHistory.at(1)?.message)
+    expect(historyTableRows.at(1)?.text()).toContain(mockFilingHistory.at(0)?.message)
+  })
+})
 
 describe('SupportingDocuments Component', () => {
   // setup documents for tests
   const allMocDocuments = [...mockDocuments, ...mockDocumentsNOC]
   mockHostApplication.registration.documents = allMocDocuments
-
-  vi.mock('@/stores/examiner', () => ({
-    useExaminerStore: () => ({
-      activeReg: ref(mockHostApplication.registration),
-      activeHeader: ref(mockHostApplication.header),
-      activeRecord: ref(mockHostApplication)
-    })
-  }))
 
   // create SupportingDocuments component with a specified config
   const mountComponent = async (config: SupportingDocumentsConfig) => {

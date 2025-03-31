@@ -16,7 +16,8 @@ vi.mock('@/stores/examiner', () => ({
     activeReg: ref(mockStrataApplication.registration),
     activeHeader: ref(mockStrataApplication.header),
     activeRecord: ref(mockStrataApplication),
-    isApplication: ref(true)
+    isApplication: ref(true),
+    isFilingHistoryOpen: ref(true)
   })
 }))
 

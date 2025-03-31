@@ -24,7 +24,8 @@ vi.mock('@/stores/examiner', () => ({
     activeHeader: ref(currentMockData.header),
     activeRecord: ref(currentMockData),
     isApplication: ref(false),
-    viewReceipt: mockViewReceipt
+    viewReceipt: mockViewReceipt,
+    isFilingHistoryOpen: ref(false)
   })
 }))
 

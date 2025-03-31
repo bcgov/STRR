@@ -13,7 +13,8 @@ vi.mock('@/stores/examiner', () => ({
     activeReg: ref(mockHostApplicationWithFlags.registration),
     activeHeader: ref(mockHostApplicationWithFlags.header),
     activeRecord: ref(mockHostApplicationWithFlags),
-    isApplication: ref(true)
+    isApplication: ref(true),
+    isFilingHistoryOpen: ref(true)
   })
 }))
 

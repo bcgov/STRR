@@ -9,7 +9,8 @@ import {
   mockDocumentsNOC,
   mockHostApplicationNOCExpired,
   mockHostApplicationWithReviewer,
-  mockHostApplicationWithoutReviewer
+  mockHostApplicationWithoutReviewer,
+  mockFilingHistory
 } from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
 import ApplicationDetails from '~/pages/examine/[applicationId].vue'
@@ -24,12 +25,15 @@ const mockViewReceipt = vi.fn()
 const mockAssignApplication = vi.fn().mockImplementation(() => Promise.resolve())
 const mockGetApplicationById = vi.fn().mockImplementation(() => Promise.resolve(currentMockData))
 const mockGetNextApplication = vi.fn().mockImplementation(() => Promise.resolve(currentMockData))
+const isFilingHistoryOpen = ref(false) // needs to be initialized outside of mock store because value will change in tests
 
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     getNextApplication: mockGetNextApplication,
     getApplicationById: mockGetApplicationById,
     getDocument: vi.fn().mockResolvedValue(new Blob(['test'], { type: 'application/pdf' })),
+    getApplicationFilingHistory: vi.fn().mockResolvedValue(mockFilingHistory),
+    isFilingHistoryOpen,
     activeReg: ref(currentMockData.registration),
     activeHeader: ref(currentMockData.header),
     activeRecord: ref(currentMockData),
@@ -164,8 +168,6 @@ describe('Examiner - Host Application Details Page', () => {
   })
 
   it('displays view receipt button and calls viewReceipt when clicked', async () => {
-    await setupMockAndMount()
-
     const appHeaderInfo = wrapper.findComponent(ApplicationInfoHeader)
     expect(appHeaderInfo.exists()).toBe(true)
 
@@ -201,5 +203,14 @@ describe('Examiner - Host Application Details Page', () => {
     await setupMockAndMount(mockHostApplicationWithoutReviewer)
     expect(mockAssignApplication).toHaveBeenCalledWith(mockHostApplicationWithoutReviewer.header.applicationNumber)
     expect(mockGetApplicationById).toHaveBeenCalled()
+  })
+
+  it('displays Filing History Show/Hide button', async () => {
+    const appHeaderInfo = wrapper.findComponent(ApplicationInfoHeader)
+    const toggleHistoryBtn = appHeaderInfo.findTestId('toggle-history-btn')
+    expect(toggleHistoryBtn.exists()).toBe(true)
+    expect(toggleHistoryBtn.text()).toBe('Show History')
+    await toggleHistoryBtn.trigger('click')
+    expect(toggleHistoryBtn.text()).toBe('Hide History')
   })
 })
