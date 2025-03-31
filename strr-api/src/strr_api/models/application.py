@@ -115,13 +115,7 @@ class Application(BaseModel):
             "application_json",
             postgresql_using="gin",
             postgresql_ops={"application_json": "jsonb_path_ops"},
-        ),
-        db.Index(
-            "idx_gin_application_number_trgm",
-            "application_number",
-            postgresql_using="gin",
-            postgresql_ops={"application_number": "gin_trgm_ops"},
-        ),
+        )
     )
 
     submitter = db.relationship(
