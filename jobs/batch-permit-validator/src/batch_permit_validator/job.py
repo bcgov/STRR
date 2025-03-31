@@ -191,7 +191,7 @@ def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK
     """Read JSON in chunks, validate in parallel, and write results incrementally."""
     try:
         validation_cache = ValidationCache()
-        permits = request_json.get("permits")
+        permits = request_json.get("data")
         total_records = len(permits)
 
         logger.info(f"Loaded {total_records} records for processing.")
@@ -209,13 +209,13 @@ def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK
 
             logger.info(f"Chunk {idx // chunk_size + 1} processed!")
 
-        response_json = {"controls": request_json.get("controls"), "permits": results}
+        response_json = {"control": request_json.get("control"), "data": results}
         presigned_url = _save_response(
             response_json=response_json, request_file_key=request_file_key
         )
 
         callback_queue_message = {
-            "callBackUrl": request_json.get("controls").get("callBackUrl"),
+            "callBackUrl": request_json.get("control").get("callBackUrl"),
             "preSignedUrl": presigned_url,
         }
         logger.info(f"Response: {callback_queue_message}")

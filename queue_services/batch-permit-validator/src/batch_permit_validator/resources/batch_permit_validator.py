@@ -140,7 +140,7 @@ def send_bulk_validation_response():
 
     response = requests.post(
         validation_response.call_back_url,
-        data={"file": validation_response.pre_signed_url},
+        data={"fileUrl": validation_response.pre_signed_url},
         timeout=10,
     )
 

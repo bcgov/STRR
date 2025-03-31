@@ -142,23 +142,23 @@ def validate_batch():
 
     try:
         request_json = request.get_json()
-        control_dict = request_json.get("controls")
+        control_dict = request_json.get("control")
         errors = []
-        if not control_dict or not control_dict.get("permitsSubmitted") or not control_dict.get("callBackUrl"):
+        if not control_dict or not control_dict.get("count") or not control_dict.get("callBackUrl"):
             errors.append({"code": "INVALID_REQUEST", "message": "'control' object does not have required attributes."})
 
-        permits_dict = request_json.get("permits")
+        permits_dict = request_json.get("data")
 
-        if control_dict.get("permitsSubmitted") != len(permits_dict):
+        if control_dict.get("count") != len(permits_dict):
             errors.append(
                 {
                     "code": "INVALID_REQUEST",
-                    "message": "Value of 'permitsSubmitted' does not match the number of permits submitted for verification.",  # noqa: E501
+                    "message": "Value of 'count' does not match the number of permits submitted for verification.",  # noqa: E501
                 }
             )
 
         if not permits_dict:
-            errors.append({"code": "INVALID_REQUEST", "message": "'permits' object not present in the request."})
+            errors.append({"code": "INVALID_REQUEST", "message": "'data' object not present in the request."})
 
         if errors:
             response = {"errors": errors}
