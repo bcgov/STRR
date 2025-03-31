@@ -248,6 +248,66 @@ class Application(BaseModel):
         )
 
     @classmethod
+    def _get_host_requirement_condition(cls, req: str):
+        """Get condition for host requirement."""
+        host_req_mapping = {
+            StrrRequirement.BL.value: {"registration": {"strRequirements": {"isBusinessLicenceRequired": True}}},
+            StrrRequirement.PR.value: {"registration": {"strRequirements": {"isPrincipalResidenceRequired": True}}},
+            StrrRequirement.PROHIBITED.value: {"registration": {"strRequirements": {"isStrProhibited": True}}},
+            StrrRequirement.NO_REQ.value: {"registration": {"strRequirements": {"isStraaExempt": True}}},
+        }
+        pr_exempt_mapping = {
+            StrrRequirement.PR_EXEMPT_STRATA_HOTEL.value: "STRATA_HOTEL",
+            StrrRequirement.PR_EXEMPT_FARM_LAND.value: "FARM_LAND",
+            StrrRequirement.PR_EXEMPT_FRACTIONAL_OWNERSHIP.value: "FRACTIONAL_OWNERSHIP",
+        }
+
+        if req in host_req_mapping:
+            return Application.application_json.contains(host_req_mapping[req])
+
+        if req in pr_exempt_mapping:
+            return Application.application_json.contains(
+                {"registration": {"unitDetails": {"prExemptReason": pr_exempt_mapping[req]}}}
+            )
+
+        return None
+
+    @classmethod
+    def _get_platform_requirement_condition(cls, req: str):
+        """Get condition for platform requirement."""
+        platform_req_mapping = {
+            StrrRequirement.PLATFORM_MAJOR.value: "THOUSAND_AND_ABOVE",
+            StrrRequirement.PLATFORM_MEDIUM.value: "BETWEEN_250_AND_999",
+            StrrRequirement.PLATFORM_MINOR.value: "LESS_THAN_250",
+        }
+
+        if req in platform_req_mapping:
+            return Application.application_json.contains(
+                {"registration": {"platformDetails": {"listingSize": platform_req_mapping[req]}}}
+            )
+
+        return None
+
+    @classmethod
+    def _get_strata_requirement_condition(cls, req: str):
+        """Get condition for strata requirement."""
+        if req == StrrRequirement.STRATA_NO_PR.value:
+            return Application.application_json.contains(
+                {"registration": {"strataHotelDetails": {"category": "MULTI_UNIT_NON_PR"}}}
+            )
+        elif req == StrrRequirement.STRATA_PR.value:
+            return db.or_(
+                Application.application_json.contains(
+                    {"registration": {"strataHotelDetails": {"category": "FULL_SERVICE"}}}
+                ),
+                Application.application_json.contains(
+                    {"registration": {"strataHotelDetails": {"category": "POST_DECEMBER_2023"}}}
+                ),
+            )
+
+        return None
+
+    @classmethod
     def _filter_by_application_requirement(cls, requirement: list[str], query: Query) -> Query:
         """Filter query by requirements."""
         if not requirement:
@@ -256,84 +316,21 @@ class Application(BaseModel):
         host_requirement_conditions = []
         platform_requirement_conditions = []
         strata_requirement_conditions = []
+
         for req in requirement:
-            if req == StrrRequirement.BL.value:
-                host_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"strRequirements": {"isBusinessLicenceRequired": True}}}
-                    )
-                )
-            elif req == StrrRequirement.PR.value:
-                host_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"strRequirements": {"isPrincipalResidenceRequired": True}}}
-                    )
-                )
-            elif req == StrrRequirement.PROHIBITED.value:
-                host_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"strRequirements": {"isStrProhibited": True}}}
-                    )
-                )
-            elif req == StrrRequirement.NO_REQ.value:
-                host_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"strRequirements": {"isStraaExempt": True}}}
-                    )
-                )
-            elif req == StrrRequirement.PR_EXEMPT_STRATA_HOTEL.value:
-                host_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"unitDetails": {"prExemptReason": "STRATA_HOTEL"}}}
-                    )
-                )
-            elif req == StrrRequirement.PR_EXEMPT_FARM_LAND.value:
-                host_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"unitDetails": {"prExemptReason": "FARM_LAND"}}}
-                    )
-                )
-            elif req == StrrRequirement.PR_EXEMPT_FRACTIONAL_OWNERSHIP.value:
-                host_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"unitDetails": {"prExemptReason": "FRACTIONAL_OWNERSHIP"}}}
-                    )
-                )
-            elif req == StrrRequirement.PLATFORM_MAJOR.value:
-                platform_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"platformDetails": {"listingSize": "THOUSAND_AND_ABOVE"}}}
-                    )
-                )
-            elif req == StrrRequirement.PLATFORM_MEDIUM.value:
-                platform_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"platformDetails": {"listingSize": "BETWEEN_250_AND_999"}}}
-                    )
-                )
-            elif req == StrrRequirement.PLATFORM_MINOR.value:
-                platform_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"platformDetails": {"listingSize": "LESS_THAN_250"}}}
-                    )
-                )
-            elif req == StrrRequirement.STRATA_NO_PR.value:
-                strata_requirement_conditions.append(
-                    Application.application_json.contains(
-                        {"registration": {"strataHotelDetails": {"category": "MULTI_UNIT_NON_PR"}}}
-                    )
-                )
-            elif req == StrrRequirement.STRATA_PR.value:
-                strata_requirement_conditions.append(
-                    db.or_(
-                        Application.application_json.contains(
-                            {"registration": {"strataHotelDetails": {"category": "FULL_SERVICE"}}}
-                        ),
-                        Application.application_json.contains(
-                            {"registration": {"strataHotelDetails": {"category": "POST_DECEMBER_2023"}}}
-                        ),
-                    )
-                )
+            host_condition = cls._get_host_requirement_condition(req)
+            if host_condition is not None:
+                host_requirement_conditions.append(host_condition)
+                continue
+
+            platform_condition = cls._get_platform_requirement_condition(req)
+            if platform_condition is not None:
+                platform_requirement_conditions.append(platform_condition)
+                continue
+
+            strata_condition = cls._get_strata_requirement_condition(req)
+            if strata_condition is not None:
+                strata_requirement_conditions.append(strata_condition)
 
         combined_conditions = []
         if host_requirement_conditions:
