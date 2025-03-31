@@ -178,7 +178,7 @@ class StrataHotelCategory(BaseEnum):
     POST_DECEMBER_2023 = auto()  # pylint: disable=invalid-name
 
 
-class StrrRequirement(Enum):
+class StrrRequirement(BaseEnum):
     """STRR Requirement."""
 
     BL = "BL"
