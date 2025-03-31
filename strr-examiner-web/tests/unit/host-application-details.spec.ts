@@ -206,6 +206,7 @@ describe('Examiner - Host Application Details Page', () => {
   })
 
   it('displays Filing History Show/Hide button', async () => {
+    await setupMockAndMount()
     const appHeaderInfo = wrapper.findComponent(ApplicationInfoHeader)
     const toggleHistoryBtn = appHeaderInfo.findTestId('toggle-history-btn')
     expect(toggleHistoryBtn.exists()).toBe(true)
