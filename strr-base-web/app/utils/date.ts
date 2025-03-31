@@ -20,11 +20,19 @@ export function dateStringToDate (dateString: string): Date | null {
  * @param date - js Date or ISO datestring
  * @param format default: YYYY-MM-DD, see format options:
  * https://moment.github.io/luxon/#/formatting?id=table-of-tokens
+ * @param toPacific - convert to pacific timezone
 */
-export function dateToString (date: Date | string, format = 'y-MM-dd') {
+export function dateToString (date: Date | string, format = 'y-MM-dd', toPacific = false) {
   const luxonFormat = format.replace('a', 't')
-  let formattedDate = DateTime.fromJSDate(new Date(date)).toFormat(luxonFormat)
-
+  let jsDate = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)
+    ? DateTime.fromISO(date).plus({ minutes: 1 })
+    : DateTime.fromJSDate(new Date(date))
+  let formattedDate
+  if (toPacific) {
+    formattedDate = jsDate.setZone('America/Vancouver').toFormat(luxonFormat)
+  } else {
+    formattedDate = jsDate.toFormat(luxonFormat)
+  }
   if (format.includes('t') || format.includes('a')) {
     formattedDate = formattedDate.replace(/(\d{1,4}[-/]\d{1,2}[-/]\d{1,2})\s/g, '$1, ')
   }

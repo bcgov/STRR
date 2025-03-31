@@ -560,14 +560,14 @@ function handleColumnSort (column: string) {
         <template #submissionDate-data="{ row }">
           <div class="flex flex-col">
             <span>{{ dateToStringPacific(row.submissionDate) }}</span>
-            <span>{{ dateToString(row.submissionDate, 'a') }}</span>
+            <span>{{ dateToString(row.submissionDate, 'a', true) }}</span>
           </div>
         </template>
 
         <template #lastModified-data="{ row }">
           <div class="flex flex-col">
             <span>{{ dateToStringPacific(row.lastModified) }}</span>
-            <span>{{ dateToString(row.lastModified, 'a') }}</span>
+            <span>{{ dateToString(row.lastModified, 'a', true) }}</span>
           </div>
         </template>
       </UTable>

@@ -158,6 +158,8 @@ export default {
       assignee: 'Assignee:',
       applicationType: 'Type:',
       submitted: 'Submitted:',
+      registrationDate: 'Registration Date:',
+      expiryDate: 'Expiry Date:',
       nocExpiry: 'NOC Expiry:',
       businessLicenceExpiryDate: 'Expiry:',
       primaryBuilding: 'Primary Building',

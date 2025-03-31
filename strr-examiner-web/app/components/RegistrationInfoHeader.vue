@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+const { t } = useI18n()
 const exStore = useExaminerStore()
 const { activeReg, activeHeader } = storeToRefs(exStore)
 
@@ -83,9 +84,10 @@ const getRegistrationType = (): string => {
             :label="activeHeader.examinerStatus"
             :color="getBadgeColor(activeReg.status!)"
           />
-          <strong>Registration Date:</strong>
-          {{ dateToString(activeReg.startDate, 'y-MM-dd a') }} |
-          <strong>Expiry Date:</strong> {{ dateToString(activeReg.expiryDate, 'y-MM-dd a') }}
+          <strong>{{ t('strr.label.registrationDate') }}</strong>
+          {{ dateToString(activeReg.startDate, 'y-MM-dd a', true) }} |
+          <strong>{{ t('strr.label.expiryDate') }}</strong>
+          {{ dateToString(activeReg.expiryDate, 'y-MM-dd a', true) }}
           ({{ dayCountdown(activeReg.expiryDate.toString()) }} days left)
         </div>
       </div>
@@ -94,8 +96,8 @@ const getRegistrationType = (): string => {
         {{ activeHeader.applicationNumber }} |
         <strong>Type:</strong>
         {{ getRegistrationType() }} |
-        <strong>Submitted:</strong>
-        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a') }}
+        <strong>{{ t('strr.label.submitted') }}</strong>
+        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a', true) }}
         <template v-if="activeHeader.reviewer?.username">
           | <strong>Approved By:</strong>
           {{ activeHeader.reviewer.username }}

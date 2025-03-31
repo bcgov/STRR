@@ -82,10 +82,11 @@ const nocCountdown = computed(() => {
         <strong>{{ t('strr.label.applicationType') }}</strong>
         {{ $t(`applicationType.${activeReg?.registrationType}`) }} |
         <strong>{{ t('strr.label.submitted') }}</strong>
-        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a') }}
+        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a', true) }}
         ({{ dayCountdown(activeHeader.applicationDateTime.toString(), true) }} days ago)
         <template v-if="activeHeader.nocEndDate">
-          | <strong>{{ t('strr.label.nocExpiry') }}</strong> {{ dateToString(activeHeader.nocEndDate, 'y-MM-dd a') }}
+          | <strong>{{ t('strr.label.nocExpiry') }}</strong>
+          {{ dateToString(activeHeader.nocEndDate, 'y-MM-dd a', true) }}
           <span v-if="!nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
           <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
         </template>
