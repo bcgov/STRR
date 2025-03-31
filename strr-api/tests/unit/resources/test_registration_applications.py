@@ -904,35 +904,35 @@ def test_requirements_filter(session, client, jwt):
         assert HTTPStatus.OK == rv.status_code
 
     staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-    rv = client.get("/applications?requirements=PR", headers=staff_headers)
+    rv = client.get("/applications?requirement=PR", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
     for application in applications:
         assert application["registration"]["strRequirements"]["isPrincipalResidenceRequired"] is True
 
-    rv = client.get("/applications?requirements=BL", headers=staff_headers)
+    rv = client.get("/applications?requirement=BL", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
     for application in applications:
         assert application["registration"]["strRequirements"]["isBusinessLicenceRequired"] is True
 
-    rv = client.get("/applications?requirements=PROHIBITED", headers=staff_headers)
+    rv = client.get("/applications?requirement=PROHIBITED", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
     for application in applications:
         assert application["registration"]["strRequirements"]["isStrProhibited"] is True
 
-    rv = client.get("/applications?requirements=NO_REQ", headers=staff_headers)
+    rv = client.get("/applications?requirement=NO_REQ", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
     for application in applications:
         assert application["registration"]["strRequirements"]["isStraaExempt"] is True
 
-    rv = client.get("/applications?requirements=PR,BL", headers=staff_headers)
+    rv = client.get("/applications?requirement=PR&requirement=BL", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
@@ -940,21 +940,21 @@ def test_requirements_filter(session, client, jwt):
         assert application["registration"]["strRequirements"]["isPrincipalResidenceRequired"] is True
         assert application["registration"]["strRequirements"]["isBusinessLicenceRequired"] is True
 
-    rv = client.get("/applications?requirements=PR_EXEMPT_FRACTIONAL_OWNERSHIP", headers=staff_headers)
+    rv = client.get("/applications?requirement=PR_EXEMPT_FRACTIONAL_OWNERSHIP", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
     for application in applications:
         assert application["registration"]["unitDetails"]["prExemptReason"] == "FRACTIONAL_OWNERSHIP"
 
-    rv = client.get("/applications?requirements=PLATFORM_MAJOR", headers=staff_headers)
+    rv = client.get("/applications?requirement=PLATFORM_MAJOR", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
     for application in applications:
         assert application["registration"]["platformDetails"]["listingSize"] == "THOUSAND_AND_ABOVE"
 
-    rv = client.get("/applications?requirements=STRATA_NO_PR", headers=staff_headers)
+    rv = client.get("/applications?requirement=STRATA_NO_PR", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
