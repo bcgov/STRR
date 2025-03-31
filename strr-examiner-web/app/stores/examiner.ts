@@ -66,7 +66,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           sortOrder: ApplicationSortOrder.ASC,
           address: tableFilters.propertyAddress,
           recordNumber: tableFilters.registrationNumber,
-          assignee: tableFilters.adjudicator
+          assignee: tableFilters.adjudicator,
+          requirement: tableFilters.requirements
         }
       })
     } else { // else try to fetch by search
@@ -81,7 +82,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           sortOrder: ApplicationSortOrder.ASC,
           address: tableFilters.propertyAddress,
           recordNumber: tableFilters.registrationNumber,
-          assignee: tableFilters.adjudicator
+          assignee: tableFilters.adjudicator,
+          requirement: tableFilters.requirements
         }
       })
     }

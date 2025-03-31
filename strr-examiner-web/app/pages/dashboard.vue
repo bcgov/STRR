@@ -25,6 +25,51 @@ const enableRequirementFilter = computed<boolean>(() => {
   const flag = ldStore.getStoredFlag('enable-examiner-requirement-filter')
   return flag ?? false
 })
+
+const requirementOptions = computed(() => {
+  const registrationType = exStore.tableFilters.registrationType
+
+  const hostOptions = [
+    { label: 'Host', value: undefined, disabled: true },
+    { label: 'PR', value: 'PR' },
+    { label: 'PR Exempt - Farm', value: 'PR_EXEMPT_FARM_LAND' },
+    { label: 'PR Exempt - Strata', value: 'PR_EXEMPT_STRATA_HOTEL' },
+    { label: 'PR Exempt - Fractional', value: 'PR_EXEMPT_FRACTIONAL_OWNERSHIP' },
+    { label: 'BL', value: 'BL' },
+    { label: 'Prohibited', value: 'PROHIBITED' },
+    { label: 'No requirements', value: 'NO_REQ' }
+  ]
+
+  const platformOptions = [
+    { label: 'Platform', value: undefined, disabled: true },
+    { label: 'Major', value: 'PLATFORM_MAJOR' },
+    { label: 'Medium', value: 'PLATFORM_MEDIUM' },
+    { label: 'Minor', value: 'PLATFORM_MINOR' }
+  ]
+
+  const strataOptions = [
+    { label: 'Strata', value: undefined, disabled: true },
+    { label: 'PR', value: 'STRATA_PR' },
+    { label: 'No requirements', value: 'STRATA_NO_PR' }
+  ]
+  if (!registrationType || registrationType.length === 0) {
+    return [...hostOptions, ...platformOptions, ...strataOptions]
+  }
+  // Dynamic Options
+  // Handle one or more selections
+  const selectedOptions = new Set()
+  registrationType.forEach((type) => {
+    if (type === ApplicationType.HOST) {
+      hostOptions.forEach(opt => selectedOptions.add(opt))
+    } else if (type === ApplicationType.PLATFORM) {
+      platformOptions.forEach(opt => selectedOptions.add(opt))
+    } else if (type === ApplicationType.STRATA_HOTEL) {
+      strataOptions.forEach(opt => selectedOptions.add(opt))
+    }
+  })
+  return Array.from(selectedOptions)
+})
+
 const enableSubmissionDateFilter = computed<boolean>(() => {
   const flag = ldStore.getStoredFlag('enable-examiner-submission-date-filter')
   return flag ?? false
@@ -153,7 +198,8 @@ const { data: applicationListResp, status } = await useAsyncData(
       () => exStore.tableFilters.status,
       () => exStore.tableFilters.registrationNumber,
       () => exStore.tableFilters.searchText,
-      () => exStore.tableFilters.adjudicator
+      () => exStore.tableFilters.adjudicator,
+      () => exStore.tableFilters.requirements
     ],
     // deep: true, watch: [() => exStore.tableFilters] // can do this once the rest of the table filters are added
     default: () => ({ applications: [], total: 0 }),
@@ -417,23 +463,7 @@ function handleColumnSort (column: string) {
             v-model="exStore.tableFilters.requirements"
             :column
             :sort
-            :options="[
-              { label: 'Host', value: undefined, disabled: true },
-              { label: 'PR (Host)', value: 'pr-host' },
-              { label: 'PR Exempt - Farm', value: 'pr-exempt-farm' },
-              { label: 'PR Exempt - Strata', value: 'pr-exempt-strata' },
-              { label: 'PR Exempt - Fractional', value: 'pr-exempt-fractional' },
-              { label: 'BL', value: 'bl' },
-              { label: 'Prohibited', value: 'prohibited' },
-              { label: 'None (Host)', value: 'none-host' },
-              { label: 'Platform', value: undefined, disabled: true },
-              { label: 'Major', value: 'major' },
-              { label: 'Medium', value: 'medium' },
-              { label: 'Minor', value: 'minor' },
-              { label: 'Strata', value: undefined, disabled: true },
-              { label: 'PR (Strata)', value: 'pr-strata' },
-              { label: 'None (Strata)', value: 'none-strata' },
-            ]"
+            :options="requirementOptions"
             :disable="!enableRequirementFilter"
             @sort="handleColumnSort(column.key)"
           />
