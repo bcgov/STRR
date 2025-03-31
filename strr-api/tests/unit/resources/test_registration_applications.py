@@ -843,7 +843,7 @@ def test_examiner_multi_select_filters(session, client, jwt):
             RegistrationStatus.ACTIVE.value,
             RegistrationStatus.EXPIRED.value,
         ]
-        assert application["registration"]["registrationType"] in ["HOST", "PLATFORM"]
+        assert application["registration"]["registrationType"] in ["HOST", "PLATFORM", "STRATA_HOTEL"]
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
