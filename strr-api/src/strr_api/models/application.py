@@ -367,6 +367,13 @@ class Application(BaseModel):
     def search_applications(cls, filter_criteria: ApplicationSearch):
         """Returns the applications matching the search criteria."""
         query = cls.query
+        if filter_criteria.search_text:
+            query = query.filter(
+                db.or_(
+                    Application.application_tsv.match(filter_criteria.search_text),
+                    Application.application_number.ilike(f"%{filter_criteria.search_text}%"),
+                )
+            )
         if filter_criteria.statuses or filter_criteria.registration_statuses:
             statuses = [status.upper() for status in filter_criteria.statuses if status]
             # Remove DRAFT if present
@@ -377,13 +384,6 @@ class Application(BaseModel):
             )
         else:
             query = query.filter(Application.status != Application.Status.DRAFT)
-        if filter_criteria.search_text:
-            query = query.filter(
-                db.or_(
-                    Application.application_tsv.match(filter_criteria.search_text),
-                    Application.application_number.ilike(f"%{filter_criteria.search_text}%"),
-                )
-            )
         if filter_criteria.registration_types:
             query = cls._filter_by_registration_types(filter_criteria.registration_types, query)
         if filter_criteria.record_number:
