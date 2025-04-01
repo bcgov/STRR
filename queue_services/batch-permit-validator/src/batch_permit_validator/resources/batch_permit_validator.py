@@ -123,32 +123,49 @@ def _trigger_batch_permit_validator_job(file_name=""):
 @bp.route("/bulk-validation-response", methods=("POST",))
 def send_bulk_validation_response():
     """Process the incoming bulk validation response event."""
-    if not request.data:
-        # logger(request, "INFO", f"No incoming raw msg.")
+    try:
+        if not request.data:
+            # logger(request, "INFO", f"No incoming raw msg.")
+            return {}, HTTPStatus.OK
+
+        logger.info(f"Incoming raw msg: {str(request.data)}")
+
+        # 1. Get cloud event
+        if not (ce := gcp_queue.get_simple_cloud_event(request, wrapped=True)):
+            return {}, HTTPStatus.OK
+        logger.info(f"received ce: {str(ce)}")
+
+        # 2. Get validation response information
+        if not (validation_response := get_bulk_validation_response(ce)):
+            return {}, HTTPStatus.OK
+
+        logger.info(f"File url: {validation_response.pre_signed_url}")
+
+        response = requests.post(
+            validation_response.call_back_url,
+            data={"fileUrl": validation_response.pre_signed_url},
+            timeout=10,
+        )
+
+        if response.status_code != 200:
+            return {}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+        logger.info(f"completed ce: {str(ce)}")
         return {}, HTTPStatus.OK
+    except Exception as e:
+        logger.error(e, stack_info=True, exc_info=True)
+        logger.error(f"Error sending response to callback url: {e}")
+        raise e
 
-    logger.info(f"Incoming raw msg: {str(request.data)}")
 
-    # 1. Get cloud event
-    if not (ce := gcp_queue.get_simple_cloud_event(request, wrapped=True)):
+@bp.route("/test-response", methods=("POST",))
+def dummy_response():
+    """Process the incoming bulk validation response event."""
+    try:
+        logger.info(f"Incoming message: {request.get_json()}")
         return {}, HTTPStatus.OK
-    logger.info(f"received ce: {str(ce)}")
-
-    # 2. Get validation response information
-    if not (validation_response := get_bulk_validation_response(ce)):
-        return {}, HTTPStatus.OK
-
-    response = requests.post(
-        validation_response.call_back_url,
-        data={"fileUrl": validation_response.pre_signed_url},
-        timeout=10,
-    )
-
-    if response.status_code != 200:
-        return {}, HTTPStatus.INTERNAL_SERVER_ERROR
-
-    logger.info(f"completed ce: {str(ce)}")
-    return {}, HTTPStatus.OK
+    except Exception as e:
+        logger.error(e, stack_info=True, exc_info=True)
 
 
 @dataclass
