@@ -30,7 +30,7 @@ const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEven
     }
 
     // filter out events defined by the requirements
-    return Array.from(new Set(allFilingHistroy.filter(event => !HIDDEN_EVENTS.includes(event.eventName)).reverse()))
+    return allFilingHistroy.filter(event => !HIDDEN_EVENTS.includes(event.eventName)).reverse()
   }
 )
 
@@ -58,7 +58,6 @@ const historyTableColumns = [
         v-else
         class="flex-1"
       >
-        {{ filingHistory }}
         <UTable
           :rows="filingHistory"
           :columns="historyTableColumns"
