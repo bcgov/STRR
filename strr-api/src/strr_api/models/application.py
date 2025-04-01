@@ -183,6 +183,8 @@ class Application(BaseModel):
             query = cls._filter_by_application_or_registration_status(
                 filter_criteria.statuses, filter_criteria.registration_statuses, query
             )
+        else:
+            query = query.filter(Application.status != Application.Status.DRAFT)
         if filter_criteria.assignee:
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
