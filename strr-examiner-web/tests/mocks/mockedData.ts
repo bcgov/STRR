@@ -479,7 +479,7 @@ export const mockCancelledRegistration: HostRegistrationResp = {
   }
 }
 
-export const mockFilingHistory: FilingHistoryEvent[] =
+export const mockApplicationFilingHistory: FilingHistoryEvent[] =
   [
     {
       createdDate: '2025-03-20T23:21:13.496375',
@@ -498,5 +498,27 @@ export const mockFilingHistory: FilingHistoryEvent[] =
       eventName: FilingHistoryEventName.AUTO_APPROVAL_FULL_REVIEW,
       eventType: FilingHistoryEventType.APPLICATION,
       message: 'Application marked for full review by the auto approval process.'
+    }
+  ]
+
+export const mockRegistrationFilingHistory: FilingHistoryEvent[] =
+  [
+    {
+      createdDate: '2025-02-28T15:45:25.790939',
+      eventName: FilingHistoryEventName.REGISTRATION_CREATED,
+      eventType: FilingHistoryEventType.REGISTRATION,
+      message: 'Registration created.'
+    },
+    {
+      createdDate: '2025-03-05T15:08:41.997418',
+      eventName: FilingHistoryEventName.NON_COMPLIANCE_SUSPENDED,
+      eventType: FilingHistoryEventType.REGISTRATION,
+      message: 'Registration suspended due to non compliance.'
+    },
+    {
+      createdDate: '2025-03-05T15:08:45.966389',
+      eventName: FilingHistoryEventName.REGISTRATION_CANCELLED,
+      eventType: FilingHistoryEventType.REGISTRATION,
+      message: 'Registration cancelled.'
     }
   ]

@@ -81,6 +81,7 @@ const getRegistrationType = (): string => {
               variant="link"
               icon="i-mdi-history"
               size="sm"
+              class="gap-1"
               @click="toggleFilingHistory()"
             />
           </div>

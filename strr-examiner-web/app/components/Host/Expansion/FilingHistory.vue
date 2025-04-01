@@ -2,8 +2,8 @@
 
 defineEmits<{ close: [void] }>()
 
-const { getApplicationFilingHistory } = useExaminerStore()
-const { activeHeader } = storeToRefs(useExaminerStore())
+const { getApplicationFilingHistory, getRegistrationFilingHistory } = useExaminerStore()
+const { isApplication, activeRecord } = storeToRefs(useExaminerStore())
 
 // business requirement: don’t show auto approval logic events - it’s implied that it’s done by the system
 const HIDDEN_EVENTS: FilingHistoryEventName[] = [
@@ -15,14 +15,27 @@ const HIDDEN_EVENTS: FilingHistoryEventName[] = [
 const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEvent[]>(
   'application-filing-history',
   async () => {
-    if (!activeHeader.value?.applicationNumber) { return [] }
-    const allFilingHistroy = await getApplicationFilingHistory(activeHeader.value.applicationNumber)
-    return allFilingHistroy.filter(event => !HIDDEN_EVENTS.includes(event.eventName)).reverse()
+    let allFilingHistroy: FilingHistoryEvent[] = []
+
+    if (isApplication.value) {
+      allFilingHistroy =
+        await getApplicationFilingHistory((activeRecord.value as HousApplicationResponse).header.applicationNumber)
+    } else {
+      // for Registrations include Application and Registration histories
+      const [applicationHistory, registrationHistory] = await Promise.all([
+        getApplicationFilingHistory((activeRecord.value as HousApplicationResponse).header.applicationNumber),
+        getRegistrationFilingHistory((activeRecord.value as HousRegistrationResponse).id)
+      ])
+      allFilingHistroy = [...applicationHistory, ...registrationHistory]
+    }
+
+    // filter out events defined by the requirements
+    return Array.from(new Set(allFilingHistroy.filter(event => !HIDDEN_EVENTS.includes(event.eventName)).reverse()))
   }
 )
 
-const historyTableColumns: { key: keyof FilingHistoryEvent }[] = [
-  { key: 'createdDate' },
+const historyTableColumns = [
+  { key: 'createdDate', width: 200 },
   { key: 'message' }
 ]
 
@@ -45,6 +58,7 @@ const historyTableColumns: { key: keyof FilingHistoryEvent }[] = [
         v-else
         class="flex-1"
       >
+        {{ filingHistory }}
         <UTable
           :rows="filingHistory"
           :columns="historyTableColumns"
@@ -53,7 +67,7 @@ const historyTableColumns: { key: keyof FilingHistoryEvent }[] = [
             wrapper: 'relative overflow-x-auto h-auto',
             divide: 'divide-none',
             td: {
-              base: 'max-w-none',
+              base: 'max-w-none first:w-[200px]',
               padding: 'px-0 py-2'
             },
             th: {
@@ -63,12 +77,12 @@ const historyTableColumns: { key: keyof FilingHistoryEvent }[] = [
           data-testid="history-table"
         >
           <template #createdDate-data="{ row }">
-            {{ dateToString(row.createdDate, 'MMM dd, yyyy') }}
-            <span class="mx-5" />
-            {{ dateToString(row.createdDate, 'a') }}
+            {{ dateToString(row.createdDate, 'MMM dd, yyyy', true) }}
+            <span class="mx-3" />
+            {{ dateToString(row.createdDate, 'a', true) }}
           </template>
           <template #message-data="{ row }">
-            <b>{{ row.message }}</b>
+            <b>{{ $t(`filingHistoryEvents.${row.eventName}`) }}</b>
           </template>
         </UTable>
       </div>

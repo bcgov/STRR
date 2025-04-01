@@ -2,16 +2,21 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, vi, expect } from 'vitest'
 import filter from 'lodash/filter'
 import { enI18n } from '../mocks/i18n'
-import { mockDocuments, mockDocumentsNOC, mockFilingHistory, mockHostApplication } from '../mocks/mockedData'
+import {
+  mockDocuments, mockDocumentsNOC, mockApplicationFilingHistory,
+  mockHostApplication, mockRegistrationFilingHistory
+} from '../mocks/mockedData'
 import SupportingDocuments from '~/components/SupportingDocuments.vue'
 import { HostExpansionFilingHistory, UBadge, UButton } from '#components'
 
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
+    isApplication: ref(true),
     activeReg: ref(mockHostApplication.registration),
     activeHeader: ref(mockHostApplication.header),
     activeRecord: ref(mockHostApplication),
-    getApplicationFilingHistory: vi.fn().mockResolvedValue(mockFilingHistory),
+    getApplicationFilingHistory: vi.fn().mockResolvedValue(mockApplicationFilingHistory),
+    getRegistrationFilingHistory: vi.fn().mockResolvedValue(mockRegistrationFilingHistory),
     isFilingHistoryOpen: ref(true)
   })
 }))
@@ -28,8 +33,8 @@ describe('FilingHistory Component', async () => {
     expect(historyTableRows.length).toBe(2) // only 2 events because AUTO_APPROVAL_FULL_REVIEW is hidden by the requirement
 
     // events should be in reverse order
-    expect(historyTableRows.at(0)?.text()).toContain(mockFilingHistory.at(1)?.message)
-    expect(historyTableRows.at(1)?.text()).toContain(mockFilingHistory.at(0)?.message)
+    expect(historyTableRows.at(0)?.text()).toContain(mockApplicationFilingHistory.at(1)?.message)
+    expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(0)?.message)
   })
 })
 

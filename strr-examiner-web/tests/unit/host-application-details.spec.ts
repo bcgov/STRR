@@ -10,7 +10,8 @@ import {
   mockHostApplicationNOCExpired,
   mockHostApplicationWithReviewer,
   mockHostApplicationWithoutReviewer,
-  mockFilingHistory
+  mockApplicationFilingHistory,
+  mockRegistrationFilingHistory
 } from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
 import ApplicationDetails from '~/pages/examine/[applicationId].vue'
@@ -32,7 +33,8 @@ vi.mock('@/stores/examiner', () => ({
     getNextApplication: mockGetNextApplication,
     getApplicationById: mockGetApplicationById,
     getDocument: vi.fn().mockResolvedValue(new Blob(['test'], { type: 'application/pdf' })),
-    getApplicationFilingHistory: vi.fn().mockResolvedValue(mockFilingHistory),
+    getApplicationFilingHistory: vi.fn().mockResolvedValue(mockApplicationFilingHistory),
+    getRegistrationFilingHistory: vi.fn().mockResolvedValue(mockRegistrationFilingHistory),
     isFilingHistoryOpen,
     activeReg: ref(currentMockData.registration),
     activeHeader: ref(currentMockData.header),

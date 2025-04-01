@@ -76,6 +76,7 @@ const nocCountdown = computed(() => {
             variant="link"
             icon="i-mdi-history"
             size="sm"
+            class="gap-1"
             data-testid="toggle-history-btn"
             @click="toggleFilingHistory()"
           />

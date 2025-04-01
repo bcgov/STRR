@@ -236,6 +236,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }
 
+  const getRegistrationFilingHistory = async (registrationId: number): Promise<FilingHistoryEvent[]> => {
+    try {
+      return await $strrApi<FilingHistoryEvent[]>(`/registrations/${registrationId}/events`, {
+        method: 'GET'
+      })
+    } catch (e) {
+      logFetchError(e, t('error.filingHistory'))
+      return []
+    }
+  }
+
   const openDocInNewTab = async (applicationNumber: string, supportingDocument: ApiDocument) => {
     const file = await getDocument(applicationNumber, supportingDocument.fileKey)
     const blob = new Blob([file], { type: 'application/pdf' })
@@ -289,6 +300,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     assignApplication,
     unassignApplication,
     getApplicationFilingHistory,
+    getRegistrationFilingHistory,
     isFilingHistoryOpen
   }
 }, { persist: true }) // will persist data in session storage
