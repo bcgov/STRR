@@ -31,6 +31,26 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const sendNocSchema = computed(() => z.object({
     content: z.string().min(1, { message: t('validation.nocContent') })
   }))
+  const defaultApplicationStatuses = [
+    ApplicationStatus.FULL_REVIEW,
+    ApplicationStatus.PROVISIONAL_REVIEW,
+    ApplicationStatus.PAYMENT_DUE,
+    ApplicationStatus.PROVISIONAL,
+    ApplicationStatus.PAID,
+    ApplicationStatus.ADDITIONAL_INFO_REQUESTED,
+    ApplicationStatus.PROVISIONALLY_APPROVED,
+    ApplicationStatus.DECLINED,
+    ApplicationStatus.AUTO_APPROVED,
+    ApplicationStatus.FULL_REVIEW_APPROVED,
+    ApplicationStatus.NOC_PENDING,
+    ApplicationStatus.NOC_EXPIRED
+  ]
+  const defaultRegistrationStatuses = [
+    RegistrationStatus.ACTIVE,
+    RegistrationStatus.SUSPENDED,
+    RegistrationStatus.CANCELLED,
+    RegistrationStatus.EXPIRED
+  ]
 
   const tableFilters = reactive({
     searchText: '',
@@ -54,14 +74,16 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       }
       return true
     })
+    const applicationStatuses = statusValue.length > 0 ? statusValue : defaultApplicationStatuses
+    const registrationStatuses = regStatus.length > 0 ? regStatus : defaultRegistrationStatuses
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
       return $strrApi('/applications/search', {
         query: {
           limit: tableLimit.value,
           page: tablePage.value,
           registrationType: tableFilters.registrationType,
-          status: statusValue,
-          registrationStatus: regStatus,
+          status: applicationStatuses,
+          registrationStatus: registrationStatuses,
           text: tableFilters.searchText,
           sortBy: ApplicationSortBy.APPLICATION_DATE,
           sortOrder: ApplicationSortOrder.ASC,
@@ -77,8 +99,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           limit: tableLimit.value,
           page: tablePage.value,
           registrationType: tableFilters.registrationType,
-          status: statusValue,
-          registrationStatus: regStatus,
+          status: applicationStatuses,
+          registrationStatus: registrationStatuses,
           sortBy: ApplicationSortBy.APPLICATION_DATE,
           sortOrder: ApplicationSortOrder.ASC,
           address: tableFilters.propertyAddress,
