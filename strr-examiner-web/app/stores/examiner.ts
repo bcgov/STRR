@@ -65,27 +65,44 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     adjudicator: ''
   })
 
-  const fetchApplications = () => {
+  /**
+   * Process status filters to separate application and registration statuses
+   *
+   * @param {any[]} statusFilters - Array of status values to filter by
+   * @returns {Object} Object containing separated application and registration statuses
+   */
+  const processStatusFilters = (statusFilters: any[]) => {
     const regStatus: any[] = []
-    const statusValue = tableFilters.status.filter((status) => {
+    // Separate application and registration statuses
+    const statusValue = statusFilters.filter((status) => {
       if (Object.values(RegistrationStatus).includes(status as any)) {
         regStatus.push(status)
         return false
       }
       return true
     })
+    // Start with default statuses list and these will be
+    // provided if not status selected in filter
     let applicationStatuses = defaultApplicationStatuses
     let registrationStatuses = defaultRegistrationStatuses
     if (statusValue.length > 0 && regStatus.length === 0) {
+      // Only application statuses selected
       applicationStatuses = statusValue
       registrationStatuses = []
     } else if (statusValue.length === 0 && regStatus.length > 0) {
+      // Only registration statuses selected
       applicationStatuses = []
       registrationStatuses = regStatus
     } else if (statusValue.length > 0 && regStatus.length > 0) {
+      // Both application and registration statuses selected
       applicationStatuses = statusValue
       registrationStatuses = regStatus
     }
+    return { applicationStatuses, registrationStatuses }
+  }
+
+  const fetchApplications = () => {
+    const { applicationStatuses, registrationStatuses } = processStatusFilters(tableFilters.status)
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
       return $strrApi('/applications/search', {
         query: {
