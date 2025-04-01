@@ -74,8 +74,18 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       }
       return true
     })
-    const applicationStatuses = statusValue.length > 0 ? statusValue : defaultApplicationStatuses
-    const registrationStatuses = regStatus.length > 0 ? regStatus : defaultRegistrationStatuses
+    let applicationStatuses = defaultApplicationStatuses
+    let registrationStatuses = defaultRegistrationStatuses
+    if (statusValue.length > 0 && regStatus.length === 0) {
+      applicationStatuses = statusValue
+      registrationStatuses = []
+    } else if (statusValue.length === 0 && regStatus.length > 0) {
+      applicationStatuses = []
+      registrationStatuses = regStatus
+    } else if (statusValue.length > 0 && regStatus.length > 0) {
+      applicationStatuses = statusValue
+      registrationStatuses = regStatus
+    }
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
       return $strrApi('/applications/search', {
         query: {
