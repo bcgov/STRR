@@ -145,7 +145,7 @@ setBreadcrumbs([
         </div>
       </ConnectDashboardSection>
       <ConnectDashboardSection
-        id="supporting-documents"
+        id="summary-supporting-info"
         :title="$t('label.supportingDocs')"
         :loading="loading"
       >
