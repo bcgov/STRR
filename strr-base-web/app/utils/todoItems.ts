@@ -69,7 +69,7 @@ export const getTodoApplication = (
       boldStart: '<strong>',
       boldEnd: '</strong>',
       linkStart: "<button type='button'" +
-        'onClick="document.getElementById(' + SUPPORTING_DOC_ID + ").scrollIntoView({ behavior: 'smooth' })\"" +
+        "onClick='document.getElementById(" + SUPPORTING_DOC_ID + ").scrollIntoView({ behavior: 'smooth' })'" +
         "class='text-blue-500 underline'>",
       linkEnd: '</button>'
     }
