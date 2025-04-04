@@ -18,6 +18,8 @@ const {
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
+const { isEligibleForRenewal, renewalDueDate, renewalDateCounter } = useRenewals()
+
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
 
@@ -32,6 +34,30 @@ onMounted(async () => {
     application.value?.header,
     ApplicationType.HOST
   )
+
+  if (isEligibleForRenewal.value) {
+    const translationProps = {
+      newLine: '<br/>',
+      boldStart: '<strong>',
+      boldEnd: '</strong>'
+    }
+
+    // label for the due days count
+    const dueDateCount = renewalDateCounter.value < 0
+      ? t('label.renewalOverdue')
+      : t('label.renewalDayCount', renewalDateCounter.value)
+
+    todos.value.push({
+      id: 'todo-renew-registration',
+      title: `${t('todos.renewal.title1')}${renewalDueDate.value}${t('todos.renewal.title2')} (${dueDateCount})`,
+      subtitle: t('todo.renewal.subtitle', translationProps),
+      button: {
+        label: t('btn.renew'),
+        action: () => {}
+      }
+    })
+  }
+
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')

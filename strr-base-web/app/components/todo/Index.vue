@@ -36,7 +36,7 @@ defineProps<{
           :label="button.label"
           :color="button.colour || 'primary'"
           :icon="button.icon"
-          variant="link"
+          class="px-4 py-2"
           @click="button.action()"
         />
       </div>
