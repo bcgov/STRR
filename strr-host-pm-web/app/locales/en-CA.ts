@@ -233,7 +233,8 @@ export default {
     hideDetails: 'Hide Details',
     returnToStep: 'Return to the step to finish it',
     ariaViewDetails: 'View details for property: {name}, {address}',
-    registerAStr: 'Register a Short-Term Rental'
+    registerAStr: 'Register a Short-Term Rental',
+    renew: 'Renew'
   },
   error: {
     createAccount: {
@@ -446,6 +447,11 @@ export default {
         normal: '{link} is required to register this address. The provincial principal residence requirement limits short-term rentals in this area to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property, unless you qualify for an exemption.',
         override: '{link} may be required to register this address. The provincial principal residence requirement could limit short-term rentals in this area to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property, unless you qualify for an exemption.'
       }
+    }
+  },
+  todo: {
+    renewal: {
+      subtitle: 'Your short-term rental registration will expire soon. Please submit a renewal application to keep your registration active.{newLine}{newLine}{boldStart}Note:{boldEnd} If you wish to change any of the following information, you must submit a new short-term rental application instead of a renewal application.{newLine}{newLine}\u2022 Rental Unit Address{newLine}\u2022 Property Host details (if an individual): Full Name, CRA Tax Number, Residential Address{newLine}\u2022 Property Host details (if a business): Business Legal Name'
     }
   },
   propertyType: {

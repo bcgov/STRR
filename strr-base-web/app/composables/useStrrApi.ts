@@ -94,6 +94,12 @@ export const useStrrApi = () => {
       })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getApplicationRenewalStatus = (registrationId: number): boolean => {
+    // TODO: implement an api call to check if application is ready for renewal
+    return true
+  }
+
   const updatePaymentDetails = async <T extends ApiApplicationBaseResp>(applicationNumber: string) => {
     return await $strrApi<T>(`/applications/${applicationNumber}/payment-details`,
       { method: 'PUT' })
@@ -106,6 +112,7 @@ export const useStrrApi = () => {
     getAccountApplications,
     getApplicationReceipt,
     getRegistrationCert,
+    getApplicationRenewalStatus,
     postApplication,
     updatePaymentDetails
   }
