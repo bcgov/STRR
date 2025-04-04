@@ -25,7 +25,7 @@ export function dateStringToDate (dateString: string): Date | null {
 export function dateToString (date: Date | string, format = 'y-MM-dd', toPacific = false) {
   const luxonFormat = format.replace('a', 't')
   const jsDate = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)
-    ? DateTime.fromISO(date).plus({ minutes: 1 })
+    ? DateTime.fromISO(date, { zone: 'America/Vancouver' }).plus({ minutes: 1 })
     : DateTime.fromJSDate(new Date(date))
   let formattedDate
   if (toPacific) {
