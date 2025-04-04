@@ -83,7 +83,6 @@ def test_update_status_handles_exceptions(app, mock_application):
         with patch.object(Application, "query") as mock_query:
             mock_query.filter.return_value.all.return_value = [mock_application]
 
-            # Use a safer way to simulate an exception
             def raise_exception():
                 raise Exception("Test exception")
 
