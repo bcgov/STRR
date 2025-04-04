@@ -149,13 +149,13 @@ class ApprovalService:
                 cls.save_approval_record_by_application(application.id, auto_approval)
 
                 if auto_approval.suggestedAction == Application.Status.AUTO_APPROVED:
-                    registration_id = cls._approve_application(
+                    registration_id = cls.approve_application(
                         application=application,
                         status=Application.Status.AUTO_APPROVED,
                         event=Events.EventName.AUTO_APPROVAL_APPROVED,
                     )
                 elif auto_approval.suggestedAction == Application.Status.PROVISIONALLY_APPROVED:
-                    registration_id = cls._approve_application(
+                    registration_id = cls.approve_application(
                         application=application,
                         status=Application.Status.PROVISIONAL_REVIEW,
                         event=Events.EventName.AUTO_APPROVAL_PROVISIONAL,
@@ -164,7 +164,7 @@ class ApprovalService:
                     cls._update_application_status_to_full_review(application)
 
             elif registration_type == RegistrationType.PLATFORM.value:
-                registration_id = cls._approve_application(
+                registration_id = cls.approve_application(
                     application=application,
                     status=Application.Status.AUTO_APPROVED,
                     event=Events.EventName.AUTO_APPROVAL_APPROVED,
@@ -183,7 +183,8 @@ class ApprovalService:
             return application.status, None
 
     @classmethod
-    def _approve_application(cls, application, status, event):
+    def approve_application(cls, application, status, event):
+        """Creates the registration and creates the corresponding events."""
         application.status = status
         registration = RegistrationService.create_registration(
             application.submitter_id, application.payment_account, application.application_json
