@@ -2,8 +2,8 @@
 
 import pytest
 
-from noc_expiry.job import create_app
 from noc_expiry.config import UnitTestConfig
+from noc_expiry.job import create_app
 
 
 @pytest.fixture(scope="session")
