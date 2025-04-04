@@ -22,8 +22,8 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from strr_api.models import db
 from strr_api.models.application import Application
 from strr_api.models.events import Events
-from strr_api.utils.date_util import DateUtil
 from strr_api.services.events_service import EventsService
+from strr_api.utils.date_util import DateUtil
 
 from noc_expiry.config import CONFIGURATION
 from noc_expiry.utils.logging import setup_logging
