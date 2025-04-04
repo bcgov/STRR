@@ -105,8 +105,6 @@ class TestConfig(_Config):  # pylint: disable=too-few-public-methods
         f"@{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
     )
 
-    COLIN_URL = os.getenv("COLIN_URL_TEST", "")
-    LEGAL_URL = os.getenv("LEGAL_URL_TEST", "")
     GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC_TEST", None)
 
 
