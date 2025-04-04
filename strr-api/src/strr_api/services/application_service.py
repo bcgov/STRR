@@ -287,6 +287,13 @@ class ApplicationService:
         application.status = Application.Status.NOC_PENDING
         application.save()
         EmailService.send_notice_of_consideration_for_application(application)
+        reviewer = UserService.get_or_create_user_in_context()
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.NOC_SENT,
+            application_id=application.id,
+            user_id=reviewer.id,
+        )
         return application
 
     @staticmethod
