@@ -564,10 +564,12 @@ class RegistrationService:
         }
         registration.status = status
         registration.save()
+        reviewer = UserService.get_or_create_user_in_context()
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,
             event_name=event_status_map.get(status),
             registration_id=registration.id,
+            user_id=reviewer.id,
             visible_to_applicant=True,
         )
         return registration

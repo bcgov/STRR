@@ -20,6 +20,6 @@ class NoticeOfConsideration(SimpleBaseModel):
     content = db.Column(db.Text, nullable=False)
     start_date = db.Column(db.DateTime(timezone=True), nullable=False)
     end_date = db.Column(db.DateTime(timezone=True), nullable=False)
-    creation_date = db.Column(db.DateTime, nullable=False, server_default=text("(NOW())"))
+    creation_date = db.Column(db.DateTime(timezone=True), nullable=False, server_default=text("(NOW())"))
 
     application = db.relationship("Application", foreign_keys=[application_id], back_populates="noc")
