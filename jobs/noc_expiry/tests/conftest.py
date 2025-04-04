@@ -1,3 +1,5 @@
+"""Test fixtures for NOC expiry job tests."""
+
 import pytest
 
 from noc_expiry.job import create_app
