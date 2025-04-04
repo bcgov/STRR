@@ -8,6 +8,6 @@ from noc_expiry.job import create_app
 @pytest.fixture(scope="session")
 def app():
     """Return a session-wide application."""
-    _app = create_app("test")
+    _app = create_app("unittest")
 
     return _app
