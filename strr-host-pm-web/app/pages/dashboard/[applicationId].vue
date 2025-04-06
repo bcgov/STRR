@@ -35,7 +35,10 @@ onMounted(async () => {
     ApplicationType.HOST
   )
 
-  if (isEligibleForRenewal.value) {
+  // TODO: Remove after QA, registration number 96950160599768
+  const isTestRenewalApp = process.env.NODE_ENV === 'development' && registration.value?.id === 308
+
+  if (isEligibleForRenewal.value && isTestRenewalApp) {
     const translationProps = {
       newLine: '<br/>',
       boldStart: '<strong>',
@@ -50,7 +53,7 @@ onMounted(async () => {
     todos.value.push({
       id: 'todo-renew-registration',
       title: `${t('todos.renewal.title1')}${renewalDueDate.value}${t('todos.renewal.title2')} (${dueDateCount})`,
-      subtitle: t('todo.renewal.subtitle', translationProps),
+      subtitle: t(renewalDateCounter.value < 0 ? 'todo.renewal.expired' : 'todo.renewal.expiresSoon', translationProps),
       button: {
         label: t('btn.renew'),
         action: () => {}
