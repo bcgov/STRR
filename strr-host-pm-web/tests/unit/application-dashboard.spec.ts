@@ -1,5 +1,5 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { DateTime } from 'luxon'
 import { baseEnI18n } from '../mocks/i18n'
 import { mockApplication, mockHostOwner, mockHostRegistration } from '../mocks/mockedData'
@@ -70,8 +70,6 @@ vi.mock('@/composables/useStrrApi', () => ({
   })
 }))
 
-const originalMockApplication = { ...mockApplication }
-
 describe('Dashboard Application Page', () => {
   let wrapper: any
 
@@ -80,10 +78,6 @@ describe('Dashboard Application Page', () => {
       global: { plugins: [baseEnI18n] }
     })
   })
-
-  // afterEach(() => {
-  //   Object.assign(mockApplication, originalMockApplication) // Restore the original mock
-  // })
 
   it('renders the dashboard page', () => {
     expect(wrapper.find('[data-test-id="host-dashboard-page"]').exists()).toBe(true)
@@ -199,7 +193,7 @@ describe('Dashboard Application Page', () => {
     expect(documentsList.findAllComponents(UBadge).length).toBe(1) // should show date badge for NOC doc
   })
 
-  it('renders dashboard with Renewal To Do', async () => {
+  it('renders dashboard with Renewal To Do', () => {
     const toDoSection = wrapper.find('[data-test-id="todo-section"]')
     expect(toDoSection.findComponent(TodoEmpty).exists()).toBe(false)
 
