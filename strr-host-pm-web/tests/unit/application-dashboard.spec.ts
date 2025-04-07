@@ -66,7 +66,7 @@ vi.mock('@/composables/useRenewals', () => ({
 
 vi.mock('@/composables/useStrrApi', () => ({
   useStrrApi: () => ({
-    getApplicationRenewalStatus: vi.fn().mockRejectedValue(true)
+    getRegistrationRenewalStatus: vi.fn().mockReturnValue(true)
   })
 }))
 
