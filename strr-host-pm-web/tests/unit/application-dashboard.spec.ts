@@ -58,7 +58,7 @@ vi.mock('@/composables/useRenewals', () => ({
   useRenewals: () => ({
     isEligibleForRenewal: ref(true),
     renewalDueDate: computed(() =>
-      DateTime.fromISO(mockHostRegistration.expiryDate).toLocaleString(DateTime.DATE_MED)),
+      DateTime.fromISO(mockHostRegistration.expiryDate).setZone('America/Vancouver').toLocaleString(DateTime.DATE_MED)),
     renewalDateCounter: computed(() => 20),
     isTestRenewalApp: ref(true) // TODO: Remove after API implements a check for renewable registration
   })
