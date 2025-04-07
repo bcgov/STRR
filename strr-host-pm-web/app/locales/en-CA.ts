@@ -314,7 +314,7 @@ export default {
     individualOrBusiness: 'Individual or Business',
     contactDetails: 'Contact Details',
     noCraTaxNumber: 'No CRA Tax Number',
-    renewalDayCount: 'Less than 1 day | in 1 day | in {count} days',
+    renewalDayCount: 'Less than 1 day | in 1 day | in {count} days'
   },
   link: {
     hostAccomodationsAct: 'Short-Term Rental Accommodations Act',
