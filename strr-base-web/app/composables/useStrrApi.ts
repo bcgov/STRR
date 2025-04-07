@@ -95,7 +95,7 @@ export const useStrrApi = () => {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getApplicationRenewalStatus = (registrationId: number): boolean => {
+  const getRegistrationRenewalStatus = (registrationId: number): boolean => {
     // TODO: implement an api call to check if application is ready for renewal
     return true
   }
@@ -112,7 +112,7 @@ export const useStrrApi = () => {
     getAccountApplications,
     getApplicationReceipt,
     getRegistrationCert,
-    getApplicationRenewalStatus,
+    getRegistrationRenewalStatus,
     postApplication,
     updatePaymentDetails
   }

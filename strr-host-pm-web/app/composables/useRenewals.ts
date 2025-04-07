@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 
 // Registration Renewals composable
 export const useRenewals = () => {
-  const { getApplicationRenewalStatus } = useStrrApi()
+  const { getRegistrationRenewalStatus } = useStrrApi()
   const { registration } = storeToRefs(useHostPermitStore())
 
   const isEligibleForRenewal = ref(false)
@@ -29,7 +29,7 @@ export const useRenewals = () => {
 
   watch([registration, isRegistrationRenewable], () => {
     isEligibleForRenewal.value = (registration.value && isRegistrationRenewable.value)
-      ? getApplicationRenewalStatus(registration.value.id)
+      ? getRegistrationRenewalStatus(registration.value.id)
       : isEligibleForRenewal.value = false
   })
 
