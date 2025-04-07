@@ -143,7 +143,6 @@ export default {
     born: 'Born',
     confirmation: 'Confirmation',
     dayCount: '0 days | 1 day | {count} days',
-    renewalDayCount: 'Less than 1 day | in 1 day | in {count} days',
     renewalOverdue: 'Overdue',
     daysToExpiry: 'Days to Expiry',
     daysToExpiryExtra: 'Days to Expiry (Pacific Time)',
