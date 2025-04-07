@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon'
+
 const mockDocuments: ApiDocument[] = [
   {
     documentType: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE,
@@ -121,4 +123,62 @@ export const mockHostOwner: HostOwner = {
   phone: {
     number: '555-123-4567'
   }
+}
+
+const mockUnitAddress: ApiUnitAddress = {
+  addressLineTwo: 'Apt 3B',
+  city: 'Victoria',
+  country: 'CA',
+  locationDescription: 'Close to the Inner Harbour',
+  nickname: 'Harbour View Unit',
+  postalCode: 'V8W 1P6',
+  province: 'BC',
+  streetName: 'Government St',
+  streetNumber: '789',
+  unitNumber: '3B'
+}
+
+export const mockHostRegistration: HostRegistrationResp = {
+  header: {
+    applicationDateTime: DateTime.utc(2025, 1, 1).toLocal().toString(),
+    applicationNumber: '12345678901234',
+    examinerActions: ['CANCEL', 'SUSPEND'],
+    examinerStatus: 'Registered',
+    hostActions: [],
+    hostStatus: 'Registered',
+    reviewer: {
+      username: 'examiner@idir',
+      displayName: 'Examiner One'
+    }
+  },
+  id: 308,
+  registrationType: ApplicationType.HOST,
+  status: RegistrationStatus.ACTIVE,
+  startDate: DateTime.utc(2025, 1, 1).toLocal(),
+  expiryDate: DateTime.utc(2026, 1, 1).toLocal(),
+  registrationNumber: 'REG12345678',
+  primaryContact: mockPrimaryContactPerson,
+  unitAddress: mockUnitAddress,
+  unitDetails: {
+    hostResidence: ResidenceType.SAME_UNIT,
+    isUnitOnPrincipalResidenceProperty: true,
+    numberOfRoomsForRent: 2,
+    ownershipType: OwnershipType.OWN,
+    parcelIdentifier: '123-456-789',
+    propertyType: PropertyType.CONDO_OR_APT,
+    rentalUnitSpaceType: RentalUnitType.ENTIRE_HOME,
+    businessLicense: '123123123'
+  },
+  strRequirements: {
+    isBusinessLicenceRequired: true,
+    isPrincipalResidenceRequired: true,
+    isStrProhibited: false,
+    isStraaExempt: false,
+    organizationNm: 'City of Victoria'
+  },
+  documents: mockDocuments,
+  listingDetails: [],
+  sbc_account_id: 12345,
+  updatedDate: DateTime.utc(2026, 2, 2).toLocal(),
+  user_id: 123
 }

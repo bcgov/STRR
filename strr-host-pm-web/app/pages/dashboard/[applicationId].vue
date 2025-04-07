@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const route = useRoute()
 const config = useRuntimeConfig().public
 const localePath = useLocalePath()
@@ -18,7 +18,7 @@ const {
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
-const { isEligibleForRenewal, renewalDueDate, renewalDateCounter } = useRenewals()
+const { isEligibleForRenewal, renewalDueDate, renewalDateCounter, isTestRenewalApp } = useRenewals()
 
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
@@ -35,10 +35,7 @@ onMounted(async () => {
     ApplicationType.HOST
   )
 
-  // TODO: Remove after QA, registration number 96950160599768
-  const isTestRenewalApp = process.env.NODE_ENV === 'development' && registration.value?.id === 308
-
-  if (isEligibleForRenewal.value && isTestRenewalApp) {
+  if (isEligibleForRenewal.value && isTestRenewalApp.value) {
     const translationProps = {
       newLine: '<br/>',
       boldStart: '<strong>',
@@ -52,8 +49,10 @@ onMounted(async () => {
 
     todos.value.push({
       id: 'todo-renew-registration',
-      title: `${t('todos.renewal.title1')}${renewalDueDate.value}${t('todos.renewal.title2')} (${dueDateCount})`,
-      subtitle: t(renewalDateCounter.value < 0 ? 'todo.renewal.expired' : 'todo.renewal.expiresSoon', translationProps),
+      title: `${t('todos.renewal.title1')} ${renewalDueDate.value} ${t('todos.renewal.title2')} (${dueDateCount})`,
+      subtitle: t(renewalDateCounter.value < 0
+        ? 'todos.renewal.expired'
+        : 'todos.renewal.expiresSoon', translationProps),
       button: {
         label: t('btn.renew'),
         action: () => {}

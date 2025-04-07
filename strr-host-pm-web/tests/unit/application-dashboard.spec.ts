@@ -1,13 +1,15 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
+import { DateTime } from 'luxon'
 import { baseEnI18n } from '../mocks/i18n'
-import { mockApplication, mockHostOwner } from '../mocks/mockedData'
+import { mockApplication, mockHostOwner, mockHostRegistration } from '../mocks/mockedData'
 import ApplicationDashboard from '~/pages/dashboard/[applicationId].vue'
 import {
   ConnectDashboardSection, Todo, TodoEmpty, SummaryProperty,
   SummarySupportingInfo, ConnectAccordion,
   UBadge,
-  BaseUploadAdditionalDocuments
+  BaseUploadAdditionalDocuments,
+  UButton
 } from '#components'
 
 vi.mock('@/stores/hostPermit', () => ({
@@ -52,6 +54,24 @@ vi.mock('@/stores/hostProperty', () => ({
   })
 }))
 
+vi.mock('@/composables/useRenewals', () => ({
+  useRenewals: () => ({
+    isEligibleForRenewal: ref(true),
+    renewalDueDate: computed(() =>
+      DateTime.fromISO(mockHostRegistration.expiryDate).toLocaleString(DateTime.DATE_MED)),
+    renewalDateCounter: computed(() => 20),
+    isTestRenewalApp: ref(true) // TODO: Remove after API implements a check for renewable registration
+  })
+}))
+
+vi.mock('@/composables/useStrrApi', () => ({
+  useStrrApi: () => ({
+    getApplicationRenewalStatus: vi.fn().mockRejectedValue(true)
+  })
+}))
+
+const originalMockApplication = { ...mockApplication }
+
 describe('Dashboard Application Page', () => {
   let wrapper: any
 
@@ -60,6 +80,10 @@ describe('Dashboard Application Page', () => {
       global: { plugins: [baseEnI18n] }
     })
   })
+
+  // afterEach(() => {
+  //   Object.assign(mockApplication, originalMockApplication) // Restore the original mock
+  // })
 
   it('renders the dashboard page', () => {
     expect(wrapper.find('[data-test-id="host-dashboard-page"]').exists()).toBe(true)
@@ -173,6 +197,19 @@ describe('Dashboard Application Page', () => {
 
     expect(documentsList.findAll('[data-test-id="stored-document"]').length).toBe(3) // should show additional doc
     expect(documentsList.findAllComponents(UBadge).length).toBe(1) // should show date badge for NOC doc
+  })
+
+  it('renders dashboard with Renewal To Do', async () => {
+    const toDoSection = wrapper.find('[data-test-id="todo-section"]')
+    expect(toDoSection.findComponent(TodoEmpty).exists()).toBe(false)
+
+    const renewalToDo = toDoSection.find('[data-test-id="todo-renew-registration"]')
+    expect(renewalToDo.exists()).toBe(true)
+
+    expect(renewalToDo.findComponent(UButton).exists()).toBe(true)
+    expect(renewalToDo.find('H3').text()).toContain('Registration Renewal')
+    expect(renewalToDo.find('H3').text()).toContain('Dec 31, 2025') // renewalDueDate from mock
+    expect(renewalToDo.find('H3').text()).toContain('in 20 days') // renewalDateCounter from mock
   })
 
   it('renders dashboard with No CRA Tax Number', () => {

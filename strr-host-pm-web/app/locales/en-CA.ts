@@ -449,7 +449,7 @@ export default {
       }
     }
   },
-  todo: {
+  todos: {
     renewal: {
       expiresSoon: 'Your short-term rental registration will expire soon. Please submit a renewal application to keep your registration active.{newLine}{newLine}{boldStart}Note:{boldEnd} If you wish to change any of the following information, you must submit a new short-term rental application instead of a renewal application.{newLine}{newLine}\u2022 Rental Unit Address{newLine}\u2022 Property Host details (if an individual): Full Name, CRA Tax Number, Residential Address{newLine}\u2022 Property Host details (if a business): Business Legal Name',
       expired: 'Your short-term rental registration has expired. Please submit a renewal application to reactive your registration.{newLine}{newLine}{boldStart}Note:{boldEnd} If you wish to change any of the following information, you must submit a new short-term rental application instead of a renewal application.{newLine}{newLine}\u2022 Rental Unit Address{newLine}\u2022 Property Host details (if an individual): Full Name, CRA Tax Number, Residential Address{newLine}\u2022 Property Host details (if a business): Business Legal Name'

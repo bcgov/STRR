@@ -406,14 +406,14 @@ export default {
   },
   todos: {
     noc: { // Notice of Consideration
-      title1: 'Notice of Consideration - Due: ',
-      title2: ' at 12:01 am PT',
+      title1: 'Notice of Consideration - Due:',
+      title2: 'at 12:01 am PT',
       general: "You have received a Notice of Consideration {boldStart}email{boldEnd} about issues with your application. Please review it carefully and {linkStart}add any required documents{linkEnd} below by selecting {boldStart}'Add new document'{boldEnd}.", // used for Host and Strata
       host: "{newLine}{newLine}Make sure to select the correct document category when uploading. If submitting a {boldStart}Statement Document{boldEnd}, upload it under {boldStart}'Other Proof Document'{boldEnd}." // Host only specific addition
     },
     renewal: {
-      title1: 'Registration Renewal - Due: ',
-      title2: ' at 23:59 pm PT'
+      title1: 'Registration Renewal - Due:',
+      title2: 'at 23:59 pm PT'
     }
   },
   toast: {
