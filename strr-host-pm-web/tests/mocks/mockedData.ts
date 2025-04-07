@@ -140,7 +140,7 @@ const mockUnitAddress: ApiUnitAddress = {
 
 export const mockHostRegistration: HostRegistrationResp = {
   header: {
-    applicationDateTime: DateTime.utc(2025, 1, 1).toLocal().toString(),
+    applicationDateTime: DateTime.utc(2025, 1, 1).setZone('America/Vancouver').toString(),
     applicationNumber: '12345678901234',
     examinerActions: ['CANCEL', 'SUSPEND'],
     examinerStatus: 'Registered',
@@ -154,8 +154,8 @@ export const mockHostRegistration: HostRegistrationResp = {
   id: 308,
   registrationType: ApplicationType.HOST,
   status: RegistrationStatus.ACTIVE,
-  startDate: DateTime.utc(2025, 1, 1).toLocal(),
-  expiryDate: DateTime.utc(2026, 1, 1).toLocal(),
+  startDate: DateTime.utc(2025, 1, 1).setZone('America/Vancouver'),
+  expiryDate: DateTime.utc(2026, 1, 1).setZone('America/Vancouver'),
   registrationNumber: 'REG12345678',
   primaryContact: mockPrimaryContactPerson,
   unitAddress: mockUnitAddress,
