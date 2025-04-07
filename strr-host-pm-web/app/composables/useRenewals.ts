@@ -33,9 +33,14 @@ export const useRenewals = () => {
       : isEligibleForRenewal.value = false
   })
 
+  // TODO: Remove after QA, registration number 96950160599768
+  const isTestRenewalApp = computed((): boolean =>
+    process.env.NODE_ENV === 'development' && registration.value?.id === 308)
+
   return {
     isEligibleForRenewal,
     renewalDueDate,
-    renewalDateCounter
+    renewalDateCounter,
+    isTestRenewalApp
   }
 }
