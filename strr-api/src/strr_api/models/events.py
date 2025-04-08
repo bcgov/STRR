@@ -43,6 +43,8 @@ class Events(SimpleBaseModel):
         REGISTRATION_CANCELLED = auto()
         APPLICATION_REVIEWER_ASSIGNED = auto()
         APPLICATION_REVIEWER_UNASSIGNED = auto()
+        NOC_SENT = auto()
+        NOC_EXPIRED = auto()
 
     __tablename__ = "events"
 
@@ -50,7 +52,7 @@ class Events(SimpleBaseModel):
     event_type = db.Column(db.Enum(EventType), nullable=False, index=True)
     event_name = db.Column(db.Enum(EventName), nullable=False)
     details = db.Column(db.String, nullable=True)
-    created_date = db.Column(db.DateTime, nullable=False, server_default=text("(NOW())"))
+    created_date = db.Column(db.DateTime(timezone=True), nullable=False, server_default=text("(NOW())"))
     visible_to_applicant = db.Column(db.Boolean, nullable=False, server_default="false")
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=True, index=True)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True, index=True)

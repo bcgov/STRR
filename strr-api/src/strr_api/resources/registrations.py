@@ -38,9 +38,11 @@ This module provides a simple flask blueprint with a single 'home' route that re
 
 import logging
 import traceback
+from datetime import datetime, timedelta
 from http import HTTPStatus
 from io import BytesIO
 
+from dateutil.relativedelta import relativedelta
 from flasgger import swag_from
 from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
@@ -295,6 +297,7 @@ def update_registration_status(registration_id):
     """
 
     try:
+        reviewer = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         json_input = request.get_json()
         status = json_input.get("status")
         if not status or status not in [RegistrationStatus.SUSPENDED.value, RegistrationStatus.CANCELLED.value]:
@@ -305,10 +308,62 @@ def update_registration_status(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
-        registration = RegistrationService.update_registration_status(registration, status.upper())
+        registration = RegistrationService.update_registration_status(registration, status.upper(), reviewer)
         return RegistrationService.serialize(registration), HTTPStatus.OK
     except Exception as exception:
         logger.error(exception)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/todos", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def get_todos(registration_id):
+    """
+    Get todos for a registration.
+    ---
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration Id
+    responses:
+      200:
+        description: Success
+      401:
+        description: Unauthorized to retrieve the todos for the registration.
+      500:
+        description: Unexpected error during processing.
+    """
+    try:
+        account_id = request.headers.get("Account-Id")
+        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+        registration = RegistrationService.get_registration(account_id, registration_id)
+        if not registration:
+            raise AuthException()
+
+        todos = []
+
+        if registration.status in [RegistrationStatus.ACTIVE, RegistrationStatus.EXPIRED]:
+            # Get the current time in UTC
+            current_time_utc = datetime.utcnow()
+            registration_expiry_datetime = registration.expiry_date
+
+            # Window in which todos should appear
+            threshold_datetime_start = registration_expiry_datetime - timedelta(days=30)
+            threshold_datetime_end = registration_expiry_datetime + relativedelta(years=3)
+
+            if threshold_datetime_start <= current_time_utc <= threshold_datetime_end:
+                todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
+
+        return {"todos": todos}, HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
+        logging.error("Traceback: %s", traceback.format_exc())
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
@@ -364,6 +419,7 @@ def update_registration_status(registration_id):
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.SYSTEM.value])
 def create_registration_for_permit_validation():
     """
     Create minimum registration for permit validation.

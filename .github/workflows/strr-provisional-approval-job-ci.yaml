@@ -1,0 +1,25 @@
+name: PROVISIONAL APPROVAL JOB CI
+
+on:
+  pull_request:
+    paths:
+      - "jobs/provisional-approval**"
+      - "src/strr_api/models/**"
+      - "src/strr_api/services/**"
+      - "src/strr_api/enums/**"
+      - "src/strr_api/exceptions/**"
+      - "src/strr_api/utils/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./jobs/provisional-approval
+
+jobs:
+  provisional-approval-job-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    with:
+      app_name: "provisional-approval-job"
+      working_directory: "./jobs/provisional-approval"
+      codecov_flag: "provisionalApprovaljob"

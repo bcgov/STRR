@@ -11,7 +11,6 @@ export const getTodoApplication = (
   const { t } = useNuxtApp().$i18n
   const localePath = useLocalePath()
   const todos = []
-  const SUPPORTING_DOC_ID = 'summary-supporting-info' // section id for supporting documents
 
   if (!applicationInfo) {
     todos.push({
@@ -69,7 +68,7 @@ export const getTodoApplication = (
       boldStart: '<strong>',
       boldEnd: '</strong>',
       linkStart: "<button type='button'" +
-        "onClick='document.getElementById(" + SUPPORTING_DOC_ID + ").scrollIntoView({ behavior: 'smooth' })'" +
+        "onClick=\"document.getElementById('summary-supporting-info').scrollIntoView({ behavior: 'smooth' })\"" +
         "class='text-blue-500 underline'>",
       linkEnd: '</button>'
     }

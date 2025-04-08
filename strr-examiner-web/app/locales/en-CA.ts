@@ -520,6 +520,8 @@ export default {
     EXPIRED: 'Registration expired.',
     NON_COMPLIANCE_SUSPENDED: 'Registration suspended due to non compliance.',
     APPLICATION_REVIEWER_ASSIGNED: 'Application reviewer assigned.',
-    APPLICATION_REVIEWER_UNASSIGNED: 'Application reviewer unassigned.'
+    APPLICATION_REVIEWER_UNASSIGNED: 'Application reviewer unassigned.',
+    NOC_SENT: 'Notice of Consideration sent.',
+    NOC_EXPIRED: 'Notice of Consideration expired.'
   }
 }
