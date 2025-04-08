@@ -185,7 +185,9 @@ export default {
       totalNumberOfListings: 'Total Number of Listings',
       noticeOfNonCompliance: 'Notice of Non-Compliance',
       takedownRequest: 'Takedown Request',
-      added: 'ADDED'
+      added: 'ADDED',
+      unAssign: 'Yes, Unassign Them',
+      acknowlegeError: 'Close'
     },
     text: {
       applicationMustInclude: 'Your application must include the following:',
@@ -247,7 +249,9 @@ export default {
     sendNotice: 'Send Notice',
     viewReceipt: 'View Receipt',
     showHistory: 'Show History',
-    hideHistory: 'Hide History'
+    hideHistory: 'Hide History',
+    assign: 'Assign To Me',
+    unassign: 'Unassign'
   },
   error: {
     action: {
@@ -262,6 +266,9 @@ export default {
     },
     downloadReceipt: {
       description: 'We could not download the receipt at this time. If error persists, please contact us.'
+    },
+    checkAssignee: {
+      description: 'We could not verify if you are the assignee for this application. If error persists, please contact us.'
     },
     assignApplication: 'An error occurred assigning this application.',
     unAssignApplication: 'An error occurred unassigning this application.',
@@ -341,6 +348,14 @@ export default {
     noc: {
       title: 'Email to Completing Party',
       placeholder: 'Email Body Text'
+    },
+    unassign: {
+      title: 'Currently Assigned',
+      message: 'This application is currently assigned to someone else. Unassigning them may interrupt their work. Are you sure you want to continue?'
+    },
+    assignError: {
+      title: 'Action Failed',
+      message: 'This application is no longer assigned to you.'
     }
   },
   table: {

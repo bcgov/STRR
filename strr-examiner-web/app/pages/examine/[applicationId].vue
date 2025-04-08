@@ -9,9 +9,20 @@ const {
   getNextApplication,
   getApplicationById,
   sendNoticeOfConsideration,
-  assignApplication
+  assignApplication,
+  isCurrentUserAssignee
 } = useExaminerStore()
 const { nocContent, nocFormRef, activeHeader } = storeToRefs(useExaminerStore())
+const {
+  showConfirmModal,
+  modalTitle,
+  modalMessage,
+  confirmButtonText,
+  cancelButtonText,
+  openConfirmModal,
+  closeConfirmModal,
+  handleConfirm
+} = useConfirmationModal()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -23,7 +34,7 @@ definePageMeta({
 })
 
 const initialMount = ref(true) // flag for whether to fetch next or specific application on mount - true until initial application is loaded
-
+const disableCancel = ref(false)
 const { data: application, status, error, refresh } = await useLazyAsyncData<
   HousApplicationResponse | undefined, ApplicationError
 >(
@@ -79,6 +90,35 @@ const handleApplicationAction = (
   )
 }
 
+const handleAssigneeAction = async (
+  id: string,
+  action: ApplicationActionsE,
+  buttonPosition: 'left' | 'right',
+  buttonIndex: number
+) => {
+  const isAssignee = await isCurrentUserAssignee(id)
+  if (isAssignee) {
+    return handleApplicationAction(
+      id,
+      action,
+      buttonPosition,
+      buttonIndex
+    )
+  } else {
+    disableCancel.value = true
+    openConfirmModal({
+      title: t('modal.assignError.title'),
+      message: t('modal.assignError.message'),
+      confirmText: t('strr.label.acknowlegeError'),
+      onConfirm: () => {
+        closeConfirmModal()
+        refresh()
+      }
+    })
+    return Promise.resolve()
+  }
+}
+
 // update route and bottom buttons when new application
 watch(
   [application, error],
@@ -96,15 +136,15 @@ watch(
     initialMount.value = false
     updateRouteAndButtons(RoutesE.EXAMINE, {
       approve: {
-        action: (id: string) => handleApplicationAction(id, ApplicationActionsE.APPROVE, 'right', 1),
+        action: (id: string) => handleAssigneeAction(id, ApplicationActionsE.APPROVE, 'right', 1),
         label: t('btn.approve')
       },
       reject: {
-        action: (id: string) => handleApplicationAction(id, ApplicationActionsE.REJECT, 'right', 0),
+        action: (id: string) => handleAssigneeAction(id, ApplicationActionsE.REJECT, 'right', 0),
         label: t('btn.decline')
       },
       sendNotice: {
-        action: (id: string) => handleApplicationAction(id, ApplicationActionsE.SEND_NOC, 'right', 0),
+        action: (id: string) => handleAssigneeAction(id, ApplicationActionsE.SEND_NOC, 'right', 0),
         label: t('btn.sendNotice')
       }
     })
@@ -134,6 +174,17 @@ watch(
         </template>
       </ApplicationDetailsView>
       <ComposeNoc />
+      <AssignmentActions @refresh="refresh" />
+      <ConfirmationModal
+        :is-open="showConfirmModal"
+        :title="modalTitle"
+        :message="modalMessage"
+        :confirm-button-text="confirmButtonText"
+        :cancel-button-text="cancelButtonText"
+        :hide-cancel="disableCancel"
+        :on-confirm="handleConfirm"
+        :on-cancel="closeConfirmModal"
+      />
     </template>
   </div>
 </template>

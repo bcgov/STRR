@@ -71,7 +71,7 @@ const nocCountdown = computed(() => {
             />
           </span>
           <UButton
-            :label="isFilingHistoryOpen ? $t('btn.hideHistory') : $t('btn.showHistory')"
+            :label="isFilingHistoryOpen ? t('btn.hideHistory') : t('btn.showHistory')"
             :padded="false"
             variant="link"
             icon="i-mdi-history"
@@ -90,7 +90,7 @@ const nocCountdown = computed(() => {
           class="gap-1 underline"
           @click="exStore.viewReceipt(activeHeader?.applicationNumber)"
         >
-          {{ $t('btn.viewReceipt') }}
+          {{ t('btn.viewReceipt') }}
         </UButton>
       </div>
       <div class="text-sm">
@@ -100,7 +100,7 @@ const nocCountdown = computed(() => {
           :color="getBadgeColor(activeHeader.status)"
         />
         <strong>{{ t('strr.label.applicationType') }}</strong>
-        {{ $t(`applicationType.${activeReg?.registrationType}`) }} |
+        {{ t(`applicationType.${activeReg?.registrationType}`) }} |
         <strong>{{ t('strr.label.submitted') }}</strong>
         {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a', true) }}
         ({{ dayCountdown(activeHeader.applicationDateTime.toString(), true) }} days ago)
@@ -110,10 +110,8 @@ const nocCountdown = computed(() => {
           <span v-if="!nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
           <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
         </template>
-        <template v-if="activeHeader.reviewer?.username">
-          | <strong>{{ t('strr.label.assignee') }}</strong>
-          {{ activeHeader.reviewer.username }}
-        </template>
+        | <strong>{{ t('strr.label.assignee') }}</strong>
+        {{ activeHeader.reviewer?.username || '-' }}
       </div>
     </div>
   </div>
