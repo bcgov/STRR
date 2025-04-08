@@ -1,14 +1,16 @@
 import json
 import os
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
 from http import HTTPStatus
 from unittest.mock import patch
 
 import pytest
+from dateutil.relativedelta import relativedelta
 
 from strr_api.enums.enum import PaymentStatus, RegistrationStatus
 from strr_api.exceptions import ExternalServiceException
-from strr_api.models import Application, Events
+from strr_api.models import Application, Events, Registration, User
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 from tests.unit.utils.mocks import (
     fake_document,
@@ -378,3 +380,131 @@ def test_cancel_registration(session, client, jwt):
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         assert response_json.get("status") == RegistrationStatus.CANCELLED.value
+
+
+def test_get_expired_registration_todos_in_renewal_window(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc - relativedelta(years=1)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - relativedelta(years=1),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="HOST",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="H1234567",
+        user_id=user.id,
+    )
+    registration.save()
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert response_json.get("todos")[0].get("task") is not None
+
+
+def test_get_expired_registration_todos_outside_renewal_window(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc + relativedelta(years=4)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - relativedelta(years=5),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="HOST",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="H1234567",
+        user_id=user.id,
+    )
+    registration.save()
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert response_json.get("todos") == []
+
+
+def test_get_active_registration_todos_in_renewal_window(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc + timedelta(days=24)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="HOST",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="H1234567",
+        user_id=user.id,
+    )
+    registration.save()
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert response_json.get("todos")[0].get("task") is not None
+
+
+def test_get_active_registration_todos_outside_renewal_window(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc + timedelta(days=65)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=300),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="HOST",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="H1234567",
+        user_id=user.id,
+    )
+    registration.save()
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert response_json.get("todos") == []

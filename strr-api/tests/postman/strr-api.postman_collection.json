@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "16206b52-8feb-4cbd-a845-6c17fa6a3e90",
+		"_postman_id": "f3154729-f428-4ff9-861f-39292b2d04fb",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -345,7 +345,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications?sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&status=AUTO_APPROVED&assignee={{username}}",
+							"raw": "{{api_url}}/applications?sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&assignee={{username}}",
 							"host": [
 								"{{api_url}}"
 							],
@@ -756,7 +756,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1&sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&status=AUTO_APPROVED&assignee={{username}}",
+							"raw": "{{api_url}}/applications/search?text=018-851-570&limit=10&page=1&sortBy=application_date&sortOrder=asc&recordNumber=123&registrationType=HOST&registrationType=PLATFORM&registrationStatus=ACTIVE&registrationStatus=SUSPENDED&status=PAID&assignee={{username}}",
 							"host": [
 								"{{api_url}}"
 							],
@@ -1655,6 +1655,41 @@
 								"registrations",
 								"{{registration_id}}",
 								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get ToDos",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/todos",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"todos"
 							]
 						}
 					},
