@@ -133,7 +133,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           address: tableFilters.propertyAddress,
           recordNumber: tableFilters.registrationNumber,
           assignee: tableFilters.adjudicator,
-          requirement: tableFilters.requirements
+          requirement: tableFilters.requirements,
+          includeDraft: false
         }
       })
     }
