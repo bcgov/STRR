@@ -187,6 +187,8 @@ class Application(BaseModel):
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
             query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
+        if not filter_criteria.include_draft:
+            query = query.filter(Application.status != Application.Status.DRAFT)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
@@ -208,7 +210,7 @@ class Application(BaseModel):
             return query
 
         search_term = search_term.strip()
-        query = query.filter(
+        return query.filter(
             db.or_(
                 Application.application_number.ilike(f"%{search_term}%"),
                 db.exists().where(
@@ -219,7 +221,6 @@ class Application(BaseModel):
                 ),
             )
         )
-        return query.filter(Application.status != Application.Status.DRAFT)
 
     @classmethod
     def _filter_by_registration_types(cls, registration_types: List[str], query: Query) -> Query:
@@ -228,8 +229,7 @@ class Application(BaseModel):
             return query
 
         registration_types = [type.upper() for type in registration_types if type]
-        query = query.filter(Application.registration_type.in_(registration_types))
-        return query.filter(Application.status != Application.Status.DRAFT)
+        return query.filter(Application.registration_type.in_(registration_types))
 
     @classmethod
     def _filter_by_assignee(cls, assignee: str, query: Query) -> Query:
@@ -387,15 +387,9 @@ class Application(BaseModel):
                 )
             )
         if filter_criteria.statuses or filter_criteria.registration_statuses:
-            statuses = [status.upper() for status in filter_criteria.statuses if status]
-            # Remove DRAFT if present
-            if Application.Status.DRAFT in statuses:
-                statuses.remove(Application.Status.DRAFT)
             query = cls._filter_by_application_or_registration_status(
-                statuses, filter_criteria.registration_statuses, query
+                filter_criteria.statuses, filter_criteria.registration_statuses, query
             )
-        else:
-            query = query.filter(Application.status != Application.Status.DRAFT)
         if filter_criteria.registration_types:
             query = cls._filter_by_registration_types(filter_criteria.registration_types, query)
         if filter_criteria.record_number:
@@ -404,6 +398,8 @@ class Application(BaseModel):
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
             query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
+        if not filter_criteria.include_draft:
+            query = query.filter(Application.status != Application.Status.DRAFT)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
