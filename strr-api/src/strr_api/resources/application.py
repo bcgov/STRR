@@ -226,6 +226,11 @@ def get_applications():
         type: integer
         default: 50
         description: Number of results per page
+      - in: query
+        name: includeDraft
+        type: boolean
+        default: true
+        description: Include draft applications
     responses:
       200:
         description:
@@ -247,6 +252,7 @@ def get_applications():
         sort_order = request.args.get("sortOrder", "desc")
         assignee = request.args.get("assignee", None)
         requirements = request.args.getlist("requirement", None)
+        include_draft = request.args.get("includeDraft", "true").lower() == "true"
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -262,6 +268,7 @@ def get_applications():
             sort_order=sort_order,
             assignee=assignee,
             requirements=requirements,
+            include_draft=include_draft,
         )
         application_list = ApplicationService.list_applications(account_id, filter_criteria=filter_criteria)
         return jsonify(application_list), HTTPStatus.OK
