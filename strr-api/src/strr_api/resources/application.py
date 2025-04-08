@@ -919,11 +919,6 @@ def search_applications():
         items:
           type: string
         description: Requirement filter
-      - in: query
-        name: includeDraft
-        type: boolean
-        default: true
-        description: Include draft applications
     responses:
       200:
         description:
@@ -944,7 +939,6 @@ def search_applications():
         sort_order = request.args.get("sortOrder", "desc")
         assignee = request.args.get("assignee", None)
         requirements = request.args.getlist("requirement", None)
-        include_draft = request.args.get("includeDraft", "true").lower() == "true"
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -964,7 +958,6 @@ def search_applications():
             sort_order=sort_order,
             assignee=assignee,
             requirements=requirements,
-            include_draft=include_draft,
         )
 
         application_list = ApplicationService.search_applications(filter_criteria=filter_criteria)
