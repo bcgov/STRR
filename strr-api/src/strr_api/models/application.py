@@ -386,8 +386,8 @@ class Application(BaseModel):
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
             query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
-        if not filter_criteria.include_draft:
-            query = query.filter(Application.status != Application.Status.DRAFT)
+        # Exclude draft applications for staff endpoint
+        query = query.filter(Application.status != Application.Status.DRAFT)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())

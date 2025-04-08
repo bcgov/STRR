@@ -82,8 +82,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           sortOrder: ApplicationSortOrder.ASC,
           address: tableFilters.propertyAddress,
           recordNumber: tableFilters.registrationNumber,
-          assignee: tableFilters.adjudicator,
-          includeDraft: false
+          assignee: tableFilters.adjudicator
         }
       })
     }
