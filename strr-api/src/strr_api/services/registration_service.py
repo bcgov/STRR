@@ -62,6 +62,7 @@ from strr_api.models import (
     StrataHotelBuilding,
     StrataHotelRegistration,
     StrataHotelRepresentative,
+    User,
 )
 from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
@@ -555,7 +556,7 @@ class RegistrationService:
         return RegistrationSerializer.serialize(registration=registration)
 
     @classmethod
-    def update_registration_status(cls, registration: Registration, status: str) -> Registration:
+    def update_registration_status(cls, registration: Registration, status: str, reviewer: User=None) -> Registration:
         """Updates the registration status."""
         event_status_map = {
             "EXPIRED": Events.EventName.REGISTRATION_EXPIRED,
@@ -564,12 +565,12 @@ class RegistrationService:
         }
         registration.status = status
         registration.save()
-        reviewer = UserService.get_or_create_user_in_context()
+        reviewer_id = reviewer.id if reviewer else None
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,
             event_name=event_status_map.get(status),
             registration_id=registration.id,
-            user_id=reviewer.id,
+            user_id=reviewer_id,
             visible_to_applicant=True,
         )
         return registration

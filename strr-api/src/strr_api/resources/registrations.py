@@ -295,6 +295,7 @@ def update_registration_status(registration_id):
     """
 
     try:
+        reviewer = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         json_input = request.get_json()
         status = json_input.get("status")
         if not status or status not in [RegistrationStatus.SUSPENDED.value, RegistrationStatus.CANCELLED.value]:
@@ -305,7 +306,7 @@ def update_registration_status(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
-        registration = RegistrationService.update_registration_status(registration, status.upper())
+        registration = RegistrationService.update_registration_status(registration, status.upper(), reviewer)
         return RegistrationService.serialize(registration), HTTPStatus.OK
     except Exception as exception:
         logger.error(exception)

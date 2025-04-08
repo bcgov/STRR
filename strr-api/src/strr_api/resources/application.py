@@ -1026,7 +1026,7 @@ def send_notice_of_consideration(application_number: str):
         description:
     """
     try:
-        UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        reviewer = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         json_input = request.get_json()
         content = json_input.get("content", "").strip()
         if not content:
@@ -1037,7 +1037,7 @@ def send_notice_of_consideration(application_number: str):
         application = ApplicationService.get_application(application_number)
         if not application:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
-        application = ApplicationService.send_notice_of_consideration(application, content)
+        application = ApplicationService.send_notice_of_consideration(application, content, reviewer)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception:
         logger.error("Error in sending NoC: ", exc_info=True)
@@ -1134,4 +1134,42 @@ def unassign_application(application_number: str):
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception:
         logger.error("Error unassigning application reviewer: ", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route('/<application_number>/is-assignee', methods=['GET'])
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def is_current_user_assignee(application_number: str):
+    """
+    Check if the current user is the assignee for the provided application number.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
+        application = ApplicationService.get_application(application_number)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        is_assignee = application.reviewer_id == user.id
+        return jsonify({"is_assignee": is_assignee}), HTTPStatus.OK
+    except Exception:
+        logger.error("Error checking if user is assignee: ", exc_info=True)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "noc-expiry"
-version = "1.0.1"
+version = "1.0.0"
 description = ""
 authors = []
 packages = [{include = "noc_expiry", from = "src"}]

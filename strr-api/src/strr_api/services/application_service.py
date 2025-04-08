@@ -273,7 +273,7 @@ class ApplicationService:
         return RegistrationService.find_all_by_host_sin(host_sin, True)
 
     @staticmethod
-    def send_notice_of_consideration(application: Application, content: str) -> Application:
+    def send_notice_of_consideration(application: Application, content: str, reviewer: User=None) -> Application:
         """Sends the notice of consideration."""
         notice_of_consideration = NoticeOfConsideration()
         notice_of_consideration.content = content
@@ -287,12 +287,12 @@ class ApplicationService:
         application.status = Application.Status.NOC_PENDING
         application.save()
         EmailService.send_notice_of_consideration_for_application(application)
-        reviewer = UserService.get_or_create_user_in_context()
+        reviewer_id = reviewer.id if reviewer else None
         EventsService.save_event(
             event_type=Events.EventType.APPLICATION,
             event_name=Events.EventName.NOC_SENT,
             application_id=application.id,
-            user_id=reviewer.id,
+            user_id=reviewer_id,
         )
         return application
 
