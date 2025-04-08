@@ -50,3 +50,4 @@ class ApplicationSearch:
     record_number: str = None
     assignee: str = None
     requirements: list[str] = None
+    include_draft: bool = True
