@@ -556,7 +556,7 @@ class RegistrationService:
         return RegistrationSerializer.serialize(registration=registration)
 
     @classmethod
-    def update_registration_status(cls, registration: Registration, status: str, reviewer: User=None) -> Registration:
+    def update_registration_status(cls, registration: Registration, status: str, reviewer: User = None) -> Registration:
         """Updates the registration status."""
         event_status_map = {
             "EXPIRED": Events.EventName.REGISTRATION_EXPIRED,

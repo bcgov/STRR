@@ -1137,7 +1137,7 @@ def unassign_application(application_number: str):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route('/<application_number>/is-assignee', methods=['GET'])
+@bp.route("/<application_number>/is-assignee", methods=["GET"])
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth

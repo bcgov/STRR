@@ -273,7 +273,7 @@ class ApplicationService:
         return RegistrationService.find_all_by_host_sin(host_sin, True)
 
     @staticmethod
-    def send_notice_of_consideration(application: Application, content: str, reviewer: User=None) -> Application:
+    def send_notice_of_consideration(application: Application, content: str, reviewer: User = None) -> Application:
         """Sends the notice of consideration."""
         notice_of_consideration = NoticeOfConsideration()
         notice_of_consideration.content = content
