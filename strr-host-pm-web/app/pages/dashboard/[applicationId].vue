@@ -18,7 +18,7 @@ const {
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
-const { isEligibleForRenewal, renewalDueDate, renewalDateCounter, isTestRenewalApp } = useRenewals()
+const { isEligibleForRenewal, renewalDueDate, renewalDateCounter, isTestRenewalReg } = useRenewals()
 
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
@@ -35,7 +35,7 @@ onMounted(async () => {
     ApplicationType.HOST
   )
 
-  if (isEligibleForRenewal.value && isTestRenewalApp.value) {
+  if (registration.value && (isEligibleForRenewal.value || isTestRenewalReg.value)) {
     const translationProps = {
       newLine: '<br/>',
       boldStart: '<strong>',

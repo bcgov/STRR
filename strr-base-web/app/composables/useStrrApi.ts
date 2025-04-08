@@ -1,4 +1,5 @@
 import type { ApplicationSortBy, ApplicationSortOrder } from '~/enums/applications-sort-e'
+import type { ApiRegistrationTodoTaskResp } from '~/interfaces/strr-api'
 
 export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
@@ -94,10 +95,13 @@ export const useStrrApi = () => {
       })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getRegistrationRenewalStatus = (registrationId: number): boolean => {
-    // TODO: implement an api call to check if application is ready for renewal
-    return true
+  // Get a list of todo tasks for specific registration
+  const getRegistrationsToDos = async (registrationId: number): Promise<{todos: ApiRegistrationTodoTaskResp[]}> => {
+    return await $strrApi<{ todos: ApiRegistrationTodoTaskResp[]}>(`/registrations/${registrationId}/todos`)
+      .catch((e) => {
+        logFetchError(e, `Unable to get registration certificate for ${registrationId}`)
+        return { todos: [] }
+      })
   }
 
   const updatePaymentDetails = async <T extends ApiApplicationBaseResp>(applicationNumber: string) => {
@@ -112,7 +116,7 @@ export const useStrrApi = () => {
     getAccountApplications,
     getApplicationReceipt,
     getRegistrationCert,
-    getRegistrationRenewalStatus,
+    getRegistrationsToDos,
     postApplication,
     updatePaymentDetails
   }

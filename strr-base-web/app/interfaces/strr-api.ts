@@ -1,3 +1,5 @@
+import type { RegistrationTodoType } from '~/enums/registraation-todo-type'
+
 export interface ApiPhone {
   phoneCountryCode: string
   phoneNumber: string
@@ -122,4 +124,10 @@ export interface ApiDocument {
   fileType: string
   uploadStep?: DocumentUploadStep
   uploadDate?: string
+}
+
+export interface ApiRegistrationTodoTaskResp {
+  task: {
+    type: RegistrationTodoType
+  }
 }

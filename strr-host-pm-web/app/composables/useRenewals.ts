@@ -2,17 +2,10 @@ import { DateTime } from 'luxon'
 
 // Registration Renewals composable
 export const useRenewals = () => {
-  const { getRegistrationRenewalStatus } = useStrrApi()
+  const { getRegistrationsToDos } = useStrrApi()
   const { registration } = storeToRefs(useHostPermitStore())
 
   const isEligibleForRenewal = ref(false)
-
-  // TODO: this should be done on API side
-  const isRegistrationRenewable = computed((): boolean =>
-    // statuses when registration is renewable
-    registration.value?.status === RegistrationStatus.ACTIVE ||
-    registration.value?.status === RegistrationStatus.EXPIRED
-  )
 
   // converts expiry date to medium format date, eg Apr 1, 2025
   const renewalDueDate = computed((): string =>
@@ -27,20 +20,24 @@ export const useRenewals = () => {
     return Math.floor(expDate.diff(today, 'days').toObject().days)
   })
 
-  watch([registration, isRegistrationRenewable], () => {
-    isEligibleForRenewal.value = (registration.value && isRegistrationRenewable.value)
-      ? getRegistrationRenewalStatus(registration.value.id)
-      : isEligibleForRenewal.value = false
+  watch(registration, async () => {
+    if (!registration.value) {
+      isEligibleForRenewal.value = false
+      return
+    }
+    const { todos } = await getRegistrationsToDos(registration.value.id)
+    // check if todos have a renewable registration
+    isEligibleForRenewal.value = todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
   })
 
-  // TODO: Remove after QA, registration number 96950160599768
-  const isTestRenewalApp = computed((): boolean =>
+  // TODO: Remove after testing, registration number H192452838, id 308
+  const isTestRenewalReg = computed((): boolean =>
     process.env.NODE_ENV === 'development' && registration.value?.id === 308)
 
   return {
     isEligibleForRenewal,
     renewalDueDate,
     renewalDateCounter,
-    isTestRenewalApp
+    isTestRenewalReg
   }
 }

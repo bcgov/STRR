@@ -66,7 +66,11 @@ vi.mock('@/composables/useRenewals', () => ({
 
 vi.mock('@/composables/useStrrApi', () => ({
   useStrrApi: () => ({
-    getRegistrationRenewalStatus: vi.fn().mockReturnValue(true)
+    getRegistrationsToDos: vi.fn().mockReturnValue({
+      todos: [{
+        task: { type: 'REGISTRATION_RENEWALS' }
+      }]
+    })
   })
 }))
 
