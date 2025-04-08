@@ -347,7 +347,7 @@ def get_todos(registration_id):
 
         todos = []
 
-        if registration.status in [RegistrationStatus.ACTIVE]:
+        if registration.status in [RegistrationStatus.ACTIVE, RegistrationStatus.EXPIRED]:
             # Get the current time in UTC
             current_time_utc = datetime.utcnow()
             registration_expiry_datetime = registration.expiry_date
