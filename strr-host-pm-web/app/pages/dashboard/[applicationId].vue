@@ -18,7 +18,13 @@ const {
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
-const { isEligibleForRenewal, renewalDueDate, renewalDateCounter, isTestRenewalReg } = useRenewals()
+const {
+  isEligibleForRenewal,
+  renewalDueDate,
+  renewalDateCounter,
+  isTestRenewalReg,
+  isRenewalPeriodClosed
+} = useRenewals()
 
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
@@ -35,13 +41,20 @@ onMounted(async () => {
     ApplicationType.HOST
   )
 
-  if (registration.value && (isEligibleForRenewal.value || isTestRenewalReg.value)) {
-    const translationProps = {
-      newLine: '<br/>',
-      boldStart: '<strong>',
-      boldEnd: '</strong>'
-    }
+  const translationProps = {
+    newLine: '<br/>',
+    boldStart: '<strong>',
+    boldEnd: '</strong>'
+  }
 
+  if (isRenewalPeriodClosed.value) {
+    // todo for renewal period closed after 3 years without renewal
+    todos.value.push({
+      id: 'todo-renew-registration-closed',
+      title: t('todos.renewalClosed.title'),
+      subtitle: t('todos.renewalClosed.subtitle', translationProps)
+    })
+  } else if (registration.value && (isEligibleForRenewal.value || isTestRenewalReg.value)) {
     // label for the due days count
     const dueDateCount = renewalDateCounter.value < 0
       ? t('label.renewalOverdue')
