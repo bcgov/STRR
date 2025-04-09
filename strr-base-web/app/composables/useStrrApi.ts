@@ -1,4 +1,5 @@
 import type { ApplicationSortBy, ApplicationSortOrder } from '~/enums/applications-sort-e'
+import type { ApiRegistrationTodoTaskResp } from '~/interfaces/strr-api'
 
 export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
@@ -94,6 +95,15 @@ export const useStrrApi = () => {
       })
   }
 
+  // Get a list of todo tasks for specific registration
+  const getRegistrationsToDos = async (registrationId: number): Promise<{todos: ApiRegistrationTodoTaskResp[]}> => {
+    return await $strrApi<{ todos: ApiRegistrationTodoTaskResp[]}>(`/registrations/${registrationId}/todos`)
+      .catch((e) => {
+        logFetchError(e, `Unable to get registration certificate for ${registrationId}`)
+        return { todos: [] }
+      })
+  }
+
   const updatePaymentDetails = async <T extends ApiApplicationBaseResp>(applicationNumber: string) => {
     return await $strrApi<T>(`/applications/${applicationNumber}/payment-details`,
       { method: 'PUT' })
@@ -106,6 +116,7 @@ export const useStrrApi = () => {
     getAccountApplications,
     getApplicationReceipt,
     getRegistrationCert,
+    getRegistrationsToDos,
     postApplication,
     updatePaymentDetails
   }
