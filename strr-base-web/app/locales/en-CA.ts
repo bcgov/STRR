@@ -412,7 +412,7 @@ export default {
     },
     renewal: {
       title1: 'Registration Renewal - Due:',
-      title2: 'at 23:59 pm PT'
+      title2: 'at 11:59 pm PT'
     }
   },
   toast: {
