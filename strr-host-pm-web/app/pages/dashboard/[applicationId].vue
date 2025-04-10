@@ -47,14 +47,16 @@ onMounted(async () => {
     boldEnd: '</strong>'
   }
 
-  if (isRenewalPeriodClosed.value) {
+  const isRenewalsEnabled = useFeatureFlags().isFeatureEnabled('enable-registration-renewals')
+
+  if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
     // todo for renewal period closed after 3 years without renewal
     todos.value.push({
       id: 'todo-renew-registration-closed',
       title: t('todos.renewalClosed.title'),
       subtitle: t('todos.renewalClosed.subtitle', translationProps)
     })
-  } else if (registration.value && (isEligibleForRenewal.value || isTestRenewalReg.value)) {
+  } else if (isRenewalsEnabled.value && registration.value && (isEligibleForRenewal.value || isTestRenewalReg.value)) {
     // label for the due days count
     const dueDateCount = renewalDateCounter.value < 0
       ? t('label.renewalOverdue')
