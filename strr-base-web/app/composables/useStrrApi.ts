@@ -99,7 +99,7 @@ export const useStrrApi = () => {
   const getRegistrationsToDos = async (registrationId: number): Promise<{todos: ApiRegistrationTodoTaskResp[]}> => {
     return await $strrApi<{ todos: ApiRegistrationTodoTaskResp[]}>(`/registrations/${registrationId}/todos`)
       .catch((e) => {
-        logFetchError(e, `Unable to get registration certificate for ${registrationId}`)
+        logFetchError(e, `Unable to get registration todos for ${registrationId}`)
         return { todos: [] }
       })
   }
