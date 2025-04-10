@@ -96,7 +96,7 @@ export const useStrrApi = () => {
   }
 
   // Get a list of todo tasks for specific registration
-  const getRegistrationsToDos = async (registrationId: number): Promise<{todos: ApiRegistrationTodoTaskResp[]}> => {
+  const getRegistrationToDos = async (registrationId: number): Promise<{todos: ApiRegistrationTodoTaskResp[]}> => {
     return await $strrApi<{ todos: ApiRegistrationTodoTaskResp[]}>(`/registrations/${registrationId}/todos`)
       .catch((e) => {
         logFetchError(e, `Unable to get registration todos for ${registrationId}`)
@@ -116,7 +116,7 @@ export const useStrrApi = () => {
     getAccountApplications,
     getApplicationReceipt,
     getRegistrationCert,
-    getRegistrationsToDos,
+    getRegistrationToDos,
     postApplication,
     updatePaymentDetails
   }
