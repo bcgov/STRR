@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 
 // Registration Renewals composable
 export const useRenewals = () => {
-  const { getRegistrationsToDos } = useStrrApi()
+  const { getRegistrationToDos } = useStrrApi()
   const { registration } = storeToRefs(useHostPermitStore())
 
   const isEligibleForRenewal = ref(false)
@@ -33,7 +33,7 @@ export const useRenewals = () => {
       isEligibleForRenewal.value = false
       return
     }
-    const { todos } = await getRegistrationsToDos(registration.value.id)
+    const { todos } = await getRegistrationToDos(registration.value.id)
     // check if todos have a renewable registration
     isEligibleForRenewal.value = todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
   })

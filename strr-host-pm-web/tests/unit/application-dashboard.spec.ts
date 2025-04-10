@@ -1,4 +1,4 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { DateTime } from 'luxon'
 import { baseEnI18n } from '../mocks/i18n'
@@ -65,9 +65,15 @@ vi.mock('@/composables/useRenewals', () => ({
   })
 }))
 
+mockNuxtImport('useConnectLaunchdarklyStore', () => {
+  return () => ({
+    getStoredFlag: vi.fn().mockReturnValue(true)
+  })
+})
+
 vi.mock('@/composables/useStrrApi', () => ({
   useStrrApi: () => ({
-    getRegistrationsToDos: vi.fn().mockReturnValue({
+    getRegistrationToDos: vi.fn().mockReturnValue({
       todos: [{
         task: { type: 'REGISTRATION_RENEWALS' }
       }]
