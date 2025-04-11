@@ -32,8 +32,10 @@ export async function authSetup (
     mkdirSync(authDir, { recursive: true })
   }
 
-  console.info(`[AuthSetup] Saving storage state to ${authDir}/${storagePath}.json`)
-  await page.context().storageState({ path: `${authDir}/${storagePath}.json` })
+  const fullPath = `${authDir}/${storagePath}`
+  console.info(`[AuthSetup] Saving storage state to ${fullPath}`)
+  await page.context().storageState({ path: fullPath })
+
 
   await browser.close()
   console.info(`[AuthSetup] Auth flow completed and storage saved.`)
