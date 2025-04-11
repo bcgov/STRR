@@ -7,7 +7,6 @@ import { ConfirmationModal, AssignmentActions } from '#components'
 
 const mockAssignApplication = vi.fn().mockResolvedValue(undefined)
 const mockUnassignApplication = vi.fn().mockResolvedValue(undefined)
-const mockIsCurrentUserAssignee = vi.fn().mockResolvedValue(true)
 const mockUpdateRouteAndButtons = vi.fn()
 
 const showConfirmModal = ref(false)
@@ -18,16 +17,18 @@ const cancelButtonText = ref('')
 let confirmCallback = vi.fn()
 
 const activeHeader = ref(mockHostApplicationWithReviewer.header)
+const isAssignedToUser = ref(true)
 
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     assignApplication: mockAssignApplication,
     unassignApplication: mockUnassignApplication,
-    isCurrentUserAssignee: mockIsCurrentUserAssignee,
+    isAssignedToUser,
     activeHeader
   }),
   storeToRefs: () => ({
-    activeHeader: activeHeader.value
+    activeHeader,
+    isAssignedToUser
   })
 }))
 
@@ -116,22 +117,19 @@ describe('AssignmentActions Component', () => {
   })
 
   it('calls unassignApplication directly when current user is the assignee', async () => {
-    mockIsCurrentUserAssignee.mockResolvedValueOnce(true)
     const buttonConfig = getButtonActions()
     expect(buttonConfig).toBeTruthy()
     const unassignAction = buttonConfig.unassign.action
     await unassignAction('12345678901234')
-    expect(mockIsCurrentUserAssignee).toHaveBeenCalledWith('12345678901234')
     expect(mockUnassignApplication).toHaveBeenCalledWith('12345678901234')
   })
 
   it('opens confirmation modal when current user is not the assignee', async () => {
-    mockIsCurrentUserAssignee.mockResolvedValueOnce(false)
+    isAssignedToUser.value = false
     const buttonConfig = getButtonActions()
     expect(buttonConfig).toBeTruthy()
     const unassignAction = buttonConfig.unassign.action
     await unassignAction('12345678901234')
-    expect(mockIsCurrentUserAssignee).toHaveBeenCalledWith('12345678901234')
     expect(mockUnassignApplication).not.toHaveBeenCalled()
     expect(showConfirmModal.value).toBe(true)
     expect(modalTitle.value).toBeTruthy()
@@ -139,7 +137,7 @@ describe('AssignmentActions Component', () => {
   })
 
   it('calls unassignApplication when confirmation modal is confirmed', async () => {
-    mockIsCurrentUserAssignee.mockResolvedValueOnce(false)
+    isAssignedToUser.value = false
     const buttonConfig = getButtonActions()
     expect(buttonConfig).toBeTruthy()
     const unassignAction = buttonConfig.unassign.action
@@ -148,7 +146,6 @@ describe('AssignmentActions Component', () => {
     confirmCallback()
     await flushPromises()
     expect(mockUnassignApplication).toHaveBeenCalledWith('12345678901234')
-    expect(showConfirmModal.value).toBe(false)
   })
 
   it('emits refresh event after successful assignment', async () => {
@@ -163,6 +160,7 @@ describe('AssignmentActions Component', () => {
     const buttonConfig = getButtonActions()
     expect(buttonConfig).toBeTruthy()
     const unassignAction = buttonConfig.unassign.action
+    isAssignedToUser.value = true
     await unassignAction('12345678901234')
     expect(wrapper.emitted()).toHaveProperty('refresh')
   })

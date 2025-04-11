@@ -16,6 +16,19 @@ import {
 
 const mockViewReceipt = vi.fn()
 let currentMockData = mockHostRegistration
+const isAssignedToUser = ref(true)
+const mockRightButtons = [
+  { key: 'cancel', disabled: false }
+]
+
+vi.mock('@/composables/useExaminerRoute', () => ({
+  useExaminerRoute: () => ({
+    getRouteConfig: () => ({
+      rightButtons: mockRightButtons
+    }),
+    updateRouteAndButtons: vi.fn()
+  })
+}))
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     updateRegistrationStatus: vi.fn().mockResolvedValue(undefined),
@@ -24,6 +37,7 @@ vi.mock('@/stores/examiner', () => ({
     activeHeader: ref(currentMockData.header),
     activeRecord: ref(currentMockData),
     isApplication: ref(false),
+    isAssignedToUser,
     viewReceipt: mockViewReceipt,
     isFilingHistoryOpen: ref(false)
   })
@@ -190,5 +204,21 @@ describe('Examiner - Registration Details Page', () => {
 
     await receiptButton.trigger('click')
     expect(mockViewReceipt).toHaveBeenCalledWith(currentMockData.header.applicationNumber)
+  })
+
+  it('disables action button when isAssignedToUser is false', async () => {
+    isAssignedToUser.value = false
+    await nextTick()
+    const actionButtons = ['cancel']
+    mockRightButtons.forEach((button) => {
+      if (actionButtons.includes(button.key)) {
+        button.disabled = true
+      }
+    })
+    actionButtons.forEach((action) => {
+      const button = mockRightButtons.find(btn => btn.key === action)
+      expect(button?.disabled).toBe(true)
+    })
+    isAssignedToUser.value = true
   })
 })

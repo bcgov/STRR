@@ -4,6 +4,19 @@ const route = useRoute()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
 const { updateRegistrationStatus, getRegistrationById } = useExaminerStore()
+const { isAssignedToUser } = storeToRefs(useExaminerStore())
+
+const {
+  showConfirmModal,
+  modalTitle,
+  modalMessage,
+  confirmButtonText,
+  cancelButtonText,
+  openConfirmModal,
+  closeConfirmModal,
+  handleConfirm
+} = useConfirmationModal()
+const disableCancel = ref(false)
 
 useHead({
   title: t('page.dashboardList.title')
@@ -33,29 +46,68 @@ const handleRegistrationAction = (
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
-  const status = RegistrationStatus.CANCELLED
-  return manageAction(
-    { id },
-    action,
-    updateRegistrationStatus,
-    buttonPosition,
-    buttonIndex,
-    refresh,
-    [status]
-  )
+  // Mandatory confirmation modal for cancel action
+  openConfirmModal({
+    title: t('modal.cancelRegistration.title'),
+    message: t('modal.cancelRegistration.message'),
+    confirmText: t('btn.cancel'),
+    cancelText: t('btn.back'),
+    onConfirm: async () => {
+      const status = RegistrationStatus.CANCELLED
+      await manageAction(
+        { id },
+        action,
+        updateRegistrationStatus,
+        buttonPosition,
+        buttonIndex,
+        refresh,
+        [status]
+      )
+    }
+  })
+  return Promise.resolve()
+}
+
+const handleAssigneeAction = (
+  id: number,
+  action: RegistrationActionsE,
+  buttonPosition: 'left' | 'right',
+  buttonIndex: number
+) => {
+  if (isAssignedToUser.value) {
+    return handleRegistrationAction(
+      id,
+      action,
+      buttonPosition,
+      buttonIndex
+    )
+  } else {
+    disableCancel.value = true
+    openConfirmModal({
+      title: t('modal.assignError.title'),
+      message: t('modal.assignError.message'),
+      confirmText: t('strr.label.acknowlegeError'),
+      onConfirm: () => {
+        closeConfirmModal()
+        refresh()
+      }
+    })
+    return Promise.resolve()
+  }
 }
 
 watch(
-  [registration, error],
+  [registration, error, isAssignedToUser],
   () => {
     initialMount.value = false
 
     updateRouteAndButtons(RoutesE.REGISTRATION, {
       cancel: {
-        action: (id: number) => handleRegistrationAction(id, RegistrationActionsE.CANCEL, 'right', 0),
-        label: t('btn.cancel')
+        action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.CANCEL, 'right', 0),
+        label: t('btn.cancel'),
+        disabled: !isAssignedToUser.value
       }
-    })
+    }, true)
   }
 )
 </script>
@@ -75,12 +127,23 @@ watch(
         refresh()
       }"
     />
-    <ApplicationDetailsView
-      v-else
-    >
-      <template #header>
-        <RegistrationInfoHeader />
-      </template>
-    </ApplicationDetailsView>
+    <template v-else>
+      <ApplicationDetailsView>
+        <template #header>
+          <RegistrationInfoHeader />
+        </template>
+      </ApplicationDetailsView>
+      <AssignmentActions :is-registration-page="true" @refresh="refresh" />
+      <ConfirmationModal
+        :is-open="showConfirmModal"
+        :title="modalTitle"
+        :message="modalMessage"
+        :confirm-button-text="confirmButtonText"
+        :cancel-button-text="cancelButtonText"
+        :hide-cancel="disableCancel"
+        :on-confirm="handleConfirm"
+        :on-cancel="closeConfirmModal"
+      />
+    </template>
   </div>
 </template>

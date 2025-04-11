@@ -12,18 +12,22 @@ export const useExaminerRoute = () => {
       approve?: {
         action: (id: string) => void
         label: string
+        disabled?: boolean
       }
       reject?: {
         action: (id: string) => void
         label: string
+        disabled?: boolean
       }
       sendNotice?: {
         action: (id: string) => void
         label: string
+        disabled?: boolean
       }
       cancel?: {
         action: (id: number) => void
         label: string
+        disabled?: boolean
       }
       assign?: {
         action: (id: string) => void
@@ -60,75 +64,84 @@ export const useExaminerRoute = () => {
       )
 
       if (examinerActions && examinerActions.length > 0) {
-        const currentButtons = mergeWithExisting ? getButtonControl() : { leftButtons: [], rightButtons: [] }
+        const existingButtons = mergeWithExisting ? getButtonControl() : undefined
+        const isValidExisting = existingButtons &&
+          Array.isArray(existingButtons.leftButtons) &&
+          Array.isArray(existingButtons.rightButtons)
+        const currentButtons = isValidExisting
+          ? existingButtons
+          : { leftButtons: [], rightButtons: [] }
         const leftButtons: ConnectBtnControlItem[] =
           Array.isArray(currentButtons.leftButtons) ? [...currentButtons.leftButtons] : []
         const rightButtons: ConnectBtnControlItem[] =
           Array.isArray(currentButtons.rightButtons) ? [...currentButtons.rightButtons] : []
+        const buttonLabels = Object.values(buttonConfig)
+          .filter(Boolean)
+          .map(btn => btn?.label)
+        const filteredRightButtons = rightButtons.filter(btn => !buttonLabels.includes(btn.label))
+        const updatedRightButtons = [...filteredRightButtons]
 
-        const hasAssignButton = rightButtons.some(btn => btn.label === buttonConfig.assign?.label)
-        const hasUnassignButton = rightButtons.some(btn => btn.label === buttonConfig.unassign?.label)
-        if (buttonConfig.assign && (!activeHeader.value?.reviewer?.username) && !hasAssignButton) {
-          rightButtons.unshift({
+        if (buttonConfig.assign && (!activeHeader.value?.reviewer?.username)) {
+          updatedRightButtons.unshift({
             action: () => buttonConfig.assign!.action(id as string),
             label: buttonConfig.assign!.label,
             variant: 'outline'
           })
-        } else if (buttonConfig.unassign && (activeHeader.value?.reviewer?.username) && !hasUnassignButton) {
-          rightButtons.unshift({
+        } else if (buttonConfig.unassign && (activeHeader.value?.reviewer?.username)) {
+          updatedRightButtons.unshift({
             action: () => buttonConfig.unassign!.action(id as string),
             label: buttonConfig.unassign!.label,
             variant: 'ghost'
           })
         }
 
-        const hasSendNoticeButton = rightButtons.some(btn => btn.label === buttonConfig.sendNotice?.label)
-        if (examinerActions.includes(ApplicationActionsE.SEND_NOC) && buttonConfig.sendNotice && !hasSendNoticeButton) {
-          rightButtons.push({
+        if (examinerActions.includes(ApplicationActionsE.SEND_NOC) && buttonConfig.sendNotice) {
+          updatedRightButtons.push({
             action: () => buttonConfig.sendNotice.action(id as string),
             label: buttonConfig.sendNotice.label,
             variant: 'outline',
             color: 'blue',
-            icon: 'i-mdi-send'
+            icon: 'i-mdi-send',
+            disabled: buttonConfig.sendNotice.disabled
           })
         }
 
-        const hasRejectButton = rightButtons.some(btn => btn.label === buttonConfig.reject?.label)
-        if (examinerActions.includes(ApplicationActionsE.REJECT) && buttonConfig.reject && !hasRejectButton) {
-          rightButtons.push({
+        if (examinerActions.includes(ApplicationActionsE.REJECT) && buttonConfig.reject) {
+          updatedRightButtons.push({
             action: () => buttonConfig.reject.action(id as string),
             label: buttonConfig.reject.label,
             variant: 'outline',
             color: 'red',
-            icon: 'i-mdi-close'
+            icon: 'i-mdi-close',
+            disabled: buttonConfig.reject.disabled
           })
         }
 
-        const hasApproveButton = rightButtons.some(btn => btn.label === buttonConfig.approve?.label)
-        if (examinerActions.includes(ApplicationActionsE.APPROVE) && buttonConfig.approve && !hasApproveButton) {
-          rightButtons.push({
+        if (examinerActions.includes(ApplicationActionsE.APPROVE) && buttonConfig.approve) {
+          updatedRightButtons.push({
             action: () => buttonConfig.approve.action(id as string),
             label: buttonConfig.approve.label,
             variant: 'outline',
             color: 'green',
-            icon: 'i-mdi-check'
+            icon: 'i-mdi-check',
+            disabled: buttonConfig.approve.disabled
           })
         }
 
-        const hasCancelButton = rightButtons.some(btn => btn.label === buttonConfig.cancel?.label)
-        if (examinerActions.includes(RegistrationActionsE.CANCEL) && buttonConfig.cancel && !hasCancelButton) {
-          rightButtons.push({
+        if (examinerActions.includes(RegistrationActionsE.CANCEL) && buttonConfig.cancel) {
+          updatedRightButtons.push({
             action: () => buttonConfig.cancel.action(id as number),
             label: buttonConfig.cancel.label,
             variant: 'outline',
             color: 'red',
-            icon: 'i-mdi-close'
+            icon: 'i-mdi-close',
+            disabled: buttonConfig.cancel.disabled
           })
         }
 
         setButtonControl({
           leftButtons,
-          rightButtons
+          rightButtons: updatedRightButtons
         })
       } else if (!mergeWithExisting) {
         setButtonControl({ leftButtons: [], rightButtons: [] })

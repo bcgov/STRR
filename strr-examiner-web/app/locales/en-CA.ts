@@ -251,7 +251,8 @@ export default {
     showHistory: 'Show History',
     hideHistory: 'Hide History',
     assign: 'Assign To Me',
-    unassign: 'Unassign'
+    unassign: 'Unassign',
+    confirm: 'Confirm'
   },
   error: {
     action: {
@@ -356,6 +357,10 @@ export default {
     assignError: {
       title: 'Action Failed',
       message: 'This application is no longer assigned to you.'
+    },
+    cancelRegistration: {
+      title: 'Cancel Registration',
+      message: 'This registration will be cancelled. Are you sure you want to continue?'
     }
   },
   table: {

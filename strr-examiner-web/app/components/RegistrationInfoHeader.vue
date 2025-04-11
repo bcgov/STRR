@@ -117,6 +117,8 @@ const getRegistrationType = (): string => {
         {{ getRegistrationType() }} |
         <strong>{{ t('strr.label.submitted') }}</strong>
         {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a', true) }}
+        | <strong>{{ t('strr.label.assignee') }}</strong>
+        {{ activeHeader.reviewer?.username || '-' }}
         <template v-if="activeHeader.reviewer?.username">
           | <strong>Approved By:</strong>
           {{ activeHeader.reviewer.username }}

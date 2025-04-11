@@ -27,6 +27,21 @@ const mockAssignApplication = vi.fn().mockImplementation(() => Promise.resolve()
 const mockGetApplicationById = vi.fn().mockImplementation(() => Promise.resolve(currentMockData))
 const mockGetNextApplication = vi.fn().mockImplementation(() => Promise.resolve(currentMockData))
 const isFilingHistoryOpen = ref(false) // needs to be initialized outside of mock store because value will change in tests
+const isAssignedToUser = ref(true)
+const mockRightButtons = [
+  { key: 'approve', disabled: false },
+  { key: 'reject', disabled: false },
+  { key: 'sendNotice', disabled: false }
+]
+
+vi.mock('@/composables/useExaminerRoute', () => ({
+  useExaminerRoute: () => ({
+    getRouteConfig: () => ({
+      rightButtons: mockRightButtons
+    }),
+    updateRouteAndButtons: vi.fn()
+  })
+}))
 
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
@@ -40,6 +55,7 @@ vi.mock('@/stores/examiner', () => ({
     activeHeader: ref(currentMockData.header),
     activeRecord: ref(currentMockData),
     isApplication: ref(true),
+    isAssignedToUser,
     assignApplication: mockAssignApplication,
     viewReceipt: mockViewReceipt,
     openDocInNewTab: vi.fn().mockImplementation(() => {
@@ -215,5 +231,22 @@ describe('Examiner - Host Application Details Page', () => {
     expect(toggleHistoryBtn.text()).toBe('Show History')
     await toggleHistoryBtn.trigger('click')
     expect(toggleHistoryBtn.text()).toBe('Hide History')
+  })
+
+  it('hides NOC email and disables action buttons when isAssignedToUser is false', async () => {
+    isAssignedToUser.value = false
+    await nextTick()
+    expect(wrapper.findTestId('compose-noc').exists()).toBe(false)
+    const actionButtons = ['approve', 'reject', 'sendNotice']
+    mockRightButtons.forEach((button) => {
+      if (actionButtons.includes(button.key)) {
+        button.disabled = true
+      }
+    })
+    actionButtons.forEach((action) => {
+      const button = mockRightButtons.find(btn => btn.key === action)
+      expect(button?.disabled).toBe(true)
+    })
+    isAssignedToUser.value = true
   })
 })

@@ -8,6 +8,22 @@ import {
   StrataSubHeader, PlatformSubHeader, UBadge
 } from '#components'
 
+const isAssignedToUser = ref(true)
+const mockRightButtons = [
+  { key: 'approve', disabled: false },
+  { key: 'reject', disabled: false },
+  { key: 'sendNotice', disabled: false }
+]
+
+vi.mock('@/composables/useExaminerRoute', () => ({
+  useExaminerRoute: () => ({
+    getRouteConfig: () => ({
+      rightButtons: mockRightButtons
+    }),
+    updateRouteAndButtons: vi.fn()
+  })
+}))
+
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     getNextApplication: vi.fn().mockResolvedValue(mockStrataApplication),
@@ -17,7 +33,8 @@ vi.mock('@/stores/examiner', () => ({
     activeHeader: ref(mockStrataApplication.header),
     activeRecord: ref(mockStrataApplication),
     isApplication: ref(true),
-    isFilingHistoryOpen: ref(true)
+    isFilingHistoryOpen: ref(true),
+    isAssignedToUser
   })
 }))
 
@@ -105,5 +122,22 @@ describe('Examiner - Strata Application Details Page', () => {
         expect(strataSubHeaderText).toContain(registration.strataHotelDetails.category)
       }
     }
+  })
+
+  it('hides NOC email and disables action buttons when isAssignedToUser is false', async () => {
+    isAssignedToUser.value = false
+    await nextTick()
+    expect(wrapper.findTestId('compose-noc').exists()).toBe(false)
+    const actionButtons = ['approve', 'reject', 'sendNotice']
+    mockRightButtons.forEach((button) => {
+      if (actionButtons.includes(button.key)) {
+        button.disabled = true
+      }
+    })
+    actionButtons.forEach((action) => {
+      const button = mockRightButtons.find(btn => btn.key === action)
+      expect(button?.disabled).toBe(true)
+    })
+    isAssignedToUser.value = true
   })
 })

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n()
+
 interface Props {
   isOpen: boolean
   title: string
@@ -10,12 +12,22 @@ interface Props {
   onCancel?: () => void | Promise<any>
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  confirmButtonText: 'Confirm',
-  cancelButtonText: 'Cancel',
-  hideCancel: false,
-  onCancel: () => {}
+const props = defineProps<Props>()
+
+const confirmText = computed(() => {
+  return props.confirmButtonText || t('btn.confirm')
 })
+const cancelText = computed(() => {
+  return props.cancelButtonText || t('btn.cancel')
+})
+const hideCancel = computed(() => {
+  return props.hideCancel ?? false
+})
+const handleCancel = () => {
+  if (props.onCancel) {
+    props.onCancel()
+  }
+}
 
 const isLoading = ref(false)
 const isSmallScreen = useMediaQuery('(max-width: 640px)')
@@ -63,7 +75,7 @@ const handleConfirm = async () => {
             aria-label="Close"
             square
             variant="ghost"
-            @click="props.onCancel"
+            @click="handleCancel"
           />
         </div>
       </template>
@@ -75,13 +87,13 @@ const handleConfirm = async () => {
       <template #footer>
         <div class="flex flex-wrap items-center justify-center gap-4">
           <UButton
-            v-if="!props.hideCancel"
+            v-if="!hideCancel"
             variant="outline"
             :block="isSmallScreen"
             data-testid="cancel-button"
-            @click="props.onCancel"
+            @click="handleCancel"
           >
-            {{ props.cancelButtonText }}
+            {{ cancelText }}
           </UButton>
           <UButton
             color="primary"
@@ -90,7 +102,7 @@ const handleConfirm = async () => {
             data-testid="confirm-button"
             @click="handleConfirm"
           >
-            {{ props.confirmButtonText }}
+            {{ confirmText }}
           </UButton>
         </div>
       </template>

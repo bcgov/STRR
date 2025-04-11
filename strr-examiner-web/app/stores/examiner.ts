@@ -20,6 +20,23 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const activeHeader = computed(() => {
     return activeRecord.value?.header
   })
+  const _isAssignedToUser = ref(false)
+  watch(
+    () => [activeHeader.value?.applicationNumber, activeHeader.value?.reviewer?.username],
+    async ([applicationNumber, _]) => {
+      try {
+        if (applicationNumber) {
+          _isAssignedToUser.value = await isCurrentUserAssignee(applicationNumber)
+        } else {
+          _isAssignedToUser.value = false
+        }
+      } catch (e) {
+        _isAssignedToUser.value = false
+      }
+    },
+    { immediate: true }
+  )
+  const isAssignedToUser = computed(() => _isAssignedToUser.value)
   const nocContent = reactive({
     content: ''
   })
@@ -348,6 +365,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     activeRecord,
     activeReg,
     activeHeader,
+    isAssignedToUser,
     sendNocSchema,
     nocContent,
     nocFormRef,
@@ -368,7 +386,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     unassignApplication,
     getApplicationFilingHistory,
     getRegistrationFilingHistory,
-    isFilingHistoryOpen,
-    isCurrentUserAssignee
+    isFilingHistoryOpen
   }
 }, { persist: true }) // will persist data in session storage

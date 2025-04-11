@@ -1,8 +1,14 @@
 <script setup lang="ts">
 const { t } = useI18n()
-const { assignApplication, unassignApplication, isCurrentUserAssignee } = useExaminerStore()
-const { activeHeader } = storeToRefs(useExaminerStore())
+const { assignApplication, unassignApplication } = useExaminerStore()
+const { activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
 const { updateRouteAndButtons } = useExaminerRoute()
+const props = defineProps({
+  isRegistrationPage: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const {
   showConfirmModal,
@@ -18,18 +24,21 @@ const {
 const emit = defineEmits(['refresh'])
 
 const handleAssign = async (applicationNumber: string) => {
-  await assignApplication(applicationNumber)
+  const appNum = props.isRegistrationPage ? activeHeader.value!.applicationNumber! : applicationNumber
+  await assignApplication(appNum)
   emit('refresh')
 }
 
 const handleUnassign = async (applicationNumber: string) => {
-  await unassignApplication(applicationNumber)
+  const appNum = props.isRegistrationPage ? activeHeader.value!.applicationNumber! : applicationNumber
+  await unassignApplication(appNum)
   emit('refresh')
 }
 
 const updateAssignmentButtons = () => {
   if (!activeHeader.value?.applicationNumber) { return }
-  updateRouteAndButtons(RoutesE.EXAMINE, {
+  const route = props.isRegistrationPage ? RoutesE.REGISTRATION : RoutesE.EXAMINE
+  updateRouteAndButtons(route, {
     assign: {
       action: async (id: string) => {
         await handleAssign(id)
@@ -39,8 +48,7 @@ const updateAssignmentButtons = () => {
     unassign: {
       action: async (id: string) => {
         // Check assignee status on btn click
-        const isAssignee = await isCurrentUserAssignee(id)
-        if (isAssignee) {
+        if (isAssignedToUser.value) {
           await handleUnassign(id)
         } else {
           openConfirmModal({

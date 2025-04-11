@@ -2,11 +2,12 @@
  * Composable for managing action modals
  */
 export const useConfirmationModal = () => {
+  const { t } = useI18n()
   const showConfirmModal = ref(false)
   const modalTitle = ref('')
   const modalMessage = ref('')
-  const confirmButtonText = ref('Confirm')
-  const cancelButtonText = ref('Cancel')
+  const confirmButtonText = ref(t('btn.confirm'))
+  const cancelButtonText = ref(t('btn.cancel'))
   const confirmAction = ref()
   const cancelAction = ref()
 
@@ -18,8 +19,8 @@ export const useConfirmationModal = () => {
     message,
     onConfirm,
     onCancel,
-    confirmText = 'Confirm',
-    cancelText = 'Cancel'
+    confirmText = t('btn.confirm'),
+    cancelText = t('btn.cancel')
   }: {
     title: string
     message: string
