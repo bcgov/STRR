@@ -1,0 +1,48 @@
+name: E2E Tests - Host PM Web
+
+on:
+  pull_request:
+    paths:
+      - 'strr-host-pm-web/**'
+  push:
+    branches:
+      - main
+
+jobs:
+  test-e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: strr-host-pm-web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies using pnpm
+        run: pnpm install
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright E2E Tests
+        env:
+          PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
+          PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
+          NUXT_BASE_URL: ${{ secrets.NUXT_BASE_URL }}
+        run: npm run test:e2e
+
+      - name: Upload Playwright HTML Report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: strr-host-pm-web/playwright-report
