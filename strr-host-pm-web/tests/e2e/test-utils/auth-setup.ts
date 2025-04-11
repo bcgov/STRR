@@ -25,7 +25,7 @@ export async function authSetup (
   // const environment = process.env.NUXT_ENVIRONMENT_HEADER!.toLowerCase()
   // const otpSecret = process.env.PLAYWRIGHT_TEST_BCEID_OTP_SECRET!
 
-  await page.goto(baseUrl + 'en-CA/auth/login', { waitUntil: 'load', timeout: 60000 })
+  await page.goto(baseUrl + 'en-CA/auth/login', { waitUntil: 'load', timeout: 120000 })
 
   await page.getByRole('button', { name: 'Continue with BC Services Card' }).click()
   await page.getByLabel('Log in with Test with').click()
