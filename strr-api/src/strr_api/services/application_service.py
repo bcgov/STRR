@@ -69,8 +69,6 @@ APPLICATION_ASSIGN_STATES = [
     Application.Status.NOC_PENDING,
     Application.Status.NOC_EXPIRED,
     Application.Status.ADDITIONAL_INFO_REQUESTED,
-    Application.Status.PAYMENT_DUE,
-    Application.Status.PAID,
     Application.Status.FULL_REVIEW_APPROVED,
     Application.Status.PROVISIONALLY_APPROVED,
     Application.Status.AUTO_APPROVED,

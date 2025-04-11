@@ -855,7 +855,7 @@ def test_assign_and_unassign_application(session, client, jwt):
         assert HTTPStatus.OK == rv.status_code
         application_number = rv.json.get("header").get("applicationNumber")
         application = Application.find_by_application_number(application_number=application_number)
-        application.status = Application.Status.DRAFT
+        application.status = Application.Status.PAYMENT_DUE
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
