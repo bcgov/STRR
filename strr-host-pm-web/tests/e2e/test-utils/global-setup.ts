@@ -1,5 +1,6 @@
 // import { type Browser, chromium, type Page } from '@playwright/test'
 import { config as dotenvConfig } from 'dotenv'
+import { authSetup } from './auth-setup'
 // load default env
 dotenvConfig()
 
