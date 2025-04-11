@@ -185,10 +185,10 @@ class ApprovalService:
     @classmethod
     def approve_application(cls, application, status, event):
         """Creates the registration and creates the corresponding events."""
-        application.status = status
         registration = RegistrationService.create_registration(
             application.submitter_id, application.payment_account, application.application_json
         )
+        application.status = status
         application.registration_id = registration.id
         application.decision_date = datetime.utcnow()
         application.save()
