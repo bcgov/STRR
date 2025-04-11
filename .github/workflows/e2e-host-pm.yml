@@ -37,6 +37,7 @@ jobs:
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
+          PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME }}
           NUXT_BASE_URL: ${{ secrets.NUXT_BASE_URL }}
         run: npm run test:e2e
 
