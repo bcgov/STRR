@@ -1,11 +1,10 @@
 import { type Browser, chromium, type Page } from '@playwright/test'
 import { config as dotenvConfig } from 'dotenv'
-import { LoginSource } from '../enums/login-source'
 // load default env
 dotenvConfig()
 
 export async function authSetup (
-  loginMethod: LoginSource,
+  // loginMethod: LoginSource,
   storagePath: string
 ) {
   // launch browser and create page context
