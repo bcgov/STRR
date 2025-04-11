@@ -6,7 +6,7 @@ import { authSetup } from './auth-setup'
 dotenvConfig()
 
 // checks if site is available before running setup
-async function isServerReady (url: string, timeout: number = 30000): Promise<boolean> {
+async function isServerReady (url: string, timeout: number = 120000): Promise<boolean> {
   const startTime = Date.now()
   while (Date.now() - startTime < timeout) { // loop until timeout is reached
     try {
@@ -18,7 +18,7 @@ async function isServerReady (url: string, timeout: number = 30000): Promise<boo
     } catch {
       // not ready yet
     }
-    await new Promise(resolve => setTimeout(resolve, 1000)) // wait 1sec between fetches
+    await new Promise(resolve => setTimeout(resolve, 2000)) // wait 1sec between fetches
   }
   return false // return false if reached timeout and no site is loaded
 }
