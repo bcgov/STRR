@@ -1,9 +1,11 @@
 import { type Browser, chromium, type Page } from '@playwright/test'
 import { config as dotenvConfig } from 'dotenv'
 import { existsSync, mkdirSync } from 'fs'
+import { LoginSource } from '../enums/login-source'
 dotenvConfig()
 
 export async function authSetup (
+  loginSource: LoginSource,
   storagePath: string
 ) {
   const browser: Browser = await chromium.launch()
