@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const route = useRoute()
 const config = useRuntimeConfig().public
 const localePath = useLocalePath()
@@ -18,6 +18,14 @@ const {
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
+const {
+  isEligibleForRenewal,
+  renewalDueDate,
+  renewalDateCounter,
+  isTestRenewalReg,
+  isRenewalPeriodClosed
+} = useRenewals()
+
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
 
@@ -32,6 +40,41 @@ onMounted(async () => {
     application.value?.header,
     ApplicationType.HOST
   )
+
+  const translationProps = {
+    newLine: '<br/>',
+    boldStart: '<strong>',
+    boldEnd: '</strong>'
+  }
+
+  const isRenewalsEnabled = useFeatureFlags().isFeatureEnabled('enable-registration-renewals')
+
+  if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
+    // todo for renewal period closed after 3 years without renewal
+    todos.value.push({
+      id: 'todo-renew-registration-closed',
+      title: t('todos.renewalClosed.title'),
+      subtitle: t('todos.renewalClosed.subtitle', translationProps)
+    })
+  } else if (isRenewalsEnabled.value && registration.value && (isEligibleForRenewal.value || isTestRenewalReg.value)) {
+    // label for the due days count
+    const dueDateCount = renewalDateCounter.value < 0
+      ? t('label.renewalOverdue')
+      : t('label.renewalDayCount', renewalDateCounter.value)
+
+    todos.value.push({
+      id: 'todo-renew-registration',
+      title: `${t('todos.renewal.title1')} ${renewalDueDate.value} ${t('todos.renewal.title2')} (${dueDateCount})`,
+      subtitle: t(renewalDateCounter.value < 0
+        ? 'todos.renewal.expired'
+        : 'todos.renewal.expiresSoon', translationProps),
+      button: {
+        label: t('btn.renew'),
+        action: () => {}
+      }
+    })
+  }
+
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')

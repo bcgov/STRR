@@ -75,7 +75,7 @@ export const getTodoApplication = (
 
     const nocTodo: Todo = {
       id: 'todo-noc-add-docs',
-      title: `${t('todos.noc.title1')}${nocEndDate}${t('todos.noc.title2')}`,
+      title: `${t('todos.noc.title1')} ${nocEndDate} ${t('todos.noc.title2')}`,
       subtitle: `${t('todos.noc.general', translationProps)}${isHost ? t('todos.noc.host', translationProps) : ''}`
     }
 

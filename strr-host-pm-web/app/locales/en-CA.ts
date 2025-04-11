@@ -233,7 +233,8 @@ export default {
     hideDetails: 'Hide Details',
     returnToStep: 'Return to the step to finish it',
     ariaViewDetails: 'View details for property: {name}, {address}',
-    registerAStr: 'Register a Short-Term Rental'
+    registerAStr: 'Register a Short-Term Rental',
+    renew: 'Renew'
   },
   error: {
     createAccount: {
@@ -312,7 +313,8 @@ export default {
     completingParty: 'Person completing form',
     individualOrBusiness: 'Individual or Business',
     contactDetails: 'Contact Details',
-    noCraTaxNumber: 'No CRA Tax Number'
+    noCraTaxNumber: 'No CRA Tax Number',
+    renewalDayCount: 'Less than 1 day | in 1 day | in {count} days'
   },
   link: {
     hostAccomodationsAct: 'Short-Term Rental Accommodations Act',
@@ -446,6 +448,18 @@ export default {
         normal: '{link} is required to register this address. The provincial principal residence requirement limits short-term rentals in this area to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property, unless you qualify for an exemption.',
         override: '{link} may be required to register this address. The provincial principal residence requirement could limit short-term rentals in this area to the housing unit the host lives in plus one secondary suite or accessory dwelling unit on the same property, unless you qualify for an exemption.'
       }
+    }
+  },
+  todos: {
+    renewal: {
+      title1: 'Registration Renewal - Due:',
+      title2: 'at 11:59 pm PT',
+      expiresSoon: 'Your short-term rental registration will expire soon. Please submit a renewal application to keep your registration active.{newLine}{newLine}{boldStart}Note:{boldEnd} If you wish to change any of the following information, you must submit a new short-term rental application instead of a renewal application.{newLine}{newLine}\u2022 Rental Unit Address{newLine}\u2022 Property Host details (if an individual): Full Name, CRA Tax Number, Residential Address{newLine}\u2022 Property Host details (if a business): Business Legal Name',
+      expired: 'Your short-term rental registration has expired. Please submit a renewal application to reactive your registration.{newLine}{newLine}{boldStart}Note:{boldEnd} If you wish to change any of the following information, you must submit a new short-term rental application instead of a renewal application.{newLine}{newLine}\u2022 Rental Unit Address{newLine}\u2022 Property Host details (if an individual): Full Name, CRA Tax Number, Residential Address{newLine}\u2022 Property Host details (if a business): Business Legal Name'
+    },
+    renewalClosed: {
+      title: 'Registration Renewal Period Closed',
+      subtitle: 'Your short-term rental registration has been {boldStart}expired for over 3 years{boldEnd} and {boldStart}can no longer be renewed.{boldEnd} Please go back to your dashboard and {boldStart}submit a new application{boldEnd} if you wish to register your short-term rental.'
     }
   },
   propertyType: {

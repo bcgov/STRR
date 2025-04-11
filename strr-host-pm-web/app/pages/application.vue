@@ -6,7 +6,6 @@ const localePath = useLocalePath()
 const strrModal = useStrrModals()
 const { handlePaymentRedirect } = useConnectNav()
 const { setButtonControl, handleButtonLoading } = useButtonControl()
-const ldStore = useConnectLaunchdarklyStore()
 
 const propertyStore = useHostPropertyStore()
 const propertyReqStore = usePropertyReqStore()
@@ -247,7 +246,7 @@ watch(activeStepIndex, (val) => {
   })
 
   setButtonControl({
-    leftButtons: ldStore.getStoredFlag('enable-save-draft')
+    leftButtons: useFeatureFlags().isFeatureEnabled('enable-save-draft')
       ? [
           { action: () => navigateTo(localePath('/dashboard')), label: t('btn.cancel'), variant: 'outline' },
           { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
