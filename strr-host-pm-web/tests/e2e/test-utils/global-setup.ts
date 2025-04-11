@@ -41,7 +41,7 @@ async function globalSetup () {
   console.info('[Setup] Starting authSetup for BCSC user...')
 
   try {
-    await authSetup(LoginSource.BCSC, 'bcsc-user')
+    await authSetup(LoginSource.BCSC, 'bcsc-user.json')
     console.info('[Setup] BCSC auth completed successfully.')
   } catch (err) {
     console.error('[Setup] BCSC auth failed:', err)
