@@ -77,10 +77,10 @@ class PropertyManagerContact:
 
     def __init__(
         self,
-        firstName,
-        lastName,
-        phoneNumber,
-        emailAddress,
+        firstName=None,
+        lastName=None,
+        phoneNumber=None,
+        emailAddress=None,
         middleName=None,
         preferredName=None,
         extension=None,
