@@ -10,16 +10,7 @@ const props = defineProps({
   }
 })
 
-const {
-  showConfirmModal,
-  modalTitle,
-  modalMessage,
-  confirmButtonText,
-  cancelButtonText,
-  openConfirmModal,
-  closeConfirmModal,
-  handleConfirm
-} = useConfirmationModal()
+const confirmUnassignModal = ref<ConfirmModal | null>(null)
 
 const emit = defineEmits(['refresh'])
 
@@ -50,36 +41,28 @@ const updateAssignmentButtons = () => {
         // Check assignee status on btn click
         if (isAssignedToUser.value) {
           await handleUnassign(id)
-        } else {
-          openConfirmModal({
-            title: t('modal.unassign.title'),
-            message: t('modal.unassign.message'),
-            confirmText: t('strr.label.unAssign'),
-            onConfirm: async () => {
-              await handleUnassign(id)
-              closeConfirmModal()
-            }
-          })
+        } else if (confirmUnassignModal.value) {
+          confirmUnassignModal.value.handleOpen(
+            async () => { await handleUnassign(id) }
+          )
         }
       },
       label: t('btn.unassign')
     }
-  }, true)
+  })
 }
 
-watch(() => activeHeader.value, () => {
+watch([() => activeHeader.value, () => isAssignedToUser.value], () => {
   updateAssignmentButtons()
 }, { immediate: true })
 </script>
 
 <template>
   <ConfirmationModal
-    :is-open="showConfirmModal"
-    :title="modalTitle"
-    :message="modalMessage"
-    :confirm-button-text="confirmButtonText"
-    :cancel-button-text="cancelButtonText"
-    :on-confirm="handleConfirm"
-    :on-cancel="closeConfirmModal"
+    ref="confirmUnassignModal"
+    :is-open="false"
+    :title="t('modal.unassign.title')"
+    :message="t('modal.unassign.message')"
+    :confirm-text="t('strr.label.unAssign')"
   />
 </template>

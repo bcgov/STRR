@@ -45,12 +45,22 @@ vi.mock('@/composables/useConfirmationModal', () => ({
     modalMessage,
     confirmButtonText,
     cancelButtonText,
-    openConfirmModal: ({ title, message, confirmText, onConfirm }) => {
+    openConfirmModal: ({
+      title,
+      message,
+      confirmText,
+      onConfirm
+    }: {
+      title: string
+      message: string
+      confirmText?: string
+      onConfirm: () => void
+    }) => {
       showConfirmModal.value = true
       modalTitle.value = title
       modalMessage.value = message
-      confirmButtonText.value = confirmText
-      confirmCallback = onConfirm
+      confirmButtonText.value = confirmText || ''
+      confirmCallback = vi.fn(onConfirm)
     },
     closeConfirmModal: () => {
       showConfirmModal.value = false
@@ -63,19 +73,33 @@ vi.mock('@/composables/useConfirmationModal', () => ({
 
 vi.mock('@/enums/routes', () => ({
   RoutesE: {
-    EXAMINE: 'examine'
+    EXAMINE: 'examine',
+    REGISTRATION: 'registration'
   }
 }))
 
 describe('AssignmentActions Component', () => {
-  let wrapper:any
+  let wrapper: any
 
   beforeEach(async () => {
     vi.clearAllMocks()
+    showConfirmModal.value = false
     activeHeader.value = mockHostApplicationWithReviewer.header
+    isAssignedToUser.value = true
     wrapper = await mountSuspended(AssignmentActions, {
       global: {
-        plugins: [enI18n]
+        plugins: [enI18n],
+        stubs: {
+          ConfirmationModal: {
+            template: '<div />',
+            methods: {
+              handleOpen (callback: () => Promise<any> | void) {
+                showConfirmModal.value = true
+                confirmCallback = vi.fn(callback)
+              }
+            }
+          }
+        }
       }
     })
     await flushPromises()
@@ -92,7 +116,6 @@ describe('AssignmentActions Component', () => {
     expect(args[0]).toBe('examine')
     expect(args[1]).toHaveProperty('assign')
     expect(args[1]).toHaveProperty('unassign')
-    expect(args[2]).toBe(true)
   })
 
   it('calls updateRouteAndButtons when activeHeader changes', async () => {
@@ -125,21 +148,22 @@ describe('AssignmentActions Component', () => {
   })
 
   it('opens confirmation modal when current user is not the assignee', async () => {
-    isAssignedToUser.value = false
     const buttonConfig = getButtonActions()
     expect(buttonConfig).toBeTruthy()
-    const unassignAction = buttonConfig.unassign.action
+    isAssignedToUser.value = false
+    await flushPromises()
+    const newButtonConfig = getButtonActions()
+    expect(newButtonConfig).toBeTruthy()
+    const unassignAction = newButtonConfig.unassign.action
     await unassignAction('12345678901234')
-    expect(mockUnassignApplication).not.toHaveBeenCalled()
     expect(showConfirmModal.value).toBe(true)
-    expect(modalTitle.value).toBeTruthy()
-    expect(modalMessage.value).toBeTruthy()
+    expect(mockUnassignApplication).not.toHaveBeenCalled()
   })
 
   it('calls unassignApplication when confirmation modal is confirmed', async () => {
     isAssignedToUser.value = false
+    await flushPromises()
     const buttonConfig = getButtonActions()
-    expect(buttonConfig).toBeTruthy()
     const unassignAction = buttonConfig.unassign.action
     await unassignAction('12345678901234')
     expect(showConfirmModal.value).toBe(true)
@@ -160,7 +184,6 @@ describe('AssignmentActions Component', () => {
     const buttonConfig = getButtonActions()
     expect(buttonConfig).toBeTruthy()
     const unassignAction = buttonConfig.unassign.action
-    isAssignedToUser.value = true
     await unassignAction('12345678901234')
     expect(wrapper.emitted()).toHaveProperty('refresh')
   })

@@ -37,8 +37,7 @@ export const useExaminerRoute = () => {
         action: (id: string) => void
         label: string
       }
-    },
-    mergeWithExisting: boolean = false
+    }
   ) => {
     if (!activeReg.value) {
       setButtonControl({ leftButtons: [], rightButtons: [] })
@@ -63,32 +62,36 @@ export const useExaminerRoute = () => {
         localePath(`${routePrefix}/${id}`)
       )
 
+      const existingButtons = getButtonControl()
+      const isValidExisting = existingButtons &&
+        Array.isArray(existingButtons.leftButtons) &&
+        Array.isArray(existingButtons.rightButtons)
+      const currentButtons = isValidExisting
+        ? existingButtons
+        : { leftButtons: [], rightButtons: [] }
+      const configLabels = Object.values(buttonConfig)
+        .filter(btn => btn !== undefined)
+        .map(btn => btn?.label)
+        .filter(Boolean) as string[]
+      const currentLabels = currentButtons.rightButtons.map(btn => btn.label)
+      const commonLabels = configLabels.filter(label => currentLabels.includes(label))
+      const processedLabels = new Set<string>()
+      const uniqueRightButtons = currentButtons.rightButtons.filter((btn) => {
+        if (processedLabels.has(btn.label) || commonLabels.includes(btn.label)) {
+          return false
+        }
+        processedLabels.add(btn.label)
+        return true
+      })
       if (examinerActions && examinerActions.length > 0) {
-        const existingButtons = mergeWithExisting ? getButtonControl() : undefined
-        const isValidExisting = existingButtons &&
-          Array.isArray(existingButtons.leftButtons) &&
-          Array.isArray(existingButtons.rightButtons)
-        const currentButtons = isValidExisting
-          ? existingButtons
-          : { leftButtons: [], rightButtons: [] }
-        const leftButtons: ConnectBtnControlItem[] =
-          Array.isArray(currentButtons.leftButtons) ? [...currentButtons.leftButtons] : []
-        const rightButtons: ConnectBtnControlItem[] =
-          Array.isArray(currentButtons.rightButtons) ? [...currentButtons.rightButtons] : []
-        const buttonLabels = Object.values(buttonConfig)
-          .filter(Boolean)
-          .map(btn => btn?.label)
-        const filteredRightButtons = rightButtons.filter(btn => !buttonLabels.includes(btn.label))
-        const updatedRightButtons = [...filteredRightButtons]
-
         if (buttonConfig.assign && (!activeHeader.value?.reviewer?.username)) {
-          updatedRightButtons.unshift({
+          uniqueRightButtons.unshift({
             action: () => buttonConfig.assign!.action(id as string),
             label: buttonConfig.assign!.label,
             variant: 'outline'
           })
         } else if (buttonConfig.unassign && (activeHeader.value?.reviewer?.username)) {
-          updatedRightButtons.unshift({
+          uniqueRightButtons.unshift({
             action: () => buttonConfig.unassign!.action(id as string),
             label: buttonConfig.unassign!.label,
             variant: 'ghost'
@@ -96,56 +99,54 @@ export const useExaminerRoute = () => {
         }
 
         if (examinerActions.includes(ApplicationActionsE.SEND_NOC) && buttonConfig.sendNotice) {
-          updatedRightButtons.push({
-            action: () => buttonConfig.sendNotice.action(id as string),
+          uniqueRightButtons.push({
+            action: () => buttonConfig.sendNotice!.action(id as string),
             label: buttonConfig.sendNotice.label,
             variant: 'outline',
             color: 'blue',
             icon: 'i-mdi-send',
-            disabled: buttonConfig.sendNotice.disabled
+            disabled: buttonConfig.sendNotice!.disabled ?? false
           })
         }
 
         if (examinerActions.includes(ApplicationActionsE.REJECT) && buttonConfig.reject) {
-          updatedRightButtons.push({
-            action: () => buttonConfig.reject.action(id as string),
+          uniqueRightButtons.push({
+            action: () => buttonConfig.reject!.action(id as string),
             label: buttonConfig.reject.label,
             variant: 'outline',
             color: 'red',
             icon: 'i-mdi-close',
-            disabled: buttonConfig.reject.disabled
+            disabled: buttonConfig.reject!.disabled ?? false
           })
         }
 
         if (examinerActions.includes(ApplicationActionsE.APPROVE) && buttonConfig.approve) {
-          updatedRightButtons.push({
-            action: () => buttonConfig.approve.action(id as string),
+          uniqueRightButtons.push({
+            action: () => buttonConfig.approve!.action(id as string),
             label: buttonConfig.approve.label,
             variant: 'outline',
             color: 'green',
             icon: 'i-mdi-check',
-            disabled: buttonConfig.approve.disabled
+            disabled: buttonConfig.approve!.disabled ?? false
           })
         }
 
         if (examinerActions.includes(RegistrationActionsE.CANCEL) && buttonConfig.cancel) {
-          updatedRightButtons.push({
-            action: () => buttonConfig.cancel.action(id as number),
+          uniqueRightButtons.push({
+            action: () => buttonConfig.cancel!.action(id as number),
             label: buttonConfig.cancel.label,
             variant: 'outline',
             color: 'red',
             icon: 'i-mdi-close',
-            disabled: buttonConfig.cancel.disabled
+            disabled: buttonConfig.cancel!.disabled ?? false
           })
         }
-
-        setButtonControl({
-          leftButtons,
-          rightButtons: updatedRightButtons
-        })
-      } else if (!mergeWithExisting) {
-        setButtonControl({ leftButtons: [], rightButtons: [] })
       }
+
+      setButtonControl({
+        leftButtons: currentButtons.leftButtons,
+        rightButtons: uniqueRightButtons
+      })
     }
   }
 

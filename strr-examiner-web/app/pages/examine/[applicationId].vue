@@ -12,17 +12,7 @@ const {
   assignApplication
 } = useExaminerStore()
 const { nocContent, nocFormRef, activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
-const {
-  showConfirmModal,
-  modalTitle,
-  modalMessage,
-  confirmButtonText,
-  cancelButtonText,
-  openConfirmModal,
-  closeConfirmModal,
-  handleConfirm
-} = useConfirmationModal()
-const disableCancel = ref(false)
+const confirmErrorModal = ref<ConfirmModal | null>(null)
 
 useHead({
   title: t('page.dashboardList.title')
@@ -102,17 +92,10 @@ const handleAssigneeAction = (
       buttonPosition,
       buttonIndex
     )
-  } else {
-    disableCancel.value = true
-    openConfirmModal({
-      title: t('modal.assignError.title'),
-      message: t('modal.assignError.message'),
-      confirmText: t('strr.label.acknowlegeError'),
-      onConfirm: () => {
-        closeConfirmModal()
-        refresh()
-      }
-    })
+  } else if (confirmErrorModal.value) {
+    confirmErrorModal.value.handleOpen(
+      () => { refresh() }
+    )
     return Promise.resolve()
   }
 }
@@ -145,7 +128,7 @@ watch(
         label: t('btn.sendNotice'),
         disabled: !isAssignedToUser.value
       }
-    }, true)
+    })
   }
 )
 </script>
@@ -174,14 +157,12 @@ watch(
       <ComposeNoc />
       <AssignmentActions @refresh="refresh" />
       <ConfirmationModal
-        :is-open="showConfirmModal"
-        :title="modalTitle"
-        :message="modalMessage"
-        :confirm-button-text="confirmButtonText"
-        :cancel-button-text="cancelButtonText"
-        :hide-cancel="disableCancel"
-        :on-confirm="handleConfirm"
-        :on-cancel="closeConfirmModal"
+        ref="confirmErrorModal"
+        :is-open="false"
+        :title="t('modal.assignError.title')"
+        :message="t('modal.assignError.message')"
+        :confirm-text="t('strr.label.acknowlegeError')"
+        :disable-cancel="true"
       />
     </template>
   </div>

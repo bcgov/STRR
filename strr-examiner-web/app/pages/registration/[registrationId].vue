@@ -6,17 +6,8 @@ const { updateRouteAndButtons } = useExaminerRoute()
 const { updateRegistrationStatus, getRegistrationById } = useExaminerStore()
 const { isAssignedToUser } = storeToRefs(useExaminerStore())
 
-const {
-  showConfirmModal,
-  modalTitle,
-  modalMessage,
-  confirmButtonText,
-  cancelButtonText,
-  openConfirmModal,
-  closeConfirmModal,
-  handleConfirm
-} = useConfirmationModal()
-const disableCancel = ref(false)
+const confirmErrorModal = ref<ConfirmModal | null>(null)
+const confirmCancelModal = ref<ConfirmModal | null>(null)
 
 useHead({
   title: t('page.dashboardList.title')
@@ -46,25 +37,22 @@ const handleRegistrationAction = (
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
-  // Mandatory confirmation modal for cancel action
-  openConfirmModal({
-    title: t('modal.cancelRegistration.title'),
-    message: t('modal.cancelRegistration.message'),
-    confirmText: t('btn.cancel'),
-    cancelText: t('btn.back'),
-    onConfirm: async () => {
-      const status = RegistrationStatus.CANCELLED
-      await manageAction(
-        { id },
-        action,
-        updateRegistrationStatus,
-        buttonPosition,
-        buttonIndex,
-        refresh,
-        [status]
-      )
-    }
-  })
+  if (confirmCancelModal.value) {
+    confirmCancelModal.value.handleOpen(
+      async () => {
+        const status = RegistrationStatus.CANCELLED
+        await manageAction(
+          { id },
+          action,
+          updateRegistrationStatus,
+          buttonPosition,
+          buttonIndex,
+          refresh,
+          [status]
+        )
+      }
+    )
+  }
   return Promise.resolve()
 }
 
@@ -81,17 +69,10 @@ const handleAssigneeAction = (
       buttonPosition,
       buttonIndex
     )
-  } else {
-    disableCancel.value = true
-    openConfirmModal({
-      title: t('modal.assignError.title'),
-      message: t('modal.assignError.message'),
-      confirmText: t('strr.label.acknowlegeError'),
-      onConfirm: () => {
-        closeConfirmModal()
-        refresh()
-      }
-    })
+  } else if (confirmErrorModal.value) {
+    confirmErrorModal.value.handleOpen(
+      () => { refresh() }
+    )
     return Promise.resolve()
   }
 }
@@ -107,7 +88,7 @@ watch(
         label: t('btn.cancel'),
         disabled: !isAssignedToUser.value
       }
-    }, true)
+    })
   }
 )
 </script>
@@ -135,14 +116,20 @@ watch(
       </ApplicationDetailsView>
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
       <ConfirmationModal
-        :is-open="showConfirmModal"
-        :title="modalTitle"
-        :message="modalMessage"
-        :confirm-button-text="confirmButtonText"
-        :cancel-button-text="cancelButtonText"
-        :hide-cancel="disableCancel"
-        :on-confirm="handleConfirm"
-        :on-cancel="closeConfirmModal"
+        ref="confirmErrorModal"
+        :is-open="false"
+        :title="t('modal.assignError.title')"
+        :message="t('modal.assignError.message')"
+        :confirm-text="t('strr.label.acknowlegeError')"
+        :disable-cancel="true"
+      />
+      <ConfirmationModal
+        ref="confirmCancelModal"
+        :is-open="false"
+        :title="t('modal.cancelRegistration.title')"
+        :message="t('modal.cancelRegistration.message')"
+        :confirm-text="t('btn.cancel')"
+        :cancel-text="t('btn.back')"
       />
     </template>
   </div>
