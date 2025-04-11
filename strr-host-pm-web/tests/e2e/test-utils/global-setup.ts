@@ -6,7 +6,7 @@ import { authSetup } from './auth-setup'
 dotenvConfig()
 
 // checks if site is available before running setup
-async function isServerReady (url: string, timeout: number = 120000): Promise<boolean> {
+async function isServerReady (url: string, timeout: number = 360000): Promise<boolean> {
   const startTime = Date.now()
   while (Date.now() - startTime < timeout) { // loop until timeout is reached
     try {
