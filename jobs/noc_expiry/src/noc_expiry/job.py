@@ -21,6 +21,8 @@ from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
 from strr_api.models import db
 from strr_api.models.application import Application
+from strr_api.models.events import Events
+from strr_api.services.events_service import EventsService
 from strr_api.utils.date_util import DateUtil
 
 from noc_expiry.config import CONFIGURATION
@@ -65,6 +67,11 @@ def update_status_for_noc_expired_applications(app):
                 )
                 application.status = Application.Status.NOC_EXPIRED
                 application.save()
+                EventsService.save_event(
+                    event_type=Events.EventType.APPLICATION,
+                    event_name=Events.EventName.NOC_EXPIRED,
+                    application_id=application.id,
+                )
         except Exception as err:  # pylint: disable=broad-except
             app.logger.error(f"Unexpected error: {str(err)}")
             app.logger.error(traceback.format_exc())
