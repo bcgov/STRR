@@ -640,7 +640,7 @@ def update_unit_address(application_number):
         application = ApplicationService.update_host_unit_address(application, unit_address, user)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:
-        logger.error(f"Error updating unit address: {exception}", exc_info=True)
+        logger.error(exception)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
