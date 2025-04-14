@@ -129,7 +129,7 @@ describe('Application Page', () => {
 
   it('displays the correct title', () => {
     expect(wrapper.find('connect-typography-h1-stub').attributes('text'))
-      .toBe('strr.title.application')
+      .toBe('Short-Term Rental Registration')
   })
 
   describe('Form Components', () => {
