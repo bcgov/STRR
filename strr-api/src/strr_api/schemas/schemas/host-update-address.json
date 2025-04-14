@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://strr.gov.bc.ca/.well_known/schemas/host_update_address",
+  "type": "object",
+  "title": "Host Update Address",
+  "description": "Schema for updating a host rental unit address",
+  "properties": {
+    "unitAddress": {
+      "type": "object",
+      "properties": {
+        "unitNumber": {
+          "type": "string",
+          "description": "Unit Number."
+        },
+        "streetNumber": {
+          "type": "string",
+          "description": "Street Number."
+        },
+        "streetName": {
+          "type": "string",
+          "description": "Street address and name."
+        },
+        "addressLineTwo": {
+          "type": "string",
+          "description": "Additional street address information."
+        },
+        "city": {
+          "type": "string",
+          "description": "City, Town, or Village."
+        },
+        "postalCode": {
+          "type": "string",
+          "maxLength": 15,
+          "description": "Postal Code in A1A 1A1 format for Canada, or zip code for US addresses."
+        },
+        "province": {
+          "type": "string",
+          "maxLength": 2,
+          "description": "The 2-letter province code (ISO 3166-2) for this address."
+        },
+        "locationDescription": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Location description."
+        }
+      },
+      "required": [
+        "streetNumber",
+        "streetName",
+        "city",
+        "postalCode",
+        "province"
+      ]
+    }
+  },
+  "required": ["unitAddress"],
+  "additionalProperties": false
+}

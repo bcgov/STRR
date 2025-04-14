@@ -1498,6 +1498,45 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Update STR Address",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"unitAddress\": {\n        \"unitNumber\": \"\",\n        \"streetNumber\": \"66211\",\n        \"streetName\": \"COTTONWOOD DR MAPLE RIDGE\",\n        \"addressLineTwo\": \"\",\n        \"city\": \"MAPLE RIDGE\",\n        \"province\": \"BC\",\n        \"postalCode\": \"V2X 3L8\",\n        \"locationDescription\": \"Located at the corner of Cottonwood Dr and 119 Ave\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_number}}/str-address",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_number}}",
+								"str-address"
+							]
+						},
+						"description": "Update the rental unit address for a host application."
+					},
+					"response": []
 				}
 			]
 		},

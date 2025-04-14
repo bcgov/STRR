@@ -345,3 +345,20 @@ class ApplicationService:
         )
 
         return application
+
+    @staticmethod
+    def update_host_unit_address(application: Application, unit_address: dict, user: User) -> Application:
+        """Updates the rental unit address for a host application."""
+        application_json = copy.deepcopy(application.application_json)
+        for key, value in unit_address.items():
+            application_json["registration"]["unitAddress"][key] = value
+        application.application_json = application_json
+        application.save()
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.HOST_APPLICATION_UNIT_ADDRESS_UPDATED,
+            application_id=application.id,
+            user_id=user.id,
+            visible_to_applicant=True,
+        )
+        return application

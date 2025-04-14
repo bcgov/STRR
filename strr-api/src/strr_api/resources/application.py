@@ -585,6 +585,65 @@ def update_application_status(application_number):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@bp.route("/<application_number>/str-address", methods=("PATCH",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def update_unit_address(application_number):
+    """
+    Update the rental unit address for a host application.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            unitAddress:
+              type: object
+              description: Updated unit address details
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+      500:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        json_input = request.get_json()
+
+        [valid, errors] = validate(json_input, "host_update_address")
+        if not valid:
+            return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
+
+        unit_address = json_input.get("unitAddress")
+        application = ApplicationService.get_application(application_number)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        if application.registration_type != Registration.RegistrationType.HOST:
+            return error_response(
+                message="Unit address update is only allowed for Host registration type",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        application = ApplicationService.update_host_unit_address(application, unit_address, user)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(f"Error updating unit address: {exception}", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
 @bp.route("/<application_number>/documents", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")

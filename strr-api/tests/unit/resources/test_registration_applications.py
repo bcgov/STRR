@@ -705,6 +705,62 @@ def test_delete_payment_pending_applications(session, client, jwt):
         assert response_json["message"] == "Application in the current status cannot be deleted."
 
 
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_update_application_str_address(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    invalid_address = {"unitAddress": {}}
+    rv = client.patch(f"/applications/{application_number}/str-address", json=invalid_address, headers=staff_headers)
+    assert HTTPStatus.BAD_REQUEST == rv.status_code
+
+    updated_address = {
+        "unitAddress": {
+            "unitNumber": "1",
+            "streetNumber": "66211",
+            "streetName": "COTTONWOOD DR",
+            "city": "MAPLE RIDGE",
+            "postalCode": "V2X 3L8",
+            "province": "BC",
+            "locationDescription": "Located at the corner of Cottonwood Dr and 119 Ave",
+        }
+    }
+    rv = client.patch(f"/applications/{application_number}/str-address", json=updated_address, headers=staff_headers)
+    assert HTTPStatus.OK == rv.status_code
+    response_json = rv.json
+    assert response_json.get("registration").get("unitAddress").get("streetNumber") == "555"
+    assert response_json.get("registration").get("unitAddress").get("streetName") == "MAIN ST"
+    assert response_json.get("registration").get("unitAddress").get("unitNumber") == "202"
+
+    non_existent_app_number = "test1234567890"
+    rv = client.patch(
+        f"/applications/{non_existent_app_number}/str-address", json=updated_address, headers=staff_headers
+    )
+    assert HTTPStatus.NOT_FOUND == rv.status_code
+
+    with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        platform_app_number = rv.json.get("header").get("applicationNumber")
+    rv = client.patch(f"/applications/{platform_app_number}/str-address", json=updated_address, headers=staff_headers)
+    assert HTTPStatus.BAD_REQUEST == rv.status_code
+
+    public_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    public_headers["Account-Id"] = ACCOUNT_ID
+    rv = client.patch(f"/applications/{application_number}/str-address", json=updated_address, headers=public_headers)
+    assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+
 @patch("strr_api.services.strr_pay.create_invoice")
 @patch("strr_api.services.email_service.EmailService.send_notice_of_consideration_for_application")
 def test_examiner_send_notice_of_consideration(mock_noc, mock_invoice, session, client, jwt):
