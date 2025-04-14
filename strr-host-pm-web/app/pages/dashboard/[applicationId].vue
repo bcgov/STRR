@@ -22,7 +22,6 @@ const {
   isEligibleForRenewal,
   renewalDueDate,
   renewalDateCounter,
-  isTestRenewalReg,
   isRenewalPeriodClosed
 } = useRenewals()
 
@@ -56,7 +55,7 @@ onMounted(async () => {
       title: t('todos.renewalClosed.title'),
       subtitle: t('todos.renewalClosed.subtitle', translationProps)
     })
-  } else if (isRenewalsEnabled.value && registration.value && (isEligibleForRenewal.value || isTestRenewalReg.value)) {
+  } else if (isRenewalsEnabled.value && registration.value && isEligibleForRenewal.value) {
     const isOverdue = renewalDateCounter.value < 0
     // label for the due days count
     const dueDateCount = isOverdue
