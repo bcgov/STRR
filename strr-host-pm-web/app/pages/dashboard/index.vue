@@ -191,7 +191,7 @@ async function handleItemSelect (row: any) {
             /> -->
             <div class="flex gap-3">
               <UPagination
-                v-if="hostPmListResp.total > limit"
+                v-if="hostPmListResp?.total > limit"
                 v-model="page"
                 :page-count="limit"
                 size="lg"

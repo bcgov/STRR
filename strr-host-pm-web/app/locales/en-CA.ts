@@ -125,6 +125,7 @@ export default {
     },
     title: {
       application: 'Short-Term Rental Registration',
+      renewalApplication: 'Short-Term Rental Registration Renewal',
       comingSoon: 'Short-Term Rental Registry Coming Soon',
       dashboard: 'My Short-Term Rental Registry',
       default: 'TBD'

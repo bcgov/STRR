@@ -57,20 +57,26 @@ onMounted(async () => {
       subtitle: t('todos.renewalClosed.subtitle', translationProps)
     })
   } else if (isRenewalsEnabled.value && registration.value && (isEligibleForRenewal.value || isTestRenewalReg.value)) {
+    const isOverdue = renewalDateCounter.value < 0
     // label for the due days count
-    const dueDateCount = renewalDateCounter.value < 0
+    const dueDateCount = isOverdue
       ? t('label.renewalOverdue')
       : t('label.renewalDayCount', renewalDateCounter.value)
 
     todos.value.push({
       id: 'todo-renew-registration',
       title: `${t('todos.renewal.title1')} ${renewalDueDate.value} ${t('todos.renewal.title2')} (${dueDateCount})`,
-      subtitle: t(renewalDateCounter.value < 0
+      subtitle: t(isOverdue
         ? 'todos.renewal.expired'
         : 'todos.renewal.expiresSoon', translationProps),
       button: {
         label: t('btn.renew'),
-        action: () => {}
+        action: async () => {
+          await navigateTo({
+            path: localePath('/application'),
+            query: { renew: 'true', registrationId: registration.value?.id }
+          })
+        }
       }
     })
   }

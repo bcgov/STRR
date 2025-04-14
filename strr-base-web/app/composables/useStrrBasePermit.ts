@@ -46,6 +46,10 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     }
   }
 
+  const loadPermitRegistrationData = async (registrationId: string) => {
+    registration.value = await getAccountRegistrations<R>(registrationId) as R
+  }
+
   const downloadApplicationReceipt = async () => {
     if (application.value && isPaidApplication.value) {
       const receipt = await getApplicationReceipt(application.value.header.applicationNumber)
@@ -70,6 +74,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     downloadApplicationReceipt,
     downloadRegistrationCert,
     isApplicationStatus,
-    loadPermitData
+    loadPermitData,
+    loadPermitRegistrationData
   }
 }

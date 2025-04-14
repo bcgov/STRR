@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ConnectStepper, FormReview } from '#components'
-const { t } = useI18n()
-const route = useRoute()
+const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
 const { handlePaymentRedirect } = useConnectNav()
@@ -20,7 +19,7 @@ const {
 } = useHostApplicationStore()
 const permitStore = useHostPermitStore()
 
-const applicationId = ref(route.query.applicationId as string)
+const { applicationId, registrationId, isRenewal } = useRouterParams()
 const loading = ref(false)
 
 // fee stuff
@@ -44,7 +43,12 @@ onMounted(async () => {
   loading.value = true
   await initAlternatePaymentMethod()
   applicationReset()
-  if (applicationId.value) {
+  permitStore.$reset()
+
+  if (isRenewal.value && registrationId.value) {
+    await permitStore.loadHostRegistrationData(registrationId.value)
+    permitStore.isRegistrationRenewal = true
+  } else if (applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
   }
   const [fee1, fee2, fee3] = await Promise.all([
@@ -59,6 +63,22 @@ onMounted(async () => {
   if (hostFee1.value) {
     setPlaceholderServiceFee(hostFee1.value.serviceFees)
   }
+
+  setBreadcrumbs([
+    {
+      label: t('label.bcregDash'),
+      to: useRuntimeConfig().public.registryHomeURL + 'dashboard',
+      appendAccountId: true,
+      external: true
+    },
+    { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
+    {
+      label: (permitStore.isRegistrationRenewal
+        ? t('strr.title.renewalApplication')
+        : t('strr.title.application'))
+    }
+  ])
+
   loading.value = false
 })
 
@@ -227,9 +247,9 @@ const handleSubmit = async () => {
 }
 
 // TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
-watch(activeStepIndex, (val) => {
+watch([activeStepIndex, permitStore.isRegistrationRenewal], () => {
   const buttons: ConnectBtnControlItem[] = []
-  if (val !== 0) {
+  if (activeStepIndex.value !== 0) {
     buttons.push({
       action: () => stepperRef.value?.setPreviousStep(),
       icon: 'i-mdi-chevron-left',
@@ -237,22 +257,29 @@ watch(activeStepIndex, (val) => {
       variant: 'outline'
     })
   }
-  const isLastStep = val === steps.value.length - 1
+  const isLastStep = activeStepIndex.value === steps.value.length - 1
   buttons.push({
     action: isLastStep ? handleSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
-    label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${val + 1}`),
+    label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${activeStepIndex.value + 1}`),
     trailing: true
   })
 
+  // defaul left side action buttons
+  const leftActionButtons: ConnectBtnControlItem[] = [
+    { action: () => navigateTo(localePath('/dashboard')), label: t('btn.cancel'), variant: 'outline' }
+  ]
+
+  // do not show Save Draft buttons for registration renewals, show for eveything else
+  if (!permitStore.isRegistrationRenewal) {
+    leftActionButtons.push(
+      { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
+      { action: saveApplication, label: t('btn.save'), variant: 'outline' }
+    )
+  }
+
   setButtonControl({
-    leftButtons: useFeatureFlags().isFeatureEnabled('enable-save-draft')
-      ? [
-          { action: () => navigateTo(localePath('/dashboard')), label: t('btn.cancel'), variant: 'outline' },
-          { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
-          { action: saveApplication, label: t('btn.save'), variant: 'outline' }
-        ]
-      : [],
+    leftButtons: useFeatureFlags().isFeatureEnabled('enable-save-draft') ? leftActionButtons : [],
     rightButtons: buttons
   })
 }, { immediate: true })
@@ -309,22 +336,15 @@ definePageMeta({
 
 // save application before session expires
 setOnBeforeSessionExpired(() => submitApplication(true, applicationId.value))
-
-setBreadcrumbs([
-  {
-    label: t('label.bcregDash'),
-    to: useRuntimeConfig().public.registryHomeURL + 'dashboard',
-    appendAccountId: true,
-    external: true
-  },
-  { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
-  { label: t('strr.title.application') }
-])
 </script>
 <template>
   <ConnectSpinner v-if="loading" overlay />
   <div v-else class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
+    <ConnectTypographyH1
+      :text="permitStore.isRegistrationRenewal
+        ? t('strr.title.renewalApplication') : t('strr.title.application')"
+      class="my-5"
+    />
     <ModalGroupHelpAndInfo />
     <ConnectStepper
       ref="stepperRef"
