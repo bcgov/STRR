@@ -1,6 +1,6 @@
+import { existsSync, mkdirSync } from 'fs'
 import { type Browser, chromium, type Page } from '@playwright/test'
 import { config as dotenvConfig } from 'dotenv'
-import { existsSync, mkdirSync } from 'fs'
 import { LoginSource } from '../enums/login-source'
 dotenvConfig()
 
@@ -38,7 +38,6 @@ export async function authSetup (
   console.info(`[AuthSetup] Saving storage state to ${fullPath}`)
   await page.context().storageState({ path: fullPath })
 
-
   await browser.close()
-  console.info(`[AuthSetup] Auth flow completed and storage saved.`)
+  console.info('[AuthSetup] Auth flow completed and storage saved.')
 }

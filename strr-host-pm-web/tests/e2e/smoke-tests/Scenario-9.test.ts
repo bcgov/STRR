@@ -1,6 +1,5 @@
 /* eslint-disable max-len */
 import { expect, test } from '@playwright/test'
-import { enI18n } from '~~/tests/mocks/i18n'
 import { OwnerRole } from '../../../app/enums/owner-role'
 import { OwnerType } from '../../../app/enums/owner-type'
 import {
@@ -17,10 +16,10 @@ import {
   getPropertyRequirementsList,
   loginMethods
 } from '../test-utils'
+import { enI18n } from '~~/tests/mocks/i18n'
 // pull text from i18n keys instead of hard coding, this will only need to be updated if the i18n key changes
 const i18nText = enI18n.global.messages.value['en-CA']
 
-console.log('[DEBUG] loginMethods =', loginMethods)
 loginMethods.forEach((loginMethod) => {
   test.describe(`Host Smoke - Scenario 9 - NoBL_YesPR_NotProh_Exempt - ${loginMethod}`, () => {
     // use saved login state

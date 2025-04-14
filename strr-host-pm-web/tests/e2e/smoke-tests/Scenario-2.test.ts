@@ -5,7 +5,6 @@ import {
   loginMethods
 } from '../test-utils'
 
-console.log('[DEBUG] loginMethods =', loginMethods)
 loginMethods.forEach((loginMethod) => {
   test.describe(`Host Smoke - Scenario 2 - NoBL_NoPR_NotProh_YesExempt - ${loginMethod}`, () => {
     // use saved login state
