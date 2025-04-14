@@ -735,9 +735,9 @@ def test_update_application_str_address(session, client, jwt):
     rv = client.patch(f"/applications/{application_number}/str-address", json=updated_address, headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
-    assert response_json.get("registration").get("unitAddress").get("streetNumber") == "555"
-    assert response_json.get("registration").get("unitAddress").get("streetName") == "MAIN ST"
-    assert response_json.get("registration").get("unitAddress").get("unitNumber") == "202"
+    assert response_json.get("registration").get("unitAddress").get("streetNumber") == "66211"
+    assert response_json.get("registration").get("unitAddress").get("streetName") == "COTTONWOOD DR"
+    assert response_json.get("registration").get("unitAddress").get("unitNumber") == "1"
 
     non_existent_app_number = "test1234567890"
     rv = client.patch(
