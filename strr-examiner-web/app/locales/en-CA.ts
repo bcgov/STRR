@@ -64,6 +64,18 @@ export default {
         FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
         BCSC: 'British Columbia Services Card',
         COMBINED_BCSC_LICENCE: 'Combined BC Driver’s Licence and Services Card'
+      },
+      editAddress: {
+        unitNumber: 'Unit Number',
+        streetNumber: 'Street Number',
+        streetName: 'Street Name',
+        siteName: 'Site Name (Optional)',
+        city: 'City',
+        province: 'Province',
+        postalCode: 'Postal Code',
+        locationDescription: 'Location Description (Optional)',
+        label: 'Edit Rental Unit',
+        labelDescription: 'You should only edit the rental unit address to correct data entry errors, and only upon request from the applicant.'
       }
     }
   },
@@ -187,7 +199,8 @@ export default {
       takedownRequest: 'Takedown Request',
       added: 'ADDED',
       unAssign: 'Yes, Unassign Them',
-      acknowlegeError: 'Close'
+      acknowlegeError: 'Close',
+      editRentalUnit: 'Edit Rental Unit'
     },
     text: {
       applicationMustInclude: 'Your application must include the following:',
@@ -252,7 +265,9 @@ export default {
     hideHistory: 'Hide History',
     assign: 'Assign To Me',
     unassign: 'Unassign',
-    confirm: 'Confirm'
+    confirm: 'Confirm',
+    keepEditing: 'Continue Editing',
+    discardChanges: 'Discard'
   },
   error: {
     action: {
@@ -274,6 +289,8 @@ export default {
     assignApplication: 'An error occurred assigning this application.',
     unAssignApplication: 'An error occurred unassigning this application.',
     filingHistory: 'An error occurred while retrieving the filing history.',
+    saveAddress: 'An error occureed while updating the STR address',
+    saveAddressConfig: 'Either application number or registration ID must be provided',
     reqFetch: {
       unknown: {
         title: 'An unexpected error occurred.',
@@ -330,7 +347,8 @@ export default {
     tableLimitDisplay: 'Display:',
     noCraTaxNumber: 'No CRA Tax Number',
     multipleFilter: 'Multiple',
-    history: 'History'
+    history: 'History',
+    forNonCivicAddresses: 'For non-civic addresses'
   },
   link: {
     learnMore: 'Learn More'
@@ -361,6 +379,10 @@ export default {
     cancelRegistration: {
       title: 'Cancel Registration',
       message: 'This registration will be cancelled. Are you sure you want to continue?'
+    },
+    unsavedChanges: {
+      title: 'Unsaved Changes',
+      message: 'Are you sure you want to discard your changes?'
     }
   },
   table: {
@@ -439,7 +461,12 @@ export default {
     ownerRole: 'Please select the role',
     missingReqDocs: 'Missing required documents. Please see above for details.',
     blExpiryDate: 'The expiry date must be greater than today and in less than 1 year.',
-    nocContent: 'Please enter email body text'
+    nocContent: 'Please enter email body text',
+    address: {
+      streetName: 'Street name is required',
+      streetNumber: 'Street number is required',
+      form: 'Provided address is not valid'
+    }
   },
   registrationType: {
     HOST: 'Host',

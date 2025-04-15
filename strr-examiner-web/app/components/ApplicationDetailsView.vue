@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const exStore = useExaminerStore()
-const { activeReg } = storeToRefs(exStore)
+const { activeReg, isEditingRentalUnit } = storeToRefs(exStore)
 </script>
 
 <template>
@@ -21,6 +21,10 @@ const { activeReg } = storeToRefs(exStore)
 
     <div class="app-inner-container space-y-10 py-10">
       <ConnectExpansionRoot />
+
+      <HostEditRentalUnitForm
+        v-if="isEditingRentalUnit"
+      />
 
       <HostSupportingInfo
         v-if="activeReg.registrationType === ApplicationType.HOST"

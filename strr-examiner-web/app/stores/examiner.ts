@@ -40,7 +40,50 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const nocContent = reactive({
     content: ''
   })
-  // TODO: Add assigned logic check later
+  const isEditingRentalUnit = ref(false)
+  const hasUnsavedRentalUnitChanges = ref(false)
+  const rentalUnitAddressToEdit = ref<Partial<EditStrAddress>>({})
+  const rentalUnitAddressSchema = computed(() => z.object({
+    addressLineTwo: z.string().optional().default(''),
+    city: z.string().min(1, t('validation.address.city')),
+    province: z.string().min(1, t('validation.address.region')),
+    postalCode: z.string().min(1, t('validation.address.postalCode')),
+    locationDescription: z.string().optional().default(''),
+    streetName: z.string().optional().default(''),
+    streetNumber: z.string().optional().default(''),
+    unitNumber: z.string().optional().default('')
+  }).superRefine((data, ctx) => {
+    if (data.addressLineTwo === '') {
+      if (!data.streetName) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['streetName'],
+          message: t('validation.address.streetName')
+        })
+      }
+      if (!data.streetNumber) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['streetNumber'],
+          message: t('validation.address.streetNumber')
+        })
+      }
+    }
+  }))
+  const startEditRentalUnitAddress = () => {
+    rentalUnitAddressToEdit.value = JSON.parse(JSON.stringify(activeReg.value?.unitAddress || {}))
+    isEditingRentalUnit.value = true
+    hasUnsavedRentalUnitChanges.value = false // Reset unsaved changes flag
+  }
+  const resetEditRentalUnitAddress = () => {
+    isEditingRentalUnit.value = false
+    rentalUnitAddressToEdit.value = {}
+    hasUnsavedRentalUnitChanges.value = false
+  }
+  const setHasUnsavedRentalUnitChanges = (value: boolean) => {
+    hasUnsavedRentalUnitChanges.value = value
+  }
+
   const showNocModal = computed(() => {
     return activeHeader.value?.status === ApplicationStatus.FULL_REVIEW
   })
@@ -357,6 +400,41 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     )
   }
 
+  /**
+   * Saves the updated rental unit address for either an application or registration.
+   *
+   * @param {Partial<EditStrAddress>} updatedAddress - The new address data to save
+   * @param {string|number} identifier - The ID of the application or registration
+   * @param {boolean} isApplication - Flag indicating if this is an application (true) or registration (false)
+   * @returns {Promise<void>}
+   */
+  const saveRentalUnitAddress = async (
+    updatedAddress: Partial<EditStrAddress>,
+    identifier: string | number,
+    isApplication: boolean
+  ): Promise<void> => {
+    let endpoint
+    try {
+      if (isApplication) {
+        endpoint = `/applications/${identifier}/str-address`
+      } else {
+        endpoint = `/registrations/${identifier}/str-address`
+      }
+
+      const resp = await $strrApi(endpoint, {
+        method: 'PATCH',
+        body: {
+          unitAddress: updatedAddress
+        }
+      })
+      activeRecord.value = resp
+      resetEditRentalUnitAddress()
+    } catch (e) {
+      logFetchError(e, t('error.saveAddress'))
+      strrModal.openErrorModal('Error', t('error.saveAddress'), false)
+    }
+  }
+
   return {
     tableFilters,
     tableLimit,
@@ -370,6 +448,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     nocContent,
     nocFormRef,
     showNocModal,
+    isFilingHistoryOpen,
+    isEditingRentalUnit,
+    rentalUnitAddressToEdit,
+    hasUnsavedRentalUnitChanges,
     viewReceipt,
     approveApplication,
     rejectApplication,
@@ -386,6 +468,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     unassignApplication,
     getApplicationFilingHistory,
     getRegistrationFilingHistory,
-    isFilingHistoryOpen
+    startEditRentalUnitAddress,
+    resetEditRentalUnitAddress,
+    saveRentalUnitAddress,
+    setHasUnsavedRentalUnitChanges,
+    rentalUnitAddressSchema
   }
 }, { persist: true }) // will persist data in session storage
