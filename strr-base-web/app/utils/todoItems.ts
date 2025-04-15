@@ -60,7 +60,7 @@ export const getTodoApplication = (
   }
 
   if (applicationInfo?.status === ApplicationStatus.NOC_PENDING) {
-    const nocEndDate = dateToStringPacific(applicationInfo!.nocEndDate as Date, 'DDD')
+    const nocEndDate = dateToString(applicationInfo!.nocEndDate as Date, 'DDD')
     const isHost = applicationType === ApplicationType.HOST
 
     const translationProps = {
