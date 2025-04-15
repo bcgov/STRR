@@ -2,6 +2,7 @@
 EventRecord response object.
 """
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -16,6 +17,7 @@ class Events(BaseModel):
     eventName: str
     message: str
     createdDate: datetime
+    details: Optional[str]
 
     @classmethod
     def from_db(cls, source: EventsModel):
@@ -25,4 +27,5 @@ class Events(BaseModel):
             eventName=source.event_name,
             message=EVENT_MESSAGES.get(source.event_name, ""),
             createdDate=source.created_date,
+            details=source.details,
         )

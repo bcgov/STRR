@@ -592,6 +592,54 @@ class RegistrationService:
         return query.all()
 
     @staticmethod
+    def update_host_unit_address(registration: Registration, unit_address: dict, user: User) -> Registration:
+        """Updates the rental unit address for a registration."""
+        if not registration.rental_property or not registration.rental_property.address:
+            raise Exception("Rental property or address not found for registration.")
+
+        address_obj = registration.rental_property.address
+        previous_address_details = (
+            f"Previous Address: Street Number={address_obj.street_number} "
+            f"Street Name={address_obj.street_address}, "
+            f"Street Additional={address_obj.street_address_additional}, "
+            f"City={address_obj.city}, Province={address_obj.province}, "
+            f"Postal Code={address_obj.postal_code}"
+        )
+
+        key_map = {
+            "streetName": "street_address",
+            "addressLineTwo": "street_address_additional",
+            "postalCode": "postal_code",
+            "unitNumber": "unit_number",
+            "streetNumber": "street_number",
+            "city": "city",
+            "province": "province",
+            "locationDescription": "location_description",
+        }
+
+        update_applied = False
+        for key, value in unit_address.items():
+            model_key = key_map.get(key)
+            if model_key and hasattr(address_obj, model_key):
+                current_value = getattr(address_obj, model_key)
+                if current_value != value:
+                    setattr(address_obj, model_key, value)
+                    update_applied = True
+
+        if update_applied:
+            address_obj.save()
+            registration.save()
+            EventsService.save_event(
+                event_type=Events.EventType.REGISTRATION,
+                event_name=Events.EventName.HOST_REGISTRATION_UNIT_ADDRESS_UPDATED,
+                registration_id=registration.id,
+                details=previous_address_details,
+                user_id=user.id,
+                visible_to_applicant=True,
+            )
+        return registration
+
+    @staticmethod
     def create_registration_for_permit_validation(registration, user_id):
         """Creates registration with minimum details for permit validation"""
         registration_obj = Registration(

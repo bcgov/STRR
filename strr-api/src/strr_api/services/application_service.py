@@ -349,6 +349,14 @@ class ApplicationService:
     @staticmethod
     def update_host_unit_address(application: Application, unit_address: dict, user: User) -> Application:
         """Updates the rental unit address for a host application."""
+        original_address = application.application_json.get("registration", {}).get("unitAddress", {})
+        previous_address_details = (
+            f"Previous Address: Street Number={original_address.get('streetNumber', '')} "
+            f"Street Name={original_address.get('streetName', '')}, "
+            f"Street Additional={original_address.get('addressLineTwo', '')}, "
+            f"City={original_address.get('city', '')}, Province={original_address.get('province', '')}, "
+            f"Postal Code={original_address.get('postalCode', '')}"
+        )
         application_json = copy.deepcopy(application.application_json)
         for key, value in unit_address.items():
             application_json["registration"]["unitAddress"][key] = value
@@ -358,6 +366,7 @@ class ApplicationService:
             event_type=Events.EventType.APPLICATION,
             event_name=Events.EventName.HOST_APPLICATION_UNIT_ADDRESS_UPDATED,
             application_id=application.id,
+            details=previous_address_details,
             user_id=user.id,
             visible_to_applicant=True,
         )

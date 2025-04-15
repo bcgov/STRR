@@ -48,10 +48,11 @@ from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ErrorMessage, RegistrationStatus, Role
+from strr_api.enums.enum import ErrorMessage, RegistrationStatus, RegistrationType, Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
 from strr_api.responses import Events
+from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
 
 logger = logging.getLogger("api")
@@ -364,6 +365,37 @@ def get_todos(registration_id):
     except Exception as exception:
         logger.error(exception)
         logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/str-address", methods=("PATCH",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def update_registration_unit_address(registration_id):
+    """Update the rental unit address for a host registration."""
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        json_input = request.get_json()
+
+        [valid, errors] = validate(json_input, "host_update_address")
+        if not valid:
+            return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
+
+        unit_address = json_input.get("unitAddress")
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if registration.registration_type != RegistrationType.HOST.value:
+            return error_response(
+                message="Unit address update is only allowed for Host registration type",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        registration = RegistrationService.update_host_unit_address(registration, unit_address, user)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 

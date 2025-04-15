@@ -508,3 +508,67 @@ def test_get_active_registration_todos_outside_renewal_window(session, client, j
     rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
     response_json = rv.json
     assert response_json.get("todos") == []
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_update_registration_str_address(session, client, jwt):
+    """Test updating the STR address for a registration."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+        invalid_updated_address = {"unitAddress": {}}
+        valid_updated_address = {
+            "unitAddress": {
+                "unitNumber": "1",
+                "streetNumber": "66211",
+                "streetName": "COTTONWOOD DR",
+                "city": "MAPLE RIDGE",
+                "postalCode": "V2X 3L8",
+                "province": "BC",
+                "locationDescription": "Located at the corner of Cottonwood Dr and 119 Ave",
+            }
+        }
+        rv = client.patch(
+            f"/registrations/{registration_id}/str-address", json=invalid_updated_address, headers=staff_headers
+        )
+        assert HTTPStatus.BAD_REQUEST == rv.status_code
+
+        rv = client.patch(
+            f"/registrations/{registration_id}/str-address", json=valid_updated_address, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        updated_addr_response = response_json.get("unitAddress")
+        assert updated_addr_response.get("streetNumber") == "66211"
+        assert updated_addr_response.get("streetName") == "COTTONWOOD DR"
+        assert updated_addr_response.get("unitNumber") == "1"
+        assert updated_addr_response.get("city") == "MAPLE RIDGE"
+        assert updated_addr_response.get("postalCode") == "V2X 3L8"
+
+        non_existent_reg_id = 999999
+        rv = client.patch(
+            f"/registrations/{non_existent_reg_id}/str-address", json=valid_updated_address, headers=staff_headers
+        )
+        assert HTTPStatus.NOT_FOUND == rv.status_code
+
+        public_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        public_headers["Account-Id"] = ACCOUNT_ID
+        rv = client.patch(
+            f"/registrations/{registration_id}/str-address", json=valid_updated_address, headers=public_headers
+        )
+        assert HTTPStatus.UNAUTHORIZED == rv.status_code

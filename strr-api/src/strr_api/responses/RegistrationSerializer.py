@@ -310,6 +310,7 @@ class RegistrationSerializer:
             "province": registration.rental_property.address.province,
             "country": registration.rental_property.address.country,
             "nickname": registration.rental_property.nickname,
+            "locationDescription": registration.rental_property.address.location_description,
         }
 
         registration_data["unitDetails"] = {
