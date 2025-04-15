@@ -595,7 +595,7 @@ class RegistrationService:
     def update_host_unit_address(registration: Registration, unit_address: dict, user: User) -> Registration:
         """Updates the rental unit address for a registration."""
         if not registration.rental_property or not registration.rental_property.address:
-            raise Exception("Rental property or address not found for registration.")
+            raise ValueError("Rental property or address not found for registration.")
 
         address_obj = registration.rental_property.address
         previous_address_details = (
