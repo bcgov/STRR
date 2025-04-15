@@ -387,9 +387,12 @@ def update_registration_unit_address(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
-        if registration.registration_type != RegistrationType.HOST.value:
+        if (
+            registration.registration_type != RegistrationType.HOST.value
+            or registration.status != RegistrationStatus.ACTIVE.value
+        ):
             return error_response(
-                message="Unit address update is only allowed for Host registration type",
+                message="Unit address update is only allowed for active Host type registrations",
                 http_status=HTTPStatus.BAD_REQUEST,
             )
         registration = RegistrationService.update_host_unit_address(registration, unit_address, user)
