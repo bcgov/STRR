@@ -389,7 +389,7 @@ def update_registration_unit_address(registration_id):
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
         if (
             registration.registration_type != RegistrationType.HOST.value
-            or registration.status != RegistrationStatus.ACTIVE.value
+            or registration.status != RegistrationStatus.ACTIVE
         ):
             return error_response(
                 message="Unit address update is only allowed for active Host type registrations",
