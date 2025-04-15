@@ -1,4 +1,4 @@
-import type { RegistrationTodoType } from '~/enums/registraation-todo-type'
+import type { RegistrationTodoType } from '~/enums/registration-todo-type'
 
 export interface ApiPhone {
   phoneCountryCode: string
