@@ -56,6 +56,7 @@ vi.mock('@/stores/examiner', () => ({
     activeRecord: ref(currentMockData),
     isApplication: ref(true),
     isAssignedToUser,
+    resetEditRentalUnitAddress: vi.fn(),
     assignApplication: mockAssignApplication,
     viewReceipt: mockViewReceipt,
     openDocInNewTab: vi.fn().mockImplementation(() => {

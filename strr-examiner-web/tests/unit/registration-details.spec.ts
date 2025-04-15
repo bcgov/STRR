@@ -33,6 +33,7 @@ vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     updateRegistrationStatus: vi.fn().mockResolvedValue(undefined),
     getRegistrationById: vi.fn().mockImplementation(() => Promise.resolve(currentMockData)),
+    resetEditRentalUnitAddress: vi.fn(),
     activeReg: ref(currentMockData),
     activeHeader: ref(currentMockData.header),
     activeRecord: ref(currentMockData),

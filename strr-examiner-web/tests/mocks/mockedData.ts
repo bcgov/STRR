@@ -57,7 +57,7 @@ const MOCK_MAILING_ADDRESS: ApiAddress = {
   province: 'BC'
 }
 
-const MOCK_UNIT_ADDRESS: ApiUnitAddress = {
+export const MOCK_UNIT_ADDRESS: ApiUnitAddress = {
   addressLineTwo: '',
   city: 'Vancouver',
   country: 'CA',

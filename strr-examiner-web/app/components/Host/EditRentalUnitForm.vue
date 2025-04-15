@@ -102,6 +102,7 @@ const handleCancel = () => {
             :state="currentAddress"
             :validate-on="['submit']"
             class="space-y-6"
+            data-testid="edit-rental-unit-form"
             @submit="updateStrAddress"
           >
             <div class="grid grid-cols-12 gap-4">
@@ -226,6 +227,7 @@ const handleCancel = () => {
                 :label="t('btn.cancel')"
                 :disabled="isLoading"
                 class="px-6"
+                data-testid="cancel-rental-unit-address"
                 @click="handleCancel"
               />
               <UButton
@@ -233,6 +235,7 @@ const handleCancel = () => {
                 :label="t('btn.save')"
                 :loading="isLoading"
                 class="px-6"
+                data-testid="save-rental-unit-address"
               />
             </div>
           </UForm>

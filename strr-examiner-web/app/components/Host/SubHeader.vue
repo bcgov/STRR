@@ -62,7 +62,7 @@ const openOwnerExpansionWithCheck = (ownerType: 'primaryContact' | 'secondaryCon
         <div class="flex items-center justify-between gap-2">
           <strong>{{ t('strr.label.rentalUnit').toUpperCase() }}</strong>
           <UButton
-            v-if="canEditApplicationAddress"
+            v-if="!isApplication || canEditApplicationAddress"
             variant="link"
             size="xs"
             color="blue"

@@ -71,7 +71,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }))
   const startEditRentalUnitAddress = () => {
-    rentalUnitAddressToEdit.value = JSON.parse(JSON.stringify(activeReg.value?.unitAddress || {}))
+    const addressData = JSON.parse(JSON.stringify(activeReg.value?.unitAddress || {}))
+    if (addressData.locationDescription === null) {
+      addressData.locationDescription = ''
+    }
+    rentalUnitAddressToEdit.value = addressData
     isEditingRentalUnit.value = true
     hasUnsavedRentalUnitChanges.value = false // Reset unsaved changes flag
   }
