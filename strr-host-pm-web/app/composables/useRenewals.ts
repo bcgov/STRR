@@ -38,10 +38,6 @@ export const useRenewals = () => {
     isEligibleForRenewal.value = todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
   })
 
-  // TODO: Remove after testing, registration number H192452838, id 308
-  // const isTestRenewalReg = computed((): boolean =>
-  //   process.env.NODE_ENV === 'development' && registration.value?.id === 308)
-
   return {
     isEligibleForRenewal,
     isRenewalPeriodClosed,
