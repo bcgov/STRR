@@ -279,7 +279,7 @@ watch([activeStepIndex, permitStore.isRegistrationRenewal], () => {
   }
 
   setButtonControl({
-    leftButtons: useFeatureFlags().isFeatureEnabled('enable-save-draft') ? leftActionButtons : [],
+    leftButtons: useFeatureFlags().isFeatureEnabled('enable-save-draft').value ? leftActionButtons : [],
     rightButtons: buttons
   })
 }, { immediate: true })
