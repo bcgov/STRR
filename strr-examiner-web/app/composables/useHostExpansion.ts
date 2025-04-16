@@ -34,11 +34,15 @@ export const useHostExpansion = () => {
 
   const checkAndPerfomAction = (actionFn: () => void, confirmUnsavedModal: ConfirmModal | null = null) => {
     if (!isEditingRentalUnit.value || !hasUnsavedRentalUnitChanges.value) {
+      resetEditRentalUnitAddress()
       actionFn()
       return
     }
     if (confirmUnsavedModal) {
-      confirmUnsavedModal.handleOpen(() => actionFn())
+      confirmUnsavedModal.handleOpen(() => {
+        resetEditRentalUnitAddress()
+        actionFn()
+      })
       return
     }
     actionFn()
