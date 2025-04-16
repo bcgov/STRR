@@ -91,7 +91,7 @@ const handleCancel = () => {
 
 <template>
   <div
-    v-if="!isApplicationRoute || canEditApplicationAddress.value"
+    v-if="!isApplicationRoute || canEditApplicationAddress"
     class="flex rounded bg-white px-8 py-6"
   >
     <div class="relative divide-y px-10 py-6">
