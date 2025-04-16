@@ -1,13 +1,21 @@
 <script setup lang="ts">
+import { z } from 'zod'
+import type { Form } from '#ui/types'
+import isEqual from 'lodash/isEqual'
 
-const exStore = useExaminerStore()
+const { t } = useI18n()
+const emit = defineEmits<{
+  close: [void],
+  addressUpdated: [void]
+}>()
+
+const { resetEditRentalUnitAddress, saveRentalUnitAddress } = useExaminerStore()
 const {
   rentalUnitAddressToEdit,
   hasUnsavedRentalUnitChanges,
   rentalUnitAddressSchema
-} = storeToRefs(exStore)
+} = storeToRefs(useExaminerStore())
 const strrModal = useStrrModals()
-const { t } = useI18n()
 const confirmUnchangedModal = ref<ConfirmModal | null>(null)
 
 const route = useRoute()
@@ -24,28 +32,20 @@ const routeId = computed(() => {
   }
   return null
 })
-
 const currentAddress = ref({ ...rentalUnitAddressToEdit.value })
-const editStrAddressform = ref()
+type editAddressFormSchema = z.output<typeof rentalUnitAddressSchema.value>
+const editStrAddressform = ref<Form<editAddressFormSchema>>()
+
 const isLoading = ref(false)
 
 watch(currentAddress, () => {
-  const originalKeys = Object.keys(rentalUnitAddressToEdit.value)
-  const currentKeys = Object.keys(currentAddress.value)
-  const allKeys = [...new Set([...originalKeys, ...currentKeys])]
-
-  const hasChanges = allKeys.some((key) => {
-    const original = (rentalUnitAddressToEdit.value as Record<string, string>)[key] || ''
-    const current = (currentAddress.value as Record<string, string>)[key] || ''
-    return original !== current
-  })
-
-  exStore.setHasUnsavedRentalUnitChanges(hasChanges)
+  const hasChanges = !isEqual(currentAddress.value, rentalUnitAddressToEdit.value)
+  hasUnsavedRentalUnitChanges.value = hasChanges
 }, { deep: true, immediate: true })
 
 watch(rentalUnitAddressToEdit, (newVal) => {
   currentAddress.value = { ...newVal }
-  exStore.setHasUnsavedRentalUnitChanges(false)
+  hasUnsavedRentalUnitChanges.value = false
 }, { deep: true })
 
 watch(() => currentAddress.value.postalCode, (newVal) => {
@@ -57,11 +57,13 @@ watch(() => currentAddress.value.postalCode, (newVal) => {
 const updateStrAddress = async () => {
   try {
     isLoading.value = true
-    await exStore.saveRentalUnitAddress(
+    await saveRentalUnitAddress(
       currentAddress.value,
       routeId.value!,
       isApplicationRoute.value
     )
+    emit('addressUpdated')
+    emit('close')
   } catch (e) {
     logFetchError(e, t('error.saveAddress'))
     strrModal.openErrorModal('Error', t('error.saveAddress'), false)
@@ -74,34 +76,41 @@ const handleCancel = () => {
   if (hasUnsavedRentalUnitChanges.value) {
     if (confirmUnchangedModal.value) {
       confirmUnchangedModal.value.handleOpen(
-        () => { exStore.resetEditRentalUnitAddress() }
+        () => {
+          resetEditRentalUnitAddress()
+          emit('close')
+        }
       )
     }
   } else {
-    exStore.resetEditRentalUnitAddress()
+    resetEditRentalUnitAddress()
+    emit('close')
   }
 }
 </script>
 
 <template>
-  <ConnectPageSection v-if="!isApplicationRoute || canEditApplicationAddress">
+  <div
+    v-if="!isApplicationRoute || canEditApplicationAddress.value"
+    class="flex rounded bg-white px-8 py-6"
+  >
     <div class="relative divide-y px-10 py-6">
-      <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-12 mb-6 mt-4 md:col-span-3 md:mb-0">
+      <div class="grid grid-cols-12 space-y-4">
+        <div class="col-span-12 mb-6 mt-4 md:col-span-4 md:mb-0">
           <h2 class="mb-2 text-lg font-semibold text-gray-900">
             {{ t('form.pr.editAddress.label') }}
           </h2>
-          <p class="text-sm text-gray-600">
+          <p class="pr-4 text-sm text-bcGovGray-700">
             {{ t('form.pr.editAddress.labelDescription') }}
           </p>
         </div>
-        <div class="col-span-12 mt-4 md:col-span-8">
+        <div class="col-span-12 mt-4 md:col-span-7">
           <UForm
             ref="editStrAddressform"
             :schema="rentalUnitAddressSchema"
             :state="currentAddress"
             :validate-on="['submit']"
-            class="space-y-6"
+            class="space-y-4"
             data-testid="edit-rental-unit-form"
             @submit="updateStrAddress"
           >
@@ -154,7 +163,7 @@ const handleCancel = () => {
                     color="gray"
                   />
                   <div class="mt-1">
-                    <span class="text-xs text-gray-500">
+                    <span class="text-xs text-bcGovGray-700">
                       {{ t('label.forNonCivicAddresses') }}
                     </span>
                   </div>
@@ -223,7 +232,6 @@ const handleCancel = () => {
               <UButton
                 type="button"
                 variant="outline"
-                color="gray"
                 :label="t('btn.cancel')"
                 :disabled="isLoading"
                 class="px-6"
@@ -243,25 +251,22 @@ const handleCancel = () => {
 
         <div class="col-span-12 mt-4 flex justify-end md:col-span-1 md:items-start">
           <UButton
-            variant="link"
-            color="blue"
-            icon="i-mdi-close"
-            :aria-label="t('btn.close')"
-            class="text-blue-500 hover:text-blue-700"
+            :label="t('btn.close')"
+            trailing-icon="i-mdi-close"
+            variant="ghost"
+            class="h-min"
             @click="handleCancel"
-          >
-            {{ t('btn.close') }}
-          </UButton>
+          />
         </div>
       </div>
     </div>
-  </ConnectPageSection>
-  <ConfirmationModal
-    ref="confirmUnchangedModal"
-    :is-open="false"
-    :title="t('modal.unsavedChanges.title')"
-    :message="t('modal.unsavedChanges.message')"
-    :confirm-text="t('btn.discardChanges')"
-    :cancel-text="t('btn.keepEditing')"
-  />
+    <ConfirmationModal
+      ref="confirmUnchangedModal"
+      :is-open="false"
+      :title="t('modal.unsavedChanges.title')"
+      :message="t('modal.unsavedChanges.message')"
+      :confirm-text="t('btn.discardChanges')"
+      :cancel-text="t('btn.keepEditing')"
+    />
+  </div>
 </template>

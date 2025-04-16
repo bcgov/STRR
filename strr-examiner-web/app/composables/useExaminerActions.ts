@@ -4,6 +4,8 @@ export const useExaminerActions = () => {
   const strrModal = useStrrModals()
   const { t } = useI18n()
   const { handleButtonLoading } = useButtonControl()
+  const { verifyAssigneeOnAction } = useExaminerStore()
+  const { activeHeader } = storeToRefs(useExaminerStore())
 
   /**
    * A generic utility function to be called from application and registration pages for
@@ -18,6 +20,13 @@ export const useExaminerActions = () => {
    * @param {Args} additionalArgs - Optional additional arguments to pass to the action function
    *
    */
+  const ACTIONS_REQUIRING_ASSIGNEE_CHECK = [
+    ApplicationActionsE.APPROVE,
+    ApplicationActionsE.REJECT,
+    ApplicationActionsE.SEND_NOC,
+    RegistrationActionsE.CANCEL
+  ]
+
   const manageAction = async <T extends { id: string | number }, Args extends any[] = []>(
     item: T,
     action: ApplicationActionsE | RegistrationActionsE,
@@ -32,6 +41,17 @@ export const useExaminerActions = () => {
       handleButtonLoading(false, buttonPosition, buttonIndex)
       if (validateFn && !(await validateFn())) {
         return
+      }
+
+      if (ACTIONS_REQUIRING_ASSIGNEE_CHECK.includes(action)) {
+        const applicationNumber = activeHeader.value?.applicationNumber
+        if (!applicationNumber) {
+          return
+        }
+        const isCurrAssignee = await verifyAssigneeOnAction(applicationNumber)
+        if (!isCurrAssignee) {
+          return
+        }
       }
       await actionFn(item.id, ...additionalArgs)
       refresh()

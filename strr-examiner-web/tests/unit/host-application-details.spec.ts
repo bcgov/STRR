@@ -68,6 +68,20 @@ vi.mock('@/stores/examiner', () => ({
   })
 }))
 
+vi.mock('@/composables/useHostExpansion', () => ({
+  useHostExpansion: () => ({
+    toggleFilingHistory: () => {
+      isFilingHistoryOpen.value = !isFilingHistoryOpen.value
+    },
+    checkAndPerfomAction: (actionFn: Function) => {
+      actionFn()
+    },
+    openHostOwners: vi.fn(),
+    openEditRentalUnitForm: vi.fn(),
+    close: vi.fn()
+  })
+}))
+
 const mockOpen = vi.fn()
 vi.stubGlobal('open', mockOpen)
 vi.stubGlobal('URL', {

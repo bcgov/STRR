@@ -3,7 +3,8 @@
 const { t } = useI18n()
 const exStore = useExaminerStore()
 const { activeHeader, activeReg, isFilingHistoryOpen } = storeToRefs(exStore)
-const { toggleFilingHistory } = useHostExpansion()
+const hostExp = useHostExpansion()
+const confirmUnsavedModal = ref<ConfirmModal | null>(null)
 
 const getBadgeColor = (status: ApplicationStatus): string => {
   switch (status) {
@@ -78,7 +79,7 @@ const nocCountdown = computed(() => {
             size="sm"
             class="gap-1"
             data-testid="toggle-history-btn"
-            @click="toggleFilingHistory()"
+            @click="hostExp.checkAndPerfomAction(() => hostExp.toggleFilingHistory(), confirmUnsavedModal)"
           />
         </div>
         <UButton
@@ -115,4 +116,12 @@ const nocCountdown = computed(() => {
       </div>
     </div>
   </div>
+  <ConfirmationModal
+    ref="confirmUnsavedModal"
+    :is-open="false"
+    :title="t('modal.unsavedChanges.title')"
+    :message="t('modal.unsavedChanges.message')"
+    :confirm-text="t('btn.discardChanges')"
+    :cancel-text="t('btn.keepEditing')"
+  />
 </template>

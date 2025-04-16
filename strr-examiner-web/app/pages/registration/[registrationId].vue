@@ -3,7 +3,7 @@ const { t } = useI18n()
 const route = useRoute()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
-const { updateRegistrationStatus, getRegistrationById, resetEditRentalUnitAddress } = useExaminerStore()
+const { updateRegistrationStatus, getRegistrationById } = useExaminerStore()
 const { isAssignedToUser } = storeToRefs(useExaminerStore())
 
 const confirmErrorModal = ref<ConfirmModal | null>(null)
@@ -20,9 +20,6 @@ definePageMeta({
 
 const initialMount = ref(true)
 
-onMounted(() => {
-  resetEditRentalUnitAddress()
-})
 const { data: registration, status, error, refresh } = await useLazyAsyncData<
   HousRegistrationResponse | undefined, ApplicationError
 >(

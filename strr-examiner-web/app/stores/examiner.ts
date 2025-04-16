@@ -84,9 +84,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     rentalUnitAddressToEdit.value = {}
     hasUnsavedRentalUnitChanges.value = false
   }
-  const setHasUnsavedRentalUnitChanges = (value: boolean) => {
-    hasUnsavedRentalUnitChanges.value = value
-  }
 
   const showNocModal = computed(() => {
     return activeHeader.value?.status === ApplicationStatus.FULL_REVIEW
@@ -356,6 +353,26 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }
 
+  /**
+   * Final validation check before executing examiner action.
+   *
+   * @param {string} applicationNumber - The application number to verify assignment for.
+   * @returns {Promise<boolean>} - True if user is still assignee, false otherwise.
+   */
+  const verifyAssigneeOnAction = async (applicationNumber: string): Promise<boolean> => {
+    const isCurrentAssignee = await isCurrentUserAssignee(applicationNumber)
+
+    if (!isCurrentAssignee) {
+      strrModal.openErrorModal(
+        t('modal.assignError.title'),
+        t('modal.assignError.message'),
+        false
+      )
+      return false
+    }
+    return true
+  }
+
   const getApplicationFilingHistory = async (applicationNumber: string): Promise<FilingHistoryEvent[]> => {
     try {
       return await $strrApi<FilingHistoryEvent[]>(`/applications/${applicationNumber}/events`, {
@@ -417,14 +434,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     identifier: string | number,
     isApplication: boolean
   ): Promise<void> => {
-    let endpoint
     try {
-      if (isApplication) {
-        endpoint = `/applications/${identifier}/str-address`
-      } else {
-        endpoint = `/registrations/${identifier}/str-address`
-      }
-
+      const endpoint = isApplication
+        ? `/applications/${identifier}/str-address`
+        : `/registrations/${identifier}/str-address`
       const resp = await $strrApi(endpoint, {
         method: 'PATCH',
         body: {
@@ -475,7 +488,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     startEditRentalUnitAddress,
     resetEditRentalUnitAddress,
     saveRentalUnitAddress,
-    setHasUnsavedRentalUnitChanges,
-    rentalUnitAddressSchema
+    rentalUnitAddressSchema,
+    verifyAssigneeOnAction
   }
 }, { persist: true }) // will persist data in session storage

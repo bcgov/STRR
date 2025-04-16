@@ -9,8 +9,7 @@ const {
   getNextApplication,
   getApplicationById,
   sendNoticeOfConsideration,
-  assignApplication,
-  resetEditRentalUnitAddress
+  assignApplication
 } = useExaminerStore()
 const { nocContent, nocFormRef, activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
 const confirmErrorModal = ref<ConfirmModal | null>(null)
@@ -25,9 +24,7 @@ definePageMeta({
 })
 
 const initialMount = ref(true) // flag for whether to fetch next or specific application on mount - true until initial application is loaded
-onMounted(() => {
-  resetEditRentalUnitAddress()
-})
+
 const { data: application, status, error, refresh } = await useLazyAsyncData<
   HousApplicationResponse | undefined, ApplicationError
 >(
