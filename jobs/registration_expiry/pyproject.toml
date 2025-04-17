@@ -3,7 +3,7 @@ name = "registration-expiry"
 version = "1.0.0"
 description = ""
 authors = []
-packages = [{include = "registration-expiry", from = "src"}]
+packages = [{include = "registration_expiry", from = "src"}]
 license = "BSD 3-Clause"
 readme = "README.md"
 

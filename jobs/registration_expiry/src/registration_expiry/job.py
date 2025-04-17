@@ -15,8 +15,9 @@
 from registration_expiry.utils.logging import setup_logging
 from registration_expiry.config import CONFIGURATION
 from strr_api.utils.date_util import DateUtil
-from strr_api.models.registrations import Registrations
+from strr_api.models.rental import Registration
 from strr_api.enums.enum import RegistrationStatus
+# from strr_api.models.application import Application
 import logging
 import os
 import traceback
@@ -25,7 +26,6 @@ from datetime import datetime
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
 from strr_api.models import db
-'''from strr_api.models.application import Application'''
 
 
 setup_logging(os.path.join(os.path.abspath(
@@ -56,8 +56,8 @@ def register_shellcontext(app):
 
 def update_status_for_registration_expired_applications(app):
     """Update the application status for the registration expired applications."""
-    rentals = Registrations.query.filter(
-        Registrations.status == RegistrationStatus.ACTIVE.value
+    rentals = Registration.query.filter(
+        Registration.status == RegistrationStatus.ACTIVE.value
     ).all()
     cut_off_datetime = DateUtil.as_legislation_timezone(
         datetime.now(datetime.timezone.utc))
@@ -70,7 +70,7 @@ def update_status_for_registration_expired_applications(app):
                 )
                 rental.status = RegistrationStatus.EXPIRED.value
                 rental.updated_date = cut_off_datetime
-                application.save()
+                rental.save()
         except Exception as err:  # pylint: disable=broad-except
             app.logger.error(f"Unexpected error: {str(err)}")
             app.logger.error(traceback.format_exc())
