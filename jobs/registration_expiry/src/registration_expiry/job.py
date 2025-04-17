@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """registration Expiry Job."""
+from registration_expiry.utils.logging import setup_logging
+from registration_expiry.config import CONFIGURATION
+from strr_api.utils.date_util import DateUtil
+from strr_api.models.registrations import Registrations
+from strr_api.enums.enum import RegistrationStatus
 import logging
 import os
 import traceback
@@ -20,11 +25,8 @@ from datetime import datetime
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
 from strr_api.models import db
-from strr_api.models.application import Application
-from strr_api.utils.date_util import DateUtil
+'''from strr_api.models.application import Application'''
 
-from registration_expiry.config import CONFIGURATION
-from registration_expiry.utils.logging import setup_logging
 
 setup_logging(os.path.join(os.path.abspath(
     os.path.dirname(__file__)), "logging.conf"))
@@ -52,20 +54,22 @@ def register_shellcontext(app):
     app.shell_context_processor(shell_context)
 
 
-def update_status_for_registration_expiry_applications(app):
+def update_status_for_registration_expired_applications(app):
     """Update the application status for the registration expired applications."""
-    applications = Application.query.filter(
-        Application.status == Application.Status.NOC_PENDING
+    rentals = Registrations.query.filter(
+        Registrations.status == RegistrationStatus.ACTIVE.value
     ).all()
-    cut_off_datetime = DateUtil.as_legislation_timezone(datetime.utcnow())
-    for application in applications:
+    cut_off_datetime = DateUtil.as_legislation_timezone(
+        datetime.now(datetime.timezone.utc))
+    for rental in rentals:
         try:
-            app.logger.info(f"Processing application # {str(application.id)}")
-            if application.noc.end_date < cut_off_datetime:
+            app.logger.info(f"Processing application # {str(rental.id)}")
+            if rental.expiry_date < cut_off_datetime:
                 app.logger.info(
-                    f"Updating status for application {str(application.id)}"
+                    f"Updating status for application {str(rental.id)}"
                 )
-                application.status = Application.Status.NOC_EXPIRED
+                rental.status = RegistrationStatus.EXPIRED.value
+                rental.updated_date = cut_off_datetime
                 application.save()
         except Exception as err:  # pylint: disable=broad-except
             app.logger.error(f"Unexpected error: {str(err)}")
@@ -78,6 +82,6 @@ def run():
         app = create_app()
         with app.app_context():
             app.logger.info("Starting registration expiry job")
-            update_status_for_noc_expired_applications(app)
+            update_status_for_registration_expired_applications(app)
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")
