@@ -111,7 +111,7 @@ def test_permit_details_mismatch(session, client, jwt):
             "address": {"streetNumber": "12165", "postalCode": "V2X 7N2"},
         }
         rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
-        assert rv.status_code == HTTPStatus.OK
+        assert rv.status_code == HTTPStatus.BAD_REQUEST
         response_json = rv.json
 
         assert len(response_json.get("errors")) == 2

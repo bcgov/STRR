@@ -58,7 +58,6 @@ class ValidationService:
         is present in the request, it will validated against the permit unit number."""
 
         response = {}
-        status_code = HTTPStatus.OK
 
         [valid, errors] = validate(request_json, "real_time_validation")
 
@@ -69,7 +68,7 @@ class ValidationService:
         else:
             registration = RegistrationService.find_by_registration_number(request_json.get("identifier"))
             if registration:
-                response = ValidationService.check_permit_details(request_json, registration)
+                response, status_code = ValidationService.check_permit_details(request_json, registration)
             else:
                 response["errors"] = [
                     {"code": ErrorMessage.PERMIT_NOT_FOUND.name, "message": ErrorMessage.PERMIT_NOT_FOUND.value}
@@ -83,6 +82,7 @@ class ValidationService:
     @classmethod
     def check_permit_details(cls, request_json: dict, registration: Registration):  # pylint: disable=R0912
         """Checks the data in the request against the permit details."""
+        status_code = HTTPStatus.OK
         response = copy.deepcopy(request_json)
         if registration.status != RegistrationStatus.ACTIVE:
             response["status"] = registration.status.name
@@ -146,10 +146,11 @@ class ValidationService:
 
         if errors:
             response["errors"] = errors
+            status_code = HTTPStatus.BAD_REQUEST
         else:
             response["status"] = registration.status.name
             response["validUntil"] = DateUtil.as_legislation_timezone(registration.expiry_date).strftime("%Y-%m-%d")
-        return response
+        return response, status_code
 
     @classmethod
     def _get_text_after_hyphen(cls, address_line):
