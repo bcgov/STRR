@@ -15,9 +15,12 @@ defineEmits<{
   done: []
 }>()
 
+const { kcUser } = useKeycloak()
 const ownerStore = useHostOwnerStore()
 
 const isCompParty = ref(owner.value.isCompParty)
+const isBCeid = ref(kcUser.value.loginSource === LoginSource.BCSC)
+
 watch(isCompParty, (val) => {
   // set owner isCompParty and update the name with user creds
   owner.value.isCompParty = val
@@ -56,14 +59,12 @@ watch(
             v-model="isCompParty"
             :disabled="owner.role === OwnerRole.CO_HOST"
             :ui="{ inner: '*:pl-0' }"
+            data-testid="completing-party-checkboxx"
           >
             <template #label>
               <p
-                :class="[
-                  owner.role === OwnerRole.CO_HOST
-                    ? 'cursor-not-allowed opacity-50'
-                    : '',
-                  'pl-3']"
+                :class="{'cursor-not-allowed opacity-50' : owner.role === OwnerRole.CO_HOST}"
+                class="pl-3"
               >
                 {{ $t('strr.text.completingPartyCheckbox') }}
               </p>
@@ -76,7 +77,7 @@ watch(
       :title="$t('strr.section.subTitle.individualName')"
       :error="showErrors && hasFormErrors(ownerFormRef, ['firstName', 'middleName', 'lastName'])"
     >
-      <div class="flex max-w-bcGovInput flex-col gap-3 sm:flex-row">
+      <div class="max-w-bcGovInput flex flex-col gap-3 sm:flex-row">
         <ConnectFormFieldGroup
           id="host-owner-first-name"
           v-model="owner.firstName"
@@ -85,7 +86,7 @@ watch(
           name="firstName"
           :placeholder="$t('label.firstName')"
           :is-required="true"
-          :is-disabled="isCompParty"
+          :is-disabled="isCompParty && isBCeid"
         />
         <ConnectFormFieldGroup
           id="host-owner-middle-name"
@@ -93,7 +94,7 @@ watch(
           :aria-label="$t('label.middleName')"
           name="middleName"
           :placeholder="$t('label.middleNameOpt')"
-          :is-disabled="isCompParty"
+          :is-disabled="isCompParty && isBCeid"
         />
         <ConnectFormFieldGroup
           id="host-owner-last-name"
@@ -103,7 +104,7 @@ watch(
           name="lastName"
           :placeholder="$t('label.lastName')"
           :is-required="true"
-          :is-disabled="isCompParty"
+          :is-disabled="isCompParty && isBCeid"
         />
       </div>
     </ConnectFormSection>
