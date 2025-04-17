@@ -100,9 +100,10 @@ class ValidationService:
                         "message": ErrorMessage.STREET_NUMBER_MISMATCH.value,
                     }
                 )
-            if address_json.get("postalCode", "").replace(
-                " ", ""
-            ) != registration.rental_property.address.postal_code.replace(" ", ""):
+            if (
+                address_json.get("postalCode", "").replace(" ", "").lower()
+                != registration.rental_property.address.postal_code.replace(" ", "").lower()
+            ):
                 errors.append(
                     {"code": ErrorMessage.POSTAL_CODE_MISMATCH.name, "message": ErrorMessage.POSTAL_CODE_MISMATCH.value}
                 )
@@ -121,17 +122,21 @@ class ValidationService:
             strata_hotel = registration.strata_hotel_registration.strata_hotel
             location = strata_hotel.location
 
-            if str(address_json.get("streetNumber")) == str(
-                cls._extract_street_number(cls._get_text_after_hyphen(location.street_address))
-            ) and address_json.get("postalCode", "").replace(" ", "") == location.postal_code.replace(" ", ""):
+            if (
+                str(address_json.get("streetNumber"))
+                == str(cls._extract_street_number(cls._get_text_after_hyphen(location.street_address)))
+                and address_json.get("postalCode", "").replace(" ", "").lower()
+                == location.postal_code.replace(" ", "").lower()
+            ):
                 match_found = True
 
             if not match_found:
                 for building in strata_hotel.buildings:
-                    if str(address_json.get("streetNumber")) == str(
-                        cls._extract_street_number(cls._get_text_after_hyphen(building.address.street_address))
-                    ) and address_json.get("postalCode", "").replace(" ", "") == building.address.postal_code.replace(
-                        " ", ""
+                    if (
+                        str(address_json.get("streetNumber"))
+                        == str(cls._extract_street_number(cls._get_text_after_hyphen(building.address.street_address)))
+                        and address_json.get("postalCode", "").replace(" ", "").lower()
+                        == building.address.postal_code.replace(" ", "").lower()
                     ):
                         match_found = True
                         break
