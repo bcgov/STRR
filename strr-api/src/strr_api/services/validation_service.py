@@ -86,7 +86,7 @@ class ValidationService:
         response = copy.deepcopy(request_json)
         if registration.status != RegistrationStatus.ACTIVE:
             response["status"] = registration.status.name
-            return response
+            return response, status_code
         errors = []
         address_json = request_json.get("address")
         if registration.registration_type == RegistrationType.HOST.value:
