@@ -193,6 +193,7 @@ def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK
         validation_cache = ValidationCache()
         permits = request_json.get("data")
         total_records = len(permits)
+        results = []
 
         logger.info(f"Loaded {total_records} records for processing.")
 
@@ -201,8 +202,6 @@ def process_records_in_parallel(request_json, request_file_key, chunk_size=CHUNK
             logger.info(
                 f"Processing chunk {idx // chunk_size + 1} ({len(chunk)} records)..."
             )
-
-            results = []
 
             result = process_chunk(chunk, validation_cache)
             results.extend(result)
