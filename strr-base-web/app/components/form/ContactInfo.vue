@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { Form } from '#ui/types'
 import { z } from 'zod'
+import type { Form } from '#ui/types'
 const { t } = useI18n()
+const { kcUser } = useKeycloak()
 
 const props = defineProps<{ isComplete: boolean }>()
 
@@ -25,6 +26,7 @@ type SecondaryRepSchema = z.output<typeof secondaryRepSchema>
 const compPartyFormRef = ref<Form<CompletingPartySchema>>()
 const primaryRepFormRef = ref<Form<PrimaryRepSchema>>()
 const secondaryRepFormRef = ref<Form<SecondaryRepSchema>>()
+const isLoggedInAsBCeid = kcUser.value.loginSource === LoginSource.BCEID
 
 const radioOptions = [
   { value: true, label: t('word.Yes') },
@@ -33,6 +35,11 @@ const radioOptions = [
 
 watch(isCompletingPartyRep, (val) => {
   primaryRep.value = getNewRepresentative(val)
+  if (isLoggedInAsBCeid && val) {
+    primaryRep.value.lastName = ''
+  } else if (isLoggedInAsBCeid && !val) {
+    completingParty.value.lastName = ''
+  }
 })
 
 onMounted(async () => {
@@ -91,12 +98,13 @@ onMounted(async () => {
         >
           <FormCommonContact
             v-model:first-name="completingParty.firstName"
+            v-model:middle-name="completingParty.middleName"
             v-model:last-name="completingParty.lastName"
             v-model:phone="completingParty.phone"
             v-model:email-address="completingParty.emailAddress"
             id-prefix="platform-completing-party"
             name-divider
-            prepopulate-name
+            :prepopulate-name="!isLoggedInAsBCeid"
             :prepopulate-type="$keycloak.tokenParsed?.loginSource"
             :error-details="hasFormErrors(compPartyFormRef, ['phone.countryCode', 'phone.number', 'email'])"
           />
@@ -120,13 +128,14 @@ onMounted(async () => {
             v-model:email-address="primaryRep.emailAddress"
             v-model:fax-number="primaryRep.faxNumber"
             v-model:position="primaryRep.position"
+            data-testid="primary-rep"
             id-prefix="platform-primary-rep"
             name-divider
-            :prepopulate-name="isCompletingPartyRep"
+            :prepopulate-name="isCompletingPartyRep && !isLoggedInAsBCeid"
             :prepopulate-type="$keycloak.tokenParsed?.loginSource"
             email-warning
             :section-info="isCompletingPartyRep ? undefined : $t('strr.text.primaryContact')"
-            :error-name="hasFormErrors(primaryRepFormRef, ['firstName', 'lastName'])"
+            :error-name="hasFormErrors(primaryRepFormRef, ['firstName', 'middleName', 'lastName'])"
             :error-details="
               hasFormErrors(primaryRepFormRef, ['position', 'phone.countryCode', 'phone.number', 'email'])
             "
