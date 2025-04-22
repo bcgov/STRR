@@ -19,11 +19,9 @@ depends_on = None
 def upgrade():
     with op.batch_alter_table('registrations', schema=None) as batch_op:
         batch_op.create_index('ix_registrations_registration_type', ['registration_type'])
-        batch_op.create_index('ix_registrations_registration_number', ['registration_number'], unique=True)
         batch_op.create_index('ix_registrations_status', ['status'])
 
 def downgrade():
     with op.batch_alter_table('registrations', schema=None) as batch_op:
         batch_op.drop_index('ix_registrations_status')
-        batch_op.drop_index('ix_registrations_registration_number')
         batch_op.drop_index('ix_registrations_registration_type')
