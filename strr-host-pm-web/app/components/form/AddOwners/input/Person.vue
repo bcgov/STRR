@@ -19,7 +19,7 @@ const { kcUser } = useKeycloak()
 const ownerStore = useHostOwnerStore()
 
 const isCompParty = ref(owner.value.isCompParty)
-const isBCeid = ref(kcUser.value.loginSource === LoginSource.BCSC)
+const isLoggedInAsBCeid = kcUser.value.loginSource === LoginSource.BCEID
 
 watch(isCompParty, (val) => {
   // set owner isCompParty and update the name with user creds
@@ -86,7 +86,7 @@ watch(
           name="firstName"
           :placeholder="$t('label.firstName')"
           :is-required="true"
-          :is-disabled="isCompParty && isBCeid"
+          :is-disabled="isCompParty && !isLoggedInAsBCeid"
         />
         <ConnectFormFieldGroup
           id="host-owner-middle-name"
@@ -94,7 +94,7 @@ watch(
           :aria-label="$t('label.middleName')"
           name="middleName"
           :placeholder="$t('label.middleNameOpt')"
-          :is-disabled="isCompParty && isBCeid"
+          :is-disabled="isCompParty && !isLoggedInAsBCeid"
         />
         <ConnectFormFieldGroup
           id="host-owner-last-name"
@@ -104,7 +104,7 @@ watch(
           name="lastName"
           :placeholder="$t('label.lastName')"
           :is-required="true"
-          :is-disabled="isCompParty && isBCeid"
+          :is-disabled="isCompParty && !isLoggedInAsBCeid"
         />
       </div>
     </ConnectFormSection>
