@@ -66,6 +66,7 @@ EMAIL_SUBJECT = {
     "HOST_PROVISIONAL_REVIEW": "Short-Term Rental Registration Provisionally Approved",
     "PLATFORM_AUTO_APPROVED": "Short-Term Rental Platform Registration Approved",
     "NOC": "Short-Term Rental Notice of Consideration",
+    "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
 }
 
 
