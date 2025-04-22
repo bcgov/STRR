@@ -1021,3 +1021,39 @@ def test_requirements_filter(session, client, jwt):
     applications = response_json["applications"]
     for application in applications:
         assert application["registration"]["strataHotelDetails"]["category"] == "MULTI_UNIT_NON_PR"
+
+
+@patch("strr_api.services.strr_pay.create_invoice")
+@patch("strr_api.services.email_service.EmailService.send_notice_of_consideration_for_application")
+def test_send_notice_of_consideration_for_provisional_review(mock_noc, mock_invoice, session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        mock_invoice.return_value = MOCK_INVOICE_RESPONSE
+        mock_noc.return_value = {}
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.PROVISIONAL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"content": "Test"}
+        rv = client.post(
+            f"/applications/{application_number}/notice-of-consideration",
+            json=status_update_request,
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
+        assert response_json.get("header").get("hostStatus") == "Notice of Consideration - Pending"
+        assert response_json.get("header").get("examinerStatus") == "Notice of Consideration - Pending"
+        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT"]
+        assert response_json.get("header").get("hostActions") == []
+        assert response_json.get("header").get("nocStartDate") is not None
+        assert response_json.get("header").get("nocEndDate") is not None

@@ -295,7 +295,11 @@ class ApplicationService:
         days = current_app.config.get("NOC_EXPIRY_DAYS", 8)
         notice_of_consideration.end_date = notice_of_consideration.start_date + timedelta(days=int(days))
         notice_of_consideration.save()
-        application.status = Application.Status.NOC_PENDING
+        application.status = (
+            Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
+            if application.status == Application.Status.PROVISIONAL_REVIEW
+            else Application.Status.NOC_PENDING
+        )
         application.save()
         EmailService.send_notice_of_consideration_for_application(application)
         reviewer_id = reviewer.id if reviewer else None

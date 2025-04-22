@@ -77,6 +77,8 @@ class Application(BaseModel):
         PROVISIONAL = auto()  # pylint: disable=invalid-name
         NOC_PENDING = auto()  # pylint: disable=invalid-name
         NOC_EXPIRED = auto()  # pylint: disable=invalid-name
+        PROVISIONAL_REVIEW_NOC_PENDING = auto()  # pylint: disable=invalid-name
+        PROVISIONAL_REVIEW_NOC_EXPIRED = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "application"
 
@@ -424,6 +426,8 @@ class ApplicationSerializer:
         Application.Status.DECLINED: "Declined",
         Application.Status.NOC_PENDING: "Notice of Consideration - Pending",
         Application.Status.NOC_EXPIRED: "Notice of Consideration - Expired",
+        Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: "Notice of Consideration - Pending",
+        Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: "Notice of Consideration - Expired",
     }
 
     HOST_ACTIONS = {Application.Status.PAYMENT_DUE: ["SUBMIT_PAYMENT"]}
@@ -440,6 +444,8 @@ class ApplicationSerializer:
         Application.Status.DECLINED: "Declined",
         Application.Status.NOC_PENDING: "Notice of Consideration - Pending",
         Application.Status.NOC_EXPIRED: "Notice of Consideration - Expired",
+        Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: "Notice of Consideration - Pending",
+        Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: "Notice of Consideration - Expired",
     }
 
     EXAMINER_ACTIONS = {
@@ -447,6 +453,9 @@ class ApplicationSerializer:
         Application.Status.FULL_REVIEW: ["APPROVE", "SEND_NOC"],
         Application.Status.NOC_PENDING: ["APPROVE", "REJECT"],
         Application.Status.NOC_EXPIRED: ["APPROVE", "REJECT"],
+        Application.Status.PROVISIONAL_REVIEW: ["APPROVE", "SEND_NOC"],
+        Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: ["APPROVE", "REJECT"],
+        Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: ["APPROVE", "REJECT"],
     }
 
     @staticmethod

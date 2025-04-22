@@ -90,7 +90,9 @@ class EmailService:
                     message_type=EMAIL_TYPE,
                     payload={
                         "applicationNumber": application.application_number,
-                        "emailType": "NOC",
+                        "emailType": "PROVISIONAL_REVIEW_NOC"
+                        if application.status == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
+                        else "NOC",
                     },
                     topic=current_app.config.get("GCP_EMAIL_TOPIC"),
                 )
