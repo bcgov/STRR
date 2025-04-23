@@ -21,7 +21,7 @@ from strr_api.enums.enum import RegistrationStatus
 import logging
 import os
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
@@ -60,7 +60,7 @@ def update_status_for_registration_expired_applications(app):
         Registration.status == RegistrationStatus.ACTIVE.value
     ).all()
     cut_off_datetime = DateUtil.as_legislation_timezone(
-        datetime.now(datetime.timezone.utc))
+            datetime.now(timezone.utc))
     for rental in rentals:
         try:
             app.logger.info(f"Processing application # {str(rental.id)}")
