@@ -4,6 +4,7 @@ import type { Contact, StrrContact } from '#imports'
 
 export const useStrrContactStore = defineStore('strr/contact', () => {
   const { t } = useI18n()
+  const { kcUser } = useKeycloak()
   const getContactSchema = (completingParty = false) => {
     return z.object({
       firstName: optionalOrEmptyString,
@@ -17,7 +18,6 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
   }
 
   const getNewContact = (isActiveUser = false): Contact => {
-    const { kcUser } = useKeycloak()
     return {
       firstName: isActiveUser ? kcUser.value.firstName : '',
       middleName: '',
@@ -52,6 +52,13 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
     if (val && isCompletingPartyRep.value) {
       completingParty.value.emailAddress = val?.emailAddress
       completingParty.value.phone = val?.phone
+
+      // for BCeID users we need to copy the names over from primary rep to completing party
+      if (kcUser.value.loginSource === LoginSource.BCEID) {
+        completingParty.value.firstName = val.firstName
+        completingParty.value.middleName = val.middleName
+        completingParty.value.lastName = val.lastName
+      }
     }
   }, { deep: true })
 

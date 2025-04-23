@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { Form } from '#ui/types'
+const { kcUser } = useKeycloak()
 
 const { t } = useI18n()
 const tPlatReview = (path: string) => t(`strr.review.${path}`)
@@ -46,6 +47,13 @@ onMounted(async () => {
   const validationResults = await Promise.all(validations)
   sectionErrors.value = validationResults.flatMap(result => result as MultiFormValidationResult)
 })
+
+// for BCeID use entered completingParty info, for BCSC use account info as per usual
+const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
+  ? `${platContactStore.completingParty?.firstName || '-'} ` +
+  `${platContactStore.completingParty?.middleName || ''}` + ` ${platContactStore.completingParty?.lastName || ''}`
+  : accountStore.userFullName
+
 </script>
 <template>
   <div class="space-y-10" data-testid="platform-review-confirm">
@@ -63,7 +71,7 @@ onMounted(async () => {
         :items="[
           {
             title: $t('label.contactName'),
-            content: accountStore.userFullName
+            content: completingPartyFullName
           },
           {
             title: $t('label.phone.number'),

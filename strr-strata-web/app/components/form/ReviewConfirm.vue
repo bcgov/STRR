@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Form } from '#ui/types'
 import { z } from 'zod'
+import type { Form } from '#ui/types'
+const { kcUser } = useKeycloak()
 
 const accountStore = useConnectAccountStore()
 const contactStore = useStrrContactStore()
@@ -45,6 +46,13 @@ onMounted(async () => {
   const validationResults = await Promise.all(validations)
   sectionErrors.value = validationResults.flatMap(result => result as MultiFormValidationResult)
 })
+
+// for BCeID use entered completingParty info, for BCSC use account info as per usual
+const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
+  ? `${contactStore.completingParty?.firstName || '-'} ` +
+  `${contactStore.completingParty?.middleName || ''}` + ` ${contactStore.completingParty?.lastName || ''}`
+  : accountStore.userFullName
+
 </script>
 <template>
   <div class="space-y-10" data-testid="strata-review-confirm">
@@ -63,7 +71,7 @@ onMounted(async () => {
           {
             title: $t('label.contactName'),
             titleClass: 'font-bold text-bcGovGray-900',
-            content: accountStore.userFullName
+            content: completingPartyFullName
           },
           {
             title: $t('label.phone.number'),
