@@ -387,7 +387,7 @@ export default {
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
-    docUpload: 'File must be a PDF. Maximum 10 MB.',
+    docUpload: 'File must be a PDF, jpeg, or jpg. Maximum 10 MB.',
     autocomplete: 'For example: 123 - 456 Street Name Victoria BC  V8V 2V2'
   },
   page: {
