@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Form } from '#ui/types'
 import { z } from 'zod'
+import type { Form } from '#ui/types'
 
 const rtc = useRuntimeConfig().public
 const strataModal = useStrataModals()
@@ -268,7 +268,7 @@ onMounted(async () => {
                 <DocumentUploadButton
                   id="supporting-documents"
                   :label="$t('label.chooseDocsOpt')"
-                  accept="application/pdf"
+                  accept="application/pdf,image/jpeg"
                   :is-required="false"
                   :is-invalid="isComplete && hasFormErrors(documentFormRef, ['documents'])"
                   help-id="supporting-documents-help"
