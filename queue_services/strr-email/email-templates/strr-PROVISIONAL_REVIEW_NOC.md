@@ -27,10 +27,10 @@ It appears your provisional registration may not meet all the registration requi
 
 Please **log in** to your [Short Term Rental Registry Dashboard](https://host.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) to **upload your documents and submissions** before the due date.
 
-If you need help uploading your documents or have any questions, please contact [Registry.STR@gov.bc.ca](mailto:Registry.STR@gov.bc.ca).
+If you need help uploading your documents or have any questions, please contact [Registry.STR@gov.bc.ca](mailto:Registry.STR@gov.bc.ca)
 
 ---
-# Important Deadlines
+# Important Deadline
 **Submission Deadline: {{noc_expiry_date}} 12:01 am Pacific time.**
 
 You have an opportunity to be heard. Please provide the required information or documents by the deadline noted above. If we do not receive the necessary information by the deadline, your provisional registration **may be cancelled** without further notice*.
@@ -42,6 +42,5 @@ Please be aware that we may not reach a final decision until after the deadline 
 
 ---
 
-**Short-Term Rental Branch**  
-Housing and Land Use Policy Division  
+**Short-Term Rental Branch**
 Ministry of Housing and Municipal Affairs
