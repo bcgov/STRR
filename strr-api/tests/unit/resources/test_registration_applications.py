@@ -1053,7 +1053,7 @@ def test_send_notice_of_consideration_for_provisional_review(mock_noc, mock_invo
         assert response_json.get("header").get("status") == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
         assert response_json.get("header").get("hostStatus") == "Notice of Consideration - Pending"
         assert response_json.get("header").get("examinerStatus") == "Notice of Consideration - Pending"
-        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT"]
+        assert response_json.get("header").get("examinerActions") == ["PROVISIONAL_APPROVE", "REJECT"]
         assert response_json.get("header").get("hostActions") == []
         assert response_json.get("header").get("nocStartDate") is not None
         assert response_json.get("header").get("nocEndDate") is not None
