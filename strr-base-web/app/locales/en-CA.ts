@@ -125,7 +125,7 @@ export default {
       },
       fileType: {
         title: 'Invalid File Type',
-        description: 'Only PDF files are supported. Please upload a PDF document.'
+        description: 'Only PDF, jpeg, or jpg files are supported. Please upload a PDF, jpeg, or jpg.'
       },
       generic: {
         title: 'Error Uploading Document',

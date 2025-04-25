@@ -183,7 +183,7 @@ export default {
     STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation'
   },
   hint: {
-    docUpload: 'File must be a PDF. Maximum 10 MB.'
+    docUpload: 'File must be a PDF, jpeg, or jpg. Maximum 10 MB.'
   },
   ConnectFeeWidget: {
     feeSummary: {
