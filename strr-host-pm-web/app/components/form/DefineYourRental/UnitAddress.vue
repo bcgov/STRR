@@ -185,12 +185,16 @@ onMounted(async () => {
                   :use-location-desc-label="true"
                 />
               </div>
-              <div class="flex divide-x">
+              <div
+                v-if="!isRegistrationRenewal"
+                class="flex divide-x"
+              >
                 <UButton
                   :label="$t('word.Edit')"
                   color="primary"
                   icon="i-mdi-pencil"
                   variant="link"
+                  data-testid="edit-unit-address-btn"
                   @click="hostModal.openConfirmRestartApplicationModal(true)"
                 />
                 <UPopover :popper="{ placement: 'bottom-end' }">
