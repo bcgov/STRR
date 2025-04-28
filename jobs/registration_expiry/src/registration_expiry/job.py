@@ -55,21 +55,28 @@ def register_shellcontext(app):
 
 
 def update_status_for_registration_expired_applications(app):
-    """Update the application status for the registration expired applications."""
+    """getting the date in the same format as the db"""
+    now = DateUtil.as_legislation_timezone(datetime.now(timezone.utc))
+    cut_off_datetime = now.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    """Update the registration status for the expired applications."""
     rentals = Registration.query.filter(
-        Registration.status == RegistrationStatus.ACTIVE.value
+        Registration.status != RegistrationStatus.EXPIRED.value
     ).all()
-    cut_off_datetime = DateUtil.as_legislation_timezone(
-            datetime.now(timezone.utc))
+
     for rental in rentals:
         try:
-            app.logger.info(f"Processing application # {str(rental.id)}")
-            if rental.expiry_date < cut_off_datetime:
+            app.logger.info(f"Processing registration # {str(rental.id)}")
+            db_date = datetime.strptime(
+                str(rental.expiry_date), "%Y-%m-%d %H:%M:%S")
+            current_date = datetime.strptime(
+                cut_off_datetime, "%Y-%m-%dT%H:%M:%SZ")
+
+            if db_date < current_date:
                 app.logger.info(
-                    f"Updating status for application {str(rental.id)}"
+                    f"Updating status for registration {str(rental.id)}"
                 )
                 rental.status = RegistrationStatus.EXPIRED.value
-                rental.updated_date = cut_off_datetime
                 rental.save()
         except Exception as err:  # pylint: disable=broad-except
             app.logger.error(f"Unexpected error: {str(err)}")
