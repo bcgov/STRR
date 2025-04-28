@@ -287,7 +287,8 @@ watch([activeStepIndex, permitStore.isRegistrationRenewal], () => {
 // remove unnecessary docs when/if exemption options change
 watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
   // only execute if unit details form shown - (application has been started)
-  if (showUnitDetailsForm.value) {
+  // and is not in registration renewal flow
+  if (showUnitDetailsForm.value && (!permitStore.isRegistrationRenewal && !loading.value)) {
     // remove all permanent residence proof docs when user select exemption reason
     const docsToDelete = [...documentsStore.prDocs]
 

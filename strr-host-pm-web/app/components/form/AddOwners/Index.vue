@@ -87,6 +87,7 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
         icon="i-mdi-account-plus"
         variant="outline"
         :disabled="disableButtons || (hasHost && hasCoHost)"
+        data-testid="add-person-owner-btn"
         @click="addingNewType = OwnerType.INDIVIDUAL"
       />
       <UButton
@@ -96,6 +97,7 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
         icon="i-mdi-domain-plus"
         variant="outline"
         :disabled="disableButtons || (hasHost && hasPropertyManager)"
+        data-testid="add-business-owner-btn"
         @click="addingNewType = OwnerType.BUSINESS"
       />
     </div>

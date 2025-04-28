@@ -17,7 +17,9 @@ export default {
     propertyTypeReqUnitNumber: { // camelcase prop (propertytype) not working with ConnectI18nHelper component
       always: '{boldStart}Important:{boldEnd} {propertytype} requires a unit number as part of the Rental Unit Residential Address above. If you do not include a unit number, your registration {boldStart}may be declined{boldEnd}.',
       maybe: '{boldStart}Important:{boldEnd} If your {propertytype} includes a unit number, make sure to enter it as part of the Rental Unit Residential Address above. You may submit your application without a unit number if none exists.'
-    }
+    },
+    renewalEditPerson: '{boldStart}Note:{boldEnd} If you wish to change any of the following information about the Property Host, you must submit a new short-term rental application instead of this renewal application.{newLine}{newLine}- Full Name{newLine}- Canada Revenue Agency (CRA) Tax Number{newLine}- Residential Address',
+    renewalEditBusiness: '{boldStart}Note:{boldEnd} If you wish to change the Business Legal Name of the Property Host, you must submit a new short-term rental application instead of this renewal application.'
   },
   certify: {
     1: '{terms} I agree to comply with the {link} of registration.',
@@ -106,7 +108,7 @@ export default {
       subTitle: {
         birthdate: 'Birthdate',
         businessName: 'Business Legal Name',
-        completingParty: 'Person completing form',
+        completingParty: 'Person Completing the Form',
         craBusinessNumber: 'Canada Revenue Agency (CRA) Business Number',
         craTaxNum: 'Canada Revenue Agency (CRA) Tax Number',
         emailAddress: 'Email Address',
@@ -167,7 +169,7 @@ export default {
       other: 'Other',
       remove: 'Remove',
       unnamed: 'Unnamed',
-      completingParty: 'Person completing form',
+      completingParty: 'Person Completing the Form',
       added: 'ADDED'
     },
     text: {

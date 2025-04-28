@@ -14,10 +14,35 @@ defineEmits<{
   cancel: [],
   done: []
 }>()
+
+const { activeOwnerEditIndex } = storeToRefs(useHostOwnerStore())
+const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
+
+// used for disabling fields when Renewal Registration and in Edit mode
+const isRenewalEditActive = computed((): boolean => (activeOwnerEditIndex.value !== -1) && isRegistrationRenewal?.value)
+
 </script>
 
 <template>
   <div class="space-y-8" data-testid="host-owner-business">
+    <UAlert
+      v-if="isRenewalEditActive"
+      color="yellow"
+      class="mx-10 w-auto"
+      icon="i-mdi-alert"
+      :close-button="null"
+      variant="subtle"
+      :ui="{
+        inner: 'pt-0',
+        icon: {
+          base: 'flex-shrink-0 w-5 h-5 self-start'
+        }
+      }"
+    >
+      <template #title>
+        <ConnectI18nHelper translation-path="alert.renewalEditBusiness" />
+      </template>
+    </UAlert>
     <ConnectFormSection
       :title="$t('strr.section.subTitle.businessName')"
       :error="showErrors && hasFormErrors(ownerFormRef, ['businessLegalName'])"
@@ -30,6 +55,7 @@ defineEmits<{
         name="businessLegalName"
         :placeholder="$t('label.busNameLegal')"
         :is-required="true"
+        :is-disabled="isRenewalEditActive"
       />
     </ConnectFormSection>
     <ConnectFormSection
@@ -42,6 +68,7 @@ defineEmits<{
         :is-comp-party="owner.isCompParty"
         :show-error="showErrors"
         :owner-type="owner.ownerType"
+        :is-disabled="isRenewalEditActive"
       />
     </ConnectFormSection>
     <div v-if="!!owner.role" class="space-y-8">

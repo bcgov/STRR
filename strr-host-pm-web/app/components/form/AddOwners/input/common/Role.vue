@@ -4,7 +4,8 @@ const role = defineModel<OwnerRole>()
 const props = defineProps<{
   ownerType: OwnerType,
   isCompParty: boolean,
-  showError: boolean
+  showError: boolean,
+  isDisabled?: boolean // disable Role selection (eg. Reg Renewals)
 }>()
 
 const { t } = useI18n()
@@ -40,6 +41,7 @@ const radioOptions = computed(() => [
       class="p-2"
       :class="showError && role === undefined ? 'border-red-600 border-2' : ''"
       :options="radioOptions"
+      :disabled="props.isDisabled"
       :ui="{ fieldset: 'flex grow' }"
       :ui-radio="{ wrapper: 'grow justify-start -ml-2 space-x-0', label: 'pl-0' }"
     >
@@ -47,7 +49,7 @@ const radioOptions = computed(() => [
         <span class="sr-only">{{ $t('validation.required') }}</span>
       </template>
       <template #label="{ option }">
-        <p :class="[option.disabled ? 'cursor-not-allowed opacity-50' : '', 'pl-3']">
+        <p :class="[(option.disabled || props.isDisabled) ? 'cursor-not-allowed opacity-50' : '', 'pl-3']">
           {{ option.label }}
         </p>
       </template>

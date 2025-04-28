@@ -26,7 +26,8 @@
         "prose-bcGov",
         "list-alpha",
         "list-upperAlpha",
-        "max-w-bcGovInput"
+        "max-w-bcGovInput",
+        "disabled-input"
       ]
     }],
     "no-use-before-define": "off"

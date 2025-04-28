@@ -4,6 +4,7 @@ const props = defineProps<{ editable?: boolean, disableActions?: boolean }>()
 const { t } = useI18n()
 const ownerStore = useHostOwnerStore()
 const { activeOwner, activeOwnerEditIndex, hostOwners } = storeToRefs(ownerStore)
+const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
 
 const columns = [
   { key: 'name', label: t('label.individualOrBusiness') },
@@ -167,9 +168,13 @@ const getPhoneNumber = (phone: ConnectPhone) => {
           color="primary"
           icon="i-mdi-pencil"
           variant="link"
+          data-testid="edit-owner-btn"
           @click="expandAtIndex(index)"
         />
-        <UPopover :popper="{ placement: 'bottom-end' }">
+        <UPopover
+          v-if="!isRegistrationRenewal"
+          :popper="{ placement: 'bottom-end' }"
+        >
           <UButton
             icon="i-mdi-menu-down"
             :aria-label="$t('text.showMoreOptions')"

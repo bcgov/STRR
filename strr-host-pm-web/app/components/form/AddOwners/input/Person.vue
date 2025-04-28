@@ -28,7 +28,11 @@ watch(isCompParty, (val) => {
   ownerFormRef.value?.clear('firstName')
 })
 
-const { isCraNumberOptional } = storeToRefs(ownerStore)
+const { isCraNumberOptional, activeOwnerEditIndex } = storeToRefs(ownerStore)
+const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
+
+// used for disabling fields when Renewal Registration and in Edit mode
+const isRenewalEditActive = computed((): boolean => (activeOwnerEditIndex.value !== -1) && isRegistrationRenewal?.value)
 
 watch(
   () => isCraNumberOptional.value,
@@ -44,10 +48,45 @@ watch(
   }
 )
 
+// address input fields to be disabled for Registration Renewals
+const renewalDisabledFields: AddressField[] = [
+  'country',
+  'street',
+  'streetName',
+  'streetNumber',
+  'unitNumber',
+  'streetAdditional',
+  'city',
+  'region',
+  'postalCode',
+  'locationDescription'
+]
+
 </script>
 
 <template>
   <div class="space-y-8" data-testid="host-owner-individual">
+    <UAlert
+      v-if="isRenewalEditActive"
+      color="yellow"
+      class="mx-10 w-auto"
+      icon="i-mdi-alert"
+      :close-button="null"
+      variant="subtle"
+      :ui="{
+        inner: 'pt-0',
+        icon: {
+          base: 'flex-shrink-0 w-5 h-5 self-start'
+        }
+      }"
+    >
+      <template #title>
+        <ConnectI18nHelper
+          translation-path="alert.renewalEditPerson"
+          v-bind="{ newLine: '<br/>' }"
+        />
+      </template>
+    </UAlert>
     <ConnectFormSection
       :title="$t('strr.section.subTitle.completingParty')"
     >
@@ -57,13 +96,13 @@ watch(
           <!-- TODO: move checkbox to base/connect -->
           <UCheckbox
             v-model="isCompParty"
-            :disabled="owner.role === OwnerRole.CO_HOST"
+            :disabled="(owner.role === OwnerRole.CO_HOST) || isRenewalEditActive"
             :ui="{ inner: '*:pl-0' }"
-            data-testid="completing-party-checkboxx"
+            data-testid="completing-party-checkbox"
           >
             <template #label>
               <p
-                :class="{'cursor-not-allowed opacity-50' : owner.role === OwnerRole.CO_HOST}"
+                :class="{'cursor-not-allowed opacity-50' : (owner.role === OwnerRole.CO_HOST) || isRenewalEditActive}"
                 class="pl-3"
               >
                 {{ $t('strr.text.completingPartyCheckbox') }}
@@ -77,34 +116,37 @@ watch(
       :title="$t('strr.section.subTitle.individualName')"
       :error="showErrors && hasFormErrors(ownerFormRef, ['firstName', 'middleName', 'lastName'])"
     >
-      <div class="flex max-w-bcGovInput flex-col gap-3 sm:flex-row">
+      <div class="max-w-bcGovInput flex flex-col gap-3 sm:flex-row">
         <ConnectFormFieldGroup
           id="host-owner-first-name"
           v-model="owner.firstName"
           class="grow"
+          :class="{ 'disabled-input': isRenewalEditActive }"
           :aria-label="$t('label.firstName')"
           name="firstName"
           :placeholder="$t('label.firstName')"
           :is-required="true"
-          :is-disabled="isCompParty && !isLoggedInAsBCeid"
+          :is-disabled="(isCompParty && !isLoggedInAsBCeid) || isRenewalEditActive"
         />
         <ConnectFormFieldGroup
           id="host-owner-middle-name"
           v-model="owner.middleName"
+          :class="{ 'disabled-input': isRenewalEditActive }"
           :aria-label="$t('label.middleName')"
           name="middleName"
           :placeholder="$t('label.middleNameOpt')"
-          :is-disabled="isCompParty && !isLoggedInAsBCeid"
+          :is-disabled="(isCompParty && !isLoggedInAsBCeid) || isRenewalEditActive"
         />
         <ConnectFormFieldGroup
           id="host-owner-last-name"
           v-model="owner.lastName"
           class="grow"
+          :class="{ 'disabled-input': isRenewalEditActive }"
           :aria-label="$t('label.lastName')"
           name="lastName"
           :placeholder="$t('label.lastName')"
           :is-required="true"
-          :is-disabled="isCompParty && !isLoggedInAsBCeid"
+          :is-disabled="(isCompParty && !isLoggedInAsBCeid) || isRenewalEditActive"
         />
       </div>
     </ConnectFormSection>
@@ -131,6 +173,7 @@ watch(
         :is-comp-party="owner.isCompParty"
         :show-error="showErrors"
         :owner-type="owner.ownerType"
+        :is-disabled="isRenewalEditActive"
       />
     </ConnectFormSection>
     <div v-if="!!owner.role" class="space-y-8">
@@ -159,6 +202,8 @@ watch(
           id="host-owner-taxNumber"
           v-model="owner.taxNumber"
           name="taxNumber"
+          :is-disabled="isRenewalEditActive"
+          :class="{ 'disabled-input': isRenewalEditActive }"
           :placeholder="$t('label.craTaxNumber')"
           :help="$t('strr.hint.craTaxNumber')"
           mask="### ### ###"
@@ -168,6 +213,8 @@ watch(
             v-model="isCraNumberOptional"
             label="This individual does not have a CRA Tax Number"
             class="mt-6"
+            :class="{ 'cursor-not-allowed opacity-50': isRenewalEditActive }"
+            :disabled="isRenewalEditActive"
           />
         </UFormGroup>
       </ConnectFormSection>
@@ -194,11 +241,13 @@ watch(
           v-model:postal-code="owner.mailingAddress.postalCode"
           v-model:location-description="owner.mailingAddress.locationDescription"
           class="max-w-bcGovInput"
+          :class="{ 'disabled-input': isRenewalEditActive }"
           :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
           :schema-prefix="'mailingAddress.'"
           :form-ref="ownerFormRef"
           hide-street-hint
           :location-desc-label="owner.role === OwnerRole.HOST"
+          :disabled-fields="isRenewalEditActive ? renewalDisabledFields : []"
         />
       </ConnectFormSection>
       <ConnectFormSection
@@ -252,3 +301,15 @@ watch(
     </ConnectFormSection>
   </div>
 </template>
+<style lang="scss">
+.disabled-input {
+  input {
+    border-bottom: 1px dotted #495057;
+  }
+
+  // used to disable select dropdown
+  button {
+    border-bottom: 1px dotted #495057;
+  }
+}
+</style>
