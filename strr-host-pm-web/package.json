@@ -47,7 +47,7 @@
     "@daxiom/nuxt-core-layer-test": "^0.0.24",
     "country-codes-list": "^1.6.11",
     "lodash.uniqby": "^4.7.0",
-    "nuxt": "^3.15.0",
+    "nuxt": "3.15.4",
     "uuid": "^11.0.3",
     "vue-country-flag-next": "^2.3.2"
   }
