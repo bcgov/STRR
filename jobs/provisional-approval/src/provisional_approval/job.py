@@ -22,6 +22,7 @@ from strr_api.models.events import Events
 from strr_api.models.rental import Registration
 from strr_api.services import ApprovalService
 from structured_logging import StructuredLogging
+from enum import Enum
 
 from provisional_approval.config import CONFIGURATION
 
@@ -53,6 +54,8 @@ def get_applications_in_full_review_status(app):
         Application.query.filter(
             Application.status == Application.Status.FULL_REVIEW,
             Application.registration_type == Registration.RegistrationType.HOST,
+            # StrrRequirement.PR_EXEMPT_FRACTIONAL_OWNERSHIP.value
+            # Application.registration.has("prExemptionType" != "FRACTIONAL_OWNERSHIP")
         )
         .order_by(Application.id)
         .limit(int(app.config.get("BATCH_SIZE")))

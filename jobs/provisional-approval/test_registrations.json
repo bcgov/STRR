@@ -21,11 +21,12 @@
       "lastname": "Doe"
     }
   ],
-  "applications": [
+  "application": [
     {
       "id": 1,
       "application_json": {
         "registration": {
+          "prExemptionType": "FRACTIONAL_OWNERSHIP",
           "unitAddress": {
             "city": "Richmond",
             "address": "15-3511 Granville Ave",
@@ -93,8 +94,83 @@
       "payment_account": 123,
       "registration_id": 123,
       "submitter_id": 1,
-      "application_tsv": "'-02':52 '-10':35 '-19':53 '-31':36 '-3511':4 '-999':28,29 '/your_listing123':40 '1239':58 '15':3 '1965':51 '1c8':16 '2025':34 '5k7':67 '6048313629':47 '999':27,69,70,71 'anoth':21 'ave':6 'bc':13,64 'bc123456':25 'bcregtest':44 'ca':8,62 'communiti':78 'delbert':45 'entir':31 'exempt':77 'granvill':5 'hillgrov':59 'home':32 'host':73 'locat':75 'n/a':80 'north':55 'pid':10 'richmond':1 'road':60 'roland.stens@gmail.com':49 'saanich':56 'secondari':18 'suit':19 'test':11 'twentyf':42 'unit':22 'v7c':15 'v8l':66 'www.airbnb.ca':39 'www.airbnb.ca/your_listing123':38",
       "application_number": 123123123,
+      "created": "2024-11-02T00:05:19.205484Z",
+      "registration_type": "HOST"
+    },
+    {
+      "id": 2,
+      "application_json": {
+        "registration": {
+          "prExemptionType": "FARM_LAND",
+          "unitAddress": {
+            "city": "Richmond",
+            "address": "15-3511 Granville Ave",
+            "country": "CA",
+            "nickname": "PID Test",
+            "province": "BC",
+            "postalCode": "V7C 1C8",
+            "addressLineTwo": ""
+          },
+          "unitDetails": {
+            "propertyType": "SECONDARY_SUITE",
+            "hostResidence": "ANOTHER_UNIT",
+            "ownershipType": "OWN",
+            "businessLicense": "BC123456",
+            "parcelIdentifier": "999-999-999",
+            "rentalUnitSpaceType": "ENTIRE_HOME",
+            "numberOfRoomsForRent": 4,
+            "businessLicenseExpiryDate": "2025-10-31",
+            "isUnitOnPrincipalResidenceProperty": true
+          },
+          "listingDetails": [
+            {
+              "url": "https://www.airbnb.ca/your_listing123"
+            }
+          ],
+          "primaryContact": {
+            "name": {
+              "lastName": "TWENTYFIVE",
+              "firstName": "BCREGTEST Delbert"
+            },
+            "details": {
+              "extension": "",
+              "faxNumber": "",
+              "phoneNumber": "6048313629",
+              "emailAddress": "roland.stens@gmail.com",
+              "preferredName": ""
+            },
+            "dateOfBirth": "1965-02-19",
+            "businessNumber": "",
+            "mailingAddress": {
+              "city": "North Saanich",
+              "address": "1239 Hillgrove Road",
+              "country": "CA",
+              "province": "BC",
+              "postalCode": "V8L 5K7"
+            },
+            "socialInsuranceNumber": "999 999 999"
+          },
+          "registrationType": "HOST",
+          "principalResidence": {
+            "agreedToSubmit": true,
+            "agreedToRentalAct": false,
+            "nonPrincipalOption": "Located in exempt community",
+            "isPrincipalResidence": false,
+            "specifiedServiceProvider": "n/a"
+          }
+        }
+      },
+      "application_date": "2024-11-02T00:05:19.189058Z",
+      "type": "registration",
+      "status": "FULL_REVIEW",
+      "invoice_id": 123,
+      "payment_status_code": "COMPLETED",
+      "payment_completion_date": "2024-11-02T00:06:06.234004Z",
+      "payment_account": 123,
+      "registration_id": 123,
+      "submitter_id": 1,
+      "application_number": 123456789,
       "created": "2024-11-02T00:05:19.205484Z",
       "registration_type": "HOST"
     }
