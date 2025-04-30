@@ -104,7 +104,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     ApplicationStatus.AUTO_APPROVED,
     ApplicationStatus.FULL_REVIEW_APPROVED,
     ApplicationStatus.NOC_PENDING,
-    ApplicationStatus.NOC_EXPIRED
+    ApplicationStatus.NOC_EXPIRED,
+    ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+    ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
   ]
   const defaultRegistrationStatuses = [
     RegistrationStatus.ACTIVE,

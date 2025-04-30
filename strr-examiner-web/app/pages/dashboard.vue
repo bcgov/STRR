@@ -272,11 +272,12 @@ const sort = ref<TableSort>({ column: 'submissionDate', direction: 'asc' as cons
 
 async function handleRowSelect (row: any) {
   status.value = 'pending'
-  if (row.registrationNumber) {
-    await navigateTo(localePath(`${RoutesE.REGISTRATION}/${row.registrationId}`))
-  } else {
-    await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
-  }
+  await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
+}
+
+async function goToRegistration (registrationId: string) {
+  status.value = 'pending'
+  await navigateTo(localePath(`${RoutesE.REGISTRATION}/${registrationId}`))
 }
 
 function handleColumnSort (column: string) {
@@ -509,8 +510,10 @@ function handleColumnSort (column: string) {
               { label: 'Declined', value: ApplicationStatus.DECLINED },
               { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
               { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
-              { label: 'Notice of Consideration - Pending', value: ApplicationStatus.NOC_PENDING },
-              { label: 'Notice of Consideration - Expired', value: ApplicationStatus.NOC_EXPIRED },
+              { label: 'NOC - Pending', value: ApplicationStatus.NOC_PENDING },
+              { label: 'NOC - Expired', value: ApplicationStatus.NOC_EXPIRED },
+              { label: 'NOC (Provisional) - Pending', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING },
+              { label: 'NOC (Provisional) - Expired', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED },
               { label: 'Registration Status', value: undefined, disabled: true },
               { label: 'Active', value: RegistrationStatus.ACTIVE },
               { label: 'Suspended', value: RegistrationStatus.SUSPENDED },
@@ -573,7 +576,8 @@ function handleColumnSort (column: string) {
         <template #registrationNumber-data="{ row }">
           <div
             v-if="row.registrationNumber"
-            class="flex items-center whitespace-nowrap font-bold text-bcGovColor-activeBlue underline"
+            class="flex cursor-pointer items-center whitespace-nowrap font-bold text-bcGovColor-activeBlue underline"
+            @click="goToRegistration(row.registrationId)"
           >
             <UIcon name="i-mdi-check-circle" class="mr-1 text-green-700" />{{ row.registrationNumber }} /
           </div>

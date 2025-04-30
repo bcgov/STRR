@@ -5,6 +5,7 @@ const exStore = useExaminerStore()
 const { activeHeader, activeReg, isFilingHistoryOpen } = storeToRefs(exStore)
 const hostExp = useHostExpansion()
 const confirmUnsavedModal = ref<ConfirmModal | null>(null)
+const localePath = useLocalePath()
 
 const getBadgeColor = (status: ApplicationStatus): string => {
   switch (status) {
@@ -35,6 +36,10 @@ const getApplicationName = (): string => {
   }
 }
 
+const goToRegistration = async (registrationId: string) => {
+  await navigateTo(localePath(`${RoutesE.REGISTRATION}/${registrationId}`))
+}
+
 const nocCountdown = computed(() => {
   const daysLeft = dayCountdown(activeHeader.value.nocEndDate.toString(), false)
   return {
@@ -51,6 +56,13 @@ const nocCountdown = computed(() => {
         <div class="flex items-center space-x-3">
           <span class="border-r-2 border-gray-700 pr-3 font-bold">
             {{ activeHeader?.applicationNumber }}
+          </span>
+          <span
+            v-if="activeHeader?.registrationId"
+            class="cursor-pointer border-r-2 border-gray-700 pr-3 font-bold text-bcGovColor-activeBlue underline"
+            @click="goToRegistration(activeHeader?.registrationId)"
+          >
+            {{ activeHeader?.registrationNumber }}
           </span>
           <span
             v-if="getApplicationName()"
