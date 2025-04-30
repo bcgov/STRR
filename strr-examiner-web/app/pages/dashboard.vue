@@ -574,15 +574,15 @@ function handleColumnSort (column: string) {
 
         <!-- row slots -->
         <template #registrationNumber-data="{ row }">
+          <div>
+            {{ row.applicationNumber }}
+          </div>
           <div
             v-if="row.registrationNumber"
             class="flex cursor-pointer items-center whitespace-nowrap font-bold text-bcGovColor-activeBlue underline"
             @click="goToRegistration(row.registrationId)"
           >
-            <UIcon name="i-mdi-check-circle" class="mr-1 text-green-700" />{{ row.registrationNumber }} /
-          </div>
-          <div class="text-bcGovColor-activeBlue underline">
-            {{ row.applicationNumber }}
+            <UIcon name="i-mdi-check-circle" class="mr-1 text-green-700" />{{ row.registrationNumber }}
           </div>
         </template>
 

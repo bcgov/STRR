@@ -48,6 +48,14 @@ const nocCountdown = computed(() => {
   }
 })
 
+const registrationCountdown = computed(() => {
+  const daysLeft = dayCountdown(activeHeader.value.registrationEndDate.toString(), false)
+  return {
+    days: daysLeft,
+    isExpired: daysLeft < 0
+  }
+})
+
 </script>
 <template>
   <div class="border-b bg-white py-6">
@@ -56,13 +64,6 @@ const nocCountdown = computed(() => {
         <div class="flex items-center space-x-3">
           <span class="border-r-2 border-gray-700 pr-3 font-bold">
             {{ activeHeader?.applicationNumber }}
-          </span>
-          <span
-            v-if="activeHeader?.registrationId"
-            class="cursor-pointer border-r-2 border-gray-700 pr-3 font-bold text-bcGovColor-activeBlue underline"
-            @click="goToRegistration(activeHeader?.registrationId)"
-          >
-            {{ activeHeader?.registrationNumber }}
           </span>
           <span
             v-if="getApplicationName()"
@@ -106,7 +107,7 @@ const nocCountdown = computed(() => {
           {{ t('btn.viewReceipt') }}
         </UButton>
       </div>
-      <div class="text-sm">
+      <div class="mb-2 text-sm">
         <UBadge
           class="mr-3 font-bold uppercase"
           :label="activeHeader.examinerStatus"
@@ -125,6 +126,24 @@ const nocCountdown = computed(() => {
         </template>
         | <strong>{{ t('strr.label.assignee') }}</strong>
         {{ activeHeader.reviewer?.username || '-' }}
+      </div>
+      <div
+        v-if="activeHeader?.registrationNumber"
+        class="text-sm"
+      >
+        <strong class="mr-1">{{ t('strr.label.registrationNumber') }}</strong>
+        <span
+          class="cursor-pointer text-bcGovColor-activeBlue underline"
+          @click="goToRegistration(activeHeader?.registrationId)"
+        >
+          {{ activeHeader?.registrationNumber }}
+        </span>
+        | <strong>{{ t('strr.label.registrationDate') }}</strong>
+        {{ dateToString(activeHeader.registrationStartDate, 'y-MM-dd', true) }}
+        | <strong>{{ t('strr.label.registrationEndDate') }}</strong>
+        {{ dateToString(activeHeader.registrationEndDate, 'y-MM-dd', true) }}
+        <span v-if="!registrationCountdown.isExpired">{{ `(${registrationCountdown.days} days left)` }}</span>
+        <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
       </div>
     </div>
   </div>
