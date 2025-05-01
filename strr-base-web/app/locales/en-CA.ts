@@ -129,7 +129,7 @@ export default {
       },
       generic: {
         title: 'Error Uploading Document',
-        description: 'Something went wrong when uploading the file, only pdfs and files less than 10mb are accepted.'
+        description: 'Something went wrong when uploading the file, only pdfs, jpeg, or jpg and files less than 10mb are accepted.'
       }
     }
   },
