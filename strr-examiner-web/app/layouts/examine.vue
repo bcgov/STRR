@@ -10,7 +10,7 @@ const localePath = useLocalePath()
       <div class="flex items-center justify-between">
         <ConnectHeaderLogoHomeLink />
         <UHorizontalNavigation
-          v-if="isAuthenticated"
+          v-if="false"
           :links="[
             {
               label: 'Examine',

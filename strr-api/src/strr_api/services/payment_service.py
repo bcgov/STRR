@@ -84,7 +84,7 @@ class PayService:
     def create_invoice(self, user_jwt: JwtManager, account_id, application=None):
         """Create the invoice via the pay-api."""
         application_json = application.application_json
-        payload = self._get_payment_request(application_json)
+        payload = self._get_payment_request(application_json, application.application_number)
         try:
             token = user_jwt.get_token_auth_header()
             headers = {
@@ -111,7 +111,7 @@ class PayService:
             self.app.logger.debug("Pay-api integration (create invoice) failure:", repr(err))
             return None
 
-    def _get_payment_request(self, application_json):
+    def _get_payment_request(self, application_json, application_number: str):
         filing_type = None
         quantity = 1
         registration_json = application_json.get("registration", {})
@@ -129,7 +129,7 @@ class PayService:
         if filing_type == PLATFORM_FEE_WAIVED:
             filing_type_dict["fee"] = 0
 
-        payload = {"filingInfo": {"filingTypes": [filing_type_dict]}, "businessInfo": {"corpType": "STRR"}}
+        payload = {"filingInfo": {"filingTypes": [filing_type_dict], "folioNumber": application_number}, "businessInfo": {"corpType": "STRR"}}
 
         if application_json.get("header", {}).get("paymentMethod") == "DIRECT_PAY":
             payload["paymentInfo"] = {"methodOfPayment": "DIRECT_PAY"}
