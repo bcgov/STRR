@@ -100,7 +100,7 @@ const validateDocuments = () => {
                 :is="component"
                 id="upload-additional-documents"
                 :label="t('label.chooseDocs')"
-                :accept="'application/pdf'"
+                accept="application/pdf,image/jpeg"
                 :is-required="props.isStrata"
                 :is-invalid="showError"
                 :error="showError"
