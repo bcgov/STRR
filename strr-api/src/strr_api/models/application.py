@@ -424,8 +424,8 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: "Approved – Provisional",
         Application.Status.FULL_REVIEW: "Pending Approval",
         Application.Status.DECLINED: "Declined",
-        Application.Status.NOC_PENDING: "Notice of Consideration - Pending",
-        Application.Status.NOC_EXPIRED: "Notice of Consideration - Expired",
+        Application.Status.NOC_PENDING: "Notice of Consideration",
+        Application.Status.NOC_EXPIRED: "Pending Review",
         Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: "Notice of Consideration - Pending",
         Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: "Notice of Consideration - Expired",
     }
@@ -442,8 +442,8 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
         Application.Status.FULL_REVIEW: "Full Examination",
         Application.Status.DECLINED: "Declined",
-        Application.Status.NOC_PENDING: "Notice of Consideration - Pending",
-        Application.Status.NOC_EXPIRED: "Notice of Consideration - Expired",
+        Application.Status.NOC_PENDING: "NOC - Pending",
+        Application.Status.NOC_EXPIRED: "NOC - Expired",
         Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: "Notice of Consideration - Pending",
         Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: "Notice of Consideration - Expired",
     }
