@@ -426,8 +426,6 @@ class ApplicationSerializer:
         Application.Status.DECLINED: "Declined",
         Application.Status.NOC_PENDING: "Notice of Consideration",
         Application.Status.NOC_EXPIRED: "Pending Review",
-        Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: "Notice of Consideration",
-        Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: "Pending Review",
     }
 
     HOST_ACTIONS = {Application.Status.PAYMENT_DUE: ["SUBMIT_PAYMENT"]}
@@ -444,8 +442,6 @@ class ApplicationSerializer:
         Application.Status.DECLINED: "Declined",
         Application.Status.NOC_PENDING: "NOC - Pending",
         Application.Status.NOC_EXPIRED: "NOC - Expired",
-        Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: "NOC - Pending",
-        Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: "NOC - Expired",
     }
 
     EXAMINER_ACTIONS = {
