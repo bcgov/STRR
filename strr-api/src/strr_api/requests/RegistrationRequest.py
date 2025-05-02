@@ -27,7 +27,7 @@ class Registration:
         documents=[],  # pylint: disable=W0102
         registrationType=None,
         propertyManager=None,
-        strRequirements=None,
+        strRequirements=None
     ):
         self.primaryContact = Contact(**primaryContact)
         self.secondaryContact = Contact(**secondaryContact) if secondaryContact else None

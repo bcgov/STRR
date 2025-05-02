@@ -28,13 +28,13 @@
         "registration": {
           "prExemptionType": "FRACTIONAL_OWNERSHIP",
           "unitAddress": {
-            "city": "Richmond",
-            "address": "15-3511 Granville Ave",
-            "country": "CA",
-            "nickname": "PID Test",
+            "streetNumber": "123",
+            "streetName": "Main St",
+            "city": "Vancouver",
+            "postalCode": "V6B 1A1",
             "province": "BC",
-            "postalCode": "V7C 1C8",
-            "addressLineTwo": ""
+            "country": "Canada",
+            "unitNumber": "123"
           },
           "unitDetails": {
             "propertyType": "SECONDARY_SUITE",
@@ -53,17 +53,13 @@
             }
           ],
           "primaryContact": {
-            "name": {
-              "lastName": "TWENTYFIVE",
-              "firstName": "BCREGTEST Delbert"
-            },
-            "details": {
-              "extension": "",
-              "faxNumber": "",
-              "phoneNumber": "6048313629",
-              "emailAddress": "roland.stens@gmail.com",
-              "preferredName": ""
-            },
+            "lastName": "TWENTYFIVE",
+            "firstName": "BCREGTEST Delbert",
+            "extension": "",
+            "faxNumber": "",
+            "phoneNumber": "6048313629",
+            "emailAddress": "roland.stens@gmail.com",
+            "preferredName": "",
             "dateOfBirth": "1965-02-19",
             "businessNumber": "",
             "mailingAddress": {
@@ -75,14 +71,7 @@
             },
             "socialInsuranceNumber": "999 999 999"
           },
-          "registrationType": "HOST",
-          "principalResidence": {
-            "agreedToSubmit": true,
-            "agreedToRentalAct": false,
-            "nonPrincipalOption": "Located in exempt community",
-            "isPrincipalResidence": false,
-            "specifiedServiceProvider": "n/a"
-          }
+          "registrationType": "HOST"
         }
       },
       "application_date": "2024-11-02T00:05:19.189058Z",
@@ -102,15 +91,14 @@
       "id": 2,
       "application_json": {
         "registration": {
-          "prExemptionType": "FARM_LAND",
           "unitAddress": {
-            "city": "Richmond",
-            "address": "15-3511 Granville Ave",
-            "country": "CA",
-            "nickname": "PID Test",
+            "streetNumber": "123",
+            "streetName": "Main St",
+            "city": "Vancouver",
+            "postalCode": "V6B 1A1",
             "province": "BC",
-            "postalCode": "V7C 1C8",
-            "addressLineTwo": ""
+            "country": "Canada",
+            "unitNumber": "123"
           },
           "unitDetails": {
             "propertyType": "SECONDARY_SUITE",
@@ -129,17 +117,13 @@
             }
           ],
           "primaryContact": {
-            "name": {
-              "lastName": "TWENTYFIVE",
-              "firstName": "BCREGTEST Delbert"
-            },
-            "details": {
-              "extension": "",
-              "faxNumber": "",
-              "phoneNumber": "6048313629",
-              "emailAddress": "roland.stens@gmail.com",
-              "preferredName": ""
-            },
+            "lastName": "TWENTYFIVE",
+            "firstName": "BCREGTEST Delbert",
+            "extension": "",
+            "faxNumber": "",
+            "phoneNumber": "6048313629",
+            "emailAddress": "roland.stens@gmail.com",
+            "preferredName": "",
             "dateOfBirth": "1965-02-19",
             "businessNumber": "",
             "mailingAddress": {
@@ -151,14 +135,7 @@
             },
             "socialInsuranceNumber": "999 999 999"
           },
-          "registrationType": "HOST",
-          "principalResidence": {
-            "agreedToSubmit": true,
-            "agreedToRentalAct": false,
-            "nonPrincipalOption": "Located in exempt community",
-            "isPrincipalResidence": false,
-            "specifiedServiceProvider": "n/a"
-          }
+          "registrationType": "HOST"
         }
       },
       "application_date": "2024-11-02T00:05:19.189058Z",
