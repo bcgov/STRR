@@ -107,7 +107,7 @@ def test_platform_applications_not_processed(app):
         applications) == 1, "expect function to return an array with one object"
 
     # assert that the application does not have registration_type.PLATFORM
-    registrationType = applications[0].registration_type
+    registrationType = applications[0].registration_type.value
     assert registrationType != "PLATFORM", "Expected RegistrationType not to be PLATFORM"
 
 
@@ -159,7 +159,7 @@ def test_strata_hotel_applications_not_processed(app):
         applications) == 1, "expect function to return an array with one object"
 
     # assert that the application does not have registration_type.STRATA_HOTEL
-    registrationType = applications[0].registration_type
+    registrationType = applications[0].registration_type.value
     assert registrationType != "STRATA_HOTEL", "Expected RegistrationType not to be STRATA_HOTEL"
 
 
