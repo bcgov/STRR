@@ -150,6 +150,134 @@
       "application_number": 123456789,
       "created": "2024-11-02T00:05:19.205484Z",
       "registration_type": "HOST"
+    },
+    {
+      "id": 3,
+      "application_json": {
+        "registration": {
+          "unitAddress": {
+            "streetNumber": "123",
+            "streetName": "Main St",
+            "city": "Vancouver",
+            "postalCode": "V6B 1A1",
+            "province": "BC",
+            "country": "Canada",
+            "unitNumber": "123"
+          },
+          "unitDetails": {
+            "propertyType": "SECONDARY_SUITE",
+            "hostResidence": "ANOTHER_UNIT",
+            "ownershipType": "OWN",
+            "businessLicense": "BC123456",
+            "parcelIdentifier": "999-999-999",
+            "rentalUnitSpaceType": "ENTIRE_HOME",
+            "numberOfRoomsForRent": 4,
+            "businessLicenseExpiryDate": "2025-10-31",
+            "isUnitOnPrincipalResidenceProperty": true
+          },
+          "listingDetails": [
+            {
+              "url": "https://www.airbnb.ca/your_listing123"
+            }
+          ],
+          "primaryContact": {
+            "lastName": "TWENTYFIVE",
+            "firstName": "BCREGTEST Delbert",
+            "extension": "",
+            "faxNumber": "",
+            "phoneNumber": "6048313629",
+            "emailAddress": "roland.stens@gmail.com",
+            "preferredName": "",
+            "dateOfBirth": "1965-02-19",
+            "businessNumber": "",
+            "mailingAddress": {
+              "city": "North Saanich",
+              "address": "1239 Hillgrove Road",
+              "country": "CA",
+              "province": "BC",
+              "postalCode": "V8L 5K7"
+            },
+            "socialInsuranceNumber": "999 999 999"
+          },
+          "registrationType": "PLATFORM"
+        }
+      },
+      "application_date": "2024-11-02T00:05:19.189058Z",
+      "type": "registration",
+      "status": "FULL_REVIEW",
+      "invoice_id": 123,
+      "payment_status_code": "COMPLETED",
+      "payment_completion_date": "2024-11-02T00:06:06.234004Z",
+      "payment_account": 123,
+      "registration_id": 123,
+      "submitter_id": 1,
+      "application_number": 789456123,
+      "created": "2024-11-02T00:05:19.205484Z",
+      "registration_type": "PLATFORM"
+    },
+    {
+      "id": 4,
+      "application_json": {
+        "registration": {
+          "unitAddress": {
+            "streetNumber": "123",
+            "streetName": "Main St",
+            "city": "Vancouver",
+            "postalCode": "V6B 1A1",
+            "province": "BC",
+            "country": "Canada",
+            "unitNumber": "123"
+          },
+          "unitDetails": {
+            "propertyType": "SECONDARY_SUITE",
+            "hostResidence": "ANOTHER_UNIT",
+            "ownershipType": "OWN",
+            "businessLicense": "BC123456",
+            "parcelIdentifier": "999-999-999",
+            "rentalUnitSpaceType": "ENTIRE_HOME",
+            "numberOfRoomsForRent": 4,
+            "businessLicenseExpiryDate": "2025-10-31",
+            "isUnitOnPrincipalResidenceProperty": true
+          },
+          "listingDetails": [
+            {
+              "url": "https://www.airbnb.ca/your_listing123"
+            }
+          ],
+          "primaryContact": {
+            "lastName": "TWENTYFIVE",
+            "firstName": "BCREGTEST Delbert",
+            "extension": "",
+            "faxNumber": "",
+            "phoneNumber": "6048313629",
+            "emailAddress": "roland.stens@gmail.com",
+            "preferredName": "",
+            "dateOfBirth": "1965-02-19",
+            "businessNumber": "",
+            "mailingAddress": {
+              "city": "North Saanich",
+              "address": "1239 Hillgrove Road",
+              "country": "CA",
+              "province": "BC",
+              "postalCode": "V8L 5K7"
+            },
+            "socialInsuranceNumber": "999 999 999"
+          },
+          "registrationType": "STRATA_HOTEL"
+        }
+      },
+      "application_date": "2024-11-02T00:05:19.189058Z",
+      "type": "registration",
+      "status": "FULL_REVIEW",
+      "invoice_id": 123,
+      "payment_status_code": "COMPLETED",
+      "payment_completion_date": "2024-11-02T00:06:06.234004Z",
+      "payment_account": 123,
+      "registration_id": 123,
+      "submitter_id": 1,
+      "application_number": 1111111,
+      "created": "2024-11-02T00:05:19.205484Z",
+      "registration_type": "STRATA_HOTEL"
     }
   ]
 }
