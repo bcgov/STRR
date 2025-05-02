@@ -129,7 +129,10 @@ class PayService:
         if filing_type == PLATFORM_FEE_WAIVED:
             filing_type_dict["fee"] = 0
 
-        payload = {"filingInfo": {"filingTypes": [filing_type_dict], "folioNumber": application_number}, "businessInfo": {"corpType": "STRR"}}
+        payload = {
+            "filingInfo": {"filingTypes": [filing_type_dict], "folioNumber": application_number},
+            "businessInfo": {"corpType": "STRR"},
+        }
 
         if application_json.get("header", {}).get("paymentMethod") == "DIRECT_PAY":
             payload["paymentInfo"] = {"methodOfPayment": "DIRECT_PAY"}
