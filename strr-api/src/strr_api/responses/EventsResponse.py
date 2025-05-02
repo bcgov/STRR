@@ -18,6 +18,7 @@ class Events(BaseModel):
     message: str
     createdDate: datetime
     details: Optional[str]
+    idir: Optional[str]
 
     @classmethod
     def from_db(cls, source: EventsModel):
@@ -28,4 +29,5 @@ class Events(BaseModel):
             message=EVENT_MESSAGES.get(source.event_name, ""),
             createdDate=source.created_date,
             details=source.details,
+            idir=source.user.username if source.user else None,
         )

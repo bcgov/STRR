@@ -206,6 +206,7 @@ class ApplicationService:
                 application_id=application.id,
                 registration_id=registration.id,
                 visible_to_applicant=True,
+                user_id=reviewer.id,
             )
             application.registration_id = registration.id
 
@@ -219,6 +220,7 @@ class ApplicationService:
             event_type=Events.EventType.APPLICATION,
             event_name=ApplicationService._get_event_name(application.status),
             application_id=application.id,
+            user_id=reviewer.id,
         )
 
         EmailService.send_application_status_update_email(application)
