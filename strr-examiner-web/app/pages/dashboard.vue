@@ -271,6 +271,10 @@ const columnsTable = computed(() => columns.value.filter(column => selectedColum
 const sort = ref<TableSort>({ column: 'submissionDate', direction: 'asc' as const })
 
 async function handleRowSelect (row: any) {
+  // Fix: Filter Input Double Click Event Propagation
+  if (!row.applicationNumber) {
+    return
+  }
   status.value = 'pending'
   await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
 }
