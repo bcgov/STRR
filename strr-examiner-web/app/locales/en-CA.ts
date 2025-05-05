@@ -269,7 +269,9 @@ export default {
     unassign: 'Unassign',
     confirm: 'Confirm',
     keepEditing: 'Continue Editing',
-    discardChanges: 'Discard'
+    discardChanges: 'Discard',
+    approveApplication: 'Approve Application',
+    yesApprove: 'Yes, Approve'
   },
   error: {
     action: {
@@ -385,6 +387,10 @@ export default {
     unsavedChanges: {
       title: 'Unsaved Changes',
       message: 'Are you sure you want to discard your changes?'
+    },
+    approveApplication: {
+      title: 'Approve Application',
+      message: 'This action will fully register the short-term rental unit. Are you sure you want to continue?'
     }
   },
   table: {

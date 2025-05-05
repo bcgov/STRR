@@ -24,6 +24,7 @@ export const useExaminerActions = () => {
     ApplicationActionsE.APPROVE,
     ApplicationActionsE.REJECT,
     ApplicationActionsE.SEND_NOC,
+    ApplicationActionsE.PROVISIONAL_APPROVE,
     RegistrationActionsE.CANCEL
   ]
 
