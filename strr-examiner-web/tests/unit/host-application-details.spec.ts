@@ -73,7 +73,7 @@ vi.mock('@/composables/useHostExpansion', () => ({
     toggleFilingHistory: () => {
       isFilingHistoryOpen.value = !isFilingHistoryOpen.value
     },
-    checkAndPerfomAction: (actionFn: Function) => {
+    checkAndPerformAction: (actionFn: Function) => {
       actionFn()
     },
     openHostOwners: vi.fn(),

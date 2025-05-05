@@ -34,7 +34,7 @@ const routeId = computed(() => {
 })
 const currentAddress = ref({ ...rentalUnitAddressToEdit.value })
 type editAddressFormSchema = z.output<typeof rentalUnitAddressSchema.value>
-const editStrAddressform = ref<Form<editAddressFormSchema>>()
+const editStrAddressForm = ref<Form<editAddressFormSchema>>()
 
 const isLoading = ref(false)
 
@@ -106,7 +106,7 @@ const handleCancel = () => {
         </div>
         <div class="col-span-12 mt-4 md:col-span-7">
           <UForm
-            ref="editStrAddressform"
+            ref="editStrAddressForm"
             :schema="rentalUnitAddressSchema"
             :state="currentAddress"
             :validate-on="['submit']"

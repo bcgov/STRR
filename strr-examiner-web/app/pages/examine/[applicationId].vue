@@ -175,7 +175,7 @@ watch(
         :is-open="false"
         :title="t('modal.assignError.title')"
         :message="t('modal.assignError.message')"
-        :confirm-text="t('strr.label.acknowlegeError')"
+        :confirm-text="t('strr.label.acknowledgeError')"
         :disable-cancel="true"
       />
     </template>

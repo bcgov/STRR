@@ -83,7 +83,7 @@ const getRegistrationType = (): string => {
               icon="i-mdi-history"
               size="sm"
               class="gap-1"
-              @click="hostExp.checkAndPerfomAction(() => hostExp.toggleFilingHistory(), confirmUnsavedModal)"
+              @click="hostExp.checkAndPerformAction(() => hostExp.toggleFilingHistory(), confirmUnsavedModal)"
             />
           </div>
           <UButton
@@ -100,9 +100,10 @@ const getRegistrationType = (): string => {
         </div>
         <div class="text-sm">
           <UBadge
-            class="mr-3 font-bold"
+            class="mr-3 font-bold uppercase"
             :label="activeHeader.examinerStatus"
             :color="getBadgeColor(activeReg.status!)"
+            data-testid="registration-status-badge"
           />
           <strong>{{ t('strr.label.registrationDate') }}</strong>
           {{ dateToString(activeReg.startDate, 'y-MM-dd a', true) }} |
@@ -126,13 +127,13 @@ const getRegistrationType = (): string => {
         </template>
       </div>
     </div>
+    <ConfirmationModal
+      ref="confirmUnsavedModal"
+      :is-open="false"
+      :title="t('modal.unsavedChanges.title')"
+      :message="t('modal.unsavedChanges.message')"
+      :confirm-text="t('btn.discardChanges')"
+      :cancel-text="t('btn.keepEditing')"
+    />
   </div>
-  <ConfirmationModal
-    ref="confirmUnsavedModal"
-    :is-open="false"
-    :title="t('modal.unsavedChanges.title')"
-    :message="t('modal.unsavedChanges.message')"
-    :confirm-text="t('btn.discardChanges')"
-    :cancel-text="t('btn.keepEditing')"
-  />
 </template>

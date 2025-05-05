@@ -82,7 +82,7 @@ const hostExp = useHostExpansion()
             class="w-full whitespace-normal text-left"
             variant="link"
             @click="
-              hostExp.checkAndPerfomAction(
+              hostExp.checkAndPerformAction(
                 () => hostExp.openHostOwners('primaryContact'),
                 confirmUnsavedModal
               )
@@ -162,7 +162,7 @@ const hostExp = useHostExpansion()
             class="w-full whitespace-normal text-left"
             variant="link"
             @click="
-              hostExp.checkAndPerfomAction(
+              hostExp.checkAndPerformAction(
                 () => hostExp.openHostOwners('secondaryContact'),
                 confirmUnsavedModal
               )
@@ -180,7 +180,7 @@ const hostExp = useHostExpansion()
             class="w-full whitespace-normal text-left"
             variant="link"
             @click="
-              hostExp.checkAndPerfomAction(
+              hostExp.checkAndPerformAction(
                 () => hostExp.openHostOwners('propertyManager'),
                 confirmUnsavedModal
               )

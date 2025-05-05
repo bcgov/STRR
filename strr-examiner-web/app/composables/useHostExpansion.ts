@@ -32,7 +32,7 @@ export const useHostExpansion = () => {
     })
   }
 
-  const checkAndPerfomAction = (actionFn: () => void, confirmUnsavedModal: ConfirmModal | null = null) => {
+  const checkAndPerformAction = (actionFn: () => void, confirmUnsavedModal: ConfirmModal | null = null) => {
     if (!isEditingRentalUnit.value || !hasUnsavedRentalUnitChanges.value) {
       resetEditRentalUnitAddress()
       actionFn()
@@ -68,7 +68,7 @@ export const useHostExpansion = () => {
   return {
     openHostOwners,
     openEditRentalUnitForm,
-    checkAndPerfomAction,
+    checkAndPerformAction,
     toggleFilingHistory,
     close
   }

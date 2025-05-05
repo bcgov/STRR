@@ -92,7 +92,7 @@ const registrationCountdown = computed(() => {
             size="sm"
             class="gap-1"
             data-testid="toggle-history-btn"
-            @click="hostExp.checkAndPerfomAction(() => hostExp.toggleFilingHistory(), confirmUnsavedModal)"
+            @click="hostExp.checkAndPerformAction(() => hostExp.toggleFilingHistory(), confirmUnsavedModal)"
           />
         </div>
         <UButton
@@ -112,6 +112,7 @@ const registrationCountdown = computed(() => {
           class="mr-3 font-bold uppercase"
           :label="activeHeader.examinerStatus"
           :color="getBadgeColor(activeHeader.status)"
+          data-testid="application-status-badge"
         />
         <strong>{{ t('strr.label.applicationType') }}</strong>
         {{ t(`applicationType.${activeReg?.registrationType}`) }} |
@@ -146,13 +147,13 @@ const registrationCountdown = computed(() => {
         <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
       </div>
     </div>
+    <ConfirmationModal
+      ref="confirmUnsavedModal"
+      :is-open="false"
+      :title="t('modal.unsavedChanges.title')"
+      :message="t('modal.unsavedChanges.message')"
+      :confirm-text="t('btn.discardChanges')"
+      :cancel-text="t('btn.keepEditing')"
+    />
   </div>
-  <ConfirmationModal
-    ref="confirmUnsavedModal"
-    :is-open="false"
-    :title="t('modal.unsavedChanges.title')"
-    :message="t('modal.unsavedChanges.message')"
-    :confirm-text="t('btn.discardChanges')"
-    :cancel-text="t('btn.keepEditing')"
-  />
 </template>

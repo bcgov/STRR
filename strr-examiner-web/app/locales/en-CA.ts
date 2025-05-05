@@ -201,7 +201,7 @@ export default {
       takedownRequest: 'Takedown Request',
       added: 'ADDED',
       unAssign: 'Yes, Unassign Them',
-      acknowlegeError: 'Close',
+      acknowledgeError: 'Close',
       editRentalUnit: 'Edit Rental Unit'
     },
     text: {
@@ -293,7 +293,7 @@ export default {
     assignApplication: 'An error occurred assigning this application.',
     unAssignApplication: 'An error occurred unassigning this application.',
     filingHistory: 'An error occurred while retrieving the filing history.',
-    saveAddress: 'An error occureed while updating the STR address',
+    saveAddress: 'An error occurred while updating the STR address',
     saveAddressConfig: 'Either application number or registration ID must be provided',
     reqFetch: {
       unknown: {
