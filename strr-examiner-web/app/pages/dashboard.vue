@@ -577,13 +577,17 @@ function handleColumnSort (column: string) {
           <div>
             {{ row.applicationNumber }}
           </div>
-          <div
+          <UButton
             v-if="row.registrationNumber"
-            class="flex cursor-pointer items-center whitespace-nowrap font-bold text-bcGovColor-activeBlue underline"
+            icon="i-mdi-check-circle"
+            variant="link"
+            :padded="false"
+            :ui="{ gap: { sm: 'gap-x-1' }, icon: { base: 'text-green-700 text-xs' } }"
+            class="text-sm"
             @click="goToRegistration(row.registrationId)"
           >
-            <UIcon name="i-mdi-check-circle" class="mr-1 text-green-700" />{{ row.registrationNumber }}
-          </div>
+            {{ row.registrationNumber }}
+          </UButton>
         </template>
 
         <template #propertyAddress-data="{ row }">
