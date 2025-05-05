@@ -5,7 +5,8 @@ from strr_api.models import db
 import json
 
 
-def test_update_status_for_registration_expired_applications(app):
+def test_update_status_for_registration_active_applications(app):
+    db.session.execute(text("DELETE FROM application"))
     db.session.execute(text("DELETE FROM registrations_history"))
     db.session.execute(text("DELETE FROM registrations"))
     db.session.execute(text("DELETE FROM users"))

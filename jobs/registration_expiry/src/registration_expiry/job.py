@@ -17,7 +17,7 @@ from registration_expiry.config import CONFIGURATION
 from strr_api.utils.date_util import DateUtil
 from strr_api.models.rental import Registration
 from strr_api.enums.enum import RegistrationStatus
-# from strr_api.models.application import Application
+from sqlalchemy import and_
 import logging
 import os
 import traceback
@@ -59,25 +59,23 @@ def update_status_for_registration_expired_applications(app):
     now = DateUtil.as_legislation_timezone(datetime.now(timezone.utc))
     cut_off_datetime = now.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    """Update the registration status for the expired applications."""
+    """Get the registration status for applications older then now."""
     rentals = Registration.query.filter(
-        Registration.status != RegistrationStatus.EXPIRED.value
+        and_(
+            Registration.status != RegistrationStatus.EXPIRED.value,
+            Registration.expiry_date < cut_off_datetime
+        )
     ).all()
 
+    """update registration status to expired """
     for rental in rentals:
         try:
             app.logger.info(f"Processing registration # {str(rental.id)}")
-            db_date = datetime.strptime(
-                str(rental.expiry_date), "%Y-%m-%d %H:%M:%S")
-            current_date = datetime.strptime(
-                cut_off_datetime, "%Y-%m-%dT%H:%M:%SZ")
-
-            if db_date < current_date:
-                app.logger.info(
-                    f"Updating status for registration {str(rental.id)}"
-                )
-                rental.status = RegistrationStatus.EXPIRED.value
-                rental.save()
+            app.logger.info(
+                f"Updating status for registration {str(rental.id)}"
+            )
+            rental.status = RegistrationStatus.EXPIRED.value
+            rental.save()
         except Exception as err:  # pylint: disable=broad-except
             app.logger.error(f"Unexpected error: {str(err)}")
             app.logger.error(traceback.format_exc())
