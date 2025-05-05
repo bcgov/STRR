@@ -125,6 +125,29 @@ export const useStrrModals = () => {
     })
   }
 
+  /**
+   * Open a confirmation action modal. Could be used for any action, eg. Approve Application.
+   *
+   * @param {string} title - title of the modal
+   * @param {string} content - content/description displayed in the modal
+   * @param {string} confirmButtonLabel - label for the confirm button
+   * @param {function} confirmHandler - function to be called when the confirm button is clicked
+   */
+  function openConfirmActionModal (
+    title: string,
+    content: string,
+    confirmButtonLabel: string,
+    confirmHandler: () => void) {
+    modal.open(ModalBase, {
+      title,
+      content,
+      actions: [
+        { label: t('btn.cancel'), variant: 'outline', handler: () => close() },
+        { label: confirmButtonLabel, handler: () => confirmHandler() }
+      ]
+    })
+  }
+
   function close () {
     modal.close()
   }
@@ -138,6 +161,7 @@ export const useStrrModals = () => {
     openHelpRegisterModal,
     openInfoCollectionNoticeModal,
     openErrorModal,
+    openConfirmActionModal,
     close
   }
 }
