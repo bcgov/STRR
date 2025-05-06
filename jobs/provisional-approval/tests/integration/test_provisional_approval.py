@@ -1,4 +1,3 @@
-
 from provisional_approval.job import get_applications_in_full_review_status, process_applications
 from sqlalchemy import text
 from strr_api.models import db
@@ -40,9 +39,9 @@ def test_get_applications_in_full_review_status(app):
         )
     db.session.commit()
 
-    # assert that an application with FRACTIONAL_OWNERSHIP exists in the database
+    # assert that an application with CO_OWN exists in the database
     result = db.session.execute(
-        text("SELECT COUNT(*) FROM application WHERE application_json->'registration'->>'prExemptionType' = 'FRACTIONAL_OWNERSHIP'")
+        text("SELECT COUNT(*) FROM application WHERE application_json->'registration'->'unitDetails'->>'ownershipType' = 'CO_OWN'")
     ).scalar_one()
     assert result == 1, "Expected one application"
 
@@ -53,10 +52,10 @@ def test_get_applications_in_full_review_status(app):
     assert len(
         applications) == 1, "expect function to return an array with one object"
 
-    # assert that the application does not have FRACTIONAL_OWNERSHIP
-    pr_exemption_type = applications[0].registration.get(
-        "prExemptionType") if applications[0].registration else None
-    assert pr_exemption_type != "FRACTIONAL_OWNERSHIP", "Expected prExemptionType not to be 'FRACTIONAL_OWNERSHIP'"
+    # assert that the application does not have CO_OWN
+    pr_exemption_type = applications[0].application_json.get(
+        "registration", {}).get("unitDetails", {}).get("ownershipType")
+    assert pr_exemption_type != "CO_OWN", "Expected ownershipType not to be 'CO_OWN'"
 
 
 def test_platform_applications_not_processed(app):

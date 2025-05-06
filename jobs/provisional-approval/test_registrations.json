@@ -26,7 +26,6 @@
       "id": 1,
       "application_json": {
         "registration": {
-          "prExemptionType": "FRACTIONAL_OWNERSHIP",
           "unitAddress": {
             "streetNumber": "123",
             "streetName": "Main St",
@@ -39,7 +38,7 @@
           "unitDetails": {
             "propertyType": "SECONDARY_SUITE",
             "hostResidence": "ANOTHER_UNIT",
-            "ownershipType": "OWN",
+            "ownershipType": "CO_OWN",
             "businessLicense": "BC123456",
             "parcelIdentifier": "999-999-999",
             "rentalUnitSpaceType": "ENTIRE_HOME",
