@@ -520,21 +520,21 @@ export const mockRegistrationFilingHistory: FilingHistoryEvent[] =
       createdDate: '2025-02-28T15:45:25.790939',
       eventName: FilingHistoryEventName.REGISTRATION_CREATED,
       eventType: FilingHistoryEventType.REGISTRATION,
-      idir: null,
+      idir: 'user2@idir',
       message: 'Registration created'
     },
     {
       createdDate: '2025-03-05T15:08:41.997418',
       eventName: FilingHistoryEventName.NON_COMPLIANCE_SUSPENDED,
       eventType: FilingHistoryEventType.REGISTRATION,
-      idir: '',
+      idir: 'user2@idir',
       message: 'Registration suspended due to non compliance'
     },
     {
       createdDate: '2025-03-05T15:08:45.966389',
       eventName: FilingHistoryEventName.REGISTRATION_CANCELLED,
       eventType: FilingHistoryEventType.REGISTRATION,
-      idir: '',
+      idir: 'user2@idir',
       message: 'Registration cancelled'
     }
   ]
