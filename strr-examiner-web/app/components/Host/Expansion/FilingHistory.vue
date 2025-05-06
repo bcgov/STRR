@@ -15,10 +15,10 @@ const HIDDEN_EVENTS: FilingHistoryEventName[] = [
 const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEvent[]>(
   'application-filing-history',
   async () => {
-    let allFilingHistroy: FilingHistoryEvent[] = []
+    let allFilingHistory: FilingHistoryEvent[] = []
 
     if (isApplication.value) {
-      allFilingHistroy =
+      allFilingHistory =
         await getApplicationFilingHistory((activeRecord.value as HousApplicationResponse).header.applicationNumber)
     } else {
       // for Registrations include Application and Registration histories
@@ -26,11 +26,11 @@ const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEven
         getApplicationFilingHistory((activeRecord.value as HousApplicationResponse).header.applicationNumber),
         getRegistrationFilingHistory((activeRecord.value as HousRegistrationResponse).id)
       ])
-      allFilingHistroy = [...applicationHistory, ...registrationHistory]
+      allFilingHistory = [...applicationHistory, ...registrationHistory]
     }
 
     // filter out events defined by the requirements
-    return allFilingHistroy.filter(event => !HIDDEN_EVENTS.includes(event.eventName)).reverse()
+    return allFilingHistory.filter(event => !HIDDEN_EVENTS.includes(event.eventName)).reverse()
   }
 )
 
@@ -82,6 +82,12 @@ const historyTableColumns = [
           </template>
           <template #message-data="{ row }">
             <b>{{ $t(`filingHistoryEvents.${row.eventName}`) }}</b>
+            <ConnectI18nHelper
+              v-if="row.idir"
+              translation-path="label.filingHistoryIdir"
+              :idir="row.idir"
+              data-testid="filing-history-idir"
+            />
           </template>
         </UTable>
       </div>

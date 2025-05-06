@@ -5,7 +5,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
   const strrModal = useStrrModals()
-  const isFilingHistoryOpen = ref(false) // track state of Filing Histroy between different expansion panels
+  const isFilingHistoryOpen = ref(false) // track state of Filing History between different expansion panels
   const tableLimit = ref(50)
   const tablePage = ref(1)
   const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)

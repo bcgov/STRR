@@ -26,15 +26,18 @@ describe('FilingHistory Component', async () => {
     global: { plugins: [enI18n] }
   })
 
-  it('should display Filing Histroy table', () => {
+  it('should display Filing History table', () => {
     expect(filingHistoryWrapper.exists()).toBe(true)
 
     const historyTableRows = filingHistoryWrapper.find('[data-testid="history-table"]').findAll('tbody tr')
-    expect(historyTableRows.length).toBe(2) // only 2 events because AUTO_APPROVAL_FULL_REVIEW is hidden by the requirement
+    expect(historyTableRows.length).toBe(3) // only 3 events because AUTO_APPROVAL_FULL_REVIEW is hidden by the requirement
 
     // events should be in reverse order
-    expect(historyTableRows.at(0)?.text()).toContain(mockApplicationFilingHistory.at(1)?.message)
-    expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(0)?.message)
+    expect(historyTableRows.at(0)?.text()).toContain(mockApplicationFilingHistory.at(3)?.message)
+    expect(historyTableRows.at(0)?.text()).toContain(mockApplicationFilingHistory.at(3)?.idir)
+    expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(1)?.message)
+    expect(historyTableRows.at(2)?.text()).toContain(mockApplicationFilingHistory.at(0)?.message)
+    expect(filingHistoryWrapper.findAll('[data-testid="filing-history-idir"]').length).toBe(1)
   })
 })
 

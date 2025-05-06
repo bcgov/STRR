@@ -352,7 +352,8 @@ export default {
     noCraTaxNumber: 'No CRA Tax Number',
     multipleFilter: 'Multiple',
     history: 'History',
-    forNonCivicAddresses: 'For non-civic addresses'
+    forNonCivicAddresses: 'For non-civic addresses',
+    filingHistoryIdir: ' (by {idir})'
   },
   link: {
     learnMore: 'Learn More'
@@ -558,26 +559,27 @@ export default {
     STRATA_HOTEL: 'Strata Hotel'
   },
   filingHistoryEvents: {
-    APPLICATION_SUBMITTED: 'Application submitted.',
-    INVOICE_GENERATED: 'Invoice generated.',
-    PAYMENT_COMPLETE: 'Payment completed.',
-    PENDING_AUTO_APPROVAL_PROCESSING: 'Pending Auto Approval processing.',
-    AUTO_APPROVAL_FULL_REVIEW: 'Application marked for full review by the auto approval process.',
-    AUTO_APPROVAL_PROVISIONAL: 'Application marked for provisional review by the auto approval process.',
-    AUTO_APPROVAL_APPROVED: 'Application approved by the auto approval process.',
-    FULL_REVIEW_IN_PROGRESS: 'Full Review in progress.',
-    MANUALLY_APPROVED: 'Application approved by staff.',
-    MANUALLY_DENIED: 'Application rejected by staff.',
-    MORE_INFORMATION_REQUESTED: 'Additional information requested from the applicant.',
-    REGISTRATION_CREATED: 'Registration created.',
-    REGISTRATION_CANCELLED: 'Registration cancelled.',
-    CERTIFICATE_ISSUED: 'Certificate issued for the registration.',
-    EXPIRED: 'Registration expired.',
-    NON_COMPLIANCE_SUSPENDED: 'Registration suspended due to non compliance.',
-    APPLICATION_REVIEWER_ASSIGNED: 'Application reviewer assigned.',
-    APPLICATION_REVIEWER_UNASSIGNED: 'Application reviewer unassigned.',
-    NOC_SENT: 'Notice of Consideration sent.',
-    NOC_EXPIRED: 'Notice of Consideration expired.',
-    HOST_REGISTRATION_UNIT_ADDRESS_UPDATED: 'Host STR Address Updated.'
+    APPLICATION_SUBMITTED: 'Application submitted',
+    INVOICE_GENERATED: 'Invoice generated',
+    PAYMENT_COMPLETE: 'Payment completed',
+    PENDING_AUTO_APPROVAL_PROCESSING: 'Pending Auto Approval processing',
+    AUTO_APPROVAL_FULL_REVIEW: 'Application marked for full review by the auto approval process',
+    AUTO_APPROVAL_PROVISIONAL: 'Application marked for provisional review by the auto approval process',
+    AUTO_APPROVAL_APPROVED: 'Application approved by the auto approval process',
+    FULL_REVIEW_IN_PROGRESS: 'Full Review in progress',
+    MANUALLY_APPROVED: 'Application approved by staff',
+    MANUALLY_DENIED: 'Application rejected by staff',
+    MORE_INFORMATION_REQUESTED: 'Additional information requested from the applicant',
+    REGISTRATION_CREATED: 'Registration created',
+    REGISTRATION_CANCELLED: 'Registration cancelled',
+    CERTIFICATE_ISSUED: 'Certificate issued for the registration',
+    EXPIRED: 'Registration expired',
+    NON_COMPLIANCE_SUSPENDED: 'Registration suspended due to non compliance',
+    APPLICATION_REVIEWER_ASSIGNED: 'Application reviewer assigned',
+    APPLICATION_REVIEWER_UNASSIGNED: 'Application reviewer unassigned',
+    NOC_SENT: 'Notice of Consideration sent',
+    NOC_EXPIRED: 'Notice of Consideration expired',
+    HOST_REGISTRATION_UNIT_ADDRESS_UPDATED: 'Host STR Address Updated'
   }
+
 }
