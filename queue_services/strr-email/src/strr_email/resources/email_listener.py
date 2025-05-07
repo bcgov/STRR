@@ -67,6 +67,7 @@ EMAIL_SUBJECT = {
     "PLATFORM_AUTO_APPROVED": "Short-Term Rental Platform Registration Approved",
     "NOC": "Short-Term Rental Notice of Consideration",
     "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
+    "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
 }
 
 
@@ -124,7 +125,7 @@ def worker():
         address_street=_get_address_street(app_dict, application.registration_type),
         address_street_extra=_get_address_extra(app_dict, application.registration_type),
         address_region=_get_address_region(app_dict, application.registration_type),
-        expiry_date=_get_expiry_date(app_dict, application.registration_type),
+        expiry_date=_get_expiry_date(app_dict),
         service_provider=_get_service_provider(app_dict, application.registration_type),
         tac_url=_get_tac_url(application),
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
@@ -210,15 +211,14 @@ def _get_address_region(app_dict: dict, reg_type: Registration.RegistrationType)
     )
 
 
-def _get_expiry_date(app_dict: dict, reg_type: Registration.RegistrationType) -> str:
+def _get_expiry_date(app_dict: dict) -> str:
     """Return the expiry date as a formatted string."""
-    if reg_type != Registration.RegistrationType.PLATFORM:
-        return ""
-    date_time = datetime.fromisoformat(app_dict["header"]["registrationEndDate"]).astimezone(
-        ZoneInfo("America/Vancouver")
-    )
-
-    return date_time.strftime("%B %-d, %Y")
+    if app_dict.get("header", {}).get("registrationEndDate"):
+        date_time = datetime.fromisoformat(app_dict["header"]["registrationEndDate"]).astimezone(
+            ZoneInfo("America/Vancouver")
+        )
+        return date_time.strftime("%B %-d, %Y")
+    return ""
 
 
 def _get_service_provider(app_dict: dict, reg_type: Registration.RegistrationType) -> str:
