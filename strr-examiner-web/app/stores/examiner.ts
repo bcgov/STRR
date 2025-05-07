@@ -85,8 +85,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     hasUnsavedRentalUnitChanges.value = false
   }
 
-  const showNocModal = computed(() => {
-    return activeHeader.value?.status === ApplicationStatus.FULL_REVIEW
+  const showComposeNocEmail = computed(() => {
+    return activeHeader.value?.status === ApplicationStatus.FULL_REVIEW ||
+      activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW
   })
   const nocFormRef = ref<Form<any>>()
   const sendNocSchema = computed(() => z.object({
@@ -466,7 +467,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     sendNocSchema,
     nocContent,
     nocFormRef,
-    showNocModal,
+    showComposeNocEmail,
     isFilingHistoryOpen,
     isEditingRentalUnit,
     rentalUnitAddressToEdit,

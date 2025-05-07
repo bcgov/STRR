@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { sendNocSchema } = useExaminerStore()
-const { nocContent, showNocModal, nocFormRef, isAssignedToUser } = storeToRefs(useExaminerStore())
+const { nocContent, showComposeNocEmail, nocFormRef, isAssignedToUser } = storeToRefs(useExaminerStore())
 const { t } = useI18n()
 
 const handleInput = () => {
@@ -11,7 +11,7 @@ const handleInput = () => {
 </script>
 
 <template>
-  <div v-if="showNocModal && isAssignedToUser" class="app-inner-container">
+  <div v-if="showComposeNocEmail && isAssignedToUser" class="app-inner-container">
     <div class="mb-8 rounded bg-white py-6">
       <UForm
         ref="nocFormRef"
