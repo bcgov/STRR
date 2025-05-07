@@ -76,6 +76,8 @@ def update_status_for_registration_expired_applications(app):
             )
             rental.status = RegistrationStatus.EXPIRED.value
             rental.save()
+            app.logger.info(
+                f"Registration {str(rental.id)} status updated to expired")
         except Exception as err:  # pylint: disable=broad-except
             app.logger.error(f"Unexpected error: {str(err)}")
             app.logger.error(traceback.format_exc())
