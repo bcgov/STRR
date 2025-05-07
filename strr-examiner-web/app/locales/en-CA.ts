@@ -271,7 +271,8 @@ export default {
     keepEditing: 'Continue Editing',
     discardChanges: 'Discard',
     approveApplication: 'Approve Application',
-    yesApprove: 'Yes, Approve'
+    yesApprove: 'Yes, Approve',
+    yesSend: 'Yes, Send'
   },
   error: {
     action: {
@@ -392,6 +393,10 @@ export default {
     approveApplication: {
       title: 'Approve Application',
       message: 'This action will fully register the short-term rental unit. Are you sure you want to continue?'
+    },
+    sendNotice: {
+      title: 'Send Notice of Consideration',
+      message: 'This action will notify the applicant to provide additional documents. Are you sure you want to continue?'
     }
   },
   table: {

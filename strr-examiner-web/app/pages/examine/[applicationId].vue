@@ -98,6 +98,16 @@ const handleAssigneeAction = (
           handleApplicationAction(id, action, buttonPosition, buttonIndex)
         }
       )
+    } else if (action === ApplicationActionsE.SEND_NOC) {
+      openConfirmActionModal(
+        t('modal.sendNotice.title'),
+        t('modal.sendNotice.message'),
+        t('btn.yesSend'),
+        () => {
+          closeConfirmActionModal() // for smoother UX, close the modal before initiating the action
+          handleApplicationAction(id, action, buttonPosition, buttonIndex)
+        }
+      )
     } else {
       return handleApplicationAction(id, action, buttonPosition, buttonIndex)
     }
