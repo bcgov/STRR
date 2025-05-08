@@ -22,6 +22,8 @@ import logging
 import os
 import traceback
 from datetime import datetime, timezone
+from strr_api.models.events import Events
+from strr_api.services.events_service import EventsService
 
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
@@ -76,6 +78,12 @@ def update_status_for_registration_expired_applications(app):
             )
             rental.status = RegistrationStatus.EXPIRED.value
             rental.save()
+            EventsService.save_event(
+                event_type=Events.EventType.REGISTRATION,
+                event_name=Events.EventName.REGISTRATION_EXPIRED,
+                registration_id=rental.id,
+                user_id=rental.user_id
+            )
             app.logger.info(
                 f"Registration {str(rental.id)} status updated to expired")
         except Exception as err:  # pylint: disable=broad-except
