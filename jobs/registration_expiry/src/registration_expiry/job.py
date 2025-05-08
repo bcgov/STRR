@@ -82,7 +82,6 @@ def update_status_for_registration_expired_applications(app):
                 event_type=Events.EventType.REGISTRATION,
                 event_name=Events.EventName.REGISTRATION_EXPIRED,
                 registration_id=rental.id,
-                user_id=rental.user_id
             )
             app.logger.info(
                 f"Registration {str(rental.id)} status updated to expired")
