@@ -6,6 +6,7 @@ import json
 
 
 def test_update_status_for_registration_active_applications(app):
+    db.session.execute(text("DELETE FROM events"))
     db.session.execute(text("DELETE FROM application"))
     db.session.execute(text("DELETE FROM registrations_history"))
     db.session.execute(text("DELETE FROM registrations"))
@@ -53,6 +54,7 @@ def test_update_status_for_registration_active_applications(app):
 
 
 def test_cancelled_registrations_update_status(app):
+    db.session.execute(text("DELETE FROM events"))
     db.session.execute(text("DELETE FROM application"))
     db.session.execute(text("DELETE FROM registrations_history"))
     db.session.execute(text("DELETE FROM registrations"))
@@ -107,6 +109,7 @@ def test_cancelled_registrations_update_status(app):
 
 
 def test_suspended_registrations_update_status(app):
+    db.session.execute(text("DELETE FROM events"))
     db.session.execute(text("DELETE FROM application"))
     db.session.execute(text("DELETE FROM registrations_history"))
     db.session.execute(text("DELETE FROM registrations"))
