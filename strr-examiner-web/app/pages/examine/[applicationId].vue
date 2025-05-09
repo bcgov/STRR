@@ -5,6 +5,7 @@ const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
 const {
   approveApplication,
+  provisionallyApproveApplication,
   rejectApplication,
   getNextApplication,
   getApplicationById,
@@ -63,8 +64,10 @@ const handleApplicationAction = (
     }
     additionalArgs = [nocContent.value.content]
     validateFn = async () => await validateForm(nocFormRef.value, true).then(errors => !errors)
-  } else if (action === ApplicationActionsE.APPROVE || action === ApplicationActionsE.PROVISIONAL_APPROVE) {
+  } else if (action === ApplicationActionsE.APPROVE) {
     actionFn = approveApplication
+  } else if (action === ApplicationActionsE.PROVISIONAL_APPROVE) {
+    actionFn = provisionallyApproveApplication
   } else if (action === ApplicationActionsE.REJECT) {
     actionFn = rejectApplication
   }
