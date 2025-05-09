@@ -1,20 +1,20 @@
 /* eslint-disable max-len */
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { OwnerRole } from '../../../app/enums/owner-role'
 import { OwnerType } from '../../../app/enums/owner-type'
 import {
-  loginMethods,
-  getPropertyRequirementsList,
-  getFakeOwner,
-  getFakePropertyNickname,
-  getFakePid,
+  assertDashboardDetailsView,
+  assertDashboardListView,
   chooseAccount,
   completeStep1,
   completeStep2,
   completeStep3,
   completeStep4,
-  assertDashboardDetailsView,
-  assertDashboardListView
+  getFakeOwner,
+  getFakePid,
+  getFakePropertyNickname,
+  getPropertyRequirementsList,
+  loginMethods
 } from '../test-utils'
 import { enI18n } from '~~/tests/mocks/i18n'
 // pull text from i18n keys instead of hard coding, this will only need to be updated if the i18n key changes
