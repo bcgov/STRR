@@ -65,6 +65,16 @@ export const useDocumentStore = defineStore('host/document', () => {
         label: t('label.fractOwnAgreement')
       })
     }
+    if (exemptionReason === PrExemptionReason.FARM_LAND) {
+      const isPropAssessmentNoticeValid = apiDocuments.value.some(
+        item => item.documentType === DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE
+      )
+      docs.push({
+        isValid: isPropAssessmentNoticeValid,
+        icon: isPropAssessmentNoticeValid ? 'i-mdi-check' : 'i-mdi-close',
+        label: t('label.propertyAssessmentNotice')
+      })
+    }
 
     if (
       propStore.unitDetails.ownershipType === OwnershipType.RENT &&

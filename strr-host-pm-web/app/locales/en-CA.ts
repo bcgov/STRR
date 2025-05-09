@@ -302,6 +302,7 @@ export default {
     proofOfPr: 'Proof of principal residence',
     supportingStrataDocs: 'Supporting strata-titled hotel or motel documentation',
     fractOwnAgreement: 'Fractional ownership agreement',
+    propertyAssessmentNotice: 'Property Assessment Notice',
     businessLicenseNumberOpt: 'Business Licence Number (Optional)',
     businessLicenseExpiryDateOpt: 'Business Licence Expiry Date (Optional)',
     rentalAgreementOrNoticeOfIncrease: 'Tenancy (rental) agreement or receipt or Notice of rent increase',
