@@ -236,6 +236,8 @@ class ApplicationService:
             event_name = Events.EventName.MANUALLY_DENIED
         elif application_status == Application.Status.ADDITIONAL_INFO_REQUESTED:
             event_name = Events.EventName.MORE_INFORMATION_REQUESTED
+        elif application_status == Application.Status.PROVISIONALLY_APPROVED:
+            event_name = Events.EventName.MANUALLY_APPROVED
         return event_name
 
     @staticmethod

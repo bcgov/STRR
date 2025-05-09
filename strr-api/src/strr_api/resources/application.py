@@ -38,6 +38,7 @@ STRR Application Resource.
 """
 
 import logging
+import traceback
 from http import HTTPStatus
 from io import BytesIO
 from typing import Optional
@@ -582,6 +583,7 @@ def update_application_status(application_number):
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:
         logger.error(exception)
+        logger.error(traceback.format_exc())
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
