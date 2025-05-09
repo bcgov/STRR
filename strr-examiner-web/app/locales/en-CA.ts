@@ -278,7 +278,8 @@ export default {
       approve: 'An error occurred approving this application.',
       reject: 'An error occurred rejecting this application.',
       send_noc: 'An error occurred sending the Notice of Consideration for this application.',
-      cancel: 'An error occurred cancelling this registration.'
+      cancel: 'An error occurred cancelling this registration.',
+      provisional_approve: 'An error occurred approving this application.'
     },
     createAccount: {
       title: 'Error creating account',
