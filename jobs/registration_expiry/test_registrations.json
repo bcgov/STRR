@@ -1,0 +1,86 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "firstname": "Joey",
+      "lastname": "Smith"
+    },
+    {
+      "id": 2,
+      "firstname": "Johnny",
+      "lastname": "Johnson"
+    },
+    {
+      "id": 3,
+      "firstname": "Dee Dee",
+      "lastname": "Lee"
+    },
+    {
+      "id": 4,
+      "firstname": "Tommy",
+      "lastname": "Doe"
+    }
+  ],
+  "registrations": [
+    {
+      "id": 1,
+      "registration_type": "HOST",
+      "registration_number": "REG-1001",
+      "sbc_account_id": 101,
+      "status": "ACTIVE",
+      "start_date": "2023-03-15T00:00:00Z",
+      "expiry_date": "2024-03-15T00:00:00Z",
+      "updated_date": "2024-03-15T10:00:00Z",
+      "user_id": 1,
+      "version": 2
+    },
+    {
+      "id": 2,
+      "registration_type": "PLATFORM",
+      "registration_number": "REG-1002",
+      "sbc_account_id": 102,
+      "status": "EXPIRED",
+      "start_date": "2023-03-15T00:00:00Z",
+      "expiry_date": "2024-03-15T00:00:00Z",
+      "updated_date": "2024-03-15T10:00:00Z",
+      "user_id": 2,
+      "version": 2
+    },
+    {
+      "id": 3,
+      "registration_type": "STRATA_HOTEL",
+      "registration_number": "REG-1003",
+      "sbc_account_id": 103,
+      "status": "SUSPENDED",
+      "start_date": "2025-01-01T00:00:00Z",
+      "expiry_date": "2023-03-15T00:00:00Z",
+      "updated_date": "2025-01-01T10:00:00Z",
+      "user_id": 3,
+      "version": 2
+    },
+    {
+      "id": 4,
+      "registration_type": "HOST",
+      "registration_number": "H867530900",
+      "sbc_account_id": 104,
+      "status": "CANCELLED",
+      "start_date": "2025-01-16T08:00:00Z",
+      "expiry_date": "2024-04-27T23:59:59Z",
+      "updated_date": "2025-01-16T19:41:44.039356Z",
+      "user_id": 4,
+      "version": 2
+    },
+    {
+      "id": 5,
+      "registration_type": "HOST",
+      "registration_number": "REG-1001",
+      "sbc_account_id": 105,
+      "status": "ACTIVE",
+      "start_date": "2023-03-15T00:00:00Z",
+      "expiry_date": "2030-03-15T00:00:00Z",
+      "updated_date": "2024-03-15T10:00:00Z",
+      "user_id": 1,
+      "version": 2
+    }
+  ]
+}
