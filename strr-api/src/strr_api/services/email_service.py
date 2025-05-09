@@ -46,6 +46,7 @@ APPLICATION_EMAIL_STATES = {
         Application.Status.AUTO_APPROVED,
         Application.Status.FULL_REVIEW_APPROVED,
         Application.Status.PROVISIONAL_REVIEW,
+        Application.Status.PROVISIONALLY_APPROVED,
     ],
     Registration.RegistrationType.PLATFORM: [Application.Status.AUTO_APPROVED],
 }
