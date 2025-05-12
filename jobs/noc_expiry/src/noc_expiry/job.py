@@ -52,9 +52,11 @@ def register_shellcontext(app):
 
 def update_status_for_noc_expired_applications(app):
     """Update the application status for the NOC expired applications."""
-    applications = Application.query.filter(
-        Application.status == Application.Status.NOC_PENDING
-    ).all()
+    statuses = [
+        Application.Status.NOC_PENDING,
+        Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
+    ]
+    applications = Application.query.filter(Application.status.in_(statuses)).all()
     cut_off_datetime = DateUtil.as_legislation_timezone(datetime.utcnow())
     for application in applications:
         try:
@@ -63,7 +65,11 @@ def update_status_for_noc_expired_applications(app):
                 app.logger.info(
                     f"Updating status for application {str(application.id)}"
                 )
-                application.status = Application.Status.NOC_EXPIRED
+                application.status = (
+                    Application.Status.NOC_EXPIRED
+                    if application.status == Application.Status.NOC_PENDING
+                    else Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED
+                )
                 application.save()
         except Exception as err:  # pylint: disable=broad-except
             app.logger.error(f"Unexpected error: {str(err)}")

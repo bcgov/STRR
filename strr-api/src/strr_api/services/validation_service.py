@@ -109,7 +109,12 @@ class ValidationService:
                 )
 
             if unit_number := address_json.get("unitNumber", None):
-                if unit_number != registration.rental_property.address.unit_number:
+                reg_unit_number = registration.rental_property.address.unit_number
+                if reg_unit_number and reg_unit_number.startswith("#"):
+                    reg_unit_number = reg_unit_number[1:]
+                if unit_number and unit_number.startswith("#"):
+                    unit_number = unit_number[1:]
+                if unit_number != reg_unit_number:
                     errors.append(
                         {
                             "code": ErrorMessage.UNIT_NUMBER_MISMATCH.name,
