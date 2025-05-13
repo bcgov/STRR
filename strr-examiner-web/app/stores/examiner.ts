@@ -245,10 +245,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }
 
-  const rejectApplication = async (applicationNumber: string): Promise<void> => {
+  const rejectApplication = async (applicationNumber: string, isProvisional: boolean = false): Promise<void> => {
     await $strrApi(`/applications/${applicationNumber}/status`, {
       method: 'PUT',
-      body: { status: ApplicationStatus.DECLINED }
+      body: { status: isProvisional ? ApplicationStatus.PROVISIONALLY_DECLINED : ApplicationStatus.DECLINED }
     })
   }
 
