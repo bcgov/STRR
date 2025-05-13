@@ -39,7 +39,6 @@ const handleRegistrationAction = (
     t('modal.cancelRegistration.title'),
     t('modal.cancelRegistration.message'),
     t('btn.cancelRegistration'),
-    t('btn.back'),
     async () => {
       closeConfirmActionModal()
       const status = RegistrationStatus.CANCELLED
@@ -52,7 +51,8 @@ const handleRegistrationAction = (
         refresh,
         [status]
       )
-    }
+    },
+    t('btn.back')
   )
 }
 
@@ -74,11 +74,11 @@ const handleAssigneeAction = (
       t('modal.assignError.title'),
       t('modal.assignError.message'),
       t('strr.label.acknowledgeError'),
-      t('btn.cancel'),
       () => {
         closeConfirmActionModal()
         refresh()
       },
+      t('btn.cancel'),
       true
     )
   }

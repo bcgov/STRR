@@ -43,12 +43,12 @@ export const useHostExpansion = () => {
         t('modal.unsavedChanges.title'),
         t('modal.unsavedChanges.message'),
         t('btn.discardChanges'),
-        t('btn.keepEditing'),
         () => {
           closeConfirmActionModal()
           resetEditRentalUnitAddress()
           actionFn()
-        }
+        },
+        t('btn.keepEditing')
       )
     }
   }

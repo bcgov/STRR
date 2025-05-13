@@ -95,7 +95,6 @@ const handleAssigneeAction = (
         t('modal.approveApplication.title'),
         t('modal.approveApplication.message'),
         t('btn.yesApprove'),
-        t('btn.cancel'),
         () => {
           closeConfirmActionModal() // for smoother UX, close the modal before initiating the action
           handleApplicationAction(id, action, buttonPosition, buttonIndex)
@@ -111,6 +110,16 @@ const handleAssigneeAction = (
           handleApplicationAction(id, action, buttonPosition, buttonIndex)
         }
       )
+    } else if (action === ApplicationActionsE.REJECT) {
+      openConfirmActionModal(
+        t('modal.rejectApplication.title'),
+        t('modal.rejectApplication.message'),
+        t('btn.yesReject'),
+        () => {
+          closeConfirmActionModal() // for smoother UX, close the modal before initiating the action
+          handleApplicationAction(id, action, buttonPosition, buttonIndex)
+        }
+      )
     } else {
       return handleApplicationAction(id, action, buttonPosition, buttonIndex)
     }
@@ -119,11 +128,11 @@ const handleAssigneeAction = (
       t('modal.assignError.title'),
       t('modal.assignError.message'),
       t('strr.label.acknowledgeError'),
-      t('btn.cancel'),
       () => {
         closeConfirmActionModal()
         refresh()
       },
+      t('btn.cancel'),
       true
     )
   }
@@ -144,12 +153,12 @@ watch(
     updateRouteAndButtons(RoutesE.EXAMINE, {
       approve: {
         action: (id: string) => handleAssigneeAction(id, ApplicationActionsE.APPROVE, 'right', 1),
-        label: t('btn.approve'),
+        label: t('btn.approveApplication'),
         disabled: !isAssignedToUser.value
       },
       reject: {
         action: (id: string) => handleAssigneeAction(id, ApplicationActionsE.REJECT, 'right', 0),
-        label: t('btn.decline'),
+        label: t('btn.declineApplication'),
         disabled: !isAssignedToUser.value
       },
       sendNotice: {

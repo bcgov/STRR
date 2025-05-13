@@ -270,9 +270,11 @@ export default {
     confirm: 'Confirm',
     keepEditing: 'Continue Editing',
     discardChanges: 'Discard',
+    declineApplication: 'Refuse Application',
     approveApplication: 'Approve Application',
     yesApprove: 'Yes, Approve',
     yesSend: 'Yes, Send',
+    yesReject: 'Yes, Reject',
     cancelRegistration: 'Cancel Registration'
   },
   error: {
@@ -399,6 +401,10 @@ export default {
     sendNotice: {
       title: 'Send Notice of Consideration',
       message: 'This action will notify the applicant to provide additional documents. Are you sure you want to continue?'
+    },
+    rejectApplication: {
+      title: 'Reject Application',
+      message: 'This action will reject the short-term rental unit application (and cancel provisional registration). Are you sure you want to continue?'
     }
   },
   table: {

@@ -77,12 +77,12 @@ const handleCancel = () => {
       t('modal.unsavedChanges.title'),
       t('modal.unsavedChanges.message'),
       t('btn.discardChanges'),
-      t('btn.keepEditing'),
       () => {
         closeConfirmActionModal()
         resetEditRentalUnitAddress()
         emit('close')
-      }
+      },
+      t('btn.keepEditing')
     )
   } else {
     resetEditRentalUnitAddress()

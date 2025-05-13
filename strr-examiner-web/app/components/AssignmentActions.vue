@@ -46,7 +46,6 @@ const updateAssignmentButtons = () => {
             t('modal.unassign.title'),
             t('modal.unassign.message'),
             t('strr.label.unAssign'),
-            t('btn.cancel'),
             async () => {
               closeConfirmActionModal()
               await handleUnassign(id)
