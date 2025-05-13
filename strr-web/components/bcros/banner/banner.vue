@@ -40,7 +40,13 @@ const actionsMap: Record<HostActionsE | ExaminerActionsE, () => void> = {
   [HostActionsE.SUBMIT_PAYMENT]: () => handlePaymentRedirect(appHeader?.paymentToken, appHeader?.applicationNumber),
   [ExaminerActionsE.ISSUE_CERTIFICATE]: () => issueCertificate(appHeader?.registrationId),
   [ExaminerActionsE.APPROVE]: () => approveApplication(appHeader?.applicationNumber),
-  [ExaminerActionsE.REJECT]: () => rejectApplication(appHeader?.applicationNumber)
+  [ExaminerActionsE.REJECT]: () => rejectApplication(
+    appHeader?.applicationNumber,
+    [
+      ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+      ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+    ].includes(appHeader?.status)
+  )
 }
 
 </script>
