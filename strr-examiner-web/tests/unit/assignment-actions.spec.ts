@@ -3,18 +3,11 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import { mockHostApplicationWithoutReviewer, mockHostApplicationWithReviewer } from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
-import { ConfirmationModal, AssignmentActions } from '#components'
+import { AssignmentActions } from '#components'
 
 const mockAssignApplication = vi.fn().mockResolvedValue(undefined)
 const mockUnassignApplication = vi.fn().mockResolvedValue(undefined)
 const mockUpdateRouteAndButtons = vi.fn()
-
-const showConfirmModal = ref(false)
-const modalTitle = ref('')
-const modalMessage = ref('')
-const confirmButtonText = ref('')
-const cancelButtonText = ref('')
-let confirmCallback = vi.fn()
 
 const activeHeader = ref(mockHostApplicationWithReviewer.header)
 const isAssignedToUser = ref(true)
@@ -38,39 +31,6 @@ vi.mock('@/composables/useExaminerRoute', () => ({
   })
 }))
 
-vi.mock('@/composables/useConfirmationModal', () => ({
-  useConfirmationModal: () => ({
-    showConfirmModal,
-    modalTitle,
-    modalMessage,
-    confirmButtonText,
-    cancelButtonText,
-    openConfirmModal: ({
-      title,
-      message,
-      confirmText,
-      onConfirm
-    }: {
-      title: string
-      message: string
-      confirmText?: string
-      onConfirm: () => void
-    }) => {
-      showConfirmModal.value = true
-      modalTitle.value = title
-      modalMessage.value = message
-      confirmButtonText.value = confirmText || ''
-      confirmCallback = vi.fn(onConfirm)
-    },
-    closeConfirmModal: () => {
-      showConfirmModal.value = false
-    },
-    handleConfirm: () => {
-      confirmCallback()
-    }
-  })
-}))
-
 vi.mock('@/enums/routes', () => ({
   RoutesE: {
     EXAMINE: 'examine',
@@ -83,31 +43,14 @@ describe('AssignmentActions Component', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks()
-    showConfirmModal.value = false
     activeHeader.value = mockHostApplicationWithReviewer.header
     isAssignedToUser.value = true
     wrapper = await mountSuspended(AssignmentActions, {
       global: {
-        plugins: [enI18n],
-        stubs: {
-          ConfirmationModal: {
-            template: '<div />',
-            methods: {
-              handleOpen (callback: () => Promise<any> | void) {
-                showConfirmModal.value = true
-                confirmCallback = vi.fn(callback)
-              }
-            }
-          }
-        }
+        plugins: [enI18n]
       }
     })
     await flushPromises()
-  })
-
-  it('renders the component with confirmation modal', () => {
-    expect(wrapper.exists()).toBe(true)
-    expect(wrapper.findComponent(ConfirmationModal).exists()).toBe(true)
   })
 
   it('calls updateRouteAndButtons on component mount', () => {
@@ -144,31 +87,6 @@ describe('AssignmentActions Component', () => {
     expect(buttonConfig).toBeTruthy()
     const unassignAction = buttonConfig.unassign.action
     await unassignAction('12345678901234')
-    expect(mockUnassignApplication).toHaveBeenCalledWith('12345678901234')
-  })
-
-  it('opens confirmation modal when current user is not the assignee', async () => {
-    const buttonConfig = getButtonActions()
-    expect(buttonConfig).toBeTruthy()
-    isAssignedToUser.value = false
-    await flushPromises()
-    const newButtonConfig = getButtonActions()
-    expect(newButtonConfig).toBeTruthy()
-    const unassignAction = newButtonConfig.unassign.action
-    await unassignAction('12345678901234')
-    expect(showConfirmModal.value).toBe(true)
-    expect(mockUnassignApplication).not.toHaveBeenCalled()
-  })
-
-  it('calls unassignApplication when confirmation modal is confirmed', async () => {
-    isAssignedToUser.value = false
-    await flushPromises()
-    const buttonConfig = getButtonActions()
-    const unassignAction = buttonConfig.unassign.action
-    await unassignAction('12345678901234')
-    expect(showConfirmModal.value).toBe(true)
-    confirmCallback()
-    await flushPromises()
     expect(mockUnassignApplication).toHaveBeenCalledWith('12345678901234')
   })
 

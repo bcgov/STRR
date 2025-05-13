@@ -131,20 +131,29 @@ export const useStrrModals = () => {
    * @param {string} title - title of the modal
    * @param {string} content - content/description displayed in the modal
    * @param {string} confirmButtonLabel - label for the confirm button
+   * @param {string} cancelButtonLabel - label for the cancel button
    * @param {function} confirmHandler - function to be called when the confirm button is clicked
+   * @param {boolean} hideCancelButton - optional parameter to hide the cancel button
    */
   function openConfirmActionModal (
     title: string,
     content: string,
     confirmButtonLabel: string,
-    confirmHandler: () => void) {
+    cancelButtonLabel: string,
+    confirmHandler: () => Promise<void>,
+    hideCancelButton?: boolean
+  ) {
+    const modalActions: { label: string; variant?: string; handler: () => void }[] = [
+      { label: confirmButtonLabel, handler: () => confirmHandler() }
+    ]
+    if (!hideCancelButton) {
+      modalActions.unshift({ label: cancelButtonLabel, variant: 'outline', handler: () => close() })
+    }
+
     modal.open(ModalBase, {
       title,
       content,
-      actions: [
-        { label: t('btn.cancel'), variant: 'outline', handler: () => close() },
-        { label: confirmButtonLabel, handler: () => confirmHandler() }
-      ]
+      actions: modalActions
     })
   }
 

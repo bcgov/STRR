@@ -5,9 +5,7 @@ const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
 const { updateRegistrationStatus, getRegistrationById } = useExaminerStore()
 const { isAssignedToUser } = storeToRefs(useExaminerStore())
-
-const confirmErrorModal = ref<ConfirmModal | null>(null)
-const confirmCancelModal = ref<ConfirmModal | null>(null)
+const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -37,23 +35,25 @@ const handleRegistrationAction = (
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
-  if (confirmCancelModal.value) {
-    confirmCancelModal.value.handleOpen(
-      async () => {
-        const status = RegistrationStatus.CANCELLED
-        await manageAction(
-          { id },
-          action,
-          updateRegistrationStatus,
-          buttonPosition,
-          buttonIndex,
-          refresh,
-          [status]
-        )
-      }
-    )
-  }
-  return Promise.resolve()
+  openConfirmActionModal(
+    t('modal.cancelRegistration.title'),
+    t('modal.cancelRegistration.message'),
+    t('btn.cancelRegistration'),
+    t('btn.back'),
+    async () => {
+      closeConfirmActionModal()
+      const status = RegistrationStatus.CANCELLED
+      await manageAction(
+        { id },
+        action,
+        updateRegistrationStatus,
+        buttonPosition,
+        buttonIndex,
+        refresh,
+        [status]
+      )
+    }
+  )
 }
 
 const handleAssigneeAction = (
@@ -69,11 +69,18 @@ const handleAssigneeAction = (
       buttonPosition,
       buttonIndex
     )
-  } else if (confirmErrorModal.value) {
-    confirmErrorModal.value.handleOpen(
-      () => { refresh() }
+  } else {
+    openConfirmActionModal(
+      t('modal.assignError.title'),
+      t('modal.assignError.message'),
+      t('strr.label.acknowledgeError'),
+      t('btn.cancel'),
+      () => {
+        closeConfirmActionModal()
+        refresh()
+      },
+      true
     )
-    return Promise.resolve()
   }
 }
 
@@ -115,22 +122,6 @@ watch(
         </template>
       </ApplicationDetailsView>
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
-      <ConfirmationModal
-        ref="confirmErrorModal"
-        :is-open="false"
-        :title="t('modal.assignError.title')"
-        :message="t('modal.assignError.message')"
-        :confirm-text="t('strr.label.acknowledgeError')"
-        :disable-cancel="true"
-      />
-      <ConfirmationModal
-        ref="confirmCancelModal"
-        :is-open="false"
-        :title="t('modal.cancelRegistration.title')"
-        :message="t('modal.cancelRegistration.message')"
-        :confirm-text="t('btn.cancel')"
-        :cancel-text="t('btn.back')"
-      />
     </template>
   </div>
 </template>

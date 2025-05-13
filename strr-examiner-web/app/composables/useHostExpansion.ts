@@ -9,6 +9,8 @@ export const useHostExpansion = () => {
   const exp = useStrrExpansion()
   const { startEditRentalUnitAddress, resetEditRentalUnitAddress } = useExaminerStore()
   const { isFilingHistoryOpen, isEditingRentalUnit, hasUnsavedRentalUnitChanges } = storeToRefs(useExaminerStore())
+  const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
+  const { t } = useI18n()
   isFilingHistoryOpen.value = false // reset so it's starts hidden by default
   resetEditRentalUnitAddress()
   function openHostOwners (
@@ -32,20 +34,23 @@ export const useHostExpansion = () => {
     })
   }
 
-  const checkAndPerformAction = (actionFn: () => void, confirmUnsavedModal: ConfirmModal | null = null) => {
+  const checkAndPerformAction = (actionFn: () => void) => {
     if (!isEditingRentalUnit.value || !hasUnsavedRentalUnitChanges.value) {
       resetEditRentalUnitAddress()
       actionFn()
-      return
+    } else {
+      openConfirmActionModal(
+        t('modal.unsavedChanges.title'),
+        t('modal.unsavedChanges.message'),
+        t('btn.discardChanges'),
+        t('btn.keepEditing'),
+        () => {
+          closeConfirmActionModal()
+          resetEditRentalUnitAddress()
+          actionFn()
+        }
+      )
     }
-    if (confirmUnsavedModal) {
-      confirmUnsavedModal.handleOpen(() => {
-        resetEditRentalUnitAddress()
-        actionFn()
-      })
-      return
-    }
-    actionFn()
   }
 
   function close () {

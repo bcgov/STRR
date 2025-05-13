@@ -13,9 +13,7 @@ const { t } = useI18n()
 const alertFlags = reactive(useFlags())
 const { isFeatureEnabled } = useFeatureFlags()
 const canEditApplicationAddress = isFeatureEnabled('enable-examiner-edit-address-application')
-const confirmUnsavedModal = ref<ConfirmModal | null>(null)
-
-const hostExp = useHostExpansion()
+const { checkAndPerformAction, openHostOwners } = useHostExpansion()
 
 </script>
 <template>
@@ -81,12 +79,7 @@ const hostExp = useHostExpansion()
             :padded="false"
             class="w-full whitespace-normal text-left"
             variant="link"
-            @click="
-              hostExp.checkAndPerformAction(
-                () => hostExp.openHostOwners('primaryContact'),
-                confirmUnsavedModal
-              )
-            "
+            @click="checkAndPerformAction(() => openHostOwners('primaryContact'))"
           />
         </div>
         <div>
@@ -161,12 +154,7 @@ const hostExp = useHostExpansion()
             :padded="false"
             class="w-full whitespace-normal text-left"
             variant="link"
-            @click="
-              hostExp.checkAndPerformAction(
-                () => hostExp.openHostOwners('secondaryContact'),
-                confirmUnsavedModal
-              )
-            "
+            @click="checkAndPerformAction(() => openHostOwners('secondaryContact'))"
           />
         </div>
 
@@ -179,23 +167,10 @@ const hostExp = useHostExpansion()
             :padded="false"
             class="w-full whitespace-normal text-left"
             variant="link"
-            @click="
-              hostExp.checkAndPerformAction(
-                () => hostExp.openHostOwners('propertyManager'),
-                confirmUnsavedModal
-              )
-            "
+            @click="checkAndPerformAction(() => openHostOwners('propertyManager'))"
           />
         </div>
       </div>
     </div>
   </div>
-  <ConfirmationModal
-    ref="confirmUnsavedModal"
-    :is-open="false"
-    :title="t('modal.unsavedChanges.title')"
-    :message="t('modal.unsavedChanges.message')"
-    :confirm-text="t('btn.discardChanges')"
-    :cancel-text="t('btn.keepEditing')"
-  />
 </template>

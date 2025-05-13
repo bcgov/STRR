@@ -272,7 +272,8 @@ export default {
     discardChanges: 'Discard',
     approveApplication: 'Approve Application',
     yesApprove: 'Yes, Approve',
-    yesSend: 'Yes, Send'
+    yesSend: 'Yes, Send',
+    cancelRegistration: 'Cancel Registration'
   },
   error: {
     action: {

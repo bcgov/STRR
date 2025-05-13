@@ -15,8 +15,7 @@ const {
   hasUnsavedRentalUnitChanges,
   rentalUnitAddressSchema
 } = storeToRefs(useExaminerStore())
-const strrModal = useStrrModals()
-const confirmUnchangedModal = ref<ConfirmModal | null>(null)
+const { openConfirmActionModal, close: closeConfirmActionModal, openErrorModal } = useStrrModals()
 
 const route = useRoute()
 const isApplicationRoute = computed(() => route.path.includes('/examine/'))
@@ -66,7 +65,7 @@ const updateStrAddress = async () => {
     emit('close')
   } catch (e) {
     logFetchError(e, t('error.saveAddress'))
-    strrModal.openErrorModal('Error', t('error.saveAddress'), false)
+    openErrorModal('Error', t('error.saveAddress'), false)
   } finally {
     isLoading.value = false
   }
@@ -74,14 +73,17 @@ const updateStrAddress = async () => {
 
 const handleCancel = () => {
   if (hasUnsavedRentalUnitChanges.value) {
-    if (confirmUnchangedModal.value) {
-      confirmUnchangedModal.value.handleOpen(
-        () => {
-          resetEditRentalUnitAddress()
-          emit('close')
-        }
-      )
-    }
+    openConfirmActionModal(
+      t('modal.unsavedChanges.title'),
+      t('modal.unsavedChanges.message'),
+      t('btn.discardChanges'),
+      t('btn.keepEditing'),
+      () => {
+        closeConfirmActionModal()
+        resetEditRentalUnitAddress()
+        emit('close')
+      }
+    )
   } else {
     resetEditRentalUnitAddress()
     emit('close')
@@ -260,13 +262,5 @@ const handleCancel = () => {
         </div>
       </div>
     </div>
-    <ConfirmationModal
-      ref="confirmUnchangedModal"
-      :is-open="false"
-      :title="t('modal.unsavedChanges.title')"
-      :message="t('modal.unsavedChanges.message')"
-      :confirm-text="t('btn.discardChanges')"
-      :cancel-text="t('btn.keepEditing')"
-    />
   </div>
 </template>

@@ -3,14 +3,14 @@ const { t } = useI18n()
 const { assignApplication, unassignApplication } = useExaminerStore()
 const { activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
 const { updateRouteAndButtons } = useExaminerRoute()
+const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
+
 const props = defineProps({
   isRegistrationPage: {
     type: Boolean,
     default: false
   }
 })
-
-const confirmUnassignModal = ref<ConfirmModal | null>(null)
 
 const emit = defineEmits(['refresh'])
 
@@ -41,9 +41,16 @@ const updateAssignmentButtons = () => {
         // Check assignee status on btn click
         if (isAssignedToUser.value) {
           await handleUnassign(id)
-        } else if (confirmUnassignModal.value) {
-          confirmUnassignModal.value.handleOpen(
-            async () => { await handleUnassign(id) }
+        } else {
+          openConfirmActionModal(
+            t('modal.unassign.title'),
+            t('modal.unassign.message'),
+            t('strr.label.unAssign'),
+            t('btn.cancel'),
+            async () => {
+              closeConfirmActionModal()
+              await handleUnassign(id)
+            }
           )
         }
       },
@@ -56,13 +63,3 @@ watch([() => activeHeader.value, () => isAssignedToUser.value], () => {
   updateAssignmentButtons()
 }, { immediate: true })
 </script>
-
-<template>
-  <ConfirmationModal
-    ref="confirmUnassignModal"
-    :is-open="false"
-    :title="t('modal.unassign.title')"
-    :message="t('modal.unassign.message')"
-    :confirm-text="t('strr.label.unAssign')"
-  />
-</template>

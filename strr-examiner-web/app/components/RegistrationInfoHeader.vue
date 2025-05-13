@@ -3,8 +3,7 @@
 const { t } = useI18n()
 const exStore = useExaminerStore()
 const { activeReg, activeHeader, isFilingHistoryOpen } = storeToRefs(exStore)
-const hostExp = useHostExpansion()
-const confirmUnsavedModal = ref<ConfirmModal | null>(null)
+const { toggleFilingHistory, checkAndPerformAction } = useHostExpansion()
 
 const getBadgeColor = (status: RegistrationStatus): string => {
   switch (status) {
@@ -83,7 +82,7 @@ const getRegistrationType = (): string => {
               icon="i-mdi-history"
               size="sm"
               class="gap-1"
-              @click="hostExp.checkAndPerformAction(() => hostExp.toggleFilingHistory(), confirmUnsavedModal)"
+              @click="checkAndPerformAction(() => toggleFilingHistory())"
             />
           </div>
           <UButton
@@ -127,13 +126,5 @@ const getRegistrationType = (): string => {
         </template>
       </div>
     </div>
-    <ConfirmationModal
-      ref="confirmUnsavedModal"
-      :is-open="false"
-      :title="t('modal.unsavedChanges.title')"
-      :message="t('modal.unsavedChanges.message')"
-      :confirm-text="t('btn.discardChanges')"
-      :cancel-text="t('btn.keepEditing')"
-    />
   </div>
 </template>

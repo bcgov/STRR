@@ -3,8 +3,7 @@
 const { t } = useI18n()
 const exStore = useExaminerStore()
 const { activeHeader, activeReg, isFilingHistoryOpen } = storeToRefs(exStore)
-const hostExp = useHostExpansion()
-const confirmUnsavedModal = ref<ConfirmModal | null>(null)
+const { toggleFilingHistory, checkAndPerformAction } = useHostExpansion()
 const localePath = useLocalePath()
 
 const getBadgeColor = (status: ApplicationStatus): string => {
@@ -92,7 +91,7 @@ const registrationCountdown = computed(() => {
             size="sm"
             class="gap-1"
             data-testid="toggle-history-btn"
-            @click="hostExp.checkAndPerformAction(() => hostExp.toggleFilingHistory(), confirmUnsavedModal)"
+            @click="checkAndPerformAction(() => toggleFilingHistory())"
           />
         </div>
         <UButton
@@ -147,13 +146,5 @@ const registrationCountdown = computed(() => {
         <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
       </div>
     </div>
-    <ConfirmationModal
-      ref="confirmUnsavedModal"
-      :is-open="false"
-      :title="t('modal.unsavedChanges.title')"
-      :message="t('modal.unsavedChanges.message')"
-      :confirm-text="t('btn.discardChanges')"
-      :cancel-text="t('btn.keepEditing')"
-    />
   </div>
 </template>
