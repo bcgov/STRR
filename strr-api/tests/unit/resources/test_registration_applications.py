@@ -1057,3 +1057,37 @@ def test_send_notice_of_consideration_for_provisional_review(mock_noc, mock_invo
         assert response_json.get("header").get("hostActions") == []
         assert response_json.get("header").get("nocStartDate") is not None
         assert response_json.get("header").get("nocEndDate") is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_decline_application_registration_provisional_review(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.status == Application.Status.FULL_REVIEW_APPROVED
+        assert application.registration.status == RegistrationStatus.ACTIVE.value
+        application.status = Application.Status.PROVISIONAL_REVIEW
+        application.save()
+
+        status_update_request = {"status": Application.Status.DECLINED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.status == Application.Status.DECLINED
+        assert application.registration.status == RegistrationStatus.CANCELLED.value

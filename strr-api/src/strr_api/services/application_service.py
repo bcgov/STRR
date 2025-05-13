@@ -39,7 +39,7 @@ from typing import Optional
 import pytz
 from flask import current_app
 
-from strr_api.enums.enum import ApplicationType, PaymentStatus
+from strr_api.enums.enum import ApplicationType, PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events, NoticeOfConsideration, Registration, User
 from strr_api.models.application import ApplicationSerializer
 from strr_api.models.dataclass import ApplicationSearch
@@ -194,9 +194,9 @@ class ApplicationService:
         application: Application, application_status: Application.Status, reviewer: User
     ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
-        application.status = application_status
 
-        if application.status == Application.Status.FULL_REVIEW_APPROVED:
+        if application_status == Application.Status.FULL_REVIEW_APPROVED:
+            application.status = application_status
             registration = RegistrationService.create_registration(
                 application.submitter_id, application.payment_account, application.application_json
             )
@@ -209,6 +209,22 @@ class ApplicationService:
                 user_id=reviewer.id,
             )
             application.registration_id = registration.id
+
+        if (
+            application_status == Application.Status.DECLINED
+            and application.status == Application.Status.PROVISIONAL_REVIEW
+        ):
+            application.status = application_status
+            registration = application.registration
+            if registration:
+                registration.status = RegistrationStatus.CANCELLED.value
+                registration.save()
+                EventsService.save_event(
+                    event_type=Events.EventType.REGISTRATION,
+                    event_name=Events.EventName.REGISTRATION_CANCELLED,
+                    registration_id=registration.id,
+                    user_id=reviewer.id,
+                )
 
         if application.status in APPLICATION_TERMINAL_STATES:
             application.decision_date = datetime.utcnow()
