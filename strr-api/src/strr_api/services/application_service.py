@@ -194,9 +194,9 @@ class ApplicationService:
         application: Application, application_status: Application.Status, reviewer: User
     ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
-
+        original_status = application.status
+        application.status = application_status
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
-            application.status = application_status
             registration = RegistrationService.create_registration(
                 application.submitter_id, application.payment_account, application.application_json
             )
@@ -212,9 +212,8 @@ class ApplicationService:
 
         if (
             application_status == Application.Status.DECLINED
-            and application.status == Application.Status.PROVISIONAL_REVIEW
+            and original_status == Application.Status.PROVISIONAL_REVIEW
         ):
-            application.status = application_status
             registration = application.registration
             if registration:
                 registration.status = RegistrationStatus.CANCELLED.value
