@@ -45,7 +45,6 @@ from weasyprint import HTML
 from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, RegistrationType
 from strr_api.models import (
     Address,
-    Application,
     Certificate,
     Contact,
     Document,
@@ -566,7 +565,6 @@ class RegistrationService:
         }
         registration.status = status
         registration.save()
-
         reviewer_id = reviewer.id if reviewer else None
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,
