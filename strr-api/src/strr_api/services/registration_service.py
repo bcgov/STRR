@@ -567,23 +567,6 @@ class RegistrationService:
         registration.status = status
         registration.save()
 
-        if status == RegistrationStatus.CANCELLED.value:
-            applications_to_decline = Application.query.filter(
-                Application.registration_id == registration.id,
-                Application.status == Application.Status.PROVISIONAL_REVIEW.value
-            ).all()
-
-            for application in applications_to_decline:
-                application.status = Application.Status.DECLINED.value
-                application.save()
-                EventsService.save_event(
-                    event_type=Events.EventType.APPLICATION, 
-                    event_name=Events.EventName.MANUALLY_DENIED, 
-                    application_id=application.id,
-                    user_id=reviewer.id if reviewer else None,
-                    visible_to_applicant=True,
-                )
-
         reviewer_id = reviewer.id if reviewer else None
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,
