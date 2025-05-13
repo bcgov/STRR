@@ -71,6 +71,11 @@ serialPipeline:
       container-name: "strr-api-sandbox"
       cloudsql-instances: "bcrbk9-tools:northamerica-northeast1:strr-db-sandbox"
       service-account: "sa-api@bcrbk9-tools.iam.gserviceaccount.com"
+      max-scale: "30"
+      container-concurrency: "8"
+      gunicorn-threads: "8"
+      memory-limit: "1024Mi"
+      cpu-limit: "1"
  - targetId: bcrbk9-prod
    profiles: [prod]
    strategy:
@@ -84,5 +89,8 @@ serialPipeline:
       container-name: "strr-api-prod"
       cloudsql-instances: "bcrbk9-prod:northamerica-northeast1:strr-db-prod"
       service-account: "sa-api@bcrbk9-prod.iam.gserviceaccount.com"
-      max-scale: "10"
-      container-concurrency: "20"
+      max-scale: "30"
+      container-concurrency: "8"
+      gunicorn-threads: "8"
+      memory-limit: "1024Mi"
+      cpu-limit: "1"
