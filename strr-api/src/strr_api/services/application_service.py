@@ -54,11 +54,13 @@ APPLICATION_TERMINAL_STATES = [
     Application.Status.PROVISIONALLY_APPROVED,
     Application.Status.AUTO_APPROVED,
     Application.Status.DECLINED,
+    Application.Status.PROVISIONALLY_DECLINED,
 ]
 APPLICATION_STATES_STAFF_ACTION = [
     Application.Status.FULL_REVIEW_APPROVED,
     Application.Status.PROVISIONALLY_APPROVED,
     Application.Status.DECLINED,
+    Application.Status.PROVISIONALLY_DECLINED,
     Application.Status.ADDITIONAL_INFO_REQUESTED,
 ]
 APPLICATION_UNPAID_STATES = [Application.Status.DRAFT, Application.Status.PAYMENT_DUE]
@@ -211,7 +213,7 @@ class ApplicationService:
             application.registration_id = registration.id
 
         if (
-            application_status == Application.Status.DECLINED
+            application_status == Application.Status.PROVISIONALLY_DECLINED
             and original_status == Application.Status.PROVISIONAL_REVIEW
         ):
             registration = application.registration
@@ -248,6 +250,8 @@ class ApplicationService:
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
             event_name = Events.EventName.MANUALLY_APPROVED
         elif application_status == Application.Status.DECLINED:
+            event_name = Events.EventName.MANUALLY_DENIED
+        elif application_status == Application.Status.PROVISIONALLY_DECLINED:
             event_name = Events.EventName.MANUALLY_DENIED
         elif application_status == Application.Status.ADDITIONAL_INFO_REQUESTED:
             event_name = Events.EventName.MORE_INFORMATION_REQUESTED

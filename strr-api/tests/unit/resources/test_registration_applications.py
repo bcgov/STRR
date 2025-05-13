@@ -1084,10 +1084,10 @@ def test_examiner_decline_application_registration_provisional_review(session, c
         application.status = Application.Status.PROVISIONAL_REVIEW
         application.save()
 
-        status_update_request = {"status": Application.Status.DECLINED}
+        status_update_request = {"status": Application.Status.PROVISIONALLY_DECLINED}
         rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
 
         application = Application.find_by_application_number(application_number=application_number)
-        assert application.status == Application.Status.DECLINED
+        assert application.status == Application.Status.PROVISIONALLY_DECLINED
         assert application.registration.status == RegistrationStatus.CANCELLED

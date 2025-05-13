@@ -74,6 +74,7 @@ class Application(BaseModel):
         ADDITIONAL_INFO_REQUESTED = auto()  # pylint: disable=invalid-name
         FULL_REVIEW = auto()  # pylint: disable=invalid-name
         DECLINED = auto()  # pylint: disable=invalid-name
+        PROVISIONALLY_DECLINED = auto()  # pylint: disable=invalid-name
         PROVISIONAL = auto()  # pylint: disable=invalid-name
         NOC_PENDING = auto()  # pylint: disable=invalid-name
         NOC_EXPIRED = auto()  # pylint: disable=invalid-name
@@ -423,6 +424,7 @@ class ApplicationSerializer:
         Application.Status.FULL_REVIEW_APPROVED: "Approved",
         Application.Status.PROVISIONAL_REVIEW: "Approved – Provisional",
         Application.Status.FULL_REVIEW: "Pending Approval",
+        Application.Status.PROVISIONALLY_DECLINED: "Declined",
         Application.Status.DECLINED: "Declined",
         Application.Status.NOC_PENDING: "Notice of Consideration",
         Application.Status.NOC_EXPIRED: "Pending Review",
@@ -441,6 +443,7 @@ class ApplicationSerializer:
         Application.Status.FULL_REVIEW_APPROVED: "Approved – Examined",
         Application.Status.PROVISIONAL_REVIEW: "Provisional Examination",
         Application.Status.FULL_REVIEW: "Full Examination",
+        Application.Status.PROVISIONALLY_DECLINED: "Declined - Provisional",
         Application.Status.DECLINED: "Declined",
         Application.Status.NOC_PENDING: "NOC - Pending",
         Application.Status.NOC_EXPIRED: "NOC - Expired",
