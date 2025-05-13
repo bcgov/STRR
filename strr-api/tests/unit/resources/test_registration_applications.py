@@ -1080,7 +1080,7 @@ def test_examiner_decline_application_registration_provisional_review(session, c
 
         application = Application.find_by_application_number(application_number=application_number)
         assert application.status == Application.Status.FULL_REVIEW_APPROVED
-        assert application.registration.status == RegistrationStatus.ACTIVE.value
+        assert application.registration.status == RegistrationStatus.ACTIVE
         application.status = Application.Status.PROVISIONAL_REVIEW
         application.save()
 
@@ -1090,4 +1090,4 @@ def test_examiner_decline_application_registration_provisional_review(session, c
 
         application = Application.find_by_application_number(application_number=application_number)
         assert application.status == Application.Status.DECLINED
-        assert application.registration.status == RegistrationStatus.CANCELLED.value
+        assert application.registration.status == RegistrationStatus.CANCELLED
