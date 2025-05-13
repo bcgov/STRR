@@ -512,6 +512,7 @@ function handleColumnSort (column: string) {
               { label: 'Additional Info Requested', value: ApplicationStatus.ADDITIONAL_INFO_REQUESTED },
               { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
               { label: 'Declined', value: ApplicationStatus.DECLINED },
+              { label: 'Provisionally Declined', value: ApplicationStatus.PROVISIONALLY_DECLINED },
               { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
               { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
               { label: 'NOC - Pending', value: ApplicationStatus.NOC_PENDING },
