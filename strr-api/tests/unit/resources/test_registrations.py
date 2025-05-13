@@ -572,3 +572,58 @@ def test_update_registration_str_address(session, client, jwt):
             f"/registrations/{registration_id}/str-address", json=valid_updated_address, headers=public_headers
         )
         assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_cancel_registration_with_provisionally_approved_applications(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.PROVISIONAL_REVIEW}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        current_utc = datetime.utcnow()
+        registration_end_date = current_utc - relativedelta(years=1)
+        user = User(
+            username="testUser",
+            firstname="Test",
+            lastname="User",
+            iss="test",
+            sub=f"sub{random.randint(0, 99999)}",
+            idp_userid="testUserID",
+            login_source="testLogin",
+        )
+        user.save()
+        registration = Registration(
+            start_date=registration_end_date - timedelta(days=300),
+            expiry_date=registration_end_date,
+            status=RegistrationStatus.ACTIVE,
+            registration_type="HOST",
+            sbc_account_id=ACCOUNT_ID,
+            registration_number="H1234567",
+            user_id=user.id,
+        )
+        registration.save()
+        registration_id = registration.id
+        application.registration_id = registration_id
+        application.save()
+
+        status_update_request = {"status": RegistrationStatus.CANCELLED.value}
+        rv = client.put(f"/registrations/{registration_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.CANCELLED.value
+
+        updated_application = Application.find_by_application_number(application_number=application_number)
+        assert updated_application.status == Application.Status.DECLINED.value
