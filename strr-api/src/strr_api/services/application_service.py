@@ -212,10 +212,10 @@ class ApplicationService:
             )
             application.registration_id = registration.id
 
-        if (
-            application_status == Application.Status.PROVISIONALLY_DECLINED
-            and original_status == Application.Status.PROVISIONAL_REVIEW
-        ):
+        if application_status == Application.Status.PROVISIONALLY_DECLINED and original_status in [
+            Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
+            Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED,
+        ]:
             registration = application.registration
             if registration:
                 registration.status = RegistrationStatus.CANCELLED.value
