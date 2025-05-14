@@ -9,6 +9,7 @@ const localePath = useLocalePath()
 const getBadgeColor = (status: ApplicationStatus): string => {
   switch (status) {
     case ApplicationStatus.DECLINED:
+    case ApplicationStatus.PROVISIONALLY_DECLINED:
       return 'red'
     case ApplicationStatus.AUTO_APPROVED:
     case ApplicationStatus.FULL_REVIEW_APPROVED:

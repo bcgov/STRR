@@ -69,6 +69,11 @@ const handleApplicationAction = (
     actionFn = provisionallyApproveApplication
   } else if (action === ApplicationActionsE.REJECT) {
     actionFn = rejectApplication
+    const isProvisional = [
+      ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+      ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+    ].includes(activeHeader.value?.status)
+    additionalArgs = [isProvisional]
   }
 
   return manageAction(
