@@ -356,7 +356,7 @@ def test_examiner_reject_application(session, client, jwt):
         assert response_json.get("header").get("hostStatus") == "Declined"
         assert response_json.get("header").get("examinerStatus") == "Declined"
         assert response_json.get("header").get("reviewer").get("username") is not None
-        assert response_json.get("header").get("examinerActions") == []
+        assert response_json.get("header").get("examinerActions") == ["SET_ASIDE"]
         assert response_json.get("header").get("hostActions") == []
 
 
@@ -1091,3 +1091,145 @@ def test_examiner_decline_application_registration_provisional_review(session, c
         application = Application.find_by_application_number(application_number=application_number)
         assert application.status == Application.Status.PROVISIONALLY_DECLINED
         assert application.registration.status == RegistrationStatus.CANCELLED
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_set_aside_application_refusal_decision(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": "DECLINED"}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("hostStatus") == "Declined"
+        assert response_json.get("header").get("examinerStatus") == "Declined"
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("examinerActions") == ["SET_ASIDE"]
+        assert response_json.get("header").get("hostActions") == []
+        assert response_json.get("header").get("isSetAside") is False
+
+        set_aside_request = {"content": "Test Set Aside Content"}
+        rv = client.post(
+            f"/applications/{application_number}/decision/set-aside", json=set_aside_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("isSetAside") is True
+        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT"]
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_refuse_application_after_set_aside(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": "DECLINED"}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("hostStatus") == "Declined"
+        assert response_json.get("header").get("examinerStatus") == "Declined"
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("examinerActions") == ["SET_ASIDE"]
+        assert response_json.get("header").get("hostActions") == []
+        assert response_json.get("header").get("isSetAside") is False
+
+        set_aside_request = {"content": "Test Set Aside Content"}
+        rv = client.post(
+            f"/applications/{application_number}/decision/set-aside", json=set_aside_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("isSetAside") is True
+        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT"]
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": "DECLINED"}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("hostStatus") == "Declined"
+        assert response_json.get("header").get("examinerStatus") == "Declined"
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("examinerActions") == ["SET_ASIDE"]
+        assert response_json.get("header").get("hostActions") == []
+        assert response_json.get("header").get("isSetAside") is False
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_approve_application_after_set_aside(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": "DECLINED"}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("hostStatus") == "Declined"
+        assert response_json.get("header").get("examinerStatus") == "Declined"
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("examinerActions") == ["SET_ASIDE"]
+        assert response_json.get("header").get("hostActions") == []
+        assert response_json.get("header").get("isSetAside") is False
+
+        set_aside_request = {"content": "Test Set Aside Content"}
+        rv = client.post(
+            f"/applications/{application_number}/decision/set-aside", json=set_aside_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+        assert response_json.get("header").get("isSetAside") is True
+        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT"]
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": "FULL_REVIEW_APPROVED"}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
+        assert response_json.get("header").get("hostStatus") == "Approved"
+        assert response_json.get("header").get("examinerStatus") == "Approved – Examined"
+        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("examinerActions") == []
+        assert response_json.get("header").get("hostActions") == []
+        assert response_json.get("header").get("isSetAside") is False
+        assert response_json.get("header").get("registrationId") is not None
+        assert response_json.get("header").get("registrationNumber") is not None
