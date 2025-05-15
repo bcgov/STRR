@@ -241,6 +241,7 @@ class ApplicationService:
             event_name=ApplicationService._get_event_name(application.status),
             application_id=application.id,
             user_id=reviewer.id,
+            details=f"Custom Email Content: {custom_content}" if custom_content else None,
         )
 
         EmailService.send_application_status_update_email(application, custom_content)
