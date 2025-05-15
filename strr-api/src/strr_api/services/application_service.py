@@ -197,13 +197,12 @@ class ApplicationService:
     ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
         original_status = application.status
+        application.is_set_aside = False
         application.status = application_status
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
-            if not application.registration_id:
-                registration = RegistrationService.create_registration(
-                    application.submitter_id, application.payment_account, application.application_json
-                )
-                application.registration_id = registration.id
+            registration = RegistrationService.create_registration(
+                application.submitter_id, application.payment_account, application.application_json
+            )
             EventsService.save_event(
                 event_type=Events.EventType.REGISTRATION,
                 event_name=Events.EventName.REGISTRATION_CREATED,
@@ -212,6 +211,7 @@ class ApplicationService:
                 visible_to_applicant=True,
                 user_id=reviewer.id,
             )
+            application.registration_id = registration.id
 
         if application_status == Application.Status.PROVISIONALLY_DECLINED and original_status in [
             Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,

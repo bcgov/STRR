@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f3154729-f428-4ff9-861f-39292b2d04fb",
+		"_postman_id": "99c51874-f78d-45b7-99cc-d1bd1b37327a",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -1330,6 +1330,45 @@
 								"applications",
 								"{{application_number}}",
 								"notice-of-consideration"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set Aside Decision",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"content\": \"Test Set Aside Content\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/applications/{{application_number}}/decision/set-aside",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"{{application_number}}",
+								"decision",
+								"set-aside"
 							]
 						}
 					},
