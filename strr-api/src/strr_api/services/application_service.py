@@ -199,9 +199,11 @@ class ApplicationService:
         original_status = application.status
         application.status = application_status
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
-            registration = RegistrationService.create_registration(
-                application.submitter_id, application.payment_account, application.application_json
-            )
+            if not application.registration_id:
+                registration = RegistrationService.create_registration(
+                    application.submitter_id, application.payment_account, application.application_json
+                )
+                application.registration_id = registration.id
             EventsService.save_event(
                 event_type=Events.EventType.REGISTRATION,
                 event_name=Events.EventName.REGISTRATION_CREATED,
@@ -210,7 +212,6 @@ class ApplicationService:
                 visible_to_applicant=True,
                 user_id=reviewer.id,
             )
-            application.registration_id = registration.id
 
         if application_status == Application.Status.PROVISIONALLY_DECLINED and original_status in [
             Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
@@ -397,4 +398,20 @@ class ApplicationService:
             user_id=user.id,
             visible_to_applicant=True,
         )
+        return application
+
+    @staticmethod
+    def set_aside_decision(application: Application, set_aside_request: dict, user: User) -> Application:
+        application.is_set_aside = True
+        application.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.APPLICATION_DECISION_SET_ASIDE,
+            details="Application decision set aside",
+            application_id=application.id,
+            user_id=user.id,
+            visible_to_applicant=True,
+        )
+        EmailService.send_set_aside_email(application=application, email_content=set_aside_request.get("content"))
         return application

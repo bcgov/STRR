@@ -38,7 +38,7 @@ import copy
 from typing import List, Optional
 
 from nanoid import generate
-from sqlalchemy import func
+from sqlalchemy import func, Boolean
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Query, backref
 from sqlalchemy_utils.types.ts_vector import TSVectorType
@@ -104,6 +104,8 @@ class Application(BaseModel):
     registration_id = db.Column("registration_id", db.Integer, db.ForeignKey("registrations.id"), nullable=True)
     submitter_id = db.Column("submitter_id", db.Integer, db.ForeignKey("users.id"))
     reviewer_id = db.Column("reviewer_id", db.Integer, db.ForeignKey("users.id"), nullable=True)
+
+    is_set_aside = db.Column(Boolean, default=False)
 
     application_tsv = db.Column(
         TSVectorType("application_json", regconfig="english"),
@@ -459,6 +461,8 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: ["PROVISIONAL_APPROVE", "SEND_NOC"],
         Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: ["PROVISIONAL_APPROVE", "REJECT"],
         Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: ["PROVISIONAL_APPROVE", "REJECT"],
+        Application.Status.PROVISIONALLY_DECLINED: ["SET_ASIDE"],
+        Application.Status.DECLINED: ["SET_ASIDE"],
     }
 
     @staticmethod
@@ -478,14 +482,23 @@ class ApplicationSerializer:
         application_dict["header"]["paymentStatus"] = application.payment_status_code
         application_dict["header"]["paymentAccount"] = application.payment_account
         application_dict["header"]["status"] = application.status
-        application_dict["header"]["hostStatus"] = ApplicationSerializer.HOST_STATUSES.get(application.status, "")
+        application_dict["header"]["isSetAside"] = application.is_set_aside
+        application_dict["header"]["hostStatus"] = (
+            "Pending Review"
+            if application.is_set_aside
+            else ApplicationSerializer.HOST_STATUSES.get(application.status, "")
+        )
         application_dict["header"]["examinerStatus"] = ApplicationSerializer.EXAMINER_STATUSES.get(
             application.status, ""
         )
         application_dict["header"]["hostActions"] = ApplicationSerializer.HOST_ACTIONS.get(application.status, [])
-        application_dict["header"]["examinerActions"] = ApplicationSerializer.EXAMINER_ACTIONS.get(
-            application.status, []
-        )
+
+        if application.is_set_aside:
+            application_dict["header"]["examinerActions"] = ["APPROVE", "REJECT"]
+        else:
+            application_dict["header"]["examinerActions"] = ApplicationSerializer.EXAMINER_ACTIONS.get(
+                application.status, []
+            )
         if application.status == Application.Status.FULL_REVIEW_APPROVED:
             certificates = application.registration.certificates
             if certificates:

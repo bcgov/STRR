@@ -100,3 +100,22 @@ class EmailService:
             )
         except Exception as err:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
+
+    @staticmethod
+    def send_set_aside_email(application: Application, email_content=None):
+        """Send notice of consideration for the application."""
+        try:
+            gcp_queue_publisher.publish_to_queue(
+                gcp_queue_publisher.QueueMessage(
+                    source=EMAIL_SOURCE,
+                    message_type=EMAIL_TYPE,
+                    payload={
+                        "applicationNumber": application.application_number,
+                        "emailType": "SET_ASIDE",
+                        "message": email_content,
+                    },
+                    topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+                )
+            )
+        except Exception as err:
+            logger.error("Failed to publish email notification: %s", err.with_traceback(None))

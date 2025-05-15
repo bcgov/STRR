@@ -162,6 +162,7 @@ class ErrorMessage(Enum):
     STRR_REQUIREMENTS_FETCH_ERROR = "Unable to retrieve the short term rental requirements for the address."
     INVALID_NOC_CONTENT = "Invalid content."
     ADDRESS_MISMATCH = "Address does not match with the data in the permit."
+    INVALID_SET_ASIDE_EMAIL_CONTENT = "Invalid message for set aside notifications."
 
 
 class ApplicationRole(Enum):

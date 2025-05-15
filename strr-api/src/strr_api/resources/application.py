@@ -1241,3 +1241,54 @@ def is_current_user_assignee(application_number: str):
     except Exception:
         logger.error("Error checking if user is assignee: ", exc_info=True)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<application_number>/decision/set-aside", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def set_aside_decision(application_number):
+    """
+    Set aside the decision for an application.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: application_number
+        type: string
+        required: true
+        description: Application Number
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+      500:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        request_json = request.get_json()
+        content = request_json.get("content", "").strip()
+        if not content:
+            return error_response(
+                message=ErrorMessage.INVALID_SET_ASIDE_EMAIL_CONTENT.value,
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        application = ApplicationService.get_application(application_number)
+        if not application:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
+        application = ApplicationService.set_aside_decision(application, request_json, user)
+        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
