@@ -31,6 +31,10 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+
+# pylint: disable=R0912
+# pylint: disable=R0915
+
 """Registration Application Model."""
 from __future__ import annotations
 
@@ -38,7 +42,7 @@ import copy
 from typing import List, Optional
 
 from nanoid import generate
-from sqlalchemy import func, Boolean
+from sqlalchemy import Boolean, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Query, backref
 from sqlalchemy_utils.types.ts_vector import TSVectorType

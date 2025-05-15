@@ -402,6 +402,7 @@ class ApplicationService:
 
     @staticmethod
     def set_aside_decision(application: Application, set_aside_request: dict, user: User) -> Application:
+        """Sets aside the decision for a host application."""
         application.is_set_aside = True
         application.save()
 
