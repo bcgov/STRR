@@ -19,7 +19,7 @@ from flask import Flask
 from strr_api.models import db
 from strr_api.models.application import Application
 from strr_api.models.events import Events
-from strr_api.models.rental import Registration
+from strr_api.models.rental import Registration, RentalProperty
 from strr_api.services import ApprovalService
 from structured_logging import StructuredLogging
 
@@ -53,6 +53,8 @@ def get_applications_in_full_review_status(app):
         Application.query.filter(
             Application.status == Application.Status.FULL_REVIEW,
             Application.registration_type == Registration.RegistrationType.HOST,
+            Application.application_json["registration"]["unitDetails"][
+                "ownershipType"].astext != RentalProperty.OwnershipType.CO_OWN
         )
         .order_by(Application.id)
         .limit(int(app.config.get("BATCH_SIZE")))
