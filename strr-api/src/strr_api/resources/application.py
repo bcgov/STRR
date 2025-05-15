@@ -574,7 +574,7 @@ def update_application_status(application_number):
         application = ApplicationService.get_application(application_number)
         if not application:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
-        if application.status in APPLICATION_TERMINAL_STATES:
+        if application.status in APPLICATION_TERMINAL_STATES and not application.is_set_aside:
             return error_response(
                 message=ErrorMessage.APPLICATION_TERMINAL_STATE.value,
                 http_status=HTTPStatus.BAD_REQUEST,
