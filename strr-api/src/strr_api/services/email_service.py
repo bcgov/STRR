@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """This module provides Email type services."""
 import logging
+from typing import Optional
 
 from flask import current_app
 
@@ -59,22 +60,25 @@ class EmailService:
     """Service to handle email logic and to interact with the email queue."""
 
     @staticmethod
-    def send_application_status_update_email(application: Application):
+    def send_application_status_update_email(application: Application, custom_content: Optional[str] = None):
         """Send email notification for the application if applicable.
 
         Assumes the application.status has been changed."""
         if application.status in APPLICATION_EMAIL_STATES.get(application.registration_type, []):
             try:
+                payload_data = {
+                    "applicationNumber": application.application_number,
+                    "emailType": f"{application.registration_type.value}_{application.status}",
+                }
+                if custom_content and application.status == Application.Status.PROVISIONALLY_DECLINED:
+                    payload_data["customContent"] = custom_content
                 gcp_queue_publisher.publish_to_queue(
                     # NOTE: if registrationType / status typing (str vs enum)
                     #       is updated in the model 'emailType' may need changes
                     gcp_queue_publisher.QueueMessage(
                         source=EMAIL_SOURCE,
                         message_type=EMAIL_TYPE,
-                        payload={
-                            "applicationNumber": application.application_number,
-                            "emailType": f"{application.registration_type.value}_{application.status}",
-                        },
+                        payload=payload_data,
                         topic=current_app.config.get("GCP_EMAIL_TOPIC"),
                     )
                 )

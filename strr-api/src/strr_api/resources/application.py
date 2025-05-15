@@ -566,6 +566,7 @@ def update_application_status(application_number):
         user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         json_input = request.get_json()
         status = json_input.get("status")
+        custom_content = json_input.get("emailContent")
         if not status or status.upper() not in APPLICATION_STATES_STAFF_ACTION:
             return error_response(
                 message=ErrorMessage.INVALID_APPLICATION_STATUS.value,
@@ -579,7 +580,7 @@ def update_application_status(application_number):
                 message=ErrorMessage.APPLICATION_TERMINAL_STATE.value,
                 http_status=HTTPStatus.BAD_REQUEST,
             )
-        application = ApplicationService.update_application_status(application, status.upper(), user)
+        application = ApplicationService.update_application_status(application, status.upper(), user, custom_content)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:
         logger.error(exception)
