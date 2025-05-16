@@ -592,7 +592,7 @@ export default {
     APPLICATION_REVIEWER_UNASSIGNED: 'Application reviewer unassigned',
     NOC_SENT: 'Notice of Consideration sent',
     NOC_EXPIRED: 'Notice of Consideration expired',
-    HOST_REGISTRATION_UNIT_ADDRESS_UPDATED: 'Host STR Address Updated'
+    HOST_REGISTRATION_UNIT_ADDRESS_UPDATED: 'Registration: Host address updated',
+    HOST_APPLICATION_UNIT_ADDRESS_UPDATED: 'Application: Host address updated'
   }
-
 }

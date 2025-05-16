@@ -11,6 +11,12 @@ const isFileUploadOpen = ref(false)
 const docStore = useDocumentStore()
 const { application } = storeToRefs(useHostPermitStore())
 
+// used to display Add New Document button
+const isNocPending = computed(() =>
+  application.value?.header.status === ApplicationStatus.NOC_PENDING ||
+  application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+)
+
 // step 3 items
 const supportingInfo = computed(() => {
   const items = [
@@ -91,7 +97,7 @@ const supportingInfo = computed(() => {
         </div>
 
         <div
-          v-if="application?.header.status === ApplicationStatus.NOC_PENDING"
+          v-if="isNocPending"
           class="mt-4 md:mt-0"
         >
           <UButton

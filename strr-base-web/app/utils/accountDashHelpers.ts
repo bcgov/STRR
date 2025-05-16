@@ -32,3 +32,12 @@ export function getDaysToExpiryColumn (heading: ApplicationHeader): { label: str
 
   return { label: t('label.dayCount', daysTillExpiry), value: daysTillExpiry }
 }
+
+// return the application status based on the header
+export function getApplicationStatus (header: ApplicationHeader): string {
+  // for Provisional Pending NOC we should display application host status instead of registration
+  if (header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) {
+    return header.hostStatus
+  }
+  return header.registrationStatus || header.hostStatus
+}
