@@ -261,6 +261,7 @@ export default {
     decline: 'Refuse',
     approve: 'Approve',
     cancel: 'Cancel',
+    cancelRegistration: 'Cancel Registration',
     suspend: 'Suspend',
     sendNotice: 'Send Notice',
     viewReceipt: 'View Receipt',

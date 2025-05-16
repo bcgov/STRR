@@ -92,7 +92,7 @@ watch(
     updateRouteAndButtons(RoutesE.REGISTRATION, {
       cancel: {
         action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.CANCEL, 'right', 0),
-        label: t('btn.cancel'),
+        label: t('btn.cancelRegistration'),
         disabled: !isAssignedToUser.value
       }
     })
