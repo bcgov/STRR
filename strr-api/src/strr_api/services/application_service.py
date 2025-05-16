@@ -418,5 +418,4 @@ class ApplicationService:
             user_id=user.id,
             visible_to_applicant=True,
         )
-        EmailService.send_set_aside_email(application=application, email_content=set_aside_request.get("content"))
         return application

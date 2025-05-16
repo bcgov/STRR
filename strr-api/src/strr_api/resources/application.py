@@ -1279,12 +1279,6 @@ def set_aside_decision(application_number):
     try:
         user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         request_json = request.get_json()
-        content = request_json.get("content", "").strip()
-        if not content:
-            return error_response(
-                message=ErrorMessage.INVALID_SET_ASIDE_EMAIL_CONTENT.value,
-                http_status=HTTPStatus.BAD_REQUEST,
-            )
         application = ApplicationService.get_application(application_number)
         if not application:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)

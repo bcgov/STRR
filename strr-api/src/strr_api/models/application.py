@@ -465,7 +465,7 @@ class ApplicationSerializer:
         Application.Status.PROVISIONAL_REVIEW: ["PROVISIONAL_APPROVE", "SEND_NOC"],
         Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: ["PROVISIONAL_APPROVE", "REJECT"],
         Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: ["PROVISIONAL_APPROVE", "REJECT"],
-        Application.Status.PROVISIONALLY_DECLINED: ["SET_ASIDE"],
+        Application.Status.PROVISIONALLY_DECLINED: [],
         Application.Status.DECLINED: ["SET_ASIDE"],
     }
 
