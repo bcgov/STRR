@@ -89,7 +89,8 @@ onMounted(async () => {
     title.value = permitDetails.value.unitAddress.nickname || t('strr.label.unnamed')
     subtitles.value = [{ text: getAddressDisplayParts(unitAddress.value.address, true).join(', ') }]
 
-    if (!registration.value) {
+    // for Provisional Pending NOC the header details should be based on the application
+    if (!registration.value || application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) {
       setHeaderDetails(
         application.value?.header.hostStatus,
         undefined,

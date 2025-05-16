@@ -83,7 +83,7 @@ const mapApplicationsList = () => {
     number: app.header.registrationNumber || app.header.applicationNumber,
     lastStatusChange: getLastStatusChangeColumn(app.header),
     daysToExpiry: getDaysToExpiryColumn(app.header),
-    status: app.header.registrationStatus || app.header.hostStatus,
+    status: getApplicationStatus(app.header),
     applicationNumber: app.header.applicationNumber // always used for view action
   }))
 }

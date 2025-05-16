@@ -59,9 +59,12 @@ export const getTodoApplication = (
     })
   }
 
-  if (applicationInfo?.status === ApplicationStatus.NOC_PENDING) {
+  if (applicationInfo?.status === ApplicationStatus.NOC_PENDING ||
+    applicationInfo?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+  ) {
     const nocEndDate = dateToString(applicationInfo!.nocEndDate as Date, 'DDD')
     const isHost = applicationType === ApplicationType.HOST
+    const isProvisional = applicationInfo?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
 
     const translationProps = {
       newLine: '<br/>',
@@ -79,7 +82,14 @@ export const getTodoApplication = (
       subtitle: `${t('todos.noc.general', translationProps)}${isHost ? t('todos.noc.host', translationProps) : ''}`
     }
 
-    todos.push(nocTodo)
+    const provisionalNocTodo: Todo = {
+      id: 'todo-provisional-noc-add-docs',
+      title: `${t('todos.provisionalNoc.title1')} ${nocEndDate} ${t('todos.provisionalNoc.title2')}`,
+      subtitle: `${t('todos.provisionalNoc.general',
+        translationProps)}${isHost ? t('todos.provisionalNoc.host', translationProps) : ''}`
+    }
+
+    todos.push(isProvisional ? provisionalNocTodo : nocTodo)
   }
 
   return todos
