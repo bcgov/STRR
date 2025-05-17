@@ -597,6 +597,7 @@ export default {
     NOC_SENT: 'Notice of Consideration sent',
     NOC_EXPIRED: 'Notice of Consideration expired',
     HOST_REGISTRATION_UNIT_ADDRESS_UPDATED: 'Registration: Host address updated',
-    HOST_APPLICATION_UNIT_ADDRESS_UPDATED: 'Application: Host address updated'
+    HOST_APPLICATION_UNIT_ADDRESS_UPDATED: 'Application: Host address updated',
+    APPLICATION_DECISION_SET_ASIDE: 'Decision set aside'
   }
 }
