@@ -202,7 +202,8 @@ export default {
       added: 'ADDED',
       unAssign: 'Yes, Unassign Them',
       acknowledgeError: 'Close',
-      editRentalUnit: 'Edit Rental Unit'
+      editRentalUnit: 'Edit Rental Unit',
+      setAside: 'SET ASIDE'
     },
     text: {
       applicationMustInclude: 'Your application must include the following:',
@@ -272,6 +273,7 @@ export default {
     discardChanges: 'Discard',
     declineApplication: 'Refuse Application',
     approveApplication: 'Approve Application',
+    setAside: 'Set Aside',
     yesApprove: 'Yes, Approve',
     yesSend: 'Yes, Send',
     yesReject: 'Yes, Reject',
@@ -283,7 +285,8 @@ export default {
       reject: 'An error occurred rejecting this application.',
       send_noc: 'An error occurred sending the Notice of Consideration for this application.',
       cancel: 'An error occurred cancelling this registration.',
-      provisional_approve: 'An error occurred approving this application.'
+      provisional_approve: 'An error occurred approving this application.',
+      set_aside: 'An error occurred while setting aside this application.'
     },
     createAccount: {
       title: 'Error creating account',
@@ -297,6 +300,7 @@ export default {
     },
     assignApplication: 'An error occurred assigning this application.',
     unAssignApplication: 'An error occurred unassigning this application.',
+    setAsideApplication: 'An error occurred while setting aside this application.',
     filingHistory: 'An error occurred while retrieving the filing history.',
     saveAddress: 'An error occurred while updating the STR address',
     saveAddressConfig: 'Either application number or registration ID must be provided',

@@ -322,6 +322,22 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   /**
+   * Set aside application decision.
+   *
+   * @param {string} applicationNumber - The application number to set aside.
+   */
+  const setAsideApplication = async (applicationNumber: string): Promise<void> => {
+    try {
+      await $strrApi(`${applicationNumber}/decision/set-aside`, {
+        method: 'POST'
+      })
+    } catch (e) {
+      logFetchError(e, t('error.setAsideApplication'))
+      strrModal.openErrorModal('Error', t('error.setAsideApplication'), false)
+    }
+  }
+
+  /**
    * Update the status of a registration.
    *
    * @param {number} registrationId - The registrationId for the registration to be updated.
@@ -495,6 +511,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     getRegistrationById,
     assignApplication,
     unassignApplication,
+    setAsideApplication,
     getApplicationFilingHistory,
     getRegistrationFilingHistory,
     startEditRentalUnitAddress,

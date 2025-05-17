@@ -41,6 +41,11 @@ export const useExaminerRoute = () => {
         action: (id: string) => void
         label: string,
         disabled?: boolean
+      },
+      setAside?: {
+        action: (id: string) => void
+        label: string,
+        disabled?: boolean
       }
     }
   ) => {
@@ -155,6 +160,17 @@ export const useExaminerRoute = () => {
             color: 'green',
             icon: 'i-mdi-check',
             disabled: buttonConfig.provisionalApprove!.disabled ?? false
+          })
+        }
+
+        if (examinerActions.includes(ApplicationActionsE.SET_ASIDE) && buttonConfig.setAside) {
+          uniqueRightButtons.push({
+            action: () => buttonConfig.setAside!.action(id as string),
+            label: buttonConfig.setAside.label,
+            variant: 'outline',
+            icon: 'i-mdi-rotate-left',
+            color: 'primary',
+            disabled: buttonConfig.setAside!.disabled ?? false
           })
         }
       }
