@@ -10,7 +10,8 @@ const {
   getNextApplication,
   getApplicationById,
   sendNoticeOfConsideration,
-  assignApplication
+  assignApplication,
+  setAsideApplication
 } = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 const { nocContent, nocFormRef, activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
@@ -74,6 +75,8 @@ const handleApplicationAction = (
       ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
     ].includes(activeHeader.value?.status)
     additionalArgs = [isProvisional]
+  } else if (action === ApplicationActionsE.SET_ASIDE) {
+    actionFn = setAsideApplication
   }
 
   return manageAction(
@@ -174,6 +177,11 @@ watch(
       provisionalApprove: {
         action: (id: string) => handleAssigneeAction(id, ApplicationActionsE.PROVISIONAL_APPROVE, 'right', 0),
         label: t('btn.approveApplication'),
+        disabled: !isAssignedToUser.value
+      },
+      setAside: {
+        action: (id: string) => handleAssigneeAction(id, ApplicationActionsE.SET_ASIDE, 'right', 0),
+        label: t('btn.setAside'),
         disabled: !isAssignedToUser.value
       }
     })
