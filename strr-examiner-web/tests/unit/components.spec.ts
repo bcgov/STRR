@@ -7,7 +7,7 @@ import {
   mockHostApplication, mockRegistrationFilingHistory
 } from '../mocks/mockedData'
 import SupportingDocuments from '~/components/SupportingDocuments.vue'
-import { HostExpansionFilingHistory, UBadge, UButton } from '#components'
+import { ApplicationInfoHeader, HostExpansionFilingHistory, UBadge, UButton } from '#components'
 
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
@@ -17,7 +17,8 @@ vi.mock('@/stores/examiner', () => ({
     activeRecord: ref(mockHostApplication),
     getApplicationFilingHistory: vi.fn().mockResolvedValue(mockApplicationFilingHistory),
     getRegistrationFilingHistory: vi.fn().mockResolvedValue(mockRegistrationFilingHistory),
-    isFilingHistoryOpen: ref(true)
+    isFilingHistoryOpen: ref(true),
+    resetEditRentalUnitAddress: vi.fn()
   })
 }))
 
@@ -38,6 +39,32 @@ describe('FilingHistory Component', async () => {
     expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(1)?.message)
     expect(historyTableRows.at(2)?.text()).toContain(mockApplicationFilingHistory.at(0)?.message)
     expect(filingHistoryWrapper.findAll('[data-testid="filing-history-idir"]').length).toBe(1)
+  })
+})
+
+describe('ApplicationInfoHeader Component', () => {
+  it('should display component with its data', async () => {
+    mockHostApplication.header = {
+      ...mockHostApplication.header,
+      isSetAside: true,
+      reviewer: {
+        username: 'aWilkinson@idir',
+        displayName: 'Anthony Wilkinson'
+      }
+    }
+
+    const appInfoHeaderWrapper = await mountSuspended(ApplicationInfoHeader, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(appInfoHeaderWrapper.exists()).toBe(true)
+    expect(appInfoHeaderWrapper.find('[data-testid="application-number"]').text())
+      .toBe(mockHostApplication.header.applicationNumber)
+    expect(appInfoHeaderWrapper.find('[data-testid="application-name"]').text())
+      .toBe(mockHostApplication.registration.unitAddress?.nickname)
+    expect(appInfoHeaderWrapper.find('[data-testid="application-set-aside-badge"]').exists()).toBe(true)
+    expect(appInfoHeaderWrapper.text()).toContain('Host')
+    expect(appInfoHeaderWrapper.text()).toContain(mockHostApplication.header.reviewer?.username)
   })
 })
 

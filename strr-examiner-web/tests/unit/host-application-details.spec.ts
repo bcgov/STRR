@@ -119,6 +119,7 @@ describe('Examiner - Host Application Details Page', () => {
     expect(appHeaderInfo.exists()).toBe(true)
     expect(appHeaderInfo.findComponent(UBadge).exists()).toBe(true)
     expect(appHeaderInfo.findTestId('strata-brand-website').exists()).toBe(false)
+    expect(appHeaderInfo.findTestId('application-set-aside-badge').exists()).toBe(false)
 
     const appHeaderInfoText = appHeaderInfo.text()
     expect(appHeaderInfoText).toContain(mockHostApplication.header.applicationNumber)

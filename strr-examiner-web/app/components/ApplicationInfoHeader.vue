@@ -62,12 +62,16 @@ const registrationCountdown = computed(() => {
     <div class="app-inner-container">
       <div class="mb-4 flex justify-between text-2xl leading-none">
         <div class="flex items-center space-x-3">
-          <span class="border-r-2 border-gray-700 pr-3 font-bold">
+          <span
+            class="border-r-2 border-gray-700 pr-3 font-bold"
+            data-testid="application-number"
+          >
             {{ activeHeader?.applicationNumber }}
           </span>
           <span
             v-if="getApplicationName()"
             class="border-r-2 border-gray-700 pr-3"
+            data-testid="application-name"
           >
             {{ getApplicationName() }}
           </span>

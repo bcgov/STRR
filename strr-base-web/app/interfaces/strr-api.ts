@@ -78,6 +78,7 @@ export interface ApplicationHeader {
   hostActions: string[] // SUBMIT_PAYMENT is currently the only case where this has anything
   hostStatus: string
   isCertificateIssued: boolean
+  isSetAside: boolean | null
   name: string
   paymentAccount: string
   paymentMethod: ConnectPaymentMethod
