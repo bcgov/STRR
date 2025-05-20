@@ -513,7 +513,7 @@ export default {
   },
   hostResidence: {
     SAME_UNIT: 'Same property as host’s principal residence',
-    ANOTHER_UNIT: 'Not same property as host’s principal residence'
+    ANOTHER_UNIT: "This unit is not the host's principal residence but it's on the same property"
   },
   rentalUnitSetupType: {
     WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence", // The whole Host Principal Residence
