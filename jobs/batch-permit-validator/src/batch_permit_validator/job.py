@@ -28,11 +28,11 @@ from flask import Flask, current_app
 from strr_api.enums.enum import ErrorMessage
 from strr_api.models import BulkValidation, db
 from strr_api.schemas.utils import validate
+from strr_api.services import gcp_queue_publisher
 from strr_api.services.approval_service import ApprovalService
 from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.validation_service import ValidationService
-from strr_api.services import gcp_queue_publisher
 from structured_logging import StructuredLogging
 
 from batch_permit_validator.config import CONFIGURATION
