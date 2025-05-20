@@ -68,6 +68,7 @@ EMAIL_SUBJECT = {
     "NOC": "Short-Term Rental Notice of Consideration",
     "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
+    "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
 }
 
 
@@ -109,16 +110,20 @@ def worker():
     app_dict = ApplicationSerializer.to_dict(application)
     noc_content = ""
     noc_expiry_date = ""
+    noc_sent_date = ""
 
     if noc := application.noc:
         noc_content = noc.content
         noc_expiry_date = noc.end_date.strftime("%B %d, %Y")
+        noc_sent_date = noc.creation_date.strftime("%B %d, %Y")
 
     template = Path(
         f'{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{email_info.email_type}.md'
     ).read_text("utf-8")
     filled_template = substitute_template_parts(template)
     jinja_template = Template(filled_template, autoescape=True)
+    recipients = _get_email_recipients(app_dict)
+    client_recipients = _get_client_recipients(app_dict)
     html_out = jinja_template.render(
         application_num=application.application_number,
         reg_num=app_dict.get("header", {}).get("registrationNumber"),
@@ -131,7 +136,10 @@ def worker():
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         noc_content=noc_content,
         noc_expiry_date=noc_expiry_date,
+        noc_sent_date=noc_sent_date,
         rental_nickname=_get_rental_nickname(app_dict, application.registration_type),
+        custom_content=email_info.custom_content,
+        client_recipients=client_recipients,
     )
     subject_number = (
         app_dict.get("header", {}).get("registrationNumber") or application.application_number
@@ -141,7 +149,7 @@ def worker():
         + f"{subject_number} - {EMAIL_SUBJECT.get(email_info.email_type, '')}"
     ).strip()
     email = {
-        "recipients": _get_email_recipients(app_dict),
+        "recipients": recipients,
         # requestBy is how the notify-api determines which GC Notify account to use
         "requestBy": current_app.config["EMAIL_STRR_REQUEST_BY"],
         "content": {"subject": subject, "body": f"{html_out}"},
@@ -258,6 +266,25 @@ def _get_email_recipients(app_dict: dict) -> str:
     return ",".join(recipients)
 
 
+def _get_client_recipients(app_dict: dict) -> str:
+    "Return the client recipients in a string separated by commas."
+    recipients: list[str] = []
+
+    reg = app_dict["registration"]
+    if reg["registrationType"] == Registration.RegistrationType.HOST.value:
+        # Host recipients - completing party is always the host or property manager
+        # the primary contact email should always be there (this is the primary host)
+        recipients.append(reg["primaryContact"]["emailAddress"])
+        if property_manager := reg.get("propertyManager"):
+            # will have a person or business email
+            email = (
+                property_manager.get("contact", {}).get("emailAddress")
+                or property_manager["business"]["primaryContact"]["emailAddress"]
+            )
+            recipients.append(email)
+    return ",".join(recipients) if recipients else ""
+
+
 def _get_tac_url(application: Application) -> str:
     """Return the relevant terms and conditions url for the application."""
     if application.registration_type == Registration.RegistrationType.HOST:
@@ -273,6 +300,7 @@ class EmailInfo:
 
     application_number: str = None
     email_type: str = None
+    custom_content: str = None
 
 
 def get_email_info(ce: SimpleCloudEvent) -> EmailInfo | None:
