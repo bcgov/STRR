@@ -114,7 +114,7 @@ const registrationCountdown = computed(() => {
       <div class="mb-2 text-sm">
         <UBadge
           v-if="activeHeader.isSetAside"
-          class="mr-3 bg-[#495057] font-bold uppercase"
+          class="mr-3 bg-bcGovColor-midGray font-bold uppercase"
           :label="t('strr.label.setAside')"
           variant="solid"
           data-testid="application-set-aside-badge"
