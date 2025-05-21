@@ -92,7 +92,9 @@ class RegistrationSerializer:
         if application:
             registration_data["header"]["applicationNumber"] = application.application_number
             registration_data["header"]["applicationDateTime"] = application.application_date.isoformat()
-            registration_data["header"]["organizationName"] = application.application_json.get("registration").get("strRequirements").get("organizationNm")
+            registration_data["header"]["organizationName"] = (
+                application.application_json.get("registration").get("strRequirements").get("organizationNm")
+            )
             registration_data["header"]["reviewer"] = {}
             if application.reviewer_id:
                 registration_data["header"]["reviewer"]["username"] = application.reviewer.username
