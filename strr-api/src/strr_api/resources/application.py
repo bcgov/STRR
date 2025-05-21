@@ -1244,7 +1244,7 @@ def is_current_user_assignee(application_number: str):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<application_number>/decision/set-aside", methods=("POST",))
+@bp.route("/<application_number>/decision/set-aside", methods=["POST"])
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
