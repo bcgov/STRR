@@ -10,9 +10,13 @@ const {
 } = storeToRefs(useExaminerStore())
 const { t } = useI18n()
 const formSchema = computed(
-  () => activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
-    ? sendEmailSchema.value
-    : sendNocSchema.value
+  () =>
+    [
+      ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+      ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+    ].includes(activeHeader.value?.status)
+      ? sendEmailSchema.value
+      : sendNocSchema.value
 )
 
 const handleInput = () => {
