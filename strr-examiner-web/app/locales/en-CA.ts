@@ -277,8 +277,7 @@ export default {
     setAside: 'Set Aside',
     yesApprove: 'Yes, Approve',
     yesSend: 'Yes, Send',
-    yesRefuse: 'Yes, Refuse',
-    cancelRegistration: 'Cancel Registration'
+    yesRefuse: 'Yes, Refuse'
   },
   error: {
     action: {
