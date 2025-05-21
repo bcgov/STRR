@@ -114,7 +114,7 @@ const registrationCountdown = computed(() => {
       <div class="mb-2 text-sm">
         <UBadge
           v-if="activeHeader.isSetAside"
-          class="bg-bcGovColor-midGray mr-3 font-bold uppercase"
+          class="mr-3 bg-bcGovColor-midGray font-bold uppercase"
           :label="t('strr.label.setAside')"
           variant="solid"
           data-testid="application-set-aside-badge"
@@ -146,7 +146,7 @@ const registrationCountdown = computed(() => {
       >
         <strong class="mr-1">{{ t('strr.label.registrationNumber') }}</strong>
         <span
-          class="text-bcGovColor-activeBlue cursor-pointer underline"
+          class="cursor-pointer text-bcGovColor-activeBlue underline"
           @click="goToRegistration(activeHeader?.registrationId)"
         >
           {{ activeHeader?.registrationNumber }}
