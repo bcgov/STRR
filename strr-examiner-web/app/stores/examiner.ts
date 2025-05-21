@@ -345,7 +345,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const setAsideApplication = async (applicationNumber: string): Promise<void> => {
     try {
       await $strrApi(`/applications/${applicationNumber}/decision/set-aside`, {
-        method: 'POST'
+        method: 'POST',
+        body: {}
       })
     } catch (e) {
       logFetchError(e, t('error.setAsideApplication'))
