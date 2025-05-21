@@ -390,10 +390,6 @@ export default {
       title: 'Action Failed',
       message: 'This application is no longer assigned to you.'
     },
-    cancelRegistration: {
-      title: 'Cancel Registration',
-      message: 'This registration will be cancelled. Are you sure you want to continue?'
-    },
     unsavedChanges: {
       title: 'Unsaved Changes',
       message: 'Are you sure you want to discard your changes?'
