@@ -252,7 +252,7 @@ describe('Examiner - Host Application Details Page', () => {
   it('hides NOC email and disables action buttons when isAssignedToUser is false', async () => {
     isAssignedToUser.value = false
     await nextTick()
-    expect(wrapper.findTestId('compose-noc').exists()).toBe(false)
+    expect(wrapper.findTestId('compose-email').exists()).toBe(false)
     const actionButtons = ['approve', 'reject', 'sendNotice']
     mockRightButtons.forEach((button) => {
       if (actionButtons.includes(button.key)) {

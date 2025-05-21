@@ -14,7 +14,7 @@ const {
   setAsideApplication
 } = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
-const { nocContent, nocFormRef, activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
+const { emailContent, emailFormRef, activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
 
 useHead({
   title: t('page.dashboardList.title')
@@ -59,11 +59,11 @@ const handleApplicationAction = (
   if (action === ApplicationActionsE.SEND_NOC) {
     actionFn = sendNoticeOfConsideration
     refreshFn = () => {
-      nocContent.value.content = ''
+      emailContent.value.content = ''
       refresh()
     }
-    additionalArgs = [nocContent.value.content]
-    validateFn = async () => await validateForm(nocFormRef.value, true).then(errors => !errors)
+    additionalArgs = [emailContent.value.content]
+    validateFn = async () => await validateForm(emailFormRef.value, true).then(errors => !errors)
   } else if (action === ApplicationActionsE.APPROVE) {
     actionFn = approveApplication
   } else if (action === ApplicationActionsE.PROVISIONAL_APPROVE) {
@@ -74,7 +74,7 @@ const handleApplicationAction = (
       ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
       ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
     ].includes(activeHeader.value?.status)
-    additionalArgs = [isProvisional]
+    additionalArgs = [isProvisional, emailContent.value.content]
   } else if (action === ApplicationActionsE.SET_ASIDE) {
     actionFn = setAsideApplication
   }
@@ -120,9 +120,13 @@ const handleAssigneeAction = (
       )
     } else if (action === ApplicationActionsE.REJECT) {
       openConfirmActionModal(
-        t('modal.rejectApplication.title'),
-        t('modal.rejectApplication.message'),
-        t('btn.yesReject'),
+        activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+          ? t('modal.cancelRegistration.title')
+          : t('modal.rejectApplication.title'),
+        activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+          ? t('modal.cancelRegistration.message')
+          : t('modal.rejectApplication.message'),
+        t('btn.yesRefuse'),
         () => {
           closeConfirmActionModal() // for smoother UX, close the modal before initiating the action
           handleApplicationAction(id, action, buttonPosition, buttonIndex)
@@ -166,7 +170,9 @@ watch(
       },
       reject: {
         action: (id: string) => handleAssigneeAction(id, ApplicationActionsE.REJECT, 'right', 0),
-        label: t('btn.declineApplication'),
+        label: activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+          ? t('btn.cancelRegistration')
+          : t('btn.declineApplication'),
         disabled: !isAssignedToUser.value
       },
       sendNotice: {

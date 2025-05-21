@@ -1,24 +1,36 @@
 <script setup lang="ts">
-const { sendNocSchema } = useExaminerStore()
-const { nocContent, showComposeNocEmail, nocFormRef, isAssignedToUser } = storeToRefs(useExaminerStore())
+const { sendNocSchema, sendEmailSchema } = useExaminerStore()
+const {
+  emailFormRef,
+  showComposeEmail,
+  emailContent,
+  showComposeNocEmail,
+  isAssignedToUser,
+  activeHeader
+} = storeToRefs(useExaminerStore())
 const { t } = useI18n()
+const formSchema = computed(
+  () => activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+    ? sendEmailSchema.value
+    : sendNocSchema.value
+)
 
 const handleInput = () => {
-  if (nocContent.value.content.length > 1 && nocFormRef.value) {
-    nocFormRef.value.clear()
+  if (emailContent.value.content.length > 1 && emailFormRef.value) {
+    emailFormRef.value.clear()
   }
 }
 </script>
 
 <template>
-  <div v-if="showComposeNocEmail && isAssignedToUser" class="app-inner-container">
+  <div v-if="(showComposeEmail || showComposeNocEmail) && isAssignedToUser" class="app-inner-container">
     <div class="mb-8 rounded bg-white py-6">
       <UForm
-        ref="nocFormRef"
-        :schema="sendNocSchema"
-        :state="nocContent"
+        ref="emailFormRef"
+        :schema="formSchema"
+        :state="emailContent"
         :validate-on="['submit']"
-        data-testid="compose-noc"
+        data-testid="compose-email"
       >
         <div class="flex">
           <div class="flex w-1/5 flex-col items-center">
@@ -27,7 +39,7 @@ const handleInput = () => {
           <div class="flex-auto pr-10">
             <UFormGroup name="content">
               <UTextarea
-                v-model="nocContent.content"
+                v-model="emailContent.content"
                 :placeholder="t('modal.noc.placeholder')"
                 :aria-label="t('modal.noc.placeholder')"
                 :color="'gray'"

@@ -37,7 +37,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     { immediate: true }
   )
   const isAssignedToUser = computed(() => _isAssignedToUser.value)
-  const nocContent = reactive({
+  const emailContent = reactive({
     content: ''
   })
   const isEditingRentalUnit = ref(false)
@@ -89,10 +89,19 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return activeHeader.value?.status === ApplicationStatus.FULL_REVIEW ||
       activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW
   })
-  const nocFormRef = ref<Form<any>>()
   const sendNocSchema = computed(() => z.object({
     content: z.string().min(1, { message: t('validation.nocContent') })
   }))
+
+  const emailFormRef = ref<Form<any>>()
+  const showComposeEmail = computed(() => {
+    return activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+      activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+  })
+  const sendEmailSchema = computed(() => z.object({
+    content: z.string()
+  }))
+
   const defaultApplicationStatuses = [
     ApplicationStatus.FULL_REVIEW,
     ApplicationStatus.PROVISIONAL_REVIEW,
@@ -246,10 +255,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }
 
-  const rejectApplication = async (applicationNumber: string, isProvisional: boolean = false): Promise<void> => {
+  const rejectApplication = async (
+    applicationNumber: string,
+    isProvisional: boolean = false,
+    content?: string
+  ): Promise<void> => {
     await $strrApi(`/applications/${applicationNumber}/status`, {
       method: 'PUT',
-      body: { status: isProvisional ? ApplicationStatus.PROVISIONALLY_DECLINED : ApplicationStatus.DECLINED }
+      body: {
+        status: isProvisional ? ApplicationStatus.PROVISIONALLY_DECLINED : ApplicationStatus.DECLINED,
+        emailContent: content
+      }
     })
   }
 
@@ -489,8 +505,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     activeHeader,
     isAssignedToUser,
     sendNocSchema,
-    nocContent,
-    nocFormRef,
+    emailContent,
+    emailFormRef,
+    sendEmailSchema,
+    showComposeEmail,
     showComposeNocEmail,
     isFilingHistoryOpen,
     isEditingRentalUnit,
