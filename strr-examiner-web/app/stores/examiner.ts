@@ -344,7 +344,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    */
   const setAsideApplication = async (applicationNumber: string): Promise<void> => {
     try {
-      await $strrApi(`${applicationNumber}/decision/set-aside`, {
+      await $strrApi(`/applications/${applicationNumber}/decision/set-aside`, {
         method: 'POST'
       })
     } catch (e) {
