@@ -51,9 +51,9 @@ const { checkAndPerformAction, openHostOwners } = useHostExpansion()
             data-testid="flag-unit-number-missing"
           />
         </div>
-        <div v-if="activeReg.strRequirements?.organizationNm">
+        <div v-if="activeHeader?.organizationName || activeReg.strRequirements?.organizationNm">
           <UIcon name="i-mdi-map-outline" />
-          {{ activeReg.strRequirements.organizationNm }}
+          {{ isApplication ? activeReg.strRequirements.organizationNm : activeHeader.organizationName }}
         </div>
         <div
           v-if="alertFlags.isUnitNumberMissing"
