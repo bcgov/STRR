@@ -673,3 +673,17 @@ class RegistrationService:
             pr_exempt_reason=registration.get("pr_exempt_reason"),
         )
         registration_obj.save()
+
+    @staticmethod
+    def update_registration_dates(registration: Registration, expiry_date: str) -> Registration:
+        """Updates start date, expiry date and status based on the expiry date string."""
+        expiry_date = datetime.strptime(expiry_date, "%Y-%m-%d")
+        registration.expiry_date = datetime.combine(expiry_date.date(), time(23, 59, 59))
+        start_date = expiry_date - relativedelta(years=1)
+        registration.start_date = datetime.combine(start_date.date(), time(8, 0, 0))
+        if registration.expiry_date < datetime.now():
+            registration.status = RegistrationStatus.EXPIRED
+        else:
+            registration.status = RegistrationStatus.ACTIVE
+        registration.save()
+        return registration

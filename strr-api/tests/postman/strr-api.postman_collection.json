@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "99c51874-f78d-45b7-99cc-d1bd1b37327a",
+		"_postman_id": "e233ebba-250e-49a4-992e-ec046c43abed",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -1615,6 +1615,44 @@
 								"registrations",
 								"{{registration_id}}",
 								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Registration Expiry",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"expiryDate\": \"2024-10-25\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_number}}/expiry",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_number}}",
+								"expiry"
 							]
 						}
 					},

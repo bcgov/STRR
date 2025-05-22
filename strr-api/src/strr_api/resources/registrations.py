@@ -470,3 +470,27 @@ def create_registration_for_permit_validation():
         logger.error(exception)
         logging.error("Traceback: %s", traceback.format_exc())
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_number>/expiry", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_TESTER.value])
+def update_expiry_date_for_registration(registration_number):
+    """
+    Update start date, end date and status of a registration.
+    """
+    try:
+        json_input = request.get_json()
+        expiry_date_str = json_input.get("expiryDate")
+        UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        registration = RegistrationService.find_by_registration_number(registration_number)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        RegistrationService.update_registration_dates(registration=registration, expiry_date=expiry_date_str)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
+        logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
