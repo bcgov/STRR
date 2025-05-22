@@ -106,9 +106,21 @@ const getRegistrationType = (): string => {
           />
           <strong>{{ t('strr.label.registrationDate') }}</strong>
           {{ dateToString(activeReg.startDate, 'y-MM-dd a', true) }} |
-          <strong>{{ t('strr.label.expiryDate') }}</strong>
-          {{ dateToString(activeReg.expiryDate, 'y-MM-dd a', true) }}
-          ({{ dayCountdown(activeReg.expiryDate.toString()) }} days left)
+          <span
+            v-if="activeReg.status === RegistrationStatus.CANCELLED"
+            data-testid="reg-cancel-date"
+          >
+            <b>{{ t('strr.label.cancelledDate') }}</b>
+            {{ activeReg.cancelledDate ? dateToString(activeReg.cancelledDate, 'y-MM-dd', true) : '-' }}
+          </span>
+          <span
+            v-else
+            data-testid="reg-expiry-date"
+          >
+            <strong>{{ t('strr.label.expiryDate') }}</strong>
+            {{ dateToString(activeReg.expiryDate, 'y-MM-dd a', true) }}
+            ({{ dayCountdown(activeReg.expiryDate.toString()) }} days left)
+          </span>
         </div>
       </div>
       <div class="text-sm">

@@ -174,6 +174,7 @@ export default {
       registrationDate: 'Registration Date:',
       registrationEndDate: 'Registration Expiry:',
       expiryDate: 'Expiry Date:',
+      cancelledDate: 'Cancellation Date:',
       nocExpiry: 'NOC Expiry:',
       businessLicenceExpiryDate: 'Expiry:',
       primaryBuilding: 'Primary Building',

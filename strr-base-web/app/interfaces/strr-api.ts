@@ -65,6 +65,7 @@ export interface ApiExtraRegistrationDetails {
   startDate: Date
   status: RegistrationStatus,
   updatedDate: Date
+  cancelledDate?: Date
   user_id: number
 }
 
