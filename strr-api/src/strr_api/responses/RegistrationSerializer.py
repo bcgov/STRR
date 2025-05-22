@@ -41,6 +41,7 @@ class RegistrationSerializer:
             "sbc_account_id": registration.sbc_account_id,
             "registrationType": registration.registration_type,
             "updatedDate": registration.updated_date.isoformat(),
+            "cancelledDate": registration.cancelled_date.isoformat() if registration.cancelled_date else None,
             "startDate": registration.start_date.isoformat() if registration.start_date else None,
             "expiryDate": registration.expiry_date.isoformat() if registration.expiry_date else None,
             "status": registration.status.name,

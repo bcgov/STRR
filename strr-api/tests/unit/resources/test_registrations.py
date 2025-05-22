@@ -380,6 +380,7 @@ def test_cancel_registration(session, client, jwt):
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         assert response_json.get("status") == RegistrationStatus.CANCELLED.value
+        assert response_json.get("cancelledDate") is not None
 
 
 def test_get_expired_registration_todos_in_renewal_window(session, client, jwt):

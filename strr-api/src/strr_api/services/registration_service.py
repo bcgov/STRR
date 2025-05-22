@@ -564,6 +564,8 @@ class RegistrationService:
             "CANCELLED": Events.EventName.REGISTRATION_CANCELLED,
         }
         registration.status = status
+        if status == RegistrationStatus.CANCELLED.value:
+            registration.cancelled_date = datetime.now(timezone.utc)
         registration.save()
         reviewer_id = reviewer.id if reviewer else None
         EventsService.save_event(
