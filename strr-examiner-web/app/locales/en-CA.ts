@@ -274,7 +274,6 @@ export default {
     keepEditing: 'Continue Editing',
     discardChanges: 'Discard',
     declineApplication: 'Refuse Application',
-    cancelRegistration: 'Cancel Registration',
     approveApplication: 'Approve Application',
     setAside: 'Set Aside',
     yesApprove: 'Yes, Approve',
