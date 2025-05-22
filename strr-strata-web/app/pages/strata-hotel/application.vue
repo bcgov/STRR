@@ -87,6 +87,7 @@ const steps = ref<Step[]>([
   }
 ])
 const activeStepIndex = ref<number>(0)
+const draftApplicationId = ref<string | undefined>(undefined)
 const activeStep = ref<Step>(steps.value[activeStepIndex.value] as Step)
 const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
 const reviewFormRef = shallowRef<InstanceType<typeof FormReviewConfirm> | null>(null)
@@ -95,10 +96,15 @@ const saveApplication = async (resumeLater = false) => {
   handleButtonLoading(false, 'left', resumeLater ? 1 : 2)
   // prevent flicker of buttons by waiting half a second
   try {
+    let appId = applicationId.value
+    if (draftApplicationId.value) {
+      appId = draftApplicationId.value
+    }
     const [, { filingId }] = await Promise.all([
       new Promise(resolve => setTimeout(resolve, 500)),
-      submitStrataApplication(true, applicationId.value)
+      submitStrataApplication(true, appId)
     ])
+    draftApplicationId.value = filingId
     applicationId.value = filingId
     if (resumeLater) {
       await navigateTo(localePath('/strata-hotel/dashboard'))
