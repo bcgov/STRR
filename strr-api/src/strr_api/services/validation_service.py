@@ -178,7 +178,7 @@ class ValidationService:
 
         # Remove keywords (case-insensitive): Suite, Unit, SL, Strata Lot, Room, Cabin, No.
         unit_number = re.sub(
-            r"\b(Suite|Unit|SL|Strata Lot|Room|Lot|ROOM|RM|Cabin|Bldg|ste|Nbr|Unt|Apartment|Apt|Number|Num|Floor|Flr|Fl|BUILDING|No\.?)",  # noqa: E501
+            r"\b(Suite|Unit|SL|Strata Lot|Room|Lot|RM|Cabin|Bldg|ste|Nbr|Unt|Apartment|Apt|Number|Num|Floor|Flr|Fl|BUILDING|No\.?)",  # noqa: E501
             "",
             unit_number,
             flags=re.IGNORECASE,
