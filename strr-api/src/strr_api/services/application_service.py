@@ -70,6 +70,8 @@ APPLICATION_ASSIGN_STATES = [
     Application.Status.PROVISIONAL,
     Application.Status.NOC_PENDING,
     Application.Status.NOC_EXPIRED,
+    Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
+    Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED,
     Application.Status.ADDITIONAL_INFO_REQUESTED,
     Application.Status.FULL_REVIEW_APPROVED,
     Application.Status.PROVISIONALLY_APPROVED,
