@@ -1,15 +1,20 @@
-interface ApiRegistrationHeader {
-  hostStatus: string
-  hostActions: string[]
-  examinerStatus: string
-  examinerActions: string[]
-  applicationNumber?: string
-  applicationDateTime?: string
+interface ApiApplicationEntry {
+  applicationNumber: string
+  applicationDateTime: string
+  organizationName?: string
   status: ApplicationStatus
   reviewer?: {
     username: string
     displayName: string
   }
+}
+
+interface ApiRegistrationHeader {
+  hostStatus: string
+  hostActions: string[]
+  examinerStatus: string
+  examinerActions: string[]
+  applications?: ApiApplicationEntry[]
 }
 
 export interface HostRegistrationResp extends ApiExtraRegistrationDetails {

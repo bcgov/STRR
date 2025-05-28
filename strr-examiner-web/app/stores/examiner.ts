@@ -18,7 +18,16 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       : activeRecord.value
   })
   const activeHeader = computed(() => {
-    return activeRecord.value?.header
+    const currentRecordHeader = activeRecord.value?.header
+    if (!isApplication.value) {
+      const applicationHeader = currentRecordHeader?.applications?.[0]
+      if (applicationHeader && currentRecordHeader) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { applications, ...rest } = currentRecordHeader
+        return { ...rest, ...applicationHeader }
+      }
+    }
+    return currentRecordHeader
   })
   const _isAssignedToUser = ref(false)
   watch(

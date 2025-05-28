@@ -213,6 +213,11 @@ class Application(BaseModel):
         return cls.query.filter_by(registration_id=registration_id).one_or_none()
 
     @classmethod
+    def get_all_by_registration_id(cls, registration_id: int) -> list[Application]:
+        """Return all applications associated with a given registration_id."""
+        return cls.query.filter_by(registration_id=registration_id).all()
+
+    @classmethod
     def _filter_by_application_registration_number(cls, search_term: str, query: Query) -> Query:
         """Filter query by application or registration number."""
         if not search_term:

@@ -88,22 +88,28 @@ class RegistrationSerializer:
         registration_data["header"]["examinerActions"] = RegistrationSerializer.EXAMINER_ACTIONS.get(
             registration.status, []
         )
-        application = Application.get_by_registration_id(registration.id)
-        if application:
-            registration_data["header"]["applicationNumber"] = application.application_number
-            registration_data["header"]["applicationDateTime"] = application.application_date.isoformat()
-            registration_data["header"]["organizationName"] = (
-                application.application_json.get("registration").get("strRequirements", {}).get("organizationNm")
-            )
-            registration_data["header"]["reviewer"] = {}
-            if application.reviewer_id:
-                registration_data["header"]["reviewer"]["username"] = application.reviewer.username
-                reviewer_display_name = ""
-                if application.reviewer.firstname:
-                    reviewer_display_name = f"{reviewer_display_name}{application.reviewer.firstname}"
-                if application.reviewer.lastname:
-                    reviewer_display_name = f"{reviewer_display_name} {application.reviewer.lastname}"
-                registration_data["header"]["reviewer"]["displayName"] = reviewer_display_name
+        applications = Application.get_all_by_registration_id(registration.id)
+        if applications:
+            sorted_applications = sorted(applications, key=lambda app: app.application_date, reverse=True)
+            registration_data["header"]["applications"] = []
+            for application in sorted_applications:
+                application_data = {
+                    "applicationNumber": application.application_number,
+                    "applicationDateTime": application.application_date.isoformat(),
+                    "organizationName": application.application_json.get("registration")
+                    .get("strRequirements", {})
+                    .get("organizationNm"),
+                }
+                application_data["reviewer"] = {}
+                if application.reviewer_id:
+                    application_data["reviewer"]["username"] = application.reviewer.username
+                    reviewer_display_name = ""
+                    if application.reviewer.firstname:
+                        reviewer_display_name = f"{reviewer_display_name}{application.reviewer.firstname}"
+                    if application.reviewer.lastname:
+                        reviewer_display_name = f"{reviewer_display_name} {application.reviewer.lastname}"
+                    application_data["reviewer"]["displayName"] = reviewer_display_name
+                registration_data["header"]["applications"].append(application_data)
 
     @classmethod
     def populate_strata_hotel_registration_details(cls, registration_data: dict, registration: Registration):
