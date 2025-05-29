@@ -31,6 +31,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+# pylint: disable=R0914
 """Permit Validation Service."""
 import copy
 import json
@@ -92,7 +93,8 @@ class ValidationService:
         if registration.registration_type == RegistrationType.HOST.value:
             if (
                 registration.rental_property.address.street_number
-                and str(address_json.get("streetNumber")) != registration.rental_property.address.street_number
+                and str(address_json.get("streetNumber")).lower()
+                != registration.rental_property.address.street_number.lower()
             ):
                 errors.append(
                     {
@@ -100,48 +102,61 @@ class ValidationService:
                         "message": ErrorMessage.STREET_NUMBER_MISMATCH.value,
                     }
                 )
-            if (
-                address_json.get("postalCode", "").replace(" ", "").lower()
-                != registration.rental_property.address.postal_code.replace(" ", "").lower()
+
+            # Postal code validation
+            request_postal_code = address_json.get("postalCode", "").replace(" ", "").lower()
+            permit_postal_code = registration.rental_property.address.postal_code.replace(" ", "").lower()
+            if not (
+                request_postal_code == permit_postal_code
+                or (len(request_postal_code) >= 4 and (request_postal_code[:4] == permit_postal_code[:4]))
             ):
                 errors.append(
                     {"code": ErrorMessage.POSTAL_CODE_MISMATCH.name, "message": ErrorMessage.POSTAL_CODE_MISMATCH.value}
                 )
 
-            if unit_number := address_json.get("unitNumber", None):
-                reg_unit_number = registration.rental_property.address.unit_number
-                if reg_unit_number and reg_unit_number.startswith("#"):
-                    reg_unit_number = reg_unit_number[1:]
-                if unit_number and unit_number.startswith("#"):
-                    unit_number = unit_number[1:]
-                if unit_number != reg_unit_number:
-                    errors.append(
-                        {
-                            "code": ErrorMessage.UNIT_NUMBER_MISMATCH.name,
-                            "message": ErrorMessage.UNIT_NUMBER_MISMATCH.value,
-                        }
-                    )
+            # Unit number validation.
+            has_unit_number_validation_error = False
+            if input_unit_number := address_json.get("unitNumber", None):
+                if permit_unit_number := registration.rental_property.address.unit_number:
+                    filtered_input_unit_number = ValidationService._get_filtered_unit_number(input_unit_number)
+                    filtered_permit_unit_number = ValidationService._get_filtered_unit_number(permit_unit_number)
+                    if filtered_input_unit_number != filtered_permit_unit_number:
+                        has_unit_number_validation_error = True
+                else:
+                    has_unit_number_validation_error = True
+
+            else:
+                if registration.rental_property.address.unit_number:
+                    has_unit_number_validation_error = True
+
+            if has_unit_number_validation_error:
+                errors.append(
+                    {
+                        "code": ErrorMessage.UNIT_NUMBER_MISMATCH.name,
+                        "message": ErrorMessage.UNIT_NUMBER_MISMATCH.value,
+                    }
+                )
 
         if registration.registration_type == RegistrationType.STRATA_HOTEL.value:
             match_found = False
             strata_hotel = registration.strata_hotel_registration.strata_hotel
             location = strata_hotel.location
 
-            if (
-                str(address_json.get("streetNumber"))
-                == str(cls._extract_street_number(cls._get_text_after_hyphen(location.street_address)))
-                and address_json.get("postalCode", "").replace(" ", "").lower()
-                == location.postal_code.replace(" ", "").lower()
+            if str(address_json.get("streetNumber")) == str(
+                cls._extract_street_number(cls._get_text_after_hyphen(location.street_address))
+            ) and (
+                address_json.get("postalCode", "").replace(" ", "").lower()[:4]
+                == location.postal_code.replace(" ", "").lower()[:4]
             ):
                 match_found = True
 
             if not match_found:
                 for building in strata_hotel.buildings:
-                    if (
-                        str(address_json.get("streetNumber"))
-                        == str(cls._extract_street_number(cls._get_text_after_hyphen(building.address.street_address)))
-                        and address_json.get("postalCode", "").replace(" ", "").lower()
-                        == building.address.postal_code.replace(" ", "").lower()
+                    if str(address_json.get("streetNumber")) == str(
+                        cls._extract_street_number(cls._get_text_after_hyphen(building.address.street_address))
+                    ) and (
+                        address_json.get("postalCode", "").replace(" ", "").lower()[:4]
+                        == building.address.postal_code.replace(" ", "").lower()[:4]
                     ):
                         match_found = True
                         break
@@ -161,6 +176,28 @@ class ValidationService:
             response["status"] = registration.status.name
             response["validUntil"] = DateUtil.as_legislation_timezone(registration.expiry_date).strftime("%Y-%m-%d")
         return response, status_code
+
+    @classmethod
+    def _get_filtered_unit_number(cls, unit_number):
+        # Remove leading # or -
+        unit_number = re.sub(r"^[#-]+\s*", "", unit_number, flags=re.IGNORECASE)
+
+        # Remove keywords (case-insensitive): Suite, Unit, SL, Strata Lot, Room, Cabin, No.
+        unit_number = re.sub(
+            r"\b(Suite|Unit|SL|Strata Lot|Room|Lot|RM|Cabin|Bldg|ste|Nbr|Unt|Apartment|Apt|Number|Num|Floor|Flr|Fl|BUILDING|No\.?)",  # noqa: E501
+            "",
+            unit_number,
+            flags=re.IGNORECASE,
+        )
+
+        # Remove all hyphens and spaces (including in-between)
+        unit_number = re.sub(r"[-.\s]+", "", unit_number, flags=re.IGNORECASE)
+
+        # Remove standalone leading zeros
+        unit_number = re.sub(r"\b0+(\w+)", r"\1", unit_number, flags=re.IGNORECASE)
+
+        # Convert to uppercase
+        return unit_number.upper()
 
     @classmethod
     def _get_text_after_hyphen(cls, address_line):

@@ -108,7 +108,7 @@ def test_permit_details_mismatch(session, client, jwt):
 
         validate_permit_request = {
             "identifier": registration_number,
-            "address": {"streetNumber": "12165", "postalCode": "V2X 7N2"},
+            "address": {"streetNumber": "12165", "postalCode": "V2X 555"},
         }
         rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
         assert rv.status_code == HTTPStatus.BAD_REQUEST
@@ -123,6 +123,20 @@ def test_permit_details_mismatch(session, client, jwt):
         assert response_json.get("errors")[1].get("code") == "POSTAL_CODE_MISMATCH"
         assert (
             response_json.get("errors")[1].get("message") == "Postal code does not match with the data in the permit."
+        )
+
+        validate_permit_request = {
+            "identifier": registration_number,
+            "address": {"streetNumber": "12165", "postalCode": "V2X 7N2"},
+        }
+        rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
+        assert rv.status_code == HTTPStatus.BAD_REQUEST
+        response_json = rv.json
+
+        assert len(response_json.get("errors")) == 1
+        assert response_json.get("errors")[0].get("code") == "STREET_NUMBER_MISMATCH"
+        assert (
+            response_json.get("errors")[0].get("message") == "Street number does not match with the data in the permit."
         )
 
 
