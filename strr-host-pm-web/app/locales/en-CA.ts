@@ -377,6 +377,7 @@ export default {
     giveUnitNickname: 'Give your rental unit a nickname to help you identify it, especially if you manage multiple units.',
     addAllReqDocs: 'Add all required documentation that supports your short-term rental registration. {link}',
     toDetermineDocsReturnToStart: 'To determine the types of documentation you’ll need, please complete Step 1 of the application first.',
+    hostDashboardAddressBreakdown: 'Follow the instructions on your short-term rental platform to update your listing with your {boldStart}Registration Number, Unit Number, Street Number, and Postal Code exactly as it is shown below.{boldEnd} Your listing will be taken down if the below information does not match what’s entered in the platform.{newLine}{newLine}',
     uploadReqDocs: 'Upload all required documentation to support your registration.',
     noDocsReq: 'No supporting documentation is required.',
     missingDocuments: 'Missing required documents.',

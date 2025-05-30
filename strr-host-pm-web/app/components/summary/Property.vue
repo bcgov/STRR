@@ -65,7 +65,7 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
       <div class="-ml-4 h-px w-full border-b border-gray-100" />
     </template>
     <template #info-address>
-      <ConnectFormAddressDisplay :address="unitAddress.address" />
+      <ConnectFormAddressDisplayItem :address="unitAddress.address" />
     </template>
     <template #info-blExempt>
       <div class="flex gap-2">
