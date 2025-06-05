@@ -69,6 +69,12 @@ from strr_api.responses import RegistrationSerializer
 from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
 
+REGISTRATION_STATES_STAFF_ACTION = [
+    RegistrationStatus.ACTIVE.value,
+    RegistrationStatus.SUSPENDED.value,
+    RegistrationStatus.CANCELLED.value,
+]
+
 
 class RegistrationService:
     """Service to save and load registration details from the database."""
@@ -562,8 +568,10 @@ class RegistrationService:
             "EXPIRED": Events.EventName.REGISTRATION_EXPIRED,
             "SUSPENDED": Events.EventName.NON_COMPLIANCE_SUSPENDED,
             "CANCELLED": Events.EventName.REGISTRATION_CANCELLED,
+            "ACTIVE": Events.EventName.REGISTRATION_REINSTATED,
         }
         registration.status = status
+        registration.is_set_aside = False
         if status == RegistrationStatus.CANCELLED.value:
             registration.cancelled_date = datetime.now(timezone.utc)
         registration.save()
@@ -688,4 +696,20 @@ class RegistrationService:
         else:
             registration.status = RegistrationStatus.ACTIVE
         registration.save()
+        return registration
+
+    @staticmethod
+    def set_aside_decision(registration: Registration, user: User) -> Registration:
+        """Sets aside the decision for a registration."""
+        registration.is_set_aside = True
+        registration.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.REGISTRATION_DECISION_SET_ASIDE,
+            details="Registration decision set aside",
+            registration_id=registration.id,
+            user_id=user.id,
+            visible_to_applicant=True,
+        )
         return registration
