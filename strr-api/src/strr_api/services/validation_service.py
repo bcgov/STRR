@@ -31,7 +31,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-# pylint: disable=R0914
+# pylint: disable=R0914, R0915, C0207
 """Permit Validation Service."""
 import copy
 import json
@@ -90,11 +90,16 @@ class ValidationService:
             return response, status_code
         errors = []
         address_json = request_json.get("address")
+
         if registration.registration_type == RegistrationType.HOST.value:
-            if (
-                registration.rental_property.address.street_number
-                and str(address_json.get("streetNumber")).lower()
-                != registration.rental_property.address.street_number.lower()
+            # Street Number validation
+            request_street_number = str(address_json.get("streetNumber")).lower().strip()
+            request_street_number_sub = request_street_number.split(" ")[0]
+            permit_street_number = registration.rental_property.address.street_number
+
+            if permit_street_number and permit_street_number.lower().strip() not in (
+                request_street_number,
+                request_street_number_sub,
             ):
                 errors.append(
                     {
@@ -137,14 +142,16 @@ class ValidationService:
                     }
                 )
 
-        if registration.registration_type == RegistrationType.STRATA_HOTEL.value:
+        elif registration.registration_type == RegistrationType.STRATA_HOTEL.value:
             match_found = False
             strata_hotel = registration.strata_hotel_registration.strata_hotel
             location = strata_hotel.location
 
-            if str(address_json.get("streetNumber")) == str(
-                cls._extract_street_number(cls._get_text_after_hyphen(location.street_address))
-            ) and (
+            request_street_number = str(address_json.get("streetNumber")).strip()
+            request_street_number_sub = request_street_number.split(" ")[0]
+            permit_street_number = str(cls._extract_street_number(cls._get_text_after_hyphen(location.street_address)))
+
+            if (permit_street_number in (request_street_number, request_street_number_sub)) and (
                 address_json.get("postalCode", "").replace(" ", "").lower()[:4]
                 == location.postal_code.replace(" ", "").lower()[:4]
             ):
@@ -152,9 +159,10 @@ class ValidationService:
 
             if not match_found:
                 for building in strata_hotel.buildings:
-                    if str(address_json.get("streetNumber")) == str(
+                    building_street_number = str(
                         cls._extract_street_number(cls._get_text_after_hyphen(building.address.street_address))
-                    ) and (
+                    )
+                    if (building_street_number in (request_street_number, request_street_number_sub)) and (
                         address_json.get("postalCode", "").replace(" ", "").lower()[:4]
                         == building.address.postal_code.replace(" ", "").lower()[:4]
                     ):
@@ -207,11 +215,7 @@ class ValidationService:
 
     @classmethod
     def _extract_street_number(cls, address):
-        street_number = ""
-        match = re.match(r"(\d+)", address)
-        if match:
-            street_number = match.group(1)
-        return street_number
+        return address.strip().split(" ")[0]
 
     @classmethod
     def save_bulk_validation_request(cls, request_json):
