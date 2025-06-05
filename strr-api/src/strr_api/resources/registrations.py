@@ -54,6 +54,7 @@ from strr_api.models import User
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
+from strr_api.services.registration_service import REGISTRATION_STATES_STAFF_ACTION
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
@@ -301,7 +302,7 @@ def update_registration_status(registration_id):
         reviewer = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         json_input = request.get_json()
         status = json_input.get("status")
-        if not status or status not in RegistrationService.REGISTRATION_STATES_STAFF_ACTION:
+        if not status or status not in REGISTRATION_STATES_STAFF_ACTION:
             return error_response(
                 http_status=HTTPStatus.BAD_REQUEST, message=ErrorMessage.REGISTRATION_STATUS_UPDATE_NOT_ALLOWED.value
             )
