@@ -92,12 +92,14 @@ class ValidationService:
         address_json = request_json.get("address")
 
         if registration.registration_type == RegistrationType.HOST.value:
-            request_street_number = str(address_json.get("streetNumber")).lower()
+            # Street Number validation
+            request_street_number = str(address_json.get("streetNumber")).lower().strip()
+            request_street_number_sub = request_street_number.split(" ")[0]
             permit_street_number = registration.rental_property.address.street_number
 
-            if permit_street_number and not (
-                request_street_number == permit_street_number.lower()
-                or request_street_number.split(" ")[0] == permit_street_number.lower()
+            if permit_street_number and permit_street_number.lower().strip() not in (
+                request_street_number,
+                request_street_number_sub,
             ):
                 errors.append(
                     {
@@ -145,7 +147,7 @@ class ValidationService:
             strata_hotel = registration.strata_hotel_registration.strata_hotel
             location = strata_hotel.location
 
-            request_street_number = str(address_json.get("streetNumber"))
+            request_street_number = str(address_json.get("streetNumber")).strip()
             request_street_number_sub = request_street_number.split(" ")[0]
             permit_street_number = str(cls._extract_street_number(cls._get_text_after_hyphen(location.street_address)))
 
@@ -213,7 +215,7 @@ class ValidationService:
 
     @classmethod
     def _extract_street_number(cls, address):
-        return address.split(" ")[0]
+        return address.strip().split(" ")[0]
 
     @classmethod
     def save_bulk_validation_request(cls, request_json):
