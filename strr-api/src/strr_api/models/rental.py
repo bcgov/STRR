@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from sql_versioning import Versioned
-from sqlalchemy import Enum
+from sqlalchemy import Boolean, Enum
 from sqlalchemy.orm import relationship
 
 from strr_api.common.enum import BaseEnum, auto
@@ -39,6 +39,7 @@ class Registration(Versioned, BaseModel):
     expiry_date = db.Column(db.DateTime, nullable=False)
     updated_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
     cancelled_date = db.Column(db.DateTime, nullable=True)
+    is_set_aside = db.Column(Boolean, default=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     user = relationship("User", foreign_keys=[user_id])

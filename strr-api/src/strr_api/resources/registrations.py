@@ -301,7 +301,7 @@ def update_registration_status(registration_id):
         reviewer = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         json_input = request.get_json()
         status = json_input.get("status")
-        if not status or status not in [RegistrationStatus.SUSPENDED.value, RegistrationStatus.CANCELLED.value]:
+        if not status or status not in RegistrationService.REGISTRATION_STATES_STAFF_ACTION:
             return error_response(
                 http_status=HTTPStatus.BAD_REQUEST, message=ErrorMessage.REGISTRATION_STATUS_UPDATE_NOT_ALLOWED.value
             )
@@ -493,4 +493,43 @@ def update_expiry_date_for_registration(registration_number):
     except Exception as exception:
         logger.error(exception)
         logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/decision/set-aside", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def set_aside_decision(registration_id):
+    """
+    Set aside a registration.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+      500:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        registration = RegistrationService.set_aside_decision(registration, user)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)

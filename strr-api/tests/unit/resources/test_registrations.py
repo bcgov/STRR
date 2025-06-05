@@ -573,3 +573,152 @@ def test_update_registration_str_address(session, client, jwt):
             f"/registrations/{registration_id}/str-address", json=valid_updated_address, headers=public_headers
         )
         assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_set_aside_registration_decision(session, client, jwt):
+    """Test setting aside a registration decision."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        rv = client.post(f"/registrations/{registration_id}/decision/set-aside", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("isSetAside") is True
+        assert response_json.get("header").get("examinerActions") == ["REINSTATE", "CANCEL"]
+
+        public_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        public_headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post(f"/registrations/{registration_id}/decision/set-aside", headers=public_headers)
+        assert HTTPStatus.UNAUTHORIZED == rv.status_code
+
+        rv = client.post("/registrations/NON_EXISTENT/decision/set-aside", headers=staff_headers)
+        assert HTTPStatus.NOT_FOUND == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_reinstate_registration_using_status_endpoint(session, client, jwt):
+    """Test reinstating a registration using the /status endpoint after set-aside."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        rv = client.post(f"/registrations/{registration_id}/decision/set-aside", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("isSetAside") is True
+
+        status_update_request = {"status": RegistrationStatus.ACTIVE.value}
+        rv = client.put(f"/registrations/{registration_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.ACTIVE.value
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_set_aside_registration_events(session, client, jwt):
+    """Test that set-aside registration creates proper events."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        rv = client.post(f"/registrations/{registration_id}/decision/set-aside", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.get(f"/registrations/{registration_id}/events", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        events = rv.json
+        event_names = [event.get("eventName") for event in events]
+        assert Events.EventName.REGISTRATION_CREATED in event_names
+        assert Events.EventName.REGISTRATION_DECISION_SET_ASIDE in event_names
+
+        status_update_request = {"status": RegistrationStatus.ACTIVE.value}
+        rv = client.put(f"/registrations/{registration_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.get(f"/registrations/{registration_id}/events", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        events = rv.json
+        event_names = [event.get("eventName") for event in events]
+        assert Events.EventName.REGISTRATION_CREATED in event_names
+        assert Events.EventName.REGISTRATION_DECISION_SET_ASIDE in event_names
+        assert Events.EventName.REGISTRATION_REINSTATED in event_names
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_cancel_registration_using_status_endpoint(session, client, jwt):
+    """Test canceling a registration using the /status endpoint after set-aside."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        rv = client.post(f"/registrations/{registration_id}/decision/set-aside", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        status_update_request = {"status": RegistrationStatus.CANCELLED.value}
+        rv = client.put(f"/registrations/{registration_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.CANCELLED.value
+        assert response_json.get("cancelledDate") is not None

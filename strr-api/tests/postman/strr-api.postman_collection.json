@@ -1621,6 +1621,45 @@
 					"response": []
 				},
 				{
+					"name": "Set Aside Registration Decision",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/decision/set-aside",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"decision",
+								"set-aside"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Update Registration Expiry",
 					"request": {
 						"auth": {
