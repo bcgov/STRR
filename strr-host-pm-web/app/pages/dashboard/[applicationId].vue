@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { watch } from 'vue'
 const { t } = useNuxtApp().$i18n
 const route = useRoute()
 const config = useRuntimeConfig().public
@@ -27,58 +28,19 @@ const {
 
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
+const isRenewalsEnabled = useFeatureFlags().isFeatureEnabled('enable-registration-renewals')
 
 onMounted(async () => {
   loading.value = true
   const applicationId = route.params.applicationId as string
   await permitStore.loadHostData(applicationId)
-  // set header stuff
-  todos.value = getTodoApplication(
+
+  todos.value.push(...getTodoApplication(
     '/application',
     '/dashboard/' + application.value?.header.applicationNumber,
     application.value?.header,
     ApplicationType.HOST
-  )
-
-  const translationProps = {
-    newLine: '<br/>',
-    boldStart: '<strong>',
-    boldEnd: '</strong>'
-  }
-
-  const isRenewalsEnabled = useFeatureFlags().isFeatureEnabled('enable-registration-renewals')
-
-  if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
-    // todo for renewal period closed after 3 years without renewal
-    todos.value.push({
-      id: 'todo-renew-registration-closed',
-      title: t('todos.renewalClosed.title'),
-      subtitle: t('todos.renewalClosed.subtitle', translationProps)
-    })
-  } else if (isRenewalsEnabled.value && registration.value && isEligibleForRenewal.value) {
-    const isOverdue = renewalDateCounter.value < 0
-    // label for the due days count
-    const dueDateCount = isOverdue
-      ? t('label.renewalOverdue')
-      : t('label.renewalDayCount', renewalDateCounter.value)
-
-    todos.value.push({
-      id: 'todo-renew-registration',
-      title: `${t('todos.renewal.title1')} ${renewalDueDate.value} ${t('todos.renewal.title2')} (${dueDateCount})`,
-      subtitle: t(isOverdue
-        ? 'todos.renewal.expired'
-        : 'todos.renewal.expiresSoon', translationProps),
-      button: {
-        label: t('btn.renew'),
-        action: async () => {
-          await navigateTo({
-            path: localePath('/application'),
-            query: { renew: 'true', registrationId: registration.value?.id }
-          })
-        }
-      }
-    })
-  }
+  ))
 
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
@@ -138,6 +100,47 @@ definePageMeta({
     return true
   }
 })
+
+// watch for Registration Renewals props and update related ToDos
+watch([isRenewalsEnabled, isRenewalPeriodClosed, registration, isEligibleForRenewal], () => {
+  const translationProps = {
+    newLine: '<br/>',
+    boldStart: '<strong>',
+    boldEnd: '</strong>'
+  }
+
+  if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
+    // todo for renewal period closed after 3 years without renewal
+    todos.value.push({
+      id: 'todo-renew-registration-closed',
+      title: t('todos.renewalClosed.title'),
+      subtitle: t('todos.renewalClosed.subtitle', translationProps)
+    })
+  } else if (isRenewalsEnabled.value && registration.value && isEligibleForRenewal.value) {
+    const isOverdue = renewalDateCounter.value < 0
+    // label for the due days count
+    const dueDateCount = isOverdue
+      ? t('label.renewalOverdue')
+      : t('label.renewalDayCount', renewalDateCounter.value)
+
+    todos.value.push({
+      id: 'todo-renew-registration',
+      title: `${t('todos.renewal.title1')} ${renewalDueDate.value} ${t('todos.renewal.title2')} (${dueDateCount})`,
+      subtitle: t(isOverdue
+        ? 'todos.renewal.expired'
+        : 'todos.renewal.expiresSoon', translationProps),
+      button: {
+        label: t('btn.renew'),
+        action: async () => {
+          await navigateTo({
+            path: localePath('/application'),
+            query: { renew: 'true', registrationId: registration.value?.id }
+          })
+        }
+      }
+    })
+  }
+}, { immediate: true })
 
 setBreadcrumbs([
   {
