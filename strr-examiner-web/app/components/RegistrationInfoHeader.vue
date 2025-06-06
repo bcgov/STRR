@@ -99,6 +99,13 @@ const getRegistrationType = (): string => {
         </div>
         <div class="text-sm">
           <UBadge
+            v-if="activeHeader.isSetAside"
+            class="mr-3 bg-bcGovColor-midGray font-bold uppercase"
+            :label="t('strr.label.setAside')"
+            variant="solid"
+          />
+          <UBadge
+            v-else
             class="mr-3 font-bold uppercase"
             :label="activeHeader.examinerStatus"
             :color="getBadgeColor(activeReg.status!)"

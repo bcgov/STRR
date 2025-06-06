@@ -364,10 +364,27 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   /**
+   * Set aside registration.
+   *
+   * @param {number} registrationId - The registration id to set aside.
+   */
+  const setAsideRegistration = async (registrationId: number): Promise<void> => {
+    try {
+      await $strrApi(`/registrations/${registrationId}/decision/set-aside`, {
+        method: 'POST',
+        body: {}
+      })
+    } catch (e) {
+      logFetchError(e, t('error.setAsideRegistration'))
+      strrModal.openErrorModal('Error', t('error.setAsideRegistration'), false)
+    }
+  }
+
+  /**
    * Update the status of a registration.
    *
    * @param {number} registrationId - The registrationId for the registration to be updated.
-   * @param {string} status - RegistrationStatus value (SUSPENDED or CANCELLED).
+   * @param {string} status - RegistrationStatus value (ACTIVE [reinstate], SUSPENDED or CANCELLED).
    */
   const updateRegistrationStatus = async (registrationId: number, status: RegistrationStatus): Promise<void> => {
     await $strrApi(`/registrations/${registrationId}/status`, {
@@ -533,6 +550,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     getNextApplication,
     getApplicationById,
     getDocument,
+    setAsideRegistration,
     openDocInNewTab,
     resetFilters,
     updateRegistrationStatus,

@@ -264,6 +264,7 @@ export default {
     approve: 'Approve',
     cancel: 'Cancel',
     cancelRegistration: 'Cancel Registration',
+    reinstateRegistration: 'Approve Registration',
     suspend: 'Suspend',
     sendNotice: 'Send Notice',
     viewReceipt: 'View Receipt',
@@ -303,6 +304,7 @@ export default {
     assignApplication: 'An error occurred assigning this application.',
     unAssignApplication: 'An error occurred unassigning this application.',
     setAsideApplication: 'An error occurred while setting aside this application.',
+    setAsideRegistration: 'An error occurred while setting aside this registration.',
     filingHistory: 'An error occurred while retrieving the filing history.',
     saveAddress: 'An error occurred while updating the STR address',
     saveAddressConfig: 'Either application number or registration ID must be provided',
@@ -411,6 +413,10 @@ export default {
     cancelRegistration: {
       title: 'Cancel Registration',
       message: 'Are you sure you want to cancel the registration? This will send an email to the host letting them know their registration has been cancelled.'
+    },
+    reinstateRegistration: {
+      title: 'Approve Registration',
+      message: 'This action will fully register the short-term rental unit. Are you sure you want to continue?'
     }
   },
   table: {
@@ -600,6 +606,8 @@ export default {
     NOC_EXPIRED: 'Notice of Consideration expired',
     HOST_REGISTRATION_UNIT_ADDRESS_UPDATED: 'Registration: Host address updated',
     HOST_APPLICATION_UNIT_ADDRESS_UPDATED: 'Application: Host address updated',
-    APPLICATION_DECISION_SET_ASIDE: 'Decision set aside'
+    APPLICATION_DECISION_SET_ASIDE: 'Decision set aside',
+    REGISTRATION_DECISION_SET_ASIDE: 'Registration set aside',
+    REGISTRATION_REINSTATED: 'Registration reinstated'
   }
 }

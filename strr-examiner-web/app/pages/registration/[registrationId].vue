@@ -3,7 +3,7 @@ const { t } = useI18n()
 const route = useRoute()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
-const { updateRegistrationStatus, getRegistrationById } = useExaminerStore()
+const { updateRegistrationStatus, getRegistrationById, setAsideRegistration } = useExaminerStore()
 const { isAssignedToUser } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 
@@ -35,24 +35,28 @@ const handleRegistrationAction = (
   buttonPosition: 'left' | 'right',
   buttonIndex: number
 ) => {
-  openConfirmActionModal(
-    t('modal.cancelRegistration.title'),
-    t('modal.cancelRegistration.message'),
-    t('btn.cancelRegistration'),
-    async () => {
-      closeConfirmActionModal()
-      const status = RegistrationStatus.CANCELLED
-      await manageAction(
-        { id },
-        action,
-        updateRegistrationStatus,
-        buttonPosition,
-        buttonIndex,
-        refresh,
-        [status]
-      )
-    },
-    t('btn.back')
+  let actionFn
+  const refreshFn = refresh
+  let additionalArgs: any[] = []
+
+  if (action === RegistrationActionsE.CANCEL) {
+    actionFn = updateRegistrationStatus
+    additionalArgs = [RegistrationStatus.CANCELLED]
+  } else if (action === RegistrationActionsE.REINSTATE) {
+    actionFn = updateRegistrationStatus
+    additionalArgs = [RegistrationStatus.ACTIVE]
+  } else if (action === RegistrationActionsE.SET_ASIDE) {
+    actionFn = setAsideRegistration
+  }
+
+  return manageAction(
+    { id },
+    action,
+    actionFn,
+    buttonPosition,
+    buttonIndex,
+    refreshFn,
+    additionalArgs
   )
 }
 
@@ -63,12 +67,31 @@ const handleAssigneeAction = (
   buttonIndex: number
 ) => {
   if (isAssignedToUser.value) {
-    return handleRegistrationAction(
-      id,
-      action,
-      buttonPosition,
-      buttonIndex
-    )
+    if (action === RegistrationActionsE.CANCEL) {
+      openConfirmActionModal(
+        t('modal.cancelRegistration.title'),
+        t('modal.cancelRegistration.message'),
+        t('btn.cancelRegistration'),
+        () => {
+          closeConfirmActionModal()
+          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
+        },
+        t('btn.back')
+      )
+    } else if (action === RegistrationActionsE.REINSTATE) {
+      openConfirmActionModal(
+        t('modal.reinstateRegistration.title'),
+        t('modal.reinstateRegistration.message'),
+        t('btn.reinstateRegistration'),
+        () => {
+          closeConfirmActionModal()
+          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
+        },
+        t('btn.back')
+      )
+    } else {
+      return handleRegistrationAction(id, action, buttonPosition, buttonIndex)
+    }
   } else {
     openConfirmActionModal(
       t('modal.assignError.title'),
@@ -90,9 +113,19 @@ watch(
     initialMount.value = false
 
     updateRouteAndButtons(RoutesE.REGISTRATION, {
+      registrationSetAside: {
+        action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.SET_ASIDE, 'right', 0),
+        label: t('btn.setAside'),
+        disabled: !isAssignedToUser.value
+      },
       cancel: {
         action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.CANCEL, 'right', 0),
         label: t('btn.cancelRegistration'),
+        disabled: !isAssignedToUser.value
+      },
+      reinstate: {
+        action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.REINSTATE, 'right', 1),
+        label: t('btn.reinstateRegistration'),
         disabled: !isAssignedToUser.value
       }
     })
