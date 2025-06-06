@@ -409,7 +409,7 @@ export default {
     },
     cancelRegistration: {
       title: 'Cancel Registration',
-      message: 'Are you sure you want to cancel the registration? This will send an email to the host letting them know their application has been refused.'
+      message: 'Are you sure you want to cancel the registration? This will send an email to the host letting them know their registration has been cancelled.'
     }
   },
   table: {
