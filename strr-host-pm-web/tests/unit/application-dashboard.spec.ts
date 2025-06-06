@@ -61,7 +61,7 @@ vi.mock('@/composables/useRenewals', () => ({
       DateTime.fromISO(mockHostRegistration.expiryDate).setZone('America/Vancouver').toLocaleString(DateTime.DATE_MED)),
     renewalDateCounter: computed(() => 20),
     isRenewalPeriodClosed: ref(false),
-    isTestRenewalApp: ref(true) // TODO: Remove after API implements a check for renewable registration
+    isRenewalsEnabled: ref(true)
   })
 }))
 
@@ -147,7 +147,7 @@ describe('Dashboard Application Page', () => {
     await wrapper.vm.$forceUpdate()
     expect(wrapper.findComponent(TodoEmpty).exists()).toBe(false)
     expect(wrapper.findComponent(Todo).exists()).toBe(true)
-    expect(wrapper.findComponent(Todo).find('[data-test-id="todo-resume-app"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id="todo-section"]').find('[data-test-id="todo-resume-app"]').exists()).toBe(true)
   })
 
   it('renders dashboard with additional documents upload for NOC', async () => {
@@ -165,14 +165,14 @@ describe('Dashboard Application Page', () => {
 
     expect(wrapper.findComponent(TodoEmpty).exists()).toBe(false)
     expect(wrapper.findComponent(Todo).exists()).toBe(true)
-    expect(wrapper.findComponent(Todo).find('[data-test-id="todo-noc-add-docs"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test-id="todo-section"]').find('[data-test-id="todo-noc-add-docs"]').exists()).toBe(true)
 
     const AddNewDocButton = '[data-test-id="add-noc-doc-btn"]'
     expect(wrapper.find(AddNewDocButton).exists()).toBe(true)
     expect(wrapper.find(AddNewDocButton).attributes().disabled).not.toBeDefined()
     expect(wrapper.findComponent(BaseUploadAdditionalDocuments).exists()).toBe(false) // button is not disabled
 
-    // cleck Add New Document button to open Upload Additional Document
+    // click Add New Document button to open Upload Additional Document
     wrapper.find(AddNewDocButton).trigger('click')
     await nextTick()
 
