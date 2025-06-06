@@ -608,7 +608,8 @@ def test_set_aside_registration_decision(session, client, jwt):
         rv = client.post(f"/registrations/{registration_id}/decision/set-aside", headers=public_headers)
         assert HTTPStatus.UNAUTHORIZED == rv.status_code
 
-        rv = client.post("/registrations/NON_EXISTENT/decision/set-aside", headers=staff_headers)
+        non_existent_reg_id = 999999
+        rv = client.post(f"/registrations/{non_existent_reg_id}/decision/set-aside", headers=staff_headers)
         assert HTTPStatus.NOT_FOUND == rv.status_code
 
 
