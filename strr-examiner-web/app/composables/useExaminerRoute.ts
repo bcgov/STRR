@@ -28,7 +28,17 @@ export const useExaminerRoute = () => {
         action: (id: number) => void
         label: string
         disabled?: boolean
-      }
+      },
+      reinstate?: {
+        action: (id: number) => void
+        label: string
+        disabled?: boolean
+      },
+      registrationSetAside?: {
+        action: (id: number) => void
+        label: string
+        disabled?: boolean
+      },
       assign?: {
         action: (id: string) => void
         label: string
@@ -148,6 +158,28 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             color: 'red',
             icon: 'i-mdi-close',
+            disabled: buttonConfig.cancel!.disabled ?? false
+          })
+        }
+
+        if (examinerActions.includes(RegistrationActionsE.REINSTATE) && buttonConfig.cancel) {
+          uniqueRightButtons.push({
+            action: () => buttonConfig.reinstate!.action(id as number),
+            label: buttonConfig.reinstate.label,
+            variant: 'outline',
+            color: 'green',
+            icon: 'i-mdi-check',
+            disabled: buttonConfig.cancel!.disabled ?? false
+          })
+        }
+
+        if (examinerActions.includes(RegistrationActionsE.SET_ASIDE) && buttonConfig.cancel) {
+          uniqueRightButtons.push({
+            action: () => buttonConfig.registrationSetAside!.action(id as number),
+            label: buttonConfig.registrationSetAside.label,
+            variant: 'outline',
+            icon: 'i-mdi-rotate-left',
+            color: 'primary',
             disabled: buttonConfig.cancel!.disabled ?? false
           })
         }

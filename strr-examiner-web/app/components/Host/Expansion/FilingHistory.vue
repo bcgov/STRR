@@ -23,7 +23,9 @@ const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEven
     } else {
       // for Registrations include Application and Registration histories
       const [applicationHistory, registrationHistory] = await Promise.all([
-        getApplicationFilingHistory((activeRecord.value as HousApplicationResponse).header.applicationNumber),
+        getApplicationFilingHistory(
+          (activeRecord.value as HousRegistrationResponse).header.applications[0].applicationNumber
+        ),
         getRegistrationFilingHistory((activeRecord.value as HousRegistrationResponse).id)
       ])
       allFilingHistory = [...applicationHistory, ...registrationHistory]
