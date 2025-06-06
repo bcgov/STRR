@@ -7,7 +7,7 @@ export const useRenewals = () => {
 
   const isEligibleForRenewal = ref(false)
 
-  // check if 3 years past since exipry date and renewal is closed
+  // check if 3 years past since expiry date and renewal is closed
   const isRenewalPeriodClosed = computed((): boolean => {
     const isRegExpired = registration.value?.status === RegistrationStatus.EXPIRED
     const expDate = DateTime.fromISO(registration.value?.expiryDate).setZone('America/Vancouver')
