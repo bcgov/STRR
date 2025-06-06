@@ -29,6 +29,7 @@ class RegistrationSerializer:
     EXAMINER_ACTIONS = {
         RegistrationStatus.ACTIVE: ["SUSPEND", "CANCEL"],
         RegistrationStatus.SUSPENDED: ["REINSTATE", "CANCEL"],
+        RegistrationStatus.CANCELLED: ["SET_ASIDE"],
         RegistrationStatus.EXPIRED: [],
     }
 
@@ -78,6 +79,7 @@ class RegistrationSerializer:
     def _populate_header_data(cls, registration_data: dict, registration: Registration):
         """Populates header data into response object."""
         registration_data["header"] = {}
+        registration_data["header"]["isSetAside"] = registration.is_set_aside
         registration_data["header"]["hostStatus"] = RegistrationSerializer.HOST_STATUSES.get(
             registration.status, registration.status.name
         )
@@ -85,9 +87,12 @@ class RegistrationSerializer:
         registration_data["header"]["examinerStatus"] = RegistrationSerializer.EXAMINER_STATUSES.get(
             registration.status, registration.status.name
         )
-        registration_data["header"]["examinerActions"] = RegistrationSerializer.EXAMINER_ACTIONS.get(
-            registration.status, []
-        )
+        if registration.is_set_aside:
+            registration_data["header"]["examinerActions"] = ["REINSTATE", "CANCEL"]
+        else:
+            registration_data["header"]["examinerActions"] = RegistrationSerializer.EXAMINER_ACTIONS.get(
+                registration.status, []
+            )
         applications = Application.get_all_by_registration_id(registration.id)
         if applications:
             sorted_applications = sorted(applications, key=lambda app: app.application_date, reverse=True)

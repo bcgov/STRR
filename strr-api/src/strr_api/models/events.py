@@ -41,6 +41,7 @@ class Events(SimpleBaseModel):
         REGISTRATION_EXPIRED = auto()
         NON_COMPLIANCE_SUSPENDED = auto()
         REGISTRATION_CANCELLED = auto()
+        REGISTRATION_REINSTATED = auto()
         APPLICATION_REVIEWER_ASSIGNED = auto()
         APPLICATION_REVIEWER_UNASSIGNED = auto()
         NOC_SENT = auto()
@@ -48,6 +49,7 @@ class Events(SimpleBaseModel):
         HOST_APPLICATION_UNIT_ADDRESS_UPDATED = auto()
         HOST_REGISTRATION_UNIT_ADDRESS_UPDATED = auto()
         APPLICATION_DECISION_SET_ASIDE = auto()
+        REGISTRATION_DECISION_SET_ASIDE = auto()
 
     __tablename__ = "events"
 
