@@ -176,6 +176,7 @@ export default {
       expiryDate: 'Expiry Date:',
       cancelledDate: 'Cancellation Date:',
       nocExpiry: 'NOC Expiry:',
+      declinedDate: 'Declined Date:',
       businessLicenceExpiryDate: 'Expiry:',
       primaryBuilding: 'Primary Building',
       building: 'Building',
