@@ -67,17 +67,18 @@ def test_permit_exists(session, client, jwt):
         registration_number = response_json.get("header").get("registrationNumber")
         assert registration_number is not None
 
-        validate_permit_request = {
-            "identifier": registration_number,
-            "address": {"streetNumber": "12166", "postalCode": "V2X 7N1"},
-        }
+        for street_number in ["12166", "12166 abc st"]:
+            validate_permit_request = {
+                "identifier": registration_number,
+                "address": {"streetNumber": f"{street_number}", "postalCode": "V2X 7N1"},
+            }
 
-        rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
-        assert rv.status_code == HTTPStatus.OK
-        response_json = rv.json
+            rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
+            assert rv.status_code == HTTPStatus.OK
+            response_json = rv.json
 
-        assert response_json.get("status")
-        assert response_json.get("validUntil")
+            assert response_json.get("status")
+            assert response_json.get("validUntil")
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
