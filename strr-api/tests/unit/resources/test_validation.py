@@ -109,7 +109,7 @@ def test_permit_details_mismatch(session, client, jwt):
 
         validate_permit_request = {
             "identifier": registration_number,
-            "address": {"streetNumber": "12165", "postalCode": "V2X 7N2"},
+            "address": {"streetNumber": "12165", "postalCode": "V2X 6N2"},
         }
         rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
         assert rv.status_code == HTTPStatus.BAD_REQUEST
