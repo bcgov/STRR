@@ -40,8 +40,11 @@ export function displayFullUnitAddress (mailingAddress?: ApiUnitAddress): string
   // add comma only if address & addressLineTwo exists
   // const addressPartTwo = address && addressLineTwo ? `, ${addressLineTwo}` : addressLineTwo || ''
 
+  // add dash '-' after unit number, if exists
+  const displayUnitNumber = unitNumber ? `${unitNumber}-` : ''
+
   return `
-        ${unitNumber} ${streetNumber} ${streetName}, 
+        ${displayUnitNumber}${streetNumber} ${streetName}, 
         ${city || '-'} ${province} ${postalCode || '-'}, 
         ${country || '-'}
       `
