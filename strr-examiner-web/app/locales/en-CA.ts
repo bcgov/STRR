@@ -608,6 +608,6 @@ export default {
     HOST_APPLICATION_UNIT_ADDRESS_UPDATED: 'Application: Host address updated',
     APPLICATION_DECISION_SET_ASIDE: 'Decision set aside',
     REGISTRATION_DECISION_SET_ASIDE: 'Registration set aside',
-    REGISTRATION_REINSTATED: 'Registration reinstated'
+    REGISTRATION_REINSTATED: 'Registration approved'
   }
 }
