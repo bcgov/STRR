@@ -194,7 +194,6 @@ def _get_address_detail(
     if reg_type != Registration.RegistrationType.HOST:
         return ""
     address = app_dict["registration"]["unitAddress"]
-    street_name = address.get("streetName") or address.get("addressLineTwo")
     return address.get(detail, "")
 
 
