@@ -5,11 +5,11 @@
   ^**Registration Number:** 
   {{ reg_num }}
 
-  ^**Short-Term Rental Address:** 
-  {% if address_street_extra %}{{ address_street }}
-  {{ address_street_extra }}
-  {{ address_region }}
-  {% else %}{{ address_street }}
-  {{ address_region }}
-  {% endif %}
+  ^**Short-Term Rental Address:**  
+  **Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}  
+  **Street Number:**&nbsp;  {{street_number}}  
+  **Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{street_name}}  
+  **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+  **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
+
 1. Repeat the above steps for each platform your short-term rental is listed on.

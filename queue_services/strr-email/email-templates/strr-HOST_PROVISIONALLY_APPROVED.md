@@ -12,12 +12,11 @@
 {% endif %}
 
 **Short-Term Rental Address:** 
-{% if address_street_extra %}{{ address_street }}
-{{ address_street_extra }}
-{{ address_region }}
-{% else %}{{ address_street }}
-{{ address_region }}
-{% endif %}
+**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}  
+**Street Number:**&nbsp;  {{street_number}}  
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{street_name}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 
 After a fulsome review of all documents provided, your short-term rental that was provisionally approved is now **fully approved**. Your registration number remains the same—you can continue to use it.
 

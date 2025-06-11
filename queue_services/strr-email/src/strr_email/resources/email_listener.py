@@ -127,9 +127,12 @@ def worker():
     html_out = jinja_template.render(
         application_num=application.application_number,
         reg_num=app_dict.get("header", {}).get("registrationNumber"),
-        address_street=_get_address_street(app_dict, application.registration_type),
-        address_street_extra=_get_address_extra(app_dict, application.registration_type),
-        address_region=_get_address_region(app_dict, application.registration_type),
+        street_number=_get_address_detail(app_dict, application.registration_type, "streetNumber"),
+        unit_number=_get_address_detail(app_dict, application.registration_type, "unitNumber"),
+        street_name=_get_address_detail(app_dict, application.registration_type, "streetName")
+        or _get_address_detail(app_dict, application.registration_type, "addressLineTwo"),
+        city=_get_address_detail(app_dict, application.registration_type, "city"),
+        postal_code=_get_address_detail(app_dict, application.registration_type, "postalCode"),
         expiry_date=_get_expiry_date(app_dict),
         service_provider=_get_service_provider(app_dict, application.registration_type),
         tac_url=_get_tac_url(application),
@@ -184,39 +187,15 @@ def _get_rental_nickname(app_dict, reg_type: Registration.RegistrationType) -> s
     return None
 
 
-def _get_address_street(app_dict: dict, reg_type: Registration.RegistrationType) -> str | None:
+def _get_address_detail(
+    app_dict: dict, reg_type: Registration.RegistrationType, detail: str
+) -> str | None:
     """Return the unit, street number and street name of the application address as a string."""
     if reg_type != Registration.RegistrationType.HOST:
         return ""
     address = app_dict["registration"]["unitAddress"]
-    # addressLineTwo == 'locality' for this address and changes the required fields
     street_name = address.get("streetName") or address.get("addressLineTwo")
-    street_num = address.get("streetNumber")
-    if (unit := address.get("unitNumber")) and street_num:
-        return f"{unit}-{street_num} {street_name}"
-    if unit:
-        # Not sure if this is valid but the UI currently allows this scenario
-        return f"{street_name}, #{unit}"
-    return f"{street_num or ''} {street_name}".strip()
-
-
-def _get_address_extra(app_dict, reg_type: Registration.RegistrationType) -> str | None:
-    """Return the locality if both a street name and locality were given in the address (rare edge case)."""
-    if reg_type == Registration.RegistrationType.HOST:
-        address = app_dict["registration"]["unitAddress"]
-        if (locality := address.get("addressLineTwo")) and address.get("streetName"):
-            return locality
-    return None
-
-
-def _get_address_region(app_dict: dict, reg_type: Registration.RegistrationType) -> str:
-    """Return city, region and postal code of the application address as a string."""
-    if reg_type != Registration.RegistrationType.HOST:
-        return ""
-    address = app_dict["registration"]["unitAddress"]
-    return (
-        f'{address.get("city", "")}, {address.get("province", "")} {address.get("postalCode", "")}'
-    )
+    return address.get(detail, "")
 
 
 def _get_expiry_date(app_dict: dict) -> str:
