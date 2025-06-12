@@ -8,12 +8,19 @@
 {{rental_nickname}}
 {% endif %}
 
-**Short-Term Rental Address:** 
-{% if address_street_extra %}{{ address_street }}
-{{ address_street_extra }}
-{{ address_region }}
-{% else %}{{ address_street }}
-{{ address_region }}
+{% if unit_number %}
+**Short-Term Rental Address:**
+**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}
+**Street Number:**&nbsp;  {{street_number}}  
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{street_name}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
+{% else %}
+**Short-Term Rental Address:**
+**Street Number:**&nbsp;  {{street_number}}  
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{street_name}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% endif %}
 
 Your short-term rental provisionally approved registration number has been **cancelled effective immediately**.
