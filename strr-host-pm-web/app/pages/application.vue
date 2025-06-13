@@ -56,10 +56,10 @@ onMounted(async () => {
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_2),
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_3)
   ])
-  hostFee1.value = fee1
-  hostFee2.value = fee2
-  hostFee3.value = fee3
-  hostFee4.value = fee1 // TODO: expecting new fee code for this (hostFee4 - shared accommodation)
+  hostFee1.value = { ...fee1 }
+  hostFee2.value = { ...fee2 }
+  hostFee3.value = { ...fee3 }
+  hostFee4.value = { ...fee1 } // TODO: expecting new fee code for this (hostFee4 - shared accommodation)
   if (hostFee1.value) {
     setPlaceholderServiceFee(hostFee1.value.serviceFees)
   }
