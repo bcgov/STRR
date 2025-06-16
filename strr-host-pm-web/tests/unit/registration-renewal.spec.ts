@@ -19,12 +19,13 @@ vi.mock('@/stores/hostPermit', () => {
   return {
     useHostPermitStore: () => ({
       loadHostRegistrationData: vi.fn(),
-      $reset: vi.fn()
+      $reset: vi.fn(),
+      isRegistrationRenewal: ref(true)
     })
   }
 })
 
-describe('Registration Renwal Application Page', () => {
+describe('Registration Renewal Application Page', () => {
   let wrapper: any
 
   beforeAll(async () => {
@@ -42,5 +43,6 @@ describe('Registration Renwal Application Page', () => {
     expect(wrapper.vm.isRenewal).toBe(true)
     expect(wrapper.exists()).toBe(true)
     expect(wrapper.find('H1').text()).toBe('Short-Term Rental Registration Renewal')
+    expect(wrapper.find('[data-testid="alert-renewal-address-change"]').exists()).toBe(true)
   })
 })

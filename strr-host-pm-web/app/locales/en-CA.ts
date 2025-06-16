@@ -18,6 +18,7 @@ export default {
       always: '{boldStart}Important:{boldEnd} {propertytype} requires a unit number as part of the Rental Unit Residential Address above. If you do not include a unit number, your registration {boldStart}may be declined{boldEnd}.',
       maybe: '{boldStart}Important:{boldEnd} If your {propertytype} includes a unit number, make sure to enter it as part of the Rental Unit Residential Address above. You may submit your application without a unit number if none exists.'
     },
+    renewalChangeAddress: '{boldStart}Note:{boldEnd} If you wish to change the Rental Unit Address, you must submit a new short-term rental application instead of this renewal application.',
     renewalEditPerson: '{boldStart}Note:{boldEnd} If you wish to change any of the following information about the Property Host, you must submit a new short-term rental application instead of this renewal application.{newLine}{newLine}- Full Name{newLine}- Canada Revenue Agency (CRA) Tax Number{newLine}- Residential Address',
     renewalEditBusiness: '{boldStart}Note:{boldEnd} If you wish to change the Business Legal Name of the Property Host, you must submit a new short-term rental application instead of this renewal application.'
   },

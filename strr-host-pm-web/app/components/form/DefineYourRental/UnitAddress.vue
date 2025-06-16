@@ -80,6 +80,28 @@ onMounted(async () => {
       </div>
 
       <div class="rounded-t border-x border-t border-gray-200 bg-white py-10 shadow">
+        <UAlert
+          v-if="isRegistrationRenewal"
+          color="yellow"
+          class="mx-10 mb-12 w-auto"
+          icon="i-mdi-alert"
+          :close-button="null"
+          variant="subtle"
+          :ui="{
+            inner: 'pt-0',
+            icon: {
+              base: 'flex-shrink-0 w-5 h-5 self-start'
+            }
+          }"
+          data-testid="alert-renewal-address-change"
+        >
+          <template #title>
+            <ConnectI18nHelper
+              translation-path="alert.renewalChangeAddress"
+            />
+          </template>
+        </UAlert>
+
         <ConnectFormSection
           :title="$t('strr.section.subTitle.rentalUnitResiAddress')"
           :error="isComplete && hasFormErrors(unitAddressFormRef, [
@@ -134,7 +156,6 @@ onMounted(async () => {
                 class="flex flex-col gap-10"
               >
                 <p>{{ $t('text.unitAddressUnitNumberInfo') }}</p>
-
                 <FormUnitAddressManual
                   id="rental-property-address"
                   v-model:street-number="propStore.unitAddress.address.streetNumber"
