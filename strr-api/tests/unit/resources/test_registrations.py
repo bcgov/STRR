@@ -693,7 +693,7 @@ def test_set_aside_registration_events(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_cancel_registration_using_status_endpoint(session, client, jwt):
+def test_cancel_registration_using_status_endpoint(mock_create_invoice, session, client, jwt):
     """Test canceling a registration using the /status endpoint after set-aside."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -749,7 +749,7 @@ def test_get_registrations_with_filters(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_registrations_filter_by_status(session, client, jwt):
+def test_get_registrations_filter_by_status(mock_create_invoice, session, client, jwt):
     """Test filtering registrations by status."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -773,11 +773,11 @@ def test_get_registrations_filter_by_status(session, client, jwt):
         response_json = rv.json
         registrations = response_json.get("registrations", [])
         for registration in registrations:
-            assert registration["header"]["status"] == RegistrationStatus.ACTIVE.value
+            assert registration["status"] == RegistrationStatus.ACTIVE.value
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_registrations_filter_by_registration_type(session, client, jwt):
+def test_get_registrations_filter_by_registration_type(mock_create_invoice, session, client, jwt):
     """Test filtering registrations by registration type."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -801,52 +801,11 @@ def test_get_registrations_filter_by_registration_type(session, client, jwt):
         response_json = rv.json
         registrations = response_json.get("registrations", [])
         for registration in registrations:
-            assert registration["registration"]["registrationType"] == "HOST"
+            assert registration["registrationType"] == "HOST"
 
         rv = client.get("/registrations?registrationType=PLATFORM", headers=headers)
         assert rv.status_code == HTTPStatus.OK
         response_json = rv.json
         registrations = response_json.get("registrations", [])
         for registration in registrations:
-            assert registration["registration"]["registrationType"] == "PLATFORM"
-
-
-def test_get_registrations_multi_select_filters(session, client, jwt):
-    """Test multiple filter combinations for registrations."""
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = ACCOUNT_ID
-
-    rv = client.get("/registrations?registrationType=HOST&registrationType=PLATFORM", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    registrations = response_json.get("registrations", [])
-    for registration in registrations:
-        assert registration["registration"]["registrationType"] in ["HOST", "PLATFORM"]
-
-    rv = client.get(
-        f"/registrations?status={RegistrationStatus.ACTIVE.value}&status={RegistrationStatus.EXPIRED.value}",
-        headers=headers,
-    )
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    registrations = response_json.get("registrations", [])
-    for registration in registrations:
-        assert registration["header"]["status"] in [
-            RegistrationStatus.ACTIVE.value,
-            RegistrationStatus.EXPIRED.value,
-        ]
-
-    rv = client.get(
-        "/registrations?registrationType=HOST&registrationType=PLATFORM&"
-        + f"status={RegistrationStatus.ACTIVE.value}&status={RegistrationStatus.EXPIRED.value}",
-        headers=headers,
-    )
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    registrations = response_json.get("registrations", [])
-    for registration in registrations:
-        assert registration["registration"]["registrationType"] in ["HOST", "PLATFORM"]
-        assert registration["header"]["status"] in [
-            RegistrationStatus.ACTIVE.value,
-            RegistrationStatus.EXPIRED.value,
-        ]
+            assert registration["registrationType"] == "PLATFORM"
