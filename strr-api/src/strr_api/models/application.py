@@ -546,7 +546,22 @@ class ApplicationSerializer:
             application_dict["header"]["registrationStatus"] = application.registration.status.value
             application_dict["header"]["registrationNumber"] = application.registration.registration_number
             application_dict["header"]["isCertificateIssued"] = bool(application.registration.certificates)
-
+            registration_address = None
+            if application.registration.rental_property and application.registration.rental_property.address:
+                address = application.registration.rental_property.address
+                registration_address = {
+                    "unitNumber": address.unit_number,
+                    "streetNumber": address.street_number,
+                    "streetName": address.street_address,
+                    "addressLineTwo": address.street_address_additional,
+                    "city": address.city,
+                    "province": address.province,
+                    "country": address.country,
+                    "postalCode": address.postal_code,
+                    "locationDescription": address.location_description,
+                }
+            if registration_address:
+                application_dict["header"]["registrationAddress"] = registration_address
         if application.noc:
             application_dict["header"]["nocStartDate"] = application.noc.start_date.strftime("%Y-%m-%d")
             application_dict["header"]["nocEndDate"] = application.noc.end_date.strftime("%Y-%m-%d")
