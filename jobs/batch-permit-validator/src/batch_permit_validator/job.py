@@ -110,7 +110,7 @@ def process_record(record: dict, validation_cache: ValidationCache, app):
                 )
 
                 if registration:
-                    response, status_code = ValidationService.check_permit_details(
+                    response, _ = ValidationService.check_permit_details(
                         record, registration
                     )
                 else:
