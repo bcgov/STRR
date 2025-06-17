@@ -52,11 +52,90 @@ def test_get_registrations_200(session, client, jwt):
     headers["Account-Id"] = ACCOUNT_ID
     rv = client.get("/registrations", headers=headers)
     assert rv.status_code == HTTPStatus.OK
+    response_json = rv.json
+    assert "registrations" in response_json
+    assert "page" in response_json
+    assert "limit" in response_json
+    assert "total" in response_json
 
 
 def test_get_registrations_401(client):
     rv = client.get("/registrations")
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_get_registrations_missing_account_id(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER])
+    rv = client.get("/registrations", headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+
+
+def test_get_registrations_with_status_filter(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    rv = client.get("/registrations?status=ACTIVE", headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    response_json = rv.json
+    assert "registrations" in response_json
+
+    rv = client.get("/registrations?status=ACTIVE&status=EXPIRED", headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    response_json = rv.json
+    assert "registrations" in response_json
+
+
+def test_get_registrations_with_registration_type_filter(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    rv = client.get("/registrations?registrationType=HOST", headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    response_json = rv.json
+    assert "registrations" in response_json
+
+    rv = client.get("/registrations?registrationType=HOST&registrationType=PLATFORM", headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    response_json = rv.json
+    assert "registrations" in response_json
+
+
+def test_get_registrations_with_record_number_filter(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    rv = client.get("/registrations?recordNumber=H", headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    response_json = rv.json
+    assert "registrations" in response_json
+
+
+def test_get_registrations_with_sorting_parameters(session, client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    valid_sort_fields = ["id", "registration_number", "status", "start_date", "expiry_date"]
+    for sort_field in valid_sort_fields:
+        rv = client.get(f"/registrations?sortBy={sort_field}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        assert "registrations" in response_json
+
+    for sort_order in ["asc", "desc"]:
+        rv = client.get(f"/registrations?sortBy=id&sortOrder={sort_order}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        assert "registrations" in response_json
+
+
+def test_get_registrations_examiner_access(session, client, jwt):
+    headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    rv = client.get("/registrations", headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    response_json = rv.json
+    assert "registrations" in response_json
 
 
 @patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
@@ -723,89 +802,3 @@ def test_cancel_registration_using_status_endpoint(mock_create_invoice, session,
         response_json = rv.json
         assert response_json.get("status") == RegistrationStatus.CANCELLED.value
         assert response_json.get("cancelledDate") is not None
-
-
-def test_get_registrations(session, client, jwt):
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = ACCOUNT_ID
-    rv = client.get("/registrations", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    assert "registrations" in response_json
-    assert "page" in response_json
-    assert "limit" in response_json
-    assert "total" in response_json
-
-
-def test_get_registrations_missing_account_id(session, client, jwt):
-    headers = create_header(jwt, [PUBLIC_USER])
-    rv = client.get("/registrations", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-
-
-def test_get_registrations_with_status_filter(session, client, jwt):
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = ACCOUNT_ID
-
-    rv = client.get("/registrations?status=ACTIVE", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    assert "registrations" in response_json
-
-    rv = client.get("/registrations?status=ACTIVE&status=EXPIRED", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    assert "registrations" in response_json
-
-
-def test_get_registrations_with_registration_type_filter(session, client, jwt):
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = ACCOUNT_ID
-
-    rv = client.get("/registrations?registrationType=HOST", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    assert "registrations" in response_json
-
-    rv = client.get("/registrations?registrationType=HOST&registrationType=PLATFORM", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    assert "registrations" in response_json
-
-
-def test_get_registrations_with_record_number_filter(session, client, jwt):
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = ACCOUNT_ID
-
-    rv = client.get("/registrations?recordNumber=H", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    assert "registrations" in response_json
-
-
-def test_get_registrations_with_sorting_parameters(session, client, jwt):
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = ACCOUNT_ID
-
-    valid_sort_fields = ["id", "registration_number", "status", "start_date", "expiry_date"]
-    for sort_field in valid_sort_fields:
-        rv = client.get(f"/registrations?sortBy={sort_field}", headers=headers)
-        assert rv.status_code == HTTPStatus.OK
-        response_json = rv.json
-        assert "registrations" in response_json
-
-    for sort_order in ["asc", "desc"]:
-        rv = client.get(f"/registrations?sortBy=id&sortOrder={sort_order}", headers=headers)
-        assert rv.status_code == HTTPStatus.OK
-        response_json = rv.json
-        assert "registrations" in response_json
-
-
-def test_get_registrations_examiner_access(session, client, jwt):
-    headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-    headers["Account-Id"] = ACCOUNT_ID
-
-    rv = client.get("/registrations", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    response_json = rv.json
-    assert "registrations" in response_json
