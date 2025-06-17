@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "batch-permit-validator"
-version = "1.0.0"
+version = "1.0.1"
 description = ""
 authors = []
 packages = [{include = "batch_permit_validator", from = "src"}]
@@ -20,7 +20,7 @@ gunicorn = "^21.2.0"
 pg8000 = "^1.31.2"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
-strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
+strr-api = {git = "https://github.com/bcgov/STRR.git", branch = "release/v2.3.1", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 flake8-pyproject = "^1.2.3"
 redis = "^5.2.1"
