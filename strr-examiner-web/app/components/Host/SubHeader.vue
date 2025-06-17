@@ -15,7 +15,7 @@ const { isFeatureEnabled } = useFeatureFlags()
 const canEditApplicationAddress = isFeatureEnabled('enable-examiner-edit-address-application')
 const { checkAndPerformAction, openHostOwners } = useHostExpansion()
 
-const isEditDisabled = computed((): boolean => activeReg.value.status === RegistrationStatus.CANCELLED)
+const isEditAddressDisabled = computed((): boolean => activeReg.value.status === RegistrationStatus.CANCELLED)
 
 </script>
 <template>
@@ -35,7 +35,7 @@ const isEditDisabled = computed((): boolean => activeReg.value.status === Regist
             variant="link"
             size="xs"
             color="blue"
-            :disabled="isEditingRentalUnit || !isAssignedToUser || isEditDisabled"
+            :disabled="isEditingRentalUnit || !isAssignedToUser || isEditAddressDisabled"
             data-testid="edit-rental-unit-button"
             :aria-label="t('strr.label.editRentalUnit')"
             class="flex items-center gap-1"
