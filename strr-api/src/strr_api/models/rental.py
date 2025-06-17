@@ -4,14 +4,17 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from typing import List
 
 from sql_versioning import Versioned
 from sqlalchemy import Boolean, Enum
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.query import Query
 
 from strr_api.common.enum import BaseEnum, auto
 from strr_api.enums.enum import PropertyType, RegistrationStatus, StrataHotelCategory
 from strr_api.models.base_model import BaseModel
+from strr_api.models.dataclass import RegistrationSearch
 
 from .db import db
 
@@ -49,6 +52,57 @@ class Registration(Versioned, BaseModel):
     platform_registration = relationship("PlatformRegistration", back_populates="registration", uselist=False)
     strata_hotel_registration = relationship("StrataHotelRegistration", back_populates="registration", uselist=False)
     documents = relationship("Document", back_populates="registration")
+
+    @classmethod
+    def find_by_account(
+        cls, account_id: int, filter_criteria: RegistrationSearch, is_examiner: bool
+    ) -> Registration | None:
+        """Return the registrations by account, filter criteria."""
+        query = cls.query
+        if not is_examiner:
+            query = query.filter_by(sbc_account_id=account_id)
+        if filter_criteria.registration_types:
+            query = cls._filter_by_registration_types(filter_criteria.registration_types, query)
+        if filter_criteria.record_number:
+            query = cls._filter_by_registration_number(filter_criteria.record_number, query)
+        if filter_criteria.statuses:
+            query = cls._filter_by_status(filter_criteria.statuses, query)
+
+        sort_column = getattr(Registration, filter_criteria.sort_by, Registration.id)
+        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+
+        paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        return paginated_result
+
+    @classmethod
+    def _filter_by_registration_number(cls, search_term: str, query: Query) -> Query:
+        """Filter query by registration number."""
+        if not search_term:
+            return query
+
+        search_term = search_term.strip()
+        return query.filter(Registration.registration_number.ilike(f"%{search_term}%"))
+
+    @classmethod
+    def _filter_by_registration_types(cls, registration_types: List[str], query: Query) -> Query:
+        """Filter query by registration types."""
+        if not registration_types:
+            return query
+
+        registration_types = [type.upper() for type in registration_types if type]
+        return query.filter(Registration.registration_type.in_(registration_types))
+
+    @classmethod
+    def _filter_by_status(cls, statuses: List[str], query: Query) -> Query:
+        """Filter query by registration statuses."""
+        if not statuses:
+            return query
+
+        statuses = [status.upper() for status in statuses if status]
+        return query.filter(Registration.status.in_(statuses))
 
 
 class RentalProperty(Versioned, BaseModel):

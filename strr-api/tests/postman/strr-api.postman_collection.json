@@ -1749,13 +1749,148 @@
 							}
 						],
 						"url": {
-							"raw": "{{api_url}}/registrations/",
+							"raw": "{{api_url}}/registrations?page=1&limit=10&sortBy=id&sortOrder=desc",
 							"host": [
 								"{{api_url}}"
 							],
 							"path": [
-								"registrations",
-								""
+								"registrations"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number for pagination"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of results per page"
+								},
+								{
+									"key": "sortBy",
+									"value": "id",
+									"description": "Sort field: id, registration_number, status, start_date, expiry_date"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc",
+									"description": "Sort order: asc or desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Registrations with Filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains registrations array\", function () {",
+									"    pm.expect(jsonData).to.have.property('registrations');",
+									"    pm.expect(jsonData.registrations).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Registrations match filter criteria\", function () {",
+									"    jsonData.registrations.forEach(function(registration) {",
+									"        // Check if registration type matches filter",
+									"        if (registration.registration && registration.registration.registrationType) {",
+									"            pm.expect(['HOST', 'PLATFORM']).to.include(registration.registration.registrationType);",
+									"        }",
+									"        // Check if status matches filter",
+									"        if (registration.registration && registration.registration.status) {",
+									"            pm.expect(['ACTIVE', 'EXPIRED']).to.include(registration.registration.status);",
+									"        }",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/registrations?page=1&limit=10&sortBy=registration_number&sortOrder=asc&status=ACTIVE&status=EXPIRED&registrationType=HOST&registrationType=PLATFORM&recordNumber=STR-",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number for pagination"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of results per page"
+								},
+								{
+									"key": "sortBy",
+									"value": "registration_number",
+									"description": "Sort field: id, registration_number, status, start_date, expiry_date"
+								},
+								{
+									"key": "sortOrder",
+									"value": "asc",
+									"description": "Sort order: asc or desc"
+								},
+								{
+									"key": "status",
+									"value": "ACTIVE",
+									"description": "Registration status filter"
+								},
+								{
+									"key": "status",
+									"value": "EXPIRED",
+									"description": "Registration status filter"
+								},
+								{
+									"key": "registrationType",
+									"value": "HOST",
+									"description": "Registration type filter"
+								},
+								{
+									"key": "registrationType",
+									"value": "PLATFORM",
+									"description": "Registration type filter"
+								},
+								{
+									"key": "recordNumber",
+									"value": "H-",
+									"description": "Filter by registration number"
+								}
 							]
 						}
 					},

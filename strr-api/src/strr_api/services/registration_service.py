@@ -64,6 +64,7 @@ from strr_api.models import (
     StrataHotelRepresentative,
     User,
 )
+from strr_api.models.dataclass import RegistrationSearch
 from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
 from strr_api.services.events_service import EventsService
@@ -430,33 +431,24 @@ class RegistrationService:
     def list_registrations(
         cls,
         account_id: int = None,
-        status: str = None,
-        sort_by: str = RegistrationSortBy.ID,
-        sort_desc: bool = False,
-        offset: int = 1,
-        limit: int = 50,
+        filter_criteria: RegistrationSearch = None,
     ):
         """List registrations for current user in a paginated manner."""
         UserService.get_or_create_user_in_context()
-        query = Registration.query
+        is_examiner = UserService.is_strr_staff_or_system()
 
-        if not UserService.is_strr_staff_or_system():
-            query = query.filter(Registration.sbc_account_id == account_id)
-        if status:
-            query = query.filter(Registration.status == status.upper())
+        if filter_criteria is None:
+            filter_criteria = RegistrationSearch(page=1, limit=50, sort_by="id", sort_order="desc")
 
-        sort_column_meta = {RegistrationSortBy.ID: Registration.id, RegistrationSortBy.STATUS: Registration.status}
-        sort_column = sort_column_meta[sort_by.upper()] if sort_by else sort_column_meta[RegistrationSortBy.ID]
-        query = query.order_by(sort_column.desc() if sort_desc else sort_column.asc())
-        paginated_result = query.paginate(per_page=limit, page=offset)
+        paginated_result = Registration.find_by_account(account_id, filter_criteria, is_examiner)
 
         search_results = []
         for registration in paginated_result.items:
             search_results.append(RegistrationService.serialize(registration))
 
         return {
-            "page": offset,
-            "limit": limit,
+            "page": filter_criteria.page,
+            "limit": filter_criteria.limit,
             "registrations": search_results,
             "total": paginated_result.total,
         }

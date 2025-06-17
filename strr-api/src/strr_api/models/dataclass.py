@@ -51,3 +51,17 @@ class ApplicationSearch:
     assignee: str = None
     requirements: list[str] = None
     include_draft: bool = True
+
+
+@dataclass
+class RegistrationSearch:
+    """Used for searching registrations."""
+
+    page: int
+    limit: int
+    statuses: List[str] = None
+    sort_by: str = "id"
+    sort_order: str = "desc"
+    search_text: str = None
+    registration_types: List[str] = None
+    record_number: str = None

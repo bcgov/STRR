@@ -87,13 +87,11 @@ class RegistrationStatus(Enum):
 class RegistrationSortBy(Enum):
     """STRR Registration Sort By Columns."""
 
-    ID = 0
-    REGISTRATION_NUMBER = 1
-    LOCATION = 2
-    ADDRESS = 3
-    NAME = 4
-    STATUS = 5
-    SUBMISSION_DATE = 6
+    ID = "id"
+    REGISTRATION_NUMBER = "registration_number"
+    STATUS = "status"
+    START_DATE = "start_date"
+    EXPIRY_DATE = "expiry_date"
 
 
 class PropertyType(Enum):

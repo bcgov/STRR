@@ -51,6 +51,7 @@ from strr_api.common.auth import jwt
 from strr_api.enums.enum import ErrorMessage, RegistrationStatus, RegistrationType, Role
 from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
 from strr_api.models import User
+from strr_api.models.dataclass import RegistrationSearch
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
@@ -58,6 +59,8 @@ from strr_api.services.registration_service import REGISTRATION_STATES_STAFF_ACT
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
+
+VALID_SORT_FIELDS = ["id", "registration_number", "status", "start_date", "expiry_date"]
 
 
 @bp.route("", methods=("GET",))
@@ -77,36 +80,78 @@ def get_registrations():
         description: SBC Account Id.
       - in: query
         name: status
-        enum: [ACTIVE, EXPIRED, SUSPENDED]
+        type: array
+        items:
+          type: string
+          enum: [ACTIVE, EXPIRED, SUSPENDED, CANCELLED]
+        description: Registration status filter
       - in: query
-        name: sort_by
-        enum: [ID, STATUS]
+        name: registrationType
+        type: array
+        items:
+          type: string
+          enum: [HOST, PLATFORM, STRATA_HOTEL]
+        description: Registration type filter
       - in: query
-        name: sort_desc
-        type: boolean
-        description: false or omitted for ascending, true for descending order.
+        name: recordNumber
+        type: string
+        description: Registration Number filter
       - in: query
-        name: offset
+        name: sortBy
+        type: string
+        default: id
+        description: Field to sort by (e.g., id, registration_number, status, start_date, expiry_date)
+      - in: query
+        name: sortOrder
+        type: string
+        enum: [asc, desc]
+        default: desc
+        description: Sort order (ascending or descending)
+      - in: query
+        name: page
         type: integer
         default: 1
+        description: Page number for pagination
       - in: query
         name: limit
         type: integer
         default: 50
+        description: Number of results per page
     responses:
       200:
         description:
       401:
         description:
     """
-    account_id = request.headers.get("Account-Id")
-    status = request.args.get("status", None)
-    sort_by = request.args.get("sort_by", None)
-    sort_desc: bool = request.args.get("sort_desc", "false").lower() == "true"
-    offset: int = request.args.get("offset", 1)
-    limit: int = request.args.get("limit", 50)
+    try:
+        account_id = request.headers.get("Account-Id")
+        status_values = request.args.getlist("status")
+        registration_types = request.args.getlist("registrationType")
+        record_number = request.args.get("recordNumber", None)
+        sort_by = request.args.get("sortBy", "id")
+        sort_order = request.args.get("sortOrder", "desc")
+        page = request.args.get("page", 1)
+        limit = request.args.get("limit", 50)
 
-    return RegistrationService.list_registrations(account_id, status, sort_by, sort_desc, offset, limit), HTTPStatus.OK
+        if sort_by not in VALID_SORT_FIELDS:
+            sort_by = "id"
+        if sort_order not in ["asc", "desc"]:
+            sort_order = "desc"
+
+        filter_criteria = RegistrationSearch(
+            statuses=status_values,
+            registration_types=registration_types,
+            record_number=record_number,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            page=int(page),
+            limit=int(limit),
+        )
+
+        return RegistrationService.list_registrations(account_id, filter_criteria=filter_criteria), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
+        return error_response(ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @bp.route("/<registration_id>", methods=("GET",))
