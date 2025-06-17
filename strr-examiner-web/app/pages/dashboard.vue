@@ -151,7 +151,7 @@ const mapStrataAddress = (address: ApiAddress): ConnectAddress | string => {
 const getPropertyAddressColumn = (app: HousApplicationResponse) => {
   switch (app.registration.registrationType) {
     case ApplicationType.HOST:
-      return (app.registration as ApiHostApplication).unitAddress || '-'
+      return app.header.registrationAddress || (app.registration as ApiHostApplication).unitAddress || '-'
     case ApplicationType.STRATA_HOTEL:
       return mapStrataAddress((app.registration as ApiBaseStrataApplication).strataHotelDetails.location)
     default: // platform
