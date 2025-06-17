@@ -151,7 +151,7 @@ def get_registrations():
         return RegistrationService.list_registrations(account_id, filter_criteria=filter_criteria), HTTPStatus.OK
     except Exception as exception:
         logger.error(exception)
-        return error_response(ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return error_response(HTTPStatus.INTERNAL_SERVER_ERROR, ErrorMessage.PROCESSING_ERROR.value)
 
 
 @bp.route("/<registration_id>", methods=("GET",))

@@ -42,7 +42,7 @@ from dateutil.relativedelta import relativedelta
 from flask import render_template
 from weasyprint import HTML
 
-from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, RegistrationType
+from strr_api.enums.enum import RegistrationStatus, RegistrationType
 from strr_api.models import (
     Address,
     Certificate,
