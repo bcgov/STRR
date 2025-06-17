@@ -21,6 +21,40 @@ export const useStrrApi = () => {
       : resp.registrations
   }
 
+  const getAccountRegistrationsPaginated = async <T extends ApiBaseRegistration>(
+    limit = 50,
+    page = 1,
+    registrationType?: ApplicationType,
+    status?: string,
+    sortBy?: ApplicationSortBy,
+    sortOrder?: ApplicationSortOrder,
+    recordNumber?: string
+  ) => {
+    const query: Record<string, any> = {
+      limit,
+      page,
+      sortBy,
+      sortOrder
+    }
+
+    if (registrationType) {
+      query.registrationType = registrationType
+    }
+    if (status) {
+      query.status = status
+    }
+    if (recordNumber) {
+      query.recordNumber = recordNumber
+    }
+
+    return await $strrApi<{ registrations: T[], total: number }>('/registrations', {
+      query
+    }).catch((e) => {
+      logFetchError(e, 'Unable to load account registrations')
+      return { registrations: [], total: 0 }
+    })
+  }
+
   const getAccountApplication = async <T extends ApiApplicationBaseResp>(
     id?: string,
     type?: ApplicationType
@@ -112,6 +146,7 @@ export const useStrrApi = () => {
   return {
     deleteApplication,
     getAccountRegistrations,
+    getAccountRegistrationsPaginated,
     getAccountApplication,
     getAccountApplications,
     getApplicationReceipt,

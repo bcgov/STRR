@@ -4,7 +4,10 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
 const { deleteApplication } = useStrrApi()
-const { limit, page, getApplicationList } = useStrrBasePermitList<HostApplicationResp>(ApplicationType.HOST)
+const { limit, page, getCombinedList } = useStrrBaseCombinedPermitList<
+  HostApplicationResp,
+  HostRegistrationResp
+>(ApplicationType.HOST)
 
 const columns = [
   {
@@ -67,25 +70,29 @@ setBreadcrumbs([
 
 const { data: hostPmListResp, status, refresh } = await useAsyncData(
   'host-pm-list-resp',
-  getApplicationList,
+  getCombinedList,
   {
     watch: [() => accountStore.currentAccount.id, limit, page],
-    default: () => ({ applications: [], total: 0 })
+    default: () => ({ applications: [], total: 0, registrations: [] })
   }
 )
 const mapApplicationsList = () => {
   if (!hostPmListResp.value?.applications) {
     return []
   }
-  return (hostPmListResp.value.applications).map(app => ({
-    name: app.registration.unitAddress?.nickname || t('label.unnamed'),
-    address: app.registration.unitAddress,
-    number: app.header.registrationNumber || app.header.applicationNumber,
-    lastStatusChange: getLastStatusChangeColumn(app.header),
-    daysToExpiry: getDaysToExpiryColumn(app.header),
-    status: getApplicationStatus(app.header),
-    applicationNumber: app.header.applicationNumber // always used for view action
-  }))
+  return (hostPmListResp.value.applications).map((app: any) => {
+    const registrationData = app.registrationData
+    const displayAddress = registrationData?.unitAddress || app.registration.unitAddress
+    return {
+      name: displayAddress?.nickname || t('label.unnamed'),
+      address: displayAddress,
+      number: app.header.registrationNumber || app.header.applicationNumber,
+      lastStatusChange: getLastStatusChangeColumn(app.header),
+      daysToExpiry: getDaysToExpiryColumn(app.header),
+      status: getApplicationStatus(app.header),
+      applicationNumber: app.header.applicationNumber // always used for view action
+    }
+  })
 }
 
 // Shouldn't use computed here because table sorting updates it which causes issues with vue tracking
