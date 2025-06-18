@@ -223,6 +223,7 @@ class ApplicationService:
             registration = application.registration
             if registration:
                 registration.status = RegistrationStatus.CANCELLED.value
+                registration.cancelled_date = datetime.now(timezone.utc)
                 registration.save()
                 EventsService.save_event(
                     event_type=Events.EventType.REGISTRATION,
