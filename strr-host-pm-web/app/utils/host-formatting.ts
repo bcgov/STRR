@@ -143,6 +143,7 @@ export function formatHostUnitAddressUI (unitAddress: ApiUnitAddress): HostPrope
     streetName: unitAddress.streetName || '',
     streetNumber: unitAddress.streetNumber || '',
     unitNumber: unitAddress.unitNumber || '',
+    locationDescription: unitAddress.locationDescription || '',
     street
   }
 }
