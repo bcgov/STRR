@@ -359,7 +359,7 @@ def get_todos(registration_id):
             threshold_datetime_start = registration_expiry_datetime - timedelta(days=30)
             threshold_datetime_end = registration_expiry_datetime + relativedelta(years=3)
 
-            if threshold_datetime_start <= current_time_utc <= threshold_datetime_end:
+            if threshold_datetime_start.date() <= current_time_utc.date() <= threshold_datetime_end.date():
                 todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
 
         return {"todos": todos}, HTTPStatus.OK
