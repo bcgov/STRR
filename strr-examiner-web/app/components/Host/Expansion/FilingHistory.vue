@@ -29,6 +29,8 @@ const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEven
         getRegistrationFilingHistory((activeRecord.value as HousRegistrationResponse).id)
       ])
       allFilingHistory = [...applicationHistory, ...registrationHistory]
+      // sort both histories by date
+      allFilingHistory.sort((a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime())
     }
 
     // filter out events defined by the requirements
