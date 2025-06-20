@@ -37,6 +37,7 @@ from typing import Optional
 
 from flask import current_app
 
+from strr_api.enums.enum import RegistrationStatus
 from strr_api.models import Application, Registration
 from strr_api.services import gcp_queue_publisher
 
@@ -124,3 +125,23 @@ class EmailService:
             )
         except Exception as err:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
+
+    @staticmethod
+    def send_registration_status_update_email(registration: Registration, email_content=None):
+        """Send status update email for a registration."""
+        if registration.status in [RegistrationStatus.CANCELLED] and email_content:
+            try:
+                gcp_queue_publisher.publish_to_queue(
+                    gcp_queue_publisher.QueueMessage(
+                        source=EMAIL_SOURCE,
+                        message_type=EMAIL_TYPE,
+                        payload={
+                            "registrationNumber": registration.registration_number,
+                            "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status}",
+                            "message": email_content,
+                        },
+                        topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+                    )
+                )
+            except Exception as err:
+                logger.error("Failed to publish email notification: %s", err.with_traceback(None))

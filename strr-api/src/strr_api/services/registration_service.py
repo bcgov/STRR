@@ -66,6 +66,7 @@ from strr_api.models import (
 )
 from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
+from strr_api.services.email_service import EmailService
 from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
 
@@ -562,7 +563,9 @@ class RegistrationService:
         return RegistrationSerializer.serialize(registration=registration)
 
     @classmethod
-    def update_registration_status(cls, registration: Registration, status: str, reviewer: User = None) -> Registration:
+    def update_registration_status(
+        cls, registration: Registration, status: str, reviewer: User = None, email_content: str = None
+    ) -> Registration:
         """Updates the registration status."""
         event_status_map = {
             "EXPIRED": Events.EventName.REGISTRATION_EXPIRED,
@@ -583,6 +586,7 @@ class RegistrationService:
             user_id=reviewer_id,
             visible_to_applicant=True,
         )
+        EmailService.send_registration_status_update_email(registration, email_content)
         return registration
 
     @staticmethod

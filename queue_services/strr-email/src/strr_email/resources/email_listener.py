@@ -31,7 +31,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#
+# pylint: disable=R0911
 """This Module processes and sends email messages via the notify-api.
 """
 from dataclasses import dataclass
@@ -52,6 +52,7 @@ from strr_api.models import Application
 from strr_api.models import Registration
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import AuthService
+from strr_api.services import RegistrationService
 from structured_logging import StructuredLogging
 
 from strr_email.services import gcp_queue
@@ -69,6 +70,7 @@ EMAIL_SUBJECT = {
     "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
     "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
+    "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
 }
 
 
@@ -96,32 +98,108 @@ def worker():
         # no email info or not an email event
         return {}, HTTPStatus.OK
 
-    # 3. Build email template
-    if not (application := Application.find_by_application_number(email_info.application_number)):
-        # no application matching the application number
-        logger.error(f"Error: application {email_info.application_number} not found.")
-        return (
-            jsonify(
-                {"message": f"Application number ({email_info.application_number}) not found."}
-            ),
-            HTTPStatus.NOT_FOUND,
-        )
-
-    app_dict = ApplicationSerializer.to_dict(application)
-    noc_content = ""
-    noc_expiry_date = ""
-    noc_sent_date = ""
-
-    if noc := application.noc:
-        noc_content = noc.content
-        noc_expiry_date = noc.end_date.strftime("%B %d, %Y")
-        noc_sent_date = noc.creation_date.strftime("%B %d, %Y")
-
     template = Path(
         f'{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{email_info.email_type}.md'
     ).read_text("utf-8")
     filled_template = substitute_template_parts(template)
     jinja_template = Template(filled_template, autoescape=True)
+    email = None
+
+    # 3. Build email template for application updates
+    if email_info.application_number:
+        if not (
+            application := Application.find_by_application_number(email_info.application_number)
+        ):
+            # no application matching the application number
+            logger.error(f"Error: application {email_info.application_number} not found.")
+            return (
+                jsonify(
+                    {"message": f"Application number ({email_info.application_number}) not found."}
+                ),
+                HTTPStatus.NOT_FOUND,
+            )
+
+        email = _get_application_update_email_content(application, email_info, jinja_template)
+
+    elif email_info.registration_number:
+        if not (
+            registration := RegistrationService.find_by_registration_number(
+                email_info.registration_number
+            )
+        ):
+            # no application matching the application number
+            logger.error(f"Error: Registration {email_info.registration_number} not found.")
+            return (
+                jsonify(
+                    {
+                        "message": f"Registration number ({email_info.registration_number}) not found."
+                    }
+                ),
+                HTTPStatus.NOT_FOUND,
+            )
+        if registration.registration_type not in [Registration.RegistrationType.HOST]:
+            return {}, HTTPStatus.OK
+
+        email = _get_registration_update_email_content(registration, email_info, jinja_template)
+
+    # 4. Send email via notify-api
+    token = AuthService.get_service_client_token()
+    resp = requests.post(
+        current_app.config["NOTIFY_SVC_URL"],
+        json=email,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}",
+        },
+        timeout=current_app.config["NOTIFY_API_TIMEOUT"],
+    )
+
+    if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
+        logger.info(f"Error {resp.status_code} - {str(resp.json())}")
+        logger.error(f"Error posting email to notify-api for: {str(ce)}")
+        return jsonify({"message": "Error posting email to notify-api."}), resp.status_code
+
+    logger.info(f"completed ce: {str(ce)}")
+    return {}, HTTPStatus.OK
+
+
+def _get_registration_update_email_content(registration: Registration, email_info, jinja_template):
+    recipients = _get_registration_email_recipients(registration)
+    html_out = jinja_template.render(
+        reg_num=registration.registration_number,
+        street_number=registration.rental_property.address.street_number,
+        unit_number=registration.rental_property.address.unit_number,
+        street_name=registration.rental_property.address.street_address
+        or registration.rental_property.address.street_address_additional,
+        city=registration.rental_property.address.city,
+        postal_code=registration.rental_property.address.postal_code,
+        ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
+        rental_nickname=registration.rental_property.nickname,
+        custom_content=email_info.custom_content,
+    )
+    subject_number = registration.registration_number
+    subject = (
+        f"{current_app.config['EMAIL_SUBJECT_PREFIX']} "
+        + f"{subject_number} - {EMAIL_SUBJECT.get(email_info.email_type, '')}"
+    ).strip()
+    email = {
+        "recipients": recipients,
+        # requestBy is how the notify-api determines which GC Notify account to use
+        "requestBy": current_app.config["EMAIL_STRR_REQUEST_BY"],
+        "content": {"subject": subject, "body": f"{html_out}"},
+    }
+    return email
+
+
+def _get_application_update_email_content(application, email_info, jinja_template):
+    app_dict = ApplicationSerializer.to_dict(application)
+    noc_content = ""
+    noc_expiry_date = ""
+    noc_sent_date = ""
+    if noc := application.noc:
+        noc_content = noc.content
+        noc_expiry_date = noc.end_date.strftime("%B %d, %Y")
+        noc_sent_date = noc.creation_date.strftime("%B %d, %Y")
     recipients = _get_email_recipients(app_dict)
     client_recipients = _get_client_recipients(app_dict)
     html_out = jinja_template.render(
@@ -157,26 +235,7 @@ def worker():
         "requestBy": current_app.config["EMAIL_STRR_REQUEST_BY"],
         "content": {"subject": subject, "body": f"{html_out}"},
     }
-
-    # 4. Send email via notify-api
-    token = AuthService.get_service_client_token()
-    resp = requests.post(
-        current_app.config["NOTIFY_SVC_URL"],
-        json=email,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {token}",
-        },
-        timeout=current_app.config["NOTIFY_API_TIMEOUT"],
-    )
-
-    if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
-        logger.info(f"Error {resp.status_code} - {str(resp.json())}")
-        logger.error(f"Error posting email to notify-api for: {str(ce)}")
-        return jsonify({"message": "Error posting email to notify-api."}), resp.status_code
-
-    logger.info(f"completed ce: {str(ce)}")
-    return {}, HTTPStatus.OK
+    return email
 
 
 def _get_rental_nickname(app_dict, reg_type: Registration.RegistrationType) -> str | None:
@@ -212,6 +271,26 @@ def _get_service_provider(app_dict: dict, reg_type: Registration.RegistrationTyp
     if reg_type != Registration.RegistrationType.PLATFORM:
         return ""
     return app_dict["registration"]["businessDetails"]["legalName"]
+
+
+def _get_registration_email_recipients(registration: Registration) -> str:
+    "Return the email recipients in a string separated by commas."
+    recipients: list[str] = []
+
+    if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
+        recipients.append(housing_recipient_email)
+
+    if registration.registration_type == Registration.RegistrationType.HOST.value:
+        # Host recipients - completing party is always the host or property manager
+        # the primary contact email should always be there (this is the primary host)
+        primary_property_contact = list(
+            filter(lambda x: x.is_primary is True, registration.rental_property.contacts)
+        )[0]
+        recipients.append(primary_property_contact.contact.email)
+        if property_manager := registration.rental_property.property_manager:
+            # will have a person or business email
+            recipients.append(property_manager.primary_contact.email)
+    return ",".join(recipients)
 
 
 def _get_email_recipients(app_dict: dict) -> str:
@@ -279,6 +358,7 @@ class EmailInfo:
     application_number: str = None
     email_type: str = None
     custom_content: str = None
+    registration_number: str = None
 
 
 def get_email_info(ce: SimpleCloudEvent) -> EmailInfo | None:
