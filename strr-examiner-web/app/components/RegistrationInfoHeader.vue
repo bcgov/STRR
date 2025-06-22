@@ -112,7 +112,7 @@ const getRegistrationType = (): string => {
             data-testid="registration-status-badge"
           />
           <strong>{{ t('strr.label.registrationDate') }}</strong>
-          {{ dateToString(activeReg.startDate, 'y-MM-dd a', true) }} |
+          {{ dateToString(activeReg.startDate, 'y-MM-dd', true) }} |
           <span
             v-if="activeReg.status === RegistrationStatus.CANCELLED"
             data-testid="reg-cancel-date"
@@ -125,7 +125,7 @@ const getRegistrationType = (): string => {
             data-testid="reg-expiry-date"
           >
             <strong>{{ t('strr.label.expiryDate') }}</strong>
-            {{ dateToString(activeReg.expiryDate, 'y-MM-dd a', true) }}
+            {{ dateToString(activeReg.expiryDate, 'y-MM-dd', true) }}
             ({{ dayCountdown(activeReg.expiryDate.toString()) }} days left)
           </span>
         </div>
@@ -136,7 +136,7 @@ const getRegistrationType = (): string => {
         <strong>Type:</strong>
         {{ getRegistrationType() }} |
         <strong>{{ t('strr.label.submitted') }}</strong>
-        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a', true) }}
+        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd', true) }}
         | <strong>{{ t('strr.label.assignee') }}</strong>
         {{ activeHeader.reviewer?.username || '-' }}
         <template v-if="activeHeader.reviewer?.username">

@@ -129,7 +129,7 @@ const registrationCountdown = computed(() => {
         <strong>{{ t('strr.label.applicationType') }}</strong>
         {{ t(`applicationType.${activeReg?.registrationType}`) }} |
         <strong>{{ t('strr.label.submitted') }}</strong>
-        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd a', true) }}
+        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd', true) }}
         ({{ dayCountdown(activeHeader.applicationDateTime.toString(), true) }} days ago)
         <template v-if="activeHeader.status === ApplicationStatus.DECLINED">
           | <strong>{{ t('strr.label.declinedDate') }}</strong>
@@ -137,7 +137,7 @@ const registrationCountdown = computed(() => {
         </template>
         <template v-else-if="activeHeader.nocEndDate">
           | <strong>{{ t('strr.label.nocExpiry') }}</strong>
-          {{ dateToString(activeHeader.nocEndDate, 'y-MM-dd a', true) }}
+          {{ dateToString(activeHeader.nocEndDate, 'y-MM-dd', true) }}
           <span v-if="!nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
           <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
         </template>
