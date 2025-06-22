@@ -11,34 +11,24 @@ const columns = [
 ]
 
 const addressRows = computed(() => {
-  const rows = []
-
-  if (props.address.unitNumber) {
-    rows.push({ label: t('label.unitNumber'), value: props.address.unitNumber })
+  const addressFields = {
+    unitNumber: 'unitNumber',
+    streetNumber: 'streetNumber',
+    streetName: 'streetName',
+    streetAdditional: 'streetAdditional',
+    city: 'city',
+    region: 'province',
+    postalCode: 'postalCode'
   }
 
-  if (props.address.streetNumber) {
-    rows.push({ label: t('label.streetNumber'), value: props.address.streetNumber })
-  }
-
-  if (props.address.streetName) {
-    rows.push({ label: t('label.streetName'), value: props.address.streetName })
-  }
-
-  if (props.address.streetAdditional) {
-    rows.push({ label: t('label.streetAdditional'), value: props.address.streetAdditional })
-  }
-
-  if (props.address.city) {
-    rows.push({ label: t('label.city'), value: props.address.city })
-  }
-
-  if (props.address.postalCode) {
-    rows.push({ label: t('label.postalCode'), value: props.address.postalCode })
-  }
-
-  return rows
+  return Object.entries(addressFields)
+    .filter(([field]) => props.address[field])
+    .map(([field, label]) => ({
+      label: t(`label.${label}`),
+      value: props.address[field]
+    }))
 })
+
 </script>
 <template>
   <div>
