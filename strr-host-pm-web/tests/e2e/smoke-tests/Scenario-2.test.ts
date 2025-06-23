@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import {
-  loginMethods,
+  chooseAccount,
   getH2,
-  chooseAccount
+  loginMethods
 } from '../test-utils'
 
 loginMethods.forEach((loginMethod) => {
