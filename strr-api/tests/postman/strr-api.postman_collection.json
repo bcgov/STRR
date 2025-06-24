@@ -1728,6 +1728,70 @@
 					"response": []
 				},
 				{
+					"name": "Upload registration document",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has registration data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/lekshmimallika/Documents/Test test"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/documents",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"documents"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Registrations",
 					"request": {
 						"auth": {

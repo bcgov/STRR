@@ -46,15 +46,23 @@ from dateutil.relativedelta import relativedelta
 from flasgger import swag_from
 from flask import Blueprint, g, jsonify, request, send_file
 from flask_cors import cross_origin
+from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ErrorMessage, RegistrationStatus, RegistrationType, Role
-from strr_api.exceptions import AuthException, ExternalServiceException, error_response, exception_response
+from strr_api.enums.enum import ErrorMessage, RegistrationNocStatus, RegistrationStatus, RegistrationType, Role
+from strr_api.exceptions import (
+    AuthException,
+    ExternalServiceException,
+    ValidationException,
+    error_response,
+    exception_response,
+)
 from strr_api.models import User
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
 from strr_api.services.registration_service import REGISTRATION_STATES_STAFF_ACTION
+from strr_api.validators.DocumentUploadValidator import validate_document_upload
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
@@ -229,6 +237,85 @@ def get_registration_file_by_id(registration_id, file_key):
         return exception_response(external_exception)
 
 
+@bp.route("/<registration_id>/documents", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def upload_registration_document(registration_id):
+    """
+    Upload a document for a registration.
+    ---
+    tags:
+      - registration
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: The file to upload
+      - name: documentType
+        in: formData
+        type: string
+        required: false
+        description: Type of document being uploaded
+    consumes:
+      - multipart/form-data
+    responses:
+      201:
+        description:
+      400:
+        description:
+      401:
+        description:
+      403:
+        description:
+      502:
+        description:
+    """
+    try:
+        account_id = request.headers.get("Account-Id")
+        registration = RegistrationService.get_registration(account_id, registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+
+        noc_status = registration.noc_status
+        if noc_status != RegistrationNocStatus.NOC_PENDING:
+            if noc_status is None:
+                error_message = ErrorMessage.REG_DOCUMENT_UPLOAD_NOC_STATUS.value
+            elif noc_status == RegistrationNocStatus.NOC_EXPIRED:
+                error_message = ErrorMessage.REG_DOCUMENT_UPLOAD_NOC_STATUS.value
+            else:
+                error_message = ErrorMessage.REG_DOCUMENT_STATUS.value
+            return error_response(message=error_message, http_status=HTTPStatus.BAD_REQUEST)
+
+        file = validate_document_upload(request.files)
+        filename = secure_filename(file.filename)
+        document_type = request.form.get("documentType", "OTHERS")
+
+        document_response = DocumentService.upload_document(filename, file.content_type, file.read())
+
+        registration = RegistrationService.upload_document_to_registration(
+            registration=registration,
+            file_name=filename,
+            file_type=file.content_type,
+            file_key=document_response["fileKey"],
+            document_type=document_type,
+        )
+        return RegistrationService.serialize(registration), HTTPStatus.CREATED
+
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except ValidationException as auth_exception:
+        return exception_response(auth_exception)
+    except ExternalServiceException as service_exception:
+        return exception_response(service_exception)
+
+
 @bp.route("/<registration_id>/events", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
@@ -352,6 +439,9 @@ def get_todos(registration_id):
             raise AuthException()
 
         todos = []
+
+        if registration.noc_status == RegistrationNocStatus.NOC_PENDING:
+            todos.append({"task": {"type": "NOC_PENDING"}})
 
         if registration.status in [RegistrationStatus.ACTIVE, RegistrationStatus.EXPIRED]:
             # Get the current time in UTC

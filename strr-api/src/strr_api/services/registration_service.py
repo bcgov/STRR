@@ -36,7 +36,7 @@
 # pylint: disable=R0917
 """Manages registration model interactions."""
 import random
-from datetime import datetime, time, timezone
+from datetime import date, datetime, time, timezone
 
 from dateutil.relativedelta import relativedelta
 from flask import render_template
@@ -716,4 +716,34 @@ class RegistrationService:
             user_id=user.id,
             visible_to_applicant=True,
         )
+        return registration
+
+    @staticmethod
+    def upload_document_to_registration(
+        registration: Registration, file_name: str, file_type: str, file_key: str, document_type: str
+    ) -> Registration:
+        """Upload a document to a registration and create a database record."""
+        registration_documents = registration.documents
+
+        document = Document()
+        document.file_name = file_name
+        document.file_type = file_type
+        document.path = file_key
+        document.document_type = document_type
+        document.registration_id = registration.id
+        document.added_on = date.today()
+        document.save()
+
+        registration_documents.append(document)
+        registration.documents = registration_documents
+        registration.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.DOCUMENT_UPLOADED,
+            registration_id=registration.id,
+            details=f"Document uploaded: {file_name}",
+            visible_to_applicant=True,
+        )
+
         return registration

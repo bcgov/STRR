@@ -84,6 +84,13 @@ class RegistrationStatus(Enum):
     CANCELLED = "CANCELLED"
 
 
+class RegistrationNocStatus(Enum):
+    """STRR Registration NOC Status."""
+
+    NOC_PENDING = "NOC_PENDING"
+    NOC_EXPIRED = "NOC_EXPIRED"
+
+
 class RegistrationSortBy(Enum):
     """STRR Registration Sort By Columns."""
 
@@ -164,6 +171,8 @@ class ErrorMessage(Enum):
     INVALID_NOC_CONTENT = "Invalid content."
     ADDRESS_MISMATCH = "Address does not match with the data in the permit."
     INVALID_SET_ASIDE_EMAIL_CONTENT = "Invalid message for set aside notifications."
+    REG_DOCUMENT_UPLOAD_NOC_STATUS = "Document upload is not allowed for the current NOC status."
+    REG_DOCUMENT_STATUS = "Document upload is not allowed for the current status."
 
 
 class ApplicationRole(Enum):

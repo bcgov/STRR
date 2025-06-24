@@ -10,7 +10,7 @@ from sqlalchemy import Boolean, Enum
 from sqlalchemy.orm import relationship
 
 from strr_api.common.enum import BaseEnum, auto
-from strr_api.enums.enum import PropertyType, RegistrationStatus, StrataHotelCategory
+from strr_api.enums.enum import PropertyType, RegistrationNocStatus, RegistrationStatus, StrataHotelCategory
 from strr_api.models.base_model import BaseModel
 
 from .db import db
@@ -40,6 +40,7 @@ class Registration(Versioned, BaseModel):
     updated_date = db.Column(db.DateTime, default=datetime.now, nullable=False)
     cancelled_date = db.Column(db.DateTime, nullable=True)
     is_set_aside = db.Column(Boolean, default=False)
+    noc_status = db.Column(Enum(RegistrationNocStatus), nullable=True)
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     user = relationship("User", foreign_keys=[user_id])
@@ -207,6 +208,7 @@ class Document(Versioned, BaseModel):
     file_type = db.Column(db.String, nullable=False)  # e.g., 'pdf', 'jpeg', etc.
     path = db.Column(db.String, nullable=False)
     document_type = db.Column("document_type", db.Enum(DocumentType), default=DocumentType.OTHERS)
+    added_on = db.Column(db.Date, nullable=True)
 
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=False)
     registration = relationship("Registration", foreign_keys=[registration_id], back_populates="documents")
