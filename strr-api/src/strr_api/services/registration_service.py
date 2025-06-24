@@ -720,7 +720,7 @@ class RegistrationService:
 
     @staticmethod
     def upload_document_to_registration(
-        registration: Registration, file_name: str, file_type: str, file_key: str, document_type: str
+        registration: Registration, file_name: str, file_type: str, file_key: str, document_type: str, user: User
     ) -> Registration:
         """Upload a document to a registration and create a database record."""
         registration_documents = registration.documents
@@ -744,6 +744,7 @@ class RegistrationService:
             registration_id=registration.id,
             details=f"Document uploaded: {file_name}",
             visible_to_applicant=True,
+            user_id=user.id,
         )
 
         return registration

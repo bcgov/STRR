@@ -278,6 +278,9 @@ def upload_registration_document(registration_id):
         description:
     """
     try:
+        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
         account_id = request.headers.get("Account-Id")
         registration = RegistrationService.get_registration(account_id, registration_id)
         if not registration:
@@ -305,6 +308,7 @@ def upload_registration_document(registration_id):
             file_type=file.content_type,
             file_key=document_response["fileKey"],
             document_type=document_type,
+            user=user,
         )
         return RegistrationService.serialize(registration), HTTPStatus.CREATED
 
