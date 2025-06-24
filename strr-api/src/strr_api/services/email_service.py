@@ -137,7 +137,7 @@ class EmailService:
                         message_type=EMAIL_TYPE,
                         payload={
                             "registrationNumber": registration.registration_number,
-                            "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status}",
+                            "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
                             "customContent": email_content,
                         },
                         topic=current_app.config.get("GCP_EMAIL_TOPIC"),
