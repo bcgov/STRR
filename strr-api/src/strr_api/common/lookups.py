@@ -49,4 +49,5 @@ EVENT_MESSAGES = {
     "CERTIFICATE_ISSUED": "Certificate issued for the registration.",
     "EXPIRED": "Registration expired.",
     "NON_COMPLIANCE_SUSPENDED": "Registration suspended due to non compliance.",
+    "DOCUMENT_UPLOADED": "Document uploaded.",
 }
