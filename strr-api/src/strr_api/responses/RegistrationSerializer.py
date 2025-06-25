@@ -47,6 +47,7 @@ class RegistrationSerializer:
             "expiryDate": registration.expiry_date.isoformat() if registration.expiry_date else None,
             "status": registration.status.name,
             "registrationNumber": registration.registration_number,
+            "nocStatus": registration.noc_status.name if registration.noc_status else None,
         }
 
         RegistrationSerializer._populate_header_data(registration_data, registration)

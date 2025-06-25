@@ -1,6 +1,9 @@
 """
 Document response object.
 """
+from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 
 from strr_api import models
@@ -13,6 +16,7 @@ class Document(BaseModel):
     documentId: int
     fileName: str
     fileType: str
+    addedOn: Optional[datetime]
 
     @classmethod
     def from_db(cls, source: models.Document):
@@ -22,4 +26,5 @@ class Document(BaseModel):
             documentId=source.id,
             fileName=source.file_name,
             fileType=source.file_type,
+            addedOn=source.added_on,
         )

@@ -50,7 +50,7 @@ class Events(SimpleBaseModel):
         HOST_REGISTRATION_UNIT_ADDRESS_UPDATED = auto()
         APPLICATION_DECISION_SET_ASIDE = auto()
         REGISTRATION_DECISION_SET_ASIDE = auto()
-        DOCUMENT_UPLOADED = auto()
+        REGISTRATION_DOCUMENT_UPLOADED = auto()
 
     __tablename__ = "events"
 

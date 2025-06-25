@@ -278,23 +278,19 @@ def upload_registration_document(registration_id):
         description:
     """
     try:
-        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user:
-            raise AuthException()
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         account_id = request.headers.get("Account-Id")
         registration = RegistrationService.get_registration(account_id, registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
 
         noc_status = registration.noc_status
-        if noc_status != RegistrationNocStatus.NOC_PENDING:
-            if noc_status is None:
-                error_message = ErrorMessage.REG_DOCUMENT_UPLOAD_NOC_STATUS.value
-            elif noc_status == RegistrationNocStatus.NOC_EXPIRED:
-                error_message = ErrorMessage.REG_DOCUMENT_UPLOAD_NOC_STATUS.value
-            else:
-                error_message = ErrorMessage.REG_DOCUMENT_STATUS.value
-            return error_response(message=error_message, http_status=HTTPStatus.BAD_REQUEST)
+        if not UserService.is_strr_staff_or_system():
+            if noc_status != RegistrationNocStatus.NOC_PENDING:
+                return error_response(
+                    message=ErrorMessage.REGISTRATION_DOCUMENT_UPLOAD_NOC_STATUS.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
 
         file = validate_document_upload(request.files)
         filename = secure_filename(file.filename)
@@ -313,11 +309,17 @@ def upload_registration_document(registration_id):
         return RegistrationService.serialize(registration), HTTPStatus.CREATED
 
     except AuthException as auth_exception:
-        return exception_response(auth_exception)
-    except ValidationException as auth_exception:
-        return exception_response(auth_exception)
+        logger.error("AuthException in upload_registration_document: %s", repr(auth_exception))
+        logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    except ValidationException as validation_exception:
+        logger.error("ValidationException in upload_registration_document: %s", repr(validation_exception))
+        logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except ExternalServiceException as service_exception:
-        return exception_response(service_exception)
+        logger.error("ExternalServiceException in upload_registration_document: %s", repr(service_exception))
+        logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @bp.route("/<registration_id>/events", methods=("GET",))

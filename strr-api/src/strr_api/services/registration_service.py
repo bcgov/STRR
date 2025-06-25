@@ -732,7 +732,6 @@ class RegistrationService:
         document.document_type = document_type
         document.registration_id = registration.id
         document.added_on = date.today()
-        document.save()
 
         registration_documents.append(document)
         registration.documents = registration_documents
@@ -740,7 +739,7 @@ class RegistrationService:
 
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,
-            event_name=Events.EventName.DOCUMENT_UPLOADED,
+            event_name=Events.EventName.REGISTRATION_DOCUMENT_UPLOADED,
             registration_id=registration.id,
             details=f"Document uploaded: {file_name}",
             visible_to_applicant=True,

@@ -763,6 +763,16 @@ def test_upload_registration_document(session, client, jwt):
                 )
                 assert rv.status_code == HTTPStatus.BAD_REQUEST
 
+            with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+                data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}
+                rv_staff = client.post(
+                    f"/registrations/{registration_id}/documents",
+                    content_type="multipart/form-data",
+                    data=data,
+                    headers=staff_headers,
+                )
+                assert rv_staff.status_code == HTTPStatus.CREATED
+
             registration.noc_status = RegistrationNocStatus.NOC_PENDING.value
             registration.save()
             with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
@@ -786,3 +796,13 @@ def test_upload_registration_document(session, client, jwt):
                     headers=headers,
                 )
                 assert rv.status_code == HTTPStatus.BAD_REQUEST
+
+            with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+                data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}
+                rv_staff = client.post(
+                    f"/registrations/{registration_id}/documents",
+                    content_type="multipart/form-data",
+                    data=data,
+                    headers=staff_headers,
+                )
+                assert rv_staff.status_code == HTTPStatus.CREATED
