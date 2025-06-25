@@ -5,6 +5,7 @@ export const useExaminerRoute = () => {
   const { setButtonControl, getButtonControl } = useButtonControl()
   const exStore = useExaminerStore()
   const { activeReg, isApplication, activeHeader } = storeToRefs(exStore)
+  const { isFeatureEnabled } = useFeatureFlags()
 
   const updateRouteAndButtons = (
     routePrefix: string,
@@ -30,6 +31,11 @@ export const useExaminerRoute = () => {
         disabled?: boolean
       },
       reinstate?: {
+        action: (id: number) => void
+        label: string
+        disabled?: boolean
+      },
+      suspend?: {
         action: (id: number) => void
         label: string
         disabled?: boolean
@@ -151,6 +157,18 @@ export const useExaminerRoute = () => {
           })
         }
 
+        if (examinerActions.includes(RegistrationActionsE.SUSPEND) && buttonConfig.suspend &&
+          isFeatureEnabled('enable-examiner-suspend-registration').value) {
+          uniqueRightButtons.push({
+            action: () => buttonConfig.suspend!.action(id as number),
+            label: buttonConfig.suspend.label,
+            variant: 'outline',
+            icon: 'i-mdi-pause',
+            color: 'primary',
+            disabled: buttonConfig.cancel!.disabled ?? false
+          })
+        }
+
         if (examinerActions.includes(RegistrationActionsE.CANCEL) && buttonConfig.cancel) {
           uniqueRightButtons.push({
             action: () => buttonConfig.cancel!.action(id as number),
@@ -162,7 +180,7 @@ export const useExaminerRoute = () => {
           })
         }
 
-        if (examinerActions.includes(RegistrationActionsE.REINSTATE) && buttonConfig.cancel) {
+        if (examinerActions.includes(RegistrationActionsE.REINSTATE) && buttonConfig.reinstate) {
           uniqueRightButtons.push({
             action: () => buttonConfig.reinstate!.action(id as number),
             label: buttonConfig.reinstate.label,
@@ -173,7 +191,7 @@ export const useExaminerRoute = () => {
           })
         }
 
-        if (examinerActions.includes(RegistrationActionsE.SET_ASIDE) && buttonConfig.cancel) {
+        if (examinerActions.includes(RegistrationActionsE.SET_ASIDE) && buttonConfig.registrationSetAside) {
           uniqueRightButtons.push({
             action: () => buttonConfig.registrationSetAside!.action(id as number),
             label: buttonConfig.registrationSetAside.label,

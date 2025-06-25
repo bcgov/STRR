@@ -4,7 +4,7 @@ const route = useRoute()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
 const { updateRegistrationStatus, getRegistrationById, setAsideRegistration } = useExaminerStore()
-const { isAssignedToUser } = storeToRefs(useExaminerStore())
+const { isAssignedToUser, emailContent } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 
 useHead({
@@ -47,6 +47,9 @@ const handleRegistrationAction = (
     additionalArgs = [RegistrationStatus.ACTIVE]
   } else if (action === RegistrationActionsE.SET_ASIDE) {
     actionFn = setAsideRegistration
+  } else if (action === RegistrationActionsE.SUSPEND) {
+    actionFn = updateRegistrationStatus
+    additionalArgs = [RegistrationStatus.SUSPENDED, emailContent.value.content]
   }
 
   return manageAction(
@@ -89,6 +92,17 @@ const handleAssigneeAction = (
         },
         t('btn.back')
       )
+    } else if (action === RegistrationActionsE.SUSPEND) {
+      openConfirmActionModal(
+        t('modal.suspendRegistration.title'),
+        t('modal.suspendRegistration.message'),
+        t('btn.yesSuspend'),
+        () => {
+          closeConfirmActionModal()
+          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
+        },
+        t('btn.cancel')
+      )
     } else {
       return handleRegistrationAction(id, action, buttonPosition, buttonIndex)
     }
@@ -123,6 +137,11 @@ watch(
         label: t('btn.cancelRegistration'),
         disabled: !isAssignedToUser.value
       },
+      suspend: {
+        action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.SUSPEND, 'right', 0),
+        label: t('btn.suspendRegistration'),
+        disabled: !isAssignedToUser.value
+      },
       reinstate: {
         action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.REINSTATE, 'right', 1),
         label: t('btn.reinstateRegistration'),
@@ -154,6 +173,7 @@ watch(
           <RegistrationInfoHeader />
         </template>
       </ApplicationDetailsView>
+      <ComposeNoc />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
     </template>
   </div>

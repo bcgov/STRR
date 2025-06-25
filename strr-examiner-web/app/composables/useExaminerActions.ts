@@ -25,7 +25,8 @@ export const useExaminerActions = () => {
     ApplicationActionsE.REJECT,
     ApplicationActionsE.SEND_NOC,
     ApplicationActionsE.PROVISIONAL_APPROVE,
-    RegistrationActionsE.CANCEL
+    RegistrationActionsE.CANCEL,
+    RegistrationActionsE.SUSPEND
   ]
 
   const manageAction = async <T extends { id: string | number }, Args extends any[] = []>(

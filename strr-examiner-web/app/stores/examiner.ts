@@ -105,7 +105,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const emailFormRef = ref<Form<any>>()
   const showComposeEmail = computed(() => {
     return activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
-      activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+      activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED ||
+       (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with suspend action btn
+        activeReg.value.header.examinerActions.includes(RegistrationActionsE.SUSPEND))
   })
   const sendEmailSchema = computed(() => z.object({
     content: z.string()
@@ -386,10 +388,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * @param {number} registrationId - The registrationId for the registration to be updated.
    * @param {string} status - RegistrationStatus value (ACTIVE [reinstate], SUSPENDED or CANCELLED).
    */
-  const updateRegistrationStatus = async (registrationId: number, status: RegistrationStatus): Promise<void> => {
+  const updateRegistrationStatus = async (
+    registrationId: number,
+    status: RegistrationStatus,
+    content?: string
+  ): Promise<void> => {
     await $strrApi(`/registrations/${registrationId}/status`, {
       method: 'PUT',
-      body: { status }
+      body: {
+        status,
+        ...(content && { emailContent: content })
+      }
     })
   }
 

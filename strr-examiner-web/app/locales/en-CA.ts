@@ -266,6 +266,7 @@ export default {
     cancelRegistration: 'Cancel Registration',
     reinstateRegistration: 'Approve Registration',
     suspend: 'Suspend',
+    suspendRegistration: 'Suspend Registration',
     sendNotice: 'Send Notice',
     viewReceipt: 'View Receipt',
     showHistory: 'Show History',
@@ -280,7 +281,8 @@ export default {
     setAside: 'Set Aside',
     yesApprove: 'Yes, Approve',
     yesSend: 'Yes, Send',
-    yesRefuse: 'Yes, Refuse'
+    yesRefuse: 'Yes, Refuse',
+    yesSuspend: 'Yes, Suspend'
   },
   error: {
     action: {
@@ -417,6 +419,10 @@ export default {
     reinstateRegistration: {
       title: 'Approve Registration',
       message: 'This action will fully register the short-term rental unit. Are you sure you want to continue?'
+    },
+    suspendRegistration: {
+      title: 'Suspend Registration',
+      message: 'Suspending this registration will make it temporarily invalid. You can reinstate it at any time. Do you want to continue?'
     }
   },
   table: {
