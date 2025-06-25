@@ -27,8 +27,8 @@ class RegistrationSerializer:
     }
 
     EXAMINER_ACTIONS = {
-        RegistrationStatus.ACTIVE: ["SUSPEND", "CANCEL"],
-        RegistrationStatus.SUSPENDED: ["REINSTATE", "CANCEL"],
+        RegistrationStatus.ACTIVE: ["SUSPEND", "CANCEL", "SET_ASIDE"],
+        RegistrationStatus.SUSPENDED: ["REINSTATE", "CANCEL", "SET_ASIDE"],
         RegistrationStatus.CANCELLED: ["SET_ASIDE"],
         RegistrationStatus.EXPIRED: [],
     }
