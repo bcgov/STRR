@@ -61,6 +61,7 @@ class RegistrationSerializer:
                         "fileName": doc.file_name,
                         "fileType": doc.file_type,
                         "documentType": doc.document_type,
+                        "addedOn": doc.added_on.isoformat() if doc.added_on else None,
                     }
                 )
         registration_data["documents"] = documents

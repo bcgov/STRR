@@ -279,6 +279,9 @@ def upload_registration_document(registration_id):
     """
     try:
         user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
         account_id = request.headers.get("Account-Id")
         registration = RegistrationService.get_registration(account_id, registration_id)
         if not registration:
