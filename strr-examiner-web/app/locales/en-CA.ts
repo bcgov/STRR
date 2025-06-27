@@ -264,7 +264,7 @@ export default {
     approve: 'Approve',
     cancel: 'Cancel',
     cancelRegistration: 'Cancel Registration',
-    reinstateRegistration: 'Approve Registration',
+    reinstateRegistration: 'Reinstate Registration',
     suspend: 'Suspend',
     suspendRegistration: 'Suspend Registration',
     sendNotice: 'Send Notice',
@@ -282,7 +282,8 @@ export default {
     yesApprove: 'Yes, Approve',
     yesSend: 'Yes, Send',
     yesRefuse: 'Yes, Refuse',
-    yesSuspend: 'Yes, Suspend'
+    yesSuspend: 'Yes, Suspend',
+    yesReinstate: 'Yes, Reinstate'
   },
   error: {
     action: {
@@ -417,8 +418,8 @@ export default {
       message: 'Are you sure you want to cancel the registration? This will send an email to the host letting them know their registration has been cancelled.'
     },
     reinstateRegistration: {
-      title: 'Approve Registration',
-      message: 'This action will fully register the short-term rental unit. Are you sure you want to continue?'
+      title: 'Reinstate Registration',
+      message: 'Reinstating the registration will make it valid again. Are you sure you want to continue?'
     },
     suspendRegistration: {
       title: 'Suspend Registration',

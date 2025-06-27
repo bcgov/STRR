@@ -180,13 +180,14 @@ export const useExaminerRoute = () => {
           })
         }
 
-        if (examinerActions.includes(RegistrationActionsE.REINSTATE) && buttonConfig.reinstate) {
+        if (examinerActions.includes(RegistrationActionsE.REINSTATE) && buttonConfig.reinstate &&
+          isFeatureEnabled('enable-examiner-reinstate-registration').value) {
           uniqueRightButtons.push({
             action: () => buttonConfig.reinstate!.action(id as number),
             label: buttonConfig.reinstate.label,
             variant: 'outline',
-            color: 'green',
-            icon: 'i-mdi-check',
+            color: 'primary',
+            icon: 'i-mdi-rotate-left',
             disabled: buttonConfig.cancel!.disabled ?? false
           })
         }

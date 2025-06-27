@@ -85,12 +85,12 @@ const handleAssigneeAction = (
       openConfirmActionModal(
         t('modal.reinstateRegistration.title'),
         t('modal.reinstateRegistration.message'),
-        t('btn.reinstateRegistration'),
+        t('btn.yesReinstate'),
         () => {
           closeConfirmActionModal()
           handleRegistrationAction(id, action, buttonPosition, buttonIndex)
         },
-        t('btn.back')
+        t('btn.cancel')
       )
     } else if (action === RegistrationActionsE.SUSPEND) {
       openConfirmActionModal(
