@@ -42,6 +42,26 @@ onMounted(async () => {
     ApplicationType.HOST
   ))
 
+  if (registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING) {
+    const translationProps = {
+      newLine: '<br/>',
+      boldStart: '<strong>',
+      boldEnd: '</strong>',
+      linkStart: "<button type='button'" +
+        "onClick=\"document.getElementById('summary-supporting-info').scrollIntoView({ behavior: 'smooth' })\"" +
+        "class='text-blue-500 underline'>",
+      linkEnd: '</button>'
+    }
+
+    const nocEndDate = dateToString(permitDetails.value.nocEndDate as Date)
+
+    todos.value.push({
+      id: 'todo-reg-noc-add-docs',
+      title: `${t('todos.registrationNoc.title1')} ${nocEndDate} ${t('todos.registrationNoc.title2')}`,
+      subtitle: `${t('todos.registrationNoc.general', translationProps)}`
+    })
+  }
+
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')
@@ -67,7 +87,7 @@ onMounted(async () => {
     // host right side details
     setSideHeaderDetails(registration.value, application.value?.header)
 
-    // set sidebar accordian reps
+    // set sidebar accordion reps
     owners.value = getHostPermitDashOwners()
 
     // update breadcrumbs with strata business name
@@ -108,6 +128,8 @@ watch([isRenewalsEnabled, isRenewalPeriodClosed, registration, isEligibleForRene
     boldStart: '<strong>',
     boldEnd: '</strong>'
   }
+
+  console.log(isRenewalsEnabled.value, isEligibleForRenewal.value)
 
   if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
     // todo for renewal period closed after 3 years without renewal

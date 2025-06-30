@@ -9,12 +9,13 @@ const { requiredDocs, storedDocuments } = storeToRefs(useDocumentStore())
 const isFileUploadOpen = ref(false)
 
 const docStore = useDocumentStore()
-const { application } = storeToRefs(useHostPermitStore())
+const { application, registration } = storeToRefs(useHostPermitStore())
 
 // used to display Add New Document button
 const isNocPending = computed(() =>
   application.value?.header.status === ApplicationStatus.NOC_PENDING ||
-  application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+  application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+  registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING
 )
 
 // step 3 items
