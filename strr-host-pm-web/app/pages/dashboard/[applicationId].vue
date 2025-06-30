@@ -129,8 +129,6 @@ watch([isRenewalsEnabled, isRenewalPeriodClosed, registration, isEligibleForRene
     boldEnd: '</strong>'
   }
 
-  console.log(isRenewalsEnabled.value, isEligibleForRenewal.value)
-
   if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
     // todo for renewal period closed after 3 years without renewal
     todos.value.push({
