@@ -63,7 +63,10 @@ export interface ApiExtraRegistrationDetails {
   registrationNumber: string
   sbc_account_id: number
   startDate: Date
-  status: RegistrationStatus,
+  status: RegistrationStatus
+  nocStatus: RegistrationNocStatus | null
+  nocStartDate?: Date
+  nocEndDate?: Date
   updatedDate: Date
   cancelledDate?: Date
   user_id: number
