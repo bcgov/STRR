@@ -840,7 +840,7 @@ def test_send_notice_of_consideration_success(mock_invoice, session, client, jwt
         assert response_json.get("nocStartDate") is not None
         assert response_json.get("nocEndDate") is not None
 
-        rv = client.get(f"/registrations/{registration_id}/events", headers=headers)
+        rv = client.get(f"/registrations/{registration_id}/events", headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         events = rv.json
         event_names = [event.get("eventName") for event in events]
