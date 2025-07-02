@@ -50,6 +50,7 @@ class Registration(Versioned, BaseModel):
     platform_registration = relationship("PlatformRegistration", back_populates="registration", uselist=False)
     strata_hotel_registration = relationship("StrataHotelRegistration", back_populates="registration", uselist=False)
     documents = relationship("Document", back_populates="registration")
+    noc = relationship("RegistrationNoticeOfConsideration", back_populates="registration", uselist=False)
 
 
 class RentalProperty(Versioned, BaseModel):

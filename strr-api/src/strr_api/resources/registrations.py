@@ -636,3 +636,49 @@ def set_aside_decision(registration_id):
     except Exception as exception:
         logger.error(exception)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/notice-of-consideration", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def send_notice_of_consideration(registration_id):
+    """
+    Send a Notice of consideration for the specified registration.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      403:
+        description:
+      500:
+        description:
+    """
+    try:
+        reviewer = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        json_input = request.get_json()
+        content = json_input.get("content", "").strip()
+        if not content:
+            return error_response(
+                message="NOC content is required",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        registration = RegistrationService.send_notice_of_consideration(registration, content, reviewer)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error("Error in sending Registration NoC: %s", exception)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)

@@ -36,13 +36,14 @@
 # pylint: disable=R0917
 """Manages registration model interactions."""
 import random
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
+import pytz
 from dateutil.relativedelta import relativedelta
-from flask import render_template
+from flask import current_app, render_template
 from weasyprint import HTML
 
-from strr_api.enums.enum import RegistrationSortBy, RegistrationStatus, RegistrationType
+from strr_api.enums.enum import RegistrationNocStatus, RegistrationSortBy, RegistrationStatus, RegistrationType
 from strr_api.models import (
     Address,
     Certificate,
@@ -57,6 +58,7 @@ from strr_api.models import (
     PropertyListing,
     PropertyManager,
     Registration,
+    RegistrationNoticeOfConsideration,
     RentalProperty,
     StrataHotel,
     StrataHotelBuilding,
@@ -575,6 +577,7 @@ class RegistrationService:
         }
         registration.status = status
         registration.is_set_aside = False
+        registration.noc_status = None
         if status == RegistrationStatus.CANCELLED.value:
             registration.cancelled_date = datetime.now(timezone.utc)
         registration.save()
@@ -746,4 +749,29 @@ class RegistrationService:
             user_id=user.id,
         )
 
+        return registration
+
+    @staticmethod
+    def send_notice_of_consideration(registration: Registration, content: str, reviewer: User = None) -> Registration:
+        """Sends the notice of consideration for a registration."""
+        notice_of_consideration = RegistrationNoticeOfConsideration()
+        notice_of_consideration.content = content
+        notice_of_consideration.registration_id = registration.id
+        notice_of_consideration.start_date = datetime.combine(
+            datetime.now(pytz.timezone("America/Vancouver")) + timedelta(days=1), time(0, 1, 0)
+        )
+        days = current_app.config.get("NOC_EXPIRY_DAYS", 8)
+        notice_of_consideration.end_date = notice_of_consideration.start_date + timedelta(days=int(days))
+        notice_of_consideration.save()
+
+        registration.noc_status = RegistrationNocStatus.NOC_PENDING
+        registration.save()
+
+        reviewer_id = reviewer.id if reviewer else None
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.NOC_SENT,
+            registration_id=registration.id,
+            user_id=reviewer_id,
+        )
         return registration

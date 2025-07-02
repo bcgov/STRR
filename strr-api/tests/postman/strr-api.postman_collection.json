@@ -2001,6 +2001,44 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Send Notice of Consideration",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"This is a test notice of consideration for your registration.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/notice-of-consideration",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"notice-of-consideration"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

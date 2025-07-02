@@ -44,6 +44,7 @@ from .ltsa import LTSARecord
 from .notice_of_consideration import NoticeOfConsideration
 from .platforms import Platform, PlatformBrand, PlatformRegistration, PlatformRepresentative
 from .real_time_validation import RealTimeValidation
+from .registration_notice_of_consideration import RegistrationNoticeOfConsideration
 from .rental import Document, PropertyContact, PropertyListing, PropertyManager, Registration, RentalProperty
 from .strata_hotels import StrataHotel, StrataHotelBuilding, StrataHotelRegistration, StrataHotelRepresentative
 from .user import Contact, User
@@ -68,6 +69,7 @@ __all__ = (
     "LTSARecord",
     "Certificate",
     "NoticeOfConsideration",
+    "RegistrationNoticeOfConsideration",
     "Platform",
     "PlatformBrand",
     "PlatformRegistration",
