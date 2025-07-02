@@ -41,7 +41,7 @@ const handleRegistrationAction = (
 
   if (action === RegistrationActionsE.CANCEL) {
     actionFn = updateRegistrationStatus
-    additionalArgs = [RegistrationStatus.CANCELLED]
+    additionalArgs = [RegistrationStatus.CANCELLED, emailContent.value.content]
   } else if (action === RegistrationActionsE.REINSTATE) {
     actionFn = updateRegistrationStatus
     additionalArgs = [RegistrationStatus.ACTIVE]

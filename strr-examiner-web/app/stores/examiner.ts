@@ -107,7 +107,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
       activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED ||
        (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with suspend action btn
-        activeReg.value.header.examinerActions.includes(RegistrationActionsE.SUSPEND))
+        activeReg.value.header.examinerActions.includes(RegistrationActionsE.SUSPEND)) ||
+       (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with cancel action btn
+        activeReg.value.header.examinerActions.includes(RegistrationActionsE.CANCEL))
   })
   const sendEmailSchema = computed(() => z.object({
     content: z.string()
