@@ -195,7 +195,7 @@ setBreadcrumbs([
           v-if="isFileUploadOpen"
           :component="Button"
           is-strata
-          :application-number="application!.header.applicationNumber"
+          :app-reg-number="application!.header.applicationNumber"
           :selected-doc-type="documentStore.selectedDocType"
           class="p-3"
           @upload-document="documentStore.addDocumentToApplication"
