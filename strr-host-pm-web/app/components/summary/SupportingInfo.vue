@@ -9,12 +9,15 @@ const { requiredDocs, storedDocuments } = storeToRefs(useDocumentStore())
 const isFileUploadOpen = ref(false)
 
 const docStore = useDocumentStore()
-const { application } = storeToRefs(useHostPermitStore())
+const { application, registration } = storeToRefs(useHostPermitStore())
+
+const isRegistration = computed((): boolean => !!application.value?.header.registrationStartDate)
 
 // used to display Add New Document button
 const isNocPending = computed(() =>
   application.value?.header.status === ApplicationStatus.NOC_PENDING ||
-  application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+  application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+  registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING
 )
 
 // step 3 items
@@ -44,6 +47,12 @@ const supportingInfo = computed(() => {
   }
   return items
 })
+
+const handleUploadDocument = (uiDoc: UiDocument, appRegNumber: string | number) => {
+  isRegistration.value
+    ? docStore.addDocumentToRegistration(uiDoc, appRegNumber as number)
+    : docStore.addDocumentToApplication(uiDoc, appRegNumber as string)
+}
 
 </script>
 <template>
@@ -116,9 +125,10 @@ const supportingInfo = computed(() => {
     >
       <BaseUploadAdditionalDocuments
         :component="Select"
-        :application-number="application!.header.applicationNumber"
+        :app-reg-number="isRegistration ? registration?.id : application?.header.applicationNumber"
         :selected-doc-type="docStore.selectedDocType"
-        @upload-document="docStore.addDocumentToApplication"
+        :is-registration="isRegistration"
+        @upload-document="handleUploadDocument"
         @reset-doc-type="docStore.selectedDocType = undefined"
         @close-upload="isFileUploadOpen = false"
       />

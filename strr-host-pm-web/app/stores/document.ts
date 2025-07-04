@@ -232,16 +232,29 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
   }
 
+  async function addDocumentToApplication (uiDoc: UiDocument, applicationNumber: string): Promise<void> {
+    return await addDocument(uiDoc, applicationNumber, 'applications')
+  }
+
+  async function addDocumentToRegistration (uiDoc: UiDocument, registrationId: number): Promise<void> {
+    return await addDocument(uiDoc, registrationId, 'registrations')
+  }
+
   /**
-   * Add a document to a specified application.
+   * Add a document to a specified application or registration.
    *
-   * Upload a `uiDoc` with the given `applicationNumber` (via PUT method)
+   * Upload a `uiDoc` with the given `id` (via PUT method).
    *
    * @param {UiDocument} uiDoc - The document to upload, containing file data and metadata.
-   * @param {string} applicationNumber - The id of the application to which the document is being added.
+   * @param {string | string} id - The id of the application or registration to which the document is being added.
+   * @param {'applications' | 'registrations'} type - Type is either applications or registrations
    * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
    */
-  async function addDocumentToApplication (uiDoc: UiDocument, applicationNumber: string): Promise<void> {
+  async function addDocument (
+    uiDoc: UiDocument,
+    id: string | number, // string for applications, number for registrations
+    type: 'applications' | 'registrations'
+  ): Promise<void> {
     try {
       uiDoc.loading = true
 
@@ -253,7 +266,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
 
       // submit file
-      const res = await $strrApi<ApiDocument>(`/applications/${applicationNumber}/documents`, {
+      const res = await $strrApi<ApiDocument>(`/${type}/${id}/documents`, {
         method: 'PUT',
         body: formData
       })
@@ -426,6 +439,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     deleteDocument,
     addStoredDocument,
     addDocumentToApplication,
+    addDocumentToRegistration,
     removeStoredDocument,
     validateRequiredDocuments,
     resetApiDocs,
