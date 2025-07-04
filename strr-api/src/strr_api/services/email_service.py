@@ -97,9 +97,11 @@ class EmailService:
                     message_type=EMAIL_TYPE,
                     payload={
                         "applicationNumber": application.application_number,
-                        "emailType": "PROVISIONAL_REVIEW_NOC"
-                        if application.status == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
-                        else "NOC",
+                        "emailType": (
+                            "PROVISIONAL_REVIEW_NOC"
+                            if application.status == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
+                            else "NOC"
+                        ),
                     },
                     topic=current_app.config.get("GCP_EMAIL_TOPIC"),
                 )
@@ -145,3 +147,18 @@ class EmailService:
                 )
             except Exception as err:
                 logger.error("Failed to publish email notification: %s", err.with_traceback(None))
+
+    @staticmethod
+    def send_notice_of_consideration_for_registration(registration: Registration):
+        """Send notice of consideration for the application."""
+        try:
+            gcp_queue_publisher.publish_to_queue(
+                gcp_queue_publisher.QueueMessage(
+                    source=EMAIL_SOURCE,
+                    message_type=EMAIL_TYPE,
+                    payload={"registrationNumber": registration.registration_number, "emailType": "REGISTRATION_NOC"},
+                    topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+                )
+            )
+        except Exception as err:
+            logger.error("Failed to publish email notification: %s", err.with_traceback(None))

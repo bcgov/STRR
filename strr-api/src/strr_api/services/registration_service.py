@@ -772,4 +772,5 @@ class RegistrationService:
             registration_id=registration.id,
             user_id=reviewer_id,
         )
+        EmailService.send_notice_of_consideration_for_registration(registration)
         return registration

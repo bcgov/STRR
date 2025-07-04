@@ -48,6 +48,7 @@ from flask import request
 from jinja2 import Template
 import requests
 from simple_cloudevent import SimpleCloudEvent
+from strr_api.enums.enum import RegistrationNocStatus
 from strr_api.models import Application
 from strr_api.models import Registration
 from strr_api.models.application import ApplicationSerializer
@@ -68,6 +69,7 @@ EMAIL_SUBJECT = {
     "PLATFORM_AUTO_APPROVED": "Short-Term Rental Platform Registration Approved",
     "NOC": "Short-Term Rental Notice of Consideration",
     "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
+    "REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
     "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
@@ -164,6 +166,12 @@ def worker():
 
 
 def _get_registration_update_email_content(registration: Registration, email_info, jinja_template):
+    noc_content = ""
+    noc_expiry_date = ""
+    if registration.noc_status == RegistrationNocStatus.NOC_PENDING:
+        noc = max(registration.nocs, key=lambda noc: noc.start_date)
+        noc_content = noc.content
+        noc_expiry_date = noc.end_date.strftime("%B %d, %Y")
     recipients = _get_registration_email_recipients(registration)
     html_out = jinja_template.render(
         reg_num=registration.registration_number,
@@ -176,6 +184,8 @@ def _get_registration_update_email_content(registration: Registration, email_inf
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         rental_nickname=registration.rental_property.nickname,
         custom_content=email_info.custom_content,
+        noc_content=noc_content,
+        noc_expiry_date=noc_expiry_date,
     )
     subject_number = registration.registration_number
     subject = (
