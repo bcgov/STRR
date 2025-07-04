@@ -19,8 +19,10 @@ from datetime import datetime
 
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
+from strr_api.enums.enum import RegistrationNocStatus
 from strr_api.models import db
 from strr_api.models.application import Application
+from strr_api.models.rental import Registration
 from strr_api.utils.date_util import DateUtil
 
 from noc_expiry.config import CONFIGURATION
@@ -76,6 +78,27 @@ def update_status_for_noc_expired_applications(app):
             app.logger.error(traceback.format_exc())
 
 
+def update_noc_status_for_expired_registrations(app):
+    """Update the NOC status for the NOC expired registrations."""
+    registrations = Registration.query.filter(
+        Registration.noc_status == RegistrationNocStatus.NOC_PENDING
+    ).all()
+    for registration in registrations:
+        try:
+            app.logger.info(f"Processing registration # {str(registration.id)}")
+            noc = max(registration.nocs, key=lambda noc: noc.start_date)
+            cut_off_datetime = DateUtil.as_legislation_timezone(datetime.utcnow())
+            if noc.end_date < cut_off_datetime:
+                app.logger.info(
+                    f"Updating status for registration {str(registration.id)}"
+                )
+                registration.noc_status = RegistrationNocStatus.NOC_EXPIRED
+                registration.save()
+        except Exception as err:  # pylint: disable=broad-except
+            app.logger.error(f"Unexpected error: {str(err)}")
+            app.logger.error(traceback.format_exc())
+
+
 def run():
     """Run the noc-expiry job."""
     try:
@@ -83,5 +106,6 @@ def run():
         with app.app_context():
             app.logger.info("Starting NOC expiry job")
             update_status_for_noc_expired_applications(app)
+            update_noc_status_for_expired_registrations(app)
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")
