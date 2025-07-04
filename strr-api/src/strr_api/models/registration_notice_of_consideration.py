@@ -22,4 +22,4 @@ class RegistrationNoticeOfConsideration(SimpleBaseModel):
     end_date = db.Column(db.DateTime(timezone=True), nullable=False)
     creation_date = db.Column(db.DateTime(timezone=True), nullable=False, server_default=text("(NOW())"))
 
-    registration = db.relationship("Registration", foreign_keys=[registration_id], back_populates="noc")
+    registration = db.relationship("Registration", foreign_keys=[registration_id], back_populates="nocs")

@@ -677,8 +677,14 @@ def send_notice_of_consideration(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if registration.status != RegistrationStatus.ACTIVE:
+            return error_response(
+                message="Registration should be active to send NOC",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
         registration = RegistrationService.send_notice_of_consideration(registration, content, reviewer)
         return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
     except Exception as exception:
-        logger.error("Error in sending Registration NoC: %s", exception)
+        logger.error(exception)
+        logging.error("Traceback: %s", traceback.format_exc())
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)

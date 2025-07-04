@@ -50,9 +50,10 @@ class RegistrationSerializer:
             "nocStatus": registration.noc_status.name if registration.noc_status else None,
         }
 
-        if registration.noc_status and registration.noc:
-            registration_data["nocStartDate"] = registration.noc.start_date.isoformat()
-            registration_data["nocEndDate"] = registration.noc.end_date.isoformat()
+        if registration.noc_status and registration.nocs:
+            latest_noc = max(registration.nocs, key=lambda noc: noc.start_date)
+            registration_data["nocStartDate"] = latest_noc.start_date.isoformat()
+            registration_data["nocEndDate"] = latest_noc.end_date.isoformat()
 
         RegistrationSerializer._populate_header_data(registration_data, registration)
 
@@ -95,13 +96,13 @@ class RegistrationSerializer:
         )
         if registration.is_set_aside:
             registration_data["header"]["examinerActions"] = ["REINSTATE", "CANCEL"]
-        elif registration.noc_status:
-            registration_data["header"]["examinerActions"] = ["REINSTATE", "CANCEL", "SUSPEND"]
         else:
             base_actions = RegistrationSerializer.EXAMINER_ACTIONS.get(registration.status, [])
             if registration.status == RegistrationStatus.ACTIVE and not registration.noc_status:
                 base_actions = base_actions + ["SEND_NOC"]
             registration_data["header"]["examinerActions"] = base_actions
+        if registration.noc_status:
+            registration_data["header"]["examinerActions"] = ["REINSTATE", "CANCEL", "SUSPEND"]
         applications = Application.get_all_by_registration_id(registration.id)
         if applications:
             sorted_applications = sorted(applications, key=lambda app: app.application_date, reverse=True)

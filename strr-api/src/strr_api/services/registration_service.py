@@ -754,6 +754,7 @@ class RegistrationService:
     @staticmethod
     def send_notice_of_consideration(registration: Registration, content: str, reviewer: User = None) -> Registration:
         """Sends the notice of consideration for a registration."""
+        registration.noc_status = RegistrationNocStatus.NOC_PENDING
         notice_of_consideration = RegistrationNoticeOfConsideration()
         notice_of_consideration.content = content
         notice_of_consideration.registration_id = registration.id
@@ -763,9 +764,6 @@ class RegistrationService:
         days = current_app.config.get("NOC_EXPIRY_DAYS", 8)
         notice_of_consideration.end_date = notice_of_consideration.start_date + timedelta(days=int(days))
         notice_of_consideration.save()
-
-        registration.noc_status = RegistrationNocStatus.NOC_PENDING
-        registration.save()
 
         reviewer_id = reviewer.id if reviewer else None
         EventsService.save_event(
