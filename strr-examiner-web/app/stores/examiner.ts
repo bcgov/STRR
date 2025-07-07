@@ -311,8 +311,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * @param {string} fileKey - The key of the document to be retrieved.
    * @returns The file/document
    */
-  const getDocument = async (applicationNumber: string, fileKey: string): Promise<Blob> => {
-    return await $strrApi(`/applications/${applicationNumber}/documents/${fileKey}`, {
+  const getDocument = async (
+    appRegNumber: string | number,
+    fileKey: string,
+    type: 'applications' | 'registrations'
+  ): Promise<Blob> => {
+    return await $strrApi(`/${type}/${appRegNumber}/documents/${fileKey}`, {
       method: 'GET',
       responseType: 'blob'
     })
@@ -476,8 +480,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }
 
-  const openDocInNewTab = async (applicationNumber: string, supportingDocument: ApiDocument) => {
-    const file = await getDocument(applicationNumber, supportingDocument.fileKey)
+  const openDocInNewTab = async (
+    appRegNumber: string | number,
+    supportingDocument: ApiDocument,
+    type: 'applications' | 'registrations'
+  ) => {
+    const file = await getDocument(appRegNumber, supportingDocument.fileKey, type)
     const blob = new Blob([file], { type: supportingDocument.fileType })
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')

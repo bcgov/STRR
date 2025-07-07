@@ -8,7 +8,7 @@ const props = defineProps<{
 const { t } = useI18n()
 const exStore = useExaminerStore()
 const { openDocInNewTab } = exStore
-const { activeReg, activeHeader } = storeToRefs(exStore)
+const { activeReg, activeHeader, isApplication } = storeToRefs(exStore)
 const { applicationNumber } = activeHeader.value
 const { documents } = activeReg.value as { documents: ApiDocument[] }
 
@@ -29,6 +29,10 @@ const filterDocumentsByConfig = (config: SupportingDocumentsConfig): ApiDocument
 }
 // optionally filter documents based on config, or return all documents
 const filteredDocuments = computed(() => props.config ? filterDocumentsByConfig(props.config) : documents)
+
+const appRegNumber = computed((): string | number =>
+  isApplication.value ? applicationNumber : activeReg.value.id
+)
 </script>
 
 <template>
@@ -43,7 +47,7 @@ const filteredDocuments = computed(() => props.config ? filterDocumentsByConfig(
         variant="link"
         icon="mdi-file-document-outline"
         :data-testid="`open-business-lic-btn-${index}`"
-        @click="openDocInNewTab(applicationNumber!, document)"
+        @click="openDocInNewTab(appRegNumber, document, isApplication ? 'applications' : 'registrations' )"
       >
         {{ t(`documentLabels.${document.documentType}`) }}
       </UButton>
