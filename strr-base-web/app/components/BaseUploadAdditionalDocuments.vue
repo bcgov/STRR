@@ -11,13 +11,14 @@ const documentList = ref<UiDocument[]>([])
 
 const props = defineProps<{
     component: DefineComponent, // either DocumentUploadSelect (Host) or DocumentUploadButton (Strata)
-    applicationNumber: string,
+    appRegNumber: string | number, // application or registration number to upload the doc to
     isStrata?: boolean, // needed to determine which logic to use
+    isRegistration?: boolean, // indicate if doc needs to be uploaded to a registration
     selectedDocType: DocumentUploadType | undefined
 }>()
 
 const emit = defineEmits<{
-    uploadDocument: [uiDoc: UiDocument, applicationNumber: string],
+    uploadDocument: [uiDoc: UiDocument, appRegNumber: string | number],
     closeUpload: [void],
     resetDocType: [void]
 }>()
@@ -30,7 +31,7 @@ const addDocumentToList = (doc: File) => {
     type: props.isStrata ? DocumentUploadType.STRATA_HOTEL_DOCUMENTATION : props.selectedDocType!,
     id: uuidv4(),
     loading: false,
-    uploadStep: DocumentUploadStep.NOC,
+    uploadStep: props.isRegistration ? DocumentUploadStep.REG_NOC : DocumentUploadStep.NOC,
     uploadDate: new Date().toISOString().split('T')[0]
   }
   documentList.value.push(uiDoc)
@@ -53,8 +54,7 @@ const cancelDocumentsUpload = () => {
 const submitDocuments = async () => {
   if (documentList.value.length > 0) {
     for (const doc of documentList.value) {
-      // upload document using docStore's addDocumentToApplication() funtion
-      await emit('uploadDocument', doc, props.applicationNumber)
+      await emit('uploadDocument', doc, props.appRegNumber)
     }
     documentList.value = []
     emit('closeUpload')
