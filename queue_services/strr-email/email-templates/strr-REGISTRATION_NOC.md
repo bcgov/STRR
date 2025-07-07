@@ -28,7 +28,7 @@ You have received a notice of consideration in regards to your short-term rental
 ---
 
 # Important Next Steps
-It appears your registration may not meet all the registration requirements. The following issues need your attention.
+It appears your registration may not meet all the requirements from the short-term rental legislation. The following issues need your attention.
 
 {{noc_content | escape }}
 
