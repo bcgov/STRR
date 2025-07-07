@@ -48,8 +48,8 @@ const supportingInfo = computed(() => {
   return items
 })
 
-const handleUploadDocument = (uiDoc: UiDocument, appRegNumber: string | number) => {
-  isRegistration.value
+const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | number) => {
+  await isRegistration.value
     ? docStore.addDocumentToRegistration(uiDoc, appRegNumber as number)
     : docStore.addDocumentToApplication(uiDoc, appRegNumber as string)
 }
@@ -95,7 +95,7 @@ const handleUploadDocument = (uiDoc: UiDocument, appRegNumber: string | number) 
             >
               <span class="text-sm font-bold">{{ t(`form.pr.docType.${doc.type}`) }}
                 <UBadge
-                  v-if="doc.uploadStep === DocumentUploadStep.NOC"
+                  v-if="[DocumentUploadStep.NOC, DocumentUploadStep.REG_NOC].includes(doc.uploadStep)"
                   :label="`${ t('strr.label.added')} ` + doc.uploadDate"
                   size="sm"
                   class="ml-1 px-3 py-0 font-bold"

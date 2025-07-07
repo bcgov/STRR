@@ -54,7 +54,6 @@ const cancelDocumentsUpload = () => {
 const submitDocuments = async () => {
   if (documentList.value.length > 0) {
     for (const doc of documentList.value) {
-      // upload document using docStore's addDocumentToApplication() function
       await emit('uploadDocument', doc, props.appRegNumber)
     }
     documentList.value = []

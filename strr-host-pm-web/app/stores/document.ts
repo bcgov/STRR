@@ -267,7 +267,7 @@ export const useDocumentStore = defineStore('host/document', () => {
 
       // submit file
       const res = await $strrApi<ApiDocument>(`/${type}/${id}/documents`, {
-        method: 'PUT',
+        method: type === 'applications' ? 'PUT' : 'POST',
         body: formData
       })
 
