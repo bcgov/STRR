@@ -152,14 +152,14 @@ watch(
     initialMount.value = false
 
     updateRouteAndButtons(RoutesE.REGISTRATION, {
-      sendNotice: {
-        action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.SEND_NOC, 'right', 0),
-        label: t('btn.sendNotice'),
-        disabled: !isAssignedToUser.value
-      },
       registrationSetAside: {
         action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.SET_ASIDE, 'right', 0),
         label: t('btn.setAside'),
+        disabled: !isAssignedToUser.value
+      },
+      registrationSendNotice: {
+        action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.SEND_NOC, 'right', 0),
+        label: t('btn.sendNotice'),
         disabled: !isAssignedToUser.value
       },
       cancel: {

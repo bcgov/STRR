@@ -45,6 +45,11 @@ export const useExaminerRoute = () => {
         label: string
         disabled?: boolean
       },
+      registrationSendNotice?: {
+        action: (id: number) => void
+        label: string
+        disabled?: boolean
+      },
       assign?: {
         action: (id: string) => void
         label: string
@@ -135,6 +140,28 @@ export const useExaminerRoute = () => {
           })
         }
 
+        if (examinerActions.includes(RegistrationActionsE.SET_ASIDE) && buttonConfig.registrationSetAside) {
+          uniqueRightButtons.push({
+            action: () => buttonConfig.registrationSetAside!.action(id as number),
+            label: buttonConfig.registrationSetAside.label,
+            variant: 'outline',
+            icon: 'i-mdi-rotate-left',
+            color: 'primary',
+            disabled: buttonConfig.cancel!.disabled ?? false
+          })
+        }
+
+        if (examinerActions.includes(RegistrationActionsE.SEND_NOC) && buttonConfig.registrationSendNotice) {
+          uniqueRightButtons.push({
+            action: () => buttonConfig.registrationSendNotice!.action(id as number),
+            label: buttonConfig.registrationSendNotice.label,
+            variant: 'outline',
+            color: 'blue',
+            icon: 'i-mdi-send',
+            disabled: buttonConfig.registrationSendNotice!.disabled ?? false
+          })
+        }
+
         if (examinerActions.includes(ApplicationActionsE.REJECT) && buttonConfig.reject) {
           uniqueRightButtons.push({
             action: () => buttonConfig.reject!.action(id as string),
@@ -188,17 +215,6 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             color: 'primary',
             icon: 'i-mdi-rotate-left',
-            disabled: buttonConfig.cancel!.disabled ?? false
-          })
-        }
-
-        if (examinerActions.includes(RegistrationActionsE.SET_ASIDE) && buttonConfig.registrationSetAside) {
-          uniqueRightButtons.push({
-            action: () => buttonConfig.registrationSetAside!.action(id as number),
-            label: buttonConfig.registrationSetAside.label,
-            variant: 'outline',
-            icon: 'i-mdi-rotate-left',
-            color: 'primary',
             disabled: buttonConfig.cancel!.disabled ?? false
           })
         }
