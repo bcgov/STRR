@@ -109,7 +109,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
        (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with suspend action btn
         activeReg.value.header.examinerActions.includes(RegistrationActionsE.SUSPEND)) ||
        (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with cancel action btn
-        activeReg.value.header.examinerActions.includes(RegistrationActionsE.CANCEL))
+        activeReg.value.header.examinerActions.includes(RegistrationActionsE.CANCEL)) ||
+       (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with send NOC action btn
+        activeReg.value.header.examinerActions.includes(RegistrationActionsE.SEND_NOC))
   })
   const sendEmailSchema = computed(() => z.object({
     content: z.string()
@@ -299,6 +301,20 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    */
   const sendNoticeOfConsideration = async (applicationNumber: string, content: string): Promise<void> => {
     await $strrApi(`/applications/${applicationNumber}/notice-of-consideration`, {
+      method: 'POST',
+      body: { content }
+    })
+  }
+
+  /**
+   * Send a Notice of Consideration for the specified registration.
+   *
+   * @param {number} registrationId - The registration ID.
+   * @param {string} content - The content of the Notice of Consideration.
+   * @returns {Promise<void>}
+   */
+  const sendNoticeOfConsiderationForRegistration = async (registrationId: number, content: string): Promise<void> => {
+    await $strrApi(`/registrations/${registrationId}/notice-of-consideration`, {
       method: 'POST',
       body: { content }
     })
@@ -565,6 +581,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     provisionallyApproveApplication,
     rejectApplication,
     sendNoticeOfConsideration,
+    sendNoticeOfConsiderationForRegistration,
     fetchApplications,
     getNextApplication,
     getApplicationById,

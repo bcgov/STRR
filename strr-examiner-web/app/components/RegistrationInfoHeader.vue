@@ -5,7 +5,7 @@ const exStore = useExaminerStore()
 const { activeReg, activeHeader, isFilingHistoryOpen } = storeToRefs(exStore)
 const { toggleFilingHistory, checkAndPerformAction } = useHostExpansion()
 
-const getBadgeColor = (status: RegistrationStatus): string => {
+const getBadgeColor = (status: RegistrationStatus | RegistrationNocStatus): string => {
   switch (status) {
     case RegistrationStatus.EXPIRED:
       return 'red'
@@ -15,6 +15,9 @@ const getBadgeColor = (status: RegistrationStatus): string => {
       return 'blue'
     case RegistrationStatus.CANCELLED:
       return 'red'
+    case RegistrationNocStatus.NOC_PENDING:
+    case RegistrationNocStatus.NOC_EXPIRED:
+      return 'yellow'
     default:
       return 'primary'
   }
@@ -45,6 +48,15 @@ const getRegistrationType = (): string => {
       return '-'
   }
 }
+
+const nocCountdown = computed(() => {
+  if (!activeReg.value.nocEndDate) { return null }
+  const daysLeft = dayCountdown(activeReg.value.nocEndDate.toString(), false)
+  return {
+    days: daysLeft,
+    isExpired: activeReg.value.nocStatus === RegistrationNocStatus.NOC_EXPIRED
+  }
+})
 
 </script>
 <template>
@@ -105,6 +117,13 @@ const getRegistrationType = (): string => {
             variant="solid"
           />
           <UBadge
+            v-else-if="activeReg.nocStatus"
+            class="mr-3 font-bold uppercase"
+            :label="activeReg.nocStatus === RegistrationNocStatus.NOC_PENDING ? 'NOC Pending' : 'NOC Expired'"
+            :color="getBadgeColor(activeReg.nocStatus)"
+            data-testid="registration-noc-badge"
+          />
+          <UBadge
             v-else
             class="mr-3 font-bold uppercase"
             :label="activeHeader.examinerStatus"
@@ -128,6 +147,12 @@ const getRegistrationType = (): string => {
             {{ dateToString(activeReg.expiryDate, 'y-MM-dd', true) }}
             ({{ dayCountdown(activeReg.expiryDate.toString()) }} days left)
           </span>
+          <template v-if="activeReg.nocEndDate">
+            | <strong>{{ t('strr.label.nocExpiry') }}</strong>
+            {{ dateToString(activeReg.nocEndDate, 'y-MM-dd', true) }}
+            <span v-if="nocCountdown && !nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
+            <span v-else-if="nocCountdown && nocCountdown.isExpired" class="font-bold text-red-500"> (EXPIRED)</span>
+          </template>
         </div>
       </div>
       <div class="text-sm">

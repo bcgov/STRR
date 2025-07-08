@@ -3,8 +3,13 @@ const { t } = useI18n()
 const route = useRoute()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
-const { updateRegistrationStatus, getRegistrationById, setAsideRegistration } = useExaminerStore()
-const { isAssignedToUser, emailContent } = storeToRefs(useExaminerStore())
+const {
+  updateRegistrationStatus,
+  getRegistrationById,
+  setAsideRegistration,
+  sendNoticeOfConsiderationForRegistration
+} = useExaminerStore()
+const { isAssignedToUser, emailContent, emailFormRef } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 
 useHead({
@@ -36,8 +41,9 @@ const handleRegistrationAction = (
   buttonIndex: number
 ) => {
   let actionFn
-  const refreshFn = refresh
+  let refreshFn = refresh
   let additionalArgs: any[] = []
+  let validateFn
 
   if (action === RegistrationActionsE.CANCEL) {
     actionFn = updateRegistrationStatus
@@ -50,6 +56,14 @@ const handleRegistrationAction = (
   } else if (action === RegistrationActionsE.SUSPEND) {
     actionFn = updateRegistrationStatus
     additionalArgs = [RegistrationStatus.SUSPENDED, emailContent.value.content]
+  } else if (action === RegistrationActionsE.SEND_NOC) {
+    actionFn = sendNoticeOfConsiderationForRegistration
+    refreshFn = () => {
+      emailContent.value.content = ''
+      refresh()
+    }
+    additionalArgs = [emailContent.value.content]
+    validateFn = async () => await validateForm(emailFormRef.value, true).then(errors => !errors)
   }
 
   return manageAction(
@@ -59,7 +73,8 @@ const handleRegistrationAction = (
     buttonPosition,
     buttonIndex,
     refreshFn,
-    additionalArgs
+    additionalArgs,
+    validateFn
   )
 }
 
@@ -103,6 +118,16 @@ const handleAssigneeAction = (
         },
         t('btn.cancel')
       )
+    } else if (action === RegistrationActionsE.SEND_NOC) {
+      openConfirmActionModal(
+        t('modal.sendNotice.title'),
+        t('modal.sendNotice.message'),
+        t('btn.yesSend'),
+        () => {
+          closeConfirmActionModal()
+          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
+        }
+      )
     } else {
       return handleRegistrationAction(id, action, buttonPosition, buttonIndex)
     }
@@ -127,6 +152,11 @@ watch(
     initialMount.value = false
 
     updateRouteAndButtons(RoutesE.REGISTRATION, {
+      sendNotice: {
+        action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.SEND_NOC, 'right', 0),
+        label: t('btn.sendNotice'),
+        disabled: !isAssignedToUser.value
+      },
       registrationSetAside: {
         action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.SET_ASIDE, 'right', 0),
         label: t('btn.setAside'),
