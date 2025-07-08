@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Daily Data Sync Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .summary-section {
+            margin-bottom: 30px;
+        }
+        .file-info {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>Daily Data Sync Report - {{ report_date }}</h1>
+    <p><strong>Report Generated:</strong> {{ timestamp }}</p>
+
+    <div class="summary-section">
+        <h2>Summary Statistics</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Query</th>
+                    <th>Total Rows</th>
+                    <th>File Size (MB)</th>
+                    <th>Status</th>
+                    <th>File Path</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for query_name, stats in summary_stats.items() %}
+                <tr>
+                    <td>{{ query_name }}</td>
+                    <td>{{ stats.total_rows if stats.total_rows is defined else 'N/A' }}</td>
+                    <td>{{ stats.file_size_mb if stats.file_size_mb is defined else 'N/A' }}</td>
+                    <td class="{% if stats.error is defined %}error{% else %}success{% endif %}">
+                        {% if stats.error is defined %}
+                            Error: {{ stats.error }}
+                        {% else %}
+                            Success
+                        {% endif %}
+                    </td>
+                    <td>{{ stats.file_path if stats.file_path is defined else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="summary-section">
+        <h2>Query Descriptions</h2>
+        
+        <div class="file-info">
+            <h3>Query 1: Real-Time Validation Details (Last 24 Hours)</h3>
+            <p>Retrieves detailed validation information including registration numbers, status codes, errors, and address comparisons between requests and registered data.</p>
+            {% if summary_stats.query1_processed %}
+                <p><strong>Processed File:</strong> {{ summary_stats.query1_processed.file_path }}</p>
+                <p><strong>Rows:</strong> {{ summary_stats.query1_processed.total_rows }}</p>
+                <p><em>Note: Usernames have been replaced with organization names.</em></p>
+            {% endif %}
+        </div>
+
+        <div class="file-info">
+            <h3>Query 2: Validation Status Counts per User (Last 24 Hours)</h3>
+            <p>Groups validation attempts by username and status code, showing counts for each combination.</p>
+            {% if summary_stats.query2_processed %}
+                <p><strong>Processed File:</strong> {{ summary_stats.query2_processed.file_path }}</p>
+                <p><strong>Rows:</strong> {{ summary_stats.query2_processed.total_rows }}</p>
+                <p><em>Note: Usernames have been replaced with organization names.</em></p>
+            {% endif %}
+        </div>
+
+        <div class="file-info">
+            <h3>Query 3: SBC Accounts with Failed Validations (Last 24 Hours)</h3>
+            <p>Lists unique SBC account IDs that had validation failures (non-200 status codes) in the last 24 hours.</p>
+            {% if summary_stats.query3 %}
+                <p><strong>File:</strong> {{ summary_stats.query3.file_path }}</p>
+                <p><strong>Rows:</strong> {{ summary_stats.query3.total_rows }}</p>
+            {% endif %}
+        </div>
+
+        <div class="file-info">
+            <h3>Query 4: Registration Details</h3>
+            <p>Comprehensive registration information including addresses, contact emails, and property manager details for HOST registrations.</p>
+            {% if summary_stats.query4 %}
+                <p><strong>File:</strong> {{ summary_stats.query4.file_path }}</p>
+                <p><strong>Rows:</strong> {{ summary_stats.query4.total_rows }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="summary-section">
+        <h2>Processing Notes</h2>
+        <ul>
+            <li>Data is retrieved in batches to handle large result sets efficiently</li>
+            <li>Multiple CSV files are automatically merged for each query</li>
+            <li>Username replacements are applied to Query 1 and Query 2 results</li>
+            <li>All files are timestamped with the report generation time</li>
+            <li>Individual batch files are cleaned up after merging</li>
+        </ul>
+    </div>
+
+    <div class="summary-section">
+        <h2>Username Replacements Applied</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Original Username</th>
+                    <th>Organization Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>api-key-account-127082</td><td>Airbnb Ireland UC</td></tr>
+                <tr><td>api-key-account-103320</td><td>WHISTLER.COM SYSTEMS INC.</td></tr>
+                <tr><td>api-key-account-103121</td><td>VACASA CANADA ULC</td></tr>
+                <tr><td>api-key-account-91531</td><td>1112940 B.C. LTD.</td></tr>
+                <tr><td>api-key-account-62582</td><td>Ministry of Housing</td></tr>
+                <tr><td>api-key-account-111750</td><td>Expedia</td></tr>
+                <tr><td>api-key-account-121947</td><td>Booking.com</td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html> 
