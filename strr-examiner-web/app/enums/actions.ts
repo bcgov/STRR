@@ -9,6 +9,7 @@ export enum ApplicationActionsE {
 export enum RegistrationActionsE {
     CANCEL = 'CANCEL',
     REINSTATE = 'REINSTATE',
+    APPROVE = 'APPROVE',
     SET_ASIDE = 'SET_ASIDE',
     SUSPEND = 'SUSPEND',
     SEND_NOC = 'SEND_NOC'

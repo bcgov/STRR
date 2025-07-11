@@ -95,14 +95,14 @@ class RegistrationSerializer:
             registration.status, registration.status.name
         )
         if registration.is_set_aside:
-            registration_data["header"]["examinerActions"] = ["REINSTATE", "CANCEL"]
+            registration_data["header"]["examinerActions"] = ["APPROVE", "CANCEL"]
         else:
             base_actions = RegistrationSerializer.EXAMINER_ACTIONS.get(registration.status, [])
             if registration.status == RegistrationStatus.ACTIVE and not registration.noc_status:
                 base_actions = base_actions + ["SEND_NOC"]
             registration_data["header"]["examinerActions"] = base_actions
         if registration.noc_status:
-            registration_data["header"]["examinerActions"] = ["REINSTATE", "CANCEL", "SUSPEND"]
+            registration_data["header"]["examinerActions"] = ["APPROVE", "CANCEL", "SUSPEND"]
         applications = Application.get_all_by_registration_id(registration.id)
         if applications:
             sorted_applications = sorted(applications, key=lambda app: app.application_date, reverse=True)

@@ -48,7 +48,7 @@ const handleRegistrationAction = (
   if (action === RegistrationActionsE.CANCEL) {
     actionFn = updateRegistrationStatus
     additionalArgs = [RegistrationStatus.CANCELLED, emailContent.value.content]
-  } else if (action === RegistrationActionsE.REINSTATE) {
+  } else if (action === RegistrationActionsE.REINSTATE || action === RegistrationActionsE.APPROVE) {
     actionFn = updateRegistrationStatus
     additionalArgs = [RegistrationStatus.ACTIVE]
   } else if (action === RegistrationActionsE.SET_ASIDE) {
@@ -101,6 +101,17 @@ const handleAssigneeAction = (
         t('modal.reinstateRegistration.title'),
         t('modal.reinstateRegistration.message'),
         t('btn.yesReinstate'),
+        () => {
+          closeConfirmActionModal()
+          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
+        },
+        t('btn.cancel')
+      )
+    } else if (action === RegistrationActionsE.APPROVE) {
+      openConfirmActionModal(
+        t('modal.approveRegistration.title'),
+        t('modal.approveRegistration.message'),
+        t('btn.yesApprove'),
         () => {
           closeConfirmActionModal()
           handleRegistrationAction(id, action, buttonPosition, buttonIndex)
@@ -170,6 +181,11 @@ watch(
       suspend: {
         action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.SUSPEND, 'right', 0),
         label: t('btn.suspendRegistration'),
+        disabled: !isAssignedToUser.value
+      },
+      registrationApprove: {
+        action: (id: number) => handleAssigneeAction(id, RegistrationActionsE.APPROVE, 'right', 1),
+        label: t('btn.approveRegistration'),
         disabled: !isAssignedToUser.value
       },
       reinstate: {

@@ -265,6 +265,7 @@ export default {
     cancel: 'Cancel',
     cancelRegistration: 'Cancel Registration',
     reinstateRegistration: 'Reinstate Registration',
+    approveRegistration: 'Approve Registration',
     suspend: 'Suspend',
     suspendRegistration: 'Suspend Registration',
     sendNotice: 'Send Notice',
@@ -420,6 +421,10 @@ export default {
     reinstateRegistration: {
       title: 'Reinstate Registration',
       message: 'Reinstating the registration will make it valid again. Are you sure you want to continue?'
+    },
+    approveRegistration: {
+      title: 'Approve Registration',
+      message: 'This action will fully register the short-term rental unit. Are you sure you want to continue?'
     },
     suspendRegistration: {
       title: 'Suspend Registration',

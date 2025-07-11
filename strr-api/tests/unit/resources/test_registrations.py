@@ -602,7 +602,7 @@ def test_set_aside_registration_decision(session, client, jwt):
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         assert response_json.get("header").get("isSetAside") is True
-        assert response_json.get("header").get("examinerActions") == ["REINSTATE", "CANCEL"]
+        assert response_json.get("header").get("examinerActions") == ["APPROVE", "CANCEL"]
 
         public_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         public_headers["Account-Id"] = ACCOUNT_ID

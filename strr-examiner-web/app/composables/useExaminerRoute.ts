@@ -45,6 +45,11 @@ export const useExaminerRoute = () => {
         label: string
         disabled?: boolean
       },
+      registrationApprove?: {
+        action: (id: number) => void
+        label: string
+        disabled?: boolean
+      },
       registrationSendNotice?: {
         action: (id: number) => void
         label: string
@@ -215,6 +220,17 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             color: 'primary',
             icon: 'i-mdi-rotate-left',
+            disabled: buttonConfig.cancel!.disabled ?? false
+          })
+        }
+
+        if (examinerActions.includes(RegistrationActionsE.APPROVE) && buttonConfig.registrationApprove) {
+          uniqueRightButtons.push({
+            action: () => buttonConfig.registrationApprove!.action(id as number),
+            label: buttonConfig.registrationApprove.label,
+            variant: 'outline',
+            color: 'green',
+            icon: 'i-mdi-check',
             disabled: buttonConfig.cancel!.disabled ?? false
           })
         }
