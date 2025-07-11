@@ -1,8 +1,10 @@
 
-from registration_expiry.job import update_status_for_registration_expired_applications
+import json
+
 from sqlalchemy import text
 from strr_api.models import db
-import json
+
+from registration_expiry.job import update_status_for_registration_expired_applications
 
 
 def test_update_status_for_registration_active_applications(app):
