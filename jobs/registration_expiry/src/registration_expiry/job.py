@@ -15,7 +15,7 @@
 import logging
 import os
 import traceback
-from datetime import datetime, timezone
+from datetime import datetime
 
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
@@ -56,8 +56,7 @@ def register_shellcontext(app):
 
 def update_status_for_registration_expired_applications(app):
     """getting the date in the same format as the db"""
-    now = DateUtil.as_legislation_timezone(datetime.now(timezone.utc))
-    cut_off_datetime = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    cut_off_datetime = DateUtil.as_legislation_timezone(datetime.utcnow())
 
     # Get the registration status for applications older then now.
     rentals = Registration.query.filter(
