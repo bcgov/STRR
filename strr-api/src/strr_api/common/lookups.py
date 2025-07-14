@@ -50,4 +50,5 @@ EVENT_MESSAGES = {
     "EXPIRED": "Registration expired.",
     "NON_COMPLIANCE_SUSPENDED": "Registration suspended due to non compliance.",
     "REGISTRATION_DOCUMENT_UPLOADED": "Registration document uploaded.",
+    "REGISTRATION_EXPIRED": "Registration expired by the expiry job.",
 }
