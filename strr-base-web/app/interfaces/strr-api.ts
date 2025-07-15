@@ -96,6 +96,7 @@ export interface ApplicationHeader {
   registrationStartDate?: Date
   registrationStatus?: RegistrationStatus
   registrationAddress?: ApiUnitAddress
+  registrationNocStatus?: RegistrationNocStatus
   reviewer?: {
     username: string
     displayName: string

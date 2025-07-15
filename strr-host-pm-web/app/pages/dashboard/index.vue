@@ -73,6 +73,11 @@ const { data: hostPmListResp, status, refresh } = await useAsyncData(
     default: () => ({ applications: [], total: 0 })
   }
 )
+
+const hasRegistrationNOC = (header: ApplicationHeader): boolean => {
+  return header.registrationNocStatus === RegistrationNocStatus.NOC_PENDING
+}
+
 const mapApplicationsList = () => {
   if (!hostPmListResp.value?.applications) {
     return []
@@ -86,7 +91,8 @@ const mapApplicationsList = () => {
       lastStatusChange: getLastStatusChangeColumn(app.header),
       daysToExpiry: getDaysToExpiryColumn(app.header),
       status: getApplicationStatus(app.header),
-      applicationNumber: app.header.applicationNumber // always used for view action
+      applicationNumber: app.header.applicationNumber, // always used for view action
+      hasRegistrationNoc: hasRegistrationNOC(app.header)
     }
   })
 }
@@ -262,7 +268,26 @@ async function handleItemSelect (row: any) {
         >
           <template #actions-header>
             <div class="text-center">
-              <span>{{ $t('label.actions') }}</span>
+              <span>{{ t('label.actions') }}</span>
+            </div>
+          </template>
+
+          <template #status-data="{ row }">
+            <div class="flex items-center gap-1">
+              <span>{{ row.status }}</span>
+              <UTooltip
+                v-if="row.hasRegistrationNoc"
+                :text="$t('tooltip.noticeOfConsideration')"
+                :popper="{
+                  placement: 'right',
+                  arrow: true
+                }"
+              >
+                <UIcon
+                  name="i-mdi-alert"
+                  class="size-5 shrink-0 bg-orange-600"
+                />
+              </UTooltip>
             </div>
           </template>
           <template #address-data="{ row }">

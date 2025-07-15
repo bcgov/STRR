@@ -500,7 +500,8 @@ export default {
     undefined: 'Not Selected'
   },
   tooltip: {
-    pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.'
+    pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.',
+    noticeOfConsideration: 'You have received a Notice of Consideration'
   },
   ConnectFeeWidget: {
     feeSummary: {

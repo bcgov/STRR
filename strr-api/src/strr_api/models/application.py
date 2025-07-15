@@ -562,6 +562,8 @@ class ApplicationSerializer:
                 }
             if registration_address:
                 application_dict["header"]["registrationAddress"] = registration_address
+            if application.registration.noc_status:
+                application_dict["header"]["registrationNocStatus"] = application.registration.noc_status.value
         if application.noc:
             application_dict["header"]["nocStartDate"] = application.noc.start_date.strftime("%Y-%m-%d")
             application_dict["header"]["nocEndDate"] = application.noc.end_date.strftime("%Y-%m-%d")
