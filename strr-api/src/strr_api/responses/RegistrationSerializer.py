@@ -1,6 +1,8 @@
 """
 Registration response objects.
 """
+from typing import Optional
+
 from strr_api.enums.enum import RegistrationStatus, RegistrationType
 from strr_api.models import Application, Platform, PropertyManager, Registration, StrataHotel
 
@@ -417,7 +419,8 @@ class RegistrationSerializer:
             registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
 
     @classmethod
-    def get_jurisdiction_from_application(registration):
+    def get_jurisdiction_from_application(cls, registration: Registration) -> Optional[str]:
+        """Returns the jurisdiction of a registration."""
         if registration.rental_property.jurisdiction:
             return registration.rental_property.jurisdiction
         else:
@@ -429,3 +432,4 @@ class RegistrationSerializer:
                     .get("strRequirements", {})
                     .get("organizationNm")
                 )
+        return None
