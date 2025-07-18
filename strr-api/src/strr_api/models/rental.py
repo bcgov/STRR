@@ -96,6 +96,10 @@ class RentalProperty(Versioned, BaseModel):
     number_of_rooms_for_rent = db.Column(db.Integer, nullable=False)
     strata_hotel_registration_number = db.Column(db.String, nullable=True)
     strata_hotel_category = db.Column(Enum(StrataHotelCategory), nullable=True, index=True)
+    pr_required = db.Column(db.Boolean, nullable=True, index=True)
+    bl_required = db.Column(db.Boolean, nullable=True, index=True)
+    jurisdiction = db.Column(db.String, nullable=True, index=True)
+    strr_exempt = db.Column(db.Boolean, nullable=True)
 
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=False)

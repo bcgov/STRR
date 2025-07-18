@@ -356,6 +356,9 @@ class RegistrationSerializer:
             "strataHotelRegistrationNumber": registration.rental_property.strata_hotel_registration_number,
             "prExemptReason": registration.rental_property.pr_exempt_reason,
             "strataHotelCategory": registration.rental_property.strata_hotel_category,
+            "jurisdiction": RegistrationSerializer.get_jurisdiction_from_application(registration),
+            "prRequired": registration.rental_property.pr_required,
+            "blRequired": registration.rental_property.bl_required,
         }
 
         registration_data["listingDetails"] = [
@@ -412,3 +415,17 @@ class RegistrationSerializer:
                     }
 
             registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
+
+    @classmethod
+    def get_jurisdiction_from_application(registration):
+        if registration.rental_property.jurisdiction:
+            return registration.rental_property.jurisdiction
+        else:
+            applications = Application.get_all_by_registration_id(registration.id)
+            if applications:
+                latest_application = sorted(applications, key=lambda app: app.application_date, reverse=True)[0]
+                return (
+                    latest_application.application_json.get("registration")
+                    .get("strRequirements", {})
+                    .get("organizationNm")
+                )
