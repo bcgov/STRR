@@ -44,6 +44,8 @@ class Events(SimpleBaseModel):
         REGISTRATION_REINSTATED = auto()
         APPLICATION_REVIEWER_ASSIGNED = auto()
         APPLICATION_REVIEWER_UNASSIGNED = auto()
+        REGISTRATION_ASSIGNEE_ASSIGNED = auto()
+        REGISTRATION_ASSIGNEE_UNASSIGNED = auto()
         NOC_SENT = auto()
         NOC_EXPIRED = auto()
         HOST_APPLICATION_UNIT_ADDRESS_UPDATED = auto()
