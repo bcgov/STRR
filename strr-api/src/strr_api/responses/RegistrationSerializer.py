@@ -96,58 +96,60 @@ class RegistrationSerializer:
         registration_data["header"]["examinerStatus"] = RegistrationSerializer.EXAMINER_STATUSES.get(
             registration.status, registration.status.name
         )
+        registration_data["header"]["examinerActions"] = cls._get_examiner_actions(registration)
+        registration_data["header"]["assignee"] = cls._get_user_info(registration.reviewer_id, registration.reviewer)
+        registration_data["header"]["decider"] = cls._get_user_info(registration.decider_id, registration.decider)
+        cls._populate_applications(registration_data, registration)
+
+    @classmethod
+    def _get_examiner_actions(cls, registration: Registration) -> list:
+        """Get examiner actions based on registration state."""
         if registration.is_set_aside:
-            registration_data["header"]["examinerActions"] = ["APPROVE", "CANCEL"]
-        else:
-            base_actions = RegistrationSerializer.EXAMINER_ACTIONS.get(registration.status, [])
-            if registration.status == RegistrationStatus.ACTIVE and not registration.noc_status:
-                base_actions = base_actions + ["SEND_NOC"]
-            registration_data["header"]["examinerActions"] = base_actions
+            return ["APPROVE", "CANCEL"]
+
+        base_actions = RegistrationSerializer.EXAMINER_ACTIONS.get(registration.status, [])
+        if registration.status == RegistrationStatus.ACTIVE and not registration.noc_status:
+            base_actions = base_actions + ["SEND_NOC"]
+
         if registration.noc_status:
-            registration_data["header"]["examinerActions"] = ["APPROVE", "CANCEL", "SUSPEND"]
+            return ["APPROVE", "CANCEL", "SUSPEND"]
 
-        registration_data["header"]["assignee"] = {}
-        if registration.reviewer_id:
-            registration_data["header"]["assignee"]["username"] = registration.reviewer.username
-            assignee_display_name = ""
-            if registration.reviewer.firstname:
-                assignee_display_name = f"{assignee_display_name}{registration.reviewer.firstname}"
-            if registration.reviewer.lastname:
-                assignee_display_name = f"{assignee_display_name} {registration.reviewer.lastname}"
-            registration_data["header"]["assignee"]["displayName"] = assignee_display_name
+        return base_actions
 
-        registration_data["header"]["decider"] = {}
-        if registration.decider_id:
-            registration_data["header"]["decider"]["username"] = registration.decider.username
-            decider_display_name = ""
-            if registration.decider.firstname:
-                decider_display_name = f"{decider_display_name}{registration.decider.firstname}"
-            if registration.decider.lastname:
-                decider_display_name = f"{decider_display_name} {registration.decider.lastname}"
-            registration_data["header"]["decider"]["displayName"] = decider_display_name
+    @classmethod
+    def _get_user_info(cls, user_id: int, user) -> dict:
+        """Get user information for display."""
+        user_info = {}
+        if user_id and user:
+            user_info["username"] = user.username
+            display_name_parts = []
+            if user.firstname:
+                display_name_parts.append(user.firstname)
+            if user.lastname:
+                display_name_parts.append(user.lastname)
+            user_info["displayName"] = " ".join(display_name_parts)
+        return user_info
 
+    @classmethod
+    def _populate_applications(cls, registration_data: dict, registration: Registration):
+        """Populate applications data."""
         applications = Application.get_all_by_registration_id(registration.id)
-        if applications:
-            sorted_applications = sorted(applications, key=lambda app: app.application_date, reverse=True)
-            registration_data["header"]["applications"] = []
-            for application in sorted_applications:
-                application_data = {
-                    "applicationNumber": application.application_number,
-                    "applicationDateTime": application.application_date.isoformat(),
-                    "organizationName": application.application_json.get("registration")
-                    .get("strRequirements", {})
-                    .get("organizationNm"),
-                }
-                application_data["reviewer"] = {}
-                if application.reviewer_id:
-                    application_data["reviewer"]["username"] = application.reviewer.username
-                    reviewer_display_name = ""
-                    if application.reviewer.firstname:
-                        reviewer_display_name = f"{reviewer_display_name}{application.reviewer.firstname}"
-                    if application.reviewer.lastname:
-                        reviewer_display_name = f"{reviewer_display_name} {application.reviewer.lastname}"
-                    application_data["reviewer"]["displayName"] = reviewer_display_name
-                registration_data["header"]["applications"].append(application_data)
+        if not applications:
+            return
+
+        sorted_applications = sorted(applications, key=lambda app: app.application_date, reverse=True)
+        registration_data["header"]["applications"] = []
+
+        for application in sorted_applications:
+            application_data = {
+                "applicationNumber": application.application_number,
+                "applicationDateTime": application.application_date.isoformat(),
+                "organizationName": application.application_json.get("registration")
+                .get("strRequirements", {})
+                .get("organizationNm"),
+            }
+            application_data["reviewer"] = cls._get_user_info(application.reviewer_id, application.reviewer)
+            registration_data["header"]["applications"].append(application_data)
 
     @classmethod
     def populate_strata_hotel_registration_details(cls, registration_data: dict, registration: Registration):

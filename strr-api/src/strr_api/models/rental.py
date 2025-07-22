@@ -50,12 +50,12 @@ class Registration(Versioned, BaseModel):
     user = relationship("User", foreign_keys=[user_id])
     reviewer = relationship(
         "User",
-        backref="reviewer",
+        backref="registration_reviewer",
         foreign_keys=[reviewer_id],
     )
     decider = relationship(
         "User",
-        backref="decider",
+        backref="registration_decider",
         foreign_keys=[decider_id],
     )
 

@@ -234,8 +234,7 @@ class ApplicationService:
 
         if application.status in APPLICATION_TERMINAL_STATES:
             application.decision_date = datetime.utcnow()
-            application.decider_id = reviewer.id
-
+        application.decider_id = reviewer.id
         application.save()
 
         EventsService.save_event(
