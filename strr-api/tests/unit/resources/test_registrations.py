@@ -896,3 +896,153 @@ def test_send_notice_of_consideration_validation_errors(mock_invoice, session, c
             f"/registrations/{non_existent_reg_id}/notice-of-consideration", json=noc_request, headers=staff_headers
         )
         assert HTTPStatus.NOT_FOUND == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_assign_and_unassign_registration(session, client, jwt):
+    """Test assigning and unassigning a registration to a staff user."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        rv = client.put(f"/registrations/{registration_id}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("assignee") != {}
+        assert response_json.get("header").get("assignee").get("username") is not None
+
+        rv = client.get(f"/registrations/{registration_id}/is-assignee", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("is_assignee") is True
+
+        rv = client.put(f"/registrations/{registration_id}/unassign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("assignee") == {}
+
+        rv = client.get(f"/registrations/{registration_id}/is-assignee", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("is_assignee") is False
+
+        registration = Registration.query.filter_by(id=registration_id).one_or_none()
+        registration.status = RegistrationStatus.EXPIRED
+        registration.save()
+
+        rv = client.put(f"/registrations/{registration_id}/assign", headers=staff_headers)
+        assert HTTPStatus.BAD_REQUEST == rv.status_code
+
+        rv = client.put(f"/registrations/{registration_id}/unassign", headers=staff_headers)
+        assert HTTPStatus.BAD_REQUEST == rv.status_code
+
+        non_existent_reg_id = 999999
+        rv = client.put(f"/registrations/{non_existent_reg_id}/assign", headers=staff_headers)
+        assert HTTPStatus.NOT_FOUND == rv.status_code
+
+        rv = client.put(f"/registrations/{non_existent_reg_id}/unassign", headers=staff_headers)
+        assert HTTPStatus.NOT_FOUND == rv.status_code
+
+        rv = client.get(f"/registrations/{non_existent_reg_id}/is-assignee", headers=staff_headers)
+        assert HTTPStatus.NOT_FOUND == rv.status_code
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_registration_status_update_sets_decider_id(session, client, jwt):
+    """Test that updating registration status sets the decider_id field."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        registration = Registration.query.filter_by(id=registration_id).one_or_none()
+        initial_decider_id = registration.decider_id
+        assert initial_decider_id is not None
+
+        status_update_request = {"status": RegistrationStatus.CANCELLED.value}
+        rv = client.put(f"/registrations/{registration_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.CANCELLED.value
+        assert response_json.get("cancelledDate") is not None
+
+        registration = Registration.query.filter_by(id=registration_id).one_or_none()
+        assert registration.decider_id is not None
+
+        assert response_json.get("header").get("decider") != {}
+        assert response_json.get("header").get("decider").get("username") is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_application_status_update_sets_decider_id(session, client, jwt):
+    """Test that updating application status sets the decider_id field."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
+
+        assert response_json.get("header").get("decider") != {}
+        assert response_json.get("header").get("decider").get("username") is not None
+
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.decider_id is not None
+
+        application.status = Application.Status.FULL_REVIEW
+        application.decider_id = None
+        application.save()
+
+        status_update_request = {"status": Application.Status.DECLINED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.DECLINED
+
+        assert response_json.get("header").get("decider") != {}
+        assert response_json.get("header").get("decider").get("username") is not None
+
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.decider_id is not None

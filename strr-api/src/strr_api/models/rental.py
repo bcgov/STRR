@@ -44,7 +44,20 @@ class Registration(Versioned, BaseModel):
     noc_status = db.Column(Enum(RegistrationNocStatus), nullable=True)
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    reviewer_id = db.Column("reviewer_id", db.Integer, db.ForeignKey("users.id"), nullable=True)
+    decider_id = db.Column("decider_id", db.Integer, db.ForeignKey("users.id"), nullable=True)
+
     user = relationship("User", foreign_keys=[user_id])
+    reviewer = relationship(
+        "User",
+        backref="reviewer",
+        foreign_keys=[reviewer_id],
+    )
+    decider = relationship(
+        "User",
+        backref="decider",
+        foreign_keys=[decider_id],
+    )
 
     certificates = relationship("Certificate", back_populates="registration")
     rental_property = relationship("RentalProperty", back_populates="registration", uselist=False)

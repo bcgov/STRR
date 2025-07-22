@@ -105,6 +105,27 @@ class RegistrationSerializer:
             registration_data["header"]["examinerActions"] = base_actions
         if registration.noc_status:
             registration_data["header"]["examinerActions"] = ["APPROVE", "CANCEL", "SUSPEND"]
+
+        registration_data["header"]["assignee"] = {}
+        if registration.reviewer_id:
+            registration_data["header"]["assignee"]["username"] = registration.reviewer.username
+            assignee_display_name = ""
+            if registration.reviewer.firstname:
+                assignee_display_name = f"{assignee_display_name}{registration.reviewer.firstname}"
+            if registration.reviewer.lastname:
+                assignee_display_name = f"{assignee_display_name} {registration.reviewer.lastname}"
+            registration_data["header"]["assignee"]["displayName"] = assignee_display_name
+
+        registration_data["header"]["decider"] = {}
+        if registration.decider_id:
+            registration_data["header"]["decider"]["username"] = registration.decider.username
+            decider_display_name = ""
+            if registration.decider.firstname:
+                decider_display_name = f"{decider_display_name}{registration.decider.firstname}"
+            if registration.decider.lastname:
+                decider_display_name = f"{decider_display_name} {registration.decider.lastname}"
+            registration_data["header"]["decider"]["displayName"] = decider_display_name
+
         applications = Application.get_all_by_registration_id(registration.id)
         if applications:
             sorted_applications = sorted(applications, key=lambda app: app.application_date, reverse=True)

@@ -700,3 +700,144 @@ def send_notice_of_consideration(registration_id):
         logger.error(exception)
         logging.error("Traceback: %s", traceback.format_exc())
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/assign", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def assign_registration(registration_id):
+    """
+    Update the assignee of a registration.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      404:
+        description:
+      400:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if registration.status.value not in REGISTRATION_STATES_STAFF_ACTION:
+            return error_response(
+                message="Registration status does not allow assignment",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+
+        registration = RegistrationService.assign_registration(registration, user.id)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception:
+        logger.error("Error assigning registration assignee: ", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/unassign", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def unassign_registration(registration_id):
+    """
+    Unassign the assignee from a registration.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      404:
+        description:
+      400:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if registration.status.value not in REGISTRATION_STATES_STAFF_ACTION:
+            return error_response(
+                message="Registration status does not allow assignment changes",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        if not registration.reviewer_id:
+            return error_response(
+                message="Registration is not assigned to any user",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+
+        registration = RegistrationService.unassign_registration(registration, user.id)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception:
+        logger.error("Error unassigning registration assignee: ", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/is-assignee", methods=["GET"])
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def is_current_user_assignee_registration(registration_id):
+    """
+    Check if the current user is the assignee for the provided registration ID.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      404:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        is_assignee = registration.reviewer_id == user.id
+        return jsonify({"is_assignee": is_assignee}), HTTPStatus.OK
+    except Exception:
+        logger.error("Error checking if user is registration assignee: ", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)

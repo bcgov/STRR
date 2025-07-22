@@ -580,6 +580,7 @@ class RegistrationService:
         registration.noc_status = None
         if status == RegistrationStatus.CANCELLED.value:
             registration.cancelled_date = datetime.now(timezone.utc)
+        registration.decider_id = reviewer.id
         registration.save()
         reviewer_id = reviewer.id if reviewer else None
         EventsService.save_event(
@@ -773,4 +774,34 @@ class RegistrationService:
             user_id=reviewer_id,
         )
         EmailService.send_notice_of_consideration_for_registration(registration)
+        return registration
+
+    @staticmethod
+    def assign_registration(registration: Registration, assignee_id: int) -> Registration:
+        """Updates the assignee of a registration."""
+        registration.reviewer_id = assignee_id
+        registration.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.REGISTRATION_ASSIGNEE_ASSIGNED,
+            registration_id=registration.id,
+            user_id=assignee_id,
+        )
+
+        return registration
+
+    @staticmethod
+    def unassign_registration(registration: Registration, user_id: int) -> Registration:
+        """Unassigns the assignee from a registration."""
+        registration.reviewer_id = None
+        registration.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.REGISTRATION_ASSIGNEE_UNASSIGNED,
+            registration_id=registration.id,
+            user_id=user_id,
+        )
+
         return registration
