@@ -2039,6 +2039,185 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Assign Registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains registration with assigned reviewer\", function () {",
+									"    pm.expect(jsonData).to.have.property('header');",
+									"    pm.expect(jsonData.header).to.have.property('assignee');",
+									"    pm.expect(jsonData.header.assignee.username).to.equal(pm.environment.get(\"username\"));",
+									"});",
+									"",
+									"pm.test(\"Registration ID is present\", function () {",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData.id).to.be.a('number');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/assign",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"assign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unassign Registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains registration with no assignee\", function () {",
+									"    pm.expect(jsonData).to.have.property('header');",
+									"    pm.expect(jsonData.header).to.have.property('assignee');",
+									"    pm.expect(jsonData.header.assignee).to.deep.equal({});",
+									"});",
+									"",
+									"pm.test(\"Registration ID is present\", function () {",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData.id).to.be.a('number');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/unassign",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"unassign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Registration Is Assignee",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains is_assignee property\", function () {",
+									"    pm.expect(jsonData).to.have.property('is_assignee');",
+									"    pm.expect(jsonData.is_assignee).to.be.a('boolean');",
+									"});",
+									"",
+									"pm.test(\"Response structure is correct\", function () {",
+									"    pm.expect(jsonData).to.be.an('object');",
+									"    pm.expect(Object.keys(jsonData)).to.include('is_assignee');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/is-assignee",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"is-assignee"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

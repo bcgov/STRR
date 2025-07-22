@@ -135,12 +135,12 @@ class Application(BaseModel):
     )
     reviewer = db.relationship(
         "User",
-        backref=backref("reviewer", uselist=False),
+        backref=backref("application_reviewer", uselist=False),
         foreign_keys=[reviewer_id],
     )
     decider = db.relationship(
         "User",
-        backref=backref("decider", uselist=False),
+        backref=backref("application_decider", uselist=False),
         foreign_keys=[decider_id],
     )
     # Currently this relects a one-to-one, although the RFC depicted a many-to-one relationship
