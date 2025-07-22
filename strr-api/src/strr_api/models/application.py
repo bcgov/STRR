@@ -108,6 +108,7 @@ class Application(BaseModel):
     registration_id = db.Column("registration_id", db.Integer, db.ForeignKey("registrations.id"), nullable=True)
     submitter_id = db.Column("submitter_id", db.Integer, db.ForeignKey("users.id"))
     reviewer_id = db.Column("reviewer_id", db.Integer, db.ForeignKey("users.id"), nullable=True)
+    decider_id = db.Column("decider_id", db.Integer, db.ForeignKey("users.id"), nullable=True)
 
     is_set_aside = db.Column(Boolean, default=False)
 
@@ -136,6 +137,11 @@ class Application(BaseModel):
         "User",
         backref=backref("reviewer", uselist=False),
         foreign_keys=[reviewer_id],
+    )
+    decider = db.relationship(
+        "User",
+        backref=backref("decider", uselist=False),
+        foreign_keys=[decider_id],
     )
     # Currently this relects a one-to-one, although the RFC depicted a many-to-one relationship
     registration = db.relationship(
@@ -537,6 +543,17 @@ class ApplicationSerializer:
             if application.reviewer.lastname:
                 reviewer_display_name = f"{reviewer_display_name} {application.reviewer.lastname}"
             application_dict["header"]["reviewer"]["displayName"] = reviewer_display_name
+
+        application_dict["header"]["decider"] = {}
+        if application.decider_id:
+            application_dict["header"]["decider"]["username"] = application.decider.username
+
+            decider_display_name = ""
+            if application.decider.firstname:
+                decider_display_name = f"{decider_display_name}{application.decider.firstname}"
+            if application.decider.lastname:
+                decider_display_name = f"{decider_display_name} {application.decider.lastname}"
+            application_dict["header"]["decider"]["displayName"] = decider_display_name
 
         application_dict["header"]["isCertificateIssued"] = False
         if application.registration_id:
