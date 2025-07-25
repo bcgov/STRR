@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from sql_versioning import Versioned
 from sqlalchemy import Boolean, Enum
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from strr_api.common.enum import BaseEnum, auto
@@ -212,8 +213,10 @@ class Document(Versioned, BaseModel):
     file_name = db.Column(db.String, nullable=False)
     file_type = db.Column(db.String, nullable=False)  # e.g., 'pdf', 'jpeg', etc.
     path = db.Column(db.String, nullable=False)
-    document_type = db.Column("document_type", db.Enum(DocumentType), default=DocumentType.OTHERS)
+    document_type = db.Column("document_type", db.Enum(DocumentType), default=DocumentType.OTHERS, index=True)
     added_on = db.Column(db.Date, nullable=True)
+    parsed_data = db.Column("parsed_data", JSONB, nullable=True)
+    parsing_error = db.Column("parsing_error", JSONB, nullable=True)
 
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=False)
     registration = relationship("Registration", foreign_keys=[registration_id], back_populates="documents")
