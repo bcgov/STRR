@@ -301,7 +301,7 @@ def upload_registration_document(registration_id):
 
             # Override NOC check for business license uploads
             if is_bl_upload and is_uploaded_from_affected_municipality and is_active_registration:
-                logger.info(f"Allowing business license upload for registration {registration.id}")
+                logger.info("Allowing business license upload for registration %s", registration.id)
             elif noc_status != RegistrationNocStatus.NOC_PENDING:
                 return error_response(
                     message=ErrorMessage.REGISTRATION_DOCUMENT_UPLOAD_NOC_STATUS.value,
