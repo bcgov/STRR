@@ -24,7 +24,14 @@ vi.mock('@/stores/hostPermit', () => ({
     isPaidApplication: ref(false),
     showPermitDetails: ref(true),
     application: ref(mockApplication),
-    registration: ref(mockApplication.registration)
+    registration: ref(mockApplication.registration),
+    needsBusinessLicenseDocumentUpload: ref(false)
+  })
+}))
+
+vi.mock('@/composables/useFeatureFlags', () => ({
+  useFeatureFlags: () => ({
+    isFeatureEnabled: vi.fn().mockReturnValue(ref(false))
   })
 }))
 

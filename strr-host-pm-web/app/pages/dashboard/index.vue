@@ -4,6 +4,7 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
 const { deleteApplication } = useStrrApi()
+const { checkBusinessLicenseRequirement } = useHostPermitStore()
 const { limit, page, getApplicationList } = useStrrBasePermitList<HostApplicationResp>(ApplicationType.HOST)
 
 const columns = [
@@ -78,6 +79,10 @@ const hasRegistrationNOC = (header: ApplicationHeader): boolean => {
   return header.registrationNocStatus === RegistrationNocStatus.NOC_PENDING
 }
 
+const needsAttention = (app: any): boolean => {
+  return checkBusinessLicenseRequirement(app)
+}
+
 const mapApplicationsList = () => {
   if (!hostPmListResp.value?.applications) {
     return []
@@ -92,7 +97,8 @@ const mapApplicationsList = () => {
       daysToExpiry: getDaysToExpiryColumn(app.header),
       status: getApplicationStatus(app.header),
       applicationNumber: app.header.applicationNumber, // always used for view action
-      hasRegistrationNoc: hasRegistrationNOC(app.header)
+      hasRegistrationNoc: hasRegistrationNOC(app.header),
+      needsAttention: needsAttention(app)
     }
   })
 }
@@ -276,8 +282,8 @@ async function handleItemSelect (row: any) {
             <div class="flex items-center gap-1">
               <span>{{ row.status }}</span>
               <UTooltip
-                v-if="row.hasRegistrationNoc"
-                :text="$t('tooltip.noticeOfConsideration')"
+                v-if="row.hasRegistrationNoc || row.needsAttention"
+                :text="$t('tooltip.needsAttention')"
                 :popper="{
                   placement: 'right',
                   arrow: true

@@ -9,7 +9,7 @@ const { requiredDocs, storedDocuments } = storeToRefs(useDocumentStore())
 const isFileUploadOpen = ref(false)
 
 const docStore = useDocumentStore()
-const { application, registration } = storeToRefs(useHostPermitStore())
+const { application, registration, needsBusinessLicenseDocumentUpload } = storeToRefs(useHostPermitStore())
 
 const isRegistration = computed((): boolean => !!application.value?.header.registrationStartDate)
 
@@ -19,6 +19,9 @@ const isNocPending = computed(() =>
   application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
   registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING
 )
+
+// Show upload button if NOC is pending OR business license is required
+const showUploadButton = computed(() => isNocPending.value || needsBusinessLicenseDocumentUpload.value)
 
 // step 3 items
 const supportingInfo = computed(() => {
@@ -106,7 +109,7 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
         </div>
 
         <div
-          v-if="isNocPending"
+          v-if="showUploadButton"
           class="mt-4 md:mt-0"
         >
           <UButton

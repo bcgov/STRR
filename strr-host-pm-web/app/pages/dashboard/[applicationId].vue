@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
+
 const { t } = useNuxtApp().$i18n
 const route = useRoute()
 const config = useRuntimeConfig().public
@@ -15,7 +16,8 @@ const {
   registration,
   permitDetails,
   isPaidApplication,
-  showPermitDetails
+  showPermitDetails,
+  needsBusinessLicenseDocumentUpload
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
@@ -59,6 +61,28 @@ onMounted(async () => {
       id: 'todo-reg-noc-add-docs',
       title: `${t('todos.registrationNoc.title1')} ${nocEndDate} ${t('todos.registrationNoc.title2')}`,
       subtitle: `${t('todos.registrationNoc.general', translationProps)}`
+    })
+  }
+
+  // Add business license upload todo if conditions are met
+  if (needsBusinessLicenseDocumentUpload.value) {
+    const translationProps = {
+      newLine: '<br/>',
+      boldStart: '<strong>',
+      boldEnd: '</strong>',
+      linkStart: "<button type='button'" +
+        "onClick=\"document.getElementById('summary-supporting-info').scrollIntoView({ behavior: 'smooth' })\"" +
+        "class='text-blue-500 underline'>",
+      linkEnd: '</button>',
+      mailto: "<a href='mailto:STRregistry@gov.bc.ca' class='text-blue-500 underline'>STRregistry@gov.bc.ca</a>"
+    }
+
+    todos.value.push({
+      id: 'todo-business-license-upload',
+      title: t('todos.businessLicense.title'),
+      subtitle: t('todos.businessLicense.subtitle', translationProps),
+      icon: 'i-mdi-alert',
+      iconClass: 'text-orange-500'
     })
   }
 
@@ -188,14 +212,19 @@ setBreadcrumbs([
         :loading="loading"
       >
         <TodoEmpty v-if="!todos.length" data-test-id="todo-empty" />
-        <Todo
-          v-for="todo in todos"
-          :id="todo.id"
-          :key="todo.title"
-          :title="todo.title"
-          :subtitle="todo.subtitle"
-          :button="todo?.button"
-        />
+        <template v-else>
+          <template v-for="(todo, index) in todos" :key="todo.title">
+            <Todo
+              :id="todo.id"
+              :title="todo.title"
+              :subtitle="todo.subtitle"
+              :button="todo?.button"
+              :icon="todo?.icon"
+              :icon-class="todo?.iconClass"
+            />
+            <div v-if="index < todos.length - 1" class="h-px w-full border-b border-gray-100" />
+          </template>
+        </template>
       </ConnectDashboardSection>
       <ConnectDashboardSection
         id="short-term-rental-section"
@@ -211,6 +240,26 @@ setBreadcrumbs([
         :title="$t('strr.label.supportingInfo')"
         :loading="loading"
       >
+        <UAlert
+          v-if="needsBusinessLicenseDocumentUpload"
+          color="yellow"
+          icon="i-mdi-alert"
+          :close-button="null"
+          variant="subtle"
+          :ui="{
+            inner: 'pt-0',
+            icon: {
+              base: 'flex-shrink-0 w-5 h-5 self-start'
+            }
+          }"
+        >
+          <template #title>
+            <span class="text-black">
+              <span class="font-bold">{{ t('alert.businessLicense.title') }}</span>
+              {{ t('alert.businessLicense.description') }}
+            </span>
+          </template>
+        </UAlert>
         <SummarySupportingInfo
           id="summary-supporting-info"
           class="px-10 py-5"

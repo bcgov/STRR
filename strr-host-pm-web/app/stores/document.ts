@@ -8,6 +8,7 @@ export const useDocumentStore = defineStore('host/document', () => {
   const strrModal = useStrrModals()
   const reqStore = usePropertyReqStore()
   const propStore = useHostPropertyStore()
+  const permitStore = useHostPermitStore()
 
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
@@ -119,7 +120,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     return docs
   })
 
-  const docTypeOptions = [
+  const allDocTypeOptions = [
     {
       label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENSE}`),
       value: DocumentUploadType.BC_DRIVERS_LICENSE
@@ -189,6 +190,26 @@ export const useDocumentStore = defineStore('host/document', () => {
       value: DocumentUploadType.OTHERS
     }
   ]
+
+  // Filter document options
+  const docTypeOptions = computed(() => {
+    const needsBusinessLicense = permitStore.needsBusinessLicenseDocumentUpload
+    // Check if NOC is pending
+    const isNocPending = permitStore.application?.header.status === ApplicationStatus.NOC_PENDING ||
+      permitStore.application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+      permitStore.registration?.nocStatus === RegistrationNocStatus.NOC_PENDING
+    // If both business license is needed AND NOC is pending
+    if (needsBusinessLicense && isNocPending) {
+      return allDocTypeOptions
+    }
+    // If only business license is needed
+    if (needsBusinessLicense) {
+      return allDocTypeOptions.filter(option =>
+        option.value === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
+      )
+    }
+    return allDocTypeOptions
+  })
 
   async function addStoredDocument (
     doc: File,
@@ -264,6 +285,13 @@ export const useDocumentStore = defineStore('host/document', () => {
       formData.append('documentType', uiDoc.type)
       uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
       uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
+
+      // Add isUploadedFromAffectedMunicipality for business license uploads from affected municipalities
+      const isBlFromAffectedMunicipality = uiDoc.type === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE &&
+        permitStore.needsBusinessLicenseDocumentUpload
+      if (isBlFromAffectedMunicipality) {
+        formData.append('isUploadedFromAffectedMunicipality', 'true')
+      }
 
       // submit file
       const res = await $strrApi<ApiDocument>(`/${type}/${id}/documents`, {

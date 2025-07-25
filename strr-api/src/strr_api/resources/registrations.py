@@ -57,7 +57,7 @@ from strr_api.exceptions import (
     error_response,
     exception_response,
 )
-from strr_api.models import User
+from strr_api.models import Document, User
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
@@ -263,6 +263,11 @@ def upload_registration_document(registration_id):
         type: string
         required: false
         description: Type of document being uploaded
+      - name: isUploadedFromAffectedMunicipality
+        in: formData
+        type: boolean
+        required: false
+        description: Whether the document was uploaded from an affected municipality
     consumes:
       - multipart/form-data
     responses:
@@ -288,8 +293,16 @@ def upload_registration_document(registration_id):
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
 
         noc_status = registration.noc_status
+        document_type = request.form.get("documentType", "OTHERS")
         if not UserService.is_strr_staff_or_system():
-            if noc_status != RegistrationNocStatus.NOC_PENDING:
+            is_bl_upload = document_type == Document.DocumentType.LOCAL_GOVT_BUSINESS_LICENSE.name
+            is_uploaded_from_affected_municipality = request.form.get("isUploadedFromAffectedMunicipality", False)
+            is_active_registration = registration.status == RegistrationStatus.ACTIVE
+
+            # Override NOC check for business license uploads
+            if is_bl_upload and is_uploaded_from_affected_municipality and is_active_registration:
+                logger.info(f"Allowing business license upload for registration {registration.id}")
+            elif noc_status != RegistrationNocStatus.NOC_PENDING:
                 return error_response(
                     message=ErrorMessage.REGISTRATION_DOCUMENT_UPLOAD_NOC_STATUS.value,
                     http_status=HTTPStatus.BAD_REQUEST,
@@ -297,7 +310,6 @@ def upload_registration_document(registration_id):
 
         file = validate_document_upload(request.files)
         filename = secure_filename(file.filename)
-        document_type = request.form.get("documentType", "OTHERS")
 
         document_response = DocumentService.upload_document(filename, file.content_type, file.read())
 

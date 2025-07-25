@@ -3,6 +3,8 @@ defineProps<{
   id: string,
   title: string,
   subtitle?: string,
+  icon?: string,
+  iconClass?: string,
   button?: {
     label: string,
     action: Function,
@@ -17,18 +19,23 @@ defineProps<{
       class="flex"
       :data-test-id="id"
     >
-      <div class="grow space-y-2">
-        <slot name="title">
-          <h3 class="text-base font-bold">
-            {{ title }}
-          </h3>
-        </slot>
-        <slot name="subtitle">
-          <p v-if="subtitle" class="text-sm">
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <span v-html="subtitle" />
-          </p>
-        </slot>
+      <div class="flex grow gap-3">
+        <div v-if="icon && iconClass" class="shrink-0">
+          <UIcon :name="icon" :class="`size-6 ${iconClass}`" />
+        </div>
+        <div class="grow space-y-2">
+          <slot name="title">
+            <h3 class="text-base font-bold">
+              {{ title }}
+            </h3>
+          </slot>
+          <slot name="subtitle">
+            <p v-if="subtitle" class="text-sm">
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <span v-html="subtitle" />
+            </p>
+          </slot>
+        </div>
       </div>
       <div>
         <UButton

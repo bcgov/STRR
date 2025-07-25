@@ -10,4 +10,6 @@ export interface Todo {
   title: string
   button?: TodoButton
   subtitle?: string
+  icon?: string
+  iconClass?: string
 }

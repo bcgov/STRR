@@ -70,6 +70,9 @@ export interface ApiExtraRegistrationDetails {
   updatedDate: Date
   cancelledDate?: Date
   user_id: number
+  jurisdiction?: string
+  blRequired?: boolean
+  prRequired?: boolean
 }
 
 export interface ApplicationHeader {

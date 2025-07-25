@@ -20,7 +20,11 @@ export default {
     },
     renewalChangeAddress: '{boldStart}Note:{boldEnd} If you wish to change the Rental Unit Address, you must submit a new short-term rental application instead of this renewal application.',
     renewalEditPerson: '{boldStart}Note:{boldEnd} If you wish to change any of the following information about the Property Host, you must submit a new short-term rental application instead of this renewal application.{newLine}{newLine}- Full Name{newLine}- Canada Revenue Agency (CRA) Tax Number{newLine}- Residential Address',
-    renewalEditBusiness: '{boldStart}Note:{boldEnd} If you wish to change the Business Legal Name of the Property Host, you must submit a new short-term rental application instead of this renewal application.'
+    renewalEditBusiness: '{boldStart}Note:{boldEnd} If you wish to change the Business Legal Name of the Property Host, you must submit a new short-term rental application instead of this renewal application.',
+    businessLicense: {
+      title: 'Important: Business licence – Required.',
+      description: 'Your local government requires a business licence to operate a short-term rental at this address.'
+    }
   },
   certify: {
     1: '{terms} I agree to comply with the {link} of registration.',
@@ -501,7 +505,8 @@ export default {
   },
   tooltip: {
     pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.',
-    noticeOfConsideration: 'You have received a Notice of Consideration'
+    noticeOfConsideration: 'You have received a Notice of Consideration',
+    needsAttention: 'This application requires attention. Open to view details.'
   },
   ConnectFeeWidget: {
     feeSummary: {

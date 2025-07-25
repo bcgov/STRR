@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { ApiHostApplication, HostApplicationResp, HostRegistrationResp } from '~/interfaces/host-api'
 import { formatHostUnitAddressUI, formatHostUnitDetailsUI } from '~/utils/host-formatting'
+import { needsBusinessLicenseUpload } from '~/utils/businessLicenseHelper'
 
 export const useHostPermitStore = defineStore('host/permit', () => {
   const ownerStore = useHostOwnerStore()
@@ -32,7 +33,41 @@ export const useHostPermitStore = defineStore('host/permit', () => {
 
   const { t } = useI18n()
 
+  const { isFeatureEnabled } = useFeatureFlags()
+  const isBusinessLicenseDocumentUploadEnabled = isFeatureEnabled('enable-business-license-document-upload')
+
   const isRegistrationRenewal = ref(false)
+
+  const needsBusinessLicenseDocumentUpload = computed(() => {
+    if (!isBusinessLicenseDocumentUploadEnabled.value || !registration.value) {
+      return false
+    }
+
+    const jurisdiction = registration.value.unitDetails?.jurisdiction
+
+    const needsBusinessLicense = registration.value.status === RegistrationStatus.ACTIVE &&
+      needsBusinessLicenseUpload(
+        jurisdiction,
+        isBusinessLicenseDocumentUploadEnabled.value
+      )
+    return needsBusinessLicense
+  })
+
+  const checkBusinessLicenseRequirement = (
+    applicationData: any
+  ): boolean => {
+    if (!isBusinessLicenseDocumentUploadEnabled.value || !applicationData.registration) {
+      return false
+    }
+
+    if (applicationData.header.registrationStatus !== RegistrationStatus.ACTIVE) {
+      return false
+    }
+
+    const jurisdiction = applicationData.registration.strRequirements?.organizationNm
+
+    return needsBusinessLicenseUpload(jurisdiction, isBusinessLicenseDocumentUploadEnabled.value)
+  }
 
   // load Registration into application form (e.g. used for Renewals)
   const loadHostRegistrationData = async (registrationId: string) => {
@@ -116,6 +151,8 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     isPaidApplication,
     showPermitDetails,
     isRegistrationRenewal,
+    needsBusinessLicenseDocumentUpload,
+    checkBusinessLicenseRequirement,
     downloadApplicationReceipt,
     downloadRegistrationCert,
     loadHostData,
