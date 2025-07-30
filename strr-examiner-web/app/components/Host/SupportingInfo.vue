@@ -102,6 +102,20 @@ const nocDocumentsConfig: SupportingDocumentsConfig = {
   includeDateBadge: [DocumentUploadStep.NOC]
 }
 
+// all documents for registrations with date badges, excluding BL (they are in its own section)
+const registrationDocumentsConfig: SupportingDocumentsConfig = {
+  excludeTypes: [DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE],
+  excludeUploadStep: [DocumentUploadStep.NOC],
+  showDateBadgeForAll: true
+}
+
+// BL documents for registrations with date badges
+const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
+  includeTypes: [DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE],
+  excludeUploadStep: [DocumentUploadStep.NOC],
+  showDateBadgeForAll: true
+}
+
 </script>
 <template>
   <ConnectPageSection>
@@ -137,7 +151,7 @@ const nocDocumentsConfig: SupportingDocumentsConfig = {
           <SupportingDocuments
             class="mb-1 flex flex-wrap gap-y-1"
             data-testid="bl-documents"
-            :config="businessLicenseDocumentsConfig"
+            :config="isApplication ? businessLicenseDocumentsConfig : businessLicenseRegistrationConfig"
           />
         </div>
 
@@ -178,7 +192,7 @@ const nocDocumentsConfig: SupportingDocumentsConfig = {
             <SupportingDocuments
               class="mb-1 flex gap-y-1"
               data-testid="initial-app-documents"
-              :config="applicationDocumentsConfig"
+              :config="isApplication ? applicationDocumentsConfig : registrationDocumentsConfig"
             />
             <SupportingDocuments
               class="flex flex-wrap gap-y-1"

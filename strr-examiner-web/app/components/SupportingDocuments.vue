@@ -52,8 +52,9 @@ const appRegNumber = computed((): string | number =>
         {{ t(`documentLabels.${document.documentType}`) }}
       </UButton>
       <UBadge
-        v-if="document.uploadStep && props.config?.includeDateBadge?.includes(document.uploadStep)"
-        :label="`${ t('strr.label.added')} ` + document.uploadDate"
+        v-if="(document.uploadStep && props.config?.includeDateBadge?.includes(document.uploadStep)) ||
+          (props.config?.showDateBadgeForAll && (document.uploadDate || document.addedOn))"
+        :label="`${ t('strr.label.added')} ` + (document.uploadDate || document.addedOn)"
         size="sm"
         class="ml-2 px-3 py-0 font-bold"
         data-testid="supporting-doc-date-badge"
