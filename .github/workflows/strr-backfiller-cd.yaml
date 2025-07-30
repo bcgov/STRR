@@ -1,0 +1,47 @@
+name: STRR BACKFILLER JOB CD
+
+on:
+  push:
+    branches:
+      - main
+      - feature*
+      - hotfix*
+      - release*
+    paths:
+      - "jobs/strr-backfiller/**"
+      - "src/strr_api/models/**"
+      - "src/strr_api/services/**"
+      - "src/strr_api/enums/**"
+      - "src/strr_api/exceptions/**"
+      - "src/strr_api/utils/**"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deploy To"
+        required: true
+        type: choice
+        options:
+          - "dev"
+          - "test"
+          - "uat"
+          - "sandbox"
+          - "prod"
+      redeploy:
+        description: "Redeploy Application"
+        required: true
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+jobs:
+  strr-backfiller-cd:
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
+    with:
+      target: ${{ inputs.target }}
+      app_name: "strr-backfiller"
+      working_directory: "./jobs/strr-backfiller"
+      redeploy: ${{ inputs.redeploy }}
+    secrets:
+      WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
