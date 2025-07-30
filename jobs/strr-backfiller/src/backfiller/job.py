@@ -57,31 +57,35 @@ def backfill_jurisdiction(app):
         .all()
     )
     for registration in host_registrations:
-        app.logger.info(f"Processing registration {str(registration.id)}")
-        address = registration.rental_property.address
-        address_line_1 = ""
-        if unit_number := address.unit_number:
-            address_line_1 = f"{unit_number}-"
-        address_line_1 = (
-            f"{address_line_1}{address.street_number} {address.street_address}"
-        )
-        address_line_2 = {address.street_address_additional}
-        address = (
-            f"{address_line_1} {address_line_2}, {address.city}, {address.province}"
-        )
-        print(address)
-        str_data = ApprovalService.getSTRDataForAddress(address=address)
-        if not str_data:
-            app.logger.info(
-                f"Could not get the requirements for registration {registration.id}, Address: {address}"
+        try:
+            app.logger.info(f"Processing registration {str(registration.id)}")
+            address = registration.rental_property.address
+            address_line_1 = ""
+            if unit_number := address.unit_number:
+                address_line_1 = f"{unit_number}-"
+            address_line_1 = (
+                f"{address_line_1}{address.street_number} {address.street_address}"
             )
-        else:
-            rental_property = registration.rental_property
-            rental_property.pr_required = str_data.get("isPrincipalResidenceRequired")
-            rental_property.bl_required = str_data.get("isBusinessLicenceRequired")
-            rental_property.jurisdiction = str_data.get("organizationNm")
-            rental_property.strr_exempt = str_data.get("isStraaExempt")
-            rental_property.save()
+            address_line_2 = {address.street_address_additional}
+            address = (
+                f"{address_line_1} {address_line_2}, {address.city}, {address.province}"
+            )
+            str_data = ApprovalService.getSTRDataForAddress(address=address)
+            if not str_data:
+                app.logger.info(
+                    f"Could not get the requirements for registration {registration.id}, Address: {address}"
+                )
+            else:
+                rental_property = registration.rental_property
+                rental_property.pr_required = str_data.get(
+                    "isPrincipalResidenceRequired"
+                )
+                rental_property.bl_required = str_data.get("isBusinessLicenceRequired")
+                rental_property.jurisdiction = str_data.get("organizationNm")
+                rental_property.strr_exempt = str_data.get("isStraaExempt")
+                rental_property.save()
+        except Exception as err:
+            app.logger.error(f"Unexpected error: {str(err)}")
 
 
 def run():
