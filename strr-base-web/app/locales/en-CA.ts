@@ -424,8 +424,8 @@ export default {
         "{newLine}{newLine}Make sure to select the correct document category when uploading. If submitting a {boldStart}Statement Document{boldEnd}, upload it under {boldStart}'Other Proof Document'{boldEnd}." // Host only specific addition
     },
     businessLicense: {
-      title: 'Upload Business Licence - Due: August 1, 2025 12:01 am PT',
-      subtitle: '{boldStart}Starting August 1, 2025{boldEnd}, 21 local governments will require a valid Business Licence to operate a short-term rental. If your property is in one of these jurisdictions, you must {linkStart}upload a current business licence{linkEnd} issued by the local government where your rental is located.{newLine}{newLine}To avoid cancellation of your registration, please upload your current business licence by {boldStart}August 1st{boldEnd}.{newLine}{newLine}If you need more time, email {mailto} to request an extension.'
+      title: 'Upload Business Licence - Due: August 15, 2025 12:01 am PT',
+      subtitle: '{boldStart}Starting August 1, 2025{boldEnd}, 21 local governments will require a valid Business Licence to operate a short-term rental. If your property is in one of these jurisdictions, you must {linkStart}upload a current business licence{linkEnd} issued by the local government where your rental is located.{newLine}{newLine}To avoid cancellation of your registration, please upload your current business licence by {boldStart}August 15th{boldEnd}.{newLine}{newLine}If you need more time, email {mailto} to request an extension.'
     },
     renewal: {
       title1: 'Registration Renewal - Due:',
