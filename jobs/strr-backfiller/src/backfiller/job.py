@@ -84,7 +84,7 @@ def backfill_jurisdiction(app):
                 rental_property.jurisdiction = str_data.get("organizationNm")
                 rental_property.strr_exempt = str_data.get("isStraaExempt")
                 rental_property.save()
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             app.logger.error(f"Unexpected error: {str(err)}")
 
 
