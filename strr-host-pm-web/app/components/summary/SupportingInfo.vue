@@ -12,7 +12,7 @@ const docStore = useDocumentStore()
 const { application, registration, needsBusinessLicenseDocumentUpload } = storeToRefs(useHostPermitStore())
 
 const isRegistration = computed((): boolean => !!application.value?.header.registrationStartDate)
-
+const hasRegistrationNoc = computed(() => registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING)
 // used to display Add New Document button
 const isNocPending = computed(() =>
   application.value?.header.status === ApplicationStatus.NOC_PENDING ||
@@ -52,9 +52,11 @@ const supportingInfo = computed(() => {
 })
 
 const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | number) => {
-  await isRegistration.value
-    ? docStore.addDocumentToRegistration(uiDoc, appRegNumber as number)
-    : docStore.addDocumentToApplication(uiDoc, appRegNumber as string)
+  if (isRegistration.value && (hasRegistrationNoc.value || needsBusinessLicenseDocumentUpload.value)) {
+    await docStore.addDocumentToRegistration(uiDoc, appRegNumber as number)
+  } else {
+    await docStore.addDocumentToApplication(uiDoc, appRegNumber as string)
+  }
 }
 
 </script>
@@ -128,7 +130,11 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
     >
       <BaseUploadAdditionalDocuments
         :component="Select"
-        :app-reg-number="isRegistration ? registration?.id : application?.header.applicationNumber"
+        :app-reg-number="
+          isRegistration && (hasRegistrationNoc || needsBusinessLicenseDocumentUpload)
+            ? (registration?.id ?? application?.header.registrationId)
+            : application?.header.applicationNumber
+        "
         :selected-doc-type="docStore.selectedDocType"
         :is-registration="isRegistration"
         @upload-document="handleUploadDocument"
