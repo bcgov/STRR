@@ -53,7 +53,6 @@ def backfill_jurisdiction(app):
     host_registrations = (
         Registration.query.join(RentalProperty)
         .filter(RentalProperty.jurisdiction.is_(None))
-        .limit(500)
         .all()
     )
     for registration in host_registrations:
