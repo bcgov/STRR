@@ -134,6 +134,7 @@ export interface ApiDocument {
   fileType: string
   uploadStep?: DocumentUploadStep
   uploadDate?: string
+  addedOn?: string
 }
 
 export interface ApiRegistrationTodoTaskResp {
