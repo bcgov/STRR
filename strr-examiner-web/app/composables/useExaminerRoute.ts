@@ -112,7 +112,7 @@ export const useExaminerRoute = () => {
       const currentLabels = currentButtons.rightButtons.map(btn => btn.label)
       const commonLabels = configLabels.filter(label => currentLabels.includes(label))
       const processedLabels = new Set<string>()
-      const uniqueRightButtons = currentButtons.rightButtons.filter((btn) => {
+      const uniqueRightButtons = examinerActions?.length > 0 && currentButtons.rightButtons.filter((btn) => {
         if (processedLabels.has(btn.label) || commonLabels.includes(btn.label)) {
           return false
         }
