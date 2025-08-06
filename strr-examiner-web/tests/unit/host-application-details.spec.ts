@@ -83,11 +83,11 @@ vi.mock('@/composables/useHostExpansion', () => ({
   })
 }))
 
-// mockNuxtImport('useConnectLaunchdarklyStore', () => {
-//   return () => ({
-//     getStoredFlag: vi.fn().mockReturnValue(true)
-//   })
-// })
+mockNuxtImport('useConnectLaunchdarklyStore', () => {
+  return () => ({
+    getStoredFlag: vi.fn().mockReturnValue(true)
+  })
+})
 
 const mockOpen = vi.fn()
 vi.stubGlobal('open', mockOpen)
@@ -273,9 +273,9 @@ describe('Examiner - Host Application Details Page', () => {
     isAssignedToUser.value = true
   })
 
-  // it.only('displays Decision panel for Examiner', () => {
-  //   const decisionPanel = wrapper.findComponent(DecisionPanel)
-  //   expect(decisionPanel.exists()).toBe(true)
-  //   expect(decisionPanel.findTestId('decision-email').exists()).toBe(true)
-  // })
+  it('displays Decision panel for Examiner', () => {
+    const decisionPanel = wrapper.findComponent(DecisionPanel)
+    expect(decisionPanel.exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-email').exists()).toBe(true)
+  })
 })

@@ -7,8 +7,8 @@ const { decisionEmailContent, activeReg, activeHeader, isApplication } = storeTo
 // wip: conditions holder
 const conditions = ref('')
 
-// email content to be sent to Completing Party
-decisionEmailContent.value = t('decision.emailBodyIntro') + '\n\n' + conditions.value
+// wip: email content to be sent to Completing Party
+useExaminerStore().decisionEmailContent = t('decision.emailBodyIntro') + '\n\n' + conditions.value
 
 // wip: selected action to track the examiner's current intent
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
@@ -94,7 +94,7 @@ const moreActionItems = activeHeader.value.examinerActions
               <UButton
                 v-for="(button, i) in decisionButtons.filter(btn => !btn.hidden)"
                 :key="'button-' + i"
-                class="active max-w-fit px-3 py-2"
+                class="max-w-fit px-3 py-2"
                 :class="decisionIntent === button.action && button.activeClass"
                 :color="button.color || 'primary'"
                 :disabled="button.disabled || false"
