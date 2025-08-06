@@ -220,6 +220,7 @@ watch(
         </template>
       </ApplicationDetailsView>
       <ComposeNoc />
+      <DecisionPanel />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
     </template>
   </div>

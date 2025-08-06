@@ -487,6 +487,11 @@ export default {
       existingAccountFoundAlert: '{boldStart}Note{boldEnd}: It looks like you already have an account with BC Registries and Online Services. You can use an existing account to proceed or create a new one.'
     }
   },
+  decision: {
+    title: 'Decision',
+    emailBodyPlaceholder: 'Email to Completing Party',
+    emailBodyIntro: 'Approval Conditions'
+  },
   validation: {
     accountName: {
       required: 'Please enter an account name',

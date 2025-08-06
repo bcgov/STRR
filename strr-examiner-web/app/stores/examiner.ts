@@ -49,6 +49,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const emailContent = reactive({
     content: ''
   })
+  const decisionEmailContent = ref('')
   const isEditingRentalUnit = ref(false)
   const hasUnsavedRentalUnitChanges = ref(false)
   const rentalUnitAddressToEdit = ref<Partial<EditStrAddress>>({})
@@ -563,6 +564,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     isAssignedToUser,
     sendNocSchema,
     emailContent,
+    decisionEmailContent,
     emailFormRef,
     sendEmailSchema,
     showComposeEmail,
