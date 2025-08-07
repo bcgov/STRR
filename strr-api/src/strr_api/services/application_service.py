@@ -75,11 +75,20 @@ APPLICATION_ASSIGN_STATES = [
     Application.Status.PROVISIONALLY_APPROVED,
     Application.Status.AUTO_APPROVED,
     Application.Status.DECLINED,
+    Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
+    Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED,
 ]
 
 
 class ApplicationService:
     """Service to interact with the applications model."""
+
+    @staticmethod
+    def validate_user_is_assignee(user: User, application: Application) -> bool:
+        """Validate that the current user is the assignee for the application."""
+        if not UserService.is_strr_staff_or_system():
+            return False
+        return application.reviewer_id == user.id
 
     @staticmethod
     def serialize(application: Application) -> dict:
@@ -206,6 +215,9 @@ class ApplicationService:
             registration = RegistrationService.create_registration(
                 application.submitter_id, application.payment_account, application.application_json
             )
+            registration.reviewer_id = reviewer.id
+            registration.decider_id = reviewer.id
+            registration.save()
             EventsService.save_event(
                 event_type=Events.EventType.REGISTRATION,
                 event_name=Events.EventName.REGISTRATION_CREATED,
@@ -234,6 +246,7 @@ class ApplicationService:
 
         if application.status in APPLICATION_TERMINAL_STATES:
             application.decision_date = datetime.utcnow()
+        application.reviewer_id = reviewer.id
         application.decider_id = reviewer.id
         application.save()
 

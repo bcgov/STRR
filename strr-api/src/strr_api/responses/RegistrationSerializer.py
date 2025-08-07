@@ -148,7 +148,8 @@ class RegistrationSerializer:
                 .get("strRequirements", {})
                 .get("organizationNm"),
             }
-            application_data["reviewer"] = cls._get_user_info(application.reviewer_id, application.reviewer)
+            application_data["assignee"] = cls._get_user_info(application.reviewer_id, application.reviewer)
+            application_data["decider"] = cls._get_user_info(application.decider_id, application.decider)
             registration_data["header"]["applications"].append(application_data)
 
     @classmethod

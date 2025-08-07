@@ -83,6 +83,13 @@ class RegistrationService:
     """Service to save and load registration details from the database."""
 
     @classmethod
+    def validate_user_is_assignee(cls, user: User, registration: Registration) -> bool:
+        """Validate that the current user is the assignee for the registration."""
+        if not UserService.is_strr_staff_or_system():
+            return False
+        return registration.reviewer_id == user.id
+
+    @classmethod
     def create_registration(cls, user_id, sbc_account_id, registration_request: dict):
         """Creates registration from an application."""
         start_date = datetime.combine(datetime.now(), time(8, 0, 0))

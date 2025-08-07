@@ -533,16 +533,16 @@ class ApplicationSerializer:
                 submitter_display_name = f"{submitter_display_name} {application.submitter.lastname}"
             application_dict["header"]["submitter"]["displayName"] = submitter_display_name
 
-        application_dict["header"]["reviewer"] = {}
+        application_dict["header"]["assignee"] = {}
         if application.reviewer_id:
-            application_dict["header"]["reviewer"]["username"] = application.reviewer.username
+            application_dict["header"]["assignee"]["username"] = application.reviewer.username
 
             reviewer_display_name = ""
             if application.reviewer.firstname:
                 reviewer_display_name = f"{reviewer_display_name}{application.reviewer.firstname}"
             if application.reviewer.lastname:
                 reviewer_display_name = f"{reviewer_display_name} {application.reviewer.lastname}"
-            application_dict["header"]["reviewer"]["displayName"] = reviewer_display_name
+            application_dict["header"]["assignee"]["displayName"] = reviewer_display_name
 
         application_dict["header"]["decider"] = {}
         if application.decider_id:

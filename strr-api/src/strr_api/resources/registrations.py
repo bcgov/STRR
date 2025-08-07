@@ -419,6 +419,14 @@ def update_registration_status(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+
+        # Validate that the current user is the assignee
+        if not RegistrationService.validate_user_is_assignee(reviewer, registration):
+            return error_response(
+                message="Only the assigned examiner can perform this action",
+                http_status=HTTPStatus.FORBIDDEN,
+            )
+
         registration = RegistrationService.update_registration_status(
             registration=registration, status=status.upper(), reviewer=reviewer, email_content=email_content
         )
@@ -643,6 +651,11 @@ def set_aside_decision(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if not RegistrationService.validate_user_is_assignee(user, registration):
+            return error_response(
+                message="Only the assigned examiner can set aside the registration",
+                http_status=HTTPStatus.FORBIDDEN,
+            )
         registration = RegistrationService.set_aside_decision(registration, user)
         return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
     except Exception as exception:
@@ -694,6 +707,13 @@ def send_notice_of_consideration(registration_id):
                 message="Registration should be active to send NOC",
                 http_status=HTTPStatus.BAD_REQUEST,
             )
+
+        if not RegistrationService.validate_user_is_assignee(reviewer, registration):
+            return error_response(
+                message="Only the assigned examiner can send notice of consideration",
+                http_status=HTTPStatus.FORBIDDEN,
+            )
+
         registration = RegistrationService.send_notice_of_consideration(registration, content, reviewer)
         return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
     except Exception as exception:
@@ -800,44 +820,4 @@ def unassign_registration(registration_id):
         return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
     except Exception:
         logger.error("Error unassigning registration assignee: ", exc_info=True)
-        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
-@bp.route("/<registration_id>/is-assignee", methods=["GET"])
-@swag_from({"security": [{"Bearer": []}]})
-@cross_origin(origin="*")
-@jwt.requires_auth
-@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
-def is_current_user_assignee_registration(registration_id):
-    """
-    Check if the current user is the assignee for the provided registration ID.
-    ---
-    tags:
-      - examiner
-    parameters:
-      - in: path
-        name: registration_id
-        type: integer
-        required: true
-        description: Registration ID
-    responses:
-      200:
-        description:
-      401:
-        description:
-      404:
-        description:
-    """
-    try:
-        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        if not user:
-            raise AuthException()
-
-        registration = RegistrationService.get_registration_by_id(registration_id)
-        if not registration:
-            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
-        is_assignee = registration.reviewer_id == user.id
-        return jsonify({"is_assignee": is_assignee}), HTTPStatus.OK
-    except Exception:
-        logger.error("Error checking if user is registration assignee: ", exc_info=True)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)

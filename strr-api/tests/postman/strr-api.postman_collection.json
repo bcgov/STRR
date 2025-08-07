@@ -1390,7 +1390,7 @@
 									"pm.test(\"Response contains application with assigned reviewer\", function () {",
 									"    pm.expect(jsonData).to.have.property('header');",
 									"    pm.expect(jsonData.header).to.have.property('applicationNumber');",
-									"    pm.expect(jsonData.header.reviewer.username).to.equal(pm.environment.get(\"username\"));",
+									"    pm.expect(jsonData.header.assignee.username).to.equal(pm.environment.get(\"username\"));",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1447,7 +1447,7 @@
 									"pm.test(\"Response contains application with no reviewer\", function () {",
 									"    pm.expect(jsonData).to.have.property('header');",
 									"    pm.expect(jsonData.header).to.have.property('applicationNumber');",
-									"    pm.expect(jsonData.header.reviewer).to.deep.equal({});",
+									"    pm.expect(jsonData.header.assignee).to.deep.equal({});",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1483,56 +1483,6 @@
 								"applications",
 								"{{application_number}}",
 								"unassign"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Check Is Assignee",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains is_assignee property\", function () {",
-									"    pm.expect(jsonData).to.have.property('is_assignee');",
-									"    pm.expect(jsonData.is_assignee).to.be.a('boolean');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{staff_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{api_url}}/applications/{{application_number}}/is-assignee",
-							"host": [
-								"{{api_url}}"
-							],
-							"path": [
-								"applications",
-								"{{application_number}}",
-								"is-assignee"
 							]
 						}
 					},
@@ -2159,61 +2109,6 @@
 								"registrations",
 								"{{registration_id}}",
 								"unassign"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Check Registration Is Assignee",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains is_assignee property\", function () {",
-									"    pm.expect(jsonData).to.have.property('is_assignee');",
-									"    pm.expect(jsonData.is_assignee).to.be.a('boolean');",
-									"});",
-									"",
-									"pm.test(\"Response structure is correct\", function () {",
-									"    pm.expect(jsonData).to.be.an('object');",
-									"    pm.expect(Object.keys(jsonData)).to.include('is_assignee');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{staff_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{api_url}}/registrations/{{registration_id}}/is-assignee",
-							"host": [
-								"{{api_url}}"
-							],
-							"path": [
-								"registrations",
-								"{{registration_id}}",
-								"is-assignee"
 							]
 						}
 					},
