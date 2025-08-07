@@ -287,7 +287,8 @@ export const mockHostApplicationWithReviewer: HostApplicationResp = {
   ...mockHostApplication,
   header: {
     ...mockHostApplication.header,
-    reviewer: MOCK_EXAMINER_USER
+    assignee: MOCK_EXAMINER_USER,
+    decider: MOCK_EXAMINER_USER
   }
 }
 
@@ -295,7 +296,11 @@ export const mockHostApplicationWithoutReviewer: HostApplicationResp = {
   ...mockHostApplication,
   header: {
     ...mockHostApplication.header,
-    reviewer: {
+    assignee: {
+      username: '',
+      displayName: ''
+    },
+    decider: {
       username: '',
       displayName: ''
     }
@@ -322,7 +327,8 @@ const createRegistrationHeader = (
     examinerStatus,
     hostActions: [],
     hostStatus,
-    reviewer: MOCK_EXAMINER_USER
+    assignee: MOCK_EXAMINER_USER,
+    decider: MOCK_EXAMINER_USER
   }
   return header
 }

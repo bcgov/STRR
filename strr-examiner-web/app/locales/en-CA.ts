@@ -168,6 +168,7 @@ export default {
       businessLicence: 'Business Licence',
       businessLicenceNumber: 'Number:',
       assignee: 'Assignee:',
+      decider: 'Decision made by:',
       applicationType: 'Type:',
       submitted: 'Submitted:',
       registrationNumber: 'Registration Number:',

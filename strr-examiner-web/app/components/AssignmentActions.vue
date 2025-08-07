@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { t } = useI18n()
-const { assignApplication, unassignApplication } = useExaminerStore()
-const { activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
+const { assignApplication, unassignApplication, assignRegistration, unassignRegistration } = useExaminerStore()
+const { activeHeader, activeReg, isAssignedToUser } = storeToRefs(useExaminerStore())
 const { updateRouteAndButtons } = useExaminerRoute()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 
@@ -15,14 +15,20 @@ const props = defineProps({
 const emit = defineEmits(['refresh'])
 
 const handleAssign = async (applicationNumber: string) => {
-  const appNum = props.isRegistrationPage ? activeHeader.value!.applicationNumber! : applicationNumber
-  await assignApplication(appNum)
+  if (props.isRegistrationPage) {
+    await assignRegistration(activeReg.value!.id)
+  } else {
+    await assignApplication(applicationNumber)
+  }
   emit('refresh')
 }
 
 const handleUnassign = async (applicationNumber: string) => {
-  const appNum = props.isRegistrationPage ? activeHeader.value!.applicationNumber! : applicationNumber
-  await unassignApplication(appNum)
+  if (props.isRegistrationPage) {
+    await unassignRegistration(activeReg.value!.id)
+  } else {
+    await unassignApplication(applicationNumber)
+  }
   emit('refresh')
 }
 

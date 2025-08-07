@@ -3,7 +3,11 @@ interface ApiApplicationEntry {
   applicationDateTime: string
   organizationName?: string
   status: ApplicationStatus
-  reviewer?: {
+  assignee?: {
+    username: string
+    displayName: string
+  }
+  decider?: {
     username: string
     displayName: string
   }
@@ -15,6 +19,14 @@ interface ApiRegistrationHeader {
   examinerStatus: string
   examinerActions: string[]
   applications?: ApiApplicationEntry[]
+  assignee?: {
+    username: string
+    displayName: string
+  }
+  decider?: {
+    username: string
+    displayName: string
+  }
 }
 
 export interface HostRegistrationResp extends ApiExtraRegistrationDetails {

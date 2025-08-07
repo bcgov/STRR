@@ -47,7 +47,7 @@ describe('ApplicationInfoHeader Component', () => {
     mockHostApplication.header = {
       ...mockHostApplication.header,
       isSetAside: true,
-      reviewer: {
+      assignee: {
         username: 'aWilkinson@idir',
         displayName: 'Anthony Wilkinson'
       }
@@ -64,7 +64,7 @@ describe('ApplicationInfoHeader Component', () => {
       .toBe(mockHostApplication.registration.unitAddress?.nickname)
     expect(appInfoHeaderWrapper.find('[data-testid="application-set-aside-badge"]').exists()).toBe(true)
     expect(appInfoHeaderWrapper.text()).toContain('Host')
-    expect(appInfoHeaderWrapper.text()).toContain(mockHostApplication.header.reviewer?.username)
+    expect(appInfoHeaderWrapper.text()).toContain(mockHostApplication.header.assignee?.username)
   })
 })
 

@@ -160,7 +160,7 @@ const getPropertyAddressColumn = (app: HousApplicationResponse) => {
 }
 
 const getAdjudicatorColumn = (header: ApplicationHeader) => {
-  return header.reviewer?.username || '-'
+  return header.assignee?.username || '-'
 }
 
 const getRequirementsColumn = (app: HousApplicationResponse) => {

@@ -146,7 +146,7 @@ export const mockHostRegistration: HostRegistrationResp = {
     examinerStatus: 'Registered',
     hostActions: [],
     hostStatus: 'Registered',
-    reviewer: {
+    assignee: {
       username: 'examiner@idir',
       displayName: 'Examiner One'
     }

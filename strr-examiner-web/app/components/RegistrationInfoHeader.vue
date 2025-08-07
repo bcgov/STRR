@@ -153,6 +153,12 @@ const nocCountdown = computed(() => {
             <span v-if="nocCountdown && !nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
             <span v-else-if="nocCountdown && nocCountdown.isExpired" class="font-bold text-red-500"> (EXPIRED)</span>
           </template>
+          | <strong>{{ t('strr.label.assignee') }}</strong>
+          {{ activeHeader.assignee?.username || '-' }}
+          <template v-if="activeHeader.decider?.username">
+            | <strong>{{ t('strr.label.decider') }}</strong>
+            {{ activeHeader.decider.username }}
+          </template>
         </div>
       </div>
       <div class="text-sm">
@@ -162,12 +168,6 @@ const nocCountdown = computed(() => {
         {{ getRegistrationType() }} |
         <strong>{{ t('strr.label.submitted') }}</strong>
         {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd', true) }}
-        | <strong>{{ t('strr.label.assignee') }}</strong>
-        {{ activeHeader.reviewer?.username || '-' }}
-        <template v-if="activeHeader.reviewer?.username">
-          | <strong>Approved By:</strong>
-          {{ activeHeader.reviewer.username }}
-        </template>
       </div>
     </div>
   </div>

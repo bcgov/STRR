@@ -189,7 +189,7 @@ describe('Examiner - Registration Details Page', () => {
     })
 
     const allText = componentWrapper.text()
-    expect(allText).toContain('Approved By: examiner1')
+    expect(allText).toContain('Decision made by: examiner1')
   })
 
   it('displays view receipt button and calls viewReceipt when clicked', async () => {
