@@ -107,7 +107,7 @@ const moreActionItems = activeHeader.value.examinerActions
                 :icon="button.icon || ''"
                 :label="button.label"
                 variant="outline"
-                data-testid="examiner-decision-intent-button"
+                :data-testid="`decision-button-${button.action.toLocaleLowerCase()}`"
                 @click="setDecisionIntent(button.action)"
               />
               <UDropdown
