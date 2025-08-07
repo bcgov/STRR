@@ -38,6 +38,7 @@ from .application import Application
 from .auto_approval_record import AutoApprovalRecord
 from .bulk_validation import BulkValidation
 from .certificate import Certificate
+from .conditions_of_approval import ConditionsOfApproval
 from .db import db  # noqa: I001
 from .events import Events
 from .ltsa import LTSARecord
@@ -63,6 +64,7 @@ __all__ = (
     "PropertyManager",
     "Registration",
     "Contact",
+    "ConditionsOfApproval",
     "Document",
     "Events",
     "AutoApprovalRecord",
