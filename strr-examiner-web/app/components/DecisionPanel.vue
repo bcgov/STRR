@@ -2,7 +2,7 @@
 
 const { t } = useI18n()
 const { showDecisionPanel } = useExaminerDecision()
-const { decisionEmailContent, activeReg, activeHeader, isApplication } = storeToRefs(useExaminerStore())
+const { isApplication, isAssignedToUser, decisionEmailContent, activeReg, activeHeader, } = storeToRefs(useExaminerStore())
 
 // wip: conditions holder
 const conditions = ref('')
@@ -97,7 +97,7 @@ const moreActionItems = activeHeader.value.examinerActions
                 class="max-w-fit px-3 py-2"
                 :class="decisionIntent === button.action && button.activeClass"
                 :color="button.color || 'primary'"
-                :disabled="button.disabled || false"
+                :disabled="button.disabled || !isAssignedToUser || false"
                 :icon="button.icon || ''"
                 :label="button.label"
                 variant="outline"
@@ -114,6 +114,7 @@ const moreActionItems = activeHeader.value.examinerActions
                   color="blue"
                   variant="outline"
                   :disabled="moreActionItems.length === 0"
+                  data-testid="decision-button-more-actions"
                 />
               </UDropdown>
             </div>
