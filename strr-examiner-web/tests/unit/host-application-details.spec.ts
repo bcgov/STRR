@@ -277,5 +277,11 @@ describe('Examiner - Host Application Details Page', () => {
     const decisionPanel = wrapper.findComponent(DecisionPanel)
     expect(decisionPanel.exists()).toBe(true)
     expect(decisionPanel.findTestId('decision-email').exists()).toBe(true)
+
+    // decision buttons
+    expect(decisionPanel.findTestId('decision-button-approve').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-send_noc').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-reject').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-more-actions').exists()).toBe(true)
   })
 })
