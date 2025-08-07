@@ -2,7 +2,13 @@
 
 const { t } = useI18n()
 const { showDecisionPanel } = useExaminerDecision()
-const { isApplication, isAssignedToUser, decisionEmailContent, activeReg, activeHeader, } = storeToRefs(useExaminerStore())
+const {
+  isApplication,
+  isAssignedToUser,
+  decisionEmailContent,
+  activeReg,
+  activeHeader
+} = storeToRefs(useExaminerStore())
 
 // wip: conditions holder
 const conditions = ref('')
