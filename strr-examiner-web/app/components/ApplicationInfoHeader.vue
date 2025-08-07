@@ -142,7 +142,11 @@ const registrationCountdown = computed(() => {
           <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
         </template>
         | <strong>{{ t('strr.label.assignee') }}</strong>
-        {{ activeHeader.reviewer?.username || '-' }}
+        {{ activeHeader.assignee?.username || '-' }}
+        <template v-if="activeHeader.decider?.username">
+          | <strong>{{ t('strr.label.decider') }}</strong>
+          {{ activeHeader.decider?.username || '-' }}
+        </template>
       </div>
       <div
         v-if="activeHeader?.registrationNumber"

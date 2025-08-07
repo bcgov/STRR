@@ -100,7 +100,11 @@ export interface ApplicationHeader {
   registrationStatus?: RegistrationStatus
   registrationAddress?: ApiUnitAddress
   registrationNocStatus?: RegistrationNocStatus
-  reviewer?: {
+  assignee?: {
+    username: string
+    displayName: string
+  }
+  decider?: {
     username: string
     displayName: string
   }
