@@ -53,15 +53,19 @@ def test_permit_exists(session, client, jwt):
 
         application = Application.find_by_application_number(application_number=application_number)
         application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        # Assign application first
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
         status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
         rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
-        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
 
         registration_number = response_json.get("header").get("registrationNumber")
@@ -93,15 +97,18 @@ def test_permit_details_mismatch(session, client, jwt):
 
         application = Application.find_by_application_number(application_number=application_number)
         application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
         application.save()
 
         staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
         status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
         rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
-        assert response_json.get("header").get("reviewer").get("username") is not None
+        assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
 
         registration_number = response_json.get("header").get("registrationNumber")

@@ -419,6 +419,14 @@ def update_registration_status(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+
+        # Validate that the current user is the assignee
+        if not RegistrationService.validate_user_is_assignee(reviewer, registration):
+            return error_response(
+                message="Only the assigned examiner can perform this action",
+                http_status=HTTPStatus.FORBIDDEN,
+            )
+
         registration = RegistrationService.update_registration_status(
             registration=registration, status=status.upper(), reviewer=reviewer, email_content=email_content
         )
@@ -643,6 +651,11 @@ def set_aside_decision(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if not RegistrationService.validate_user_is_assignee(user, registration):
+            return error_response(
+                message="Only the assigned examiner can set aside the registration",
+                http_status=HTTPStatus.FORBIDDEN,
+            )
         registration = RegistrationService.set_aside_decision(registration, user)
         return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
     except Exception as exception:
@@ -694,9 +707,117 @@ def send_notice_of_consideration(registration_id):
                 message="Registration should be active to send NOC",
                 http_status=HTTPStatus.BAD_REQUEST,
             )
+
+        if not RegistrationService.validate_user_is_assignee(reviewer, registration):
+            return error_response(
+                message="Only the assigned examiner can send notice of consideration",
+                http_status=HTTPStatus.FORBIDDEN,
+            )
+
         registration = RegistrationService.send_notice_of_consideration(registration, content, reviewer)
         return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
     except Exception as exception:
         logger.error(exception)
         logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/assign", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def assign_registration(registration_id):
+    """
+    Update the assignee of a registration.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      404:
+        description:
+      400:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if registration.status.value not in REGISTRATION_STATES_STAFF_ACTION:
+            return error_response(
+                message="Registration status does not allow assignment",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+
+        registration = RegistrationService.assign_registration(registration, user.id)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception:
+        logger.error("Error assigning registration assignee: ", exc_info=True)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/unassign", methods=("PUT",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def unassign_registration(registration_id):
+    """
+    Unassign the assignee from a registration.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+    responses:
+      200:
+        description:
+      401:
+        description:
+      404:
+        description:
+      400:
+        description:
+    """
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        if registration.status.value not in REGISTRATION_STATES_STAFF_ACTION:
+            return error_response(
+                message="Registration status does not allow assignment changes",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+        if not registration.reviewer_id:
+            return error_response(
+                message="Registration is not assigned to any user",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+
+        registration = RegistrationService.unassign_registration(registration, user.id)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception:
+        logger.error("Error unassigning registration assignee: ", exc_info=True)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
