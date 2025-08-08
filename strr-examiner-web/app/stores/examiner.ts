@@ -5,6 +5,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { t } = useI18n()
   const { $strrApi } = useNuxtApp()
   const strrModal = useStrrModals()
+  const { kcUser } = useKeycloak()
   const isFilingHistoryOpen = ref(false) // track state of Filing History between different expansion panels
   const tableLimit = ref(50)
   const tablePage = ref(1)
@@ -24,21 +25,20 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       if (applicationHeader && currentRecordHeader) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { applications, ...rest } = currentRecordHeader
-        return { ...rest, ...applicationHeader }
+        return { ...applicationHeader, ...rest }
       }
     }
     return currentRecordHeader
   })
   const _isAssignedToUser = ref(false)
   watch(
-    () => [activeHeader.value?.applicationNumber, activeHeader.value?.reviewer?.username],
-    async ([applicationNumber, _]) => {
+    () => [
+      activeHeader.value?.assignee?.username
+    ],
+    ([reviewerUsername]) => {
       try {
-        if (applicationNumber) {
-          _isAssignedToUser.value = await isCurrentUserAssignee(applicationNumber)
-        } else {
-          _isAssignedToUser.value = false
-        }
+        const currentUser = kcUser.value.userName
+        _isAssignedToUser.value = reviewerUsername === currentUser
       } catch (e) {
         _isAssignedToUser.value = false
       }
@@ -371,6 +371,38 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   /**
+   * Assign the current user as the reviewer of a registration.
+   *
+   * @param {number} registrationId - The registration ID to assign.
+   */
+  const assignRegistration = async (registrationId: number): Promise<void> => {
+    try {
+      await $strrApi(`/registrations/${registrationId}/assign`, {
+        method: 'PUT'
+      })
+    } catch (e) {
+      logFetchError(e, t('error.assignApplication'))
+      strrModal.openErrorModal('Error', t('error.assignApplication'), false)
+    }
+  }
+
+  /**
+   * Unassign the reviewer from a registration.
+   *
+   * @param {number} registrationId - The registration ID to unassign.
+   */
+  const unassignRegistration = async (registrationId: number): Promise<void> => {
+    try {
+      await $strrApi(`/registrations/${registrationId}/unassign`, {
+        method: 'PUT'
+      })
+    } catch (e) {
+      logFetchError(e, t('error.unAssignApplication'))
+      strrModal.openErrorModal('Error', t('error.unAssignApplication'), false)
+    }
+  }
+
+  /**
    * Set aside application decision.
    *
    * @param {string} applicationNumber - The application number to set aside.
@@ -435,43 +467,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
     activeRecord.value = resp
     return resp
-  }
-
-  /**
-   * Check if the current user is the assignee by application number.
-   *
-   * @param {string} applicationNumber - The application number.
-   */
-  const isCurrentUserAssignee = async (applicationNumber: string): Promise<boolean> => {
-    try {
-      const response = await $strrApi<{ is_assignee: boolean }>(`/applications/${applicationNumber}/is-assignee`, {
-        method: 'GET'
-      })
-      return response.is_assignee
-    } catch (e) {
-      logFetchError(e, t('error.checkAssignee.description'))
-      return false
-    }
-  }
-
-  /**
-   * Final validation check before executing examiner action.
-   *
-   * @param {string} applicationNumber - The application number to verify assignment for.
-   * @returns {Promise<boolean>} - True if user is still assignee, false otherwise.
-   */
-  const verifyAssigneeOnAction = async (applicationNumber: string): Promise<boolean> => {
-    const isCurrentAssignee = await isCurrentUserAssignee(applicationNumber)
-
-    if (!isCurrentAssignee) {
-      strrModal.openErrorModal(
-        t('modal.assignError.title'),
-        t('modal.assignError.message'),
-        false
-      )
-      return false
-    }
-    return true
   }
 
   const getApplicationFilingHistory = async (applicationNumber: string): Promise<FilingHistoryEvent[]> => {
@@ -593,13 +588,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     getRegistrationById,
     assignApplication,
     unassignApplication,
+    assignRegistration,
+    unassignRegistration,
     setAsideApplication,
     getApplicationFilingHistory,
     getRegistrationFilingHistory,
     startEditRentalUnitAddress,
     resetEditRentalUnitAddress,
     saveRentalUnitAddress,
-    rentalUnitAddressSchema,
-    verifyAssigneeOnAction
+    rentalUnitAddressSchema
   }
 }, { persist: true }) // will persist data in session storage

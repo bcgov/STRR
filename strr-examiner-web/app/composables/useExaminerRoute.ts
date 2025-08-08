@@ -120,13 +120,13 @@ export const useExaminerRoute = () => {
         return true
       })
       if (examinerActions && examinerActions.length > 0) {
-        if (buttonConfig.assign && (!activeHeader.value?.reviewer?.username)) {
+        if (buttonConfig.assign && (!activeHeader.value?.assignee?.username)) {
           uniqueRightButtons.unshift({
             action: () => buttonConfig.assign!.action(id as string),
             label: buttonConfig.assign!.label,
             variant: 'outline'
           })
-        } else if (buttonConfig.unassign && (activeHeader.value?.reviewer?.username)) {
+        } else if (buttonConfig.unassign && (activeHeader.value?.assignee?.username)) {
           uniqueRightButtons.unshift({
             action: () => buttonConfig.unassign!.action(id as string),
             label: buttonConfig.unassign!.label,

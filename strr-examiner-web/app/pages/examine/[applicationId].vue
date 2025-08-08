@@ -155,7 +155,7 @@ watch(
   [application, error, isAssignedToUser],
   () => {
     // During initial loading, auto assign application to current examiner if no reviewer exists
-    if (initialMount.value && activeHeader.value && !activeHeader.value.reviewer?.username) {
+    if (initialMount.value && activeHeader.value && !activeHeader.value.assignee?.username) {
       assignApplication(activeHeader.value.applicationNumber!).then(() => {
         refresh()
       })

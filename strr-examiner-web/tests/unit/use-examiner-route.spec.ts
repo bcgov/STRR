@@ -66,7 +66,7 @@ describe('useExaminerRoute', () => {
     mockActiveHeader.value = {
       ...mockHeader,
       examinerActions: ['APPROVE'],
-      reviewer: { username: 'testuser', displayName: 'Test User' }
+      assignee: { username: 'testuser', displayName: 'Test User' }
     }
     const { updateRouteAndButtons } = useExaminerRoute()
     const unassignAction = vi.fn()
@@ -80,7 +80,7 @@ describe('useExaminerRoute', () => {
     mockActiveHeader.value = {
       ...mockHeader,
       examinerActions: ['APPROVE'],
-      reviewer: {}
+      assignee: {}
     }
     const { updateRouteAndButtons } = useExaminerRoute()
     const assignAction = vi.fn()

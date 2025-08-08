@@ -104,16 +104,16 @@ describe('Examiner Dashboard Page', () => {
     expect(wrapper.findTestId('applications-table').exists()).toBe(true)
     const { applications } = wrapper.vm.applicationListResp.value
     const appWithReviewer = applications.find(app =>
-      app.adjudicator === mockHostApplicationWithReviewer.header.reviewer.username
+      app.adjudicator === mockHostApplicationWithReviewer.header.assignee?.username
     )
     expect(appWithReviewer).toBeDefined()
-    expect(appWithReviewer?.adjudicator).toBe(mockHostApplicationWithReviewer.header.reviewer?.username)
+    expect(appWithReviewer?.adjudicator).toBe(mockHostApplicationWithReviewer.header.assignee?.username)
     const appWithoutReviewer = applications.find(app =>
       app.applicationNumber === mockHostApplicationWithoutReviewer.header.applicationNumber
     )
     expect(appWithoutReviewer).toBeDefined()
     expect(appWithoutReviewer?.adjudicator).toBe('-')
     const applicationText = wrapper.findTestId('applications-table').text()
-    expect(applicationText).toContain(mockHostApplicationWithReviewer.header.reviewer?.username)
+    expect(applicationText).toContain(mockHostApplicationWithReviewer.header.assignee?.username)
   })
 })
