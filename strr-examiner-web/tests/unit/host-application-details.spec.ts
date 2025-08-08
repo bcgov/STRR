@@ -1,4 +1,4 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 
@@ -18,7 +18,8 @@ import ApplicationDetails from '~/pages/examine/[applicationId].vue'
 import {
   ApplicationInfoHeader, HostSubHeader, HostSupportingInfo,
   StrataSubHeader, PlatformSubHeader, UBadge, UButton,
-  StrataSupportingInfo, SupportingDocuments
+  StrataSupportingInfo, SupportingDocuments,
+  DecisionPanel
 } from '#components'
 
 let currentMockData = mockHostApplication
@@ -81,6 +82,12 @@ vi.mock('@/composables/useHostExpansion', () => ({
     close: vi.fn()
   })
 }))
+
+mockNuxtImport('useConnectLaunchdarklyStore', () => {
+  return () => ({
+    getStoredFlag: vi.fn().mockReturnValue(true)
+  })
+})
 
 const mockOpen = vi.fn()
 vi.stubGlobal('open', mockOpen)
@@ -264,5 +271,17 @@ describe('Examiner - Host Application Details Page', () => {
       expect(button?.disabled).toBe(true)
     })
     isAssignedToUser.value = true
+  })
+
+  it('displays Decision panel for Examiner', () => {
+    const decisionPanel = wrapper.findComponent(DecisionPanel)
+    expect(decisionPanel.exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-email').exists()).toBe(true)
+
+    // decision buttons
+    expect(decisionPanel.findTestId('decision-button-approve').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-send_noc').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-reject').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-more-actions').exists()).toBe(true)
   })
 })
