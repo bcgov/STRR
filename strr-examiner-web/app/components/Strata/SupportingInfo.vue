@@ -2,7 +2,7 @@
 import { ConnectPageSection } from '#components'
 
 const exStore = useExaminerStore()
-const { activeReg } = storeToRefs(exStore)
+const { activeReg, isApplication } = storeToRefs(exStore)
 
 const { t } = useI18n()
 
@@ -17,6 +17,12 @@ const nocDocumentsConfig: SupportingDocumentsConfig = {
   includeDateBadge: [DocumentUploadStep.NOC]
 }
 
+// show all documents for registrations with date badges
+const registrationDocumentsConfig: SupportingDocumentsConfig = {
+  excludeUploadStep: [DocumentUploadStep.NOC],
+  showDateBadgeForAll: true
+}
+
 </script>
 <template>
   <ConnectPageSection v-if="activeReg?.documents?.length">
@@ -24,7 +30,7 @@ const nocDocumentsConfig: SupportingDocumentsConfig = {
       <ApplicationDetailsSection :label="t('strr.label.supportingInfo')">
         <SupportingDocuments
           class="mb-1 flex gap-y-1"
-          :config="applicationDocumentsConfig"
+          :config="isApplication ? applicationDocumentsConfig : registrationDocumentsConfig"
         />
         <SupportingDocuments
           class="mb-1 flex gap-y-1"

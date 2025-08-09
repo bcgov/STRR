@@ -9,5 +9,6 @@ export interface SupportingDocumentsConfig {
     excludeTypes?: DocumentUploadType[],
     includeUploadStep?: DocumentUploadStep[],
     excludeUploadStep?: DocumentUploadStep[],
-    includeDateBadge?: DocumentUploadStep[] // Upload Steps for which to show the date badges
+    includeDateBadge?: DocumentUploadStep[], // Upload Steps for which to show the date badges
+    showDateBadgeForAll?: boolean // Show date badges for all documents regardless of upload step (for registrations)
 }
