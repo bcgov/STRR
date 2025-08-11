@@ -145,7 +145,7 @@ const registrationCountdown = computed(() => {
         {{ activeHeader.assignee?.username || '-' }}
         <template v-if="activeHeader.decider?.username">
           | <strong>{{ t('strr.label.decider') }}</strong>
-          {{ activeHeader.decider?.username || '-' }}
+          {{ activeHeader.decider?.username }}
         </template>
       </div>
       <div
