@@ -33,6 +33,11 @@ const filteredDocuments = computed(() => props.config ? filterDocumentsByConfig(
 const appRegNumber = computed((): string | number =>
   isApplication.value ? applicationNumber : activeReg.value.id
 )
+
+const shouldShowDateBadge = (document: ApiDocument): boolean => {
+  return (document.uploadStep && props.config?.includeDateBadge?.includes(document.uploadStep)) ||
+    (props.config?.showDateBadgeForAll && (document.uploadDate || document.addedOn))
+}
 </script>
 
 <template>
@@ -52,8 +57,7 @@ const appRegNumber = computed((): string | number =>
         {{ t(`documentLabels.${document.documentType}`) }}
       </UButton>
       <UBadge
-        v-if="(document.uploadStep && props.config?.includeDateBadge?.includes(document.uploadStep)) ||
-          (props.config?.showDateBadgeForAll && (document.uploadDate || document.addedOn))"
+        v-if="shouldShowDateBadge(document)"
         :label="`${ t('strr.label.added')} ` + (document.uploadDate || document.addedOn)"
         size="sm"
         class="ml-2 px-3 py-0 font-bold"

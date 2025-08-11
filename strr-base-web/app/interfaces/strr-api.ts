@@ -137,7 +137,9 @@ export interface ApiDocument {
   fileName: string
   fileType: string
   uploadStep?: DocumentUploadStep
+  /** Date when document was uploaded during application flow (stored in application JSON metadata) */
   uploadDate?: string
+  /** Date when document was added during registration flow (stored in document DB object) */
   addedOn?: string
 }
 

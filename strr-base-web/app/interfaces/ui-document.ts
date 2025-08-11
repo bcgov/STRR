@@ -7,5 +7,6 @@ export interface UiDocument {
   loading: boolean
   type: DocumentUploadType,
   uploadStep?: DocumentUploadStep,
+  /** Date when document was uploaded during application flow (stored in application JSON metadata) */
   uploadDate?: string
 }
