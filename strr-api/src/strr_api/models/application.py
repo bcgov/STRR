@@ -555,17 +555,6 @@ class ApplicationSerializer:
                 decider_display_name = f"{decider_display_name} {application.decider.lastname}"
             application_dict["header"]["decider"]["displayName"] = decider_display_name
 
-        application_dict["header"]["decider"] = {}
-        if application.decider_id:
-            application_dict["header"]["decider"]["username"] = application.decider.username
-
-            decider_display_name = ""
-            if application.decider.firstname:
-                decider_display_name = f"{decider_display_name}{application.decider.firstname}"
-            if application.decider.lastname:
-                decider_display_name = f"{decider_display_name} {application.decider.lastname}"
-            application_dict["header"]["decider"]["displayName"] = decider_display_name
-
         application_dict["header"]["isCertificateIssued"] = False
         if application.registration_id:
             application_dict["header"]["registrationId"] = application.registration_id
