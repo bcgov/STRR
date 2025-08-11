@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 const { t } = useI18n()
-const { showDecisionPanel } = useExaminerDecision()
+const { showDecisionPanel, decisionIntent } = useExaminerDecision()
 const {
   isApplication,
   isAssignedToUser,
@@ -15,9 +15,6 @@ const conditions = ref('')
 
 // wip: email content to be sent to Completing Party
 useExaminerStore().decisionEmailContent = t('decision.emailBodyIntro') + '\n\n' + conditions.value
-
-// wip: selected action to track the examiner's current intent
-const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
 
 const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) => {
   decisionIntent.value = action
@@ -72,15 +69,19 @@ const visibleActions = [
   RegistrationActionsE.CANCEL
 ]
 
-const moreActionItems = activeHeader.value.examinerActions
+const moreActionItems = computed(() =>  
+activeHeader.value.examinerActions
   .filter((action: ApplicationActionsE) => !visibleActions.includes(action))
   .map(
     (action: ApplicationActionsE) => {
       return [{
-        label: action.toString()
+        label: t(`btn.${action}`),
+        disabled: !isAssignedToUser.value,
+        click: () => setDecisionIntent(action)
       }]
     }
   )
+)
 </script>
 
 <template>

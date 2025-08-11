@@ -217,7 +217,6 @@ watch(
         </template>
       </ApplicationDetailsView>
       <ComposeNoc />
-      <DecisionPanel />
       <AssignmentActions @refresh="refresh" />
     </template>
   </div>

@@ -285,7 +285,14 @@ export default {
     yesSend: 'Yes, Send',
     yesRefuse: 'Yes, Refuse',
     yesSuspend: 'Yes, Suspend',
-    yesReinstate: 'Yes, Reinstate'
+    yesReinstate: 'Yes, Reinstate',
+    // examiner decisions buttons
+    APPROVE: 'Approve Application',
+    SEND_NOC: 'Send Notice',
+    REJECT: 'Refuse Application',
+    CANCEL: 'Cancel Registration',
+    REINSTATE: 'Reinstate Registration',
+    SUSPEND: 'Suspend Registration'
   },
   error: {
     action: {

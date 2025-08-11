@@ -1,4 +1,10 @@
+// wip: selected action to track the examiner's current intent
+const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
+
 export const useExaminerDecision = () => {
+
+  decisionIntent.value = null // reset decision when data/page is refreshed
+
   const { isFeatureEnabled } = useFeatureFlags()
 
   // list of status when to show Decision panel
@@ -18,6 +24,7 @@ export const useExaminerDecision = () => {
   })
 
   return {
-    showDecisionPanel
+    showDecisionPanel,
+    decisionIntent
   }
 }
