@@ -45,8 +45,8 @@ const { isApplication } = storeToRefs(useExaminerStore())
         </p>
       </template>
     </NuxtErrorBoundary>
-    <ConnectButtonControl />
-    <ActionButtons v-if="!isApplication" />
+    <ConnectButtonControl v-if="isApplication" />
+    <ActionButtons v-else />
     <ConnectFooter />
   </div>
 </template>

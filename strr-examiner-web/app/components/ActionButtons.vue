@@ -1,95 +1,178 @@
 <script setup lang="ts">
-const { t } = useI18n();
 import { refreshNuxtData } from 'nuxt/app'
 
-
+const { t } = useI18n()
 const { decisionIntent } = useExaminerDecision()
-const { activeHeader, activeReg, isAssignedToUser } = storeToRefs(useExaminerStore())
-const { assignApplication, unassignApplication } = useExaminerStore()
+const { activeHeader, activeReg, isAssignedToUser, decisionEmailContent } = storeToRefs(useExaminerStore())
+const {
+  assignRegistration,
+  unassignRegistration,
+  setAsideRegistration,
+  updateRegistrationStatus,
+  sendNoticeOfConsiderationForRegistration
+} = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
-
 
 const examinerActions = computed(() => activeHeader.value.examinerActions)
 
+const approveRegistrationAction = () => {
+  openConfirmActionModal(
+    t('modal.approveRegistration.title'),
+    t('modal.approveRegistration.message'),
+    t('btn.yesApprove'),
+    () => {
+      closeConfirmActionModal()
+      updateRegistrationStatus(activeReg.value.id, RegistrationStatus.ACTIVE)
+      refreshNuxtData()
+    },
+    t('btn.cancel')
+  )
+}
+
+const cancelRegistrationAction = () => {
+  openConfirmActionModal(
+    t('modal.cancelRegistration.title'),
+    t('modal.cancelRegistration.message'),
+    t('btn.cancelRegistration'),
+    () => {
+      closeConfirmActionModal()
+      updateRegistrationStatus(
+        activeReg.value.id,
+        RegistrationStatus.CANCELLED
+      )
+      refreshNuxtData()
+    },
+    t('btn.back')
+  )
+}
+
+const suspendRegistrationAction = () => {
+  openConfirmActionModal(
+    t('modal.suspendRegistration.title'),
+    t('modal.suspendRegistration.message'),
+    t('btn.yesSuspend'),
+    () => {
+      closeConfirmActionModal()
+      updateRegistrationStatus(
+        activeReg.value.id,
+        RegistrationStatus.SUSPENDED
+      )
+      refreshNuxtData()
+    },
+    t('btn.cancel')
+  )
+}
+
+const reinstateRegistration = () => {
+  openConfirmActionModal(
+    t('modal.reinstateRegistration.title'),
+    t('modal.reinstateRegistration.message'),
+    t('btn.yesReinstate'),
+    () => {
+      closeConfirmActionModal()
+      updateRegistrationStatus(activeReg.value.id, RegistrationStatus.ACTIVE)
+      refreshNuxtData()
+    },
+    t('btn.cancel')
+  )
+}
+
+const sendNoticeAction = () => {
+  // TODO: validate email form
+  //   if (!(await validateForm(decisionEmailFormRef.value, true).then(errors => !errors))) {
+  //     return
+  //   }
+
+  openConfirmActionModal(
+    t('modal.sendNotice.title'),
+    t('modal.sendNotice.message'),
+    t('btn.yesSend'),
+    () => {
+      closeConfirmActionModal()
+      sendNoticeOfConsiderationForRegistration(
+        activeReg.value.id,
+        decisionEmailContent.value
+      )
+      refreshNuxtData()
+    }
+  )
+}
+
 const actionButtons: ConnectBtnControlItem[] = [
   {
-    action: () => {},
-    label: ApplicationActionsE.APPROVE, // t('btn.approveApplication'),
+    action: () => approveRegistrationAction(),
+    label: ApplicationActionsE.APPROVE,
     color: 'green',
     icon: 'i-mdi-check'
   },
   {
-    action: () => {},
-    label: ApplicationActionsE.SEND_NOC, // t('btn.sendNotice'),
+    action: () => sendNoticeAction(),
+    label: ApplicationActionsE.SEND_NOC,
     color: 'blue',
     icon: 'i-mdi-send'
   },
   {
-    action: () => {},
-    label:  ApplicationActionsE.REJECT, // t('btn.declineApplication'),
+    action: () => {}, // TODO: add reject action when on decisions for Applications
+    label: ApplicationActionsE.REJECT,
     color: 'red',
     icon: 'i-mdi-close'
   },
   {
-    action: () => {},
-    label: RegistrationActionsE.CANCEL, //t('btn.cancelRegistration'),
+    action: () => cancelRegistrationAction(),
+    label: RegistrationActionsE.CANCEL,
     color: 'red',
     icon: 'i-mdi-close'
   },
-    {
-    action: () => {},
-    label: RegistrationActionsE.SUSPEND, // t('btn.suspendRegistration'),
+  {
+    action: () => suspendRegistrationAction(),
+    label: RegistrationActionsE.SUSPEND,
     color: 'primary',
     icon: 'i-mdi-pause'
+  },
+  {
+    action: () => reinstateRegistration(),
+    label: RegistrationActionsE.REINSTATE,
+    color: 'primary',
+    icon: 'i-rotate-left'
   }
 ]
 
-const selectedAction = computed(() => 
-    actionButtons.find(button => button.label === decisionIntent.value)
+const selectedAction = computed(() =>
+  actionButtons.find(button => button.label === decisionIntent.value)
 )
-const emit = defineEmits(['refresh'])
 
 const assign = async () => {
-//   await assignApplication(activeHeader.value.applicationNumber)
-//   emit('refresh')
-refreshNuxtData()
+  await assignRegistration(activeReg.value.id)
+  refreshNuxtData()
 }
 
 const unassign = async () => {
-    // Check assignee status on btn click
-    if (isAssignedToUser.value) {
-        // await unassignApplication(activeHeader.value.applicationNumber)
-    } else {
-        openConfirmActionModal(
-            t('modal.unassign.title'),
-            t('modal.unassign.message'),
-            t('strr.label.unAssign'),
-            async () => {
-                closeConfirmActionModal()
-                await unassignApplication(activeHeader.value.applicationNumber)
-            }
-        )
-    }
+  if (isAssignedToUser.value) {
+    await unassignRegistration(activeReg.value.id)
     refreshNuxtData()
-}
-
-const sendNotice = () => {
+  } else {
     openConfirmActionModal(
-        t('modal.sendNotice.title'),
-        t('modal.sendNotice.message'),
-        t('btn.yesSend'),
-        () => {
-          closeConfirmActionModal() // for smoother UX, close the modal before initiating the action
-        }
+      t('modal.unassign.title'),
+      t('modal.unassign.message'),
+      t('strr.label.unAssign'),
+      async () => {
+        closeConfirmActionModal()
+        await unassignRegistration(activeReg.value.id)
+        refreshNuxtData()
+      }
     )
+  }
 }
 
+const setAside = async () => {
+  await setAsideRegistration(activeReg.value.id)
+  refreshNuxtData()
+}
 </script>
 
 <template>
   <div class="bg-white py-10" data-testid="button-control">
     <div class="app-inner-container">
-      {{ examinerActions }}
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <div class="flex justify-center gap-4 md:justify-start">
@@ -102,13 +185,14 @@ const sendNotice = () => {
               color="primary"
               :disabled="!isAssignedToUser"
               data-testid="action-button-set-aside"
+              @click="setAside"
             />
           </div>
         </div>
         <div>
           <div class="flex justify-center gap-4 md:justify-end">
             <UButton
-              v-if="activeHeader.reviewer.username"
+              v-if="activeHeader.assignee.username"
               :label="t('btn.unassign')"
               class="max-w-fit px-7 py-3"
               data-testid="action-button-unassign"
@@ -124,6 +208,7 @@ const sendNotice = () => {
               @click="assign"
             />
 
+            <!-- main button -->
             <UButton
               v-if="!!decisionIntent"
               :label="t(`btn.${selectedAction?.label}`)"
@@ -131,7 +216,8 @@ const sendNotice = () => {
               :icon="selectedAction?.icon"
               variant="outline"
               class="max-w-fit px-7 py-3"
-              data-testid="button-control-right-button"
+              data-testid="main-action-button"
+              @click="selectedAction?.action"
             />
           </div>
         </div>

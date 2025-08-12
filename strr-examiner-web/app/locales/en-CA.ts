@@ -287,7 +287,7 @@ export default {
     yesSuspend: 'Yes, Suspend',
     yesReinstate: 'Yes, Reinstate',
     // examiner decisions buttons
-    APPROVE: 'Approve Application',
+    APPROVE: 'Approve Registration',
     SEND_NOC: 'Send Notice',
     REJECT: 'Refuse Application',
     CANCEL: 'Cancel Registration',
@@ -627,6 +627,8 @@ export default {
     NON_COMPLIANCE_SUSPENDED: 'Registration suspended due to non compliance',
     APPLICATION_REVIEWER_ASSIGNED: 'Application reviewer assigned',
     APPLICATION_REVIEWER_UNASSIGNED: 'Application reviewer unassigned',
+    REGISTRATION_ASSIGNEE_ASSIGNED: 'Registration assigned',
+    REGISTRATION_ASSIGNEE_UNASSIGNED: 'Registration unassigned',
     NOC_SENT: 'Notice of Consideration sent',
     NOC_EXPIRED: 'Notice of Consideration expired',
     HOST_REGISTRATION_UNIT_ADDRESS_UPDATED: 'Registration: Host address updated',

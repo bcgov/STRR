@@ -2,7 +2,6 @@
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
 
 export const useExaminerDecision = () => {
-
   decisionIntent.value = null // reset decision when data/page is refreshed
 
   const { isFeatureEnabled } = useFeatureFlags()
