@@ -1,4 +1,4 @@
-import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
+import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 
