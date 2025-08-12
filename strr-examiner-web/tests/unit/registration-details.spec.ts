@@ -230,7 +230,7 @@ describe('Examiner - Registration Details Page', () => {
     isAssignedToUser.value = true
   })
 
-   it('displays Decision panel for Examiner', () => {
+  it('displays Decision panel for Examiner', () => {
     const decisionPanel = wrapper.findComponent(DecisionPanel)
     expect(decisionPanel.exists()).toBe(true)
     expect(decisionPanel.findTestId('decision-email').exists()).toBe(true)
