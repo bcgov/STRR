@@ -93,6 +93,7 @@ const sendNoticeAction = () => {
         activeReg.value.id,
         decisionEmailContent.value
       )
+      decisionEmailContent.value = ''
       refreshNuxtData()
     }
   )

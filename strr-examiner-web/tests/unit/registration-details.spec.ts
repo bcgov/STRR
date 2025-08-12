@@ -1,4 +1,4 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import {
   mockHostRegistration,
@@ -11,6 +11,7 @@ import {
 import { enI18n } from '../mocks/i18n'
 import RegistrationDetails from '~/pages/registration/[registrationId].vue'
 import {
+  DecisionPanel,
   RegistrationInfoHeader
 } from '#components'
 
@@ -43,6 +44,12 @@ vi.mock('@/stores/examiner', () => ({
     isFilingHistoryOpen: ref(false)
   })
 }))
+
+mockNuxtImport('useConnectLaunchdarklyStore', () => {
+  return () => ({
+    getStoredFlag: vi.fn().mockReturnValue(true)
+  })
+})
 
 describe('Examiner - Registration Details Page', () => {
   let wrapper: any
@@ -221,5 +228,17 @@ describe('Examiner - Registration Details Page', () => {
       expect(button?.disabled).toBe(true)
     })
     isAssignedToUser.value = true
+  })
+
+   it('displays Decision panel for Examiner', () => {
+    const decisionPanel = wrapper.findComponent(DecisionPanel)
+    expect(decisionPanel.exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-email').exists()).toBe(true)
+
+    // decision buttons
+    expect(decisionPanel.findTestId('decision-button-approve').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-send_noc').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-cancel').exists()).toBe(true)
+    expect(decisionPanel.findTestId('decision-button-more-actions').exists()).toBe(true)
   })
 })

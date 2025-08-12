@@ -16,6 +16,7 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   decisionIntent.value = action
 }
 
+const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 const isDecisionEmailDisabled = computed((): boolean => !decisionIntent.value)
 
 const decisionEmailPlaceholder = computed((): string =>
@@ -87,9 +88,6 @@ const moreActionItems = computed(() =>
     )
 )
 
-onMounted(() => {
-  decisionEmailContent.value = ''
-})
 </script>
 
 <template>
@@ -148,18 +146,19 @@ onMounted(() => {
               :schema="sendEmailSchema"
               :state="decisionEmailFormRef"
               :validate-on="['submit']"
-              data-testid="compose-decision-email"
             >
-              <UTextarea
-                v-model="decisionEmailContent"
-                :placeholder="decisionEmailPlaceholder"
-                :aria-label="decisionEmailPlaceholder"
-                data-testid="decision-email"
-                color="gray"
-                class="text-bcGovColor-midGray focus:ring-0"
-                auto-resize
-                :disabled="isDecisionEmailDisabled"
-              />
+              <UFormGroup name="content">
+                <UTextarea
+                  v-model="decisionEmailContent"
+                  :placeholder="decisionEmailPlaceholder"
+                  :aria-label="decisionEmailPlaceholder"
+                  data-testid="decision-email"
+                  color="gray"
+                  class="text-bcGovColor-midGray focus:ring-0"
+                  auto-resize
+                  :disabled="isDecisionEmailDisabled"
+                />
+              </UFormGroup>
             </UForm>
           </div>
         </div>
