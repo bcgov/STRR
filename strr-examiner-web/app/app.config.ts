@@ -50,7 +50,8 @@ export default defineAppConfig({
   ui: {
     button: {
       variant: {
-        select_menu_trigger: 'border-gray-700 focus-visible:border-primary-500 bg-gray-100 hover:bg-gray-200 border-b-[1px] focus-visible:border-b-2 focus:ring-0 h-[42px] rounded-t-m rounded-b-none'
+        select_menu_trigger: 'border-gray-700 focus-visible:border-primary-500 bg-gray-100 hover:bg-gray-200 border-b-[1px] focus-visible:border-b-2 focus:ring-0 h-[42px] rounded-t-m rounded-b-none',
+        combobox: 'bg-gray-100 hover:bg-gray-200 border-b-[1px] rounded-none rounded-t-md'
       }
     }
   }

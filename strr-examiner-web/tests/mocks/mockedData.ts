@@ -338,7 +338,7 @@ export const mockHostRegistration: HostRegistrationResp = {
     MOCK_DATES.APPLICATION_DATE,
     'Registered',
     'Registered',
-    ['CANCEL', 'SUSPEND']
+    ['APPROVE', 'CANCEL', 'SUSPEND']
   ),
   id: 12345,
   registrationType: ApplicationType.HOST,

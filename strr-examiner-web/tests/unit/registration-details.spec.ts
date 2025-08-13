@@ -14,6 +14,7 @@ import {
   DecisionPanel,
   RegistrationInfoHeader
 } from '#components'
+import ApprovalConditions from '~/components/ApprovalConditions.vue'
 
 const mockViewReceipt = vi.fn()
 let currentMockData = mockHostRegistration
@@ -41,7 +42,8 @@ vi.mock('@/stores/examiner', () => ({
     isApplication: ref(false),
     isAssignedToUser,
     viewReceipt: mockViewReceipt,
-    isFilingHistoryOpen: ref(false)
+    isFilingHistoryOpen: ref(false),
+    decisionEmailContent: ref('')
   })
 }))
 
@@ -230,7 +232,7 @@ describe('Examiner - Registration Details Page', () => {
     isAssignedToUser.value = true
   })
 
-  it('displays Decision panel for Examiner', () => {
+  it('displays Decision panel for Examiner', async () => {
     const decisionPanel = wrapper.findComponent(DecisionPanel)
     expect(decisionPanel.exists()).toBe(true)
     expect(decisionPanel.findTestId('decision-email').exists()).toBe(true)
@@ -240,5 +242,14 @@ describe('Examiner - Registration Details Page', () => {
     expect(decisionPanel.findTestId('decision-button-send_noc').exists()).toBe(true)
     expect(decisionPanel.findTestId('decision-button-cancel').exists()).toBe(true)
     expect(decisionPanel.findTestId('decision-button-more-actions').exists()).toBe(true)
+
+    // Approval Conditions should not be visible yet
+    expect(decisionPanel.findComponent(ApprovalConditions).exists()).toBe(false)
+    const approveButton = decisionPanel.findTestId('decision-button-approve')
+    expect(approveButton.exists()).toBe(true)
+
+    await approveButton.trigger('click')
+    // Approval Conditions should now be visible
+    expect(decisionPanel.findComponent(ApprovalConditions).exists()).toBe(true)
   })
 })

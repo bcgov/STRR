@@ -378,7 +378,12 @@ export default {
     multipleFilter: 'Multiple',
     history: 'History',
     forNonCivicAddresses: 'For non-civic addresses',
-    filingHistoryIdir: ' (by {idir})'
+    filingHistoryIdir: ' (by {idir})',
+    approvalConditions: 'Approval Conditions',
+    combobox: {
+      select: 'Select',
+      selected: 'Selected'
+    }
   },
   link: {
     learnMore: 'Learn More'
@@ -636,5 +641,21 @@ export default {
     APPLICATION_DECISION_SET_ASIDE: 'Decision set aside',
     REGISTRATION_DECISION_SET_ASIDE: 'Registration set aside',
     REGISTRATION_REINSTATED: 'Registration approved'
+  },
+  approvalConditions: {
+    principalResidence: 'Principal Residence',
+    validBL: 'Valid BL',
+    minBookingDays: 'Min. Booking Days',
+    class9FarmLand: 'Class 9 Farm Land',
+    partOfStrataHotel: 'Part of Strata Hotel',
+    fractionalOwnership: 'Fractional Ownership'
+  },
+  approvalConditionsExpanded: {
+    principalResidence: 'The host must use this unit as their Principal Residence',
+    validBL: 'The host must have a valid business licence',
+    minBookingDays: 'Offers and Bookings must be a minimum amount of # days',
+    class9FarmLand: 'This Short-Term Rental must maintain a Class 9 Farm Land designation to be exempt from the Principal Residence requirement',
+    partOfStrataHotel: 'This Short-Term Rental must remain part of a Strata Hotel building and to be exempt from the Principal Residence requirement',
+    fractionalOwnership: 'This Short-Term Rental property must remain subject to a Fractional Ownership Agreement to be exempt from the Principal Residence requirement'
   }
 }

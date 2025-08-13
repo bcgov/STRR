@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 
 const { t } = useI18n()
 const { showDecisionPanel, decisionIntent } = useExaminerDecision()
@@ -17,12 +18,21 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
 }
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
-const isDecisionEmailDisabled = computed((): boolean => !decisionIntent.value)
+const isDecisionEmailDisabled = computed((): boolean => !!decisionIntent.value)
+
+const conditions = ref<string[]>([])
 
 const decisionEmailPlaceholder = computed((): string =>
   decisionIntent.value === ApplicationActionsE.SEND_NOC || RegistrationActionsE.CANCEL
     ? t('decision.emailBodyPlaceholder')
     : t('decision.emailBodyIntro')
+)
+
+const enableApproveButton = computed(() =>
+  activeHeader.value.examinerActions.includes(ApplicationActionsE.APPROVE) ||
+  activeHeader.value.examinerActions.includes(ApplicationActionsE.PROVISIONAL_APPROVE) ||
+  activeHeader.value.isSetAside ||
+  activeReg.value.status === RegistrationActionsE.APPROVE
 )
 
 const decisionButtons = [
@@ -32,8 +42,7 @@ const decisionButtons = [
     color: 'green',
     activeClass: 'bg-green-100',
     icon: 'i-mdi-check',
-    disabled: !isApplication.value &&
-      (activeReg.value.status === RegistrationStatus.ACTIVE && !activeHeader.value.isSetAside)
+    disabled: !enableApproveButton.value
   },
   {
     action: ApplicationActionsE.SEND_NOC,
@@ -88,6 +97,20 @@ const moreActionItems = computed(() =>
     )
 )
 
+// update email content when conditions change
+watch(conditions, (newConditions) => {
+  const plainTextConditions = newConditions
+    // get plain text for each condition from translations
+    .map(condition => `\u2022 ${t(`approvalConditionsExpanded.${condition}`)}`)
+    .join('\n')
+
+  decisionEmailContent.value = 'Approval Conditions\n\n' + plainTextConditions
+})
+
+onMounted(() => {
+  decisionEmailContent.value = ''
+})
+
 </script>
 
 <template>
@@ -101,9 +124,9 @@ const moreActionItems = computed(() =>
         <div class="mb-4 font-bold">
           {{ t('decision.title') }}
         </div>
-        <div class="flex">
-          <div class="w-1/2">
-            <div class="flex justify-start gap-4">
+        <div class="grid grid-cols-2 gap-x-5">
+          <div class="">
+            <div class="mb-6 flex justify-start gap-4">
               <UButton
                 v-for="(button, i) in decisionButtons.filter(btn => !btn.hidden)"
                 :key="'button-' + i"
@@ -132,13 +155,10 @@ const moreActionItems = computed(() =>
               </UDropdown>
             </div>
 
-            <div
+            <ApprovalConditions
               v-if="isApproveDecisionSelected"
-              data-testid="approval-conditions"
-              class="mt-6"
-            >
-              [Approval Conditions Placeholder]
-            </div>
+              v-model="conditions"
+            />
           </div>
           <div class="flex-auto">
             <UForm
@@ -157,6 +177,7 @@ const moreActionItems = computed(() =>
                   class="text-bcGovColor-midGray focus:ring-0"
                   auto-resize
                   :disabled="isDecisionEmailDisabled"
+                  :ui="{ base: 'h-[290px]' }"
                 />
               </UFormGroup>
             </UForm>
