@@ -47,6 +47,7 @@ from strr_api.enums.enum import RegistrationNocStatus, RegistrationSortBy, Regis
 from strr_api.models import (
     Address,
     Certificate,
+    ConditionsOfApproval,
     Contact,
     Document,
     Events,
@@ -573,9 +574,11 @@ class RegistrationService:
 
     @classmethod
     def update_registration_status(
-        cls, registration: Registration, status: str, reviewer: User = None, email_content: str = None
+        cls, registration: Registration, json_input: dict, reviewer: User = None
     ) -> Registration:
         """Updates the registration status."""
+        status = json_input.get("status")
+        email_content = json_input.get("emailContent")
         event_status_map = {
             "EXPIRED": Events.EventName.REGISTRATION_EXPIRED,
             "SUSPENDED": Events.EventName.NON_COMPLIANCE_SUSPENDED,
@@ -589,6 +592,10 @@ class RegistrationService:
             registration.cancelled_date = datetime.now(timezone.utc)
         registration.decider_id = reviewer.id
         registration.save()
+
+        if status == RegistrationStatus.ACTIVE.value:
+            RegistrationService._update_conditions_of_registration(registration, json_input)
+
         reviewer_id = reviewer.id if reviewer else None
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,
@@ -599,6 +606,27 @@ class RegistrationService:
         )
         EmailService.send_registration_status_update_email(registration, email_content)
         return registration
+
+    @staticmethod
+    def _update_conditions_of_registration(registration: Registration, json_input: dict) -> None:
+        registration_conditions = registration.conditionsOfApproval
+        if conditions_of_approval := json_input.get("conditionsOfApproval"):
+            pre_defined_conditions = conditions_of_approval.get("predefinedConditions")
+            custom_conditions = conditions_of_approval.get("customConditions")
+            if pre_defined_conditions or custom_conditions:
+                if not registration_conditions:
+                    registration_conditions = ConditionsOfApproval()
+                    registration.conditionsOfApproval = registration_conditions
+                registration_conditions.preapproved_conditions = pre_defined_conditions
+                registration_conditions.custom_conditions = custom_conditions
+                registration_conditions.minBookingDays = conditions_of_approval.get("minBookingDays")
+                registration_conditions.save()
+            else:
+                if registration_conditions:
+                    registration_conditions.delete()
+        else:
+            if registration_conditions:
+                registration_conditions.delete()
 
     @staticmethod
     def find_all_by_host_sin(sin: str, count_only=False) -> list[Registration] | int:

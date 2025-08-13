@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e233ebba-250e-49a4-992e-ec046c43abed",
+		"_postman_id": "7a7f2bed-bf9c-4a11-a28a-a653151bd0f4",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -1550,6 +1550,44 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\"status\": \"CANCELLED\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/registrations/{{registration_id}}/status",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"{{registration_id}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add conditions to a registration",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"ACTIVE\",\n    \"conditionsOfApproval\": {\n        \"predefinedConditions\": [\n            \"PR\",\n            \"BL\"\n        ],\n        \"customConditions\": [\n            \"Condition 1\",\n            \"Condition 2\"\n        ],\n        \"minBookingDays\": 30\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"

@@ -410,7 +410,6 @@ def update_registration_status(registration_id):
         reviewer = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         json_input = request.get_json()
         status = json_input.get("status")
-        email_content = json_input.get("emailContent")
         if not status or status not in REGISTRATION_STATES_STAFF_ACTION:
             return error_response(
                 http_status=HTTPStatus.BAD_REQUEST, message=ErrorMessage.REGISTRATION_STATUS_UPDATE_NOT_ALLOWED.value
@@ -428,7 +427,7 @@ def update_registration_status(registration_id):
             )
 
         registration = RegistrationService.update_registration_status(
-            registration=registration, status=status.upper(), reviewer=reviewer, email_content=email_content
+            registration=registration, json_input=json_input, reviewer=reviewer
         )
         return RegistrationService.serialize(registration), HTTPStatus.OK
     except Exception as exception:

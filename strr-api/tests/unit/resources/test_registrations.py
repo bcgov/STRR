@@ -194,7 +194,7 @@ def test_examiner_issue_certificate_for_host_registration(session, client, jwt):
         rv = client.get(f"/registrations/{registration_id}", headers=headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert response_json.get("header").get("examinerActions") == ["SUSPEND", "CANCEL"]
+        assert response_json.get("header").get("examinerActions") == ["APPROVE", "SUSPEND", "CANCEL"]
         assert response_json.get("header").get("hostActions") == []
 
 
@@ -1100,3 +1100,162 @@ def test_application_status_update_sets_decider_id(session, client, jwt):
 
         application = Application.find_by_application_number(application_number=application_number)
         assert application.decider_id is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_add_conditions_on_registration(session, client, jwt):
+    """Test reinstating a registration using the /status endpoint after set-aside."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        conditions_of_approval_request = {
+            "status": "ACTIVE",
+            "conditionsOfApproval": {
+                "predefinedConditions": ["PR", "BL"],
+                "customConditions": ["Condition 1", "Condition 2"],
+                "minBookingDays": 30,
+            },
+        }
+        rv = client.put(
+            f"/registrations/{registration_id}/status", json=conditions_of_approval_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.ACTIVE.value
+        assert response_json.get("conditionsOfApproval") is not None
+        assert response_json.get("conditionsOfApproval").get("predefinedConditions") == ["PR", "BL"]
+        assert response_json.get("conditionsOfApproval").get("customConditions") == ["Condition 1", "Condition 2"]
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_clear_conditions_on_registration(session, client, jwt):
+    """Test reinstating a registration using the /status endpoint after set-aside."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        conditions_of_approval_request = {
+            "status": "ACTIVE",
+            "conditionsOfApproval": {
+                "predefinedConditions": ["PR", "BL"],
+                "customConditions": ["Condition 1", "Condition 2"],
+                "minBookingDays": 30,
+            },
+        }
+        rv = client.put(
+            f"/registrations/{registration_id}/status", json=conditions_of_approval_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.ACTIVE.value
+        assert response_json.get("conditionsOfApproval") is not None
+        assert response_json.get("conditionsOfApproval").get("predefinedConditions") == ["PR", "BL"]
+        assert response_json.get("conditionsOfApproval").get("customConditions") == ["Condition 1", "Condition 2"]
+
+        conditions_of_approval_request = {"status": "ACTIVE"}
+        rv = client.put(
+            f"/registrations/{registration_id}/status", json=conditions_of_approval_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.ACTIVE.value
+        assert response_json.get("conditionsOfApproval") is None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_clear_predefined_conditions(session, client, jwt):
+    """Test reinstating a registration using the /status endpoint after set-aside."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        conditions_of_approval_request = {
+            "status": "ACTIVE",
+            "conditionsOfApproval": {
+                "predefinedConditions": ["PR", "BL"],
+                "customConditions": ["Condition 1", "Condition 2"],
+                "minBookingDays": 30,
+            },
+        }
+        rv = client.put(
+            f"/registrations/{registration_id}/status", json=conditions_of_approval_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.ACTIVE.value
+        assert response_json.get("conditionsOfApproval") is not None
+        assert response_json.get("conditionsOfApproval").get("predefinedConditions") == ["PR", "BL"]
+        assert response_json.get("conditionsOfApproval").get("customConditions") == ["Condition 1", "Condition 2"]
+
+        conditions_of_approval_request = {
+            "status": "ACTIVE",
+            "conditionsOfApproval": {
+                "predefinedConditions": [],
+                "customConditions": ["Condition 1", "Condition 2"],
+                "minBookingDays": 30,
+            },
+        }
+        rv = client.put(
+            f"/registrations/{registration_id}/status", json=conditions_of_approval_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("status") == RegistrationStatus.ACTIVE.value
+        assert response_json.get("conditionsOfApproval") is not None
+        assert response_json.get("conditionsOfApproval").get("predefinedConditions") == []
+        assert response_json.get("conditionsOfApproval").get("customConditions") == ["Condition 1", "Condition 2"]

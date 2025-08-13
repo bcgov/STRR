@@ -29,7 +29,7 @@ class RegistrationSerializer:
     }
 
     EXAMINER_ACTIONS = {
-        RegistrationStatus.ACTIVE: ["SUSPEND", "CANCEL", "SET_ASIDE"],
+        RegistrationStatus.ACTIVE: ["APPROVE", "SUSPEND", "CANCEL", "SET_ASIDE"],
         RegistrationStatus.SUSPENDED: ["REINSTATE", "CANCEL", "SET_ASIDE"],
         RegistrationStatus.CANCELLED: ["SET_ASIDE"],
         RegistrationStatus.EXPIRED: [],
@@ -56,6 +56,13 @@ class RegistrationSerializer:
             latest_noc = max(registration.nocs, key=lambda noc: noc.start_date)
             registration_data["nocStartDate"] = latest_noc.start_date.isoformat()
             registration_data["nocEndDate"] = latest_noc.end_date.isoformat()
+
+        if registration.conditionsOfApproval:
+            registration_data["conditionsOfApproval"] = {
+                "predefinedConditions": registration.conditionsOfApproval.preapproved_conditions,
+                "customConditions": registration.conditionsOfApproval.custom_conditions,
+                "minBookingDays": registration.conditionsOfApproval.minBookingDays,
+            }
 
         RegistrationSerializer._populate_header_data(registration_data, registration)
 
