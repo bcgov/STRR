@@ -270,6 +270,7 @@ export default {
     suspend: 'Suspend',
     suspendRegistration: 'Suspend Registration',
     sendNotice: 'Send Notice',
+    moreActions: 'More Actions',
     viewReceipt: 'View Receipt',
     showHistory: 'Show History',
     hideHistory: 'Hide History',
@@ -333,7 +334,10 @@ export default {
         title: 'Internal Server Error.',
         description: 'Please refresh the page or try again later. If error persists, please contact us.'
       }
-    } // TODO: other errors???
+    }, // TODO: other errors???
+    examinerDecisions: {
+      enterCustomCondition: 'Enter custom condition (max 256 characters)'
+    }
   },
   label: {
     hotelName: 'Hotel Name',
@@ -380,6 +384,9 @@ export default {
     forNonCivicAddresses: 'For non-civic addresses',
     filingHistoryIdir: ' (by {idir})',
     approvalConditions: 'Approval Conditions',
+    customCondition: 'Custom Condition',
+    customConditionShort: 'Custom Cond.',
+    addCustomCondition: 'Enter custom condition',
     combobox: {
       select: 'Select',
       selected: 'Selected'

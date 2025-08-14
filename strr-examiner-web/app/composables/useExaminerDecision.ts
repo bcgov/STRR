@@ -1,9 +1,17 @@
-// wip: selected action to track the examiner's current intent
+// selected action to track the examiner's current intent
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
 
-export const useExaminerDecision = () => {
-  decisionIntent.value = null // reset decision when data/page is refreshed
+// list of defined conditions that examiner can select from the list
+const preDefinedConditions: string[] = [
+  'principalResidence',
+  'validBL',
+  'minBookingDays',
+  'class9FarmLand',
+  'partOfStrataHotel',
+  'fractionalOwnership'
+]
 
+export const useExaminerDecision = () => {
   const { isFeatureEnabled } = useFeatureFlags()
 
   // TODO: list of status when to show Decision panel for Applications
@@ -23,6 +31,7 @@ export const useExaminerDecision = () => {
 
   return {
     showDecisionPanel,
-    decisionIntent
+    decisionIntent,
+    preDefinedConditions
   }
 }

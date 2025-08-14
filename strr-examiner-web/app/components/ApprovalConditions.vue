@@ -1,23 +1,59 @@
 <script setup lang="ts">
+
 const { t } = useI18n()
+const { preDefinedConditions } = useExaminerDecision()
 
-const selectedConditions = defineModel<string[]>({ required: true })
+const selectedConditions = defineModel<string[]>('conditions', { required: true })
+const customCondition = defineModel<string>('customCondition', { required: true })
 
-const preDefinedConditions = [
-  'principalResidence',
-  'validBL',
-  'minBookingDays',
-  'class9FarmLand',
-  'partOfStrataHotel',
-  'fractionalOwnership'
-]
+const isCustomConditionOpen = ref(false)
+const customConditionText = ref('') // used to capture custom condition in textarea before updating the custom condition model prop
+const hasCustomConditionError = ref(false)
 
 const isSelected = (item: string) => selectedConditions.value.includes(item)
 
 const removeItem = (item: string) => {
-  selectedConditions.value = selectedConditions.value.filter(i => i !== item)
+  // remove first occurrence of conditions that has exactly same name (for custom conditions)
+  const index = selectedConditions.value.indexOf(item)
+  if (index !== -1) {
+    selectedConditions.value.splice(index, 1)
+  }
 }
 
+const openCustomCondition = (): void => {
+  customCondition.value = ''
+  customConditionText.value = ''
+  isCustomConditionOpen.value = true
+  hasCustomConditionError.value = false
+}
+
+const addCustomCondition = (): void => {
+  if (customConditionText.value.length === 0 || customConditionText.value.length > 256) {
+    hasCustomConditionError.value = true
+  } else {
+    hasCustomConditionError.value = false
+    customCondition.value = customConditionText.value
+    isCustomConditionOpen.value = false
+  }
+}
+
+const removeCustomCondition = (): void => {
+  customCondition.value = ''
+  isCustomConditionOpen.value = false
+}
+
+// label of the badge in the custom conditions select menu
+const getConditionLabel = (item: string) => {
+  return preDefinedConditions.includes(item)
+    ? t(`approvalConditions.${item}`)
+    : t('label.customConditionShort')
+}
+
+const customConditionCount = computed(() =>
+  selectedConditions.value
+    .filter(condition => !preDefinedConditions.includes(condition))
+    .length
+)
 </script>
 
 <template>
@@ -52,7 +88,7 @@ const removeItem = (item: string) => {
             <UBadge
               v-for="(item, index) in selectedConditions"
               :key="index"
-              :label="t(`approvalConditions.${item}`)"
+              :label="getConditionLabel(item)"
               class="z-30 float-left flex font-bold uppercase"
             >
               <template #trailing>
@@ -84,6 +120,55 @@ const removeItem = (item: string) => {
         </div>
       </template>
     </USelectMenu>
+    <UButton
+      variant="ghost"
+      class="mt-1"
+      :disabled="isCustomConditionOpen || customConditionCount >= 3"
+      data-testid="open-custom-condition-button"
+      @click="openCustomCondition()"
+    >
+      <UIcon name="i-mdi-add" />
+      {{ t('label.customCondition') }}
+    </UButton>
+    <div
+      v-if="isCustomConditionOpen"
+      data-testid="custom-condition"
+      class="mt-4 flex gap-x-2 align-bottom"
+    >
+      <UFormGroup
+        :description="t('label.addCustomCondition')"
+        :error="hasCustomConditionError && t('error.examinerDecisions.enterCustomCondition')"
+        class="w-9/12"
+        :ui="{
+          description: 'mb-[5px] text-[#212529]'}
+        "
+      >
+        <UTextarea
+          v-model="customConditionText"
+          data-testid="custom-condition-input"
+          color="gray"
+          class="text-bcGovColor-midGray focus:ring-0"
+          :ui="{ base: 'min-h-[60px] h-[60px] pt-6 pl-5' }"
+          autofocus
+          resize
+        />
+      </UFormGroup>
+
+      <UButton
+        class="mt-6 h-[60px] w-2/12 justify-center"
+        label="Add"
+        data-testid="add-custom-condition-button"
+        @click="addCustomCondition"
+      />
+      <UButton
+        class="mt-6 h-[60px] w-1/12 justify-center"
+        color="gray"
+        variant="ghost"
+        icon="i-mdi-delete-outline"
+        data-testid="remove-custom-condition-button"
+        @click="removeCustomCondition"
+      />
+    </div>
   </div>
 </template>
 

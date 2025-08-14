@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 
 const { t } = useI18n()
-const { showDecisionPanel, decisionIntent } = useExaminerDecision()
+const { showDecisionPanel, decisionIntent, preDefinedConditions } = useExaminerDecision()
 const {
   isApplication,
   isAssignedToUser,
@@ -21,6 +21,7 @@ const isApproveDecisionSelected = computed((): boolean => decisionIntent.value =
 const isDecisionEmailDisabled = computed((): boolean => !!decisionIntent.value)
 
 const conditions = ref<string[]>([])
+const customCondition = ref<string>('') // custom condition to be added to lit of all conditions
 
 const decisionEmailPlaceholder = computed((): string =>
   decisionIntent.value === ApplicationActionsE.SEND_NOC || RegistrationActionsE.CANCEL
@@ -101,14 +102,24 @@ const moreActionItems = computed(() =>
 watch(conditions, (newConditions) => {
   const plainTextConditions = newConditions
     // get plain text for each condition from translations
-    .map(condition => `\u2022 ${t(`approvalConditionsExpanded.${condition}`)}`)
+    .map(condition => preDefinedConditions.includes(condition)
+      ? `\u2022 ${t(`approvalConditionsExpanded.${condition}`)}`
+      : `\u2022 ${condition}`)
     .join('\n')
 
   decisionEmailContent.value = 'Approval Conditions\n\n' + plainTextConditions
-})
+}, { deep: true })
+
+watch(customCondition, (val) => {
+  if (val) {
+    conditions.value.push(val)
+    customCondition.value = ''
+  }
+}, { deep: true })
 
 onMounted(() => {
   decisionEmailContent.value = ''
+  decisionIntent.value = null
 })
 
 </script>
@@ -126,11 +137,11 @@ onMounted(() => {
         </div>
         <div class="grid grid-cols-2 gap-x-5">
           <div class="">
-            <div class="mb-6 flex justify-start gap-4">
+            <div class="mb-6 flex justify-between gap-2">
               <UButton
                 v-for="(button, i) in decisionButtons.filter(btn => !btn.hidden)"
                 :key="'button-' + i"
-                class="max-w-fit px-3 py-2"
+                class="h-[44px] grow justify-center"
                 :class="decisionIntent === button.action && button.activeClass"
                 :color="button.color || 'primary'"
                 :disabled="button.disabled || !isAssignedToUser"
@@ -141,15 +152,14 @@ onMounted(() => {
                 @click="setDecisionIntent(button.action)"
               />
               <UDropdown
+                v-if="moreActionItems.length !== 0"
                 :items="moreActionItems"
-                size="xl"
               >
                 <UButton
-                  label="More Actions"
+                  :label="t('btn.moreActions')"
+                  class="px-5"
                   trailing-icon="i-mdi-chevron-down"
-                  color="blue"
                   variant="outline"
-                  :disabled="moreActionItems.length === 0"
                   data-testid="decision-button-more-actions"
                 />
               </UDropdown>
@@ -157,7 +167,8 @@ onMounted(() => {
 
             <ApprovalConditions
               v-if="isApproveDecisionSelected"
-              v-model="conditions"
+              v-model:conditions="conditions"
+              v-model:custom-condition="customCondition"
             />
           </div>
           <div class="flex-auto">

@@ -251,5 +251,20 @@ describe('Examiner - Registration Details Page', () => {
     await approveButton.trigger('click')
     // Approval Conditions should now be visible
     expect(decisionPanel.findComponent(ApprovalConditions).exists()).toBe(true)
+
+    expect(decisionPanel.findTestId('open-custom-condition-button').exists()).toBe(true)
+
+    // Custom Condition section should not be visible yet
+    expect(decisionPanel.findTestId('custom-condition').exists()).toBe(false)
+
+    // open Custom Condition section
+    await decisionPanel.findTestId('open-custom-condition-button').trigger('click')
+
+    const approvalConditions = decisionPanel.findComponent(ApprovalConditions)
+    expect(approvalConditions.exists()).toBe(true)
+
+    expect(approvalConditions.findTestId('custom-condition-input').exists()).toBe(true)
+    expect(approvalConditions.findTestId('add-custom-condition-button').exists()).toBe(true)
+    expect(approvalConditions.findTestId('remove-custom-condition-button').exists()).toBe(true)
   })
 })
