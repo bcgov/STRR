@@ -593,10 +593,10 @@ class RegistrationService:
         registration.decider_id = reviewer.id
         registration.save()
 
-        if status == RegistrationStatus.ACTIVE.value:
-            RegistrationService._update_conditions_of_registration(registration, json_input)
-
         reviewer_id = reviewer.id if reviewer else None
+        if status == RegistrationStatus.ACTIVE.value:
+            RegistrationService._update_conditions_of_registration(registration, json_input, reviewer_id)
+
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,
             event_name=event_status_map.get(status),
@@ -608,7 +608,7 @@ class RegistrationService:
         return registration
 
     @staticmethod
-    def _update_conditions_of_registration(registration: Registration, json_input: dict) -> None:
+    def _update_conditions_of_registration(registration: Registration, json_input: dict, reviewer_id=None) -> None:
         registration_conditions = registration.conditionsOfApproval
         if conditions_of_approval := json_input.get("conditionsOfApproval"):
             pre_defined_conditions = conditions_of_approval.get("predefinedConditions")
@@ -621,12 +621,36 @@ class RegistrationService:
                 registration_conditions.custom_conditions = custom_conditions
                 registration_conditions.minBookingDays = conditions_of_approval.get("minBookingDays")
                 registration_conditions.save()
+                EventsService.save_event(
+                    event_type=Events.EventType.REGISTRATION,
+                    event_name=Events.EventName.CONDITIONS_OF_APPROVAL_UPDATED,
+                    registration_id=registration.id,
+                    user_id=reviewer_id,
+                    visible_to_applicant=True,
+                    details=json_input.get("emailContent"),
+                )
             else:
                 if registration_conditions:
                     registration_conditions.delete()
+                    EventsService.save_event(
+                        event_type=Events.EventType.REGISTRATION,
+                        event_name=Events.EventName.CONDITIONS_OF_APPROVAL_UPDATED,
+                        registration_id=registration.id,
+                        user_id=reviewer_id,
+                        visible_to_applicant=True,
+                        details=None,
+                    )
         else:
             if registration_conditions:
                 registration_conditions.delete()
+                EventsService.save_event(
+                    event_type=Events.EventType.REGISTRATION,
+                    event_name=Events.EventName.CONDITIONS_OF_APPROVAL_UPDATED,
+                    registration_id=registration.id,
+                    user_id=reviewer_id,
+                    visible_to_applicant=True,
+                    details=None,
+                )
 
     @staticmethod
     def find_all_by_host_sin(sin: str, count_only=False) -> list[Registration] | int:
