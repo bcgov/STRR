@@ -5,10 +5,13 @@ const { preDefinedConditions } = useExaminerDecision()
 
 const selectedConditions = defineModel<string[]>('conditions', { required: true })
 const customCondition = defineModel<string>('customCondition', { required: true })
+const minBookingDays = defineModel<number | null>('minBookingDays', { required: true })
 
 const isCustomConditionOpen = ref(false)
 const customConditionText = ref('') // used to capture custom condition in textarea before updating the custom condition model prop
 const hasCustomConditionError = ref(false)
+const minBookingDaysNum = ref(28)
+const isMinimumBookingDaysOpen = ref(false)
 
 const isSelected = (item: string) => selectedConditions.value.includes(item)
 
@@ -17,6 +20,10 @@ const removeItem = (item: string) => {
   const index = selectedConditions.value.indexOf(item)
   if (index !== -1) {
     selectedConditions.value.splice(index, 1)
+  }
+  if (item === 'minBookingDays') {
+    minBookingDays.value = null
+    minBookingDaysNum.value = 28 // reset default value
   }
 }
 
@@ -54,6 +61,30 @@ const customConditionCount = computed(() =>
     .filter(condition => !preDefinedConditions.includes(condition))
     .length
 )
+
+const isMinBookingDaysSelected = computed((): boolean =>
+  selectedConditions.value.includes('minBookingDays')
+)
+
+const addMinBookingDays = () => {
+  minBookingDays.value = minBookingDaysNum.value
+  isMinimumBookingDaysOpen.value = false
+}
+
+const removeMinBookingDays = (): void => {
+  isMinimumBookingDaysOpen.value = false
+  removeItem('minBookingDays')
+  minBookingDays.value = null
+  minBookingDaysNum.value = 28
+}
+
+watch(isMinBookingDaysSelected, (selected) => {
+  if (selected) {
+    isMinimumBookingDaysOpen.value = true
+    removeCustomCondition()
+  }
+})
+
 </script>
 
 <template>
@@ -123,7 +154,7 @@ const customConditionCount = computed(() =>
     <UButton
       variant="ghost"
       class="mt-1"
-      :disabled="isCustomConditionOpen || customConditionCount >= 3"
+      :disabled="isCustomConditionOpen || customConditionCount >= 3 || isMinimumBookingDaysOpen"
       data-testid="open-custom-condition-button"
       @click="openCustomCondition()"
     >
@@ -132,8 +163,8 @@ const customConditionCount = computed(() =>
     </UButton>
     <div
       v-if="isCustomConditionOpen"
-      data-testid="custom-condition"
       class="mt-4 flex gap-x-2 align-bottom"
+      data-testid="custom-condition"
     >
       <UFormGroup
         :description="t('label.addCustomCondition')"
@@ -167,6 +198,38 @@ const customConditionCount = computed(() =>
         icon="i-mdi-delete-outline"
         data-testid="remove-custom-condition-button"
         @click="removeCustomCondition"
+      />
+    </div>
+    <div
+      v-if="isMinBookingDaysSelected && isMinimumBookingDaysOpen"
+      class="mt-4 flex w-7/12 gap-x-2 align-bottom"
+      data-testid="min-booking-days"
+    >
+      <UFormGroup
+        :description="t('label.minBookingDays')"
+        class="w-8/12"
+        :ui="{
+          description: 'mb-[5px] text-[#212529]'}
+        "
+      >
+        <UInput
+          v-model="minBookingDaysNum"
+          type="number"
+        />
+      </UFormGroup>
+      <UButton
+        class="mt-6 h-[60px] w-3/12 justify-center"
+        label="Add"
+        data-testid="add-min-book-days-button"
+        @click="addMinBookingDays"
+      />
+      <UButton
+        class="mt-6 h-[60px] w-1/12 justify-center"
+        color="gray"
+        variant="ghost"
+        icon="i-mdi-delete-outline"
+        data-testid="remove-min-book-days-button"
+        @click="removeMinBookingDays"
       />
     </div>
   </div>

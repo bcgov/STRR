@@ -387,6 +387,7 @@ export default {
     customCondition: 'Custom Condition',
     customConditionShort: 'Custom Cond.',
     addCustomCondition: 'Enter custom condition',
+    minBookingDays: 'Min. number of booking days',
     combobox: {
       select: 'Select',
       selected: 'Selected'
@@ -660,7 +661,7 @@ export default {
   approvalConditionsExpanded: {
     principalResidence: 'The host must use this unit as their Principal Residence',
     validBL: 'The host must have a valid business licence',
-    minBookingDays: 'Offers and Bookings must be a minimum amount of # days',
+    minBookingDays: 'Offers and Bookings must be a minimum amount of {minDays} days',
     class9FarmLand: 'This Short-Term Rental must maintain a Class 9 Farm Land designation to be exempt from the Principal Residence requirement',
     partOfStrataHotel: 'This Short-Term Rental must remain part of a Strata Hotel building and to be exempt from the Principal Residence requirement',
     fractionalOwnership: 'This Short-Term Rental property must remain subject to a Fractional Ownership Agreement to be exempt from the Principal Residence requirement'
