@@ -47,7 +47,6 @@ const enableExaminerDecisions = isFeatureEnabled('enable-examiner-decisions')
         </p>
       </template>
     </NuxtErrorBoundary>
-    {{ enableExaminerDecisions }}
     <ConnectButtonControl v-if="!enableExaminerDecisions || isApplication" />
     <ActionButtons v-else-if="enableExaminerDecisions" />
     <ConnectFooter />
