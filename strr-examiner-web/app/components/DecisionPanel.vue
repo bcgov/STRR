@@ -106,13 +106,14 @@ watch([conditions, minBookingDays],
     // get plain text for each condition from translations
       .map((condition) => {
         if (condition === 'minBookingDays') {
-          if (!newMinBookingDays) { return }
+          if (!newMinBookingDays) { return null }
           return `\u2022 ${t('approvalConditionsExpanded.minBookingDays', { minDays: newMinBookingDays })}`
         }
         return preDefinedConditions.includes(condition)
           ? `\u2022 ${t(`approvalConditionsExpanded.${condition}`)}`
           : `\u2022 ${condition}`
       })
+      .filter(Boolean) // remove null/undefined/empty strings
       .join('\n')
 
     decisionEmailContent.value = 'Approval Conditions\n\n' + plainTextConditions
