@@ -22,6 +22,7 @@ const isDecisionEmailDisabled = computed((): boolean => !!decisionIntent.value)
 
 const conditions = ref<string[]>([])
 const customCondition = ref<string>('') // custom condition to be added to lit of all conditions
+const minBookingDays = ref<number | null>(null)
 
 const decisionEmailPlaceholder = computed((): string =>
   decisionIntent.value === ApplicationActionsE.SEND_NOC || RegistrationActionsE.CANCEL
@@ -99,16 +100,23 @@ const moreActionItems = computed(() =>
 )
 
 // update email content when conditions change
-watch(conditions, (newConditions) => {
-  const plainTextConditions = newConditions
+watch([conditions, minBookingDays],
+  ([newConditions, newMinBookingDays]) => {
+    const plainTextConditions = newConditions
     // get plain text for each condition from translations
-    .map(condition => preDefinedConditions.includes(condition)
-      ? `\u2022 ${t(`approvalConditionsExpanded.${condition}`)}`
-      : `\u2022 ${condition}`)
-    .join('\n')
+      .map((condition) => {
+        if (condition === 'minBookingDays') {
+          if (!newMinBookingDays) { return }
+          return `\u2022 ${t('approvalConditionsExpanded.minBookingDays', { minDays: newMinBookingDays })}`
+        }
+        return preDefinedConditions.includes(condition)
+          ? `\u2022 ${t(`approvalConditionsExpanded.${condition}`)}`
+          : `\u2022 ${condition}`
+      })
+      .join('\n')
 
-  decisionEmailContent.value = 'Approval Conditions\n\n' + plainTextConditions
-}, { deep: true })
+    decisionEmailContent.value = 'Approval Conditions\n\n' + plainTextConditions
+  }, { deep: true })
 
 watch(customCondition, (val) => {
   if (val) {
@@ -169,6 +177,7 @@ onMounted(() => {
               v-if="isApproveDecisionSelected"
               v-model:conditions="conditions"
               v-model:custom-condition="customCondition"
+              v-model:min-booking-days="minBookingDays"
             />
           </div>
           <div class="flex-auto">
