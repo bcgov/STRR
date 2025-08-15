@@ -5,7 +5,7 @@ provide(headerOptionsSymbol, headerOptions)
 const localePath = useLocalePath()
 const { isApplication } = storeToRefs(useExaminerStore())
 const { isFeatureEnabled } = useFeatureFlags()
-
+const enableExaminerDecisions = isFeatureEnabled('enable-examiner-decisions')
 </script>
 <template>
   <div class="app-container">
@@ -47,8 +47,9 @@ const { isFeatureEnabled } = useFeatureFlags()
         </p>
       </template>
     </NuxtErrorBoundary>
-    <ConnectButtonControl v-if="!isFeatureEnabled('enable-examiner-decisions') || isApplication" />
-    <ActionButtons v-else-if="isFeatureEnabled('enable-examiner-decisions')" />
+    {{ enableExaminerDecisions }}
+    <ConnectButtonControl v-if="!enableExaminerDecisions || isApplication" />
+    <ActionButtons v-else-if="enableExaminerDecisions" />
     <ConnectFooter />
   </div>
 </template>
