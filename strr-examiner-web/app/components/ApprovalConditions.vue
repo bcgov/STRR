@@ -216,6 +216,7 @@ watch(isMinBookingDaysSelected, (selected) => {
       >
         <UInput
           v-model="minBookingDaysNum"
+          class="h-[60px]"
           type="number"
         />
       </UFormGroup>
