@@ -3,7 +3,13 @@ import { refreshNuxtData } from 'nuxt/app'
 
 const { t } = useI18n()
 const { decisionIntent } = useExaminerDecision()
-const { activeHeader, activeReg, isAssignedToUser, decisionEmailContent } = storeToRefs(useExaminerStore())
+const {
+  activeHeader, activeReg, isAssignedToUser,
+  conditions,
+  customConditions,
+  minBookingDays,
+  decisionEmailContent
+} = storeToRefs(useExaminerStore())
 const {
   assignRegistration,
   unassignRegistration,
@@ -15,6 +21,20 @@ const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals
 
 const examinerActions = computed(() => activeHeader.value.examinerActions)
 
+const isRegApproved = computed((): boolean =>
+  activeReg.value.status === RegistrationStatus.ACTIVE
+)
+
+const isMainActionButtonVisible = computed((): boolean => {
+  if (decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE) {
+    return (conditions.value.length > 0 || customConditions.value.length > 0)
+  } else {
+    return !!decisionIntent.value
+  }
+})
+
+const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
+
 const approveRegistrationAction = () => {
   openConfirmActionModal(
     t('modal.approveRegistration.title'),
@@ -23,6 +43,29 @@ const approveRegistrationAction = () => {
     () => {
       closeConfirmActionModal()
       updateRegistrationStatus(activeReg.value.id, RegistrationStatus.ACTIVE)
+      refreshNuxtData()
+    },
+    t('btn.cancel')
+  )
+}
+
+const updateApprovalAction = () => {
+  openConfirmActionModal(
+    t('modal.updateApproval.title'),
+    t('modal.updateApproval.message'),
+    t('btn.updateApproval'),
+    () => {
+      closeConfirmActionModal()
+      updateRegistrationStatus(
+        activeReg.value.id,
+        RegistrationStatus.ACTIVE,
+        decisionEmailContent.value,
+        {
+          predefinedConditions: conditions.value,
+          ...(customConditions.value.length > 0 && { customConditions: customConditions.value }),
+          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+        }
+      )
       refreshNuxtData()
     },
     t('btn.cancel')
@@ -101,7 +144,7 @@ const sendNoticeAction = () => {
 
 const actionButtons: ConnectBtnControlItem[] = [
   {
-    action: () => approveRegistrationAction(),
+    action: () => isRegApproved.value ? updateApprovalAction() : approveRegistrationAction(),
     label: ApplicationActionsE.APPROVE,
     color: 'green',
     icon: 'i-mdi-check'
@@ -208,11 +251,11 @@ const setAside = async () => {
               variant="outline"
               @click="assign"
             />
-
             <!-- main button -->
             <UButton
-              v-if="!!decisionIntent"
-              :label="t(`btn.${selectedAction?.label}`)"
+              v-if="isMainActionButtonVisible"
+              :label="isRegApproved && isApproveDecisionSelected
+                ? t('btn.updateApproval') : t(`btn.${selectedAction?.label}`)"
               :color="selectedAction?.color || 'primary'"
               :icon="selectedAction?.icon"
               variant="outline"

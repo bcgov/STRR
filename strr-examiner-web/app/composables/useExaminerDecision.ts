@@ -14,6 +14,13 @@ const preDefinedConditions: string[] = [
 export const useExaminerDecision = () => {
   const { isFeatureEnabled } = useFeatureFlags()
 
+  const {
+    conditions,
+    customConditions,
+    minBookingDays,
+    decisionEmailContent
+  } = storeToRefs(useExaminerStore())
+
   // TODO: list of status when to show Decision panel for Applications
   // const decisionRequiredStatuses = [
   //   ApplicationStatus.FULL_REVIEW,
@@ -29,9 +36,18 @@ export const useExaminerDecision = () => {
     return isFeatureEnabled('enable-examiner-decisions').value && !isApplication.value
   })
 
+  const resetDecision = (): void => {
+    decisionIntent.value = null
+    decisionEmailContent.value = ''
+    conditions.value = []
+    customConditions.value = []
+    minBookingDays.value = null
+  }
+
   return {
     showDecisionPanel,
     decisionIntent,
-    preDefinedConditions
+    preDefinedConditions,
+    resetDecision
   }
 }

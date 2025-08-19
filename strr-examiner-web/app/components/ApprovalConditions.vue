@@ -82,6 +82,8 @@ watch(isMinBookingDaysSelected, (selected) => {
   if (selected) {
     isMinimumBookingDaysOpen.value = true
     removeCustomCondition()
+  } else {
+    isMinimumBookingDaysOpen.value = false
   }
 })
 

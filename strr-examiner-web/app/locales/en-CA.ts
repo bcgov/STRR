@@ -287,13 +287,15 @@ export default {
     yesRefuse: 'Yes, Refuse',
     yesSuspend: 'Yes, Suspend',
     yesReinstate: 'Yes, Reinstate',
+    yesUpdate: 'Update Approval',
     // examiner decisions buttons
     APPROVE: 'Approve Registration',
     SEND_NOC: 'Send Notice',
     REJECT: 'Refuse Application',
     CANCEL: 'Cancel Registration',
     REINSTATE: 'Reinstate Registration',
-    SUSPEND: 'Suspend Registration'
+    SUSPEND: 'Suspend Registration',
+    updateApproval: 'Update Approval'
   },
   error: {
     action: {
@@ -450,6 +452,10 @@ export default {
     suspendRegistration: {
       title: 'Suspend Registration',
       message: 'Suspending this registration will make it temporarily invalid. You can reinstate it at any time. Do you want to continue?'
+    },
+    updateApproval: {
+      title: 'Are you sure you want to update the approval? ',
+      message: 'This will send an email to the host letting them know about the changes made.'
     }
   },
   table: {

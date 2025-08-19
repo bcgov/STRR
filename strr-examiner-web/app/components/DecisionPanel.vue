@@ -2,15 +2,18 @@
 import { onMounted } from 'vue'
 
 const { t } = useI18n()
-const { showDecisionPanel, decisionIntent, preDefinedConditions } = useExaminerDecision()
+const { showDecisionPanel, decisionIntent, preDefinedConditions, resetDecision } = useExaminerDecision()
 const {
   isApplication,
   isAssignedToUser,
-  decisionEmailContent,
   activeReg,
   activeHeader,
   decisionEmailFormRef,
-  sendEmailSchema
+  sendEmailSchema,
+  conditions,
+  customConditions,
+  minBookingDays,
+  decisionEmailContent
 } = storeToRefs(useExaminerStore())
 
 const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) => {
@@ -20,9 +23,8 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 const isDecisionEmailDisabled = computed((): boolean => !!decisionIntent.value)
 
-const conditions = ref<string[]>([])
+const localConditions = ref<string[]>([])
 const customCondition = ref<string>('') // custom condition to be added to lit of all conditions
-const minBookingDays = ref<number | null>(null)
 
 const decisionEmailPlaceholder = computed((): string =>
   decisionIntent.value === ApplicationActionsE.SEND_NOC || RegistrationActionsE.CANCEL
@@ -34,7 +36,7 @@ const enableApproveButton = computed(() =>
   activeHeader.value.examinerActions.includes(ApplicationActionsE.APPROVE) ||
   activeHeader.value.examinerActions.includes(ApplicationActionsE.PROVISIONAL_APPROVE) ||
   activeHeader.value.isSetAside ||
-  activeReg.value.status === RegistrationActionsE.APPROVE
+  activeReg.value.status === RegistrationStatus.ACTIVE
 )
 
 const decisionButtons = [
@@ -100,35 +102,50 @@ const moreActionItems = computed(() =>
 )
 
 // update email content when conditions change
-watch([conditions, minBookingDays],
+watch([localConditions, minBookingDays],
   ([newConditions, newMinBookingDays]) => {
-    const plainTextConditions = newConditions
-    // get plain text for each condition from translations
-      .map((condition) => {
-        if (condition === 'minBookingDays') {
-          if (!newMinBookingDays) { return null }
-          return `\u2022 ${t('approvalConditionsExpanded.minBookingDays', { minDays: newMinBookingDays })}`
-        }
-        return preDefinedConditions.includes(condition)
-          ? `\u2022 ${t(`approvalConditionsExpanded.${condition}`)}`
-          : `\u2022 ${condition}`
-      })
-      .filter(Boolean) // remove null/undefined/empty strings
-      .join('\n')
+    // reset conditions
+    conditions.value = []
+    customConditions.value = []
 
-    decisionEmailContent.value = 'Approval Conditions\n\n' + plainTextConditions
+    // condition items for email body
+    const items: string[] = []
+
+    for (const condition of newConditions) {
+      if (condition === 'minBookingDays') {
+        if (!newMinBookingDays) { continue }
+        const minBookingDaysText =
+          t('approvalConditionsExpanded.minBookingDays', { minDays: newMinBookingDays })
+        conditions.value.push(condition)
+        items.push(`\u2022 ${minBookingDaysText}`)
+        continue
+      }
+
+      if (preDefinedConditions.includes(condition)) {
+        const conditionText = t(`approvalConditionsExpanded.${condition}`)
+        conditions.value.push(condition)
+        items.push(`\u2022 ${conditionText}`)
+      } else {
+        customConditions.value.push(condition)
+        items.push(`\u2022 ${condition}`)
+      }
+    }
+
+    decisionEmailContent.value = 'Approval Conditions\n\n' + items.join('\n')
   }, { deep: true })
 
 watch(customCondition, (val) => {
   if (val) {
-    conditions.value.push(val)
+    localConditions.value.push(val)
     customCondition.value = ''
   }
 }, { deep: true })
 
 onMounted(() => {
-  decisionEmailContent.value = ''
-  decisionIntent.value = null
+  resetDecision()
+  if (activeReg.value.status === RegistrationStatus.ACTIVE) {
+    setDecisionIntent(ApplicationActionsE.APPROVE)
+  }
 })
 
 </script>
@@ -176,7 +193,7 @@ onMounted(() => {
 
             <ApprovalConditions
               v-if="isApproveDecisionSelected"
-              v-model:conditions="conditions"
+              v-model:conditions="localConditions"
               v-model:custom-condition="customCondition"
               v-model:min-booking-days="minBookingDays"
             />

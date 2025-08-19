@@ -43,6 +43,9 @@ vi.mock('@/stores/examiner', () => ({
     isAssignedToUser,
     viewReceipt: mockViewReceipt,
     isFilingHistoryOpen: ref(false),
+    conditions: ref([]),
+    customConditions: ref([]),
+    minBookingDays: ref(null),
     decisionEmailContent: ref('')
   })
 }))
@@ -243,8 +246,8 @@ describe('Examiner - Registration Details Page', () => {
     expect(decisionPanel.findTestId('decision-button-cancel').exists()).toBe(true)
     expect(decisionPanel.findTestId('decision-button-more-actions').exists()).toBe(true)
 
-    // Approval Conditions should not be visible yet
-    expect(decisionPanel.findComponent(ApprovalConditions).exists()).toBe(false)
+    // Approval Conditions is visible because Registration is Active
+    expect(decisionPanel.findComponent(ApprovalConditions).exists()).toBe(true)
     const approveButton = decisionPanel.findTestId('decision-button-approve')
     expect(approveButton.exists()).toBe(true)
 

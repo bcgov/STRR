@@ -49,7 +49,13 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const emailContent = reactive({
     content: ''
   })
-  const decisionEmailContent = ref('')
+
+  // Examiner decisions
+  const conditions = ref<string[]>([])
+  const customConditions = ref<string[]>([])
+  const minBookingDays = ref<number | null>(null)
+  const decisionEmailContent = ref<string>('')
+
   const isEditingRentalUnit = ref(false)
   const hasUnsavedRentalUnitChanges = ref(false)
   const rentalUnitAddressToEdit = ref<Partial<EditStrAddress>>({})
@@ -447,13 +453,15 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const updateRegistrationStatus = async (
     registrationId: number,
     status: RegistrationStatus,
-    content?: string
+    content?: string,
+    conditionsOfApproval?: ConditionsOfApproval
   ): Promise<void> => {
     await $strrApi(`/registrations/${registrationId}/status`, {
       method: 'PUT',
       body: {
         status,
-        ...(content && { emailContent: content })
+        ...(content && { emailContent: content }),
+        conditionsOfApproval
       }
     })
   }
@@ -565,7 +573,13 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     isAssignedToUser,
     sendNocSchema,
     emailContent,
+
+    // examiner approval conditions
+    conditions,
+    customConditions,
+    minBookingDays,
     decisionEmailContent,
+
     emailFormRef,
     decisionEmailFormRef,
     sendEmailSchema,
