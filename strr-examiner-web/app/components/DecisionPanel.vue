@@ -135,7 +135,7 @@ watch([localConditions, minBookingDays],
       }
     }
 
-    decisionEmailContent.value = t('approvalConditions') + '\n\n' + items.join('\n')
+    decisionEmailContent.value = items.join('\n')
   }, { deep: true })
 
 watch(customCondition, (val) => {

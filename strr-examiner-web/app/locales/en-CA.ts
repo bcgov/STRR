@@ -390,6 +390,7 @@ export default {
     customConditionShort: 'Custom Cond.',
     addCustomCondition: 'Enter custom condition',
     minBookingDays: 'Min. number of booking days',
+    noApprovalConditions: 'All conditions removed',
     combobox: {
       select: 'Select',
       selected: 'Selected'
@@ -654,7 +655,8 @@ export default {
     HOST_APPLICATION_UNIT_ADDRESS_UPDATED: 'Application: Host address updated',
     APPLICATION_DECISION_SET_ASIDE: 'Decision set aside',
     REGISTRATION_DECISION_SET_ASIDE: 'Registration set aside',
-    REGISTRATION_REINSTATED: 'Registration approved'
+    REGISTRATION_REINSTATED: 'Registration approved',
+    CONDITIONS_OF_APPROVAL_UPDATED: 'Registration - Updated conditions of approval'
   },
   approvalConditions: {
     principalResidence: 'Principal Residence',

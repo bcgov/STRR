@@ -86,13 +86,51 @@ const historyTableColumns = [
             {{ dateToString(row.createdDate, 'a', true) }}
           </template>
           <template #message-data="{ row }">
-            <b>{{ $t(`filingHistoryEvents.${row.eventName}`) }}</b>
-            <ConnectI18nHelper
-              v-if="row.idir"
-              translation-path="label.filingHistoryIdir"
-              :idir="row.idir"
-              data-testid="filing-history-idir"
-            />
+            <UAccordion
+              v-if="row.eventName === FilingHistoryEventName.CONDITIONS_OF_APPROVAL_UPDATED"
+              :items="[{ content: row.details || $t('label.noApprovalConditions') }]"
+              class="whitespace-pre-line"
+              :class="!row.details && 'italic'"
+              :ui="{
+                item: {
+                  base: 'bg-[#F1F3F5] mt-3',
+                  padding: 'p-5'
+                }
+              }"
+            >
+              <template #default="{ open }">
+                <UButton
+                  variant="link"
+                  class="p-0 hover:no-underline"
+                >
+                  <template #leading>
+                    <div class="flex items-center gap-1 text-gray-700">
+                      <span class="font-semibold">{{ $t(`filingHistoryEvents.${row.eventName}`) }}</span>
+                      <ConnectI18nHelper
+                        v-if="row.idir"
+                        translation-path="label.filingHistoryIdir"
+                        :idir="row.idir"
+                        data-testid="filing-history-idir"
+                      />
+                      <UIcon
+                        name="i-mdi-chevron-down"
+                        class="size-6 text-blue-500 transition-transform duration-200"
+                        :class="[open && 'rotate-180']"
+                      />
+                    </div>
+                  </template>
+                </UButton>
+              </template>
+            </UAccordion>
+            <span v-else>
+              <b>{{ $t(`filingHistoryEvents.${row.eventName}`) }}</b>
+              <ConnectI18nHelper
+                v-if="row.idir"
+                translation-path="label.filingHistoryIdir"
+                :idir="row.idir"
+                data-testid="filing-history-idir"
+              />
+            </span>
           </template>
         </UTable>
       </div>
