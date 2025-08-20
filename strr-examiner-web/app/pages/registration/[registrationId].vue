@@ -11,6 +11,7 @@ const {
 } = useExaminerStore()
 const { isAssignedToUser, emailContent, emailFormRef } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
+const { showDecisionPanel } = useExaminerDecision()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -219,7 +220,7 @@ watch(
           <RegistrationInfoHeader />
         </template>
       </ApplicationDetailsView>
-      <ComposeNoc />
+      <ComposeNoc v-if="!showDecisionPanel" />
       <DecisionPanel />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
     </template>

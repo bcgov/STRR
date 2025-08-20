@@ -21,13 +21,17 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
 }
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
-const isDecisionEmailDisabled = computed((): boolean => !!decisionIntent.value)
+const isDecisionEmailDisabled = computed((): boolean =>
+  !!decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE)
 
 const localConditions = ref<string[]>([])
 const customCondition = ref<string>('') // custom condition to be added to lit of all conditions
 
 const decisionEmailPlaceholder = computed((): string =>
-  decisionIntent.value === ApplicationActionsE.SEND_NOC || RegistrationActionsE.CANCEL
+  [ApplicationActionsE.SEND_NOC,
+    RegistrationActionsE.CANCEL,
+    RegistrationActionsE.SUSPEND
+  ].includes(decisionIntent.value)
     ? t('decision.emailBodyPlaceholder')
     : t('decision.emailBodyIntro')
 )
@@ -131,7 +135,7 @@ watch([localConditions, minBookingDays],
       }
     }
 
-    decisionEmailContent.value = 'Approval Conditions\n\n' + items.join('\n')
+    decisionEmailContent.value = t('approvalConditions') + '\n\n' + items.join('\n')
   }, { deep: true })
 
 watch(customCondition, (val) => {
