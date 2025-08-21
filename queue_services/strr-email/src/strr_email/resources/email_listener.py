@@ -187,6 +187,8 @@ def _get_registration_update_email_content(registration: Registration, email_inf
         custom_content=email_info.custom_content,
         noc_content=noc_content,
         noc_expiry_date=noc_expiry_date,
+        expiry_date=registration.expiryDate.strftime("%B %d, %Y"),
+        tac_url=_get_registration_tac_url(registration),
     )
     subject_number = registration.registration_number
     subject = (
@@ -358,6 +360,15 @@ def _get_tac_url(application: Application) -> str:
     if application.registration_type == Registration.RegistrationType.HOST:
         return current_app.config["TAC_URL_HOST"]
     if application.registration_type == Registration.RegistrationType.PLATFORM:
+        return current_app.config["TAC_URL_PLATFORM"]
+    return ""
+
+
+def _get_registration_tac_url(registration: Registration) -> str:
+    """Return the relevant terms and conditions url for the registration."""
+    if registration.registration_type == Registration.RegistrationType.HOST:
+        return current_app.config["TAC_URL_HOST"]
+    if registration.registration_type == Registration.RegistrationType.PLATFORM:
         return current_app.config["TAC_URL_PLATFORM"]
     return ""
 

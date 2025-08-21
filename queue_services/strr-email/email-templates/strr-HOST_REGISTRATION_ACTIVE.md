@@ -45,7 +45,6 @@ The registration is subject to [Terms and Conditions]({{ tac_url }}). Failure to
 2. Follow the platform instructions to update your listing with your **Registration Number** and **Short-Term Rental Address**.
   
 3. Repeat the above steps for **each platform** your short-term rental is listed on.
-
 ---
 
 [[strr-footer.md]]
