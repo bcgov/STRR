@@ -31,6 +31,10 @@ loginMethods.forEach((loginMethod) => {
     // address constants
     const nickname = getFakePropertyNickname()
     const lookupAddress = '142 Barkley Terr'
+    const addrNumber = '142'
+    const addrStreet = 'Barkley Terr'
+    const addrCity = 'Victoria'
+    const addrPostal = 'V8S 2J6'
     // unit details contants
     const propertyType = i18nText.propertyType.SINGLE_FAMILY_HOME // 'Single Family Home'
     const typeOfSpace = i18nText.rentalUnitType.ENTIRE_HOME // 'Entire Home (guests rent an entire residence for themselves)'
@@ -99,7 +103,10 @@ loginMethods.forEach((loginMethod) => {
       await completeStep4(
         page,
         nickname,
-        lookupAddress,
+        addrNumber,
+        addrStreet,
+        addrCity,
+        addrPostal,
         propertyType,
         rentalUnitSetupType,
         numberOfRooms,

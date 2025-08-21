@@ -1,4 +1,4 @@
 export enum LoginSource {
-  BCSC = 'BCSC',
-  BCEID = 'BCEID'
+  //examiners can only login with their IDIR
+  IDIR = 'IDIR',
 }

@@ -1,13 +1,10 @@
 import { expect, type Page } from '@playwright/test'
-import { config as dotenvConfig } from 'dotenv'
 /* eslint-disable max-len */
 import { LoginSource } from '../enums/login-source'
 import { generateOTP } from './generate-otp'
 import { getH2 } from './getters'
 import { uploadDocuments } from './upload-documents'
-import { assertLookupAddress } from './assertion-helpers'
-// load default env
-dotenvConfig()
+import { assertLookupAddress, assertLookupAddressLong } from './assertion-helpers'
 
 export async function completeLogin (page: Page, loginMethod: LoginSource) {
   const baseUrl = process.env.NUXT_BASE_URL!
@@ -54,8 +51,7 @@ export async function chooseAccount (page: Page, loginMethod: LoginSource) {
   await expect(page.getByTestId('h1')).toContainText('Existing Account Found')
 
   if (loginMethod === LoginSource.BCSC) {
-    const accountName = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME
-    await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
+    await page.getByRole('button', { name: 'Use this Account, OB1' }).click() // select premium account
   } else {
     const accountName = process.env.PLAYWRIGHT_TEST_BCEID_PREMIUM_ACCOUNT_NAME
     await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
@@ -79,7 +75,9 @@ export const completeStep1 = async (
   testPid: string,
   scenarioSpecificItems: () => Promise<void>
 ) => {
-  await page.goto('./en-CA/application') // go to application
+  //launch the wizard from the dashboard
+  //await page.goto('./en-CA/application') // go to application
+  await page.getByRole('link', { name: 'Register a Short-Term Rental' }).click()
 
   // check for step 1 content
   await expect(page.getByTestId('h1')).toContainText('Short-Term Rental Registration', { timeout: 30000 })
@@ -89,7 +87,7 @@ export const completeStep1 = async (
   await page.getByTestId('rental-unit-address-nickname').fill(nickname)
 
   // enter address autocomplete or manual
-  await page.locator('#rental-property-address-lookup-street').click()
+  await page.getByRole('textbox', { name: 'Look up the Residential' }).click()
   if (typeof lookupAddress === 'string') {
     await page.keyboard.type(lookupAddress, { delay: 100 }) // using .fill() doesnt trigger canada post api
     await page.getByRole('option', { name: lookupAddress }).click() // 'Barkley Terr'
@@ -258,12 +256,10 @@ export const completeStep3 = async (
 export const completeStep4 = async (
   page: Page,
   nickname: string,
-  lookupAddress: string | {
-    streetNumber: string;
-    streetName: string;
-    city: string;
-    postalCode: string;
-  },
+  addrNumber: string,
+  addrStreet: string,
+  addrCity: string,
+  addrPostal: string,
   propertyType: string,
   // typeOfSpace: string,
   rentalUnitSetupType: string,
@@ -282,7 +278,9 @@ export const completeStep4 = async (
   // rental unit details
   const strSection = page.locator('section').filter({ hasText: 'Short-Term Rental' }).first()
   await expect(strSection).toContainText(nickname)
-  await assertLookupAddress(strSection, lookupAddress)
+  //await assertLookupAddress(strSection, lookupAddress) //<-- old add all-in-one field
+  //new addr component that is broken out into separate sections
+  await assertLookupAddressLong(strSection,addrNumber,addrStreet,addrCity,addrPostal)
   await expect(strSection).toContainText(propertyType)
   await expect(strSection).toContainText(rentalUnitSetupType)
   await expect(strSection).toContainText(numberOfRooms)

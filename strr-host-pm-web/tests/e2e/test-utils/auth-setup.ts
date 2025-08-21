@@ -1,11 +1,8 @@
 import { type Browser, chromium, type Page } from '@playwright/test'
-import { config as dotenvConfig } from 'dotenv'
 import { LoginSource } from '../enums/login-source'
 import { generateOTP } from './generate-otp'
-// load default env
-dotenvConfig()
 
-export async function authSetup (
+export async function authSetup(
   loginMethod: LoginSource,
   storagePath: string
 ) {
@@ -32,6 +29,14 @@ export async function authSetup (
     await page.getByLabel('Email or username').fill(username)
     await page.getByLabel('Password').fill(password)
     await page.getByRole('button', { name: 'Continue' }).click()
+
+    //permanent TOS as of Summer 2025
+    const agreeToTerms = page.getByText('I agree to the BC Login')
+    if (agreeToTerms) {
+      await agreeToTerms.click()
+      await page.getByRole('button', { name: 'Continue' }).click()
+    }
+    
   } else if (loginMethod === LoginSource.BCEID) {
     await page.getByRole('button', { name: 'Continue with BCeID' }).click()
     await page.locator('#user').fill(username)
