@@ -73,6 +73,7 @@ EMAIL_SUBJECT = {
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
     "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
+    "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
 }
 
 
