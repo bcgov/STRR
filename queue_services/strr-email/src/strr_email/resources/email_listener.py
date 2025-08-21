@@ -187,7 +187,7 @@ def _get_registration_update_email_content(registration: Registration, email_inf
         custom_content=email_info.custom_content,
         noc_content=noc_content,
         noc_expiry_date=noc_expiry_date,
-        expiry_date=registration.expiryDate.strftime("%B %d, %Y"),
+        expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
         tac_url=_get_registration_tac_url(registration),
     )
     subject_number = registration.registration_number
