@@ -40,7 +40,7 @@ export const useExaminerDecision = () => {
     decisionIntent.value = null
     decisionEmailContent.value = ''
     conditions.value = []
-    customConditions.value = []
+    customConditions.value = null
     minBookingDays.value = null
   }
 

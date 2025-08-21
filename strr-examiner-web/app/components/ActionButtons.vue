@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { refreshNuxtData } from 'nuxt/app'
+import isEqual from 'lodash/isEqual'
 
 const { t } = useI18n()
 const { decisionIntent } = useExaminerDecision()
@@ -27,11 +28,23 @@ const isRegApproved = computed((): boolean =>
 
 const isMainActionButtonVisible = computed((): boolean => {
   if (decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE) {
-    return (conditions.value.length > 0 || customConditions.value.length > 0)
+    return (conditions.value.length > 0 || !!customConditions.value) && hasDecisionChanges.value
   } else {
-    return !!decisionIntent.value
+    return !!decisionIntent.value && hasDecisionChanges.value
   }
 })
+
+// track changes between original conditions and new conditions
+const hasDecisionChanges = computed(() =>
+  !isEqual(
+    activeReg.value.conditionsOfApproval,
+    {
+      customConditions: customConditions.value,
+      minBookingDays: minBookingDays.value,
+      predefinedConditions: conditions.value
+    }
+  )
+)
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
@@ -48,7 +61,7 @@ const approveRegistrationAction = () => {
         decisionEmailContent.value,
         {
           predefinedConditions: conditions.value,
-          ...(customConditions.value.length > 0 && { customConditions: customConditions.value }),
+          ...(customConditions.value && { customConditions: customConditions.value }),
           ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
         }
       )
@@ -71,7 +84,7 @@ const updateApprovalAction = () => {
         decisionEmailContent.value,
         {
           predefinedConditions: conditions.value,
-          ...(customConditions.value.length > 0 && { customConditions: customConditions.value }),
+          ...(customConditions.value && { customConditions: customConditions.value }),
           ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
         }
       )
@@ -90,7 +103,8 @@ const cancelRegistrationAction = () => {
       closeConfirmActionModal()
       updateRegistrationStatus(
         activeReg.value.id,
-        RegistrationStatus.CANCELLED
+        RegistrationStatus.CANCELLED,
+        decisionEmailContent.value
       )
       refreshNuxtData()
     },

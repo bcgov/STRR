@@ -24,7 +24,7 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   localConditions.value = []
   decisionEmailContent.value = ''
   conditions.value = []
-  customConditions.value = []
+  customConditions.value = null
   minBookingDays.value = null
 }
 
@@ -138,7 +138,7 @@ watch([localConditions, minBookingDays],
   ([newConditions, newMinBookingDays]) => {
     // reset conditions
     conditions.value = []
-    customConditions.value = []
+    customConditions.value = null
 
     // condition items for email body
     const items: string[] = []
@@ -160,6 +160,9 @@ watch([localConditions, minBookingDays],
         items.push(`\u2022 ${conditionText}`)
       } else {
         // for custom conditions - add conditions as is to email
+        if (!customConditions.value) {
+          customConditions.value = []
+        }
         customConditions.value.push(condition)
         items.push(`\u2022 ${condition}`)
       }
@@ -198,7 +201,18 @@ onMounted(() => {
             <div class="font-bold">
               {{ t('decision.title') }}
             </div>
-            <div class="mb-6 mt-4 flex flex-wrap justify-between gap-2">
+            <UTooltip
+              text="Assign yourself to make changes"
+              :prevent="isAssignedToUser"
+              :popper="{
+                arrow: true,
+                placement: 'top',
+                offsetDistance: 16 }"
+              class="mb-6 mt-4 flex flex-wrap justify-between gap-2"
+              :ui="{
+                base: 'p-5'
+              }"
+            >
               <UButton
                 v-for="(button, i) in decisionButtons.filter(btn => !btn.hidden)"
                 :key="'button-' + i"
@@ -222,12 +236,13 @@ onMounted(() => {
                   trailing-icon="i-mdi-chevron-down"
                   variant="outline"
                   data-testid="decision-button-more-actions"
+                  :disabled="!isAssignedToUser"
                 />
               </UDropdown>
-            </div>
+            </UTooltip>
 
             <ApprovalConditions
-              v-if="isApproveDecisionSelected"
+              v-if="isApproveDecisionSelected && isAssignedToUser"
               v-model:conditions="localConditions"
               v-model:custom-condition="customCondition"
               v-model:min-booking-days="minBookingDays"
