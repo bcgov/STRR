@@ -131,7 +131,7 @@ class EmailService:
     @staticmethod
     def send_registration_status_update_email(registration: Registration, email_content=None):
         """Send status update email for a registration."""
-        if registration.status in [RegistrationStatus.CANCELLED] and email_content:
+        if registration.status in [RegistrationStatus.CANCELLED, RegistrationStatus.ACTIVE]:
             try:
                 gcp_queue_publisher.publish_to_queue(
                     gcp_queue_publisher.QueueMessage(
