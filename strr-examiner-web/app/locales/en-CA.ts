@@ -516,8 +516,10 @@ export default {
   },
   decision: {
     title: 'Decision',
+    emailTitle: 'Email to Completing party',
     emailBodyPlaceholder: 'Email to Completing Party',
-    emailBodyIntro: 'Approval Conditions'
+    emailBodyIntro: 'Approval Conditions',
+    noConditionsPlaceholder: 'No conditions added'
   },
   validation: {
     accountName: {
