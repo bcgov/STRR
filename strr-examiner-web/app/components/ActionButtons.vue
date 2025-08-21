@@ -42,7 +42,16 @@ const approveRegistrationAction = () => {
     t('btn.yesApprove'),
     () => {
       closeConfirmActionModal()
-      updateRegistrationStatus(activeReg.value.id, RegistrationStatus.ACTIVE)
+      updateRegistrationStatus(
+        activeReg.value.id,
+        RegistrationStatus.ACTIVE,
+        decisionEmailContent.value,
+        {
+          predefinedConditions: conditions.value,
+          ...(customConditions.value.length > 0 && { customConditions: customConditions.value }),
+          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+        }
+      )
       refreshNuxtData()
     },
     t('btn.cancel')

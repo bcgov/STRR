@@ -114,7 +114,7 @@ const moreActionItems = computed(() =>
 )
 
 const loadExistingConditions = () => {
-  const { predefinedConditions, customConditions } = activeReg.value.conditionsOfApproval || {}
+  const { predefinedConditions, customConditions, minBookingDays: minDays } = activeReg.value.conditionsOfApproval || {}
 
   // load pre-defined conditions
   if (predefinedConditions?.length) {
@@ -124,6 +124,10 @@ const loadExistingConditions = () => {
   // load custom conditions conditions
   if (customConditions?.length) {
     localConditions.value.push(...customConditions)
+  }
+
+  if (minDays) {
+    minBookingDays.value = minDays
   }
 }
 
