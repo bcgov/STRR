@@ -72,7 +72,7 @@ const historyTableColumns = [
             divide: 'divide-none',
             td: {
               base: 'max-w-none first:w-[200px]',
-              padding: 'px-0 py-2'
+              padding: 'px-0 py-0'
             },
             th: {
               base: 'hidden'
@@ -81,9 +81,11 @@ const historyTableColumns = [
           data-testid="history-table"
         >
           <template #createdDate-data="{ row }">
-            {{ dateToString(row.createdDate, 'MMM dd, yyyy', true) }}
-            <span class="mx-3" />
-            {{ dateToString(row.createdDate, 'a', true) }}
+            <div class="py-2">
+              {{ dateToString(row.createdDate, 'MMM dd, yyyy', true) }}
+              <span class="mx-3" />
+              {{ dateToString(row.createdDate, 'a', true) }}
+            </div>
           </template>
           <template #message-data="{ row }">
             <UAccordion
@@ -93,15 +95,15 @@ const historyTableColumns = [
               :class="!row.details && 'italic'"
               :ui="{
                 item: {
-                  base: 'bg-[#F1F3F5] mt-3',
+                  base: 'bg-[#F1F3F5] leading-7 my-3 ml-2 rounded-md',
                   padding: 'p-5'
                 }
               }"
             >
               <template #default="{ open }">
                 <UButton
-                  variant="link"
-                  class="p-0 hover:no-underline"
+                  variant="ghost"
+                  class="w-fit px-2"
                 >
                   <template #leading>
                     <div class="flex items-center gap-1 text-gray-700">
@@ -122,7 +124,10 @@ const historyTableColumns = [
                 </UButton>
               </template>
             </UAccordion>
-            <span v-else>
+            <span
+              v-else
+              class="block p-2"
+            >
               <b>{{ $t(`filingHistoryEvents.${row.eventName}`) }}</b>
               <ConnectI18nHelper
                 v-if="row.idir"
