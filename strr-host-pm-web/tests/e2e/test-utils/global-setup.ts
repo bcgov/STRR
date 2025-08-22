@@ -34,7 +34,7 @@ async function globalSetup () {
     authSetup(
       LoginSource.BCSC,
       'bcsc-user'
-    ),
+    )
     // authSetup(
     //   LoginSource.BCEID,
     //   'bceid-user'

@@ -46,15 +46,16 @@ export async function completeLogin(page: Page, loginMethod: LoginSource) {
 }
 
 export async function chooseAccount(page: Page, loginMethod: LoginSource) {
-  const accountName = 'Use this Account, ' + process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME!
+  const accountNameBCSC = 'Use this Account, ' + process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME!
+  const accountNameBCEID = 'Use this Account, ' + process.env.PLAYWRIGHT_TEST_BCEID_PREMIUM_ACCOUNT_NAME!
 
   await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'load', timeout: 60000 })
   await expect(page.getByTestId('h1')).toContainText('Existing Account Found')
 
   if (loginMethod === LoginSource.BCSC) {
-    await page.getByRole('button', { name: accountName }).click()
+    await page.getByRole('button', { name: accountNameBCSC }).click()
   } else {
-    await page.getByLabel(accountName).click()
+    await page.getByLabel(accountNameBCEID).click()
   }
 }
 
@@ -339,12 +340,10 @@ export const completeStep4 = async (
 export const assertDashboardDetailsView = async (
   page: Page,
   nickname: string,
-  lookupAddress: string | {
-    streetNumber: string;
-    streetName: string;
-    city: string;
-    postalCode: string;
-  },
+  addrNumber: string,
+  addrStreet: string,
+  addrCity: string,
+  addrPostal: string,
   propertyType: string,
   typeOfSpace: string,
   rentalUnitSetupType: string,
@@ -362,7 +361,7 @@ export const assertDashboardDetailsView = async (
   // assert header details
   const detailsHeader = page.getByTestId('connect-details-header')
   await expect(detailsHeader).toContainText(nickname)
-  await assertLookupAddress(detailsHeader, lookupAddress)
+  await assertLookupAddressLong(detailsHeader, addrNumber, addrStreet, addrCity, addrPostal)
   await expect(detailsHeader).toContainText('Pending Approval')
   await expect(detailsHeader.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
 
@@ -374,14 +373,10 @@ export const assertDashboardDetailsView = async (
   // str section
   const strSection = page.locator('section').filter({ hasText: 'Short-Term Rental' }).first()
   await expect(strSection).toContainText(nickname)
-  if (typeof lookupAddress === 'string') {
-    await expect(strSection).toContainText(lookupAddress)
-  } else {
-    await expect(strSection).toContainText(lookupAddress.streetNumber)
-    await expect(strSection).toContainText(lookupAddress.streetName)
-    await expect(strSection).toContainText(lookupAddress.city)
-    await expect(strSection).toContainText(lookupAddress.postalCode)
-  }
+  await expect(strSection).toContainText(addrNumber)
+  await expect(strSection).toContainText(addrStreet)
+  await expect(strSection).toContainText(addrCity)
+  await expect(strSection).toContainText(addrPostal)
   await expect(strSection).toContainText(propertyType)
   await expect(strSection).toContainText(typeOfSpace)
   await expect(strSection).toContainText(rentalUnitSetupType)

@@ -124,7 +124,10 @@ loginMethods.forEach((loginMethod) => {
       await assertDashboardDetailsView(
         page,
         nickname,
-        lookupAddress,
+        addrNumber,
+        addrStreet,
+        addrCity,
+        addrPostal,
         propertyType,
         typeOfSpace,
         rentalUnitSetupType,
