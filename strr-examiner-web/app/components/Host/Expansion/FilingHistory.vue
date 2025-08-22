@@ -81,7 +81,7 @@ const historyTableColumns = [
           data-testid="history-table"
         >
           <template #createdDate-data="{ row }">
-            <div class="py-2">
+            <div class="py-3">
               {{ dateToString(row.createdDate, 'MMM dd, yyyy', true) }}
               <span class="mx-3" />
               {{ dateToString(row.createdDate, 'a', true) }}
@@ -95,7 +95,7 @@ const historyTableColumns = [
               :class="!row.details && 'italic'"
               :ui="{
                 item: {
-                  base: 'bg-[#F1F3F5] leading-7 my-3 ml-2 rounded-md',
+                  base: 'bg-[#F1F3F5] leading-7 my-3 ml-2 rounded-[4px]',
                   padding: 'p-5'
                 }
               }"
@@ -103,7 +103,7 @@ const historyTableColumns = [
               <template #default="{ open }">
                 <UButton
                   variant="ghost"
-                  class="w-fit px-2"
+                  class="mt-1 w-fit px-2"
                 >
                   <template #leading>
                     <div class="flex items-center gap-1 text-gray-700">
@@ -126,7 +126,7 @@ const historyTableColumns = [
             </UAccordion>
             <span
               v-else
-              class="block p-2"
+              class="block px-2 py-3"
             >
               <b>{{ $t(`filingHistoryEvents.${row.eventName}`) }}</b>
               <ConnectI18nHelper

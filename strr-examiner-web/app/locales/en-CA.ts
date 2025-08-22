@@ -336,7 +336,7 @@ export default {
         title: 'Internal Server Error.',
         description: 'Please refresh the page or try again later. If error persists, please contact us.'
       }
-    }, // TODO: other errors???
+    },
     examinerDecisions: {
       enterCustomCondition: 'Enter custom condition (max 256 characters)'
     }
@@ -389,7 +389,8 @@ export default {
     customCondition: 'Custom Condition',
     customConditionShort: 'Custom Cond.',
     addCustomCondition: 'Enter custom condition',
-    minBookingDays: 'Min. number of booking days',
+    minBookingDays: 'Min. booking days',
+    minNumberBookingDays: 'Min. number of booking days',
     noApprovalConditions: 'All conditions removed',
     combobox: {
       select: 'Select',

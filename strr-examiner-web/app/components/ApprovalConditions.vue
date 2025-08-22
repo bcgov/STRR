@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 const { t } = useI18n()
-const { preDefinedConditions } = useExaminerDecision()
+const { preDefinedConditions, isMainActionDisabled } = useExaminerDecision()
 
 const selectedConditions = defineModel<string[]>('conditions', { required: true })
 const customCondition = defineModel<string>('customCondition', { required: true })
@@ -11,7 +11,7 @@ const isCustomConditionOpen = ref(false)
 const customConditionText = ref('') // used to capture custom condition in textarea before updating the custom condition model prop
 const hasCustomConditionError = ref(false)
 const minBookingDaysNum = ref(28)
-const isMinimumBookingDaysOpen = ref(false)
+const isMinBookingDaysOpen = ref(false)
 
 const isSelected = (item: string) => selectedConditions.value.includes(item)
 
@@ -22,8 +22,7 @@ const removeItem = (item: string) => {
     selectedConditions.value.splice(index, 1)
   }
   if (item === 'minBookingDays') {
-    minBookingDays.value = null
-    minBookingDaysNum.value = 28 // reset default value
+    resetMinBookingDays()
   }
 }
 
@@ -49,42 +48,47 @@ const removeCustomCondition = (): void => {
   isCustomConditionOpen.value = false
 }
 
-// label of the badge in the custom conditions select menu
-const getConditionLabel = (item: string) => {
-  return preDefinedConditions.includes(item)
-    ? t(`approvalConditions.${item}`)
-    : t('label.customConditionShort')
-}
-
-const customConditionCount = computed(() =>
+const customConditionCount = computed((): number =>
   selectedConditions.value
-    .filter(condition => !preDefinedConditions.includes(condition))
+    .filter(condition => !(preDefinedConditions.includes(condition) || condition === 'minBookingDays'))
     .length
 )
 
-const isMinBookingDaysSelected = computed((): boolean =>
+const hasMinBookingDaysAdded = computed((): boolean =>
   selectedConditions.value.includes('minBookingDays')
 )
 
+const openMinBookingDays = (): void => {
+  isMinBookingDaysOpen.value = true
+}
+
 const addMinBookingDays = () => {
   minBookingDays.value = minBookingDaysNum.value
-  isMinimumBookingDaysOpen.value = false
+  selectedConditions.value.push('minBookingDays')
+  isMinBookingDaysOpen.value = false
 }
 
 const removeMinBookingDays = (): void => {
-  isMinimumBookingDaysOpen.value = false
+  isMinBookingDaysOpen.value = false
   removeItem('minBookingDays')
+  resetMinBookingDays()
+}
+
+const resetMinBookingDays = () => {
   minBookingDays.value = null
   minBookingDaysNum.value = 28
 }
 
-watch(isMinBookingDaysSelected, (selected) => {
-  if (selected) {
-    isMinimumBookingDaysOpen.value = true
-    removeCustomCondition()
-  } else {
-    isMinimumBookingDaysOpen.value = false
-  }
+// label of the badge in the custom conditions select menu
+const getConditionLabel = (item: string) => {
+  return item === 'minBookingDays' || preDefinedConditions.includes(item)
+    ? t(`approvalConditions.${item}`)
+    : t('label.customConditionShort')
+}
+
+watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
+  // disable main action when Custom Condition or Minimum Booking Days is open
+  isMainActionDisabled.value = isCustomConditionOpen.value || isMinBookingDaysOpen.value
 })
 
 </script>
@@ -156,7 +160,17 @@ watch(isMinBookingDaysSelected, (selected) => {
     <UButton
       variant="ghost"
       class="mt-1"
-      :disabled="isCustomConditionOpen || customConditionCount >= 3 || isMinimumBookingDaysOpen"
+      :disabled="isCustomConditionOpen || isMinBookingDaysOpen || hasMinBookingDaysAdded"
+      data-testid="open-min-book-days-button"
+      @click="openMinBookingDays()"
+    >
+      <UIcon name="i-mdi-add" />
+      {{ t('label.minBookingDays') }}
+    </UButton>
+    <UButton
+      variant="ghost"
+      class="mt-1"
+      :disabled="isCustomConditionOpen || customConditionCount >= 3 || isMinBookingDaysOpen"
       data-testid="open-custom-condition-button"
       @click="openCustomCondition()"
     >
@@ -203,12 +217,12 @@ watch(isMinBookingDaysSelected, (selected) => {
       />
     </div>
     <div
-      v-if="isMinBookingDaysSelected && isMinimumBookingDaysOpen"
+      v-if="isMinBookingDaysOpen"
       class="mt-4 flex w-7/12 gap-x-2 align-bottom"
       data-testid="min-booking-days"
     >
       <UFormGroup
-        :description="t('label.minBookingDays')"
+        :description="t('label.minNumberBookingDays')"
         class="w-8/12"
         :ui="{
           description: 'mb-[5px] text-[#212529]'}

@@ -1,11 +1,11 @@
 // selected action to track the examiner's current intent
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
+const isMainActionDisabled = ref(false)
 
 // list of defined conditions that examiner can select from the list
 const preDefinedConditions: string[] = [
   'principalResidence',
   'validBL',
-  'minBookingDays',
   'class9FarmLand',
   'partOfStrataHotel',
   'fractionalOwnership'
@@ -48,6 +48,7 @@ export const useExaminerDecision = () => {
     showDecisionPanel,
     decisionIntent,
     preDefinedConditions,
+    isMainActionDisabled,
     resetDecision
   }
 }

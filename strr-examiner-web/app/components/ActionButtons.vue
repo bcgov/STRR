@@ -3,7 +3,7 @@ import { refreshNuxtData } from 'nuxt/app'
 import isEqual from 'lodash/isEqual'
 
 const { t } = useI18n()
-const { decisionIntent } = useExaminerDecision()
+const { decisionIntent, isMainActionDisabled } = useExaminerDecision()
 const {
   activeHeader, activeReg, isAssignedToUser,
   conditions,
@@ -281,6 +281,7 @@ const setAside = async () => {
                 ? t('btn.updateApproval') : t(`btn.${selectedAction?.label}`)"
               :color="selectedAction?.color || 'primary'"
               :icon="selectedAction?.icon"
+              :disabled="isMainActionDisabled"
               variant="outline"
               class="max-w-fit px-7 py-3"
               data-testid="main-action-button"
