@@ -6,7 +6,7 @@ import { getH2 } from './getters'
 import { uploadDocuments } from './upload-documents'
 import { assertLookupAddress, assertLookupAddressLong } from './assertion-helpers'
 
-export async function completeLogin (page: Page, loginMethod: LoginSource) {
+export async function completeLogin(page: Page, loginMethod: LoginSource) {
   const baseUrl = process.env.NUXT_BASE_URL!
   const username = loginMethod === LoginSource.BCSC
     ? process.env.PLAYWRIGHT_TEST_BCSC_USERNAME!
@@ -45,16 +45,16 @@ export async function completeLogin (page: Page, loginMethod: LoginSource) {
   await page.waitForURL(baseUrl + '**')
 }
 
-export async function chooseAccount (page: Page, loginMethod: LoginSource) {
-  await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'load', timeout: 60000 })
+export async function chooseAccount(page: Page, loginMethod: LoginSource) {
+  const accountName = 'Use this Account, ' + process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME!
 
+  await page.goto('./en-CA/auth/account/choose-existing', { waitUntil: 'load', timeout: 60000 })
   await expect(page.getByTestId('h1')).toContainText('Existing Account Found')
 
   if (loginMethod === LoginSource.BCSC) {
-    await page.getByRole('button', { name: 'Use this Account, OB1' }).click() // select premium account
+    await page.getByRole('button', { name: accountName }).click()
   } else {
-    const accountName = process.env.PLAYWRIGHT_TEST_BCEID_PREMIUM_ACCOUNT_NAME
-    await page.getByLabel(`Use this Account, ${accountName}`).click() // select premium account
+    await page.getByLabel(accountName).click()
   }
 }
 
@@ -280,7 +280,7 @@ export const completeStep4 = async (
   await expect(strSection).toContainText(nickname)
   //await assertLookupAddress(strSection, lookupAddress) //<-- old add all-in-one field
   //new addr component that is broken out into separate sections
-  await assertLookupAddressLong(strSection,addrNumber,addrStreet,addrCity,addrPostal)
+  await assertLookupAddressLong(strSection, addrNumber, addrStreet, addrCity, addrPostal)
   await expect(strSection).toContainText(propertyType)
   await expect(strSection).toContainText(rentalUnitSetupType)
   await expect(strSection).toContainText(numberOfRooms)
