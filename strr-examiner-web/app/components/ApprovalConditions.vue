@@ -230,8 +230,10 @@ watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
       >
         <UInput
           v-model="minBookingDaysNum"
-          class="h-[60px]"
           type="number"
+          :ui="{
+            form: '!h-[60px]'
+          }"
         />
       </UFormGroup>
       <UButton
