@@ -22,7 +22,7 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   decisionIntent.value = action
   // reset
   localConditions.value = []
-  decisionEmailContent.value = ''
+  decisionEmailContent.value.content = ''
   conditions.value = []
   customConditions.value = null
   minBookingDays.value = null
@@ -168,7 +168,7 @@ watch([localConditions, minBookingDays],
       }
     }
 
-    decisionEmailContent.value = items.join('\n')
+    decisionEmailContent.value.content = items.join('\n')
   }, { deep: true })
 
 watch(customCondition, (val) => {
@@ -253,15 +253,15 @@ onMounted(() => {
               {{ t('decision.emailTitle') }}
             </div>
             <UForm
-              ref="decision"
+              ref="decisionEmailFormRef"
               :schema="sendEmailSchema"
-              :state="decisionEmailFormRef"
+              :state="decisionEmailContent"
               :validate-on="['submit']"
               class="mt-4"
             >
               <UFormGroup name="content">
                 <UTextarea
-                  v-model="decisionEmailContent"
+                  v-model="decisionEmailContent.content"
                   :placeholder="decisionEmailPlaceholder"
                   :aria-label="decisionEmailPlaceholder"
                   data-testid="decision-email"

@@ -38,7 +38,7 @@ export const useExaminerDecision = () => {
 
   const resetDecision = (): void => {
     decisionIntent.value = null
-    decisionEmailContent.value = ''
+    decisionEmailContent.value.content = ''
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null

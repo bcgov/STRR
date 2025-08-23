@@ -28,7 +28,7 @@ const isRegApproved = computed((): boolean =>
 
 const isMainActionButtonVisible = computed((): boolean => {
   if (decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE) {
-    return (conditions.value.length > 0 || !!customConditions.value) && hasDecisionChanges.value
+    return hasDecisionChanges.value
   } else {
     return !!decisionIntent.value && hasDecisionChanges.value
   }
@@ -58,7 +58,7 @@ const approveRegistrationAction = () => {
       updateRegistrationStatus(
         activeReg.value.id,
         RegistrationStatus.ACTIVE,
-        decisionEmailContent.value,
+        decisionEmailContent.value.content,
         {
           predefinedConditions: conditions.value,
           ...(customConditions.value && { customConditions: customConditions.value }),
@@ -81,7 +81,7 @@ const updateApprovalAction = () => {
       updateRegistrationStatus(
         activeReg.value.id,
         RegistrationStatus.ACTIVE,
-        decisionEmailContent.value,
+        decisionEmailContent.value.content,
         {
           predefinedConditions: conditions.value,
           ...(customConditions.value && { customConditions: customConditions.value }),
@@ -104,7 +104,7 @@ const cancelRegistrationAction = () => {
       updateRegistrationStatus(
         activeReg.value.id,
         RegistrationStatus.CANCELLED,
-        decisionEmailContent.value
+        decisionEmailContent.value.content
       )
       refreshNuxtData()
     },
@@ -157,9 +157,9 @@ const sendNoticeAction = () => {
       closeConfirmActionModal()
       sendNoticeOfConsiderationForRegistration(
         activeReg.value.id,
-        decisionEmailContent.value
+        decisionEmailContent.value.content
       )
-      decisionEmailContent.value = ''
+      decisionEmailContent.value.content = ''
       refreshNuxtData()
     }
   )

@@ -518,7 +518,7 @@ export default {
   decision: {
     title: 'Decision',
     emailTitle: 'Email to Completing party',
-    emailBodyPlaceholder: 'Email to Completing Party',
+    emailBodyPlaceholder: 'Enter text here...',
     emailBodyIntro: 'Approval Conditions',
     noConditionsPlaceholder: 'No conditions added'
   },
