@@ -268,6 +268,9 @@ setBreadcrumbs([
       </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
+      <RegistrationTermsConditions
+        v-if="!loading"
+      />
       <ConnectDashboardSection
         id="individuals-business-section"
         data-test-id="individuals-business-section"

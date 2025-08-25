@@ -145,6 +145,8 @@ export default {
       businessLicenseOpt: 'Local Government Business Licence (Optional)',
       businessLicenseDate: 'Business Licence Expiry Date',
       contactIndName: "Contact Individual's Name",
+      registrationStatus: 'Registration Status',
+      termsConditions: 'Terms and Conditions',
       individualsBusinesses: 'Individuals and Businesses',
       listingLinkOpt: 'Listing Link (Optional)',
       numberOfRooms: 'Number of Bedrooms for Rent',
@@ -392,7 +394,8 @@ export default {
     noDocsUploaded: 'No supporting documentation uploaded.',
     bceidSubtext: 'Requires an existing BCeID login account',
     noIndividualsOrBusinesses: 'You don’t have any individuals or businesses listed yet. Select “Add an individual” or “Add a business” above.',
-    ifYouHaveBl: 'If you have a business licence for your short-term rental, add your information here.'
+    ifYouHaveBl: 'If you have a business licence for your short-term rental, add your information here.',
+    complyWithBylaws: 'The host must comply with local government bylaws'
   },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
@@ -507,6 +510,14 @@ export default {
     pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.',
     noticeOfConsideration: 'You have received a Notice of Consideration',
     needsAttention: 'This application requires attention. Open to view details.'
+  },
+  approvalConditionsExpanded: {
+    principalResidence: 'The host must use this unit as their Principal Residence',
+    validBL: 'The host must have a valid business licence',
+    minBookingDays: 'Offers and Bookings must be a minimum amount of {minDays} days',
+    class9FarmLand: 'This Short-Term Rental must maintain a Class 9 Farm Land designation to be exempt from the Principal Residence requirement',
+    partOfStrataHotel: 'This Short-Term Rental must remain part of a Strata Hotel building and to be exempt from the Principal Residence requirement',
+    fractionalOwnership: 'This Short-Term Rental property must remain subject to a Fractional Ownership Agreement to be exempt from the Principal Residence requirement'
   },
   ConnectFeeWidget: {
     feeSummary: {
