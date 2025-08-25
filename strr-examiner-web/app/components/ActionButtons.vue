@@ -28,7 +28,7 @@ const isRegApproved = computed((): boolean =>
 
 const isMainActionButtonVisible = computed((): boolean => {
   if (decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE) {
-    return hasDecisionChanges.value
+    return hasDecisionChanges.value && isAssignedToUser.value
   } else {
     return !!decisionIntent.value && hasDecisionChanges.value && isAssignedToUser.value
   }
