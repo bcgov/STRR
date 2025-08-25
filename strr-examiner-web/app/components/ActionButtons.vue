@@ -20,7 +20,7 @@ const {
 } = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 
-const examinerActions = computed(() => activeHeader.value.examinerActions)
+const examinerActions = computed(() => activeHeader.value?.examinerActions)
 
 const isRegApproved = computed((): boolean =>
   activeReg.value.status === RegistrationStatus.ACTIVE
@@ -30,7 +30,7 @@ const isMainActionButtonVisible = computed((): boolean => {
   if (decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE) {
     return hasDecisionChanges.value
   } else {
-    return !!decisionIntent.value && hasDecisionChanges.value
+    return !!decisionIntent.value && hasDecisionChanges.value && isAssignedToUser.value
   }
 })
 
