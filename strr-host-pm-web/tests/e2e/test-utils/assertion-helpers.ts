@@ -2,7 +2,7 @@ import { expect, type Page } from '@playwright/test'
 
 export const assertLookupAddress = async (
   section: ReturnType<Page['locator']>,
-  lookupAddress: string | {
+  assertAddress: string | {
     streetNumber: string
     streetName: string
     city: string
@@ -10,14 +10,30 @@ export const assertLookupAddress = async (
   },
   assertPostalCode = true
 ) => {
-  if (typeof lookupAddress === 'string') {
-    await expect(section).toContainText(lookupAddress)
+  if (typeof assertAddress === 'string') {
+    await expect(section).toContainText(assertAddress)
   } else {
-    await expect(section).toContainText(lookupAddress.streetNumber)
-    await expect(section).toContainText(lookupAddress.streetName)
-    await expect(section).toContainText(lookupAddress.city)
+    await expect(section).toContainText(assertAddress.streetNumber)
+    await expect(section).toContainText(assertAddress.streetName)
+    await expect(section).toContainText(assertAddress.city)
     if (assertPostalCode) {
-      await expect(section).toContainText(lookupAddress.postalCode)
+      await expect(section).toContainText(assertAddress.postalCode)
     }
   }
+}
+
+export const assertLookupAddressLong = async (
+  section: ReturnType<Page['locator']>,
+  addrNumber: string,
+  addrStreet: string,
+  addrCity: string,
+  addrPostal: string,
+  assertPostalCode = true
+) => {
+    await expect(section).toContainText(addrNumber)
+    await expect(section).toContainText(addrStreet)
+    await expect(section).toContainText(addrCity)
+    if (assertPostalCode) {
+      await expect(section).toContainText(addrPostal)
+    }
 }
