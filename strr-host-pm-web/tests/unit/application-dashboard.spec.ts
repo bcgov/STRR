@@ -242,4 +242,33 @@ describe('Dashboard Application Page', () => {
     // have to assert against the content as there is no other means to unit test it
     expect(individualAndBusinessInfo.text()).toContain('No CRA Tax Number')
   })
+
+  it('renders dashboard with Terms and Conditions', async () => {
+    mockApplication.registration = mockHostRegistration
+
+    wrapper = await mountSuspended(ApplicationDashboard, {
+      global: { plugins: [baseEnI18n] }
+    })
+
+    await wrapper.vm.$forceUpdate()
+
+    const termsConditionsSections = wrapper.find('[data-test-id="reg-terms-conditions"]')
+    expect(termsConditionsSections.exists()).toBe(true)
+
+    const statusBadge = termsConditionsSections.find('[data-test-id="reg-status-badge"]')
+    expect(statusBadge.exists()).toBe(true)
+    expect(statusBadge.text()).toBe('ACTIVE')
+
+    const predefinedTerms = termsConditionsSections.find('[data-test-id="terms-conditions-predefined"]')
+    expect(predefinedTerms.exists()).toBe(true)
+    expect(predefinedTerms.findAll('li').length).toBe(3)
+
+    const customTerms = termsConditionsSections.find('[data-test-id="terms-conditions-custom"]')
+    expect(customTerms.exists()).toBe(true)
+    expect(customTerms.findAll('li').length).toBe(1)
+
+    const alwaysShownTerms = termsConditionsSections.find('[data-test-id="terms-always-shown"]')
+    expect(alwaysShownTerms.exists()).toBe(true)
+    expect(alwaysShownTerms.findAll('li').length).toBe(1)
+  })
 })

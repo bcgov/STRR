@@ -36,6 +36,18 @@ const mockPrimaryContactPerson: ApiHostContactPerson = {
   socialInsuranceNumber: '123 456 789'
 }
 
+const mockConditionsOfApproval: ConditionsOfApproval = {
+  predefinedConditions: [
+    'principalResidence',
+    'validBL',
+    'minBookingDays'
+  ],
+  customConditions: [
+    'Custom Condition 1'
+  ],
+  minBookingDays: 28
+}
+
 export const mockApplication: HostApplicationResp = {
   header: {
     applicationDateTime: new Date('2025-01-01T10:30:00.000000+00:00'),
@@ -52,7 +64,8 @@ export const mockApplication: HostApplicationResp = {
     paymentMethod: ConnectPaymentMethod.PAD,
     paymentStatus: 'COMPLETED',
     paymentToken: 12345,
-    status: ApplicationStatus.FULL_REVIEW
+    status: ApplicationStatus.FULL_REVIEW,
+    isSetAside: null
   },
   registration: {
     documents: mockDocuments,
@@ -181,6 +194,7 @@ export const mockHostRegistration: HostRegistrationResp = {
   },
   documents: mockDocuments,
   listingDetails: [],
+  conditionsOfApproval: mockConditionsOfApproval,
   sbc_account_id: 12345,
   updatedDate: DateTime.utc(2026, 2, 2).toLocal(),
   user_id: 123
