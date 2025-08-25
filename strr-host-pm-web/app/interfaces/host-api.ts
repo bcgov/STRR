@@ -62,6 +62,7 @@ export interface ApiHostApplication {
   strRequirements?: PropertyRequirements
   documents: ApiDocument[]
   listingDetails: string[]
+  conditionsOfApproval?: ConditionsOfApproval
 }
 
 export interface HostApplicationPayload {

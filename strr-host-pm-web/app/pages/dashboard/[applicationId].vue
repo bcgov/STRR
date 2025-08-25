@@ -203,7 +203,7 @@ setBreadcrumbs([
     data-test-id="host-dashboard-page"
     class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10"
   >
-    <div class="grow space-y-10">
+    <div class="flex-1 space-y-10">
       <ConnectDashboardSection
         id="to-do-section"
         data-test-id="todo-section"
@@ -268,6 +268,9 @@ setBreadcrumbs([
       </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
+      <RegistrationTermsConditions
+        v-if="!loading"
+      />
       <ConnectDashboardSection
         id="individuals-business-section"
         data-test-id="individuals-business-section"

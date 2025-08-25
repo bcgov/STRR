@@ -126,7 +126,7 @@ watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
               v-for="(item, index) in selectedConditions"
               :key="index"
               :label="getConditionLabel(item)"
-              class="z-30 float-left flex font-bold uppercase"
+              class="float-left flex font-bold uppercase"
             >
               <template #trailing>
                 <UIcon
