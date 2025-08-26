@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import type { ConditionsOfApproval } from '#imports'
+
 const { t } = useNuxtApp().$i18n
 const { details } = storeToRefs(useConnectDetailsHeaderStore())
 const permitStore = useHostPermitStore()
 const { registration } = storeToRefs(permitStore)
 
-const conditionsOfApproval = computed(() => registration.value?.conditionsOfApproval)
-const { predefinedConditions, customConditions } = conditionsOfApproval.value || {}
+const conditionsOfApproval = computed<ConditionsOfApproval>(() => registration.value?.conditionsOfApproval || {})
+
+const predefinedConditions = computed(() => conditionsOfApproval.value.predefinedConditions)
+const customConditions = computed(() => conditionsOfApproval.value.customConditions)
 
 const statusBadge = computed(() => details.value.at(0))
 
