@@ -2,12 +2,18 @@
 import isEmpty from 'lodash/isEmpty'
 import { ConnectPageSection } from '#components'
 import { useExaminerStore } from '~/stores/examiner'
+import { useExaminerDocumentStore } from '~/stores/document'
 import { useFlags } from '~/composables/useFlags'
 
 const exStore = useExaminerStore()
 const { activeReg, isApplication } = storeToRefs(exStore)
 const { t } = useI18n()
 const alertFlags = reactive(useFlags())
+const { isFeatureEnabled } = useFeatureFlags()
+const isBusinessLicenseDocumentUploadEnabled = isFeatureEnabled('enable-business-license-document-upload')
+
+const docStore = useExaminerDocumentStore()
+const { isPrUploadOpen } = storeToRefs(docStore)
 
 // Principal Residence Requirements:
 const getPrRequired = (): string => {
@@ -76,6 +82,26 @@ const hasBlSection = computed((): boolean =>
   businessLicenseExpiryDate
 )
 
+const needsBusinessLicenseDocumentUpload = computed(() => {
+  if (!isBusinessLicenseDocumentUploadEnabled.value || !activeReg.value) {
+    return false
+  }
+  const jurisdiction = activeReg.value.unitDetails?.jurisdiction
+  const needsBusinessLicense = activeReg.value.status === RegistrationStatus.ACTIVE &&
+    needsBusinessLicenseUpload(
+      jurisdiction,
+      isBusinessLicenseDocumentUploadEnabled.value
+    )
+  return needsBusinessLicense
+})
+
+const shouldShowBlUploadBtnAlerts = computed(() => {
+  if (isApplication.value) {
+    return false
+  }
+  return needsBusinessLicenseDocumentUpload.value
+})
+
 // only BL docs during initial application submission, do not show badges
 const businessLicenseDocumentsConfig: SupportingDocumentsConfig = {
   includeTypes: [DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE],
@@ -130,95 +156,123 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
         </template>
         {{ t('strr.label.strProhibitedAction') }}
       </ApplicationDetailsSection>
+      <div class="grid grid-cols-12 items-start gap-4">
+        <div class="col-span-11 divide-y">
+          <ApplicationDetailsSection
+            v-if="hasBlSection"
+            :label="t('strr.label.businessLicence')"
+            :sub-label="getBlSectionSubLabel()"
+            data-testid="business-lic-section"
+          >
+            <template #icon>
+              <AlertFlag
+                v-if="shouldShowBlUploadBtnAlerts"
+                :tooltip-text="t('alert.businessLicense.title')"
+                data-testid="flag-business-license"
+              />
+            </template>
+            <div class="flex items-start gap-1" :class="{ 'justify-between': shouldShowBlUploadBtnAlerts }">
+              <div class="flex flex-1 flex-col gap-y-2">
+                <div v-if="businessLicenseExemptReason">
+                  <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ businessLicenseExemptReason }}
+                </div>
+                <div class="flex gap-x-8">
+                  <span v-if="businessLicenseNum">
+                    {{ t('strr.label.businessLicenceNumber') }} {{ businessLicenseNum }}
+                  </span>
+                  <span v-if="businessLicenseExpiryDate">
+                    {{ t('strr.label.businessLicenceExpiryDate') }}
+                    {{ dateToString(businessLicenseExpiryDate, 'MMM dd, yyyy') }}
+                  </span>
+                </div>
+                <div>
+                  <SupportingDocuments
+                    class="mb-1 flex flex-wrap gap-y-2"
+                    data-testid="bl-documents"
+                    :config="isApplication ? businessLicenseDocumentsConfig : businessLicenseRegistrationConfig"
+                  />
+                  <SupportingDocuments
+                    class="mb-1 flex flex-wrap gap-y-2"
+                    data-testid="bl-noc-documents"
+                    :config="businessLicenseNocDocumentsConfig"
+                  />
+                </div>
+              </div>
+            </div>
+          </ApplicationDetailsSection>
 
-      <ApplicationDetailsSection
-        v-if="hasBlSection"
-        :label="t('strr.label.businessLicence')"
-        :sub-label="getBlSectionSubLabel()"
-        data-testid="business-lic-section"
-      >
-        <div class="flex gap-x-8">
-          <div v-if="businessLicenseExemptReason">
-            <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ businessLicenseExemptReason }}
-          </div>
-          <span v-if="businessLicenseNum">
-            {{ t('strr.label.businessLicenceNumber') }} {{ businessLicenseNum }}
-          </span>
-          <span v-if="businessLicenseExpiryDate">
-            {{ t('strr.label.businessLicenceExpiryDate') }}
-            {{ dateToString(businessLicenseExpiryDate, 'MMM dd, yyyy') }}
-          </span>
-          <SupportingDocuments
-            class="mb-1 flex flex-wrap gap-y-1"
-            data-testid="bl-documents"
-            :config="isApplication ? businessLicenseDocumentsConfig : businessLicenseRegistrationConfig"
+          <ApplicationDetailsSection
+            :label="t('strr.label.prRequirement')"
+            :sub-label="getPrSectionSubLabel()"
+            data-testid="pr-req-section"
+          >
+            <template #icon>
+              <AlertFlag
+                v-if="(isApplication && alertFlags.isNotSameProperty) || alertFlags.isHostTypeBusiness"
+                data-testid="flag-pr-requirement"
+              />
+            </template>
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex flex-1 flex-col gap-y-2">
+                <div
+                  v-if="prExemptReason || getStrataHotelCategory()"
+                  class="mb-2 flex gap-x-8"
+                >
+                  <span v-if="prExemptReason">
+                    <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ getPrExemptReason(prExemptReason) }}
+                  </span>
+                  <span v-if="getStrataHotelCategory()">
+                    <strong>{{ t('label.strataHotelCategory') }}:</strong> {{ getStrataHotelCategory() }}
+                  </span>
+                </div>
+                <div
+                  v-if="activeReg.documents && !isEmpty(activeReg.documents)"
+                  data-testid="pr-req-documents"
+                >
+                  <SupportingDocuments
+                    class="mb-1 flex flex-wrap gap-y-2"
+                    data-testid="initial-app-documents"
+                    :config="isApplication ? applicationDocumentsConfig : registrationDocumentsConfig"
+                  />
+                  <SupportingDocuments
+                    class="flex flex-wrap gap-y-2"
+                    data-testid="noc-documents"
+                    :config="nocDocumentsConfig"
+                  />
+                </div>
+                <div
+                  v-if="hasPRFlags"
+                  class="w-full space-y-5"
+                >
+                  <div
+                    v-if="isApplication && alertFlags.isNotSameProperty"
+                    class="font-bold text-red-600"
+                  >
+                    {{ t('strr.alertFlags.notSameProperty') }}
+                  </div>
+                  <div
+                    v-if="alertFlags.isHostTypeBusiness"
+                    class="font-bold text-red-600"
+                  >
+                    {{ t('strr.alertFlags.hostIsBusiness') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ApplicationDetailsSection>
+        </div>
+        <div class="col-span-1 flex justify-end">
+          <UButton
+            v-if="!isApplication"
+            label="Add Document"
+            variant="outline"
+            size="sm"
+            data-testid="add-pr-doc-btn"
+            :disabled="isPrUploadOpen"
+            @click="docStore.openPrUpload()"
           />
         </div>
-
-        <SupportingDocuments
-          class="mb-1 flex flex-wrap gap-y-1"
-          data-testid="bl-noc-documents"
-          :config="businessLicenseNocDocumentsConfig"
-        />
-      </ApplicationDetailsSection>
-
-      <ApplicationDetailsSection
-        :label="t('strr.label.prRequirement')"
-        :sub-label="getPrSectionSubLabel()"
-        data-testid="pr-req-section"
-      >
-        <template #icon>
-          <AlertFlag
-            v-if="(isApplication && alertFlags.isNotSameProperty) || alertFlags.isHostTypeBusiness"
-            data-testid="flag-pr-requirement"
-          />
-        </template>
-        <div class="flex">
-          <div
-            v-if="prExemptReason || getStrataHotelCategory()"
-            class="mb-2 flex gap-x-8"
-          >
-            <span v-if="prExemptReason">
-              <strong>{{ t('strr.label.exemptionReason') }}</strong> {{ getPrExemptReason(prExemptReason) }}
-            </span>
-            <span v-if="getStrataHotelCategory()">
-              <strong>{{ t('label.strataHotelCategory') }}:</strong> {{ getStrataHotelCategory() }}
-            </span>
-          </div>
-          <div
-            v-if="activeReg.documents && !isEmpty(activeReg.documents)"
-            data-testid="pr-req-documents"
-          >
-            <SupportingDocuments
-              class="mb-1 flex gap-y-1"
-              data-testid="initial-app-documents"
-              :config="isApplication ? applicationDocumentsConfig : registrationDocumentsConfig"
-            />
-            <SupportingDocuments
-              class="flex flex-wrap gap-y-1"
-              data-testid="noc-documents"
-              :config="nocDocumentsConfig"
-            />
-          </div>
-          <div
-            v-if="hasPRFlags"
-            class="w-full space-y-5"
-          >
-            <div
-              v-if="isApplication && alertFlags.isNotSameProperty"
-              class="font-bold text-red-600"
-            >
-              {{ t('strr.alertFlags.notSameProperty') }}
-            </div>
-            <div
-              v-if="alertFlags.isHostTypeBusiness"
-              class="font-bold text-red-600"
-            >
-              {{ t('strr.alertFlags.hostIsBusiness') }}
-            </div>
-          </div>
-        </div>
-      </ApplicationDetailsSection>
+      </div>
     </div>
   </ConnectPageSection>
 </template>

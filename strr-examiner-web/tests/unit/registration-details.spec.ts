@@ -50,6 +50,18 @@ vi.mock('@/stores/examiner', () => ({
   })
 }))
 
+vi.mock('@/stores/document', () => ({
+  useExaminerDocumentStore: () => ({
+    isPrUploadOpen: ref(false),
+    isBlUploadOpen: ref(false),
+    selectedDocType: ref(undefined),
+    openPrUpload: vi.fn(),
+    openBlUpload: vi.fn(),
+    closeUpload: vi.fn(),
+    addDocumentToRegistration: vi.fn().mockResolvedValue({})
+  })
+}))
+
 mockNuxtImport('useConnectLaunchdarklyStore', () => {
   return () => ({
     getStoredFlag: vi.fn().mockReturnValue(true)

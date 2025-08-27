@@ -14,6 +14,9 @@ export default {
     },
     prExempt: {
       title: "Short-term rentals are allowed in any of the host's properties."
+    },
+    businessLicense: {
+      title: 'Upload Business License - 21 local governments require valid business license'
     }
   },
   feeSummary: {
@@ -47,7 +50,7 @@ export default {
         STRATA_GUEST_SUITE: 'Strata corporation guest suite'
       },
       docType: {
-        BC_DRIVERS_LICENCE: "BC Driver's Licence",
+        BC_DRIVERS_LICENSE: "BC Driver's Licence",
         PROPERTY_ASSESSMENT_NOTICE: 'Property Assessment Notice',
         SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax Confirmation',
         HOG_DECLARATION: 'Home Owner Grant declaration',
@@ -57,13 +60,14 @@ export default {
         UTILITY_BILL: 'Utility Bill',
         GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE: 'Government or Crown Corporation Official Notice',
         TENANCY_AGREEMENT: 'Tenancy Agreement',
-        RENT_RECEIPT_OR_BANK_STATEMENT: 'Rent Receipt or Bank Statement',
-        LOCAL_GOVT_BUSINESS_LICENSE: 'Local Government Business License',
+        RENT_RECEIPT_OR_BANK_STATEMENT: 'Notice of Rent Increase',
+        LOCAL_GOVT_BUSINESS_LICENSE: 'Local Government Business Licence',
         OTHERS: 'Other Proof Document (subject to review by registry staff)',
         STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
         FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
         BCSC: 'British Columbia Services Card',
-        COMBINED_BCSC_LICENCE: 'Combined BC Driver’s Licence and Services Card'
+        COMBINED_BCSC_LICENSE: 'Combined BC Driver’s Licence and Services Card',
+        undefined: 'N/A'
       },
       editAddress: {
         unitNumber: 'Unit Number',
@@ -206,7 +210,8 @@ export default {
       unAssign: 'Yes, Unassign Them',
       acknowledgeError: 'Close',
       editRentalUnit: 'Edit Rental Unit',
-      setAside: 'SET ASIDE'
+      setAside: 'SET ASIDE',
+      fileUpload: 'File Upload'
     },
     text: {
       applicationMustInclude: 'Your application must include the following:',
@@ -253,6 +258,9 @@ export default {
       notSameProperty: "Unit not on the same property as host's principal residence",
       exceedsRegistrationLimit: 'More than 2 Registrations'
     }
+  },
+  text: {
+    uploadReqDocs: 'Upload documentation for this registration.'
   },
   btn: {
     view: 'View',

@@ -68,6 +68,18 @@ vi.mock('@/stores/examiner', () => ({
   })
 }))
 
+vi.mock('@/stores/document', () => ({
+  useExaminerDocumentStore: () => ({
+    isPrUploadOpen: ref(false),
+    isBlUploadOpen: ref(false),
+    selectedDocType: ref(undefined),
+    openPrUpload: vi.fn(),
+    openBlUpload: vi.fn(),
+    closeUpload: vi.fn(),
+    addDocumentToRegistration: vi.fn().mockResolvedValue({})
+  })
+}))
+
 vi.mock('@/composables/useHostExpansion', () => ({
   useHostExpansion: () => ({
     toggleFilingHistory: () => {
@@ -151,10 +163,9 @@ describe('Examiner - Host Application Details Page', () => {
     expect(hostSupportingInfo.findTestId('open-business-lic-btn-0').exists()).toBe(true)
     expect(hostSupportingInfo.findTestId('business-lic-section').text())
       .toContain(mockHostApplication.registration.unitDetails!.businessLicense)
-    expect(hostSupportingInfo.findTestId('business-lic-section').findAllComponents(UButton).length).toBe(1)
     expect(hostSupportingInfo.findTestId('pr-req-section').exists()).toBe(true)
     expect(hostSupportingInfo.findTestId('pr-req-documents').exists()).toBe(true)
-    expect(hostSupportingInfo.findTestId('pr-req-documents').findAllComponents(UButton).length).toBe(1)
+    expect(hostSupportingInfo.findTestId('add-pr-doc-btn').exists()).toBe(false)
   })
 
   it('opens document in new tab when business license button is clicked', async () => {

@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { ApiHostApplication, HostApplicationResp, HostRegistrationResp } from '~/interfaces/host-api'
 import { formatHostUnitAddressUI, formatHostUnitDetailsUI } from '~/utils/host-formatting'
-import { needsBusinessLicenseUpload } from '~/utils/businessLicenseHelper'
 
 export const useHostPermitStore = defineStore('host/permit', () => {
   const ownerStore = useHostOwnerStore()

@@ -220,6 +220,7 @@ watch(
           <RegistrationInfoHeader />
         </template>
       </ApplicationDetailsView>
+      <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
       <DecisionPanel />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
