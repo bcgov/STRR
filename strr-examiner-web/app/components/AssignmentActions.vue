@@ -68,3 +68,7 @@ watch([() => activeHeader.value, () => isAssignedToUser.value], () => {
   updateAssignmentButtons()
 }, { immediate: true })
 </script>
+
+<template>
+  <div />
+</template>

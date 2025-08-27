@@ -56,7 +56,7 @@ const decisionButtons = [
     action: ApplicationActionsE.APPROVE,
     label: t('btn.approve'),
     color: 'green',
-    activeClass: 'bg-green-100',
+    activeClass: 'bg-[#E8F5E9] text-[#212529] hover:bg-white',
     icon: 'i-mdi-check',
     disabled: !enableApproveButton.value
   },
@@ -64,7 +64,7 @@ const decisionButtons = [
     action: ApplicationActionsE.SEND_NOC,
     label: t('btn.sendNotice'),
     color: 'blue',
-    activeClass: 'bg-blue-100',
+    activeClass: 'bg-[#E4EDF7] text-[#212529] hover:bg-white',
     icon: 'i-mdi-send',
     disabled: !activeHeader.value.examinerActions.includes(ApplicationActionsE.SEND_NOC)
   },
@@ -72,7 +72,7 @@ const decisionButtons = [
     action: ApplicationActionsE.REJECT,
     label: t('btn.decline'),
     color: 'red',
-    activeClass: 'bg-red-100',
+    activeClass: 'bg-[#FAE9E9] text-[#212529] hover:bg-white',
     icon: 'i-mdi-close',
     disabled: !activeHeader.value.examinerActions.includes(ApplicationActionsE.REJECT),
     hidden: !isApplication.value
@@ -81,7 +81,7 @@ const decisionButtons = [
     action: RegistrationActionsE.CANCEL,
     label: t('btn.cancel'),
     color: 'red',
-    activeClass: 'bg-red-100',
+    activeClass: 'bg-[#FAE9E9] text-[#212529] hover:bg-white',
     icon: 'i-mdi-close',
     disabled: !activeHeader.value.examinerActions.includes(RegistrationActionsE.CANCEL),
     hidden: isApplication.value
@@ -182,8 +182,8 @@ onMounted(() => {
   resetDecision()
   if (activeReg.value.status === RegistrationStatus.ACTIVE) {
     setDecisionIntent(ApplicationActionsE.APPROVE)
+    loadExistingConditions() // requirement: load conditions only for active registrations
   }
-  loadExistingConditions()
 })
 
 </script>
@@ -216,7 +216,7 @@ onMounted(() => {
               <UButton
                 v-for="(button, i) in decisionButtons.filter(btn => !btn.hidden)"
                 :key="'button-' + i"
-                class="h-[44px] grow justify-center"
+                class="h-[44px] grow justify-center text-base"
                 :class="decisionIntent === button.action && button.activeClass"
                 :color="button.color || 'primary'"
                 :disabled="button.disabled || !isAssignedToUser"
@@ -224,6 +224,14 @@ onMounted(() => {
                 :label="button.label"
                 variant="outline"
                 :data-testid="`decision-button-${button.action.toLocaleLowerCase()}`"
+                size="md"
+                :ui="{
+                  icon: {
+                    size: {
+                      md: 'h-6 w-6'
+                    }
+                  }
+                }"
                 @click="setDecisionIntent(button.action)"
               />
               <UDropdown
@@ -232,7 +240,8 @@ onMounted(() => {
               >
                 <UButton
                   :label="t('btn.moreActions')"
-                  class="h-[44px] px-5"
+                  class="h-[44px] px-5 text-base"
+                  color="blue"
                   trailing-icon="i-mdi-chevron-down"
                   variant="outline"
                   data-testid="decision-button-more-actions"

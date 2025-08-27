@@ -20,7 +20,7 @@ const {
 } = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 
-const examinerActions = computed(() => activeHeader.value?.examinerActions)
+const isSetAside = computed((): boolean => activeHeader.value?.examinerActions.includes(ApplicationActionsE.SET_ASIDE))
 
 const isRegApproved = computed((): boolean =>
   activeReg.value.status === RegistrationStatus.ACTIVE
@@ -244,7 +244,7 @@ const setAside = async () => {
         <div>
           <div class="flex justify-center gap-4 md:justify-start">
             <UButton
-              v-if="examinerActions.includes(ApplicationActionsE.SET_ASIDE)"
+              v-if="isSetAside"
               :label="t('btn.setAside')"
               variant="outline"
               icon="i-mdi-rotate-left"
