@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7a7f2bed-bf9c-4a11-a28a-a653151bd0f4",
+		"_postman_id": "fd8c0104-07ea-4030-bfb6-a6a1c3f4cdaf",
 		"name": "strr-api",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31792407"
@@ -51,6 +51,66 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"header\": {\n        \"paymentMethod\": \"DIRECT_PAY\"\n    },\n    \"registration\": {\n        \"registrationType\": \"HOST\",\n        \"primaryContact\": {\n            \"firstName\": \"The\",\n            \"middleName\": \"First\",\n            \"lastName\": \"Guy\",\n            \"dateOfBirth\": \"1986-10-23\",\n            \"preferredName\": \"Mickey\",\n            \"phoneCountryCode\": \"001\",\n            \"phoneNumber\": \"604-999-9999\",\n            \"extension\": \"x64\",\n            \"faxNumber\": \"604-777-7777\",\n            \"emailAddress\": \"test@test.test\",\n            \"socialInsuranceNumber\":\"123 222 333\",\n            \"mailingAddress\": {\n                \"country\": \"CA\",\n                \"address\": \"12766 227st\",\n                \"addressLineTwo\": \"\",\n                \"city\": \"MAPLE RIDGE\",\n                \"province\": \"BC\",\n                \"postalCode\": \"V2X 6K6\"\n            }\n        },\n        \"secondaryContact\": {\n            \"firstName\": \"The\",\n            \"middleName\": \"Other\",\n            \"lastName\": \"Guy\",\n            \"dateOfBirth\": \"1986-10-23\",\n            \"preferredName\": \"Mouse\",\n            \"phoneCountryCode\": \"001\",\n            \"phoneNumber\": \"604-888-8888\",\n            \"extension\": \"\",\n            \"faxNumber\": \"\",\n            \"emailAddress\": \"test2@test.test\",\n            \"mailingAddress\": {\n                \"country\": \"CA\",\n                \"address\": \"12766 227st\",\n                \"addressLineTwo\": \"\",\n                \"city\": \"MAPLE RIDGE\",\n                \"province\": \"BC\",\n                \"postalCode\": \"V2X 6K6\"\n            }\n        },\n        \"unitAddress\": {\n            \"nickname\": \"My Rental Property\",\n            \"country\": \"CA\",\n            \"unitNumber\": \"\",\n            \"streetNumber\": \"12166\",\n            \"streetName\": \"GREENWELL ST MAPLE RIDGE\",\n            \"addressLineTwo\": \"\",\n            \"city\": \"MAPLE RIDGE\",\n            \"province\": \"BC\",\n            \"postalCode\": \"V2X 7N1\"\n        },\n        \"strRequirements\": {\n            \"isBusinessLicenceRequired\": false,\n            \"isPrincipalResidenceRequired\": true,\n            \"isStrProhibited\": false,\n            \"isStraaExempt\": null,\n            \"organizationNm\": \"City of Maple Ridge\"\n        },\n        \"unitDetails\": {\n            \"parcelIdentifier\": \"000-460-991\",\n            \"businessLicense\": \"7777777\",\n            \"businessLicenseExpiryDate\": \"2025-01-01\",\n            \"propertyType\": \"SINGLE_FAMILY_HOME\",\n            \"ownershipType\": \"OWN\",\n            \"rentalUnitSpaceType\": \"ENTIRE_HOME\",\n            \"hostResidence\": \"SAME_UNIT\",\n            \"isUnitOnPrincipalResidenceProperty\": true,\n            \"numberOfRoomsForRent\": 1,\n            \"strataHotelCategory\": \"MULTI_UNIT_NON_PR\",\n            \"blExemptReason\": \"This short-term rental does not offer bookings of under 30 days\",\n            \"prExemptReason\": \"FRACTIONAL_OWNERSHIP\"\n        },\n        \"listingDetails\": [\n            {\n                \"url\": \"https://www.airbnb.ca/rooms/26359027\"\n            }\n        ],\n        \"documents\": [\n            {\n                \"fileName\": \"Drivers License\",\n                \"fileType\": \"pdf\",\n                \"fileKey\": \"a1234\",\n                \"documentType\": \"BC_DRIVERS_LICENSE\"\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_url}}/applications",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create host renewal application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.environment.set(\"application_number\",jsonData.header.applicationNumber)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"header\": {\n        \"paymentMethod\": \"DIRECT_PAY\",\n        \"registrationId\": 123,\n        \"applicationType\": \"renewal\"\n    },\n    \"registration\": {\n        \"registrationType\": \"HOST\",\n        \"primaryContact\": {\n            \"firstName\": \"The\",\n            \"middleName\": \"First\",\n            \"lastName\": \"Guy\",\n            \"dateOfBirth\": \"1986-10-23\",\n            \"preferredName\": \"Mickey\",\n            \"phoneCountryCode\": \"001\",\n            \"phoneNumber\": \"604-999-9999\",\n            \"extension\": \"x64\",\n            \"faxNumber\": \"604-777-7777\",\n            \"emailAddress\": \"test@test.test\",\n            \"socialInsuranceNumber\": \"123 222 333\",\n            \"mailingAddress\": {\n                \"country\": \"CA\",\n                \"address\": \"12766 227st\",\n                \"addressLineTwo\": \"\",\n                \"city\": \"MAPLE RIDGE\",\n                \"province\": \"BC\",\n                \"postalCode\": \"V2X 6K6\"\n            }\n        },\n        \"secondaryContact\": {\n            \"firstName\": \"The\",\n            \"middleName\": \"Other\",\n            \"lastName\": \"Guy\",\n            \"dateOfBirth\": \"1986-10-23\",\n            \"preferredName\": \"Mouse\",\n            \"phoneCountryCode\": \"001\",\n            \"phoneNumber\": \"604-888-8888\",\n            \"extension\": \"\",\n            \"faxNumber\": \"\",\n            \"emailAddress\": \"test2@test.test\",\n            \"mailingAddress\": {\n                \"country\": \"CA\",\n                \"address\": \"12766 227st\",\n                \"addressLineTwo\": \"\",\n                \"city\": \"MAPLE RIDGE\",\n                \"province\": \"BC\",\n                \"postalCode\": \"V2X 6K6\"\n            }\n        },\n        \"unitAddress\": {\n            \"nickname\": \"My Rental Property\",\n            \"country\": \"CA\",\n            \"unitNumber\": \"\",\n            \"streetNumber\": \"12166\",\n            \"streetName\": \"GREENWELL ST MAPLE RIDGE\",\n            \"addressLineTwo\": \"\",\n            \"city\": \"MAPLE RIDGE\",\n            \"province\": \"BC\",\n            \"postalCode\": \"V2X 7N1\"\n        },\n        \"strRequirements\": {\n            \"isBusinessLicenceRequired\": false,\n            \"isPrincipalResidenceRequired\": true,\n            \"isStrProhibited\": false,\n            \"isStraaExempt\": null,\n            \"organizationNm\": \"City of Maple Ridge\"\n        },\n        \"unitDetails\": {\n            \"parcelIdentifier\": \"000-460-991\",\n            \"businessLicense\": \"7777777\",\n            \"businessLicenseExpiryDate\": \"2025-01-01\",\n            \"propertyType\": \"SINGLE_FAMILY_HOME\",\n            \"ownershipType\": \"OWN\",\n            \"rentalUnitSpaceType\": \"ENTIRE_HOME\",\n            \"hostResidence\": \"SAME_UNIT\",\n            \"isUnitOnPrincipalResidenceProperty\": true,\n            \"numberOfRoomsForRent\": 1,\n            \"strataHotelCategory\": \"MULTI_UNIT_NON_PR\",\n            \"blExemptReason\": \"This short-term rental does not offer bookings of under 30 days\",\n            \"prExemptReason\": \"FRACTIONAL_OWNERSHIP\"\n        },\n        \"listingDetails\": [\n            {\n                \"url\": \"https://www.airbnb.ca/rooms/26359027\"\n            }\n        ],\n        \"documents\": [\n            {\n                \"fileName\": \"Drivers License\",\n                \"fileType\": \"pdf\",\n                \"fileKey\": \"a1234\",\n                \"documentType\": \"BC_DRIVERS_LICENSE\"\n            }\n        ]\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"

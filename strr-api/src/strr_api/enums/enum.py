@@ -134,6 +134,7 @@ class ApplicationType(Enum):
     """STRR Application Types."""
 
     REGISTRATION = "registration"
+    RENEWAL = "renewal"
 
 
 class RegistrationType(Enum):

@@ -105,6 +105,7 @@ class ApplicationService:
     def save_application(account_id: int, request_json: dict, application: Application) -> Application:
         """Saves an application to db."""
         user = UserService.get_or_create_user_in_context()
+        application_type = request_json.get("header", {}).get("applicationType")
         if not application:
             application = Application()
             application.registration_type = request_json.get("registration").get("registrationType")
@@ -112,8 +113,10 @@ class ApplicationService:
         application.payment_account = account_id
         application.submitter_id = user.id
         application.application_date = datetime.now(timezone.utc)
-        application.type = ApplicationType.REGISTRATION.value
+        application.type = application_type or ApplicationType.REGISTRATION.value
         application.application_json = request_json
+        if application_type == ApplicationType.RENEWAL.value:
+            application.registration_id = request_json.get("header", {}).get("registrationId")
         application.save()
         return application
 
