@@ -86,12 +86,12 @@ const needsBusinessLicenseDocumentUpload = computed(() => {
   if (!isBusinessLicenseDocumentUploadEnabled.value || !activeReg.value) {
     return false
   }
+  if (activeReg.value.status !== RegistrationStatus.ACTIVE) {
+    return false
+  }
   const jurisdiction = activeReg.value.unitDetails?.jurisdiction
   const needsBusinessLicense = activeReg.value.status === RegistrationStatus.ACTIVE &&
-    needsBusinessLicenseUpload(
-      jurisdiction,
-      isBusinessLicenseDocumentUploadEnabled.value
-    )
+    needsBusinessLicenseUpload(jurisdiction)
   return needsBusinessLicense
 })
 

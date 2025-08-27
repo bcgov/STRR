@@ -45,10 +45,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     const jurisdiction = registration.value.unitDetails?.jurisdiction
 
     const needsBusinessLicense = registration.value.status === RegistrationStatus.ACTIVE &&
-      needsBusinessLicenseUpload(
-        jurisdiction,
-        isBusinessLicenseDocumentUploadEnabled.value
-      )
+      needsBusinessLicenseUpload(jurisdiction)
     return needsBusinessLicense
   })
 
@@ -65,7 +62,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
 
     const jurisdiction = applicationData.registration.strRequirements?.organizationNm
 
-    return needsBusinessLicenseUpload(jurisdiction, isBusinessLicenseDocumentUploadEnabled.value)
+    return needsBusinessLicenseUpload(jurisdiction)
   }
 
   // load Registration into application form (e.g. used for Renewals)
