@@ -56,7 +56,7 @@ const decisionButtons = [
     action: ApplicationActionsE.APPROVE,
     label: t('btn.approve'),
     color: 'green',
-    selected: 'bg-str-bgGreen text-str-textGray hover:bg-white',
+    activeStyle: 'bg-str-bgGreen text-str-textGray hover:bg-white',
     icon: 'i-mdi-check',
     disabled: !enableApproveButton.value
   },
@@ -64,7 +64,7 @@ const decisionButtons = [
     action: ApplicationActionsE.SEND_NOC,
     label: t('btn.sendNotice'),
     color: 'blue',
-    selected: 'bg-str-bgBlue text-str-textGray hover:bg-white',
+    activeStyle: 'bg-str-bgBlue text-str-textGray hover:bg-white',
     icon: 'i-mdi-send',
     disabled: !activeHeader.value.examinerActions.includes(ApplicationActionsE.SEND_NOC)
   },
@@ -72,7 +72,7 @@ const decisionButtons = [
     action: ApplicationActionsE.REJECT,
     label: t('btn.decline'),
     color: 'red',
-    selected: 'bg-str-bgRed text-str-textGray hover:bg-white',
+    activeStyle: 'bg-str-bgRed text-str-textGray hover:bg-white',
     icon: 'i-mdi-close',
     disabled: !activeHeader.value.examinerActions.includes(ApplicationActionsE.REJECT),
     hidden: !isApplication.value
@@ -81,7 +81,7 @@ const decisionButtons = [
     action: RegistrationActionsE.CANCEL,
     label: t('btn.cancel'),
     color: 'red',
-    selected: 'bg-str-bgRed text-str-textGray hover:bg-white',
+    activeStyle: 'bg-str-bgRed text-str-textGray hover:bg-white',
     icon: 'i-mdi-close',
     disabled: !activeHeader.value.examinerActions.includes(RegistrationActionsE.CANCEL),
     hidden: isApplication.value
@@ -217,7 +217,7 @@ onMounted(() => {
                 v-for="(button, i) in decisionButtons.filter(btn => !btn.hidden)"
                 :key="'button-' + i"
                 class="h-[44px] grow justify-center text-base"
-                :class="decisionIntent === button.action && button.selected"
+                :class="decisionIntent === button.action && button.activeStyle"
                 :color="button.color || 'primary'"
                 :disabled="button.disabled || !isAssignedToUser"
                 :icon="button.icon || ''"
