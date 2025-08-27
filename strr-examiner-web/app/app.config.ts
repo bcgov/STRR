@@ -49,6 +49,29 @@ export default defineAppConfig({
   },
   ui: {
     button: {
+      color: {
+        green: {
+          outline:
+            'ring-0 border border-str-green text-str-green ' + // default
+            'hover:bg-white hover:ring-str-green hover:text-str-textGray ' + // hover
+            'disabled:opacity-50 disabled:hover:text-str-green ' + // disabled
+            'focus-visible:outline-2 focus-visible:outline-primary-500 ' // focus
+        },
+        blue: {
+          outline:
+            'ring-0 border border-str-blue text-str-blue ' + // default
+            'hover:bg-white hover:ring-str-blue hover:text-str-textGray ' + // hover
+            'disabled:opacity-50 disabled:hover:text-str-blue ' + // disabled
+            'focus-visible:outline-2 focus-visible:outline-primary-500 ' // focus
+        },
+        red: {
+          outline:
+            'ring-0 border border-str-red text-str-red ' + // default
+            'hover:bg-white hover:ring-str-red hover:text-str-textGray ' + // hover
+            'disabled:opacity-50 disabled:hover:text-str-red ' + // disabled
+            'focus-visible:outline-2 focus-visible:outline-primary-500 ' // focus
+        }
+      },
       variant: {
         select_menu_trigger: 'border-gray-700 focus-visible:border-primary-500 bg-gray-100 hover:bg-gray-200 border-b-[1px] focus-visible:border-b-2 focus:ring-0 h-[42px] rounded-t-m rounded-b-none',
         combobox: 'bg-[#F1F3F5] hover:bg-gray-200 border-b-[1px] rounded-none rounded-t-md'

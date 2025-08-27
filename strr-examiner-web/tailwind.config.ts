@@ -9,6 +9,15 @@ module.exports = {
         bcGovInput: '600px'
       },
       colors: {
+        str: {
+          green: '#18691C',
+          bgGreen: '#E8F5E9',
+          blue: '#38598A',
+          bgBlue: '#E4EDF7',
+          red: '#D3272C',
+          bgRed: '#FAE9E9',
+          textGray: '#212529'
+        },
         green: {
           50: '#f2fbf4',
           100: '#e2f6e6',

@@ -187,7 +187,7 @@ watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
         :error="hasCustomConditionError && t('error.examinerDecisions.enterCustomCondition')"
         class="w-9/12"
         :ui="{
-          description: 'mb-[5px] text-[#212529]'}
+          description: 'mb-[5px] text-str-textGray'}
         "
       >
         <UTextarea
@@ -225,7 +225,7 @@ watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
         :description="t('label.minNumberBookingDays')"
         class="w-8/12"
         :ui="{
-          description: 'mb-[5px] text-[#212529]'}
+          description: 'mb-[5px] text-str-textGray'}
         "
       >
         <UInput
