@@ -28,16 +28,6 @@ export const AFFECTED_MUNICIPALITIES = [
 ]
 
 /**
- * Check if registration is in an affected municipality that requires business license upload
- * @param jurisdiction - The jurisdiction/municipality name from registration
- * @returns boolean indicating if business license upload is required
- */
-export const isAffectedMunicipality = (jurisdiction?: string): boolean => {
-  if (!jurisdiction) { return false }
-  return AFFECTED_MUNICIPALITIES.includes(jurisdiction)
-}
-
-/**
  * Check if registration needs business license document upload
  * @param jurisdiction - The jurisdiction from registration response
  * @returns boolean indicating if business license upload should be shown
@@ -45,5 +35,6 @@ export const isAffectedMunicipality = (jurisdiction?: string): boolean => {
 export const needsBusinessLicenseUpload = (
   jurisdiction?: string
 ): boolean => {
-  return isAffectedMunicipality(jurisdiction)
+  if (!jurisdiction) { return false }
+  return AFFECTED_MUNICIPALITIES.includes(jurisdiction)
 }
