@@ -40,12 +40,10 @@ export const isAffectedMunicipality = (jurisdiction?: string): boolean => {
 /**
  * Check if registration needs business license document upload
  * @param jurisdiction - The jurisdiction from registration response
- * @param isFeatureEnabled - Whether the feature flag is enabled
  * @returns boolean indicating if business license upload should be shown
  */
 export const needsBusinessLicenseUpload = (
-  jurisdiction?: string,
-  isFeatureEnabled = false
+  jurisdiction?: string
 ): boolean => {
-  return isFeatureEnabled && isAffectedMunicipality(jurisdiction)
+  return isAffectedMunicipality(jurisdiction)
 }
