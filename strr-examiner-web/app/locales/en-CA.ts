@@ -667,7 +667,8 @@ export default {
     APPLICATION_DECISION_SET_ASIDE: 'Decision set aside',
     REGISTRATION_DECISION_SET_ASIDE: 'Registration set aside',
     REGISTRATION_REINSTATED: 'Registration approved',
-    CONDITIONS_OF_APPROVAL_UPDATED: 'Registration - Updated conditions of approval'
+    CONDITIONS_OF_APPROVAL_UPDATED: 'Registration - Updated conditions of approval',
+    REGISTRATION_DOCUMENT_UPLOADED: 'Registration document uploaded'
   },
   approvalConditions: {
     principalResidence: 'Principal Residence',
