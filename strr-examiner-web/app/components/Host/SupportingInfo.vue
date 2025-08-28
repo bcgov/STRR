@@ -268,11 +268,13 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
             </div>
           </ApplicationDetailsSection>
         </div>
-        <div class="col-span-1 flex justify-end">
+        <div
+          v-if="!isApplication &&
+            (activeReg?.status === RegistrationStatus.ACTIVE ||
+              activeReg?.status === RegistrationStatus.SUSPENDED)"
+          class="col-span-1 flex justify-end"
+        >
           <UButton
-            v-if="!isApplication &&
-              (activeReg?.status === RegistrationStatus.ACTIVE ||
-                activeReg?.status === RegistrationStatus.SUSPENDED)"
             label="Add Document"
             variant="outline"
             size="sm"
