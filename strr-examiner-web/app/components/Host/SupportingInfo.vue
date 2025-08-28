@@ -158,7 +158,9 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
       </ApplicationDetailsSection>
       <div class="grid grid-cols-12 items-start gap-4">
         <div
-          :class="!isApplication && activeReg?.status === RegistrationStatus.ACTIVE
+          :class="!isApplication &&
+            (activeReg?.status === RegistrationStatus.ACTIVE ||
+              activeReg?.status === RegistrationStatus.SUSPENDED)
             ? 'col-span-11'
             : 'col-span-12'"
           class="divide-y"
@@ -268,7 +270,9 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
         </div>
         <div class="col-span-1 flex justify-end">
           <UButton
-            v-if="!isApplication && activeReg?.status === RegistrationStatus.ACTIVE"
+            v-if="!isApplication &&
+              (activeReg?.status === RegistrationStatus.ACTIVE ||
+                activeReg?.status === RegistrationStatus.SUSPENDED)"
             label="Add Document"
             variant="outline"
             size="sm"
