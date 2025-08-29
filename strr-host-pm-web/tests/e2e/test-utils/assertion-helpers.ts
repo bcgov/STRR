@@ -30,10 +30,10 @@ export const assertLookupAddressLong = async (
   addrPostal: string,
   assertPostalCode = true
 ) => {
-    await expect(section).toContainText(addrNumber)
-    await expect(section).toContainText(addrStreet)
-    await expect(section).toContainText(addrCity)
-    if (assertPostalCode) {
-      await expect(section).toContainText(addrPostal)
-    }
+  await expect(section).toContainText(addrNumber)
+  await expect(section).toContainText(addrStreet)
+  await expect(section).toContainText(addrCity)
+  if (assertPostalCode) {
+    await expect(section).toContainText(addrPostal)
+  }
 }

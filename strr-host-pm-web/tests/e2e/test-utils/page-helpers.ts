@@ -6,7 +6,7 @@ import { getH2 } from './getters'
 import { uploadDocuments } from './upload-documents'
 import { assertLookupAddress, assertLookupAddressLong } from './assertion-helpers'
 
-export async function completeLogin(page: Page, loginMethod: LoginSource) {
+export async function completeLogin (page: Page, loginMethod: LoginSource) {
   const baseUrl = process.env.NUXT_BASE_URL!
   const username = loginMethod === LoginSource.BCSC
     ? process.env.PLAYWRIGHT_TEST_BCSC_USERNAME!
@@ -45,7 +45,7 @@ export async function completeLogin(page: Page, loginMethod: LoginSource) {
   await page.waitForURL(baseUrl + '**')
 }
 
-export async function chooseAccount(page: Page, loginMethod: LoginSource) {
+export async function chooseAccount (page: Page, loginMethod: LoginSource) {
   const accountNameBCSC = 'Use this Account, ' + process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME!
   const accountNameBCEID = 'Use this Account, ' + process.env.PLAYWRIGHT_TEST_BCEID_PREMIUM_ACCOUNT_NAME!
 
@@ -76,8 +76,8 @@ export const completeStep1 = async (
   testPid: string,
   scenarioSpecificItems: () => Promise<void>
 ) => {
-  //launch the wizard from the dashboard
-  //await page.goto('./en-CA/application') // go to application
+  // launch the wizard from the dashboard
+  // await page.goto('./en-CA/application') // go to application
   await page.getByRole('link', { name: 'Register a Short-Term Rental' }).click()
 
   // check for step 1 content
@@ -279,8 +279,8 @@ export const completeStep4 = async (
   // rental unit details
   const strSection = page.locator('section').filter({ hasText: 'Short-Term Rental' }).first()
   await expect(strSection).toContainText(nickname)
-  //await assertLookupAddress(strSection, lookupAddress) //<-- old add all-in-one field
-  //new addr component that is broken out into separate sections
+  // await assertLookupAddress(strSection, lookupAddress) //<-- old add all-in-one field
+  // new addr component that is broken out into separate sections
   await assertLookupAddressLong(strSection, addrNumber, addrStreet, addrCity, addrPostal)
   await expect(strSection).toContainText(propertyType)
   await expect(strSection).toContainText(rentalUnitSetupType)
