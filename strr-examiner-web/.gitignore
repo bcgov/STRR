@@ -140,6 +140,7 @@ out
 
 # playwright test results
 test-results
+playwright-report
 !test-results/screenshots
 # playwright auth user info
 tests/e2e/.auth/**

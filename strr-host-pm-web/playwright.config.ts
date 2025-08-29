@@ -1,9 +1,27 @@
-import { fileURLToPath } from 'node:url'
-import { defineConfig, devices } from '@playwright/test'
+// import { fileURLToPath } from 'node:url'
+// import { defineConfig, devices } from '@playwright/test'
+// import type { ConfigOptions } from '@nuxt/test-utils/playwright'
+// import { config as dotenvConfig } from 'dotenv'
+// // load default env
+// dotenvConfig()
+
+import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+//manually build the path (workaround with node.js)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from .env file
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+//load node.js and support functions
+//import { fileURLToPath } from 'node:url'
 import type { ConfigOptions } from '@nuxt/test-utils/playwright'
-import { config as dotenvConfig } from 'dotenv'
-// load default env
-dotenvConfig()
+
 
 const devicesToTest = [
   'Desktop Chrome'
@@ -37,6 +55,7 @@ export default defineConfig<ConfigOptions>({
     },
     actionTimeout: 2000,
     baseURL: process.env.NUXT_BASE_URL,
+    // baseURL: 'http://localhost:3000/',
     trace: 'on-first-retry',
     screenshot: 'off',
     // do not open browser
