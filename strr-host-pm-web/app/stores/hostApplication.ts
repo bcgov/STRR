@@ -12,7 +12,8 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     agreedToRentalAct: z.boolean().refine(val => val, { message: t('validation.required') }),
     agreedToSubmit: z.boolean().refine(val => val, { message: t('validation.required') })
   })
-  const { isRenewal, registrationId } = useRouterParams()
+  const permitStore = useHostPermitStore()
+  const { isRegistrationRenewal, registration } = storeToRefs(permitStore)
 
   const getEmptyConfirmation = () => ({
     agreedToRentalAct: false,
@@ -49,8 +50,8 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     return {
       header: {
         paymentMethod: useConnectFeeStore().userSelectedPaymentMethod,
-        ...(isRenewal.value && {
-          registrationId: registrationId.value,
+        ...(isRegistrationRenewal.value && {
+          registrationId: registration.value?.id,
           applicationType: 'renewal'
         })
       },
@@ -85,7 +86,6 @@ export const useHostApplicationStore = defineStore('host/application', () => {
 
   const submitApplication = async (isDraft = false, applicationId?: string) => {
     const body = createApplicationBody()
-
     const res = await postApplication<HostApplicationPayload, HostApplicationResp>(
       body,
       isDraft,
