@@ -28,7 +28,20 @@ const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEven
         ),
         getRegistrationFilingHistory((activeRecord.value as HousRegistrationResponse).id)
       ])
-      allFilingHistory = [...applicationHistory, ...registrationHistory]
+
+      const REG_CREATED_EVENT = FilingHistoryEventName.REGISTRATION_CREATED
+
+      const hasDuplicatedEvent = applicationHistory.some(event => event.eventName === REG_CREATED_EVENT) &&
+        registrationHistory.some(event => event.eventName === REG_CREATED_EVENT)
+
+      // check if App and Reg histories have same Reg Created event
+      if (hasDuplicatedEvent) {
+        // filter out Reg Created event
+        const filteredApplicationHistory = applicationHistory.filter(event => event.eventName !== REG_CREATED_EVENT)
+        allFilingHistory = [...filteredApplicationHistory, ...registrationHistory]
+      } else {
+        allFilingHistory = [...applicationHistory, ...registrationHistory]
+      }
     }
 
     // sort history by date

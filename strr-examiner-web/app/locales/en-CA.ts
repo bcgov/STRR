@@ -260,7 +260,8 @@ export default {
     }
   },
   text: {
-    uploadReqDocs: 'Upload documentation for this registration.'
+    uploadReqDocs: 'Upload documentation for this registration.',
+    missingDocuments: 'Missing required documents.'
   },
   btn: {
     view: 'View',

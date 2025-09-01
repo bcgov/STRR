@@ -259,7 +259,7 @@ const setAside = async () => {
         <div>
           <div class="flex justify-center gap-4 md:justify-end">
             <UButton
-              v-if="activeHeader.assignee.username"
+              v-if="activeHeader && activeHeader.assignee.username"
               :label="t('btn.unassign')"
               class="max-w-fit px-7 py-3"
               data-testid="action-button-unassign"
