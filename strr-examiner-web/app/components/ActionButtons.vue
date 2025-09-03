@@ -139,7 +139,16 @@ const reinstateRegistration = () => {
     t('btn.yesReinstate'),
     () => {
       closeConfirmActionModal()
-      updateRegistrationStatus(activeReg.value.id, RegistrationStatus.ACTIVE)
+      updateRegistrationStatus(
+        activeReg.value.id,
+        RegistrationStatus.ACTIVE,
+        decisionEmailContent.value.content,
+        {
+          predefinedConditions: conditions.value,
+          ...(customConditions.value && { customConditions: customConditions.value }),
+          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+        }
+      )
       refreshNuxtData()
     },
     t('btn.cancel')
