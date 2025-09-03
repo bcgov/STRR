@@ -53,6 +53,7 @@ from strr_api.enums.enum import ErrorMessage, RegistrationNocStatus, Registratio
 from strr_api.exceptions import (
     AuthException,
     ExternalServiceException,
+    JurisdictionUpdateException,
     ValidationException,
     error_response,
     exception_response,
@@ -519,6 +520,9 @@ def update_registration_unit_address(registration_id):
             )
         registration = RegistrationService.update_host_unit_address(registration, unit_address, user)
         return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except JurisdictionUpdateException as exception:
+        logger.error(exception)
+        return error_response(message=exception.message, http_status=exception.status_code)
     except Exception as exception:
         logger.error(exception)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
