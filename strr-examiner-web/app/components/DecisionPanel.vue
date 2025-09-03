@@ -269,11 +269,10 @@ onMounted(() => {
                   :aria-label="decisionEmailPlaceholder"
                   data-testid="decision-email"
                   color="gray"
-                  class="bg-[#F1F3F5] focus:ring-0"
                   auto-resize
                   :disabled="isDecisionEmailDisabled"
                   :ui="{
-                    base: 'h-[290px]',
+                    base: 'h-[290px] !bg-str-bgGray focus:ring-0',
                     padding: {
                       sm: 'p-4'
                     }

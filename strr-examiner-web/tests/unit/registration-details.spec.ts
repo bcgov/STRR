@@ -46,7 +46,10 @@ vi.mock('@/stores/examiner', () => ({
     conditions: ref([]),
     customConditions: ref([]),
     minBookingDays: ref(null),
-    decisionEmailContent: ref({})
+    decisionEmailContent: ref({}),
+    decisionEmailFormRef: ref({
+      clear: vi.fn()
+    })
   })
 }))
 

@@ -108,7 +108,7 @@ const historyTableColumns = [
               :class="!row.details && 'italic'"
               :ui="{
                 item: {
-                  base: 'bg-[#F1F3F5] leading-7 my-3 ml-2 rounded-[4px]',
+                  base: 'bg-str-bgGray leading-7 my-3 ml-2 rounded-[4px]',
                   padding: 'p-5'
                 }
               }"

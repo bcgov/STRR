@@ -552,7 +552,7 @@ export default {
     ownerRole: 'Please select the role',
     missingReqDocs: 'Missing required documents. Please see above for details.',
     blExpiryDate: 'The expiry date must be greater than today and in less than 1 year.',
-    nocContent: 'Please enter email body text',
+    nocContent: 'Email content is required',
     address: {
       streetName: 'Street name is required',
       streetNumber: 'Street number is required',
