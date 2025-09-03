@@ -92,6 +92,9 @@ class JurisdictionUpdateException(BaseExceptionE):
 
     def __post_init__(self):
         """Return a valid JurisdictionUpdateException."""
-        self.error = "Jurisdiction update error while processing request."
+        if not self.error:
+            self.error = "Jurisdiction update error while processing request."
+        else:
+            self.error = f"{repr(self.error)}, {self.status_code}"
         if not self.status_code:
             self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY

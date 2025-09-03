@@ -735,7 +735,7 @@ class RegistrationService:
     def _update_jurisdiction_for_address(registration: Registration):
         """Update the jurisdiction for a registration based on its current address."""
         try:
-            from strr_api.services.approval_service import ApprovalService
+            from strr_api.services.approval_service import ApprovalService  # pylint: disable=import-outside-toplevel
 
             address_obj = registration.rental_property.address
             address_line_1 = ""
@@ -758,7 +758,7 @@ class RegistrationService:
             logger.error(traceback.format_exc())
             raise JurisdictionUpdateException(
                 message=f"Error updating jurisdiction for registration {registration.id}: {e}"
-            )
+            ) from e
 
     @staticmethod
     def create_registration_for_permit_validation(registration, user_id):
