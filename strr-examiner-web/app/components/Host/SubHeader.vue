@@ -53,9 +53,13 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
             data-testid="flag-unit-number-missing"
           />
         </div>
-        <div v-if="activeHeader?.organizationName || activeReg.strRequirements?.organizationNm">
+        <div
+          v-if="activeHeader?.organizationName ||
+            activeReg.strRequirements?.organizationNm ||
+            activeReg.unitDetails?.jurisdiction"
+        >
           <UIcon name="i-mdi-map-outline" />
-          {{ isApplication ? activeReg.strRequirements.organizationNm : activeHeader.organizationName }}
+          {{ isApplication ? activeReg.strRequirements.organizationNm : activeReg.unitDetails?.jurisdiction }}
         </div>
         <div
           v-if="alertFlags.isUnitNumberMissing"

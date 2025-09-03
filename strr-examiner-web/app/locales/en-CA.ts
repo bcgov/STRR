@@ -667,7 +667,8 @@ export default {
     HOST_APPLICATION_UNIT_ADDRESS_UPDATED: 'Application: Host address updated',
     APPLICATION_DECISION_SET_ASIDE: 'Decision set aside',
     REGISTRATION_DECISION_SET_ASIDE: 'Registration set aside',
-    REGISTRATION_REINSTATED: 'Registration approved',
+    REGISTRATION_REINSTATED: 'Registration reinstated',
+    REGISTRATION_APPROVED: 'Registration approved',
     CONDITIONS_OF_APPROVAL_UPDATED: 'Registration - Updated conditions of approval',
     REGISTRATION_DOCUMENT_UPLOADED: 'Registration document uploaded'
   },

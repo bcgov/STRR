@@ -730,6 +730,20 @@ def test_set_aside_registration_events(session, client, jwt):
         event_names = [event.get("eventName") for event in events]
         assert Events.EventName.REGISTRATION_CREATED in event_names
         assert Events.EventName.REGISTRATION_DECISION_SET_ASIDE in event_names
+        assert Events.EventName.REGISTRATION_APPROVED in event_names
+
+        status_update_request = {"status": RegistrationStatus.SUSPENDED.value}
+        rv = client.put(f"/registrations/{registration_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        status_update_request = {"status": RegistrationStatus.ACTIVE.value}
+        rv = client.put(f"/registrations/{registration_id}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.get(f"/registrations/{registration_id}/events", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        events = rv.json
+        event_names = [event.get("eventName") for event in events]
         assert Events.EventName.REGISTRATION_REINSTATED in event_names
 
 

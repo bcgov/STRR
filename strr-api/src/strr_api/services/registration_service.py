@@ -35,7 +35,9 @@
 # pylint: disable=E1102
 # pylint: disable=R0917
 """Manages registration model interactions."""
+import logging
 import random
+import traceback
 from datetime import date, datetime, time, timedelta, timezone
 
 import pytz
@@ -44,6 +46,7 @@ from flask import current_app, render_template
 from weasyprint import HTML
 
 from strr_api.enums.enum import RegistrationNocStatus, RegistrationSortBy, RegistrationStatus, RegistrationType
+from strr_api.exceptions import JurisdictionUpdateException
 from strr_api.models import (
     Address,
     Certificate,
@@ -72,6 +75,8 @@ from strr_api.responses import RegistrationSerializer
 from strr_api.services.email_service import EmailService
 from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
+
+logger = logging.getLogger("api")
 
 REGISTRATION_STATES_STAFF_ACTION = [
     RegistrationStatus.ACTIVE.value,
@@ -579,12 +584,21 @@ class RegistrationService:
         """Updates the registration status."""
         status = json_input.get("status")
         email_content = json_input.get("emailContent")
+        previous_status = registration.status
         event_status_map = {
             "EXPIRED": Events.EventName.REGISTRATION_EXPIRED,
             "SUSPENDED": Events.EventName.NON_COMPLIANCE_SUSPENDED,
             "CANCELLED": Events.EventName.REGISTRATION_CANCELLED,
-            "ACTIVE": Events.EventName.REGISTRATION_REINSTATED,
         }
+
+        if status == RegistrationStatus.ACTIVE.value:
+            if previous_status == RegistrationStatus.SUSPENDED.value:
+                event_name = Events.EventName.REGISTRATION_REINSTATED
+            else:
+                event_name = Events.EventName.REGISTRATION_APPROVED
+        else:
+            event_name = event_status_map.get(status)
+
         registration.status = status
         registration.is_set_aside = False
         registration.noc_status = None
@@ -599,7 +613,7 @@ class RegistrationService:
 
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,
-            event_name=event_status_map.get(status),
+            event_name=event_name,
             registration_id=registration.id,
             user_id=reviewer_id,
             visible_to_applicant=True,
@@ -705,6 +719,7 @@ class RegistrationService:
 
         if update_applied:
             address_obj.save()
+            RegistrationService._update_jurisdiction_for_address(registration)
             registration.save()
             EventsService.save_event(
                 event_type=Events.EventType.REGISTRATION,
@@ -715,6 +730,35 @@ class RegistrationService:
                 visible_to_applicant=True,
             )
         return registration
+
+    @staticmethod
+    def _update_jurisdiction_for_address(registration: Registration):
+        """Update the jurisdiction for a registration based on its current address."""
+        try:
+            from strr_api.services.approval_service import ApprovalService
+
+            address_obj = registration.rental_property.address
+            address_line_1 = ""
+            if address_obj.unit_number:
+                address_line_1 = f"{address_obj.unit_number}-"
+            address_line_1 = f"{address_line_1}{address_obj.street_number} {address_obj.street_address}"
+            address = f"{address_line_1}, {address_obj.city}, {address_obj.province}"
+
+            organization = ApprovalService.getSTRDataForAddress(address)
+            if organization and organization.get("organizationNm"):
+                new_jurisdiction = organization.get("organizationNm")
+                registration.rental_property.jurisdiction = new_jurisdiction
+            else:
+                raise JurisdictionUpdateException(
+                    message=f"No jurisdiction found for address: {address}. Manual jurisdiction selection required."
+                )
+        except JurisdictionUpdateException:
+            raise
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            raise JurisdictionUpdateException(
+                message=f"Error updating jurisdiction for registration {registration.id}: {e}"
+            )
 
     @staticmethod
     def create_registration_for_permit_validation(registration, user_id):
