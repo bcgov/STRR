@@ -18,7 +18,8 @@ export const useExaminerDecision = () => {
     conditions,
     customConditions,
     minBookingDays,
-    decisionEmailContent
+    decisionEmailContent,
+    decisionEmailFormRef
   } = storeToRefs(useExaminerStore())
 
   // TODO: list of status when to show Decision panel for Applications
@@ -36,9 +37,15 @@ export const useExaminerDecision = () => {
     return isFeatureEnabled('enable-examiner-decisions').value && !isApplication.value
   })
 
+  // validate decision email for completing party
+  const isDecisionEmailValid = async (): Promise<boolean> => {
+    return await validateForm(decisionEmailFormRef.value, true).then(errors => !errors)
+  }
+
   const resetDecision = (): void => {
     decisionIntent.value = null
     decisionEmailContent.value.content = ''
+    decisionEmailFormRef.value.clear()
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null
@@ -49,6 +56,7 @@ export const useExaminerDecision = () => {
     decisionIntent,
     preDefinedConditions,
     isMainActionDisabled,
+    isDecisionEmailValid,
     resetDecision
   }
 }

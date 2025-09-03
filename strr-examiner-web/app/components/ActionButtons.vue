@@ -3,7 +3,7 @@ import { refreshNuxtData } from 'nuxt/app'
 import isEqual from 'lodash/isEqual'
 
 const { t } = useI18n()
-const { decisionIntent, isMainActionDisabled } = useExaminerDecision()
+const { decisionIntent, isMainActionDisabled, isDecisionEmailValid } = useExaminerDecision()
 const {
   activeHeader, activeReg, isAssignedToUser,
   conditions,
@@ -94,7 +94,10 @@ const updateApprovalAction = () => {
   )
 }
 
-const cancelRegistrationAction = () => {
+const cancelRegistrationAction = async () => {
+  // validate email form
+  if (!await isDecisionEmailValid()) { return }
+
   openConfirmActionModal(
     t('modal.cancelRegistration.title'),
     t('modal.cancelRegistration.message'),
@@ -143,11 +146,9 @@ const reinstateRegistration = () => {
   )
 }
 
-const sendNoticeAction = () => {
-  // TODO: validate email form
-  //   if (!(await validateForm(decisionEmailFormRef.value, true).then(errors => !errors))) {
-  //     return
-  //   }
+const sendNoticeAction = async () => {
+  // validate email form
+  if (!await isDecisionEmailValid()) { return }
 
   openConfirmActionModal(
     t('modal.sendNotice.title'),
