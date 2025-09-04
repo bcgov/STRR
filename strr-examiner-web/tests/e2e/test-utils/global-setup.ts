@@ -35,12 +35,8 @@ async function globalSetup () {
 
   await Promise.all([
     authSetup(
-      LoginSource.BCSC,
-      'bcsc-user'
-    ),
-    authSetup(
-      LoginSource.BCEID,
-      'bceid-user'
+      LoginSource.IDIR,
+      'idir-user'
     )
   ])
 }
