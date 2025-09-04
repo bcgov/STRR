@@ -53,21 +53,21 @@ export default defineAppConfig({
         green: {
           outline:
             'ring-0 border border-str-green text-str-green ' + // default
-            'hover:bg-white hover:ring-str-green hover:text-str-textGray ' + // hover
+            'hover:bg-str-bgGray hover:ring-str-green hover:text-str-textGray ' + // hover
             'disabled:opacity-50 disabled:hover:text-str-green ' + // disabled
             'focus-visible:outline-2 focus-visible:outline-primary-500 ' // focus
         },
         blue: {
           outline:
             'ring-0 border border-str-blue text-str-blue ' + // default
-            'hover:bg-white hover:ring-str-blue hover:text-str-textGray ' + // hover
+            'hover:bg-str-bgGray hover:ring-str-blue hover:text-str-textGray ' + // hover
             'disabled:opacity-50 disabled:hover:text-str-blue ' + // disabled
             'focus-visible:outline-2 focus-visible:outline-primary-500 ' // focus
         },
         red: {
           outline:
             'ring-0 border border-str-red text-str-red ' + // default
-            'hover:bg-white hover:ring-str-red hover:text-str-textGray ' + // hover
+            'hover:bg-str-bgGray hover:ring-str-red hover:text-str-textGray ' + // hover
             'disabled:opacity-50 disabled:hover:text-str-red ' + // disabled
             'focus-visible:outline-2 focus-visible:outline-primary-500 ' // focus
         }
