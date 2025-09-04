@@ -66,6 +66,7 @@ class Registration(Versioned, BaseModel):
     documents = relationship("Document", back_populates="registration")
     nocs = relationship("RegistrationNoticeOfConsideration", back_populates="registration")
     conditionsOfApproval = relationship("ConditionsOfApproval", back_populates="registration", uselist=False)
+    snapshots = relationship("RegistrationSnapshot", back_populates="registration")
 
 
 class RentalProperty(Versioned, BaseModel):
