@@ -43,6 +43,7 @@ from .geocoder_service import GeoCoderService
 from .payment_service import PayService
 from .registration_service import RegistrationService
 from .rest_service import RestService
+from .snapshot_service import SnapshotService
 
 from .ltsa_service import LtsaService  # isort: skip
 from .approval_service import ApprovalService  # isort: skip
