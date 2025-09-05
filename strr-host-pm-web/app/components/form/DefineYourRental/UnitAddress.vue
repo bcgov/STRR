@@ -9,6 +9,7 @@ const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
 const props = defineProps<{ isComplete: boolean }>()
 
 const unitAddressFormRef = ref<Form<any>>()
+const isNewAddressFormEnabled = useFeatureFlags().isFeatureEnabled('enable-host-new-address-form')
 
 // clear form errors and submit when new address selected form autocomplete
 function handleNewAddress () {
@@ -114,81 +115,182 @@ onMounted(async () => {
           ])"
         >
           <ConnectTransitionCollapse>
-            <div v-if="!reqStore.hasReqs && !reqStore.hasReqError" class="flex max-w-bcGovInput flex-col gap-10">
-              <div class="flex flex-col gap-3">
-                <p>{{ $t('text.unitAddressIntro') }}</p>
-                <p>{{ $t('text.unitAddressIntroNote') }}</p>
-              </div>
-              <div class="flex flex-col items-start gap-4 xl:flex-row">
-                <FormUnitAddressAutoComplete
-                  id="rental-property-address-lookup"
-                  v-model:address-input="propStore.unitAddress.address.street"
-                  v-model:street-number="propStore.unitAddress.address.streetNumber"
-                  v-model:street-name="propStore.unitAddress.address.streetName"
-                  v-model:unit-number="propStore.unitAddress.address.unitNumber"
-                  v-model:city="propStore.unitAddress.address.city"
-                  v-model:postal-code="propStore.unitAddress.address.postalCode"
-                  class="min-w-80"
-                  :schema-prefix="'address.'"
-                  :form-ref="unitAddressFormRef"
-                  :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
-                  :loading="reqStore.loadingReqs && !propStore.useManualAddressInput"
-                  @new-address="handleNewAddress"
-                  @use-manual="handleUseManual"
-                />
-                <span
-                  class="xl:translate-y-[calc(-50%+28px)]"
+            <div>
+              <div
+                v-if="!reqStore.hasReqs && !reqStore.hasReqError && !isNewAddressFormEnabled"
+                class="flex max-w-bcGovInput flex-col gap-10"
+              >
+                <div class="flex flex-col gap-3">
+                  <p>{{ $t('text.unitAddressIntro') }}</p>
+                  <p>{{ $t('text.unitAddressIntroNote') }}</p>
+                </div>
+                <div class="flex flex-col items-start gap-4 xl:flex-row">
+                  <FormUnitAddressAutoComplete
+                    id="rental-property-address-lookup"
+                    v-model:address-input="propStore.unitAddress.address.street"
+                    v-model:street-number="propStore.unitAddress.address.streetNumber"
+                    v-model:street-name="propStore.unitAddress.address.streetName"
+                    v-model:unit-number="propStore.unitAddress.address.unitNumber"
+                    v-model:city="propStore.unitAddress.address.city"
+                    v-model:postal-code="propStore.unitAddress.address.postalCode"
+                    class="min-w-80"
+                    :schema-prefix="'address.'"
+                    :form-ref="unitAddressFormRef"
+                    :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
+                    :loading="reqStore.loadingReqs && !propStore.useManualAddressInput"
+                    @new-address="handleNewAddress"
+                    @use-manual="handleUseManual"
+                  />
+                  <span
+                    class="xl:translate-y-[calc(-50%+28px)]"
+                  >
+                    {{ $t('word.or') }}
+                  </span>
+                  <UButton
+                    :label="$t('label.enterAddressManually')"
+                    variant="link"
+                    class="underline xl:translate-y-[calc(-50%+28px)]"
+                    :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
+                    :padded="false"
+                    @click="handleUseManual"
+                  />
+                </div>
+
+                <div
+                  v-if="propStore.useManualAddressInput"
+                  class="flex flex-col gap-10"
                 >
-                  {{ $t('word.or') }}
-                </span>
-                <UButton
-                  :label="$t('label.enterAddressManually')"
-                  variant="link"
-                  class="underline xl:translate-y-[calc(-50%+28px)]"
-                  :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
-                  :padded="false"
-                  @click="handleUseManual"
-                />
+                  <p>{{ $t('text.unitAddressUnitNumberInfo') }}</p>
+                  <FormUnitAddressManual
+                    id="rental-property-address"
+                    v-model:street-number="propStore.unitAddress.address.streetNumber"
+                    v-model:street-name="propStore.unitAddress.address.streetName"
+                    v-model:unit-number="propStore.unitAddress.address.unitNumber"
+                    v-model:street-additional="propStore.unitAddress.address.streetAdditional"
+                    v-model:city="propStore.unitAddress.address.city"
+                    v-model:postal-code="propStore.unitAddress.address.postalCode"
+                    v-model:location-description="propStore.unitAddress.address.locationDescription"
+                    :schema-prefix="'address.'"
+                    :disabled-fields="
+                      reqStore.loadingReqs
+                        ? ['streetName', 'streetNumber', 'unitNumber',
+                           'streetAdditional', 'city', 'postalCode', 'locationDescription']
+                        : []
+                    "
+                    :form-ref="unitAddressFormRef"
+                    :unit-number-required="propStore.isUnitNumberRequired"
+                  />
+                  <div class="flex w-full max-w-bcGovInput justify-end gap-4">
+                    <UButton
+                      :label="$t('btn.cancel')"
+                      size="bcGov"
+                      variant="outline"
+                      :disabled="reqStore.loadingReqs"
+                      @click="handleCancelManual"
+                    />
+                    <UButton
+                      :label="$t('btn.done')"
+                      size="bcGov"
+                      type="submit"
+                      :loading="reqStore.loadingReqs"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div
-                v-if="propStore.useManualAddressInput"
+                v-if="!reqStore.hasReqs && !reqStore.hasReqError && isNewAddressFormEnabled"
                 class="flex flex-col gap-10"
+                data-testid="new-address-form"
               >
-                <p>{{ $t('text.unitAddressUnitNumberInfo') }}</p>
-                <FormUnitAddressManual
-                  id="rental-property-address"
-                  v-model:street-number="propStore.unitAddress.address.streetNumber"
-                  v-model:street-name="propStore.unitAddress.address.streetName"
-                  v-model:unit-number="propStore.unitAddress.address.unitNumber"
-                  v-model:street-additional="propStore.unitAddress.address.streetAdditional"
-                  v-model:city="propStore.unitAddress.address.city"
-                  v-model:postal-code="propStore.unitAddress.address.postalCode"
-                  v-model:location-description="propStore.unitAddress.address.locationDescription"
-                  :schema-prefix="'address.'"
-                  :disabled-fields="
-                    reqStore.loadingReqs
-                      ? ['streetName', 'streetNumber', 'unitNumber',
-                         'streetAdditional', 'city', 'postalCode', 'locationDescription']
-                      : []
-                  "
-                  :form-ref="unitAddressFormRef"
-                  :unit-number-required="propStore.isUnitNumberRequired"
-                />
-                <div class="flex w-full max-w-bcGovInput justify-end gap-4">
-                  <UButton
-                    :label="$t('btn.cancel')"
-                    size="bcGov"
-                    variant="outline"
-                    :disabled="reqStore.loadingReqs"
-                    @click="handleCancelManual"
+                <UAlert
+                  color="yellow"
+                  class="w-full"
+                  :close-button="null"
+                  variant="subtle"
+                  :ui="{
+                    inner: 'pt-0',
+                    padding: 'py-5 px-7'
+                  }"
+                  data-testid="alert-renewal-address-change"
+                >
+                  <template #title>
+                    <ConnectI18nHelper
+                      translation-path="text.unitMailingIntroNote"
+                    />
+                  </template>
+                </UAlert>
+
+                <div class="flex flex-col items-start gap-4 xl:flex-row">
+                  <FormUnitAddressAutoComplete
+                    id="rental-property-address-lookup"
+                    v-model:address-input="propStore.unitAddress.address.street"
+                    v-model:street-number="propStore.unitAddress.address.streetNumber"
+                    v-model:street-name="propStore.unitAddress.address.streetName"
+                    v-model:unit-number="propStore.unitAddress.address.unitNumber"
+                    v-model:city="propStore.unitAddress.address.city"
+                    v-model:postal-code="propStore.unitAddress.address.postalCode"
+                    class="min-w-80"
+                    :schema-prefix="'address.'"
+                    :form-ref="unitAddressFormRef"
+                    :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
+                    :loading="reqStore.loadingReqs && !propStore.useManualAddressInput"
+                    @new-address="handleNewAddress"
+                    @use-manual="handleUseManual"
                   />
+                  <span
+                    class="xl:translate-y-[calc(-50%+28px)]"
+                  >
+                    {{ $t('word.or') }}
+                  </span>
                   <UButton
-                    :label="$t('btn.done')"
-                    size="bcGov"
-                    type="submit"
-                    :loading="reqStore.loadingReqs"
+                    :label="$t('label.enterAddressManually')"
+                    variant="link"
+                    class="underline xl:translate-y-[calc(-50%+28px)]"
+                    :disabled="reqStore.loadingReqs || propStore.useManualAddressInput"
+                    :padded="false"
+                    @click="handleUseManual"
                   />
+                </div>
+
+                <div
+                  v-if="propStore.useManualAddressInput"
+                  class="flex flex-col gap-10"
+                >
+                  <FormUnitAddressManual2
+                    id="rental-property-address"
+                    v-model:street-number="propStore.unitAddress.address.streetNumber"
+                    v-model:street-name="propStore.unitAddress.address.streetName"
+                    v-model:unit-number="propStore.unitAddress.address.unitNumber"
+                    v-model:street-additional="propStore.unitAddress.address.streetAdditional"
+                    v-model:city="propStore.unitAddress.address.city"
+                    v-model:postal-code="propStore.unitAddress.address.postalCode"
+                    v-model:location-description="propStore.unitAddress.address.locationDescription"
+                    :schema-prefix="'address.'"
+                    :disabled-fields="
+                      reqStore.loadingReqs
+                        ? ['streetName', 'streetNumber', 'unitNumber',
+                           'streetAdditional', 'city', 'postalCode', 'locationDescription']
+                        : []
+                    "
+                    :form-ref="unitAddressFormRef"
+                    :unit-number-required="propStore.isUnitNumberRequired"
+                  />
+                  <div class="flex w-full justify-end gap-4">
+                    <UButton
+                      :label="$t('btn.cancel')"
+                      size="bcGov"
+                      variant="outline"
+                      :disabled="reqStore.loadingReqs"
+                      @click="handleCancelManual"
+                    />
+                    <UButton
+                      :label="$t('btn.done')"
+                      size="bcGov"
+                      type="submit"
+                      :loading="reqStore.loadingReqs"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
