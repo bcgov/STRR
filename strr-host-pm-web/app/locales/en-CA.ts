@@ -318,6 +318,8 @@ export default {
     forNonCivicAddresses: 'For non-civic addresses',
     locality: 'Locality',
     additionalLocationDescription: 'Additional Location Description',
+    locationDescOpt: 'Location Description (Optional)',
+    unitNumber: 'Unit Number (Required if building has multiple units)',
     lookupResidentialAddress: 'Look up the Residential Address',
     enterAddressManually: 'Enter the residential address manually',
     unnamed: 'Unnamed',
@@ -390,6 +392,7 @@ export default {
     missingDocuments: 'Missing required documents.',
     unitAddressIntro: 'Include the Residential Address of your short-term rental by looking up the address, or if the address cannot be found in the lookup, you can enter the address manually.',
     unitAddressIntroNote: 'Note: the address cannot be a Mailing Address (e.g., PO Box, etc.).',
+    unitMailingIntroNote: '{boldStart}Important:{boldEnd} Mailing addresses (e.g., PO Boxes) are not accepted in any street address fields. Please enter a complete physical address of the rental unit.',
     unitAddressUnitNumberInfo: 'Unit Number is required if the short-term rental unit has a Unit Number. Enter a Site Name if the address does not have a Street Number and Name.',
     noDocsUploaded: 'No supporting documentation uploaded.',
     bceidSubtext: 'Requires an existing BCeID login account',
@@ -400,7 +403,12 @@ export default {
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
     docUpload: 'File must be a PDF, jpeg, or jpg. Maximum 10 MB.',
-    autocomplete: 'For example: 123 - 456 Street Name Victoria BC  V8V 2V2'
+    autocomplete: 'e.g., 123 - 456 Street Name Victoria BC  V8V 2V2',
+    streetNumber: 'e.g., 123, 123A, 123 1/2',
+    streetName: 'e.g., Main St, 6th St East, Sun Peaks RD',
+    unitNumber: 'Unit or apartment number only (e.g., 205, 3A)',
+    locality: 'City, Town, Township, ect.',
+    siteName: 'For rural, remote, or seasonal places like cabins, recreation sites, or float homes (e.g., Site 5, Comp 18, RR 1)'
   },
   page: {
     dashboardList: {
