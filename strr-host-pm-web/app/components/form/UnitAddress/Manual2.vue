@@ -25,6 +25,13 @@ const addId = useId()
 
 const hasNoStreetAddress = ref(false)
 
+// clear site name when going back to street number and name inputs
+watch(hasNoStreetAddress, () => {
+  if (!hasNoStreetAddress.value) {
+    streetAdditional.value = ''
+  }
+})
+
 watch(postalCode, () => {
   postalCode.value = postalCode.value?.toUpperCase()
 })
@@ -51,8 +58,8 @@ watch(postalCode, () => {
         v-model.trim="streetAdditional"
         size="lg"
         :color="streetAdditional ? 'primary' : 'gray'"
-        :placeholder="$t('label.siteNameOpt')"
-        :aria-label="$t('label.siteNameOpt')"
+        :placeholder="$t('label.siteName')"
+        :aria-label="$t('label.siteName')"
         :aria-describedby="schemaPrefix + 'streetAdditional-' + addId"
         :disabled="disabledFields?.includes('streetAdditional')"
         maxlength="1000"

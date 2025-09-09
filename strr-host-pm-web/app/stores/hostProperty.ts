@@ -6,6 +6,9 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   // rental unit address stuff
   const useManualAddressInput = ref<boolean>(false)
 
+  const streetNumberRegex = /^(?:\d+([A-Za-z]|\s\d+\/\d+)?|\d{6}([A-Za-z]|\s\d{1}\/\d{1,2})?)$/
+  const unitNumberRegex = /^\d+[A-Za-z]?$/
+
   const getUnitAddressSchema = () => z.object({
     address: z.object({
       street:
@@ -26,6 +29,69 @@ export const useHostPropertyStore = defineStore('host/property', () => {
         : optionalOrEmptyString,
       unitNumber: optionalOrEmptyString,
       nickname: optionalOrEmptyString
+    }).superRefine((data, ctx) => {
+      const { city, postalCode, streetName, streetNumber } = data
+
+      // when using auto complete, show error unless autocomplete address selected, no partial strings/addresses
+      if (!useManualAddressInput.value) {
+        if (!city || !postalCode || !streetName || !streetNumber) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['street'],
+            message: t('validation.addressIncompleteDropdown')
+          })
+        }
+      }
+    })
+  })
+
+  // validation schema for update manual address input fields
+  const getUnitAddressSchema2 = () => z.object({
+    address: z.object({
+      streetNumber: unitAddress.value.address.streetAdditional === ''
+        ? z
+          .string()
+          .min(2, { message: t('validation.addressForm.streetNumber') })
+          .max(9, { message: t('validation.addressForm.streetNumberInvalid') })
+          .refine(val => val === '' || streetNumberRegex.test(val),
+            { message: t('validation.addressForm.streetNumberInvalid') })
+        : optionalOrEmptyString,
+      streetName: unitAddress.value.address.streetAdditional === ''
+        ? z
+          .string()
+          .min(2, { message: t('validation.addressForm.streetName') })
+          .max(50, { message: t('validation.maxChars', { maxLen: 50 }) })
+        : optionalOrEmptyString,
+      street:
+        useManualAddressInput.value
+          ? optionalOrEmptyString
+          : z.string().min(2, t('validation.residentialAddressRequired')),
+      streetAdditional: z
+        .string()
+        .min(1, { message: t('validation.addressForm.siteName') })
+        .min(2, { message: t('validation.addressForm.siteNameInvalid') })
+        .max(150, { message: t('validation.maxChars', { maxLen: 150 }) }),
+      unitNumber: z
+        .string()
+        .max(6, { message: t('validation.maxChars', { maxLen: 6 }) })
+        .optional()
+        .refine(val => val === '' || unitNumberRegex.test(val),
+          { message: t('validation.addressForm.unitNumberInvalid') }),
+      city: z
+        .string()
+        .min(2, { message: t('validation.addressForm.city') })
+        .max(100, { message: t('validation.maxChars', { maxLen: 100 }) }),
+      region: getRequiredNonEmptyString(t('validation.address.region')),
+      postalCode: z
+        .string()
+        .min(1, { message: t('validation.addressForm.postalCode') })
+        .length(7, { message: t('validation.addressForm.postalCodeInvalid') }),
+      locationDescription: z
+        .string()
+        .max(400, { message: t('validation.maxChars', { maxLen: 400 }) })
+        .optional(),
+      nickname: optionalOrEmptyString,
+      country: getRequiredNonEmptyString(t('validation.address.country'))
     }).superRefine((data, ctx) => {
       const { city, postalCode, streetName, streetNumber } = data
 
@@ -237,6 +303,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     validateBusinessLicense,
     // unitDetailsSchema,
     getUnitDetailsSchema,
+    getUnitAddressSchema2,
     getEmptyUnitDetails,
     unitDetails,
     validateUnitDetails,

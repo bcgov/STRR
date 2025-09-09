@@ -314,6 +314,7 @@ export default {
     businessLicenseExpiryDateOpt: 'Business Licence Expiry Date (Optional)',
     rentalAgreementOrNoticeOfIncrease: 'Tenancy (rental) agreement or receipt or Notice of rent increase',
     streetNameAndType: 'Street Name and Type',
+    siteName: 'Site Name',
     siteNameOpt: 'Site Name (Optional)',
     forNonCivicAddresses: 'For non-civic addresses',
     locality: 'Locality',
@@ -430,6 +431,7 @@ export default {
   },
   validation: {
     required: 'Required',
+    maxChars: 'Maximum {maxLen} Characters',
     accountName: {
       required: 'Please enter an account name',
       exists: 'An account with this name already exists'
@@ -453,7 +455,18 @@ export default {
     blExpiryDate: 'The expiry date must be greater than today and in less than 1 year.',
     residentialAddressRequired: 'Residential address is required',
     addressIncompleteDropdown: 'The address provided is not complete. Please select one from the dropdown list.',
-    sin: 'Please enter a valid 9-digit SIN, TTN, or ITN'
+    sin: 'Please enter a valid 9-digit SIN, TTN, or ITN',
+    addressForm: {
+      streetNumber: 'Enter a street number',
+      streetNumberInvalid: 'Max 6 numbers + 1 Character or 1/2, no spaces unless followed by a fraction (e.g., 1/2)',
+      streetName: 'Enter a street name',
+      unitNumberInvalid: 'Numbers must be listed first followed by a letter if applicable (e.g., 205, 3A)',
+      siteName: 'Enter a site name',
+      siteNameInvalid: 'Enter a valid site name',
+      city: 'Enter a city, town, township, etc.',
+      postalCode: 'Enter a postal code',
+      postalCodeInvalid: 'Enter a valid postal code'
+    }
   },
   requirements: {
     busLicense: {

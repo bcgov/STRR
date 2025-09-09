@@ -60,7 +60,7 @@ onMounted(async () => {
     <UForm
       ref="unitAddressFormRef"
       :state="propStore.unitAddress"
-      :schema="propStore.getUnitAddressSchema()"
+      :schema="isNewAddressFormEnabled ? propStore.getUnitAddressSchema2() : propStore.getUnitAddressSchema()"
       class="space-y-10"
       @submit="reqStore.getPropertyReqs()"
     >
