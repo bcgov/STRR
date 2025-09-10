@@ -38,38 +38,10 @@ watch(postalCode, () => {
 </script>
 <template>
   <div class="space-y-4">
-    <UAccordion
-      :items="[{ label: $t('help.address.title'), slot: 'help' }]"
-      :ui="{
-        item: { padding: 'p-0' },
-        container: 'border-none'
-      }"
-    >
-      <template #default="{ item, open }">
-        <div class="flex items-center justify-between">
-          <span class="text-base font-semibold">{{ $t('label.address') }}</span>
-          <UButton
-            variant="ghost"
-            class="justify-start space-x-2 p-0 text-blue-500 hover:text-blue-700"
-          >
-            <template #leading>
-              <UIcon
-                name="i-mdi-information-outline"
-                class="size-4"
-              />
-            </template>
-            <span class="text-sm font-medium">
-              {{ open ? $t('help.address.hide') : item.label }}
-            </span>
-          </UButton>
-        </div>
-      </template>
-      <template #help>
-        <div>
-          <FormUnitAddressHelp />
-        </div>
-      </template>
-    </UAccordion>
+    <FormUnitAddressHelp
+      :help-title="$t('help.address.title')"
+      :label="$t('label.address')"
+    />
     <UCheckbox
       v-model="hasNoStreetAddress"
       label="I do not have a street address"
