@@ -22,8 +22,6 @@ defineProps<{
 }>()
 
 const addId = useId()
-const { isAddressHelpExpanded } = storeToRefs(useHostApplicationStore())
-const { toggleAddressHelp } = useHostApplicationStore()
 
 const hasNoStreetAddress = ref(false)
 
@@ -40,26 +38,33 @@ watch(postalCode, () => {
 </script>
 <template>
   <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <div class="font-bold">
-        {{ $t('label.address') }}
-      </div>
-      <button
-        type="button"
-        class="flex items-center space-x-2 text-blue-500 hover:text-blue-700 focus:outline-none
-               focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        @click="toggleAddressHelp"
-      >
-        <UIcon
-          name="i-mdi-information-outline"
-          class="size-4"
-        />
-        <span class="text-sm font-medium">
-          {{ $t('help.address.title') }}
-        </span>
-      </button>
-    </div>
-    <FormUnitAddressHelp v-if="isAddressHelpExpanded" />
+    <UAccordion
+      :items="[{ label: $t('help.address.title'), slot: 'help' }]"
+      :ui="{
+        item: { padding: 'p-0' },
+        container: 'border-none'
+      }"
+    >
+      <template #default="{ item, open }">
+        <UButton
+          variant="ghost"
+          class="justify-start space-x-2 p-0 text-blue-500 hover:text-blue-700"
+        >
+          <template #leading>
+            <UIcon
+              name="i-mdi-information-outline"
+              class="size-4"
+            />
+          </template>
+          <span class="text-sm font-medium">
+            {{ open ? $t('help.address.hide') : item.label }}
+          </span>
+        </UButton>
+      </template>
+      <template #help>
+        <FormUnitAddressHelp />
+      </template>
+    </UAccordion>
     <UCheckbox
       v-model="hasNoStreetAddress"
       label="I do not have a street address"

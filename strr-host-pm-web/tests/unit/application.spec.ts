@@ -76,10 +76,6 @@ vi.mock('@/stores/hostApplication', () => ({
       agreedToSubmit: false
     }),
     validateUserConfirmation: () => true,
-    isAddressHelpExpanded: ref(false),
-    hideAddressHelp: vi.fn(),
-    toggleAddressHelp: vi.fn(),
-    showAddressHelp: vi.fn(),
     $reset: vi.fn()
   })
 }))
@@ -175,9 +171,6 @@ describe('Application Page', () => {
 
   describe('Help Component', () => {
     it('contains FormUnitAddressHelp when help is expanded', async () => {
-      const store = useHostApplicationStore()
-      store.isAddressHelpExpanded.value = true
-
       await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 0)
 
       const defineRentalForm = wrapper.findComponent({ name: 'FormDefineYourRental' })
@@ -185,21 +178,10 @@ describe('Application Page', () => {
     })
 
     it('help component is hidden when help state is collapsed', async () => {
-      const store = useHostApplicationStore()
-      store.isAddressHelpExpanded.value = false
-
       await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 0)
 
       const defineRentalForm = wrapper.findComponent({ name: 'FormDefineYourRental' })
       expect(defineRentalForm.exists()).toBe(true)
-    })
-
-    it('can toggle help state through store actions', () => {
-      const store = useHostApplicationStore()
-
-      expect(store.toggleAddressHelp).toBeDefined()
-      expect(store.showAddressHelp).toBeDefined()
-      expect(store.hideAddressHelp).toBeDefined()
     })
   })
 })
