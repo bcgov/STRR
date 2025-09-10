@@ -1,5 +1,10 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const accordionKey = ref(0)
+const hideHelpAccordion = () => {
+  // Force accordion to close by re-rendering with new key
+  accordionKey.value++
+}
 
 defineProps<{
   helpTitle: string
@@ -9,6 +14,7 @@ defineProps<{
 
 <template>
   <UAccordion
+    :key="accordionKey"
     :items="[{ label: helpTitle, slot: 'help' }]"
     :ui="{
       item: { padding: 'p-0' },
@@ -84,6 +90,17 @@ defineProps<{
               </div>
             </div>
           </div>
+        </div>
+        <div class="flex justify-end px-4 py-3">
+          <UButton
+            variant="link"
+            color="primary"
+            size="sm"
+            class="px-2 py-1 text-sm no-underline"
+            @click="hideHelpAccordion"
+          >
+            {{ t('help.address.hide') }}
+          </UButton>
         </div>
       </div>
     </template>
