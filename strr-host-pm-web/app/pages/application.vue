@@ -20,6 +20,7 @@ const {
 const permitStore = useHostPermitStore()
 
 const { applicationId, registrationId, isRenewal } = useRouterParams()
+const { isSaveDraftEnabled } = useHostFeatureFlags()
 const loading = ref(false)
 
 // fee stuff
@@ -271,7 +272,7 @@ watch([activeStepIndex, permitStore.isRegistrationRenewal], () => {
     trailing: true
   })
 
-  // defaul left side action buttons
+  // default left side action buttons
   const leftActionButtons: ConnectBtnControlItem[] = [
     { action: () => navigateTo(localePath('/dashboard')), label: t('btn.cancel'), variant: 'outline' }
   ]
@@ -285,7 +286,7 @@ watch([activeStepIndex, permitStore.isRegistrationRenewal], () => {
   }
 
   setButtonControl({
-    leftButtons: useFeatureFlags().isFeatureEnabled('enable-save-draft').value ? leftActionButtons : [],
+    leftButtons: isSaveDraftEnabled ? leftActionButtons : [],
     rightButtons: buttons
   })
 }, { immediate: true })

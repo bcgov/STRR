@@ -3,6 +3,7 @@ const { t } = useI18n()
 const propertyStore = useHostPropertyStore()
 const { unitAddress, unitDetails } = storeToRefs(propertyStore)
 const { prRequirements, blRequirements, strataHotelCategory } = storeToRefs(usePropertyReqStore())
+const { isNewAddressFormEnabled } = useHostFeatureFlags()
 
 // step 1 items
 const exemptInfo = computed((): ConnectInfoTableItem[] => [
@@ -57,7 +58,10 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
 ])
 </script>
 <template>
-  <ConnectInfoTable :items="propertyInfo">
+  <ConnectInfoTable
+    data-testid="review-property-info"
+    :items="propertyInfo"
+  >
     <template #label-border>
       <div class="h-px w-full border-b border-gray-100" />
     </template>
@@ -65,7 +69,27 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
       <div class="-ml-4 h-px w-full border-b border-gray-100" />
     </template>
     <template #info-address>
-      <ConnectFormAddressDisplayItem :address="unitAddress.address" />
+      <ConnectFormAddressDisplayItem
+        :address="unitAddress.address"
+      />
+      <UAlert
+        v-if="isNewAddressFormEnabled"
+        data-testid="alert-address-match-required"
+        color="yellow"
+        :close-button="null"
+        variant="subtle"
+        :ui="{
+          wrapper: 'mt-8',
+          inner: 'pt-0',
+          padding: 'py-5 px-7'
+        }"
+      >
+        <template #title>
+          <ConnectI18nHelper
+            translation-path="alert.platformMatchRequired"
+          />
+        </template>
+      </UAlert>
     </template>
     <template #info-blExempt>
       <div class="flex gap-2">

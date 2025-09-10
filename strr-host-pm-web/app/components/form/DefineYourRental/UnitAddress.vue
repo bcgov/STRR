@@ -9,7 +9,7 @@ const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
 const props = defineProps<{ isComplete: boolean }>()
 
 const unitAddressFormRef = ref<Form<any>>()
-const isNewAddressFormEnabled = useFeatureFlags().isFeatureEnabled('enable-host-new-address-form')
+const { isNewAddressFormEnabled } = useHostFeatureFlags()
 
 // clear form errors and submit when new address selected form autocomplete
 function handleNewAddress () {

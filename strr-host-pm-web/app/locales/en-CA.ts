@@ -24,7 +24,8 @@ export default {
     businessLicense: {
       title: 'Important: Business licence – Required.',
       description: 'Your local government requires a business licence to operate a short-term rental at this address.'
-    }
+    },
+    platformMatchRequired: '{boldStart}Important: Platform Address Match Required.{boldEnd} If you’re hosting on a Platform (e.g., Airbnb, Vrbo), make sure the address listed there matches this STR Registry address exactly. If it doesn’t, please contact the Platform directly to update it.'
   },
   certify: {
     1: '{terms} I agree to comply with the {link} of registration.',
@@ -320,7 +321,8 @@ export default {
     locality: 'Locality',
     additionalLocationDescription: 'Additional Location Description',
     locationDescOpt: 'Location Description (Optional)',
-    unitNumber: 'Unit Number (Required if building has multiple units)',
+    unitNumber: 'Unit Number',
+    unitNumberWithUnits: 'Unit Number (Required if building has multiple units)',
     lookupResidentialAddress: 'Look up the Residential Address',
     enterAddressManually: 'Enter the residential address manually',
     unnamed: 'Unnamed',

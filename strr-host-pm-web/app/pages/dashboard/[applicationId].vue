@@ -30,7 +30,7 @@ const {
 
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
-const isRenewalsEnabled = useFeatureFlags().isFeatureEnabled('enable-registration-renewals')
+const { isRenewalsEnabled } = useHostFeatureFlags()
 
 onMounted(async () => {
   loading.value = true
@@ -153,14 +153,14 @@ watch([isRenewalsEnabled, isRenewalPeriodClosed, registration, isEligibleForRene
     boldEnd: '</strong>'
   }
 
-  if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
+  if (isRenewalsEnabled && isRenewalPeriodClosed.value) {
     // todo for renewal period closed after 3 years without renewal
     todos.value.push({
       id: 'todo-renew-registration-closed',
       title: t('todos.renewalClosed.title'),
       subtitle: t('todos.renewalClosed.subtitle', translationProps)
     })
-  } else if (isRenewalsEnabled.value && registration.value && isEligibleForRenewal.value) {
+  } else if (isRenewalsEnabled && registration.value && isEligibleForRenewal.value) {
     const isOverdue = renewalDateCounter.value < 0
     // label for the due days count
     const dueDateCount = isOverdue

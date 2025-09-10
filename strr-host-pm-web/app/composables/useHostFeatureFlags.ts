@@ -1,0 +1,9 @@
+export const useHostFeatureFlags = () => {
+  const { isFeatureEnabled } = useFeatureFlags()
+
+  return {
+    isSaveDraftEnabled: isFeatureEnabled('enable-save-draft'),
+    isRenewalsEnabled: isFeatureEnabled('enable-registration-renewals'),
+    isNewAddressFormEnabled: isFeatureEnabled('enable-host-new-address-form')
+  }
+}
