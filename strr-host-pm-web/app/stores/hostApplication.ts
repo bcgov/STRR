@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const useHostApplicationStore = defineStore('host/application', () => {
   const { t } = useI18n()
   const { postApplication } = useStrrApi()
-
+  const isAddressHelpExpanded = ref(false)
   const propertyStore = useHostPropertyStore()
   const reqStore = usePropertyReqStore()
   const ownerStore = useHostOwnerStore()
@@ -99,12 +99,25 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     return { paymentToken, filingId, applicationStatus }
   }
 
+  function showAddressHelp () {
+    isAddressHelpExpanded.value = true
+  }
+
+  function hideAddressHelp () {
+    isAddressHelpExpanded.value = false
+  }
+
+  function toggleAddressHelp () {
+    isAddressHelpExpanded.value = !isAddressHelpExpanded.value
+  }
+
   const $reset = () => {
     propertyStore.$reset()
     reqStore.$reset()
     ownerStore.$reset()
     documentStore.$reset()
     userConfirmation.value = getEmptyConfirmation()
+    isAddressHelpExpanded.value = false
   }
 
   return {
@@ -112,6 +125,10 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     confirmationSchema,
     validateUserConfirmation,
     submitApplication,
+    isAddressHelpExpanded,
+    showAddressHelp,
+    hideAddressHelp,
+    toggleAddressHelp,
     $reset
   }
 })

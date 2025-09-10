@@ -401,6 +401,54 @@ export default {
     ifYouHaveBl: 'If you have a business licence for your short-term rental, add your information here.',
     complyWithBylaws: 'The host must comply with local government bylaws'
   },
+  help: {
+    address: {
+      title: 'How to enter your address',
+      show: 'Show How to enter your address',
+      hide: 'Hide',
+      street: {
+        heading: 'Street Address',
+        desc: 'This diagram shows the key components of a standard Canadian street address, with examples to help accurately enter and verify address information.',
+        examples: {
+          title: 'Here are some Address examples:',
+          alt: 'Street address examples showing numbered components',
+          withUnit: {
+            title: 'With Unit Number',
+            sample: '456–236 Granville St, Vancouver, BC  V6C 1T2'
+          },
+          numbered: {
+            title: 'Numbered Street',
+            sample: '45 33rd St, Castlegar, BC V1N 2P7'
+          }
+        }
+      },
+      noncivic: {
+        heading: 'I do not have a Street Address',
+        desc: 'This is common for rural, remote, or seasonal places like cabins, recreation sites, or float homes. If your property doesn\'t have a street (civic) address, select \'I do not have a street address\' in the form and fill in the \'Site Name\' field.',
+        siteName: 'Site Name',
+        examples: {
+          title: 'Here are some Site Name examples:',
+          alt: 'Non-civic address examples showing different site naming conventions',
+          ruralRoute: {
+            title: 'Rural Route (RR)',
+            sample: 'Site 4 Comp 2 RR 1, Prince George BC V2N 5V7'
+          },
+          firstNations: {
+            title: 'First Nations Communities',
+            sample: 'Cabin 7, IR No. 4, Cowichan Tribes, Duncan BC V9L 3Y3'
+          },
+          marine: {
+            title: 'Marine or Floating Residences',
+            sample: 'Slip 18, Dock B, Coal Harbour Marina, Vancouver BC V6H 3R9'
+          },
+          seasonal: {
+            title: 'Seasonal/Remote Cabins or Recreation Sites',
+            sample: 'Cabin 7, Lakelands Recreation Site, Smithers BC V0J 2N0'
+          }
+        }
+      }
+    }
+  },
   hint: {
     strataRefCode: 'This is a unique code for each registered strata hotel. Ask the strata hotel management for this code.',
     docUpload: 'File must be a PDF, jpeg, or jpg. Maximum 10 MB.',
