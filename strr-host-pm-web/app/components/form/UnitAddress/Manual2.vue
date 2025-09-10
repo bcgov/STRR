@@ -46,23 +46,28 @@ watch(postalCode, () => {
       }"
     >
       <template #default="{ item, open }">
-        <UButton
-          variant="ghost"
-          class="justify-start space-x-2 p-0 text-blue-500 hover:text-blue-700"
-        >
-          <template #leading>
-            <UIcon
-              name="i-mdi-information-outline"
-              class="size-4"
-            />
-          </template>
-          <span class="text-sm font-medium">
-            {{ open ? $t('help.address.hide') : item.label }}
-          </span>
-        </UButton>
+        <div class="flex items-center justify-between">
+          <span class="text-base font-semibold">{{ $t('label.address') }}</span>
+          <UButton
+            variant="ghost"
+            class="justify-start space-x-2 p-0 text-blue-500 hover:text-blue-700"
+          >
+            <template #leading>
+              <UIcon
+                name="i-mdi-information-outline"
+                class="size-4"
+              />
+            </template>
+            <span class="text-sm font-medium">
+              {{ open ? $t('help.address.hide') : item.label }}
+            </span>
+          </UButton>
+        </div>
       </template>
       <template #help>
-        <FormUnitAddressHelp />
+        <div>
+          <FormUnitAddressHelp />
+        </div>
       </template>
     </UAccordion>
     <UCheckbox
