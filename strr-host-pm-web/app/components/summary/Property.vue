@@ -69,9 +69,7 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
       <div class="-ml-4 h-px w-full border-b border-gray-100" />
     </template>
     <template #info-address>
-      <ConnectFormAddressDisplayItem
-        :address="unitAddress.address"
-      />
+      <ConnectFormAddressDisplayItem :address="unitAddress.address" />
       <UAlert
         v-if="isNewAddressFormEnabled"
         data-testid="alert-address-match-required"
@@ -85,9 +83,7 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
         }"
       >
         <template #title>
-          <ConnectI18nHelper
-            translation-path="alert.platformMatchRequired"
-          />
+          <ConnectI18nHelper translation-path="alert.platformMatchRequired" />
         </template>
       </UAlert>
     </template>
