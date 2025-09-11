@@ -51,7 +51,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       streetNumber: unitAddress.value.address.streetAdditional === ''
         ? z
           .string()
-          .min(2, { message: t('validation.addressForm.streetNumber') })
+          .min(1, { message: t('validation.addressForm.streetNumber') })
           .max(9, { message: t('validation.addressForm.streetNumberInvalid') })
           .refine(val => val === '' || streetNumberRegex.test(val),
             { message: t('validation.addressForm.streetNumberInvalid') })
