@@ -1,9 +1,5 @@
-// import { type Browser, chromium, type Page } from '@playwright/test'
-import { config as dotenvConfig } from 'dotenv'
 import { LoginSource } from '../enums/login-source'
 import { authSetup } from './auth-setup'
-// load default env
-dotenvConfig()
 
 // checks if site is available before running setup
 async function isServerReady (url: string, timeout: number = 30000): Promise<boolean> {
@@ -37,11 +33,11 @@ async function globalSetup () {
     authSetup(
       LoginSource.BCSC,
       'bcsc-user'
-    ),
-    authSetup(
-      LoginSource.BCEID,
-      'bceid-user'
     )
+    // authSetup(
+    //   LoginSource.BCEID,
+    //   'bceid-user'
+    // )
   ])
 }
 
