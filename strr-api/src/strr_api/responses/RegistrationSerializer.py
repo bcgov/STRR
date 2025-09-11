@@ -450,6 +450,39 @@ class RegistrationSerializer:
                     }
 
             registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
+            registration_data["propertyManager"][
+                "initiatedByPropertyManager"
+            ] = cls._get_initiated_by_property_manager_flag(registration)
+
+    @classmethod
+    def _get_initiated_by_property_manager_flag(cls, registration: Registration) -> bool:
+        """Derive the initiatedByPropertyManager flag from linked applications."""
+
+        applications = Application.get_all_by_registration_id(registration.id)
+        if not applications:
+            # Final fallback
+            return registration.registration_number.startswith("PM")
+
+        sorted_applications = sorted(applications, key=lambda app: app.application_date)
+        terminal_statuses = [
+            Application.Status.FULL_REVIEW_APPROVED,
+            Application.Status.PROVISIONALLY_APPROVED,
+            Application.Status.AUTO_APPROVED,
+        ]
+        # Get Initiating Application (earliest approved status)
+        creation_applications = [app for app in sorted_applications if app.status in terminal_statuses]
+
+        if creation_applications:
+            earliest_app = creation_applications[0]
+            try:
+                registration_data = earliest_app.application_json.get("registration", {})
+                property_manager = registration_data.get("propertyManager", {})
+                return property_manager.get("initiatedByPropertyManager")
+            except (AttributeError, KeyError):
+                pass
+
+        # Final fallback
+        return registration.registration_number.startswith("PM")
 
     @classmethod
     def get_jurisdiction_from_application(cls, registration: Registration) -> Optional[str]:
