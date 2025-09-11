@@ -1,10 +1,9 @@
 <script setup lang="ts">
 const { t } = useI18n()
-const accordionKey = ref(0)
-const hideHelpAccordion = () => {
-  // Force accordion to close by re-rendering with new key
-  accordionKey.value++
-}
+
+const addressHelpRef = ref(null)
+
+const closeAddressHelp = () => addressHelpRef.value?.buttonRefs[0].close()
 
 defineProps<{
   helpTitle: string
@@ -14,8 +13,9 @@ defineProps<{
 
 <template>
   <UAccordion
-    :key="accordionKey"
+    ref="addressHelpRef"
     :items="[{ label: helpTitle, slot: 'help' }]"
+    data-testid="address-help-toggle"
     :ui="{
       item: { padding: 'p-0' },
       container: 'border-none'
@@ -25,23 +25,16 @@ defineProps<{
       <div class="flex items-center justify-between">
         <span v-if="label" class="text-base font-semibold">{{ label }}</span>
         <UButton
-          variant="ghost"
-          class="justify-start space-x-2 p-0 text-blue-500 hover:text-blue-700"
-        >
-          <template #leading>
-            <UIcon
-              name="i-mdi-information-outline"
-              class="size-4"
-            />
-          </template>
-          <span class="text-sm font-medium">
-            {{ open ? t('help.address.hide') : item.label }}
-          </span>
-        </UButton>
+          variant="link"
+          class="justify-start px-0 text-blue-500 hover:text-blue-700"
+          :class="open && 'font-bold'"
+          icon="i-mdi-help-circle-outline"
+          :label="open ? `${t('help.address.hide')} ${item.label}` : item.label"
+        />
       </div>
     </template>
     <template #help>
-      <div class="rounded border border-gray-200 bg-blue-50 shadow">
+      <div class="mt-4 rounded border border-gray-200 bg-blue-50 shadow">
         <div class="px-3 py-2 md:px-8 md:py-5">
           <div class="space-y-8">
             <div class="space-y-3">
@@ -95,9 +88,8 @@ defineProps<{
           <UButton
             variant="link"
             color="primary"
-            size="sm"
-            class="px-2 py-1 text-sm no-underline"
-            @click="hideHelpAccordion"
+            class="px-2 py-1 text-sm font-bold no-underline"
+            @click="closeAddressHelp"
           >
             {{ t('help.address.hide') }}
           </UButton>

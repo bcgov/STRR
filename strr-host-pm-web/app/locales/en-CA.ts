@@ -408,6 +408,7 @@ export default {
       title: 'How to enter your address',
       show: 'Show How to enter your address',
       hide: 'Hide',
+      review: 'Help with your Address',
       street: {
         heading: 'Street Address',
         desc: 'This diagram shows the key components of a standard Canadian street address, with examples to help accurately enter and verify address information.',

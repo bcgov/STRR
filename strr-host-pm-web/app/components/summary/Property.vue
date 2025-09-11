@@ -70,6 +70,11 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
     </template>
     <template #info-address>
       <ConnectFormAddressDisplayItem :address="unitAddress.address" />
+      <FormUnitAddressHelp
+        v-if="isNewAddressFormEnabled"
+        class="mt-2"
+        :help-title="$t('help.address.review')"
+      />
       <UAlert
         v-if="isNewAddressFormEnabled"
         data-testid="alert-address-match-required"
@@ -77,7 +82,7 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
         :close-button="null"
         variant="subtle"
         :ui="{
-          wrapper: 'mt-8',
+          wrapper: 'mt-4',
           inner: 'pt-0',
           padding: 'py-5 px-7'
         }"
