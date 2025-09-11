@@ -23,7 +23,7 @@ defineProps<{
 
 const addId = useId()
 
-const hasNoStreetAddress = ref(false)
+const { hasNoStreetAddress } = storeToRefs(useHostPropertyStore())
 
 // clear site name when going back to street number and name inputs
 watch(hasNoStreetAddress, () => {

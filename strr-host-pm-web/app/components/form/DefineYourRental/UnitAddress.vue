@@ -30,6 +30,7 @@ function handleCancelManual () {
   // unitAddressFormRef.value?.validate('address.street', { silent: true })
   propStore.resetUnitAddress(true)
   propStore.useManualAddressInput = false
+  propStore.hasNoStreetAddress = false
 }
 
 // clear street name/number errors when inputting address line 2 (name/number become optional)

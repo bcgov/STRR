@@ -5,6 +5,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   // rental unit address stuff
   const useManualAddressInput = ref<boolean>(false)
+  const hasNoStreetAddress = ref<boolean>(false)
 
   const streetNumberRegex = /^(?:\d+([A-Za-z]|\s\d+\/\d+)?|\d{6}([A-Za-z]|\s\d{1}\/\d{1,2})?)$/
   const unitNumberRegex = /^\d+[A-Za-z]?$/
@@ -66,11 +67,13 @@ export const useHostPropertyStore = defineStore('host/property', () => {
         useManualAddressInput.value
           ? optionalOrEmptyString
           : z.string().min(2, t('validation.residentialAddressRequired')),
-      streetAdditional: z
-        .string()
-        .min(1, { message: t('validation.addressForm.siteName') })
-        .min(2, { message: t('validation.addressForm.siteNameInvalid') })
-        .max(150, { message: t('validation.maxChars', { maxLen: 150 }) }),
+      streetAdditional: useManualAddressInput.value && hasNoStreetAddress.value
+        ? z
+          .string()
+          .min(1, { message: t('validation.addressForm.siteName') })
+          .min(2, { message: t('validation.addressForm.siteNameInvalid') })
+          .max(150, { message: t('validation.maxChars', { maxLen: 150 }) })
+        : optionalOrEmptyString,
       unitNumber: z
         .string()
         .max(6, { message: t('validation.maxChars', { maxLen: 6 }) })
@@ -311,6 +314,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     isOwnerOrCoOwner,
     propertyTypeFeeTriggers,
     useManualAddressInput,
+    hasNoStreetAddress,
     resetUnitAddress,
     resetUnitDetails,
     resetBlInfo,
