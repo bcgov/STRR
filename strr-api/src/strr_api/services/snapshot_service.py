@@ -31,7 +31,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
+# pylint: disable=C0415
 
 """Snapshot service that helps take registration snapshots when required."""
 from datetime import datetime
@@ -44,9 +44,9 @@ class SnapshotService:
 
     @staticmethod
     def snapshot_registration(registration: Registration) -> RegistrationSnapshot:
+        """Creates registration snapshots."""
         from strr_api.services.registration_service import RegistrationService
 
-        """Creates registration snapshots."""
         registration_snapshot = RegistrationSnapshot()
         registration_snapshot.registration_id = registration.id
         registration_snapshot.snapshot_datetime = datetime.utcnow()
