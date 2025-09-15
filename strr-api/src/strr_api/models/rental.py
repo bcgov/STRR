@@ -60,7 +60,12 @@ class Registration(Versioned, BaseModel):
     )
 
     certificates = relationship("Certificate", back_populates="registration")
-    rental_property = relationship("RentalProperty", back_populates="registration", uselist=False)
+    rental_property = relationship(
+        "RentalProperty",
+        back_populates="registration",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
     platform_registration = relationship("PlatformRegistration", back_populates="registration", uselist=False)
     strata_hotel_registration = relationship("StrataHotelRegistration", back_populates="registration", uselist=False)
     documents = relationship("Document", back_populates="registration")
@@ -127,8 +132,8 @@ class RentalProperty(Versioned, BaseModel):
         "PropertyManager", foreign_keys=[property_manager_id], back_populates="rental_property"
     )
 
-    contacts = relationship("PropertyContact")
-    property_listings = relationship("PropertyListing")
+    contacts = relationship("PropertyContact", cascade="all, delete-orphan")
+    property_listings = relationship("PropertyListing", cascade="all, delete-orphan")
 
 
 class PropertyManager(Versioned, BaseModel):

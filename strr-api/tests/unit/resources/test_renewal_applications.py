@@ -8,6 +8,7 @@ import pytest
 
 from strr_api.enums.enum import PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
+from strr_api.services import RegistrationService
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
@@ -82,3 +83,77 @@ def test_host_renewal_application_submission(session, client, jwt, request_json,
         application = Application.find_by_application_number(application_number=application_number)
         assert application.registration_id == registration_id
         assert application.type == "renewal"
+
+
+@pytest.mark.parametrize(
+    "request_json, isUnitOnPrincipalResidence",
+    [
+        (CREATE_HOST_REGISTRATION_REQUEST, True),
+    ],
+)
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_approve_host_registration__renewal_application(
+    session, client, jwt, request_json, isUnitOnPrincipalResidence
+):
+    with open(request_json) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        if not isUnitOnPrincipalResidence:
+            json_data["registration"]["unitDetails"]["isUnitOnPrincipalResidenceProperty"] = False
+            del json_data["registration"]["unitDetails"]["hostResidence"]
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+        assert registration_id is not None
+        assert response_json.get("header").get("registrationNumber") is not None
+        registration_number = response_json.get("header").get("registrationNumber")
+
+        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
+        json_data["header"] = renewal_header_json
+        json_data["registration"]["unitAddress"]["nickname"] = "My Rental Property renewal"
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+        assert application_number is not None
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.registration_id == registration_id
+        assert application.type == "renewal"
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
+        assert response_json.get("header").get("assignee").get("username") is not None
+        assert response_json.get("header").get("registrationId") == registration_id
+        assert response_json.get("header").get("registrationNumber") == registration_number
+        assert response_json.get("header").get("hostStatus") == "Approved"
+        assert response_json.get("header").get("examinerStatus") == "Approved – Examined"
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        assert registration.rental_property.nickname == "My Rental Property renewal"

@@ -34,6 +34,7 @@
 # pylint: disable=R0913
 # pylint: disable=E1102
 # pylint: disable=R0917
+# pylint: disable=C0302
 """Manages registration model interactions."""
 import logging
 import random
@@ -45,7 +46,13 @@ from dateutil.relativedelta import relativedelta
 from flask import current_app, render_template
 from weasyprint import HTML
 
-from strr_api.enums.enum import RegistrationNocStatus, RegistrationSortBy, RegistrationStatus, RegistrationType
+from strr_api.enums.enum import (
+    ApplicationType,
+    RegistrationNocStatus,
+    RegistrationSortBy,
+    RegistrationStatus,
+    RegistrationType,
+)
 from strr_api.exceptions import JurisdictionUpdateException
 from strr_api.models import (
     Address,
@@ -98,12 +105,48 @@ class RegistrationService:
     @classmethod
     def create_registration(cls, user_id, sbc_account_id, registration_request: dict):
         """Creates registration from an application."""
-        start_date = datetime.combine(datetime.now(), time(8, 0, 0))
-        expiry_date = datetime.combine(start_date + relativedelta(years=1) - relativedelta(days=1), time(23, 59, 59))
+        application_type = registration_request.get("header", {}).get("applicationType")
         registration_details = registration_request.get("registration")
         registration_type = registration_details.get("registrationType")
-        registration_number = RegistrationService._get_registration_number(registration_details)
+        if application_type == ApplicationType.RENEWAL.value:
+            return cls._process_renewal_request(registration_details, registration_request, registration_type)
+        else:
+            return cls._process_registration_request(
+                user_id, sbc_account_id, registration_request, registration_details, registration_type
+            )
 
+    @classmethod
+    def _process_renewal_request(cls, registration_details, registration_request, registration_type):
+        registration = RegistrationService.get_registration_by_id(
+            registration_request.get("header", {}).get("registrationId")
+        )
+        registration.expiry_date = registration.expiry_date + relativedelta(years=1)
+        for doc in registration_details.get("documents", []):
+            document = Document(
+                file_name=doc.get("fileName"),
+                file_type=doc.get("fileType"),
+                path=doc.get("fileKey"),
+                document_type=doc.get("documentType"),
+            )
+            registration.documents.append(document)
+        if registration_type == RegistrationType.HOST.value:
+            registration.rental_property.delete()
+            registration.rental_property = cls._create_host_registration(registration_request)
+        registration.save()
+        return registration
+
+    @classmethod
+    def _process_registration_request(
+        cls,
+        user_id,
+        sbc_account_id,
+        registration_request,
+        registration_details,
+        registration_type,
+    ):
+        start_date = datetime.combine(datetime.now(), time(8, 0, 0))
+        expiry_date = datetime.combine(start_date + relativedelta(years=1) - relativedelta(days=1), time(23, 59, 59))
+        registration_number = RegistrationService._get_registration_number(registration_details)
         registration = Registration(
             user_id=user_id,
             sbc_account_id=sbc_account_id,
