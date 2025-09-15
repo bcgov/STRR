@@ -34,18 +34,18 @@ defineProps<{
       </div>
     </template>
     <template #help>
-      <div class="mt-4 rounded border border-gray-200 bg-blue-50 shadow">
-        <div class="px-3 py-2 md:px-8 md:py-5">
+      <div class="mt-4 rounded border border-blue-500 bg-blue-50">
+        <div class="px-3 py-2 text-bcGovColor-midGray md:px-8 md:py-5">
           <div class="space-y-8">
             <div class="space-y-3">
-              <h4 class="text-base font-semibold text-gray-900">
+              <h4 class="text-base font-semibold">
                 {{ t('help.address.street.heading') }}
               </h4>
-              <p class="text-sm text-gray-700">
+              <p class="text-sm">
                 {{ t('help.address.street.desc') }}
               </p>
               <div class="space-y-6">
-                <h5 class="text-sm font-semibold text-gray-800">
+                <h5 class="text-sm font-semibold">
                   {{ t('help.address.street.examples.title') }}
                 </h5>
 
@@ -62,14 +62,14 @@ defineProps<{
             <div class="h-px w-full border-b border-gray-400" />
 
             <div class="space-y-3">
-              <h4 class="text-base font-semibold text-gray-900">
+              <h4 class="text-base font-semibold">
                 {{ t('help.address.noncivic.heading') }}
               </h4>
-              <p class="text-sm text-gray-700">
+              <p class="text-sm">
                 {{ t('help.address.noncivic.desc') }}
               </p>
               <div class="space-y-6">
-                <h5 class="text-sm font-semibold text-gray-800">
+                <h5 class="text-sm font-semibold">
                   {{ t('help.address.noncivic.examples.title') }}
                 </h5>
 
