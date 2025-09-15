@@ -37,7 +37,6 @@
 from datetime import datetime
 
 from strr_api.models import Registration, RegistrationSnapshot
-from strr_api.services.registration_service import RegistrationService
 
 
 class SnapshotService:
@@ -45,6 +44,8 @@ class SnapshotService:
 
     @staticmethod
     def snapshot_registration(registration: Registration) -> RegistrationSnapshot:
+        from strr_api.services.registration_service import RegistrationService
+
         """Creates registration snapshots."""
         registration_snapshot = RegistrationSnapshot()
         registration_snapshot.registration_id = registration.id

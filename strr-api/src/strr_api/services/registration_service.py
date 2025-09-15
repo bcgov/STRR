@@ -81,6 +81,7 @@ from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
 from strr_api.services.email_service import EmailService
 from strr_api.services.events_service import EventsService
+from strr_api.services.snapshot_service import SnapshotService
 from strr_api.services.user_service import UserService
 
 logger = logging.getLogger("api")
@@ -120,6 +121,7 @@ class RegistrationService:
         registration = RegistrationService.get_registration_by_id(
             registration_request.get("header", {}).get("registrationId")
         )
+        SnapshotService.snapshot_registration(registration)
         registration.expiry_date = registration.expiry_date + relativedelta(years=1)
         for doc in registration_details.get("documents", []):
             document = Document(
