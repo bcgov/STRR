@@ -223,10 +223,20 @@ class Contact:
 class Document:
     """Document object."""
 
-    def __init__(self, fileName: str, fileType: str, fileKey: str, documentType: str, uploadStep=None, uploadDate=None):
+    def __init__(
+        self,
+        fileName: str,
+        fileType: str,
+        fileKey: str,
+        documentType: str,
+        uploadStep=None,
+        uploadDate=None,
+        **kwargs,
+    ):
         self.fileName = fileName
         self.fileKey = fileKey
         self.fileType = fileType
         self.documentType = documentType
         self.uploadStep = uploadStep
         self.uploadDate = uploadDate
+        # kwargs catches response-only fields like 'addedOn' that are ignored for backward compatibility
