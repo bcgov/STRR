@@ -38,6 +38,7 @@ const customCondition = ref<string>('') // custom condition to be added to lit o
 
 const decisionEmailPlaceholder = computed((): string =>
   [ApplicationActionsE.SEND_NOC,
+    ApplicationActionsE.REJECT,
     RegistrationActionsE.CANCEL,
     RegistrationActionsE.SUSPEND
   ].includes(decisionIntent.value)
