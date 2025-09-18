@@ -10,3 +10,9 @@ export enum PropertyType {
   BED_AND_BREAKFAST = 'BED_AND_BREAKFAST',
   FLOAT_HOME = 'FLOAT_HOME'
 }
+
+export enum PropertyHostType {
+  OWNER = 'OWNER',
+  FRIEND_RELATIVE = 'FRIEND_RELATIVE',
+  LONG_TERM_TENANT = 'LONG_TERM_TENANT'
+}

@@ -9,7 +9,8 @@ const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
 const props = defineProps<{ isComplete: boolean }>()
 
 const unitAddressFormRef = ref<Form<any>>()
-const { isNewAddressFormEnabled } = useHostFeatureFlags()
+const unitPidFormRef = ref<Form<any>>()
+const { isNewAddressFormEnabled, isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
 // clear form errors and submit when new address selected form autocomplete
 function handleNewAddress () {
@@ -65,7 +66,7 @@ onMounted(async () => {
       class="space-y-10"
       @submit="reqStore.getPropertyReqs()"
     >
-      <div class="rounded border border-gray-200 bg-white py-10 shadow">
+      <div class="rounded border border-gray-200 bg-white py-10">
         <ConnectFormSection :title="$t('label.strUnitName')">
           <div class="flex flex-col gap-4">
             <span>{{ $t('text.giveUnitNickname') }}</span>
@@ -81,7 +82,7 @@ onMounted(async () => {
         </ConnectFormSection>
       </div>
 
-      <div class="rounded-t border-x border-t border-gray-200 bg-white py-10 shadow">
+      <div class="rounded-t border-x border-t border-gray-200 bg-white py-10">
         <UAlert
           v-if="isRegistrationRenewal"
           color="yellow"
@@ -343,9 +344,49 @@ onMounted(async () => {
       </div>
     </UForm>
 
+    <UForm
+      v-if="isNewRentalUnitSetupEnabled"
+      ref="unitPidFormRef"
+      data-testid="form-unit-pid"
+      :schema="propStore.getUnitDetailsSchema()"
+      :state="propStore.unitDetails"
+      class="border-x border-gray-200 bg-white pb-10"
+    >
+      <!-- parcel identifier (PID) section -->
+      <ConnectFormSection
+        :title="$t('strr.label.parcelId')"
+        :error="isComplete && hasFormErrors(unitPidFormRef, ['parcelIdentifier'])"
+      >
+        <ConnectFormFieldGroup
+          id="property-parcel-id"
+          v-model="propStore.unitDetails.parcelIdentifier"
+          class="[&_div]:max-w-full"
+          mask="###-###-###"
+          name="parcelIdentifier"
+          :aria-label="(!propStore.unitDetails.ownershipType || propStore.isOwnerOrCoOwner)
+            ? $t('strr.label.parcelIdentifier')
+            : $t('strr.label.parcelIdentifierOpt')"
+          :placeholder="(!propStore.unitDetails.ownershipType || propStore.isOwnerOrCoOwner)
+            ? $t('strr.label.parcelIdentifier')
+            : $t('strr.label.parcelIdentifierOpt')"
+        >
+          <template #help>
+            <span>
+              {{ $t('strr.hint.parcelIdentifier') }}
+              <span class="inline-flex align-text-top">
+                <ConnectTooltip :text="$t('tooltip.pid')" :popper="{ placement: 'right' }">
+                  <UIcon name="i-mdi-info-outline" class="ml-0.5 size-4 shrink-0 text-blue-500" />
+                </ConnectTooltip>
+              </span>
+            </span>
+          </template>
+        </ConnectFormFieldGroup>
+      </ConnectFormSection>
+    </UForm>
+
     <div
       v-if="reqStore.hasReqs || reqStore.propertyReqError.type !== undefined"
-      class="rounded-b border-x border-b border-gray-200 bg-white px-4 pb-10 shadow md:px-10"
+      class="rounded-b border-x border-b border-gray-200 bg-white px-4 pb-10 md:px-10"
     >
       <FormDefineYourRentalUnitRequirements :is-complete="isComplete" />
     </div>
