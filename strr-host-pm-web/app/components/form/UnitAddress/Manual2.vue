@@ -103,7 +103,7 @@ watch(postalCode, () => {
       <ConnectFormFieldGroup
         :id="schemaPrefix + 'unitNumber'"
         v-model.trim="unitNumber"
-        class="[&_div]:max-w-full"
+        class="[&_.max-w-bcGovInput]:max-w-full"
         :name="schemaPrefix + 'unitNumber'"
         :color="city ? 'primary' : 'gray'"
         :is-disabled="disabledFields?.includes('unitNumber')"

@@ -360,7 +360,7 @@ onMounted(async () => {
         <ConnectFormFieldGroup
           id="property-parcel-id"
           v-model="propStore.unitDetails.parcelIdentifier"
-          class="[&_div]:max-w-full"
+          class="[&_.max-w-bcGovInput]:max-w-full"
           mask="###-###-###"
           name="parcelIdentifier"
           :aria-label="(!propStore.unitDetails.ownershipType || propStore.isOwnerOrCoOwner)
