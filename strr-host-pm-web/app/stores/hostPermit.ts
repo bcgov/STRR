@@ -119,7 +119,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
         await propertyReqStore.getPropertyReqs()
       }
     }
-    storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({
+    storedDocuments.value = permitDetails.value?.documents?.map<UiDocument>(val => ({
       file: {} as File,
       apiDoc: val,
       name: val.fileName,
