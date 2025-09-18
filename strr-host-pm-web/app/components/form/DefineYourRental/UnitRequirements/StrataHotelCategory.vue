@@ -7,6 +7,7 @@ const config = useRuntimeConfig().public
 
 const { t } = useI18n()
 const reqStore = usePropertyReqStore()
+const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
 const strataHotelCategoryOptions = [
   {
@@ -42,7 +43,7 @@ onMounted(async () => {
   >
     <ConnectFormSection
       :title="$t('label.strataHotelCategory')"
-      class="-mx-4 md:-mx-10"
+      class="-mx-4 mt-4 md:-mx-10"
       :error="isComplete && hasFormErrors(strataHotelCategoryFormRef, ['category'])"
       data-testid="strata-hotel-category-section"
     >
@@ -50,12 +51,13 @@ onMounted(async () => {
         <URadioGroup
           v-model="reqStore.strataHotelCategory.category"
           :options="strataHotelCategoryOptions"
-          aria-label="$t('label.strataHotelCategory')"
-          aria-invalid="error !== undefined"
+          :aria-label="$t('label.strataHotelCategory')"
+          :aria-invalid="error !== undefined"
           :class="isComplete && reqStore.strataHotelCategory.category === undefined
             ? 'border-red-600 border-2 pt-4'
             : 'pt-4'
           "
+          class="max-w-full"
           data-testid="strata-hotel-category-radio-group"
         >
           <template #legend>
@@ -72,6 +74,52 @@ onMounted(async () => {
             />
           </template>
         </URadioGroup>
+        <div
+          v-if="isNewRentalUnitSetupEnabled"
+          class="mt-8"
+        >
+          <ConnectFormFieldGroup
+            id="strata-platform-reg-number"
+            class="max-w-full"
+            name="strataPlatformRegistrationNumber"
+            :placeholder="t('strr.label.strataRegNum')"
+          >
+            <template #help>
+              {{ $t('strr.hint.strataRegNumHint') }}
+            </template>
+          </ConnectFormFieldGroup>
+
+          <UButton
+            target="_blank"
+            :label="$t('link.strataPlatformRegNum')"
+            leading-icon="i-mdi-info-outline"
+            variant="link"
+            class="mt-6 text-base"
+            :padded="false"
+            :ui="{ gap: { sm: 'gap-x-1.5' } }"
+            data-testid="strata-platform-reg-num-help"
+          />
+
+          <UAlert
+            color="yellow"
+            class="mt-8 w-auto"
+            icon="i-mdi-alert"
+            :close-button="null"
+            variant="subtle"
+            :ui="{
+              inner: 'pt-0',
+              padding: 'p-6',
+              icon: {
+                base: 'w-5 h-5 self-start'
+              }
+            }"
+            data-testid="alert-strata-hotel-unit"
+          >
+            <template #title>
+              <ConnectI18nHelper translation-path="alert.strataHotelUnit" />
+            </template>
+          </UAlert>
+        </div>
       </UFormGroup>
     </ConnectFormSection>
   </UForm>

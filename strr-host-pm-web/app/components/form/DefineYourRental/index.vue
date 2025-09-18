@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{ isComplete: boolean }>()
-// const { t } = useI18n()
-// const propStore = useHostPropertyStore()
+const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
+
 </script>
 
 <template>
@@ -11,6 +11,14 @@ defineProps<{ isComplete: boolean }>()
   >
     <FormDefineYourRentalUnitAddress :is-complete="isComplete" />
 
-    <FormDefineYourRentalUnitDetails :is-complete="isComplete" />
+    <FormDefineYourRentalUnitDetails2
+      v-if="isNewRentalUnitSetupEnabled"
+      :is-complete="isComplete"
+    />
+
+    <FormDefineYourRentalUnitDetails
+      v-else
+      :is-complete="isComplete"
+    />
   </div>
 </template>
