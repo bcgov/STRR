@@ -71,6 +71,52 @@ onMounted(async () => {
             />
           </template>
         </URadioGroup>
+        <div
+          v-if="isNewRentalUnitSetupEnabled"
+          class="mt-8"
+        >
+          <ConnectFormFieldGroup
+            id="strata-platform-reg-number"
+            class="max-w-full"
+            name="strataPlatformRegistrationNumber"
+            :placeholder="t('strr.label.strataRegNum')"
+          >
+            <template #help>
+              {{ $t('strr.hint.strataRegNumHint') }}
+            </template>
+          </ConnectFormFieldGroup>
+
+          <UButton
+            target="_blank"
+            :label="$t('link.strataPlatformRegNum')"
+            leading-icon="i-mdi-info-outline"
+            variant="link"
+            class="mt-6 text-base"
+            :padded="false"
+            :ui="{ gap: { sm: 'gap-x-1.5' } }"
+            data-testid="strata-platform-reg-num-help"
+          />
+
+          <UAlert
+            color="yellow"
+            class="mt-8 w-auto"
+            icon="i-mdi-alert"
+            :close-button="null"
+            variant="subtle"
+            :ui="{
+              inner: 'pt-0',
+              padding: 'p-6',
+              icon: {
+                base: 'w-5 h-5 self-start'
+              }
+            }"
+            data-testid="alert-strata-hotel-unit"
+          >
+            <template #title>
+              <ConnectI18nHelper translation-path="alert.strataHotelUnit" />
+            </template>
+          </UAlert>
+        </div>
       </UFormGroup>
       <div
         v-if="isNewRentalUnitSetupEnabled"
