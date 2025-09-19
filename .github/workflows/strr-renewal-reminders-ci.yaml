@@ -1,0 +1,25 @@
+name: REGISTRATION RENEWAL REMINDERS JOB CI
+
+on:
+  pull_request:
+    paths:
+      - "jobs/renewal-reminders**"
+      - "src/strr_api/models/**"
+      - "src/strr_api/services/**"
+      - "src/strr_api/enums/**"
+      - "src/strr_api/exceptions/**"
+      - "src/strr_api/utils/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./jobs/renewal-reminders
+
+jobs:
+  provisional-approval-job-ci:
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    with:
+      app_name: "renewal-reminders-job"
+      working_directory: "./jobs/renewal-reminders"
+      codecov_flag: "renewalRemindersjob"
