@@ -17,7 +17,7 @@ defaults:
     working-directory: ./jobs/renewal-reminders
 
 jobs:
-  provisional-approval-job-ci:
+  renewal-reminders-job-ci:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
       app_name: "renewal-reminders-job"

@@ -35,7 +35,7 @@ on:
           - "true"
 
 jobs:
-  provisional-approval-job-cd:
+  renewal-reminders-job-cd:
     uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
     with:
       target: ${{ inputs.target }}
