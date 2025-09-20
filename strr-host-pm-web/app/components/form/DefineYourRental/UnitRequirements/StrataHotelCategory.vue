@@ -44,7 +44,7 @@ onMounted(async () => {
     <ConnectFormSection
       :title="$t('label.strataHotelCategory')"
       class="-mx-4 mt-4 md:-mx-10"
-      :error="isComplete && hasFormErrors(strataHotelCategoryFormRef, ['category'])"
+      :error="props.isComplete && hasFormErrors(strataHotelCategoryFormRef, ['category', 'strataPlatformRegNum'])"
       data-testid="strata-hotel-category-section"
     >
       <UFormGroup name="category">
@@ -53,11 +53,7 @@ onMounted(async () => {
           :options="strataHotelCategoryOptions"
           :aria-label="$t('label.strataHotelCategory')"
           :aria-invalid="error !== undefined"
-          :class="isComplete && reqStore.strataHotelCategory.category === undefined
-            ? 'border-red-600 border-2 pt-4'
-            : 'pt-4'
-          "
-          class="max-w-full"
+          class="max-w-full pt-4"
           data-testid="strata-hotel-category-radio-group"
         >
           <template #legend>
@@ -81,14 +77,13 @@ onMounted(async () => {
       >
         <ConnectFormFieldGroup
           id="strata-platform-reg-number"
+          v-model="reqStore.strataHotelCategory.strataPlatformRegNum"
           class="max-w-full"
-          name="strataPlatformRegistrationNumber"
+          name="strataPlatformRegNum"
+          :help="$t('strr.hint.strataRegNumHint')"
           :placeholder="t('strr.label.strataRegNum')"
-        >
-          <template #help>
-            {{ $t('strr.hint.strataRegNumHint') }}
-          </template>
-        </ConnectFormFieldGroup>
+          :class="props.isComplete && hasFormErrors(strataHotelCategoryFormRef, ['strataPlatformRegNum'])"
+        />
 
         <UButton
           target="_blank"

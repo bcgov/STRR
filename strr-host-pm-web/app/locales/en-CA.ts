@@ -498,6 +498,7 @@ export default {
     },
     businessLicense: 'Please enter a valid business licence number',
     strataHotelCategory: 'Please select a category',
+    strataPlatformRegNum: 'You must enter the strata hotel platform number for your application to be reviewed',
     businessLicenseExpiryDate: 'Please select the expiry date for the business licence',
     dateOfBirth: 'Please enter the birthdate of this individual',
     numberOfRooms: {
@@ -509,6 +510,7 @@ export default {
     propertyType: 'Please select the rental unit type of this rental unit',
     onlineListings: 'Please enter a valid URL (i.e. https://www.bcregistry.gov.bc.ca)',
     rentalUnitSetupType: 'Please select the setup type of the rental unit',
+    rentalUnitSetupOption: 'Please select the rental unit setup option',
     typeOfSpace: 'Please select the type of space of the unit',
     ownerRole: 'Please select the role',
     missingReqDocs: 'Missing required documents. Please see above for details.',

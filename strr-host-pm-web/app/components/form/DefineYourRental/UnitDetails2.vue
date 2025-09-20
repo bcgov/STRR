@@ -5,7 +5,7 @@ const props = defineProps<{ isComplete: boolean }>()
 const { t } = useI18n()
 const reqStore = usePropertyReqStore()
 const propStore = useHostPropertyStore()
-const { getUnitDetailsSchema } = useHostPropertyStore()
+const { getUnitDetailsSchema2 } = useHostPropertyStore()
 
 const unitDetailsFormRef = ref<Form<any>>()
 
@@ -120,7 +120,7 @@ onMounted(async () => {
     v-if="reqStore.showUnitDetailsForm"
     ref="unitDetailsFormRef"
     data-testid="form-unit-details"
-    :schema="getUnitDetailsSchema()"
+    :schema="getUnitDetailsSchema2()"
     :state="propStore.unitDetails"
     class="space-y-10"
   >
@@ -212,9 +212,6 @@ onMounted(async () => {
               id="host-type-radio-group"
               v-model="propStore.unitDetails.hostType"
               :legend="$t('text.hostTypeLegend')"
-              :class="isComplete && hasFormErrors(unitDetailsFormRef, ['hostType'])
-                ? 'border-red-600 border-2 p-2'
-                : 'p-2'"
               :options="propertyHostTypeOptions"
               :ui="{ legend: 'sr-only' }"
               :ui-radio="{ inner: 'space-y-2' }"
@@ -240,9 +237,6 @@ onMounted(async () => {
               id="rental-unit-setup-radio-group"
               v-model="propStore.unitDetails.rentalUnitSetupOption"
               class="max-w-full"
-              :class="isComplete && hasFormErrors(unitDetailsFormRef, ['rentalUnitSetupOption'])
-                ? 'border-red-600 border-2 p-2'
-                : 'p-2'"
               :options="rentalUnitSetupOptions"
               :legend="$t('text.rentalUnitSetupLegend')"
               :ui="{ legend: 'sr-only' }"

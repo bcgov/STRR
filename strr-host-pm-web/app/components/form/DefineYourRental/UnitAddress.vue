@@ -34,6 +34,11 @@ function handleCancelManual () {
   propStore.hasNoStreetAddress = false
 }
 
+// used to display rest of the form once property address is validated
+const hasPropertyRequirements = computed((): boolean =>
+  reqStore.hasReqs || reqStore.propertyReqError.type !== undefined
+)
+
 // clear street name/number errors when inputting address line 2 (name/number become optional)
 watch(
   () => propStore.unitAddress.address.streetAdditional,
@@ -345,7 +350,7 @@ onMounted(async () => {
     </UForm>
 
     <UForm
-      v-if="isNewRentalUnitSetupEnabled"
+      v-if="isNewRentalUnitSetupEnabled && hasPropertyRequirements"
       ref="unitPidFormRef"
       data-testid="form-unit-pid"
       :schema="propStore.getUnitDetailsSchema()"
@@ -385,7 +390,7 @@ onMounted(async () => {
     </UForm>
 
     <div
-      v-if="reqStore.hasReqs || reqStore.propertyReqError.type !== undefined"
+      v-if="hasPropertyRequirements"
       class="rounded-b border-x border-b border-gray-200 bg-white px-4 pb-10 md:px-10"
     >
       <FormDefineYourRentalUnitRequirements :is-complete="isComplete" />

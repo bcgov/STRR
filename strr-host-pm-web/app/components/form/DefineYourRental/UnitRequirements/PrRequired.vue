@@ -29,11 +29,13 @@ watch(
     if (newVal.isPropertyPrExempt === false) {
       reqStore.prRequirements.prExemptionReason = undefined
       reqStore.strataHotelCategory.category = undefined
+      reqStore.strataHotelCategory.strataPlatformRegNum = undefined
       prReqFormRef.value?.validate(['prExemptionReason'], { silent: true })
     }
     // reset strata hotel category when changing exemption reason
     if (newVal.prExemptionReason !== PrExemptionReason.STRATA_HOTEL) {
       reqStore.strataHotelCategory.category = undefined
+      reqStore.strataHotelCategory.strataPlatformRegNum = undefined
     }
   },
   { deep: true }

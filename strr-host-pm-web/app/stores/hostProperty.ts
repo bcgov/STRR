@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()
+  const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
   // rental unit address stuff
   const useManualAddressInput = ref<boolean>(false)
@@ -220,6 +221,35 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       .max(5000)
   })
 
+  // validation schema for new property setup - enabled by feature flag isNewRentalUnitSetupEnabled
+  const getUnitDetailsSchema2 = () => z.object({
+    propertyType: z.enum([
+      PropertyType.SINGLE_FAMILY_HOME,
+      PropertyType.SECONDARY_SUITE,
+      PropertyType.ACCESSORY_DWELLING,
+      PropertyType.MULTI_UNIT_HOUSING,
+      PropertyType.BED_AND_BREAKFAST,
+      PropertyType.FLOAT_HOME,
+      PropertyType.STRATA_HOTEL
+    ], {
+      errorMap: () => ({ message: t('validation.propertyType') })
+    }),
+    hostType: z.enum([
+      PropertyHostType.OWNER,
+      PropertyHostType.FRIEND_RELATIVE,
+      PropertyHostType.LONG_TERM_TENANT
+    ], {
+      errorMap: () => ({ message: t('validation.propertyType') })
+    }),
+    rentalUnitSetupOption: z.enum([
+      RentalUnitSetupOption.OPTION_1,
+      RentalUnitSetupOption.OPTION_2,
+      RentalUnitSetupOption.OPTION_3
+    ], {
+      errorMap: () => ({ message: t('validation.rentalUnitSetupOption') })
+    })
+  })
+
   const getEmptyUnitDetails = (): UiUnitDetails => ({
     parcelIdentifier: '',
     propertyType: undefined,
@@ -228,14 +258,17 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     typeOfSpace: undefined,
     numberOfRoomsForRent: 0,
     // fields for new form
-    hostType: undefined
+    hostType: undefined,
+    rentalUnitSetupOption: null
   })
 
   const unitDetails = ref<UiUnitDetails>(getEmptyUnitDetails())
 
   const validateUnitDetails = (returnBool = false): MultiFormValidationResult | boolean => {
+    const schemaToValidate = isNewRentalUnitSetupEnabled ? getUnitDetailsSchema2() : getUnitDetailsSchema()
+
     const result = validateSchemaAgainstState(
-      getUnitDetailsSchema(),
+      schemaToValidate,
       unitDetails.value,
       'unit-details-form')
 
@@ -297,6 +330,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   return {
     getUnitAddressSchema,
+    getUnitAddressSchema2,
     getEmptyUnitAddress,
     unitAddress,
     validateUnitAddress,
@@ -308,7 +342,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     validateBusinessLicense,
     // unitDetailsSchema,
     getUnitDetailsSchema,
-    getUnitAddressSchema2,
+    getUnitDetailsSchema2,
     getEmptyUnitDetails,
     unitDetails,
     validateUnitDetails,
