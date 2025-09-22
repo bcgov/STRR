@@ -20,17 +20,26 @@ const {
 } = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 
-const isSetAside = computed((): boolean => activeHeader.value?.examinerActions.includes(ApplicationActionsE.SET_ASIDE))
+const hasSetAsideAction = computed((): boolean =>
+  activeHeader.value?.examinerActions.includes(ApplicationActionsE.SET_ASIDE))
+
+const isSetAside = computed((): boolean => activeHeader.value?.isSetAside)
 
 const isRegApproved = computed((): boolean =>
   activeReg.value.status === RegistrationStatus.ACTIVE
 )
 
 const isMainActionButtonVisible = computed((): boolean => {
-  if (decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE) {
-    return hasDecisionChanges.value && isAssignedToUser.value
+  if (!isAssignedToUser.value || !decisionIntent.value) {
+    return false // if not assigned or decision is not selected - do not show the button
+  }
+  if (isSetAside.value) {
+    return true // if set aside - always show the button
+  }
+  if (decisionIntent.value === ApplicationActionsE.APPROVE) {
+    return hasDecisionChanges.value // if Approve selected - show based on tracked changes
   } else {
-    return !!decisionIntent.value && hasDecisionChanges.value && isAssignedToUser.value
+    return !!decisionIntent.value // is some decision selected - show the button
   }
 })
 
@@ -254,7 +263,7 @@ const setAside = async () => {
         <div>
           <div class="flex justify-center gap-4 md:justify-start">
             <UButton
-              v-if="isSetAside"
+              v-if="hasSetAsideAction"
               :label="t('btn.setAside')"
               variant="outline"
               icon="i-mdi-rotate-left"
