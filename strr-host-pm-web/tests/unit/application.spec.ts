@@ -7,12 +7,15 @@ import {
   ConnectStepper,
   FormAddDocuments,
   FormAddOwners,
+  FormDefineYourRentalUnitAddress,
+  FormDefineYourRentalUnitDetails,
+  FormDefineYourRentalUnitDetails2,
   FormReview
 } from '#components'
 
 vi.mock('@/stores/hostProperty', () => ({
   useHostPropertyStore: () => ({
-    unitAddress: ref({ address: mockApplication.registration.unitAddress }),
+    unitAddress: { address: mockApplication.registration.unitAddress },
     unitDetails: ref(mockApplication.registration.unitDetails),
     blInfo: ref({
       businessLicense: '',
@@ -24,6 +27,8 @@ vi.mock('@/stores/hostProperty', () => ({
     validateBusinessLicense: () => true,
     propertyTypeFeeTriggers: ref([]),
     getUnitAddressSchema: () => ({ address: mockApplication.registration.unitAddress }),
+    getUnitDetailsSchema2: () => vi.fn(),
+    getUnitAddressSchema2: () => vi.fn(),
     resetUnitAddress: vi.fn(),
     resetUnitDetails: vi.fn(),
     resetBlInfo: vi.fn(),
@@ -96,6 +101,13 @@ vi.mock('@/composables/useButtonControl', () => ({
 vi.mock('@/composables/useStrrModals', () => ({
   useStrrModals: () => ({
     openConfirmRestartApplicationModal: vi.fn()
+  })
+}))
+
+vi.mock('@/composables/useHostFeatureFlags', () => ({
+  useHostFeatureFlags: () => ({
+    isNewRentalUnitSetupEnabled: true,
+    isNewAddressFormEnabled: true
   })
 }))
 
@@ -183,5 +195,35 @@ describe('Application Page', () => {
       const defineRentalForm = wrapper.findComponent({ name: 'FormDefineYourRental' })
       expect(defineRentalForm.exists()).toBe(true)
     })
+  })
+})
+
+describe('Rental Application Page - Step 1', () => {
+  let wrapper: any
+
+  beforeAll(async () => {
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+  })
+
+  it('renders the Step 1 and its components', () => {
+    // make sure we are on step 1
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(0)
+
+    expect(wrapper.findComponent(FormDefineYourRentalUnitAddress).exists()).toBe(true)
+    expect(wrapper.findComponent(FormDefineYourRentalUnitDetails).exists()).toBe(false)
+    expect(wrapper.findComponent(FormDefineYourRentalUnitDetails2).exists()).toBe(true)
+
+    expect(wrapper.find('[data-testid="rental-unit-address-nickname"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="alert-renewal-address-change"]').exists()).toBe(true)
+
+    const rentalUnitDetails = wrapper.findComponent(FormDefineYourRentalUnitDetails2)
+
+    expect(rentalUnitDetails.find('[data-testid="property-type-select"]').exists()).toBe(true)
+    expect(rentalUnitDetails.find('[data-testid="property-host-type"]').exists()).toBe(true)
+    expect(rentalUnitDetails.find('[data-testid="unit-setup-option"]').exists()).toBe(true)
   })
 })

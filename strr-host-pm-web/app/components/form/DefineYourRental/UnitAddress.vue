@@ -36,7 +36,7 @@ function handleCancelManual () {
 
 // used to display rest of the form once property address is validated
 const hasPropertyRequirements = computed((): boolean =>
-  reqStore.hasReqs || reqStore.propertyReqError.type !== undefined
+  reqStore.hasReqs || reqStore.propertyReqError?.type !== undefined
 )
 
 // clear street name/number errors when inputting address line 2 (name/number become optional)

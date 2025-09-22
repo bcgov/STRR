@@ -148,6 +148,7 @@ onMounted(async () => {
               :ui-menu="{
                 label: propStore.unitDetails.propertyType ? 'text-gray-900' : !!error? 'text-red-600': 'text-gray-700'
               }"
+              data-testid="property-type-select"
             />
           </UFormGroup>
 
@@ -215,6 +216,7 @@ onMounted(async () => {
               :options="propertyHostTypeOptions"
               :ui="{ legend: 'sr-only' }"
               :ui-radio="{ inner: 'space-y-2' }"
+              data-testid="property-host-type"
             />
           </UFormGroup>
         </ConnectFormSection>
@@ -241,6 +243,7 @@ onMounted(async () => {
               :legend="$t('text.rentalUnitSetupLegend')"
               :ui="{ legend: 'sr-only' }"
               :ui-radio="{ inner: 'space-y-2', label: 'font-bold' }"
+              data-testid="unit-setup-option"
             >
               <template #label="{ option }">
                 <span :class="{ 'opacity-50': option.disabled }">
