@@ -162,3 +162,19 @@ class EmailService:
             )
         except Exception as err:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
+
+    @staticmethod
+    def send_renewal_reminder_for_registration(registration: Registration, days: int):
+        """Send notice of consideration for the application."""
+        email_type = "RENEWAL_REMINDER_FORTY_DAYS" if days == 40 else "RENEWAL_REMINDER_FOURTEEN_DAYS"
+        try:
+            gcp_queue_publisher.publish_to_queue(
+                gcp_queue_publisher.QueueMessage(
+                    source=EMAIL_SOURCE,
+                    message_type=EMAIL_TYPE,
+                    payload={"registrationNumber": registration.registration_number, "emailType": email_type},
+                    topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+                )
+            )
+        except Exception as err:
+            logger.error("Failed to publish email notification: %s", err.with_traceback(None))
