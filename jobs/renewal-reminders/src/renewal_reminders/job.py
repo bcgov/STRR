@@ -14,10 +14,16 @@
 """Registration Renewal Reminder Job."""
 import logging
 import os
+import traceback
+from datetime import datetime, timedelta
 
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
+from sqlalchemy import func
+from strr_api.enums.enum import RegistrationStatus
 from strr_api.models import db
+from strr_api.models.rental import Registration
+from strr_api.services.email_service import EmailService
 
 from renewal_reminders.config import CONFIGURATION
 from renewal_reminders.utils.logging import setup_logging
@@ -46,14 +52,24 @@ def register_shellcontext(app):
     app.shell_context_processor(shell_context)
 
 
-def send_forty_five_days_reminder(app):
-    """Send the reminder before 45 days."""
-    pass
-
-
-def send_fifteen_days_reminder(app):
-    """Send the reminder before 15 days."""
-    pass
+def send_forty_days_reminder(app):
+    """Send the reminder before 40 days."""
+    with app.app_context():
+        target_date = (datetime.utcnow() + timedelta(days=40)).date()
+        registrations = Registration.query.filter(
+            Registration.registration_type == Registration.RegistrationType.HOST,
+            Registration.status == RegistrationStatus.ACTIVE,
+            func.date(Registration.expiry_date) == target_date,
+        ).all()
+        app.logger.info(
+            f"Found {len(registrations)} active host registrations expiring in 40 days."
+        )
+        # Add logic to send reminders here
+        for reg in registrations:
+            app.logger.info(f"Sending reminder for registration ID: {reg.id}")
+            EmailService.send_renewal_reminder_for_registration(
+                registration=reg, days=40
+            )
 
 
 def run():
@@ -62,7 +78,8 @@ def run():
         app = create_app()
         with app.app_context():
             app.logger.info("Starting renewal reminder job")
-            send_fifteen_days_reminder(app)
-            send_forty_five_days_reminder(app)
+            send_forty_days_reminder(app)
+            app.logger.info("Renewal reminder job completed")
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")
+        app.logger.error(traceback.format_exc())
