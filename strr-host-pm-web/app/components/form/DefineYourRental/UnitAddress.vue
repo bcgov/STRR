@@ -350,7 +350,7 @@ onMounted(async () => {
     </UForm>
 
     <UForm
-      v-if="isNewRentalUnitSetupEnabled && hasPropertyRequirements"
+      v-if="isNewRentalUnitSetupEnabled && hasPropertyRequirements && reqStore.showUnitDetailsForm"
       ref="unitPidFormRef"
       data-testid="form-unit-pid"
       :schema="propStore.getUnitDetailsSchema()"

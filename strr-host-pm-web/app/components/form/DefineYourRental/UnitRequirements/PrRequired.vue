@@ -4,6 +4,8 @@ const props = defineProps<{ isComplete: boolean }>()
 
 const { t } = useI18n()
 const reqStore = usePropertyReqStore()
+const { unitDetails } = storeToRefs(useHostPropertyStore())
+const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
 const prReqFormRef = ref<Form<any>>()
 const prExemptionOptions = [
@@ -30,12 +32,18 @@ watch(
       reqStore.prRequirements.prExemptionReason = undefined
       reqStore.strataHotelCategory.category = undefined
       reqStore.strataHotelCategory.strataPlatformRegNum = undefined
+      if (isNewRentalUnitSetupEnabled && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
+        unitDetails.value.propertyType = undefined // clear property type when disabling Strata Hotel PR requirement
+      }
       prReqFormRef.value?.validate(['prExemptionReason'], { silent: true })
     }
     // reset strata hotel category when changing exemption reason
     if (newVal.prExemptionReason !== PrExemptionReason.STRATA_HOTEL) {
       reqStore.strataHotelCategory.category = undefined
       reqStore.strataHotelCategory.strataPlatformRegNum = undefined
+      if (isNewRentalUnitSetupEnabled && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
+        unitDetails.value.propertyType = undefined // clear property type when disabling Strata Hotel exemption reason
+      }
     }
   },
   { deep: true }

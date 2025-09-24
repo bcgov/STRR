@@ -10,7 +10,10 @@ import {
   FormDefineYourRentalUnitAddress,
   FormDefineYourRentalUnitDetails,
   FormDefineYourRentalUnitDetails2,
-  FormReview
+  FormReview,
+  FormUnitAddressAutoComplete,
+  FormUnitAddressManual,
+  FormUnitAddressManual2
 } from '#components'
 
 vi.mock('@/stores/hostProperty', () => ({
@@ -219,6 +222,10 @@ describe('Rental Application Page - Step 1', () => {
 
     expect(wrapper.find('[data-testid="rental-unit-address-nickname"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="alert-renewal-address-change"]').exists()).toBe(true)
+
+    expect(wrapper.findComponent(FormUnitAddressAutoComplete).exists()).toBe(true)
+    expect(wrapper.findComponent(FormUnitAddressManual).exists()).toBe(false)
+    expect(wrapper.findComponent(FormUnitAddressManual2).exists()).toBe(true)
 
     const rentalUnitDetails = wrapper.findComponent(FormDefineYourRentalUnitDetails2)
 
