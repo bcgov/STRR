@@ -89,6 +89,11 @@ def mock_credentials():
         ),
         (
             Registration.RegistrationType.HOST,
+            Application.Status.DECLINED,
+            True,
+        ),
+        (
+            Registration.RegistrationType.HOST,
             Application.Status.FULL_REVIEW,
             False,
         ),
