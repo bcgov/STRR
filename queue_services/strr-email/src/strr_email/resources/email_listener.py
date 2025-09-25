@@ -72,6 +72,7 @@ EMAIL_SUBJECT = {
     "REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
     "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
+    "HOST_DECLINED": "Short-Term Rental Application Refused",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "HOST_RENEWAL_REMINDER_FORTY_DAYS": "Short-Term Rental Registration Renewal Reminder",
@@ -224,6 +225,7 @@ def _get_application_update_email_content(application, email_info, jinja_templat
         street_name=_get_address_detail(app_dict, application.registration_type, "streetName")
         or _get_address_detail(app_dict, application.registration_type, "addressLineTwo"),
         city=_get_address_detail(app_dict, application.registration_type, "city"),
+        province=_get_address_detail(app_dict, application.registration_type, "province"),
         postal_code=_get_address_detail(app_dict, application.registration_type, "postalCode"),
         expiry_date=_get_expiry_date(app_dict),
         service_provider=_get_service_provider(app_dict, application.registration_type),

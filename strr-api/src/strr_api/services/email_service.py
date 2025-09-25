@@ -50,6 +50,7 @@ APPLICATION_EMAIL_STATES = {
         Application.Status.PROVISIONAL_REVIEW,
         Application.Status.PROVISIONALLY_APPROVED,
         Application.Status.PROVISIONALLY_DECLINED,
+        Application.Status.DECLINED,
     ],
     Registration.RegistrationType.PLATFORM: [Application.Status.AUTO_APPROVED],
 }
@@ -72,7 +73,7 @@ class EmailService:
                     "applicationNumber": application.application_number,
                     "emailType": f"{application.registration_type.value}_{application.status}",
                 }
-                if custom_content and application.status == Application.Status.PROVISIONALLY_DECLINED:
+                if custom_content and application.status in [Application.Status.PROVISIONALLY_DECLINED, Application.Status.DECLINED]:
                     payload_data["customContent"] = custom_content
                 gcp_queue_publisher.publish_to_queue(
                     # NOTE: if registrationType / status typing (str vs enum)
