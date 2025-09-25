@@ -44,19 +44,16 @@ const rentalUnitSetupOptions = computed(() => [
   {
     label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_1}.label`),
     value: RentalUnitSetupOption.OPTION_1,
-    desc: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_1}.desc`),
     disabled: (isPrRequired.value && !isPrExempt.value) || isHostTypeTenant.value
   },
   {
     label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_2}.label`),
     value: RentalUnitSetupOption.OPTION_2,
-    desc: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_2}.desc`),
     disabled: isHostTypeTenant.value
   },
   {
     label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_3}.label`),
-    value: RentalUnitSetupOption.OPTION_3,
-    desc: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_3}.desc`)
+    value: RentalUnitSetupOption.OPTION_3
   }
 ])
 

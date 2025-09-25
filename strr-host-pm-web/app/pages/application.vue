@@ -253,7 +253,7 @@ const handleSubmit = async () => {
 }
 
 // TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
-watch([activeStepIndex, permitStore.isRegistrationRenewal], () => {
+watch([activeStepIndex, () => permitStore.isRegistrationRenewal], () => {
   const buttons: ConnectBtnControlItem[] = []
   if (activeStepIndex.value !== 0) {
     buttons.push({
@@ -325,7 +325,7 @@ watch(() => unitDetails.value.ownershipType, async (newVal) => {
 })
 
 // watch the Stepper to calculate application fees on Review and Confirm step only
-watch(() => activeStepIndex.value, (val) => {
+watch(activeStepIndex, (val) => {
   if (!isNewRentalUnitSetupEnabled) { return } // get fees for new rental unit setup only
   const { propertyType, rentalUnitSetupOption } = unitDetails.value
   const isReviewStep = val === 3 // get fees when on Review step only

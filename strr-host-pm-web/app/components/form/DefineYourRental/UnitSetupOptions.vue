@@ -12,7 +12,7 @@ const translationOptionId = `rentalUnitSetupOption.${option.value}` // eg. renta
     :data-testid="`unit-setup-${option.value.toLowerCase()}`"
   >
     <p class="my-2 ml-3 text-base italic">
-      <ConnectI18nHelper :translation-path="option.desc" />
+      <ConnectI18nHelper :translation-path="`${translationOptionId}.desc`" />
     </p>
     <div
       v-if="option.value === RentalUnitSetupOption.OPTION_2"

@@ -8,7 +8,7 @@ type FeeMatrix = Partial<
 export const useHostApplicationFee = () => {
   const { getFee } = useConnectFeeStore()
 
-  const APPLICATION_FEE_MATRIX = ref<FeeMatrix>({})
+  let APPLICATION_FEE_MATRIX: FeeMatrix = {}
 
   /**
    * Fetch three different STRR fees and setup application fee matrix based on the retrieved fees.
@@ -20,7 +20,7 @@ export const useHostApplicationFee = () => {
       getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_3)
     ])
 
-    APPLICATION_FEE_MATRIX.value = {
+    APPLICATION_FEE_MATRIX = {
       [PropertyType.SINGLE_FAMILY_HOME]: {
         [RentalUnitSetupOption.OPTION_1]: fee2, // $450
         [RentalUnitSetupOption.OPTION_2]: fee2, // $450
@@ -69,7 +69,7 @@ export const useHostApplicationFee = () => {
     propertyType: PropertyType,
     rentalUnitSetupOption: RentalUnitSetupOption
   ): ConnectFeeItem | {} => {
-    return APPLICATION_FEE_MATRIX.value[propertyType]?.[rentalUnitSetupOption] || {}
+    return APPLICATION_FEE_MATRIX[propertyType]?.[rentalUnitSetupOption] || {}
   }
 
   return {
