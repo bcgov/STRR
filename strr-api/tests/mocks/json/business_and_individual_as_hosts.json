@@ -49,10 +49,8 @@
       "businessLicenseExpiryDate": "2025-01-01",
       "propertyType": "SINGLE_FAMILY_HOME",
       "ownershipType": "OWN",
-      "rentalUnitSpaceType": "ENTIRE_HOME",
-      "hostResidence": "SAME_UNIT",
-      "isUnitOnPrincipalResidenceProperty": true,
-      "numberOfRoomsForRent": 1
+      "rentalUnitSetupOption": "OPTION_1",
+      "hostType": "OWNER"
     },
     "unitAddress": {
       "nickname": "My Rental Property",

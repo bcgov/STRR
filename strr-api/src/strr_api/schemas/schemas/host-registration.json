@@ -192,14 +192,32 @@
             "MULTI_UNIT_NON_PR",
             "POST_DECEMBER_2023"
           ]
+        },
+        "rentalUnitSetupOption": {
+          "type": "string",
+          "enum": [
+            "OPTION_1",
+            "OPTION_2", 
+            "OPTION_3"
+          ],
+          "description": "Rental unit setup option"
+        },
+        "hostType": {
+          "type": "string",
+          "enum": [
+            "OWNER",
+            "FRIEND_RELATIVE",
+            "LONG_TERM_TENANT"
+          ]
         }
       },
       "required": [
         "propertyType",
-        "ownershipType",
-        "rentalUnitSpaceType",
-        "isUnitOnPrincipalResidenceProperty",
-        "numberOfRoomsForRent"
+        "ownershipType"
+      ],
+      "anyOf": [
+        { "required": ["rentalUnitSetupOption"] },
+        { "required": ["rentalUnitSpaceType", "isUnitOnPrincipalResidenceProperty", "numberOfRoomsForRent"] }
       ]
     },
     "listingDetails": {

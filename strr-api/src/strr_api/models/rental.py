@@ -83,11 +83,25 @@ class RentalProperty(Versioned, BaseModel):
         ENTIRE_HOME = auto()  # pylint: disable=invalid-name
         SHARED_ACCOMMODATION = auto()  # pylint: disable=invalid-name
 
+    class RentalSpaceOption(BaseEnum):
+        """Enum of rental space option."""
+
+        OPTION_1 = auto()  # pylint: disable=invalid-name
+        OPTION_2 = auto()  # pylint: disable=invalid-name
+        OPTION_3 = auto()  # pylint: disable=invalid-name
+
     class HostResidence(BaseEnum):
         """Enum of host residence option."""
 
         SAME_UNIT = auto()  # pylint: disable=invalid-name
         ANOTHER_UNIT = auto()  # pylint: disable=invalid-name
+
+    class HostType(BaseEnum):
+        """Enum of host type."""
+
+        OWNER = auto()  # pylint: disable=invalid-name
+        FRIEND_RELATIVE = auto()  # pylint: disable=invalid-name
+        LONG_TERM_TENANT = auto()  # pylint: disable=invalid-name
 
     class OwnershipType(BaseEnum):
         """Ownership Type."""
@@ -111,9 +125,11 @@ class RentalProperty(Versioned, BaseModel):
     rental_act_accepted = db.Column(db.Boolean, nullable=False, default=False)
     pr_exempt_reason = db.Column(db.String, nullable=True)
     service_provider = db.Column(db.String, nullable=True)
-    space_type = db.Column(db.Enum(RentalUnitSpaceType), nullable=False)
+    space_type = db.Column(db.Enum(RentalUnitSpaceType), nullable=True)
     host_residence = db.Column(db.Enum(HostResidence), nullable=True)
-    is_unit_on_principal_residence_property = db.Column(db.Boolean, nullable=False)
+    rental_space_option = db.Column(db.Enum(RentalSpaceOption), nullable=True)
+    is_unit_on_principal_residence_property = db.Column(db.Boolean, nullable=True)
+    host_type = db.Column(db.Enum(HostType), nullable=True)
     number_of_rooms_for_rent = db.Column(db.Integer, nullable=False)
     strata_hotel_registration_number = db.Column(db.String, nullable=True)
     strata_hotel_category = db.Column(Enum(StrataHotelCategory), nullable=True, index=True)

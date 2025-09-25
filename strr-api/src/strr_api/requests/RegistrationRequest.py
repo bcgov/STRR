@@ -114,10 +114,6 @@ class UnitDetails:
         self,
         propertyType,
         ownershipType,
-        rentalUnitSpaceType,
-        isUnitOnPrincipalResidenceProperty,
-        numberOfRoomsForRent,
-        hostResidence=None,
         parcelIdentifier=None,
         businessLicense=None,
         businessLicenseExpiryDate=None,
@@ -125,6 +121,12 @@ class UnitDetails:
         strataHotelRegistrationNumber=None,
         prExemptReason=None,
         strataHotelCategory=None,
+        hostResidence=None,
+        rentalUnitSpaceType=None,
+        isUnitOnPrincipalResidenceProperty=None,
+        numberOfRoomsForRent=None,
+        rentalUnitSetupOption=None,
+        hostType=None,
     ):
         self.propertyType = propertyType
         self.ownershipType = ownershipType
@@ -139,6 +141,8 @@ class UnitDetails:
         self.strataHotelRegistrationNumber = strataHotelRegistrationNumber
         self.prExemptReason = prExemptReason
         self.strataHotelCategory = strataHotelCategory
+        self.rentalUnitSetupOption = rentalUnitSetupOption
+        self.hostType = hostType
 
 
 class MailingAddress:
