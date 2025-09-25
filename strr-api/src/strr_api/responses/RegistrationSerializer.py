@@ -392,6 +392,8 @@ class RegistrationSerializer:
             "jurisdiction": RegistrationSerializer.get_jurisdiction_from_application(registration),
             "prRequired": registration.rental_property.pr_required,
             "blRequired": registration.rental_property.bl_required,
+            "rentalUnitSetupOption": registration.rental_property.rental_space_option,
+            "hostType": registration.rental_property.host_type,
         }
 
         registration_data["listingDetails"] = [

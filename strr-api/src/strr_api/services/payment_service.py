@@ -59,6 +59,27 @@ PLATFORM_LARGE_USER_BASE = "PLATREG_LG"
 
 PLATFORM_FEE_WAIVED = "PLATREG_WV"
 
+DEFAULT_FEE_MAPPING = {
+    "OPTION_1": HOST_REGISTRATION_FEE_2,  # $450
+    "OPTION_2": HOST_REGISTRATION_FEE_2,  # $450
+    "OPTION_3": HOST_REGISTRATION_FEE_1,  # $100
+}
+
+APPLICATION_FEE_MATRIX = {
+    "SINGLE_FAMILY_HOME": DEFAULT_FEE_MAPPING,
+    "SECONDARY_SUITE": DEFAULT_FEE_MAPPING,
+    "ACCESSORY_DWELLING": DEFAULT_FEE_MAPPING,
+    "MULTI_UNIT_HOUSING": DEFAULT_FEE_MAPPING,
+    "FLOAT_HOME": DEFAULT_FEE_MAPPING,
+    "STRATA_HOTEL": DEFAULT_FEE_MAPPING,
+    # Bed and Breakfast - all options map to fee3
+    "BED_AND_BREAKFAST": {
+        "OPTION_1": HOST_REGISTRATION_FEE_3,  # $100
+        "OPTION_2": HOST_REGISTRATION_FEE_3,  # $100
+        "OPTION_3": HOST_REGISTRATION_FEE_3,  # $100
+    },
+}
+
 
 class PayService:
     """
@@ -159,22 +180,33 @@ class PayService:
         is_rental_unit_on_principal_residence = registration_json.get("unitDetails").get(
             "isUnitOnPrincipalResidenceProperty"
         )
-        if rental_unit_space_type == RentalProperty.RentalUnitSpaceType.ENTIRE_HOME:
-            if is_rental_unit_on_principal_residence:
-                host_residence = registration_json.get("unitDetails").get("hostResidence")
-                if host_residence == RentalProperty.HostResidence.SAME_UNIT:
-                    filing_type = HOST_REGISTRATION_FEE_1
-                elif host_residence == RentalProperty.HostResidence.ANOTHER_UNIT:
+        rental_unit_setup_option = registration_json.get("unitDetails").get("rentalUnitSetupOption")
+        property_type = registration_json.get("unitDetails").get("propertyType")
+        if rental_unit_setup_option:
+            property_type_name = property_type if property_type else None
+            matrix_for_property = APPLICATION_FEE_MATRIX.get(property_type_name, DEFAULT_FEE_MAPPING)
+            filing_type = matrix_for_property.get(rental_unit_setup_option)
+
+            if filing_type is None:
+                filing_type = DEFAULT_FEE_MAPPING.get(rental_unit_setup_option)
+            return filing_type, quantity
+        else:
+            if rental_unit_space_type == RentalProperty.RentalUnitSpaceType.ENTIRE_HOME:
+                if is_rental_unit_on_principal_residence:
+                    host_residence = registration_json.get("unitDetails").get("hostResidence")
+                    if host_residence == RentalProperty.HostResidence.SAME_UNIT:
+                        filing_type = HOST_REGISTRATION_FEE_1
+                    elif host_residence == RentalProperty.HostResidence.ANOTHER_UNIT:
+                        filing_type = HOST_REGISTRATION_FEE_2
+                else:
                     filing_type = HOST_REGISTRATION_FEE_2
-            else:
-                filing_type = HOST_REGISTRATION_FEE_2
-        elif rental_unit_space_type == RentalProperty.RentalUnitSpaceType.SHARED_ACCOMMODATION:
-            filing_type = HOST_REGISTRATION_FEE_1
-            property_type = registration_json.get("unitDetails").get("propertyType")
-            if property_type in {PropertyType.BED_AND_BREAKFAST.name, PropertyType.RECREATIONAL.name}:
-                filing_type = HOST_REGISTRATION_FEE_3
-            elif registration_json.get("unitDetails").get("numberOfRoomsForRent"):
-                quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
+            elif rental_unit_space_type == RentalProperty.RentalUnitSpaceType.SHARED_ACCOMMODATION:
+                filing_type = HOST_REGISTRATION_FEE_1
+                property_type = registration_json.get("unitDetails").get("propertyType")
+                if property_type in {PropertyType.BED_AND_BREAKFAST.name, PropertyType.RECREATIONAL.name}:
+                    filing_type = HOST_REGISTRATION_FEE_3
+                elif registration_json.get("unitDetails").get("numberOfRoomsForRent"):
+                    quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent") 
         return filing_type, quantity
 
     def get_payment_details_by_invoice_id(self, user_jwt: JwtManager, account_id, invoice_id: int):
