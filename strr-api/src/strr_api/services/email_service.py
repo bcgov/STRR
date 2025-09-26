@@ -167,6 +167,7 @@ class EmailService:
     def send_renewal_reminder_for_registration(registration: Registration, days: int):
         """Send notice of consideration for the application."""
         email_type = "RENEWAL_REMINDER_FORTY_DAYS" if days == 40 else "RENEWAL_REMINDER_FOURTEEN_DAYS"
+        email_type = f"{registration.registration_type}_{email_type}"
         try:
             gcp_queue_publisher.publish_to_queue(
                 gcp_queue_publisher.QueueMessage(
