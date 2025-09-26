@@ -113,7 +113,7 @@ class UnitDetails:
     def __init__(
         self,
         propertyType,
-        ownershipType,
+        ownershipType=None,
         parcelIdentifier=None,
         businessLicense=None,
         businessLicenseExpiryDate=None,
