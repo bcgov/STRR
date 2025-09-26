@@ -206,7 +206,7 @@ class PayService:
                 if property_type in {PropertyType.BED_AND_BREAKFAST.name, PropertyType.RECREATIONAL.name}:
                     filing_type = HOST_REGISTRATION_FEE_3
                 elif registration_json.get("unitDetails").get("numberOfRoomsForRent"):
-                    quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent") 
+                    quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
         return filing_type, quantity
 
     def get_payment_details_by_invoice_id(self, user_jwt: JwtManager, account_id, invoice_id: int):
