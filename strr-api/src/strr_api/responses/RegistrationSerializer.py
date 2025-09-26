@@ -381,7 +381,7 @@ class RegistrationSerializer:
             else None,
             "blExemptReason": registration.rental_property.bl_exempt_reason,
             "propertyType": registration.rental_property.property_type.name,
-            "ownershipType": registration.rental_property.ownership_type.name,
+            "ownershipType": registration.rental_property.ownership_type,
             "rentalUnitSpaceType": registration.rental_property.space_type,
             "hostResidence": registration.rental_property.host_residence,
             "isUnitOnPrincipalResidenceProperty": registration.rental_property.is_unit_on_principal_residence_property,
@@ -392,6 +392,8 @@ class RegistrationSerializer:
             "jurisdiction": RegistrationSerializer.get_jurisdiction_from_application(registration),
             "prRequired": registration.rental_property.pr_required,
             "blRequired": registration.rental_property.bl_required,
+            "rentalUnitSetupOption": registration.rental_property.rental_space_option,
+            "hostType": registration.rental_property.host_type,
         }
 
         registration_data["listingDetails"] = [
