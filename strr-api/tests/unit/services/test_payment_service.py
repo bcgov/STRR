@@ -36,10 +36,10 @@
 import pytest
 
 from strr_api.services.payment_service import (
-    PayService,
     HOST_REGISTRATION_FEE_1,
     HOST_REGISTRATION_FEE_2,
     HOST_REGISTRATION_FEE_3,
+    PayService,
 )
 
 
