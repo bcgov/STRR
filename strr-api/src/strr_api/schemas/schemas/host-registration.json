@@ -212,12 +212,11 @@
         }
       },
       "required": [
-        "propertyType",
-        "ownershipType"
+        "propertyType"
       ],
       "anyOf": [
-        { "required": ["rentalUnitSetupOption"] },
-        { "required": ["rentalUnitSpaceType", "isUnitOnPrincipalResidenceProperty", "numberOfRoomsForRent"] }
+        { "required": ["rentalUnitSetupOption", "hostType"] },
+        { "required": ["ownershipType", "rentalUnitSpaceType", "isUnitOnPrincipalResidenceProperty", "numberOfRoomsForRent"] }
       ]
     },
     "listingDetails": {

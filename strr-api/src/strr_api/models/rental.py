@@ -120,7 +120,7 @@ class RentalProperty(Versioned, BaseModel):
     local_business_licence_expiry_date = db.Column(db.Date, nullable=True)
     bl_exempt_reason = db.Column(db.String, nullable=True)
     property_type = db.Column(Enum(PropertyType), nullable=False)
-    ownership_type = db.Column(db.Enum(OwnershipType), nullable=False)
+    ownership_type = db.Column(db.Enum(OwnershipType), nullable=True)
     is_principal_residence = db.Column(db.Boolean, nullable=False, default=False)
     rental_act_accepted = db.Column(db.Boolean, nullable=False, default=False)
     pr_exempt_reason = db.Column(db.String, nullable=True)
