@@ -20,13 +20,13 @@ const {
 const permitStore = useHostPermitStore()
 
 const { applicationId, registrationId, isRenewal } = useRouterParams()
-const { isSaveDraftEnabled } = useHostFeatureFlags()
+const { isSaveDraftEnabled, isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
+const { fetchStrrFees, getApplicationFee } = useHostApplicationFee()
 const loading = ref(false)
 
 // fee stuff
 const {
   addReplaceFee,
-  getFee,
   initAlternatePaymentMethod,
   removeFee,
   setPlaceholderFilingTypeCode,
@@ -52,11 +52,9 @@ onMounted(async () => {
   } else if (applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
   }
-  const [fee1, fee2, fee3] = await Promise.all([
-    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_1),
-    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_2),
-    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_HOST_3)
-  ])
+
+  const { fee1, fee2, fee3 } = await fetchStrrFees()
+
   hostFee1.value = { ...fee1 }
   hostFee2.value = { ...fee2 }
   hostFee3.value = { ...fee3 }
@@ -115,8 +113,9 @@ const setFeeBasedOnProperty = () => {
 }
 
 // manage fees only when typeOfSpace, rentalUnitSetupType or propertyType change
+// for new rental unit form - do not calculate the fees, it will be calculated on the last step
 watch(unitDetails, (newVal) => {
-  if (newVal.typeOfSpace && newVal.rentalUnitSetupType && newVal.propertyType) {
+  if (newVal.typeOfSpace && newVal.rentalUnitSetupType && newVal.propertyType && !isNewRentalUnitSetupEnabled) {
     setFeeBasedOnProperty()
   } else {
     resetFees()
@@ -322,6 +321,21 @@ watch(() => unitDetails.value.ownershipType, async (newVal) => {
   // only execute if unit details form shown - (application has been started)
   if (showUnitDetailsForm.value && newVal !== undefined && newVal !== OwnershipType.RENT) {
     await documentsStore.removeDocumentsByType(documentsStore.documentCategories.rental)
+  }
+})
+
+// watch the Stepper to calculate application fees on Review and Confirm step only
+watch(() => activeStepIndex.value, (val) => {
+  if (!isNewRentalUnitSetupEnabled) { return } // get fees for new rental unit setup only
+  const { propertyType, rentalUnitSetupOption } = unitDetails.value
+  const isReviewStep = val === 3 // get fees when on Review step only
+  const hasValidSteps = steps.value.slice(0, 3).every(step => step.isValid) // biz requirement: steps 1-3 must be valid
+
+  if (propertyType && rentalUnitSetupOption && isReviewStep && hasValidSteps) {
+    const applicationFee = getApplicationFee(propertyType, rentalUnitSetupOption) // get the fee from the fee matrix
+    addReplaceFee(applicationFee)
+  } else {
+    resetFees()
   }
 })
 

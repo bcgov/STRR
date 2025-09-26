@@ -7,6 +7,7 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
   const { $strrApi } = useNuxtApp()
 
   const propStore = useHostPropertyStore()
+  const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
   const loadingReqs = ref<boolean>(false)
   const propertyReqs = ref<PropertyRequirements>({} as PropertyRequirements)
@@ -59,18 +60,25 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
       : z.any().optional()
   }))
 
-  const strataHotelCategorySchema = computed(() => z.object({
-    category: prRequirements.value.isPropertyPrExempt &&
+  const strataHotelCategorySchema = computed(() => {
+    const schema: any = {
+      category: prRequirements.value.isPropertyPrExempt &&
             prRequirements.value.prExemptionReason === PrExemptionReason.STRATA_HOTEL
-      ? z.enum([
-        StrataHotelCategory.FULL_SERVICE,
-        StrataHotelCategory.MULTI_UNIT_NON_PR,
-        StrataHotelCategory.POST_DECEMBER_2023
-      ], {
-        errorMap: () => ({ message: t('validation.strataHotelCategory') })
-      })
-      : z.any().optional()
-  }))
+        ? z.enum([
+          StrataHotelCategory.FULL_SERVICE,
+          StrataHotelCategory.MULTI_UNIT_NON_PR,
+          StrataHotelCategory.POST_DECEMBER_2023
+        ], {
+          errorMap: () => ({ message: t('validation.strataHotelCategory') })
+        })
+        : z.any().optional()
+    }
+    // additional validation for new rental unit setup
+    if (isNewRentalUnitSetupEnabled) {
+      schema.strataPlatformRegNum = z.string().min(1, { message: t('validation.strataPlatformRegNum') })
+    }
+    return z.object(schema)
+  })
 
   const getEmptyPrRequirements = (): PrRequirements => ({
     isPropertyPrExempt: false,
@@ -82,13 +90,14 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     blExemptType: undefined,
     blExemptReason: ''
   })
-  const getEmptyStrataHotelCategory = (): StrataHotelCategories => ({
-    category: undefined
+  const getEmptyStrataHotelCategory = (): StrataHotelCategoriesAndPlatformNum => ({
+    category: undefined,
+    strataPlatformRegNum: undefined
   })
 
   const prRequirements = ref<PrRequirements>(getEmptyPrRequirements())
   const blRequirements = ref<BusinessLicenceRequirements>(getEmptyBlRequirements())
-  const strataHotelCategory = ref<StrataHotelCategories>(getEmptyStrataHotelCategory())
+  const strataHotelCategory = ref<StrataHotelCategoriesAndPlatformNum>(getEmptyStrataHotelCategory())
 
   async function getPropertyReqs () {
     try {
