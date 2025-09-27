@@ -178,27 +178,6 @@ onMounted(async () => {
               />
             </template>
           </UAlert>
-
-          <UAlert
-            v-if="isStrataHotelExemption"
-            color="yellow"
-            class="mt-6"
-            icon="i-mdi-alert"
-            :close-button="null"
-            variant="subtle"
-            :ui="{
-              inner: 'pt-0',
-              padding: 'p-6',
-              icon: {
-                base: 'w-5 h-5 self-start'
-              }
-            }"
-            data-testid="alert-strata-hotel-unit-2"
-          >
-            <template #title>
-              <ConnectI18nHelper translation-path="alert.strataHotelUnit" />
-            </template>
-          </UAlert>
         </ConnectFormSection>
 
         <!-- Property Host Type -->
