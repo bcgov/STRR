@@ -2,6 +2,7 @@
 import {
   ModalBase
 } from '#components'
+import PlatformRegNumHelp from '~/components/modal/info/PlatformRegNumHelp.vue'
 
 export const useHostPmModals = () => {
   const modal = useModal()
@@ -43,6 +44,16 @@ export const useHostPmModals = () => {
     })
   }
 
+  function openStrataRegNumberHelpModal () {
+    modal.open(PlatformRegNumHelp, {
+      // @ts-expect-error - actions prop is passed down from PlatformRegNumHelp -> ModalBase
+      actions: [{
+        label: t('modal.strataPlatformNumHelp.closeBtn'),
+        handler: () => close()
+      }]
+    })
+  }
+
   function close () {
     modal.close()
   }
@@ -50,6 +61,7 @@ export const useHostPmModals = () => {
   return {
     openHelpCreateAccountModal,
     openConfirmRestartApplicationModal,
+    openStrataRegNumberHelpModal,
     close
   }
 }

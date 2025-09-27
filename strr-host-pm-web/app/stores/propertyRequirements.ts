@@ -75,7 +75,14 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     }
     // additional validation for new rental unit setup
     if (isNewRentalUnitSetupEnabled) {
-      schema.strataPlatformRegNum = z.string().min(1, { message: t('validation.strataPlatformRegNum') })
+      schema.strataPlatformRegNum = z
+        .string({
+          required_error: t('validation.strataPlatformRegNum'),
+          invalid_type_error: t('validation.strataPlatformRegNum')
+        })
+        .length(11, { message: t('validation.strataPlatformRegNum') })
+        .refine(val => val === '' || /^ST\d{9}$/.test(val),
+          { message: t('validation.strataPlatformRegNum') })
     }
     return z.object(schema)
   })

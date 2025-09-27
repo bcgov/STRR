@@ -77,9 +77,10 @@ watch(
 )
 
 // watch and set Property Host Type as strata if PR Exemption reason is Strata Hotel
-watch(() => reqStore.prRequirements.prExemptionReason, (val) => {
+watch(() => reqStore.prRequirements.prExemptionReason, async (val) => {
   if (val === PrExemptionReason.STRATA_HOTEL) {
     propStore.unitDetails.propertyType = PropertyType.STRATA_HOTEL
+    await validateForm(unitDetailsFormRef.value, props.isComplete) // validate the form to clear the unit type errors
   }
 }, { immediate: true })
 
@@ -175,27 +176,6 @@ onMounted(async () => {
                 "
                 :propertytype="$t(`propertyType.${propStore.unitDetails.propertyType}`)"
               />
-            </template>
-          </UAlert>
-
-          <UAlert
-            v-if="isStrataHotelExemption"
-            color="yellow"
-            class="mt-6"
-            icon="i-mdi-alert"
-            :close-button="null"
-            variant="subtle"
-            :ui="{
-              inner: 'pt-0',
-              padding: 'p-6',
-              icon: {
-                base: 'w-5 h-5 self-start'
-              }
-            }"
-            data-testid="alert-strata-hotel-unit-2"
-          >
-            <template #title>
-              <ConnectI18nHelper translation-path="alert.strataHotelUnit" />
             </template>
           </UAlert>
         </ConnectFormSection>

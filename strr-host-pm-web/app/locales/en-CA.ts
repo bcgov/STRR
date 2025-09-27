@@ -377,6 +377,14 @@ export default {
       title: 'Remove Rental Unit Address?',
       content: 'Removing the rental unit address will reset this application. Any information you have entered will be lost. Are you sure you want to continue?',
       confirmBtn: 'Yes, Remove Address'
+    },
+    strataPlatformNumHelp: {
+      title: 'Help with Strata Hotel Platform Registration Number',
+      link: 'https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/platform-registration/platform-requirements#rep',
+      linkTitle: 'Strata Platform Representative',
+      p1: 'Contact your {link} to find the Strata Hotel Platform registration number for your the Strata Hotel.',
+      p2: 'This is a unique identifier for every strata hotel and starts with the letters "ST" followed by 9 digits (i.e: ST123456789). We need this number before we can issue an individual registration number for you to use on hosting platforms.',
+      closeBtn: 'Close'
     }
   },
   table: {
@@ -498,7 +506,7 @@ export default {
     },
     businessLicense: 'Please enter a valid business licence number',
     strataHotelCategory: 'Please select a category',
-    strataPlatformRegNum: 'You must enter the strata hotel platform number for your application to be reviewed',
+    strataPlatformRegNum: 'This number should always begin with ST and be followed by 9 digits',
     businessLicenseExpiryDate: 'Please select the expiry date for the business licence',
     dateOfBirth: 'Please enter the birthdate of this individual',
     numberOfRooms: {

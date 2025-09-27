@@ -8,6 +8,7 @@ const config = useRuntimeConfig().public
 const { t } = useI18n()
 const reqStore = usePropertyReqStore()
 const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
+const hostPmModal = useHostPmModals()
 
 const strataHotelCategoryOptions = [
   {
@@ -86,7 +87,6 @@ onMounted(async () => {
         />
 
         <UButton
-          target="_blank"
           :label="$t('link.strataPlatformRegNum')"
           leading-icon="i-mdi-info-outline"
           variant="link"
@@ -94,6 +94,7 @@ onMounted(async () => {
           :padded="false"
           :ui="{ gap: { sm: 'gap-x-1.5' } }"
           data-testid="strata-platform-reg-num-help"
+          @click="hostPmModal.openStrataRegNumberHelpModal"
         />
 
         <UAlert
