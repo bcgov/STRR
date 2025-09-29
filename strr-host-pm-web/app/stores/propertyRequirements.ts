@@ -75,14 +75,14 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
     }
     // additional validation for new rental unit setup
     if (isNewRentalUnitSetupEnabled) {
-      schema.strataPlatformRegNum = z
+      schema.strataHotelRegistrationNumber = z
         .string({
-          required_error: t('validation.strataPlatformRegNum'),
-          invalid_type_error: t('validation.strataPlatformRegNum')
+          required_error: t('validation.strataHotelRegistrationNumber'),
+          invalid_type_error: t('validation.strataHotelRegistrationNumber')
         })
-        .length(11, { message: t('validation.strataPlatformRegNum') })
+        .length(11, { message: t('validation.strataHotelRegistrationNumber') })
         .refine(val => val === '' || /^ST\d{9}$/.test(val),
-          { message: t('validation.strataPlatformRegNum') })
+          { message: t('validation.strataHotelRegistrationNumber') })
     }
     return z.object(schema)
   })
@@ -99,7 +99,7 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
   })
   const getEmptyStrataHotelCategory = (): StrataHotelCategoriesAndPlatformNum => ({
     category: undefined,
-    strataPlatformRegNum: undefined
+    strataHotelRegistrationNumber: undefined
   })
 
   const prRequirements = ref<PrRequirements>(getEmptyPrRequirements())

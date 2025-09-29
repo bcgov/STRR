@@ -78,16 +78,16 @@ onMounted(async () => {
       >
         <ConnectFormFieldGroup
           id="strata-platform-reg-number"
-          v-model="reqStore.strataHotelCategory.strataPlatformRegNum"
+          v-model="reqStore.strataHotelCategory.strataHotelRegistrationNumber"
           class="max-w-full"
-          name="strataPlatformRegNum"
+          name="strataHotelRegistrationNumber"
           :help="$t('strr.hint.strataRegNumHint')"
           :placeholder="t('strr.label.strataRegNum')"
           :class="props.isComplete && hasFormErrors(strataHotelCategoryFormRef, ['strataPlatformRegNum'])"
         />
 
         <UButton
-          :label="$t('link.strataPlatformRegNum')"
+          :label="$t('link.strataHotelRegistrationNumber')"
           leading-icon="i-mdi-info-outline"
           variant="link"
           class="mt-6 text-base"

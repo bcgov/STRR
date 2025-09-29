@@ -32,7 +32,7 @@ watch(
       reqStore.prRequirements.prExemptionReason = undefined
       reqStore.strataHotelCategory.category = undefined
       if (isNewRentalUnitSetupEnabled && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
-        reqStore.strataHotelCategory.strataPlatformRegNum = undefined
+        reqStore.strataHotelCategory.strataHotelRegistrationNumber = undefined
         unitDetails.value.propertyType = undefined // clear property type when disabling Strata Hotel PR requirement
       }
       prReqFormRef.value?.validate(['prExemptionReason'], { silent: true })
@@ -41,7 +41,7 @@ watch(
     if (newVal.prExemptionReason !== PrExemptionReason.STRATA_HOTEL) {
       reqStore.strataHotelCategory.category = undefined
       if (isNewRentalUnitSetupEnabled && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
-        reqStore.strataHotelCategory.strataPlatformRegNum = undefined
+        reqStore.strataHotelCategory.strataHotelRegistrationNumber = undefined
         unitDetails.value.propertyType = undefined // clear property type when disabling Strata Hotel exemption reason
       }
     }

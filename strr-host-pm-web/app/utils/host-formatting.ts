@@ -70,7 +70,7 @@ export function formatHostUnitDetailsAPI (
   blInfo: UiBlInfo,
   prReqs: PrRequirements,
   blReqs: BusinessLicenceRequirements,
-  strataHotelCategories: StrataHotelCategories
+  strataHotelCategories: StrataHotelCategoriesAndPlatformNum
 ): ApiUnitDetails {
   return {
     propertyType: unitDetails.propertyType,
@@ -90,7 +90,12 @@ export function formatHostUnitDetailsAPI (
     ...(blInfo.businessLicenseExpiryDate ? { businessLicenseExpiryDate: blInfo.businessLicenseExpiryDate } : {}),
     ...(prReqs.isPropertyPrExempt && prReqs.prExemptionReason ? { prExemptReason: prReqs.prExemptionReason } : {}),
     ...(blReqs.isBusinessLicenceExempt && blReqs.blExemptReason ? { blExemptReason: blReqs.blExemptReason } : {}),
-    ...(strataHotelCategories.category ? { strataHotelCategory: strataHotelCategories.category } : {})
+    ...(strataHotelCategories.category ? { strataHotelCategory: strataHotelCategories.category } : {}),
+    ...(strataHotelCategories.strataHotelRegistrationNumber
+      ? { strataHotelRegistrationNumber: strataHotelCategories.strataHotelRegistrationNumber }
+      : {}),
+    ...(unitDetails.rentalUnitSetupOption ? { rentalUnitSetupOption: unitDetails.rentalUnitSetupOption } : {}),
+    ...(unitDetails.hostType ? { hostType: unitDetails.hostType } : {})
   }
 }
 

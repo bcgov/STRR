@@ -105,12 +105,14 @@ export const useHostPermitStore = defineStore('host/permit', () => {
 
     // populate BL Exempt radio buttons selection and reason
     blRequirements.value.blExemptType =
-    permitDetails.value.unitDetails.blExemptReason === t('label.blExemptionReasonOver30')
-      ? BlExemptionReason.OVER_30_DAYS
-      : BlExemptionReason.OTHER
+      permitDetails.value.unitDetails.blExemptReason === t('label.blExemptionReasonOver30')
+        ? BlExemptionReason.OVER_30_DAYS
+        : BlExemptionReason.OTHER
 
     blRequirements.value.blExemptReason = permitDetails.value.unitDetails?.blExemptReason ?? ''
     strataHotelCategory.value.category = permitDetails.value.unitDetails.strataHotelCategory
+    strataHotelCategory.value.strataHotelRegistrationNumber =
+      permitDetails.value.unitDetails.strataHotelRegistrationNumber ?? ''
     if (application.value?.registration.strRequirements && showUnitDetailsForm.value) {
       propertyReqs.value = application.value?.registration.strRequirements
       if (Object.keys(application.value.registration.strRequirements).length === 0) {

@@ -4,5 +4,5 @@ export interface StrataHotelCategories {
 
 export interface StrataHotelCategoriesAndPlatformNum {
     category: StrataHotelCategory | undefined
-    strataPlatformRegNum: string | undefined
+    strataHotelRegistrationNumber: string | undefined
 }

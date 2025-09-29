@@ -350,7 +350,7 @@ export default {
     viewRequiredDocs: 'View required documents',
     viewFeeSchedule: 'View fee schedule',
     selectStrataHotelCategory: 'Learn more about strata hotel categories',
-    strataPlatformRegNum: 'Where do I find the Strata Hotel Platform Registration Number?'
+    strataHotelRegistrationNumber: 'Where do I find the Strata Hotel Platform Registration Number?'
   },
   modal: {
     info: {
@@ -506,7 +506,7 @@ export default {
     },
     businessLicense: 'Please enter a valid business licence number',
     strataHotelCategory: 'Please select a category',
-    strataPlatformRegNum: 'This number should always begin with ST and be followed by 9 digits',
+    strataHotelRegistrationNumber: 'This number should always begin with ST and be followed by 9 digits',
     businessLicenseExpiryDate: 'Please select the expiry date for the business licence',
     dateOfBirth: 'Please enter the birthdate of this individual',
     numberOfRooms: {
