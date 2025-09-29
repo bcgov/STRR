@@ -48,7 +48,7 @@
       "businessLicense": "7777777",
       "businessLicenseExpiryDate": "2025-01-01",
       "propertyType": "SINGLE_FAMILY_HOME",
-      "rentalUnitSetupOption": "OPTION_1",
+      "rentalUnitSetupOption": "DIFFERENT_PROPERTY",
       "hostType": "OWNER"
     },
     "unitAddress": {

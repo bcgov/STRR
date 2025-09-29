@@ -50,9 +50,9 @@ class TestPayService:
         """Test all options using DEFAULT_FEE_MAPPING for standard property types."""
         pay = PayService()
         for option, expected in {
-            "OPTION_1": HOST_REGISTRATION_FEE_2,
-            "OPTION_2": HOST_REGISTRATION_FEE_2,
-            "OPTION_3": HOST_REGISTRATION_FEE_1,
+            "DIFFERENT_PROPERTY": HOST_REGISTRATION_FEE_2,
+            "SEPARATE_UNIT_SAME_PROPERTY": HOST_REGISTRATION_FEE_2,
+            "PRIMARY_RESIDENCE_OR_SHARED_SPACE": HOST_REGISTRATION_FEE_1,
         }.items():
             registration_json = {
                 "unitDetails": {
@@ -67,7 +67,7 @@ class TestPayService:
     def test_payment_mapping_for_bed_and_breakfast(self):
         """Test all options map to HOST_REGISTRATION_FEE_3 for Bed and Breakfast."""
         pay = PayService()
-        for option in ["OPTION_1", "OPTION_2", "OPTION_3"]:
+        for option in ["DIFFERENT_PROPERTY", "SEPARATE_UNIT_SAME_PROPERTY", "PRIMARY_RESIDENCE_OR_SHARED_SPACE"]:
             registration_json = {
                 "unitDetails": {
                     "propertyType": "BED_AND_BREAKFAST",

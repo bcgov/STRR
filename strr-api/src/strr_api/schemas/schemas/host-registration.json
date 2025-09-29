@@ -196,9 +196,9 @@
         "rentalUnitSetupOption": {
           "type": "string",
           "enum": [
-            "OPTION_1",
-            "OPTION_2", 
-            "OPTION_3"
+            "DIFFERENT_PROPERTY",
+            "SEPARATE_UNIT_SAME_PROPERTY",
+            "PRIMARY_RESIDENCE_OR_SHARED_SPACE"
           ],
           "description": "Rental unit setup option"
         },

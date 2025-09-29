@@ -86,9 +86,9 @@ class RentalProperty(Versioned, BaseModel):
     class RentalSpaceOption(BaseEnum):
         """Enum of rental space option."""
 
-        OPTION_1 = auto()  # pylint: disable=invalid-name
-        OPTION_2 = auto()  # pylint: disable=invalid-name
-        OPTION_3 = auto()  # pylint: disable=invalid-name
+        DIFFERENT_PROPERTY = auto()  # pylint: disable=invalid-name
+        SEPARATE_UNIT_SAME_PROPERTY = auto()  # pylint: disable=invalid-name
+        PRIMARY_RESIDENCE_OR_SHARED_SPACE = auto()  # pylint: disable=invalid-name
 
     class HostResidence(BaseEnum):
         """Enum of host residence option."""

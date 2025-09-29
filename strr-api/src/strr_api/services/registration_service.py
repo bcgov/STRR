@@ -368,6 +368,8 @@ class RegistrationService:
             property_listings=[PropertyListing(url=listing.url) for listing in registration_request.listingDetails],
             strata_hotel_registration_number=registration_request.unitDetails.strataHotelRegistrationNumber,
             strata_hotel_category=registration_request.unitDetails.strataHotelCategory,
+            rental_space_option=registration_request.unitDetails.rentalUnitSetupOption,
+            host_type=registration_request.unitDetails.hostType,
         )
 
         if property_manager_info := registration_request.propertyManager:
