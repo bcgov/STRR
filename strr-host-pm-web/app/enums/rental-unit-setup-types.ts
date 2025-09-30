@@ -5,7 +5,7 @@ export enum RentalUnitSetupType {
 }
 
 export enum RentalUnitSetupOption {
-  OPTION_1 = 'OPTION_1', // unit on a property you don't live at
-  OPTION_2 = 'OPTION_2', // unit on the property where you live
-  OPTION_3 = 'OPTION_3' // renting or sharing the space you live in
+  DIFFERENT_PROPERTY = 'DIFFERENT_PROPERTY', // unit on a property you don't live at
+  SEPARATE_UNIT_SAME_PROPERTY = 'SEPARATE_UNIT_SAME_PROPERTY', // unit on the property where you live
+  PRIMARY_RESIDENCE_OR_SHARED_SPACE = 'PRIMARY_RESIDENCE_OR_SHARED_SPACE' // renting or sharing the space you live in
 }

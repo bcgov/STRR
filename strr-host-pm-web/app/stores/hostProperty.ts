@@ -242,9 +242,9 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       errorMap: () => ({ message: t('validation.propertyType') })
     }),
     rentalUnitSetupOption: z.enum([
-      RentalUnitSetupOption.OPTION_1,
-      RentalUnitSetupOption.OPTION_2,
-      RentalUnitSetupOption.OPTION_3
+      RentalUnitSetupOption.DIFFERENT_PROPERTY,
+      RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY,
+      RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
     ], {
       errorMap: () => ({ message: t('validation.rentalUnitSetupOption') })
     })

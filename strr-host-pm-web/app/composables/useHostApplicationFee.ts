@@ -22,39 +22,39 @@ export const useHostApplicationFee = () => {
 
     APPLICATION_FEE_MATRIX = {
       [PropertyType.SINGLE_FAMILY_HOME]: {
-        [RentalUnitSetupOption.OPTION_1]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_2]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_3]: fee1 // $100
+        [RentalUnitSetupOption.DIFFERENT_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE]: fee1 // $100
       },
       [PropertyType.SECONDARY_SUITE]: {
-        [RentalUnitSetupOption.OPTION_1]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_2]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_3]: fee1 // $100
+        [RentalUnitSetupOption.DIFFERENT_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE]: fee1 // $100
       },
       [PropertyType.ACCESSORY_DWELLING]: {
-        [RentalUnitSetupOption.OPTION_1]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_2]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_3]: fee1 // $100
+        [RentalUnitSetupOption.DIFFERENT_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE]: fee1 // $100
       },
       [PropertyType.MULTI_UNIT_HOUSING]: {
-        [RentalUnitSetupOption.OPTION_1]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_2]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_3]: fee1 // $100
+        [RentalUnitSetupOption.DIFFERENT_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE]: fee1 // $100
       },
       [PropertyType.BED_AND_BREAKFAST]: {
-        [RentalUnitSetupOption.OPTION_1]: fee3, // $100
-        [RentalUnitSetupOption.OPTION_2]: fee3, // $100
-        [RentalUnitSetupOption.OPTION_3]: fee3 // $100
+        [RentalUnitSetupOption.DIFFERENT_PROPERTY]: fee3, // $100
+        [RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]: fee3, // $100
+        [RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE]: fee3 // $100
       },
       [PropertyType.FLOAT_HOME]: {
-        [RentalUnitSetupOption.OPTION_1]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_2]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_3]: fee1 // $100
+        [RentalUnitSetupOption.DIFFERENT_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE]: fee1 // $100
       },
       [PropertyType.STRATA_HOTEL]: {
-        [RentalUnitSetupOption.OPTION_1]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_2]: fee2, // $450
-        [RentalUnitSetupOption.OPTION_3]: fee1 // $100
+        [RentalUnitSetupOption.DIFFERENT_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]: fee2, // $450
+        [RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE]: fee1 // $100
       }
     }
 

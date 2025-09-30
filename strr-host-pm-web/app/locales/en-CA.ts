@@ -598,11 +598,11 @@ export default {
     undefined: 'Not Selected'
   },
   rentalUnitSetupOption: {
-    OPTION_1: {
+    DIFFERENT_PROPERTY: {
       label: "Option 1: You are short-term renting a unit on a property you don't live at",
       desc: "This option is for renting out a unit on a property that is {boldStart}different from where you live{boldEnd}. This is only available in certain locations, confirm with local government if this applies. This is typically an investment property, a vacation home you don't live in, or any other property you own but do not occupy."
     },
-    OPTION_2: {
+    SEPARATE_UNIT_SAME_PROPERTY: {
       label: 'Option 2: You are short-term renting a separate unit on the property where you live',
       desc: "This option applies if you live at a property and are short term renting out a separate, self-contained unit (secondary or basement suite, laneway house or garden suite) on that same property. You live in the main unit on the property and you are renting out the space you don't physically live in.",
       scenarioA: '{boldStart}Scenario A:{boldEnd} You live in the main part of a house and rent out the basement suite.',
@@ -610,7 +610,7 @@ export default {
       scenarioC: '{boldStart}Scenario C:{boldEnd} You live in the basement suite, laneway house or garden suite in the backyard and rent out the main house.',
       alert: "{boldStart}Common point of confusion:{boldEnd} Even though a basement suite is part of the same building, it's considered a separate unit. If the guest does not have access to all of your amenities, this is your option. Therefore, if you live upstairs and rent the basement, you must select {boldStart}Option 2{boldEnd}."
     },
-    OPTION_3: {
+    PRIMARY_RESIDENCE_OR_SHARED_SPACE: {
       label: 'Option 3: You are short-term renting or sharing the space you live in',
       desc: 'This option applies if you are short-term renting out a part of, or the entirety of, the unit you live in.',
       scenarioA: "{boldStart}Scenario A:{boldEnd} You short-term rent out your entire unit while you're away on vacation.",

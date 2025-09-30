@@ -42,18 +42,18 @@ const propertyHostTypeOptions = [
 
 const rentalUnitSetupOptions = computed(() => [
   {
-    label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_1}.label`),
-    value: RentalUnitSetupOption.OPTION_1,
+    label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.DIFFERENT_PROPERTY}.label`),
+    value: RentalUnitSetupOption.DIFFERENT_PROPERTY,
     disabled: (isPrRequired.value && !isPrExempt.value) || isHostTypeTenant.value
   },
   {
-    label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_2}.label`),
-    value: RentalUnitSetupOption.OPTION_2,
+    label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY}.label`),
+    value: RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY,
     disabled: isHostTypeTenant.value
   },
   {
-    label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.OPTION_3}.label`),
-    value: RentalUnitSetupOption.OPTION_3
+    label: t(`rentalUnitSetupOption.${RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE}.label`),
+    value: RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
   }
 ])
 
@@ -87,8 +87,9 @@ watch(() => reqStore.prRequirements.prExemptionReason, async (val) => {
 // watch and clear unit setup radio if one of the disabled options selected
 watch(() => propStore.unitDetails.hostType, (val) => {
   const isLongTermTenant = val === PropertyHostType.LONG_TERM_TENANT
-  const isDisabledOptionSelected = [RentalUnitSetupOption.OPTION_1, RentalUnitSetupOption.OPTION_2]
-    .includes(propStore.unitDetails.rentalUnitSetupOption as RentalUnitSetupOption)
+  const isDisabledOptionSelected =
+    [RentalUnitSetupOption.DIFFERENT_PROPERTY, RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]
+      .includes(propStore.unitDetails.rentalUnitSetupOption as RentalUnitSetupOption)
 
   if (isLongTermTenant && isDisabledOptionSelected) {
     propStore.unitDetails.rentalUnitSetupOption = undefined
@@ -98,7 +99,7 @@ watch(() => propStore.unitDetails.hostType, (val) => {
 // watch and clear unit setup radio option 1 if PR is not exempt
 watch(() => reqStore.prRequirements.isPropertyPrExempt, (val) => {
   const isNotExempt = !val
-  const isDisabledOptionSelected = [RentalUnitSetupOption.OPTION_1]
+  const isDisabledOptionSelected = [RentalUnitSetupOption.DIFFERENT_PROPERTY]
     .includes(propStore.unitDetails.rentalUnitSetupOption as RentalUnitSetupOption)
 
   if (isNotExempt && isDisabledOptionSelected) {

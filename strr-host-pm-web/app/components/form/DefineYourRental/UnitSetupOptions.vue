@@ -2,7 +2,7 @@
 const props = defineProps<{ option: any }>()
 
 const { option } = props
-const translationOptionId = `rentalUnitSetupOption.${option.value}` // eg. rentalUnitSetupOption.OPTION_1
+const translationOptionId = `rentalUnitSetupOption.${option.value}` // eg. rentalUnitSetupOption.DIFFERENT_PROPERTY
 </script>
 
 <template>
@@ -15,7 +15,7 @@ const translationOptionId = `rentalUnitSetupOption.${option.value}` // eg. renta
       <ConnectI18nHelper :translation-path="`${translationOptionId}.desc`" />
     </p>
     <div
-      v-if="option.value === RentalUnitSetupOption.OPTION_2"
+      v-if="option.value === RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY"
       class="ml-3 mt-5 space-y-2 rounded border-2 border-[#E2E8EE]
       bg-[#F1F3F5] px-5 py-3 text-base italic text-[#495057]"
     >
@@ -43,7 +43,7 @@ const translationOptionId = `rentalUnitSetupOption.${option.value}` // eg. renta
       </UAlert>
     </div>
     <div
-      v-if="option.value === RentalUnitSetupOption.OPTION_3"
+      v-if="option.value === RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE"
       class="ml-3 mt-5 space-y-2 rounded border-2 border-[#E2E8EE]
       bg-[#F1F3F5] px-5 py-3 text-base italic text-[#495057]"
     >
