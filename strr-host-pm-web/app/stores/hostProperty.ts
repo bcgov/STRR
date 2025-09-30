@@ -259,7 +259,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     numberOfRoomsForRent: 0,
     // fields for new form
     hostType: undefined,
-    rentalUnitSetupOption: null
+    rentalUnitSetupOption: undefined
   })
 
   const unitDetails = ref<UiUnitDetails>(getEmptyUnitDetails())

@@ -3,7 +3,7 @@ const { t } = useI18n()
 const propertyStore = useHostPropertyStore()
 const { unitAddress, unitDetails } = storeToRefs(propertyStore)
 const { prRequirements, blRequirements, strataHotelCategory } = storeToRefs(usePropertyReqStore())
-const { isNewAddressFormEnabled } = useHostFeatureFlags()
+const { isNewAddressFormEnabled, isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
 // step 1 items
 const exemptInfo = computed((): ConnectInfoTableItem[] => [
@@ -24,8 +24,11 @@ const blExemptInfo = computed((): ConnectInfoTableItem[] => [
   }
 ])
 
+const isExemptionReasonStrata = computed((): boolean =>
+  prRequirements.value.prExemptionReason === PrExemptionReason.STRATA_HOTEL)
+
 const strataHotelInfo = computed((): ConnectInfoTableItem[] =>
-  prRequirements.value.prExemptionReason === PrExemptionReason.STRATA_HOTEL
+  isExemptionReasonStrata.value
     ? [
         {
           label: t('label.StrataHotelCategory'),
@@ -35,9 +38,49 @@ const strataHotelInfo = computed((): ConnectInfoTableItem[] =>
     : []
 )
 
+const parcelId = computed((): ConnectInfoTableItem[] => [
+  { label: t('strr.label.parcelId'), info: unitDetails.value.parcelIdentifier || t('text.notEntered') }
+])
+
+const strataHotelRegistrationNumber = computed((): ConnectInfoTableItem[] =>
+  isNewRentalUnitSetupEnabled.value && isExemptionReasonStrata.value
+    ? [
+        {
+          label: t('strr.label.strataPlatformRegistrationNumber'),
+          info: strataHotelCategory.value.strataHotelRegistrationNumber || t('text.notEntered')
+        }
+      ]
+    : []
+)
+
+const propertyType = computed((): ConnectInfoTableItem[] => [
+  {
+    label:
+    (isNewRentalUnitSetupEnabled.value
+      ? t('strr.label.strRentalType')
+      : t('strr.label.propertyType')),
+    info: t(`propertyType.${unitDetails.value.propertyType}`)
+  }])
+
+const newRentalSetupType = computed((): ConnectInfoTableItem[] =>
+  isNewRentalUnitSetupEnabled.value
+    ? [
+        {
+          label: t('strr.label.hostType'),
+          info: t(`propertyHostType.${unitDetails.value.hostType}`)
+        },
+        {
+          label: t('strr.label.rentalUnitSetup'),
+          info: t(`rentalUnitSetupOption.${unitDetails.value.rentalUnitSetupOption}.label`)
+        }
+      ]
+    : []
+)
+
 const propertyInfo = computed((): ConnectInfoTableItem[] => [
   { label: t('label.strUnitName'), info: unitAddress.value.address.nickname || t('text.notEntered') },
   { label: t('label.strUnitAddress'), info: '', slot: 'address' },
+  ...(isNewRentalUnitSetupEnabled.value ? parcelId.value : []),
   ...(blRequirements.value.isBusinessLicenceExempt
     ? blExemptInfo.value
     : []
@@ -46,15 +89,21 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
     ? exemptInfo.value
     : []
   ),
-  ...(strataHotelInfo.value),
+  ...strataHotelInfo.value,
+  ...strataHotelRegistrationNumber.value,
   { label: '', info: '', slot: 'border' },
-  { label: t('strr.label.propertyType'), info: t(`propertyType.${unitDetails.value.propertyType}`) },
-  { label: t('label.typeOfSpace'), info: t(`rentalUnitType.${unitDetails.value.typeOfSpace}`) },
-  { label: t('strr.label.rentalUnitSetup'), info: t(`rentalUnitSetupType.${unitDetails.value.rentalUnitSetupType}`) },
-  { label: t('strr.label.numberOfRooms'), info: unitDetails.value.numberOfRoomsForRent },
-  { label: '', info: '', slot: 'border' },
-  { label: t('strr.label.ownershipType'), info: t(`ownershipType.${unitDetails.value.ownershipType}`) },
-  { label: t('strr.label.parcelId'), info: unitDetails.value.parcelIdentifier || t('text.notEntered') }
+  ...propertyType.value,
+  ...newRentalSetupType.value,
+  ...(!isNewRentalUnitSetupEnabled
+    ? [
+        { label: t('label.typeOfSpace'), info: t(`rentalUnitType.${unitDetails.value.typeOfSpace}`) },
+        { label: t('strr.label.rentalUnitSetup'), info: t(`rentalUnitSetupType.${unitDetails.value.rentalUnitSetupType}`) }, // eslint-disable-line max-len
+        { label: t('strr.label.numberOfRooms'), info: unitDetails.value.numberOfRoomsForRent },
+        { label: '', info: '', slot: 'border' },
+        { label: t('strr.label.ownershipType'), info: t(`ownershipType.${unitDetails.value.ownershipType}`) },
+        ...parcelId.value
+      ]
+    : [])
 ])
 </script>
 <template>

@@ -91,7 +91,7 @@ watch(() => propStore.unitDetails.hostType, (val) => {
     .includes(propStore.unitDetails.rentalUnitSetupOption as RentalUnitSetupOption)
 
   if (isLongTermTenant && isDisabledOptionSelected) {
-    propStore.unitDetails.rentalUnitSetupOption = null
+    propStore.unitDetails.rentalUnitSetupOption = undefined
   }
 }, { immediate: true })
 
@@ -102,7 +102,7 @@ watch(() => reqStore.prRequirements.isPropertyPrExempt, (val) => {
     .includes(propStore.unitDetails.rentalUnitSetupOption as RentalUnitSetupOption)
 
   if (isNotExempt && isDisabledOptionSelected) {
-    propStore.unitDetails.rentalUnitSetupOption = null
+    propStore.unitDetails.rentalUnitSetupOption = undefined
   }
 }, { immediate: true })
 

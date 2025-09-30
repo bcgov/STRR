@@ -157,6 +157,7 @@ export default {
       parcelIdentifier: 'Parcel Identifier (Required if one exists)',
       parcelIdentifierOpt: 'Parcel Identifier (Optional)',
       strataRegNum: 'Enter your strata hotel platform registration number',
+      strataPlatformRegistrationNumber: 'Strata Hotel Platform Registration Number',
       hostType: 'Property Host Type',
       strRentalType: 'Short-term Rental Property/Unit Type',
       propertyType: 'Rental Unit Type',
@@ -172,7 +173,7 @@ export default {
       shortTermRental: 'Short-Term Rental',
       supportingDocs: 'Supporting Documents',
       rentalUnit: 'Rental Unit',
-      rentalUnitSetup: 'Rental Unit Set-up',
+      rentalUnitSetup: 'Rental Unit Setup',
       rentalUnitName: 'Rental Unit Name',
       rentalUnitNameOpt: 'Rental Unit Name (Optional)',
       parcelId: 'Parcel Identifier (PID)',
@@ -587,7 +588,8 @@ export default {
   propertyHostType: {
     OWNER: 'The owner of this unit',
     FRIEND_RELATIVE: 'A friend or relative of the owner',
-    LONG_TERM_TENANT: 'The long-term tenant of this unit'
+    LONG_TERM_TENANT: 'The long-term tenant of this unit',
+    undefined: 'Not Selected'
   },
   rentalUnitSetupType: {
     WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence or a room within the host's principal residence", // TODO: update enum to not be whole pr ???
@@ -614,6 +616,9 @@ export default {
       scenarioA: "{boldStart}Scenario A:{boldEnd} You short-term rent out your entire unit while you're away on vacation.",
       scenarioB: '{boldStart}Scenario B:{boldEnd} You short-term rent out a spare bedroom(s) in the unit where you live and the guest has access to your common amenities.',
       scenarioC: '{boldStart}Scenario C:{boldEnd} If you are a tenant renting a unit (secondary or basement suite, laneway house or garden suite), you can short-term rent only that unit in which you live in while you are away on vacation.'
+    },
+    undefined: {
+      label: 'Not Selected'
     }
   },
   ownershipType: {

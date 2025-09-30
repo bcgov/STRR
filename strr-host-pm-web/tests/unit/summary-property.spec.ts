@@ -49,6 +49,13 @@ vi.mock('@/stores/propertyRequirements', () => ({
   })
 }))
 
+vi.mock('@/composables/useHostFeatureFlags', () => ({
+  useHostFeatureFlags: () => ({
+    isNewAddressFormEnabled: false,
+    isNewRentalUnitSetupEnabled: false
+  })
+}))
+
 describe('SummaryProperty Component', () => {
   let wrapper: any
 
