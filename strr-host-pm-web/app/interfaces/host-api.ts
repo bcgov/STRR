@@ -45,7 +45,7 @@ export interface ApiUnitDetails {
   strataHotelCategory?: StrataHotelCategory
   strataHotelRegistrationNumber?: string
   hostType?: PropertyHostType
-  rentalUnitSetupOptions?: RentalUnitSetupOption
+  rentalUnitSetupOption?: RentalUnitSetupOption
 }
 
 export interface ApiUnitAddress extends ApiBaseAddress {

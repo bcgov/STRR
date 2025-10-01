@@ -113,7 +113,9 @@ export function formatHostUnitDetailsUI (unitDetails: ApiUnitDetails): UiUnitDet
     numberOfRoomsForRent: unitDetails.numberOfRoomsForRent,
     rentalUnitSetupType: rentalSetupType,
     typeOfSpace: unitDetails.rentalUnitSpaceType,
-    ...(unitDetails.parcelIdentifier ? { parcelIdentifier: unitDetails.parcelIdentifier } : {})
+    ...(unitDetails.parcelIdentifier ? { parcelIdentifier: unitDetails.parcelIdentifier } : {}),
+    ...(unitDetails.hostType ? { hostType: unitDetails.hostType } : {}),
+    ...(unitDetails.rentalUnitSetupOption ? { rentalUnitSetupOption: unitDetails.rentalUnitSetupOption } : {})
   }
 }
 
