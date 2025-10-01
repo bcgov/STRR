@@ -62,7 +62,15 @@ const openMinBookingDays = (): void => {
   isMinBookingDaysOpen.value = true
 }
 
+const isMinBookingDaysValid = computed((): boolean =>
+  minBookingDaysNum.value >= 1 && minBookingDaysNum.value <= 89
+)
+
 const addMinBookingDays = () => {
+  if (!isMinBookingDaysValid.value) {
+    (document.getElementById('min-booking-days-input') as HTMLInputElement).focus()
+    return
+  }
   minBookingDays.value = minBookingDaysNum.value
   selectedConditions.value.push('minBookingDays')
   isMinBookingDaysOpen.value = false
@@ -223,12 +231,14 @@ watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
     >
       <UFormGroup
         :description="t('label.minNumberBookingDays')"
+        :error="!isMinBookingDaysValid && $t('validation.minBookingDays')"
         class="w-8/12"
         :ui="{
           description: 'mb-[5px] text-str-textGray'}
         "
       >
         <UInput
+          id="min-booking-days-input"
           v-model="minBookingDaysNum"
           type="number"
           :ui="{

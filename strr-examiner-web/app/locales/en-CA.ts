@@ -557,7 +557,8 @@ export default {
       streetName: 'Street name is required',
       streetNumber: 'Street number is required',
       form: 'Provided address is not valid'
-    }
+    },
+    minBookingDays: 'Minimum booking days must be between 1 and 89'
   },
   registrationType: {
     HOST: 'Host',
