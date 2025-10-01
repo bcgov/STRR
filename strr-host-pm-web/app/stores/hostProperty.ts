@@ -232,14 +232,14 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       PropertyType.FLOAT_HOME,
       PropertyType.STRATA_HOTEL
     ], {
-      errorMap: () => ({ message: t('validation.propertyType') })
+      errorMap: () => ({ message: t('validation.strPropertyType') })
     }),
     hostType: z.enum([
       PropertyHostType.OWNER,
       PropertyHostType.FRIEND_RELATIVE,
       PropertyHostType.LONG_TERM_TENANT
     ], {
-      errorMap: () => ({ message: t('validation.propertyType') })
+      errorMap: () => ({ message: t('validation.hostType') })
     }),
     rentalUnitSetupOption: z.enum([
       RentalUnitSetupOption.DIFFERENT_PROPERTY,
