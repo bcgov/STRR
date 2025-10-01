@@ -20,8 +20,9 @@ from datetime import datetime, timedelta
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sqlalchemy import func
-from strr_api.enums.enum import RegistrationStatus
+from strr_api.enums.enum import ApplicationType, RegistrationStatus
 from strr_api.models import db
+from strr_api.models.application import Application
 from strr_api.models.rental import Registration
 from strr_api.services.email_service import EmailService
 
@@ -55,6 +56,7 @@ def register_shellcontext(app):
 def send_forty_days_reminder(app):
     """Send the reminder before 40 days."""
     with app.app_context():
+        app.logger.info("Starting 40 days renewal notifications")
         target_date = (datetime.utcnow() + timedelta(days=40)).date()
         registrations = Registration.query.filter(
             Registration.registration_type == Registration.RegistrationType.HOST,
@@ -64,12 +66,46 @@ def send_forty_days_reminder(app):
         app.logger.info(
             f"Found {len(registrations)} active host registrations expiring in 40 days."
         )
-        # Add logic to send reminders here
         for reg in registrations:
             app.logger.info(f"Sending reminder for registration ID: {reg.id}")
             EmailService.send_renewal_reminder_for_registration(
                 registration=reg, days=40
             )
+        app.logger.info("Finished sending 40 days renewal notifications")
+
+
+def send_fourteen_days_reminder(app):
+    """Send the reminder before 14 days."""
+    with app.app_context():
+        app.logger.info("Starting 14 days renewal notifications")
+        target_date = (datetime.utcnow() + timedelta(days=14)).date()
+        registrations = Registration.query.filter(
+            Registration.registration_type == Registration.RegistrationType.HOST,
+            Registration.status == RegistrationStatus.ACTIVE,
+            func.date(Registration.expiry_date) == target_date,
+        ).all()
+        app.logger.info(
+            f"Found {len(registrations)} active host registrations expiring in 14 days."
+        )
+        for reg in registrations:
+            renewal_application = (
+                Application.query.filter(
+                    Application.registration_id == reg.id,
+                    Application.type == ApplicationType.RENEWAL.value,
+                )
+                .order_by(Application.id.desc())
+                .first()
+            )
+            if not renewal_application or renewal_application.status in [
+                Application.Status.DRAFT,
+                Application.Status.PAYMENT_DUE,
+            ]:
+                app.logger.info(f"Sending reminder for registration ID: {reg.id}")
+                EmailService.send_renewal_reminder_for_registration(
+                    registration=reg,
+                    days=40,
+                )
+        app.logger.info("Finished sending 14 days renewal notifications")
 
 
 def run():
@@ -79,6 +115,7 @@ def run():
         with app.app_context():
             app.logger.info("Starting renewal reminder job")
             send_forty_days_reminder(app)
+            send_fourteen_days_reminder(app)
             app.logger.info("Renewal reminder job completed")
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")
