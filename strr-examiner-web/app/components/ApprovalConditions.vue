@@ -226,7 +226,7 @@ watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
     </div>
     <div
       v-if="isMinBookingDaysOpen"
-      class="mt-4 flex w-7/12 gap-x-2 align-bottom"
+      class="mt-4 flex w-8/12 gap-x-2 align-bottom"
       data-testid="min-booking-days"
     >
       <UFormGroup
