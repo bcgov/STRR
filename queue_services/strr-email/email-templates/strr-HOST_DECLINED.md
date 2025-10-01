@@ -39,7 +39,7 @@ After a fulsome review of all documents provided, it appears your application do
 
 {{custom_content | escape }}
 
-Your short-term rental application has been refused. For more information, please contact [Registry.STR@gov.bc.ca](mailto:Registry.STR@gov.bc.ca).
+Your short-term rental application has been refused. For more information, please contact [{{ ops_email }}](mailto:{{ ops_email }}).
 
 ---
 
