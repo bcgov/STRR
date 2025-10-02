@@ -9,7 +9,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   const hasNoStreetAddress = ref<boolean>(false)
 
   const streetNumberRegex = /^(?:\d+([A-Za-z]|\s\d+\/\d+)?|\d{6}([A-Za-z]|\s\d{1}\/\d{1,2})?)$/
-  const unitNumberRegex = /^\d+[A-Za-z]?$/
+  const unitNumberRegex = /^[A-Za-z0-9]+$/ // only alphanumeric unit numbers (letters and numbers)
 
   const getUnitAddressSchema = () => z.object({
     address: z.object({
