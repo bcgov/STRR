@@ -219,7 +219,7 @@ const actionButtons: ConnectBtnControlItem[] = [
     action: () => reinstateRegistration(),
     label: RegistrationActionsE.REINSTATE,
     color: 'primary',
-    icon: 'i-rotate-left'
+    icon: 'i-mdi-rotate-left'
   }
 ]
 
