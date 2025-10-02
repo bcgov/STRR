@@ -533,7 +533,7 @@ export default {
       streetNumber: 'Enter a street number',
       streetNumberInvalid: 'Max 6 numbers + 1 Character or 1/2, no spaces unless followed by a fraction (e.g., 1/2)',
       streetName: 'Enter a street name',
-      unitNumberInvalid: 'Can only contain numbers and letters (e.g., 205, 3A)',
+      unitNumberInvalid: 'Can only contain numbers and letters, no spaces (e.g., 205, 3A)',
       siteName: 'Enter a site name',
       siteNameInvalid: 'Enter a valid site name',
       city: 'Enter a city, town, township, etc.',
