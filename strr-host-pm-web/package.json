@@ -2,7 +2,7 @@
   "name": "strr-host-pm-web",
   "private": true,
   "type": "module",
-  "version": "1.2.34",
+  "version": "1.2.35",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",

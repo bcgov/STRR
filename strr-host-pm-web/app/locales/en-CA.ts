@@ -326,7 +326,7 @@ export default {
     siteName: 'Site Name',
     siteNameOpt: 'Site Name (Optional)',
     forNonCivicAddresses: 'For non-civic addresses',
-    locality: 'Locality',
+    locality: 'City',
     additionalLocationDescription: 'Additional Location Description',
     locationDescOpt: 'Location Description (Optional)',
     unitNumber: 'Unit Number',

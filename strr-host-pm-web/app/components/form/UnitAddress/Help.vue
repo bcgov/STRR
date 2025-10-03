@@ -38,7 +38,7 @@ defineProps<{
         <div class="px-3 py-2 text-bcGovColor-midGray md:px-8 md:py-5">
           <div class="space-y-8">
             <div class="space-y-3">
-              <h4 class="text-base font-semibold">
+              <h4 class="text-base font-semibold text-bcGovColor-midGray">
                 {{ t('help.address.street.heading') }}
               </h4>
               <p class="text-sm">
@@ -62,7 +62,7 @@ defineProps<{
             <div class="h-px w-full border-b border-gray-400" />
 
             <div class="space-y-3">
-              <h4 class="text-base font-semibold">
+              <h4 class="text-base font-semibold text-bcGovColor-midGray">
                 {{ t('help.address.noncivic.heading') }}
               </h4>
               <p class="text-sm">
