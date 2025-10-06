@@ -8,7 +8,6 @@ export const useDocumentStore = defineStore('host/document', () => {
   const strrModal = useStrrModals()
   const reqStore = usePropertyReqStore()
   const propStore = useHostPropertyStore()
-  const permitStore = useHostPermitStore()
 
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
@@ -193,6 +192,7 @@ export const useDocumentStore = defineStore('host/document', () => {
 
   // Filter document options
   const docTypeOptions = computed(() => {
+    const permitStore = useHostPermitStore()
     const needsBusinessLicense = permitStore.needsBusinessLicenseDocumentUpload
     // Check if NOC is pending
     const isNocPending = permitStore.application?.header.status === ApplicationStatus.NOC_PENDING ||
@@ -288,7 +288,7 @@ export const useDocumentStore = defineStore('host/document', () => {
 
       // Add isUploadedFromAffectedMunicipality for business license uploads from affected municipalities
       const isBlFromAffectedMunicipality = uiDoc.type === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE &&
-        permitStore.needsBusinessLicenseDocumentUpload
+        useHostPermitStore().needsBusinessLicenseDocumentUpload
       if (isBlFromAffectedMunicipality) {
         formData.append('isUploadedFromAffectedMunicipality', 'true')
       }
