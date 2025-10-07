@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 from dateutil.relativedelta import relativedelta
 
-from strr_api.enums.enum import PaymentStatus, RegistrationNocStatus, RegistrationStatus
+from strr_api.enums.enum import ApplicationType, PaymentStatus, RegistrationNocStatus, RegistrationStatus
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events, Registration, User
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
@@ -536,6 +536,91 @@ def test_get_active_registration_todos_outside_renewal_window(session, client, j
     rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
     response_json = rv.json
     assert response_json.get("todos") == []
+
+
+def test_get_todos_with_renewal_draft(session, client, jwt):
+    """Test renewal draft todos."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc + timedelta(days=24)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="HOST",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="H1234567",
+        user_id=user.id,
+    )
+    registration.save()
+
+    # Create a draft renewal application with payment_account
+    draft_application = Application(
+        type=ApplicationType.RENEWAL.value,
+        status=Application.Status.DRAFT,
+        payment_account=str(ACCOUNT_ID),
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+    )
+    draft_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_DRAFT"
+
+    draft_application.delete()
+
+    # Create a draft renewal application without payment_account
+    draft_application = Application(
+        type=ApplicationType.RENEWAL.value,
+        status=Application.Status.DRAFT,
+        payment_account=None,
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+    )
+    draft_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_DRAFT"
+
+    draft_application.delete()
+
+    # Create a draft renewal application with different payment_account
+    draft_application = Application(
+        type=ApplicationType.RENEWAL.value,
+        status=Application.Status.DRAFT,
+        payment_account="9999",  # Different account
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+    )
+    draft_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL"
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

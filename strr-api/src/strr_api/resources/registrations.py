@@ -49,7 +49,14 @@ from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ErrorMessage, RegistrationNocStatus, RegistrationStatus, RegistrationType, Role
+from strr_api.enums.enum import (
+    ApplicationType,
+    ErrorMessage,
+    RegistrationNocStatus,
+    RegistrationStatus,
+    RegistrationType,
+    Role,
+)
 from strr_api.exceptions import (
     AuthException,
     ExternalServiceException,
@@ -58,7 +65,7 @@ from strr_api.exceptions import (
     error_response,
     exception_response,
 )
-from strr_api.models import Document, User
+from strr_api.models import Application, Document, User
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
@@ -482,7 +489,23 @@ def get_todos(registration_id):
             threshold_datetime_end = registration_expiry_datetime + relativedelta(years=3)
 
             if threshold_datetime_start.date() <= current_time_utc.date() <= threshold_datetime_end.date():
-                todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
+                # There should only be one draft renewal application against a registration
+                renewal_draft = (
+                    Application.query.filter_by(
+                        registration_id=registration.id,
+                        type=ApplicationType.RENEWAL.value,
+                        status=Application.Status.DRAFT.value,
+                    )
+                    .filter((Application.payment_account == account_id) | (Application.payment_account.is_(None)))
+                    .order_by(Application.application_date.desc())
+                    .first()
+                )
+
+                if renewal_draft:
+                    todos.append({"task": {"type": "REGISTRATION_RENEWAL_DRAFT"}})
+                else:
+                    # TODO: Add logic to check if the renenwal application for current cycle is submitted
+                    todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
 
         return {"todos": todos}, HTTPStatus.OK
     except Exception as exception:

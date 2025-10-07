@@ -84,7 +84,7 @@ class TestPayService:
         registration_json = {
             "unitDetails": {
                 "propertyType": "SINGLE_FAMILY_HOME",
-                "rentalUnitSetupOption": "OPTION_3",
+                "rentalUnitSetupOption": "PRIMARY_RESIDENCE_OR_SHARED_SPACE",
                 "rentalUnitSpaceType": "SHARED_ACCOMMODATION",
                 "numberOfRoomsForRent": 5,
             }
@@ -99,7 +99,7 @@ class TestPayService:
             registration_json = {
                 "unitDetails": {
                     "propertyType": "SINGLE_FAMILY_HOME",
-                    "rentalUnitSetupOption": "OPTION_2",
+                    "rentalUnitSetupOption": "SEPARATE_UNIT_SAME_PROPERTY",
                     "hostType": host_type,
                 }
             }
