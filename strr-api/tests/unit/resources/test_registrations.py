@@ -605,24 +605,79 @@ def test_get_todos_with_renewal_draft(session, client, jwt):
     assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_DRAFT"
     assert todos[0].get("task").get("detail") == draft_application.application_number
 
-    draft_application.delete()
 
-    # Create a draft renewal application with different payment_account
-    draft_application = Application(
+def test_get_todos_with_payment_due(session, client, jwt):
+    """Test Payment Due application Todos."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration_end_date = datetime.now() + timedelta(days=30)
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="HOST",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="H1234567",
+        user_id=user.id,
+    )
+    registration.save()
+
+    # Payment due renewal application
+    payment_due_application = Application(
         type=ApplicationType.RENEWAL.value,
-        status=Application.Status.DRAFT,
-        payment_account="9999",  # Different account
+        status=Application.Status.PAYMENT_DUE,
+        payment_account=str(ACCOUNT_ID),
         registration_id=registration.id,
         application_json={},
         application_number=Application.generate_unique_application_number(),
     )
-    draft_application.save()
+    payment_due_application.save()
 
     rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
     response_json = rv.json
     todos = response_json.get("todos")
+
+    # Should only have renewal payment pending todo
     assert len(todos) == 1
-    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL"
+    assert todos[0].get("task").get("type") == "RENEWAL_APPLICATION_PAYMENT_DUE"
+    assert todos[0].get("task").get("detail") == payment_due_application.application_number
+
+    payment_due_application.delete()
+
+    registration_end_date = datetime.now() + timedelta(days=300)
+    registration.expiry_date = registration_end_date
+    registration.save()
+    # Payment due registration application
+    payment_due_application = Application(
+        type=ApplicationType.REGISTRATION.value,
+        status=Application.Status.PAYMENT_DUE,
+        payment_account=str(ACCOUNT_ID),
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+    )
+    payment_due_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+
+    # Should only have registration payment pending todo
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_APPLICATION_PAYMENT_DUE"
+    assert todos[0].get("task").get("detail") == payment_due_application.application_number
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

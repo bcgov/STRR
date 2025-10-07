@@ -476,10 +476,44 @@ def get_todos(registration_id):
 
         todos = []
 
+        # Check if last submitted application has payment pending
+        payment_due = (
+            Application.query.filter_by(
+                registration_id=registration.id,
+                status=Application.Status.PAYMENT_DUE.value,
+            )
+            .order_by(Application.application_date.desc())
+            .first()
+        )
+        payment_due_is_renewal = payment_due and payment_due.type == ApplicationType.RENEWAL.value
+
+        if payment_due:
+            if payment_due_is_renewal:
+                todos.append(
+                    {
+                        "task": {
+                            "type": "RENEWAL_APPLICATION_PAYMENT_DUE",
+                            "detail": payment_due.application_number,
+                        }
+                    }
+                )
+            else:
+                todos.append(
+                    {
+                        "task": {
+                            "type": "REGISTRATION_APPLICATION_PAYMENT_DUE",
+                            "detail": payment_due.application_number,
+                        }
+                    }
+                )
+
         if registration.noc_status == RegistrationNocStatus.NOC_PENDING:
             todos.append({"task": {"type": "NOC_PENDING"}})
 
-        if registration.status in [RegistrationStatus.ACTIVE, RegistrationStatus.EXPIRED]:
+        if (
+            registration.status in [RegistrationStatus.ACTIVE, RegistrationStatus.EXPIRED]
+            and not payment_due_is_renewal
+        ):
             # Get the current time in UTC
             current_time_utc = datetime.utcnow()
             registration_expiry_datetime = registration.expiry_date
@@ -496,7 +530,6 @@ def get_todos(registration_id):
                         type=ApplicationType.RENEWAL.value,
                         status=Application.Status.DRAFT.value,
                     )
-                    .filter((Application.payment_account == account_id) | (Application.payment_account.is_(None)))
                     .order_by(Application.application_date.desc())
                     .first()
                 )
