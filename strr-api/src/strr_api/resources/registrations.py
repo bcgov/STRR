@@ -502,7 +502,9 @@ def get_todos(registration_id):
                 )
 
                 if renewal_draft:
-                    todos.append({"task": {"type": "REGISTRATION_RENEWAL_DRAFT"}})
+                    todos.append(
+                        {"task": {"type": "REGISTRATION_RENEWAL_DRAFT", "detail": renewal_draft.application_number}}
+                    )
                 else:
                     # TODO: Add logic to check if the renenwal application for current cycle is submitted
                     todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})

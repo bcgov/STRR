@@ -583,6 +583,7 @@ def test_get_todos_with_renewal_draft(session, client, jwt):
     todos = response_json.get("todos")
     assert len(todos) == 1
     assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_DRAFT"
+    assert todos[0].get("task").get("detail") == draft_application.application_number
 
     draft_application.delete()
 
@@ -602,6 +603,7 @@ def test_get_todos_with_renewal_draft(session, client, jwt):
     todos = response_json.get("todos")
     assert len(todos) == 1
     assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_DRAFT"
+    assert todos[0].get("task").get("detail") == draft_application.application_number
 
     draft_application.delete()
 
