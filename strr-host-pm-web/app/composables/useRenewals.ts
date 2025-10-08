@@ -6,6 +6,8 @@ export const useRenewals = () => {
   const { registration } = storeToRefs(useHostPermitStore())
 
   const isEligibleForRenewal = ref(false)
+  const hasRegistrationRenewalDraft = ref(false)
+  const renewalDraftId = ref('')
 
   // check if 3 years past since expiry date and renewal is closed
   const isRenewalPeriodClosed = computed((): boolean => {
@@ -36,10 +38,20 @@ export const useRenewals = () => {
     const { todos } = await getRegistrationToDos(registration.value.id)
     // check if todos have a renewable registration
     isEligibleForRenewal.value = todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
+    // check if todos have a renewable registration draft
+    hasRegistrationRenewalDraft.value =
+      todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)
+
+    if (hasRegistrationRenewalDraft.value) {
+      renewalDraftId.value = todos
+        .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT).task.detail
+    }
   })
 
   return {
     isEligibleForRenewal,
+    hasRegistrationRenewalDraft,
+    renewalDraftId,
     isRenewalPeriodClosed,
     renewalDueDate,
     renewalDateCounter

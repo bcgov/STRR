@@ -12,4 +12,5 @@ export interface Todo {
   subtitle?: string
   icon?: string
   iconClass?: string
+  detail?: string
 }
