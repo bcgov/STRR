@@ -476,44 +476,10 @@ def get_todos(registration_id):
 
         todos = []
 
-        # Check if last submitted application has payment pending
-        payment_due = (
-            Application.query.filter_by(
-                registration_id=registration.id,
-                status=Application.Status.PAYMENT_DUE.value,
-            )
-            .order_by(Application.application_date.desc())
-            .first()
-        )
-        payment_due_is_renewal = payment_due and payment_due.type == ApplicationType.RENEWAL.value
-
-        if payment_due:
-            if payment_due_is_renewal:
-                todos.append(
-                    {
-                        "task": {
-                            "type": "RENEWAL_APPLICATION_PAYMENT_DUE",
-                            "detail": payment_due.application_number,
-                        }
-                    }
-                )
-            else:
-                todos.append(
-                    {
-                        "task": {
-                            "type": "REGISTRATION_APPLICATION_PAYMENT_DUE",
-                            "detail": payment_due.application_number,
-                        }
-                    }
-                )
-
         if registration.noc_status == RegistrationNocStatus.NOC_PENDING:
             todos.append({"task": {"type": "NOC_PENDING"}})
 
-        if (
-            registration.status in [RegistrationStatus.ACTIVE, RegistrationStatus.EXPIRED]
-            and not payment_due_is_renewal
-        ):
+        if registration.status in [RegistrationStatus.ACTIVE, RegistrationStatus.EXPIRED]:
             # Get the current time in UTC
             current_time_utc = datetime.utcnow()
             registration_expiry_datetime = registration.expiry_date
@@ -523,23 +489,39 @@ def get_todos(registration_id):
             threshold_datetime_end = registration_expiry_datetime + relativedelta(years=3)
 
             if threshold_datetime_start.date() <= current_time_utc.date() <= threshold_datetime_end.date():
-                # There should only be one draft renewal application against a registration
-                renewal_draft = (
-                    Application.query.filter_by(
-                        registration_id=registration.id,
-                        type=ApplicationType.RENEWAL.value,
-                        status=Application.Status.DRAFT.value,
+                renewal_application = (
+                    Application.query.filter(
+                        Application.registration_id == registration.id,
+                        Application.type == ApplicationType.RENEWAL.value,
+                        Application.status.in_([Application.Status.PAYMENT_DUE.value, Application.Status.DRAFT.value]),
                     )
-                    .order_by(Application.application_date.desc())
+                    .order_by(
+                        (Application.status == Application.Status.PAYMENT_DUE.value).desc(),
+                        Application.application_date.desc(),
+                    )
                     .first()
                 )
 
-                if renewal_draft:
-                    todos.append(
-                        {"task": {"type": "REGISTRATION_RENEWAL_DRAFT", "detail": renewal_draft.application_number}}
-                    )
+                if renewal_application:
+                    if renewal_application.status == Application.Status.PAYMENT_DUE.value:
+                        todos.append(
+                            {
+                                "task": {
+                                    "type": "REGISTRATION_RENEWAL_PAYMENT_PENDING",
+                                    "detail": renewal_application.application_number,
+                                }
+                            }
+                        )
+                    else:
+                        todos.append(
+                            {
+                                "task": {
+                                    "type": "REGISTRATION_RENEWAL_DRAFT",
+                                    "detail": renewal_application.application_number,
+                                }
+                            }
+                        )
                 else:
-                    # TODO: Add logic to check if the renenwal application for current cycle is submitted
                     todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
 
         return {"todos": todos}, HTTPStatus.OK
