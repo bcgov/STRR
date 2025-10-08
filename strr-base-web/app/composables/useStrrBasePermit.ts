@@ -39,8 +39,10 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
       // there is a lag in the payment Q, trigger the strr api to grab the most current pay details
       application.value = await updatePaymentDetails<A>(application.value.header.applicationNumber)
     }
-    if (application.value?.header.registrationId &&
-      application.value?.header.status !== ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) { // do not load registration for Provisional Pending NOC
+    if ((application.value?.header.registrationId &&
+      application.value?.header.status !== ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) ||
+      application.value?.header.applicationType !== 'renewal'
+    ) { // do not load registration for Provisional Pending NOC
       // Get linked registration if applicable
       registration.value = await getAccountRegistrations<R>(
         application.value.header.registrationId) as R
