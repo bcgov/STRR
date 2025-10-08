@@ -45,6 +45,18 @@ from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
 from strr_api.utils.date_util import DateUtil
 
+HOST_RENEWAL_ONSITE = "HOSTRN_ON"
+
+HOST_RENEWAL_OFFSITE = "HOSTRN_OFF"
+
+HOST_RENEWAL_BED_AND_BREAKFAST = "HOSTRN_BB"
+
+PLATFORM_RENEWAL_WAIVED = "PLATRENEWV"
+
+PLATFORM_RENEWAL_LARGE = "PLATRENEWL"
+
+PLATFORM_RENEWAL_MINOR = "PLATRENEWM"
+
 STRATA_HOTEL_REG = "STRATAREG"
 
 HOST_REGISTRATION_FEE_3 = "HOSTREG_3"
@@ -58,6 +70,8 @@ PLATFORM_SMALL_USER_BASE = "PLATREG_SM"
 PLATFORM_LARGE_USER_BASE = "PLATREG_LG"
 
 PLATFORM_FEE_WAIVED = "PLATREG_WV"
+
+STRATA_HOTEL_RENEWAL = "STRATRENEW"
 
 DEFAULT_FEE_MAPPING = {
     "DIFFERENT_PROPERTY": HOST_REGISTRATION_FEE_2,  # $450
@@ -137,12 +151,13 @@ class PayService:
         quantity = 1
         registration_json = application_json.get("registration", {})
         registration_type = registration_json.get("registrationType")
+        application_type = application_json.get("header", {}).get("applicationType", "registration")
         if registration_type == RegistrationType.HOST.value:
-            filing_type, quantity = self._get_host_filing_type(registration_json)
+            filing_type, quantity = self._get_host_filing_type(registration_json, application_type)
         elif registration_type == RegistrationType.PLATFORM.value:
-            filing_type = self._get_platform_filing_type(registration_json)
+            filing_type = self._get_platform_filing_type(registration_json, application_type)
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
-            filing_type = STRATA_HOTEL_REG
+            filing_type = STRATA_HOTEL_REG if application_type == "registration" else STRATA_HOTEL_RENEWAL
 
         filing_type_dict = {"filingTypeCode": filing_type, "quantity": quantity}
 
@@ -163,51 +178,70 @@ class PayService:
 
         return payload
 
-    def _get_platform_filing_type(self, registration_json):
+    def _get_platform_filing_type(self, registration_json, application_type):
         cpbc_number = registration_json.get("businessDetails").get("consumerProtectionBCLicenceNumber")
         if cpbc_number and (not cpbc_number.isspace()):
-            filing_type = PLATFORM_FEE_WAIVED
+            filing_type = PLATFORM_FEE_WAIVED if application_type == "registration" else PLATFORM_RENEWAL_WAIVED
         elif registration_json.get("platformDetails").get("listingSize") == "THOUSAND_AND_ABOVE":
-            filing_type = PLATFORM_LARGE_USER_BASE
+            filing_type = PLATFORM_LARGE_USER_BASE if application_type == "registration" else PLATFORM_RENEWAL_LARGE
         else:
-            filing_type = PLATFORM_SMALL_USER_BASE
+            filing_type = PLATFORM_SMALL_USER_BASE if application_type == "registration" else PLATFORM_RENEWAL_MINOR
         return filing_type
 
-    def _get_host_filing_type(self, registration_json):
+    def _get_host_filing_type(self, registration_json, application_type="registration"):
         quantity = 1
         filing_type = None
+        rental_unit_setup_option = registration_json.get("unitDetails").get("rentalUnitSetupOption")
+        property_type = registration_json.get("unitDetails").get("propertyType")
+        if application_type == "registration":
+            if rental_unit_setup_option:
+                if property_type == PropertyType.BED_AND_BREAKFAST.name:
+                    filing_type = HOST_REGISTRATION_FEE_3
+                else:
+                    if rental_unit_setup_option in ["DIFFERENT_PROPERTY", "SEPARATE_UNIT_SAME_PROPERTY"]:
+                        filing_type = HOST_REGISTRATION_FEE_2
+                    elif rental_unit_setup_option == "PRIMARY_RESIDENCE_OR_SHARED_SPACE":
+                        filing_type = HOST_REGISTRATION_FEE_1
+            else:
+                filing_type, quantity = self._get_host_registration_fee_using_legacy_option(
+                    filing_type, quantity, registration_json
+                )
+        elif application_type == "renewal":
+            filing_type = self._get_renewal_filing_type_for_host(rental_unit_setup_option, property_type)
+        return filing_type, quantity
+
+    def _get_host_registration_fee_using_legacy_option(self, filing_type, quantity, registration_json):
         rental_unit_space_type = registration_json.get("unitDetails").get("rentalUnitSpaceType")
         is_rental_unit_on_principal_residence = registration_json.get("unitDetails").get(
             "isUnitOnPrincipalResidenceProperty"
         )
-        rental_unit_setup_option = registration_json.get("unitDetails").get("rentalUnitSetupOption")
-        property_type = registration_json.get("unitDetails").get("propertyType")
-        if rental_unit_setup_option:
-            property_type_name = property_type if property_type else None
-            matrix_for_property = APPLICATION_FEE_MATRIX.get(property_type_name, DEFAULT_FEE_MAPPING)
-            filing_type = matrix_for_property.get(rental_unit_setup_option)
-
-            if filing_type is None:
-                filing_type = DEFAULT_FEE_MAPPING.get(rental_unit_setup_option)
-            return filing_type, quantity
-        else:
-            if rental_unit_space_type == RentalProperty.RentalUnitSpaceType.ENTIRE_HOME:
-                if is_rental_unit_on_principal_residence:
-                    host_residence = registration_json.get("unitDetails").get("hostResidence")
-                    if host_residence == RentalProperty.HostResidence.SAME_UNIT:
-                        filing_type = HOST_REGISTRATION_FEE_1
-                    elif host_residence == RentalProperty.HostResidence.ANOTHER_UNIT:
-                        filing_type = HOST_REGISTRATION_FEE_2
-                else:
+        if rental_unit_space_type == RentalProperty.RentalUnitSpaceType.ENTIRE_HOME:
+            if is_rental_unit_on_principal_residence:
+                host_residence = registration_json.get("unitDetails").get("hostResidence")
+                if host_residence == RentalProperty.HostResidence.SAME_UNIT:
+                    filing_type = HOST_REGISTRATION_FEE_1
+                elif host_residence == RentalProperty.HostResidence.ANOTHER_UNIT:
                     filing_type = HOST_REGISTRATION_FEE_2
-            elif rental_unit_space_type == RentalProperty.RentalUnitSpaceType.SHARED_ACCOMMODATION:
-                filing_type = HOST_REGISTRATION_FEE_1
-                property_type = registration_json.get("unitDetails").get("propertyType")
-                if property_type in {PropertyType.BED_AND_BREAKFAST.name, PropertyType.RECREATIONAL.name}:
-                    filing_type = HOST_REGISTRATION_FEE_3
-                elif registration_json.get("unitDetails").get("numberOfRoomsForRent"):
-                    quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
+            else:
+                filing_type = HOST_REGISTRATION_FEE_2
+        elif rental_unit_space_type == RentalProperty.RentalUnitSpaceType.SHARED_ACCOMMODATION:
+            filing_type = HOST_REGISTRATION_FEE_1
+            property_type = registration_json.get("unitDetails").get("propertyType")
+            if property_type in {PropertyType.BED_AND_BREAKFAST.name, PropertyType.RECREATIONAL.name}:
+                filing_type = HOST_REGISTRATION_FEE_3
+            elif registration_json.get("unitDetails").get("numberOfRoomsForRent"):
+                quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
         return filing_type, quantity
+
+    def _get_renewal_filing_type_for_host(self, rental_unit_setup_option, property_type):
+        if property_type == PropertyType.BED_AND_BREAKFAST.name:
+            filing_type = HOST_RENEWAL_BED_AND_BREAKFAST
+        else:
+            if rental_unit_setup_option in ["DIFFERENT_PROPERTY", "SEPARATE_UNIT_SAME_PROPERTY"]:
+                filing_type = HOST_RENEWAL_OFFSITE
+            elif rental_unit_setup_option == "PRIMARY_RESIDENCE_OR_SHARED_SPACE":
+                filing_type = HOST_RENEWAL_ONSITE
+        return filing_type
 
     def get_payment_details_by_invoice_id(self, user_jwt: JwtManager, account_id, invoice_id: int):
         """Get payment details by invoice id."""
