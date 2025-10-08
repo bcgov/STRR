@@ -87,20 +87,22 @@ const mapApplicationsList = () => {
   if (!hostPmListResp.value?.applications) {
     return []
   }
-  return (hostPmListResp.value.applications).map((app: any) => {
-    const displayAddress = app.header.registrationAddress || app.registration.unitAddress
-    return {
-      name: app.registration.unitAddress?.nickname || t('label.unnamed'),
-      address: displayAddress,
-      number: app.header.registrationNumber || app.header.applicationNumber,
-      lastStatusChange: getLastStatusChangeColumn(app.header),
-      daysToExpiry: getDaysToExpiryColumn(app.header),
-      status: getApplicationStatus(app.header),
-      applicationNumber: app.header.applicationNumber, // always used for view action
-      hasRegistrationNoc: hasRegistrationNOC(app.header),
-      needsAttention: needsAttention(app)
-    }
-  })
+  return (hostPmListResp.value.applications)
+    .filter((app: any) => (app.header.applicationType !== 'renewal' && app.header.status !== ApplicationStatus.DRAFT)) // filter out renewal drafts
+    .map((app: any) => {
+      const displayAddress = app.header.registrationAddress || app.registration.unitAddress
+      return {
+        name: app.registration.unitAddress?.nickname || t('label.unnamed'),
+        address: displayAddress,
+        number: app.header.registrationNumber || app.header.applicationNumber,
+        lastStatusChange: getLastStatusChangeColumn(app.header),
+        daysToExpiry: getDaysToExpiryColumn(app.header),
+        status: getApplicationStatus(app.header),
+        applicationNumber: app.header.applicationNumber, // always used for view action
+        hasRegistrationNoc: hasRegistrationNOC(app.header),
+        needsAttention: needsAttention(app)
+      }
+    })
 }
 
 // Shouldn't use computed here because table sorting updates it which causes issues with vue tracking

@@ -49,6 +49,9 @@ onMounted(async () => {
   if (isRenewal.value && registrationId.value) {
     await permitStore.loadHostRegistrationData(registrationId.value)
     permitStore.isRegistrationRenewal = true
+  } else if (isRenewal.value && applicationId.value) {
+    await permitStore.loadHostData(applicationId.value, true)
+    permitStore.isRegistrationRenewal = true
   } else if (applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
   }
