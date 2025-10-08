@@ -16,8 +16,8 @@ export interface UiUnitDetails {
   rentalUnitSetupType: RentalUnitSetupType | undefined
   typeOfSpace: RentalUnitType | undefined
   // fields for new form
-  hostType: PropertyHostType | undefined
-  rentalUnitSetupOption: RentalUnitSetupOption | undefined
+  hostType?: PropertyHostType
+  rentalUnitSetupOption?: RentalUnitSetupOption
 }
 
 export interface UiHostProperty extends UiUnitDetails {

@@ -78,6 +78,7 @@ export interface ApiExtraRegistrationDetails {
 export interface ApplicationHeader {
   applicationDateTime: Date
   applicationNumber: string
+  applicationType?: string
   decisionDate: Date | undefined
   examinerActions: string[]
   examinerStatus: string
