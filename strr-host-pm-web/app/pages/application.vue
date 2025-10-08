@@ -49,6 +49,9 @@ onMounted(async () => {
   if (isRenewal.value && registrationId.value) {
     await permitStore.loadHostRegistrationData(registrationId.value)
     permitStore.isRegistrationRenewal = true
+  } else if (isRenewal.value && applicationId.value) {
+    await permitStore.loadHostData(applicationId.value, true)
+    permitStore.isRegistrationRenewal = true
   } else if (applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
   }
@@ -276,13 +279,10 @@ watch([activeStepIndex, () => permitStore.isRegistrationRenewal], () => {
     { action: () => navigateTo(localePath('/dashboard')), label: t('btn.cancel'), variant: 'outline' }
   ]
 
-  // do not show Save Draft buttons for registration renewals, show for eveything else
-  if (!permitStore.isRegistrationRenewal) {
-    leftActionButtons.push(
-      { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
-      { action: saveApplication, label: t('btn.save'), variant: 'outline' }
-    )
-  }
+  leftActionButtons.push(
+    { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
+    { action: saveApplication, label: t('btn.save'), variant: 'outline' }
+  )
 
   setButtonControl({
     leftButtons: isSaveDraftEnabled ? leftActionButtons : [],

@@ -98,7 +98,7 @@ watch(() => propStore.unitDetails.hostType, (val) => {
 
 // watch and clear unit setup radio option 1 if PR is not exempt
 watch(() => reqStore.prRequirements.isPropertyPrExempt, (val) => {
-  const isNotExempt = !val
+  const isNotExempt = !!val
   const isDisabledOptionSelected = [RentalUnitSetupOption.DIFFERENT_PROPERTY]
     .includes(propStore.unitDetails.rentalUnitSetupOption as RentalUnitSetupOption)
 
