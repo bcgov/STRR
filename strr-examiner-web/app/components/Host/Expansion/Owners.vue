@@ -6,7 +6,7 @@ defineEmits<{
   close: [void]
 }>()
 const exStore = useExaminerStore()
-const { activeReg } = storeToRefs(exStore)
+const { activeReg, isApplication } = storeToRefs(exStore)
 
 const { t } = useI18n()
 
@@ -169,7 +169,7 @@ const hostOwners = computed<HostOwner[]>(() => {
     </template>
     <template #role-data="{ row }: { row: HostOwner }">
       <div class="space-y-3">
-        <p v-if="row.isCompParty">
+        <p v-if="isApplication && row.isCompParty">
           {{ $t('label.completingParty') }}
           ({{ getFullName(row) }})
         </p>
