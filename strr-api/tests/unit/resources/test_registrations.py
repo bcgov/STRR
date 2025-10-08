@@ -611,6 +611,60 @@ def test_get_todos_with_renewal_states(session, client, jwt):
     assert todos[0].get("task").get("detail") == payment_due_application.application_number
 
 
+def test_get_todos_with_submitted_renewal_recent_and_old(session, client, jwt):
+    """Test renewal todos if renewal application was submitted."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    registration_end_date = datetime.utcnow() + timedelta(days=24)
+    user = User(
+        username="submittedUser",
+        firstname="Submitted",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="submittedUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="HOST",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="H7654321",
+        user_id=user.id,
+    )
+    registration.save()
+
+    recent_application = Application(
+        type=ApplicationType.RENEWAL.value,
+        status=Application.Status.PAID,
+        payment_account=str(ACCOUNT_ID),
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+        application_date=datetime.utcnow() - timedelta(days=10),
+    )
+    recent_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert response_json.get("todos") == []
+
+    recent_application.application_date = datetime.utcnow() - relativedelta(years=1) - timedelta(days=41)
+    recent_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL"
+    assert todos[0].get("task").get("detail") is None
+
+
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 @patch(
     "strr_api.services.approval_service.ApprovalService.getSTRDataForAddress",

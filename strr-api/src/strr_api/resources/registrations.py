@@ -485,8 +485,9 @@ def get_todos(registration_id):
             registration_expiry_datetime = registration.expiry_date
 
             # Window in which todos should appear
-            threshold_datetime_start = registration_expiry_datetime - timedelta(days=30)
+            threshold_datetime_start = registration_expiry_datetime - timedelta(days=40)
             threshold_datetime_end = registration_expiry_datetime + relativedelta(years=3)
+            recent_submission_threshold = current_time_utc - relativedelta(years=1) + timedelta(days=40)
 
             if threshold_datetime_start.date() <= current_time_utc.date() <= threshold_datetime_end.date():
                 renewal_application = (
@@ -522,7 +523,24 @@ def get_todos(registration_id):
                             }
                         )
                 else:
-                    todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
+                    submitted_renewal_application = (
+                        Application.query.filter(
+                            Application.registration_id == registration.id,
+                            Application.type == ApplicationType.RENEWAL.value,
+                            Application.status.notin_(
+                                [
+                                    Application.Status.DRAFT.value,
+                                    Application.Status.PAYMENT_DUE.value,
+                                ]
+                            ),
+                            Application.application_date >= recent_submission_threshold,
+                        )
+                        .order_by(Application.application_date.desc())
+                        .first()
+                    )
+
+                    if not submitted_renewal_application:
+                        todos.append({"task": {"type": "REGISTRATION_RENEWAL"}})
 
         return {"todos": todos}, HTTPStatus.OK
     except Exception as exception:
