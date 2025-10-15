@@ -40,7 +40,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
       application.value = await updatePaymentDetails<A>(application.value.header.applicationNumber)
     }
     if ((application.value?.header.registrationId &&
-      application.value?.header.status !== ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) ||
+      application.value?.header.status !== ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) &&
       application.value?.header.applicationType !== 'renewal'
     ) { // do not load registration for Provisional Pending NOC
       // Get linked registration if applicable
