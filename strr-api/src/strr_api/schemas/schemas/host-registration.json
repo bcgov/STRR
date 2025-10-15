@@ -103,6 +103,21 @@
     }
   },
   "properties": {
+    "header": {
+      "type": "object",
+      "properties": {
+        "registrationId": {
+          "type": "integer"
+        },
+        "applicationType": {
+          "type": "string",
+          "enum": [
+            "renewal",
+            "registration"
+          ]
+        }
+      }
+    },
     "primaryContact": {
       "$ref": "https://strr.gov.bc.ca/.well_known/schemas/contact"
     },

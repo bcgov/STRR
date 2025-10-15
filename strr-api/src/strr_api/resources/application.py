@@ -613,6 +613,16 @@ def update_application_status(application_number):
                 message="Only the assigned examiner can perform this action",
                 http_status=HTTPStatus.FORBIDDEN,
             )
+
+        # Renewal specific check
+        if application.type == ApplicationType.RENEWAL.value:
+            reg_id = application.registration_id
+            if reg_id is None:
+                return error_response(
+                    message=ErrorMessage.RENEWAL_APPLICATION_NO_REGISTRATION_ID.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
+
         application = ApplicationService.update_application_status(application, status.upper(), user, custom_content)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:

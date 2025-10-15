@@ -37,6 +37,7 @@ class Events(SimpleBaseModel):
         MANUALLY_DENIED = auto()
         MORE_INFORMATION_REQUESTED = auto()
         REGISTRATION_CREATED = auto()
+        REGISTRATION_RENEWED = auto()
         CERTIFICATE_ISSUED = auto()
         REGISTRATION_EXPIRED = auto()
         NON_COMPLIANCE_SUSPENDED = auto()

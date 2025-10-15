@@ -117,12 +117,20 @@ class RegistrationService:
             )
 
     @classmethod
+    def process_renewal_application(cls, registration_request: dict) -> Registration:
+        """Process a renewal registration payload and persist updates to the existing registration."""
+        registration_details = registration_request.get("registration")
+        registration_type = registration_details.get("registrationType") if registration_details else None
+        return cls._process_renewal_request(registration_details, registration_request, registration_type)
+
+    @classmethod
     def _process_renewal_request(cls, registration_details, registration_request, registration_type):
         registration = RegistrationService.get_registration_by_id(
             registration_request.get("header", {}).get("registrationId")
         )
         SnapshotService.snapshot_registration(registration)
         registration.expiry_date = registration.expiry_date + relativedelta(years=1)
+        registration.status = RegistrationStatus.ACTIVE
         for doc in registration_details.get("documents", []):
             document = Document(
                 file_name=doc.get("fileName"),

@@ -124,6 +124,10 @@ def test_examiner_approve_host_registration__renewal_application(
         assert registration_id is not None
         assert response_json.get("header").get("registrationNumber") is not None
         registration_number = response_json.get("header").get("registrationNumber")
+        prev_registration = RegistrationService.get_registration_by_id(registration_id)
+        prev_registration.status = RegistrationStatus.EXPIRED.value
+        prev_registration.save()
+        prev_expiry_date = prev_registration.expiry_date
 
         renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
         json_data["header"] = renewal_header_json
@@ -157,6 +161,13 @@ def test_examiner_approve_host_registration__renewal_application(
 
         registration = RegistrationService.get_registration_by_id(registration_id)
         assert registration.rental_property.nickname == "My Rental Property renewal"
+        assert registration.expiry_date > prev_expiry_date
+        assert registration.status == RegistrationStatus.ACTIVE
+
+        rv = client.get(f"/registrations/{registration_id}/events", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        events = rv.json
+        assert any(e.get("eventName") == Events.EventName.REGISTRATION_RENEWED for e in events)
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

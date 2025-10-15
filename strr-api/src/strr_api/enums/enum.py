@@ -176,6 +176,7 @@ class ErrorMessage(Enum):
     REGISTRATION_ID_MISMATCH = "Registration Id does not match the existing registration."
     REGISTRATION_ID_REQUIRED = "Registration Id is required for renewal applications."
     REGISTRATION_ID_NOT_INTEGER = "Registration Id must be an integer."
+    RENEWAL_APPLICATION_NO_REGISTRATION_ID = "Renewal application does not have a linked registration id."
 
 
 class ApplicationRole(Enum):

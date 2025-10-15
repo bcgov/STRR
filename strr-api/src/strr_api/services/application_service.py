@@ -215,21 +215,35 @@ class ApplicationService:
         application.is_set_aside = False
         application.status = application_status
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
-            registration = RegistrationService.create_registration(
-                application.submitter_id, application.payment_account, application.application_json
-            )
-            registration.reviewer_id = reviewer.id
-            registration.decider_id = reviewer.id
-            registration.save()
-            EventsService.save_event(
-                event_type=Events.EventType.REGISTRATION,
-                event_name=Events.EventName.REGISTRATION_CREATED,
-                application_id=application.id,
-                registration_id=registration.id,
-                visible_to_applicant=True,
-                user_id=reviewer.id,
-            )
-            application.registration_id = registration.id
+            if application.type == ApplicationType.RENEWAL.value:
+                registration = RegistrationService.process_renewal_application(application.application_json)
+                registration.reviewer_id = reviewer.id
+                registration.decider_id = reviewer.id
+                registration.save()
+                EventsService.save_event(
+                    event_type=Events.EventType.REGISTRATION,
+                    event_name=Events.EventName.REGISTRATION_RENEWED,
+                    application_id=application.id,
+                    registration_id=registration.id,
+                    visible_to_applicant=True,
+                    user_id=reviewer.id,
+                )
+            else:
+                registration = RegistrationService.create_registration(
+                    application.submitter_id, application.payment_account, application.application_json
+                )
+                registration.reviewer_id = reviewer.id
+                registration.decider_id = reviewer.id
+                registration.save()
+                EventsService.save_event(
+                    event_type=Events.EventType.REGISTRATION,
+                    event_name=Events.EventName.REGISTRATION_CREATED,
+                    application_id=application.id,
+                    registration_id=registration.id,
+                    visible_to_applicant=True,
+                    user_id=reviewer.id,
+                )
+                application.registration_id = registration.id
 
         if application_status == Application.Status.PROVISIONALLY_DECLINED and original_status in [
             Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
