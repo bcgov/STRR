@@ -54,6 +54,10 @@ onMounted(async () => {
     permitStore.isRegistrationRenewal = true
   } else if (applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
+    // for renewals draft keep the flag on
+    if (permitStore?.application.header.applicationType === 'renewal') {
+      permitStore.isRegistrationRenewal = true
+    }
   }
 
   const { fee1, fee2, fee3 } = await fetchStrrFees()

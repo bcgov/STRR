@@ -82,7 +82,7 @@ watch(() => reqStore.prRequirements.prExemptionReason, async (val) => {
     propStore.unitDetails.propertyType = PropertyType.STRATA_HOTEL
     await validateForm(unitDetailsFormRef.value, props.isComplete) // validate the form to clear the unit type errors
   }
-}, { immediate: true })
+})
 
 // watch and clear unit setup radio if one of the disabled options selected
 watch(() => propStore.unitDetails.hostType, (val) => {
@@ -94,18 +94,18 @@ watch(() => propStore.unitDetails.hostType, (val) => {
   if (isLongTermTenant && isDisabledOptionSelected) {
     propStore.unitDetails.rentalUnitSetupOption = undefined
   }
-}, { immediate: true })
+})
 
 // watch and clear unit setup radio option 1 if PR is not exempt
 watch(() => reqStore.prRequirements.isPropertyPrExempt, (val) => {
-  const isNotExempt = !!val
+  const isNotExempt = !val
   const isDisabledOptionSelected = [RentalUnitSetupOption.DIFFERENT_PROPERTY]
     .includes(propStore.unitDetails.rentalUnitSetupOption as RentalUnitSetupOption)
 
   if (isNotExempt && isDisabledOptionSelected) {
     propStore.unitDetails.rentalUnitSetupOption = undefined
   }
-}, { immediate: true })
+})
 
 onMounted(async () => {
   // validate form if step marked as complete
