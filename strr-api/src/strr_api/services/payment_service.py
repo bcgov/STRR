@@ -45,11 +45,11 @@ from strr_api.services.events_service import EventsService
 from strr_api.services.user_service import UserService
 from strr_api.utils.date_util import DateUtil
 
-HOST_RENEWAL_ONSITE = "HOSTRN_ON"
+HOST_RENEWAL_ONSITE = "HOSTREN_ON"
 
-HOST_RENEWAL_OFFSITE = "HOSTRN_OFF"
+HOST_RENEWAL_OFFSITE = "HOSTRENOFF"
 
-HOST_RENEWAL_BED_AND_BREAKFAST = "HOSTRN_BB"
+HOST_RENEWAL_BED_AND_BREAKFAST = "HOSTREN_BB"
 
 PLATFORM_RENEWAL_WAIVED = "PLATRENEWV"
 
