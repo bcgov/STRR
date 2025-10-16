@@ -12,7 +12,7 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     agreedToSubmit: z.boolean().refine(val => val, { message: t('validation.required') })
   })
   const permitStore = useHostPermitStore()
-  const { isRegistrationRenewal, registration } = storeToRefs(permitStore)
+  const { isRegistrationRenewal, registration, application } = storeToRefs(permitStore)
   const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
   const getEmptyConfirmation = () => ({
@@ -51,7 +51,8 @@ export const useHostApplicationStore = defineStore('host/application', () => {
       header: {
         paymentMethod: useConnectFeeStore().userSelectedPaymentMethod,
         ...(isRegistrationRenewal.value && {
-          registrationId: registration.value?.id,
+          // to keep renewal application/draft/registration linked together we must have the registration id here
+          registrationId: registration.value?.id || application.value?.header.registrationId,
           applicationType: 'renewal'
         })
       },
