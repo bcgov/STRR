@@ -173,6 +173,10 @@ class ErrorMessage(Enum):
     ADDRESS_MISMATCH = "Address does not match with the data in the permit."
     INVALID_SET_ASIDE_EMAIL_CONTENT = "Invalid message for set aside notifications."
     REGISTRATION_DOCUMENT_UPLOAD_NOC_STATUS = "Document upload is not allowed for the current status."
+    REGISTRATION_ID_MISMATCH = "Registration Id does not match the existing registration."
+    REGISTRATION_ID_REQUIRED = "Registration Id is required for renewal applications."
+    REGISTRATION_ID_NOT_INTEGER = "Registration Id must be an integer."
+    RENEWAL_APPLICATION_NO_REGISTRATION_ID = "Renewal application does not have a linked registration id."
 
 
 class ApplicationRole(Enum):

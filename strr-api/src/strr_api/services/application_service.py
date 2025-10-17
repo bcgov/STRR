@@ -221,15 +221,25 @@ class ApplicationService:
             registration.reviewer_id = reviewer.id
             registration.decider_id = reviewer.id
             registration.save()
-            EventsService.save_event(
-                event_type=Events.EventType.REGISTRATION,
-                event_name=Events.EventName.REGISTRATION_CREATED,
-                application_id=application.id,
-                registration_id=registration.id,
-                visible_to_applicant=True,
-                user_id=reviewer.id,
-            )
             application.registration_id = registration.id
+            if application.type == ApplicationType.RENEWAL.value:
+                EventsService.save_event(
+                    event_type=Events.EventType.REGISTRATION,
+                    event_name=Events.EventName.REGISTRATION_RENEWED,
+                    application_id=application.id,
+                    registration_id=registration.id,
+                    visible_to_applicant=True,
+                    user_id=reviewer.id,
+                )
+            else:
+                EventsService.save_event(
+                    event_type=Events.EventType.REGISTRATION,
+                    event_name=Events.EventName.REGISTRATION_CREATED,
+                    application_id=application.id,
+                    registration_id=registration.id,
+                    visible_to_applicant=True,
+                    user_id=reviewer.id,
+                )
 
         if application_status == Application.Status.PROVISIONALLY_DECLINED and original_status in [
             Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
