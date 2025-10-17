@@ -50,4 +50,5 @@ class ApplicationSearch:
     record_number: str = None
     assignee: str = None
     requirements: list[str] = None
-    include_draft: bool = True
+    include_draft_registration: bool = True
+    include_draft_renewal: bool = True
