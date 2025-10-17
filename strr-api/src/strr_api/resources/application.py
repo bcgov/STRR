@@ -228,10 +228,15 @@ def get_applications():
         default: 50
         description: Number of results per page
       - in: query
-        name: includeDraft
+        name: includeDraftRegistration
         type: boolean
         default: true
-        description: Include draft applications
+        description: Include draft registration applications
+      - in: query
+        name: includeDraftRenewal
+        type: boolean
+        default: true
+        description: Include draft renewal applications
     responses:
       200:
         description:
@@ -253,7 +258,8 @@ def get_applications():
         sort_order = request.args.get("sortOrder", "desc")
         assignee = request.args.get("assignee", None)
         requirements = request.args.getlist("requirement", None)
-        include_draft = request.args.get("includeDraft", "true").lower() == "true"
+        include_draft_registration = request.args.get("includeDraftRegistration", "true").lower() == "true"
+        include_draft_renewal = request.args.get("includeDraftRenewal", "true").lower() == "true"
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -269,7 +275,8 @@ def get_applications():
             sort_order=sort_order,
             assignee=assignee,
             requirements=requirements,
-            include_draft=include_draft,
+            include_draft_registration=include_draft_registration,
+            include_draft_renewal=include_draft_renewal,
         )
         application_list = ApplicationService.list_applications(account_id, filter_criteria=filter_criteria)
         return jsonify(application_list), HTTPStatus.OK

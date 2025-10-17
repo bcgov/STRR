@@ -48,7 +48,7 @@ from sqlalchemy.orm import Query, backref
 from sqlalchemy_utils.types.ts_vector import TSVectorType
 
 from strr_api.common.enum import BaseEnum, auto
-from strr_api.enums.enum import StrrRequirement
+from strr_api.enums.enum import ApplicationType, StrrRequirement
 from strr_api.models.base_model import BaseModel
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.models.rental import Registration
@@ -202,8 +202,20 @@ class Application(BaseModel):
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
             query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
-        if not filter_criteria.include_draft:
-            query = query.filter(Application.status != Application.Status.DRAFT)
+        if not filter_criteria.include_draft_registration:
+            query = query.filter(
+                ~db.and_(
+                    Application.status == Application.Status.DRAFT,
+                    Application.type == ApplicationType.REGISTRATION.value,
+                )
+            )
+        if not filter_criteria.include_draft_renewal:
+            query = query.filter(
+                ~db.and_(
+                    Application.status == Application.Status.DRAFT,
+                    Application.type == ApplicationType.RENEWAL.value,
+                )
+            )
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
