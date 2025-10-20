@@ -386,6 +386,12 @@ export default {
       p1: 'Contact your {link} to find the Strata Hotel Platform registration number for your the Strata Hotel.',
       p2: 'This is a unique identifier for every strata hotel and starts with the letters "ST" followed by 9 digits (i.e: ST123456789). We need this number before we can issue an individual registration number for you to use on hosting platforms.',
       closeBtn: 'Close'
+    },
+    unsavedChanges: {
+      title: 'Are you sure you want to leave?',
+      content: 'Unsaved changes may be lost.',
+      confirmBtn: 'Leave',
+      closeBtn: 'Stay'
     }
   },
   table: {

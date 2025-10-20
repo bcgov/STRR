@@ -12,6 +12,7 @@ const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(propertyStore)
 const { showUnitDetailsForm, prRequirements } = storeToRefs(propertyReqStore)
 const { validateOwners } = useHostOwnerStore()
 const documentsStore = useDocumentStore()
+const { openConfirmUnsavedChanges } = useHostPmModals()
 const {
   submitApplication,
   validateUserConfirmation,
@@ -19,7 +20,7 @@ const {
 } = useHostApplicationStore()
 const permitStore = useHostPermitStore()
 
-const { applicationId, registrationId, isRenewal } = useRouterParams()
+const { applicationId, isRenewal } = useRouterParams()
 const { isSaveDraftEnabled, isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 const { fetchStrrFees, getApplicationFee } = useHostApplicationFee()
 const loading = ref(false)
@@ -40,14 +41,37 @@ const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee4 = ref<ConnectFeeItem | undefined>(undefined)
 
+const showConfirmUnsavedModal = computed(() => isRenewal.value && useState('renewalRegId').value)
+
+// show default confirm modal when closing or refreshing the tab while in renewal flow
+useEventListener(window, 'beforeunload', (event: BeforeUnloadEvent) => {
+  if (showConfirmUnsavedModal.value) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
+})
+
+// show custom confirm modal when navigating away within the app while in renewal flow
+onBeforeRouteLeave(async () => {
+  if (showConfirmUnsavedModal.value) {
+    return await openConfirmUnsavedChanges()
+  }
+  return true
+})
+
 onMounted(async () => {
   loading.value = true
   await initAlternatePaymentMethod()
   applicationReset()
   permitStore.$reset()
 
-  if (isRenewal.value && registrationId.value) {
-    await permitStore.loadHostRegistrationData(registrationId.value)
+  if (isRenewal.value) {
+    const renewalRegId = useState('renewalRegId')
+    if (!renewalRegId.value) {
+      navigateTo(localePath('/dashboard'))
+      return
+    }
+    await permitStore.loadHostRegistrationData(renewalRegId.value as string)
     permitStore.isRegistrationRenewal = true
   } else if (isRenewal.value && applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)

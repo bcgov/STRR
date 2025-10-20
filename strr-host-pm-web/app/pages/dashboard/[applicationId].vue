@@ -182,9 +182,10 @@ watch([isRenewalsEnabled,
       button: {
         label: t('btn.renew'),
         action: async () => {
+          useState('renewalRegId', () => registration.value?.id)
           await navigateTo({
             path: localePath('/application'),
-            query: { renew: 'true', registrationId: registration.value?.id }
+            query: { renew: 'true' }
           })
         }
       }

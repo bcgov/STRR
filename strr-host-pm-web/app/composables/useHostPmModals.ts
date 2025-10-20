@@ -54,6 +54,34 @@ export const useHostPmModals = () => {
     })
   }
 
+  function openConfirmUnsavedChanges () {
+    return new Promise<boolean>((resolve) => {
+      const resolveAndClose = (value: boolean) => {
+        resolve(value)
+        close()
+      }
+
+      const modalActions = [
+        {
+          label: t('modal.unsavedChanges.confirmBtn'),
+          variant: 'outline',
+          handler: () => resolveAndClose(true)
+        },
+        {
+          label: t('modal.unsavedChanges.closeBtn'),
+          variant: 'solid',
+          handler: () => resolveAndClose(false)
+        }
+      ]
+
+      modal.open(ModalBase, {
+        title: t('modal.unsavedChanges.title'),
+        content: t('modal.unsavedChanges.content'),
+        actions: modalActions
+      })
+    })
+  }
+
   function close () {
     modal.close()
   }
@@ -62,6 +90,7 @@ export const useHostPmModals = () => {
     openHelpCreateAccountModal,
     openConfirmRestartApplicationModal,
     openStrataRegNumberHelpModal,
+    openConfirmUnsavedChanges,
     close
   }
 }
