@@ -73,27 +73,6 @@ PLATFORM_FEE_WAIVED = "PLATREG_WV"
 
 STRATA_HOTEL_RENEWAL = "STRATRENEW"
 
-DEFAULT_FEE_MAPPING = {
-    "DIFFERENT_PROPERTY": HOST_REGISTRATION_FEE_2,  # $450
-    "SEPARATE_UNIT_SAME_PROPERTY": HOST_REGISTRATION_FEE_2,  # $450
-    "PRIMARY_RESIDENCE_OR_SHARED_SPACE": HOST_REGISTRATION_FEE_1,  # $100
-}
-
-APPLICATION_FEE_MATRIX = {
-    "SINGLE_FAMILY_HOME": DEFAULT_FEE_MAPPING,
-    "SECONDARY_SUITE": DEFAULT_FEE_MAPPING,
-    "ACCESSORY_DWELLING": DEFAULT_FEE_MAPPING,
-    "MULTI_UNIT_HOUSING": DEFAULT_FEE_MAPPING,
-    "FLOAT_HOME": DEFAULT_FEE_MAPPING,
-    "STRATA_HOTEL": DEFAULT_FEE_MAPPING,
-    # Bed and Breakfast - all options map to fee3
-    "BED_AND_BREAKFAST": {
-        "DIFFERENT_PROPERTY": HOST_REGISTRATION_FEE_3,  # $100
-        "SEPARATE_UNIT_SAME_PROPERTY": HOST_REGISTRATION_FEE_3,  # $100
-        "PRIMARY_RESIDENCE_OR_SHARED_SPACE": HOST_REGISTRATION_FEE_3,  # $100
-    },
-}
-
 
 class PayService:
     """
@@ -208,6 +187,7 @@ class PayService:
                 )
         elif application_type == "renewal":
             filing_type = self._get_renewal_filing_type_for_host(rental_unit_setup_option, property_type)
+            self.app.logger.info("Filing type for renewal payment::" + filing_type)
         return filing_type, quantity
 
     def _get_host_registration_fee_using_legacy_option(self, filing_type, quantity, registration_json):
@@ -236,11 +216,14 @@ class PayService:
     def _get_renewal_filing_type_for_host(self, rental_unit_setup_option, property_type):
         if property_type == PropertyType.BED_AND_BREAKFAST.name:
             filing_type = HOST_RENEWAL_BED_AND_BREAKFAST
+            self.app.logger.info("Bed and Breakfast property for renewal::")
         else:
             if rental_unit_setup_option in ["DIFFERENT_PROPERTY", "SEPARATE_UNIT_SAME_PROPERTY"]:
                 filing_type = HOST_RENEWAL_OFFSITE
+                self.app.logger.info("Renewal for offsite::")
             elif rental_unit_setup_option == "PRIMARY_RESIDENCE_OR_SHARED_SPACE":
                 filing_type = HOST_RENEWAL_ONSITE
+                self.app.logger.info("Renewal for onsite::")
         return filing_type
 
     def get_payment_details_by_invoice_id(self, user_jwt: JwtManager, account_id, invoice_id: int):
