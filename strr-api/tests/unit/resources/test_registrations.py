@@ -154,6 +154,14 @@ def test_get_registration_events(session, client, jwt):
         assert len(events) == 1
         assert events[0].get("eventName") == Events.EventName.REGISTRATION_CREATED
         assert events[0].get("eventType") == Events.EventType.REGISTRATION
+        rv = client.get(f"/registrations/{registration_id}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        applications = response_json.get("header").get("applications")
+        assert applications
+        first_application = applications[0]
+        assert first_application.get("applicationType") == ApplicationType.REGISTRATION.value
+        assert first_application.get("applicationStatus") == Application.Status.FULL_REVIEW_APPROVED
 
 
 @pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
@@ -192,10 +200,15 @@ def test_examiner_issue_certificate_for_host_registration(session, client, jwt):
         assert response_json.get("header").get("examinerActions") == []
         assert response_json.get("header").get("hostActions") == []
         rv = client.get(f"/registrations/{registration_id}", headers=headers)
-        assert HTTPStatus.OK == rv.status_code
+        assert rv.status_code == HTTPStatus.OK
         response_json = rv.json
         assert response_json.get("header").get("examinerActions") == ["APPROVE", "SUSPEND", "CANCEL"]
         assert response_json.get("header").get("hostActions") == []
+        applications = response_json.get("header").get("applications")
+        assert applications
+        first_application = applications[0]
+        assert first_application.get("applicationType") == ApplicationType.REGISTRATION.value
+        assert first_application.get("applicationStatus") == Application.Status.FULL_REVIEW_APPROVED
 
 
 @pytest.mark.skip(reason="Skipping the test until certificate generation is supported")

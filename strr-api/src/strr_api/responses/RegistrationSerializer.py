@@ -151,6 +151,8 @@ class RegistrationSerializer:
             application_data = {
                 "applicationNumber": application.application_number,
                 "applicationDateTime": application.application_date.isoformat(),
+                "applicationType": application.type,
+                "applicationStatus": application.status,
                 "organizationName": application.application_json.get("registration")
                 .get("strRequirements", {})
                 .get("organizationNm"),
