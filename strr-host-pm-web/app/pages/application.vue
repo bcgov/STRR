@@ -44,7 +44,7 @@ const hostFee4 = ref<ConnectFeeItem | undefined>(undefined)
 const isRegRenewalFlow = computed(() => isRenewal.value && useState('renewalRegId').value)
 
 // show default confirm modal when closing or refreshing the tab while in renewal flow
-useEventListener(window, 'beforeunload', (event: BeforeUnloadEvent) => {
+useEventListener(globalThis, 'beforeunload', (event: BeforeUnloadEvent) => {
   if (isRegRenewalFlow.value) {
     event.preventDefault()
     event.returnValue = ''
