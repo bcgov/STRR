@@ -41,11 +41,11 @@ const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee4 = ref<ConnectFeeItem | undefined>(undefined)
 
-const showConfirmUnsavedModal = computed(() => isRenewal.value && useState('renewalRegId').value)
+const isRegRenewalFlow = computed(() => isRenewal.value && useState('renewalRegId').value)
 
 // show default confirm modal when closing or refreshing the tab while in renewal flow
 useEventListener(window, 'beforeunload', (event: BeforeUnloadEvent) => {
-  if (showConfirmUnsavedModal.value) {
+  if (isRegRenewalFlow.value) {
     event.preventDefault()
     event.returnValue = ''
   }
@@ -53,7 +53,7 @@ useEventListener(window, 'beforeunload', (event: BeforeUnloadEvent) => {
 
 // show custom confirm modal when navigating away within the app while in renewal flow
 onBeforeRouteLeave(async () => {
-  if (showConfirmUnsavedModal.value) {
+  if (isRegRenewalFlow.value) {
     return await openConfirmUnsavedChanges()
   }
   return true
@@ -65,7 +65,7 @@ onMounted(async () => {
   applicationReset()
   permitStore.$reset()
 
-  if (isRenewal.value) {
+  if (isRegRenewalFlow.value) {
     const renewalRegId = useState('renewalRegId')
     if (!renewalRegId.value) {
       navigateTo(localePath('/dashboard'))
