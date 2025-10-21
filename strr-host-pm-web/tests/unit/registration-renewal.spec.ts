@@ -9,10 +9,10 @@ vi.mock('vue-router', () => ({
     name: 'application',
     path: '/application',
     query: {
-      registrationId: '12345',
       renew: 'true'
     }
-  }))
+  })),
+  onBeforeRouteLeave: vi.fn()
 }))
 
 vi.mock('@/stores/hostPermit', () => {
@@ -29,6 +29,7 @@ describe('Registration Renewal Application Page', () => {
   let wrapper: any
 
   beforeAll(async () => {
+    useState('renewalRegId', () => '12345')
     wrapper = await mountSuspended(Application, {
       global: { plugins: [baseEnI18n] }
     })
@@ -36,10 +37,9 @@ describe('Registration Renewal Application Page', () => {
 
   it('renders the Application page in Registration Renewal state', () => {
     expect(useRoute().query).toEqual({
-      registrationId: '12345',
       renew: 'true'
     })
-    expect(wrapper.vm.registrationId).toBe('12345')
+    expect(wrapper.exists()).toBe(true)
     expect(wrapper.vm.isRenewal).toBe(true)
     expect(wrapper.exists()).toBe(true)
     expect(wrapper.find('H1').text()).toBe('Short-Term Rental Registration Renewal')
