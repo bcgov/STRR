@@ -308,7 +308,16 @@ watch([activeStepIndex, () => permitStore.isRegistrationRenewal], () => {
   ]
 
   leftActionButtons.push(
-    { action: () => saveApplication(true), label: t('btn.saveExit'), variant: 'outline' },
+    {
+      action: () => {
+        if (isRegRenewalFlow.value) {
+          useState('renewalRegId', () => undefined)
+        }
+        saveApplication(true)
+      },
+      label: t('btn.saveExit'),
+      variant: 'outline'
+    },
     { action: saveApplication, label: t('btn.save'), variant: 'outline' }
   )
 
