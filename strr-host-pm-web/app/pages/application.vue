@@ -42,21 +42,19 @@ const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee4 = ref<ConnectFeeItem | undefined>(undefined)
 
 const isRegRenewalFlow = computed(() => isRenewal.value && useState('renewalRegId').value)
+let shouldSkipConfirmModal = false
 
 // show default confirm modal when closing or refreshing the tab while in renewal flow
 useEventListener(globalThis, 'beforeunload', (event: BeforeUnloadEvent) => {
-  if (isRegRenewalFlow.value) {
-    event.preventDefault()
-    event.returnValue = ''
-  }
+  event.preventDefault()
+  event.returnValue = ''
 })
 
 // show custom confirm modal when navigating away within the app while in renewal flow
 onBeforeRouteLeave(async () => {
-  if (isRegRenewalFlow.value) {
+  if (!shouldSkipConfirmModal) {
     return await openConfirmUnsavedChanges()
   }
-  return true
 })
 
 onMounted(async () => {
@@ -310,9 +308,8 @@ watch([activeStepIndex, () => permitStore.isRegistrationRenewal], () => {
   leftActionButtons.push(
     {
       action: () => {
-        if (isRegRenewalFlow.value) {
-          useState('renewalRegId', () => undefined)
-        }
+        // save and resume later button
+        shouldSkipConfirmModal = true
         saveApplication(true)
       },
       label: t('btn.saveExit'),

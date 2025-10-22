@@ -88,7 +88,10 @@ const mapApplicationsList = () => {
     return []
   }
   return (hostPmListResp.value.applications)
-    .filter((app: any) => (app.header.applicationType !== 'renewal' && app.header.status !== ApplicationStatus.DRAFT)) // filter out renewal drafts
+    .filter((app: any) => // filter out renewal drafts
+      !(app.header.applicationType &&
+        app.header.applicationType === 'renewal' && app.header.status === ApplicationStatus.DRAFT)
+    )
     .map((app: any) => {
       const displayAddress = app.header.registrationAddress || app.registration.unitAddress
       return {
