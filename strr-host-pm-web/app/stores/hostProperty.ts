@@ -8,7 +8,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   const useManualAddressInput = ref<boolean>(false)
   const hasNoStreetAddress = ref<boolean>(false)
 
-  const streetNumberRegex = /^(?:\d+([A-Za-z]|\s\d+\/\d+)?|\d{6}([A-Za-z]|\s\d{1}\/\d{1,2})?)$/
+  const streetNumberRegex = /^\d{1,6}(?:[A-Za-z]| 1\/2)?$/
   const unitNumberRegex = /^[A-Za-z0-9]+$/ // only alphanumeric unit numbers (letters and numbers)
 
   const getUnitAddressSchema = () => z.object({
@@ -54,7 +54,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
         ? z
           .string()
           .min(1, { message: t('validation.addressForm.streetNumber') })
-          .max(9, { message: t('validation.addressForm.streetNumberInvalid') })
+          .max(10, { message: t('validation.addressForm.streetNumberInvalid') })
           .refine(val => val === '' || streetNumberRegex.test(val),
             { message: t('validation.addressForm.streetNumberInvalid') })
         : optionalOrEmptyString,
