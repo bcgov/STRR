@@ -24,11 +24,15 @@ const { unitAddress } = storeToRefs(useHostPropertyStore())
 const {
   isEligibleForRenewal,
   hasRegistrationRenewalDraft,
+  hasRegistrationRenewalPaymentPending,
   renewalDraftId,
+  renewalPaymentPendingId,
   renewalDueDate,
   renewalDateCounter,
   isRenewalPeriodClosed
 } = useRenewals()
+
+const { getAccountApplication } = useStrrApi()
 
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
@@ -152,7 +156,8 @@ watch([isRenewalsEnabled,
   isRenewalPeriodClosed,
   registration,
   isEligibleForRenewal,
-  hasRegistrationRenewalDraft], () => {
+  hasRegistrationRenewalDraft,
+  hasRegistrationRenewalPaymentPending], () => {
   const translationProps = {
     newLine: '<br/>',
     boldStart: '<strong>',
@@ -203,6 +208,31 @@ watch([isRenewalsEnabled,
             path: localePath('/application'),
             query: { renew: 'true', applicationId: renewalDraftId.value }
           })
+        }
+      }
+    })
+  } else if (isRenewalsEnabled && registration.value && hasRegistrationRenewalPaymentPending.value) {
+    // todo for renewal payment pending
+    todos.value.push({
+      id: 'todo-renewal-payment-pending',
+      title: t('todos.renewalPayment.title'),
+      subtitle: t('todos.renewalPayment.subtitle'),
+      button: {
+        label: t('todos.renewalPayment.button'),
+        action: async () => {
+          const { handlePaymentRedirect } = useConnectNav()
+          // Get the payment token
+          const applicationResponse = await getAccountApplication(
+            renewalPaymentPendingId.value
+          )
+          const paymentToken = applicationResponse?.header.paymentToken
+          const appNum = applicationResponse?.header.applicationNumber
+          if (paymentToken) {
+            handlePaymentRedirect(
+              paymentToken,
+              '/dashboard/' + appNum
+            )
+          }
         }
       }
     })

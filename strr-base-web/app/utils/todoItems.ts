@@ -45,7 +45,10 @@ export const getTodoApplication = (
         }
       }
     })
-  } else if (applicationInfo?.hostActions.includes(HostActions.SUBMIT_PAYMENT)) { // TODO: handle other host actions
+  } else if (
+    applicationInfo?.hostActions.includes(HostActions.SUBMIT_PAYMENT) &&
+    applicationInfo?.applicationType !== 'renewal'
+  ) { // TODO: handle other host actions, exclude renewal applications
     const { handlePaymentRedirect } = useConnectNav()
     todos.push({
       id: 'todo-complete-payment',

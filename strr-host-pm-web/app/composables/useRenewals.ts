@@ -7,7 +7,9 @@ export const useRenewals = () => {
 
   const isEligibleForRenewal = ref(false)
   const hasRegistrationRenewalDraft = ref(false)
+  const hasRegistrationRenewalPaymentPending = ref(false)
   const renewalDraftId = ref('')
+  const renewalPaymentPendingId = ref('')
 
   // check if 3 years past since expiry date and renewal is closed
   const isRenewalPeriodClosed = computed((): boolean => {
@@ -33,6 +35,8 @@ export const useRenewals = () => {
   watch(registration, async () => {
     if (!registration.value) {
       isEligibleForRenewal.value = false
+      hasRegistrationRenewalDraft.value = false
+      hasRegistrationRenewalPaymentPending.value = false
       return
     }
     const { todos } = await getRegistrationToDos(registration.value.id)
@@ -41,17 +45,27 @@ export const useRenewals = () => {
     // check if todos have a renewable registration draft
     hasRegistrationRenewalDraft.value =
       todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)
+    // check if todos have a payment pending renewal
+    hasRegistrationRenewalPaymentPending.value =
+      todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING)
 
     if (hasRegistrationRenewalDraft.value) {
       renewalDraftId.value = todos
         .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT).task.detail
+    }
+
+    if (hasRegistrationRenewalPaymentPending.value) {
+      renewalPaymentPendingId.value = todos
+        .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING).task.detail
     }
   })
 
   return {
     isEligibleForRenewal,
     hasRegistrationRenewalDraft,
+    hasRegistrationRenewalPaymentPending,
     renewalDraftId,
+    renewalPaymentPendingId,
     isRenewalPeriodClosed,
     renewalDueDate,
     renewalDateCounter
