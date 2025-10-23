@@ -132,7 +132,7 @@ class RegistrationService:
             )
             registration.documents.append(document)
         if registration_type == RegistrationType.HOST.value:
-            registration.rental_property.delete()
+            # registration.rental_property.delete()
             registration.rental_property = cls._create_host_registration(registration_request)
         registration.save()
         return registration
