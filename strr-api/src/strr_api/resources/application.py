@@ -49,7 +49,7 @@ from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ErrorMessage, Role
+from strr_api.enums.enum import ApplicationType, ErrorMessage, Role
 from strr_api.exceptions import (
     AuthException,
     ExternalServiceException,
@@ -118,6 +118,17 @@ def create_application(application_number: Optional[str] = None):
         is_draft = request.headers.get("isDraft", False)
 
         json_input = request.get_json()
+        header_json = json_input.setdefault("header", {}) if isinstance(json_input, dict) else {}
+        application_type = header_json.get("applicationType")
+        registration_id = header_json.get("registrationId")
+        if registration_id is not None:
+            try:
+                registration_id = int(registration_id)
+            except (TypeError, ValueError):
+                return error_response(
+                    message=ErrorMessage.REGISTRATION_ID_NOT_INTEGER.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
 
         application = None
         if application_number:
@@ -129,6 +140,21 @@ def create_application(application_number: Optional[str] = None):
             if application.status != ApplicationModel.Status.DRAFT:
                 return error_response(
                     message=ErrorMessage.APPLICATION_NOT_MODIFIABLE.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
+
+        existing_registration_id = application.registration_id if application else None
+
+        if application_type == ApplicationType.RENEWAL.value:
+            if registration_id is None:
+                return error_response(
+                    message=ErrorMessage.REGISTRATION_ID_REQUIRED.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
+
+            if request.method == "PUT" and existing_registration_id != registration_id:
+                return error_response(
+                    message=ErrorMessage.REGISTRATION_ID_MISMATCH.value,
                     http_status=HTTPStatus.BAD_REQUEST,
                 )
 
@@ -594,6 +620,16 @@ def update_application_status(application_number):
                 message="Only the assigned examiner can perform this action",
                 http_status=HTTPStatus.FORBIDDEN,
             )
+
+        # Renewal specific check
+        if application.type == ApplicationType.RENEWAL.value:
+            reg_id = application.registration_id
+            if reg_id is None:
+                return error_response(
+                    message=ErrorMessage.RENEWAL_APPLICATION_NO_REGISTRATION_ID.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
+
         application = ApplicationService.update_application_status(application, status.upper(), user, custom_content)
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:
