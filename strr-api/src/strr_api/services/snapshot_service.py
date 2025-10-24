@@ -35,6 +35,7 @@
 
 """Snapshot service that helps take registration snapshots when required."""
 from datetime import datetime
+from typing import Optional
 
 from strr_api.models import Registration, RegistrationSnapshot
 
@@ -55,3 +56,19 @@ class SnapshotService:
         registration_snapshot.version = (latest_snapshot.version + 1) if latest_snapshot else 1
         registration_snapshot.save()
         return registration_snapshot
+
+    @staticmethod
+    def get_snapshot(registration_id: int, snapshot_id: int) -> Optional[RegistrationSnapshot]:
+        """Fetch a snapshot belonging to a registration."""
+        return RegistrationSnapshot.query.filter_by(registration_id=registration_id, id=snapshot_id).one_or_none()
+
+    @staticmethod
+    def serialize(snapshot: RegistrationSnapshot) -> dict:
+        """Serialize snapshot details."""
+        return {
+            "id": snapshot.id,
+            "registrationId": snapshot.registration_id,
+            "version": snapshot.version,
+            "snapshotDateTime": snapshot.snapshot_datetime.isoformat() if snapshot.snapshot_datetime else None,
+            "snapshotData": snapshot.snapshot_data,
+        }

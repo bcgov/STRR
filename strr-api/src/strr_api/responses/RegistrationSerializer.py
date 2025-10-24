@@ -64,6 +64,18 @@ class RegistrationSerializer:
                 "minBookingDays": registration.conditionsOfApproval.minBookingDays,
             }
 
+        # Include snapshot details
+        if registration.snapshots:
+            registration_data["snapshots"] = [
+                {
+                    "id": snapshot.id,
+                    "version": snapshot.version,
+                    "snapshotDateTime": snapshot.snapshot_datetime.isoformat() if snapshot.snapshot_datetime else None,
+                    "snapshotEndpoint": f"/registrations/{registration.id}/snapshots/{snapshot.id}",
+                }
+                for snapshot in sorted(registration.snapshots, key=lambda s: s.version, reverse=True)
+            ]
+
         RegistrationSerializer._populate_header_data(registration_data, registration)
 
         documents = []

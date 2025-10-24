@@ -68,7 +68,7 @@ from strr_api.exceptions import (
 from strr_api.models import Application, Document, User
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
-from strr_api.services import DocumentService, EventsService, RegistrationService, UserService
+from strr_api.services import DocumentService, EventsService, RegistrationService, SnapshotService, UserService
 from strr_api.services.registration_service import REGISTRATION_STATES_STAFF_ACTION
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
 
@@ -157,6 +157,52 @@ def get_registration(registration_id):
             return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
 
         return RegistrationService.serialize(registration), HTTPStatus.OK
+
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+
+
+@bp.route("/<registration_id>/snapshots/<snapshot_id>", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def get_registration_snapshot(registration_id, snapshot_id):
+    """
+    Get snapshot details for a registration.
+    ---
+    tags:
+      - registration
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: ID of the registration
+      - in: path
+        name: snapshot_id
+        type: integer
+        required: true
+        description: ID of the snapshot
+    responses:
+      200:
+        description:
+      401:
+        description:
+      404:
+        description:
+    """
+
+    try:
+        account_id = request.headers.get("Account-Id")
+        registration = RegistrationService.get_registration(account_id, registration_id)
+        if not registration:
+            return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.REGISTRATION_NOT_FOUND.value)
+
+        snapshot = SnapshotService.get_snapshot(registration.id, snapshot_id)
+        if not snapshot:
+            return error_response(HTTPStatus.NOT_FOUND, "Snapshot not found")
+
+        return SnapshotService.serialize(snapshot), HTTPStatus.OK
 
     except AuthException as auth_exception:
         return exception_response(auth_exception)

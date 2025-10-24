@@ -84,3 +84,16 @@ def test_create_snapshot(session, client, jwt):
         snapshot_2.version = 2
         all_snapshots = registration.snapshots
         assert len(all_snapshots) == 2
+
+        registration_response = client.get(f"/registrations/{registration.id}", headers=headers)
+        assert registration_response.status_code == HTTPStatus.OK
+        snapshots = registration_response.json.get("snapshots")
+        assert snapshots
+        assert snapshots[0]["id"] == snapshot_2.id
+        assert snapshots[0]["snapshotEndpoint"].endswith(f"/registrations/{registration.id}/snapshots/{snapshot_2.id}")
+
+        snapshot_response = client.get(f"/registrations/{registration.id}/snapshots/{snapshot_2.id}", headers=headers)
+        assert snapshot_response.status_code == HTTPStatus.OK
+        snapshot_json = snapshot_response.json
+        assert snapshot_json.get("id") == snapshot_2.id
+        assert snapshot_json.get("snapshotData", {}).get("id") == registration.id
