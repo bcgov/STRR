@@ -46,8 +46,10 @@ let shouldSkipConfirmModal = false
 
 // show default confirm modal when closing or refreshing the tab while in renewal flow
 useEventListener(globalThis, 'beforeunload', (event: BeforeUnloadEvent) => {
-  event.preventDefault()
-  event.returnValue = ''
+  if (!shouldSkipConfirmModal) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
 })
 
 // show custom confirm modal when navigating away within the app while in renewal flow
@@ -213,6 +215,7 @@ const saveApplication = async (resumeLater = false) => {
     if (resumeLater) {
       await navigateTo(localePath('/dashboard'))
     } else {
+      shouldSkipConfirmModal = true
       // update route meta to save application before session expires with new application id
       setOnBeforeSessionExpired(() => submitApplication(true, filingId))
     }
@@ -227,6 +230,7 @@ const saveApplication = async (resumeLater = false) => {
 // need to cleanup the setButtonControl somehow
 const handleSubmit = async () => {
   let formErrors: MultiFormValidationResult = []
+  shouldSkipConfirmModal = true
   try {
     // set buttons to loading state
     handleButtonLoading(false, 'right', 1)
@@ -262,6 +266,7 @@ const handleSubmit = async () => {
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
+      shouldSkipConfirmModal = true
       const { paymentToken, filingId, applicationStatus } = await submitApplication(false, applicationId.value)
       const redirectPath = `/dashboard/${filingId}`
       if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {

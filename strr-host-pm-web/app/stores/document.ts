@@ -77,7 +77,9 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
 
     if (
-      propStore.unitDetails.ownershipType === OwnershipType.RENT &&
+      (propStore.unitDetails.ownershipType === OwnershipType.RENT ||
+        propStore.unitDetails.rentalUnitSetupOption === RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
+      ) &&
         reqs.isPrincipalResidenceRequired && exemptionReason === undefined
     ) {
       const isRentValid = apiDocuments.value.some(
@@ -112,7 +114,9 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push(t('label.fractOwnAgreement'))
     }
 
-    if (propStore.unitDetails.ownershipType === OwnershipType.RENT) {
+    if (propStore.unitDetails.ownershipType === OwnershipType.RENT ||
+       propStore.unitDetails.rentalUnitSetupOption === RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
+    ) {
       docs.push(t('label.rentalAgreementOrNoticeOfIncrease'))
     }
 
