@@ -144,7 +144,7 @@ const setFeeBasedOnProperty = () => {
 // manage fees only when typeOfSpace, rentalUnitSetupType or propertyType change
 // for new rental unit form - do not calculate the fees, it will be calculated on the last step
 watch(unitDetails, (newVal) => {
-  if (newVal.typeOfSpace && newVal.rentalUnitSetupType && newVal.propertyType && !isNewRentalUnitSetupEnabled) {
+  if (newVal.typeOfSpace && newVal.rentalUnitSetupType && newVal.propertyType && !isNewRentalUnitSetupEnabled.value) {
     setFeeBasedOnProperty()
   } else {
     resetFees()
@@ -360,7 +360,7 @@ watch(() => unitDetails.value.ownershipType, async (newVal) => {
 
 // watch the Stepper to calculate application fees on Review and Confirm step only
 watch(activeStepIndex, (val) => {
-  if (!isNewRentalUnitSetupEnabled) { return } // get fees for new rental unit setup only
+  if (!isNewRentalUnitSetupEnabled.value) { return } // get fees for new rental unit setup only
   const { propertyType, rentalUnitSetupOption } = unitDetails.value
   const isReviewStep = val === 3 // get fees when on Review step only
   const hasValidSteps = steps.value.slice(0, 3).every(step => step.isValid) // biz requirement: steps 1-3 must be valid

@@ -31,7 +31,7 @@ watch(
     if (newVal.isPropertyPrExempt === false) {
       reqStore.prRequirements.prExemptionReason = undefined
       reqStore.strataHotelCategory.category = undefined
-      if (isNewRentalUnitSetupEnabled && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
+      if (isNewRentalUnitSetupEnabled.value && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
         reqStore.strataHotelCategory.strataHotelRegistrationNumber = undefined
         unitDetails.value.propertyType = undefined // clear property type when disabling Strata Hotel PR requirement
       }
@@ -40,7 +40,7 @@ watch(
     // reset strata hotel category when changing exemption reason
     if (newVal.prExemptionReason !== PrExemptionReason.STRATA_HOTEL) {
       reqStore.strataHotelCategory.category = undefined
-      if (isNewRentalUnitSetupEnabled && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
+      if (isNewRentalUnitSetupEnabled.value && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
         reqStore.strataHotelCategory.strataHotelRegistrationNumber = undefined
         unitDetails.value.propertyType = undefined // clear property type when disabling Strata Hotel exemption reason
       }

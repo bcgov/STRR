@@ -36,7 +36,7 @@ onMounted(async () => {
 })
 
 const formErrors = computed((): string[] =>
-  isNewRentalUnitSetupEnabled ? ['category', 'strataHotelRegistrationNumber'] : ['category']
+  isNewRentalUnitSetupEnabled.value ? ['category', 'strataHotelRegistrationNumber'] : ['category']
 )
 
 </script>

@@ -74,7 +74,7 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
         : z.any().optional()
     }
     // additional validation for new rental unit setup
-    if (isNewRentalUnitSetupEnabled) {
+    if (isNewRentalUnitSetupEnabled.value) {
       schema.strataHotelRegistrationNumber = z
         .string({
           required_error: t('validation.strataHotelRegistrationNumber'),

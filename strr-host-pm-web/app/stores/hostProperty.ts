@@ -265,7 +265,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   const unitDetails = ref<UiUnitDetails>(getEmptyUnitDetails())
 
   const validateUnitDetails = (returnBool = false): MultiFormValidationResult | boolean => {
-    const schemaToValidate = isNewRentalUnitSetupEnabled ? getUnitDetailsSchema2() : getUnitDetailsSchema()
+    const schemaToValidate = isNewRentalUnitSetupEnabled.value ? getUnitDetailsSchema2() : getUnitDetailsSchema()
 
     const result = validateSchemaAgainstState(
       schemaToValidate,

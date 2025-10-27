@@ -94,7 +94,7 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
   { label: '', info: '', slot: 'border' },
   ...propertyType.value,
   ...newRentalSetupType.value,
-  ...(!isNewRentalUnitSetupEnabled
+  ...(!isNewRentalUnitSetupEnabled.value
     ? [
         { label: t('label.typeOfSpace'), info: t(`rentalUnitType.${unitDetails.value.typeOfSpace}`) },
         { label: t('strr.label.rentalUnitSetup'), info: t(`rentalUnitSetupType.${unitDetails.value.rentalUnitSetupType}`) }, // eslint-disable-line max-len
