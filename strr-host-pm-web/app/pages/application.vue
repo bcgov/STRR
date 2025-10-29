@@ -396,7 +396,10 @@ definePageMeta({
 })
 
 // save application before session expires
-setOnBeforeSessionExpired(() => submitApplication(true, applicationId.value))
+setOnBeforeSessionExpired(() => {
+  shouldSkipConfirmModal = true
+  submitApplication(true, applicationId.value)
+})
 </script>
 <template>
   <ConnectSpinner v-if="loading" overlay />
