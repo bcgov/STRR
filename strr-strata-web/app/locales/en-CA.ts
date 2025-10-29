@@ -2,7 +2,8 @@
 export default {
   breadcrumb: {
     str: {
-      strataApplication: 'STR Strata-Titled Hotel or Motel Application'
+      strataApplication: 'STR Strata-Titled Hotel or Motel Application',
+      strataApplicationRenewal: 'STR Strata-Titled Hotel or Motel Application Renewal'
     }
   },
   strr: {
@@ -44,6 +45,7 @@ export default {
     },
     title: {
       application: 'Short-Term Rental Strata-Titled Hotel or Motel Application',
+      applicationRenewal: 'Short-Term Rental Strata-Titled Hotel or Motel Application Renewal',
       comingSoon: 'Short-Term Rental Strata Hotel Registry Coming Soon',
       dashboard: 'My STR Strata-Titled Hotel or Motel Registry',
       default: 'TBD'
@@ -93,7 +95,7 @@ export default {
     ariaViewDetails: 'View details for property: {name}`',
     addNewDocuments: 'Add New Documents',
     cancel: 'Cancel',
-    submti: 'Submit'
+    renew: 'Renew'
   },
   label: {
     strataName: 'Strata Name',

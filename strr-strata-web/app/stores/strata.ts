@@ -19,12 +19,25 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     isPaidApplication,
     showPermitDetails,
     loadPermitData,
+    loadPermitRegistrationData,
     downloadApplicationReceipt
   } = useStrrBasePermit<StrataRegistrationResp, StrataApplicationResp, ApiBaseStrataApplication>()
 
-  const loadStrata = async (applicationId: string, loadDraft = false) => {
+  const isRegistrationRenewal = ref(false)
+
+  const loadStrataRegistrationData = async (registrationId: string) => {
+    $reset()
+    await loadPermitRegistrationData(registrationId)
+    await populateStrataDetails()
+  }
+
+  const loadStrata = async (applicationId: string, loadDraft: boolean) => {
     $reset()
     await loadPermitData(applicationId)
+    await populateStrataDetails(loadDraft)
+  }
+
+  const populateStrataDetails = (loadDraft = false) => {
     if (application.value) {
       // set completing party info (this data is only in the application)
       completingParty.value = formatPartyUI(application.value.registration.completingParty)
@@ -75,6 +88,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     detailsStore.$reset()
     application.value = undefined
     registration.value = undefined
+    isRegistrationRenewal.value = false
   }
 
   return {
@@ -82,8 +96,10 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     registration,
     permitDetails,
     isPaidApplication,
+    isRegistrationRenewal,
     showPermitDetails,
     downloadApplicationReceipt,
+    loadStrataRegistrationData,
     loadStrata,
     $reset
   }

@@ -11,6 +11,9 @@ importers:
       '@daxiom/nuxt-core-layer-test':
         specifier: ^0.0.24
         version: 0.0.24(change-case@5.4.4)(db0@0.2.3)(ioredis@5.5.0)(magicast@0.3.5)(nuxt@3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.3)(eslint@8.57.1)(ioredis@5.5.0)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.34.6)(sass@1.84.0)(terser@5.38.1)(typescript@5.7.3)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(yaml@2.7.0))(yaml@2.7.0))(rollup@4.34.6)(typescript@5.7.3)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.7.3))
+      '@vueuse/router':
+        specifier: ^14.0.0
+        version: 14.0.0(vue-router@4.5.0(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3))
       country-codes-list:
         specifier: ^1.6.11
         version: 1.6.12
@@ -20,6 +23,9 @@ importers:
       vue-country-flag-next:
         specifier: ^2.3.2
         version: 2.3.2(vue@3.5.13(typescript@5.7.3))
+      vue-router:
+        specifier: ^4.5.0
+        version: 4.5.0(vue@3.5.13(typescript@5.7.3))
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.9.1
@@ -1695,11 +1701,22 @@ packages:
     peerDependencies:
       nuxt: ^3.0.0
 
+  '@vueuse/router@14.0.0':
+    resolution: {integrity: sha512-8HSq6Q2uJum8NUSP900s1NcfUnNQeTO0FqgEbMgO+xse/B/6A7Zn6chX+6ZA1r1p5P5LfaSOKqjQmf09BiakzQ==}
+    peerDependencies:
+      vue: ^3.5.0
+      vue-router: ^4.0.0
+
   '@vueuse/shared@11.3.0':
     resolution: {integrity: sha512-P8gSSWQeucH5821ek2mn/ciCk+MS/zoRKqdQIM3bHq6p7GXDAJLmnRRKmF5F65sAVJIfzQlwR3aDzwCn10s8hA==}
 
   '@vueuse/shared@12.5.0':
     resolution: {integrity: sha512-vMpcL1lStUU6O+kdj6YdHDixh0odjPAUM15uJ9f7MY781jcYkIwFA4iv2EfoIPO6vBmvutI1HxxAwmf0cx5ISQ==}
+
+  '@vueuse/shared@14.0.0':
+    resolution: {integrity: sha512-mTCA0uczBgurRlwVaQHfG0Ja7UdGe4g9mwffiJmvLiTtp1G4AQyIjej6si/k8c8pUwTfVpNufck+23gXptPAkw==}
+    peerDependencies:
+      vue: ^3.5.0
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -8374,6 +8391,12 @@ snapshots:
       - supports-color
       - typescript
 
+  '@vueuse/router@14.0.0(vue-router@4.5.0(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3))':
+    dependencies:
+      '@vueuse/shared': 14.0.0(vue@3.5.13(typescript@5.7.3))
+      vue: 3.5.13(typescript@5.7.3)
+      vue-router: 4.5.0(vue@3.5.13(typescript@5.7.3))
+
   '@vueuse/shared@11.3.0(vue@3.5.13(typescript@5.7.3))':
     dependencies:
       vue-demi: 0.14.10(vue@3.5.13(typescript@5.7.3))
@@ -8386,6 +8409,10 @@ snapshots:
       vue: 3.5.13(typescript@5.7.3)
     transitivePeerDependencies:
       - typescript
+
+  '@vueuse/shared@14.0.0(vue@3.5.13(typescript@5.7.3))':
+    dependencies:
+      vue: 3.5.13(typescript@5.7.3)
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:

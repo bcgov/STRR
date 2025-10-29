@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useRouteQuery } from '@vueuse/router'
 import { ConnectStepper, FormReviewConfirm } from '#components'
 
 const { t } = useI18n()
@@ -33,11 +34,23 @@ const {
 
 const strataFee = ref<ConnectFeeItem | undefined>(undefined)
 
+const isRenewal = useRouteQuery('renew')
+const isRegRenewalFlow = computed(() => isRenewal.value && useState('renewalRegId').value)
+
 onMounted(async () => {
   loading.value = true
   await initAlternatePaymentMethod()
   applicationReset()
-  if (applicationId.value) {
+
+  if (isRegRenewalFlow.value) {
+    const renewalRegId = useState('renewalRegId')
+    if (!renewalRegId.value) {
+      navigateTo(localePath('/strata-hotel/dashboard'))
+      return
+    }
+    await permitStore.loadStrataRegistrationData(renewalRegId.value as string)
+    permitStore.isRegistrationRenewal = true
+  } else if (applicationId.value) {
     await permitStore.loadStrata(applicationId.value, true)
   }
   strataFee.value = await getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_STRATA)
@@ -202,7 +215,7 @@ watch(activeStepIndex, (val) => {
 
 // page stuff
 useHead({
-  title: t('strr.title.application')
+  title: permitStore.isRegistrationRenewal ? t('strr.title.applicationRenewal') : t('strr.title.application')
 })
 
 definePageMeta({
@@ -228,13 +241,21 @@ setBreadcrumbs([
     external: true
   },
   { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
-  { label: t('breadcrumb.str.strataApplication') }
+  {
+    label: permitStore.isRegistrationRenewal
+      ? t('breadcrumb.str.strataApplicationRenewal')
+      : t('breadcrumb.str.strataApplication')
+  }
 ])
 </script>
 <template>
   <ConnectSpinner v-if="loading" overlay />
   <div v-else class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="t('strr.title.application')" class="my-5" />
+    <ConnectTypographyH1
+      :text="permitStore.isRegistrationRenewal
+        ? t('strr.title.applicationRenewal') : t('strr.title.application')"
+      class="my-5"
+    />
     <ModalGroupHelpAndInfo />
     <ConnectStepper
       ref="stepperRef"

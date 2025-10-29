@@ -20,6 +20,8 @@ const {
 const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 const documentStore = useDocumentStore()
+const { isRenewalsEnabled } = useStrataFeatureFlags()
+const { isEligibleForRenewal } = useRenewals()
 
 const todos = ref<Todo[]>([])
 const buildings = ref<ConnectAccordionItem[]>([])
@@ -38,6 +40,25 @@ onMounted(async () => {
     '/strata-hotel/dashboard/' + application.value?.header.applicationNumber,
     application.value?.header
   )
+
+  if (isRenewalsEnabled.value && isEligibleForRenewal.value) {
+    todos.value.push({
+      id: 'todo-renew-strata',
+      title: '[Renew Strata]',
+      subtitle: '[Expired placeholder]',
+      button: {
+        label: t('btn.renew'),
+        action: async () => {
+          useState('renewalRegId', () => registration.value?.id)
+          await navigateTo({
+            path: localePath('/strata-hotel/application'),
+            query: { renew: 'true' }
+          })
+        }
+      }
+    })
+  }
+
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')

@@ -2,7 +2,7 @@
   "name": "strr-strata-web",
   "private": true,
   "type": "module",
-  "version": "1.1.13",
+  "version": "1.1.14",
   "scripts": {
     "build-check": "nuxt build",
     "build": "nuxt generate",
@@ -36,16 +36,18 @@
     "eslint": "^8.57.0",
     "eslint-plugin-tailwindcss": "^3.17.4",
     "happy-dom": "^14.12.3",
+    "otpauth": "^9.3.6",
     "playwright-core": "^1.49.1",
     "sass": "^1.77.6",
     "typescript": "^5.5.3",
-    "vitest": "1.6.0",
-    "otpauth": "^9.3.6"
+    "vitest": "1.6.0"
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.24",
+    "@vueuse/router": "^14.0.0",
     "country-codes-list": "^1.6.11",
     "nuxt": "^3.15.0",
-    "vue-country-flag-next": "^2.3.2"
+    "vue-country-flag-next": "^2.3.2",
+    "vue-router": "^4.5.0"
   }
 }
