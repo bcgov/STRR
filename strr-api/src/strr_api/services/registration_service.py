@@ -142,6 +142,9 @@ class RegistrationService:
         if registration_type == RegistrationType.HOST.value:
             # registration.rental_property.delete()
             registration.rental_property = cls._create_host_registration(registration_request)
+        elif registration_type == RegistrationType.PLATFORM.value:
+            # registration.platform_registration.delete()
+            registration.platform_registration = cls._create_platform_registration(registration_request)
         registration.save()
         return registration
 
@@ -182,7 +185,7 @@ class RegistrationService:
         if registration_type == RegistrationType.HOST.value:
             registration.rental_property = cls._create_host_registration(registration_request)
         elif registration_type == RegistrationType.PLATFORM.value:
-            registration.platform_registration = cls._create_platform_registration(registration_details)
+            registration.platform_registration = cls._create_platform_registration(registration_request)
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
             registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_details)
 
@@ -277,8 +280,13 @@ class RegistrationService:
 
     @classmethod
     def _create_platform_registration(cls, registration_request: dict) -> PlatformRegistration:
-        business_details_dict = registration_request.get("businessDetails")
-        mailing_address = business_details_dict.get("mailingAddress")
+        registration_details = (
+            registration_request.get("registration") if isinstance(registration_request, dict) else registration_request
+        )
+
+        business_details_dict = registration_details.get("businessDetails") or {}
+        platform_details = registration_details.get("platformDetails") or {}
+        mailing_address = business_details_dict.get("mailingAddress") or {}
 
         representatives = [
             PlatformRepresentative(
@@ -294,12 +302,12 @@ class RegistrationService:
                     job_title=representative.get("jobTitle"),
                 )
             )
-            for representative in registration_request.get("platformRepresentatives")
+            for representative in registration_details.get("platformRepresentatives", [])
         ]
 
         platform_brands = [
             PlatformBrand(name=brand.get("name"), website=brand.get("website"))
-            for brand in registration_request.get("platformDetails").get("brands")
+            for brand in platform_details.get("brands", [])
         ]
 
         platform = Platform(
@@ -312,7 +320,7 @@ class RegistrationService:
             primary_take_down_request_email=business_details_dict.get("takeDownRequestEmail"),
             secondary_take_down_request_email=business_details_dict.get("takeDownRequestOptionalEmail"),
             attorney_name=business_details_dict.get("legalName"),
-            listing_size=registration_request.get("platformDetails").get("listingSize"),
+            listing_size=platform_details.get("listingSize"),
             mailingAddress=Address(
                 country=mailing_address.get("country"),
                 street_address=mailing_address.get("address"),
@@ -336,7 +344,7 @@ class RegistrationService:
                     city=attorney_mailing_address_dict.get("city"),
                     province=attorney_mailing_address_dict.get("province"),
                     postal_code=attorney_mailing_address_dict.get("postalCode"),
-                    location_description=mailing_address.get("locationDescription"),
+                    location_description=attorney_mailing_address_dict.get("locationDescription"),
                 )
 
         platform_registration = PlatformRegistration(platform=platform)

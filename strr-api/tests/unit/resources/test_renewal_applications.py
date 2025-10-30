@@ -20,6 +20,9 @@ PROPERTY_MANAGER_INDIVIDUAL = os.path.join(
 PROPERTY_MANAGER_BUSINESS = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/property_manager_business.json"
 )
+CREATE_PLATFORM_REGISTRATION_REQUEST = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/platform_registration.json"
+)
 
 ACCOUNT_ID = 1234
 
@@ -271,3 +274,105 @@ def test_renewal_application_registration_id(session, client, jwt):
     )
     assert rv.status_code == HTTPStatus.BAD_REQUEST
     assert rv.json.get("message") == ErrorMessage.REGISTRATION_ID_MISMATCH.value
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_platform_renewal_application_submission(session, client, jwt):
+    with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+        assert registration_id is not None
+        assert response_json.get("header").get("registrationNumber") is not None
+
+        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
+        json_data["header"] = renewal_header_json
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+        assert application_number is not None
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.registration_id == registration_id
+        assert application.type == "renewal"
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_approve_platform_registration__renewal_application(session, client, jwt):
+    with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+        registration_number = response_json.get("header").get("registrationNumber")
+        assert registration_id is not None
+        assert registration_number is not None
+
+        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
+        json_data["header"] = renewal_header_json
+        json_data["registration"]["businessDetails"]["legalName"] = "Updated Platform Legal Name"
+        json_data["registration"]["platformDetails"]["listingSize"] = "BETWEEN_250_AND_999"
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+        assert application_number is not None
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.registration_id == registration_id
+        assert application.type == "renewal"
+
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
+        assert response_json.get("header").get("assignee").get("username") is not None
+        assert response_json.get("header").get("registrationId") == registration_id
+        assert response_json.get("header").get("registrationNumber") == registration_number
+        assert response_json.get("header").get("hostStatus") == "Approved"
+        assert response_json.get("header").get("examinerStatus") == "Approved – Examined"
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        platform = registration.platform_registration.platform
+        assert platform.legal_name == "Updated Platform Legal Name"
+        assert platform.listing_size.name == "BETWEEN_250_AND_999"
