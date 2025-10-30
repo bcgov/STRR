@@ -232,7 +232,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           recordNumber: tableFilters.registrationNumber,
           assignee: tableFilters.adjudicator,
           requirement: tableFilters.requirements,
-          includeDraft: false
+          includeDraftRegistration: false
         }
       })
     }

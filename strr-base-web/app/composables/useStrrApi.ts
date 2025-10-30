@@ -48,7 +48,9 @@ export const useStrrApi = () => {
     registrationType?: ApplicationType,
     status?: ApplicationStatus,
     sortBy?: ApplicationSortBy,
-    sortOrder?: ApplicationSortOrder
+    sortOrder?: ApplicationSortOrder,
+    includeDraftRegistration?: boolean,
+    includeDraftRenewal?: boolean
   ) => {
     return await $strrApi<{ applications: T[], total: number }>('/applications', {
       query: {
@@ -57,7 +59,9 @@ export const useStrrApi = () => {
         registrationType,
         status,
         sortBy,
-        sortOrder
+        sortOrder,
+        includeDraftRegistration,
+        includeDraftRenewal
       }
     })
   }

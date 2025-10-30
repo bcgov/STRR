@@ -5,7 +5,16 @@ const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
 const { deleteApplication } = useStrrApi()
 const { checkBusinessLicenseRequirement } = useHostPermitStore()
-const { limit, page, getApplicationList } = useStrrBasePermitList<HostApplicationResp>(ApplicationType.HOST)
+const {
+  limit,
+  page,
+  includeDraftRegistration,
+  includeDraftRenewal,
+  getApplicationList
+} = useStrrBasePermitList<HostApplicationResp>(ApplicationType.HOST)
+
+includeDraftRegistration.value = true
+includeDraftRenewal.value = false
 
 const columns = [
   {
@@ -88,10 +97,6 @@ const mapApplicationsList = () => {
     return []
   }
   return (hostPmListResp.value.applications)
-    .filter((app: any) => // filter out renewal drafts
-      !(app.header.applicationType &&
-        app.header.applicationType === 'renewal' && app.header.status === ApplicationStatus.DRAFT)
-    )
     .map((app: any) => {
       const displayAddress = app.header.registrationAddress || app.registration.unitAddress
       return {
