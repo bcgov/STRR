@@ -6,6 +6,7 @@ export const useRenewals = () => {
   watch(registration, () => {
     if (!registration.value) {
       isEligibleForRenewal.value = false
+      return
     }
 
     // TODO: get renewals from Strata ToDo when ready, for now just check the status
