@@ -64,12 +64,10 @@ export default {
       docType: {
         BC_DRIVERS_LICENSE: "BC Driver's Licence",
         PROPERTY_ASSESSMENT_NOTICE: 'Property Assessment Notice',
-        SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax Confirmation',
-        HOG_DECLARATION: 'Home Owner Grant declaration',
         ICBC_CERTIFICATE_OF_INSURANCE: 'ICBC Certificate of Insurance',
+        ICBC_CERTIFICATE_OF_INSURANCE_FULL: 'ICBC vehicle insurance (all pages required)', // used for the updated PR Docs list
         HOME_INSURANCE_SUMMARY: 'Home Insurance Summary',
         PROPERTY_TAX_NOTICE: 'Property Tax Notice',
-        UTILITY_BILL: 'Utility Bill',
         GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE: 'Government or Crown Corporation Official Notice',
         TENANCY_AGREEMENT: 'Tenancy Agreement',
         RENT_RECEIPT_OR_BANK_STATEMENT: 'Notice of Rent Increase',
@@ -79,7 +77,22 @@ export default {
         FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
         BCSC: 'British Columbia Services Card',
         COMBINED_BCSC_LICENSE: 'Combined BC Driver’s Licence and Services Card',
-        undefined: 'N/A'
+        undefined: 'N/A',
+
+        // Old documents types - to be removed
+        SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax Confirmation',
+        HOG_DECLARATION: 'Home Owner Grant declaration',
+        UTILITY_BILL: 'Utility Bill',
+
+        // Newly added document types
+        TITLE_CERTIFICATE_OR_SEARCH: 'Land title certificate or land title search',
+        SPECULATION_VACANCY_TAX_DECLARATION: 'Speculation and Vacancy Tax declaration',
+        HOME_OWNER_GRANT_APPROVAL: 'Home Owner Grant (filing or approval)',
+        NOTARIZED_REAL_ESTATE_DOC: 'Notarized mortgage or home purchase agreement',
+        PROPERTY_TRANSFER_TAX_RETURN: 'Property Transfer Tax return',
+        AFFIDAVIT_PRINCIPAL_RESIDENCE: 'Affidavit stating your legal name and your principal residence',
+        ASSESSMENT_ACT_NOTICE: 'Full BC Assessment report (as received annually by mail)',
+        MORTGAGE_STATEMENT_OR_SAVINGS_DOC: 'Mortgage for principal residence from financial institution'
       }
     }
   },
