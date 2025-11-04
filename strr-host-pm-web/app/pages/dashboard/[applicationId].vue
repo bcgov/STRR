@@ -29,10 +29,11 @@ const {
   renewalPaymentPendingId,
   renewalDueDate,
   renewalDateCounter,
-  isRenewalPeriodClosed
+  isRenewalPeriodClosed,
+  getRegistrationRenewalTodos
 } = useRenewals()
 
-const { getAccountApplication } = useStrrApi()
+const { getAccountApplication, deleteApplication } = useStrrApi()
 
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
@@ -184,7 +185,7 @@ watch([isRenewalsEnabled,
       subtitle: t(isOverdue
         ? 'todos.renewal.expired'
         : 'todos.renewal.expiresSoon', translationProps),
-      button: {
+      buttons: [{
         label: t('btn.renew'),
         action: async () => {
           useState('renewalRegId', () => registration.value?.id)
@@ -193,23 +194,37 @@ watch([isRenewalsEnabled,
             query: { renew: 'true' }
           })
         }
-      }
+      }]
     })
   } else if (isRenewalsEnabled && registration.value && hasRegistrationRenewalDraft.value) {
     // todo for existing renewal draft
     todos.value.push({
       id: 'todo-renewal-draft',
-      title: 'Application to Renew Registration',
-      subtitle: 'DRAFT',
-      button: {
-        label: 'Resume',
-        action: async () => {
-          await navigateTo({
-            path: localePath('/application'),
-            query: { renew: 'true', applicationId: renewalDraftId.value }
-          })
+      title: t('todos.renewalDraft.title'),
+      subtitle: t('todos.renewalDraft.subtitle'),
+      buttons: [
+        {
+          label: t('todos.renewalDraft.resumeButton'),
+          action: async () => {
+            await navigateTo({
+              path: localePath('/application'),
+              query: { renew: 'true', applicationId: renewalDraftId.value }
+            })
+          }
+        },
+        {
+          label: t('todos.renewalDraft.deleteDraft'),
+          icon: 'i-mdi-delete',
+          action: async () => {
+            // delete draft application
+            await deleteApplication(renewalDraftId.value)
+            // remove renewal draft todo
+            todos.value = todos.value.filter(todo => todo.id !== 'todo-renewal-draft')
+            // reload registration renewal todos
+            await getRegistrationRenewalTodos()
+          }
         }
-      }
+      ]
     })
   } else if (isRenewalsEnabled && registration.value && hasRegistrationRenewalPaymentPending.value) {
     // todo for renewal payment pending
@@ -217,7 +232,7 @@ watch([isRenewalsEnabled,
       id: 'todo-renewal-payment-pending',
       title: t('todos.renewalPayment.title'),
       subtitle: t('todos.renewalPayment.subtitle'),
-      button: {
+      buttons: [{
         label: t('todos.renewalPayment.button'),
         action: async () => {
           const { handlePaymentRedirect } = useConnectNav()
@@ -234,7 +249,7 @@ watch([isRenewalsEnabled,
             )
           }
         }
-      }
+      }]
     })
   }
 }, { immediate: true })
@@ -271,7 +286,7 @@ setBreadcrumbs([
               :id="todo.id"
               :title="todo.title"
               :subtitle="todo.subtitle"
-              :button="todo?.button"
+              :buttons="todo?.buttons"
               :icon="todo?.icon"
               :icon-class="todo?.iconClass"
             />

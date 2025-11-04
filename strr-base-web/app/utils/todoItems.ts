@@ -17,12 +17,12 @@ export const getTodoApplication = (
       id: 'todo-begin-app',
       title: t('strr.title.application'),
       subtitle: undefined,
-      button: {
+      buttons: [{
         label: t('btn.beginApplication'),
         action: async () => {
           await navigateTo(localePath(applicationPath))
         }
-      }
+      }]
     })
   } else if (applicationInfo?.status === ApplicationStatus.DRAFT) {
     todos.push({
@@ -30,7 +30,7 @@ export const getTodoApplication = (
       title: t('strr.title.application'),
       // NOTE: currently this status could only ever be DRAFT as there is no review process for platforms
       subtitle: applicationInfo.status,
-      button: {
+      buttons: [{
         label: t('btn.resumeApplication'),
         action: async () => {
           if (applicationInfo) { // TODO: alert if no application info
@@ -43,7 +43,7 @@ export const getTodoApplication = (
             )
           }
         }
-      }
+      }]
     })
   } else if (
     applicationInfo?.hostActions.includes(HostActions.SUBMIT_PAYMENT) &&
@@ -54,11 +54,11 @@ export const getTodoApplication = (
       id: 'todo-complete-payment',
       title: t('label.completePayment'),
       subtitle: undefined, // TODO: add subtitle ?
-      button: {
+      buttons: [{
         label: t('label.payNow'), // TODO: alert if no application info
         action: () => // TODO: how to complete payment for PAD accounts?
           handlePaymentRedirect(applicationInfo.paymentToken, payRedirectPath)
-      }
+      }]
     })
   }
 

@@ -32,13 +32,14 @@ export const useRenewals = () => {
     return Math.floor(expDate.diff(today, 'days').toObject().days)
   })
 
-  watch(registration, async () => {
+  const getRegistrationRenewalTodos = async () => {
     if (!registration.value) {
       isEligibleForRenewal.value = false
       hasRegistrationRenewalDraft.value = false
       hasRegistrationRenewalPaymentPending.value = false
       return
     }
+
     const { todos } = await getRegistrationToDos(registration.value.id)
     // check if todos have a renewable registration
     isEligibleForRenewal.value = todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
@@ -58,6 +59,10 @@ export const useRenewals = () => {
       renewalPaymentPendingId.value = todos
         .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING).task.detail
     }
+  }
+
+  watch(registration, async () => {
+    await getRegistrationRenewalTodos()
   })
 
   return {
@@ -68,6 +73,7 @@ export const useRenewals = () => {
     renewalPaymentPendingId,
     isRenewalPeriodClosed,
     renewalDueDate,
-    renewalDateCounter
+    renewalDateCounter,
+    getRegistrationRenewalTodos
   }
 }

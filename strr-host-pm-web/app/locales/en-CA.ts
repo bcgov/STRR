@@ -591,6 +591,12 @@ export default {
     renewalClosed: {
       title: 'Registration Renewal Period Closed',
       subtitle: 'Your short-term rental registration has been {boldStart}expired for over 3 years{boldEnd} and {boldStart}can no longer be renewed.{boldEnd} Please go back to your dashboard and {boldStart}submit a new application{boldEnd} if you wish to register your short-term rental.'
+    },
+    renewalDraft: {
+      title: 'Application to Renew Registration',
+      subtitle: 'DRAFT',
+      resumeButton: 'Resume Draft',
+      deleteDraft: 'Delete Draft'
     }
   },
   propertyType: {

@@ -93,10 +93,10 @@ onMounted(async () => {
     setSideHeaderDetails(
       registration.value,
       application.value?.header)
-    // set sidebar accordian buildings
+    // set sidebar accordion buildings
     buildings.value = getDashboardBuildings()
-    // set sidebar accordian reps
-    representatives.value = getDashboardRepresentives()
+    // set sidebar accordion reps
+    representatives.value = getDashboardRepresentatives()
     // set side bar completing party
     completingParty.value = getDashboardCompParty()
     // update breadcrumbs with strata business name
@@ -152,7 +152,7 @@ setBreadcrumbs([
           :key="todo.title"
           :title="todo.title"
           :subtitle="todo.subtitle"
-          :button="todo.button"
+          :buttons="todo.buttons"
         />
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('strr.label.registeringBusiness')" :loading="loading">

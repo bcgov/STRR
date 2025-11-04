@@ -166,7 +166,7 @@ export const getRepItem = (rep: StrrContact): ConnectAccordionItem => {
   return repItem
 }
 
-export const getDashboardRepresentives = (): ConnectAccordionItem[] => {
+export const getDashboardRepresentatives = (): ConnectAccordionItem[] => {
   const { primaryRep, secondaryRep } = useStrrContactStore()
   if (!primaryRep) {
     return []

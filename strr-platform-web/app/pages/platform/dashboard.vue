@@ -59,7 +59,7 @@ onMounted(async () => {
       application.value?.header)
     // add platform specific side details
     setPlatformSideHeaderDetails()
-    // set sidebar accordian addresses
+    // set sidebar accordion addresses
     addresses.value = getDashboardAddresses(platformBusiness.value)
     // platform specific address items (emails)
     addresses.value.push({
@@ -84,8 +84,8 @@ onMounted(async () => {
           : [])
       ]
     })
-    // set sidebar accordian reps
-    representatives.value = getDashboardRepresentives()
+    // set sidebar accordion reps
+    representatives.value = getDashboardRepresentatives()
     // set side bar completing party
     completingParty.value = getDashboardCompParty()
     // update breadcrumbs with platform business name
@@ -134,7 +134,7 @@ setBreadcrumbs([
           :key="todo.title"
           :title="todo.title"
           :subtitle="todo.subtitle"
-          :button="todo.button"
+          :buttons="todo.buttons"
         />
       </ConnectDashboardSection>
       <ConnectDashboardSection

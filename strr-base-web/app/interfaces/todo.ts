@@ -8,7 +8,7 @@ export interface TodoButton {
 export interface Todo {
   id: string
   title: string
-  button?: TodoButton
+  buttons?: TodoButton[]
   subtitle?: string
   icon?: string
   iconClass?: string
