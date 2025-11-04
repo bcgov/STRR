@@ -89,6 +89,7 @@ defineEmits<{
               :label="action.label"
               :variant="action.variant || 'solid'"
               :color="action.color || 'primary'"
+              class="px-5 py-2"
               @click="action.handler"
             />
           </div>
