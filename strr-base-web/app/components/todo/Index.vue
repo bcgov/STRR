@@ -18,7 +18,7 @@ const props = defineProps<{
 // main action button for the todo
 const mainButton = computed(() => props.buttons?.[0])
 
-// secondary actions for todo,
+// secondary actions for todo, will be shown as a dropdown next to main action
 const dropdownItems = computed((): DropdownItem[] => {
   // skip first/main action
   return (props.buttons ?? []).slice(1)
