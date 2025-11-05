@@ -122,7 +122,7 @@ class PayService:
             )
             return resp.json()
         except Exception as err:
-            self.app.logger.debug("Pay-api integration (create invoice) failure:", repr(err))
+            self.app.logger.debug("Pay-api integration (create invoice) failure: %s", repr(err))
             return None
 
     def _get_payment_request(self, application_json, application_number: str):
@@ -137,6 +137,7 @@ class PayService:
             filing_type = self._get_platform_filing_type(registration_json, application_type)
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
             filing_type = STRATA_HOTEL_REG if application_type == "registration" else STRATA_HOTEL_RENEWAL
+            self.app.logger.info("Filing type for Strata Hotel application::" + filing_type)
 
         filing_type_dict = {"filingTypeCode": filing_type, "quantity": quantity}
 
@@ -161,10 +162,13 @@ class PayService:
         cpbc_number = registration_json.get("businessDetails").get("consumerProtectionBCLicenceNumber")
         if cpbc_number and (not cpbc_number.isspace()):
             filing_type = PLATFORM_FEE_WAIVED if application_type == "registration" else PLATFORM_RENEWAL_WAIVED
+            self.app.logger.info("Filing type for Platform application - CPBC::" + filing_type)
         elif registration_json.get("platformDetails").get("listingSize") == "THOUSAND_AND_ABOVE":
             filing_type = PLATFORM_LARGE_USER_BASE if application_type == "registration" else PLATFORM_RENEWAL_LARGE
+            self.app.logger.info("Filing type for Platform application - Thousand and above::" + filing_type)
         else:
             filing_type = PLATFORM_SMALL_USER_BASE if application_type == "registration" else PLATFORM_RENEWAL_MINOR
+            self.app.logger.info("Filing type for Platform application - Less than thousand::" + filing_type)
         return filing_type
 
     def _get_host_filing_type(self, registration_json, application_type="registration"):

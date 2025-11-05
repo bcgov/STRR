@@ -1565,3 +1565,276 @@ def test_clear_predefined_conditions(session, client, jwt):
         assert response_json.get("conditionsOfApproval") is not None
         assert response_json.get("conditionsOfApproval").get("predefinedConditions") == []
         assert response_json.get("conditionsOfApproval").get("customConditions") == ["Condition 1", "Condition 2"]
+
+
+def test_strata_hotel_todos_60_day_renewal_window(session, client, jwt):
+    """Test that strata hotels show renewal todo 60 days before expiry."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc + timedelta(days=59)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="STRATA_HOTEL",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="SH1234567",
+        user_id=user.id,
+    )
+    registration.save()
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert len(response_json.get("todos")) == 1
+    assert response_json.get("todos")[0].get("task").get("type") == "REGISTRATION_RENEWAL"
+
+
+def test_strata_hotel_todos_outside_60_day_renewal_window(session, client, jwt):
+    """Test that strata hotels does not show renewal todo outside 60-day window."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc + timedelta(days=61)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="STRATA_HOTEL",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="SH1234567",
+        user_id=user.id,
+    )
+    registration.save()
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert response_json.get("todos") == []
+
+
+def test_host_todos_40_day_renewal_window(session, client, jwt):
+    """Test that host registrations still use 40-day window."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc + timedelta(days=45)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="HOST",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="H1234567",
+        user_id=user.id,
+    )
+    registration.save()
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert response_json.get("todos") == []
+
+
+def test_platform_todos_40_day_renewal_window(session, client, jwt):
+    """Test that platform registrations still use 40-day window."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    current_utc = datetime.utcnow()
+    registration_end_date = current_utc + timedelta(days=45)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="PLATFORM",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="P1234567",
+        user_id=user.id,
+    )
+    registration.save()
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    assert response_json.get("todos") == []
+
+
+def test_get_platform_todos_with_all_renewal_states(session, client, jwt):
+    """Test platform renewal todos - Renewal, Draft, Payment Due."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    registration_end_date = datetime.utcnow() + timedelta(days=24)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="PLATFORM",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="P1234567",
+        user_id=user.id,
+    )
+    registration.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL"
+    assert todos[0].get("task").get("detail") is None
+
+    draft_application = Application(
+        type=ApplicationType.RENEWAL.value,
+        status=Application.Status.DRAFT,
+        payment_account=str(ACCOUNT_ID),
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+    )
+    draft_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_DRAFT"
+    assert todos[0].get("task").get("detail") == draft_application.application_number
+
+    payment_due_application = Application(
+        type=ApplicationType.RENEWAL.value,
+        status=Application.Status.PAYMENT_DUE,
+        payment_account=str(ACCOUNT_ID),
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+    )
+    payment_due_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_PAYMENT_PENDING"
+    assert todos[0].get("task").get("detail") == payment_due_application.application_number
+
+
+def test_get_strata_todos_with_all_renewal_states(session, client, jwt):
+    """Test platform renewal todos - Renewal, Draft, Payment Due."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+
+    registration_end_date = datetime.utcnow() + timedelta(days=24)
+    user = User(
+        username="testUser",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub=f"sub{random.randint(0, 99999)}",
+        idp_userid="testUserID",
+        login_source="testLogin",
+    )
+    user.save()
+
+    registration = Registration(
+        start_date=registration_end_date - timedelta(days=340),
+        expiry_date=registration_end_date,
+        status=RegistrationStatus.ACTIVE,
+        registration_type="STRATA_HOTEL",
+        sbc_account_id=ACCOUNT_ID,
+        registration_number="SH1234567",
+        user_id=user.id,
+    )
+    registration.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL"
+    assert todos[0].get("task").get("detail") is None
+
+    draft_application = Application(
+        type=ApplicationType.RENEWAL.value,
+        status=Application.Status.DRAFT,
+        payment_account=str(ACCOUNT_ID),
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+    )
+    draft_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_DRAFT"
+    assert todos[0].get("task").get("detail") == draft_application.application_number
+
+    payment_due_application = Application(
+        type=ApplicationType.RENEWAL.value,
+        status=Application.Status.PAYMENT_DUE,
+        payment_account=str(ACCOUNT_ID),
+        registration_id=registration.id,
+        application_json={},
+        application_number=Application.generate_unique_application_number(),
+    )
+    payment_due_application.save()
+
+    rv = client.get(f"/registrations/{registration.id}/todos", headers=headers)
+    response_json = rv.json
+    todos = response_json.get("todos")
+    assert len(todos) == 1
+    assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_PAYMENT_PENDING"
+    assert todos[0].get("task").get("detail") == payment_due_application.application_number

@@ -531,9 +531,11 @@ def get_todos(registration_id):
             registration_expiry_datetime = registration.expiry_date
 
             # Window in which todos should appear
-            threshold_datetime_start = registration_expiry_datetime - timedelta(days=40)
+            # Strata require 60 days notice, host and platform require 40 days
+            days_before_expiry = 60 if registration.registration_type == RegistrationType.STRATA_HOTEL.value else 40
+            threshold_datetime_start = registration_expiry_datetime - timedelta(days=days_before_expiry)
             threshold_datetime_end = registration_expiry_datetime + relativedelta(years=3)
-            recent_submission_threshold = current_time_utc - relativedelta(years=1) + timedelta(days=40)
+            recent_submission_threshold = current_time_utc - relativedelta(years=1) + timedelta(days=days_before_expiry)
 
             if threshold_datetime_start.date() <= current_time_utc.date() <= threshold_datetime_end.date():
                 renewal_application = (

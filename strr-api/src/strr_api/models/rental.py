@@ -72,7 +72,12 @@ class Registration(Versioned, BaseModel):
         uselist=False,
         cascade="all, delete-orphan",
     )
-    strata_hotel_registration = relationship("StrataHotelRegistration", back_populates="registration", uselist=False)
+    strata_hotel_registration = relationship(
+        "StrataHotelRegistration",
+        back_populates="registration",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
     documents = relationship("Document", back_populates="registration")
     nocs = relationship("RegistrationNoticeOfConsideration", back_populates="registration")
     conditionsOfApproval = relationship("ConditionsOfApproval", back_populates="registration", uselist=False)

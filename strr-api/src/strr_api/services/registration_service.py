@@ -145,6 +145,9 @@ class RegistrationService:
         elif registration_type == RegistrationType.PLATFORM.value:
             # registration.platform_registration.delete()
             registration.platform_registration = cls._create_platform_registration(registration_request)
+        elif registration_type == RegistrationType.STRATA_HOTEL.value:
+            # registration.strata_hotel_registration.delete()
+            registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_request)
         registration.save()
         return registration
 
@@ -187,14 +190,18 @@ class RegistrationService:
         elif registration_type == RegistrationType.PLATFORM.value:
             registration.platform_registration = cls._create_platform_registration(registration_request)
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
-            registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_details)
+            registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_request)
 
         registration.save()
         return registration
 
     @classmethod
     def _create_strata_hotel_registration(cls, registration_request: dict) -> StrataHotelRegistration:
-        business_details_dict = registration_request.get("businessDetails")
+        registration_details = (
+            registration_request.get("registration") if isinstance(registration_request, dict) else registration_request
+        )
+
+        business_details_dict = registration_details.get("businessDetails")
         mailing_address = business_details_dict.get("mailingAddress")
 
         representatives = [
@@ -211,10 +218,10 @@ class RegistrationService:
                     job_title=representative.get("jobTitle"),
                 )
             )
-            for representative in registration_request.get("strataHotelRepresentatives")
+            for representative in registration_details.get("strataHotelRepresentatives")
         ]
 
-        strata_hotel_details_dict = registration_request.get("strataHotelDetails")
+        strata_hotel_details_dict = registration_details.get("strataHotelDetails")
         strata_hotel_location_dict = strata_hotel_details_dict.get("location")
 
         strata_hotel_buildings = [
