@@ -75,6 +75,13 @@ from strr_api.validators.DocumentUploadValidator import validate_document_upload
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
 
+# Days before expiry when renewal todos should appear
+DAYS_BEFORE_EXPIRY_BY_TYPE = {
+    RegistrationType.STRATA_HOTEL.value: 60,
+    RegistrationType.HOST.value: 40,
+    RegistrationType.PLATFORM.value: 40,
+}
+
 
 @bp.route("", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
@@ -531,8 +538,7 @@ def get_todos(registration_id):
             registration_expiry_datetime = registration.expiry_date
 
             # Window in which todos should appear
-            # Strata require 60 days notice, host and platform require 40 days
-            days_before_expiry = 60 if registration.registration_type == RegistrationType.STRATA_HOTEL.value else 40
+            days_before_expiry = DAYS_BEFORE_EXPIRY_BY_TYPE.get(registration.registration_type, 40)
             threshold_datetime_start = registration_expiry_datetime - timedelta(days=days_before_expiry)
             threshold_datetime_end = registration_expiry_datetime + relativedelta(years=3)
             recent_submission_threshold = current_time_utc - relativedelta(years=1) + timedelta(days=days_before_expiry)
