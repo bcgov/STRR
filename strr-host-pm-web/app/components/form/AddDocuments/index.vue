@@ -6,6 +6,8 @@ const reqStore = usePropertyReqStore()
 const docStore = useDocumentStore()
 const propStore = useHostPropertyStore()
 const strrModal = useStrrModals()
+const { openSupportingDocumentsHelpModal } = useHostPmModals()
+const { isNewPrDocumentsListEnabled } = useHostFeatureFlags()
 
 const props = defineProps<{ isComplete: boolean }>()
 
@@ -91,6 +93,17 @@ onMounted(async () => {
               data-testid="potential-docs-checklist"
               :title="$t('text.followingDocsMayBeRequired')"
               :items="docStore.potentialRequiredDocs"
+            />
+            <UButton
+              v-if="isNewPrDocumentsListEnabled"
+              :label="$t('modal.supportingDocumentsHelp.triggerBtn')"
+              leading-icon="i-mdi-info-outline"
+              variant="link"
+              class="mt-6 text-base font-bold"
+              :padded="false"
+              :ui="{ gap: { sm: 'gap-x-1.5' } }"
+              data-testid="pr-docs-help-modal"
+              @click="openSupportingDocumentsHelpModal"
             />
           </div>
           <UForm

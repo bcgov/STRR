@@ -266,7 +266,8 @@ export default {
     returnToStep: 'Return to the step to finish it',
     ariaViewDetails: 'View details for property: {name}, {address}',
     registerAStr: 'Register a Short-Term Rental',
-    renew: 'Renew'
+    renew: 'Renew',
+    closeBtn: 'Close'
   },
   error: {
     createAccount: {
@@ -329,6 +330,9 @@ export default {
     localGovBL: 'Local Government Business Licence',
     localGovShortTermRentalBL: 'Local government short-term rental business licence',
     proofOfPr: 'Proof of principal residence',
+    proofOfPrOwner: 'Proof of principal residence (1 proof of identity and 2 supporting documents)',
+    proofOfPrTenant: 'Proof of principal residence (1 proof of identity, 1 supporting document, 1 proof of tenancy)',
+    proofOfPrFractionalOwner: 'Proof of principal residence (1 proof of identity per fractional owner, 2 proof of fractional ownership)',
     supportingStrataDocs: 'Supporting strata-titled hotel or motel documentation',
     fractOwnAgreement: 'Fractional ownership agreement',
     propertyAssessmentNotice: 'Property Assessment Notice',
@@ -399,6 +403,14 @@ export default {
       p1: 'Contact your {link} to find the Strata Hotel Platform registration number for your the Strata Hotel.',
       p2: 'This is a unique identifier for every strata hotel and starts with the letters "ST" followed by 9 digits (i.e: ST123456789). We need this number before we can issue an individual registration number for you to use on hosting platforms.',
       closeBtn: 'Close'
+    },
+    supportingDocumentsHelp: {
+      triggerBtn: 'What documents do I need?',
+      title: 'Documentation options',
+      groupTitle1: 'Proof of identity (choose 1):',
+      groupTitle2: 'Supporting documents (choose 2):',
+      groupTitle3: 'Proof of tenancy (choose 1):',
+      groupTitle4: 'Proof of fractional ownership (2 required):'
     },
     unsavedChanges: {
       title: 'Are you sure you want to leave?',

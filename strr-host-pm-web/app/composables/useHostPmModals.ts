@@ -3,6 +3,7 @@ import {
   ModalBase
 } from '#components'
 import PlatformRegNumHelp from '~/components/modal/info/PlatformRegNumHelp.vue'
+import SupportingDocumentsHelp from '~/components/modal/info/SupportingDocumentsHelp.vue'
 
 export const useHostPmModals = () => {
   const modal = useModal()
@@ -82,6 +83,16 @@ export const useHostPmModals = () => {
     })
   }
 
+  function openSupportingDocumentsHelpModal () {
+    modal.open(SupportingDocumentsHelp, {
+      // @ts-expect-error - actions prop is passed down from SupportingDocumentsHelp -> ModalBase
+      actions: [{
+        label: t('btn.closeBtn'),
+        handler: () => close()
+      }]
+    })
+  }
+
   function close () {
     modal.close()
   }
@@ -91,6 +102,7 @@ export const useHostPmModals = () => {
     openConfirmRestartApplicationModal,
     openStrataRegNumberHelpModal,
     openConfirmUnsavedChanges,
+    openSupportingDocumentsHelpModal,
     close
   }
 }

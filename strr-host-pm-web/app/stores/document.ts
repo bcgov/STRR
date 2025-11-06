@@ -41,11 +41,30 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
     if (reqs.isPrincipalResidenceRequired && exemptionReason === undefined) {
       const isPrValid = validatePrincipalResidenceDocuments()
-      docs.push({
-        isValid: isPrValid,
-        icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.proofOfPr')
-      })
+
+      const hostType = propStore.unitDetails.hostType
+
+      if (isNewPrDocumentsListEnabled.value &&
+        (hostType === PropertyHostType.OWNER || hostType === PropertyHostType.FRIEND_RELATIVE)) {
+        docs.push({
+          isValid: isPrValid,
+          icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+          label: t('label.proofOfPrOwner')
+        })
+      } else if (isNewPrDocumentsListEnabled.value && hostType === PropertyHostType.LONG_TERM_TENANT) {
+        docs.push({
+          isValid: isPrValid,
+          icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+          label: t('label.proofOfPrTenant')
+        })
+      } else {
+        docs.push({
+          id: 'else-pr',
+          isValid: isPrValid,
+          icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+          label: t('label.proofOfPr')
+        })
+      }
     }
     if (exemptionReason === PrExemptionReason.STRATA_HOTEL) {
       const isStrataValid = apiDocuments.value.some(
@@ -101,11 +120,19 @@ export const useDocumentStore = defineStore('host/document', () => {
     const exemptionReason = reqStore.prRequirements.prExemptionReason
     const docs = []
 
-    docs.push(t('label.localGovShortTermRentalBL'))
-
     if (exemptionReason === undefined) {
-      docs.push(t('label.proofOfPr'))
+      const hostType = propStore.unitDetails.hostType
+      if (isNewPrDocumentsListEnabled.value &&
+        (hostType === PropertyHostType.OWNER || hostType === PropertyHostType.FRIEND_RELATIVE)) {
+        docs.push(t('label.proofOfPrOwner'))
+      } else if (isNewPrDocumentsListEnabled.value && hostType === PropertyHostType.LONG_TERM_TENANT) {
+        docs.push(t('label.proofOfPrTenant'))
+      } else {
+        docs.push(t('label.proofOfPr'))
+      }
     }
+
+    docs.push(t('label.localGovShortTermRentalBL'))
 
     if (exemptionReason === PrExemptionReason.STRATA_HOTEL) {
       docs.push(t('label.supportingStrataDocs'))
