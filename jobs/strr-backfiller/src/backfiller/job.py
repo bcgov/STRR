@@ -20,6 +20,9 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from strr_api.models import db
 from strr_api.models.rental import Registration, RentalProperty
 from strr_api.services import ApprovalService
+from strr_api.models.strata_hotels import StrataHotel
+from strr_api.models.application import Application
+from strr_api.enums.enum import StrataHotelCategory
 
 from backfiller.config import CONFIGURATION
 from backfiller.utils.logging import setup_logging
@@ -87,6 +90,87 @@ def backfill_jurisdiction(app):
             app.logger.error(f"Unexpected error: {str(err)}")
 
 
+def backfill_strata_hotel_category(app):
+    """Backfill strata hotel category from application data."""
+
+    # Find all strata hotels without a category
+    strata_hotels_without_category = (
+        StrataHotel.query.filter(StrataHotel.category.is_(None)).all()
+    )
+
+    app.logger.info(
+        f"Found {len(strata_hotels_without_category)} strata hotels without category"
+    )
+
+    updated_count = 0
+    failed_count = 0
+
+    for strata_hotel in strata_hotels_without_category:
+        try:
+            # Get registration via strata_hotel_registrations relationship
+            strata_hotel_reg = (
+                strata_hotel.strata_hotel_registrations[0]
+                if strata_hotel.strata_hotel_registrations
+                else None
+            )
+
+            if not strata_hotel_reg:
+                app.logger.info(
+                    f"No registration found for strata hotel {strata_hotel.id}"
+                )
+                failed_count += 1
+                continue
+
+            registration = strata_hotel_reg.registration
+
+            # Find the application that created this registration
+            application = Application.query.filter_by(
+                registration_id=registration.id
+            ).first()
+
+            if not application:
+                app.logger.info(
+                    f"No application found for registration {registration.id}"
+                )
+                failed_count += 1
+                continue
+
+            # Get category from application_json
+            category_str = (
+                application.application_json.get("registration", {})
+                .get("strataHotelDetails", {})
+                .get("category")
+            )
+
+            if not category_str:
+                app.logger.info(
+                    f"No category in application JSON for strata hotel {strata_hotel.id}, "
+                    f"application {application.application_number}"
+                )
+                failed_count += 1
+                continue
+
+            try:
+                category_enum = StrataHotelCategory[category_str]
+                strata_hotel.category = category_enum
+                strata_hotel.save()
+                app.logger.info(
+                    f"Updated strata hotel {strata_hotel.id} with category {category_str}"
+                )
+                updated_count += 1
+            except KeyError:
+                app.logger.error(f"Invalid category value: {category_str}")
+                failed_count += 1
+
+        except Exception as err:  # pylint: disable=broad-except
+            app.logger.error(
+                f"Error processing strata hotel {strata_hotel.id}: {str(err)}"
+            )
+            failed_count += 1
+
+    app.logger.info(f"Backfill complete: {updated_count} updated, {failed_count} failed")
+
+
 def run():
     """Run the backfiller job."""
     try:
@@ -94,5 +178,6 @@ def run():
         with app.app_context():
             app.logger.info("Starting backfiller job....")
             backfill_jurisdiction(app)
+            backfill_strata_hotel_category(app)
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")

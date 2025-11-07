@@ -245,6 +245,7 @@ class RegistrationSerializer:
                 "locationDescription": strata_hotel.location.location_description,
             },
             "numberOfUnits": strata_hotel.number_of_units,
+            "category": strata_hotel.category,
             "buildings": buildings,
         }
 
