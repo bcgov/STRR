@@ -69,7 +69,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const loadHostRegistrationData = async (registrationId: string) => {
     $reset()
     await loadPermitRegistrationData(registrationId)
-    await populateHostDetails()
+    await populateHostDetails(true)
   }
 
   const loadHostData = async (applicationId: string, loadDraft = false) => {
@@ -81,7 +81,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   }
 
   // populate stores with host data details
-  const populateHostDetails = async () => {
+  const populateHostDetails = async (isRenewal: boolean = false) => {
     // set sub store values
     if (permitDetails.value.primaryContact) {
       hostOwners.value.push(formatOwnerHostUI(
@@ -121,16 +121,19 @@ export const useHostPermitStore = defineStore('host/permit', () => {
         await propertyReqStore.getPropertyReqs()
       }
     }
-    storedDocuments.value = permitDetails.value?.documents?.map<UiDocument>(val => ({
-      file: {} as File,
-      apiDoc: val,
-      name: val.fileName,
-      type: val.documentType,
-      id: uuidv4(),
-      loading: false,
-      ...(val.uploadStep ? { uploadStep: val.uploadStep } : {}),
-      ...(val.uploadDate ? { uploadDate: val.uploadDate } : {})
-    })) || []
+    // for registration renewal documents are not prefilled - new docs will be uploaded by Host
+    storedDocuments.value = isRenewal
+      ? []
+      : permitDetails.value?.documents?.map<UiDocument>(val => ({
+        file: {} as File,
+        apiDoc: val,
+        name: val.fileName,
+        type: val.documentType,
+        id: uuidv4(),
+        loading: false,
+        ...(val.uploadStep ? { uploadStep: val.uploadStep } : {}),
+        ...(val.uploadDate ? { uploadDate: val.uploadDate } : {})
+      })) || []
   }
 
   const $reset = () => {

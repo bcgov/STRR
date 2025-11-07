@@ -333,7 +333,6 @@ export const useDocumentStore = defineStore('host/document', () => {
 
     selectedDocType.value = undefined
 
-    // await sleep(3000) // TODO: remove
     await postDocument(uiDoc)
   }
 
