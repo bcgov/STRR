@@ -17,12 +17,12 @@ import os
 
 from flask import Flask
 from sentry_sdk.integrations.logging import LoggingIntegration
-from strr_api.models import db
-from strr_api.models.rental import Registration, RentalProperty
-from strr_api.services import ApprovalService
-from strr_api.models.strata_hotels import StrataHotel
-from strr_api.models.application import Application
 from strr_api.enums.enum import StrataHotelCategory
+from strr_api.models import db
+from strr_api.models.application import Application
+from strr_api.models.rental import Registration, RentalProperty
+from strr_api.models.strata_hotels import StrataHotel
+from strr_api.services import ApprovalService
 
 from backfiller.config import CONFIGURATION
 from backfiller.utils.logging import setup_logging
@@ -94,9 +94,9 @@ def backfill_strata_hotel_category(app):
     """Backfill strata hotel category from application data."""
 
     # Find all strata hotels without a category
-    strata_hotels_without_category = (
-        StrataHotel.query.filter(StrataHotel.category.is_(None)).all()
-    )
+    strata_hotels_without_category = StrataHotel.query.filter(
+        StrataHotel.category.is_(None)
+    ).all()
 
     app.logger.info(
         f"Found {len(strata_hotels_without_category)} strata hotels without category"
@@ -168,7 +168,9 @@ def backfill_strata_hotel_category(app):
             )
             failed_count += 1
 
-    app.logger.info(f"Backfill complete: {updated_count} updated, {failed_count} failed")
+    app.logger.info(
+        f"Backfill complete: {updated_count} updated, {failed_count} failed"
+    )
 
 
 def run():
