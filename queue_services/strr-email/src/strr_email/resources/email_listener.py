@@ -31,7 +31,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-# pylint: disable=R0911
+# pylint: disable=R0911, R0912
 """This Module processes and sends email messages via the notify-api.
 """
 from dataclasses import dataclass
