@@ -109,8 +109,9 @@ vi.mock('@/composables/useStrrModals', () => ({
 
 vi.mock('@/composables/useHostFeatureFlags', () => ({
   useHostFeatureFlags: () => ({
-    isNewRentalUnitSetupEnabled: true,
-    isNewAddressFormEnabled: true
+    isSaveDraftEnabled: ref(true),
+    isNewRentalUnitSetupEnabled: ref(true),
+    isNewAddressFormEnabled: ref(true)
   })
 }))
 

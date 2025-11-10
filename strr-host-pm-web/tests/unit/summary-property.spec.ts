@@ -51,8 +51,8 @@ vi.mock('@/stores/propertyRequirements', () => ({
 
 vi.mock('@/composables/useHostFeatureFlags', () => ({
   useHostFeatureFlags: () => ({
-    isNewAddressFormEnabled: false,
-    isNewRentalUnitSetupEnabled: false
+    isNewAddressFormEnabled: ref(false),
+    isNewRentalUnitSetupEnabled: ref(false)
   })
 }))
 
