@@ -324,7 +324,7 @@ watch([activeStepIndex, () => permitStore.isRegistrationRenewal], () => {
   )
 
   setButtonControl({
-    leftButtons: isSaveDraftEnabled ? leftActionButtons : [],
+    leftButtons: isSaveDraftEnabled.value ? leftActionButtons : [],
     rightButtons: buttons
   })
 }, { immediate: true })

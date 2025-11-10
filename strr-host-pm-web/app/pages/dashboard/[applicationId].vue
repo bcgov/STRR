@@ -206,6 +206,7 @@ watch([isRenewalsEnabled,
         {
           label: t('todos.renewalDraft.resumeButton'),
           action: async () => {
+            useState('renewalRegId').value = undefined // reset renewal id, so the draft app is loaded instead of registration
             await navigateTo({
               path: localePath('/application'),
               query: { renew: 'true', applicationId: renewalDraftId.value }
