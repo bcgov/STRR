@@ -75,7 +75,7 @@ EMAIL_SUBJECT = {
     "HOST_DECLINED": "Short-Term Rental Application Refused",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
-    "HOST_RENEWAL_REMINDER_FORTY_DAYS": "Short-Term Rental Registration Renewal Reminder",
+    "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
 }
 
 

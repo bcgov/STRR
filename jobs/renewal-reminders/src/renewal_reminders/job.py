@@ -68,9 +68,7 @@ def send_forty_days_reminder(app):
         )
         for reg in registrations:
             app.logger.info(f"Sending reminder for registration ID: {reg.id}")
-            EmailService.send_renewal_reminder_for_registration(
-                registration=reg, days=40
-            )
+            EmailService.send_renewal_reminder_for_registration(registration=reg)
         app.logger.info("Finished sending 40 days renewal notifications")
 
 
@@ -101,10 +99,7 @@ def send_fourteen_days_reminder(app):
                 Application.Status.PAYMENT_DUE,
             ]:
                 app.logger.info(f"Sending reminder for registration ID: {reg.id}")
-                EmailService.send_renewal_reminder_for_registration(
-                    registration=reg,
-                    days=40,
-                )
+                EmailService.send_renewal_reminder_for_registration(registration=reg)
         app.logger.info("Finished sending 14 days renewal notifications")
 
 
@@ -124,9 +119,7 @@ def send_sixty_days_reminder_for_strata_hotels(app):
         )
         for reg in registrations:
             app.logger.info(f"Sending reminder for registration ID: {reg.id}")
-            EmailService.send_renewal_reminder_for_registration(
-                registration=reg, days=40
-            )
+            EmailService.send_renewal_reminder_for_registration(registration=reg)
         app.logger.info("Finished sending 60 days renewal notifications")
 
 
@@ -158,10 +151,7 @@ def send_thirty_days_reminder_for_strata_hotels(app):
                 Application.Status.PAYMENT_DUE,
             ]:
                 app.logger.info(f"Sending reminder for registration ID: {reg.id}")
-                EmailService.send_renewal_reminder_for_registration(
-                    registration=reg,
-                    days=30,
-                )
+                EmailService.send_renewal_reminder_for_registration(registration=reg)
         app.logger.info("Finished sending 30 days renewal notifications")
 
 
