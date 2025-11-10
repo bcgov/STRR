@@ -51,6 +51,7 @@ from simple_cloudevent import SimpleCloudEvent
 from strr_api.enums.enum import RegistrationNocStatus
 from strr_api.models import Application
 from strr_api.models import Registration
+from strr_api.models import StrataHotel
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import AuthService
 from strr_api.services import RegistrationService
