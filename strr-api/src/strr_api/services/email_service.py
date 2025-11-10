@@ -168,9 +168,9 @@ class EmailService:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
 
     @staticmethod
-    def send_renewal_reminder_for_registration(registration: Registration, days: int):
-        """Send notice of consideration for the application."""
-        email_type = "RENEWAL_REMINDER_FORTY_DAYS" if days == 40 else "RENEWAL_REMINDER_FOURTEEN_DAYS"
+    def send_renewal_reminder_for_registration(registration: Registration):
+        """Send renewal reminder for the registration."""
+        email_type = "RENEWAL_REMINDER"
         email_type = f"{registration.registration_type}_{email_type}"
         try:
             gcp_queue_publisher.publish_to_queue(
