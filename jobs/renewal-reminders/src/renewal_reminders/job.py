@@ -108,6 +108,63 @@ def send_fourteen_days_reminder(app):
         app.logger.info("Finished sending 14 days renewal notifications")
 
 
+def send_sixty_days_reminder_for_strata_hotels(app):
+    """Send the reminder before 60 days."""
+    with app.app_context():
+        app.logger.info("Starting 60 days renewal notifications")
+        target_date = (datetime.utcnow() + timedelta(days=60)).date()
+        registrations = Registration.query.filter(
+            Registration.registration_type
+            == Registration.RegistrationType.STRATA_HOTEL,
+            Registration.status == RegistrationStatus.ACTIVE,
+            func.date(Registration.expiry_date) == target_date,
+        ).all()
+        app.logger.info(
+            f"Found {len(registrations)} active strata hotel registrations expiring in 60 days."
+        )
+        for reg in registrations:
+            app.logger.info(f"Sending reminder for registration ID: {reg.id}")
+            EmailService.send_renewal_reminder_for_registration(
+                registration=reg, days=40
+            )
+        app.logger.info("Finished sending 60 days renewal notifications")
+
+
+def send_thirty_days_reminder_for_strata_hotels(app):
+    """Send the reminder before 30 days."""
+    with app.app_context():
+        app.logger.info("Starting 30 days renewal notifications")
+        target_date = (datetime.utcnow() + timedelta(days=30)).date()
+        registrations = Registration.query.filter(
+            Registration.registration_type
+            == Registration.RegistrationType.STRATA_HOTEL,
+            Registration.status == RegistrationStatus.ACTIVE,
+            func.date(Registration.expiry_date) == target_date,
+        ).all()
+        app.logger.info(
+            f"Found {len(registrations)} active host registrations expiring in 30 days."
+        )
+        for reg in registrations:
+            renewal_application = (
+                Application.query.filter(
+                    Application.registration_id == reg.id,
+                    Application.type == ApplicationType.RENEWAL.value,
+                )
+                .order_by(Application.id.desc())
+                .first()
+            )
+            if not renewal_application or renewal_application.status in [
+                Application.Status.DRAFT,
+                Application.Status.PAYMENT_DUE,
+            ]:
+                app.logger.info(f"Sending reminder for registration ID: {reg.id}")
+                EmailService.send_renewal_reminder_for_registration(
+                    registration=reg,
+                    days=30,
+                )
+        app.logger.info("Finished sending 30 days renewal notifications")
+
+
 def run():
     """Run the renewal reminder job."""
     try:
@@ -116,6 +173,8 @@ def run():
             app.logger.info("Starting renewal reminder job")
             send_forty_days_reminder(app)
             send_fourteen_days_reminder(app)
+            send_sixty_days_reminder_for_strata_hotels(app)
+            send_thirty_days_reminder_for_strata_hotels(app)
             app.logger.info("Renewal reminder job completed")
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")
