@@ -76,6 +76,7 @@ EMAIL_SUBJECT = {
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
+    "STRATA_HOTEL_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
 }
 
 
@@ -142,10 +143,19 @@ def worker():
                 ),
                 HTTPStatus.NOT_FOUND,
             )
-        if registration.registration_type not in [Registration.RegistrationType.HOST]:
+        if registration.registration_type == Registration.RegistrationType.HOST:
+            email = _get_registration_update_email_content_for_host(
+                registration, email_info, jinja_template
+            )
+        elif registration.registration_type == Registration.RegistrationType.STRATA_HOTEL:
+            if email_info.email_type == "RENEWAL_REMINDER":
+                email = _get_registration_update_email_content_for_strata_hotel(
+                    registration, email_info, jinja_template
+                )
+            else:
+                return {}, HTTPStatus.OK
+        else:
             return {}, HTTPStatus.OK
-
-        email = _get_registration_update_email_content(registration, email_info, jinja_template)
 
     # 4. Send email via notify-api
     token = AuthService.get_service_client_token()
@@ -168,7 +178,9 @@ def worker():
     return {}, HTTPStatus.OK
 
 
-def _get_registration_update_email_content(registration: Registration, email_info, jinja_template):
+def _get_registration_update_email_content_for_host(
+    registration: Registration, email_info, jinja_template
+):
     noc_content = ""
     noc_expiry_date = ""
     if registration.noc_status == RegistrationNocStatus.NOC_PENDING:
@@ -204,6 +216,47 @@ def _get_registration_update_email_content(registration: Registration, email_inf
         "content": {"subject": subject, "body": f"{html_out}"},
     }
     return email
+
+
+def _get_registration_update_email_content_for_strata_hotel(
+    registration: Registration, email_info, jinja_template
+):
+    strata_hotel = registration.strata_hotel_registration.strata_hotel
+    recipients = _get_strata_hotel_notification_recipients(strata_hotel)
+    html_out = jinja_template.render(
+        reg_num=registration.registration_number,
+        street_address=strata_hotel.location.street_address
+        or strata_hotel.location.street_address_additional,
+        city=strata_hotel.location.city,
+        postal_code=strata_hotel.location.postal_code,
+        ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
+        expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        tac_url=_get_registration_tac_url(registration),
+    )
+    subject_number = registration.registration_number
+    subject = (
+        f"{current_app.config['EMAIL_SUBJECT_PREFIX']} "
+        + f"{subject_number} - {EMAIL_SUBJECT.get(email_info.email_type, '')}"
+    ).strip()
+    email = {
+        "recipients": recipients,
+        # requestBy is how the notify-api determines which GC Notify account to use
+        "requestBy": current_app.config["EMAIL_STRR_REQUEST_BY"],
+        "content": {"subject": subject, "body": f"{html_out}"},
+    }
+    return email
+
+
+def _get_strata_hotel_notification_recipients(strata_hotel: StrataHotel) -> str:
+    recipients: list[str] = []
+
+    if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
+        recipients.append(housing_recipient_email)
+
+    for representative in strata_hotel.representatives:
+        recipients.append(representative.contact.email)
+
+    return ",".join(recipients)
 
 
 def _get_application_update_email_content(application, email_info, jinja_template):
