@@ -59,7 +59,6 @@ export const useDocumentStore = defineStore('host/document', () => {
         })
       } else {
         docs.push({
-          id: 'else-pr',
           isValid: isPrValid,
           icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
           label: t('label.proofOfPr')
