@@ -149,7 +149,7 @@ def worker():
                 registration, email_info, jinja_template
             )
         elif registration.registration_type == Registration.RegistrationType.STRATA_HOTEL:
-            if email_info.email_type == "RENEWAL_REMINDER":
+            if email_info.email_type == "STRATA_HOTEL_RENEWAL_REMINDER":
                 email = _get_registration_update_email_content_for_strata_hotel(
                     registration, email_info, jinja_template
                 )
