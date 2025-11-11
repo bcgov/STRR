@@ -28,13 +28,13 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   const loadStrataRegistrationData = async (registrationId: string) => {
     $reset()
     await loadPermitRegistrationData(registrationId)
-    await populateStrataDetails()
+    populateStrataDetails()
   }
 
-  const loadStrata = async (applicationId: string, loadDraft: boolean) => {
+  const loadStrata = async (applicationId: string, loadDraft: boolean = false) => {
     $reset()
     await loadPermitData(applicationId)
-    await populateStrataDetails(loadDraft)
+    populateStrataDetails(loadDraft)
   }
 
   const populateStrataDetails = (loadDraft = false) => {
@@ -44,9 +44,10 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     }
     if (showPermitDetails.value || loadDraft) {
       // set relevant sub store values to active platform data
-      if (permitDetails.value.strataHotelRepresentatives?.length > 0) {
-        // @ts-expect-error - strataHotelRepresentatives[0] will always be defined here
-        primaryRep.value = formatRepresentativeUI(permitDetails.value.strataHotelRepresentatives[0])
+      const strataReps = permitDetails.value.strataHotelRepresentatives
+
+      if (strataReps?.[0]) {
+        primaryRep.value = formatRepresentativeUI(strataReps[0])
         // set isCompletingPartyRep if primary rep contact info is the same as the completing party info
         isCompletingPartyRep.value = primaryRep.value.firstName === completingParty.value.firstName &&
           primaryRep.value.middleName === completingParty.value.middleName &&
@@ -57,9 +58,8 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
           primaryRep.value.phone.extension === completingParty.value.phone.extension
       }
       // should only ever be 2 reps at most
-      if (permitDetails.value.strataHotelRepresentatives?.length > 1) {
-        // @ts-expect-error - strataHotelRepresentatives[1] will always be defined here
-        secondaryRep.value = formatRepresentativeUI(permitDetails.value.strataHotelRepresentatives[1])
+      if (strataReps?.[1]) {
+        secondaryRep.value = formatRepresentativeUI(strataReps[1])
       }
       strataBusiness.value = formatBusinessDetailsUI(permitDetails.value.businessDetails)
       if (!strataBusiness.value.hasRegOffAtt && loadDraft) {
@@ -86,6 +86,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     contactStore.$reset()
     businessStore.$reset()
     detailsStore.$reset()
+    documentStore.$reset()
     application.value = undefined
     registration.value = undefined
     isRegistrationRenewal.value = false

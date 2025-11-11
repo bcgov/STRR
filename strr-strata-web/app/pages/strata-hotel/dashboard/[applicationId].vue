@@ -46,7 +46,7 @@ onMounted(async () => {
       id: 'todo-renew-strata',
       title: '[Renew Strata]',
       subtitle: '[Expired placeholder]',
-      button: {
+      buttons: [{
         label: t('btn.renew'),
         action: async () => {
           useState('renewalRegId', () => registration.value?.id)
@@ -55,7 +55,7 @@ onMounted(async () => {
             query: { renew: 'true' }
           })
         }
-      }
+      }]
     })
   }
 
@@ -129,17 +129,6 @@ definePageMeta({
     return true
   }
 })
-
-setBreadcrumbs([
-  {
-    label: t('label.bcregDash'),
-    to: config.registryHomeURL + 'dashboard',
-    appendAccountId: true,
-    external: true
-  },
-  { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
-  { label: 'Item 1' }
-])
 </script>
 <template>
   <div class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10">
@@ -149,7 +138,7 @@ setBreadcrumbs([
         <Todo
           v-for="todo in todos"
           :id="todo.id"
-          :key="todo.title"
+          :key="todo.id"
           :title="todo.title"
           :subtitle="todo.subtitle"
           :buttons="todo.buttons"

@@ -9,6 +9,8 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
   const businessStore = useStrrStrataBusinessStore()
   const detailsStore = useStrrStrataDetailsStore()
   const documentStore = useDocumentStore()
+  const strataStore = useStrrStrataStore()
+  const { isRegistrationRenewal, registration, application } = storeToRefs(strataStore)
 
   const confirmation = reactive({
     confirmation: false
@@ -35,7 +37,12 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
   const createApplicationBody = () => {
     const applicationBody: StrataApplicationPayload = {
       header: {
-        paymentMethod: useConnectFeeStore().userSelectedPaymentMethod
+        paymentMethod: useConnectFeeStore().userSelectedPaymentMethod,
+        ...(isRegistrationRenewal.value && {
+          // to keep renewal application/draft/registration linked together we must have the registration id here
+          registrationId: registration.value?.id || application.value?.header.registrationId,
+          applicationType: 'renewal'
+        })
       },
       registration: {
         registrationType: ApplicationType.STRATA_HOTEL,
