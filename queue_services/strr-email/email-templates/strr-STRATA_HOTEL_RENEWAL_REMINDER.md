@@ -3,7 +3,7 @@
 **Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{{reg_num}}  
 **Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
  
-**Street Address:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{street_address}}  
+**Street Address:**&nbsp;{{street_address}}  
 **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 
