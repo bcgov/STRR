@@ -24,6 +24,11 @@ const handleInput = () => {
     emailFormRef.value.clear()
   }
 }
+
+// Reset the email a completing party content so that it does not carry to other applications
+onMounted(() => {
+  emailContent.value.content = ''
+})
 </script>
 
 <template>

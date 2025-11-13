@@ -26,7 +26,7 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   conditions.value = []
   customConditions.value = null
   minBookingDays.value = null
-  decisionEmailFormRef.value.clear()
+  decisionEmailFormRef?.value?.clear()
 }
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
@@ -284,7 +284,6 @@ onMounted(() => {
                       sm: 'p-4'
                     }
                   }"
-                  @update:model-value="decisionEmailFormRef.clear()"
                 />
               </UFormGroup>
             </UForm>

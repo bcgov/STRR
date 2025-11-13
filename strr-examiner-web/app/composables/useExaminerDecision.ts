@@ -45,7 +45,7 @@ export const useExaminerDecision = () => {
   const resetDecision = (): void => {
     decisionIntent.value = null
     decisionEmailContent.value.content = ''
-    decisionEmailFormRef.value.clear()
+    decisionEmailFormRef?.value?.clear()
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null
