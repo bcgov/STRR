@@ -16,7 +16,8 @@ vi.mock('@/stores/examiner', () => ({
     activeRecord: ref(mockHostApplicationWithFlags),
     isApplication: ref(true),
     isAssignedToUser: ref(true),
-    isFilingHistoryOpen: ref(true)
+    isFilingHistoryOpen: ref(true),
+    emailContent: ref({ content: '' })
   })
 }))
 
