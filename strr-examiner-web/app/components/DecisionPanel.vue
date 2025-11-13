@@ -284,6 +284,7 @@ onMounted(() => {
                       sm: 'p-4'
                     }
                   }"
+                  @update:model-value="decisionEmailFormRef.clear()"
                 />
               </UFormGroup>
             </UForm>
