@@ -64,7 +64,8 @@ vi.mock('@/stores/examiner', () => ({
       window.open(url, '_blank')
       URL.revokeObjectURL(url)
       setTimeout(() => URL.revokeObjectURL(url), 100)
-    })
+    }),
+    emailContent: ref({ content: '' })
   })
 }))
 

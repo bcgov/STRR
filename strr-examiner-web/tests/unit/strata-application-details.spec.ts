@@ -35,7 +35,8 @@ vi.mock('@/stores/examiner', () => ({
     activeRecord: ref(mockStrataApplication),
     isApplication: ref(true),
     isFilingHistoryOpen: ref(true),
-    isAssignedToUser
+    isAssignedToUser,
+    emailContent: ref({ content: '' })
   })
 }))
 
