@@ -21,7 +21,7 @@ const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 const documentStore = useDocumentStore()
 const { isRenewalsEnabled } = useStrataFeatureFlags()
-const { isEligibleForRenewal } = useRenewals()
+const { getStrataRegistrationTodos } = useRenewals()
 
 const todos = ref<Todo[]>([])
 const buildings = ref<ConnectAccordionItem[]>([])
@@ -41,22 +41,9 @@ onMounted(async () => {
     application.value?.header
   )
 
-  if (isRenewalsEnabled.value && isEligibleForRenewal.value) {
-    todos.value.push({
-      id: 'todo-renew-strata',
-      title: '[Renew Strata]',
-      subtitle: '[Expired placeholder]',
-      buttons: [{
-        label: t('btn.renew'),
-        action: async () => {
-          useState('renewalRegId', () => registration.value?.id)
-          await navigateTo({
-            path: localePath('/strata-hotel/application'),
-            query: { renew: 'true' }
-          })
-        }
-      }]
-    })
+  if (isRenewalsEnabled.value) {
+    const renewalTodos: Todo[] = await getStrataRegistrationTodos()
+    todos.value.push(...renewalTodos)
   }
 
   if (!permitDetails.value || !showPermitDetails.value) {
