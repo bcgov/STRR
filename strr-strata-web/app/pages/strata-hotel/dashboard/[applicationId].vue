@@ -20,7 +20,6 @@ const {
 const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 const documentStore = useDocumentStore()
-const { isRenewalsEnabled } = useStrataFeatureFlags()
 const { getStrataRegistrationTodos } = useRenewals()
 
 const todos = ref<Todo[]>([])
@@ -41,10 +40,8 @@ onMounted(async () => {
     application.value?.header
   )
 
-  if (isRenewalsEnabled.value) {
-    const renewalTodos: Todo[] = await getStrataRegistrationTodos()
-    todos.value.push(...renewalTodos)
-  }
+  const renewalTodos: Todo[] = await getStrataRegistrationTodos()
+  todos.value.push(...renewalTodos)
 
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?

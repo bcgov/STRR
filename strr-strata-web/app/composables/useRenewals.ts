@@ -5,9 +5,10 @@ export const useRenewals = () => {
   const { t } = useI18n()
   const localePath = useLocalePath()
 
-  const isEligibleForRenewal = ref(false)
-
   const { registration } = storeToRefs(useStrrStrataStore())
+  const { isRenewalsEnabled } = useStrataFeatureFlags()
+
+  const isEligibleForRenewal = ref(false)
 
   const getStrataRegistrationTodos = async (): Promise<Todo[]> => {
     if (!registration.value) {
@@ -21,7 +22,7 @@ export const useRenewals = () => {
     // check if todos have a renewable registration
     const hasRenewalTodo: boolean = todos.find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
 
-    if (hasRenewalTodo) {
+    if (isRenewalsEnabled.value && hasRenewalTodo) {
       const translationProps = {
         newLine: '<br/>',
         boldStart: '<strong>',
