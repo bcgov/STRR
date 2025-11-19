@@ -6,7 +6,9 @@ export const useStrrApi = () => {
 
   const getAccountRegistrations = async <T extends ApiBaseRegistration>(
     id?: number | string,
-    type?: ApplicationType
+    type?: ApplicationType,
+    limit?: number,
+    offset?: number
   ) => {
     if (id) {
       return await $strrApi<T>(`/registrations/${id}`).catch((e) => {
@@ -15,10 +17,17 @@ export const useStrrApi = () => {
       })
     }
     // TODO: add type filter in call (need in api first)
-    const resp = await $strrApi<{ registrations: T[] }>('/registrations')
-    return type
-      ? resp.registrations?.filter(reg => reg.registrationType === type)
-      : resp.registrations
+    const resp = await $strrApi<{ registrations: T[], total: number }>('/registrations', {
+      query: {
+        limit,
+        offset
+      }
+    })
+    if (type) {
+      const filtered = resp.registrations?.filter(reg => reg.registrationType === type)
+      return { registrations: filtered, total: filtered?.length || 0 }
+    }
+    return resp
   }
 
   const getAccountApplication = async <T extends ApiApplicationBaseResp>(
@@ -46,7 +55,7 @@ export const useStrrApi = () => {
     limit = 50,
     page = 1,
     registrationType?: ApplicationType,
-    status?: ApplicationStatus,
+    status?: ApplicationStatus | ApplicationStatus[],
     sortBy?: ApplicationSortBy,
     sortOrder?: ApplicationSortOrder,
     includeDraftRegistration?: boolean,
