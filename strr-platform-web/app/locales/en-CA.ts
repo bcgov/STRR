@@ -127,7 +127,16 @@ export default {
     checkbox: 'I confirm that I understand and agree to the above.'
   },
   btn: {
-    learnMore: 'Learn More'
+    learnMore: 'Learn More',
+    renew: 'Renew'
+  },
+  todos: {
+    renewal: {
+      title1: 'Registration Renewal - Due:',
+      title2: 'at 11:59 pm PT',
+      expiresSoon: 'Your short-term rental registration will expire soon. Please submit a renewal application to keep your registration active.{newLine}{boldStart}Ensure you have all your supporting documents up to date and ready to upload before renewing.{boldEnd}{newLine}{newLine}{boldStart}Note:{boldEnd} If you need to change any of the information listed below, you must submit a new registration.{newLine}{newLine}\u2022 Business Legal Name',
+      expired: 'Your short-term rental registration has expired. Please submit a renewal application to reactivate your registration.{newLine}{newLine}{boldStart}Note:{boldEnd} If you wish to change any of the following information, you must submit a new short-term rental application instead of a renewal application.{newLine}{newLine}\u2022 Business Legal Name'
+    }
   },
   ConnectFeeWidget: {
     feeSummary: {

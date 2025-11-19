@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import { HostActions } from '~/enums/host-actions'
 
 // TODO: host actions enums
@@ -96,4 +97,51 @@ export const getTodoApplication = (
   }
 
   return todos
+}
+
+export const getTodoRegistration = async (regId: number) => {
+  const { getRegistrationToDos } = useStrrApi()
+
+  const { todos } = await getRegistrationToDos(regId)
+
+  // check if todos have a renewable registration
+  const hasRenewalTodo: boolean = todos
+    .some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
+
+  return {
+    hasRenewalTodo
+  }
+}
+
+// Get information for Renewal Todo: due date, overdue status, etc.
+export const getTodoRenewalInfo = (expiryDate: Date | string): {
+  isOverdue: boolean
+  renewalDueDate: string
+  countdownLabel: string
+} => {
+  const { t } = useNuxtApp().$i18n
+
+  const isoDate = expiryDate instanceof Date ? expiryDate.toISOString() : expiryDate
+
+  const expDate = DateTime.fromISO(isoDate).setZone('America/Vancouver')
+
+  // convert expiry date to medium format date, eg Apr 1, 2025
+  const renewalDueDate = expDate.toLocaleString(DateTime.DATE_MED)
+  const today = DateTime.now().setZone('America/Vancouver')
+
+  // number of days for renewal due date
+  const daysToRenew = Math.floor(expDate.diff(today, 'days').toObject().days!)
+
+  const isOverdue = daysToRenew < 0
+
+  // label for the due days count
+  const countdownLabel = isOverdue
+    ? t('label.renewalOverdue')
+    : t('label.renewalDayCount', daysToRenew)
+
+  return {
+    isOverdue,
+    renewalDueDate,
+    countdownLabel
+  }
 }

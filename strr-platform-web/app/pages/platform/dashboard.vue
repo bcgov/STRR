@@ -1,6 +1,9 @@
 <script setup lang="ts">
+const localePath = useLocalePath()
+
 const { t } = useI18n()
 const config = useRuntimeConfig().public
+const ldStore = useConnectLaunchdarklyStore()
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
 const { downloadApplicationReceipt, loadPlatform } = useStrrPlatformStore()
@@ -18,6 +21,33 @@ const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
+const isRenewalsEnabled: boolean = ldStore.getStoredFlag('enable-platform-registration-renewals')
+
+const addRenewalTodo = async (): Promise<void> => {
+  const { hasRenewalTodo } = await getTodoRegistration(registration.value!.id)
+
+  if (!hasRenewalTodo) { return }
+
+  const { isOverdue, renewalDueDate, countdownLabel } = getTodoRenewalInfo(registration.value!.expiryDate)
+
+  todos.value.push({
+    id: 'todo-renew-platform',
+    title: `${t('todos.renewal.title1')} ${renewalDueDate} ${t('todos.renewal.title2')} (${countdownLabel})`,
+    subtitle: t(isOverdue
+      ? 'todos.renewal.expired'
+      : 'todos.renewal.expiresSoon', translateOptions),
+    buttons: [{
+      label: t('btn.renew'),
+      action: async () => {
+        useState('renewalRegId').value = registration.value?.id
+        await navigateTo({
+          path: localePath('/platform/application'),
+          query: { renew: 'true' }
+        })
+      }
+    }]
+  })
+}
 
 onMounted(async () => {
   loading.value = true
@@ -28,6 +58,11 @@ onMounted(async () => {
     '/platform/dashboard/' + application.value?.header.applicationNumber,
     application.value?.header
   )
+
+  if (registration.value && isRenewalsEnabled) {
+    await addRenewalTodo()
+  }
+
   if (!permitDetails.value || !showPermitDetails.value) {
     // no registration or valid complete application under the account, set static header
     title.value = t('strr.title.dashboard')
