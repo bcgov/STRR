@@ -4,7 +4,12 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
 const { deleteApplication, getAccountRegistrations, getAccountApplications } = useStrrApi()
-const { isDashboardTableSortingEnabled } = useHostFeatureFlags()
+const { isDashboardTableSortingEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
+
+// Redirect to old dashboard if feature flag is not enabled
+if (!isNewDashboardEnabled.value) {
+  await navigateTo(localePath('/dashboard'))
+}
 
 // Applications list setup
 const applicationsLimit = ref(10)

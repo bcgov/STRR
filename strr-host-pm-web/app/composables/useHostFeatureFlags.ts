@@ -7,6 +7,7 @@ export const useHostFeatureFlags = () => {
     isNewAddressFormEnabled: isFeatureEnabled('enable-host-new-address-form'),
     isNewRentalUnitSetupEnabled: isFeatureEnabled('enable-host-new-rental-unit-setup'),
     isNewPrDocumentsListEnabled: isFeatureEnabled('enable-host-new-pr-documents'),
-    isDashboardTableSortingEnabled: isFeatureEnabled('enable-dashboard-table-sorting')
+    isDashboardTableSortingEnabled: isFeatureEnabled('enable-host-dashboard-table-sorting'),
+    isNewDashboardEnabled: isFeatureEnabled('enable-new-host-dashboard')
   }
 }
