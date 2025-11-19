@@ -48,68 +48,30 @@ setBreadcrumbs([
   { label: t('page.dashboardList.h1') }
 ])
 
+// Helper to create sortable column
+const createColumn = (key: string, label: string, sortable = true) => ({
+  key,
+  label,
+  ...(sortable && { sortable: isDashboardTableSortingEnabled.value })
+})
+
+const commonColumns = [
+  createColumn('number', t('label.number')),
+  createColumn('status', t('label.status')),
+  createColumn('address', t('label.address')),
+  createColumn('localGovernment', t('label.localGovernment'))
+]
+
 const applicationsColumns = [
-  {
-    key: 'number',
-    label: t('label.number'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'status',
-    label: t('label.status'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'address',
-    label: t('label.address'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'localGovernment',
-    label: t('label.localGovernment'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'dateSubmitted',
-    label: t('label.dateSubmitted'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'actions',
-    label: t('label.actions')
-  }
+  ...commonColumns,
+  createColumn('dateSubmitted', t('label.dateSubmitted')),
+  createColumn('actions', t('label.actions'), false)
 ]
 
 const registrationsColumns = [
-  {
-    key: 'number',
-    label: t('label.number'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'status',
-    label: t('label.status'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'address',
-    label: t('label.address'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'localGovernment',
-    label: t('label.localGovernment'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'expiryDate',
-    label: t('label.expirationDate'),
-    sortable: isDashboardTableSortingEnabled.value
-  },
-  {
-    key: 'actions',
-    label: t('label.actions')
-  }
+  ...commonColumns,
+  createColumn('expiryDate', t('label.expirationDate')),
+  createColumn('actions', t('label.actions'), false)
 ]
 
 // Fetch Applications
@@ -252,6 +214,27 @@ watch(applicationsResp, () => { applicationsList.value = mapApplicationsList() }
 const registrationsList = ref(mapRegistrationsList())
 watch(registrationsResp, () => { registrationsList.value = mapRegistrationsList() })
 
+// Common UI configurations
+const tableUI = {
+  wrapper: 'relative overflow-x-auto h-[512px]',
+  thead: 'sticky top-0 bg-white z-10',
+  th: { padding: 'p-2' },
+  td: {
+    base: 'whitespace-normal max-w-96 align-top',
+    padding: 'p-4',
+    color: 'text-bcGovColor-midGray',
+    font: '',
+    size: 'text-sm'
+  }
+}
+
+const paginationUI = {
+  base: 'h-[42px]',
+  default: {
+    activeButton: { class: 'rounded' }
+  }
+}
+
 // Delete draft application
 const deleting = ref(false)
 async function deleteDraft (row: any) {
@@ -322,12 +305,7 @@ async function handleRegistrationSelect (row: any) {
                 :page-count="registrationsLimit"
                 size="lg"
                 :total="registrationsResp?.total || 0"
-                :ui="{
-                  base: 'h-[42px]',
-                  default: {
-                    activeButton: { class: 'rounded' }
-                  }
-                }"
+                :ui="paginationUI"
               />
             </div>
           </div>
@@ -337,18 +315,7 @@ async function handleRegistrationSelect (row: any) {
           :rows="registrationsList"
           :loading="registrationsStatus === 'pending'"
           :empty-state="{ icon: '', label: t('page.dashboardList.noRegistrationsFound') }"
-          :ui="{
-            wrapper: 'relative overflow-x-auto h-[512px]',
-            thead: 'sticky top-0 bg-white z-10',
-            th: { padding: 'p-2' },
-            td: {
-              base: 'whitespace-normal max-w-96 align-top',
-              padding: 'p-4',
-              color: 'text-bcGovColor-midGray',
-              font: '',
-              size: 'text-sm',
-            }
-          }"
+          :ui="tableUI"
         >
           <template #number-data="{ row }">
             <div class="flex flex-col gap-1">
@@ -380,13 +347,12 @@ async function handleRegistrationSelect (row: any) {
             <div class="flex flex-col">
               <span>
                 {{
-                  `${row.address.unitNumber ? row.address.unitNumber + '-' : ''}
-${row.address.streetNumber} ${row.address.streetName}`
+                  `${row.address.unitNumber ? row.address.unitNumber + '-' : ''}${
+                    row.address.streetNumber
+                  } ${row.address.streetName}`
                 }}
               </span>
-              <span>
-                {{ row.address.city }}
-              </span>
+              <span>{{ row.address.city }}</span>
             </div>
           </template>
 
@@ -420,12 +386,7 @@ ${row.address.streetNumber} ${row.address.streetName}`
                 :page-count="applicationsLimit"
                 size="lg"
                 :total="totalFilteredApplications"
-                :ui="{
-                  base: 'h-[42px]',
-                  default: {
-                    activeButton: { class: 'rounded' }
-                  }
-                }"
+                :ui="paginationUI"
               />
             </div>
           </div>
@@ -435,30 +396,18 @@ ${row.address.streetNumber} ${row.address.streetName}`
           :rows="applicationsList"
           :loading="applicationsStatus === 'pending' || deleting"
           :empty-state="{ icon: '', label: t('page.dashboardList.noApplicationsInProgress') }"
-          :ui="{
-            wrapper: 'relative overflow-x-auto h-[512px]',
-            thead: 'sticky top-0 bg-white z-10',
-            th: { padding: 'p-2' },
-            td: {
-              base: 'whitespace-normal max-w-96 align-top',
-              padding: 'p-4',
-              color: 'text-bcGovColor-midGray',
-              font: '',
-              size: 'text-sm',
-            }
-          }"
+          :ui="tableUI"
         >
           <template #address-data="{ row }">
             <div class="flex flex-col">
               <span>
                 {{
-                  `${row.address.unitNumber ? row.address.unitNumber + '-' : ''}
-${row.address.streetNumber} ${row.address.streetName}`
+                  `${row.address.unitNumber ? row.address.unitNumber + '-' : ''}${
+                    row.address.streetNumber
+                  } ${row.address.streetName}`
                 }}
               </span>
-              <span>
-                {{ row.address.city }}
-              </span>
+              <span>{{ row.address.city }}</span>
             </div>
           </template>
 
