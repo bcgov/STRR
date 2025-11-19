@@ -66,12 +66,12 @@ const applicationsColumns = [
   },
   {
     key: 'localGovernment',
-    label: 'Local Government',
+    label: t('label.localGovernment'),
     sortable: isDashboardTableSortingEnabled.value
   },
   {
     key: 'dateSubmitted',
-    label: 'Date Submitted',
+    label: t('label.dateSubmitted'),
     sortable: isDashboardTableSortingEnabled.value
   },
   {
@@ -98,12 +98,12 @@ const registrationsColumns = [
   },
   {
     key: 'localGovernment',
-    label: 'Local Government',
+    label: t('label.localGovernment'),
     sortable: isDashboardTableSortingEnabled.value
   },
   {
     key: 'expiryDate',
-    label: 'Expiration Date',
+    label: t('label.expirationDate'),
     sortable: isDashboardTableSortingEnabled.value
   },
   {
@@ -155,9 +155,9 @@ const { data: registrationsResp, status: registrationsStatus } = await useAsyncD
   async () => {
     const resp = await getAccountRegistrations<ApiRegistrationResp>(
       undefined,
-      ApplicationType.HOST
-      // registrationsLimit.value,
-      // registrationsPage.value
+      ApplicationType.HOST,
+      registrationsLimit.value,
+      registrationsPage.value
     )
     // Handle both array and object response formats
     if (Array.isArray(resp)) {
@@ -182,7 +182,7 @@ const mapApplicationsList = () => {
       number: app.header.applicationNumber,
       status: app.header.hostStatus,
       address: displayAddress,
-      localGovernment: app.registration?.strRequirements?.organizationNm || 'N/A',
+      localGovernment: app.registration?.strRequirements?.organizationNm || t('text.notAvailable'),
       dateSubmitted: app.header.applicationDateTime,
       applicationNumber: app.header.applicationNumber
     }
@@ -235,7 +235,7 @@ const mapRegistrationsList = () => {
       number: registration.registrationNumber,
       status: registration.header?.hostStatus || registration.status,
       address: displayAddress,
-      localGovernment: registration.unitDetails?.jurisdiction || 'N/A',
+      localGovernment: registration.unitDetails?.jurisdiction || t('text.notAvailable'),
       expiryDate: registration.expiryDate,
       isExpiryCritical: isExpiryDateCritical(registration.expiryDate),
       hasRenewalDraft: hasRenewalDraft(registration),
@@ -313,7 +313,7 @@ async function handleRegistrationSelect (row: any) {
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="font-normal">
-              My Short-Term Rentals ({{ registrationsResp?.total || 0 }})
+              {{ $t('page.dashboardList.myShortTermRentals') }} ({{ registrationsResp?.total || 0 }})
             </h2>
             <div class="flex gap-3">
               <UPagination
@@ -336,7 +336,7 @@ async function handleRegistrationSelect (row: any) {
           :columns="registrationsColumns"
           :rows="registrationsList"
           :loading="registrationsStatus === 'pending'"
-          :empty-state="{ icon: '', label: 'No registrations found' }"
+          :empty-state="{ icon: '', label: t('page.dashboardList.noRegistrationsFound') }"
           :ui="{
             wrapper: 'relative overflow-x-auto h-[512px]',
             thead: 'sticky top-0 bg-white z-10',
@@ -356,12 +356,12 @@ async function handleRegistrationSelect (row: any) {
               <div class="flex gap-1">
                 <UBadge
                   v-if="row.hasRenewalDraft"
-                  color="gray"
+                  color="blue"
                   variant="subtle"
                   size="xs"
                   class="text-xs"
                 >
-                  Draft
+                  {{ $t('page.dashboardBadges.renewalDraft') }}
                 </UBadge>
                 <UBadge
                   v-if="row.hasRenewalInProgress"
@@ -370,7 +370,7 @@ async function handleRegistrationSelect (row: any) {
                   size="xs"
                   class="text-xs"
                 >
-                  In Progress
+                  {{ $t('page.dashboardBadges.renewalInProgress') }}
                 </UBadge>
               </div>
             </div>
@@ -392,7 +392,7 @@ ${row.address.streetNumber} ${row.address.streetName}`
 
           <template #expiryDate-data="{ row }">
             <span :class="{'font-bold text-red-500': row.isExpiryCritical}">
-              {{ row.expiryDate ? dateToStringPacific(row.expiryDate) : 'N/A' }}
+              {{ row.expiryDate ? dateToStringPacific(row.expiryDate) : t('text.notAvailable') }}
             </span>
           </template>
 
@@ -411,7 +411,7 @@ ${row.address.streetNumber} ${row.address.streetName}`
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="font-normal">
-              Applications in progress ({{ totalFilteredApplications }})
+              {{ $t('page.dashboardList.applicationsInProgress') }} ({{ totalFilteredApplications }})
             </h2>
             <div class="flex gap-3">
               <UPagination
@@ -434,7 +434,7 @@ ${row.address.streetNumber} ${row.address.streetName}`
           :columns="applicationsColumns"
           :rows="applicationsList"
           :loading="applicationsStatus === 'pending' || deleting"
-          :empty-state="{ icon: '', label: 'No applications in progress' }"
+          :empty-state="{ icon: '', label: t('page.dashboardList.noApplicationsInProgress') }"
           :ui="{
             wrapper: 'relative overflow-x-auto h-[512px]',
             thead: 'sticky top-0 bg-white z-10',

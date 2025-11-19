@@ -515,7 +515,15 @@ export default {
     dashboardList: {
       title: 'Dashboard - My Short-Term Rental Registry',
       h1: 'My Short-Term Rental Registry',
-      subtitle: 'Register and keep short-term rental unit information up to date.'
+      subtitle: 'Register and keep short-term rental unit information up to date.',
+      myShortTermRentals: 'My Short-Term Rentals',
+      applicationsInProgress: 'Applications in progress',
+      noRegistrationsFound: 'No registrations found',
+      noApplicationsInProgress: 'No applications in progress'
+    },
+    dashboardBadges: {
+      renewalDraft: 'Renewal Draft',
+      renewalInProgress: 'Renewal In Progress'
     },
     chooseAccount: {
       title: 'Choose Account - My Short-Term Rental Registry',

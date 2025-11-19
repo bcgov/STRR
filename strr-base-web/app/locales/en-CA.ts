@@ -139,6 +139,8 @@ export default {
   label: {
     additionalInfo: 'Additional Information',
     applicationDate: 'Application Date',
+    localGovernment: 'Local Government',
+    dateSubmitted: 'Date Submitted',
     authorization: 'Authorization',
     born: 'Born',
     confirmation: 'Confirmation',
@@ -149,6 +151,7 @@ export default {
     daysToExpiryExtra: 'Days to Expiry (Pacific Time)',
     details: 'Details',
     expiryDate: 'Expiry Date',
+    expirationDate: 'Expiration Date',
     registrationDate: 'Registration Date',
     role: 'Role',
     note: 'Note',
