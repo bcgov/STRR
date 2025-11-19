@@ -22,15 +22,26 @@ const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 const isRenewalsEnabled: boolean = ldStore.getStoredFlag('enable-platform-registration-renewals')
+const hasPermitDetails = computed(() => Boolean(permitDetails.value && showPermitDetails.value))
 
-const addRenewalTodo = async (): Promise<void> => {
-  const { hasRenewalTodo } = await getTodoRegistration(registration.value!.id)
+const getApplicationTodo = () => {
+  return getTodoApplication(
+    '/platform/application',
+    '/platform/dashboard/' + application.value?.header.applicationNumber,
+    application.value?.header
+  )
+}
 
-  if (!hasRenewalTodo) { return }
+const getRenewalToDo = async (): Promise<Todo[]> => {
+  if (!registration.value || !isRenewalsEnabled) { return [] }
+
+  const { hasRenewalTodo } = await getTodoRegistration(registration.value.id)
+
+  if (!hasRenewalTodo) { return [] }
 
   const { isOverdue, renewalDueDate, countdownLabel } = getTodoRenewalInfo(registration.value!.expiryDate)
 
-  todos.value.push({
+  return [{
     id: 'todo-renew-platform',
     title: `${t('todos.renewal.title1')} ${renewalDueDate} ${t('todos.renewal.title2')} (${countdownLabel})`,
     subtitle: t(isOverdue
@@ -46,27 +57,69 @@ const addRenewalTodo = async (): Promise<void> => {
         })
       }
     }]
+  }]
+}
+
+const setSidePanelDetails = () => {
+  // set sidebar accordion addresses
+  addresses.value = getDashboardAddresses(platformBusiness.value)
+  // platform specific address items (emails)
+  addresses.value.push({
+    showAvatar: false,
+    label: t('strr.label.emailAddresses'),
+    values: [
+      {
+        icon: 'i-mdi-at',
+        label: t('strr.label.noncomplianceEmail'),
+        text: platformBusiness.value.nonComplianceEmail
+      },
+      ...(platformBusiness.value.nonComplianceEmailOptional
+        ? [{ class: '-mt-2 pl-9', text: platformBusiness.value.nonComplianceEmailOptional }]
+        : []),
+      {
+        icon: 'i-mdi-at',
+        label: t('strr.label.takedownEmail'),
+        text: platformBusiness.value.takeDownEmail
+      },
+      ...(platformBusiness.value.takeDownEmailOptional
+        ? [{ class: '-mt-2 pl-9', text: platformBusiness.value.takeDownEmailOptional }]
+        : [])
+    ]
   })
+  // set sidebar accordion reps
+  representatives.value = getDashboardRepresentatives()
+  // set side bar completing party
+  completingParty.value = getDashboardCompParty()
+}
+
+const setRegistrationHeaderDetails = () => {
+  if (!registration.value) {
+    setHeaderDetails(
+      application.value?.header.hostStatus,
+      undefined,
+      isPaidApplication.value ? downloadApplicationReceipt : undefined)
+  } else {
+    setHeaderDetails(
+      registration.value.status,
+      dateToStringPacific(registration.value.expiryDate, 'DDD'),
+      downloadApplicationReceipt)
+  }
+  // add common side details
+  setSideHeaderDetails(registration.value, application.value?.header)
+  // add platform specific side details
+  setPlatformSideHeaderDetails()
 }
 
 onMounted(async () => {
   loading.value = true
   await loadPlatform()
-  // set header stuff
-  todos.value = getTodoApplication(
-    '/platform/application',
-    '/platform/dashboard/' + application.value?.header.applicationNumber,
-    application.value?.header
-  )
 
-  if (registration.value && isRenewalsEnabled) {
-    await addRenewalTodo()
-  }
+  // add application todo
+  todos.value.push(...getApplicationTodo())
+  // add renewal todo
+  todos.value.push(...await getRenewalToDo())
 
-  if (!permitDetails.value || !showPermitDetails.value) {
-    // no registration or valid complete application under the account, set static header
-    title.value = t('strr.title.dashboard')
-  } else {
+  if (hasPermitDetails.value) {
     // existing registration or application under the account
     // set left side of header
     title.value = platformBusiness.value.legalName
@@ -77,53 +130,8 @@ onMounted(async () => {
       ),
       { text: t(`strr.label.listingSize.${platformDetails.value.listingSize}`) }
     ]
-    if (!registration.value) {
-      setHeaderDetails(
-        application.value?.header.hostStatus,
-        undefined,
-        isPaidApplication.value ? downloadApplicationReceipt : undefined)
-    } else {
-      setHeaderDetails(
-        registration.value.status,
-        dateToStringPacific(registration.value.expiryDate, 'DDD'),
-        downloadApplicationReceipt)
-    }
-    // add common side details
-    setSideHeaderDetails(
-      registration.value,
-      application.value?.header)
-    // add platform specific side details
-    setPlatformSideHeaderDetails()
-    // set sidebar accordion addresses
-    addresses.value = getDashboardAddresses(platformBusiness.value)
-    // platform specific address items (emails)
-    addresses.value.push({
-      showAvatar: false,
-      label: t('strr.label.emailAddresses'),
-      values: [
-        {
-          icon: 'i-mdi-at',
-          label: t('strr.label.noncomplianceEmail'),
-          text: platformBusiness.value.nonComplianceEmail
-        },
-        ...(platformBusiness.value.nonComplianceEmailOptional
-          ? [{ class: '-mt-2 pl-9', text: platformBusiness.value.nonComplianceEmailOptional }]
-          : []),
-        {
-          icon: 'i-mdi-at',
-          label: t('strr.label.takedownEmail'),
-          text: platformBusiness.value.takeDownEmail
-        },
-        ...(platformBusiness.value.takeDownEmailOptional
-          ? [{ class: '-mt-2 pl-9', text: platformBusiness.value.takeDownEmailOptional }]
-          : [])
-      ]
-    })
-    // set sidebar accordion reps
-    representatives.value = getDashboardRepresentatives()
-    // set side bar completing party
-    completingParty.value = getDashboardCompParty()
-    // update breadcrumbs with platform business name
+    setRegistrationHeaderDetails()
+    setSidePanelDetails()
     setBreadcrumbs([
       {
         label: t('label.bcregDash'),
@@ -133,6 +141,9 @@ onMounted(async () => {
       },
       { label: platformBusiness.value.legalName }
     ])
+  } else {
+    // no registration or valid complete application under the account, set static header
+    title.value = t('strr.title.dashboard')
   }
   loading.value = false
 })
