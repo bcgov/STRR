@@ -38,7 +38,11 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
         StrataHotelCategory.POST_DECEMBER_2023
       ], {
         errorMap: () => ({ message: t('validation.category') })
-      })
+      }),
+    unitListings: z.object({
+      primary: z.string().optional(),
+      additional: z.array(z.string().optional())
+    })
   })
 
   const getEmptyStrataDetails = () => ({
@@ -54,7 +58,11 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
       locationDescription: ''
     },
     numberOfUnits: undefined,
-    category: undefined
+    category: undefined,
+    unitListings: {
+      primary: '',
+      additional: []
+    }
   })
 
   const strataDetails = ref<StrataDetails>(getEmptyStrataDetails())
@@ -69,19 +77,63 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
       postalCode: '',
       locationDescription: ''
     })
+    strataDetails.value.unitListings.additional.push('')
   }
 
   const removeBuildingAtIndex = (index: number) => {
     strataDetails.value.buildings.splice(index, 1)
+    strataDetails.value.unitListings.additional.splice(index, 1)
   }
 
-  const validateStrataDetails = (returnBool = false): MultiFormValidationResult | boolean => {
-    const result = validateSchemaAgainstState(strataDetailsSchema, strataDetails.value, 'strata-details-form')
+  /**
+   * Validates that unit listings are not empty for renewal applications.
+   * Checks both primary building and all additional buildings.
+   */
+  const createUnitListValidationResult = () => {
+    const errors: z.ZodIssue[] = []
+
+    if (!strataDetails.value.unitListings.primary?.trim()) {
+      errors.push({
+        code: z.ZodIssueCode.custom,
+        message: t('validation.unitListRequired'),
+        path: ['unitListings', 'primary']
+      })
+    }
+
+    strataDetails.value.buildings.forEach((_building, index) => {
+      const units = strataDetails.value.unitListings.additional[index]
+      if (!units?.trim()) {
+        errors.push({
+          code: z.ZodIssueCode.custom,
+          message: t('validation.unitListRequired'),
+          path: ['unitListings', 'additional', index]
+        })
+      }
+    })
+
+    return {
+      formId: 'strata-unit-lists-form',
+      success: errors.length === 0,
+      errors
+    }
+  }
+
+  const validateStrataDetails = (
+    returnBool = false,
+    requireUnitListings = false
+  ): MultiFormValidationResult | boolean => {
+    const results: MultiFormValidationResult = [
+      validateSchemaAgainstState(strataDetailsSchema, strataDetails.value, 'strata-details-form')
+    ]
+
+    if (requireUnitListings) {
+      results.push(createUnitListValidationResult())
+    }
 
     if (returnBool) {
-      return result.success === true
+      return results.every(result => result.success === true)
     } else {
-      return [result]
+      return results
     }
   }
 

@@ -1,9 +1,15 @@
+export interface ApiStrataUnitListings {
+  primary?: string
+  additional?: string[]
+}
+
 export interface ApiStrataDetails {
   brand: StrrBrand
   buildings: ApiAddress[]
   location: ApiAddress
   numberOfUnits: number
   category: StrataHotelCategory | undefined
+  unitListings?: ApiStrataUnitListings
 }
 
 export interface ApiBaseStrataRegistration extends ApiBaseRegistration {
