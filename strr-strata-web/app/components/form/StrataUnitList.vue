@@ -19,7 +19,7 @@ const toggleExamples = () => {
 }
 
 const textareaId = computed(() => (
-  `${props.name.replace(/[^A-Za-z0-9_-]/g, '-')}-unit-list`
+  `${props.name.replaceAll(/[^A-Za-z0-9_-]/g, '-')}-unit-list`
 ))
 </script>
 
