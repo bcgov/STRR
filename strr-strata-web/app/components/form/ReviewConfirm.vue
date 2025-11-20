@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { Form } from '#ui/types'
+import ModalStrataUnitListModal from '~/components/modal/StrataUnitListModal.vue'
 const { kcUser } = useKeycloak()
+const { t } = useI18n()
 
 const accountStore = useConnectAccountStore()
 const contactStore = useStrrContactStore()
@@ -9,11 +11,37 @@ const businessStore = useStrrStrataBusinessStore()
 const detailsStore = useStrrStrataDetailsStore()
 const applicationStore = useStrrStrataApplicationStore()
 const documentStore = useDocumentStore()
+const modal = useModal()
+const { isRegistrationRenewal } = storeToRefs(useStrrStrataStore())
 
 const strataConfirmationFormRef = ref<Form<z.output<typeof applicationStore.confirmationSchema>>>()
 const sectionErrors = ref<MultiFormValidationResult>([])
 
 const props = defineProps<{ isComplete: boolean }>()
+
+/** Formats unit listings for display in the modal (only for renewals) */
+const unitListingGroups = computed<StrataUnitListingGroup[]>(() => {
+  if (!isRegistrationRenewal.value) { return [] }
+  return buildStrataUnitListingGroups(
+    detailsStore.strataDetails,
+    {
+      primaryLabel: t('strr.units.primaryLabel'),
+      buildingLabel: (index: number) => t('strr.units.buildingLabel', { number: index + 2 })
+    }
+  )
+})
+
+/** Checks if there are any unit listings to display */
+const hasUnitListingGroups = computed(() => unitListingGroups.value.length > 0)
+
+/** Opens the unit list modal showing all primary and additional building units */
+const openUnitListModal = () => {
+  if (!hasUnitListingGroups.value) { return }
+  modal.open(ModalStrataUnitListModal, {
+    title: t('strr.units.modalTitle'),
+    unitGroups: unitListingGroups.value
+  })
+}
 
 defineEmits<{
   edit: [index: number]
@@ -39,7 +67,7 @@ onMounted(async () => {
   const validations = [
     contactStore.validateContact(),
     businessStore.validateStrataBusiness(),
-    detailsStore.validateStrataDetails(),
+    detailsStore.validateStrataDetails(false, isRegistrationRenewal.value),
     documentStore.validateDocuments()
   ]
 
@@ -257,7 +285,9 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
       }"
     >
       <FormCommonReviewSection
-        :error="isSectionInvalid('strata-details-form') || isSectionInvalid('strata-documents-form')"
+        :error="isSectionInvalid('strata-details-form') ||
+          isSectionInvalid('strata-documents-form') ||
+          isSectionInvalid('strata-unit-lists-form')"
         :items="[
           {
             title: $t('strr.review.brand.name'),
@@ -266,6 +296,10 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
           {
             title: $t('strr.section.subTitle.numberOfUnits'),
             slot: 'numberOfUnits'
+          },
+          {
+            title: $t('strr.review.unitsOffered'),
+            slot: 'rentalUnits'
           },
           {
             title: $t('strr.section.subTitle.primaryStrataBuilding'),
@@ -298,6 +332,21 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
               '-'"
             class="mt-5"
           />
+        </template>
+        <template #rentalUnits>
+          <div v-if="isRegistrationRenewal">
+            <UButton
+              v-if="hasUnitListingGroups"
+              variant="link"
+              class="p-0 text-base text-bcGovColor-activeBlue underline"
+              :padded="false"
+              @click="openUnitListModal"
+            >
+              {{ $t('strr.review.unitsLink') }}
+            </UButton>
+            <span v-else> - </span>
+          </div>
+          <span v-else> - </span>
         </template>
         <template #buildings>
           <div class="space-y-5">

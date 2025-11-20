@@ -6,6 +6,7 @@ const rtc = useRuntimeConfig().public
 const strataModal = useStrataModals()
 const { addNewEmptyBuilding, removeBuildingAtIndex, strataDetailsSchema } = useStrrStrataDetailsStore()
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+const { isRegistrationRenewal } = storeToRefs(useStrrStrataStore())
 const docStore = useDocumentStore()
 const { getDocumentSchema } = docStore
 
@@ -13,6 +14,23 @@ const props = defineProps<{ isComplete: boolean }>()
 
 const strataDetailsFormRef = ref<Form<z.output<typeof strataDetailsSchema>>>()
 const documentFormRef = ref<Form<any>>()
+
+/** Checks if a unit listing value has actual content (not just whitespace) */
+const hasUnitsValue = (value?: string) => !!value && value.trim().length > 0
+
+/** Determines if primary building unit list error should be displayed */
+const shouldShowPrimaryUnitsError = computed(() => (
+  isRegistrationRenewal.value &&
+  props.isComplete &&
+  !hasUnitsValue(strataDetails.value.unitListings.primary)
+))
+
+/** Determines if additional building unit list error should be displayed for a given building index */
+const shouldShowAdditionalUnitsError = (index: number) => (
+  isRegistrationRenewal.value &&
+  props.isComplete &&
+  !hasUnitsValue(strataDetails.value.unitListings.additional[index])
+)
 
 // revalidate form to remove errors if field previously shows error
 watch(() => docStore.storedDocuments,
@@ -173,21 +191,36 @@ onMounted(async () => {
                 :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
                 :use-location-desc-label="true"
               />
-              <UButton
-                v-if="!strataDetails.buildings.length"
-                :label="$t('strr.label.addBuilding')"
-                class="px-5 py-3"
-                color="primary"
-                icon="i-mdi-home-plus"
-                variant="outline"
-                @click="addNewEmptyBuilding()"
-              />
             </div>
           </ConnectFormSection>
+          <ConnectFormSection
+            v-if="isRegistrationRenewal"
+            :title="$t('strr.units.title')"
+            :error="shouldShowPrimaryUnitsError"
+          >
+            <FormStrataUnitList
+              v-model="strataDetails.unitListings.primary"
+              name="unitListings.primary"
+              :is-required="isRegistrationRenewal"
+              :show-error="shouldShowPrimaryUnitsError"
+              :error-message="$t('strr.units.error')"
+            />
+          </ConnectFormSection>
+          <div v-if="strataDetails.buildings.length === 0" class="ml-[220px] mt-10">
+            <UButton
+              :label="$t('strr.label.addBuilding')"
+              class="px-5 py-3"
+              color="primary"
+              icon="i-mdi-home-plus"
+              variant="outline"
+              @click="addNewEmptyBuilding()"
+            />
+          </div>
           <div v-if="strataDetails.buildings.length" class="h-px w-full border-b border-gray-100" />
           <div
             v-for="building, i in strataDetails.buildings"
             :key="'building' + i"
+            class="space-y-10"
           >
             <ConnectFormSection
               :title="`${$t('strr.section.subTitle.strataBuilding')} ${ i + 2 }`"
@@ -227,17 +260,31 @@ onMounted(async () => {
                     />
                   </div>
                 </div>
-                <UButton
-                  v-if="i === strataDetails.buildings.length - 1"
-                  :label="$t('strr.label.addBuilding')"
-                  class="px-5 py-3"
-                  color="primary"
-                  icon="i-mdi-home-plus"
-                  variant="outline"
-                  @click="addNewEmptyBuilding()"
-                />
               </div>
             </ConnectFormSection>
+            <ConnectFormSection
+              v-if="isRegistrationRenewal"
+              :title="$t('strr.units.title')"
+              :error="shouldShowAdditionalUnitsError(i)"
+            >
+              <FormStrataUnitList
+                v-model="strataDetails.unitListings.additional[i]"
+                :name="`unitListings.additional.${i}`"
+                :is-required="isRegistrationRenewal"
+                :show-error="shouldShowAdditionalUnitsError(i)"
+                :error-message="$t('strr.units.error')"
+              />
+            </ConnectFormSection>
+            <div v-if="i === strataDetails.buildings.length - 1" class="ml-[220px] mt-10">
+              <UButton
+                :label="$t('strr.label.addBuilding')"
+                class="px-5 py-3"
+                color="primary"
+                icon="i-mdi-home-plus"
+                variant="outline"
+                @click="addNewEmptyBuilding()"
+              />
+            </div>
           </div>
         </div>
       </ConnectPageSection>

@@ -86,7 +86,36 @@ export default {
       brand: {
         name: 'Strata-Titled Hotel or Motel Name',
         site: 'Strata-Titled Hotel or Motel Website'
-      }
+      },
+      unitsOffered: 'Rental Units Offered',
+      unitsLink: 'List of Short-Term Rental Units'
+    },
+    units: {
+      title: 'Short-Term Rental Units in Building',
+      description: 'List all units within the strata hotel that are offered as short-term rentals. This helps confirm which listings belong to your strata hotel and prevents false or unauthorized listings.',
+      important: {
+        title: 'Important:',
+        items: [
+          'Enter each unit separated on a new line (enter or cut and paste from a spreadsheet column)',
+          'Do not add spaces within the unit numbers',
+          'Do not enter a range of units (e.g., 101–106). Each unit number must be listed individually on a new line.'
+        ]
+      },
+      examples: {
+        show: 'Show examples of how to list units',
+        hide: 'Hide examples of how to list units',
+        hide2: 'Hide',
+        title: 'Enter Units Line by Line',
+        description: 'This is the format you will get when cutting and pasting a column in a spreadsheet.',
+        values: ['102', '103A', '104', 'PH900', 'suite909']
+      },
+      placeholder: 'Enter Units Here...',
+      helper: 'Enter each unit number without spaces. Ex: 102, 103A, 104, PH900 etc.',
+      error: 'Enter list of units offered as Short-Term rentals within this building',
+      reviewTitle: 'Short-Term Rental Units',
+      modalTitle: 'Short-Term Rental Units',
+      primaryLabel: 'Primary Building',
+      buildingLabel: 'Building {number}'
     }
   },
   btn: {
@@ -180,7 +209,8 @@ export default {
     min1Unit: 'The number of rental units must be greater than 0',
     max5000Units: 'The number of rental units must not exceed 5000',
     min1Document: 'Must have at least one document',
-    category: 'Please select a category'
+    category: 'Please select a category',
+    unitListRequired: 'Enter list of units offered as Short-Term rentals within this building'
   },
   certify: {
     1: '{terms} I confirm that I am duly authorized to register this Strata-Titled Hotel or Motel and to agree to the {link1} of registration on behalf of the Strata-Titled Hotel or Motel. I agree to comply, and the Strata-Titled Hotel or Motel agrees to comply, with the {link2} of registration.',
