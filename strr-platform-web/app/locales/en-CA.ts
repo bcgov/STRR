@@ -14,7 +14,8 @@ export default {
   },
   strr: {
     title: {
-      application: 'Short-Term Rental Platform Service Provider Application'
+      application: 'Short-Term Rental Platform Service Provider Application',
+      renewalApplication: 'Short-Term Rental Platform Service Provider Application Renewal'
     },
     step: {
       description: {

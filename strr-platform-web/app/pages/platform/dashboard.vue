@@ -12,7 +12,8 @@ const {
   registration,
   permitDetails,
   isPaidApplication,
-  showPermitDetails
+  showPermitDetails,
+  renewalRegId
 } = storeToRefs(useStrrPlatformStore())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
@@ -50,10 +51,10 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
     buttons: [{
       label: t('btn.renew'),
       action: async () => {
-        useState('renewalRegId').value = registration.value?.id
+        renewalRegId.value = registration.value?.id.toString()
         await navigateTo({
           path: localePath('/platform/application'),
-          query: { renew: 'true' }
+          query: { override: 'true', renew: 'true' }
         })
       }
     }]

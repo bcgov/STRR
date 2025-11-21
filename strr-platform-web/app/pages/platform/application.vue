@@ -17,9 +17,15 @@ const {
   validatePlatformConfirmation,
   $reset: applicationReset
 } = useStrrPlatformApplication()
-const permitStore = useStrrPlatformStore()
+const platformStore = useStrrPlatformStore()
+const {
+  renewalRegId,
+  isRegistrationRenewal
+} = storeToRefs(useStrrPlatformStore())
 
 const applicationId = ref(route.query.applicationId as string)
+const isRenewal = ref(Boolean(route.query.renew))
+const isRegRenewalFlow = computed(() => isRenewal.value && renewalRegId.value)
 const loading = ref(false)
 
 // fee stuff
@@ -42,8 +48,12 @@ onMounted(async () => {
   await initAlternatePaymentMethod()
 
   applicationReset()
-  if (applicationId.value) {
-    await permitStore.loadPlatform(applicationId.value, true)
+
+  if (isRegRenewalFlow.value) {
+    await platformStore.loadPlatformRegistrationData(renewalRegId.value!)
+    isRegistrationRenewal.value = true
+  } else if (applicationId.value) {
+    await platformStore.loadPlatform(applicationId.value, true)
   }
   const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_SM),
@@ -257,13 +267,20 @@ setBreadcrumbs([
     external: true
   },
   { label: t('strr.title.dashboard'), to: localePath('/platform/dashboard') },
-  { label: t('strr.title.application') }
+  {
+    label: isRegistrationRenewal.value
+      ? t('strr.title.renewalApplication')
+      : t('strr.title.application')
+  }
 ])
 </script>
 <template>
   <ConnectSpinner v-if="loading" overlay />
   <div v-else class="space-y-8 py-8 sm:py-10">
-    <ConnectTypographyH1 :text="$t('strr.title.application')" class="my-5" />
+    <ConnectTypographyH1
+      :text="isRegistrationRenewal ? $t('strr.title.renewalApplication') : $t('strr.title.application')"
+      class="my-5"
+    />
     <ModalGroupHelpAndInfo />
     <ConnectStepper
       ref="stepperRef"
