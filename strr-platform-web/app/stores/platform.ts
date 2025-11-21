@@ -13,12 +13,28 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     isPaidApplication,
     showPermitDetails,
     downloadApplicationReceipt,
-    loadPermitData
+    loadPermitData,
+    loadPermitRegistrationData
   } = useStrrBasePermit<PlatformRegistrationResp, PlatformApplicationResp, ApiBasePlatformApplication>()
+
+  const renewalRegId = ref<string | undefined>(undefined)
+  const isRegistrationRenewal = ref(false)
+
+  // load Registration into application form (e.g. used for Renewals)
+  const loadPlatformRegistrationData = async (registrationId: string) => {
+    $reset()
+    await loadPermitRegistrationData(registrationId)
+    await populatePlatformDetails(false)
+  }
 
   const loadPlatform = async (applicationId?: string, loadDraft = false) => {
     $reset()
+    resetRenewal()
     await loadPermitData(applicationId, ApplicationType.PLATFORM)
+    populatePlatformDetails(loadDraft)
+  }
+
+  const populatePlatformDetails = (loadDraft: boolean) => {
     if (application.value) {
       // set completing party info (this data is only in the application)
       completingParty.value = formatPartyUI(application.value.registration.completingParty)
@@ -65,14 +81,22 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     registration.value = undefined
   }
 
+  const resetRenewal = () => {
+    renewalRegId.value = undefined
+    isRegistrationRenewal.value = false
+  }
+
   return {
     application,
     registration,
     permitDetails,
+    renewalRegId,
+    isRegistrationRenewal,
     isPaidApplication,
     showPermitDetails,
     downloadApplicationReceipt,
     loadPlatform,
+    loadPlatformRegistrationData,
     $reset
   }
 })
