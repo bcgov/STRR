@@ -12,7 +12,7 @@ if (!isNewDashboardEnabled.value) {
 }
 
 // Applications list setup
-const applicationsLimit = ref(10)
+const applicationsLimit = ref(6)
 const applicationsPage = ref(1)
 
 // Define allowed statuses for applications in progress
@@ -32,7 +32,7 @@ const allowedStatuses = [
 ]
 
 // Registrations list setup
-const registrationsLimit = ref(50)
+const registrationsLimit = ref(6)
 const registrationsPage = ref(1)
 
 useHead({
@@ -297,158 +297,32 @@ async function handleRegistrationSelect (row: any) {
       />
 
       <!-- Registrations Table -->
-      <ConnectPageSection>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h2 class="font-normal">
-              {{ $t('page.dashboardList.myShortTermRentals') }} ({{ registrationsResp?.total || 0 }})
-            </h2>
-            <div class="flex gap-3">
-              <UPagination
-                v-if="(registrationsResp?.total || 0) > registrationsLimit"
-                v-model="registrationsPage"
-                :page-count="registrationsLimit"
-                size="lg"
-                :total="registrationsResp?.total || 0"
-                :ui="paginationUI"
-              />
-            </div>
-          </div>
-        </template>
-        <UTable
-          :columns="registrationsColumns"
-          :rows="registrationsList"
-          :loading="registrationsStatus === 'pending'"
-          :empty-state="{ icon: '', label: t('page.dashboardList.noRegistrationsFound') }"
-          :ui="tableUI"
-        >
-          <template #number-data="{ row }">
-            <div class="flex flex-col gap-1">
-              <span>{{ row.number }}</span>
-              <div class="flex gap-1">
-                <UBadge
-                  v-if="row.hasRenewalDraft"
-                  color="blue"
-                  variant="subtle"
-                  size="xs"
-                  class="text-xs"
-                >
-                  {{ $t('page.dashboardBadges.renewalDraft') }}
-                </UBadge>
-                <UBadge
-                  v-if="row.hasRenewalInProgress"
-                  color="blue"
-                  variant="subtle"
-                  size="xs"
-                  class="text-xs"
-                >
-                  {{ $t('page.dashboardBadges.renewalInProgress') }}
-                </UBadge>
-              </div>
-            </div>
-          </template>
-
-          <template #address-data="{ row }">
-            <div class="flex flex-col">
-              <span>
-                {{
-                  `${row.address.unitNumber ? row.address.unitNumber + '-' : ''}${
-                    row.address.streetNumber
-                  } ${row.address.streetName}`
-                }}
-              </span>
-              <span>{{ row.address.city }}</span>
-            </div>
-          </template>
-
-          <template #expiryDate-data="{ row }">
-            <span :class="{'font-bold text-red-500': row.isExpiryCritical}">
-              {{ row.expiryDate ? dateToStringPacific(row.expiryDate) : t('text.notAvailable') }}
-            </span>
-          </template>
-
-          <template #actions-data="{ row }">
-            <UButton
-              :label="$t('btn.view')"
-              block
-              @click="handleRegistrationSelect(row)"
-            />
-          </template>
-        </UTable>
-      </ConnectPageSection>
+      <DashboardRegistrationsTable
+        v-model:page="registrationsPage"
+        :registrations-resp="registrationsResp"
+        :registrations-limit="registrationsLimit"
+        :pagination-ui="paginationUI"
+        :registrations-columns="registrationsColumns"
+        :registrations-list="registrationsList"
+        :registrations-status="registrationsStatus"
+        :table-ui="tableUI"
+        @select="handleRegistrationSelect"
+      />
 
       <!-- Applications in Progress Table -->
-      <ConnectPageSection>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h2 class="font-normal">
-              {{ $t('page.dashboardList.applicationsInProgress') }} ({{ totalFilteredApplications }})
-            </h2>
-            <div class="flex gap-3">
-              <UPagination
-                v-if="totalFilteredApplications > applicationsLimit"
-                v-model="applicationsPage"
-                :page-count="applicationsLimit"
-                size="lg"
-                :total="totalFilteredApplications"
-                :ui="paginationUI"
-              />
-            </div>
-          </div>
-        </template>
-        <UTable
-          :columns="applicationsColumns"
-          :rows="applicationsList"
-          :loading="applicationsStatus === 'pending' || deleting"
-          :empty-state="{ icon: '', label: t('page.dashboardList.noApplicationsInProgress') }"
-          :ui="tableUI"
-        >
-          <template #address-data="{ row }">
-            <div class="flex flex-col">
-              <span>
-                {{
-                  `${row.address.unitNumber ? row.address.unitNumber + '-' : ''}${
-                    row.address.streetNumber
-                  } ${row.address.streetName}`
-                }}
-              </span>
-              <span>{{ row.address.city }}</span>
-            </div>
-          </template>
-
-          <template #dateSubmitted-data="{ row }">
-            {{ dateToStringPacific(row.dateSubmitted) }}
-          </template>
-
-          <template #actions-data="{ row }">
-            <div class="flex flex-col gap-px lg:flex-row">
-              <UButton
-                :class="row.status === 'Draft' ? 'justify-center grow lg:rounded-r-none' : ''"
-                :label="row.status === 'Draft' ? $t('label.resumeDraft') : $t('btn.view')"
-                :block="row.status !== 'Draft'"
-                :disabled="row.disabled"
-                @click="handleApplicationSelect(row)"
-              />
-              <UPopover v-if="row.status === 'Draft'" :popper="{ placement: 'bottom-end' }">
-                <UButton
-                  class="grow justify-center lg:flex-none lg:rounded-l-none"
-                  icon="i-mdi-menu-down"
-                  :aria-label="$t('text.showMoreOptions')"
-                  :disabled="row.disabled"
-                />
-                <template #panel>
-                  <UButton
-                    class="m-2"
-                    :label="$t('btn.deleteApplication')"
-                    variant="link"
-                    @click="deleteDraft(row)"
-                  />
-                </template>
-              </UPopover>
-            </div>
-          </template>
-        </UTable>
-      </ConnectPageSection>
+      <DashboardApplicationsTable
+        v-model:page="applicationsPage"
+        :total-filtered-applications="totalFilteredApplications"
+        :applications-limit="applicationsLimit"
+        :pagination-ui="paginationUI"
+        :applications-columns="applicationsColumns"
+        :applications-list="applicationsList"
+        :applications-status="applicationsStatus"
+        :table-ui="tableUI"
+        :deleting="deleting"
+        @select="handleApplicationSelect"
+        @delete-draft="deleteDraft"
+      />
     </div>
   </div>
 </template>

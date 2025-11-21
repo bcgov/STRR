@@ -393,7 +393,7 @@ export default {
     completeFilingToDisplay: 'Complete your filing to display',
     defaultDateFormat: 'YYYY-MM-DD',
     filingsWillAppear: 'Filings that require your attention will appear here',
-    notAvailable: 'Not Available',
+    notAvailable: 'N/A',
     notEntered: 'Not Entered',
     nothingTodo: 'You don’t have anything to do yet',
     preferredName: {
