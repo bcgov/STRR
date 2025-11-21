@@ -75,13 +75,21 @@ export const useDocumentStore = defineStore('host/document', () => {
       })
     }
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
-      const isFractValid = apiDocuments.value.some(
+      const hasFractionalAgreement = apiDocuments.value.some(
         item => item.documentType === DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
       )
+      const hasPropertyTitleWithFractional = apiDocuments.value.some(
+        item => item.documentType === DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
+      )
       docs.push({
-        isValid: isFractValid,
-        icon: isFractValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.fractOwnAgreement')
+        isValid: hasFractionalAgreement,
+        icon: hasFractionalAgreement ? 'i-mdi-check' : 'i-mdi-close',
+        label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`)
+      })
+      docs.push({
+        isValid: hasPropertyTitleWithFractional,
+        icon: hasPropertyTitleWithFractional ? 'i-mdi-check' : 'i-mdi-close',
+        label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`)
       })
     }
     if (exemptionReason === PrExemptionReason.FARM_LAND) {
@@ -139,6 +147,7 @@ export const useDocumentStore = defineStore('host/document', () => {
 
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
       docs.push(t('label.fractOwnAgreement'))
+      docs.push(t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`))
     }
 
     if (propStore.unitDetails.ownershipType === OwnershipType.RENT ||
@@ -189,6 +198,10 @@ export const useDocumentStore = defineStore('host/document', () => {
         {
           label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
           value: DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+        },
+        {
+          label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`),
+          value: DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
         },
         {
           label: t(`form.pr.docType.${DocumentUploadType.STRATA_HOTEL_DOCUMENTATION}`),

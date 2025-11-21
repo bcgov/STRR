@@ -75,6 +75,7 @@ export default {
         OTHERS: 'Other Proof Document (subject to review by registry staff)',
         STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
         FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
+        PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP: 'Property title document showing fractional ownership',
         BCSC: 'British Columbia Services Card',
         COMBINED_BCSC_LICENSE: 'Combined BC Driver’s Licence and Services Card',
         undefined: 'N/A',
