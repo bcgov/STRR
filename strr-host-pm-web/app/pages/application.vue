@@ -343,6 +343,7 @@ watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
         break
       case PrExemptionReason.STRATA_HOTEL:
         docsToDelete.push(DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT)
+        docsToDelete.push(DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP)
         break
       default:
         // remove all exemption docs when reason is farm land or undefined

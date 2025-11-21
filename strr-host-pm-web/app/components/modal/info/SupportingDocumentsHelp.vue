@@ -30,7 +30,7 @@ const group3 = [
 
 const group4 = [
   DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT,
-  DocumentUploadType.TITLE_CERTIFICATE_OR_SEARCH
+  DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
 ]
 
 const groups = [
