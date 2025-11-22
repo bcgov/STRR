@@ -21,7 +21,7 @@ const {
 const permitStore = useHostPermitStore()
 
 const { applicationId, isRenewal } = useRouterParams()
-const { isSaveDraftEnabled, isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
+const { isSaveDraftEnabled, isNewRentalUnitSetupEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
 const { fetchStrrFees, getApplicationFee } = useHostApplicationFee()
 const loading = ref(false)
 
@@ -101,7 +101,7 @@ onMounted(async () => {
       appendAccountId: true,
       external: true
     },
-    { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
+    { label: t('strr.title.dashboard'), to: localePath(isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard') },
     {
       label: (permitStore.isRegistrationRenewal
         ? t('strr.title.renewalApplication')

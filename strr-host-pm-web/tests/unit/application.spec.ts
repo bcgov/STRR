@@ -111,7 +111,8 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
   useHostFeatureFlags: () => ({
     isSaveDraftEnabled: ref(true),
     isNewRentalUnitSetupEnabled: ref(true),
-    isNewAddressFormEnabled: ref(true)
+    isNewAddressFormEnabled: ref(true),
+    isNewDashboardEnabled: ref(false)
   })
 }))
 

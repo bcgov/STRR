@@ -139,6 +139,8 @@ export default {
   label: {
     additionalInfo: 'Additional Information',
     applicationDate: 'Application Date',
+    localGovernment: 'Local Government',
+    dateSubmitted: 'Date Submitted',
     authorization: 'Authorization',
     born: 'Born',
     confirmation: 'Confirmation',
@@ -149,6 +151,7 @@ export default {
     daysToExpiryExtra: 'Days to Expiry (Pacific Time)',
     details: 'Details',
     expiryDate: 'Expiry Date',
+    expirationDate: 'Expiration Date',
     registrationDate: 'Registration Date',
     role: 'Role',
     note: 'Note',
@@ -390,7 +393,7 @@ export default {
     completeFilingToDisplay: 'Complete your filing to display',
     defaultDateFormat: 'YYYY-MM-DD',
     filingsWillAppear: 'Filings that require your attention will appear here',
-    notAvailable: 'Not Available',
+    notAvailable: 'N/A',
     notEntered: 'Not Entered',
     nothingTodo: 'You don’t have anything to do yet',
     preferredName: {
