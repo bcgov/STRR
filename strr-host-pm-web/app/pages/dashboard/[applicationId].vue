@@ -37,7 +37,7 @@ const { getAccountApplication, deleteApplication } = useStrrApi()
 
 const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
-const { isRenewalsEnabled } = useHostFeatureFlags()
+const { isRenewalsEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
 
 onMounted(async () => {
   loading.value = true
@@ -129,7 +129,10 @@ onMounted(async () => {
         appendAccountId: true,
         external: true
       },
-      { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
+      {
+        label: t('strr.title.dashboard'),
+        to: localePath(isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard')
+      },
       { label: permitDetails.value.unitAddress.nickname || t('strr.label.unnamed') }
     ])
   }
@@ -262,7 +265,7 @@ setBreadcrumbs([
     appendAccountId: true,
     external: true
   },
-  { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
+  { label: t('strr.title.dashboard'), to: localePath(isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard') },
   { label: 'Item 1' }
 ])
 </script>

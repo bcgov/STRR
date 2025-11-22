@@ -1,29 +1,146 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const localePath = useLocalePath()
+const accountStore = useConnectAccountStore()
+const { getAccountRegistrations } = useStrrApi()
+const { isDashboardTableSortingEnabled } = useHostFeatureFlags()
 
-const props = defineProps<{
-  registrationsResp: any
-  registrationsLimit: number
-  page: number
-  paginationUI: any
-  registrationsColumns: any[]
-  registrationsList: any[]
-  registrationsStatus: string
-  tableUI: any
-}>()
-
-const emit = defineEmits<{
-  'update:page': [value: number]
-  select: [row: any]
-}>()
-
-const currentPage = computed({
-  get: () => props.page,
-  set: (value: number) => emit('update:page', value)
+const props = withDefaults(defineProps<{
+  registrationsLimit?: number
+}>(), {
+  registrationsLimit: 6
 })
 
-const handleSelect = (row: any) => {
-  emit('select', row)
+// Pagination state
+const registrationsPage = ref(1)
+
+// Helper to create sortable column
+const createColumn = (key: string, label: string, sortable = true) => ({
+  key,
+  label,
+  ...(sortable && { sortable: isDashboardTableSortingEnabled.value })
+})
+
+const commonColumns = [
+  createColumn('number', t('label.number')),
+  createColumn('status', t('label.status')),
+  createColumn('address', t('label.address')),
+  createColumn('localGovernment', t('label.localGovernment'))
+]
+
+const registrationsColumns = [
+  ...commonColumns,
+  createColumn('expiryDate', t('label.expirationDate')),
+  createColumn('actions', t('label.actions'), false)
+]
+
+// UI configurations
+const tableUI = {
+  wrapper: 'relative overflow-x-auto h-[512px]',
+  thead: 'sticky top-0 bg-white z-10',
+  th: { padding: 'p-2' },
+  td: {
+    base: 'whitespace-normal max-w-96 align-top',
+    padding: 'p-4',
+    color: 'text-bcGovColor-midGray',
+    font: '',
+    size: 'text-sm'
+  }
+}
+
+const paginationUI = {
+  base: 'h-[42px]',
+  default: {
+    activeButton: { class: 'rounded' }
+  }
+}
+
+// Helper functions
+const hasRenewalDraft = (registration: any): boolean => {
+  if (!registration?.header?.applications) {
+    return false
+  }
+  return registration.header.applications.some((app: any) =>
+    app.applicationType === 'renewal' && app.applicationStatus === 'DRAFT'
+  )
+}
+
+const hasRenewalInProgress = (registration: any): boolean => {
+  if (!registration?.header?.applications) {
+    return false
+  }
+  return registration.header.applications.some((app: any) =>
+    app.applicationType === 'renewal' &&
+    ['UNDER_REVIEW', 'ADDITIONAL_INFO_REQUESTED', 'PROVISIONAL_REVIEW'].includes(app.applicationStatus)
+  )
+}
+
+const getLatestApplicationNumber = (registration: any): string => {
+  if (!registration?.header?.applications || registration.header.applications.length === 0) {
+    return registration.registrationNumber
+  }
+  return registration.header.applications[0].applicationNumber
+}
+
+const isExpiryDateCritical = (expiryDate: string): boolean => {
+  if (!expiryDate) {
+    return false
+  }
+  const expiry = new Date(expiryDate)
+  const today = new Date()
+  const daysUntilExpiry = Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  return daysUntilExpiry <= 40 || daysUntilExpiry < 0
+}
+
+// Data mapping
+const mapRegistrationsList = (registrations: any[]) => {
+  if (!registrations) {
+    return []
+  }
+  return registrations.map((registration: any) => {
+    const displayAddress = registration.unitAddress
+    return {
+      number: registration.registrationNumber,
+      status: registration.header?.hostStatus || registration.status,
+      address: displayAddress,
+      localGovernment: registration.unitDetails?.jurisdiction || t('text.notAvailable'),
+      expiryDate: registration.expiryDate,
+      isExpiryCritical: isExpiryDateCritical(registration.expiryDate),
+      hasRenewalDraft: hasRenewalDraft(registration),
+      hasRenewalInProgress: hasRenewalInProgress(registration),
+      latestApplicationNumber: getLatestApplicationNumber(registration),
+      registrationId: registration.id
+    }
+  })
+}
+
+// Fetch Registrations
+const { data: registrationsResp, status: registrationsStatus } = await useAsyncData(
+  'host-registrations-list',
+  async () => {
+    const resp = await getAccountRegistrations<ApiRegistrationResp>(
+      undefined,
+      ApplicationType.HOST,
+      props.registrationsLimit,
+      registrationsPage.value
+    )
+    // Handle both array and object response formats
+    if (Array.isArray(resp)) {
+      return { registrations: resp, total: resp.length }
+    }
+    return { registrations: resp?.registrations || [], total: resp?.total || 0 }
+  },
+  {
+    watch: [() => accountStore.currentAccount.id, registrationsPage],
+    default: () => ({ registrations: [], total: 0 })
+  }
+)
+
+const registrationsList = computed(() => mapRegistrationsList(registrationsResp.value?.registrations || []))
+
+// Navigation handler
+async function handleRegistrationSelect (row: any) {
+  await navigateTo(localePath('/dashboard/' + row.latestApplicationNumber))
 }
 </script>
 
@@ -37,7 +154,7 @@ const handleSelect = (row: any) => {
         <div class="flex gap-3">
           <UPagination
             v-if="(registrationsResp?.total || 0) > registrationsLimit"
-            v-model="currentPage"
+            v-model="registrationsPage"
             :page-count="registrationsLimit"
             size="lg"
             :total="registrationsResp?.total || 0"
@@ -102,7 +219,7 @@ const handleSelect = (row: any) => {
         <UButton
           :label="$t('btn.view')"
           block
-          @click="handleSelect(row)"
+          @click="handleRegistrationSelect(row)"
         />
       </template>
     </UTable>
