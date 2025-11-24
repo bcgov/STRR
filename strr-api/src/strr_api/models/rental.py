@@ -42,6 +42,7 @@ class Registration(Versioned, BaseModel):
     cancelled_date = db.Column(db.DateTime, nullable=True)
     is_set_aside = db.Column(Boolean, default=False)
     noc_status = db.Column(Enum(RegistrationNocStatus), nullable=True)
+    provisional_extension_applied = db.Column(Boolean, default=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     reviewer_id = db.Column("reviewer_id", db.Integer, db.ForeignKey("users.id"), nullable=True)

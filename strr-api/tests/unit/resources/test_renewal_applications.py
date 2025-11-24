@@ -8,7 +8,7 @@ import pytest
 
 from strr_api.enums.enum import ErrorMessage, PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
-from strr_api.services import RegistrationService
+from strr_api.services import ApprovalService, RegistrationService
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
@@ -485,3 +485,189 @@ def test_examiner_approve_strata_hotel_registration__renewal_application(session
         strata_hotel = registration.strata_hotel_registration.strata_hotel
         assert strata_hotel.legal_name == "Updated Strata Hotel Legal Name"
         assert strata_hotel.number_of_units == 75
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+@patch("strr_api.services.email_service.EmailService.send_application_status_update_email")
+def test_host_renewal_provisional_then_manual_full_approval_single_extension(mock_email, session, client, jwt):
+    """Ensure a host renewal provisionally approved and then fully approved only extends once."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        # Create initial registration
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+        assert registration_id is not None
+
+        prev_registration = RegistrationService.get_registration_by_id(registration_id)
+        prev_expiry_date = prev_registration.expiry_date
+
+        # Create renewal application for same registration
+        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
+        json_data["header"] = renewal_header_json
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        renewal_application_number = response_json.get("header").get("applicationNumber")
+
+        renewal_application = Application.find_by_application_number(application_number=renewal_application_number)
+        renewal_application.payment_status = PaymentStatus.COMPLETED.value
+        renewal_application.status = Application.Status.FULL_REVIEW
+        renewal_application.save()
+
+        # Simulate provisional-approval job
+        ApprovalService.approve_application(
+            application=renewal_application,
+            status=Application.Status.PROVISIONAL_REVIEW,
+            event=Events.EventName.AUTO_APPROVAL_PROVISIONAL,
+        )
+
+        registration_after_provisional = RegistrationService.get_registration_by_id(registration_id)
+        assert registration_after_provisional.expiry_date == prev_expiry_date + relativedelta(years=1)
+        assert registration_after_provisional.provisional_extension_applied is True
+
+        # Manually set to FULL_REVIEW_APPROVED should not extend again
+        rv = client.put(f"/applications/{renewal_application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(
+            f"/applications/{renewal_application_number}/status",
+            json=status_update_request,
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        registration_after_manual = RegistrationService.get_registration_by_id(registration_id)
+        assert registration_after_manual.expiry_date == registration_after_provisional.expiry_date
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+@patch("strr_api.services.email_service.EmailService.send_application_status_update_email")
+def test_host_renewal_manual_full_approval_set_aside_then_full_approval_single_extension(
+    mock_email, session, client, jwt
+):
+    """Ensure a host renewal manually approved, set aside, then re-approved only extends once."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        # Create initial registration
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+        assert registration_id is not None
+
+        initial_registration = RegistrationService.get_registration_by_id(registration_id)
+        initial_expiry_date = initial_registration.expiry_date
+
+        # Create renewal application for same registration
+        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
+        json_data["header"] = renewal_header_json
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        renewal_application_number = response_json.get("header").get("applicationNumber")
+
+        renewal_application = Application.find_by_application_number(application_number=renewal_application_number)
+        renewal_application.payment_status = PaymentStatus.COMPLETED.value
+        renewal_application.status = Application.Status.FULL_REVIEW
+        renewal_application.save()
+
+        # First manual FULL_REVIEW_APPROVED for the renewal
+        rv = client.put(f"/applications/{renewal_application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(
+            f"/applications/{renewal_application_number}/status",
+            json=status_update_request,
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        registration_after_first_approval = RegistrationService.get_registration_by_id(registration_id)
+        first_approval_expiry_date = registration_after_first_approval.expiry_date
+        assert first_approval_expiry_date != initial_expiry_date
+
+        # Set aside the decision for the renewal application
+        rv = client.post(
+            f"/applications/{renewal_application_number}/decision/set-aside",
+            json={},
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        # Re-approve with FULL_REVIEW_APPROVED; expiry date should not change again
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(
+            f"/applications/{renewal_application_number}/status",
+            json=status_update_request,
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        registration_after_second_approval = RegistrationService.get_registration_by_id(registration_id)
+        assert registration_after_second_approval.expiry_date == first_approval_expiry_date
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+@patch("strr_api.services.email_service.EmailService.send_application_status_update_email")
+def test_non_renewal_provisional_does_not_set_provisional_flag(mock_email, session, client, jwt):
+    """Ensure provisional_extension_applied is not set for non-renewal provisional approvals."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        # Create initial host registration application
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+    application = Application.find_by_application_number(application_number=application_number)
+    assert application.type != "renewal"
+
+    registration_id = ApprovalService.approve_application(
+        application=application,
+        status=Application.Status.PROVISIONAL_REVIEW,
+        event=Events.EventName.AUTO_APPROVAL_PROVISIONAL,
+    )
+
+    registration = RegistrationService.get_registration_by_id(registration_id)
+    assert registration.provisional_extension_applied is False

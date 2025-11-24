@@ -45,7 +45,7 @@ from typing import Any, List, Tuple
 import requests
 from flask import current_app
 
-from strr_api.enums.enum import RegistrationType
+from strr_api.enums.enum import ApplicationType, RegistrationType
 from strr_api.models import Application, AutoApprovalRecord, Document, Events, PropertyContact, RentalProperty
 from strr_api.requests import Registration, RegistrationRequest
 from strr_api.responses.AutoApprovalResponse import AutoApproval
@@ -188,6 +188,9 @@ class ApprovalService:
         registration = RegistrationService.create_registration(
             application.submitter_id, application.payment_account, application.application_json
         )
+        if status == Application.Status.PROVISIONAL_REVIEW and application.type == ApplicationType.RENEWAL.value:
+            registration.provisional_extension_applied = True
+            registration.save()
         application.status = status
         application.registration_id = registration.id
         application.decision_date = datetime.utcnow()
