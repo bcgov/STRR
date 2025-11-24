@@ -85,8 +85,8 @@ export const useDocumentStore = defineStore('host/document', () => {
         isValid: hasFractionalAgreement,
         icon: hasFractionalAgreement ? 'i-mdi-check' : 'i-mdi-close',
         label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`)
-      })
-      docs.push({
+      },
+      {
         isValid: hasPropertyTitleWithFractional,
         icon: hasPropertyTitleWithFractional ? 'i-mdi-check' : 'i-mdi-close',
         label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`)
@@ -146,8 +146,10 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
 
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
-      docs.push(t('label.fractOwnAgreement'))
-      docs.push(t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`))
+      docs.push(
+        t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
+        t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`)
+      )
     }
 
     if (propStore.unitDetails.ownershipType === OwnershipType.RENT ||
