@@ -16,18 +16,13 @@ export const useStrrApi = () => {
         return undefined
       })
     }
-    // TODO: add type filter in call (need in api first)
-    const resp = await $strrApi<{ registrations: T[], total: number }>('/registrations', {
+    return await $strrApi<{ registrations: T[], total: number }>('/registrations', {
       query: {
         limit,
-        offset
+        offset,
+        registration_type: type
       }
     })
-    if (type) {
-      const filtered = resp.registrations?.filter(reg => reg.registrationType === type)
-      return { registrations: filtered, total: filtered?.length || 0 }
-    }
-    return resp
   }
 
   const getAccountApplication = async <T extends ApiApplicationBaseResp>(

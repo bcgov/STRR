@@ -518,6 +518,7 @@ class RegistrationService:
         cls,
         account_id: int = None,
         status: str = None,
+        registration_type: str = None,
         sort_by: str = RegistrationSortBy.ID,
         sort_desc: bool = False,
         offset: int = 1,
@@ -531,6 +532,8 @@ class RegistrationService:
             query = query.filter(Registration.sbc_account_id == account_id)
         if status:
             query = query.filter(Registration.status == status.upper())
+        if registration_type:
+            query = query.filter(Registration.registration_type == registration_type.upper())
 
         sort_column_meta = {RegistrationSortBy.ID: Registration.id, RegistrationSortBy.STATUS: Registration.status}
         sort_column = sort_column_meta[sort_by.upper()] if sort_by else sort_column_meta[RegistrationSortBy.ID]

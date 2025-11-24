@@ -102,6 +102,10 @@ def get_registrations():
         name: status
         enum: [ACTIVE, EXPIRED, SUSPENDED]
       - in: query
+        name: registration_type
+        enum: [HOST, PLATFORM, STRATA_HOTEL]
+        description: Filter by registration type.
+      - in: query
         name: sort_by
         enum: [ID, STATUS]
       - in: query
@@ -124,12 +128,18 @@ def get_registrations():
     """
     account_id = request.headers.get("Account-Id")
     status = request.args.get("status", None)
+    registration_type = request.args.get("registration_type", None)
     sort_by = request.args.get("sort_by", None)
     sort_desc: bool = request.args.get("sort_desc", "false").lower() == "true"
     offset: int = int(request.args.get("offset", 1))
     limit: int = int(request.args.get("limit", 50))
 
-    return RegistrationService.list_registrations(account_id, status, sort_by, sort_desc, offset, limit), HTTPStatus.OK
+    return (
+        RegistrationService.list_registrations(
+            account_id, status, registration_type, sort_by, sort_desc, offset, limit
+        ),
+        HTTPStatus.OK,
+    )
 
 
 @bp.route("/<registration_id>", methods=("GET",))
