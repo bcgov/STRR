@@ -50,6 +50,7 @@ class RegistrationSerializer:
             "status": registration.status.name,
             "registrationNumber": registration.registration_number,
             "nocStatus": registration.noc_status.name if registration.noc_status else None,
+            "provisionalExtensionApplied": registration.provisional_extension_applied,
         }
 
         if registration.noc_status and registration.nocs:
