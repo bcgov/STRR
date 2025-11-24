@@ -19,6 +19,7 @@ const {
   $reset: applicationReset
 } = useHostApplicationStore()
 const permitStore = useHostPermitStore()
+const { renewalRegId, application, isRegistrationRenewal } = storeToRefs(permitStore)
 
 const { applicationId, isRenewal } = useRouterParams()
 const { isSaveDraftEnabled, isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
@@ -41,7 +42,7 @@ const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee4 = ref<ConnectFeeItem | undefined>(undefined)
 
-const isRegRenewalFlow = computed(() => isRenewal.value && useState('renewalRegId').value)
+const isRegRenewalFlow = computed(() => isRenewal.value && renewalRegId.value)
 let shouldSkipConfirmModal = false
 
 // show default confirm modal when closing or refreshing the tab while in renewal flow
@@ -66,21 +67,16 @@ onMounted(async () => {
   permitStore.$reset()
 
   if (isRegRenewalFlow.value) {
-    const renewalRegId = useState('renewalRegId')
-    if (!renewalRegId.value) {
-      navigateTo(localePath('/dashboard'))
-      return
-    }
-    await permitStore.loadHostRegistrationData(renewalRegId.value as string)
-    permitStore.isRegistrationRenewal = true
+    await permitStore.loadHostRegistrationData(renewalRegId.value!)
+    isRegistrationRenewal.value = true
   } else if (isRenewal.value && applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
-    permitStore.isRegistrationRenewal = true
+    isRegistrationRenewal.value = true
   } else if (applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
     // for renewals draft keep the flag on
-    if (permitStore?.application.header.applicationType === 'renewal') {
-      permitStore.isRegistrationRenewal = true
+    if (application.value?.header.applicationType === 'renewal') {
+      isRegistrationRenewal.value = true
     }
   }
 
@@ -103,7 +99,7 @@ onMounted(async () => {
     },
     { label: t('strr.title.dashboard'), to: localePath('/dashboard') },
     {
-      label: (permitStore.isRegistrationRenewal
+      label: (isRegistrationRenewal.value
         ? t('strr.title.renewalApplication')
         : t('strr.title.application'))
     }
@@ -287,7 +283,7 @@ const handleSubmit = async () => {
 }
 
 // TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
-watch([activeStepIndex, () => permitStore.isRegistrationRenewal], () => {
+watch([activeStepIndex, isRegistrationRenewal], () => {
   const buttons: ConnectBtnControlItem[] = []
   if (activeStepIndex.value !== 0) {
     buttons.push({
@@ -333,7 +329,7 @@ watch([activeStepIndex, () => permitStore.isRegistrationRenewal], () => {
 watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
   // only execute if unit details form shown - (application has been started)
   // and is not in registration renewal flow
-  if (showUnitDetailsForm.value && (!permitStore.isRegistrationRenewal && !loading.value)) {
+  if (showUnitDetailsForm.value && (!isRegistrationRenewal.value && !loading.value)) {
     // remove all permanent residence proof docs when user select exemption reason
     const docsToDelete = [...documentsStore.prDocs]
 
@@ -408,7 +404,7 @@ setOnBeforeSessionExpired(() => {
   <ConnectSpinner v-if="loading" overlay />
   <div v-else class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1
-      :text="permitStore.isRegistrationRenewal
+      :text="isRegistrationRenewal
         ? t('strr.title.renewalApplication') : t('strr.title.application')"
       class="my-5"
     />

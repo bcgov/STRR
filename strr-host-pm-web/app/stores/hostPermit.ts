@@ -35,6 +35,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const { isFeatureEnabled } = useFeatureFlags()
   const isBusinessLicenseDocumentUploadEnabled = isFeatureEnabled('enable-business-license-document-upload')
 
+  const renewalRegId = ref<string | undefined>(undefined)
   const isRegistrationRenewal = ref(false)
 
   const needsBusinessLicenseDocumentUpload = computed(() => {
@@ -151,6 +152,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     permitDetails,
     isPaidApplication,
     showPermitDetails,
+    renewalRegId,
     isRegistrationRenewal,
     needsBusinessLicenseDocumentUpload,
     checkBusinessLicenseRequirement,

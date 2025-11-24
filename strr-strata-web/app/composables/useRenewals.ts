@@ -5,7 +5,7 @@ export const useRenewals = () => {
   const { t } = useI18n()
   const localePath = useLocalePath()
 
-  const { registration } = storeToRefs(useStrrStrataStore())
+  const { registration, renewalRegId } = storeToRefs(useStrrStrataStore())
   const { isRenewalsEnabled } = useStrataFeatureFlags()
 
   const isEligibleForRenewal = ref(false)
@@ -58,7 +58,7 @@ export const useRenewals = () => {
         buttons: [{
           label: t('btn.renew'),
           action: async () => {
-            useState('renewalRegId', () => registration.value?.id)
+            renewalRegId.value = registration.value?.id
             await navigateTo({
               path: localePath('/strata-hotel/application'),
               query: { renew: 'true' }

@@ -20,6 +20,7 @@ const {
   $reset: applicationReset
 } = useStrrStrataApplicationStore()
 const permitStore = useStrrStrataStore()
+const { renewalRegId, isRegistrationRenewal } = storeToRefs(permitStore)
 
 const applicationId = ref(route.query.applicationId as string)
 const loading = ref(false)
@@ -35,7 +36,7 @@ const {
 const strataFee = ref<ConnectFeeItem | undefined>(undefined)
 
 const isRenewal = useRouteQuery('renew')
-const isRegRenewalFlow = computed(() => isRenewal.value && useState('renewalRegId').value)
+const isRegRenewalFlow = computed(() => isRenewal.value && renewalRegId.value)
 
 onMounted(async () => {
   loading.value = true
@@ -43,13 +44,8 @@ onMounted(async () => {
   applicationReset()
 
   if (isRegRenewalFlow.value) {
-    const renewalRegId = useState('renewalRegId')
-    if (!renewalRegId.value) {
-      navigateTo(localePath('/strata-hotel/dashboard'))
-      return
-    }
-    await permitStore.loadStrataRegistrationData(renewalRegId.value as string)
-    permitStore.isRegistrationRenewal = true
+    await permitStore.loadStrataRegistrationData(renewalRegId.value!)
+    isRegistrationRenewal.value = true
   } else if (applicationId.value) {
     await permitStore.loadStrata(applicationId.value, true)
   }
@@ -215,7 +211,7 @@ watch(activeStepIndex, (val) => {
 
 // page stuff
 useHead({
-  title: permitStore.isRegistrationRenewal ? t('strr.title.applicationRenewal') : t('strr.title.application')
+  title: isRegistrationRenewal.value ? t('strr.title.applicationRenewal') : t('strr.title.application')
 })
 
 definePageMeta({
@@ -242,7 +238,7 @@ setBreadcrumbs([
   },
   { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
   {
-    label: permitStore.isRegistrationRenewal
+    label: isRegistrationRenewal.value
       ? t('breadcrumb.str.strataApplicationRenewal')
       : t('breadcrumb.str.strataApplication')
   }
@@ -252,7 +248,7 @@ setBreadcrumbs([
   <ConnectSpinner v-if="loading" overlay />
   <div v-else class="space-y-8 py-8 sm:py-10">
     <ConnectTypographyH1
-      :text="permitStore.isRegistrationRenewal
+      :text="isRegistrationRenewal
         ? t('strr.title.applicationRenewal') : t('strr.title.application')"
       class="my-5"
     />

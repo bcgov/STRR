@@ -19,6 +19,7 @@ vi.mock('@/stores/hostPermit', () => {
   return {
     useHostPermitStore: () => ({
       loadHostRegistrationData: vi.fn(),
+      renewalRegId: ref('12345'),
       $reset: vi.fn(),
       isRegistrationRenewal: ref(true)
     })
@@ -29,7 +30,6 @@ describe('Registration Renewal Application Page', () => {
   let wrapper: any
 
   beforeAll(async () => {
-    useState('renewalRegId', () => '12345')
     wrapper = await mountSuspended(Application, {
       global: { plugins: [baseEnI18n] }
     })

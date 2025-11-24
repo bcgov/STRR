@@ -23,6 +23,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     downloadApplicationReceipt
   } = useStrrBasePermit<StrataRegistrationResp, StrataApplicationResp, ApiBaseStrataApplication>()
 
+  const renewalRegId = ref<string | undefined>(undefined)
   const isRegistrationRenewal = ref(false)
 
   const loadStrataRegistrationData = async (registrationId: string) => {
@@ -96,6 +97,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     application,
     registration,
     permitDetails,
+    renewalRegId,
     isPaidApplication,
     isRegistrationRenewal,
     showPermitDetails,
