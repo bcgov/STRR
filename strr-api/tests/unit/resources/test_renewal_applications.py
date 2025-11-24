@@ -4,9 +4,8 @@ from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
-from dateutil.relativedelta import relativedelta
-
 import pytest
+from dateutil.relativedelta import relativedelta
 
 from strr_api.enums.enum import ErrorMessage, PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events

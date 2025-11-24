@@ -216,7 +216,9 @@ class ApplicationService:
         application.is_set_aside = False
         application.status = application_status
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
-            if (
+            # Determine if we should update existing registration or create new one
+            # Based on current logic, renewal application with provisional flow updates expiry date of registration
+            should_update_existing = (
                 application.type == ApplicationType.RENEWAL.value
                 and application.registration_id
                 and (
@@ -228,46 +230,34 @@ class ApplicationService:
                     ]
                     or (original_status in APPLICATION_TERMINAL_STATES and was_set_aside)
                 )
-            ):
+            )
+
+            if should_update_existing:
                 registration = RegistrationService.get_registration_by_id(application.registration_id)
-                if registration:
-                    registration.reviewer_id = reviewer.id
-                    registration.decider_id = reviewer.id
-                    registration.save()
-                    EventsService.save_event(
-                        event_type=Events.EventType.REGISTRATION,
-                        event_name=Events.EventName.REGISTRATION_RENEWED,
-                        application_id=application.id,
-                        registration_id=registration.id,
-                        visible_to_applicant=True,
-                        user_id=reviewer.id,
-                    )
             else:
                 registration = RegistrationService.create_registration(
                     application.submitter_id, application.payment_account, application.application_json
                 )
+                application.registration_id = registration.id
+
+            if registration:
                 registration.reviewer_id = reviewer.id
                 registration.decider_id = reviewer.id
                 registration.save()
-                application.registration_id = registration.id
-                if application.type == ApplicationType.RENEWAL.value:
-                    EventsService.save_event(
-                        event_type=Events.EventType.REGISTRATION,
-                        event_name=Events.EventName.REGISTRATION_RENEWED,
-                        application_id=application.id,
-                        registration_id=registration.id,
-                        visible_to_applicant=True,
-                        user_id=reviewer.id,
-                    )
-                else:
-                    EventsService.save_event(
-                        event_type=Events.EventType.REGISTRATION,
-                        event_name=Events.EventName.REGISTRATION_CREATED,
-                        application_id=application.id,
-                        registration_id=registration.id,
-                        visible_to_applicant=True,
-                        user_id=reviewer.id,
-                    )
+
+                event_name = (
+                    Events.EventName.REGISTRATION_RENEWED
+                    if application.type == ApplicationType.RENEWAL.value
+                    else Events.EventName.REGISTRATION_CREATED
+                )
+                EventsService.save_event(
+                    event_type=Events.EventType.REGISTRATION,
+                    event_name=event_name,
+                    application_id=application.id,
+                    registration_id=registration.id,
+                    visible_to_applicant=True,
+                    user_id=reviewer.id,
+                )
 
         if application_status == Application.Status.PROVISIONALLY_DECLINED and original_status in [
             Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
