@@ -3,6 +3,7 @@ import type { Form } from '#ui/types'
 const { t } = useI18n()
 const { getBusinessSchema } = useStrrPlatformBusiness()
 const { platformBusiness, isMailingInBC } = storeToRefs(useStrrPlatformBusiness())
+const { isRegistrationRenewal } = storeToRefs(useStrrPlatformStore())
 
 const props = defineProps<{ isComplete: boolean }>()
 
@@ -87,6 +88,7 @@ onMounted(async () => {
               name="legalName"
               :placeholder="$t('label.legalName')"
               :is-required="true"
+              :is-disabled="isRegistrationRenewal"
             />
             <ConnectFormFieldGroup
               id="platform-business-home-jur"

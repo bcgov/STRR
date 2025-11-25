@@ -23,6 +23,9 @@ const {
   isRegistrationRenewal
 } = storeToRefs(useStrrPlatformStore())
 
+const { platformDetails } = storeToRefs(useStrrPlatformDetails())
+const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
+
 const applicationId = ref(route.query.applicationId as string)
 const isRenewal = ref(Boolean(route.query.renew))
 const isRegRenewalFlow = computed(() => isRenewal.value && renewalRegId.value)
@@ -49,12 +52,6 @@ onMounted(async () => {
 
   applicationReset()
 
-  if (isRegRenewalFlow.value) {
-    await platformStore.loadPlatformRegistrationData(renewalRegId.value!)
-    isRegistrationRenewal.value = true
-  } else if (applicationId.value) {
-    await platformStore.loadPlatform(applicationId.value, true)
-  }
   const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_SM),
     getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_LG),
@@ -63,6 +60,29 @@ onMounted(async () => {
   platFeeSm.value = smallFeeResp
   platFeeLg.value = largeFeeResp
   platFeeWv.value = waivedFeeResp
+
+  if (isRegRenewalFlow.value) {
+    isRegistrationRenewal.value = true
+    await platformStore.loadPlatformRegistrationData(renewalRegId.value!)
+  } else if (applicationId.value) {
+    await platformStore.loadPlatform(applicationId.value, true)
+  }
+
+  setBreadcrumbs([
+    {
+      label: t('label.bcregDash'),
+      to: useRuntimeConfig().public.registryHomeURL + 'dashboard',
+      appendAccountId: true,
+      external: true
+    },
+    { label: t('strr.title.dashboard'), to: localePath('/platform/dashboard') },
+    {
+      label: isRegistrationRenewal.value
+        ? t('strr.title.renewalApplication')
+        : t('strr.title.application')
+    }
+  ])
+
   if (platFeeWv.value && platFeeSm.value) {
     // NOTE: setting 'waived' changes the text to 'No Fee' instead of $0.00
     platFeeWv.value.waived = true
@@ -70,9 +90,6 @@ onMounted(async () => {
   }
   loading.value = false
 })
-
-const { platformDetails } = storeToRefs(useStrrPlatformDetails())
-const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 
 watch(() => platformBusiness.value?.hasCpbc, (val) => {
   if (val && platFeeWv.value) {
@@ -258,21 +275,6 @@ definePageMeta({
 
 // save application before session expires
 setOnBeforeSessionExpired(() => submitPlatformApplication(true, applicationId.value))
-
-setBreadcrumbs([
-  {
-    label: t('label.bcregDash'),
-    to: useRuntimeConfig().public.registryHomeURL + 'dashboard',
-    appendAccountId: true,
-    external: true
-  },
-  { label: t('strr.title.dashboard'), to: localePath('/platform/dashboard') },
-  {
-    label: isRegistrationRenewal.value
-      ? t('strr.title.renewalApplication')
-      : t('strr.title.application')
-  }
-])
 </script>
 <template>
   <ConnectSpinner v-if="loading" overlay />

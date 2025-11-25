@@ -6,6 +6,11 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
   const platContactStore = useStrrContactStore()
   const platBusinessStore = useStrrPlatformBusiness()
   const platDetailsStore = useStrrPlatformDetails()
+  const {
+    registration,
+    application,
+    isRegistrationRenewal
+  } = storeToRefs(useStrrPlatformStore())
 
   const platformConfirmation = reactive({
     confirmation: false
@@ -34,7 +39,11 @@ export const useStrrPlatformApplication = defineStore('strr/platformApplication'
   const createApplicationBody = (): PlatformApplicationPayload => {
     const applicationBody: PlatformApplicationPayload = {
       header: {
-        paymentMethod: useConnectFeeStore().userSelectedPaymentMethod
+        paymentMethod: useConnectFeeStore().userSelectedPaymentMethod,
+        ...(isRegistrationRenewal.value && {
+          registrationId: registration.value?.id || application.value?.header.registrationId,
+          applicationType: 'renewal'
+        })
       },
       registration: {
         registrationType: ApplicationType.PLATFORM,
