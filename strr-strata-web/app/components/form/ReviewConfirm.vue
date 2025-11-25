@@ -67,7 +67,7 @@ onMounted(async () => {
   const validations = [
     contactStore.validateContact(),
     businessStore.validateStrataBusiness(),
-    detailsStore.validateStrataDetails(false),
+    detailsStore.validateStrataDetails(),
     documentStore.validateDocuments()
   ]
 

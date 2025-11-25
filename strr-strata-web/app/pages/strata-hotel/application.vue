@@ -142,7 +142,7 @@ const handleStrataSubmit = async () => {
     const validations = [
       validateContact(),
       validateStrataBusiness(),
-      validateStrataDetails(false),
+      validateStrataDetails(),
       validateDocuments(),
       validateStrataConfirmation()
     ]
