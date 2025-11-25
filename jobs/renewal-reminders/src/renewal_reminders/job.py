@@ -53,18 +53,18 @@ def register_shellcontext(app):
     app.shell_context_processor(shell_context)
 
 
-def send_forty_days_reminder(app):
+def send_forty_days_reminder(app, registration_type):
     """Send the reminder before 40 days."""
     with app.app_context():
         app.logger.info("Starting 40 days renewal notifications")
         target_date = (datetime.utcnow() + timedelta(days=40)).date()
         registrations = Registration.query.filter(
-            Registration.registration_type == Registration.RegistrationType.HOST,
+            Registration.registration_type == registration_type,
             Registration.status == RegistrationStatus.ACTIVE,
             func.date(Registration.expiry_date) == target_date,
         ).all()
         app.logger.info(
-            f"Found {len(registrations)} active host registrations expiring in 40 days."
+            f"Found {len(registrations)} active registrations expiring in 40 days."
         )
         for reg in registrations:
             app.logger.info(f"Sending reminder for registration ID: {reg.id}")
@@ -72,18 +72,18 @@ def send_forty_days_reminder(app):
         app.logger.info("Finished sending 40 days renewal notifications")
 
 
-def send_fourteen_days_reminder(app):
+def send_fourteen_days_reminder(app, registration_type):
     """Send the reminder before 14 days."""
     with app.app_context():
         app.logger.info("Starting 14 days renewal notifications")
         target_date = (datetime.utcnow() + timedelta(days=14)).date()
         registrations = Registration.query.filter(
-            Registration.registration_type == Registration.RegistrationType.HOST,
+            Registration.registration_type == registration_type,
             Registration.status == RegistrationStatus.ACTIVE,
             func.date(Registration.expiry_date) == target_date,
         ).all()
         app.logger.info(
-            f"Found {len(registrations)} active host registrations expiring in 14 days."
+            f"Found {len(registrations)} active registrations expiring in 14 days."
         )
         for reg in registrations:
             renewal_application = (
@@ -135,7 +135,7 @@ def send_thirty_days_reminder_for_strata_hotels(app):
             func.date(Registration.expiry_date) == target_date,
         ).all()
         app.logger.info(
-            f"Found {len(registrations)} active host registrations expiring in 30 days."
+            f"Found {len(registrations)} active registrations expiring in 30 days."
         )
         for reg in registrations:
             renewal_application = (
@@ -161,8 +161,18 @@ def run():
         app = create_app()
         with app.app_context():
             app.logger.info("Starting renewal reminder job")
-            send_forty_days_reminder(app)
-            send_fourteen_days_reminder(app)
+            send_forty_days_reminder(
+                app, registration_type=Registration.RegistrationType.HOST
+            )
+            send_fourteen_days_reminder(
+                app, registration_type=Registration.RegistrationType.HOST
+            )
+            send_forty_days_reminder(
+                app, registration_type=Registration.RegistrationType.PLATFORM
+            )
+            send_fourteen_days_reminder(
+                app, registration_type=Registration.RegistrationType.PLATFORM
+            )
             send_sixty_days_reminder_for_strata_hotels(app)
             send_thirty_days_reminder_for_strata_hotels(app)
             app.logger.info("Renewal reminder job completed")

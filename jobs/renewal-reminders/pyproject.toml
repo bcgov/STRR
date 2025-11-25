@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "renewal-reminders"
-version = "1.0.1"
+version = "1.0.2"
 description = ""
 authors = []
 packages = [{include = "renewal_reminders", from = "src"}]
