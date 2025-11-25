@@ -51,29 +51,11 @@ pre-commit = "^3.1.1"
 black = "^23.12.1"
 pylint = "^3.0.3"
 bandit = "^1.7.6"
-flake8-pyproject = "^1.2.3"
 isort = "^5.13.2"
 
 [tool.bandit]
 exclude_dirs = [".venv","tests"]
 skips = ["B104"]
-
-[tool.flake8]
-ignore = ["F401","E402", "Q000", "E203", "W503"]
-exclude = [
-    ".venv",
-    ".git",
-    ".history",
-    "devops",
-    "*migrations*",
-]
-per-file-ignores = [
-    "__init__.py:F401",
-    "*.py:B902"
-]
-max-line-length = 120
-docstring-min-length=10
-count = true
 
 [tool.black]
 target-version =  ["py310", "py311", "py312"]
