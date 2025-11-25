@@ -51,6 +51,7 @@ from simple_cloudevent import SimpleCloudEvent
 from strr_api.enums.enum import RegistrationNocStatus
 from strr_api.models import Application
 from strr_api.models import Registration
+from strr_api.models import Platform
 from strr_api.models import StrataHotel
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import AuthService
@@ -78,6 +79,7 @@ EMAIL_SUBJECT = {
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
     "STRATA_HOTEL_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
+    "PLATFORM_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
 }
 
 
@@ -155,6 +157,13 @@ def worker():
                 )
             else:
                 return {}, HTTPStatus.OK
+        elif registration.registration_type == Registration.RegistrationType.PLATFORM:
+            if email_info.email_type == "PLATFORM_RENEWAL_REMINDER":
+                email = _get_registration_update_email_content_for_platform(
+                    registration, email_info, jinja_template
+                )
+            else:
+                return {}, HTTPStatus.OK
         else:
             return {}, HTTPStatus.OK
 
@@ -218,6 +227,30 @@ def _get_registration_update_email_content_for_host(
     }
     return email
 
+def _get_registration_update_email_content_for_platform(
+    registration: Registration, email_info, jinja_template
+):
+    platform = registration.platform_registration.platform
+    recipients = _get_platform_notification_recipients(platform)
+    html_out = jinja_template.render(
+        reg_num=registration.registration_number,
+        ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
+        expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        tac_url=_get_registration_tac_url(registration),
+    )
+    subject_number = registration.registration_number
+    subject = (
+        f"{current_app.config['EMAIL_SUBJECT_PREFIX']} "
+        + f"{subject_number} - {EMAIL_SUBJECT.get(email_info.email_type, '')}"
+    ).strip()
+    email = {
+        "recipients": recipients,
+        "requestBy": current_app.config["EMAIL_STRR_REQUEST_BY"],
+        "content": {"subject": subject, "body": f"{html_out}"},
+    }
+    return email
+
+
 
 def _get_registration_update_email_content_for_strata_hotel(
     registration: Registration, email_info, jinja_template
@@ -255,6 +288,17 @@ def _get_strata_hotel_notification_recipients(strata_hotel: StrataHotel) -> str:
         recipients.append(housing_recipient_email)
 
     for representative in strata_hotel.representatives:
+        recipients.append(representative.contact.email)
+
+    return ",".join(recipients)
+
+def _get_platform_notification_recipients(platform: Platform) -> str:
+    recipients: list[str] = []
+
+    if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
+        recipients.append(housing_recipient_email)
+
+    for representative in platform.representatives:
         recipients.append(representative.contact.email)
 
     return ",".join(recipients)

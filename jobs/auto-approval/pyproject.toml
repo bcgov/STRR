@@ -22,7 +22,6 @@ gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirect
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
-flake8-pyproject = "^1.2.3"
 
 [tool.poetry.group.test.dependencies]
 freezegun = "^1.4.0"
@@ -49,15 +48,4 @@ build-backend = "poetry.core.masonry.api"
 profile = "black"
 
 [tool.pylint]
-max-line-length = 132
-
-[tool.flake8]
-ignore = ["F401","E402", "Q000", "E203", "W503"]
-exclude = [
-    ".venv",
-    ".git",
-    ".history",
-    "devops",
-    "*migrations*",
-]
 max-line-length = 132

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strr-email"
-version = "1.0.9"
+version = "1.0.10"
 description = "BC Registries - strr-email"
 authors = []
 license = "BSD-3-Clause"
@@ -23,7 +23,6 @@ pg8000 = "^1.31.2"
 protobuf = "3.19.5"
 isort = "^5.13.2"
 pylint = "^3.0.3"
-flake8-pyproject = "^1.2.3"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
@@ -37,7 +36,6 @@ black = "^24.4.2"
 zimports = "^0.6.1"
 lovely-pytest-docker = "^0.3.1"
 isort = "^5.13.2"
-flake8 = "^7.1.1"
 
 [tool.black]
 line-length = 100
@@ -59,24 +57,6 @@ profile = "google"
 line_length = 120
 known_first_party = ["strr_email"]
 
-[tool.flake8]
-max-line-length = 120
-extend-ignore = [
-    "E203",
-    "W503",
-]
-exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    ".venv",
-    ".eggs",
-    "*.egg",
-    ".pytest_cache",
-]
-import-order-style = "google"
-application-import-names = ["strr_email"]
 
 [build-system]
 requires = ["poetry-core"]
