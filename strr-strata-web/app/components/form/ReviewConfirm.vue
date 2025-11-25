@@ -12,16 +12,14 @@ const detailsStore = useStrrStrataDetailsStore()
 const applicationStore = useStrrStrataApplicationStore()
 const documentStore = useDocumentStore()
 const modal = useModal()
-const { isRegistrationRenewal } = storeToRefs(useStrrStrataStore())
 
 const strataConfirmationFormRef = ref<Form<z.output<typeof applicationStore.confirmationSchema>>>()
 const sectionErrors = ref<MultiFormValidationResult>([])
 
 const props = defineProps<{ isComplete: boolean }>()
 
-/** Formats unit listings for display in the modal (only for renewals) */
+/** Formats unit listings for display in the modal */
 const unitListingGroups = computed<StrataUnitListingGroup[]>(() => {
-  if (!isRegistrationRenewal.value) { return [] }
   return buildStrataUnitListingGroups(
     detailsStore.strataDetails,
     {
@@ -334,18 +332,15 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
           />
         </template>
         <template #rentalUnits>
-          <div v-if="isRegistrationRenewal">
-            <UButton
-              v-if="hasUnitListingGroups"
-              variant="link"
-              class="p-0 text-base text-bcGovColor-activeBlue underline"
-              :padded="false"
-              @click="openUnitListModal"
-            >
-              {{ $t('strr.review.unitsLink') }}
-            </UButton>
-            <span v-else> - </span>
-          </div>
+          <UButton
+            v-if="hasUnitListingGroups"
+            variant="link"
+            class="p-0 text-base text-bcGovColor-activeBlue underline"
+            :padded="false"
+            @click="openUnitListModal"
+          >
+            {{ $t('strr.review.unitsLink') }}
+          </UButton>
           <span v-else> - </span>
         </template>
         <template #buildings>

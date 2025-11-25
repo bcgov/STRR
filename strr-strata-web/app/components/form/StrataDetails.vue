@@ -6,7 +6,6 @@ const rtc = useRuntimeConfig().public
 const strataModal = useStrataModals()
 const { addNewEmptyBuilding, removeBuildingAtIndex, strataDetailsSchema } = useStrrStrataDetailsStore()
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
-const { isRegistrationRenewal } = storeToRefs(useStrrStrataStore())
 const docStore = useDocumentStore()
 const { getDocumentSchema } = docStore
 
@@ -177,7 +176,6 @@ onMounted(async () => {
             </div>
           </ConnectFormSection>
           <ConnectFormSection
-            v-if="isRegistrationRenewal"
             :title="$t('strr.units.title')"
           >
             <FormStrataUnitList
@@ -242,7 +240,6 @@ onMounted(async () => {
               </div>
             </ConnectFormSection>
             <ConnectFormSection
-              v-if="isRegistrationRenewal"
               :title="$t('strr.units.title')"
             >
               <FormStrataUnitList
