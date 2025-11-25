@@ -65,16 +65,6 @@ const hasRenewalDraft = (registration: any): boolean => {
   )
 }
 
-const hasRenewalInProgress = (registration: any): boolean => {
-  if (!registration?.header?.applications) {
-    return false
-  }
-  return registration.header.applications.some((app: any) =>
-    app.applicationType === 'renewal' &&
-    ['UNDER_REVIEW', 'ADDITIONAL_INFO_REQUESTED', 'PROVISIONAL_REVIEW'].includes(app.applicationStatus)
-  )
-}
-
 const getLatestApplicationNumber = (registration: any): string => {
   if (!registration?.header?.applications || registration.header.applications.length === 0) {
     return registration.registrationNumber
@@ -107,7 +97,6 @@ const mapRegistrationsList = (registrations: any[]) => {
       expiryDate: registration.expiryDate,
       isExpiryCritical: isExpiryDateCritical(registration.expiryDate),
       hasRenewalDraft: hasRenewalDraft(registration),
-      hasRenewalInProgress: hasRenewalInProgress(registration),
       latestApplicationNumber: getLatestApplicationNumber(registration),
       registrationId: registration.id
     }
@@ -176,15 +165,6 @@ async function handleRegistrationSelect (row: any) {
           <div class="flex gap-1">
             <UBadge
               v-if="row.hasRenewalDraft"
-              color="blue"
-              variant="subtle"
-              size="xs"
-              class="text-xs"
-            >
-              {{ $t('page.dashboardBadges.renewalDraft') }}
-            </UBadge>
-            <UBadge
-              v-if="row.hasRenewalInProgress"
               color="blue"
               variant="subtle"
               size="xs"
