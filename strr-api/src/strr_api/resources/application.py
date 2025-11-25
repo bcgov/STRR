@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-# pylint: disable=C0302
+# pylint: disable=C0302, R0912, R0914
 """
 STRR Application Resource.
 """

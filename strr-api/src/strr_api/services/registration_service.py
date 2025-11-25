@@ -35,6 +35,7 @@
 # pylint: disable=E1102
 # pylint: disable=R0917
 # pylint: disable=C0302
+# pylint: disable=R0904
 """Manages registration model interactions."""
 import logging
 import random
