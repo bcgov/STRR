@@ -50,8 +50,8 @@ import requests
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.enums.enum import RegistrationNocStatus
 from strr_api.models import Application
-from strr_api.models import Registration
 from strr_api.models import Platform
+from strr_api.models import Registration
 from strr_api.models import StrataHotel
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import AuthService
@@ -227,6 +227,7 @@ def _get_registration_update_email_content_for_host(
     }
     return email
 
+
 def _get_registration_update_email_content_for_platform(
     registration: Registration, email_info, jinja_template
 ):
@@ -249,7 +250,6 @@ def _get_registration_update_email_content_for_platform(
         "content": {"subject": subject, "body": f"{html_out}"},
     }
     return email
-
 
 
 def _get_registration_update_email_content_for_strata_hotel(
@@ -291,6 +291,7 @@ def _get_strata_hotel_notification_recipients(strata_hotel: StrataHotel) -> str:
         recipients.append(representative.contact.email)
 
     return ",".join(recipients)
+
 
 def _get_platform_notification_recipients(platform: Platform) -> str:
     recipients: list[str] = []
