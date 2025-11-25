@@ -95,22 +95,15 @@ const splitUnitLines = (value?: string) => (
 )
 
 /**
- * Formats a ConnectAddress into the one-line display used in the unit list modal.
+ * Format the address for the unit list modal.
+ * Reuse the base layer formatter so address display stays consistent everywhere.
+ * Removes leading commas that appear when city is missing (e.g., ", BC").
  */
 export const formatStrataUnitAddressLines = (address?: ConnectAddress): string[] => {
   if (!address) { return [] }
-  const lines: string[] = []
-  const streetLine = [address.street, address.streetAdditional].filter(Boolean).join(' ').trim()
-  if (streetLine) {
-    lines.push(streetLine)
-  }
-  const cityRegion = [address.city, address.region].filter(Boolean).join(', ').trim()
-  const postal = address.postalCode?.toUpperCase()
-  const locationLine = [cityRegion, postal].filter(Boolean).join('  ').trim()
-  if (locationLine) {
-    lines.push(locationLine)
-  }
-  return lines
+  return getAddressDisplayParts(address, false, true, true)
+    .map(line => line.replace(/^,\s*/, '').trim())
+    .filter(line => line.length)
 }
 
 /**

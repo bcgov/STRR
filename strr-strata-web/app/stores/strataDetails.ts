@@ -85,50 +85,12 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
     strataDetails.value.unitListings.additional.splice(index, 1)
   }
 
-  /**
-   * Validates that unit listings are not empty for renewal applications.
-   * Checks both primary building and all additional buildings.
-   */
-  const createUnitListValidationResult = () => {
-    const errors: z.ZodIssue[] = []
-
-    if (!strataDetails.value.unitListings.primary?.trim()) {
-      errors.push({
-        code: z.ZodIssueCode.custom,
-        message: t('validation.unitListRequired'),
-        path: ['unitListings', 'primary']
-      })
-    }
-
-    strataDetails.value.buildings.forEach((_building, index) => {
-      const units = strataDetails.value.unitListings.additional[index]
-      if (!units?.trim()) {
-        errors.push({
-          code: z.ZodIssueCode.custom,
-          message: t('validation.unitListRequired'),
-          path: ['unitListings', 'additional', index]
-        })
-      }
-    })
-
-    return {
-      formId: 'strata-unit-lists-form',
-      success: errors.length === 0,
-      errors
-    }
-  }
-
   const validateStrataDetails = (
-    returnBool = false,
-    requireUnitListings = false
+    returnBool = false
   ): MultiFormValidationResult | boolean => {
     const results: MultiFormValidationResult = [
       validateSchemaAgainstState(strataDetailsSchema, strataDetails.value, 'strata-details-form')
     ]
-
-    if (requireUnitListings) {
-      results.push(createUnitListValidationResult())
-    }
 
     if (returnBool) {
       return results.every(result => result.success === true)

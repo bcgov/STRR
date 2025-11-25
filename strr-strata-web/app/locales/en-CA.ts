@@ -109,7 +109,7 @@ export default {
         description: 'This is the format you will get when cutting and pasting a column in a spreadsheet.',
         values: ['102', '103A', '104', 'PH900', 'suite909']
       },
-      placeholder: 'Enter Units Here...',
+      placeholder: 'Enter Units Here... (Optional)',
       helper: 'Enter each unit number without spaces. Ex: 102, 103A, 104, PH900 etc.',
       error: 'Enter list of units offered as Short-Term rentals within this building',
       reviewTitle: 'Short-Term Rental Units',

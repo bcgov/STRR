@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { Form } from '#ui/types'
+import ModalStrataUnitListModal from '@/components/modal/StrataUnitListModal.vue'
 const { kcUser } = useKeycloak()
 const { t } = useI18n()
 
@@ -66,7 +67,7 @@ onMounted(async () => {
   const validations = [
     contactStore.validateContact(),
     businessStore.validateStrataBusiness(),
-    detailsStore.validateStrataDetails(false, isRegistrationRenewal.value),
+    detailsStore.validateStrataDetails(false),
     documentStore.validateDocuments()
   ]
 

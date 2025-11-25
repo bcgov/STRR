@@ -15,23 +15,6 @@ const props = defineProps<{ isComplete: boolean }>()
 const strataDetailsFormRef = ref<Form<z.output<typeof strataDetailsSchema>>>()
 const documentFormRef = ref<Form<any>>()
 
-/** Checks if a unit listing value has actual content (not just whitespace) */
-const hasUnitsValue = (value?: string) => !!value && value.trim().length > 0
-
-/** Determines if primary building unit list error should be displayed */
-const shouldShowPrimaryUnitsError = computed(() => (
-  isRegistrationRenewal.value &&
-  props.isComplete &&
-  !hasUnitsValue(strataDetails.value.unitListings.primary)
-))
-
-/** Determines if additional building unit list error should be displayed for a given building index */
-const shouldShowAdditionalUnitsError = (index: number) => (
-  isRegistrationRenewal.value &&
-  props.isComplete &&
-  !hasUnitsValue(strataDetails.value.unitListings.additional[index])
-)
-
 // revalidate form to remove errors if field previously shows error
 watch(() => docStore.storedDocuments,
   () => {
@@ -196,14 +179,10 @@ onMounted(async () => {
           <ConnectFormSection
             v-if="isRegistrationRenewal"
             :title="$t('strr.units.title')"
-            :error="shouldShowPrimaryUnitsError"
           >
             <FormStrataUnitList
               v-model="strataDetails.unitListings.primary"
               name="unitListings.primary"
-              :is-required="isRegistrationRenewal"
-              :show-error="shouldShowPrimaryUnitsError"
-              :error-message="$t('strr.units.error')"
             />
           </ConnectFormSection>
           <div v-if="strataDetails.buildings.length === 0" class="ml-[220px] mt-10">
@@ -265,14 +244,10 @@ onMounted(async () => {
             <ConnectFormSection
               v-if="isRegistrationRenewal"
               :title="$t('strr.units.title')"
-              :error="shouldShowAdditionalUnitsError(i)"
             >
               <FormStrataUnitList
                 v-model="strataDetails.unitListings.additional[i]"
                 :name="`unitListings.additional.${i}`"
-                :is-required="isRegistrationRenewal"
-                :show-error="shouldShowAdditionalUnitsError(i)"
-                :error-message="$t('strr.units.error')"
               />
             </ConnectFormSection>
             <div v-if="i === strataDetails.buildings.length - 1" class="ml-[220px] mt-10">

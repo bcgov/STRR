@@ -83,7 +83,7 @@ const steps = ref<Step[]>([
     complete: false,
     isValid: false,
     validationFn: () => (
-      validateStrataDetails(true, permitStore.isRegistrationRenewal) as boolean &&
+      validateStrataDetails(true) as boolean &&
       validateDocuments(true) as boolean
     )
   },
@@ -142,7 +142,7 @@ const handleStrataSubmit = async () => {
     const validations = [
       validateContact(),
       validateStrataBusiness(),
-      validateStrataDetails(false, permitStore.isRegistrationRenewal),
+      validateStrataDetails(false),
       validateDocuments(),
       validateStrataConfirmation()
     ]
