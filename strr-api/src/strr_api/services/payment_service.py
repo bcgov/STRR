@@ -218,6 +218,7 @@ class PayService:
         return filing_type, quantity
 
     def _get_renewal_filing_type_for_host(self, rental_unit_setup_option, property_type):
+        filing_type = None
         if property_type == PropertyType.BED_AND_BREAKFAST.name:
             filing_type = HOST_RENEWAL_BED_AND_BREAKFAST
             self.app.logger.info("Bed and Breakfast property for renewal::")

@@ -1,3 +1,4 @@
+# pylint: disable=C0114, C0116, W1514
 import json
 
 from sqlalchemy import text

@@ -1,3 +1,4 @@
+# pylint: disable=C0114, W0613
 import pytest
 
 from registration_expiry.job import create_app
