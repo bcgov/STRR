@@ -179,7 +179,7 @@ def run():
         app = create_app()
         with app.app_context():
             app.logger.info("Starting backfiller job....")
-            backfill_jurisdiction(app)
+            # backfill_jurisdiction(app)
             backfill_strata_hotel_category(app)
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Unexpected error: {str(err)}")
