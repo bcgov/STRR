@@ -253,6 +253,15 @@ class Document(Versioned, BaseModel):
         FRACTIONAL_OWNERSHIP_AGREEMENT = auto()  # pylint: disable=invalid-name
         BCSC = auto()  # pylint: disable=invalid-name
         COMBINED_BCSC_LICENSE = auto()  # pylint: disable=invalid-name
+        PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP = auto()  # pylint: disable=invalid-name
+        TITLE_CERTIFICATE_OR_SEARCH = auto()  # pylint: disable=invalid-name
+        SPECULATION_VACANCY_TAX_DECLARATION = auto()  # pylint: disable=invalid-name
+        HOME_OWNER_GRANT_APPROVAL = auto()  # pylint: disable=invalid-name
+        NOTARIZED_REAL_ESTATE_DOC = auto()  # pylint: disable=invalid-name
+        PROPERTY_TRANSFER_TAX_RETURN = auto()  # pylint: disable=invalid-name
+        AFFIDAVIT_PRINCIPAL_RESIDENCE = auto()  # pylint: disable=invalid-name
+        ASSESSMENT_ACT_NOTICE = auto()  # pylint: disable=invalid-name
+        MORTGAGE_STATEMENT_OR_SAVINGS_DOC = auto()  # pylint: disable=invalid-name
 
     __tablename__ = "documents"
 

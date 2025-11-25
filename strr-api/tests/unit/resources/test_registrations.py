@@ -1163,6 +1163,62 @@ def test_upload_registration_document(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_upload_registration_document_new_document_types(mock_invoice, session, client, jwt):
+    """Test uploading documents with new document types."""
+    new_document_types = [
+        "PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP",
+        "TITLE_CERTIFICATE_OR_SEARCH",
+        "SPECULATION_VACANCY_TAX_DECLARATION",
+        "HOME_OWNER_GRANT_APPROVAL",
+        "NOTARIZED_REAL_ESTATE_DOC",
+        "PROPERTY_TRANSFER_TAX_RETURN",
+        "AFFIDAVIT_PRINCIPAL_RESIDENCE",
+        "ASSESSMENT_ACT_NOTICE",
+        "MORTGAGE_STATEMENT_OR_SAVINGS_DOC",
+    ]
+
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        with patch(
+            "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
+            return_value="Test Key",
+        ):
+            for doc_type in new_document_types:
+                with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+                    data = {"file": (df, MOCK_DOCUMENT_UPLOAD), "documentType": doc_type}
+                    rv = client.post(
+                        f"/registrations/{registration_id}/documents",
+                        content_type="multipart/form-data",
+                        data=data,
+                        headers=staff_headers,
+                    )
+                    assert rv.status_code == HTTPStatus.CREATED
+                    registration_response = rv.json
+                    docs = registration_response.get("documents", [])
+                    assert any(d.get("documentType") == doc_type for d in docs)
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_send_notice_of_consideration_success(mock_invoice, session, client, jwt):
     """Test successful sending of notice of consideration for registration."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
