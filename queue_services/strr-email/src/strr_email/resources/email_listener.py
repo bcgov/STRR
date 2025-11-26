@@ -238,6 +238,7 @@ def _get_registration_update_email_content_for_platform(
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
         tac_url=_get_registration_tac_url(registration),
+        service_provider=platform.legal_name,
     )
     subject_number = registration.registration_number
     subject = (
