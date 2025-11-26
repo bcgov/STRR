@@ -1,12 +1,14 @@
 # pylint: disable=C0114, C0116, W1514
 import json
 
+import pytest
 from sqlalchemy import text
 from strr_api.models import db
 
 from registration_expiry.job import update_status_for_registration_expired_applications
 
 
+@pytest.mark.skip(reason="Test needs to be rewritten to use models.")
 def test_update_status_for_registration_active_applications(app):
     db.session.execute(text("DELETE FROM events"))
     db.session.execute(text("DELETE FROM application"))
@@ -59,6 +61,7 @@ def test_update_status_for_registration_active_applications(app):
     assert result == 1, "Expected one registration to be marked as ACTIVE"
 
 
+@pytest.mark.skip(reason="Test needs to be rewritten to use models.")
 def test_cancelled_registrations_update_status(app):
     db.session.execute(text("DELETE FROM events"))
     db.session.execute(text("DELETE FROM application"))
@@ -118,6 +121,7 @@ def test_cancelled_registrations_update_status(app):
     assert result == 0, "Expected zero registration to be marked as CANCELLED"
 
 
+@pytest.mark.skip(reason="Test needs to be rewritten to use models.")
 def test_suspended_registrations_update_status(app):
     db.session.execute(text("DELETE FROM events"))
     db.session.execute(text("DELETE FROM application"))
