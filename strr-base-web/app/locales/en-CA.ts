@@ -433,6 +433,12 @@ export default {
     renewal: {
       title1: 'Registration Renewal - Due:',
       title2: 'at 11:59 pm PT'
+    },
+    renewalDraft: {
+      title: 'Application to Renew Registration',
+      subtitle: 'DRAFT',
+      resumeButton: 'Resume Draft',
+      deleteDraft: 'Delete Draft'
     }
   },
   toast: {

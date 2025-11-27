@@ -17,6 +17,7 @@ const {
 } = storeToRefs(useStrrPlatformStore())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
+const { deleteApplication } = useStrrApi()
 
 const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
@@ -36,29 +37,67 @@ const getApplicationTodo = () => {
 const getRenewalToDo = async (): Promise<Todo[]> => {
   if (!registration.value || !isRenewalsEnabled) { return [] }
 
-  const { hasRenewalTodo } = await getTodoRegistration(registration.value.id)
+  const { hasRenewalTodo, hasRenewalDraft, renewalDraftId } = await getTodoRegistration(registration.value.id)
 
-  if (!hasRenewalTodo) { return [] }
+  if (!hasRenewalTodo && !hasRenewalDraft) { return [] }
 
-  const { isOverdue, renewalDueDate, countdownLabel } = getTodoRenewalInfo(registration.value!.expiryDate)
+  const renewalTodos: Todo[] = []
 
-  return [{
-    id: 'todo-renew-platform',
-    title: `${t('todos.renewal.title1')} ${renewalDueDate} ${t('todos.renewal.title2')} (${countdownLabel})`,
-    subtitle: t(isOverdue
-      ? 'todos.renewal.expired'
-      : 'todos.renewal.expiresSoon', translateOptions),
-    buttons: [{
-      label: t('btn.renew'),
-      action: async () => {
-        renewalRegId.value = registration.value?.id.toString()
-        await navigateTo({
-          path: localePath('/platform/application'),
-          query: { override: 'true', renew: 'true' }
-        })
-      }
-    }]
-  }]
+  if (hasRenewalTodo) {
+    const { isOverdue, renewalDueDate, countdownLabel } = getTodoRenewalInfo(registration.value!.expiryDate)
+
+    renewalTodos.push({
+      id: 'todo-renew-platform',
+      title: `${t('todos.renewal.title1')} ${renewalDueDate} ${t('todos.renewal.title2')} (${countdownLabel})`,
+      subtitle: t(isOverdue
+        ? 'todos.renewal.expired'
+        : 'todos.renewal.expiresSoon', translateOptions),
+      buttons: [{
+        label: t('btn.renew'),
+        action: async () => {
+          renewalRegId.value = registration.value?.id.toString()
+          await navigateTo({
+            path: localePath('/platform/application'),
+            query: { override: 'true', renew: 'true' }
+          })
+        }
+      }]
+    })
+  }
+
+  if (hasRenewalDraft) {
+    renewalTodos.push({
+      id: 'todo-renewal-draft',
+      title: t('todos.renewalDraft.title'),
+      subtitle: t('todos.renewalDraft.subtitle'),
+      buttons: [
+        {
+          label: t('todos.renewalDraft.resumeButton'),
+          action: async () => {
+            await navigateTo({
+              path: localePath('/platform/application'),
+              query: { override: 'true', renew: 'true', applicationId: renewalDraftId }
+            })
+          }
+        },
+        {
+          label: t('todos.renewalDraft.deleteDraft'),
+          icon: 'i-mdi-delete',
+          action: async () => {
+            // delete draft application
+            await deleteApplication(renewalDraftId)
+            // remove renewal draft todo
+            todos.value = todos.value.filter(todo => todo.id !== 'todo-renewal-draft')
+            // reload registration renewal todos
+            // getRenewalToDo()
+            todos.value.push(...await getRenewalToDo())
+          }
+        }
+      ]
+    })
+  }
+
+  return renewalTodos
 }
 
 const setSidePanelDetails = () => {

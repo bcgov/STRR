@@ -25,7 +25,7 @@ export const getTodoApplication = (
         }
       }]
     })
-  } else if (applicationInfo?.status === ApplicationStatus.DRAFT) {
+  } else if (applicationInfo?.status === ApplicationStatus.DRAFT && applicationInfo?.applicationType !== 'renewal') {
     todos.push({
       id: 'todo-resume-app',
       title: t('strr.title.application'),
@@ -108,8 +108,18 @@ export const getTodoRegistration = async (regId: number) => {
   const hasRenewalTodo: boolean = todos
     .some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
 
+  // check if todos have a draft
+  const hasRenewalDraft =
+    todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)
+
+  // get renewal application id
+  const renewalDraftId =
+    todos.find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)?.task?.detail ?? null
+
   return {
-    hasRenewalTodo
+    hasRenewalTodo,
+    hasRenewalDraft,
+    renewalDraftId
   }
 }
 

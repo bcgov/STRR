@@ -64,6 +64,9 @@ onMounted(async () => {
   if (isRegRenewalFlow.value) {
     isRegistrationRenewal.value = true
     await platformStore.loadPlatformRegistrationData(renewalRegId.value!)
+  } else if (isRenewal.value && applicationId.value) {
+    await platformStore.loadPlatform(applicationId.value, true)
+    isRegistrationRenewal.value = true
   } else if (applicationId.value) {
     await platformStore.loadPlatform(applicationId.value, true)
   }

@@ -146,6 +146,7 @@ export interface ApiDocument {
 
 export interface ApiRegistrationTodoTaskResp {
   task: {
-    type: RegistrationTodoType
+    type: RegistrationTodoType,
+    details?: string
   }
 }
