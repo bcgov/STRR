@@ -2,11 +2,14 @@ export const setHeaderDetails = (
   status?: string | RegistrationStatus,
   expiryDate?: string,
   receiptAction?: Function,
-  certAction?: Function
+  certAction?: Function,
+  hasPendingProcessing = false
 ) => {
   // NOTE: even though this function is called within 'setup', useNuxtApp is required for the app context
   const { t } = useNuxtApp().$i18n
   const { details, bottomButtons } = storeToRefs(useConnectDetailsHeaderStore())
+
+  const detailItems: typeof details.value = []
 
   if (status) {
     const red = [
@@ -16,12 +19,21 @@ export const setHeaderDetails = (
 
     const yellow = status !== RegistrationStatus.ACTIVE
 
-    details.value = [{
+    detailItems.push({
       text: status,
       chip: true,
       chipColour: red ? 'red' : yellow ? 'yellow' : undefined
-    }]
+    })
   }
+  if (hasPendingProcessing) {
+    detailItems.push({
+      text: t('label.pendingProcessing'),
+      chip: true,
+      chipColour: 'yellow'
+    })
+  }
+
+  details.value = detailItems
   if (expiryDate) {
     details.value.push({ text: `${t('label.expiryDate')} - ${expiryDate}` })
   }

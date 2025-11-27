@@ -80,3 +80,10 @@ export interface HostApplicationResp extends HostApplicationPayload {
 
 export interface HostRegistrationResp extends ApiHostApplication, ApiExtraRegistrationDetails {
 }
+
+export interface RegistrationApplication {
+  applicationNumber: string
+  applicationDateTime: string
+  applicationType: string
+  applicationStatus: string
+}

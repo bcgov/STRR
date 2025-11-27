@@ -105,8 +105,11 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     const paymentToken = res.header.paymentToken
     const filingId = res.header.applicationNumber
     const applicationStatus = res.header.status
+    const registrationId = res.header.registrationId
+    const registrationNumber = res.header.registrationNumber
+    const applicationType = res.header.applicationType
 
-    return { paymentToken, filingId, applicationStatus }
+    return { paymentToken, filingId, applicationStatus, registrationId, registrationNumber, applicationType }
   }
 
   const $reset = () => {
