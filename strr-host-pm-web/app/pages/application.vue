@@ -67,7 +67,7 @@ onMounted(async () => {
   permitStore.$reset()
 
   if (isRegRenewalFlow.value) {
-    await permitStore.loadHostRegistrationData(renewalRegId.value!)
+    await permitStore.loadHostRegistrationData(renewalRegId.value!, true)
     isRegistrationRenewal.value = true
   } else if (isRenewal.value && applicationId.value) {
     await permitStore.loadHostData(applicationId.value, true)
@@ -263,8 +263,28 @@ const handleSubmit = async () => {
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
       shouldSkipConfirmModal = true
-      const { paymentToken, filingId, applicationStatus } = await submitApplication(false, applicationId.value)
-      const redirectPath = `/dashboard/${filingId}`
+      const {
+        paymentToken,
+        filingId,
+        applicationStatus,
+        registrationId,
+        registrationNumber,
+        applicationType
+      } = await submitApplication(false, applicationId.value)
+
+      // Determine redirect path based on feature flag and application type
+      let redirectPath: string
+      if (isNewDashboardEnabled.value) {
+        if (applicationType === 'renewal' && registrationId && registrationNumber) {
+          permitStore.selectedRegistrationId = String(registrationId)
+          redirectPath = `/dashboard/registration/${registrationNumber}`
+        } else {
+          redirectPath = `/dashboard/application/${filingId}`
+        }
+      } else {
+        redirectPath = `/dashboard/${filingId}`
+      }
+
       if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
         handlePaymentRedirect(paymentToken, redirectPath)
       } else {

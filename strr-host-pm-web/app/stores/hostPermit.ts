@@ -37,6 +37,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
 
   const renewalRegId = ref<string | undefined>(undefined)
   const isRegistrationRenewal = ref(false)
+  const selectedRegistrationId = ref<string | undefined>(undefined)
 
   const needsBusinessLicenseDocumentUpload = computed(() => {
     if (!isBusinessLicenseDocumentUploadEnabled.value || !registration.value) {
@@ -66,16 +67,16 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     return needsBusinessLicenseUpload(jurisdiction)
   }
 
-  // load Registration into application form (e.g. used for Renewals)
-  const loadHostRegistrationData = async (registrationId: string) => {
+  // load Registration data (used for registration detail page and Renewals)
+  const loadHostRegistrationData = async (registrationId: string, isRenewal: boolean = false) => {
     $reset()
     await loadPermitRegistrationData(registrationId)
-    await populateHostDetails(true)
+    await populateHostDetails(isRenewal)
   }
 
-  const loadHostData = async (applicationId: string, loadDraft = false) => {
+  const loadHostData = async (applicationId: string, loadDraft = false, skipRegistration = false) => {
     $reset()
-    await loadPermitData(applicationId)
+    await loadPermitData(applicationId, undefined, skipRegistration)
     if (showPermitDetails.value || loadDraft) {
       await populateHostDetails()
     }
@@ -154,6 +155,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     showPermitDetails,
     renewalRegId,
     isRegistrationRenewal,
+    selectedRegistrationId,
     needsBusinessLicenseDocumentUpload,
     checkBusinessLicenseRequirement,
     downloadApplicationReceipt,

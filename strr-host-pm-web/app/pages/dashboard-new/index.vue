@@ -2,19 +2,13 @@
 const { t } = useI18n()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
-const { isNewDashboardEnabled } = useHostFeatureFlags()
-
-// Redirect to old dashboard if feature flag is not enabled
-if (!isNewDashboardEnabled.value) {
-  await navigateTo(localePath('/dashboard'))
-}
 
 useHead({
   title: t('page.dashboardList.title')
 })
 
 definePageMeta({
-  middleware: ['auth', 'check-tos', 'require-account']
+  middleware: ['auth', 'check-tos', 'require-account', 'dashboard-redirect']
 })
 
 setBreadcrumbs([

@@ -31,7 +31,11 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
   const showPermitDetails = computed(() => !!registration.value ||
     (!!application.value && !isApplicationStatus([ApplicationStatus.DRAFT])))
 
-  const loadPermitData = async (applicationId?: string, applicationType?: ApplicationType) => {
+  const loadPermitData = async (
+    applicationId?: string,
+    applicationType?: ApplicationType,
+    skipRegistration = false
+  ) => {
     // Get application
     application.value = await getAccountApplication<A>(applicationId, applicationType) as A
 
@@ -55,7 +59,9 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
       application.value?.header.applicationType !== 'renewal' || isApprovedPlatform || isRenewalDraftPlatform
 
     if ((application.value?.header.registrationId &&
-      application.value?.header.status !== ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) && shouldLoadRegistration
+      application.value?.header.status !== ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) &&
+      shouldLoadRegistration &&
+      !skipRegistration
     ) { // do not load registration for Provisional Pending NOC
       // Get linked registration if applicable
       registration.value = await getAccountRegistrations<R>(

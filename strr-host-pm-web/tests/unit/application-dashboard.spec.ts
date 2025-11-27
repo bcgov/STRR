@@ -256,7 +256,7 @@ describe('Dashboard Application Page', () => {
     const termsConditionsSections = wrapper.find('[data-test-id="reg-terms-conditions"]')
     expect(termsConditionsSections.exists()).toBe(true)
 
-    const statusBadge = termsConditionsSections.find('[data-test-id="reg-status-badge"]')
+    const statusBadge = termsConditionsSections.find('[data-test-id="reg-terms-conditions-badge"]')
     expect(statusBadge.exists()).toBe(true)
     expect(statusBadge.text()).toBe('ACTIVE')
 

@@ -62,7 +62,7 @@ useHead({
 })
 
 definePageMeta({
-  middleware: ['auth', 'check-tos', 'require-account']
+  middleware: ['auth', 'check-tos', 'require-account', 'dashboard-redirect']
 })
 
 setBreadcrumbs([

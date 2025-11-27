@@ -2,6 +2,7 @@
 const { t } = useI18n()
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
+const permitStore = useHostPermitStore()
 const { getAccountRegistrations } = useStrrApi()
 const { isDashboardTableSortingEnabled } = useHostFeatureFlags()
 
@@ -129,7 +130,8 @@ const registrationsList = computed(() => mapRegistrationsList(registrationsResp.
 
 // Navigation handler
 async function handleRegistrationSelect (row: any) {
-  await navigateTo(localePath('/dashboard/' + row.latestApplicationNumber))
+  permitStore.selectedRegistrationId = row.registrationId
+  await navigateTo(localePath('/dashboard/registration/' + row.number))
 }
 </script>
 

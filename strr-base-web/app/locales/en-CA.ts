@@ -152,6 +152,7 @@ export default {
     details: 'Details',
     expiryDate: 'Expiry Date',
     expirationDate: 'Expiration Date',
+    pendingProcessing: 'Pending Processing',
     registrationDate: 'Registration Date',
     role: 'Role',
     note: 'Note',

@@ -11,69 +11,53 @@ const {
 const permitStore = useHostPermitStore()
 const {
   application,
-  registration,
   permitDetails,
   isPaidApplication,
   showPermitDetails
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
-const { isNewDashboardEnabled } = useHostFeatureFlags()
-
-const {
-  todos,
-  addNocTodo,
-  addBusinessLicenseTodo,
-  setupRenewalTodosWatch
-} = useDashboardTodos()
-
-setupRenewalTodosWatch()
-
+const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
+const showBusinessLicenseAlert = ref(false)
 
 onMounted(async () => {
   loading.value = true
   const applicationId = route.params.applicationId as string
-  await permitStore.loadHostData(applicationId)
+  // Skip loading registration - this is an application-only dashboard
+  await permitStore.loadHostData(applicationId, false, true)
 
   todos.value.push(...getTodoApplication(
     '/application',
-    '/dashboard/' + application.value?.header.applicationNumber,
+    '/dashboard/application/' + application.value?.header.applicationNumber,
     application.value?.header,
     ApplicationType.HOST
   ))
 
-  addNocTodo()
-  addBusinessLicenseTodo()
+  // Check if business license alert should be shown relying only on application data
+  showBusinessLicenseAlert.value = permitStore.checkBusinessLicenseRequirement(application.value)
 
   if (!permitDetails.value || !showPermitDetails.value) {
     title.value = t('strr.title.dashboard')
   } else {
-    // existing registration or application under the account
-    // set left side of header
+    // Set left side of header
     title.value = permitDetails.value.unitAddress.nickname || t('strr.label.unnamed')
     subtitles.value = [{ text: getAddressDisplayParts(unitAddress.value.address, true).join(', ') }]
 
-    // for Provisional Pending NOC the header details should be based on the application
-    if (!registration.value || application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) {
-      setHeaderDetails(
-        application.value?.header.hostStatus,
-        undefined,
-        isPaidApplication.value ? permitStore.downloadApplicationReceipt : undefined)
-    } else {
-      setHeaderDetails(
-        registration.value.status,
-        undefined,
-        permitStore.downloadApplicationReceipt)
-    }
+    // Set header details based on application status
+    setHeaderDetails(
+      application.value?.header.hostStatus,
+      undefined,
+      isPaidApplication.value ? permitStore.downloadApplicationReceipt : undefined
+    )
 
-    // host right side details
-    setSideHeaderDetails(registration.value, application.value?.header)
+    // Set right side details based on application only
+    setSideHeaderDetails(undefined, application.value?.header)
 
-    // set sidebar accordion reps
+    // Set sidebar accordion reps
     owners.value = getHostPermitDashOwners()
 
-    // update breadcrumbs with strata business name
+    // Update breadcrumbs
     setBreadcrumbs([
       {
         label: t('label.bcregDash'),
@@ -83,7 +67,7 @@ onMounted(async () => {
       },
       {
         label: t('strr.title.dashboard'),
-        to: localePath(isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard')
+        to: localePath('/dashboard-new')
       },
       { label: permitDetails.value.unitAddress.nickname || t('strr.label.unnamed') }
     ])
@@ -98,18 +82,19 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
-  middleware: ['auth', 'check-tos', 'require-account', 'dashboard-redirect'],
+  middleware: ['auth', 'check-tos', 'require-account'],
   onAccountChange: async () => {
     const { $router, $i18n } = useNuxtApp()
-    await $router.push(`/${$i18n.locale.value}/dashboard`)
+    await $router.push(`/${$i18n.locale.value}/dashboard-new`)
     return true
   }
 })
 </script>
+
 <template>
   <div
-    id="host-dashboard-page"
-    data-test-id="host-dashboard-page"
+    id="host-application-dashboard-page"
+    data-test-id="host-application-dashboard-page"
     class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10"
   >
     <div class="flex-1 space-y-10">
@@ -150,7 +135,7 @@ definePageMeta({
         :loading="loading"
       >
         <UAlert
-          v-if="needsBusinessLicenseDocumentUpload"
+          v-if="showBusinessLicenseAlert"
           color="yellow"
           icon="i-mdi-alert"
           :close-button="null"
@@ -178,7 +163,7 @@ definePageMeta({
       </ConnectDashboardSection>
     </div>
     <div class="space-y-10 sm:w-[300px]">
-      <RegistrationTermsConditions
+      <ApplicationTermsConditions
         v-if="!loading"
       />
       <ConnectDashboardSection

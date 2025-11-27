@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import Select from '../document/upload/Select.vue'
 
+const props = withDefaults(defineProps<{
+  isDashboard?: boolean
+}>(), {
+  isDashboard: false
+})
+
 const { t } = useI18n()
 const { blInfo } = storeToRefs(useHostPropertyStore())
 const { overrideApplicationWarning, showUnitDetailsForm, blRequirements } = storeToRefs(usePropertyReqStore())
@@ -75,14 +81,14 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
           class="space-y-1"
         >
           <div
-            v-if="!requiredDocs.length && !overrideApplicationWarning && showUnitDetailsForm"
+            v-if="!props.isDashboard && !requiredDocs.length && !overrideApplicationWarning && showUnitDetailsForm"
           >
             <div class="flex gap-2">
               <UIcon name="i-mdi-check" class="mt-[2px] size-4 text-green-600" />
               <p>{{ $t('text.noDocsReq') }}</p>
             </div>
           </div>
-          <div v-else-if="!storedDocuments.length">
+          <div v-else-if="!storedDocuments.length && !props.isDashboard">
             <p>{{ $t('text.noDocsUploaded') }}</p>
           </div>
           <div

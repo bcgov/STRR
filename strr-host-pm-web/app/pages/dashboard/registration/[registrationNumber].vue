@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
-const route = useRoute()
 const config = useRuntimeConfig().public
 const localePath = useLocalePath()
 const {
@@ -10,11 +9,11 @@ const {
 } = storeToRefs(useConnectDetailsHeaderStore())
 const permitStore = useHostPermitStore()
 const {
-  application,
   registration,
   permitDetails,
-  isPaidApplication,
-  showPermitDetails
+  showPermitDetails,
+  selectedRegistrationId,
+  needsBusinessLicenseDocumentUpload
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
@@ -31,17 +30,32 @@ setupRenewalTodosWatch()
 
 const owners = ref<ConnectAccordionItem[]>([])
 
+const submittedApplications = computed(() => {
+  const apps = (registration.value as any)?.header?.applications || []
+  return apps.filter((app: any) => app.applicationStatus !== 'DRAFT')
+})
+
+// Check if there's a pending renewal application (PAID or FULL_REVIEW status)
+const hasPendingProcessing = computed(() => {
+  const apps = (registration.value as any)?.header?.applications || []
+  if (apps.length === 0) {
+    return false
+  }
+  const latestApp = apps[0]
+  const pendingStatuses = ['PAID', 'FULL_REVIEW']
+  return latestApp?.applicationType === 'renewal' &&
+    pendingStatuses.includes(latestApp?.applicationStatus)
+})
+
 onMounted(async () => {
   loading.value = true
-  const applicationId = route.params.applicationId as string
-  await permitStore.loadHostData(applicationId)
-
-  todos.value.push(...getTodoApplication(
-    '/application',
-    '/dashboard/' + application.value?.header.applicationNumber,
-    application.value?.header,
-    ApplicationType.HOST
-  ))
+  // Use the registration ID stored before navigation (not the registration number in URL)
+  if (!selectedRegistrationId.value) {
+    // If no ID in store redirect to dashboard
+    await navigateTo(localePath('/dashboard-new'))
+    return
+  }
+  await permitStore.loadHostRegistrationData(selectedRegistrationId.value)
 
   addNocTodo()
   addBusinessLicenseTodo()
@@ -49,31 +63,24 @@ onMounted(async () => {
   if (!permitDetails.value || !showPermitDetails.value) {
     title.value = t('strr.title.dashboard')
   } else {
-    // existing registration or application under the account
-    // set left side of header
     title.value = permitDetails.value.unitAddress.nickname || t('strr.label.unnamed')
     subtitles.value = [{ text: getAddressDisplayParts(unitAddress.value.address, true).join(', ') }]
 
-    // for Provisional Pending NOC the header details should be based on the application
-    if (!registration.value || application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) {
-      setHeaderDetails(
-        application.value?.header.hostStatus,
-        undefined,
-        isPaidApplication.value ? permitStore.downloadApplicationReceipt : undefined)
-    } else {
-      setHeaderDetails(
-        registration.value.status,
-        undefined,
-        permitStore.downloadApplicationReceipt)
-    }
+    // set header details based on registration
+    setHeaderDetails(
+      registration.value?.status,
+      undefined,
+      undefined,
+      undefined,
+      hasPendingProcessing.value)
 
     // host right side details
-    setSideHeaderDetails(registration.value, application.value?.header)
+    setSideHeaderDetails(registration.value, undefined)
 
     // set sidebar accordion reps
     owners.value = getHostPermitDashOwners()
 
-    // update breadcrumbs with strata business name
+    // update breadcrumbs
     setBreadcrumbs([
       {
         label: t('label.bcregDash'),
@@ -108,8 +115,8 @@ definePageMeta({
 </script>
 <template>
   <div
-    id="host-dashboard-page"
-    data-test-id="host-dashboard-page"
+    id="host-registration-dashboard-page"
+    data-test-id="host-registration-dashboard-page"
     class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10"
   >
     <div class="flex-1 space-y-10">
@@ -174,6 +181,18 @@ definePageMeta({
           class="px-10 py-5"
           data-test-id="summary-supporting-info"
           is-dashboard
+        />
+      </ConnectDashboardSection>
+      <ConnectDashboardSection
+        v-if="submittedApplications.length > 0"
+        id="submitted-applications-section"
+        data-test-id="submitted-applications-section"
+        :title="$t('strr.label.submittedApplications')"
+        :loading="loading"
+        icon="i-mdi-history"
+      >
+        <RegistrationSubmittedApplications
+          :applications="submittedApplications"
         />
       </ConnectDashboardSection>
     </div>
