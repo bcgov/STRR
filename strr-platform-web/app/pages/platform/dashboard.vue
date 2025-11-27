@@ -89,7 +89,6 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
             // remove renewal draft todo
             todos.value = todos.value.filter(todo => todo.id !== 'todo-renewal-draft')
             // reload registration renewal todos
-            // getRenewalToDo()
             todos.value.push(...await getRenewalToDo())
           }
         }
