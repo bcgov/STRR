@@ -69,7 +69,7 @@ useHead({
 
 definePageMeta({
   layout: 'connect-dashboard',
-  middleware: ['auth', 'check-tos', 'require-account'],
+  middleware: ['auth', 'check-tos', 'require-account', 'dashboard-redirect'],
   onAccountChange: async () => {
     const { $router, $i18n } = useNuxtApp()
     await $router.push(`/${$i18n.locale.value}/dashboard-new`)
