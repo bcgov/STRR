@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
-const config = useRuntimeConfig().public
 const localePath = useLocalePath()
 const {
   loading,
@@ -17,7 +16,7 @@ const {
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
-const { isNewDashboardEnabled } = useHostFeatureFlags()
+const { owners, setupBreadcrumbs, setupOwners } = useDashboardPage()
 
 const {
   todos,
@@ -27,8 +26,6 @@ const {
 } = useDashboardTodos()
 
 setupRenewalTodosWatch()
-
-const owners = ref<ConnectAccordionItem[]>([])
 
 const submittedApplications = computed(() => {
   const apps = (registration.value as any)?.header?.applications || []
@@ -78,22 +75,10 @@ onMounted(async () => {
     setSideHeaderDetails(registration.value, undefined)
 
     // set sidebar accordion reps
-    owners.value = getHostPermitDashOwners()
+    setupOwners()
 
     // update breadcrumbs
-    setBreadcrumbs([
-      {
-        label: t('label.bcregDash'),
-        to: config.registryHomeURL + 'dashboard',
-        appendAccountId: true,
-        external: true
-      },
-      {
-        label: t('strr.title.dashboard'),
-        to: localePath(isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard')
-      },
-      { label: permitDetails.value.unitAddress.nickname || t('strr.label.unnamed') }
-    ])
+    setupBreadcrumbs()
   }
 
   loading.value = false
