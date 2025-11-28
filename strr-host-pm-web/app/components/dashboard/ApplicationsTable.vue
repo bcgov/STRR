@@ -147,7 +147,7 @@ async function handleApplicationSelect (row: any) {
   if (row.status === 'Draft') {
     await navigateTo(localePath('/application?applicationId=' + row.applicationNumber))
   } else {
-    await navigateTo(localePath('/dashboard/' + row.applicationNumber))
+    await navigateTo(localePath('/dashboard/application/' + row.applicationNumber))
   }
 }
 </script>

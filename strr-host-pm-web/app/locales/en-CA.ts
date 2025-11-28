@@ -162,6 +162,7 @@ export default {
       businessLicenseDate: 'Business Licence Expiry Date',
       contactIndName: "Contact Individual's Name",
       registrationStatus: 'Registration Status',
+      applicationStatus: 'Application Status',
       termsConditions: 'Terms and Conditions',
       individualsBusinesses: 'Individuals and Businesses',
       listingLinkOpt: 'Listing Link (Optional)',
@@ -199,7 +200,8 @@ export default {
       remove: 'Remove',
       unnamed: 'Unnamed',
       completingParty: 'Person Completing the Form',
-      added: 'ADDED'
+      added: 'ADDED',
+      submittedApplications: 'Submitted Applications'
     },
     text: {
       applicationMustInclude: 'You must provide the names and details of the following individuals and / or businesses:',
@@ -268,7 +270,8 @@ export default {
     ariaViewDetails: 'View details for property: {name}, {address}',
     registerAStr: 'Register a Short-Term Rental',
     renew: 'Renew',
-    closeBtn: 'Close'
+    closeBtn: 'Close',
+    viewReceipt: 'View Receipt'
   },
   error: {
     createAccount: {
@@ -356,7 +359,11 @@ export default {
     individualOrBusiness: 'Individual or Business',
     contactDetails: 'Contact Details',
     noCraTaxNumber: 'No CRA Tax Number',
-    renewalDayCount: 'Less than 1 day | in 1 day | in {count} days'
+    renewalDayCount: 'Less than 1 day | in 1 day | in {count} days',
+    renewalApplication: 'Renewal Application',
+    initialApplication: 'Initial Application',
+    applicationNumber: 'Application Number',
+    documents: 'Documents'
   },
   link: {
     hostAccomodationsAct: 'Short-Term Rental Accommodations Act',
