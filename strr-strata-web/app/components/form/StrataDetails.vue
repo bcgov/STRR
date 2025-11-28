@@ -6,10 +6,36 @@ const rtc = useRuntimeConfig().public
 const strataModal = useStrataModals()
 const { addNewEmptyBuilding, removeBuildingAtIndex, strataDetailsSchema } = useStrrStrataDetailsStore()
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+const { isRegistrationRenewal } = storeToRefs(useStrrStrataStore())
 const docStore = useDocumentStore()
 const { getDocumentSchema } = docStore
 
 const props = defineProps<{ isComplete: boolean }>()
+
+// Type for address field keys, derived from ConnectAddress interface
+type AddressField = keyof ConnectAddress
+
+// For new applications: only country and region are locked
+const editableAddressDisabledFields: AddressField[] = ['country', 'region']
+
+// For renewals: hotel address fields are locked (pre-filled from original registration)
+const lockedAddressFields: AddressField[] = [
+  'country',
+  'street',
+  'streetName',
+  'streetNumber',
+  'unitNumber',
+  'streetAdditional',
+  'city',
+  'region',
+  'postalCode',
+  'locationDescription'
+]
+
+// Dynamically determine which fields to disable based on renewal status
+const addressDisabledFields = computed<AddressField[]>(() => (
+  isRegistrationRenewal.value ? lockedAddressFields : editableAddressDisabledFields
+))
 
 const strataDetailsFormRef = ref<Form<z.output<typeof strataDetailsSchema>>>()
 const documentFormRef = ref<Form<any>>()
@@ -169,7 +195,7 @@ onMounted(async () => {
                 v-model:postal-code="strataDetails.location.postalCode"
                 :schema-prefix="'location.'"
                 :form-ref="strataDetailsFormRef"
-                :disabled-fields="['country', 'region']"
+                :disabled-fields="addressDisabledFields"
                 :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
                 :use-location-desc-label="true"
               />
@@ -232,7 +258,7 @@ onMounted(async () => {
                       v-model:postal-code="building.postalCode"
                       :schema-prefix="`buildings.${i}`"
                       :form-ref="strataDetailsFormRef"
-                      :disabled-fields="['country', 'region']"
+                      :disabled-fields="addressDisabledFields"
                       :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
                     />
                   </div>
