@@ -120,69 +120,12 @@ definePageMeta({
     class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10"
   >
     <div class="flex-1 space-y-10">
-      <ConnectDashboardSection
-        id="to-do-section"
-        data-test-id="todo-section"
-        :title="$t('label.todo')"
-        :title-num="todos.length"
+      <DashboardTodoSection :todos="todos" :loading="loading" />
+      <DashboardRentalSection :loading="loading" />
+      <DashboardSupportingInfoSection
         :loading="loading"
-      >
-        <TodoEmpty v-if="!todos.length" data-test-id="todo-empty" />
-        <template v-else>
-          <template v-for="(todo, index) in todos" :key="todo.title">
-            <Todo
-              :id="todo.id"
-              :title="todo.title"
-              :subtitle="todo.subtitle"
-              :buttons="todo?.buttons"
-              :icon="todo?.icon"
-              :icon-class="todo?.iconClass"
-            />
-            <div v-if="index < todos.length - 1" class="h-px w-full border-b border-gray-100" />
-          </template>
-        </template>
-      </ConnectDashboardSection>
-      <ConnectDashboardSection
-        id="short-term-rental-section"
-        data-test-id="rental-section"
-        :title="$t('strr.label.shortTermRental')"
-        :loading="loading"
-      >
-        <SummaryProperty class="px-10 py-5" data-test-id="summary-property" />
-      </ConnectDashboardSection>
-      <ConnectDashboardSection
-        id="supporting-info-section"
-        data-test-id="supporting-info-section"
-        :title="$t('strr.label.supportingInfo')"
-        :loading="loading"
-      >
-        <UAlert
-          v-if="needsBusinessLicenseDocumentUpload"
-          color="yellow"
-          icon="i-mdi-alert"
-          :close-button="null"
-          variant="subtle"
-          :ui="{
-            inner: 'pt-0',
-            icon: {
-              base: 'flex-shrink-0 w-5 h-5 self-start'
-            }
-          }"
-        >
-          <template #title>
-            <span class="text-black">
-              <span class="font-bold">{{ t('alert.businessLicense.title') }}</span>
-              {{ t('alert.businessLicense.description') }}
-            </span>
-          </template>
-        </UAlert>
-        <SummarySupportingInfo
-          id="summary-supporting-info"
-          class="px-10 py-5"
-          data-test-id="summary-supporting-info"
-          is-dashboard
-        />
-      </ConnectDashboardSection>
+        :needs-business-license-document-upload="needsBusinessLicenseDocumentUpload"
+      />
       <ConnectDashboardSection
         v-if="submittedApplications.length > 0"
         id="submitted-applications-section"
@@ -196,28 +139,10 @@ definePageMeta({
         />
       </ConnectDashboardSection>
     </div>
-    <div class="space-y-10 sm:w-[300px]">
-      <RegistrationTermsConditions
-        v-if="!loading"
-      />
-      <ConnectDashboardSection
-        id="individuals-business-section"
-        data-test-id="individuals-business-section"
-        :title="$t('strr.label.individualsBusinesses')"
-        :loading="loading"
-      >
-        <ConnectAccordion
-          v-if="showPermitDetails"
-          :items="owners"
-          multiple
-          data-test-id="owners-accordion"
-        />
-        <div v-else class="w-full bg-white p-5 opacity-50" data-test-id="complete-filing-message">
-          <p class="text-sm">
-            {{ $t('text.completeFilingToDisplay') }}
-          </p>
-        </div>
-      </ConnectDashboardSection>
-    </div>
+    <DashboardSidebar
+      :loading="loading"
+      :show-permit-details="showPermitDetails"
+      :owners="owners"
+    />
   </div>
 </template>
