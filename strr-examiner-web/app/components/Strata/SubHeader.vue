@@ -148,7 +148,10 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
         </div>
         <div>
           <b>{{ $t('label.strataHotelCategory') }}:</b>
-          {{ $t(`strataHotelCategoryReview.${activeReg.strataHotelDetails.category}`) }}
+          {{ activeReg.strataHotelDetails.category
+            ? $t(`strataHotelCategoryReview.${activeReg.strataHotelDetails.category}`)
+            : $t('strataHotelCategoryReview.undefined')
+          }}
         </div>
       </div>
     </div>
