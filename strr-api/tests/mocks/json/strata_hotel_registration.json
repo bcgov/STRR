@@ -95,7 +95,14 @@
           "postalCode": "V2X 6K6",
           "locationDescription": "Test Location"
         }
-      ]
+      ],
+      "unitListings": {
+        "primary": "101\n102\n103\n104",
+        "additional": [
+          "201\n202\n203",
+          "301\n302"
+        ]
+      }
     }
   }
 }

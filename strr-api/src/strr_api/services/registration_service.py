@@ -258,6 +258,7 @@ class RegistrationService:
             website=strata_hotel_details_dict.get("brand").get("website"),
             number_of_units=strata_hotel_details_dict.get("numberOfUnits"),
             category=strata_hotel_details_dict.get("category"),
+            unit_listings=strata_hotel_details_dict.get("unitListings"),
             location=Address(
                 country=strata_hotel_location_dict.get("country"),
                 street_address=strata_hotel_location_dict.get("address"),

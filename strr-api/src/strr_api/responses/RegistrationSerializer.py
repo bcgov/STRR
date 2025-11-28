@@ -248,6 +248,7 @@ class RegistrationSerializer:
             "numberOfUnits": strata_hotel.number_of_units,
             "category": strata_hotel.category,
             "buildings": buildings,
+            "unitListings": strata_hotel.unit_listings,
         }
 
     @classmethod

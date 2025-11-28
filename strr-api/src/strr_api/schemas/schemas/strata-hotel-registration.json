@@ -57,6 +57,22 @@
         "website"
       ]
     },
+    "unitListings": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "type": "string",
+          "description": "List of unit numbers for primary building"
+        },
+        "additional": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Lists of unit numbers for each additional building"
+        }
+      }
+    },
     "businessDetails": {
       "type": "object",
       "properties": {
@@ -126,6 +142,9 @@
             "MULTI_UNIT_NON_PR",
             "POST_DECEMBER_2023"
           ]
+        },
+        "unitListings": {
+          "$ref": "#/definitions/unitListings"
         }
       },
       "required": [

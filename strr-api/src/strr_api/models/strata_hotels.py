@@ -27,6 +27,7 @@ class StrataHotel(Versioned, BaseModel):
     website = db.Column("website", db.String(1000), nullable=False)
     number_of_units = db.Column("number_of_units", db.Integer, nullable=False)
     category = db.Column(Enum(StrataHotelCategory), nullable=True, index=True)
+    unit_listings = db.Column("unit_listings", db.JSON, nullable=True)
 
     mailing_address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     location_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
