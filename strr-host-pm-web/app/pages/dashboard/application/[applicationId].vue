@@ -1,8 +1,6 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
 const route = useRoute()
-const config = useRuntimeConfig().public
-const localePath = useLocalePath()
 const {
   loading,
   title,
@@ -17,8 +15,9 @@ const {
 } = storeToRefs(permitStore)
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
+const { owners, setupBreadcrumbs, setupOwners } = useDashboardPage()
+
 const todos = ref<Todo[]>([])
-const owners = ref<ConnectAccordionItem[]>([])
 const showBusinessLicenseAlert = ref(false)
 
 onMounted(async () => {
@@ -55,22 +54,10 @@ onMounted(async () => {
     setSideHeaderDetails(undefined, application.value?.header)
 
     // Set sidebar accordion reps
-    owners.value = getHostPermitDashOwners()
+    setupOwners()
 
     // Update breadcrumbs
-    setBreadcrumbs([
-      {
-        label: t('label.bcregDash'),
-        to: config.registryHomeURL + 'dashboard',
-        appendAccountId: true,
-        external: true
-      },
-      {
-        label: t('strr.title.dashboard'),
-        to: localePath('/dashboard-new')
-      },
-      { label: permitDetails.value.unitAddress.nickname || t('strr.label.unnamed') }
-    ])
+    setupBreadcrumbs()
   }
 
   loading.value = false
