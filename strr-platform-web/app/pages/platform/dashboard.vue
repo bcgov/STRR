@@ -101,7 +101,7 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
     todos.value.push({
       id: 'todo-renewal-payment-pending',
       title: t('todos.renewalPayment.title'),
-      subtitle: t('todos.renewalPayment.subtitle'),
+      subtitle: t('todos.renewalPayment.subtitleAlt'),
       buttons: [{
         label: t('todos.renewalPayment.button'),
         action: async () => {

@@ -444,6 +444,7 @@ export default {
     renewalPayment: {
       title: 'Application to Renew Registration',
       subtitle: 'PAYMENT FAILED',
+      subtitleAlt: 'Payment has not been received. Your renewal application will not be processed until payment is made. Please click "Retry Payment" to continue.',
       button: 'Retry Payment'
     }
   },
