@@ -98,7 +98,7 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
   }
 
   if (hasRenewalPaymentPending) {
-    todos.value.push({
+    renewalTodos.push({
       id: 'todo-renewal-payment-pending',
       title: t('todos.renewalPayment.title'),
       subtitle: t('todos.renewalPayment.subtitleAlt'),
