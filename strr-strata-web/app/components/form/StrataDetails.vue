@@ -32,10 +32,22 @@ const lockedAddressFields: AddressField[] = [
   'locationDescription'
 ]
 
+// Track the original number of buildings when loading a renewal
+const originalBuildingCount = ref(0)
+
 // Dynamically determine which fields to disable based on renewal status
 const addressDisabledFields = computed<AddressField[]>(() => (
   isRegistrationRenewal.value ? lockedAddressFields : editableAddressDisabledFields
 ))
+
+// For additional buildings: determine if a building is pre-existing (locked) or newly added (editable)
+const getAdditionalBuildingDisabledFields = (buildingIndex: number): AddressField[] => {
+  if (!isRegistrationRenewal.value) {
+    return editableAddressDisabledFields
+  }
+  // If this building existed in the original registration, lock it; otherwise it's newly added and editable
+  return buildingIndex < originalBuildingCount.value ? lockedAddressFields : editableAddressDisabledFields
+}
 
 const strataDetailsFormRef = ref<Form<z.output<typeof strataDetailsSchema>>>()
 const documentFormRef = ref<Form<any>>()
@@ -49,6 +61,11 @@ watch(() => docStore.storedDocuments,
 )
 
 onMounted(async () => {
+  // Capture the initial building count for renewals to distinguish pre-existing from newly added
+  if (isRegistrationRenewal.value) {
+    originalBuildingCount.value = strataDetails.value.buildings.length
+  }
+
   // validate form if step marked as complete
   if (props.isComplete) {
     await validateForm(strataDetailsFormRef.value, props.isComplete)
@@ -210,7 +227,22 @@ onMounted(async () => {
             />
           </ConnectFormSection>
           <div v-if="strataDetails.buildings.length === 0" class="ml-[220px] mt-10">
+            <UTooltip
+              v-if="isRegistrationRenewal"
+              :text="$t('strr.hint.adjacentProperties')"
+              :popper="{ placement: 'top' }"
+            >
+              <UButton
+                :label="$t('strr.label.addBuilding')"
+                class="px-5 py-3"
+                color="primary"
+                icon="i-mdi-home-plus"
+                variant="outline"
+                @click="addNewEmptyBuilding()"
+              />
+            </UTooltip>
             <UButton
+              v-else
               :label="$t('strr.label.addBuilding')"
               class="px-5 py-3"
               color="primary"
@@ -258,7 +290,7 @@ onMounted(async () => {
                       v-model:postal-code="building.postalCode"
                       :schema-prefix="`buildings.${i}`"
                       :form-ref="strataDetailsFormRef"
-                      :disabled-fields="addressDisabledFields"
+                      :disabled-fields="getAdditionalBuildingDisabledFields(i)"
                       :excluded-fields="['streetName', 'streetNumber', 'unitNumber']"
                     />
                   </div>
@@ -274,7 +306,22 @@ onMounted(async () => {
               />
             </ConnectFormSection>
             <div v-if="i === strataDetails.buildings.length - 1" class="ml-[220px] mt-10">
+              <UTooltip
+                v-if="isRegistrationRenewal"
+                :text="$t('strr.hint.adjacentProperties')"
+                :popper="{ placement: 'top' }"
+              >
+                <UButton
+                  :label="$t('strr.label.addBuilding')"
+                  class="px-5 py-3"
+                  color="primary"
+                  icon="i-mdi-home-plus"
+                  variant="outline"
+                  @click="addNewEmptyBuilding()"
+                />
+              </UTooltip>
               <UButton
+                v-else
                 :label="$t('strr.label.addBuilding')"
                 class="px-5 py-3"
                 color="primary"

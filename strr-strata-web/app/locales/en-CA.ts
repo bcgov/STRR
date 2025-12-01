@@ -80,7 +80,8 @@ export default {
     hint: {
       brandName: 'The name of the strata-titled hotel or motel.',
       brandSite: 'e.g., https://www.your-strata-hotel.ca/',
-      numberOfUnits: 'The total number of units within the strata-titled hotel or motel that are offered as short-term rental accommodation.'
+      numberOfUnits: 'The total number of units within the strata-titled hotel or motel that are offered as short-term rental accommodation.',
+      adjacentProperties: 'Additional buildings must be on adjacent properties.'
     },
     review: {
       brand: {
