@@ -281,7 +281,16 @@
               "STRATA_HOTEL_DOCUMENTATION",
               "FRACTIONAL_OWNERSHIP_AGREEMENT",
               "BCSC",
-              "COMBINED_BCSC_LICENSE"
+              "COMBINED_BCSC_LICENSE",
+              "PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP",
+              "TITLE_CERTIFICATE_OR_SEARCH",
+              "SPECULATION_VACANCY_TAX_DECLARATION",
+              "HOME_OWNER_GRANT_APPROVAL",
+              "NOTARIZED_REAL_ESTATE_DOC",
+              "PROPERTY_TRANSFER_TAX_RETURN",
+              "AFFIDAVIT_PRINCIPAL_RESIDENCE",
+              "ASSESSMENT_ACT_NOTICE",
+              "MORTGAGE_STATEMENT_OR_SAVINGS_DOC"
             ]
           }
         },
