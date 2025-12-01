@@ -583,7 +583,7 @@ export default {
   },
   hostResidence: {
     SAME_UNIT: 'Same property as host’s principal residence',
-    ANOTHER_UNIT: 'Not same property as host’s principal residence',
+    ANOTHER_UNIT: 'Not same property as host’s principal residence'
   },
   rentalUnitSetupOption: {
     DIFFERENT_PROPERTY: 'Short-term renting a unit on a property you don\'t live at',
