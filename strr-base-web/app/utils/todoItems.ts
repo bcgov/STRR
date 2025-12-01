@@ -112,6 +112,14 @@ export const getTodoRegistration = async (regId: number) => {
   const hasRenewalDraft =
     todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)
 
+  // check if todos have a payment pending renewal
+  const hasRenewalPaymentPending: boolean =
+      todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING)
+
+  const renewalPaymentPendingId =
+    todos.find(todo =>
+      todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING)?.task?.detail ?? null
+
   // get renewal application id
   const renewalDraftId =
     todos.find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)?.task?.detail ?? null
@@ -119,7 +127,9 @@ export const getTodoRegistration = async (regId: number) => {
   return {
     hasRenewalTodo,
     hasRenewalDraft,
-    renewalDraftId
+    hasRenewalPaymentPending,
+    renewalDraftId,
+    renewalPaymentPendingId
   }
 }
 

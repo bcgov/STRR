@@ -44,19 +44,10 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
       application.value = await updatePaymentDetails<A>(application.value.header.applicationNumber)
     }
 
-    // check if current application is an approved Platform, for which registration would need to be loaded
-    const isApprovedPlatform =
-      application.value?.header.registrationStatus === RegistrationStatus.ACTIVE &&
-        application.value?.registration?.registrationType === ApplicationType.PLATFORM
-
-    const isRenewalDraftPlatform =
-      application.value?.header.registrationStatus === RegistrationStatus.EXPIRED &&
-        application.value?.header.status === ApplicationStatus.DRAFT &&
-        application.value?.registration?.registrationType === ApplicationType.PLATFORM
-
     // conditions when registration needs to be loaded
     const shouldLoadRegistration =
-      application.value?.header.applicationType !== 'renewal' || isApprovedPlatform || isRenewalDraftPlatform
+      application.value?.header.applicationType !== 'renewal' ||
+        application.value?.registration?.registrationType === ApplicationType.PLATFORM
 
     if ((application.value?.header.registrationId &&
       application.value?.header.status !== ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) &&

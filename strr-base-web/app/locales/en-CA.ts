@@ -440,6 +440,11 @@ export default {
       subtitle: 'DRAFT',
       resumeButton: 'Resume Draft',
       deleteDraft: 'Delete Draft'
+    },
+    renewalPayment: {
+      title: 'Application to Renew Registration',
+      subtitle: 'PAYMENT FAILED',
+      button: 'Retry Payment'
     }
   },
   toast: {

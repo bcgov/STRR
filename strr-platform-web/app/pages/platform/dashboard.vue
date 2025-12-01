@@ -17,7 +17,7 @@ const {
 } = storeToRefs(useStrrPlatformStore())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
-const { deleteApplication } = useStrrApi()
+const { deleteApplication, getAccountApplication } = useStrrApi()
 
 const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
@@ -37,9 +37,10 @@ const getApplicationTodo = () => {
 const getRenewalToDo = async (): Promise<Todo[]> => {
   if (!registration.value || !isRenewalsEnabled) { return [] }
 
-  const { hasRenewalTodo, hasRenewalDraft, renewalDraftId } = await getTodoRegistration(registration.value.id)
+  const { hasRenewalTodo, hasRenewalDraft, hasRenewalPaymentPending, renewalDraftId, renewalPaymentPendingId } =
+     await getTodoRegistration(registration.value.id)
 
-  if (!hasRenewalTodo && !hasRenewalDraft) { return [] }
+  if (!hasRenewalTodo && !hasRenewalDraft && !hasRenewalPaymentPending) { return [] }
 
   const renewalTodos: Todo[] = []
 
@@ -93,6 +94,29 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
           }
         }
       ]
+    })
+  }
+
+  if (hasRenewalPaymentPending) {
+    todos.value.push({
+      id: 'todo-renewal-payment-pending',
+      title: t('todos.renewalPayment.title'),
+      subtitle: t('todos.renewalPayment.subtitle'),
+      buttons: [{
+        label: t('todos.renewalPayment.button'),
+        action: async () => {
+          const { handlePaymentRedirect } = useConnectNav()
+          // Get the payment token
+          const applicationResponse = await getAccountApplication(renewalPaymentPendingId)
+          const paymentToken = applicationResponse?.header.paymentToken
+          if (paymentToken) {
+            handlePaymentRedirect(
+              paymentToken,
+              '/platform/dashboard'
+            )
+          }
+        }
+      }]
     })
   }
 
