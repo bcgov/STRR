@@ -583,7 +583,12 @@ export default {
   },
   hostResidence: {
     SAME_UNIT: 'Same property as host’s principal residence',
-    ANOTHER_UNIT: 'Not same property as host’s principal residence'
+    ANOTHER_UNIT: 'Not same property as host’s principal residence',
+  },
+  rentalUnitSetupOption: {
+    DIFFERENT_PROPERTY: 'Short-term renting a unit on a property you don\'t live at',
+    SEPARATE_UNIT_SAME_PROPERTY: 'Short-term renting a separate unit on the property where you live',
+    PRIMARY_RESIDENCE_OR_SHARED_SPACE: 'Short-term renting or sharing the space you live in'
   },
   rentalUnitSetupType: {
     WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence", // The whole Host Principal Residence
@@ -600,7 +605,11 @@ export default {
     CO_OWN: 'Co-owner',
     OTHER: 'Other'
   },
-
+  hostType: {
+    OWNER: 'The owner of this unit',
+    FRIEND_RELATIVE: 'A friend or relative of the owner',
+    LONG_TERM_TENANT: 'The long-term tenant of this unit'
+  },
   tooltip: {
     pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.'
   },
