@@ -538,7 +538,8 @@ export const useDocumentStore = defineStore('host/document', () => {
         ],
         exemption: [
           DocumentUploadType.STRATA_HOTEL_DOCUMENTATION,
-          DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+          DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT,
+          DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
         ],
         bl: [
           DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
@@ -573,7 +574,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       ],
       exemption: [
         DocumentUploadType.STRATA_HOTEL_DOCUMENTATION,
-        DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+        DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT,
+        DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
       ],
       bl: [
         DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE

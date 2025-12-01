@@ -169,14 +169,14 @@ watch([isRenewalsEnabled,
     boldEnd: '</strong>'
   }
 
-  if (isRenewalsEnabled && isRenewalPeriodClosed.value) {
+  if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
     // todo for renewal period closed after 3 years without renewal
     todos.value.push({
       id: 'todo-renew-registration-closed',
       title: t('todos.renewalClosed.title'),
       subtitle: t('todos.renewalClosed.subtitle', translationProps)
     })
-  } else if (isRenewalsEnabled && registration.value && isEligibleForRenewal.value) {
+  } else if (isRenewalsEnabled.value && registration.value && isEligibleForRenewal.value) {
     const isOverdue = renewalDateCounter.value < 0
     // label for the due days count
     const dueDateCount = isOverdue
@@ -192,7 +192,7 @@ watch([isRenewalsEnabled,
       buttons: [{
         label: t('btn.renew'),
         action: async () => {
-          renewalRegId.value = registration.value?.id
+          renewalRegId.value = registration.value?.id.toString()
           await navigateTo({
             path: localePath('/application'),
             query: { renew: 'true' }
@@ -200,7 +200,7 @@ watch([isRenewalsEnabled,
         }
       }]
     })
-  } else if (isRenewalsEnabled && registration.value && hasRegistrationRenewalDraft.value) {
+  } else if (isRenewalsEnabled.value && registration.value && hasRegistrationRenewalDraft.value) {
     // todo for existing renewal draft
     todos.value.push({
       id: 'todo-renewal-draft',
@@ -231,7 +231,7 @@ watch([isRenewalsEnabled,
         }
       ]
     })
-  } else if (isRenewalsEnabled && registration.value && hasRegistrationRenewalPaymentPending.value) {
+  } else if (isRenewalsEnabled.value && registration.value && hasRegistrationRenewalPaymentPending.value) {
     // todo for renewal payment pending
     todos.value.push({
       id: 'todo-renewal-payment-pending',
