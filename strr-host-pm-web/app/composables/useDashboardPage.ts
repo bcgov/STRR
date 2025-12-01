@@ -13,10 +13,9 @@ export function useDashboardPage () {
 
   /**
    * Sets up breadcrumbs for dashboard detail pages
-   * @param dashboardPath - Optional dashboard path (defaults to feature-flag based path)
    */
-  const setupBreadcrumbs = (dashboardPath?: string) => {
-    const path = dashboardPath ?? (isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard')
+  const setupBreadcrumbs = () => {
+    const path = isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard'
     setBreadcrumbs([
       {
         label: t('label.bcregDash'),
