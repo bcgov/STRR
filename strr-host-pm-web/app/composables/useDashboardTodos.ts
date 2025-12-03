@@ -109,7 +109,7 @@ export const useDashboardTodos = () => {
           buttons: [{
             label: t('btn.renew'),
             action: async () => {
-              renewalRegId.value = registration.value?.id
+              renewalRegId.value = registration.value?.id.toString()
               await navigateTo({
                 path: localePath('/application'),
                 query: { renew: 'true' }

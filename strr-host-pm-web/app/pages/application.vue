@@ -42,7 +42,7 @@ const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee4 = ref<ConnectFeeItem | undefined>(undefined)
 
-const isRegRenewalFlow = computed(() => isRenewal.value && renewalRegId.value)
+const isRegRenewalFlow = computed(() => isRenewal.value && !!renewalRegId.value)
 let shouldSkipConfirmModal = false
 
 // show default confirm modal when closing or refreshing the tab while in renewal flow
@@ -294,7 +294,7 @@ const handleSubmit = async () => {
       stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
     }
   } catch (e) {
-    logFetchError(e, 'Error creating strata application')
+    logFetchError(e, 'Error creating host application')
     strrModal.openAppSubmitError(e)
   } finally {
     // set buttons back to non loading state
