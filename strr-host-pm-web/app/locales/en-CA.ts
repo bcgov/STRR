@@ -25,8 +25,7 @@ export default {
       title: 'Important: Business licence – Required.',
       description: 'Your local government requires a business licence to operate a short-term rental at this address.'
     },
-    platformMatchRequired: '{boldStart}Important: Platform Address Match Required.{boldEnd} If you’re hosting on a Platform (e.g., Airbnb, Vrbo), make sure the address listed there matches this STR Registry address exactly. If it doesn’t, please contact the Platform directly to update it.',
-    strataHotelUnit: '{boldStart}Important:{boldEnd} Strata Hotel Unit applications must be connected to a Strata Hotel platform registration. If your Strata Hotel platform is not registered, this application {boldStart}may be declined{boldEnd}.'
+    platformMatchRequired: '{boldStart}Important: Platform Address Match Required.{boldEnd} If you’re hosting on a Platform (e.g., Airbnb, Vrbo), make sure the address listed there matches this STR Registry address exactly. If it doesn’t, please contact the Platform directly to update it.'
   },
   certify: {
     1: '{terms} I agree to comply with the {link} of registration.',
@@ -409,7 +408,7 @@ export default {
       link: 'https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/platform-registration/platform-requirements#rep',
       linkTitle: 'Strata Platform Representative',
       p1: 'Contact your {link} to find the Strata Hotel Platform registration number for your the Strata Hotel.',
-      p2: 'This is a unique identifier for every strata hotel and starts with the letters "ST" followed by 9 digits (i.e: ST123456789). We need this number before we can issue an individual registration number for you to use on hosting platforms.',
+      p2: 'This is a unique identifier for every strata hotel and starts with the letters "ST" followed by 9 digits (i.e: ST123456789).',
       closeBtn: 'Close'
     },
     supportingDocumentsHelp: {

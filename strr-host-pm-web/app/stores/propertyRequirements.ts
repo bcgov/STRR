@@ -73,15 +73,12 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
         })
         : z.any().optional()
     }
-    // additional validation for new rental unit setup
+    // additional validation for new rental unit setup (optional field with format validation)
     if (isNewRentalUnitSetupEnabled.value) {
       schema.strataHotelRegistrationNumber = z
-        .string({
-          required_error: t('validation.strataHotelRegistrationNumber'),
-          invalid_type_error: t('validation.strataHotelRegistrationNumber')
-        })
-        .length(11, { message: t('validation.strataHotelRegistrationNumber') })
-        .refine(val => val === '' || /^ST\d{9}$/.test(val),
+        .string()
+        .optional()
+        .refine(val => !val || /^ST\d{9}$/.test(val),
           { message: t('validation.strataHotelRegistrationNumber') })
     }
     return z.object(schema)
