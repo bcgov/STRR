@@ -111,10 +111,11 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
           // Get the payment token
           const applicationResponse = await getAccountApplication(renewalPaymentPendingId)
           const paymentToken = applicationResponse?.header.paymentToken
+          const appNum = applicationResponse?.header.applicationNumber
           if (paymentToken) {
             handlePaymentRedirect(
               paymentToken,
-              '/platform/dashboard'
+              '/strata-hotel/application/' + appNum
             )
           }
         }
