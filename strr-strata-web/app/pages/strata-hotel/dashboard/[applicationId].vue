@@ -15,12 +15,14 @@ const {
   registration,
   permitDetails,
   isPaidApplication,
-  showPermitDetails
+  showPermitDetails,
+  renewalRegId
 } = storeToRefs(useStrrStrataStore())
 const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 const documentStore = useDocumentStore()
-const { getStrataRegistrationTodos } = useRenewals()
+const { deleteApplication, getAccountApplication } = useStrrApi()
+const { isRenewalsEnabled } = useStrataFeatureFlags()
 
 const todos = ref<Todo[]>([])
 const buildings = ref<ConnectAccordionItem[]>([])
@@ -28,6 +30,100 @@ const representatives = ref<ConnectAccordionItem[]>([])
 const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 
 const isFileUploadOpen = ref(false)
+
+const getRenewalToDo = async (): Promise<Todo[]> => {
+  if (!registration.value || !isRenewalsEnabled) {
+    return []
+  }
+
+  const { hasRenewalTodo, hasRenewalDraft, hasRenewalPaymentPending, renewalDraftId, renewalPaymentPendingId } =
+    await getTodoRegistration(registration.value.id)
+
+  if (!hasRenewalTodo && !hasRenewalDraft && !hasRenewalPaymentPending) {
+    return []
+  }
+
+  const renewalTodos: Todo[] = []
+
+  if (hasRenewalTodo) {
+    const { isOverdue, renewalDueDate, countdownLabel } = getTodoRenewalInfo(registration.value!.expiryDate)
+
+    renewalTodos.push({
+      id: 'todo-renew-strata',
+      title: `${t('todos.renewal.title1')} ${renewalDueDate} ${t('todos.renewal.title2')} (${countdownLabel})`,
+      subtitle: t(isOverdue
+        ? 'todos.renewal.expired'
+        : 'todos.renewal.expiresSoon', translateOptions),
+      buttons: [{
+        label: t('btn.renew'),
+        action: async () => {
+          renewalRegId.value = registration.value?.id.toString()
+          await navigateTo({
+            path: localePath('/strata-hotel/application'),
+            query: { renew: 'true' }
+          })
+        }
+      }]
+    })
+  }
+
+  if (hasRenewalDraft) {
+    renewalTodos.push({
+      id: 'todo-renewal-draft',
+      title: t('todos.renewalDraft.title'),
+      subtitle: t('todos.renewalDraft.subtitle'),
+      buttons: [
+        {
+          label: t('todos.renewalDraft.resumeButton'),
+          action: async () => {
+            renewalRegId.value = undefined // reset renewal id, so the draft app is loaded instead of registration
+            await navigateTo({
+              path: localePath('/strata-hotel/application'),
+              query: { renew: 'true', applicationId: renewalDraftId }
+            })
+          }
+        },
+        {
+          label: t('todos.renewalDraft.deleteDraft'),
+          icon: 'i-mdi-delete',
+          action: async () => {
+            // delete draft application
+            await deleteApplication(renewalDraftId)
+            // remove renewal draft todo
+            todos.value = todos.value.filter(todo => todo.id !== 'todo-renewal-draft')
+            // reload registration renewal todos
+            todos.value.push(...await getRenewalToDo())
+          }
+        }
+      ]
+    })
+  }
+
+  if (hasRenewalPaymentPending) {
+    renewalTodos.push({
+      id: 'todo-renewal-payment-pending',
+      title: t('todos.renewalPayment.title'),
+      subtitle: t('todos.renewalPayment.subtitleAlt'),
+      buttons: [{
+        label: t('todos.renewalPayment.button'),
+        action: async () => {
+          const { handlePaymentRedirect } = useConnectNav()
+          // Get the payment token
+          const applicationResponse = await getAccountApplication(renewalPaymentPendingId)
+          const paymentToken = applicationResponse?.header.paymentToken
+          if (paymentToken) {
+            handlePaymentRedirect(
+              paymentToken,
+              '/platform/dashboard'
+            )
+          }
+        }
+      }]
+    })
+  }
+
+  return renewalTodos
+}
 
 onMounted(async () => {
   loading.value = true
@@ -40,8 +136,7 @@ onMounted(async () => {
     application.value?.header
   )
 
-  const renewalTodos: Todo[] = await getStrataRegistrationTodos()
-  todos.value.push(...renewalTodos)
+  todos.value.push(...await getRenewalToDo())
 
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
