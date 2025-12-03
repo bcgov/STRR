@@ -11,9 +11,6 @@ importers:
       '@daxiom/nuxt-core-layer-test':
         specifier: ^0.0.25
         version: 0.0.25(change-case@5.4.4)(magicast@0.3.5)(nuxt@3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.3)(eslint@8.57.1)(ioredis@5.5.0)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.34.6)(sass@1.94.2)(terser@5.38.1)(typescript@5.9.3)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.94.2)(terser@5.38.1)(yaml@2.7.0))(yaml@2.7.0))(rollup@4.34.6)(typescript@5.9.3)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.94.2)(terser@5.38.1)(yaml@2.7.0))(vue@3.5.13(typescript@5.9.3))
-      '@vueuse/router':
-        specifier: ^14.0.0
-        version: 14.0.0(vue-router@4.5.0(vue@3.5.13(typescript@5.9.3)))(vue@3.5.13(typescript@5.9.3))
       country-codes-list:
         specifier: ^1.6.12
         version: 1.6.12
@@ -1580,22 +1577,11 @@ packages:
       nuxt: ^3.0.0 || ^4.0.0-0
       vue: ^3.5.0
 
-  '@vueuse/router@14.0.0':
-    resolution: {integrity: sha512-8HSq6Q2uJum8NUSP900s1NcfUnNQeTO0FqgEbMgO+xse/B/6A7Zn6chX+6ZA1r1p5P5LfaSOKqjQmf09BiakzQ==}
-    peerDependencies:
-      vue: ^3.5.0
-      vue-router: ^4.0.0
-
   '@vueuse/shared@12.5.0':
     resolution: {integrity: sha512-vMpcL1lStUU6O+kdj6YdHDixh0odjPAUM15uJ9f7MY781jcYkIwFA4iv2EfoIPO6vBmvutI1HxxAwmf0cx5ISQ==}
 
   '@vueuse/shared@13.9.0':
     resolution: {integrity: sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g==}
-    peerDependencies:
-      vue: ^3.5.0
-
-  '@vueuse/shared@14.0.0':
-    resolution: {integrity: sha512-mTCA0uczBgurRlwVaQHfG0Ja7UdGe4g9mwffiJmvLiTtp1G4AQyIjej6si/k8c8pUwTfVpNufck+23gXptPAkw==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -7924,12 +7910,6 @@ snapshots:
     transitivePeerDependencies:
       - magicast
 
-  '@vueuse/router@14.0.0(vue-router@4.5.0(vue@3.5.13(typescript@5.9.3)))(vue@3.5.13(typescript@5.9.3))':
-    dependencies:
-      '@vueuse/shared': 14.0.0(vue@3.5.13(typescript@5.9.3))
-      vue: 3.5.13(typescript@5.9.3)
-      vue-router: 4.5.0(vue@3.5.13(typescript@5.9.3))
-
   '@vueuse/shared@12.5.0(typescript@5.9.3)':
     dependencies:
       vue: 3.5.13(typescript@5.9.3)
@@ -7937,10 +7917,6 @@ snapshots:
       - typescript
 
   '@vueuse/shared@13.9.0(vue@3.5.13(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.13(typescript@5.9.3)
-
-  '@vueuse/shared@14.0.0(vue@3.5.13(typescript@5.9.3))':
     dependencies:
       vue: 3.5.13(typescript@5.9.3)
 
@@ -12736,7 +12712,7 @@ snapshots:
       browserslist: 4.24.4
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.18.1
-      es-module-lexer: 1.6.0
+      es-module-lexer: 1.7.0
       eslint-scope: 5.1.1
       events: 3.3.0
       glob-to-regexp: 0.4.1

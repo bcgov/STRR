@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useRouteQuery } from '@vueuse/router'
 import { ConnectStepper, FormReviewConfirm } from '#components'
 
 const { t } = useI18n()
@@ -35,8 +34,8 @@ const {
 
 const strataFee = ref<ConnectFeeItem | undefined>(undefined)
 
-const isRenewal = useRouteQuery('renew')
-const isRegRenewalFlow = computed((): boolean => isRenewal.value === 'true' && !!renewalRegId.value)
+const isRenewal = computed(() => route.query.renew === 'true')
+const isRegRenewalFlow = computed((): boolean => isRenewal.value && !!renewalRegId.value)
 
 onMounted(async () => {
   loading.value = true
