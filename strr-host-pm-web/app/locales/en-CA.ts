@@ -87,7 +87,7 @@ export default {
 
         // Newly added document types
         TITLE_CERTIFICATE_OR_SEARCH: 'Land title certificate or land title search',
-        SPECULATION_VACANCY_TAX_DECLARATION: 'Speculation and Vacancy Tax declaration',
+        SPECULATION_VACANCY_TAX_DECLARATION: 'Speculation and Vacancy Tax declaration summary',
         HOME_OWNER_GRANT_APPROVAL: 'Home Owner Grant (filing or approval)',
         NOTARIZED_REAL_ESTATE_DOC: 'Notarized mortgage or home purchase agreement',
         PROPERTY_TRANSFER_TAX_RETURN: 'Property Transfer Tax return',
