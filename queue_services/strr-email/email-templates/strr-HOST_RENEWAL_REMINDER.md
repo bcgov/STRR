@@ -23,8 +23,8 @@
 ---
 # How to Renew Your Registration
 Ensure all your business documents **are up to date and ready to upload** before starting the renewal process.
-1. Log in to your [Short Term Rental Registry Dashboard](https://host.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) and submit your renewal **application and documents** before your **registration expires**.
-2. Make sure to **check our website for any updates** to your type of registration.
+1. Log in to your [Short-Term Rental Registry Dashboard](https://host.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) and submit your renewal **application and documents** before your **registration expires**.
+2. Make sure to **check [our website](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry) for any updates** to your type of registration.
 3. Make sure to **check with your local government** if there has been any changes to the local bylaws or requirements in the area.
 
 ---
