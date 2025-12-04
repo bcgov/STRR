@@ -72,6 +72,13 @@ export const setSideHeaderDetails = (
       value: dateToStringPacific(registration.startDate, 'DDD')
     })
 
+    if (registration.expiryDate) {
+      sideDetailsList.push({
+        label: t('label.expiryDate'),
+        value: dateToStringPacific(registration.expiryDate, 'DDD')
+      })
+    }
+
     if (application?.registrationEndDate) {
       // @ts-expect-error - registrationEndDate is an iso datetime string
       const daysTillExpiry = dayCountdown(application.registrationEndDate)
