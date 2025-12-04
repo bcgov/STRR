@@ -169,6 +169,15 @@ watch([isRenewalsEnabled,
     boldEnd: '</strong>'
   }
 
+  // remove all renewal todos before adding new ones
+  const renewalTodoIds = [
+    'todo-renew-registration-closed',
+    'todo-renew-registration',
+    'todo-renewal-draft',
+    'todo-renewal-payment-pending'
+  ]
+  todos.value = todos.value.filter(todo => !renewalTodoIds.includes(todo.id))
+
   if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
     // todo for renewal period closed after 3 years without renewal
     todos.value.push({
