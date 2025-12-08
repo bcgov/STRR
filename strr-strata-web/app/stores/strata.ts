@@ -7,6 +7,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   const businessStore = useStrrStrataBusinessStore()
   const detailsStore = useStrrStrataDetailsStore()
   const documentStore = useDocumentStore()
+  const { getAccountRegistrations } = useStrrApi()
   const { completingParty, primaryRep, secondaryRep, isCompletingPartyRep } = storeToRefs(contactStore)
   const { strataBusiness } = storeToRefs(businessStore)
   const { strataDetails } = storeToRefs(detailsStore)
@@ -35,10 +36,24 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   const loadStrata = async (applicationId: string, loadDraft: boolean = false) => {
     $reset()
     await loadPermitData(applicationId)
-    populateStrataDetails(loadDraft)
+
+    // For renewal drafts, fetch the original registration to get the correct building count
+    // The draft may have newly added buildings that shouldn't be locked
+    let originalBuildingCountFromRegistration: number | undefined
+    if (loadDraft && application.value?.header.applicationType === 'renewal') {
+      const originalRegId = application.value.header.registrationId
+      if (originalRegId) {
+        const originalRegistration = await getAccountRegistrations<StrataRegistrationResp>(originalRegId)
+        if (originalRegistration) {
+          originalBuildingCountFromRegistration = originalRegistration.strataHotelDetails?.buildings?.length ?? 0
+        }
+      }
+    }
+
+    populateStrataDetails(loadDraft, originalBuildingCountFromRegistration)
   }
 
-  const populateStrataDetails = (loadDraft = false) => {
+  const populateStrataDetails = (loadDraft = false, originalBuildingCount?: number) => {
     if (application.value) {
       // set completing party info (this data is only in the application)
       completingParty.value = formatPartyUI(application.value.registration.completingParty)
@@ -71,7 +86,9 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
       strataDetails.value = formatStrataDetailsUI(permitDetails.value.strataHotelDetails)
 
       // Capture the original building count for renewals to differentiate pre-existing from newly added
-      detailsStore.setOriginalBuildingCount(strataDetails.value.buildings.length)
+      // If originalBuildingCount is provided (from fetching the original registration for draft renewals), use it
+      // Otherwise use the current building count (for fresh renewals loaded directly from registration)
+      detailsStore.setOriginalBuildingCount(originalBuildingCount ?? strataDetails.value.buildings.length)
 
       storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({
         file: {} as File,
