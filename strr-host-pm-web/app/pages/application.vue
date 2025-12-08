@@ -175,10 +175,13 @@ const steps = ref<Step[]>([
     icon: 'i-mdi-file-upload-outline',
     complete: false,
     isValid: false,
-    validationFn: () => (
-      propertyStore.validateBusinessLicense(true) as boolean &&
-      documentsStore.validateRequiredDocuments().length === 0 &&
-      showUnitDetailsForm.value)
+    validationFn: (): boolean => {
+      // if BL Exemption selected, do not validate business lic
+      const blValid = propertyReqStore.blRequirements.isBusinessLicenceExempt ||
+        propertyStore.validateBusinessLicense(true)
+      const docsValid = documentsStore.validateRequiredDocuments().length === 0
+      return blValid && docsValid && showUnitDetailsForm.value
+    }
   },
   {
     i18nPrefix: 'strr.step',
