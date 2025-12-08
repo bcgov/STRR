@@ -70,6 +70,9 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
 
       strataDetails.value = formatStrataDetailsUI(permitDetails.value.strataHotelDetails)
 
+      // Capture the original building count for renewals to differentiate pre-existing from newly added
+      detailsStore.setOriginalBuildingCount(strataDetails.value.buildings.length)
+
       storedDocuments.value = permitDetails.value.documents?.map<UiDocument>(val => ({
         file: {} as File,
         apiDoc: val,

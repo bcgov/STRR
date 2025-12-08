@@ -67,6 +67,14 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
 
   const strataDetails = ref<StrataDetails>(getEmptyStrataDetails())
 
+  // Tracks the number of buildings from the original registration (for renewals)
+  // Used to determine which buildings should have locked address fields
+  const originalBuildingCount = ref(0)
+
+  const setOriginalBuildingCount = (count: number) => {
+    originalBuildingCount.value = count
+  }
+
   const addNewEmptyBuilding = () => {
     strataDetails.value.buildings.push({
       country: 'CA',
@@ -101,14 +109,17 @@ export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () =>
 
   const $reset = () => {
     strataDetails.value = getEmptyStrataDetails()
+    originalBuildingCount.value = 0
   }
 
   return {
     strataDetails,
+    originalBuildingCount,
     getStrataBrandSchema,
     strataDetailsSchema,
     addNewEmptyBuilding,
     removeBuildingAtIndex,
+    setOriginalBuildingCount,
     validateStrataDetails,
     $reset
   }

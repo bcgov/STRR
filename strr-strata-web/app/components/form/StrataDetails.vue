@@ -4,8 +4,9 @@ import type { Form } from '#ui/types'
 
 const rtc = useRuntimeConfig().public
 const strataModal = useStrataModals()
-const { addNewEmptyBuilding, removeBuildingAtIndex, strataDetailsSchema } = useStrrStrataDetailsStore()
-const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
+const detailsStore = useStrrStrataDetailsStore()
+const { addNewEmptyBuilding, removeBuildingAtIndex, strataDetailsSchema } = detailsStore
+const { strataDetails, originalBuildingCount } = storeToRefs(detailsStore)
 const { isRegistrationRenewal } = storeToRefs(useStrrStrataStore())
 const docStore = useDocumentStore()
 const { getDocumentSchema } = docStore
@@ -31,9 +32,6 @@ const lockedAddressFields: AddressField[] = [
   'postalCode',
   'locationDescription'
 ]
-
-// Track the original number of buildings when loading a renewal
-const originalBuildingCount = ref(0)
 
 // Dynamically determine which fields to disable based on renewal status
 const addressDisabledFields = computed<AddressField[]>(() => (
@@ -61,11 +59,6 @@ watch(() => docStore.storedDocuments,
 )
 
 onMounted(async () => {
-  // Capture the initial building count for renewals to distinguish pre-existing from newly added
-  if (isRegistrationRenewal.value) {
-    originalBuildingCount.value = strataDetails.value.buildings.length
-  }
-
   // validate form if step marked as complete
   if (props.isComplete) {
     await validateForm(strataDetailsFormRef.value, props.isComplete)
