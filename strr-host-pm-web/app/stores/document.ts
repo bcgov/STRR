@@ -15,6 +15,12 @@ export const useDocumentStore = defineStore('host/document', () => {
 
   const apiDocuments = computed<ApiDocument[]>(() => storedDocuments.value.map(item => item.apiDoc))
 
+  // check if Host Type is Renter or long-term Tenant to determine which PR docs are required
+  const isTenant = computed(() =>
+    propStore.unitDetails.ownershipType === OwnershipType.RENT ||
+    propStore.unitDetails.rentalUnitSetupOption === RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
+  )
+
   const requiredDocs = computed(() => {
     const reqs = reqStore.propertyReqs
 
@@ -103,12 +109,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       })
     }
 
-    if (
-      (propStore.unitDetails.ownershipType === OwnershipType.RENT ||
-        propStore.unitDetails.rentalUnitSetupOption === RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
-      ) &&
-        reqs.isPrincipalResidenceRequired && exemptionReason === undefined
-    ) {
+    if (isTenant.value && reqs.isPrincipalResidenceRequired && exemptionReason === undefined) {
       const isRentValid = apiDocuments.value.some(
         item => [DocumentUploadType.TENANCY_AGREEMENT, DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT]
           .includes(item.documentType)
@@ -152,9 +153,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       )
     }
 
-    if (propStore.unitDetails.ownershipType === OwnershipType.RENT ||
-       propStore.unitDetails.rentalUnitSetupOption === RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
-    ) {
+    if (isTenant.value) {
       docs.push(t('label.rentalAgreementOrNoticeOfIncrease'))
     }
 
@@ -608,7 +607,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     const bcIdDocCount = bcIdDocsExist ? 1 : 0
 
     // get rental docs
-    const rentalDocsExist = propStore.unitDetails.ownershipType === OwnershipType.RENT &&
+    const rentalDocsExist = isTenant.value &&
       apiDocuments.value.some(doc => documentCategories.value.rental.includes(doc.documentType))
     // only count rental docs as 1 document
     const rentalDocCount = rentalDocsExist ? 1 : 0

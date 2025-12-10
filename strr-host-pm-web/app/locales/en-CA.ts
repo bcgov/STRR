@@ -334,7 +334,7 @@ export default {
     localGovShortTermRentalBL: 'Local government short-term rental business licence',
     proofOfPr: 'Proof of principal residence',
     proofOfPrOwner: 'Proof of principal residence (1 proof of identity and 2 supporting documents)',
-    proofOfPrTenant: 'Proof of principal residence (1 proof of identity, 1 supporting document, 1 proof of tenancy)',
+    proofOfPrTenant: 'Proof of principal residence (1 proof of identity, 1 supporting document)',
     proofOfPrFractionalOwner: 'Proof of principal residence (1 proof of identity per fractional owner, 2 proof of fractional ownership)',
     supportingStrataDocs: 'Supporting strata-titled hotel or motel documentation',
     fractOwnAgreement: 'Fractional ownership agreement',
