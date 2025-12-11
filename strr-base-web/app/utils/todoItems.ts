@@ -165,3 +165,17 @@ export const getTodoRenewalInfo = (expiryDate: Date | string): {
     countdownLabel
   }
 }
+
+// Check if renewal period is closed (3 years past expiry date for expired registrations)
+export function isRenewalPeriodClosed (registration: ApiRegistrationResp): boolean {
+  const { status, expiryDate } = registration
+
+  if (status !== RegistrationStatus.EXPIRED) {
+    return false
+  }
+
+  const isoDate = expiryDate instanceof Date ? expiryDate.toISOString() : expiryDate
+  const expDate = DateTime.fromISO(isoDate).setZone('America/Vancouver')
+  const today = DateTime.now().setZone('America/Vancouver')
+  return today.diff(expDate, 'years').years > 3 // 3 is number of years before registration period closes
+}
