@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Form } from '#ui/types'
 import { z } from 'zod'
+import type { Form } from '#ui/types'
 
 const props = defineProps<{ isComplete: boolean }>()
 
