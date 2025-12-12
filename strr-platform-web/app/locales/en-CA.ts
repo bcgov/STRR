@@ -137,10 +137,6 @@ export default {
       title2: 'at 11:59 pm PT',
       expiresSoon: 'Your short-term rental registration will expire soon. Please submit a renewal application to keep your registration active.{newLine}{boldStart}Ensure you have all your supporting documents up to date and ready to upload before renewing.{boldEnd}{newLine}{newLine}{boldStart}Note:{boldEnd} If you need to change any of the information listed below, you must submit a new registration.{newLine}{newLine}\u2022 Business Legal Name',
       expired: 'Your short-term rental registration has expired. Please submit a renewal application to reactivate your registration.{newLine}{newLine}{boldStart}Note:{boldEnd} If you wish to change any of the following information, you must submit a new short-term rental application instead of a renewal application.{newLine}{newLine}\u2022 Business Legal Name'
-    },
-    renewalClosed: {
-      title: 'Registration Renewal Period Closed',
-      subtitle: "Your platform's short-term rental registration has been {boldStart}expired for over 3 years{boldEnd} and {boldStart}can no longer be renewed.{boldEnd} Please go back to your dashboard and {boldStart}submit a new application{boldEnd} to register your short-term rental platform again."
     }
   },
   ConnectFeeWidget: {

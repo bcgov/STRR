@@ -45,7 +45,9 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
   const { hasRenewalTodo, hasRenewalDraft, hasRenewalPaymentPending, renewalDraftId, renewalPaymentPendingId } =
     await getTodoRegistration(registration.value.id)
 
-  if (!hasRenewalTodo && !hasRenewalDraft && !hasRenewalPaymentPending) { return [] }
+  if (!hasRenewalTodo && !hasRenewalDraft && !hasRenewalPaymentPending) {
+    return []
+  }
 
   const renewalTodos: Todo[] = []
 
