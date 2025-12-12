@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useI18n()
   const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
+  const propertyReqStore = usePropertyReqStore()
 
   // rental unit address stuff
   const useManualAddressInput = ref<boolean>(false)
@@ -149,16 +150,16 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   const minBlDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1) // tomorrow
   const maxBlDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()) // today + 1 year
 
-  const blInfoSchema = z.object({
+  const blInfoSchema = computed(() => z.object({
     businessLicense: z.string().optional(),
-    businessLicenseExpiryDate: z
-      .string()
-      .refine((val) => {
+    businessLicenseExpiryDate: propertyReqStore.blRequirements.isBusinessLicenceExempt
+      ? z.string().optional()
+      : z.string().refine((val) => {
         if (!val) { return true } // optional
         const date = new Date(val)
         return date > today && date <= maxBlDate
       }, { message: t('validation.blExpiryDate') })
-  })
+  }))
 
   const getEmptyBlInfo = (): UiBlInfo => ({
     businessLicense: '',
@@ -169,7 +170,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
 
   const validateBusinessLicense = (returnBool = false): MultiFormValidationResult | boolean => {
     const result = validateSchemaAgainstState(
-      blInfoSchema,
+      blInfoSchema.value,
       blInfo.value,
       'business-license-form'
     )
