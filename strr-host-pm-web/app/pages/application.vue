@@ -176,7 +176,6 @@ const steps = ref<Step[]>([
     complete: false,
     isValid: false,
     validationFn: (): boolean => {
-      // if BL Exemption selected, do not validate business lic
       const blValid = propertyStore.validateBusinessLicense(true)
       const docsValid = documentsStore.validateRequiredDocuments().length === 0
       return blValid && docsValid && showUnitDetailsForm.value
