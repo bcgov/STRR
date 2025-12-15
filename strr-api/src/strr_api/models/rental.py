@@ -7,10 +7,6 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from sql_versioning import Versioned
-
-# Avoid Circular Import Error
-if TYPE_CHECKING:
-    from strr_api.models.dataclass import RegistrationSearch
 from sqlalchemy import Boolean, Enum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
@@ -21,6 +17,10 @@ from strr_api.enums.enum import PropertyType, RegistrationNocStatus, Registratio
 from strr_api.models.base_model import BaseModel
 
 from .db import db
+
+# Avoid Circular Import Error
+if TYPE_CHECKING:
+    from strr_api.models.dataclass import RegistrationSearch
 
 
 class Registration(Versioned, BaseModel):
@@ -128,7 +128,7 @@ class Registration(Versioned, BaseModel):
         if filter_criteria.record_number:
             query = query.filter(Registration.registration_number.ilike(f"%{filter_criteria.record_number}%"))
         if filter_criteria.assignee:
-            from strr_api.models import User
+            from strr_api.models import User  # pylint: disable=import-outside-toplevel
 
             query = query.join(User, Registration.reviewer_id == User.id).filter(
                 User.username.ilike(f"%{filter_criteria.assignee}%")
