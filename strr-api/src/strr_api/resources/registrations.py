@@ -31,6 +31,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+# pylint: disable=too-many-lines
 
 """
 This module provides a simple flask blueprint with a single 'home' route that returns a JSON response.
