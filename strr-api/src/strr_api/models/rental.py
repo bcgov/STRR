@@ -4,8 +4,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 from sql_versioning import Versioned
+
+# Avoid Circular Import Error
+if TYPE_CHECKING:
+    from strr_api.models.dataclass import RegistrationSearch
 from sqlalchemy import Boolean, Enum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
@@ -104,11 +109,8 @@ class Registration(Versioned, BaseModel):
     )
 
     @classmethod
-    def search_registrations(cls, filter_criteria):
+    def search_registrations(cls, filter_criteria: RegistrationSearch):
         """Returns the registrations matching the search criteria."""
-        from strr_api.models.dataclass import RegistrationSearch
-
-        filter_criteria: RegistrationSearch = filter_criteria
         query = cls.query
         if filter_criteria.account_id:
             query = query.filter(Registration.sbc_account_id == filter_criteria.account_id)

@@ -32,7 +32,7 @@
 """ Data Class
 """
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 
 @dataclass
@@ -41,18 +41,18 @@ class ApplicationSearch:
 
     page: int
     limit: int
-    statuses: List[str] = None
+    statuses: Optional[List[str]] = None
     sort_by: str = "id"
     sort_order: str = "desc"
-    search_text: str = None
-    registration_types: List[str] = None
-    registration_statuses: List[str] = None
-    record_number: str = None
-    assignee: str = None
-    requirements: list[str] = None
+    search_text: Optional[str] = None
+    registration_types: Optional[List[str]] = None
+    registration_statuses: Optional[List[str]] = None
+    record_number: Optional[str] = None
+    assignee: Optional[str] = None
+    requirements: Optional[list[str]] = None
     include_draft_registration: bool = True
     include_draft_renewal: bool = True
-    account_id: int = None
+    account_id: Optional[int] = None
 
 
 @dataclass
@@ -61,11 +61,11 @@ class RegistrationSearch:
 
     page: int
     limit: int
-    statuses: List[str] = None
+    statuses: Optional[List[str]] = None
     sort_by: str = "id"
     sort_order: str = "desc"
-    search_text: str = None
-    registration_types: List[str] = None
-    record_number: str = None
-    assignee: str = None
-    account_id: int = None
+    search_text: Optional[str] = None
+    registration_types: Optional[List[str]] = None
+    record_number: Optional[str] = None
+    assignee: Optional[str] = None
+    account_id: Optional[int] = None
