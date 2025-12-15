@@ -1273,3 +1273,61 @@ def test_examiner_approve_application_after_set_aside(session, client, jwt):
         assert response_json.get("header").get("isSetAside") is False
         assert response_json.get("header").get("registrationId") is not None
         assert response_json.get("header").get("registrationNumber") is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_user_search_applications(session, client, jwt):
+    """Test user search applications endpoint filtered by account."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.get("/applications/user/search", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        assert "applications" in response_json
+        assert "total" in response_json
+        assert "page" in response_json
+        assert "limit" in response_json
+        assert len(response_json.get("applications")) >= 1
+
+
+def test_user_search_applications_missing_account_id(session, client, jwt):
+    """Test user search applications returns error without Account-Id header."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    rv = client.get("/applications/user/search", headers=headers)
+    assert rv.status_code == HTTPStatus.BAD_REQUEST
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_user_search_applications_filters_by_account(session, client, jwt):
+    """Test user search applications only returns applications for the user's account."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.get("/applications/user/search", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        assert len(response_json.get("applications")) >= 1
+
+        headers["Account-Id"] = 9999
+        rv = client.get("/applications/user/search", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        assert len(response_json.get("applications")) == 0
+
+
+def test_user_search_applications_short_search_text(session, client, jwt):
+    """Test user search applications returns error for short search text."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+    rv = client.get("/applications/user/search?text=ab", headers=headers)
+    assert rv.status_code == HTTPStatus.BAD_REQUEST

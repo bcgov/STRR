@@ -66,6 +66,7 @@ from strr_api.exceptions import (
     exception_response,
 )
 from strr_api.models import Application, Document, User
+from strr_api.models.dataclass import RegistrationSearch
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, SnapshotService, UserService
@@ -81,6 +82,7 @@ DAYS_BEFORE_EXPIRY_BY_TYPE = {
     RegistrationType.HOST.value: 40,
     RegistrationType.PLATFORM.value: 40,
 }
+VALID_REGISTRATION_SORT_FIELDS = ["id", "registration_number", "start_date", "expiry_date", "status"]
 
 
 @bp.route("", methods=("GET",))
@@ -946,3 +948,203 @@ def unassign_registration(registration_id):
     except Exception:
         logger.error("Error unassigning registration assignee: ", exc_info=True)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/search", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def search_registrations():
+    """
+    Search Registrations.
+    ---
+    tags:
+      - examiner
+    parameters:
+      - in: query
+        name: status
+        type: array
+        items:
+          type: string
+          enum: [ACTIVE, EXPIRED, SUSPENDED, CANCELLED]
+        description: Registration Status Filter.
+      - in: query
+        name: text
+        type: string
+        minLength: 3
+        description: Search text.
+      - in: query
+        name: page
+        type: integer
+        default: 1
+      - in: query
+        name: limit
+        type: integer
+        default: 50
+      - in: query
+        name: recordNumber
+        type: string
+        description: Registration Number filter
+      - in: query
+        name: registrationType
+        type: array
+        items:
+          type: string
+          enum: [HOST, PLATFORM, STRATA_HOTEL]
+        description: Registration type filter
+      - in: query
+        name: sortBy
+        type: string
+        default: id
+        description: Field to sort by (e.g., start_date, id, status)
+      - in: query
+        name: sortOrder
+        type: string
+        enum: [asc, desc]
+        default: desc
+        description: Sort order (ascending or descending)
+      - in: query
+        name: assignee
+        type: string
+        description: Assignee Filter
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+
+    try:
+        UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        search_text = request.args.get("text", None)
+        status_values = request.args.getlist("status")
+        page = request.args.get("page", 1)
+        limit = request.args.get("limit", 50)
+        record_number = request.args.get("recordNumber", None)
+        registration_types = request.args.getlist("registrationType")
+        sort_by = request.args.get("sortBy", "id")
+        sort_order = request.args.get("sortOrder", "desc")
+        assignee = request.args.get("assignee", None)
+        if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
+            sort_by = "id"
+        if sort_order not in ["asc", "desc"]:
+            sort_order = "desc"
+        if search_text and len(search_text) < 3:
+            return error_response(HTTPStatus.BAD_REQUEST, "Search term must be at least 3 characters long.")
+
+        filter_criteria = RegistrationSearch(
+            statuses=status_values,
+            page=int(page),
+            limit=int(limit),
+            search_text=search_text,
+            record_number=record_number,
+            registration_types=registration_types,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            assignee=assignee,
+        )
+
+        registration_list = RegistrationService.search_registrations(filter_criteria=filter_criteria)
+        return jsonify(registration_list), HTTPStatus.OK
+    except ExternalServiceException as external_exception:
+        return exception_response(external_exception)
+
+
+@bp.route("/user/search", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def user_search_registrations():
+    """
+    Search Registrations for current user.
+    ---
+    tags:
+      - registration
+    parameters:
+      - in: query
+        name: status
+        type: array
+        items:
+          type: string
+          enum: [ACTIVE, EXPIRED, SUSPENDED, CANCELLED]
+        description: Registration Status Filter.
+      - in: query
+        name: text
+        type: string
+        minLength: 3
+        description: Search text.
+      - in: query
+        name: page
+        type: integer
+        default: 1
+      - in: query
+        name: limit
+        type: integer
+        default: 50
+      - in: query
+        name: recordNumber
+        type: string
+        description: Registration Number filter
+      - in: query
+        name: registrationType
+        type: array
+        items:
+          type: string
+          enum: [HOST, PLATFORM, STRATA_HOTEL]
+        description: Registration type filter
+      - in: query
+        name: sortBy
+        type: string
+        default: id
+        description: Field to sort by (e.g., start_date, id, status)
+      - in: query
+        name: sortOrder
+        type: string
+        enum: [asc, desc]
+        default: desc
+        description: Sort order (ascending or descending)
+    responses:
+      200:
+        description:
+      401:
+        description:
+    """
+
+    try:
+        UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        account_id = request.headers.get("Account-Id", None)
+        if not account_id:
+            return error_response(HTTPStatus.BAD_REQUEST, "Account-Id header is required.")
+
+        search_text = request.args.get("text", None)
+        status_values = request.args.getlist("status")
+        page = request.args.get("page", 1)
+        limit = request.args.get("limit", 50)
+        record_number = request.args.get("recordNumber", None)
+        registration_types = request.args.getlist("registrationType")
+        sort_by = request.args.get("sortBy", "id")
+        sort_order = request.args.get("sortOrder", "desc")
+        if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
+            sort_by = "id"
+        if sort_order not in ["asc", "desc"]:
+            sort_order = "desc"
+        if search_text and len(search_text) < 3:
+            return error_response(HTTPStatus.BAD_REQUEST, "Search term must be at least 3 characters long.")
+
+        filter_criteria = RegistrationSearch(
+            statuses=status_values,
+            page=int(page),
+            limit=int(limit),
+            search_text=search_text,
+            record_number=record_number,
+            registration_types=registration_types,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            account_id=int(account_id),
+        )
+
+        registration_list = RegistrationService.search_registrations(filter_criteria=filter_criteria)
+        return jsonify(registration_list), HTTPStatus.OK
+    except ExternalServiceException as external_exception:
+        return exception_response(external_exception)

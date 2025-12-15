@@ -52,3 +52,20 @@ class ApplicationSearch:
     requirements: list[str] = None
     include_draft_registration: bool = True
     include_draft_renewal: bool = True
+    account_id: int = None
+
+
+@dataclass
+class RegistrationSearch:
+    """Used for searching registrations."""
+
+    page: int
+    limit: int
+    statuses: List[str] = None
+    sort_by: str = "id"
+    sort_order: str = "desc"
+    search_text: str = None
+    registration_types: List[str] = None
+    record_number: str = None
+    assignee: str = None
+    account_id: int = None

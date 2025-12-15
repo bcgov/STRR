@@ -9,6 +9,7 @@ from sql_versioning import Versioned
 from sqlalchemy import Boolean, Enum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
+from sqlalchemy_utils.types.ts_vector import TSVectorType
 
 from strr_api.common.enum import BaseEnum, auto
 from strr_api.enums.enum import PropertyType, RegistrationNocStatus, RegistrationStatus, StrataHotelCategory
@@ -48,6 +49,14 @@ class Registration(Versioned, BaseModel):
     reviewer_id = db.Column("reviewer_id", db.Integer, db.ForeignKey("users.id"), nullable=True)
     decider_id = db.Column("decider_id", db.Integer, db.ForeignKey("users.id"), nullable=True)
 
+    registration_json = db.Column(JSONB, nullable=True)
+    registration_tsv = db.Column(
+        TSVectorType("registration_json", regconfig="english"),
+        db.Computed(
+            "jsonb_to_tsvector('english', COALESCE(\"registration_json\", '{}'), '[\"string\"]')", persisted=True
+        ),
+    )
+
     user = relationship("User", foreign_keys=[user_id])
     reviewer = relationship(
         "User",
@@ -83,6 +92,52 @@ class Registration(Versioned, BaseModel):
     nocs = relationship("RegistrationNoticeOfConsideration", back_populates="registration")
     conditionsOfApproval = relationship("ConditionsOfApproval", back_populates="registration", uselist=False)
     snapshots = relationship("RegistrationSnapshot", back_populates="registration")
+
+    __table_args__ = (
+        db.Index("idx_registration_tsv", registration_tsv, postgresql_using="gin"),
+        db.Index(
+            "idx_gin_registration_json_path_ops",
+            "registration_json",
+            postgresql_using="gin",
+            postgresql_ops={"registration_json": "jsonb_path_ops"},
+        ),
+    )
+
+    @classmethod
+    def search_registrations(cls, filter_criteria):
+        """Returns the registrations matching the search criteria."""
+        from strr_api.models.dataclass import RegistrationSearch
+
+        filter_criteria: RegistrationSearch = filter_criteria
+        query = cls.query
+        if filter_criteria.account_id:
+            query = query.filter(Registration.sbc_account_id == filter_criteria.account_id)
+        if filter_criteria.search_text:
+            query = query.filter(
+                db.or_(
+                    Registration.registration_tsv.match(filter_criteria.search_text),
+                    Registration.registration_number.ilike(f"%{filter_criteria.search_text}%"),
+                )
+            )
+        if filter_criteria.statuses:
+            query = query.filter(Registration.status.in_(filter_criteria.statuses))
+        if filter_criteria.registration_types:
+            query = query.filter(Registration.registration_type.in_(filter_criteria.registration_types))
+        if filter_criteria.record_number:
+            query = query.filter(Registration.registration_number.ilike(f"%{filter_criteria.record_number}%"))
+        if filter_criteria.assignee:
+            from strr_api.models import User
+
+            query = query.join(User, Registration.reviewer_id == User.id).filter(
+                User.username.ilike(f"%{filter_criteria.assignee}%")
+            )
+        sort_column = getattr(Registration, filter_criteria.sort_by, Registration.id)
+        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+        paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        return paginated_result
 
 
 class RentalProperty(Versioned, BaseModel):
