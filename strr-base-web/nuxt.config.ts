@@ -76,11 +76,8 @@ export default defineNuxtConfig({
       }
     ],
     strategy: 'prefix',
-    lazy: true,
-    langDir: 'locales',
     defaultLocale: 'en-CA',
-    detectBrowserLanguage: false,
-    vueI18n: './i18n.config.ts'
+    detectBrowserLanguage: false
   },
 
   colorMode: {
