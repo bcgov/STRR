@@ -18,7 +18,7 @@ export const useDocumentStore = defineStore('host/document', () => {
   // check if Host Type is Renter or long-term Tenant to determine which PR docs are required
   const isTenant = computed(() =>
     propStore.unitDetails.ownershipType === OwnershipType.RENT ||
-    propStore.unitDetails.rentalUnitSetupOption === RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
+    propStore.unitDetails.hostType === PropertyHostType.LONG_TERM_TENANT
   )
 
   const requiredDocs = computed(() => {

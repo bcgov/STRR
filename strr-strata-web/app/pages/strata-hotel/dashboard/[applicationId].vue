@@ -32,8 +32,14 @@ const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 const isFileUploadOpen = ref(false)
 
 const getRenewalToDo = async (): Promise<Todo[]> => {
-  if (!registration.value || !isRenewalsEnabled) {
-    return []
+  if (!registration.value || !isRenewalsEnabled) { return [] }
+
+  if (isRenewalPeriodClosed(registration.value)) {
+    return [{
+      id: 'todo-renew-registration-closed',
+      title: t('todos.renewalClosed.title'),
+      subtitle: t('todos.renewalClosed.subtitle', translateOptions)
+    }]
   }
 
   const { hasRenewalTodo, hasRenewalDraft, hasRenewalPaymentPending, renewalDraftId, renewalPaymentPendingId } =
