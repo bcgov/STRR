@@ -37,13 +37,6 @@ export default defineNuxtConfig({
         iso: 'en-CA',
         dir: 'ltr',
         file: 'en-CA.ts'
-      },
-      {
-        name: 'Français',
-        code: 'fr-CA',
-        iso: 'fr-CA',
-        dir: 'ltr',
-        file: 'fr-CA.ts'
       }
     ],
     strategy: 'prefix',
