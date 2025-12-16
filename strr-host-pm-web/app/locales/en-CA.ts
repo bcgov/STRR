@@ -47,7 +47,7 @@ export default {
         agreement: 'I understand that if the property host does not comply with the requirement to provide the short-term rental accommodation services in the principal residence, the property host may be subject to enforcement action under Part 4 of the Act, including being ordered to pay an administrative penalty.'
       },
       exemptReason: {
-        EXEMPT_COMMUNITY: 'Located in exempt community',
+        EXEMPT_COMMUNITY: 'Located in an exempt community',
         STRATA_HOTEL: 'Eligible strata hotel or motel',
         FARM_LAND: 'Farm land (BC Assessment Farm Class 9)',
         OTHER: 'Other exempted accommodation service provider'
