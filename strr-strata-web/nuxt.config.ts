@@ -19,6 +19,7 @@ export default defineNuxtConfig({
         name: 'English',
         code: 'en-CA',
         iso: 'en-CA',
+        language: 'en-CA',
         dir: 'ltr',
         file: 'en-CA.ts'
       },
@@ -26,20 +27,18 @@ export default defineNuxtConfig({
         name: 'Français',
         code: 'fr-CA',
         iso: 'fr-CA',
+        language: 'fr-CA',
         dir: 'ltr',
         file: 'fr-CA.ts'
       }
     ],
     strategy: 'prefix',
-    lazy: true,
-    langDir: 'locales',
     defaultLocale: 'en-CA',
-    detectBrowserLanguage: false,
-    vueI18n: './i18n.config.ts'
+    detectBrowserLanguage: false
   },
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: true }],
+    ['github:bcgov/STRR/strr-base-web#feature-app-security', { install: true }],
     // '../strr-base-web', // dev only
     '@daxiom/nuxt-core-layer-test' // extend again, this prevents the payApi plugin error
   ],
