@@ -1,5 +1,0 @@
-**/*.md
-.env
-**/node_modules/
-.vscode/
-.github/

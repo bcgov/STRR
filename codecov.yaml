@@ -15,10 +15,6 @@ coverage:
         target: 80%
         flags:
           - strrapi
-      ui:
-        target: 80%
-        flags:
-          - strrui
 ignore:
   - "^/tests/**/*" # ignore test harness code
 
@@ -39,8 +35,4 @@ flags:
   strrapi:
     paths:
       - strr-api
-    carryforward: true
-  strrui:
-    paths:
-      - strr-web
     carryforward: true
