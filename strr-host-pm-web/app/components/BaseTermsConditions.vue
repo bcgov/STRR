@@ -30,7 +30,7 @@ const statusBadges = computed(() => details.value.filter(d => d.chip))
           :label="badge.text"
           :color="badge.chipColour || 'primary'"
           class="whitespace-nowrap py-1 font-bold uppercase"
-          :data-test-id="`${dataTestId}-badge-${index}`"
+          :data-test-id="index === 0 ? `${dataTestId}-badge` : `${dataTestId}-badge-${index}`"
         />
       </div>
     </div>
