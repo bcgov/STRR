@@ -5,7 +5,7 @@ const props = defineProps<{ isComplete: boolean }>()
 const strataHotelCategoryFormRef = ref<Form<any>>()
 const config = useRuntimeConfig().public
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const reqStore = usePropertyReqStore()
 const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 const hostPmModal = useHostPmModals()

@@ -8,7 +8,7 @@ const props = defineProps<{
   isDisabled?: boolean // disable Role selection (eg. Reg Renewals)
 }>()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { hasHost, hasCoHost, hasPropertyManager } = storeToRefs(useHostOwnerStore())
 
 const radioOptions = computed(() => [

@@ -2,7 +2,7 @@
 import type { Form } from '#ui/types'
 const props = defineProps<{ isComplete: boolean }>()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const reqStore = usePropertyReqStore()
 const propStore = useHostPropertyStore()
 const { getUnitDetailsSchema } = useHostPropertyStore()
@@ -110,7 +110,7 @@ onMounted(async () => {
 
           <UAlert
             v-if="propStore.isUnitNumberRequired"
-            class="mt-6 max-w-bcGovInput"
+            class="max-w-bcGovInput mt-6"
             color="yellow"
             icon="i-mdi-alert"
             :close-button="null"

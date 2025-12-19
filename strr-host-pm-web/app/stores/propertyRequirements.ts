@@ -3,7 +3,7 @@ import { FetchError } from 'ofetch'
 import type { BusinessLicenceRequirements } from '~/interfaces/business-licence-requirements'
 
 export const usePropertyReqStore = defineStore('property/requirements', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { $strrApi } = useNuxtApp()
 
   const propStore = useHostPropertyStore()

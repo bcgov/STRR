@@ -1,5 +1,7 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { ref, nextTick } from 'vue'
+import { flushPromises } from '@vue/test-utils'
 import { baseEnI18n } from '../mocks/i18n'
 import { mockApplication } from '../mocks/mockedData'
 import Application from '~/pages/application.vue'
@@ -55,6 +57,7 @@ vi.mock('@/stores/propertyRequirements', () => ({
     hasReqs: false,
     hasReqError: false,
     validateBlExemption: () => true,
+    validatePrRequirements: () => true,
     getPropertyReqs: vi.fn(),
     $reset: vi.fn()
   })
@@ -72,6 +75,12 @@ vi.mock('@/stores/document', () => ({
   useDocumentStore: () => ({
     validateRequiredDocuments: () => [],
     storedDocuments: ref([]),
+    prDocs: [],
+    documentCategories: {
+      exemption: [],
+      rental: []
+    },
+    removeDocumentsByType: vi.fn(),
     $reset: vi.fn()
   })
 }))
@@ -88,11 +97,29 @@ vi.mock('@/stores/hostApplication', () => ({
   })
 }))
 
+// vi.mock('@/stores/hostPermit', () => ({
+//   useHostPermitStore: () => ({
+//     loadHostRegistrationData: vi.fn(),
+//     loadHostData: vi.fn(),
+//     $reset: vi.fn(),
+//     renewalRegId: ref(undefined),
+//     application: ref({ header: {} }),
+//     isRegistrationRenewal: ref(false),
+//     selectedRegistrationId: undefined
+//   })
+// }))
+
 vi.mock('@/composables/useConnectNav', () => ({
   useConnectNav: () => ({
     handlePaymentRedirect: vi.fn()
   })
 }))
+
+// vi.mock('@/composables/useHostPmModals', () => ({
+//   useHostPmModals: () => ({
+//     openConfirmUnsavedChanges: vi.fn().mockResolvedValue(true)
+//   })
+// }))
 
 vi.mock('@/composables/useButtonControl', () => ({
   useButtonControl: () => ({
@@ -115,6 +142,34 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
     isNewDashboardEnabled: ref(false)
   })
 }))
+
+vi.mock('@/composables/useHostApplicationFee', () => ({
+  useHostApplicationFee: () => ({
+    fetchStrrFees: vi.fn().mockResolvedValue({
+      fee1: { amount: 100, feeCode: 'STR_HOST_1' },
+      fee2: { amount: 450, feeCode: 'STR_HOST_2' },
+      fee3: { amount: 100, feeCode: 'STR_HOST_3' }
+    }),
+    getApplicationFee: vi.fn().mockReturnValue({ amount: 100, feeCode: 'STR_HOST_1' })
+  })
+}))
+
+// vi.mock('@/composables/useRouterParams', () => ({
+//   useRouterParams: () => ({
+//     applicationId: ref(undefined),
+//     isRenewal: ref(false)
+//   })
+// }))
+
+// vi.mock('@/stores/connectFee', () => ({
+//   useConnectFeeStore: () => ({
+//     addReplaceFee: vi.fn(),
+//     initAlternatePaymentMethod: vi.fn(),
+//     removeFee: vi.fn(),
+//     setPlaceholderFilingTypeCode: vi.fn(),
+//     setPlaceholderServiceFee: vi.fn()
+//   })
+// }))
 
 describe('Application Page', () => {
   let wrapper: any
@@ -214,7 +269,9 @@ describe('Rental Application Page - Step 1', () => {
     })
   })
 
-  it('renders the Step 1 and its components', () => {
+  it('renders the Step 1 and its components', async () => {
+    // wait for all promises to resolve (including the onMounted hook)
+    await flushPromises()
     // make sure we are on step 1
     expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(0)
 

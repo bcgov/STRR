@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{ isComplete: boolean }>()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const contactStore = useHostOwnerStore()
 const {
   activeOwner,
