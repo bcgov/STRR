@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { Contact, StrrContact } from '#imports'
 
 export const useStrrContactStore = defineStore('strr/contact', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { kcUser } = useKeycloak()
   const getContactSchema = (completingParty = false) => {
     return z.object({

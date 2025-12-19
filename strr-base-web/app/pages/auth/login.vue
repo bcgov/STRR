@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t, locale } = useI18n()
+const { t, locale } = useNuxtApp().$i18n
 const keycloak = useKeycloak()
 const { createAccountUrl } = useConnectNav()
 const runtimeConfig = useRuntimeConfig()
