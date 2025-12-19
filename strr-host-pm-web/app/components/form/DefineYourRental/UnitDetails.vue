@@ -110,7 +110,7 @@ onMounted(async () => {
 
           <UAlert
             v-if="propStore.isUnitNumberRequired"
-            class="max-w-bcGovInput mt-6"
+            class="mt-6 max-w-bcGovInput"
             color="yellow"
             icon="i-mdi-alert"
             :close-button="null"
