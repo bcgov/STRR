@@ -97,29 +97,11 @@ vi.mock('@/stores/hostApplication', () => ({
   })
 }))
 
-// vi.mock('@/stores/hostPermit', () => ({
-//   useHostPermitStore: () => ({
-//     loadHostRegistrationData: vi.fn(),
-//     loadHostData: vi.fn(),
-//     $reset: vi.fn(),
-//     renewalRegId: ref(undefined),
-//     application: ref({ header: {} }),
-//     isRegistrationRenewal: ref(false),
-//     selectedRegistrationId: undefined
-//   })
-// }))
-
 vi.mock('@/composables/useConnectNav', () => ({
   useConnectNav: () => ({
     handlePaymentRedirect: vi.fn()
   })
 }))
-
-// vi.mock('@/composables/useHostPmModals', () => ({
-//   useHostPmModals: () => ({
-//     openConfirmUnsavedChanges: vi.fn().mockResolvedValue(true)
-//   })
-// }))
 
 vi.mock('@/composables/useButtonControl', () => ({
   useButtonControl: () => ({
@@ -153,23 +135,6 @@ vi.mock('@/composables/useHostApplicationFee', () => ({
     getApplicationFee: vi.fn().mockReturnValue({ amount: 100, feeCode: 'STR_HOST_1' })
   })
 }))
-
-// vi.mock('@/composables/useRouterParams', () => ({
-//   useRouterParams: () => ({
-//     applicationId: ref(undefined),
-//     isRenewal: ref(false)
-//   })
-// }))
-
-// vi.mock('@/stores/connectFee', () => ({
-//   useConnectFeeStore: () => ({
-//     addReplaceFee: vi.fn(),
-//     initAlternatePaymentMethod: vi.fn(),
-//     removeFee: vi.fn(),
-//     setPlaceholderFilingTypeCode: vi.fn(),
-//     setPlaceholderServiceFee: vi.fn()
-//   })
-// }))
 
 describe.skip('Application Page', () => {
   let wrapper: any
