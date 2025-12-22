@@ -2,7 +2,7 @@
 import type { Form } from '#ui/types'
 const props = defineProps<{ isComplete: boolean }>()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const reqStore = usePropertyReqStore()
 const { unitDetails } = storeToRefs(useHostPropertyStore())
 const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()

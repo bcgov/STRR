@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { getRequiredNonEmptyString, getRequiredUrl } from '~/utils/connect-validation'
 
 export const useStrrBaseBrand = () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
 
   const getBrandSchema = () => z.object({
     name: getRequiredNonEmptyString(t('validation.brand.name')),

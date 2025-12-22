@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()

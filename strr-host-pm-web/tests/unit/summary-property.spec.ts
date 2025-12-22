@@ -4,6 +4,9 @@ import { baseEnI18n } from '../mocks/i18n'
 import { mockApplication } from '../mocks/mockedData'
 import { SummaryProperty } from '#components'
 
+// get translate function from i18n
+const $t = baseEnI18n.global.t
+
 vi.mock('@/stores/hostProperty', () => ({
   useHostPropertyStore: () => ({
     unitAddress: ref({
@@ -44,7 +47,7 @@ vi.mock('@/stores/propertyRequirements', () => ({
       blExemptReason: 'test bl exemption reason'
     }),
     strataHotelCategory: ref({
-      category: 'STRATA_HOTEL'
+      category: 'FULL_SERVICE'
     })
   })
 }))
@@ -66,21 +69,21 @@ describe('SummaryProperty Component', () => {
   })
 
   it('displays property details correctly', () => {
-    expect(wrapper.html()).toContain('propertyType.CONDO_OR_APT')
-    expect(wrapper.html()).toContain('rentalUnitType.ENTIRE_HOME')
+    expect(wrapper.html()).toContain($t('propertyType.CONDO_OR_APT'))
+    expect(wrapper.html()).toContain($t('rentalUnitType.ENTIRE_HOME'))
   })
 
   it('handles PR exemption correctly', () => {
-    expect(wrapper.html()).toContain('label.prExemption')
-    expect(wrapper.html()).toContain('label.prExemptionReason')
+    expect(wrapper.html()).toContain($t('label.prExemption'))
+    expect(wrapper.html()).toContain($t('label.prExemptionReason'))
   })
 
   it('handles BL exemption correctly', () => {
-    expect(wrapper.html()).toContain('label.blExemption')
-    expect(wrapper.html()).toContain('label.blExemptionReason')
+    expect(wrapper.html()).toContain($t('label.blExemption'))
+    expect(wrapper.html()).toContain($t('label.blExemptionReason'))
   })
 
   it('displays strata hotel info when applicable', () => {
-    expect(wrapper.html()).toContain('strataHotelCategoryReview.STRATA_HOTEL')
+    expect(wrapper.html()).toContain($t('strataHotelCategoryReview.FULL_SERVICE'))
   })
 })

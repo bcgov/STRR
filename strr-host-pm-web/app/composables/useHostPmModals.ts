@@ -7,7 +7,7 @@ import SupportingDocumentsHelp from '~/components/modal/info/SupportingDocuments
 
 export const useHostPmModals = () => {
   const modal = useModal()
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const reqStore = usePropertyReqStore()
   const propStore = useHostPropertyStore()
   const docStore = useDocumentStore()

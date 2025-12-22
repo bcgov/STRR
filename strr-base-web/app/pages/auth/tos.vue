@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FormError } from '#ui/types'
 const { $sanitize } = useNuxtApp()
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
 const tosStore = useTosStore()
 const strrModal = useStrrModals()

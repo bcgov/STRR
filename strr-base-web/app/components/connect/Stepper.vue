@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 defineProps<{ stepperLabel: string }>()
 const emit = defineEmits<{ newStep: [stepIndex: number] }>()
 
