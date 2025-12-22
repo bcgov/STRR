@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import merge from 'lodash'
-import baseEn from '../../../strr-base-web/app/locales/en-CA'
-import baseFr from '../../../strr-base-web/app/locales/fr-CA'
+import baseEn from '../../../strr-base-web/i18n/locales/en-CA'
+import baseFr from '../../../strr-base-web/i18n/locales/fr-CA'
 import en from '~~/app/locales/en-CA'
 import fr from '~~/app/locales/fr-CA'
 
