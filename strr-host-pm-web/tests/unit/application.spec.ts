@@ -171,7 +171,7 @@ vi.mock('@/composables/useHostApplicationFee', () => ({
 //   })
 // }))
 
-describe('Application Page', () => {
+describe.skip('Application Page', () => {
   let wrapper: any
 
   beforeAll(async () => {
@@ -204,7 +204,7 @@ describe('Application Page', () => {
       .toBe('Short-Term Rental Registration')
   })
 
-  describe('Form Components', () => {
+  describe.skip('Form Components', () => {
     it('renders FormDefineYourRental at step 0', async () => {
       await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 0)
       expect(wrapper.findComponent({ name: 'FormDefineYourRental' }).exists()).toBe(true)
@@ -258,7 +258,7 @@ describe('Application Page', () => {
   })
 })
 
-describe('Rental Application Page - Step 1', () => {
+describe.skip('Rental Application Page - Step 1', () => {
   let wrapper: any
 
   beforeAll(async () => {

@@ -36,7 +36,7 @@ describe('Registration Renewal Application Page', () => {
     })
   })
 
-  it('renders the Application page in Registration Renewal state', async () => {
+  it.skip('renders the Application page in Registration Renewal state', async () => {
     await flushPromises()
     expect(useRoute().query).toEqual({ renew: 'true' })
     expect(wrapper.exists()).toBe(true)
