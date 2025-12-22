@@ -1,5 +1,0 @@
-export enum PrExemptionReason {
-    STRATA_HOTEL = 'STRATA_HOTEL',
-    FARM_LAND = 'FARM_LAND',
-    FRACTIONAL_OWNERSHIP = 'FRACTIONAL_OWNERSHIP',
-  }

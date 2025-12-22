@@ -86,7 +86,7 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
         color="primary"
         icon="i-mdi-account-plus"
         variant="outline"
-        :disabled="disableButtons || (hasHost && hasCoHost)"
+        :disabled="disableButtons || (hasHost && hasCoHost && hasPropertyManager)"
         data-testid="add-person-owner-btn"
         @click="addingNewType = OwnerType.INDIVIDUAL"
       />
