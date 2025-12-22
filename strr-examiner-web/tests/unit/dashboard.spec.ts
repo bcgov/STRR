@@ -32,6 +32,13 @@ vi.mock('@/stores/examiner', () => ({
   })
 }))
 
+vi.stubGlobal('useAsyncData', () => ({
+  data: {
+    applications: mockApplications,
+    total: mockApplications.length
+  }
+}))
+
 describe('Examiner Dashboard Page', () => {
   let wrapper: any
 
@@ -86,7 +93,7 @@ describe('Examiner Dashboard Page', () => {
     expect(wrapper.findTestId('applications-table').exists()).toBe(true)
     expect(wrapper.findTestId('applications-pagination').exists()).toBe(mockApplications.length > 50)
 
-    const { applications } = wrapper.vm.applicationListResp.value
+    const { applications } = wrapper.vm.applicationListResp
     expect(applications.length).toBe(mockApplications.length)
     expect(applications[0].applicantName).toEqual(
       displayContactFullName(mockApplications[0]?.registration.primaryContact)
@@ -102,7 +109,7 @@ describe('Examiner Dashboard Page', () => {
 
   it('renders the assignee column correctly', () => {
     expect(wrapper.findTestId('applications-table').exists()).toBe(true)
-    const { applications } = wrapper.vm.applicationListResp.value
+    const { applications } = wrapper.vm.applicationListResp
     const appWithReviewer = applications.find(app =>
       app.adjudicator === mockHostApplicationWithReviewer.header.assignee?.username
     )

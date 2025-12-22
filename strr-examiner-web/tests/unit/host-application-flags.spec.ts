@@ -5,6 +5,22 @@ import { enI18n } from '../mocks/i18n'
 import ApplicationDetails from '~/pages/examine/[applicationId].vue'
 import { HostSubHeader, HostSupportingInfo } from '#components'
 
+const isFilingHistoryOpen = ref(false)
+
+vi.mock('@/composables/useHostExpansion', () => ({
+  useHostExpansion: () => ({
+    toggleFilingHistory: () => {
+      isFilingHistoryOpen.value = !isFilingHistoryOpen.value
+    },
+    checkAndPerformAction: (actionFn: Function) => {
+      actionFn()
+    },
+    openHostOwners: vi.fn(),
+    openEditRentalUnitForm: vi.fn(),
+    close: vi.fn()
+  })
+}))
+
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     getNextApplication: vi.fn().mockResolvedValue(mockHostApplicationWithFlags),
@@ -16,7 +32,7 @@ vi.mock('@/stores/examiner', () => ({
     activeRecord: ref(mockHostApplicationWithFlags),
     isApplication: ref(true),
     isAssignedToUser: ref(true),
-    isFilingHistoryOpen: ref(true),
+    isFilingHistoryOpen,
     emailContent: ref({ content: '' })
   })
 }))

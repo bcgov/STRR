@@ -9,7 +9,7 @@ const {
   isAssignedToUser
 } = storeToRefs(useExaminerStore())
 const { openEditRentalUnitForm } = useHostExpansion()
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const alertFlags = reactive(useFlags())
 const { isFeatureEnabled } = useFeatureFlags()
 const canEditApplicationAddress = isFeatureEnabled('enable-examiner-edit-address-application')

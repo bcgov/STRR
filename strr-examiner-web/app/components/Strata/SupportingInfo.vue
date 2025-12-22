@@ -4,7 +4,7 @@ import { ConnectPageSection } from '#components'
 const exStore = useExaminerStore()
 const { activeReg, isApplication } = storeToRefs(exStore)
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 
 // show all documents except those uploaded during NOC
 const applicationDocumentsConfig: SupportingDocumentsConfig = {

@@ -8,7 +8,7 @@ const {
   isAssignedToUser,
   activeHeader
 } = storeToRefs(useExaminerStore())
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const formSchema = computed(
   () =>
     [
