@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const useStrrBaseBusiness = <T extends StrrBusiness>() => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const getBaseBusinessSchema = () => {
     return z.object({
       legalName: getRequiredNonEmptyString(t('validation.business.legalName')),

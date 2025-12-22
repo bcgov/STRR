@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{ editable?: boolean, disableActions?: boolean }>()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const ownerStore = useHostOwnerStore()
 const { activeOwner, activeOwnerEditIndex, hostOwners } = storeToRefs(ownerStore)
 const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())

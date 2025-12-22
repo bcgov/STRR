@@ -3,7 +3,7 @@ import type { Form } from '#ui/types'
 import { z } from 'zod'
 const { $strrApi } = useNuxtApp()
 const localePath = useLocalePath()
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const strrModal = useStrrModals()
 const hostpmModal = useHostPmModals()
 const isSmallScreen = useMediaQuery('(max-width: 640px)')

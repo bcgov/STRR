@@ -3,7 +3,7 @@ import type { Form } from '#ui/types'
 import { BlExemptionReason } from '~/enums/bl-exemption-reason'
 const props = defineProps<{ isComplete: boolean }>()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const reqStore = usePropertyReqStore()
 
 const blReqFormRef = ref<Form<any>>()

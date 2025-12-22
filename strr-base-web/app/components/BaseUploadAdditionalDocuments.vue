@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { DefineComponent } from 'vue'
 import type { Form } from '#ui/types'
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const strrModal = useStrrModals()
 const docUploadHelpId = useId() // id for aria-describedby on doc select
 const docFormRef = ref<Form<any>>()

@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const useHostOwnerStore = defineStore('host/owner', () => {
   // TODO: pull common pieces of this and useStrrContactStore into base composable
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { getNewContact } = useStrrContactStore()
 
   const getHostOwnerSchema = (type: OwnerType, role?: OwnerRole) => {

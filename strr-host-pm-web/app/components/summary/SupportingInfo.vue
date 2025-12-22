@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{
   isDashboard: false
 })
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { blInfo } = storeToRefs(useHostPropertyStore())
 const { overrideApplicationWarning, showUnitDetailsForm, blRequirements } = storeToRefs(usePropertyReqStore())
 const { requiredDocs, storedDocuments } = storeToRefs(useDocumentStore())
