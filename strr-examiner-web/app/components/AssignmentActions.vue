@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { assignApplication, unassignApplication, assignRegistration, unassignRegistration } = useExaminerStore()
 const { activeHeader, activeReg, isAssignedToUser } = storeToRefs(useExaminerStore())
 const { updateRouteAndButtons } = useExaminerRoute()

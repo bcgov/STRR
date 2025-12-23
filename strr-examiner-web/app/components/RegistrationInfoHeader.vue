@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const exStore = useExaminerStore()
 const { activeReg, activeHeader, isFilingHistoryOpen } = storeToRefs(exStore)
 const { toggleFilingHistory, checkAndPerformAction } = useHostExpansion()

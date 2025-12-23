@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '#ui/types'
 import type { TableSort } from '~/types/table-sort'
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const props = defineProps<{
   column: TableColumn
   options: Array<{

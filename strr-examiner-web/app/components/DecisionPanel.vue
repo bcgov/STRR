@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { showDecisionPanel, decisionIntent, preDefinedConditions, resetDecision } = useExaminerDecision()
 const {
   isApplication,

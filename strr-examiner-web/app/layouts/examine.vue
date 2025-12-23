@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const { isAuthenticated } = useKeycloak()
 const headerOptions = useAppConfig().connect.core.header.options
-provide(headerOptionsSymbol, headerOptions)
 const localePath = useLocalePath()
 const { isApplication } = storeToRefs(useExaminerStore())
 const { isFeatureEnabled } = useFeatureFlags()

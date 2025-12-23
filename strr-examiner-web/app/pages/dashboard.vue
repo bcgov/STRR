@@ -3,7 +3,7 @@ import isEmpty from 'lodash/isEmpty'
 import { sub } from 'date-fns'
 
 const localePath = useLocalePath()
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 // TODO: ApplicationStatus.FULL_REVIEW is temporary until we have reqs defined
 // const { limit, page, getApplicationList } = useStrrBasePermitList(undefined, undefined) // leaving this for reference
 // const { getAccountApplications } = useStrrApi() // leaving this for reference
