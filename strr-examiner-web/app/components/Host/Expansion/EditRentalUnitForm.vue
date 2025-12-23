@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { Form } from '#ui/types'
 import isEqual from 'lodash/isEqual'
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const emit = defineEmits<{
   close: [void],
   addressUpdated: [void]

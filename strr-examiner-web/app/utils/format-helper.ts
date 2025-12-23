@@ -104,7 +104,7 @@ export function displayPhoneAndExt (
   if (!phoneNumber) {
     return undefined // let the caller handle the undefined state
   }
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const countryCode = phoneCountryCode ? `+${phoneCountryCode}-` : ''
   const extension = phoneExt ? `, ${t('label.phoneExt')} ${phoneExt}` : ''
   return countryCode + displayFormattedPhone(phoneNumber) + extension

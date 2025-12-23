@@ -10,7 +10,7 @@ export const useHostExpansion = () => {
   const { startEditRentalUnitAddress, resetEditRentalUnitAddress } = useExaminerStore()
   const { isFilingHistoryOpen, isEditingRentalUnit, hasUnsavedRentalUnitChanges } = storeToRefs(useExaminerStore())
   const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   isFilingHistoryOpen.value = false // reset so it's starts hidden by default
   resetEditRentalUnitAddress()
   function openHostOwners (

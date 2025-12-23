@@ -5,7 +5,7 @@ const props = defineProps<{
   config?: SupportingDocumentsConfig
 }>()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const exStore = useExaminerStore()
 const { openDocInNewTab } = exStore
 const { activeReg, activeHeader, isApplication } = storeToRefs(exStore)

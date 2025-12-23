@@ -8,7 +8,7 @@ defineEmits<{
 const exStore = useExaminerStore()
 const { activeReg, isApplication } = storeToRefs(exStore)
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 
 const columns = [
   { key: 'name', label: t('label.name') },

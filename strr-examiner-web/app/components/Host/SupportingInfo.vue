@@ -7,7 +7,7 @@ import { useFlags } from '~/composables/useFlags'
 
 const exStore = useExaminerStore()
 const { activeReg, isApplication } = storeToRefs(exStore)
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const alertFlags = reactive(useFlags())
 const { isFeatureEnabled } = useFeatureFlags()
 const isBusinessLicenseDocumentUploadEnabled = isFeatureEnabled('enable-business-license-document-upload')

@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { getAccountApplications } = useStrrApi()
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { $strrApi } = useNuxtApp()
   const strrModal = useStrrModals()
   const { kcUser } = useKeycloak()

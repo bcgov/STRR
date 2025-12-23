@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { preDefinedConditions, isMainActionDisabled } = useExaminerDecision()
 
 const selectedConditions = defineModel<string[]>('conditions', { required: true })
