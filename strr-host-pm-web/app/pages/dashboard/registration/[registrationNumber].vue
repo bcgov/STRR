@@ -20,6 +20,7 @@ const { owners, setupBreadcrumbs, setupOwners } = useDashboardPage()
 
 const {
   todos,
+  hasPendingRenewalProcessing,
   addNocTodo,
   addBusinessLicenseTodo,
   setupRenewalTodosWatch
@@ -30,18 +31,6 @@ setupRenewalTodosWatch()
 const submittedApplications = computed(() => {
   const apps = (registration.value as any)?.header?.applications || []
   return apps.filter((app: any) => app.applicationStatus !== 'DRAFT')
-})
-
-// Check if there's a pending renewal application (PAID or FULL_REVIEW status)
-const hasPendingProcessing = computed(() => {
-  const apps = (registration.value as any)?.header?.applications || []
-  if (apps.length === 0) {
-    return false
-  }
-  const latestApp = apps[0]
-  const pendingStatuses = ['PAID', 'FULL_REVIEW']
-  return latestApp?.applicationType === 'renewal' &&
-    pendingStatuses.includes(latestApp?.applicationStatus)
 })
 
 onMounted(async () => {
@@ -69,7 +58,7 @@ onMounted(async () => {
       undefined,
       undefined,
       undefined,
-      hasPendingProcessing.value)
+      hasPendingRenewalProcessing.value)
 
     // host right side details
     setSideHeaderDetails(registration.value, undefined)
@@ -105,7 +94,11 @@ definePageMeta({
     class="flex flex-col gap-5 py-8 sm:flex-row sm:py-10"
   >
     <div class="flex-1 space-y-10">
-      <DashboardTodoSection :todos="todos" :loading="loading" />
+      <DashboardTodoSection
+        :todos="todos"
+        :loading="loading"
+        :show-renewal-submitted="hasPendingRenewalProcessing"
+      />
       <DashboardRentalSection :loading="loading" />
       <DashboardSupportingInfoSection
         :loading="loading"

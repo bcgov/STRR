@@ -999,6 +999,76 @@
 					"response": []
 				},
 				{
+					"name": "User Search Applications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains applications array\", function () {",
+									"    pm.expect(jsonData).to.have.property('applications');",
+									"    pm.expect(jsonData.applications).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/applications/user/search?text=123&limit=10&page=1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"applications",
+								"user",
+								"search"
+							],
+							"query": [
+								{
+									"key": "text",
+									"value": "123"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Staff - Get Application LTSA",
 					"event": [
 						{
@@ -1712,6 +1782,147 @@
 		{
 			"name": "Registration",
 			"item": [
+				{
+					"name": "Search Registrations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains registrations array\", function () {",
+									"    pm.expect(jsonData).to.have.property('registrations');",
+									"    pm.expect(jsonData.registrations).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staff_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}/registrations/search?text=123&sortBy=id&sortOrder=desc&registrationType=HOST&status=ACTIVE",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"search"
+							],
+							"query": [
+								{
+									"key": "text",
+									"value": "123"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								},
+								{
+									"key": "registrationType",
+									"value": "HOST"
+								},
+								{
+									"key": "status",
+									"value": "ACTIVE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Search Registrations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains registrations array\", function () {",
+									"    pm.expect(jsonData).to.have.property('registrations');",
+									"    pm.expect(jsonData.registrations).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Account-Id",
+								"value": "{{account_id}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}/registrations/user/search?text=123&limit=10&page=1",
+							"host": [
+								"{{api_url}}"
+							],
+							"path": [
+								"registrations",
+								"user",
+								"search"
+							],
+							"query": [
+								{
+									"key": "text",
+									"value": "123"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
 				{
 					"name": "Update Registration Status",
 					"request": {

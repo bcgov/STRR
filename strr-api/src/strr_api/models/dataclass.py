@@ -41,14 +41,31 @@ class ApplicationSearch:
 
     page: int
     limit: int
-    statuses: List[str] = None
+    statuses: List[str] | None = None
     sort_by: str = "id"
     sort_order: str = "desc"
-    search_text: str = None
-    registration_types: List[str] = None
-    registration_statuses: List[str] = None
-    record_number: str = None
-    assignee: str = None
-    requirements: list[str] = None
+    search_text: str | None = None
+    registration_types: List[str] | None = None
+    registration_statuses: List[str] | None = None
+    record_number: str | None = None
+    assignee: str | None = None
+    requirements: list[str] | None = None
     include_draft_registration: bool = True
     include_draft_renewal: bool = True
+    account_id: int | None = None
+
+
+@dataclass
+class RegistrationSearch:
+    """Used for searching registrations."""
+
+    page: int
+    limit: int
+    statuses: List[str] | None = None
+    sort_by: str = "id"
+    sort_order: str = "desc"
+    search_text: str | None = None
+    registration_types: List[str] | None = None
+    record_number: str | None = None
+    assignee: str | None = None
+    account_id: int | None = None

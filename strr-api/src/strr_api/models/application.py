@@ -411,6 +411,8 @@ class Application(BaseModel):
     def search_applications(cls, filter_criteria: ApplicationSearch):
         """Returns the applications matching the search criteria."""
         query = cls.query
+        if filter_criteria.account_id:
+            query = query.filter(Application.payment_account == str(filter_criteria.account_id))
         if filter_criteria.search_text:
             query = query.filter(
                 db.or_(
@@ -430,8 +432,8 @@ class Application(BaseModel):
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
             query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
-        # Exclude draft applications for staff endpoint
-        query = query.filter(Application.status != Application.Status.DRAFT)
+        if not filter_criteria.account_id:
+            query = query.filter(Application.status != Application.Status.DRAFT)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())

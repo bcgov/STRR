@@ -78,6 +78,7 @@ from strr_api.models import (
     StrataHotelRepresentative,
     User,
 )
+from strr_api.models.dataclass import RegistrationSearch
 from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
 from strr_api.services.email_service import EmailService
@@ -149,6 +150,7 @@ class RegistrationService:
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
             # registration.strata_hotel_registration.delete()
             registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_request)
+        registration.registration_json = cls._enrich_registration_json(registration_request, registration)
         registration.save()
         return registration
 
@@ -172,6 +174,7 @@ class RegistrationService:
             start_date=start_date,
             expiry_date=expiry_date,
             registration_type=registration_type,
+            registration_json=registration_request,
         )
 
         documents = []
@@ -193,8 +196,17 @@ class RegistrationService:
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
             registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_request)
 
+        registration.registration_json = cls._enrich_registration_json(registration_request, registration)
         registration.save()
         return registration
+
+    @classmethod
+    def _enrich_registration_json(cls, registration_request: dict, registration: Registration) -> dict:
+        """Enrich registration_json with additional searchable fields."""
+        enriched = dict(registration_request) if registration_request else {}
+        if registration.rental_property and registration.rental_property.jurisdiction:
+            enriched["jurisdiction"] = registration.rental_property.jurisdiction
+        return enriched
 
     @classmethod
     def _create_strata_hotel_registration(cls, registration_request: dict) -> StrataHotelRegistration:
@@ -364,6 +376,10 @@ class RegistrationService:
     def _create_host_registration(cls, registration_request: dict) -> RentalProperty:
         registration_request = RegistrationRequest(**registration_request).registration
 
+        jurisdiction = None
+        if registration_request.strRequirements and isinstance(registration_request.strRequirements, dict):
+            jurisdiction = registration_request.strRequirements.get("organizationNm")
+
         rental_property = RentalProperty(
             address=Address(
                 country=registration_request.unitAddress.country,
@@ -396,6 +412,7 @@ class RegistrationService:
             strata_hotel_category=registration_request.unitDetails.strataHotelCategory,
             rental_space_option=registration_request.unitDetails.rentalUnitSetupOption,
             host_type=registration_request.unitDetails.hostType,
+            jurisdiction=jurisdiction,
         )
 
         if property_manager_info := registration_request.propertyManager:
@@ -999,3 +1016,18 @@ class RegistrationService:
         )
 
         return registration
+
+    @staticmethod
+    def search_registrations(filter_criteria: RegistrationSearch) -> dict:
+        """List all registrations matching the search criteria."""
+        paginated_result = Registration.search_registrations(filter_criteria)
+        search_results = []
+        for item in paginated_result.items:
+            search_results.append(RegistrationService.serialize(item))
+
+        return {
+            "page": filter_criteria.page,
+            "limit": filter_criteria.limit,
+            "registrations": search_results,
+            "total": paginated_result.total,
+        }

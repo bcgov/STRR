@@ -29,6 +29,18 @@ export const useDashboardTodos = () => {
 
   const todos = ref<Todo[]>([])
 
+  // Check if there's a pending renewal application (PAID or FULL_REVIEW status)
+  const hasPendingRenewalProcessing = computed(() => {
+    const apps = (registration.value as any)?.header?.applications || []
+    if (apps.length === 0) {
+      return false
+    }
+    const latestApp = apps[0]
+    const pendingStatuses = [ApplicationStatus.PAID, ApplicationStatus.FULL_REVIEW]
+    return latestApp?.applicationType === 'renewal' &&
+      pendingStatuses.includes(latestApp?.applicationStatus)
+  })
+
   // Common translation props for scroll-to-link
   const getScrollLinkTranslationProps = () => ({
     newLine: '<br/>',
@@ -188,6 +200,7 @@ export const useDashboardTodos = () => {
 
   return {
     todos,
+    hasPendingRenewalProcessing,
     addNocTodo,
     addBusinessLicenseTodo,
     setupRenewalTodosWatch
