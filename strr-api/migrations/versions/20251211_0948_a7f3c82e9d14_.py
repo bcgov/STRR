@@ -23,9 +23,17 @@ def upgrade():
         batch_op.add_column(sa.Column('registration_tsv', TSVectorType(), sa.Computed("jsonb_to_tsvector('english', COALESCE(\"registration_json\", '{}'), '[\"string\"]')", persisted=True), nullable=True))
         batch_op.create_index('idx_registration_tsv', ['registration_tsv'], unique=False, postgresql_using='gin')
         batch_op.create_index('idx_gin_registration_json_path_ops', ['registration_json'], unique=False, postgresql_using='gin', postgresql_ops={'registration_json': 'jsonb_path_ops'})
+    
+    with op.batch_alter_table('registrations_history', schema=None) as batch_op:
+        batch_op.add_column(sa.Column('registration_json', postgresql.JSONB(astext_type=sa.Text()), nullable=True))
+        batch_op.add_column(sa.Column('registration_tsv', TSVectorType(), nullable=True))
 
 
 def downgrade():
+    with op.batch_alter_table('registrations_history', schema=None) as batch_op:
+        batch_op.drop_column('registration_tsv')
+        batch_op.drop_column('registration_json')
+    
     with op.batch_alter_table('registrations', schema=None) as batch_op:
         batch_op.drop_index('idx_gin_registration_json_path_ops', postgresql_using='gin')
         batch_op.drop_index('idx_registration_tsv', postgresql_using='gin')

@@ -32,7 +32,7 @@
 """ Data Class
 """
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 
 @dataclass
@@ -41,18 +41,18 @@ class ApplicationSearch:
 
     page: int
     limit: int
-    statuses: Optional[List[str]] = None
+    statuses: List[str] | None = None
     sort_by: str = "id"
     sort_order: str = "desc"
-    search_text: Optional[str] = None
-    registration_types: Optional[List[str]] = None
-    registration_statuses: Optional[List[str]] = None
-    record_number: Optional[str] = None
-    assignee: Optional[str] = None
-    requirements: Optional[list[str]] = None
+    search_text: str | None = None
+    registration_types: List[str] | None = None
+    registration_statuses: List[str] | None = None
+    record_number: str | None = None
+    assignee: str | None = None
+    requirements: list[str] | None = None
     include_draft_registration: bool = True
     include_draft_renewal: bool = True
-    account_id: Optional[int] = None
+    account_id: int | None = None
 
 
 @dataclass
@@ -61,11 +61,11 @@ class RegistrationSearch:
 
     page: int
     limit: int
-    statuses: Optional[List[str]] = None
+    statuses: List[str] | None = None
     sort_by: str = "id"
     sort_order: str = "desc"
-    search_text: Optional[str] = None
-    registration_types: Optional[List[str]] = None
-    record_number: Optional[str] = None
-    assignee: Optional[str] = None
-    account_id: Optional[int] = None
+    search_text: str | None = None
+    registration_types: List[str] | None = None
+    record_number: str | None = None
+    assignee: str | None = None
+    account_id: int | None = None
