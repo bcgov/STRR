@@ -36,7 +36,7 @@ export const useDashboardTodos = () => {
       return false
     }
     const latestApp = apps[0]
-    const pendingStatuses = ['PAID', 'FULL_REVIEW']
+    const pendingStatuses = [ApplicationStatus.PAID, ApplicationStatus.FULL_REVIEW]
     return latestApp?.applicationType === 'renewal' &&
       pendingStatuses.includes(latestApp?.applicationStatus)
   })
