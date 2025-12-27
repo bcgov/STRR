@@ -10,7 +10,7 @@ defineProps<{
   dataTestId?: string
 }>()
 
-const statusBadge = computed(() => details.value.at(0))
+const statusBadges = computed(() => details.value.filter(d => d.chip))
 </script>
 
 <template>
@@ -18,18 +18,21 @@ const statusBadge = computed(() => details.value.at(0))
     class="space-y-3 text-gray-950"
     :data-test-id="dataTestId || 'status-terms-conditions'"
   >
-    <div class="flex items-center gap-x-2">
+    <div :class="statusBadges.length > 1 ? 'flex flex-col gap-y-2' : 'flex items-center gap-x-2'">
       <ConnectTypographyH2
         custom-class="text-lg font-bold leading-none whitespace-nowrap"
         :text="statusLabel"
       />
-      <UBadge
-        v-if="statusBadge && statusBadge.chip"
-        :label="statusBadge.text"
-        :color="statusBadge.chipColour || 'primary'"
-        class="whitespace-nowrap py-1 font-bold uppercase"
-        :data-test-id="`${dataTestId}-badge`"
-      />
+      <div class="flex flex-wrap gap-2">
+        <UBadge
+          v-for="(badge, index) in statusBadges"
+          :key="index"
+          :label="badge.text"
+          :color="badge.chipColour || 'primary'"
+          class="whitespace-nowrap py-1 font-bold uppercase"
+          :data-test-id="index === 0 ? `${dataTestId}-badge` : `${dataTestId}-badge-${index}`"
+        />
+      </div>
     </div>
     <div class="rounded border border-[#1669BB] bg-[#E4EDF7] p-5">
       <span class="flex items-center gap-2 text-base font-bold">

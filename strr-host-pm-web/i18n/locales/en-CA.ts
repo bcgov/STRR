@@ -624,6 +624,10 @@ export default {
       subtitle: 'DRAFT',
       resumeButton: 'Resume Draft',
       deleteDraft: 'Delete Draft'
+    },
+    renewalSubmitted: {
+      title: 'Thank you for submitting the application to renew your registration.',
+      subtitle: 'Your registration will be updated once your application has been processed.'
     }
   },
   propertyType: {

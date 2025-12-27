@@ -1894,3 +1894,123 @@ def test_get_strata_todos_with_all_renewal_states(session, client, jwt):
     assert len(todos) == 1
     assert todos[0].get("task").get("type") == "REGISTRATION_RENEWAL_PAYMENT_PENDING"
     assert todos[0].get("task").get("detail") == payment_due_application.application_number
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations(session, client, jwt):
+    """Test examiner search registrations endpoint."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+        registration_id = response_json.get("header").get("registrationId")
+
+        rv = client.get(f"/registrations/search?recordNumber={registration_number}", headers=staff_headers)
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 1
+        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
+
+        rv = client.get("/registrations/search?recordNumber=NONEXISTENT123", headers=staff_headers)
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 0
+
+        rv = client.get(f"/registrations/{registration_id}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+
+
+def test_search_registrations_401(client):
+    """Test examiner search registrations endpoint returns 401 without auth."""
+    rv = client.get("/registrations/search")
+    assert rv.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_search_registrations_short_search_text(session, client, jwt):
+    """Test examiner search registrations with search text less than 3 characters."""
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv = client.get("/registrations/search?text=ab", headers=staff_headers)
+    assert rv.status_code == HTTPStatus.BAD_REQUEST
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_user_search_registrations(session, client, jwt):
+    """Test user search registrations endpoint."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+        registration_id = response_json.get("header").get("registrationId")
+
+        rv = client.get(f"/registrations/user/search?recordNumber={registration_number}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 1
+        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
+
+        other_account_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        other_account_headers["Account-Id"] = 9999
+        rv = client.get(f"/registrations/user/search?recordNumber={registration_number}", headers=other_account_headers)
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 0
+
+        rv = client.get(f"/registrations/{registration_id}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+
+
+def test_user_search_registrations_401(client):
+    """Test user search registrations endpoint returns 401 without auth."""
+    rv = client.get("/registrations/user/search")
+    assert rv.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_user_search_registrations_missing_account_id(session, client, jwt):
+    """Test user search registrations endpoint returns 400 without Account-Id header."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    rv = client.get("/registrations/user/search", headers=headers)
+    assert rv.status_code == HTTPStatus.BAD_REQUEST
+
+
+def test_user_search_registrations_short_search_text(session, client, jwt):
+    """Test user search registrations with search text less than 3 characters."""
+    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    headers["Account-Id"] = ACCOUNT_ID
+    rv = client.get("/registrations/user/search?text=ab", headers=headers)
+    assert rv.status_code == HTTPStatus.BAD_REQUEST

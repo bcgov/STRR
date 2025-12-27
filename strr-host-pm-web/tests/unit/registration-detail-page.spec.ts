@@ -47,9 +47,9 @@ describe('Registration Detail Page logic', () => {
         return false
       }
       const latestApp = applications[0]
-      const pendingStatuses = ['PAID', 'FULL_REVIEW']
+      const pendingStatuses = [ApplicationStatus.PAID, ApplicationStatus.FULL_REVIEW]
       return latestApp?.applicationType === 'renewal' &&
-        pendingStatuses.includes(latestApp?.applicationStatus)
+        pendingStatuses.includes(latestApp?.applicationStatus as ApplicationStatus)
     }
 
     it('returns true for renewal with PAID status', () => {
