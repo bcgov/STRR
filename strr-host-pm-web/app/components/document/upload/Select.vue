@@ -4,6 +4,7 @@ const props = defineProps({
   isDisabled: { type: Boolean, default: false },
   isRequired: { type: Boolean, default: false },
   isInvalid: { type: Boolean, default: false },
+  docOptions: { type: Array<{ label: string; value: DocumentUploadType }>, default: undefined },
   label: { type: String, default: '' },
   size: { type: String, default: 'lg' },
   helpId: { type: String, default: undefined },
@@ -78,7 +79,7 @@ onChange((files) => {
       v-model="docStore.selectedDocType"
       size="lg"
       :color="'gray'"
-      :options="docStore.docTypeOptions"
+      :options="docOptions ?? docStore.docTypeOptions"
       :aria-label="label"
       :aria-required="isRequired"
       :aria-invalid="isInvalid"
