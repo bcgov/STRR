@@ -1,9 +1,8 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
-import { ref, nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import { baseEnI18n } from '../mocks/i18n'
-import { mockApplication } from '../mocks/mockedData'
+import { mockApplication, mockStoredDocuments } from '../mocks/mockedData'
 import Application from '~/pages/application.vue'
 import {
   ConnectStepper,
@@ -15,7 +14,10 @@ import {
   FormReview,
   FormUnitAddressAutoComplete,
   FormUnitAddressManual,
-  FormUnitAddressManual2
+  FormUnitAddressManual2,
+  ConnectHelpExpand,
+  ConnectChecklistValidated,
+  SummaryOwners
 } from '#components'
 
 vi.mock('@/stores/hostProperty', () => ({
@@ -52,10 +54,14 @@ vi.mock('@/stores/propertyRequirements', () => ({
       isBusinessLicenceExempt: false,
       blExemptReason: undefined
     }),
-    propertyReqs: ref({}),
+    propertyReqs: ref({
+      isBusinessLicenceRequired: false,
+      isPrincipalResidenceRequired: false
+    }),
     loadingReqs: ref(false),
     hasReqs: false,
     hasReqError: false,
+    overrideApplicationWarning: ref(false),
     validateBlExemption: () => true,
     validatePrRequirements: () => true,
     getPropertyReqs: vi.fn(),
@@ -67,6 +73,14 @@ vi.mock('@/stores/hostOwner', () => ({
   useHostOwnerStore: () => ({
     validateOwners: () => true,
     hostOwners: ref([]),
+    activeOwner: ref(undefined),
+    activeOwnerEditIndex: ref(undefined),
+    hasHost: ref(false),
+    hasCoHost: ref(false),
+    hasCompParty: ref(false),
+    hasPropertyManager: ref(false),
+    isCraNumberOptional: ref(false),
+    addHostOwner: vi.fn(),
     $reset: vi.fn()
   })
 }))
@@ -74,13 +88,16 @@ vi.mock('@/stores/hostOwner', () => ({
 vi.mock('@/stores/document', () => ({
   useDocumentStore: () => ({
     validateRequiredDocuments: () => [],
-    storedDocuments: ref([]),
-    prDocs: [],
-    documentCategories: {
-      exemption: [],
-      rental: []
-    },
-    removeDocumentsByType: vi.fn(),
+    validateDocumentDropdowns: () => [],
+    storedDocuments: ref(mockStoredDocuments),
+    requiredDocs: ref([
+      { label: 'Test Doc 1', isValid: true },
+      { label: 'Test Doc 2', isValid: false }
+    ]),
+    potentialRequiredDocs: ref([]),
+    selectedDocType: ref(undefined),
+    addStoredDocument: vi.fn(),
+    removeStoredDocument: vi.fn(),
     $reset: vi.fn()
   })
 }))
@@ -116,12 +133,16 @@ vi.mock('@/composables/useStrrModals', () => ({
   })
 }))
 
+const isEnhancedDocumentUploadEnabled = ref(false)
+
 vi.mock('@/composables/useHostFeatureFlags', () => ({
   useHostFeatureFlags: () => ({
     isSaveDraftEnabled: ref(true),
     isNewRentalUnitSetupEnabled: ref(true),
     isNewAddressFormEnabled: ref(true),
-    isNewDashboardEnabled: ref(false)
+    isNewDashboardEnabled: ref(false),
+    isEnhancedDocumentUploadEnabled,
+    isNewPrDocumentsListEnabled: ref(true)
   })
 }))
 
@@ -223,7 +244,7 @@ describe('Application Page', () => {
   })
 })
 
-describe('Rental Application Page - Step 1', () => {
+describe('Rental Application - Step 1', () => {
   let wrapper: any
 
   beforeAll(async () => {
@@ -256,5 +277,93 @@ describe('Rental Application Page - Step 1', () => {
     expect(rentalUnitDetails.find('[data-testid="property-type-select"]').exists()).toBe(true)
     expect(rentalUnitDetails.find('[data-testid="property-host-type"]').exists()).toBe(true)
     expect(rentalUnitDetails.find('[data-testid="unit-setup-option"]').exists()).toBe(true)
+  })
+})
+
+describe('Rental Application - Step 2', () => {
+  let wrapper: any
+
+  beforeAll(async () => {
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+  })
+
+  it('renders the Step 2 and its components', async () => {
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 1)
+    await nextTick()
+
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(1)
+
+    const formAddOwners = wrapper.findComponent(FormAddOwners)
+    expect(formAddOwners.exists()).toBe(true)
+    expect(formAddOwners.find('[data-testid="add-owner"]').exists()).toBe(true)
+    expect(formAddOwners.findComponent(ConnectHelpExpand).exists()).toBe(true)
+    expect(formAddOwners.findComponent(ConnectChecklistValidated).exists()).toBe(true)
+    expect(formAddOwners.find('[data-testid="add-person-owner-btn"]').exists()).toBe(true)
+    expect(formAddOwners.find('[data-testid="add-business-owner-btn"]').exists()).toBe(true)
+    expect(formAddOwners.findComponent(SummaryOwners).exists()).toBe(true)
+  })
+})
+
+describe('Rental Application - Step 3', () => {
+  let wrapper: any
+
+  beforeAll(async () => {
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+  })
+
+  it('renders the Step 3 and its components', async () => {
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 2)
+    await nextTick()
+
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(2)
+
+    const formAddDocuments = wrapper.findComponent(FormAddDocuments)
+    expect(formAddDocuments.exists()).toBe(true)
+
+    expect(formAddDocuments.find('[data-testid="standard-doc-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="enhanced-doc-upload"]').exists()).toBe(false)
+  })
+
+  it('renders the Step 3 with enhanced document upload feature enabled (multi-dropdowns)', async () => {
+    isEnhancedDocumentUploadEnabled.value = true
+
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+
+    await flushPromises()
+
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 2)
+    await nextTick()
+
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(2)
+
+    const formAddDocuments = wrapper.findComponent(FormAddDocuments)
+    expect(formAddDocuments.exists()).toBe(true)
+
+    expect(formAddDocuments.find('[data-testid="enhanced-doc-upload"]').exists()).toBe(true)
+
+    // always visible document upload types
+    expect(formAddDocuments.find('[data-testid="proof-of-identity-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="proof-of-pr-upload"]').exists()).toBe(true)
+
+    // conditionally visible document upload types (should be hidden by default)
+    expect(formAddDocuments.find('[data-testid="proof-of-tenancy-upload"]').exists()).toBe(false)
+    expect(formAddDocuments.find('[data-testid="proof-of-fractional-ownership-upload"]').exists()).toBe(false)
+    expect(formAddDocuments.find('[data-testid="business-licence-upload"]').exists()).toBe(false)
+    expect(formAddDocuments.find('[data-testid="strata-docs-upload"]').exists()).toBe(false)
+
+    // reset feature flag
+    isEnhancedDocumentUploadEnabled.value = false
   })
 })

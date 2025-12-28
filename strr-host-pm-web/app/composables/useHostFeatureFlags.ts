@@ -8,6 +8,8 @@ export const useHostFeatureFlags = () => {
     isNewRentalUnitSetupEnabled: isFeatureEnabled('enable-host-new-rental-unit-setup'),
     isNewPrDocumentsListEnabled: isFeatureEnabled('enable-host-new-pr-documents'),
     isDashboardTableSortingEnabled: isFeatureEnabled('enable-host-dashboard-table-sorting'),
-    isNewDashboardEnabled: isFeatureEnabled('enable-new-host-dashboard')
+    isNewDashboardEnabled: isFeatureEnabled('enable-new-host-dashboard'),
+    isBusinessLicenseDocumentUploadEnabled: isFeatureEnabled('enable-business-license-document-upload'),
+    isEnhancedDocumentUploadEnabled: isFeatureEnabled('enable-host-enhanced-document-upload')
   }
 }

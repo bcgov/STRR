@@ -42,7 +42,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: isBlValid,
         icon: isBlValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.localGovShortTermRentalBL')
+        label: t('label.localGovShortTermRentalBL'),
+        formFieldName: 'blDocUpload'
       })
     }
     if (reqs.isPrincipalResidenceRequired && exemptionReason === undefined) {
@@ -55,19 +56,22 @@ export const useDocumentStore = defineStore('host/document', () => {
         docs.push({
           isValid: isPrValid,
           icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
-          label: t('label.proofOfPrOwner')
+          label: t('label.proofOfPrOwner'),
+          formFieldName: 'prDocUpload'
         })
       } else if (isNewPrDocumentsListEnabled.value && hostType === PropertyHostType.LONG_TERM_TENANT) {
         docs.push({
           isValid: isPrValid,
           icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
-          label: t('label.proofOfPrTenant')
+          label: t('label.proofOfPrTenant'),
+          formFieldName: 'tenancyDocUpload'
         })
       } else {
         docs.push({
           isValid: isPrValid,
           icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
-          label: t('label.proofOfPr')
+          label: t('label.proofOfPr'),
+          formFieldName: 'prDocUpload'
         })
       }
     }
@@ -77,7 +81,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: isStrataValid,
         icon: isStrataValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.supportingStrataDocs')
+        label: t('label.supportingStrataDocs'),
+        formFieldName: 'strataDocUpload'
       })
     }
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
@@ -90,12 +95,14 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: hasFractionalAgreement,
         icon: hasFractionalAgreement ? 'i-mdi-check' : 'i-mdi-close',
-        label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`)
+        label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
+        formFieldName: 'fractionalOwnerDocUpload'
       },
       {
         isValid: hasPropertyTitleWithFractional,
         icon: hasPropertyTitleWithFractional ? 'i-mdi-check' : 'i-mdi-close',
-        label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`)
+        label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`),
+        formFieldName: 'fractionalOwnerDocUpload'
       })
     }
     if (exemptionReason === PrExemptionReason.FARM_LAND) {
@@ -105,7 +112,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: isPropAssessmentNoticeValid,
         icon: isPropAssessmentNoticeValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.propertyAssessmentNotice')
+        label: t('label.propertyAssessmentNotice'),
+        formFieldName: 'prDocUpload'
       })
     }
 
@@ -117,7 +125,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: isRentValid,
         icon: isRentValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.rentalAgreementOrNoticeOfIncrease')
+        label: t('label.rentalAgreementOrNoticeOfIncrease'),
+        formFieldName: 'tenancyDocUpload'
       })
     }
 
@@ -628,6 +637,26 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
   }
 
+  function validateDocumentDropdowns (): Array<{ path: string, message: string }> {
+    const invalidDocs = requiredDocs.value.filter(doc => !doc.isValid)
+
+    if (invalidDocs.length === 0) {
+      return []
+    }
+
+    const validationErrors = invalidDocs.map(doc => ({
+      path: doc.formFieldName || '',
+      message: t('validation.missingReqDocs')
+    }))
+
+    // add additional validation for proof of identity
+    if (invalidDocs.some(doc => doc.formFieldName === 'prDocUpload')) {
+      validationErrors.push({ path: 'identityDocUpload', message: t('validation.missingReqDocs') })
+    }
+
+    return validationErrors
+  }
+
   // use this to remove documents from store and from api
   async function resetApiDocs () {
     const docsToDelete = [...storedDocuments.value]
@@ -658,6 +687,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     addDocumentToRegistration,
     removeStoredDocument,
     validateRequiredDocuments,
+    validateDocumentDropdowns,
     resetApiDocs,
     removeDocumentsByType,
     $reset

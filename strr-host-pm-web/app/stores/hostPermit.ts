@@ -30,10 +30,9 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     downloadRegistrationCert
   } = useStrrBasePermit<HostRegistrationResp, HostApplicationResp, ApiHostApplication>()
 
-  const { t } = useNuxtApp().$i18n
+  const { isBusinessLicenseDocumentUploadEnabled } = useHostFeatureFlags()
 
-  const { isFeatureEnabled } = useFeatureFlags()
-  const isBusinessLicenseDocumentUploadEnabled = isFeatureEnabled('enable-business-license-document-upload')
+  const { t } = useI18n()
 
   const renewalRegId = ref<string | undefined>(undefined)
   const isRegistrationRenewal = ref(false)

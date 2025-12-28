@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
+import {
+  ProofOfIdentityDocuments, ProofOfTenancyDocuments, ProofOfPrincipalResidenceDocuments, BusinessLicenceDocuments,
+  ProofOfFractionalOwnershipDocuments, StrataDocuments
+} from '~/enums/document-upload-type'
 
+const { t } = useI18n()
 const config = useRuntimeConfig().public
 const reqStore = usePropertyReqStore()
 const docStore = useDocumentStore()
 const propStore = useHostPropertyStore()
 const strrModal = useStrrModals()
 const { openSupportingDocumentsHelpModal } = useHostPmModals()
-const { isNewPrDocumentsListEnabled } = useHostFeatureFlags()
+const { isNewPrDocumentsListEnabled, isEnhancedDocumentUploadEnabled } = useHostFeatureFlags()
 
 const props = defineProps<{
   docUploadStep: DocumentUploadStep,
@@ -33,6 +38,60 @@ watch(
   },
   { immediate: true, deep: true }
 )
+
+const showEnhancedDocumentUpload = computed(() =>
+  isEnhancedDocumentUploadEnabled.value && isNewPrDocumentsListEnabled.value
+)
+
+const documentUploadConfig = computed<DocumentUploadConfig[]>(() => {
+  const config: DocumentUploadConfig[] = [
+    {
+      testId: 'proof-of-identity-upload',
+      title: t('label.proofOfIdentity'),
+      fieldName: 'identityDocUpload',
+      uploadType: ProofOfIdentityDocuments,
+      isDisplayed: true
+    },
+    {
+      testId: 'proof-of-pr-upload',
+      title: t('label.proofOfPr'),
+      fieldName: 'prDocUpload',
+      uploadType: ProofOfPrincipalResidenceDocuments,
+      isDisplayed: true
+    },
+    {
+      testId: 'proof-of-tenancy-upload',
+      title: t('label.proofOfTenancy'),
+      fieldName: 'tenancyDocUpload',
+      uploadType: ProofOfTenancyDocuments,
+      isDisplayed: propStore.unitDetails.hostType === PropertyHostType.LONG_TERM_TENANT &&
+        reqStore.propertyReqs.isPrincipalResidenceRequired && reqStore.prRequirements.prExemptionReason === undefined
+    },
+    {
+      testId: 'proof-of-fractional-ownership-upload',
+      title: t('label.proofOfFractionalOwnership'),
+      fieldName: 'fractionalOwnerDocUpload',
+      uploadType: ProofOfFractionalOwnershipDocuments,
+      isDisplayed: reqStore.prRequirements.prExemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP
+    },
+    {
+      testId: 'business-licence-upload',
+      title: t('label.localGovBL'),
+      fieldName: 'blDocUpload',
+      uploadType: BusinessLicenceDocuments,
+      isDisplayed: reqStore.propertyReqs.isBusinessLicenceRequired && !blExempt.value
+    },
+    {
+      testId: 'strata-docs-upload',
+      title: t('label.supportingStrataDocs'),
+      fieldName: 'strataDocUpload',
+      uploadType: StrataDocuments,
+      isDisplayed: reqStore.prRequirements.prExemptionReason === PrExemptionReason.STRATA_HOTEL
+    }
+  ]
+
+  return config.filter(docConfig => docConfig.isDisplayed)
+})
 
 onMounted(async () => {
   // validate form if step marked as complete
@@ -112,10 +171,34 @@ onMounted(async () => {
           <UForm
             ref="docFormRef"
             :state="docStore.requiredDocs"
-            :validate="docStore.validateRequiredDocuments"
+            :validate="showEnhancedDocumentUpload
+              ? docStore.validateDocumentDropdowns
+              : docStore.validateRequiredDocuments
+            "
             :validate-on="['submit']"
+            class="pb-10"
           >
-            <div class="py-10">
+            <div
+              v-if="showEnhancedDocumentUpload"
+              data-testid="enhanced-doc-upload"
+            >
+              <DocumentUploadType
+                v-for="docConfig in documentUploadConfig"
+                :key="docConfig.fieldName"
+                :data-testid="docConfig.testId"
+                :title="docConfig.title"
+                :form-field-name="docConfig.fieldName"
+                :doc-upload-type="docConfig.uploadType"
+                :doc-upload-step="docUploadStep"
+                :has-error="isComplete && hasFormErrors(docFormRef, [docConfig.fieldName])"
+                class="pt-10"
+              />
+            </div>
+            <div
+              v-else
+              class="pt-10"
+              data-testid="standard-doc-upload"
+            >
               <ConnectFormSection
                 :title="$t('label.fileUpload')"
                 :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
@@ -128,6 +211,7 @@ onMounted(async () => {
                   >
                     <DocumentUploadSelect
                       id="supporting-documents"
+                      data-testid="document-upload-select"
                       :label="$t('label.chooseDocs')"
                       :is-invalid="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
                       :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
