@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ConnectStepper, FormPlatformReviewConfirm } from '#components'
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const route = useRoute()
 const localePath = useLocalePath()
 const strrModal = useStrrModals()

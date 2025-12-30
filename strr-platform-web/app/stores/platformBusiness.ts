@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const useStrrPlatformBusiness = defineStore('strr/platformBusiness', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const {
     strrBusiness: platformBusiness,
     isMailingInBC,

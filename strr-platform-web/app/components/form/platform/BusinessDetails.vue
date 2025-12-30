@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { getBusinessSchema } = useStrrPlatformBusiness()
 const { platformBusiness, isMailingInBC } = storeToRefs(useStrrPlatformBusiness())
 const { isRegistrationRenewal } = storeToRefs(useStrrPlatformStore())

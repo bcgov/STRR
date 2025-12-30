@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { Form } from '#ui/types'
 const { kcUser } = useKeycloak()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const tPlatReview = (path: string) => t(`strr.review.${path}`)
 
 const accountStore = useConnectAccountStore()

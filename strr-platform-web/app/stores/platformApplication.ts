@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const useStrrPlatformApplication = defineStore('strr/platformApplication', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { postApplication } = useStrrApi()
   const platContactStore = useStrrContactStore()
   const platBusinessStore = useStrrPlatformBusiness()

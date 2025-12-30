@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const localePath = useLocalePath()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const config = useRuntimeConfig().public
 const ldStore = useConnectLaunchdarklyStore()
 
