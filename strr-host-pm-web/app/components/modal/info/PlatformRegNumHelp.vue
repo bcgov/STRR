@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 
 const link = `<a class="text-blue-500 underline" target="_blank" href="${t('modal.strataPlatformNumHelp.link')}">
   ${t('modal.strataPlatformNumHelp.linkTitle')}</a>`

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import uniqBy from 'lodash.uniqby'
 
 export const useDocumentStore = defineStore('host/document', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { $strrApi } = useNuxtApp()
   const strrModal = useStrrModals()
   const reqStore = usePropertyReqStore()

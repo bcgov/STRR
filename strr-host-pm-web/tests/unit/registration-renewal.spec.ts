@@ -1,6 +1,7 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { useRoute } from 'vue-router'
+import { flushPromises } from '@vue/test-utils'
 import { baseEnI18n } from '../mocks/i18n'
 import Application from '~/pages/application.vue'
 
@@ -35,7 +36,10 @@ describe('Registration Renewal Application Page', () => {
     })
   })
 
-  it('renders the Application page in Registration Renewal state', () => {
+  it('renders the Application page in Registration Renewal state', async () => {
+    await flushPromises()
+    expect(useRoute().query).toEqual({ renew: 'true' })
+
     expect(useRoute().query).toEqual({
       renew: 'true'
     })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const propertyStore = useHostPropertyStore()
 const { unitAddress, unitDetails } = storeToRefs(propertyStore)
 const { prRequirements, blRequirements, strataHotelCategory } = storeToRefs(usePropertyReqStore())

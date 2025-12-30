@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // import { isoCountriesList } from '~/utils/isoCountriesList'
 const localePath = useLocalePath()
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const isSmallScreen = useMediaQuery('(max-width: 640px)')
 const accountStore = useConnectAccountStore()
 

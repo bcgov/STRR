@@ -6,7 +6,7 @@ const props = defineProps<{ isComplete: boolean }>()
 
 defineEmits<{ edit: [index: number] }>()
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { hostTacUrl } = useRuntimeConfig().public
 const propertyStore = useHostPropertyStore()
 const ownerStore = useHostOwnerStore()

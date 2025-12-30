@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const useHostPropertyStore = defineStore('host/property', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
   const propertyReqStore = usePropertyReqStore()
 
