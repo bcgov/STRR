@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
 
 export const useDocumentStore = defineStore('strata/document', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { $strrApi } = useNuxtApp()
   const strrModal = useStrrModals()
 

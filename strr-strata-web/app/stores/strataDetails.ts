@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { StrataDetails } from '~/interfaces/strata-details'
 
 export const useStrrStrataDetailsStore = defineStore('strr/strataDetails', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { getBrandSchema: getStrataBrandSchema } = useStrrBaseBrand()
 
   const strataDetailsSchema = z.object({

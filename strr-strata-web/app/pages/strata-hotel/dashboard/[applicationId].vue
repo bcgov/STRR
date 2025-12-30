@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Button from '~/components/document/upload/Button.vue'
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const route = useRoute()
 const config = useRuntimeConfig().public
 const localePath = useLocalePath()

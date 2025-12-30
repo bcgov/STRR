@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
 // TODO: move common code between platform + strata into base layer
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { getBusinessSchema } = useStrrStrataBusinessStore()
 const { strataBusiness, isMailingInBC } = storeToRefs(useStrrStrataBusinessStore())
 

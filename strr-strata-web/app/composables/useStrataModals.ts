@@ -6,7 +6,7 @@ import {
 
 export const useStrataModals = () => {
   const modal = useModal()
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
 
   function openStrataDocUploadErrorModal (errors: Array<{ file: File, reason: 'fileType' | 'fileSize' }>) {
     let title: string = ''

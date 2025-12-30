@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { Form } from '#ui/types'
 import ModalStrataUnitListModal from '@/components/modal/StrataUnitListModal.vue'
 const { kcUser } = useKeycloak()
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 
 const accountStore = useConnectAccountStore()
 const contactStore = useStrrContactStore()

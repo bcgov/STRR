@@ -3,7 +3,7 @@ import type { MultiFormValidationResult, StrataApplicationPayload, StrataApplica
 import { formatBusinessDetails, formatStrataDetails } from '~/utils/strata-formating'
 
 export const useStrrStrataApplicationStore = defineStore('strr/strataApplication', () => {
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { postApplication } = useStrrApi()
   const contactStore = useStrrContactStore()
   const businessStore = useStrrStrataBusinessStore()

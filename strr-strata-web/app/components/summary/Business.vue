@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 // TODO: may be able to share this with platforms and hosts if moved to base layer
 const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 
