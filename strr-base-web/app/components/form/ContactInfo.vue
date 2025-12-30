@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { Form } from '#ui/types'
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { kcUser } = useKeycloak()
 
 const props = defineProps<{ isComplete: boolean }>()

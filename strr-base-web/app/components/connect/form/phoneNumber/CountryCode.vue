@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import countryList from 'country-codes-list'
+import { customList } from 'country-codes-list'
 import type { ConnectPhoneCountry } from '#imports'
 
 defineProps<{
@@ -35,7 +35,7 @@ watch(selectedCountry, (newVal) => {
   }
 })
 
-const _countryListOptions = countryList.customList(
+const _countryListOptions = customList(
   // @ts-ignore
   'countryCode', '{countryCallingCode},{countryNameEn},{countryNameLocal}')
 

@@ -63,24 +63,20 @@ export default defineNuxtConfig({
       {
         name: 'English',
         code: 'en-CA',
-        iso: 'en-CA',
+        language: 'en-CA',
         dir: 'ltr',
         file: 'en-CA.ts'
       },
       {
         name: 'Français',
         code: 'fr-CA',
-        iso: 'fr-CA',
+        language: 'fr-CA',
         dir: 'ltr',
         file: 'fr-CA.ts'
       }
     ],
     strategy: 'prefix',
-    lazy: true,
-    langDir: 'locales',
-    defaultLocale: 'en-CA',
-    detectBrowserLanguage: false,
-    vueI18n: './i18n.config.ts'
+    defaultLocale: 'en-CA'
   },
 
   colorMode: {
@@ -132,21 +128,6 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
       include: ['zod', 'uuid', 'vitest', 'luxon', 'country-codes-list']
-    }
-  },
-
-  piniaPluginPersistedstate: {
-    storage: 'sessionStorage'
-  },
-
-  content: {
-    locales: [
-      'en-CA',
-      'fr-CA'
-    ],
-    contentHead: false,
-    markdown: {
-      anchorLinks: false
     }
   }
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const tPlat = (path: string) => t(`strr.${path}`)
 
 const fullName = defineModel<string>('fullName', { required: false })
