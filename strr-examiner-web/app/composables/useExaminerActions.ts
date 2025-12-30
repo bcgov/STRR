@@ -2,7 +2,7 @@ import { ApplicationActionsE, RegistrationActionsE } from '@/enums/actions'
 
 export const useExaminerActions = () => {
   const strrModal = useStrrModals()
-  const { t } = useI18n()
+  const { t } = useNuxtApp().$i18n
   const { handleButtonLoading } = useButtonControl()
 
   /**

@@ -2,7 +2,7 @@
 import { refreshNuxtData } from 'nuxt/app'
 import isEqual from 'lodash/isEqual'
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const { decisionIntent, isMainActionDisabled, isDecisionEmailValid } = useExaminerDecision()
 const {
   activeHeader, activeReg, isAssignedToUser,

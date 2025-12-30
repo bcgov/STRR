@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DocumentUploadSelect from '~/components/document/upload/Select.vue'
 
-const { t } = useI18n()
+const { t } = useNuxtApp().$i18n
 const exStore = useExaminerStore()
 const docStore = useExaminerDocumentStore()
 const { activeReg, isApplication, activeHeader } = storeToRefs(exStore)
