@@ -14,6 +14,9 @@ const strrModal = useStrrModals()
 const { openSupportingDocumentsHelpModal } = useHostPmModals()
 const { isNewPrDocumentsListEnabled, isEnhancedDocumentUploadEnabled } = useHostFeatureFlags()
 
+const { propertyReqs, prRequirements } = storeToRefs(reqStore)
+const { unitDetails } = storeToRefs(propStore)
+
 const props = defineProps<{
   docUploadStep: DocumentUploadStep,
   isComplete: boolean
@@ -43,6 +46,39 @@ const showEnhancedDocumentUpload = computed(() =>
   isEnhancedDocumentUploadEnabled.value && isNewPrDocumentsListEnabled.value
 )
 
+// display conditions for document upload types
+
+const isPrRequiredWithoutExemption = computed(() =>
+  propertyReqs.value.isPrincipalResidenceRequired &&
+  prRequirements.value.prExemptionReason === undefined
+)
+
+const showProofOfIdentity = computed(() => isPrRequiredWithoutExemption.value &&
+  unitDetails.value.hostType !== undefined)
+
+const showProofOfPr = computed(() =>
+  isPrRequiredWithoutExemption.value ||
+  prRequirements.value.prExemptionReason === PrExemptionReason.FARM_LAND
+)
+
+const showProofOfFractionalOwnership = computed(() =>
+  prRequirements.value.prExemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP
+)
+
+const showBusinessLicence = computed(() =>
+  propertyReqs.value.isBusinessLicenceRequired && !blExempt.value
+)
+
+const showProofOfTenancy = computed(() =>
+  unitDetails.value.hostType === PropertyHostType.LONG_TERM_TENANT &&
+  isPrRequiredWithoutExemption.value
+)
+
+const showStrataDocs = computed(() =>
+  prRequirements.value.prExemptionReason === PrExemptionReason.STRATA_HOTEL
+)
+
+// configurations for document upload dropdowns
 const documentUploadConfig = computed<DocumentUploadConfig[]>(() => {
   const config: DocumentUploadConfig[] = [
     {
@@ -50,43 +86,42 @@ const documentUploadConfig = computed<DocumentUploadConfig[]>(() => {
       title: t('label.proofOfIdentity'),
       fieldName: 'identityDocUpload',
       uploadType: ProofOfIdentityDocuments,
-      isDisplayed: true
+      isDisplayed: showProofOfIdentity.value
     },
     {
       testId: 'proof-of-pr-upload',
       title: t('label.proofOfPr'),
       fieldName: 'prDocUpload',
       uploadType: ProofOfPrincipalResidenceDocuments,
-      isDisplayed: true
-    },
-    {
-      testId: 'proof-of-tenancy-upload',
-      title: t('label.proofOfTenancy'),
-      fieldName: 'tenancyDocUpload',
-      uploadType: ProofOfTenancyDocuments,
-      isDisplayed: propStore.unitDetails.hostType === PropertyHostType.LONG_TERM_TENANT &&
-        reqStore.propertyReqs.isPrincipalResidenceRequired && reqStore.prRequirements.prExemptionReason === undefined
+      isDisplayed: showProofOfPr.value
     },
     {
       testId: 'proof-of-fractional-ownership-upload',
       title: t('label.proofOfFractionalOwnership'),
       fieldName: 'fractionalOwnerDocUpload',
       uploadType: ProofOfFractionalOwnershipDocuments,
-      isDisplayed: reqStore.prRequirements.prExemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP
+      isDisplayed: showProofOfFractionalOwnership.value
     },
     {
       testId: 'business-licence-upload',
       title: t('label.localGovBL'),
       fieldName: 'blDocUpload',
       uploadType: BusinessLicenceDocuments,
-      isDisplayed: reqStore.propertyReqs.isBusinessLicenceRequired && !blExempt.value
+      isDisplayed: showBusinessLicence.value
+    },
+    {
+      testId: 'proof-of-tenancy-upload',
+      title: t('label.proofOfTenancy'),
+      fieldName: 'tenancyDocUpload',
+      uploadType: ProofOfTenancyDocuments,
+      isDisplayed: showProofOfTenancy.value
     },
     {
       testId: 'strata-docs-upload',
       title: t('label.supportingStrataDocs'),
       fieldName: 'strataDocUpload',
       uploadType: StrataDocuments,
-      isDisplayed: reqStore.prRequirements.prExemptionReason === PrExemptionReason.STRATA_HOTEL
+      isDisplayed: showStrataDocs.value
     }
   ]
 
@@ -261,8 +296,10 @@ onMounted(async () => {
         }"
       />
 
-      <!-- TODO: add aria label to page section ?? -->
-      <ConnectPageSection v-if="!blExempt">
+      <ConnectPageSection
+        v-if="!blExempt"
+        data-testid="bl-section-info"
+      >
         <UForm
           ref="blFormRef"
           :schema="propStore.blInfoSchema"
