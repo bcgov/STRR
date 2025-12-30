@@ -337,6 +337,7 @@ export default {
     proofOfTenancy: 'Proof of tenancy',
     proofOfFractionalOwnership: 'Proof of fractional ownership',
     proofOfPr: 'Proof of principal residence',
+    proofOfPrWithDocs: 'Proof of principal residence (2 supporting documents)',
     proofOfPrOwner: 'Proof of principal residence (1 proof of identity and 2 supporting documents)',
     proofOfPrTenant: 'Proof of principal residence (1 proof of identity, 1 supporting document)',
     proofOfPrFractionalOwner: 'Proof of principal residence (1 proof of identity per fractional owner, 2 proof of fractional ownership)',

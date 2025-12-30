@@ -93,6 +93,7 @@ export const mockApplication: HostApplicationResp = {
     },
     unitDetails: {
       hostResidence: ResidenceType.SAME_UNIT,
+      hostType: PropertyHostType.OWNER,
       isUnitOnPrincipalResidenceProperty: true,
       numberOfRoomsForRent: 2,
       ownershipType: OwnershipType.OWN,
