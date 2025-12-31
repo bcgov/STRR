@@ -150,7 +150,7 @@ class RegistrationService:
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
             # registration.strata_hotel_registration.delete()
             registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_request)
-        registration.registration_json = cls._enrich_registration_json(registration_request, registration)
+        registration.registration_json = cls._enrich_registration_json(registration_details, registration)
         registration.save()
         return registration
 
@@ -174,7 +174,7 @@ class RegistrationService:
             start_date=start_date,
             expiry_date=expiry_date,
             registration_type=registration_type,
-            registration_json=registration_request,
+            registration_json=registration_details,
         )
 
         documents = []
@@ -196,7 +196,7 @@ class RegistrationService:
         elif registration_type == RegistrationType.STRATA_HOTEL.value:
             registration.strata_hotel_registration = cls._create_strata_hotel_registration(registration_request)
 
-        registration.registration_json = cls._enrich_registration_json(registration_request, registration)
+        registration.registration_json = cls._enrich_registration_json(registration_details, registration)
         registration.save()
         return registration
 
@@ -204,6 +204,7 @@ class RegistrationService:
     def _enrich_registration_json(cls, registration_request: dict, registration: Registration) -> dict:
         """Enrich registration_json with additional searchable fields."""
         enriched = dict(registration_request) if registration_request else {}
+        enriched.pop("documents", None)
         if registration.rental_property and registration.rental_property.jurisdiction:
             enriched["jurisdiction"] = registration.rental_property.jurisdiction
         return enriched

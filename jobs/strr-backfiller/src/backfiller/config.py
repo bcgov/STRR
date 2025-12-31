@@ -92,6 +92,12 @@ class _Config:  # pylint: disable=too-few-public-methods
         os.getenv("AUTO_APPROVAL_APPLICATION_PROCESSING_DELAY") or "60"
     )
 
+    # BACKFILLER
+    BACKFILL_REGISTRATION_SEARCH = os.getenv("BACKFILL_REGISTRATION_SEARCH", "False").lower() == "true"
+    BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE = int(
+        os.getenv("BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE") or "100"
+    )
+
     # GEOCODER
     GEOCODER_SVC_URL = os.getenv("GEOCODER_API_URL", "")
     GEOCODER_SVC_AUTH_KEY = os.getenv("GEOCODER_API_AUTH_KEY", "")
