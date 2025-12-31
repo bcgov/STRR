@@ -278,7 +278,7 @@ describe('Rental Application - Step 1', () => {
     await flushPromises()
   })
 
-  it('renders the Step 1 and its components', async () => {
+  it('renders the Step 1 and its components', () => {
     expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(0)
 
     expect(wrapper.findComponent(FormDefineYourRentalUnitAddress).exists()).toBe(true)
