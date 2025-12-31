@@ -274,12 +274,11 @@ describe('Rental Application - Step 1', () => {
         plugins: [baseEnI18n]
       }
     })
+    // need to wait for promises to resolve after moundSuspended (after upgrading to nuxt/test-utils 3.21+)
+    await flushPromises()
   })
 
   it('renders the Step 1 and its components', async () => {
-    // wait for all promises to resolve (including the onMounted hook)
-    await flushPromises()
-    // make sure we are on step 1
     expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(0)
 
     expect(wrapper.findComponent(FormDefineYourRentalUnitAddress).exists()).toBe(true)
@@ -310,6 +309,8 @@ describe('Rental Application - Step 2', () => {
         plugins: [baseEnI18n]
       }
     })
+    // need to wait for promises to resolve after moundSuspended (after upgrading to nuxt/test-utils 3.21+)
+    await flushPromises()
   })
 
   it('renders the Step 2 and its components', async () => {
@@ -338,6 +339,8 @@ describe('Rental Application - Step 3', () => {
         plugins: [baseEnI18n]
       }
     })
+    // need to wait for promises to resolve after moundSuspended (after upgrading to nuxt/test-utils 3.21+)
+    await flushPromises()
   })
 
   it('renders the Step 3 and its components with standard document upload (single dropdown)', async () => {
