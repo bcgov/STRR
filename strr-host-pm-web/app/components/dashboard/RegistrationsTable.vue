@@ -109,36 +109,38 @@ const mapRegistrationsList = (registrations: any[]) => {
 }
 
 // Fetch Registrations
+const fetchRegistrations = async () => {
+  if (isSearching.value) {
+    const resp = await searchRegistrations<ApiRegistrationResp>(
+      searchText.value,
+      props.registrationsLimit,
+      registrationsPage.value,
+      undefined,
+      undefined,
+      ApplicationType.HOST
+    )
+    if (!resp) {
+      return { registrations: [], total: 0 }
+    }
+    return { registrations: resp.registrations || [], total: resp.total || 0 }
+  } else {
+    const resp = await getAccountRegistrations<ApiRegistrationResp>(
+      undefined,
+      ApplicationType.HOST,
+      props.registrationsLimit,
+      registrationsPage.value
+    )
+    // Handle both array and object response formats
+    if (Array.isArray(resp)) {
+      return { registrations: resp, total: resp.length }
+    }
+    return { registrations: resp?.registrations || [], total: resp?.total || 0 }
+  }
+}
+
 const { data: registrationsResp, status: registrationsStatus } = await useAsyncData(
   'host-registrations-list',
-  async () => {
-    if (isSearching.value) {
-      const resp = await searchRegistrations<ApiRegistrationResp>(
-        searchText.value,
-        props.registrationsLimit,
-        registrationsPage.value,
-        undefined,
-        undefined,
-        ApplicationType.HOST
-      )
-      if (!resp) {
-        return { registrations: [], total: 0 }
-      }
-      return { registrations: resp.registrations || [], total: resp.total || 0 }
-    } else {
-      const resp = await getAccountRegistrations<ApiRegistrationResp>(
-        undefined,
-        ApplicationType.HOST,
-        props.registrationsLimit,
-        registrationsPage.value
-      )
-      // Handle both array and object response formats
-      if (Array.isArray(resp)) {
-        return { registrations: resp, total: resp.length }
-      }
-      return { registrations: resp?.registrations || [], total: resp?.total || 0 }
-    }
-  },
+  useDebounceFn(fetchRegistrations, 500),
   {
     watch: [() => accountStore.currentAccount.id, registrationsPage, searchText],
     default: () => ({ registrations: [], total: 0 })

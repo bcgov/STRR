@@ -95,48 +95,50 @@ const mapApplicationsList = (applications: any[]) => {
 }
 
 // Fetch Applications
+const fetchApplications = async () => {
+  if (isSearching.value) {
+    const resp = await searchApplications<HostApplicationResp>(
+      searchText.value,
+      props.applicationsLimit,
+      applicationsPage.value,
+      allowedStatuses,
+      undefined,
+      undefined,
+      ApplicationType.HOST
+    )
+    if (!resp) {
+      return { applications: [], total: 0, filteredCount: 0 }
+    }
+    return {
+      applications: resp.applications,
+      total: resp.total,
+      filteredCount: resp.total
+    }
+  } else {
+    const resp = await getAccountApplications<HostApplicationResp>(
+      props.applicationsLimit,
+      applicationsPage.value,
+      ApplicationType.HOST,
+      allowedStatuses,
+      undefined,
+      undefined,
+      true, // includeDraftRegistration
+      false // includeDraftRenewal
+    )
+    if (!resp) {
+      return { applications: [], total: 0, filteredCount: 0 }
+    }
+    return {
+      applications: resp.applications,
+      total: resp.total,
+      filteredCount: resp.total
+    }
+  }
+}
+
 const { data: applicationsResp, status: applicationsStatus, refresh: refreshApplications } = await useAsyncData(
   'host-applications-list',
-  async () => {
-    if (isSearching.value) {
-      const resp = await searchApplications<HostApplicationResp>(
-        searchText.value,
-        props.applicationsLimit,
-        applicationsPage.value,
-        allowedStatuses,
-        undefined,
-        undefined,
-        ApplicationType.HOST
-      )
-      if (!resp) {
-        return { applications: [], total: 0, filteredCount: 0 }
-      }
-      return {
-        applications: resp.applications,
-        total: resp.total,
-        filteredCount: resp.total
-      }
-    } else {
-      const resp = await getAccountApplications<HostApplicationResp>(
-        props.applicationsLimit,
-        applicationsPage.value,
-        ApplicationType.HOST,
-        allowedStatuses,
-        undefined,
-        undefined,
-        true, // includeDraftRegistration
-        false // includeDraftRenewal
-      )
-      if (!resp) {
-        return { applications: [], total: 0, filteredCount: 0 }
-      }
-      return {
-        applications: resp.applications,
-        total: resp.total,
-        filteredCount: resp.total
-      }
-    }
-  },
+  useDebounceFn(fetchApplications, 500),
   {
     watch: [() => accountStore.currentAccount.id, applicationsPage, searchText],
     default: () => ({ applications: [], total: 0, filteredCount: 0 })
