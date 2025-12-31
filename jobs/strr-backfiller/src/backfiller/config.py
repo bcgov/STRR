@@ -93,7 +93,9 @@ class _Config:  # pylint: disable=too-few-public-methods
     )
 
     # BACKFILLER
-    BACKFILL_REGISTRATION_SEARCH = os.getenv("BACKFILL_REGISTRATION_SEARCH", "False").lower() == "true"
+    BACKFILL_REGISTRATION_SEARCH = (
+        os.getenv("BACKFILL_REGISTRATION_SEARCH", "False").lower() == "true"
+    )
     BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE = int(
         os.getenv("BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE") or "100"
     )

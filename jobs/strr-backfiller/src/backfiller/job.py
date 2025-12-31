@@ -173,6 +173,79 @@ def backfill_strata_hotel_category(app):
     )
 
 
+def _get_json_from_application(registration, app):
+    """Retrieve JSON from the latest application if registration_json is NULL."""
+    application = (
+        Application.query.filter_by(registration_id=registration.id)
+        .filter(Application.decision_date.isnot(None))
+        .order_by(Application.decision_date.desc())
+        .first()
+    )
+
+    if not application or not application.application_json:
+        app.logger.warning(
+            f"Registration {registration.id} has no registration_json and no approved application found, skipping"
+        )
+        return None
+
+    original_json = application.application_json.get("registration")
+    if not original_json:
+        app.logger.warning(
+            f"Registration {registration.id} application {application.application_number} "
+            f"has no 'registration' section in application_json, skipping"
+        )
+        return None
+
+    app.logger.info(
+        f"Registration {registration.id} has no registration_json, "
+        f"reconstructing from latest approved application {application.application_number} "
+        f"(status: {application.status}, decision_date: {application.decision_date})"
+    )
+    return original_json
+
+
+def _process_single_registration(registration, app, stats):
+    """Process a single registration for backfill."""
+    try:
+        stats["total_processed"] += 1
+
+        original_json = registration.registration_json
+        if original_json is None:
+            original_json = _get_json_from_application(registration, app)
+            if original_json is None:
+                stats["total_skipped"] += 1
+                return
+
+        enriched_json = RegistrationService._enrich_registration_json(
+            original_json, registration
+        )
+
+        if enriched_json != original_json:
+            registration.registration_json = enriched_json
+            registration.save()
+            stats["total_updated"] += 1
+            app.logger.info(
+                f"Updated registration {registration.id} (type: {registration.registration_type})"
+            )
+        else:
+            stats["total_skipped"] += 1
+
+    except Exception as err:  # pylint: disable=broad-except
+        stats["total_errors"] += 1
+        app.logger.error(f"Error processing registration {registration.id}: {str(err)}")
+
+
+def _log_progress(app, stats, total_count):
+    """Log progress."""
+    if stats["total_processed"] % 500 == 0:
+        app.logger.info(
+            f"Progress: {stats['total_processed']}/{total_count} "
+            f"(Updated: {stats['total_updated']}, "
+            f"Skipped: {stats['total_skipped']}, "
+            f"Errors: {stats['total_errors']})"
+        )
+
+
 def backfill_registration_search(app, batch_size=100):
     """Backfill registration_json for full text search."""
 
@@ -186,81 +259,28 @@ def backfill_registration_search(app, batch_size=100):
     try:
         query = Registration.query.order_by(Registration.id)
         total_count = query.count()
-        
-        app.logger.info(f"Starting registration search backfill for {total_count} registrations")
-        
+        app.logger.info(
+            f"Starting registration search backfill for {total_count} registrations"
+        )
+
         offset = 0
         while True:
             batch = query.limit(batch_size).offset(offset).all()
-            
             if not batch:
                 break
-                
-            app.logger.info(f"Processing batch at offset {offset} ({len(batch)} records)")
-            
+
+            app.logger.info(
+                f"Processing batch at offset {offset} ({len(batch)} records)"
+            )
             for registration in batch:
-                try:
-                    stats["total_processed"] += 1
-                    
-                    original_json = registration.registration_json
-                    
-                    if original_json is None:
-                        # Find the latest application that created or updated this registration
-                        application = (
-                            Application.query
-                            .filter_by(registration_id=registration.id)
-                            .filter(Application.decision_date.isnot(None))
-                            .order_by(Application.decision_date.desc())
-                            .first()
-                        )
-                        if application and application.application_json:
-                            original_json = application.application_json.get("registration")
-                            if not original_json:
-                                stats["total_skipped"] += 1
-                                continue
-                            app.logger.info(
-                                f"Registration {registration.id} has no registration_json, "
-                                f"reconstructing from latest approved application {application.application_number} "
-                                f"(status: {application.status}, decision_date: {application.decision_date})"
-                            )
-                        else:
-                            stats["total_skipped"] += 1
-                            continue
-                    
-                    enriched_json = RegistrationService._enrich_registration_json(
-                        original_json, registration
-                    )
-                    
-                    if enriched_json != original_json:
-                        registration.registration_json = enriched_json
-                        registration.save()
-                        stats["total_updated"] += 1
-                        app.logger.info(
-                            f"Updated registration {registration.id} "
-                            f"(type: {registration.registration_type})"
-                        )
-                    else:
-                        stats["total_skipped"] += 1
-                        
-                except Exception as err:  # pylint: disable=broad-except
-                    stats["total_errors"] += 1
-                    app.logger.error(
-                        f"Error processing registration {registration.id}: {str(err)}"
-                    )
-                    
+                _process_single_registration(registration, app, stats)
+
             offset += batch_size
-            
-            if stats["total_processed"] % 500 == 0:
-                app.logger.info(
-                    f"Progress: {stats['total_processed']}/{total_count} "
-                    f"(Updated: {stats['total_updated']}, "
-                    f"Skipped: {stats['total_skipped']}, "
-                    f"Errors: {stats['total_errors']})"
-                )
-                
+            _log_progress(app, stats, total_count)
+
     except Exception as err:  # pylint: disable=broad-except
         app.logger.error(f"Fatal error during registration search backfill: {str(err)}")
-        
+
     app.logger.info("--------------------------------------")
     app.logger.info("Registration search backfill completed!")
     app.logger.info(f"Total processed: {stats['total_processed']}")
@@ -275,12 +295,16 @@ def run():
         app = create_app()
         with app.app_context():
             app.logger.info("Starting backfiller job....")
-            
+
             if app.config.get("BACKFILL_REGISTRATION_SEARCH", False):
-                batch_size = app.config.get("BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE", 100)
-                app.logger.info(f"Running registration search backfiller with batch size {batch_size}")
+                batch_size = app.config.get(
+                    "BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE", 100
+                )
+                app.logger.info(
+                    f"Running registration search backfiller with batch size {batch_size}"
+                )
                 backfill_registration_search(app, batch_size=batch_size)
-            
+
             # backfill_jurisdiction(app)
             # backfill_strata_hotel_category(app)
     except Exception as err:  # pylint: disable=broad-except
