@@ -3,7 +3,7 @@ const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const permitStore = useHostPermitStore()
-const { getAccountRegistrations } = useStrrApi()
+const { getAccountRegistrations, searchRegistrations } = useStrrApi()
 const { isDashboardTableSortingEnabled } = useHostFeatureFlags()
 
 const props = withDefaults(defineProps<{
@@ -14,6 +14,10 @@ const props = withDefaults(defineProps<{
 
 // Pagination state
 const registrationsPage = ref(1)
+
+// Search state
+const searchText = ref('')
+const isSearching = computed(() => searchText.value.length >= 3)
 
 // Helper to create sortable column
 const createColumn = (key: string, label: string, sortable = true) => ({
@@ -108,20 +112,35 @@ const mapRegistrationsList = (registrations: any[]) => {
 const { data: registrationsResp, status: registrationsStatus } = await useAsyncData(
   'host-registrations-list',
   async () => {
-    const resp = await getAccountRegistrations<ApiRegistrationResp>(
-      undefined,
-      ApplicationType.HOST,
-      props.registrationsLimit,
-      registrationsPage.value
-    )
-    // Handle both array and object response formats
-    if (Array.isArray(resp)) {
-      return { registrations: resp, total: resp.length }
+    if (isSearching.value) {
+      const resp = await searchRegistrations<ApiRegistrationResp>(
+        searchText.value,
+        props.registrationsLimit,
+        registrationsPage.value,
+        undefined,
+        undefined,
+        ApplicationType.HOST
+      )
+      if (!resp) {
+        return { registrations: [], total: 0 }
+      }
+      return { registrations: resp.registrations || [], total: resp.total || 0 }
+    } else {
+      const resp = await getAccountRegistrations<ApiRegistrationResp>(
+        undefined,
+        ApplicationType.HOST,
+        props.registrationsLimit,
+        registrationsPage.value
+      )
+      // Handle both array and object response formats
+      if (Array.isArray(resp)) {
+        return { registrations: resp, total: resp.length }
+      }
+      return { registrations: resp?.registrations || [], total: resp?.total || 0 }
     }
-    return { registrations: resp?.registrations || [], total: resp?.total || 0 }
   },
   {
-    watch: [() => accountStore.currentAccount.id, registrationsPage],
+    watch: [() => accountStore.currentAccount.id, registrationsPage, searchText],
     default: () => ({ registrations: [], total: 0 })
   }
 )
@@ -138,20 +157,37 @@ async function handleRegistrationSelect (row: any) {
 <template>
   <ConnectPageSection>
     <template #header>
-      <div class="flex items-center justify-between">
-        <h2 class="font-normal">
+      <div class="flex flex-wrap items-center gap-3 md:flex-nowrap md:gap-24">
+        <h2 class="whitespace-nowrap font-normal">
           {{ $t('page.dashboardList.myShortTermRentals') }} ({{ registrationsResp?.total || 0 }})
         </h2>
-        <div class="flex gap-3">
-          <UPagination
-            v-if="(registrationsResp?.total || 0) > registrationsLimit"
-            v-model="registrationsPage"
-            :page-count="registrationsLimit"
-            size="lg"
-            :total="registrationsResp?.total || 0"
-            :ui="paginationUI"
-          />
-        </div>
+        <UInput
+          v-model="searchText"
+          icon="i-mdi-magnify"
+          :placeholder="$t('strr.label.search')"
+          :ui="{ icon: { trailing: { pointer: '' } } }"
+          class="ml-auto w-32 md:ml-0 md:w-64"
+        >
+          <template #trailing>
+            <UButton
+              v-show="searchText !== ''"
+              color="gray"
+              variant="link"
+              icon="i-mdi-close"
+              :padded="false"
+              @click="searchText = ''"
+            />
+          </template>
+        </UInput>
+        <UPagination
+          v-if="(registrationsResp?.total || 0) > registrationsLimit"
+          v-model="registrationsPage"
+          :page-count="registrationsLimit"
+          size="lg"
+          :total="registrationsResp?.total || 0"
+          :ui="paginationUI"
+          class="w-full md:ml-auto md:w-auto"
+        />
       </div>
     </template>
     <UTable

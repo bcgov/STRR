@@ -117,6 +117,56 @@ export const useStrrApi = () => {
       { method: 'PUT' })
   }
 
+  const searchApplications = async <T extends ApiApplicationBaseResp>(
+    searchText?: string,
+    limit = 50,
+    page = 1,
+    status?: ApplicationStatus | ApplicationStatus[],
+    recordNumber?: string,
+    registrationStatus?: string[],
+    registrationType?: ApplicationType | ApplicationType[],
+    sortBy?: ApplicationSortBy,
+    sortOrder?: ApplicationSortOrder
+  ) => {
+    return await $strrApi<{ applications: T[], total: number }>('/applications/user/search', {
+      query: {
+        text: searchText,
+        limit,
+        page,
+        status,
+        recordNumber,
+        registrationStatus,
+        registrationType,
+        sortBy,
+        sortOrder
+      }
+    })
+  }
+
+  const searchRegistrations = async <T extends ApiBaseRegistration>(
+    searchText?: string,
+    limit = 50,
+    page = 1,
+    status?: string[],
+    recordNumber?: string,
+    registrationType?: ApplicationType | ApplicationType[],
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
+  ) => {
+    return await $strrApi<{ registrations: T[], total: number }>('/registrations/user/search', {
+      query: {
+        text: searchText,
+        limit,
+        page,
+        status,
+        recordNumber,
+        registrationType,
+        sortBy,
+        sortOrder
+      }
+    })
+  }
+
   return {
     deleteApplication,
     getAccountRegistrations,
@@ -126,6 +176,8 @@ export const useStrrApi = () => {
     getRegistrationCert,
     getRegistrationToDos,
     postApplication,
-    updatePaymentDetails
+    updatePaymentDetails,
+    searchApplications,
+    searchRegistrations
   }
 }

@@ -3,7 +3,7 @@ const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
-const { deleteApplication, getAccountApplications } = useStrrApi()
+const { deleteApplication, getAccountApplications, searchApplications } = useStrrApi()
 const { isDashboardTableSortingEnabled } = useHostFeatureFlags()
 
 const props = withDefaults(defineProps<{
@@ -14,6 +14,10 @@ const props = withDefaults(defineProps<{
 
 // Pagination state
 const applicationsPage = ref(1)
+
+// Search state
+const searchText = ref('')
+const isSearching = computed(() => searchText.value.length >= 3)
 
 // Allowed statuses for applications in progress
 const allowedStatuses = [
@@ -94,27 +98,47 @@ const mapApplicationsList = (applications: any[]) => {
 const { data: applicationsResp, status: applicationsStatus, refresh: refreshApplications } = await useAsyncData(
   'host-applications-list',
   async () => {
-    const resp = await getAccountApplications<HostApplicationResp>(
-      props.applicationsLimit,
-      applicationsPage.value,
-      ApplicationType.HOST,
-      allowedStatuses,
-      undefined,
-      undefined,
-      true, // includeDraftRegistration
-      false // includeDraftRenewal
-    )
-    if (!resp) {
-      return { applications: [], total: 0, filteredCount: 0 }
-    }
-    return {
-      applications: resp.applications,
-      total: resp.total,
-      filteredCount: resp.total
+    if (isSearching.value) {
+      const resp = await searchApplications<HostApplicationResp>(
+        searchText.value,
+        props.applicationsLimit,
+        applicationsPage.value,
+        allowedStatuses,
+        undefined,
+        undefined,
+        ApplicationType.HOST
+      )
+      if (!resp) {
+        return { applications: [], total: 0, filteredCount: 0 }
+      }
+      return {
+        applications: resp.applications,
+        total: resp.total,
+        filteredCount: resp.total
+      }
+    } else {
+      const resp = await getAccountApplications<HostApplicationResp>(
+        props.applicationsLimit,
+        applicationsPage.value,
+        ApplicationType.HOST,
+        allowedStatuses,
+        undefined,
+        undefined,
+        true, // includeDraftRegistration
+        false // includeDraftRenewal
+      )
+      if (!resp) {
+        return { applications: [], total: 0, filteredCount: 0 }
+      }
+      return {
+        applications: resp.applications,
+        total: resp.total,
+        filteredCount: resp.total
+      }
     }
   },
   {
-    watch: [() => accountStore.currentAccount.id, applicationsPage],
+    watch: [() => accountStore.currentAccount.id, applicationsPage, searchText],
     default: () => ({ applications: [], total: 0, filteredCount: 0 })
   }
 )
@@ -153,22 +177,39 @@ async function handleApplicationSelect (row: any) {
 </script>
 
 <template>
-  <ConnectPageSection v-if="applicationsResp && applicationsResp.total > 0">
+  <ConnectPageSection v-if="applicationsResp && (applicationsResp.total > 0 || isSearching)">
     <template #header>
-      <div class="flex items-center justify-between">
-        <h2 class="font-normal">
+      <div class="flex flex-wrap items-center gap-3 md:flex-nowrap md:gap-24">
+        <h2 class="whitespace-nowrap font-normal">
           {{ $t('page.dashboardList.applicationsInProgress') }} ({{ totalFilteredApplications }})
         </h2>
-        <div class="flex gap-3">
-          <UPagination
-            v-if="totalFilteredApplications > applicationsLimit"
-            v-model="applicationsPage"
-            :page-count="applicationsLimit"
-            size="lg"
-            :total="totalFilteredApplications"
-            :ui="paginationUI"
-          />
-        </div>
+        <UInput
+          v-model="searchText"
+          icon="i-mdi-magnify"
+          :placeholder="$t('strr.label.search')"
+          :ui="{ icon: { trailing: { pointer: '' } } }"
+          class="ml-auto w-32 md:ml-0 md:w-64"
+        >
+          <template #trailing>
+            <UButton
+              v-show="searchText !== ''"
+              color="gray"
+              variant="link"
+              icon="i-mdi-close"
+              :padded="false"
+              @click="searchText = ''"
+            />
+          </template>
+        </UInput>
+        <UPagination
+          v-if="totalFilteredApplications > applicationsLimit"
+          v-model="applicationsPage"
+          :page-count="applicationsLimit"
+          size="lg"
+          :total="totalFilteredApplications"
+          :ui="paginationUI"
+          class="w-full md:ml-auto md:w-auto"
+        />
       </div>
     </template>
     <UTable

@@ -170,6 +170,7 @@ export default {
       nicknameOpt: 'Nickname (Optional)',
       parcelIdentifier: 'Parcel Identifier (Required if one exists)',
       parcelIdentifierOpt: 'Parcel Identifier (Optional)',
+      search: 'Search',
       strataRegNum: 'Enter your strata hotel platform registration number',
       strataPlatformRegistrationNumber: 'Strata Hotel Platform Registration Number',
       hostType: 'Property Host Type',
