@@ -216,7 +216,7 @@ def _process_single_registration(registration, app, stats):
                 stats["total_skipped"] += 1
                 return
 
-        enriched_json = RegistrationService._enrich_registration_json(
+        enriched_json = RegistrationService._enrich_registration_json(  # pylint: disable=protected-access
             original_json, registration
         )
 
@@ -301,7 +301,7 @@ def run():
                     "BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE", 100
                 )
                 app.logger.info(
-                    f"Running registration search backfiller with batch size {batch_size}"
+                    "Running registration search backfiller with batch size %s", batch_size
                 )
                 backfill_registration_search(app, batch_size=batch_size)
 
