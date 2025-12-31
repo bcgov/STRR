@@ -301,7 +301,8 @@ def run():
                     "BACKFILL_REGISTRATION_SEARCH_BATCH_SIZE", 100
                 )
                 app.logger.info(
-                    "Running registration search backfiller with batch size %s", batch_size
+                    "Running registration search backfiller with batch size %s",
+                    batch_size,
                 )
                 backfill_registration_search(app, batch_size=batch_size)
 
