@@ -18,4 +18,4 @@ jobs:
       app_name: "strr-base-web-ui"
       working_directory: "./strr-base-web"
       codecov_flag: "strrbasewebui"
-      node_version: 20
+      node_version: 22
