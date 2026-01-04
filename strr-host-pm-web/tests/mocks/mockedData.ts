@@ -93,6 +93,7 @@ export const mockApplication: HostApplicationResp = {
     },
     unitDetails: {
       hostResidence: ResidenceType.SAME_UNIT,
+      hostType: PropertyHostType.OWNER,
       isUnitOnPrincipalResidenceProperty: true,
       numberOfRoomsForRent: 2,
       ownershipType: OwnershipType.OWN,
@@ -199,3 +200,36 @@ export const mockHostRegistration: HostRegistrationResp = {
   updatedDate: DateTime.utc(2026, 2, 2).toLocal(),
   user_id: 123
 }
+
+export const mockStoredDocuments: UiDocument[] = [
+  {
+    id: 'doc-1',
+    name: 'drivers-license.pdf',
+    type: DocumentUploadType.BC_DRIVERS_LICENSE,
+    file: {} as File,
+    apiDoc: {
+      documentType: DocumentUploadType.BC_DRIVERS_LICENSE,
+      fileKey: 'key-1',
+      fileName: 'drivers-license.pdf',
+      fileType: 'application/pdf'
+    },
+    loading: false,
+    uploadStep: DocumentUploadStep.APPLICATION,
+    uploadDate: '2024-01-01'
+  },
+  {
+    id: 'doc-2',
+    name: 'property-tax.pdf',
+    type: DocumentUploadType.PROPERTY_TAX_NOTICE,
+    file: {} as File,
+    apiDoc: {
+      documentType: DocumentUploadType.PROPERTY_TAX_NOTICE,
+      fileKey: 'key-2',
+      fileName: 'property-tax.pdf',
+      fileType: 'application/pdf'
+    },
+    loading: false,
+    uploadStep: DocumentUploadStep.APPLICATION,
+    uploadDate: '2024-01-01'
+  }
+]

@@ -1,9 +1,8 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
-import { ref, nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import { baseEnI18n } from '../mocks/i18n'
-import { mockApplication } from '../mocks/mockedData'
+import { mockApplication, mockStoredDocuments } from '../mocks/mockedData'
 import Application from '~/pages/application.vue'
 import {
   ConnectStepper,
@@ -15,13 +14,20 @@ import {
   FormReview,
   FormUnitAddressAutoComplete,
   FormUnitAddressManual,
-  FormUnitAddressManual2
+  FormUnitAddressManual2,
+  ConnectHelpExpand,
+  ConnectChecklistValidated,
+  SummaryOwners
 } from '#components'
+import { PropertyHostType } from '~/enums/property-type'
+import { PrExemptionReason } from '~/enums/pr-exemption-reason'
+
+const unitDetails = ref(mockApplication.registration.unitDetails)
 
 vi.mock('@/stores/hostProperty', () => ({
   useHostPropertyStore: () => ({
     unitAddress: { address: mockApplication.registration.unitAddress },
-    unitDetails: ref(mockApplication.registration.unitDetails),
+    unitDetails,
     blInfo: ref({
       businessLicense: '',
       businessLicenseExpiryDate: ''
@@ -41,21 +47,32 @@ vi.mock('@/stores/hostProperty', () => ({
   })
 }))
 
+const propertyReqs = ref<PropertyRequirements>({
+  isBusinessLicenceRequired: false,
+  isPrincipalResidenceRequired: true,
+  isStrProhibited: false,
+  isStraaExempt: false,
+  organizationNm: ''
+})
+
+const prRequirements = ref<PrRequirements>({
+  isPropertyPrExempt: false,
+  prExemptionReason: undefined
+})
+
 vi.mock('@/stores/propertyRequirements', () => ({
   usePropertyReqStore: () => ({
     showUnitDetailsForm: ref(true),
-    prRequirements: ref({
-      isPropertyPrExempt: false,
-      prExemptionReason: undefined
-    }),
+    prRequirements,
     blRequirements: ref({
       isBusinessLicenceExempt: false,
       blExemptReason: undefined
     }),
-    propertyReqs: ref({}),
+    propertyReqs,
     loadingReqs: ref(false),
     hasReqs: false,
     hasReqError: false,
+    overrideApplicationWarning: ref(false),
     validateBlExemption: () => true,
     validatePrRequirements: () => true,
     getPropertyReqs: vi.fn(),
@@ -67,6 +84,14 @@ vi.mock('@/stores/hostOwner', () => ({
   useHostOwnerStore: () => ({
     validateOwners: () => true,
     hostOwners: ref([]),
+    activeOwner: ref(undefined),
+    activeOwnerEditIndex: ref(undefined),
+    hasHost: ref(false),
+    hasCoHost: ref(false),
+    hasCompParty: ref(false),
+    hasPropertyManager: ref(false),
+    isCraNumberOptional: ref(false),
+    addHostOwner: vi.fn(),
     $reset: vi.fn()
   })
 }))
@@ -74,13 +99,26 @@ vi.mock('@/stores/hostOwner', () => ({
 vi.mock('@/stores/document', () => ({
   useDocumentStore: () => ({
     validateRequiredDocuments: () => [],
-    storedDocuments: ref([]),
+    validateDocumentDropdowns: () => [],
+    storedDocuments: ref(mockStoredDocuments),
+    requiredDocs: ref([
+      { label: 'Test Doc 1', isValid: true },
+      { label: 'Test Doc 2', isValid: false }
+    ]),
+    potentialRequiredDocs: ref([]),
+    selectedDocType: ref(undefined),
     prDocs: [],
-    documentCategories: {
+    documentCategories: ref({
+      bcId: [],
+      uniqueColumnB: [],
+      nonUniqueColumnB: [],
+      rental: [],
       exemption: [],
-      rental: []
-    },
+      bl: []
+    }),
     removeDocumentsByType: vi.fn(),
+    addStoredDocument: vi.fn(),
+    removeStoredDocument: vi.fn(),
     $reset: vi.fn()
   })
 }))
@@ -116,12 +154,16 @@ vi.mock('@/composables/useStrrModals', () => ({
   })
 }))
 
+const isEnhancedDocumentUploadEnabled = ref(false)
+
 vi.mock('@/composables/useHostFeatureFlags', () => ({
   useHostFeatureFlags: () => ({
     isSaveDraftEnabled: ref(true),
     isNewRentalUnitSetupEnabled: ref(true),
     isNewAddressFormEnabled: ref(true),
-    isNewDashboardEnabled: ref(false)
+    isNewDashboardEnabled: ref(false),
+    isEnhancedDocumentUploadEnabled,
+    isNewPrDocumentsListEnabled: ref(true)
   })
 }))
 
@@ -223,7 +265,7 @@ describe('Application Page', () => {
   })
 })
 
-describe('Rental Application Page - Step 1', () => {
+describe('Rental Application - Step 1', () => {
   let wrapper: any
 
   beforeAll(async () => {
@@ -232,12 +274,11 @@ describe('Rental Application Page - Step 1', () => {
         plugins: [baseEnI18n]
       }
     })
+    // need to wait for promises to resolve after moundSuspended (after upgrading to nuxt/test-utils 3.21+)
+    await flushPromises()
   })
 
-  it('renders the Step 1 and its components', async () => {
-    // wait for all promises to resolve (including the onMounted hook)
-    await flushPromises()
-    // make sure we are on step 1
+  it('renders the Step 1 and its components', () => {
     expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(0)
 
     expect(wrapper.findComponent(FormDefineYourRentalUnitAddress).exists()).toBe(true)
@@ -256,5 +297,179 @@ describe('Rental Application Page - Step 1', () => {
     expect(rentalUnitDetails.find('[data-testid="property-type-select"]').exists()).toBe(true)
     expect(rentalUnitDetails.find('[data-testid="property-host-type"]').exists()).toBe(true)
     expect(rentalUnitDetails.find('[data-testid="unit-setup-option"]').exists()).toBe(true)
+  })
+})
+
+describe('Rental Application - Step 2', () => {
+  let wrapper: any
+
+  beforeAll(async () => {
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+    // need to wait for promises to resolve after moundSuspended (after upgrading to nuxt/test-utils 3.21+)
+    await flushPromises()
+  })
+
+  it('renders the Step 2 and its components', async () => {
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 1)
+    await nextTick()
+
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(1)
+
+    const formAddOwners = wrapper.findComponent(FormAddOwners)
+    expect(formAddOwners.exists()).toBe(true)
+    expect(formAddOwners.find('[data-testid="add-owner"]').exists()).toBe(true)
+    expect(formAddOwners.findComponent(ConnectHelpExpand).exists()).toBe(true)
+    expect(formAddOwners.findComponent(ConnectChecklistValidated).exists()).toBe(true)
+    expect(formAddOwners.find('[data-testid="add-person-owner-btn"]').exists()).toBe(true)
+    expect(formAddOwners.find('[data-testid="add-business-owner-btn"]').exists()).toBe(true)
+    expect(formAddOwners.findComponent(SummaryOwners).exists()).toBe(true)
+  })
+})
+
+describe('Rental Application - Step 3', () => {
+  let wrapper: any
+
+  beforeAll(async () => {
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+    // need to wait for promises to resolve after moundSuspended (after upgrading to nuxt/test-utils 3.21+)
+    await flushPromises()
+  })
+
+  it('renders the Step 3 and its components with standard document upload (single dropdown)', async () => {
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 2)
+    await nextTick()
+
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(2)
+
+    const formAddDocuments = wrapper.findComponent(FormAddDocuments)
+    expect(formAddDocuments.exists()).toBe(true)
+
+    expect(wrapper.find('[data-testid="h2"]').exists()).toBe(true)
+
+    expect(formAddDocuments.find('[data-testid="pr-docs-help-modal"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="standard-doc-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="document-upload-select"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="enhanced-doc-upload"]').exists()).toBe(false) // multi-dropdown is not visible
+    expect(formAddDocuments.find('[data-testid="bl-section-info"]').exists()).toBe(true)
+  })
+
+  it('renders the Step 3 with enhanced document upload feature enabled (multi-dropdowns)', async () => {
+    isEnhancedDocumentUploadEnabled.value = true
+
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+
+    await flushPromises()
+
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 2)
+    await nextTick()
+
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(2)
+
+    const formAddDocuments = wrapper.findComponent(FormAddDocuments)
+    expect(formAddDocuments.exists()).toBe(true)
+
+    expect(formAddDocuments.find('[data-testid="enhanced-doc-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="proof-of-identity-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="proof-of-pr-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="proof-of-tenancy-upload"]').exists()).toBe(false)
+    expect(formAddDocuments.find('[data-testid="proof-of-fractional-ownership-upload"]').exists()).toBe(false)
+    expect(formAddDocuments.find('[data-testid="business-licence-upload"]').exists()).toBe(false)
+    expect(formAddDocuments.find('[data-testid="strata-docs-upload"]').exists()).toBe(false)
+
+    // reset feature flag
+    isEnhancedDocumentUploadEnabled.value = false
+  })
+
+  it('renders the Step 3 with Business License and Proof of Tenancy dropdowns', async () => {
+    isEnhancedDocumentUploadEnabled.value = true
+
+    // set property requirements for this test
+    propertyReqs.value = {
+      ...propertyReqs.value,
+      isBusinessLicenceRequired: true,
+      isPrincipalResidenceRequired: true
+    }
+
+    // set pr requirements for this test
+    prRequirements.value = {
+      isPropertyPrExempt: false,
+      prExemptionReason: undefined
+    }
+
+    // set user details for this test
+    unitDetails.value = {
+      ...mockApplication.registration.unitDetails,
+      hostType: PropertyHostType.LONG_TERM_TENANT
+    } as ApiUnitDetails
+
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+
+    await flushPromises()
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 2)
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(2)
+
+    const formAddDocuments = wrapper.findComponent(FormAddDocuments)
+
+    expect(formAddDocuments.find('[data-testid="proof-of-identity-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="proof-of-pr-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="business-licence-upload"]').exists()).toBe(true)
+    expect(formAddDocuments.find('[data-testid="proof-of-tenancy-upload"]').exists()).toBe(true)
+
+    // TODO: fix the test to verify doc checklist has 4 items
+    // expect(formAddDocuments.find('[data-testid="required-docs-checklist"]').findAll('li').length).toBe(4)
+
+    // reset feature flag
+    isEnhancedDocumentUploadEnabled.value = false
+    // reset unit details to defaults
+    unitDetails.value = mockApplication.registration.unitDetails
+  })
+
+  it('renders the Step 3 with Proof of Fractional Ownership dropdown', async () => {
+    isEnhancedDocumentUploadEnabled.value = true
+
+    // reset property requirements to defaults
+    propertyReqs.value = {
+      ...propertyReqs.value,
+      isBusinessLicenceRequired: false,
+      isPrincipalResidenceRequired: true
+    }
+
+    // set pr requirements for this test
+    prRequirements.value = {
+      isPropertyPrExempt: true,
+      prExemptionReason: PrExemptionReason.FRACTIONAL_OWNERSHIP
+    }
+
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n]
+      }
+    })
+
+    await flushPromises()
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 2)
+    expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(2)
+
+    const formAddDocuments = wrapper.findComponent(FormAddDocuments)
+    expect(formAddDocuments.find('[data-testid="proof-of-fractional-ownership-upload"]').exists()).toBe(true)
+
+    // reset feature flag
+    isEnhancedDocumentUploadEnabled.value = false
   })
 })
