@@ -1,13 +1,21 @@
 <script setup lang="ts">
 import type { Form } from '#ui/types'
+import {
+  ProofOfIdentityDocuments, ProofOfTenancyDocuments, ProofOfPrincipalResidenceDocuments, BusinessLicenceDocuments,
+  ProofOfFractionalOwnershipDocuments, StrataDocuments
+} from '~/enums/document-upload-type'
 
+const { t } = useI18n()
 const config = useRuntimeConfig().public
 const reqStore = usePropertyReqStore()
 const docStore = useDocumentStore()
 const propStore = useHostPropertyStore()
 const strrModal = useStrrModals()
 const { openSupportingDocumentsHelpModal } = useHostPmModals()
-const { isNewPrDocumentsListEnabled } = useHostFeatureFlags()
+const { isNewPrDocumentsListEnabled, isEnhancedDocumentUploadEnabled } = useHostFeatureFlags()
+
+const { propertyReqs, prRequirements } = storeToRefs(reqStore)
+const { unitDetails } = storeToRefs(propStore)
 
 const props = defineProps<{
   docUploadStep: DocumentUploadStep,
@@ -33,6 +41,92 @@ watch(
   },
   { immediate: true, deep: true }
 )
+
+const showEnhancedDocumentUpload = computed(() =>
+  isEnhancedDocumentUploadEnabled.value && isNewPrDocumentsListEnabled.value
+)
+
+// display conditions for document upload types
+
+const isPrRequiredWithoutExemption = computed(() =>
+  propertyReqs.value.isPrincipalResidenceRequired &&
+  prRequirements.value.prExemptionReason === undefined
+)
+
+const showProofOfIdentity = computed(() => isPrRequiredWithoutExemption.value &&
+  unitDetails.value.hostType !== undefined)
+
+const showProofOfPr = computed(() =>
+  isPrRequiredWithoutExemption.value ||
+  prRequirements.value.prExemptionReason === PrExemptionReason.FARM_LAND
+)
+
+const showProofOfFractionalOwnership = computed(() =>
+  prRequirements.value.prExemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP
+)
+
+const showBusinessLicence = computed(() =>
+  propertyReqs.value.isBusinessLicenceRequired && !blExempt.value
+)
+
+const showProofOfTenancy = computed(() =>
+  unitDetails.value.hostType === PropertyHostType.LONG_TERM_TENANT &&
+  isPrRequiredWithoutExemption.value
+)
+
+const showStrataDocs = computed(() =>
+  prRequirements.value.prExemptionReason === PrExemptionReason.STRATA_HOTEL
+)
+
+// configurations for document upload dropdowns
+const documentUploadConfig = computed<DocumentUploadConfig[]>(() => {
+  const config: DocumentUploadConfig[] = [
+    {
+      testId: 'proof-of-identity-upload',
+      title: t('label.proofOfIdentity'),
+      fieldName: 'identityDocUpload',
+      uploadType: ProofOfIdentityDocuments,
+      isDisplayed: showProofOfIdentity.value
+    },
+    {
+      testId: 'proof-of-pr-upload',
+      title: t('label.proofOfPr'),
+      fieldName: 'prDocUpload',
+      uploadType: ProofOfPrincipalResidenceDocuments,
+      isDisplayed: showProofOfPr.value
+    },
+    {
+      testId: 'proof-of-fractional-ownership-upload',
+      title: t('label.proofOfFractionalOwnership'),
+      fieldName: 'fractionalOwnerDocUpload',
+      uploadType: ProofOfFractionalOwnershipDocuments,
+      isDisplayed: showProofOfFractionalOwnership.value
+    },
+    {
+      testId: 'business-licence-upload',
+      title: t('label.localGovBL'),
+      fieldName: 'blDocUpload',
+      uploadType: BusinessLicenceDocuments,
+      isDisplayed: showBusinessLicence.value
+    },
+    {
+      testId: 'proof-of-tenancy-upload',
+      title: t('label.proofOfTenancy'),
+      fieldName: 'tenancyDocUpload',
+      uploadType: ProofOfTenancyDocuments,
+      isDisplayed: showProofOfTenancy.value
+    },
+    {
+      testId: 'strata-docs-upload',
+      title: t('label.supportingStrataDocs'),
+      fieldName: 'strataDocUpload',
+      uploadType: StrataDocuments,
+      isDisplayed: showStrataDocs.value
+    }
+  ]
+
+  return config.filter(docConfig => docConfig.isDisplayed)
+})
 
 onMounted(async () => {
   // validate form if step marked as complete
@@ -112,10 +206,34 @@ onMounted(async () => {
           <UForm
             ref="docFormRef"
             :state="docStore.requiredDocs"
-            :validate="docStore.validateRequiredDocuments"
+            :validate="showEnhancedDocumentUpload
+              ? docStore.validateDocumentDropdowns
+              : docStore.validateRequiredDocuments
+            "
             :validate-on="['submit']"
+            class="pb-10"
           >
-            <div class="py-10">
+            <div
+              v-if="showEnhancedDocumentUpload"
+              data-testid="enhanced-doc-upload"
+            >
+              <DocumentUploadType
+                v-for="docConfig in documentUploadConfig"
+                :key="docConfig.fieldName"
+                :data-testid="docConfig.testId"
+                :title="docConfig.title"
+                :form-field-name="docConfig.fieldName"
+                :doc-upload-type="docConfig.uploadType"
+                :doc-upload-step="docUploadStep"
+                :has-error="isComplete && hasFormErrors(docFormRef, [docConfig.fieldName])"
+                class="pt-10"
+              />
+            </div>
+            <div
+              v-else
+              class="pt-10"
+              data-testid="standard-doc-upload"
+            >
               <ConnectFormSection
                 :title="$t('label.fileUpload')"
                 :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
@@ -128,6 +246,7 @@ onMounted(async () => {
                   >
                     <DocumentUploadSelect
                       id="supporting-documents"
+                      data-testid="document-upload-select"
                       :label="$t('label.chooseDocs')"
                       :is-invalid="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
                       :error="isComplete && hasFormErrors(docFormRef, ['documentUpload'])"
@@ -177,8 +296,10 @@ onMounted(async () => {
         }"
       />
 
-      <!-- TODO: add aria label to page section ?? -->
-      <ConnectPageSection v-if="!blExempt">
+      <ConnectPageSection
+        v-if="!blExempt"
+        data-testid="bl-section-info"
+      >
         <UForm
           ref="blFormRef"
           :schema="propStore.blInfoSchema"

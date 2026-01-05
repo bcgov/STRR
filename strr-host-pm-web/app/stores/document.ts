@@ -8,7 +8,7 @@ export const useDocumentStore = defineStore('host/document', () => {
   const strrModal = useStrrModals()
   const reqStore = usePropertyReqStore()
   const propStore = useHostPropertyStore()
-  const { isNewPrDocumentsListEnabled } = useHostFeatureFlags()
+  const { isNewPrDocumentsListEnabled, isEnhancedDocumentUploadEnabled } = useHostFeatureFlags()
 
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
@@ -36,40 +36,89 @@ export const useDocumentStore = defineStore('host/document', () => {
     const blExempt = reqStore.blRequirements.isBusinessLicenceExempt
     const docs = []
 
+    if (reqs.isPrincipalResidenceRequired && exemptionReason === undefined) {
+      const isIdValid = validateIdentityDocumentDropdown()
+
+      const isPrValid = isEnhancedDocumentUploadEnabled.value
+        ? validatePrincipalResidenceDropdown()
+        : validatePrincipalResidenceDocuments()
+
+      const hostType = propStore.unitDetails.hostType
+
+      if (isNewPrDocumentsListEnabled.value &&
+        (hostType === PropertyHostType.OWNER || hostType === PropertyHostType.FRIEND_RELATIVE)) {
+        if (isEnhancedDocumentUploadEnabled.value) {
+          docs.push({
+            isValid: isIdValid,
+            icon: isIdValid ? 'i-mdi-check' : 'i-mdi-close',
+            label: t('label.proofOfIdentity'),
+            formFieldName: 'identityDocUpload'
+          })
+          docs.push({
+            isValid: isPrValid,
+            icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+            label: t('label.proofOfPrWithDocs'),
+            formFieldName: 'prDocUpload'
+          })
+        } else {
+          docs.push({
+            isValid: isPrValid,
+            icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+            label: t('label.proofOfPrOwner'),
+            formFieldName: 'prDocUpload'
+          })
+        }
+      } else if (isNewPrDocumentsListEnabled.value && hostType === PropertyHostType.LONG_TERM_TENANT) {
+        if (isEnhancedDocumentUploadEnabled.value) {
+          docs.push({
+            isValid: isIdValid,
+            icon: isIdValid ? 'i-mdi-check' : 'i-mdi-close',
+            label: t('label.proofOfIdentity'),
+            formFieldName: 'identityDocUpload'
+          })
+          docs.push({
+            isValid: isPrValid,
+            icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+            label: t('label.proofOfPr'),
+            formFieldName: 'prDocUpload'
+          })
+        } else {
+          docs.push({
+            isValid: isPrValid,
+            icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+            label: t('label.proofOfPrTenant'),
+            formFieldName: 'tenancyDocUpload'
+          })
+        }
+      } else {
+        docs.push({
+          isValid: isPrValid,
+          icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
+          label: t('label.proofOfPr'),
+          formFieldName: 'prDocUpload'
+        })
+      }
+    }
+    if (exemptionReason === PrExemptionReason.FARM_LAND) {
+      const isPropAssessmentNoticeValid = apiDocuments.value.some(
+        item => item.documentType === DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE
+      )
+      docs.push({
+        isValid: isPropAssessmentNoticeValid,
+        icon: isPropAssessmentNoticeValid ? 'i-mdi-check' : 'i-mdi-close',
+        label: t('label.propertyAssessmentNotice'),
+        formFieldName: 'prDocUpload'
+      })
+    }
     if (reqs.isBusinessLicenceRequired && !blExempt) {
       const isBlValid = apiDocuments.value.some(
         item => item.documentType === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE)
       docs.push({
         isValid: isBlValid,
         icon: isBlValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.localGovShortTermRentalBL')
+        label: t('label.localGovShortTermRentalBL'),
+        formFieldName: 'blDocUpload'
       })
-    }
-    if (reqs.isPrincipalResidenceRequired && exemptionReason === undefined) {
-      const isPrValid = validatePrincipalResidenceDocuments()
-
-      const hostType = propStore.unitDetails.hostType
-
-      if (isNewPrDocumentsListEnabled.value &&
-        (hostType === PropertyHostType.OWNER || hostType === PropertyHostType.FRIEND_RELATIVE)) {
-        docs.push({
-          isValid: isPrValid,
-          icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
-          label: t('label.proofOfPrOwner')
-        })
-      } else if (isNewPrDocumentsListEnabled.value && hostType === PropertyHostType.LONG_TERM_TENANT) {
-        docs.push({
-          isValid: isPrValid,
-          icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
-          label: t('label.proofOfPrTenant')
-        })
-      } else {
-        docs.push({
-          isValid: isPrValid,
-          icon: isPrValid ? 'i-mdi-check' : 'i-mdi-close',
-          label: t('label.proofOfPr')
-        })
-      }
     }
     if (exemptionReason === PrExemptionReason.STRATA_HOTEL) {
       const isStrataValid = apiDocuments.value.some(
@@ -77,7 +126,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: isStrataValid,
         icon: isStrataValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.supportingStrataDocs')
+        label: t('label.supportingStrataDocs'),
+        formFieldName: 'strataDocUpload'
       })
     }
     if (exemptionReason === PrExemptionReason.FRACTIONAL_OWNERSHIP) {
@@ -90,22 +140,14 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: hasFractionalAgreement,
         icon: hasFractionalAgreement ? 'i-mdi-check' : 'i-mdi-close',
-        label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`)
+        label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
+        formFieldName: 'fractionalOwnerDocUpload'
       },
       {
         isValid: hasPropertyTitleWithFractional,
         icon: hasPropertyTitleWithFractional ? 'i-mdi-check' : 'i-mdi-close',
-        label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`)
-      })
-    }
-    if (exemptionReason === PrExemptionReason.FARM_LAND) {
-      const isPropAssessmentNoticeValid = apiDocuments.value.some(
-        item => item.documentType === DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE
-      )
-      docs.push({
-        isValid: isPropAssessmentNoticeValid,
-        icon: isPropAssessmentNoticeValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.propertyAssessmentNotice')
+        label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`),
+        formFieldName: 'fractionalOwnerDocUpload'
       })
     }
 
@@ -117,7 +159,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       docs.push({
         isValid: isRentValid,
         icon: isRentValid ? 'i-mdi-check' : 'i-mdi-close',
-        label: t('label.rentalAgreementOrNoticeOfIncrease')
+        label: t('label.rentalAgreementOrNoticeOfIncrease'),
+        formFieldName: 'tenancyDocUpload'
       })
     }
 
@@ -589,6 +632,29 @@ export const useDocumentStore = defineStore('host/document', () => {
     ...documentCategories.value.rental
   ]
 
+  function validateIdentityDocumentDropdown (): boolean {
+    return apiDocuments.value.some(doc => documentCategories.value.bcId.includes(doc.documentType))
+  }
+
+  function validatePrincipalResidenceDropdown (): boolean {
+    // get unique column b docs
+    const columnBFilteredUnique = uniqBy(
+      apiDocuments.value.filter(item => documentCategories.value.uniqueColumnB.includes(item.documentType)),
+      'documentType'
+    )
+
+    // get non-unique column b docs
+    const columnBFilteredNonUnique = apiDocuments.value.filter(item =>
+      documentCategories.value.nonUniqueColumnB.includes(item.documentType)
+    )
+
+    // const columnACount = bcIdDocCount
+    const columnBCount = columnBFilteredUnique.length + columnBFilteredNonUnique.length
+
+    // validate at least 1 of column a and 2 of column b
+    return columnBCount >= 2
+  }
+
   function validatePrincipalResidenceDocuments (): boolean {
     // get unique column b docs
     const columnBFilteredUnique = uniqBy(
@@ -628,6 +694,21 @@ export const useDocumentStore = defineStore('host/document', () => {
     }
   }
 
+  function validateDocumentDropdowns (): Array<{ path: string, message: string }> {
+    const invalidDocs = requiredDocs.value.filter(doc => !doc.isValid)
+
+    if (invalidDocs.length === 0) {
+      return []
+    }
+
+    const validationErrors = invalidDocs.map(doc => ({
+      path: doc.formFieldName || '',
+      message: t('validation.missingReqDocs')
+    }))
+
+    return validationErrors
+  }
+
   // use this to remove documents from store and from api
   async function resetApiDocs () {
     const docsToDelete = [...storedDocuments.value]
@@ -658,6 +739,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     addDocumentToRegistration,
     removeStoredDocument,
     validateRequiredDocuments,
+    validateDocumentDropdowns,
     resetApiDocs,
     removeDocumentsByType,
     $reset
