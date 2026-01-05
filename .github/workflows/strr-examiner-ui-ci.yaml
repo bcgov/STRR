@@ -18,5 +18,5 @@ jobs:
       app_name: "strr-examiner-ui"
       working_directory: "./strr-examiner-web"
       codecov_flag: "strrexaminerui"
-      node_version: 20
+      node_version: 22
       pnpm_version: 10.0.0
