@@ -278,6 +278,8 @@ const handleSubmit = async () => {
       if (isNewDashboardEnabled.value) {
         if (applicationType === 'renewal' && registrationId && registrationNumber) {
           permitStore.selectedRegistrationId = String(registrationId)
+          // Persist to sessionStorage to survive external payment redirect
+          sessionStorage.setItem('selectedRegistrationId', String(registrationId))
           redirectPath = `/dashboard/registration/${registrationNumber}`
         } else {
           redirectPath = `/dashboard/application/${filingId}`

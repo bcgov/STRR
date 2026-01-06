@@ -36,8 +36,17 @@ const submittedApplications = computed(() => {
 onMounted(async () => {
   loading.value = true
   // Use the registration ID stored before navigation (not the registration number in URL)
+  // If not in store, try sessionStorage (survives external payment redirect)
   if (!selectedRegistrationId.value) {
-    // If no ID in store redirect to dashboard
+    const storedId = sessionStorage.getItem('selectedRegistrationId')
+    if (storedId) {
+      selectedRegistrationId.value = storedId
+      sessionStorage.removeItem('selectedRegistrationId') // Clean up after use
+    }
+  }
+
+  if (!selectedRegistrationId.value) {
+    // If still no ID, redirect to dashboard
     await navigateTo(localePath('/dashboard-new'))
     return
   }
