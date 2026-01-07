@@ -182,6 +182,28 @@ const getAdjudicatorColumn = (header: ApiRegistrationHeader | ApplicationHeader)
   return header.assignee?.username || '-'
 }
 
+/**
+ * Get the display text for the registration status
+ * @param status - The registration status
+ * @returns The display text for the registration status
+ */
+const getRegistrationStatusDisplay = (status: RegistrationStatus | undefined): string => {
+  if (!status) {
+    return ''
+  }
+  return t(`registrationStatus.${status}`)
+}
+
+// get the icon for the registration status
+const getRegistrationStatusIcon = (status: RegistrationStatus | undefined): string => {
+  return status === RegistrationStatus.ACTIVE ? 'i-mdi-check-circle' : 'i-mdi-close-circle'
+}
+
+// get the icon color for the registration status
+const getRegistrationStatusIconColor = (status: RegistrationStatus | undefined): string => {
+  return status === RegistrationStatus.ACTIVE ? 'text-green-700' : 'text-red-600'
+}
+
 const getRequirementsColumn = (app: HousApplicationResponse) => {
   let result = ''
   let listingSize = ''
@@ -341,7 +363,8 @@ const { data: applicationListResp, status } = await useAsyncData(
         requirements: getRequirementsColumn(app),
         applicantName: getApplicantNameColumn(app),
         propertyAddress: getPropertyAddressColumn(app),
-        status: app.header.registrationStatus ? app.header.examinerStatus : app.header.hostStatus, // TODO: should this have registration status? maybe this should just return app.header.status?
+        status: app.header.registrationStatus ? app.header.examinerStatus : app.header.hostStatus,
+        registrationStatus: app.header.registrationStatus,
         submissionDate: app.header.applicationDateTime,
         lastModified: getLastStatusChangeColumn(app.header),
         adjudicator: getAdjudicatorColumn(app.header)
@@ -809,6 +832,26 @@ const tabLinks = computed(() => [
           <div class="flex flex-col">
             <span>{{ dateToStringPacific(row.lastModified) }}</span>
             <span>{{ dateToString(row.lastModified, 'a', true) }}</span>
+          </div>
+        </template>
+
+        <template #status-data="{ row }">
+          <div class="flex flex-col">
+            <span>{{ row.status }}</span>
+            <UButton
+              v-if="row.registrationStatus && row.registrationNumber"
+              :icon="getRegistrationStatusIcon(row.registrationStatus)"
+              variant="link"
+              :padded="false"
+              :ui="{
+                gap: { sm: 'gap-x-1' },
+                icon: { base: `${getRegistrationStatusIconColor(row.registrationStatus)} text-xs` }
+              }"
+              class="text-sm"
+              @click.stop="goToRegistration(row.registrationId)"
+            >
+              {{ getRegistrationStatusDisplay(row.registrationStatus) }}
+            </UButton>
           </div>
         </template>
       </UTable>

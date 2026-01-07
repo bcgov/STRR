@@ -572,6 +572,12 @@ export default {
     PLATFORM: 'Platform',
     STRATA_HOTEL: 'Strata Hotel'
   },
+  registrationStatus: {
+    ACTIVE: 'Registered',
+    EXPIRED: 'Expired',
+    SUSPENDED: 'Suspended',
+    CANCELLED: 'Cancelled'
+  },
   propertyType: {
     SECONDARY_SUITE: 'Secondary Suite',
     ACCESSORY_DWELLING: 'Accessory Dwelling',
