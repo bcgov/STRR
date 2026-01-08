@@ -150,6 +150,16 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     RegistrationStatus.EXPIRED
   ]
 
+  const applicationsOnlyStatuses = [
+    ApplicationStatus.FULL_REVIEW,
+    ApplicationStatus.PAID,
+    ApplicationStatus.ADDITIONAL_INFO_REQUESTED,
+    ApplicationStatus.NOC_PENDING,
+    ApplicationStatus.NOC_EXPIRED,
+    ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+    ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+  ]
+
   const tableFilters = reactive({
     searchText: '',
     registrationNumber: '',
@@ -160,6 +170,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     status: [], // show all statuses
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
+    localGov: '',
     adjudicator: ''
   })
 
@@ -236,6 +247,20 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         }
       })
     }
+  }
+
+  const fetchRegistrations = () => {
+    const { registrationStatuses } = processStatusFilters(tableFilters.status)
+
+    return $strrApi('/registrations', {
+      query: {
+        sort_desc: true, // without this endpoint fails
+        limit: tableLimit.value,
+        offset: tablePage.value,
+        registration_type: tableFilters.registrationType,
+        status: registrationStatuses
+      }
+    })
   }
 
   const getNextApplication = async <T extends ApiApplicationBaseResp>(): Promise<T | undefined> => {
@@ -590,6 +615,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     isEditingRentalUnit,
     rentalUnitAddressToEdit,
     hasUnsavedRentalUnitChanges,
+
+    applicationsOnlyStatuses,
+
     viewReceipt,
     approveApplication,
     provisionallyApproveApplication,
@@ -597,6 +625,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     sendNoticeOfConsideration,
     sendNoticeOfConsiderationForRegistration,
     fetchApplications,
+    fetchRegistrations,
     getNextApplication,
     getApplicationById,
     getDocument,

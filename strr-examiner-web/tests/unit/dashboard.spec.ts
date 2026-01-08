@@ -39,6 +39,12 @@ vi.stubGlobal('useAsyncData', () => ({
   }
 }))
 
+vi.mock('@/composables/useExaminerFeatureFlags', () => ({
+  useExaminerFeatureFlags: () => ({
+    isSplitDashboardTableEnabled: ref(true)
+  })
+}))
+
 describe('Examiner Dashboard Page', () => {
   let wrapper: any
 
@@ -93,7 +99,7 @@ describe('Examiner Dashboard Page', () => {
     expect(wrapper.findTestId('applications-table').exists()).toBe(true)
     expect(wrapper.findTestId('applications-pagination').exists()).toBe(mockApplications.length > 50)
 
-    const { applications } = wrapper.vm.applicationListResp
+    const { applications } = wrapper.vm.applicationOrRegistrationList
     expect(applications.length).toBe(mockApplications.length)
     expect(applications[0].applicantName).toEqual(
       displayContactFullName(mockApplications[0]?.registration.primaryContact)
@@ -109,7 +115,7 @@ describe('Examiner Dashboard Page', () => {
 
   it('renders the assignee column correctly', () => {
     expect(wrapper.findTestId('applications-table').exists()).toBe(true)
-    const { applications } = wrapper.vm.applicationListResp
+    const { applications } = wrapper.vm.applicationOrRegistrationList
     const appWithReviewer = applications.find(app =>
       app.adjudicator === mockHostApplicationWithReviewer.header.assignee?.username
     )
@@ -122,5 +128,32 @@ describe('Examiner Dashboard Page', () => {
     expect(appWithoutReviewer?.adjudicator).toBe('-')
     const applicationText = wrapper.findTestId('applications-table').text()
     expect(applicationText).toContain(mockHostApplicationWithReviewer.header.assignee?.username)
+  })
+
+  it('renders split dashboard with applications and registrations tabs', () => {
+    // make sure feature flag is enabled
+    expect(wrapper.vm.isSplitDashboardTableEnabled).toBe(true)
+
+    const tabs = wrapper.findTestId('application-and-registrations-tabs')
+    expect(tabs.exists()).toBe(true)
+
+    // verify the columns include the alternate labels for split dashboard
+    const columns = wrapper.vm.columns
+    const registrationNumberColumn = columns.find((col: any) => col.key === 'registrationNumber')
+    expect(registrationNumberColumn).toBeDefined()
+    expect(registrationNumberColumn.label).toBe('Application #') // this is when isApplicationTab is true
+
+    // Verify 'status' column appears before 'registrationType' (different order in split view)
+    const statusIndex = columns.findIndex((col: any) => col.key === 'status')
+    const regTypeIndex = columns.findIndex((col: any) => col.key === 'registrationType')
+    expect(statusIndex).toBeLessThan(regTypeIndex)
+
+    // verify 'localGov' column (only in split dashboard view)
+    const localGovColumn = columns.find((col: any) => col.key === 'localGov')
+    expect(localGovColumn).toBeDefined()
+
+    // verify 'submissionDate' column does not exist (not in split dashboard view)
+    const submissionDateColumn = columns.find((col: any) => col.key === 'submissionDate')
+    expect(submissionDateColumn).toBeUndefined()
   })
 })

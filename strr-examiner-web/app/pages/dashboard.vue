@@ -9,6 +9,8 @@ const { t } = useNuxtApp().$i18n
 // const { getAccountApplications } = useStrrApi() // leaving this for reference
 const exStore = useExaminerStore()
 const ldStore = useConnectLaunchdarklyStore()
+const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
+
 const enableTableFilters = computed<boolean>(() => {
   const flag = ldStore.getStoredFlag('enable-examiner-table-filters')
   return flag ?? false
@@ -80,6 +82,9 @@ const enableLastModifiedFilter = computed<boolean>(() => {
   return flag ?? false
 })
 
+// applications or registration tab in split dashboard view
+const isApplicationTab = ref(true)
+
 useHead({
   title: t('page.dashboardList.title')
 })
@@ -88,16 +93,6 @@ definePageMeta({
   layout: 'examiner',
   middleware: ['auth']
 })
-
-// leaving this for reference
-// const { data: applicationListResp, status } = await useAsyncData(
-//   'application-list-resp',
-//   getApplicationList,
-//   {
-//     watch: [limit, page],
-//     default: () => ({ applications: [], total: 0 })
-//   }
-// )
 
 const getHostPrRequirements = (hostApplication: ApiHostApplication): string => {
   const { isBusinessLicenceRequired, isPrincipalResidenceRequired, isStrProhibited } =
@@ -133,6 +128,17 @@ const getApplicantNameColumn = (app: HousApplicationResponse) => {
   }
 }
 
+const getApplicantNameColumnForRegistration = (reg: HousRegistrationResponse) => {
+  switch (reg.registrationType) {
+    case ApplicationType.PLATFORM:
+      return (reg as PlatformRegistrationResp).businessDetails?.legalName || '-'
+    case ApplicationType.STRATA_HOTEL:
+      return (reg as StrataHotelRegistrationResp).businessDetails?.legalName || '-'
+    default: // Host
+      return displayContactFullName((reg as HostRegistrationResp).primaryContact) || '-'
+  }
+}
+
 // Strata location has different interface than the ConnectFormAddressDisplay accepts
 const mapStrataAddress = (address: ApiAddress): ConnectAddress | string => {
   return !isEmpty(address)
@@ -150,13 +156,30 @@ const mapStrataAddress = (address: ApiAddress): ConnectAddress | string => {
 
 const getPropertyAddressColumn = (app: HousApplicationResponse) => {
   switch (app.registration.registrationType) {
-    case ApplicationType.HOST:
-      return app.header.registrationAddress || (app.registration as ApiHostApplication).unitAddress || '-'
+    case ApplicationType.PLATFORM:
+      return (app.registration as ApiBasePlatformApplication).businessDetails.mailingAddress || '-'
     case ApplicationType.STRATA_HOTEL:
       return mapStrataAddress((app.registration as ApiBaseStrataApplication).strataHotelDetails.location)
-    default: // platform
-      return (app.registration as ApiBasePlatformApplication).businessDetails.mailingAddress || '-'
+    default: // Host
+      return app.header.registrationAddress || (app.registration as ApiHostApplication).unitAddress || '-'
   }
+}
+
+const getPropertyAddressColumnForRegistration = (reg: HousRegistrationResponse) => {
+  switch (reg.registrationType) {
+    case ApplicationType.PLATFORM:
+      return (reg as PlatformRegistrationResp).businessDetails?.mailingAddress || '-'
+    case ApplicationType.STRATA_HOTEL: {
+      const location = (reg as StrataHotelRegistrationResp).strataHotelDetails?.location
+      return location ? mapStrataAddress(location) : '-'
+    }
+    default:
+      return reg.unitAddress || '-'
+  }
+}
+
+const getAssigneeColumnForRegistration = (header: ApiRegistrationHeader) => {
+  return header.assignee?.username || '-'
 }
 
 const getAdjudicatorColumn = (header: ApplicationHeader) => {
@@ -186,13 +209,118 @@ const getRequirementsColumn = (app: HousApplicationResponse) => {
   return result
 }
 
-// text currently matches anything, same as existing examiners app
-// cannot combine search and registration type at this point in time - so hacky if/else for the moment
-const { data: applicationListResp, status } = await useAsyncData(
-  'application-list-resp',
-  useDebounceFn(exStore.fetchApplications, 500),
+const getConditionsColumnForRegistration = (reg: HousRegistrationResponse) => {
+  let result = ''
+  let listingSize = ''
+  switch (reg.registrationType) {
+    case ApplicationType.HOST: {
+      const hostReg = reg as HostRegistrationResp
+      const requirements = []
+      if (hostReg.prRequired) {
+        requirements.push(t('page.dashboardList.requirements.host.pr'))
+      }
+      if (hostReg.blRequired) {
+        requirements.push(t('page.dashboardList.requirements.host.bl'))
+      }
+      if (hostReg.unitDetails?.prExemptReason) {
+        requirements.push(t(`page.dashboardList.requirements.host.${hostReg.unitDetails.prExemptReason}`))
+      }
+      if (hostReg.unitDetails?.strataHotelCategory) {
+        requirements.push(t(`strataHotelCategoryReview.${hostReg.unitDetails.strataHotelCategory}`))
+      }
+      result = requirements.length > 0 ? requirements.join(', ') : t('page.dashboardList.requirements.host.none')
+      break
+    }
+    case ApplicationType.STRATA_HOTEL:
+      result = '-'
+      break
+    default:
+      listingSize = (reg as PlatformRegistrationResp).platformDetails?.listingSize || ''
+      result = listingSize ? t(`page.dashboardList.requirements.platform.${listingSize}`) : '-'
+  }
+  if (result.startsWith('page.dashboardList.requirements.platform.') ||
+    result.startsWith('page.dashboardList.requirements.host.')) {
+    result = t('page.dashboardList.requirements.invalid')
+  }
+  return result
+}
+
+// Set status to applications only when on applications tab
+watch(
+  () => [isApplicationTab.value, isSplitDashboardTableEnabled.value],
+  ([isApp, isEnabled]) => {
+    if (!isEnabled) {
+      exStore.resetFilters()
+      return
+    }
+    if (isApp) {
+      exStore.tableFilters.status = exStore.applicationsOnlyStatuses
+    }
+  },
+  { immediate: true }
+)
+
+// Reset selected columns to default when switching tabs
+watch(
+  () => isApplicationTab.value,
+  () => {
+    selectedColumns.value = [...columns.value]
+  }
+)
+
+const { data: registrationListResp, status: regStatus } = await useAsyncData(
+  'registration-list-resp',
+  () => {
+    // only fetch when on registrations tab
+    if (isApplicationTab.value) {
+      return Promise.resolve({ applications: [], total: 0, limit: 0, page: 0 })
+    }
+    return exStore.fetchRegistrations()
+  },
   {
     watch: [
+      () => isApplicationTab.value,
+      () => exStore.tablePage,
+      () => exStore.tableLimit,
+      () => exStore.tableFilters.registrationType,
+      () => exStore.tableFilters.status
+    ],
+    default: () => ({ registrations: [], total: 0 }),
+    transform: (res: ApiRegistrationListResp) => {
+      if (res.registrations.length === 0) {
+        return { registrations: [], total: 0 }
+      }
+      const registrations = res.registrations.map((reg: HousRegistrationResponse) => ({
+        registrationNumber: reg.registrationNumber,
+        status: reg.status,
+        registrationType: t(`registrationType.${reg.registrationType}`),
+        requirements: getConditionsColumnForRegistration(reg),
+        applicantName: getApplicantNameColumnForRegistration(reg),
+        propertyAddress: getPropertyAddressColumnForRegistration(reg),
+        localGov: '', // TODO: implement this once API has made the changes
+        adjudicator: getAssigneeColumnForRegistration(reg.header)
+      }))
+
+      return { registrations, total: res.total }
+    }
+  }
+)
+
+// text currently matches anything, same as existing examiners app
+// cannot combine search and registration type at this point in time - so hacky if/else for the moment
+
+const { data: applicationListResp, status } = await useAsyncData(
+  'application-list-resp',
+  useDebounceFn(() => {
+    // only fetch when on applications tab
+    if (!isApplicationTab.value) {
+      return Promise.resolve({ applications: [], total: 0, limit: 0, page: 0 })
+    }
+    return exStore.fetchApplications()
+  }, 500),
+  {
+    watch: [
+      () => isApplicationTab.value,
       () => exStore.tableLimit,
       () => exStore.tablePage,
       () => exStore.tableFilters.registrationType,
@@ -228,6 +356,13 @@ const { data: applicationListResp, status } = await useAsyncData(
   }
 )
 
+const applicationOrRegistrationList = computed(() => {
+  if (!isSplitDashboardTableEnabled.value) {
+    return applicationListResp.value
+  }
+  return isApplicationTab.value ? applicationListResp.value : registrationListResp.value
+})
+
 // reset page when filters change
 watch(
   () => exStore.tableFilters,
@@ -239,29 +374,36 @@ watch(
 
 // TODO: set to constant instead of computed when table filters are done
 const columns = computed(() => {
-  if (enableTableFilters.value) {
+  const sortable = enableTableFilters.value
+
+  if (isSplitDashboardTableEnabled.value) {
     return [
-      { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable: true },
-      { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable: true },
-      { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable: true },
-      { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable: true },
-      { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: true },
-      { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: true },
-      { key: 'status', label: t('page.dashboardList.columns.status'), sortable: true },
-      { key: 'lastModified', label: 'Last Modified', sortable: true },
-      { key: 'adjudicator', label: t('page.dashboardList.columns.adjudicator'), sortable: true }
+      {
+        key: 'registrationNumber',
+        label: t(isApplicationTab.value
+          ? 'page.dashboardList.columns.applicationNumberAlt'
+          : 'page.dashboardList.columns.registrationNumberAlt'),
+        sortable
+      },
+      { key: 'status', label: t('page.dashboardList.columns.status'), sortable },
+      { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable },
+      { key: 'requirements', label: t('page.dashboardList.columns.conditions'), sortable },
+      { key: 'applicantName', label: t('page.dashboardList.columns.hostName'), sortable },
+      { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable },
+      { key: 'localGov', label: 'Local Government', sortable },
+      { key: 'adjudicator', label: t('page.dashboardList.columns.adjudicator'), sortable }
     ]
   } else {
     return [
-      { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable: false },
-      { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable: false },
-      { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable: false },
-      { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable: false },
-      { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable: false },
-      { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable: false },
-      { key: 'status', label: t('page.dashboardList.columns.status'), sortable: false },
-      { key: 'lastModified', label: 'Last Modified', sortable: false },
-      { key: 'adjudicator', label: t('page.dashboardList.columns.adjudicator'), sortable: false }
+      { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable },
+      { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable },
+      { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable },
+      { key: 'applicantName', label: t('page.dashboardList.columns.applicantName'), sortable },
+      { key: 'propertyAddress', label: t('page.dashboardList.columns.propertyAddress'), sortable },
+      { key: 'submissionDate', label: t('page.dashboardList.columns.submissionDate'), sortable },
+      { key: 'status', label: t('page.dashboardList.columns.status'), sortable },
+      { key: 'lastModified', label: 'Last Modified', sortable },
+      { key: 'adjudicator', label: t('page.dashboardList.columns.adjudicator'), sortable }
     ]
   }
 })
@@ -295,6 +437,23 @@ function handleColumnSort (column: string) {
         : 'desc'
   }
 }
+
+const tabLinks = computed(() => [
+  {
+    label: t('label.newApplicationsTab'),
+    click: () => { isApplicationTab.value = true },
+    active: isApplicationTab.value
+  },
+  {
+    label: t('label.registrationsAndRenewalsTab'),
+    click: () => {
+      exStore.resetFilters()
+      isApplicationTab.value = false
+    },
+    active: !isApplicationTab.value
+  }
+])
+
 </script>
 <template>
   <div
@@ -303,16 +462,29 @@ function handleColumnSort (column: string) {
     data-testid="examiner-dashboard-page"
   >
     <h1>{{ $t('label.search') }}</h1>
+
+    <UHorizontalNavigation
+      v-if="isSplitDashboardTableEnabled"
+      :links="tabLinks"
+      :ui="{
+        wrapper: 'w-min',
+        active: 'font-semibold',
+        inactive: 'hover:text',
+        base: 'rounded focus-visible:ring-white hover:before:bg-transparent py-4 px-8'
+      }"
+      data-testid="application-and-registrations-tabs"
+    />
+
     <ConnectPageSection
-      :aria-label="$t('label.applicationListSectionAria', { count: applicationListResp?.total || 0 })"
+      :aria-label="$t('label.applicationListSectionAria', { count: applicationOrRegistrationList?.total || 0 })"
     >
       <template #header>
         <div class="flex flex-wrap items-center justify-between gap-3 text-gray-900">
           <div class="flex flex-wrap items-center gap-3">
             <UInput
               v-model="exStore.tableFilters.searchText"
-              :placeholder="$t('label.findInApplication')"
-              :aria-label="$t('label.findInApplication')"
+              :placeholder="$t(`label.${isApplicationTab ? 'findInApplication' : 'findInRegistration'}`)"
+              :aria-label="$t(`label.${isApplicationTab ? 'findInApplication' : 'findInRegistration'}`)"
               color="white"
               size="sm"
               trailing
@@ -331,7 +503,7 @@ function handleColumnSort (column: string) {
             <ConnectI18nHelper
               class="text-sm"
               translation-path="label.resultsInTable"
-              :count="applicationListResp?.total || 0"
+              :count="applicationOrRegistrationList?.total || 0"
             />
             <UButton
               :label="$t('label.clearAllFilters')"
@@ -344,11 +516,11 @@ function handleColumnSort (column: string) {
           </div>
           <div class="flex flex-wrap items-center gap-3 text-gray-900">
             <UPagination
-              v-if="applicationListResp.total > exStore.tableLimit"
+              v-if="applicationOrRegistrationList.total > exStore.tableLimit"
               v-model="exStore.tablePage"
               :page-count="exStore.tableLimit"
               size="lg"
-              :total="applicationListResp?.total || 0"
+              :total="applicationOrRegistrationList?.total || 0"
               :ui="{
                 base: 'h-10',
                 default: {
@@ -372,7 +544,6 @@ function handleColumnSort (column: string) {
                 ]"
               >
                 <template #default="{ open }">
-                  <!-- TODO: aria labels? -->
                   <UButton
                     variant="select_menu_trigger"
                     class="h-10 flex-1 justify-between bg-white"
@@ -416,8 +587,8 @@ function handleColumnSort (column: string) {
         ref="tableRef"
         v-model:sort="sort"
         :columns="columnsTable"
-        :rows="applicationListResp.applications"
-        :loading="status === 'pending'"
+        :rows="isApplicationTab ? applicationListResp.applications : registrationListResp.registrations"
+        :loading="isApplicationTab ? status === 'pending' : regStatus === 'pending'"
         sort-mode="manual"
         :empty-state="{
           icon: '',
@@ -568,6 +739,15 @@ function handleColumnSort (column: string) {
           />
         </template>
 
+        <template v-if="enableTableFilters" #localGov-header="{ column }">
+          <TableHeaderInput
+            v-model="exStore.tableFilters.localGov"
+            :column
+            :sort
+            @sort="handleColumnSort(column.key)"
+          />
+        </template>
+
         <template v-if="enableTableFilters" #adjudicator-header="{ column }">
           <TableHeaderInput
             v-model="exStore.tableFilters.adjudicator"
@@ -577,22 +757,42 @@ function handleColumnSort (column: string) {
           />
         </template>
 
-        <!-- row slots -->
         <template #registrationNumber-data="{ row }">
-          <div>
-            {{ row.applicationNumber }}
-          </div>
-          <UButton
-            v-if="row.registrationNumber"
-            icon="i-mdi-check-circle"
-            variant="link"
-            :padded="false"
-            :ui="{ gap: { sm: 'gap-x-1' }, icon: { base: 'text-green-700 text-xs' } }"
-            class="text-sm"
-            @click="goToRegistration(row.registrationId)"
+          <div
+            v-if="isSplitDashboardTableEnabled"
           >
-            {{ row.registrationNumber }}
-          </UButton>
+            <div v-if="isApplicationTab">
+              {{ row.applicationNumber }}
+            </div>
+            <div v-else>
+              {{ row.registrationNumber }}
+            </div>
+            <UButton
+              v-if="row.registrationNumber && isApplicationTab"
+              icon="i-mdi-check-circle"
+              variant="link"
+              :padded="false"
+              :ui="{ gap: { sm: 'gap-x-1' }, icon: { base: 'text-green-700 text-xs' } }"
+              class="text-sm"
+              @click="goToRegistration(row.registrationId)"
+            >
+              {{ row.registrationNumber }}
+            </UButton>
+          </div>
+          <div v-else>
+            {{ row.applicationNumber }}
+            <UButton
+              v-if="row.registrationNumber"
+              icon="i-mdi-check-circle"
+              variant="link"
+              :padded="false"
+              :ui="{ gap: { sm: 'gap-x-1' }, icon: { base: 'text-green-700 text-xs' } }"
+              class="text-sm"
+              @click="goToRegistration(row.registrationId)"
+            >
+              {{ row.registrationNumber }}
+            </UButton>
+          </div>
         </template>
 
         <template #propertyAddress-data="{ row }">
