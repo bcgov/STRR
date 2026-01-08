@@ -156,12 +156,12 @@ const mapStrataAddress = (address: ApiAddress): ConnectAddress | string => {
 
 const getPropertyAddressColumn = (app: HousApplicationResponse) => {
   switch (app.registration.registrationType) {
-    case ApplicationType.PLATFORM:
-      return (app.registration as ApiBasePlatformApplication).businessDetails.mailingAddress || '-'
+    case ApplicationType.HOST:
+      return app.header.registrationAddress || (app.registration as ApiHostApplication).unitAddress || '-'
     case ApplicationType.STRATA_HOTEL:
       return mapStrataAddress((app.registration as ApiBaseStrataApplication).strataHotelDetails.location)
-    default: // Host
-      return app.header.registrationAddress || (app.registration as ApiHostApplication).unitAddress || '-'
+    default: // platform
+      return (app.registration as ApiBasePlatformApplication).businessDetails.mailingAddress || '-'
   }
 }
 
@@ -178,11 +178,7 @@ const getPropertyAddressColumnForRegistration = (reg: HousRegistrationResponse) 
   }
 }
 
-const getAssigneeColumnForRegistration = (header: ApiRegistrationHeader) => {
-  return header.assignee?.username || '-'
-}
-
-const getAdjudicatorColumn = (header: ApplicationHeader) => {
+const getAdjudicatorColumn = (header: ApiRegistrationHeader | ApplicationHeader) => {
   return header.assignee?.username || '-'
 }
 
@@ -298,7 +294,7 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
         applicantName: getApplicantNameColumnForRegistration(reg),
         propertyAddress: getPropertyAddressColumnForRegistration(reg),
         localGov: '', // TODO: implement this once API has made the changes
-        adjudicator: getAssigneeColumnForRegistration(reg.header)
+        adjudicator: getAdjudicatorColumn(reg.header)
       }))
 
       return { registrations, total: res.total }
