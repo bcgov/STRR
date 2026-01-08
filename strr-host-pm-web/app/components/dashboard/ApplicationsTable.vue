@@ -4,7 +4,7 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
 const { deleteApplication, getAccountApplications, searchApplications } = useStrrApi()
-const { isDashboardTableSortingEnabled } = useHostFeatureFlags()
+const { isDashboardTableSortingEnabled, isHostSearchTextFieldsEnabled } = useHostFeatureFlags()
 
 const props = withDefaults(defineProps<{
   applicationsLimit?: number
@@ -186,6 +186,7 @@ async function handleApplicationSelect (row: any) {
           {{ $t('page.dashboardList.applicationsInProgress') }} ({{ totalFilteredApplications }})
         </h2>
         <UInput
+          v-if="isHostSearchTextFieldsEnabled"
           v-model="searchText"
           icon="i-mdi-magnify"
           :placeholder="$t('strr.label.search')"
