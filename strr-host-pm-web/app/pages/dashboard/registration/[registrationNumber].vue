@@ -17,6 +17,7 @@ const {
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
 const { owners, setupBreadcrumbs, setupOwners } = useDashboardPage()
+const { updatePaymentDetails } = useStrrApi()
 
 const {
   todos,
@@ -35,9 +36,31 @@ const submittedApplications = computed(() => {
 
 onMounted(async () => {
   loading.value = true
+
   // Use the registration ID stored before navigation (not the registration number in URL)
+  // If not in store, try sessionStorage (survives external payment redirect)
+  let returningFromPayment = false
   if (!selectedRegistrationId.value) {
-    // If no ID in store redirect to dashboard
+    const storedId = sessionStorage.getItem('selectedRegistrationId')
+    if (storedId) {
+      selectedRegistrationId.value = storedId
+      returningFromPayment = true
+      sessionStorage.removeItem('selectedRegistrationId') // Clean up after use
+    }
+  }
+
+  // If returning from payment, sync payment status before loading data
+  // This prevents the "retry payment" todo from briefly showing due to race condition
+  if (returningFromPayment) {
+    const renewalAppNumber = sessionStorage.getItem('renewalApplicationNumber')
+    if (renewalAppNumber) {
+      await updatePaymentDetails(renewalAppNumber)
+      sessionStorage.removeItem('renewalApplicationNumber')
+    }
+  }
+
+  if (!selectedRegistrationId.value) {
+    // If still no ID, redirect to dashboard
     await navigateTo(localePath('/dashboard-new'))
     return
   }
