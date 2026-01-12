@@ -2,10 +2,6 @@
 
 ---
 
-[[strr-important-deadlines.md]]
-
----
-
 [[strr-tac.md]]
 
 ---
