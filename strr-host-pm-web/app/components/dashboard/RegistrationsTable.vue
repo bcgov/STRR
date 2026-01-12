@@ -4,7 +4,7 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const permitStore = useHostPermitStore()
 const { getAccountRegistrations, searchRegistrations } = useStrrApi()
-const { isDashboardTableSortingEnabled } = useHostFeatureFlags()
+const { isDashboardTableSortingEnabled, isHostSearchTextFieldsEnabled } = useHostFeatureFlags()
 
 const props = withDefaults(defineProps<{
   registrationsLimit?: number
@@ -164,6 +164,7 @@ async function handleRegistrationSelect (row: any) {
           {{ $t('page.dashboardList.myShortTermRentals') }} ({{ registrationsResp?.total || 0 }})
         </h2>
         <UInput
+          v-if="isHostSearchTextFieldsEnabled"
           v-model="searchText"
           icon="i-mdi-magnify"
           :placeholder="$t('strr.label.search')"

@@ -10,6 +10,7 @@ export const useHostFeatureFlags = () => {
     isDashboardTableSortingEnabled: isFeatureEnabled('enable-host-dashboard-table-sorting'),
     isNewDashboardEnabled: isFeatureEnabled('enable-new-host-dashboard'),
     isBusinessLicenseDocumentUploadEnabled: isFeatureEnabled('enable-business-license-document-upload'),
-    isEnhancedDocumentUploadEnabled: isFeatureEnabled('enable-host-enhanced-document-upload')
+    isEnhancedDocumentUploadEnabled: isFeatureEnabled('enable-host-enhanced-document-upload'),
+    isHostSearchTextFieldsEnabled: isFeatureEnabled('enable-host-search-text-fields')
   }
 }
