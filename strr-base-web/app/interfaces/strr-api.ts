@@ -73,6 +73,8 @@ export interface ApiExtraRegistrationDetails {
   jurisdiction?: string
   blRequired?: boolean
   prRequired?: boolean
+  snapshots?: ApiSnapshot[]
+  provisionalExtensionApplied?: boolean
 }
 
 export interface ApplicationHeader {

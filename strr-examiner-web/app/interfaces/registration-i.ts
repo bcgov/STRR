@@ -2,7 +2,8 @@ interface ApiApplicationEntry {
   applicationNumber: string
   applicationDateTime: string
   organizationName?: string
-  status: ApplicationStatus
+  applicationStatus: ApplicationStatus
+  applicationType?: string
   assignee?: {
     username: string
     displayName: string
@@ -13,7 +14,7 @@ interface ApiApplicationEntry {
   }
 }
 
-interface ApiRegistrationHeader {
+export interface ApiRegistrationHeader {
   hostStatus: string
   hostActions: string[]
   examinerStatus: string
@@ -27,6 +28,14 @@ interface ApiRegistrationHeader {
     username: string
     displayName: string
   }
+  isSetAside: boolean | null
+}
+
+export interface ApiRegistrationListResp {
+  registrations: HousRegistrationResponse[]
+  limit: number
+  page: number
+  total: number
 }
 
 export interface HostRegistrationResp extends ApiExtraRegistrationDetails {
@@ -39,7 +48,6 @@ export interface HostRegistrationResp extends ApiExtraRegistrationDetails {
   listingDetails?: { url: string }[]
   propertyManager?: ApiPropertyManager
   documents?: ApiDocument[]
-  id: number
 }
 
 export interface StrataHotelRegistrationResp extends ApiExtraRegistrationDetails {
@@ -49,7 +57,6 @@ export interface StrataHotelRegistrationResp extends ApiExtraRegistrationDetails
   strataHotelRepresentatives?: ApiRep[]
   strataHotelDetails?: ApiStrataDetails
   documents?: ApiDocument[]
-  id: number
 }
 
 export interface PlatformRegistrationResp extends ApiExtraRegistrationDetails {
@@ -59,5 +66,11 @@ export interface PlatformRegistrationResp extends ApiExtraRegistrationDetails {
   platformRepresentatives?: ApiRep[]
   platformDetails?: ApiPlatformDetails
   documents?: ApiDocument[]
+}
+
+export interface ApiSnapshot {
   id: number
+  snapshotDateTime: string
+  snapshotEndpoint: string
+  version: number
 }

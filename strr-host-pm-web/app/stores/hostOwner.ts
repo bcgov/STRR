@@ -4,6 +4,7 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
   // TODO: pull common pieces of this and useStrrContactStore into base composable
   const { t } = useNuxtApp().$i18n
   const { getNewContact } = useStrrContactStore()
+  const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
 
   const getHostOwnerSchema = (type: OwnerType, role?: OwnerRole) => {
     return z.object({
@@ -32,7 +33,8 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
       dateOfBirth: type === OwnerType.INDIVIDUAL && role === OwnerRole.HOST
         ? getRequiredNonEmptyString(t('validation.dateOfBirth'))
         : optionalOrEmptyString,
-      taxNumber: (type === OwnerType.INDIVIDUAL && role === OwnerRole.HOST) && !isCraNumberOptional.value
+      taxNumber: (type === OwnerType.INDIVIDUAL && role === OwnerRole.HOST) && !isCraNumberOptional.value &&
+        !isRegistrationRenewal.value // taxNumber is non-editable in renewals, so need to make validation optional in case it's empty
         ? getRequiredSin(t('validation.sin'))
         : optionalOrEmptyString
     })
