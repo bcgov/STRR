@@ -7,10 +7,6 @@ Your application to register the short-term rental described below is **_provisi
 
 ---
 
-[[strr-important-deadlines.md]]
-
----
-
 [[strr-provisional-approval-info.md]]
 
 ---
