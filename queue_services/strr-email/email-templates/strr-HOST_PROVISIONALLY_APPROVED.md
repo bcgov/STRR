@@ -40,10 +40,6 @@ After a fulsome review of all documents provided, your short-term rental that wa
 3. Repeat the above steps for **each platform** your short-term rental is listed on.
 ---
 
-[[strr-important-deadlines.md]]
-
----
-
 [[strr-tac.md]]
 
 ---
