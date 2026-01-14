@@ -100,8 +100,10 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     blInfo.value = formatHostUnitDetailsBlInfoUI(permitDetails.value.unitDetails)
     unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
     showUnitDetailsForm.value = !!unitAddress.value.address.street || !!unitAddress.value.address.streetAdditional
-    prRequirements.value.isPropertyPrExempt = !!permitDetails.value.unitDetails.prExemptReason
-    prRequirements.value.prExemptionReason = permitDetails.value.unitDetails.prExemptReason
+    // Normalize null/empty exemption reason so PR docs are required when not exempt
+    const prExemptReason = permitDetails.value.unitDetails.prExemptReason || undefined
+    prRequirements.value.isPropertyPrExempt = !!prExemptReason
+    prRequirements.value.prExemptionReason = prExemptReason
     blRequirements.value.isBusinessLicenceExempt = !!permitDetails.value.unitDetails.blExemptReason
 
     // populate BL Exempt radio buttons selection and reason
