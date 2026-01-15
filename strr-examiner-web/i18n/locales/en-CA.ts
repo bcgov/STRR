@@ -578,6 +578,10 @@ export default {
     SUSPENDED: 'Suspended',
     CANCELLED: 'Cancelled'
   },
+  registrationNocStatus: {
+    NOC_PENDING: 'NOC Pending',
+    NOC_EXPIRED: 'NOC Expired'
+  },
   propertyType: {
     SECONDARY_SUITE: 'Secondary Suite',
     ACCESSORY_DWELLING: 'Accessory Dwelling',

@@ -204,6 +204,18 @@ const getRegistrationStatusIconColor = (status: RegistrationStatus | undefined):
   return status === RegistrationStatus.ACTIVE ? 'text-green-700' : 'text-red-600'
 }
 
+/**
+ * Get the display text for the registration NOC status
+ * @param nocStatus - The registration NOC status
+ * @returns The display text for the NOC status
+ */
+const getRegistrationNocStatusDisplay = (nocStatus: RegistrationNocStatus | undefined): string => {
+  if (!nocStatus) {
+    return ''
+  }
+  return t(`registrationNocStatus.${nocStatus}`)
+}
+
 const getRequirementsColumn = (app: HousApplicationResponse) => {
   let result = ''
   let listingSize = ''
@@ -365,6 +377,7 @@ const { data: applicationListResp, status } = await useAsyncData(
         propertyAddress: getPropertyAddressColumn(app),
         status: app.header.registrationStatus ? app.header.examinerStatus : app.header.hostStatus,
         registrationStatus: app.header.registrationStatus,
+        registrationNocStatus: app.header.registrationNocStatus,
         submissionDate: app.header.applicationDateTime,
         lastModified: getLastStatusChangeColumn(app.header),
         adjudicator: getAdjudicatorColumn(app.header)
@@ -838,8 +851,24 @@ const tabLinks = computed(() => [
         <template #status-data="{ row }">
           <div class="flex flex-col">
             <span>{{ row.status }}</span>
+            <!-- NOC Status takes priority: show when registration is ACTIVE and has a NOC status -->
             <UButton
-              v-if="row.registrationStatus && row.registrationNumber"
+              v-if="row.registrationStatus === 'ACTIVE' && row.registrationNocStatus"
+              icon="i-mdi-alert-circle"
+              variant="link"
+              :padded="false"
+              :ui="{
+                gap: { sm: 'gap-x-1' },
+                icon: { base: 'text-orange-500 text-xs' }
+              }"
+              class="text-sm"
+              @click.stop="goToRegistration(row.registrationId)"
+            >
+              {{ getRegistrationNocStatusDisplay(row.registrationNocStatus) }}
+            </UButton>
+            <!-- Registration Status: show when no NOC status to display -->
+            <UButton
+              v-else-if="row.registrationStatus && row.registrationNumber"
               :icon="getRegistrationStatusIcon(row.registrationStatus)"
               variant="link"
               :padded="false"
