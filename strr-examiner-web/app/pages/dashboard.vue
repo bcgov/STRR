@@ -128,17 +128,6 @@ const getApplicantNameColumn = (app: HousApplicationResponse) => {
   }
 }
 
-const getApplicantNameColumnForRegistration = (reg: HousRegistrationResponse) => {
-  switch (reg.registrationType) {
-    case ApplicationType.PLATFORM:
-      return (reg as PlatformRegistrationResp).businessDetails?.legalName || '-'
-    case ApplicationType.STRATA_HOTEL:
-      return (reg as StrataHotelRegistrationResp).businessDetails?.legalName || '-'
-    default: // Host
-      return displayContactFullName((reg as HostRegistrationResp).primaryContact) || '-'
-  }
-}
-
 // Strata location has different interface than the ConnectFormAddressDisplay accepts
 const mapStrataAddress = (address: ApiAddress): ConnectAddress | string => {
   return !isEmpty(address)
@@ -162,19 +151,6 @@ const getPropertyAddressColumn = (app: HousApplicationResponse) => {
       return mapStrataAddress((app.registration as ApiBaseStrataApplication).strataHotelDetails.location)
     default: // platform
       return (app.registration as ApiBasePlatformApplication).businessDetails.mailingAddress || '-'
-  }
-}
-
-const getPropertyAddressColumnForRegistration = (reg: HousRegistrationResponse) => {
-  switch (reg.registrationType) {
-    case ApplicationType.PLATFORM:
-      return (reg as PlatformRegistrationResp).businessDetails?.mailingAddress || '-'
-    case ApplicationType.STRATA_HOTEL: {
-      const location = (reg as StrataHotelRegistrationResp).strataHotelDetails?.location
-      return location ? mapStrataAddress(location) : '-'
-    }
-    default:
-      return reg.unitAddress || '-'
   }
 }
 
@@ -239,43 +215,17 @@ const getRequirementsColumn = (app: HousApplicationResponse) => {
   return result
 }
 
-const getConditionsColumnForRegistration = (reg: HousRegistrationResponse) => {
-  let result = ''
-  let listingSize = ''
-  switch (reg.registrationType) {
-    case ApplicationType.HOST: {
-      const hostReg = reg as HostRegistrationResp
-      const requirements = []
-      if (hostReg.prRequired) {
-        requirements.push(t('page.dashboardList.requirements.host.pr'))
-      }
-      if (hostReg.blRequired) {
-        requirements.push(t('page.dashboardList.requirements.host.bl'))
-      }
-      if (hostReg.unitDetails?.prExemptReason) {
-        requirements.push(t(`page.dashboardList.requirements.host.${hostReg.unitDetails.prExemptReason}`))
-      }
-      if (hostReg.unitDetails?.strataHotelCategory) {
-        requirements.push(t(`strataHotelCategoryReview.${hostReg.unitDetails.strataHotelCategory}`))
-      }
-      result = requirements.length > 0 ? requirements.join(', ') : t('page.dashboardList.requirements.host.none')
-      break
-    }
-    case ApplicationType.STRATA_HOTEL:
-      result = '-'
-      break
-    default:
-      listingSize = (reg as PlatformRegistrationResp).platformDetails?.listingSize || ''
-      result = listingSize ? t(`page.dashboardList.requirements.platform.${listingSize}`) : '-'
+// Keep per-tab status defaults in sync when switching tables.
+const applyDefaultStatusForTab = () => {
+  if (!isSplitDashboardTableEnabled.value) {
+    return
   }
-  if (result.startsWith('page.dashboardList.requirements.platform.') ||
-    result.startsWith('page.dashboardList.requirements.host.')) {
-    result = t('page.dashboardList.requirements.invalid')
-  }
-  return result
+  exStore.tableFilters.status = isApplicationTab.value
+    ? [...exStore.applicationsOnlyStatuses]
+    : []
 }
 
-// Set status to applications only when on applications tab
+// Set status defaults on tab toggle to avoid stale filter carryover.
 watch(
   () => [isApplicationTab.value, isSplitDashboardTableEnabled.value],
   ([isApp, isEnabled]) => {
@@ -284,7 +234,9 @@ watch(
       return
     }
     if (isApp) {
-      exStore.tableFilters.status = exStore.applicationsOnlyStatuses
+      exStore.tableFilters.status = [...exStore.applicationsOnlyStatuses]
+    } else {
+      exStore.tableFilters.status = []
     }
   },
   { immediate: true }
@@ -313,22 +265,27 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
       () => exStore.tablePage,
       () => exStore.tableLimit,
       () => exStore.tableFilters.registrationType,
-      () => exStore.tableFilters.status
+      () => exStore.tableFilters.status,
+      () => exStore.tableFilters.registrationNumber,
+      () => exStore.tableFilters.searchText,
+      () => exStore.tableFilters.adjudicator,
+      () => exStore.tableFilters.requirements,
+      () => exStore.tableFilters.propertyAddress
     ],
     default: () => ({ registrations: [], total: 0 }),
-    transform: (res: ApiRegistrationListResp) => {
-      if (res.registrations.length === 0) {
+    transform: (res: ApiApplicationsListResp) => {
+      if (!res.applications?.length) {
         return { registrations: [], total: 0 }
       }
-      const registrations = res.registrations.map((reg: HousRegistrationResponse) => ({
-        registrationNumber: reg.registrationNumber,
-        status: reg.status,
-        registrationType: t(`registrationType.${reg.registrationType}`),
-        requirements: getConditionsColumnForRegistration(reg),
-        applicantName: getApplicantNameColumnForRegistration(reg),
-        propertyAddress: getPropertyAddressColumnForRegistration(reg),
+      const registrations = res.applications.map((app: HousApplicationResponse) => ({
+        registrationNumber: app.header.registrationNumber,
+        status: app.header.registrationStatus || '-',
+        registrationType: t(`registrationType.${app.registration.registrationType}`),
+        requirements: getRequirementsColumn(app),
+        applicantName: getApplicantNameColumn(app),
+        propertyAddress: getPropertyAddressColumn(app),
         localGov: '', // TODO: implement this once API has made the changes
-        adjudicator: getAdjudicatorColumn(reg.header)
+        adjudicator: getAdjudicatorColumn(app.header)
       }))
 
       return { registrations, total: res.total }
@@ -470,17 +427,53 @@ function handleColumnSort (column: string) {
   }
 }
 
+// Limit status options to the active table to prevent mixed-status filters.
+const statusFilterOptions = computed((): { label: string; value: any; disabled?: boolean }[] => {
+  if (!isSplitDashboardTableEnabled.value || isApplicationTab.value) {
+    return [
+      { label: 'Application Status', value: undefined, disabled: true },
+      { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },
+      { label: 'Provisional Review', value: ApplicationStatus.PROVISIONAL_REVIEW },
+      { label: 'Payment Due', value: ApplicationStatus.PAYMENT_DUE },
+      { label: 'Provisional', value: ApplicationStatus.PROVISIONAL },
+      { label: 'Paid', value: ApplicationStatus.PAID },
+      { label: 'Additional Info Requested', value: ApplicationStatus.ADDITIONAL_INFO_REQUESTED },
+      { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
+      { label: 'Declined', value: ApplicationStatus.DECLINED },
+      { label: 'Provisionally Declined', value: ApplicationStatus.PROVISIONALLY_DECLINED },
+      { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
+      { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
+      { label: 'NOC - Pending', value: ApplicationStatus.NOC_PENDING },
+      { label: 'NOC - Expired', value: ApplicationStatus.NOC_EXPIRED },
+      { label: 'NOC - Pending - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING },
+      { label: 'NOC - Expired - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED }
+    ]
+  }
+  return [
+    { label: 'Registration Status', value: undefined, disabled: true },
+    { label: 'Active', value: RegistrationStatus.ACTIVE },
+    { label: 'Suspended', value: RegistrationStatus.SUSPENDED },
+    { label: 'Cancelled', value: RegistrationStatus.CANCELLED },
+    { label: 'Expired', value: RegistrationStatus.EXPIRED }
+  ]
+})
+
 const tabLinks = computed(() => [
   {
     label: t('label.newApplicationsTab'),
-    click: () => { isApplicationTab.value = true },
+    click: () => {
+      isApplicationTab.value = true
+      exStore.resetFilters()
+      applyDefaultStatusForTab()
+    },
     active: isApplicationTab.value
   },
   {
     label: t('label.registrationsAndRenewalsTab'),
     click: () => {
-      exStore.resetFilters()
       isApplicationTab.value = false
+      exStore.resetFilters()
+      applyDefaultStatusForTab()
     },
     active: !isApplicationTab.value
   }
@@ -543,7 +536,7 @@ const tabLinks = computed(() => [
               variant="link"
               :padded="false"
               :ui="{ gap: { sm: 'gap-x-1' } }"
-              @click="exStore.resetFilters"
+              @click="() => { exStore.resetFilters(); applyDefaultStatusForTab() }"
             />
           </div>
           <div class="flex flex-wrap items-center gap-3 text-gray-900">
@@ -705,29 +698,7 @@ const tabLinks = computed(() => [
             :sort
             :default="[]"
             class="break-words"
-            :options="[
-              { label: 'Application Status', value: undefined, disabled: true },
-              { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },
-              { label: 'Provisional Review', value: ApplicationStatus.PROVISIONAL_REVIEW },
-              { label: 'Payment Due', value: ApplicationStatus.PAYMENT_DUE },
-              { label: 'Provisional', value: ApplicationStatus.PROVISIONAL },
-              { label: 'Paid', value: ApplicationStatus.PAID },
-              { label: 'Additional Info Requested', value: ApplicationStatus.ADDITIONAL_INFO_REQUESTED },
-              { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
-              { label: 'Declined', value: ApplicationStatus.DECLINED },
-              { label: 'Provisionally Declined', value: ApplicationStatus.PROVISIONALLY_DECLINED },
-              { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
-              { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
-              { label: 'NOC - Pending', value: ApplicationStatus.NOC_PENDING },
-              { label: 'NOC - Expired', value: ApplicationStatus.NOC_EXPIRED },
-              { label: 'NOC - Pending - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING },
-              { label: 'NOC - Expired - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED },
-              { label: 'Registration Status', value: undefined, disabled: true },
-              { label: 'Active', value: RegistrationStatus.ACTIVE },
-              { label: 'Suspended', value: RegistrationStatus.SUSPENDED },
-              { label: 'Cancelled', value: RegistrationStatus.CANCELLED },
-              { label: 'Expired', value: RegistrationStatus.EXPIRED }
-            ]"
+            :options="statusFilterOptions"
             @sort="handleColumnSort(column.key)"
           />
         </template>

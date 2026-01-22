@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 export const useExaminerStore = defineStore('strr/examiner-store', () => {
+  type TableStatus = ApplicationStatus | RegistrationStatus
   const { getAccountApplications } = useStrrApi()
   const { t } = useNuxtApp().$i18n
   const { $strrApi } = useNuxtApp()
@@ -167,7 +168,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     requirements: [],
     applicantName: '',
     propertyAddress: '',
-    status: [], // show all statuses
+    status: [] as TableStatus[], // show all statuses
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
     localGov: '',
@@ -249,16 +250,35 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }
 
+  /**
+   * Fetches registrations using the /applications endpoint.
+   *
+   * Note: We use /applications instead of /registrations endpoints because:
+   * - The /applications endpoint is already fully wired and supports all filtering options
+   * - It can filter for registrations by using the registrationStatus parameter
+   * - It supports requirements filtering, address filtering, and other filters that work correctly
+   *
+   * When registrationStatus is provided, the endpoint returns applications that have registrations
+   * matching the specified status(es). The response is then transformed in the dashboard to display
+   * as registrations in the Registrations & Renewals table.
+   *
+   * @returns Promise resolving to applications list response containing registrations
+   */
   const fetchRegistrations = () => {
     const { registrationStatuses } = processStatusFilters(tableFilters.status)
-
-    return $strrApi('/registrations', {
+    return $strrApi('/applications', {
       query: {
-        sort_desc: true, // without this endpoint fails
         limit: tableLimit.value,
-        offset: tablePage.value,
-        registration_type: tableFilters.registrationType,
-        status: registrationStatuses
+        page: tablePage.value,
+        registrationType: tableFilters.registrationType,
+        registrationStatus: registrationStatuses,
+        sortBy: ApplicationSortBy.APPLICATION_DATE,
+        sortOrder: ApplicationSortOrder.ASC,
+        address: tableFilters.propertyAddress,
+        recordNumber: tableFilters.registrationNumber,
+        assignee: tableFilters.adjudicator,
+        requirement: tableFilters.requirements,
+        includeDraftRegistration: false
       }
     })
   }
@@ -549,9 +569,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         requirements: [],
         applicantName: '',
         propertyAddress: '',
-        status: [],
+        status: [] as TableStatus[],
         submissionDate: { start: null, end: null },
         lastModified: { start: null, end: null },
+        localGov: '',
         adjudicator: ''
       }
     )
