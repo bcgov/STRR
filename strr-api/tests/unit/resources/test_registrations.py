@@ -7,19 +7,17 @@ from unittest.mock import patch
 
 import pytest
 from dateutil.relativedelta import relativedelta
-
-from strr_api.enums.enum import ApplicationType, PaymentStatus, RegistrationNocStatus, RegistrationStatus, RegistrationType
+from strr_api.enums.enum import (ApplicationType, PaymentStatus,
+                                 RegistrationNocStatus, RegistrationStatus,
+                                 RegistrationType)
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Events, Registration, User
-from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
-from tests.unit.utils.mocks import (
-    fake_document,
-    fake_examiner_from_token,
-    fake_get_token_auth_header,
-    fake_registration,
-    fake_user_from_token,
-    no_op,
-)
+from tests.unit.utils.auth_helpers import (PUBLIC_USER, STRR_EXAMINER,
+                                           create_header)
+from tests.unit.utils.mocks import (fake_document, fake_examiner_from_token,
+                                    fake_get_token_auth_header,
+                                    fake_registration, fake_user_from_token,
+                                    no_op)
 
 REGISTRATION = "registration_use_sbc_account"
 REGISTRATION_MINIMUM_FIELDS = "registration_use_sbc_account_minimum"
