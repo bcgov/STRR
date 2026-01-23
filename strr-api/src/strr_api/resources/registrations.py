@@ -1009,6 +1009,12 @@ def search_registrations():
         name: assignee
         type: string
         description: Assignee Filter
+      - in: query
+        name: requirement
+        type: array
+        items:
+          type: string
+        description: Requirement filter (e.g., PR, BL, PROHIBITED, NO_REQ, PR_EXEMPT_STRATA_HOTEL, PR_EXEMPT_FARM_LAND, PR_EXEMPT_FRACTIONAL_OWNERSHIP, PLATFORM_MAJOR, PLATFORM_MEDIUM, PLATFORM_MINOR, STRATA_PR, STRATA_NO_PR). Can provide multiple values.
     responses:
       200:
         description:
@@ -1027,6 +1033,7 @@ def search_registrations():
         sort_by = request.args.get("sortBy", "id")
         sort_order = request.args.get("sortOrder", "desc")
         assignee = request.args.get("assignee", None)
+        requirements = request.args.getlist("requirement") or None
         if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1044,6 +1051,7 @@ def search_registrations():
             sort_by=sort_by,
             sort_order=sort_order,
             assignee=assignee,
+            requirements=requirements,
         )
 
         registration_list = RegistrationService.search_registrations(filter_criteria=filter_criteria)

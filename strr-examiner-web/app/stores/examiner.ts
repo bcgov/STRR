@@ -252,13 +252,15 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const fetchRegistrations = () => {
     const { registrationStatuses } = processStatusFilters(tableFilters.status)
 
-    return $strrApi('/registrations', {
+    return $strrApi('/registrations/search', {
       query: {
-        sort_desc: true, // without this endpoint fails
+        sortOrder: 'desc',
         limit: tableLimit.value,
-        offset: tablePage.value,
-        registration_type: tableFilters.registrationType,
-        status: registrationStatuses
+        page: tablePage.value,
+        registrationType: tableFilters.registrationType,
+        status: registrationStatuses,
+        requirement: tableFilters.requirements,
+        recordNumber: tableFilters.registrationNumber
       }
     })
   }
@@ -552,6 +554,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         status: [],
         submissionDate: { start: null, end: null },
         lastModified: { start: null, end: null },
+        localGov: '',
         adjudicator: ''
       }
     )

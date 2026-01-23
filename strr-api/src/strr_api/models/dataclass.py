@@ -68,4 +68,5 @@ class RegistrationSearch:
     registration_types: List[str] | None = None
     record_number: str | None = None
     assignee: str | None = None
+    requirements: list[str] | None = None
     account_id: int | None = None

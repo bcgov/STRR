@@ -48,6 +48,7 @@ export interface HostRegistrationResp extends ApiExtraRegistrationDetails {
   listingDetails?: { url: string }[]
   propertyManager?: ApiPropertyManager
   documents?: ApiDocument[]
+  strRequirements?: PropertyRequirements
 }
 
 export interface StrataHotelRegistrationResp extends ApiExtraRegistrationDetails {

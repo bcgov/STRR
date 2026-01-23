@@ -413,6 +413,11 @@ class RegistrationSerializer:
             "hostType": registration.rental_property.host_type,
         }
 
+        # Add strRequirements from application (source of truth)
+        str_requirements = RegistrationSerializer.get_str_requirements_from_application(registration)
+        if str_requirements:
+            registration_data["strRequirements"] = str_requirements
+
         registration_data["listingDetails"] = [
             {"url": platform.url} for platform in registration.rental_property.property_listings
         ]
@@ -483,3 +488,16 @@ class RegistrationSerializer:
                     .get("organizationNm")
                 )
         return None
+
+    @classmethod
+    def get_str_requirements_from_application(cls, registration: Registration) -> Optional[dict]:
+        """Returns the strRequirements from the most recent application."""
+        applications = Application.get_all_by_registration_id(registration.id)
+        if not applications:
+            return None
+
+        latest_application = sorted(applications, key=lambda app: app.application_date, reverse=True)[0]
+        return (
+            latest_application.application_json.get("registration", {})
+            .get("strRequirements", {})
+        )
