@@ -11,10 +11,15 @@ from sqlalchemy import Boolean, Enum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils.types.ts_vector import TSVectorType
+
 from strr_api.common.enum import BaseEnum, auto
-from strr_api.enums.enum import (PropertyType, RegistrationNocStatus,
-                                 RegistrationStatus, StrataHotelCategory,
-                                 StrrRequirement)
+from strr_api.enums.enum import (
+    PropertyType,
+    RegistrationNocStatus,
+    RegistrationStatus,
+    StrataHotelCategory,
+    StrrRequirement,
+)
 from strr_api.models.base_model import BaseModel
 
 from .db import db

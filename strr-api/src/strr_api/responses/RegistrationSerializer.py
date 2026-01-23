@@ -497,7 +497,4 @@ class RegistrationSerializer:
             return None
 
         latest_application = sorted(applications, key=lambda app: app.application_date, reverse=True)[0]
-        return (
-            latest_application.application_json.get("registration", {})
-            .get("strRequirements", {})
-        )
+        return latest_application.application_json.get("registration", {}).get("strRequirements", {})
