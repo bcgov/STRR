@@ -254,7 +254,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
     return $strrApi('/registrations/search', {
       query: {
-        sortOrder: 'desc',
+        sortOrder: 'asc',
         limit: tableLimit.value,
         page: tablePage.value,
         registrationType: tableFilters.registrationType,

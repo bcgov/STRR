@@ -332,6 +332,7 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
       const registrations = res.registrations.map((reg: HousRegistrationResponse) => ({
         registrationNumber: reg.registrationNumber,
         status: reg.status,
+        sortOrder: reg.sortOrder,
         registrationType: t(`registrationType.${reg.registrationType}`),
         requirements: getConditionsColumnForRegistration(reg),
         applicantName: getApplicantNameColumnForRegistration(reg),
@@ -480,34 +481,41 @@ function handleColumnSort (column: string) {
 }
 
 // Limit status options to the active table to prevent mixed-status filters.
+const applicationStatusOptions: { label: string; value: any; disabled?: boolean }[] = [
+  { label: 'Application Status', value: undefined, disabled: true },
+  { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },
+  { label: 'Provisional Review', value: ApplicationStatus.PROVISIONAL_REVIEW },
+  { label: 'Payment Due', value: ApplicationStatus.PAYMENT_DUE },
+  { label: 'Provisional', value: ApplicationStatus.PROVISIONAL },
+  { label: 'Paid', value: ApplicationStatus.PAID },
+  { label: 'Additional Info Requested', value: ApplicationStatus.ADDITIONAL_INFO_REQUESTED },
+  { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
+  { label: 'Declined', value: ApplicationStatus.DECLINED },
+  { label: 'Provisionally Declined', value: ApplicationStatus.PROVISIONALLY_DECLINED },
+  { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
+  { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
+  { label: 'NOC - Pending', value: ApplicationStatus.NOC_PENDING },
+  { label: 'NOC - Expired', value: ApplicationStatus.NOC_EXPIRED },
+  { label: 'NOC - Pending - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING },
+  { label: 'NOC - Expired - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED }
+]
+
+const registrationStatusOptions: { label: string; value: any; disabled?: boolean }[] = [
+  { label: 'Registration Status', value: undefined, disabled: true },
+  { label: 'Active', value: RegistrationStatus.ACTIVE },
+  { label: 'Suspended', value: RegistrationStatus.SUSPENDED },
+  { label: 'Cancelled', value: RegistrationStatus.CANCELLED },
+  { label: 'Expired', value: RegistrationStatus.EXPIRED }
+]
+
 const statusFilterOptions = computed((): { label: string; value: any; disabled?: boolean }[] => {
-  if (!isSplitDashboardTableEnabled.value || isApplicationTab.value) {
-    return [
-      { label: 'Application Status', value: undefined, disabled: true },
-      { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },
-      { label: 'Provisional Review', value: ApplicationStatus.PROVISIONAL_REVIEW },
-      { label: 'Payment Due', value: ApplicationStatus.PAYMENT_DUE },
-      { label: 'Provisional', value: ApplicationStatus.PROVISIONAL },
-      { label: 'Paid', value: ApplicationStatus.PAID },
-      { label: 'Additional Info Requested', value: ApplicationStatus.ADDITIONAL_INFO_REQUESTED },
-      { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
-      { label: 'Declined', value: ApplicationStatus.DECLINED },
-      { label: 'Provisionally Declined', value: ApplicationStatus.PROVISIONALLY_DECLINED },
-      { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
-      { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
-      { label: 'NOC - Pending', value: ApplicationStatus.NOC_PENDING },
-      { label: 'NOC - Expired', value: ApplicationStatus.NOC_EXPIRED },
-      { label: 'NOC - Pending - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING },
-      { label: 'NOC - Expired - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED }
-    ]
+  // Old dashboard: show both arrays combined
+  if (!isSplitDashboardTableEnabled.value) {
+    return [...applicationStatusOptions, ...registrationStatusOptions]
   }
-  return [
-    { label: 'Registration Status', value: undefined, disabled: true },
-    { label: 'Active', value: RegistrationStatus.ACTIVE },
-    { label: 'Suspended', value: RegistrationStatus.SUSPENDED },
-    { label: 'Cancelled', value: RegistrationStatus.CANCELLED },
-    { label: 'Expired', value: RegistrationStatus.EXPIRED }
-  ]
+
+  // New dashboard: show application statuses on application tab, registration statuses otherwise
+  return isApplicationTab.value ? applicationStatusOptions : registrationStatusOptions
 })
 
 const tabLinks = computed(() => [

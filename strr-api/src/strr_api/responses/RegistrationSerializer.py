@@ -436,33 +436,33 @@ class RegistrationSerializer:
                             "country": property_manager.business_mailing_address.country,
                         },
                         "primaryContact": {
-                            "firstName": property_manager.primary_contact.firstname,
-                            "lastName": property_manager.primary_contact.lastname,
-                            "middleName": property_manager.primary_contact.middlename,
-                            "preferredName": property_manager.primary_contact.preferredname,
-                            "phoneNumber": property_manager.primary_contact.phone_number,
-                            "phoneCountryCode": property_manager.primary_contact.phone_country_code,
-                            "extension": property_manager.primary_contact.phone_extension,
-                            "faxNumber": property_manager.primary_contact.fax_number,
-                            "emailAddress": property_manager.primary_contact.email,
+                            "firstName": property_manager.primary_contact.firstname if property_manager.primary_contact else None,
+                            "lastName": property_manager.primary_contact.lastname if property_manager.primary_contact else None,
+                            "middleName": property_manager.primary_contact.middlename if property_manager.primary_contact else None,
+                            "preferredName": property_manager.primary_contact.preferredname if property_manager.primary_contact else None,
+                            "phoneNumber": property_manager.primary_contact.phone_number if property_manager.primary_contact else None,
+                            "phoneCountryCode": property_manager.primary_contact.phone_country_code if property_manager.primary_contact else None,
+                            "extension": property_manager.primary_contact.phone_extension if property_manager.primary_contact else None,
+                            "faxNumber": property_manager.primary_contact.fax_number if property_manager.primary_contact else None,
+                            "emailAddress": property_manager.primary_contact.email if property_manager.primary_contact else None,
                         },
                     }
                 }
             else:
                 registration_data["propertyManager"] = {
                     "contact": {
-                        "firstName": property_manager.primary_contact.firstname,
-                        "lastName": property_manager.primary_contact.lastname,
-                        "middleName": property_manager.primary_contact.middlename,
-                        "preferredName": property_manager.primary_contact.preferredname,
-                        "phoneNumber": property_manager.primary_contact.phone_number,
-                        "phoneCountryCode": property_manager.primary_contact.phone_country_code,
-                        "extension": property_manager.primary_contact.phone_extension,
-                        "faxNumber": property_manager.primary_contact.fax_number,
-                        "emailAddress": property_manager.primary_contact.email,
+                        "firstName": property_manager.primary_contact.firstname if property_manager.primary_contact else None,
+                        "lastName": property_manager.primary_contact.lastname if property_manager.primary_contact else None,
+                        "middleName": property_manager.primary_contact.middlename if property_manager.primary_contact else None,
+                        "preferredName": property_manager.primary_contact.preferredname if property_manager.primary_contact else None,
+                        "phoneNumber": property_manager.primary_contact.phone_number if property_manager.primary_contact else None,
+                        "phoneCountryCode": property_manager.primary_contact.phone_country_code if property_manager.primary_contact else None,
+                        "extension": property_manager.primary_contact.phone_extension if property_manager.primary_contact else None,
+                        "faxNumber": property_manager.primary_contact.fax_number if property_manager.primary_contact else None,
+                        "emailAddress": property_manager.primary_contact.email if property_manager.primary_contact else None,
                     }
                 }
-                if contact_mailing_address := property_manager.primary_contact.address:
+                if property_manager.primary_contact and (contact_mailing_address := property_manager.primary_contact.address):
                     registration_data["propertyManager"]["contact"]["mailingAddress"] = {
                         "address": contact_mailing_address.street_address,
                         "city": contact_mailing_address.city,
