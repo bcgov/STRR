@@ -3,6 +3,8 @@ import isEmpty from 'lodash/isEmpty'
 import { sub } from 'date-fns'
 
 const localePath = useLocalePath()
+const route = useRoute()
+const router = useRouter()
 const { t } = useNuxtApp().$i18n
 // TODO: ApplicationStatus.FULL_REVIEW is temporary until we have reqs defined
 // const { limit, page, getApplicationList } = useStrrBasePermitList(undefined, undefined) // leaving this for reference
@@ -83,7 +85,36 @@ const enableLastModifiedFilter = computed<boolean>(() => {
 })
 
 // applications or registration tab in split dashboard view
-const isApplicationTab = ref(true)
+// Initialize from query parameter to persist state across navigation
+// Check for 'returnTab' first (when coming back from registration page), then 'tab'
+const getInitialTab = () => {
+  const returnTab = route.query.returnTab as string
+  const tab = route.query.tab as string
+  if (returnTab) {
+    return returnTab === 'applications'
+  }
+  if (tab) {
+    return tab !== 'registrations'
+  }
+  return true // default to applications
+}
+
+const isApplicationTab = ref(getInitialTab())
+
+// Watch for route query changes to restore tab state when navigating back
+// Only handle returnTab (from registration page), tab is managed by updateTabQuery
+watch(() => route.query.returnTab, (returnTab) => {
+  if (returnTab) {
+    isApplicationTab.value = returnTab === 'applications'
+    // Clean up returnTab from URL after using it and preserve tab parameter
+    const query = { ...route.query }
+    delete query.returnTab
+    if (!query.tab) {
+      query.tab = returnTab === 'applications' ? 'applications' : 'registrations'
+    }
+    router.replace({ query })
+  }
+}, { immediate: true })
 
 useHead({
   title: t('page.dashboardList.title')
@@ -330,6 +361,7 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
         return { registrations: [], total: 0 }
       }
       const registrations = res.registrations.map((reg: HousRegistrationResponse) => ({
+        id: reg.id,
         registrationNumber: reg.registrationNumber,
         status: reg.status,
         sortOrder: reg.sortOrder,
@@ -456,16 +488,24 @@ const sort = ref<TableSort>({ column: 'submissionDate', direction: 'asc' as cons
 
 async function handleRowSelect (row: any) {
   // Fix: Filter Input Double Click Event Propagation
-  if (!row.applicationNumber) {
+  // Handle applications
+  if (row.applicationNumber) {
+    status.value = 'pending'
+    await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
     return
   }
-  status.value = 'pending'
-  await navigateTo(localePath(`${RoutesE.EXAMINE}/${row.applicationNumber}`))
+  // Handle registrations - preserve tab state in query parameter
+  if (row.id) {
+    regStatus.value = 'pending'
+    const currentTab = isApplicationTab.value ? 'applications' : 'registrations'
+    await navigateTo(localePath(`${RoutesE.REGISTRATION}/${row.id}?returnTab=${currentTab}`))
+  }
 }
 
 async function goToRegistration (registrationId: string) {
-  status.value = 'pending'
-  await navigateTo(localePath(`${RoutesE.REGISTRATION}/${registrationId}`))
+  regStatus.value = 'pending'
+  const currentTab = isApplicationTab.value ? 'applications' : 'registrations'
+  await navigateTo(localePath(`${RoutesE.REGISTRATION}/${registrationId}?returnTab=${currentTab}`))
 }
 
 function handleColumnSort (column: string) {
@@ -518,10 +558,24 @@ const statusFilterOptions = computed((): { label: string; value: any; disabled?:
   return isApplicationTab.value ? applicationStatusOptions : registrationStatusOptions
 })
 
+// Update query parameter when tab changes to persist state
+const updateTabQuery = (isApp: boolean) => {
+  const query = { ...route.query }
+  if (isApp) {
+    query.tab = 'applications'
+  } else {
+    query.tab = 'registrations'
+  }
+  router.replace({ query })
+}
+
 const tabLinks = computed(() => [
   {
     label: t('label.newApplicationsTab'),
-    click: () => { isApplicationTab.value = true },
+    click: () => {
+      isApplicationTab.value = true
+      updateTabQuery(true)
+    },
     active: isApplicationTab.value
   },
   {
@@ -529,6 +583,7 @@ const tabLinks = computed(() => [
     click: () => {
       exStore.resetFilters()
       isApplicationTab.value = false
+      updateTabQuery(false)
     },
     active: !isApplicationTab.value
   }
