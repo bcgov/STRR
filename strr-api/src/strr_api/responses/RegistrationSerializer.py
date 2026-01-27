@@ -425,7 +425,7 @@ class RegistrationSerializer:
         if property_manager := registration.rental_property.property_manager:
             primary_contact = property_manager.primary_contact
             contact_dict = cls._build_primary_contact_dict(primary_contact)
-            
+
             if property_manager.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
                 registration_data["propertyManager"] = {
                     "business": {
@@ -442,9 +442,7 @@ class RegistrationSerializer:
                     }
                 }
             else:
-                registration_data["propertyManager"] = {
-                    "contact": contact_dict
-                }
+                registration_data["propertyManager"] = {"contact": contact_dict}
                 if primary_contact and (contact_mailing_address := primary_contact.address):
                     registration_data["propertyManager"]["contact"]["mailingAddress"] = {
                         "address": contact_mailing_address.street_address,
