@@ -104,7 +104,7 @@ export function useDashboardTablePagination (queryKey: string) {
     updateUrlSync(currentQuery)
   }, { flush: 'sync' })
 
-  // Watch for route changes (e.g., back button) and sync page
+  // Watch for route changes (back button) and sync page
   watch(
     () => route.query[queryKey],
     (newQueryValue) => {
@@ -187,7 +187,7 @@ export function useDashboardTableSearch (queryKey: string) {
     updateUrlSync(currentQuery)
   }, { flush: 'sync' })
 
-  // Watch for route changes (e.g., back button) and sync search
+  // Watch for route changes (back button) and sync search
   watch(
     () => route.query[queryKey],
     (newQueryValue) => {
