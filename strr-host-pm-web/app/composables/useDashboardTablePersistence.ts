@@ -94,10 +94,10 @@ export function useDashboardTablePagination (queryKey: string) {
       }
     }
 
-    if (newPage !== 1) {
+    // Remove the key first, then add back if not default value
+    delete currentQuery[queryKey]
+    if (newPage > 1) {
       currentQuery[queryKey] = String(newPage)
-    } else {
-      delete currentQuery[queryKey]
     }
 
     // Update URL synchronously to avoid race conditions
@@ -177,10 +177,10 @@ export function useDashboardTableSearch (queryKey: string) {
       }
     }
 
+    // Remove the key first, then add back if not empty
+    delete currentQuery[queryKey]
     if (newSearch) {
       currentQuery[queryKey] = newSearch
-    } else {
-      delete currentQuery[queryKey]
     }
 
     // Update URL synchronously to avoid race conditions
