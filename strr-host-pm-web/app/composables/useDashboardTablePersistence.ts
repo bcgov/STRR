@@ -3,10 +3,10 @@ const STORAGE_KEY = 'strr-dashboard-state'
 // Helper to synchronously update URL query params (avoids race conditions with navigation)
 const updateUrlSync = (query: Record<string, string>) => {
   if (import.meta.client) {
-    const url = new URL(window.location.href)
+    const url = new URL(globalThis.location.href)
     // Clear existing query params and set new ones
     url.search = new URLSearchParams(query).toString()
-    window.history.replaceState(window.history.state, '', url.toString())
+    globalThis.history.replaceState(globalThis.history.state, '', url.toString())
   }
 }
 
@@ -54,8 +54,8 @@ export function useDashboardTablePagination (queryKey: string) {
     // First, try URL query params (for back button navigation)
     const queryValue = route.query[queryKey]
     if (queryValue) {
-      const parsed = parseInt(queryValue as string, 10)
-      if (!isNaN(parsed) && parsed >= 1) {
+      const parsed = Number.parseInt(queryValue as string, 10)
+      if (!Number.isNaN(parsed) && parsed >= 1) {
         return parsed
       }
     }
@@ -94,10 +94,10 @@ export function useDashboardTablePagination (queryKey: string) {
       }
     }
 
-    if (newPage === 1) {
-      delete currentQuery[queryKey]
-    } else {
+    if (newPage !== 1) {
       currentQuery[queryKey] = String(newPage)
+    } else {
+      delete currentQuery[queryKey]
     }
 
     // Update URL synchronously to avoid race conditions
@@ -108,8 +108,8 @@ export function useDashboardTablePagination (queryKey: string) {
   watch(
     () => route.query[queryKey],
     (newQueryValue) => {
-      const newPage = newQueryValue ? parseInt(newQueryValue as string, 10) : 1
-      if (!isNaN(newPage) && newPage >= 1 && newPage !== page.value) {
+      const newPage = newQueryValue ? Number.parseInt(newQueryValue as string, 10) : 1
+      if (!Number.isNaN(newPage) && newPage >= 1 && newPage !== page.value) {
         page.value = newPage
       }
     }
@@ -177,10 +177,10 @@ export function useDashboardTableSearch (queryKey: string) {
       }
     }
 
-    if (!newSearch) {
-      delete currentQuery[queryKey]
-    } else {
+    if (newSearch) {
       currentQuery[queryKey] = newSearch
+    } else {
+      delete currentQuery[queryKey]
     }
 
     // Update URL synchronously to avoid race conditions
