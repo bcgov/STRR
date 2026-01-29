@@ -54,8 +54,8 @@ export function useDashboardTablePagination (queryKey: string) {
     // First, try URL query params (for back button navigation)
     const queryValue = route.query[queryKey]
     if (queryValue) {
-      const parsed = parseInt(queryValue as string, 10)
-      if (!isNaN(parsed) && parsed >= 1) {
+      const parsed = Number.parseInt(queryValue as string, 10)
+      if (!Number.isNaN(parsed) && parsed >= 1) {
         return parsed
       }
     }
@@ -108,8 +108,8 @@ export function useDashboardTablePagination (queryKey: string) {
   watch(
     () => route.query[queryKey],
     (newQueryValue) => {
-      const newPage = newQueryValue ? parseInt(newQueryValue as string, 10) : 1
-      if (!isNaN(newPage) && newPage >= 1 && newPage !== page.value) {
+      const newPage = newQueryValue ? Number.parseInt(newQueryValue as string, 10) : 1
+      if (!Number.isNaN(newPage) && newPage >= 1 && newPage !== page.value) {
         page.value = newPage
       }
     }
