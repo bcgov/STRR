@@ -172,7 +172,7 @@ const getPhoneNumber = (phone: ConnectPhone) => {
           @click="expandAtIndex(index)"
         />
         <UPopover
-          v-if="!isRegistrationRenewal"
+          v-if="!(isRegistrationRenewal && index === 0)"
           :popper="{ placement: 'bottom-end' }"
         >
           <UButton
