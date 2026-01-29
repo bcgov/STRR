@@ -12,12 +12,19 @@ const props = withDefaults(defineProps<{
   registrationsLimit: 6
 })
 
-// Pagination state
-const registrationsPage = ref(1)
+// Pagination state - persisted in URL for navigation preservation
+const { page: registrationsPage, resetPage: resetRegistrationsPage } = useDashboardTablePagination('regPage')
 
-// Search state
-const searchText = ref('')
+// Search state - persisted in URL for navigation preservation
+const { searchText } = useDashboardTableSearch('regSearch')
 const isSearching = computed(() => searchText.value.length >= 3)
+
+// When starting a new search (or clearing), always return to page 1
+watch(searchText, () => {
+  if (registrationsPage.value !== 1) {
+    resetRegistrationsPage()
+  }
+})
 
 // Helper to create sortable column
 const createColumn = (key: string, label: string, sortable = true) => ({
