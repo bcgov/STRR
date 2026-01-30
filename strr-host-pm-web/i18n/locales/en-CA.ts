@@ -228,7 +228,8 @@ export default {
       helpOwner2: 'A Co-host who is responsible for managing the short-term rental on behalf of the property host must be added to the registration (if applicable). It is optional to add a co-host who only assists the property host to manage the short-term rental.',
       helpOwner3: 'A Property manager who is acting as an agent of the property host to manage the short-term rental must be added to the registration (if applicable).',
       helpOwner4: 'See more information in the {link}.',
-      emailNote: 'Email will be the default method of communication. Information sent via email will be considered received on the third day after the email is sent.'
+      emailNote: 'Email will be the default method of communication. Information sent via email will be considered received on the third day after the email is sent.',
+      noApplications: 'No Applications'
     },
     word: {
       room: 'room | rooms',

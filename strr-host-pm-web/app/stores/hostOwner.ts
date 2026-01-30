@@ -4,9 +4,9 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
   // TODO: pull common pieces of this and useStrrContactStore into base composable
   const { t } = useNuxtApp().$i18n
   const { getNewContact } = useStrrContactStore()
-  const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
 
   const getHostOwnerSchema = (type: OwnerType, role?: OwnerRole) => {
+    const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
     return z.object({
       role: z.enum([OwnerRole.HOST, OwnerRole.CO_HOST, OwnerRole.PROPERTY_MANAGER], {
         errorMap: () => ({ message: t('validation.ownerRole') })
