@@ -682,7 +682,7 @@ export default {
     REGISTRATION_CREATED: 'Registration created',
     REGISTRATION_CANCELLED: 'Registration cancelled',
     CERTIFICATE_ISSUED: 'Certificate issued for the registration',
-    EXPIRED: 'Registration expired',
+    REGISTRATION_EXPIRED: 'Registration expired',
     NON_COMPLIANCE_SUSPENDED: 'Registration suspended due to non compliance',
     APPLICATION_REVIEWER_ASSIGNED: 'Application reviewer assigned',
     APPLICATION_REVIEWER_UNASSIGNED: 'Application reviewer unassigned',
