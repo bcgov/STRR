@@ -9,7 +9,7 @@ const {
   setAsideRegistration,
   sendNoticeOfConsiderationForRegistration
 } = useExaminerStore()
-const { isAssignedToUser, emailContent, emailFormRef } = storeToRefs(useExaminerStore())
+const { isAssignedToUser, emailContent, emailFormRef, activeRecord, isApplication } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 const { showDecisionPanel } = useExaminerDecision()
 
@@ -222,6 +222,10 @@ watch(
       </ApplicationDetailsView>
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
+      <HistoricalApplicationList
+        v-if="!isApplication"
+        :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"
+      />
       <DecisionPanel />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
     </template>

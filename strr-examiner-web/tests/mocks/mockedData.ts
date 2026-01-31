@@ -546,3 +546,20 @@ export const mockRegistrationFilingHistory: FilingHistoryEvent[] =
       message: 'Registration cancelled'
     }
   ]
+
+export const mockHistoricalApplications: ApiApplicationEntry[] = [
+  {
+    applicationNumber: '1234567890',
+    applicationDateTime: '2025-01-15T10:30:00.000000',
+    organizationName: 'City of Vancouver',
+    applicationStatus: ApplicationStatus.FULL_REVIEW,
+    applicationType: 'registration'
+  },
+  {
+    applicationNumber: '987654321',
+    applicationDateTime: '2025-02-20T14:45:00.000000',
+    organizationName: 'City of Victoria',
+    applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED,
+    applicationType: 'renewal'
+  }
+]

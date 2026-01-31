@@ -6,12 +6,14 @@ import {
   mockStrataHotelRegistration,
   mockExpiredRegistration,
   mockSuspendedRegistration,
-  mockCancelledRegistration
+  mockCancelledRegistration,
+  mockHistoricalApplications
 } from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
 import RegistrationDetails from '~/pages/registration/[registrationId].vue'
 import {
   DecisionPanel,
+  HistoricalApplicationList,
   RegistrationInfoHeader
 } from '#components'
 import ApprovalConditions from '~/components/ApprovalConditions.vue'
@@ -284,5 +286,35 @@ describe('Examiner - Registration Details Page', () => {
     expect(approvalConditions.findTestId('custom-condition-input').exists()).toBe(true)
     expect(approvalConditions.findTestId('add-custom-condition-button').exists()).toBe(true)
     expect(approvalConditions.findTestId('remove-custom-condition-button').exists()).toBe(true)
+  })
+
+  it('displays Historical Applications table', async () => {
+    const wrapper = await mountSuspended(HistoricalApplicationList, {
+      global: { plugins: [enI18n] },
+      props: { applications: mockHistoricalApplications }
+    })
+
+    expect(wrapper.exists()).toBe(true)
+    expect(wrapper.find('[data-testid="historical-applications-table"]').exists()).toBe(true)
+
+    // verify that both applications are rendered
+    const rows = wrapper.find('[data-testid="historical-applications-table"]').findAll('tbody tr')
+    expect(rows.length).toBe(2)
+
+    // verify application numbers are displayed
+    expect(wrapper.text()).toContain(mockHistoricalApplications[0]?.applicationNumber)
+    expect(wrapper.text()).toContain(mockHistoricalApplications[1]?.applicationNumber)
+
+    // verify local government is displayed
+    expect(wrapper.text()).toContain(mockHistoricalApplications[0]?.organizationName)
+    expect(wrapper.text()).toContain(mockHistoricalApplications[1]?.organizationName)
+
+    // verify renewal badge only appears for renewal application
+    const renewalBadges = wrapper.findAll('[data-testid="renewal-badge"]')
+    expect(renewalBadges.length).toBe(1)
+
+    // verify view application buttons exist
+    const viewButtons = wrapper.findAll('[data-testid="view-application-button"]')
+    expect(viewButtons.length).toBe(2)
   })
 })

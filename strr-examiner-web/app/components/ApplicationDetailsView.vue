@@ -19,7 +19,7 @@ const { activeReg } = storeToRefs(exStore)
       />
     </div>
 
-    <div class="app-inner-container space-y-10 py-10">
+    <div class="app-inner-container space-y-4 py-4">
       <ConnectExpansionRoot />
 
       <HostSupportingInfo
