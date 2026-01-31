@@ -266,6 +266,7 @@ export default {
   btn: {
     view: 'View',
     viewAllPlatforms: 'View all platforms',
+    viewApplication: 'View Application',
     edit: 'Edit',
     done: 'Done',
     showDetails: 'Show Details',
@@ -351,6 +352,7 @@ export default {
     }
   },
   label: {
+    applications: 'Applications',
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
     application: 'Application',
@@ -407,7 +409,8 @@ export default {
     combobox: {
       select: 'Select',
       selected: 'Selected'
-    }
+    },
+    renewal: 'Renewal'
   },
   link: {
     learnMore: 'Learn More'
@@ -476,6 +479,15 @@ export default {
     hostPmList: {
       title: '{boldStart}My Registration Applications{boldEnd} ({count})',
       emptyText: "You don't have any properties yet. Add a property above."
+    },
+    historicalApps: {
+      number: 'Number',
+      type: 'Type',
+      conditions: 'Conditions',
+      propertyHostName: 'Property Host Name',
+      address: 'Address',
+      localGovernment: 'Local Government',
+      action: 'Action'
     }
   },
   hint: {

@@ -9,9 +9,10 @@ const {
   setAsideRegistration,
   sendNoticeOfConsiderationForRegistration
 } = useExaminerStore()
-const { isAssignedToUser, emailContent, emailFormRef } = storeToRefs(useExaminerStore())
+const { isAssignedToUser, emailContent, emailFormRef, activeRecord, isApplication } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 const { showDecisionPanel } = useExaminerDecision()
+const { isHistoricalApplicationsTableEnabled } = useExaminerFeatureFlags()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -222,6 +223,10 @@ watch(
       </ApplicationDetailsView>
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
+      <HistoricalApplicationsTable
+        v-if="!isApplication && isHistoricalApplicationsTableEnabled"
+        :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"
+      />
       <DecisionPanel />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
     </template>

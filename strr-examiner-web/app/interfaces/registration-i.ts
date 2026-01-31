@@ -1,4 +1,4 @@
-interface ApiApplicationEntry {
+export interface ApiApplicationEntry {
   applicationNumber: string
   applicationDateTime: string
   organizationName?: string
