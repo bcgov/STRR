@@ -12,6 +12,7 @@ const {
 const { isAssignedToUser, emailContent, emailFormRef, activeRecord, isApplication } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 const { showDecisionPanel } = useExaminerDecision()
+const { isHistoricalApplicationsTableEnabled } = useExaminerFeatureFlags()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -222,8 +223,8 @@ watch(
       </ApplicationDetailsView>
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
-      <HistoricalApplicationList
-        v-if="!isApplication"
+      <HistoricalApplicationsTable
+        v-if="!isApplication && isHistoricalApplicationsTableEnabled"
         :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"
       />
       <DecisionPanel />

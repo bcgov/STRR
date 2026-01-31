@@ -13,7 +13,7 @@ import { enI18n } from '../mocks/i18n'
 import RegistrationDetails from '~/pages/registration/[registrationId].vue'
 import {
   DecisionPanel,
-  HistoricalApplicationList,
+  HistoricalApplicationsTable,
   RegistrationInfoHeader
 } from '#components'
 import ApprovalConditions from '~/components/ApprovalConditions.vue'
@@ -289,7 +289,7 @@ describe('Examiner - Registration Details Page', () => {
   })
 
   it('displays Historical Applications table', async () => {
-    const wrapper = await mountSuspended(HistoricalApplicationList, {
+    const wrapper = await mountSuspended(HistoricalApplicationsTable, {
       global: { plugins: [enI18n] },
       props: { applications: mockHistoricalApplications }
     })

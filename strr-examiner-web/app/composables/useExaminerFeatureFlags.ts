@@ -7,6 +7,7 @@ export const useExaminerFeatureFlags = () => {
     isRequirementFilterEnabled: isFeatureEnabled('enable-examiner-requirement-filter'),
     isSubmissionDateFilterEnabled: isFeatureEnabled('enable-examiner-submission-date-filter'),
     isLastModifiedFilterEnabled: isFeatureEnabled('enable-examiner-last-modified-filter'),
-    isSplitDashboardTableEnabled: isFeatureEnabled('enable-examiner-split-dashboard-table')
+    isSplitDashboardTableEnabled: isFeatureEnabled('enable-examiner-split-dashboard-table'),
+    isHistoricalApplicationsTableEnabled: isFeatureEnabled('enable-examiner-historical-applications-table')
   }
 }
