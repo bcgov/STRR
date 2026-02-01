@@ -23,57 +23,66 @@ defineProps<{
 
 const addId = useId()
 
+const { hasNoStreetAddress } = storeToRefs(useHostPropertyStore())
+
+// clear site name when going back to street number and name inputs
+watch(hasNoStreetAddress, () => {
+  if (!hasNoStreetAddress.value) {
+    streetAdditional.value = ''
+  }
+})
+
 watch(postalCode, () => {
   postalCode.value = postalCode.value?.toUpperCase()
 })
 </script>
 <template>
-  <div class="space-y-3">
-    <!-- country menu -->
+  <div class="space-y-4">
+    <FormUnitAddressHelp
+      :help-title="$t('help.address.title')"
+      :label="$t('label.address')"
+    />
+    <UCheckbox
+      v-model="hasNoStreetAddress"
+      label="I do not have a street address"
+      data-testid="no-street-address-checkbox"
+    />
+
+    <!-- site Name -->
     <UFormGroup
-      :name="schemaPrefix + 'country'"
+      v-if="hasNoStreetAddress"
+      :name="schemaPrefix + 'streetAdditional'"
       class="grow"
+      :help="$t('hint.siteName')"
     >
       <UInput
-        :model-value="'Canada'"
-        :placeholder="$t('label.country')"
-        :aria-label="$t('label.country')"
-        color="primary"
+        v-model.trim="streetAdditional"
         size="lg"
-        data-testid="address-region-input"
-        :aria-required="true"
-        :disabled="true"
+        :color="streetAdditional ? 'primary' : 'gray'"
+        :placeholder="$t('label.siteName')"
+        :aria-label="$t('label.siteName')"
+        :aria-describedby="schemaPrefix + 'streetAdditional-' + addId"
+        :disabled="disabledFields?.includes('streetAdditional')"
         maxlength="1000"
       />
     </UFormGroup>
     <!-- unit number / street number / name & type -->
     <div
+      v-if="!hasNoStreetAddress"
       class="flex flex-col gap-3 sm:flex-row"
     >
-      <!-- unit number input -->
-      <ConnectFormFieldGroup
-        :id="schemaPrefix + 'unitNumber'"
-        v-model.trim="unitNumber"
-        class="w-full grow sm:w-1/4"
-        :name="schemaPrefix + 'unitNumber'"
-        :color="city ? 'primary' : 'gray'"
-        :is-disabled="disabledFields?.includes('unitNumber')"
-        :placeholder="$t('label.unitNumber')"
-        :aria-label="$t('label.unitNumber')"
-        :aria-required="unitNumbRequired || false"
-      />
-      <UDivider class="-mx-2 hidden max-w-2 sm:flex" size="xs" />
       <!-- street number input -->
       <ConnectFormFieldGroup
         :id="id + '-streetNumber'"
         v-model.trim="streetNumber"
-        class="w-full grow sm:w-1/4"
+        class="w-5/12 sm:w-1/4"
         :name="schemaPrefix + 'streetNumber'"
         :color="city ? 'primary' : 'gray'"
         :is-disabled="disabledFields?.includes('streetNumber')"
         :placeholder="$t('label.streetNumber')"
         :aria-label="$t('label.streetNumber')"
         :is-required="true"
+        :help="$t('hint.streetNumber')"
       />
       <!-- street name input -->
       <ConnectFormFieldGroup
@@ -83,32 +92,28 @@ watch(postalCode, () => {
         :name="schemaPrefix + 'streetName'"
         :color="city ? 'primary' : 'gray'"
         :is-disabled="disabledFields?.includes('streetName')"
-        :placeholder="$t('label.streetNameAndType')"
-        :aria-label="$t('label.streetNameAndType')"
+        :placeholder="$t('label.streetName')"
+        :aria-label="$t('label.streetName')"
         :is-required="true"
+        :help="$t('hint.streetName')"
       />
     </div>
-    <!-- street line 2 -->
-    <UFormGroup
-      :name="schemaPrefix + 'streetAdditional'"
-      class="grow"
-    >
-      <UInput
-        v-model.trim="streetAdditional"
-        size="lg"
-        :color="streetAdditional ? 'primary' : 'gray'"
-        :placeholder="$t('label.siteNameOpt')"
-        :aria-label="$t('label.siteNameOpt')"
-        :aria-describedby="schemaPrefix + 'streetAdditional-' + addId"
-        :disabled="disabledFields?.includes('streetAdditional')"
-        maxlength="1000"
+    <!-- unit number input -->
+    <div class="">
+      <ConnectFormFieldGroup
+        :id="schemaPrefix + 'unitNumber'"
+        v-model.trim="unitNumber"
+        class="[&_.max-w-bcGovInput]:max-w-full"
+        :name="schemaPrefix + 'unitNumber'"
+        :color="city ? 'primary' : 'gray'"
+        :is-disabled="disabledFields?.includes('unitNumber')"
+        :placeholder="$t('label.unitNumber')"
+        :aria-label="$t('label.unitNumber')"
+        :aria-required="unitNumbRequired || false"
+        :help="$t('hint.unitNumber')"
       />
-      <template #help>
-        <span :id="schemaPrefix + 'streetAdditional-' + addId">
-          {{ $t('label.forNonCivicAddresses') }}
-        </span>
-      </template>
-    </UFormGroup>
+    </div>
+
     <div class="flex flex-col gap-3 sm:flex-row">
       <!-- city input -->
       <ConnectFormFieldGroup
@@ -121,14 +126,15 @@ watch(postalCode, () => {
         :placeholder="$t('label.locality')"
         :aria-label="$t('label.locality')"
         :is-required="true"
+        :help="$t('hint.locality')"
       />
       <!-- region input/menu -->
       <UFormGroup
         :name="schemaPrefix + 'region'"
-        class="w-full grow"
+        class="w-2/12 grow"
       >
         <UInput
-          :model-value="'British Columbia'"
+          :model-value="'BC'"
           :placeholder="$t('label.region')"
           :aria-label="$t('label.region')"
           color="primary"
@@ -144,7 +150,7 @@ watch(postalCode, () => {
         :id="schemaPrefix + 'postalCode'"
         v-model.trim="postalCode"
         v-maska="'@#@ #@#'"
-        class="w-full grow"
+        class="w-5/12 grow"
         :name="schemaPrefix + 'postalCode'"
         :color="postalCode ? 'primary' : 'gray'"
         :is-disabled="disabledFields?.includes('postalCode')"
@@ -159,13 +165,18 @@ watch(postalCode, () => {
     >
       <UTextarea
         v-model.trim="locationDescription"
-        :placeholder="$t('label.additionalLocationDescription')"
-        :aria-label="$t('label.additionalLocationDescription')"
+        :placeholder="$t('label.locationDescOpt')"
+        :aria-label="$t('label.locationDescOpt')"
         :color="locationDescription ? 'primary' : 'gray'"
         :disabled="disabledFields?.includes('locationDescription')"
         class="w-full"
         data-testid="address-location-description"
         maxlength="1000"
+        :ui="{
+          padding: {
+            sm: 'p-4'
+          }
+        }"
       />
     </UFormGroup>
   </div>

@@ -3,7 +3,7 @@ const { t } = useNuxtApp().$i18n
 const propertyStore = useHostPropertyStore()
 const { unitAddress, unitDetails } = storeToRefs(propertyStore)
 const { prRequirements, blRequirements, strataHotelCategory } = storeToRefs(usePropertyReqStore())
-const { isNewAddressFormEnabled, isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
+const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
 // step 1 items
 const exemptInfo = computed((): ConnectInfoTableItem[] => [
@@ -120,12 +120,10 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
     <template #info-address>
       <ConnectFormAddressDisplayItem :address="unitAddress.address" />
       <FormUnitAddressHelp
-        v-if="isNewAddressFormEnabled"
         class="mt-2"
         :help-title="$t('help.address.review')"
       />
       <UAlert
-        v-if="isNewAddressFormEnabled"
         data-testid="alert-address-match-required"
         color="yellow"
         :close-button="null"

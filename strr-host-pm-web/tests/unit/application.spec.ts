@@ -14,7 +14,6 @@ import {
   FormReview,
   FormUnitAddressAutoComplete,
   FormUnitAddressManual,
-  FormUnitAddressManual2,
   ConnectHelpExpand,
   ConnectChecklistValidated,
   SummaryOwners
@@ -160,7 +159,6 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
   useHostFeatureFlags: () => ({
     isSaveDraftEnabled: ref(true),
     isNewRentalUnitSetupEnabled: ref(true),
-    isNewAddressFormEnabled: ref(true),
     isNewDashboardEnabled: ref(false),
     isEnhancedDocumentUploadEnabled
   })
@@ -288,8 +286,7 @@ describe('Rental Application - Step 1', () => {
     expect(wrapper.find('[data-testid="alert-renewal-address-change"]').exists()).toBe(true)
 
     expect(wrapper.findComponent(FormUnitAddressAutoComplete).exists()).toBe(true)
-    expect(wrapper.findComponent(FormUnitAddressManual).exists()).toBe(false)
-    expect(wrapper.findComponent(FormUnitAddressManual2).exists()).toBe(true)
+    expect(wrapper.findComponent(FormUnitAddressManual).exists()).toBe(true)
 
     const rentalUnitDetails = wrapper.findComponent(FormDefineYourRentalUnitDetails2)
 
