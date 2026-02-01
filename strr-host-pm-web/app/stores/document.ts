@@ -8,7 +8,7 @@ export const useDocumentStore = defineStore('host/document', () => {
   const strrModal = useStrrModals()
   const reqStore = usePropertyReqStore()
   const propStore = useHostPropertyStore()
-  const { isNewPrDocumentsListEnabled, isEnhancedDocumentUploadEnabled } = useHostFeatureFlags()
+  const { isEnhancedDocumentUploadEnabled } = useHostFeatureFlags()
 
   const storedDocuments = ref<UiDocument[]>([])
   const selectedDocType = ref<DocumentUploadType | undefined>(undefined)
@@ -45,8 +45,7 @@ export const useDocumentStore = defineStore('host/document', () => {
 
       const hostType = propStore.unitDetails.hostType
 
-      if (isNewPrDocumentsListEnabled.value &&
-        (hostType === PropertyHostType.OWNER || hostType === PropertyHostType.FRIEND_RELATIVE)) {
+      if (hostType === PropertyHostType.OWNER || hostType === PropertyHostType.FRIEND_RELATIVE) {
         if (isEnhancedDocumentUploadEnabled.value) {
           docs.push({
             isValid: isIdValid,
@@ -68,7 +67,7 @@ export const useDocumentStore = defineStore('host/document', () => {
             formFieldName: 'prDocUpload'
           })
         }
-      } else if (isNewPrDocumentsListEnabled.value && hostType === PropertyHostType.LONG_TERM_TENANT) {
+      } else if (hostType === PropertyHostType.LONG_TERM_TENANT) {
         if (isEnhancedDocumentUploadEnabled.value) {
           docs.push({
             isValid: isIdValid,
@@ -173,10 +172,9 @@ export const useDocumentStore = defineStore('host/document', () => {
 
     if (exemptionReason === undefined) {
       const hostType = propStore.unitDetails.hostType
-      if (isNewPrDocumentsListEnabled.value &&
-        (hostType === PropertyHostType.OWNER || hostType === PropertyHostType.FRIEND_RELATIVE)) {
+      if (hostType === PropertyHostType.OWNER || hostType === PropertyHostType.FRIEND_RELATIVE) {
         docs.push(t('label.proofOfPrOwner'))
-      } else if (isNewPrDocumentsListEnabled.value && hostType === PropertyHostType.LONG_TERM_TENANT) {
+      } else if (hostType === PropertyHostType.LONG_TERM_TENANT) {
         docs.push(t('label.proofOfPrTenant'))
       } else {
         docs.push(t('label.proofOfPr'))
@@ -203,178 +201,100 @@ export const useDocumentStore = defineStore('host/document', () => {
     return docs
   })
 
-  const allDocTypeOptions = computed(() => {
-    if (isNewPrDocumentsListEnabled.value) {
-      // new document list with added doc types
-      return [
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENSE}`),
-          value: DocumentUploadType.BC_DRIVERS_LICENSE
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.BCSC}`),
-          value: DocumentUploadType.BCSC
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.COMBINED_BCSC_LICENSE}`),
-          value: DocumentUploadType.COMBINED_BCSC_LICENSE
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE}`),
-          value: DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE
-        },
-        {
-          label: t('form.pr.docType.ICBC_CERTIFICATE_OF_INSURANCE_FULL'), // todo: after new docs are released - update this
-          value: DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.HOME_INSURANCE_SUMMARY}`),
-          value: DocumentUploadType.HOME_INSURANCE_SUMMARY
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TAX_NOTICE}`),
-          value: DocumentUploadType.PROPERTY_TAX_NOTICE
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE}`),
-          value: DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
-          value: DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`),
-          value: DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.STRATA_HOTEL_DOCUMENTATION}`),
-          value: DocumentUploadType.STRATA_HOTEL_DOCUMENTATION
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.TENANCY_AGREEMENT}`),
-          value: DocumentUploadType.TENANCY_AGREEMENT
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT}`),
-          value: DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`),
-          value: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
-        },
-        // New document types
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.TITLE_CERTIFICATE_OR_SEARCH}`),
-          value: DocumentUploadType.TITLE_CERTIFICATE_OR_SEARCH
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.SPECULATION_VACANCY_TAX_DECLARATION}`),
-          value: DocumentUploadType.SPECULATION_VACANCY_TAX_DECLARATION
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.HOME_OWNER_GRANT_APPROVAL}`),
-          value: DocumentUploadType.HOME_OWNER_GRANT_APPROVAL
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.NOTARIZED_REAL_ESTATE_DOC}`),
-          value: DocumentUploadType.NOTARIZED_REAL_ESTATE_DOC
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TRANSFER_TAX_RETURN}`),
-          value: DocumentUploadType.PROPERTY_TRANSFER_TAX_RETURN
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.AFFIDAVIT_PRINCIPAL_RESIDENCE}`),
-          value: DocumentUploadType.AFFIDAVIT_PRINCIPAL_RESIDENCE
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.ASSESSMENT_ACT_NOTICE}`),
-          value: DocumentUploadType.ASSESSMENT_ACT_NOTICE
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.MORTGAGE_STATEMENT_OR_SAVINGS_DOC}`),
-          value: DocumentUploadType.MORTGAGE_STATEMENT_OR_SAVINGS_DOC
-        },
-        {
-          label: t(`form.pr.docType.${DocumentUploadType.OTHERS}`),
-          value: DocumentUploadType.OTHERS
-        }
-      ]
+  const allDocTypeOptions = [
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENSE}`),
+      value: DocumentUploadType.BC_DRIVERS_LICENSE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.BCSC}`),
+      value: DocumentUploadType.BCSC
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.COMBINED_BCSC_LICENSE}`),
+      value: DocumentUploadType.COMBINED_BCSC_LICENSE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE}`),
+      value: DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE
+    },
+    {
+      label: t('form.pr.docType.ICBC_CERTIFICATE_OF_INSURANCE_FULL'), // todo: after new docs are released - update this
+      value: DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.HOME_INSURANCE_SUMMARY}`),
+      value: DocumentUploadType.HOME_INSURANCE_SUMMARY
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TAX_NOTICE}`),
+      value: DocumentUploadType.PROPERTY_TAX_NOTICE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE}`),
+      value: DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
+      value: DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP}`),
+      value: DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.STRATA_HOTEL_DOCUMENTATION}`),
+      value: DocumentUploadType.STRATA_HOTEL_DOCUMENTATION
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.TENANCY_AGREEMENT}`),
+      value: DocumentUploadType.TENANCY_AGREEMENT
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT}`),
+      value: DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`),
+      value: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.TITLE_CERTIFICATE_OR_SEARCH}`),
+      value: DocumentUploadType.TITLE_CERTIFICATE_OR_SEARCH
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.SPECULATION_VACANCY_TAX_DECLARATION}`),
+      value: DocumentUploadType.SPECULATION_VACANCY_TAX_DECLARATION
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.HOME_OWNER_GRANT_APPROVAL}`),
+      value: DocumentUploadType.HOME_OWNER_GRANT_APPROVAL
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.NOTARIZED_REAL_ESTATE_DOC}`),
+      value: DocumentUploadType.NOTARIZED_REAL_ESTATE_DOC
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TRANSFER_TAX_RETURN}`),
+      value: DocumentUploadType.PROPERTY_TRANSFER_TAX_RETURN
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.AFFIDAVIT_PRINCIPAL_RESIDENCE}`),
+      value: DocumentUploadType.AFFIDAVIT_PRINCIPAL_RESIDENCE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.ASSESSMENT_ACT_NOTICE}`),
+      value: DocumentUploadType.ASSESSMENT_ACT_NOTICE
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.MORTGAGE_STATEMENT_OR_SAVINGS_DOC}`),
+      value: DocumentUploadType.MORTGAGE_STATEMENT_OR_SAVINGS_DOC
+    },
+    {
+      label: t(`form.pr.docType.${DocumentUploadType.OTHERS}`),
+      value: DocumentUploadType.OTHERS
     }
-
-    // Original document list
-    return [
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.BC_DRIVERS_LICENSE}`),
-        value: DocumentUploadType.BC_DRIVERS_LICENSE
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.BCSC}`),
-        value: DocumentUploadType.BCSC
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.COMBINED_BCSC_LICENSE}`),
-        value: DocumentUploadType.COMBINED_BCSC_LICENSE
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE}`),
-        value: DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.SPEC_TAX_CONFIRMATION}`),
-        value: DocumentUploadType.SPEC_TAX_CONFIRMATION
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.HOG_DECLARATION}`),
-        value: DocumentUploadType.HOG_DECLARATION
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE}`),
-        value: DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.HOME_INSURANCE_SUMMARY}`),
-        value: DocumentUploadType.HOME_INSURANCE_SUMMARY
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.PROPERTY_TAX_NOTICE}`),
-        value: DocumentUploadType.PROPERTY_TAX_NOTICE
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.UTILITY_BILL}`),
-        value: DocumentUploadType.UTILITY_BILL
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE}`),
-        value: DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT}`),
-        value: DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.STRATA_HOTEL_DOCUMENTATION}`),
-        value: DocumentUploadType.STRATA_HOTEL_DOCUMENTATION
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.TENANCY_AGREEMENT}`),
-        value: DocumentUploadType.TENANCY_AGREEMENT
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT}`),
-        value: DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE}`),
-        value: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
-      },
-      {
-        label: t(`form.pr.docType.${DocumentUploadType.OTHERS}`),
-        value: DocumentUploadType.OTHERS
-      }
-    ]
-  })
+  ]
 
   // Filter document options
   const docTypeOptions = computed(() => {
@@ -386,15 +306,15 @@ export const useDocumentStore = defineStore('host/document', () => {
       permitStore.registration?.nocStatus === RegistrationNocStatus.NOC_PENDING
     // If both business license is needed AND NOC is pending
     if (needsBusinessLicense && isNocPending) {
-      return allDocTypeOptions.value
+      return allDocTypeOptions
     }
     // If only business license is needed
     if (needsBusinessLicense) {
-      return allDocTypeOptions.value.filter(option =>
+      return allDocTypeOptions.filter(option =>
         option.value === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
       )
     }
-    return allDocTypeOptions.value
+    return allDocTypeOptions
   })
 
   async function addStoredDocument (
@@ -547,105 +467,65 @@ export const useDocumentStore = defineStore('host/document', () => {
     await Promise.all(docsToDelete.map(doc => removeStoredDocument(doc)))
   }
 
-  const documentCategories = computed<Record<DocumentTypeKey, DocumentUploadType[]>>(() => {
-    if (isNewPrDocumentsListEnabled.value) {
-      return {
-        // new list of documents
-        bcId: [
-          DocumentUploadType.BC_DRIVERS_LICENSE,
-          DocumentUploadType.BCSC,
-          DocumentUploadType.COMBINED_BCSC_LICENSE
-        ],
-        uniqueColumnB: [
-          DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE,
-          DocumentUploadType.HOME_INSURANCE_SUMMARY,
-          DocumentUploadType.PROPERTY_TAX_NOTICE,
-          DocumentUploadType.SPECULATION_VACANCY_TAX_DECLARATION,
-          DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE,
-          DocumentUploadType.HOME_OWNER_GRANT_APPROVAL,
-          DocumentUploadType.TITLE_CERTIFICATE_OR_SEARCH,
-          DocumentUploadType.NOTARIZED_REAL_ESTATE_DOC,
-          DocumentUploadType.PROPERTY_TRANSFER_TAX_RETURN,
-          DocumentUploadType.AFFIDAVIT_PRINCIPAL_RESIDENCE,
-          DocumentUploadType.ASSESSMENT_ACT_NOTICE,
-          DocumentUploadType.MORTGAGE_STATEMENT_OR_SAVINGS_DOC
-        ],
-        nonUniqueColumnB: [
-          DocumentUploadType.OTHERS,
-          DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
-        ],
-        rental: [
-          DocumentUploadType.TENANCY_AGREEMENT,
-          DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
-        ],
-        exemption: [
-          DocumentUploadType.STRATA_HOTEL_DOCUMENTATION,
-          DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT,
-          DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
-        ],
-        bl: [
-          DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
-        ]
-      }
-    }
-
-    // original list of documents
-    return {
-      bcId:
-     [ // bc id cards only count as 1 document
-       DocumentUploadType.BC_DRIVERS_LICENSE,
-       DocumentUploadType.BCSC,
-       DocumentUploadType.COMBINED_BCSC_LICENSE
-     ],
-      uniqueColumnB: [ // 1 doc from bcId and 2 unique docs from this list are required
-        DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE,
-        DocumentUploadType.HOME_INSURANCE_SUMMARY,
-        DocumentUploadType.PROPERTY_TAX_NOTICE,
-        DocumentUploadType.SPEC_TAX_CONFIRMATION,
-        DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE,
-        DocumentUploadType.HOG_DECLARATION
-      ],
-      nonUniqueColumnB: [ // or 1 doc from bcId and 2 non-unique docs from this list are required
-        DocumentUploadType.UTILITY_BILL,
-        DocumentUploadType.OTHERS,
-        DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
-      ],
-      rental: [ // rental docs only count as 1 document
-        DocumentUploadType.TENANCY_AGREEMENT,
-        DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
-      ],
-      exemption: [
-        DocumentUploadType.STRATA_HOTEL_DOCUMENTATION,
-        DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT,
-        DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
-      ],
-      bl: [
-        DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
-      ]
-    }
-  })
+  const documentCategories: Record<DocumentTypeKey, DocumentUploadType[]> = {
+    bcId: [
+      DocumentUploadType.BC_DRIVERS_LICENSE,
+      DocumentUploadType.BCSC,
+      DocumentUploadType.COMBINED_BCSC_LICENSE
+    ],
+    uniqueColumnB: [
+      DocumentUploadType.ICBC_CERTIFICATE_OF_INSURANCE,
+      DocumentUploadType.HOME_INSURANCE_SUMMARY,
+      DocumentUploadType.PROPERTY_TAX_NOTICE,
+      DocumentUploadType.SPECULATION_VACANCY_TAX_DECLARATION,
+      DocumentUploadType.PROPERTY_ASSESSMENT_NOTICE,
+      DocumentUploadType.HOME_OWNER_GRANT_APPROVAL,
+      DocumentUploadType.TITLE_CERTIFICATE_OR_SEARCH,
+      DocumentUploadType.NOTARIZED_REAL_ESTATE_DOC,
+      DocumentUploadType.PROPERTY_TRANSFER_TAX_RETURN,
+      DocumentUploadType.AFFIDAVIT_PRINCIPAL_RESIDENCE,
+      DocumentUploadType.ASSESSMENT_ACT_NOTICE,
+      DocumentUploadType.MORTGAGE_STATEMENT_OR_SAVINGS_DOC
+    ],
+    nonUniqueColumnB: [
+      DocumentUploadType.OTHERS,
+      DocumentUploadType.GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE
+    ],
+    rental: [
+      DocumentUploadType.TENANCY_AGREEMENT,
+      DocumentUploadType.RENT_RECEIPT_OR_BANK_STATEMENT
+    ],
+    exemption: [
+      DocumentUploadType.STRATA_HOTEL_DOCUMENTATION,
+      DocumentUploadType.FRACTIONAL_OWNERSHIP_AGREEMENT,
+      DocumentUploadType.PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP
+    ],
+    bl: [
+      DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
+    ]
+  }
 
   const prDocs: DocumentUploadType[] = [
-    ...documentCategories.value.bcId,
-    ...documentCategories.value.uniqueColumnB,
-    ...documentCategories.value.nonUniqueColumnB,
-    ...documentCategories.value.rental
+    ...documentCategories.bcId,
+    ...documentCategories.uniqueColumnB,
+    ...documentCategories.nonUniqueColumnB,
+    ...documentCategories.rental
   ]
 
   function validateIdentityDocumentDropdown (): boolean {
-    return apiDocuments.value.some(doc => documentCategories.value.bcId.includes(doc.documentType))
+    return apiDocuments.value.some(doc => documentCategories.bcId.includes(doc.documentType))
   }
 
   function validatePrincipalResidenceDropdown (): boolean {
     // get unique column b docs
     const columnBFilteredUnique = uniqBy(
-      apiDocuments.value.filter(item => documentCategories.value.uniqueColumnB.includes(item.documentType)),
+      apiDocuments.value.filter(item => documentCategories.uniqueColumnB.includes(item.documentType)),
       'documentType'
     )
 
     // get non-unique column b docs
     const columnBFilteredNonUnique = apiDocuments.value.filter(item =>
-      documentCategories.value.nonUniqueColumnB.includes(item.documentType)
+      documentCategories.nonUniqueColumnB.includes(item.documentType)
     )
 
     // const columnACount = bcIdDocCount
@@ -658,23 +538,23 @@ export const useDocumentStore = defineStore('host/document', () => {
   function validatePrincipalResidenceDocuments (): boolean {
     // get unique column b docs
     const columnBFilteredUnique = uniqBy(
-      apiDocuments.value.filter(item => documentCategories.value.uniqueColumnB.includes(item.documentType)),
+      apiDocuments.value.filter(item => documentCategories.uniqueColumnB.includes(item.documentType)),
       'documentType'
     )
 
     // get non-unique column b docs
     const columnBFilteredNonUnique = apiDocuments.value.filter(item =>
-      documentCategories.value.nonUniqueColumnB.includes(item.documentType)
+      documentCategories.nonUniqueColumnB.includes(item.documentType)
     )
 
     // get bc id docs
-    const bcIdDocsExist = apiDocuments.value.some(doc => documentCategories.value.bcId.includes(doc.documentType))
+    const bcIdDocsExist = apiDocuments.value.some(doc => documentCategories.bcId.includes(doc.documentType))
     // only count bcid docs as 1 document
     const bcIdDocCount = bcIdDocsExist ? 1 : 0
 
     // get rental docs
     const rentalDocsExist = isTenant.value &&
-      apiDocuments.value.some(doc => documentCategories.value.rental.includes(doc.documentType))
+      apiDocuments.value.some(doc => documentCategories.rental.includes(doc.documentType))
     // only count rental docs as 1 document
     const rentalDocCount = rentalDocsExist ? 1 : 0
 

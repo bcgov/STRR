@@ -12,7 +12,7 @@ const docStore = useDocumentStore()
 const propStore = useHostPropertyStore()
 const strrModal = useStrrModals()
 const { openSupportingDocumentsHelpModal } = useHostPmModals()
-const { isNewPrDocumentsListEnabled, isEnhancedDocumentUploadEnabled } = useHostFeatureFlags()
+const { isEnhancedDocumentUploadEnabled } = useHostFeatureFlags()
 
 const { propertyReqs, prRequirements } = storeToRefs(reqStore)
 const { unitDetails } = storeToRefs(propStore)
@@ -43,7 +43,7 @@ watch(
 )
 
 const showEnhancedDocumentUpload = computed(() =>
-  isEnhancedDocumentUploadEnabled.value && isNewPrDocumentsListEnabled.value
+  isEnhancedDocumentUploadEnabled.value
 )
 
 // display conditions for document upload types
@@ -192,7 +192,6 @@ onMounted(async () => {
               :items="docStore.potentialRequiredDocs"
             />
             <UButton
-              v-if="isNewPrDocumentsListEnabled"
               :label="$t('modal.supportingDocumentsHelp.triggerBtn')"
               leading-icon="i-mdi-info-outline"
               variant="link"

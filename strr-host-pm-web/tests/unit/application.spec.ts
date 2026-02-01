@@ -162,8 +162,7 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
     isNewRentalUnitSetupEnabled: ref(true),
     isNewAddressFormEnabled: ref(true),
     isNewDashboardEnabled: ref(false),
-    isEnhancedDocumentUploadEnabled,
-    isNewPrDocumentsListEnabled: ref(true)
+    isEnhancedDocumentUploadEnabled
   })
 }))
 
