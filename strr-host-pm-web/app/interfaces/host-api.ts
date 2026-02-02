@@ -35,11 +35,6 @@ export interface ApiUnitDetails {
   businessLicense?: string
   businessLicenseExpiryDate?: string
   propertyType: PropertyType | undefined
-  ownershipType: OwnershipType | undefined
-  rentalUnitSpaceType: RentalUnitType | undefined
-  hostResidence: ResidenceType | undefined
-  isUnitOnPrincipalResidenceProperty: boolean | undefined
-  numberOfRoomsForRent: number | undefined
   prExemptReason?: PrExemptionReason
   blExemptReason?: string
   strataHotelCategory?: StrataHotelCategory

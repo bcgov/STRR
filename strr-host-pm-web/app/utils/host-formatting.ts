@@ -74,17 +74,6 @@ export function formatHostUnitDetailsAPI (
 ): ApiUnitDetails {
   return {
     propertyType: unitDetails.propertyType,
-    ownershipType: unitDetails.ownershipType,
-    numberOfRoomsForRent: unitDetails.numberOfRoomsForRent,
-    isUnitOnPrincipalResidenceProperty: unitDetails.rentalUnitSetupType === undefined
-      ? undefined
-      : unitDetails.rentalUnitSetupType !== RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY,
-    hostResidence: unitDetails.rentalUnitSetupType === undefined
-      ? undefined
-      : unitDetails.rentalUnitSetupType === RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE
-        ? ResidenceType.SAME_UNIT
-        : ResidenceType.ANOTHER_UNIT,
-    rentalUnitSpaceType: unitDetails.typeOfSpace,
     ...(unitDetails.parcelIdentifier ? { parcelIdentifier: unitDetails.parcelIdentifier } : {}),
     ...(blInfo.businessLicense ? { businessLicense: blInfo.businessLicense } : {}),
     ...(blInfo.businessLicenseExpiryDate ? { businessLicenseExpiryDate: blInfo.businessLicenseExpiryDate } : {}),
@@ -100,19 +89,8 @@ export function formatHostUnitDetailsAPI (
 }
 
 export function formatHostUnitDetailsUI (unitDetails: ApiUnitDetails): UiUnitDetails {
-  const rentalSetupType = unitDetails.isUnitOnPrincipalResidenceProperty === undefined
-    ? undefined
-    : unitDetails.isUnitOnPrincipalResidenceProperty
-      ? unitDetails.hostResidence === ResidenceType.SAME_UNIT
-        ? RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE
-        : RentalUnitSetupType.UNIT_ON_PR_PROPERTY
-      : RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY
   return {
     propertyType: unitDetails.propertyType,
-    ownershipType: unitDetails.ownershipType,
-    numberOfRoomsForRent: unitDetails.numberOfRoomsForRent,
-    rentalUnitSetupType: rentalSetupType,
-    typeOfSpace: unitDetails.rentalUnitSpaceType,
     ...(unitDetails.parcelIdentifier ? { parcelIdentifier: unitDetails.parcelIdentifier } : {}),
     ...(unitDetails.hostType ? { hostType: unitDetails.hostType } : {}),
     ...(unitDetails.rentalUnitSetupOption ? { rentalUnitSetupOption: unitDetails.rentalUnitSetupOption } : {})

@@ -11,11 +11,6 @@ export interface UiBlInfo {
 export interface UiUnitDetails {
   parcelIdentifier?: string
   propertyType: PropertyType | undefined
-  ownershipType: OwnershipType | undefined
-  numberOfRoomsForRent: number | undefined
-  rentalUnitSetupType: RentalUnitSetupType | undefined
-  typeOfSpace: RentalUnitType | undefined
-  // fields for new form
   hostType?: PropertyHostType
   rentalUnitSetupOption?: RentalUnitSetupOption
 }

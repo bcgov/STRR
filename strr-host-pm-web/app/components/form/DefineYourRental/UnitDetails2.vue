@@ -57,25 +57,6 @@ const rentalUnitSetupOptions = computed(() => [
   }
 ])
 
-// revalidate parcelIdentifier when user changes ownership types
-watch(
-  () => propStore.unitDetails.ownershipType,
-  (newVal) => {
-    if (newVal &&
-        [OwnershipType.OWN, OwnershipType.CO_OWN].includes(newVal) &&
-        propStore.unitDetails.parcelIdentifier !== ''
-    ) {
-      unitDetailsFormRef.value?.validate('parcelIdentifier', { silent: true })
-    }
-    if (newVal &&
-        [OwnershipType.RENT, OwnershipType.OTHER].includes(newVal) &&
-        propStore.unitDetails.parcelIdentifier === ''
-    ) {
-      unitDetailsFormRef.value?.validate('parcelIdentifier', { silent: true })
-    }
-  }
-)
-
 // watch and set Property Host Type as strata if PR Exemption reason is Strata Hotel
 watch(() => reqStore.prRequirements.prExemptionReason, async (val) => {
   if (val === PrExemptionReason.STRATA_HOTEL) {

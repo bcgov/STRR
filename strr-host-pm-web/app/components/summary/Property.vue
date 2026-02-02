@@ -3,7 +3,6 @@ const { t } = useNuxtApp().$i18n
 const propertyStore = useHostPropertyStore()
 const { unitAddress, unitDetails } = storeToRefs(propertyStore)
 const { prRequirements, blRequirements, strataHotelCategory } = storeToRefs(usePropertyReqStore())
-const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
 // step 1 items
 const exemptInfo = computed((): ConnectInfoTableItem[] => [
@@ -43,7 +42,7 @@ const parcelId = computed((): ConnectInfoTableItem[] => [
 ])
 
 const strataHotelRegistrationNumber = computed((): ConnectInfoTableItem[] =>
-  isNewRentalUnitSetupEnabled.value && isExemptionReasonStrata.value
+  isExemptionReasonStrata.value
     ? [
         {
           label: t('strr.label.strataPlatformRegistrationNumber'),
@@ -55,32 +54,27 @@ const strataHotelRegistrationNumber = computed((): ConnectInfoTableItem[] =>
 
 const propertyType = computed((): ConnectInfoTableItem[] => [
   {
-    label:
-    (isNewRentalUnitSetupEnabled.value
-      ? t('strr.label.strRentalType')
-      : t('strr.label.propertyType')),
+    label: t('strr.label.strRentalType'),
     info: t(`propertyType.${unitDetails.value.propertyType}`)
   }])
 
 const newRentalSetupType = computed((): ConnectInfoTableItem[] =>
-  isNewRentalUnitSetupEnabled.value
-    ? [
-        {
-          label: t('strr.label.hostType'),
-          info: t(`propertyHostType.${unitDetails.value.hostType}`)
-        },
-        {
-          label: t('strr.label.rentalUnitSetup'),
-          info: t(`rentalUnitSetupOption.${unitDetails.value.rentalUnitSetupOption}.label`)
-        }
-      ]
-    : []
+  [
+    {
+      label: t('strr.label.hostType'),
+      info: t(`propertyHostType.${unitDetails.value.hostType}`)
+    },
+    {
+      label: t('strr.label.rentalUnitSetup'),
+      info: t(`rentalUnitSetupOption.${unitDetails.value.rentalUnitSetupOption}.label`)
+    }
+  ]
 )
 
 const propertyInfo = computed((): ConnectInfoTableItem[] => [
   { label: t('label.strUnitName'), info: unitAddress.value.address.nickname || t('text.notEntered') },
   { label: t('label.strUnitAddress'), info: '', slot: 'address' },
-  ...(isNewRentalUnitSetupEnabled.value ? parcelId.value : []),
+  ...parcelId.value,
   ...(blRequirements.value.isBusinessLicenceExempt
     ? blExemptInfo.value
     : []
@@ -93,17 +87,7 @@ const propertyInfo = computed((): ConnectInfoTableItem[] => [
   ...strataHotelRegistrationNumber.value,
   { label: '', info: '', slot: 'border' },
   ...propertyType.value,
-  ...newRentalSetupType.value,
-  ...(!isNewRentalUnitSetupEnabled.value
-    ? [
-        { label: t('label.typeOfSpace'), info: t(`rentalUnitType.${unitDetails.value.typeOfSpace}`) },
-        { label: t('strr.label.rentalUnitSetup'), info: t(`rentalUnitSetupType.${unitDetails.value.rentalUnitSetupType}`) }, // eslint-disable-line max-len
-        { label: t('strr.label.numberOfRooms'), info: unitDetails.value.numberOfRoomsForRent },
-        { label: '', info: '', slot: 'border' },
-        { label: t('strr.label.ownershipType'), info: t(`ownershipType.${unitDetails.value.ownershipType}`) },
-        ...parcelId.value
-      ]
-    : [])
+  ...newRentalSetupType.value
 ])
 </script>
 <template>

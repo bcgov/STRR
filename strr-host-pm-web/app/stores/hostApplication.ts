@@ -13,7 +13,6 @@ export const useHostApplicationStore = defineStore('host/application', () => {
   })
   const permitStore = useHostPermitStore()
   const { isRegistrationRenewal, registration, application } = storeToRefs(permitStore)
-  const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
   const getEmptyConfirmation = () => ({
     agreedToRentalAct: false,
@@ -87,14 +86,6 @@ export const useHostApplicationStore = defineStore('host/application', () => {
 
   const submitApplication = async (isDraft = false, applicationId?: string) => {
     const body = createApplicationBody()
-
-    // clean up unit details to satisfy api schema
-    if (isNewRentalUnitSetupEnabled.value) {
-      delete body.registration.unitDetails.ownershipType
-      delete body.registration.unitDetails.rentalUnitSpaceType
-      delete body.registration.unitDetails.numberOfRoomsForRent
-      delete body.registration.unitDetails.isUnitOnPrincipalResidenceProperty
-    }
 
     const res = await postApplication<HostApplicationPayload, HostApplicationResp>(
       body,

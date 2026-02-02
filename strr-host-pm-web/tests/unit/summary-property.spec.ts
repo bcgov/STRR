@@ -23,10 +23,6 @@ vi.mock('@/stores/hostProperty', () => ({
     }),
     unitDetails: ref({
       propertyType: mockApplication.registration!.unitDetails!.propertyType,
-      typeOfSpace: mockApplication.registration!.unitDetails!.rentalUnitSpaceType,
-      rentalUnitSetupType: mockApplication.registration!.unitDetails!.rentalUnitSpaceType,
-      numberOfRoomsForRent: mockApplication.registration!.unitDetails!.numberOfRoomsForRent!.toString(),
-      ownershipType: mockApplication.registration!.unitDetails!.ownershipType,
       parcelIdentifier: mockApplication.registration!.unitDetails!.parcelIdentifier
     }),
     blInfo: ref({
@@ -69,7 +65,6 @@ describe('SummaryProperty Component', () => {
 
   it('displays property details correctly', () => {
     expect(wrapper.html()).toContain($t('propertyType.CONDO_OR_APT'))
-    expect(wrapper.html()).toContain($t('rentalUnitType.ENTIRE_HOME'))
   })
 
   it('handles PR exemption correctly', () => {

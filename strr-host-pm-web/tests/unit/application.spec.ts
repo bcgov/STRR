@@ -9,7 +9,6 @@ import {
   FormAddDocuments,
   FormAddOwners,
   FormDefineYourRentalUnitAddress,
-  FormDefineYourRentalUnitDetails,
   FormDefineYourRentalUnitDetails2,
   FormReview,
   FormUnitAddressAutoComplete,
@@ -35,7 +34,6 @@ vi.mock('@/stores/hostProperty', () => ({
     validateUnitAddress: () => true,
     validateUnitDetails: () => true,
     validateBusinessLicense: () => true,
-    propertyTypeFeeTriggers: ref([]),
     getUnitAddressSchema: () => ({ address: mockApplication.registration.unitAddress }),
     getUnitDetailsSchema2: () => vi.fn(),
     getUnitAddressSchema2: () => vi.fn(),
@@ -279,7 +277,6 @@ describe('Rental Application - Step 1', () => {
     expect(wrapper.findComponent(ConnectStepper).vm.activeStepIndex).toBe(0)
 
     expect(wrapper.findComponent(FormDefineYourRentalUnitAddress).exists()).toBe(true)
-    expect(wrapper.findComponent(FormDefineYourRentalUnitDetails).exists()).toBe(false)
     expect(wrapper.findComponent(FormDefineYourRentalUnitDetails2).exists()).toBe(true)
 
     expect(wrapper.find('[data-testid="rental-unit-address-nickname"]').exists()).toBe(true)

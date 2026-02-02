@@ -5,7 +5,6 @@ const props = defineProps<{ isComplete: boolean }>()
 const { t } = useNuxtApp().$i18n
 const reqStore = usePropertyReqStore()
 const { unitDetails } = storeToRefs(useHostPropertyStore())
-const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
 const prReqFormRef = ref<Form<any>>()
 const prExemptionOptions = [
@@ -31,7 +30,7 @@ watch(
     if (newVal.isPropertyPrExempt === false) {
       reqStore.prRequirements.prExemptionReason = undefined
       reqStore.strataHotelCategory.category = undefined
-      if (isNewRentalUnitSetupEnabled.value && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
+      if (unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
         reqStore.strataHotelCategory.strataHotelRegistrationNumber = undefined
         unitDetails.value.propertyType = undefined // clear property type when disabling Strata Hotel PR requirement
       }
@@ -40,7 +39,7 @@ watch(
     // reset strata hotel category when changing exemption reason
     if (newVal.prExemptionReason !== PrExemptionReason.STRATA_HOTEL) {
       reqStore.strataHotelCategory.category = undefined
-      if (isNewRentalUnitSetupEnabled.value && unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
+      if (unitDetails.value.propertyType === PropertyType.STRATA_HOTEL) {
         reqStore.strataHotelCategory.strataHotelRegistrationNumber = undefined
         unitDetails.value.propertyType = undefined // clear property type when disabling Strata Hotel exemption reason
       }

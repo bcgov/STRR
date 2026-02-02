@@ -17,7 +17,6 @@ export const useDocumentStore = defineStore('host/document', () => {
 
   // check if Host Type is Renter or long-term Tenant to determine which PR docs are required
   const isTenant = computed(() =>
-    propStore.unitDetails.ownershipType === OwnershipType.RENT ||
     propStore.unitDetails.hostType === PropertyHostType.LONG_TERM_TENANT
   )
 
@@ -421,10 +420,9 @@ export const useDocumentStore = defineStore('host/document', () => {
       // create payload
       const formData = new FormData()
       formData.append('file', uiDoc.file)
-      // TODO: update api to accept and return the following form data fields
-      // formData.append('documentType', uiDoc.type)
-      // uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
-      // uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
+      formData.append('documentType', uiDoc.type)
+      uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
+      uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
 
       // submit file
       const res = await $strrApi<ApiDocument>('/documents', {

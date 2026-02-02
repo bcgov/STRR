@@ -7,7 +7,6 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
   const { $strrApi } = useNuxtApp()
 
   const propStore = useHostPropertyStore()
-  const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
   const loadingReqs = ref<boolean>(false)
   const propertyReqs = ref<PropertyRequirements>({} as PropertyRequirements)
@@ -71,11 +70,8 @@ export const usePropertyReqStore = defineStore('property/requirements', () => {
         ], {
           errorMap: () => ({ message: t('validation.strataHotelCategory') })
         })
-        : z.any().optional()
-    }
-    // additional validation for new rental unit setup (optional field with format validation)
-    if (isNewRentalUnitSetupEnabled.value) {
-      schema.strataHotelRegistrationNumber = z
+        : z.any().optional(),
+      strataHotelRegistrationNumber: z
         .string()
         .optional()
         .refine(val => !val || /^ST\d{9}$/.test(val),

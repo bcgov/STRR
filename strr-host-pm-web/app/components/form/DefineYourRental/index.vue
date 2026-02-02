@@ -1,7 +1,5 @@
 <script setup lang="ts">
 defineProps<{ isComplete: boolean }>()
-const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
-
 </script>
 
 <template>
@@ -11,14 +9,6 @@ const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
   >
     <FormDefineYourRentalUnitAddress :is-complete="isComplete" />
 
-    <FormDefineYourRentalUnitDetails2
-      v-if="isNewRentalUnitSetupEnabled"
-      :is-complete="isComplete"
-    />
-
-    <FormDefineYourRentalUnitDetails
-      v-else
-      :is-complete="isComplete"
-    />
+    <FormDefineYourRentalUnitDetails2 :is-complete="isComplete" />
   </div>
 </template>

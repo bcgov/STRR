@@ -166,7 +166,6 @@ export default {
       individualsBusinesses: 'Individuals and Businesses',
       listingLinkOpt: 'Listing Link (Optional)',
       numberOfRooms: 'Number of Bedrooms for Rent',
-      ownershipType: 'Ownership Type',
       nicknameOpt: 'Nickname (Optional)',
       parcelIdentifier: 'Parcel Identifier (Required if one exists)',
       parcelIdentifierOpt: 'Parcel Identifier (Optional)',
@@ -329,7 +328,6 @@ export default {
     strUnitAddress: 'Short-Term Rental Unit Residential Address',
     strUnitName: 'Short-Term Rental Unit Nickname',
     strUnitNameOpt: 'Short-Term Rental Unit Nickname (Optional)',
-    typeOfSpace: 'Type of Space',
     chooseDocs: 'Choose type of supporting document to upload',
     fileUpload: 'File Upload',
     localGovBL: 'Local Government Business Licence',
@@ -444,7 +442,6 @@ export default {
     followingDocsRequired: 'The following documentation is required for this registration:',
     followingDocsMayBeRequired: 'The following documentation may be required for this registration:',
     rentalUnitSetupLegend: 'Required: Select the set-up of the property, host principal residence, and rental unit.',
-    typeOfSpaceLegend: 'Required: Select the type of space of the rental unit.',
     hostTypeLegend: 'Required',
     thisPropIsInLocWithReqs: 'This property is in a location where the following requirements apply:',
     thisPropCouldBeInLocWithReqs: 'This property could be in a location where the following requirements apply:',
@@ -566,15 +563,12 @@ export default {
       empty: 'Please specify the number of rooms available for rent',
       invalidInput: 'Please enter a valid number of rooms (e.g., 5)'
     },
-    ownershipType: 'Please select the ownership type of this rental unit',
     parcelIdentifier: 'The parcel identifier must be a nine-digit number',
     propertyType: 'Please select the rental unit type of this rental unit',
     strPropertyType: 'Please select a short-term rental property/unit type',
     onlineListings: 'Please enter a valid URL (i.e. https://www.bcregistry.gov.bc.ca)',
-    rentalUnitSetupType: 'Please select the setup type of the rental unit',
     rentalUnitSetupOption: 'Please select a rental unit setup',
     hostType: 'Please select a property host type',
-    typeOfSpace: 'Please select the type of space of the unit',
     ownerRole: 'Please select the role',
     missingReqDocs: 'Missing required documents. Please see above for details.',
     blExpiryDate: 'The expiry date must be greater than today and in less than 1 year.',
@@ -660,12 +654,6 @@ export default {
     LONG_TERM_TENANT: 'The long-term tenant of this unit',
     undefined: 'Not Selected'
   },
-  rentalUnitSetupType: {
-    WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence or a room within the host's principal residence", // TODO: update enum to not be whole pr ???
-    UNIT_ON_PR_PROPERTY: "This unit is not the host's principal residence but it's on the same property",
-    UNIT_NOT_ON_PR_PROPERTY: "This unit is not on same property as host's principal residence",
-    undefined: 'Not Selected'
-  },
   rentalUnitSetupOption: {
     DIFFERENT_PROPERTY: {
       label: "Option 1: You are short-term renting a unit on a property you don't live at",
@@ -689,13 +677,6 @@ export default {
     undefined: {
       label: 'Not Selected'
     }
-  },
-  ownershipType: {
-    RENT: 'Renter',
-    OWN: 'Owner',
-    CO_OWN: 'Co-owner',
-    OTHER: 'Other',
-    undefined: 'Not Selected'
   },
   tooltip: {
     pid: 'You can find your Parcel Identifier (PID) on your Property Assessment Notice from BC Assessment. Alternatively, visit the BC Assessment website, search for your civic address, and look for the PID under ‘Legal Description and Parcel ID’.',

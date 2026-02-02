@@ -7,7 +7,6 @@ const config = useRuntimeConfig().public
 
 const { t } = useNuxtApp().$i18n
 const reqStore = usePropertyReqStore()
-const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 const hostPmModal = useHostPmModals()
 
 const strataHotelCategoryOptions = [
@@ -35,10 +34,6 @@ onMounted(async () => {
   }
 })
 
-const formErrors = computed((): string[] =>
-  isNewRentalUnitSetupEnabled.value ? ['category', 'strataHotelRegistrationNumber'] : ['category']
-)
-
 </script>
 
 <template>
@@ -50,7 +45,8 @@ const formErrors = computed((): string[] =>
     <ConnectFormSection
       :title="$t('label.strataHotelCategory')"
       class="-mx-4 mt-4 md:-mx-10"
-      :error="props.isComplete && hasFormErrors(strataHotelCategoryFormRef, formErrors)"
+      :error="props.isComplete &&
+        hasFormErrors(strataHotelCategoryFormRef, ['category', 'strataHotelRegistrationNumber'])"
       data-testid="strata-hotel-category-section"
     >
       <UFormGroup v-slot="{ error }" name="category">
@@ -77,10 +73,7 @@ const formErrors = computed((): string[] =>
           </template>
         </URadioGroup>
       </UFormGroup>
-      <div
-        v-if="isNewRentalUnitSetupEnabled"
-        class="mt-8"
-      >
+      <div class="mt-8">
         <ConnectFormFieldGroup
           id="strata-platform-reg-number"
           v-model="reqStore.strataHotelCategory.strataHotelRegistrationNumber"

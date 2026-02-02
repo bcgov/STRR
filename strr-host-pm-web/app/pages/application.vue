@@ -8,7 +8,7 @@ const { setButtonControl, handleButtonLoading } = useButtonControl()
 
 const propertyStore = useHostPropertyStore()
 const propertyReqStore = usePropertyReqStore()
-const { unitDetails, propertyTypeFeeTriggers } = storeToRefs(propertyStore)
+const { unitDetails } = storeToRefs(propertyStore)
 const { showUnitDetailsForm, prRequirements } = storeToRefs(propertyReqStore)
 const { validateOwners } = useHostOwnerStore()
 const documentsStore = useDocumentStore()
@@ -22,7 +22,7 @@ const permitStore = useHostPermitStore()
 const { renewalRegId, application, isRegistrationRenewal } = storeToRefs(permitStore)
 
 const { applicationId, isRenewal } = useRouterParams()
-const { isSaveDraftEnabled, isNewRentalUnitSetupEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
+const { isSaveDraftEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
 const { fetchStrrFees, getApplicationFee } = useHostApplicationFee()
 const loading = ref(false)
 
@@ -114,39 +114,9 @@ const resetFees = () => {
   removeFee(StrrFeeCode.STR_HOST_3)
 }
 
-const setFeeBasedOnProperty = () => {
-  if (!hostFee1.value || !hostFee2.value || !hostFee3.value || !hostFee4.value) {
-    return
-  }
-  resetFees()
-  if (propertyTypeFeeTriggers.value.isEntireHomeAndPrincipalResidence) {
-    addReplaceFee(hostFee1.value)
-  } else if (propertyTypeFeeTriggers.value.isEntireHomeAndNotPrincipalResidence) {
-    addReplaceFee(hostFee2.value)
-  } else if (propertyTypeFeeTriggers.value.isSharedAccommodation) {
-    if (propertyTypeFeeTriggers.value.isBBorRecProperty) {
-      addReplaceFee(hostFee3.value)
-    } else {
-      hostFee4.value.quantity = unitDetails.value.numberOfRoomsForRent || 1
-      addReplaceFee(hostFee4.value)
-    }
-  } else {
-    // set placeholder
-    resetFees()
-  }
-  hostFee4.value.quantityDesc = hostFee4.value.quantity !== undefined && hostFee4.value.quantity > 1
-    ? t('strr.word.room', hostFee4.value.quantity)
-    : undefined
-}
-
-// manage fees only when typeOfSpace, rentalUnitSetupType or propertyType change
 // for new rental unit form - do not calculate the fees, it will be calculated on the last step
-watch(unitDetails, (newVal) => {
-  if (newVal.typeOfSpace && newVal.rentalUnitSetupType && newVal.propertyType && !isNewRentalUnitSetupEnabled.value) {
-    setFeeBasedOnProperty()
-  } else {
-    resetFees()
-  }
+watch(unitDetails, () => {
+  resetFees()
 }, { deep: true })
 
 // stepper stuff
@@ -378,17 +348,16 @@ watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
   }
 })
 
-// remove rental docs if ownership type !== rent
-watch(() => unitDetails.value.ownershipType, async (newVal) => {
+// remove rental docs if host type is not tenant
+watch(() => unitDetails.value.hostType, async (newVal) => {
   // only execute if unit details form shown - (application has been started)
-  if (showUnitDetailsForm.value && newVal !== undefined && newVal !== OwnershipType.RENT) {
+  if (showUnitDetailsForm.value && newVal !== undefined && newVal !== PropertyHostType.LONG_TERM_TENANT) {
     await documentsStore.removeDocumentsByType(documentsStore.documentCategories.rental)
   }
 })
 
 // watch the Stepper to calculate application fees on Review and Confirm step only
 watch(activeStepIndex, (val) => {
-  if (!isNewRentalUnitSetupEnabled.value) { return } // get fees for new rental unit setup only
   const { propertyType, rentalUnitSetupOption } = unitDetails.value
   const isReviewStep = val === 3 // get fees when on Review step only
   const hasValidSteps = steps.value.slice(0, 3).every(step => step.isValid) // biz requirement: steps 1-3 must be valid

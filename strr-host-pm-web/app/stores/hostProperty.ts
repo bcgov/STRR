@@ -2,7 +2,6 @@ import { z } from 'zod'
 
 export const useHostPropertyStore = defineStore('host/property', () => {
   const { t } = useNuxtApp().$i18n
-  const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
   const propertyReqStore = usePropertyReqStore()
 
   // rental unit address stuff
@@ -182,48 +181,8 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     }
   }
 
-  // unit details stuff
-  const getUnitDetailsSchema = () => z.object({
-    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
-    propertyType: z.enum([
-      PropertyType.ACCESSORY_DWELLING,
-      PropertyType.BED_AND_BREAKFAST,
-      PropertyType.CONDO_OR_APT,
-      PropertyType.FLOAT_HOME,
-      PropertyType.MULTI_UNIT_HOUSING,
-      PropertyType.RECREATIONAL,
-      PropertyType.SECONDARY_SUITE,
-      PropertyType.SINGLE_FAMILY_HOME,
-      PropertyType.STRATA_HOTEL,
-      PropertyType.TOWN_HOME
-    ], {
-      errorMap: () => ({ message: t('validation.propertyType') })
-    }),
-    ownershipType: z.enum([OwnershipType.CO_OWN, OwnershipType.OWN, OwnershipType.RENT, OwnershipType.OTHER], {
-      errorMap: () => ({ message: t('validation.ownershipType') })
-    }),
-    typeOfSpace: z.enum([RentalUnitType.ENTIRE_HOME, RentalUnitType.SHARED_ACCOMMODATION], {
-      errorMap: () => ({ message: t('validation.typeOfSpace') })
-    }),
-    rentalUnitSetupType: z.enum([
-      RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
-      RentalUnitSetupType.UNIT_ON_PR_PROPERTY,
-      RentalUnitSetupType.UNIT_NOT_ON_PR_PROPERTY
-    ], {
-      errorMap: () => ({ message: t('validation.rentalUnitSetupType') })
-    }),
-    numberOfRoomsForRent: z
-      .number({
-        required_error: t('validation.numberOfRooms.empty'),
-        invalid_type_error: t('validation.numberOfRooms.invalidInput')
-      })
-      .int({ message: t('validation.numberOfRooms.invalidInput') })
-      .min(0)
-      .max(5000)
-  })
-
-  // validation schema for new property setup - enabled by feature flag isNewRentalUnitSetupEnabled
   const getUnitDetailsSchema2 = () => z.object({
+    parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
     propertyType: z.enum([
       PropertyType.SINGLE_FAMILY_HOME,
       PropertyType.SECONDARY_SUITE,
@@ -254,11 +213,6 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   const getEmptyUnitDetails = (): UiUnitDetails => ({
     parcelIdentifier: '',
     propertyType: undefined,
-    ownershipType: undefined,
-    rentalUnitSetupType: undefined,
-    typeOfSpace: undefined,
-    numberOfRoomsForRent: 0,
-    // fields for new form
     hostType: undefined,
     rentalUnitSetupOption: undefined
   })
@@ -266,7 +220,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   const unitDetails = ref<UiUnitDetails>(getEmptyUnitDetails())
 
   const validateUnitDetails = (returnBool = false): MultiFormValidationResult | boolean => {
-    const schemaToValidate = isNewRentalUnitSetupEnabled.value ? getUnitDetailsSchema2() : getUnitDetailsSchema()
+    const schemaToValidate = getUnitDetailsSchema2()
 
     const result = validateSchemaAgainstState(
       schemaToValidate,
@@ -288,23 +242,6 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     PropertyType.MULTI_UNIT_HOUSING,
     PropertyType.STRATA_HOTEL].includes(unitDetails.value.propertyType)
   )
-
-  const isOwnerOrCoOwner = computed(() => unitDetails.value.ownershipType && [
-    OwnershipType.OWN,
-    OwnershipType.CO_OWN
-  ].includes(unitDetails.value.ownershipType))
-
-  const propertyTypeFeeTriggers = computed(() => ({
-    isEntireHomeAndPrincipalResidence:
-      unitDetails.value.typeOfSpace === RentalUnitType.ENTIRE_HOME &&
-      unitDetails.value.rentalUnitSetupType === RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
-    isEntireHomeAndNotPrincipalResidence:
-      unitDetails.value.typeOfSpace === RentalUnitType.ENTIRE_HOME &&
-      unitDetails.value.rentalUnitSetupType !== RentalUnitSetupType.WHOLE_PRINCIPAL_RESIDENCE,
-    isSharedAccommodation: unitDetails.value.typeOfSpace === RentalUnitType.SHARED_ACCOMMODATION,
-    isBBorRecProperty: unitDetails.value.propertyType &&
-      [PropertyType.BED_AND_BREAKFAST, PropertyType.RECREATIONAL].includes(unitDetails.value.propertyType)
-  }))
 
   const resetUnitAddress = (preserveNickname = false) => {
     const nickname = unitAddress.value.address.nickname
@@ -342,14 +279,11 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     blInfo,
     validateBusinessLicense,
     // unitDetailsSchema,
-    getUnitDetailsSchema,
     getUnitDetailsSchema2,
     getEmptyUnitDetails,
     unitDetails,
     validateUnitDetails,
     isUnitNumberRequired,
-    isOwnerOrCoOwner,
-    propertyTypeFeeTriggers,
     useManualAddressInput,
     hasNoStreetAddress,
     resetUnitAddress,

@@ -92,14 +92,9 @@ export const mockApplication: HostApplicationResp = {
       unitNumber: '101'
     },
     unitDetails: {
-      hostResidence: ResidenceType.SAME_UNIT,
       hostType: PropertyHostType.OWNER,
-      isUnitOnPrincipalResidenceProperty: true,
-      numberOfRoomsForRent: 2,
-      ownershipType: OwnershipType.OWN,
       parcelIdentifier: '123-456-789',
       propertyType: PropertyType.CONDO_OR_APT,
-      rentalUnitSpaceType: RentalUnitType.ENTIRE_HOME,
       businessLicense: '123123123',
       strataHotelCategory: StrataHotelCategory.FULL_SERVICE
     }
@@ -177,13 +172,8 @@ export const mockHostRegistration: HostRegistrationResp = {
   primaryContact: mockPrimaryContactPerson,
   unitAddress: mockUnitAddress,
   unitDetails: {
-    hostResidence: ResidenceType.SAME_UNIT,
-    isUnitOnPrincipalResidenceProperty: true,
-    numberOfRoomsForRent: 2,
-    ownershipType: OwnershipType.OWN,
     parcelIdentifier: '123-456-789',
     propertyType: PropertyType.CONDO_OR_APT,
-    rentalUnitSpaceType: RentalUnitType.ENTIRE_HOME,
     businessLicense: '123123123'
   },
   strRequirements: {

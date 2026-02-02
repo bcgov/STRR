@@ -1,4 +1,0 @@
-export enum RentalUnitType {
-  ENTIRE_HOME = 'ENTIRE_HOME',
-  SHARED_ACCOMMODATION = 'SHARED_ACCOMMODATION'
-}

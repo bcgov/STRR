@@ -10,7 +10,6 @@ const props = defineProps<{ isComplete: boolean }>()
 
 const unitAddressFormRef = ref<Form<any>>()
 const unitPidFormRef = ref<Form<any>>()
-const { isNewRentalUnitSetupEnabled } = useHostFeatureFlags()
 
 // clear form errors and submit when new address selected form autocomplete
 function handleNewAddress () {
@@ -54,6 +53,7 @@ onMounted(async () => {
   // validate form if step marked as complete
   if (props.isComplete) {
     await validateForm(unitAddressFormRef.value, props.isComplete)
+    await validateForm(unitPidFormRef.value, props.isComplete)
   }
 
   // trigger address requirements check when Registration Renewal is loaded
@@ -268,10 +268,10 @@ onMounted(async () => {
     </UForm>
 
     <UForm
-      v-if="isNewRentalUnitSetupEnabled && hasPropertyRequirements && reqStore.showUnitDetailsForm"
+      v-if="hasPropertyRequirements && reqStore.showUnitDetailsForm"
       ref="unitPidFormRef"
       data-testid="form-unit-pid"
-      :schema="propStore.getUnitDetailsSchema()"
+      :schema="propStore.getUnitDetailsSchema2()"
       :state="propStore.unitDetails"
       class="border-x border-gray-200 bg-white pb-10"
     >
@@ -286,10 +286,10 @@ onMounted(async () => {
           class="[&_.max-w-bcGovInput]:max-w-full"
           mask="###-###-###"
           name="parcelIdentifier"
-          :aria-label="(!propStore.unitDetails.ownershipType || propStore.isOwnerOrCoOwner)
+          :aria-label="propStore.isOwnerOrCoOwner
             ? $t('strr.label.parcelIdentifier')
             : $t('strr.label.parcelIdentifierOpt')"
-          :placeholder="(!propStore.unitDetails.ownershipType || propStore.isOwnerOrCoOwner)
+          :placeholder="propStore.isOwnerOrCoOwner
             ? $t('strr.label.parcelIdentifier')
             : $t('strr.label.parcelIdentifierOpt')"
         >
