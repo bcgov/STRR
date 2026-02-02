@@ -286,12 +286,8 @@ onMounted(async () => {
           class="[&_.max-w-bcGovInput]:max-w-full"
           mask="###-###-###"
           name="parcelIdentifier"
-          :aria-label="propStore.isOwnerOrCoOwner
-            ? $t('strr.label.parcelIdentifier')
-            : $t('strr.label.parcelIdentifierOpt')"
-          :placeholder="propStore.isOwnerOrCoOwner
-            ? $t('strr.label.parcelIdentifier')
-            : $t('strr.label.parcelIdentifierOpt')"
+          :aria-label="$t('strr.label.parcelIdentifier')"
+          :placeholder="$t('strr.label.parcelIdentifier')"
         >
           <template #help>
             <span>
