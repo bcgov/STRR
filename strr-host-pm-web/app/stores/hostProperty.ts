@@ -181,7 +181,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     }
   }
 
-  const getUnitDetailsSchema2 = () => z.object({
+  const getUnitDetailsSchema = () => z.object({
     parcelIdentifier: getOptionalPID(t('validation.parcelIdentifier')),
     propertyType: z.enum([
       PropertyType.SINGLE_FAMILY_HOME,
@@ -220,7 +220,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
   const unitDetails = ref<UiUnitDetails>(getEmptyUnitDetails())
 
   const validateUnitDetails = (returnBool = false): MultiFormValidationResult | boolean => {
-    const schemaToValidate = getUnitDetailsSchema2()
+    const schemaToValidate = getUnitDetailsSchema()
 
     const result = validateSchemaAgainstState(
       schemaToValidate,
@@ -279,7 +279,7 @@ export const useHostPropertyStore = defineStore('host/property', () => {
     blInfo,
     validateBusinessLicense,
     // unitDetailsSchema,
-    getUnitDetailsSchema2,
+    getUnitDetailsSchema,
     getEmptyUnitDetails,
     unitDetails,
     validateUnitDetails,

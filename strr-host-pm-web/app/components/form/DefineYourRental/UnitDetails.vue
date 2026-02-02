@@ -5,7 +5,7 @@ const props = defineProps<{ isComplete: boolean }>()
 const { t } = useNuxtApp().$i18n
 const reqStore = usePropertyReqStore()
 const propStore = useHostPropertyStore()
-const { getUnitDetailsSchema2 } = useHostPropertyStore()
+const { getUnitDetailsSchema } = useHostPropertyStore()
 
 const unitDetailsFormRef = ref<Form<any>>()
 
@@ -100,7 +100,7 @@ onMounted(async () => {
     v-if="reqStore.showUnitDetailsForm"
     ref="unitDetailsFormRef"
     data-testid="form-unit-details"
-    :schema="getUnitDetailsSchema2()"
+    :schema="getUnitDetailsSchema()"
     :state="propStore.unitDetails"
     class="space-y-10"
   >

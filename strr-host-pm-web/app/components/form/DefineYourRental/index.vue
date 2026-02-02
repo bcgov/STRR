@@ -9,6 +9,6 @@ defineProps<{ isComplete: boolean }>()
   >
     <FormDefineYourRentalUnitAddress :is-complete="isComplete" />
 
-    <FormDefineYourRentalUnitDetails2 :is-complete="isComplete" />
+    <FormDefineYourRentalUnitDetails :is-complete="isComplete" />
   </div>
 </template>

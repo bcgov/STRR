@@ -271,7 +271,7 @@ onMounted(async () => {
       v-if="hasPropertyRequirements && reqStore.showUnitDetailsForm"
       ref="unitPidFormRef"
       data-testid="form-unit-pid"
-      :schema="propStore.getUnitDetailsSchema2()"
+      :schema="propStore.getUnitDetailsSchema()"
       :state="propStore.unitDetails"
       class="border-x border-gray-200 bg-white pb-10"
     >
