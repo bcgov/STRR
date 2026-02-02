@@ -48,12 +48,6 @@ vi.mock('@/stores/propertyRequirements', () => ({
   })
 }))
 
-vi.mock('@/composables/useHostFeatureFlags', () => ({
-  useHostFeatureFlags: () => ({
-    isNewRentalUnitSetupEnabled: ref(false)
-  })
-}))
-
 describe('SummaryProperty Component', () => {
   let wrapper: any
 

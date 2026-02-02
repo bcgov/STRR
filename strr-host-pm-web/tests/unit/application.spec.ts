@@ -156,7 +156,6 @@ const isEnhancedDocumentUploadEnabled = ref(false)
 vi.mock('@/composables/useHostFeatureFlags', () => ({
   useHostFeatureFlags: () => ({
     isSaveDraftEnabled: ref(true),
-    isNewRentalUnitSetupEnabled: ref(true),
     isNewDashboardEnabled: ref(false),
     isEnhancedDocumentUploadEnabled
   })
