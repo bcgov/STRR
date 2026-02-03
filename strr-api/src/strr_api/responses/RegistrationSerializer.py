@@ -82,13 +82,15 @@ class RegistrationSerializer:
         documents = []
         if registration.documents:
             for doc in registration.documents:
+                # Use added_on when set, otherwise document upload time from documents.created
+                added_on_value = doc.added_on if doc.added_on is not None else getattr(doc, "created", None)
                 documents.append(
                     {
                         "fileKey": doc.path,
                         "fileName": doc.file_name,
                         "fileType": doc.file_type,
                         "documentType": doc.document_type,
-                        "addedOn": doc.added_on.isoformat() if doc.added_on else None,
+                        "addedOn": added_on_value.isoformat() if added_on_value else None,
                     }
                 )
         registration_data["documents"] = documents

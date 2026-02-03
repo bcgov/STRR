@@ -599,4 +599,21 @@ class ApplicationSerializer:
             application_dict["header"]["nocStartDate"] = application.noc.start_date.strftime("%Y-%m-%d")
             application_dict["header"]["nocEndDate"] = application.noc.end_date.strftime("%Y-%m-%d")
 
+        # Set addedOn for registration documents (application-stage docs live only in application_json, not in DB)
+        registration_docs = application_dict.get("registration", {}).get("documents")
+        if registration_docs:
+            # First: use stored addedOn or uploadDate so application-stage docs show a date when we have one
+            for doc_item in registration_docs:
+                doc_item["addedOn"] = doc_item.get("addedOn") or doc_item.get("uploadDate")
+            # Then: overwrite with DB (created/added_on) when we have a live registration
+            if application.registration and application.registration.documents:
+                file_key_to_added_on = {}
+                for doc in application.registration.documents:
+                    added_on_value = doc.added_on if doc.added_on is not None else getattr(doc, "created", None)
+                    if added_on_value is not None:
+                        file_key_to_added_on[doc.path] = added_on_value.isoformat()
+                for doc_item in registration_docs:
+                    file_key = doc_item.get("fileKey")
+                    doc_item["addedOn"] = file_key_to_added_on.get(file_key) if file_key else doc_item.get("addedOn")
+
         return application_dict

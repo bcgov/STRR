@@ -39,6 +39,7 @@ STRR Application Resource.
 
 import logging
 import traceback
+from datetime import datetime, timezone
 from http import HTTPStatus
 from io import BytesIO
 from typing import Optional
@@ -341,7 +342,10 @@ def get_application_details(application_number):
         application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
         if not application:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.APPLICATION_NOT_FOUND.value)
-        return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
+        app_dict = ApplicationService.serialize(application)
+        # Only fetch GCP blob creation times when viewing a single application (not when listing)
+        ApplicationService.enrich_document_added_on_from_gcp(app_dict)
+        return jsonify(app_dict), HTTPStatus.OK
     except AuthException as auth_exception:
         return exception_response(auth_exception)
 
@@ -803,7 +807,10 @@ def update_registration_supporting_document(application_number):
         document = DocumentService.upload_document(filename, file.content_type, file.read())
         document["documentType"] = document_type
         document["uploadStep"] = upload_step
-        document["uploadDate"] = upload_date
+        # Store upload date for application-stage docs (no registration yet, so not in documents table)
+        now_iso = datetime.now(timezone.utc).isoformat()
+        document["uploadDate"] = upload_date if upload_date else now_iso
+        document["addedOn"] = now_iso
 
         application = ApplicationService.update_document_list(application=application, document=document)
 

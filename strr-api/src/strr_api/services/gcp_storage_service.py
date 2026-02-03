@@ -109,6 +109,23 @@ class GCPStorageService:
             raise ExternalServiceException(message="Error fetching registration document from gcp bucket.") from e
 
     @classmethod
+    def get_registration_document_creation_time(cls, blob_name):
+        """
+        Return the blob creation time (when uploaded to GCP) as ISO string, or None if not found/error.
+        Used to expose addedOn for application-stage documents that have no date in application_json.
+        """
+        try:
+            registration_documents_bucket = cls.registration_documents_bucket()
+            blob = registration_documents_bucket.blob(blob_name)
+            blob.reload()
+            if blob.time_created:
+                return blob.time_created.isoformat()
+            return None
+        except Exception as e:
+            logger.debug("Could not get creation time for blob %s: %s", blob_name, e)
+            return None
+
+    @classmethod
     def upload_file(cls, file_type, file_contents, bucket_id):
         """Save the document to the specified bucket."""
 

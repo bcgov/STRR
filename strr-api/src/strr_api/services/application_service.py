@@ -46,6 +46,7 @@ from strr_api.models.dataclass import ApplicationSearch
 from strr_api.models.rental import PropertyContact
 from strr_api.services.email_service import EmailService
 from strr_api.services.events_service import EventsService
+from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.user_service import UserService
 
@@ -99,6 +100,24 @@ class ApplicationService:
             app_dict["header"]["existingHostRegistrations"] = ApplicationService.get_existing_host_registrations_count(
                 app_dict
             )
+        return app_dict
+
+    @staticmethod
+    def enrich_document_added_on_from_gcp(app_dict: dict) -> dict:
+        """
+        For application-stage docs with no addedOn, set addedOn from GCP blob creation time.
+        Call this only when returning a single application (GET /applications/<id>), not when listing,
+        to avoid N GCP calls per page.
+        """
+        registration_docs = app_dict.get("registration", {}).get("documents", [])
+        for doc_item in registration_docs:
+            if doc_item.get("addedOn"):
+                continue
+            file_key = doc_item.get("fileKey")
+            if file_key:
+                created_iso = GCPStorageService.get_registration_document_creation_time(file_key)
+                if created_iso:
+                    doc_item["addedOn"] = created_iso
         return app_dict
 
     @staticmethod

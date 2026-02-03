@@ -16,7 +16,8 @@ from strr_api.enums.enum import (
     RegistrationType,
 )
 from strr_api.exceptions import ExternalServiceException
-from strr_api.models import Application, Events, Registration, User
+from strr_api.models import Application, Document, Events, Registration, User
+from strr_api.responses import RegistrationSerializer
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 from tests.unit.utils.mocks import (
     fake_document,
@@ -390,6 +391,97 @@ def test_get_platform_registration_by_id(session, client, jwt):
 def test_get_registration_by_id_unauthorized(client):
     rv = client.get("/registrations/1")
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_get_registration_by_id_includes_document_added_on(session, client, jwt):
+    """GET /registrations/<id> returns documents with addedOn (from DB created when added_on is null)."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert rv.status_code == HTTPStatus.OK
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        with patch(
+            "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
+            return_value="test-file-key-123",
+        ):
+            with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+                data = {"file": (df, MOCK_DOCUMENT_UPLOAD), "documentType": "BC_DRIVERS_LICENSE"}
+                rv = client.post(
+                    f"/registrations/{registration_id}/documents",
+                    content_type="multipart/form-data",
+                    data=data,
+                    headers=staff_headers,
+                )
+                assert rv.status_code == HTTPStatus.CREATED
+
+        rv = client.get(f"/registrations/{registration_id}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        documents = response_json.get("documents", [])
+        assert len(documents) >= 1
+        doc_with_key = next((d for d in documents if d.get("fileKey") == "test-file-key-123"), None)
+        assert doc_with_key is not None
+        assert doc_with_key.get("addedOn") is not None
+
+
+@patch.object(RegistrationSerializer, "populate_host_registration_details")
+def test_registration_serializer_document_added_on_uses_created_when_added_on_null(mock_populate, session):
+    """RegistrationSerializer uses doc.created for addedOn when doc.added_on is null."""
+    user = User(
+        username="serializer_test_user",
+        firstname="Test",
+        lastname="User",
+        iss="test",
+        sub="sub_serializer",
+        idp_userid="serializer_test_id",
+        login_source="test",
+    )
+    user.save()
+    registration = Registration(
+        user_id=user.id,
+        sbc_account_id=ACCOUNT_ID,
+        status=RegistrationStatus.ACTIVE,
+        registration_type=RegistrationType.HOST.value,
+        registration_number="H9999999",
+        start_date=datetime.now(),
+        expiry_date=datetime.now() + timedelta(days=365),
+    )
+    registration.save()
+    doc = Document(
+        registration_id=registration.id,
+        file_name="test.pdf",
+        file_type="application/pdf",
+        path="test-path-key",
+        document_type=Document.DocumentType.BC_DRIVERS_LICENSE,
+        added_on=None,
+    )
+    doc.save()
+    # Ensure doc has created (from BaseModel)
+    registration.documents = [doc]
+    # Minimal registration has no rental_property; avoid populate_host_registration_details
+    result = RegistrationSerializer.serialize(registration)
+    assert "documents" in result
+    assert len(result["documents"]) == 1
+    assert result["documents"][0].get("addedOn") is not None
+    assert result["documents"][0]["fileKey"] == "test-path-key"
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

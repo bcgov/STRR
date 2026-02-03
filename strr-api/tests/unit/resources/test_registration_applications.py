@@ -10,6 +10,7 @@ import pytest
 from strr_api.enums.enum import PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
 from strr_api.models.application import ApplicationSerializer
+from strr_api.services import ApplicationService
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
@@ -478,6 +479,112 @@ def test_post_and_delete_registration_documents(session, client, jwt):
                     ):
                         rv = client.delete(f"/applications/{application_number}/documents/{fileKey}", headers=headers)
                         assert rv.status_code == HTTPStatus.NO_CONTENT
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_put_application_documents_includes_added_on(session, client, jwt):
+    """PUT /applications/<id>/documents sets addedOn (and uploadDate) on the appended document."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        with patch(
+            "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
+            return_value="put-doc-file-key-456",
+        ):
+            with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+                data = {
+                    "file": (df, MOCK_DOCUMENT_UPLOAD),
+                    "documentType": "BC_DRIVERS_LICENSE",
+                    "uploadStep": "step1",
+                    "uploadDate": "2025-06-01T12:00:00",
+                }
+                rv = client.put(
+                    f"/applications/{application_number}/documents",
+                    content_type="multipart/form-data",
+                    data=data,
+                    headers=headers,
+                )
+                assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        docs = response_json.get("registration", {}).get("documents", [])
+        doc_uploaded = next((d for d in docs if d.get("fileKey") == "put-doc-file-key-456"), None)
+        assert doc_uploaded is not None
+        assert doc_uploaded.get("addedOn") is not None
+        assert doc_uploaded.get("uploadDate") is not None
+
+        rv = client.get(f"/applications/{application_number}", headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        response_json = rv.json
+        docs = response_json.get("registration", {}).get("documents", [])
+        doc_uploaded = next((d for d in docs if d.get("fileKey") == "put-doc-file-key-456"), None)
+        assert doc_uploaded is not None
+        assert doc_uploaded.get("addedOn") is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_application_serializer_added_on_from_upload_date(mock_invoice, session, client, jwt):
+    """ApplicationSerializer.to_dict sets addedOn from stored uploadDate when no registration."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        json_data.setdefault("registration", {})["documents"] = [
+            {
+                "fileKey": "stored-doc-key",
+                "fileName": "stored.pdf",
+                "fileType": "application/pdf",
+                "documentType": "BC_DRIVERS_LICENSE",
+                "uploadDate": "2025-01-15T14:30:00",
+            }
+        ]
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        application_number = rv.json.get("header").get("applicationNumber")
+
+    application = Application.find_by_application_number(application_number=application_number)
+    app_dict = ApplicationSerializer.to_dict(application)
+    docs = app_dict.get("registration", {}).get("documents", [])
+    doc_stored = next((d for d in docs if d.get("fileKey") == "stored-doc-key"), None)
+    assert doc_stored is not None
+    assert doc_stored.get("addedOn") == "2025-01-15T14:30:00"
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.get_registration_document_creation_time")
+def test_application_serialize_gcp_fallback_for_missing_added_on(
+    mock_gcp_creation_time, mock_invoice, session, client, jwt
+):
+    """enrich_document_added_on_from_gcp (used only for GET single application) uses GCP when doc has no addedOn."""
+    mock_gcp_creation_time.return_value = "2025-02-01T10:00:00Z"
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        json_data.setdefault("registration", {})["documents"] = [
+            {
+                "fileKey": "gcp-fallback-key",
+                "fileName": "no-date.pdf",
+                "fileType": "application/pdf",
+                "documentType": "BC_DRIVERS_LICENSE",
+            }
+        ]
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert rv.status_code == HTTPStatus.OK
+        application_number = rv.json.get("header").get("applicationNumber")
+
+    application = Application.find_by_application_number(application_number=application_number)
+    app_dict = ApplicationService.serialize(application)
+    ApplicationService.enrich_document_added_on_from_gcp(app_dict)
+    docs = app_dict.get("registration", {}).get("documents", [])
+    doc_no_date = next((d for d in docs if d.get("fileKey") == "gcp-fallback-key"), None)
+    assert doc_no_date is not None
+    assert doc_no_date.get("addedOn") == "2025-02-01T10:00:00Z"
+    mock_gcp_creation_time.assert_called_once_with("gcp-fallback-key")
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
