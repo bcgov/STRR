@@ -73,7 +73,7 @@
       "isUnitOnPrincipalResidenceProperty": true,
       "numberOfRoomsForRent": 1,
       "prExemptReason": "FRACTIONAL_OWNERSHIP",
-      "blExemptReason": "This short-term rental does not offer bookings of under 30 days",
+      "blExemptReason": "Business licence not required. Every booking will be longer than the minimum days required by the local government.",
       "strataHotelCategory": "MULTI_UNIT_NON_PR"
     },
     "listingDetails": [
