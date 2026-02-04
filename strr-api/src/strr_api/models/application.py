@@ -600,8 +600,7 @@ class ApplicationSerializer:
             application_dict["header"]["nocEndDate"] = application.noc.end_date.strftime("%Y-%m-%d")
 
         # Set addedOn for registration documents (application-stage docs live only in application_json, not in DB)
-        registration_docs = application_dict.get("registration", {}).get("documents")
-        if registration_docs:
+        if registration_docs := application_dict.get("registration", {}).get("documents"):
             # First: use stored addedOn or uploadDate so application-stage docs show a date when we have one
             for doc_item in registration_docs:
                 doc_item["addedOn"] = doc_item.get("addedOn") or doc_item.get("uploadDate")
