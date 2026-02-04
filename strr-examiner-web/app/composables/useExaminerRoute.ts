@@ -1,11 +1,16 @@
 import { ApplicationActionsE, RegistrationActionsE } from '@/enums/actions'
 
 export const useExaminerRoute = () => {
+  const route = useRoute()
   const localePath = useLocalePath()
   const { setButtonControl, getButtonControl } = useButtonControl()
   const exStore = useExaminerStore()
   const { activeReg, isApplication, activeHeader } = storeToRefs(exStore)
   const { isFeatureEnabled } = useFeatureFlags()
+
+  const isSnapshotRoute = computed(() =>
+    route.name?.toString().includes('snapshots')
+  )
 
   const updateRouteAndButtons = (
     routePrefix: string,
@@ -266,6 +271,7 @@ export const useExaminerRoute = () => {
   }
 
   return {
+    isSnapshotRoute,
     updateRouteAndButtons
   }
 }

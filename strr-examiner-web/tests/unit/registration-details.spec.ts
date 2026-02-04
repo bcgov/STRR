@@ -7,14 +7,17 @@ import {
   mockExpiredRegistration,
   mockSuspendedRegistration,
   mockCancelledRegistration,
-  mockHistoricalApplications
+  mockHistoricalApplications,
+  mockSnapshots
 } from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
-import RegistrationDetails from '~/pages/registration/[registrationId].vue'
+import RegistrationDetails from '~/pages/registration/[registrationId]/index.vue'
 import {
   DecisionPanel,
   HistoricalApplicationsTable,
-  RegistrationInfoHeader
+  RegistrationInfoHeader,
+  SnapshotVersionsTable,
+  SnapshotInfo
 } from '#components'
 import ApprovalConditions from '~/components/ApprovalConditions.vue'
 
@@ -51,7 +54,8 @@ vi.mock('@/stores/examiner', () => ({
     decisionEmailContent: ref({}),
     decisionEmailFormRef: ref({
       clear: vi.fn()
-    })
+    }),
+    snapshotInfo: ref(mockSnapshots[0])
   })
 }))
 
@@ -316,5 +320,41 @@ describe('Examiner - Registration Details Page', () => {
     // verify view application buttons exist
     const viewButtons = wrapper.findAll('[data-testid="view-application-button"]')
     expect(viewButtons.length).toBe(2)
+  })
+
+  it('displays Snapshot Versions table', async () => {
+    const wrapper = await mountSuspended(SnapshotVersionsTable, {
+      global: { plugins: [enI18n] },
+      props: { snapshots: mockSnapshots }
+    })
+
+    expect(wrapper.exists()).toBe(true)
+    expect(wrapper.find('[data-testid="snapshot-versions-table"]').exists()).toBe(true)
+
+    // verify that both snapshots are rendered
+    const rows = wrapper.find('[data-testid="snapshot-versions-table"]').findAll('tbody tr')
+    expect(rows.length).toBe(2)
+
+    // verify version numbers are displayed
+    expect(wrapper.text()).toContain('1')
+    expect(wrapper.text()).toContain('2')
+
+    // verify view snapshot buttons exist
+    const viewButtons = wrapper.findAll('[data-testid="view-snapshot-button"]')
+    expect(viewButtons.length).toBe(2)
+  })
+
+  it('displays Snapshot Info', async () => {
+    const wrapper = await mountSuspended(SnapshotInfo, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(wrapper.exists()).toBe(true)
+    expect(wrapper.find('[data-testid="snapshot-info"]').exists()).toBe(true)
+
+    // verify version and date are displayed
+    expect(wrapper.text()).toContain('Version:')
+    expect(wrapper.text()).toContain('1')
+    expect(wrapper.text()).toContain('Date:')
   })
 })

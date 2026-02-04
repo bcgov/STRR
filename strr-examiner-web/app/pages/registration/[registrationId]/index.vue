@@ -12,7 +12,7 @@ const {
 const { isAssignedToUser, emailContent, emailFormRef, activeRecord, isApplication } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 const { showDecisionPanel } = useExaminerDecision()
-const { isHistoricalApplicationsTableEnabled } = useExaminerFeatureFlags()
+const { isHistoricalApplicationsTableEnabled, isSnapshotVersionsTableEnabled } = useExaminerFeatureFlags()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -226,6 +226,10 @@ watch(
       <HistoricalApplicationsTable
         v-if="!isApplication && isHistoricalApplicationsTableEnabled"
         :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"
+      />
+      <SnapshotVersionsTable
+        v-if="!isApplication && isSnapshotVersionsTableEnabled"
+        :snapshots="(activeRecord as HousRegistrationResponse).snapshots ?? []"
       />
       <DecisionPanel />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />

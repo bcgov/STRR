@@ -11,6 +11,7 @@ const { t } = useNuxtApp().$i18n
 const alertFlags = reactive(useFlags())
 const { isFeatureEnabled } = useFeatureFlags()
 const isBusinessLicenseDocumentUploadEnabled = isFeatureEnabled('enable-business-license-document-upload')
+const { isSnapshotRoute } = useExaminerRoute()
 
 const docStore = useExaminerDocumentStore()
 const { isPrUploadOpen } = storeToRefs(docStore)
@@ -269,7 +270,7 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
           </ApplicationDetailsSection>
         </div>
         <div
-          v-if="!isApplication &&
+          v-if="!isApplication && !isSnapshotRoute &&
             (activeReg?.status === RegistrationStatus.ACTIVE ||
               activeReg?.status === RegistrationStatus.SUSPENDED)"
           class="col-span-1 flex justify-end"

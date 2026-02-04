@@ -139,6 +139,8 @@ export default {
       own: 'Own',
       coown: 'Co-Own',
       rent: 'Rent',
+      version: 'Version:',
+      date: 'Date:',
       accessDwelling: 'Accessory Dwelling',
       bb: 'Bed & Breakfast',
       condoApt: 'Condo or Apartment',
@@ -267,6 +269,7 @@ export default {
     view: 'View',
     viewAllPlatforms: 'View all platforms',
     viewApplication: 'View Application',
+    viewSnapshot: 'View Snapshot',
     edit: 'Edit',
     done: 'Done',
     showDetails: 'Show Details',
@@ -353,6 +356,7 @@ export default {
   },
   label: {
     applications: 'Applications',
+    versions: 'Versions',
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
     application: 'Application',
@@ -488,6 +492,13 @@ export default {
       address: 'Address',
       localGovernment: 'Local Government',
       action: 'Action'
+    },
+    registrationSnapshots: {
+      version: 'Version',
+      date: 'Date',
+      decision: 'Decision',
+      assignee: 'Assignee',
+      action: 'Action'
     }
   },
   hint: {
@@ -495,6 +506,9 @@ export default {
     docUpload: 'File must be a PDF. Maximum 10 MB.'
   },
   page: {
+    snapshot: {
+      title: 'Snapshot - My Short-Term Rental Registry'
+    },
     dashboardList: {
       title: 'Dashboard - My Short-Term Rental Registry',
       h1: 'My CEU STR Registry Dashboard',

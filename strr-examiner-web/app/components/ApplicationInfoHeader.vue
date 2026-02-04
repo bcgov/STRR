@@ -5,6 +5,7 @@ const exStore = useExaminerStore()
 const { activeHeader, activeReg, isFilingHistoryOpen } = storeToRefs(exStore)
 const { toggleFilingHistory, checkAndPerformAction } = useHostExpansion()
 const localePath = useLocalePath()
+const { isSnapshotRoute } = useExaminerRoute()
 
 const getBadgeColor = (status: ApplicationStatus): string => {
   switch (status) {
@@ -89,6 +90,7 @@ const registrationCountdown = computed(() => {
             />
           </span>
           <UButton
+            v-if="!isSnapshotRoute"
             :label="isFilingHistoryOpen ? t('btn.hideHistory') : t('btn.showHistory')"
             :padded="false"
             variant="link"
@@ -100,7 +102,7 @@ const registrationCountdown = computed(() => {
           />
         </div>
         <UButton
-          v-if="activeHeader?.status !== ApplicationStatus.PAYMENT_DUE"
+          v-if="activeHeader?.status !== ApplicationStatus.PAYMENT_DUE && !isSnapshotRoute"
           icon="i-mdi-receipt-text-outline"
           :padded="false"
           variant="link"
@@ -110,6 +112,7 @@ const registrationCountdown = computed(() => {
         >
           {{ t('btn.viewReceipt') }}
         </UButton>
+        <SnapshotInfo v-if="isSnapshotRoute" />
       </div>
       <div class="mb-2 text-sm">
         <UBadge

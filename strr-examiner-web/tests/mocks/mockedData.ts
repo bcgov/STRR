@@ -563,3 +563,18 @@ export const mockHistoricalApplications: ApiApplicationEntry[] = [
     applicationType: 'renewal'
   }
 ]
+
+export const mockSnapshots: ApiSnapshot[] = [
+  {
+    id: 1,
+    snapshotDateTime: '2025-01-15T10:30:00.000000',
+    snapshotEndpoint: '/registrations/12345/snapshot/1',
+    version: 1
+  },
+  {
+    id: 2,
+    snapshotDateTime: '2025-02-20T14:45:00.000000',
+    snapshotEndpoint: '/registrations/12345/snapshot/2',
+    version: 2
+  }
+]

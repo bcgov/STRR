@@ -13,6 +13,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const isApplication = computed<boolean>(() => {
     return !!activeRecord.value && 'registration' in activeRecord.value
   })
+
   const activeReg = computed(() => {
     return isApplication.value
       ? activeRecord.value?.registration
@@ -31,6 +32,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return currentRecordHeader
   })
   const _isAssignedToUser = ref(false)
+
+  const snapshotInfo = ref<ApiSnapshot>({} as ApiSnapshot)
+
   watch(
     () => [
       activeHeader.value?.assignee?.username
@@ -529,6 +533,22 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }
 
+  /**
+   * Get a snapshot by registrationId and snapshotId.
+   *
+   * @param {string} registrationId - The registrationId for the registration
+   * @param {string} snapshotId - The snapshotId for the snapshot
+   */
+  const getSnapshotById = async (
+    registrationId: string,
+    snapshotId: string
+  ): Promise<any> => {
+    return await $strrApi<any>(
+      `/registrations/${registrationId}/snapshots/${snapshotId}`,
+      { method: 'GET' }
+    )
+  }
+
   const openDocInNewTab = async (
     appRegNumber: string | number,
     supportingDocument: ApiDocument,
@@ -602,6 +622,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     isAssignedToUser,
     sendNocSchema,
     emailContent,
+    snapshotInfo,
 
     // examiner approval conditions
     conditions,
@@ -644,6 +665,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     setAsideApplication,
     getApplicationFilingHistory,
     getRegistrationFilingHistory,
+    getSnapshotById,
     startEditRentalUnitAddress,
     resetEditRentalUnitAddress,
     saveRentalUnitAddress,

@@ -4,6 +4,7 @@ const { t } = useNuxtApp().$i18n
 const exStore = useExaminerStore()
 const { activeReg, activeHeader, isFilingHistoryOpen } = storeToRefs(exStore)
 const { toggleFilingHistory, checkAndPerformAction } = useHostExpansion()
+const { isSnapshotRoute } = useExaminerRoute()
 
 const getBadgeColor = (status: RegistrationStatus | RegistrationNocStatus): string => {
   switch (status) {
@@ -63,7 +64,7 @@ const nocCountdown = computed(() => {
   <div class="border-b bg-white py-6">
     <div class="app-inner-container">
       <div class="mb-2">
-        <div class="mb-4 flex justify-between text-2xl leading-none">
+        <div class="relative mb-4 flex justify-between text-2xl leading-none">
           <div class="flex items-center space-x-3">
             <span class="border-r-2 border-gray-700 pr-3 font-bold">
               {{ activeReg.registrationNumber }}
@@ -88,6 +89,7 @@ const nocCountdown = computed(() => {
               />
             </span>
             <UButton
+              v-if="!isSnapshotRoute"
               :label="isFilingHistoryOpen ? $t('btn.hideHistory') : $t('btn.showHistory')"
               :padded="false"
               variant="link"
@@ -98,7 +100,7 @@ const nocCountdown = computed(() => {
             />
           </div>
           <UButton
-            v-if="activeHeader?.status !== ApplicationStatus.PAYMENT_DUE"
+            v-if="activeHeader?.status !== ApplicationStatus.PAYMENT_DUE && !isSnapshotRoute"
             icon="i-mdi-receipt-text-outline"
             :padded="false"
             variant="link"
@@ -108,10 +110,11 @@ const nocCountdown = computed(() => {
           >
             {{ $t('btn.viewReceipt') }}
           </UButton>
+          <SnapshotInfo v-if="isSnapshotRoute" />
         </div>
         <div class="text-sm">
           <UBadge
-            v-if="activeHeader.isSetAside"
+            v-if="activeHeader?.isSetAside"
             class="mr-3 bg-bcGovColor-midGray font-bold uppercase"
             :label="t('strr.label.setAside')"
             variant="solid"
@@ -145,7 +148,7 @@ const nocCountdown = computed(() => {
           >
             <strong>{{ t('strr.label.expiryDate') }}</strong>
             {{ dateToString(activeReg.expiryDate, 'y-MM-dd', true) }}
-            ({{ dayCountdown(activeReg.expiryDate.toString()) }} days left)
+            ({{ dayCountdown(activeReg.expiryDate?.toString()) }} days left)
           </span>
           <template v-if="activeReg.nocEndDate">
             | <strong>{{ t('strr.label.nocExpiry') }}</strong>
@@ -154,20 +157,20 @@ const nocCountdown = computed(() => {
             <span v-else-if="nocCountdown && nocCountdown.isExpired" class="font-bold text-red-500"> (EXPIRED)</span>
           </template>
           | <strong>{{ t('strr.label.assignee') }}</strong>
-          {{ activeHeader.assignee?.username || '-' }}
-          <template v-if="activeHeader.decider?.username">
+          {{ activeHeader?.assignee?.username || '-' }}
+          <template v-if="activeHeader?.decider?.username">
             | <strong>{{ t('strr.label.decider') }}</strong>
-            {{ activeHeader.decider.username }}
+            {{ activeHeader?.decider.username }}
           </template>
         </div>
       </div>
       <div class="text-sm">
         <strong>Application Number:</strong>
-        {{ activeHeader.applicationNumber }} |
+        {{ activeHeader?.applicationNumber }} |
         <strong>Type:</strong>
         {{ getRegistrationType() }} |
         <strong>{{ t('strr.label.submitted') }}</strong>
-        {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd', true) }}
+        {{ dateToString(activeHeader?.applicationDateTime, 'y-MM-dd', true) }}
       </div>
     </div>
   </div>

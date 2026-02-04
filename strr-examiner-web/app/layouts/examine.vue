@@ -5,6 +5,8 @@ const localePath = useLocalePath()
 const { isApplication } = storeToRefs(useExaminerStore())
 const { isFeatureEnabled } = useFeatureFlags()
 const enableExaminerDecisions = isFeatureEnabled('enable-examiner-decisions')
+const { isSnapshotRoute } = useExaminerRoute()
+
 </script>
 <template>
   <div class="app-container">
@@ -47,7 +49,7 @@ const enableExaminerDecisions = isFeatureEnabled('enable-examiner-decisions')
       </template>
     </NuxtErrorBoundary>
     <ConnectButtonControl v-if="!enableExaminerDecisions || isApplication" />
-    <ActionButtons v-else-if="enableExaminerDecisions" />
+    <ActionButtons v-else-if="enableExaminerDecisions && !isSnapshotRoute" />
     <ConnectFooter />
   </div>
 </template>

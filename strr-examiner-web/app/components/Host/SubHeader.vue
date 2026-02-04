@@ -14,6 +14,7 @@ const alertFlags = reactive(useFlags())
 const { isFeatureEnabled } = useFeatureFlags()
 const canEditApplicationAddress = isFeatureEnabled('enable-examiner-edit-address-application')
 const { checkAndPerformAction, openHostOwners } = useHostExpansion()
+const { isSnapshotRoute } = useExaminerRoute()
 
 const isEditAddressDisabled = computed((): boolean => activeReg.value.status === RegistrationStatus.CANCELLED)
 
@@ -31,7 +32,7 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         <div class="flex items-center justify-between gap-2">
           <strong>{{ t('strr.label.rentalUnit').toUpperCase() }}</strong>
           <UButton
-            v-if="!isApplication || canEditApplicationAddress"
+            v-if="(!isApplication || canEditApplicationAddress) && !isSnapshotRoute"
             variant="link"
             size="xs"
             color="blue"
