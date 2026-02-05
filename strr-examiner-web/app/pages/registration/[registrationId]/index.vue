@@ -223,11 +223,11 @@ watch(
       </ApplicationDetailsView>
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
+      <DecisionPanel />
       <SnapshotVersionsTable
         v-if="!isApplication && isSnapshotVersionsTableEnabled"
         :snapshots="(activeRecord as HousRegistrationResponse).snapshots ?? []"
       />
-      <DecisionPanel />
       <HistoricalApplicationsTable
         v-if="!isApplication && isHistoricalApplicationsTableEnabled"
         :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"
