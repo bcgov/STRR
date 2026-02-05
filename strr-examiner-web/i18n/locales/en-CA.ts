@@ -669,6 +669,7 @@ export default {
     UTILITY_BILL: 'Utility Bill',
     GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE: 'Government or Crown Corporation Official Notice',
     FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional Ownership Agreement',
+    PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP: 'Property Title Showing Fractional Ownership',
     STRATA_HOTEL_DOCUMENTATION: 'Strata Hotel Documentation',
     TENANCY_AGREEMENT: 'Tenancy Agreement',
     RENT_RECEIPT_OR_BANK_STATEMENT: 'Rent Receipt or Bank Statement',

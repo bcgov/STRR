@@ -27,12 +27,26 @@ const filterDocumentsByConfig = (config: SupportingDocumentsConfig): ApiDocument
     return includeType && !excludeType && includeStep && !excludeStep
   })
 }
-// optionally filter documents based on config, or return all documents
-const filteredDocuments = computed(() => props.config ? filterDocumentsByConfig(props.config) : documents)
+// sort documents by date (most recent first)
+const sortByDate = (docs: ApiDocument[]): ApiDocument[] => {
+  return [...docs].sort((a, b) => {
+    const dateA = new Date(a.uploadDate || a.addedOn || 0).getTime()
+    const dateB = new Date(b.uploadDate || b.addedOn || 0).getTime()
+    return dateB - dateA
+  })
+}
+
+// optionally filter documents based on config, or return all documents, sorted by date
+const filteredDocuments = computed(() => {
+  const docs = props.config ? filterDocumentsByConfig(props.config) : documents
+  return sortByDate(docs)
+})
 
 const appRegNumber = computed((): string | number =>
   isApplication.value ? applicationNumber : activeReg.value.id
 )
+
+const displayDate = (date: string = '') => dateToString(date, 'y-MM-dd', true)
 
 const shouldShowDateBadge = (document: ApiDocument): boolean => {
   return (document.uploadStep && props.config?.includeDateBadge?.includes(document.uploadStep)) ||
@@ -42,7 +56,7 @@ const shouldShowDateBadge = (document: ApiDocument): boolean => {
 
 <template>
   <div v-if="!isEmpty(filteredDocuments)">
-    <span
+    <div
       v-for="(document, index) in filteredDocuments"
       :key="document.fileKey"
       class="mr-4 flex whitespace-nowrap"
@@ -58,11 +72,11 @@ const shouldShowDateBadge = (document: ApiDocument): boolean => {
       </UButton>
       <UBadge
         v-if="shouldShowDateBadge(document)"
-        :label="`${ t('strr.label.added')} ` + (document.uploadDate || document.addedOn)"
+        :label="`${ t('strr.label.added')} ` + displayDate(document.uploadDate || document.addedOn)"
         size="sm"
         class="ml-2 px-3 py-0 font-bold"
         data-testid="supporting-doc-date-badge"
       />
-    </span>
+    </div>
   </div>
 </template>

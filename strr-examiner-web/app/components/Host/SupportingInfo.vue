@@ -195,12 +195,12 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
                 </div>
                 <div>
                   <SupportingDocuments
-                    class="mb-1 flex flex-wrap gap-y-2"
+                    class="mb-1 flex flex-col gap-y-2"
                     data-testid="bl-documents"
                     :config="isApplication ? businessLicenseDocumentsConfig : businessLicenseRegistrationConfig"
                   />
                   <SupportingDocuments
-                    class="mb-1 flex flex-wrap gap-y-2"
+                    class="mb-1 flex flex-col gap-y-2"
                     data-testid="bl-noc-documents"
                     :config="businessLicenseNocDocumentsConfig"
                   />
@@ -238,12 +238,12 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
                   data-testid="pr-req-documents"
                 >
                   <SupportingDocuments
-                    class="mb-1 flex flex-wrap gap-y-2"
+                    class="mb-1 flex flex-col gap-y-2"
                     data-testid="initial-app-documents"
                     :config="isApplication ? applicationDocumentsConfig : registrationDocumentsConfig"
                   />
                   <SupportingDocuments
-                    class="flex flex-wrap gap-y-2"
+                    class="flex flex-col gap-y-2"
                     data-testid="noc-documents"
                     :config="nocDocumentsConfig"
                   />
