@@ -5,10 +5,10 @@ type FeeMatrix = Partial<
   >
 >
 
+let APPLICATION_FEE_MATRIX: FeeMatrix = {}
+
 export const useHostApplicationFee = () => {
   const { getFee } = useConnectFeeStore()
-
-  let APPLICATION_FEE_MATRIX: FeeMatrix = {}
 
   /**
    * Fetch three different STRR fees and setup application fee matrix based on the retrieved fees.

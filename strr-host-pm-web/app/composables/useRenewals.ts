@@ -52,18 +52,18 @@ export const useRenewals = () => {
 
     if (hasRegistrationRenewalDraft.value) {
       renewalDraftId.value = todos
-        .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT).task.detail
+        .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)?.task?.detail
     }
 
     if (hasRegistrationRenewalPaymentPending.value) {
       renewalPaymentPendingId.value = todos
-        .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING).task.detail
+        .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING)?.task?.detail
     }
   }
 
   watch(registration, async () => {
     await getRegistrationRenewalTodos()
-  })
+  }, { immediate: true })
 
   return {
     isEligibleForRenewal,

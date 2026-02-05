@@ -35,7 +35,7 @@ defineProps<{
 
     <TodoEmpty v-if="!todos.length" data-test-id="todo-empty" />
     <template v-else>
-      <template v-for="(todo, index) in todos" :key="todo.title">
+      <template v-for="(todo, index) in todos" :key="todo.id">
         <Todo
           :id="todo.id"
           :title="todo.title"

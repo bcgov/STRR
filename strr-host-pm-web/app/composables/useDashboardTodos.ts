@@ -86,7 +86,7 @@ export const useDashboardTodos = () => {
 
   // Watch for Registration Renewals props and update related ToDos
   const setupRenewalTodosWatch = () => {
-    watch([
+    return watch([
       isRenewalsEnabled,
       isRenewalPeriodClosed,
       registration,
@@ -109,13 +109,13 @@ export const useDashboardTodos = () => {
       ]
       todos.value = todos.value.filter(todo => !renewalTodoIds.includes(todo.id))
 
-      if (isRenewalsEnabled && isRenewalPeriodClosed.value) {
+      if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
         todos.value.push({
           id: 'todo-renew-registration-closed',
           title: t('todos.renewalClosed.title'),
           subtitle: t('todos.renewalClosed.subtitle', translationProps)
         })
-      } else if (isRenewalsEnabled && registration.value && isEligibleForRenewal.value) {
+      } else if (isRenewalsEnabled.value && registration.value && isEligibleForRenewal.value) {
         const isOverdue = renewalDateCounter.value < 0
         const dueDateCount = isOverdue
           ? t('label.renewalOverdue')
@@ -138,7 +138,7 @@ export const useDashboardTodos = () => {
             }
           }]
         })
-      } else if (isRenewalsEnabled && registration.value && hasRegistrationRenewalDraft.value) {
+      } else if (isRenewalsEnabled.value && registration.value && hasRegistrationRenewalDraft.value) {
         // todo for existing renewal draft
         todos.value.push({
           id: 'todo-renewal-draft',
@@ -169,7 +169,7 @@ export const useDashboardTodos = () => {
             }
           ]
         })
-      } else if (isRenewalsEnabled && registration.value && hasRegistrationRenewalPaymentPending.value) {
+      } else if (isRenewalsEnabled.value && registration.value && hasRegistrationRenewalPaymentPending.value) {
         // todo for renewal payment pending
         todos.value.push({
           id: 'todo-renewal-payment-pending',
