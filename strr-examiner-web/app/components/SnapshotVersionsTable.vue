@@ -28,9 +28,9 @@ const onViewSnapshot = async (snapshotEndpoint: string) => {
       <div class="flex items-center gap-2">
         <UIcon
           name="i-mdi-folder-outline"
-          class="text-str-blue size-6"
+          class="size-6 text-str-blue"
         />
-        <h3 class="text-str-textGray text-lg">
+        <h3 class="text-lg text-str-textGray">
           {{ t('label.versions') }}
         </h3>
       </div>
