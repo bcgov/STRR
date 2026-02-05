@@ -223,15 +223,15 @@ watch(
       </ApplicationDetailsView>
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
-      <HistoricalApplicationsTable
-        v-if="!isApplication && isHistoricalApplicationsTableEnabled"
-        :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"
-      />
       <SnapshotVersionsTable
         v-if="!isApplication && isSnapshotVersionsTableEnabled"
         :snapshots="(activeRecord as HousRegistrationResponse).snapshots ?? []"
       />
       <DecisionPanel />
+      <HistoricalApplicationsTable
+        v-if="!isApplication && isHistoricalApplicationsTableEnabled"
+        :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"
+      />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
     </template>
   </div>
