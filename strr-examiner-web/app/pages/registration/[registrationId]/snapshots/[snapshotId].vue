@@ -24,7 +24,7 @@ const { data: snapshot, status, error } = await useLazyAsyncData<
     const snapshotId = route.params.snapshotId as string
     const resp = await getSnapshotById(registrationId, snapshotId)
     activeRecord.value = resp.snapshotData // used for the data needed to render the details page
-    snapshotInfo.value = resp // user for data needed for snapshot info widget on details page
+    snapshotInfo.value = resp // used for data needed for snapshot info widget on details page
     return resp
   }
 )
