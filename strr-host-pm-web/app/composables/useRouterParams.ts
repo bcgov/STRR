@@ -1,3 +1,5 @@
+import { useRoute } from 'vue-router'
+
 export const useRouterParams = () => {
   const route = useRoute()
 

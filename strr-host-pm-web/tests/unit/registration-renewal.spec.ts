@@ -39,10 +39,6 @@ describe('Registration Renewal Application Page', () => {
   it('renders the Application page in Registration Renewal state', async () => {
     await flushPromises()
     expect(useRoute().query).toEqual({ renew: 'true' })
-
-    expect(useRoute().query).toEqual({
-      renew: 'true'
-    })
     expect(wrapper.exists()).toBe(true)
     expect(wrapper.vm.isRenewal).toBe(true)
     expect(wrapper.exists()).toBe(true)
