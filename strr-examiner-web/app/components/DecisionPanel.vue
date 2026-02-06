@@ -193,105 +193,115 @@ onMounted(() => {
 <template>
   <div
     v-if="showDecisionPanel"
-    class="app-inner-container mb-10"
+    class="app-inner-container mb-4"
     data-testid="decision-panel"
   >
-    <ConnectPageSection>
-      <div class="px-10 py-6">
-        <div class="grid grid-cols-2 gap-x-5">
-          <div>
-            <div class="font-bold">
-              {{ t('decision.title') }}
-            </div>
-            <UTooltip
-              text="Assign yourself to make changes"
-              :prevent="isAssignedToUser"
-              :popper="{
-                arrow: true,
-                placement: 'top',
-                offsetDistance: 16 }"
-              class="mb-6 mt-4 flex flex-wrap justify-between gap-2"
-              :ui="{
-                base: 'p-5'
-              }"
+    <!-- Header -->
+    <div class="flex items-center justify-between rounded-t-lg bg-[#E2E8EE] px-6 py-4">
+      <div class="flex items-center gap-2">
+        <UIcon
+          name="i-mdi-format-list-checks"
+          class="size-6 text-str-blue"
+        />
+        <h3 class="text-lg text-str-textGray">
+          {{ t('label.actions') }}
+        </h3>
+      </div>
+    </div>
+    <div class="bg-white p-6">
+      <div class="grid grid-cols-2 gap-x-5">
+        <div>
+          <div class="font-bold">
+            {{ t('decision.title') }}
+          </div>
+          <UTooltip
+            text="Assign yourself to make changes"
+            :prevent="isAssignedToUser"
+            :popper="{
+              arrow: true,
+              placement: 'top',
+              offsetDistance: 16 }"
+            class="mb-6 mt-4 flex flex-wrap justify-between gap-2"
+            :ui="{
+              base: 'p-5'
+            }"
+          >
+            <UButton
+              v-for="(button, i) in decisionButtons.filter(btn => !btn.hidden)"
+              :key="'button-' + i"
+              class="h-[44px] grow justify-center"
+              :class="decisionIntent === button.action && button.activeStyle"
+              :color="button.color || 'primary'"
+              :disabled="button.disabled || !isAssignedToUser"
+              :icon="button.icon || ''"
+              :label="button.label"
+              variant="outline"
+              :data-testid="`decision-button-${button.action.toLocaleLowerCase()}`"
+              size="md"
+              @click="setDecisionIntent(button.action)"
+            />
+            <UDropdown
+              v-if="moreActionItems.length !== 0"
+              :items="moreActionItems"
             >
               <UButton
-                v-for="(button, i) in decisionButtons.filter(btn => !btn.hidden)"
-                :key="'button-' + i"
-                class="h-[44px] grow justify-center"
-                :class="decisionIntent === button.action && button.activeStyle"
-                :color="button.color || 'primary'"
-                :disabled="button.disabled || !isAssignedToUser"
-                :icon="button.icon || ''"
-                :label="button.label"
+                :label="t('btn.moreActions')"
+                class="h-[44px] px-5"
+                color="blue"
+                trailing-icon="i-mdi-chevron-down"
                 variant="outline"
-                :data-testid="`decision-button-${button.action.toLocaleLowerCase()}`"
-                size="md"
-                @click="setDecisionIntent(button.action)"
+                data-testid="decision-button-more-actions"
+                :disabled="!isAssignedToUser"
               />
-              <UDropdown
-                v-if="moreActionItems.length !== 0"
-                :items="moreActionItems"
-              >
-                <UButton
-                  :label="t('btn.moreActions')"
-                  class="h-[44px] px-5"
-                  color="blue"
-                  trailing-icon="i-mdi-chevron-down"
-                  variant="outline"
-                  data-testid="decision-button-more-actions"
-                  :disabled="!isAssignedToUser"
-                />
-              </UDropdown>
-            </UTooltip>
+            </UDropdown>
+          </UTooltip>
 
-            <ApprovalConditions
-              v-if="isApproveDecisionSelected && isAssignedToUser"
-              v-model:conditions="localConditions"
-              v-model:custom-condition="customCondition"
-              v-model:min-booking-days="minBookingDays"
-            />
+          <ApprovalConditions
+            v-if="isApproveDecisionSelected && isAssignedToUser"
+            v-model:conditions="localConditions"
+            v-model:custom-condition="customCondition"
+            v-model:min-booking-days="minBookingDays"
+          />
+        </div>
+        <div>
+          <div class="font-bold">
+            {{ t('decision.emailTitle') }}
           </div>
-          <div>
-            <div class="font-bold">
-              {{ t('decision.emailTitle') }}
-            </div>
-            <UForm
-              ref="decisionEmailFormRef"
-              :schema="sendNocSchema"
-              :state="decisionEmailContent"
-              :validate-on="['submit']"
-              class="mt-4"
+          <UForm
+            ref="decisionEmailFormRef"
+            :schema="sendNocSchema"
+            :state="decisionEmailContent"
+            :validate-on="['submit']"
+            class="mt-4"
+          >
+            <UFormGroup
+              name="content"
+              :ui="{
+                wrapper: 'mb-4',
+                error: 'text-xs/5 mt-1 absolute'
+              }"
             >
-              <UFormGroup
-                name="content"
+              <UTextarea
+                v-model="decisionEmailContent.content"
+                :placeholder="decisionEmailPlaceholder"
+                :aria-label="decisionEmailPlaceholder"
+                data-testid="decision-email"
+                color="gray"
+                auto-resize
+                :disabled="isDecisionEmailDisabled"
                 :ui="{
-                  wrapper: 'mb-4',
-                  error: 'text-xs/5 mt-1 absolute'
+                  base: 'h-[290px] !bg-str-bgGray focus:ring-0',
+                  padding: {
+                    sm: 'p-4'
+                  }
                 }"
-              >
-                <UTextarea
-                  v-model="decisionEmailContent.content"
-                  :placeholder="decisionEmailPlaceholder"
-                  :aria-label="decisionEmailPlaceholder"
-                  data-testid="decision-email"
-                  color="gray"
-                  auto-resize
-                  :disabled="isDecisionEmailDisabled"
-                  :ui="{
-                    base: 'h-[290px] !bg-str-bgGray focus:ring-0',
-                    padding: {
-                      sm: 'p-4'
-                    }
-                  }"
-                  @update:model-value="decisionEmailFormRef.clear()"
-                />
-              </UFormGroup>
-            </UForm>
-          </div>
+                @update:model-value="decisionEmailFormRef.clear()"
+              />
+            </UFormGroup>
+          </UForm>
         </div>
       </div>
-    </ConnectPageSection>
+    </div>
   </div>
 </template>
 

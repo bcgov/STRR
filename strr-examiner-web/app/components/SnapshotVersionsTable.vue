@@ -27,7 +27,7 @@ const onViewSnapshot = async (snapshotEndpoint: string) => {
     <div class="flex items-center justify-between rounded-t-lg bg-[#E2E8EE] px-6 py-4">
       <div class="flex items-center gap-2">
         <UIcon
-          name="i-mdi-folder-outline"
+          name="i-mdi-lan"
           class="size-6 text-str-blue"
         />
         <h3 class="text-lg text-str-textGray">

@@ -357,6 +357,7 @@ export default {
   label: {
     applications: 'Applications',
     versions: 'Versions',
+    actions: 'Actions',
     hotelName: 'Hotel Name',
     expiryDate: 'Expiry Date',
     application: 'Application',
