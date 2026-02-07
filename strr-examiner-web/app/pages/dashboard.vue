@@ -85,8 +85,7 @@ const enableLastModifiedFilter = computed<boolean>(() => {
 })
 
 // applications or registration tab in split dashboard view
-// Initialize from query parameter to persist state across navigation
-// Check for 'returnTab' first (when coming back from registration page), then 'tab'
+// Initialize from query param first, then sessionStorage (back/logo), then default
 const getInitialTab = () => {
   const returnTab = route.query.returnTab as string
   const tab = route.query.tab as string
@@ -95,6 +94,10 @@ const getInitialTab = () => {
   }
   if (tab) {
     return tab !== 'registrations'
+  }
+  const savedTab = loadSavedTab()
+  if (savedTab !== null) {
+    return savedTab
   }
   return true // default to applications
 }
@@ -115,6 +118,9 @@ watch(() => route.query.returnTab, (returnTab) => {
     router.replace({ query })
   }
 }, { immediate: true })
+
+// Persist table state per tab in sessionStorage (restore on mount, save on change)
+useExaminerDashboardPersistence(exStore, isApplicationTab, isSplitDashboardTableEnabled)
 
 useHead({
   title: t('page.dashboardList.title')
@@ -338,13 +344,13 @@ watch(
 
 const { data: registrationListResp, status: regStatus } = await useAsyncData(
   'registration-list-resp',
-  () => {
+  useDebounceFn(() => {
     // only fetch when on registrations tab
     if (isApplicationTab.value) {
       return Promise.resolve({ applications: [], total: 0, limit: 0, page: 0 })
     }
     return exStore.fetchRegistrations()
-  },
+  }, 500),
   {
     watch: [
       () => isApplicationTab.value,
@@ -353,7 +359,8 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
       () => exStore.tableFilters.registrationType,
       () => exStore.tableFilters.status,
       () => exStore.tableFilters.requirements,
-      () => exStore.tableFilters.registrationNumber
+      () => exStore.tableFilters.registrationNumber,
+      () => exStore.tableFilters.searchText
     ],
     default: () => ({ registrations: [], total: 0 }),
     transform: (res: ApiRegistrationListResp) => {
@@ -364,7 +371,6 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
         id: reg.id,
         registrationNumber: reg.registrationNumber,
         status: reg.status,
-        sortOrder: reg.sortOrder,
         registrationType: t(`registrationType.${reg.registrationType}`),
         requirements: getConditionsColumnForRegistration(reg),
         applicantName: getApplicantNameColumnForRegistration(reg),
@@ -569,6 +575,18 @@ const updateTabQuery = (isApp: boolean) => {
   router.replace({ query })
 }
 
+function clearAllFilters () {
+  if (isSplitDashboardTableEnabled.value) {
+    if (isApplicationTab.value) {
+      exStore.resetFiltersToApplicationsDefault()
+    } else {
+      exStore.resetFiltersToRegistrationsDefault()
+    }
+  } else {
+    exStore.resetFilters()
+  }
+}
+
 const tabLinks = computed(() => [
   {
     label: t('label.newApplicationsTab'),
@@ -581,7 +599,6 @@ const tabLinks = computed(() => [
   {
     label: t('label.registrationsAndRenewalsTab'),
     click: () => {
-      exStore.resetFilters()
       isApplicationTab.value = false
       updateTabQuery(false)
     },
@@ -646,7 +663,7 @@ const tabLinks = computed(() => [
               variant="link"
               :padded="false"
               :ui="{ gap: { sm: 'gap-x-1' } }"
-              @click="exStore.resetFilters"
+              @click="clearAllFilters"
             />
           </div>
           <div class="flex flex-wrap items-center gap-3 text-gray-900">

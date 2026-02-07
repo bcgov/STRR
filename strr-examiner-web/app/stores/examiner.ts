@@ -256,16 +256,23 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const fetchRegistrations = () => {
     const { registrationStatuses } = processStatusFilters(tableFilters.status)
 
+    const queryParams = {
+      sortOrder: 'asc',
+      limit: tableLimit.value,
+      page: tablePage.value,
+      registrationType: tableFilters.registrationType,
+      status: registrationStatuses,
+      requirement: tableFilters.requirements,
+      recordNumber: tableFilters.registrationNumber,
+      text: undefined as string | undefined
+    }
+
+    if (tableFilters.searchText && tableFilters.searchText.length > 2) {
+      queryParams.text = tableFilters.searchText
+    }
+
     return $strrApi('/registrations/search', {
-      query: {
-        sortOrder: 'asc',
-        limit: tableLimit.value,
-        page: tablePage.value,
-        registrationType: tableFilters.registrationType,
-        status: registrationStatuses,
-        requirement: tableFilters.requirements,
-        recordNumber: tableFilters.registrationNumber
-      }
+      query: queryParams
     })
   }
 
@@ -581,6 +588,46 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   /**
+   * Reset to the applications table default state (default status filters, other filters clear).
+   */
+  const resetFiltersToApplicationsDefault = () => {
+    Object.assign(tableFilters, {
+      searchText: '',
+      registrationNumber: '',
+      registrationType: [],
+      requirements: [],
+      applicantName: '',
+      propertyAddress: '',
+      status: [...applicationsOnlyStatuses],
+      submissionDate: { start: null, end: null },
+      lastModified: { start: null, end: null },
+      localGov: '',
+      adjudicator: ''
+    })
+    tablePage.value = 1
+  }
+
+  /**
+   * Reset to the registrations table default state (no filters = show all registrations).
+   */
+  const resetFiltersToRegistrationsDefault = () => {
+    Object.assign(tableFilters, {
+      searchText: '',
+      registrationNumber: '',
+      registrationType: [],
+      requirements: [],
+      applicantName: '',
+      propertyAddress: '',
+      status: [],
+      submissionDate: { start: null, end: null },
+      lastModified: { start: null, end: null },
+      localGov: '',
+      adjudicator: ''
+    })
+    tablePage.value = 1
+  }
+
+  /**
    * Saves the updated rental unit address for either an application or registration.
    *
    * @param {Partial<EditStrAddress>} updatedAddress - The new address data to save
@@ -656,6 +703,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     setAsideRegistration,
     openDocInNewTab,
     resetFilters,
+    resetFiltersToApplicationsDefault,
+    resetFiltersToRegistrationsDefault,
     updateRegistrationStatus,
     getRegistrationById,
     assignApplication,
