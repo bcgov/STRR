@@ -587,9 +587,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     )
   }
 
-  /**
-   * Reset to the applications table default state (default status filters, other filters clear).
-   */
+  /** Reset to the applications table default state (default status filters, other filters clear). */
   const resetFiltersToApplicationsDefault = () => {
     Object.assign(tableFilters, {
       searchText: '',
@@ -607,9 +605,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     tablePage.value = 1
   }
 
-  /**
-   * Reset to the registrations table default state (no filters = show all registrations).
-   */
+  /** Reset to the registrations table default state (no filters = show all registrations). */
   const resetFiltersToRegistrationsDefault = () => {
     Object.assign(tableFilters, {
       searchText: '',
