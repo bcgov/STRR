@@ -96,6 +96,12 @@ vi.mock('@/composables/useExaminerFeatureFlags', () => ({
   })
 }))
 
+// Filter Persistence tests assert tab/store behavior without persistence side effects
+vi.mock('@/composables/useExaminerDashboardPersistence', () => ({
+  useExaminerDashboardPersistence: vi.fn(),
+  loadSavedTab: vi.fn(() => null)
+}))
+
 describe('Examiner Dashboard Page', () => {
   let wrapper: any
 
@@ -297,7 +303,7 @@ describe('Examiner Dashboard Page', () => {
       expect(mockStore.tableFilters.status.length).toBeGreaterThan(0)
     })
 
-    it('should reset filters when switching to registrations tab', async () => {
+    it('should NOT call resetFilters when switching to registrations tab (each tab has its own state)', async () => {
       const initialFilters = {
         registrationType: ['HOST'],
         requirements: ['PR'],
@@ -310,23 +316,17 @@ describe('Examiner Dashboard Page', () => {
       })
       await nextTick()
 
-      // Click on registrations tab
-      const tabs = wrapper.findTestId('application-and-registrations-tabs')
-      expect(tabs.exists()).toBe(true)
-
-      // Get the registrations tab link
       const tabLinks = wrapper.vm.tabLinks
       const registrationsTab = tabLinks.find((tab: any) => !tab.active)
 
-      // Simulate clicking registrations tab (which calls resetFilters)
       registrationsTab.click()
       await nextTick()
 
-      // Filters should be reset
-      expect(mockStore.resetFilters).toHaveBeenCalled()
+      // With persistence, we load the registrations tab state instead of resetting
+      expect(mockStore.resetFilters).not.toHaveBeenCalled()
     })
 
-    it('should NOT reset filters when switching back to applications tab', async () => {
+    it('should preserve filters when switching to registrations tab and back (with persistence mocked)', async () => {
       const initialFilters = {
         registrationType: ['HOST'],
         requirements: ['PR']
@@ -338,22 +338,16 @@ describe('Examiner Dashboard Page', () => {
       })
       await nextTick()
 
-      // Store initial values
       const initialRegType = [...mockStore.tableFilters.registrationType]
       const initialRequirements = [...mockStore.tableFilters.requirements]
 
-      // Switch to registrations tab first
       wrapper.vm.isApplicationTab = false
       await nextTick()
 
-      // Switch back to applications tab
       wrapper.vm.isApplicationTab = true
       await nextTick()
 
-      // The applications tab click handler does NOT call resetFilters
-      // So filters should be preserved (unless resetFilters was called by registrations tab)
-      // Since we're just testing the applications tab, filters should remain
-      // Note: In actual usage, switching to registrations tab would reset, but switching back wouldn't
+      // With persistence mocked, store is not overwritten; filters remain
       expect(mockStore.tableFilters.registrationType).toEqual(initialRegType)
       expect(mockStore.tableFilters.requirements).toEqual(initialRequirements)
     })
