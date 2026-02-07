@@ -1,10 +1,8 @@
 /**
  * Persists examiner dashboard table state (filters, page, limit) per tab in sessionStorage.
  * Applications and registrations tables each keep their own state so it survives navigation
- * (e.g. back from a registration detail or logo click).
+ * for example, going back from a registration detail or logo click.
  */
-
-import { useSessionStorage } from '@vueuse/core'
 
 // SessionStorage keys: one for active tab, one per table's state
 const TAB_KEY = 'strr-examiner-dashboard-tab'
@@ -33,8 +31,10 @@ const defaultState = () => ({ filters: emptyFilters(), page: 1, limit: 50 })
  */
 export function loadSavedTab (): boolean | null {
   try {
-    const raw = sessionStorage.getItem(TAB_KEY)
-    return raw === 'applications' ? true : raw === 'registrations' ? false : null
+    const storedTab = sessionStorage.getItem(TAB_KEY)
+    if (storedTab === 'applications') { return true }
+    if (storedTab === 'registrations') { return false }
+    return null
   } catch {
     return null
   }
@@ -42,21 +42,21 @@ export function loadSavedTab (): boolean | null {
 
 /** Snapshot current table filters + page + limit from the examiner store into a plain object. */
 function getStateFromStore (exStore: ReturnType<typeof useExaminerStore>) {
-  const f = exStore.tableFilters
+  const filters = exStore.tableFilters
   return {
     filters: {
       ...emptyFilters(),
-      searchText: f.searchText,
-      registrationNumber: f.registrationNumber,
-      registrationType: [...f.registrationType],
-      requirements: [...f.requirements],
-      applicantName: f.applicantName,
-      propertyAddress: f.propertyAddress,
-      status: [...f.status],
-      localGov: f.localGov,
-      adjudicator: f.adjudicator,
-      submissionDate: { start: f.submissionDate?.start ?? null, end: f.submissionDate?.end ?? null },
-      lastModified: { start: f.lastModified?.start ?? null, end: f.lastModified?.end ?? null }
+      searchText: filters.searchText,
+      registrationNumber: filters.registrationNumber,
+      registrationType: [...filters.registrationType],
+      requirements: [...filters.requirements],
+      applicantName: filters.applicantName,
+      propertyAddress: filters.propertyAddress,
+      status: [...filters.status],
+      localGov: filters.localGov,
+      adjudicator: filters.adjudicator,
+      submissionDate: { start: filters.submissionDate?.start ?? null, end: filters.submissionDate?.end ?? null },
+      lastModified: { start: filters.lastModified?.start ?? null, end: filters.lastModified?.end ?? null }
     },
     page: exStore.tablePage,
     limit: exStore.tableLimit
@@ -92,15 +92,17 @@ export function useExaminerDashboardPersistence (
   const appState = useSessionStorage(APP_KEY, defaultState())
   const regState = useSessionStorage(REG_KEY, defaultState())
 
-  // Helpers: which ref is "current" depends on active tab; merge() fills missing keys from defaults
+  // Which ref is "current" depends on active tab
   const currentState = () => (isApplicationTab.value ? appState : regState).value
-  const merge = (st: ReturnType<typeof defaultState>) =>
-    ({ ...defaultState(), ...st, filters: { ...emptyFilters(), ...st.filters } })
+
+  // Overlay saved state on defaults so missing keys get default values
+  const mergeSavedStateWithDefaults = (savedState: ReturnType<typeof defaultState>) =>
+    ({ ...defaultState(), ...savedState, filters: { ...emptyFilters(), ...savedState.filters } })
 
   // On mount: restore the active tab's saved state into the store (so back/logo brings back filters + page)
   onMounted(() => {
     if (!isSplitEnabled.value) { return }
-    applyStateToStore(exStore, merge(currentState()))
+    applyStateToStore(exStore, mergeSavedStateWithDefaults(currentState()))
   })
 
   // When the user switches tab: persist tab, save current table to storage, load the other table's state into the store
@@ -109,7 +111,7 @@ export function useExaminerDashboardPersistence (
     sessionStorage.setItem(TAB_KEY, isApp ? 'applications' : 'registrations')
     if (wasApp !== undefined) {
       (wasApp ? appState : regState).value = getStateFromStore(exStore)
-      applyStateToStore(exStore, merge((isApp ? appState : regState).value))
+      applyStateToStore(exStore, mergeSavedStateWithDefaults((isApp ? appState : regState).value))
     }
   })
 
