@@ -105,9 +105,9 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         <div>
           <strong>{{ t('strr.label.ownerRenter') }}</strong>
           {{
-            activeReg.unitDetails?.ownershipType
-              ? t(`ownershipType.${activeReg.unitDetails.ownershipType}`)
-              : t(`hostType.${activeReg.unitDetails?.hostType}`)
+            activeReg.unitDetails?.hostType
+              ? t(`hostType.${activeReg.unitDetails?.hostType}`)
+              : t(`ownershipType.${activeReg.unitDetails.ownershipType}`)
           }}
         </div>
       </div>
@@ -128,9 +128,9 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         </div>
         <div>
           {{
-            activeReg.unitDetails?.hostResidence
-              ? t(`hostResidence.${activeReg.unitDetails.hostResidence}`)
-              : t(`rentalUnitSetupOption.${activeReg.unitDetails?.rentalUnitSetupOption}`)
+            activeReg.unitDetails?.rentalUnitSetupOption
+              ? t(`rentalUnitSetupOption.${activeReg.unitDetails?.rentalUnitSetupOption}`)
+              : t(`hostResidence.${activeReg.unitDetails.hostResidence}`)
           }}
           <AlertFlag
             v-if="isApplication && alertFlags.isNotSameProperty"
