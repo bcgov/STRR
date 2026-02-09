@@ -22,7 +22,6 @@ const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 const documentStore = useDocumentStore()
 const { deleteApplication, getAccountApplication } = useStrrApi()
-const { isRenewalsEnabled } = useStrataFeatureFlags()
 
 const todos = ref<Todo[]>([])
 const buildings = ref<ConnectAccordionItem[]>([])
@@ -32,7 +31,7 @@ const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 const isFileUploadOpen = ref(false)
 
 const getRenewalToDo = async (): Promise<Todo[]> => {
-  if (!registration.value || !isRenewalsEnabled) { return [] }
+  if (!registration.value) { return [] }
 
   if (isRenewalPeriodClosed(registration.value)) {
     return [{
