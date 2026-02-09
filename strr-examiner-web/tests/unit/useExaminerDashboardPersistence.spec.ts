@@ -2,6 +2,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ref, reactive } from 'vue'
 import { loadSavedTab, useExaminerDashboardPersistence } from '~/composables/useExaminerDashboardPersistence'
 
+const splitEnabledRef = ref(true)
+vi.mock('~/composables/useExaminerFeatureFlags', () => ({
+  useExaminerFeatureFlags: () => ({ isSplitDashboardTableEnabled: splitEnabledRef })
+}))
+
 describe('loadSavedTab', () => {
   beforeEach(() => {
     vi.stubGlobal('sessionStorage', {
@@ -37,6 +42,10 @@ describe('loadSavedTab', () => {
 })
 
 describe('useExaminerDashboardPersistence', () => {
+  beforeEach(() => {
+    splitEnabledRef.value = true
+  })
+
   it('runs without throwing when given mock store and refs', () => {
     const mockStore = {
       tableFilters: reactive({
@@ -57,16 +66,13 @@ describe('useExaminerDashboardPersistence', () => {
     }
 
     expect(() => {
-      useExaminerDashboardPersistence(
-        mockStore as any,
-        ref(true),
-        ref(true)
-      )
+      useExaminerDashboardPersistence(mockStore as any, ref(true))
     }).not.toThrow()
   })
 
   it('does not overwrite store when split disabled', async () => {
     const { nextTick } = await import('vue')
+    splitEnabledRef.value = false
     const mockStore = {
       tableFilters: reactive({
         searchText: 'keep',
@@ -85,7 +91,7 @@ describe('useExaminerDashboardPersistence', () => {
       tableLimit: ref(50)
     }
 
-    useExaminerDashboardPersistence(mockStore as any, ref(true), ref(false))
+    useExaminerDashboardPersistence(mockStore as any, ref(true))
     await nextTick()
 
     expect(mockStore.tableFilters.searchText).toBe('keep')

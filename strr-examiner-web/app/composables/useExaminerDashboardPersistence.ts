@@ -4,6 +4,8 @@
  * for example, going back from a registration detail or logo click.
  */
 
+import merge from 'lodash/merge'
+
 // SessionStorage keys: one for active tab, one per table's state
 const TAB_KEY = 'strr-examiner-dashboard-tab'
 const APP_KEY = 'strr-examiner-dashboard-app-state'
@@ -85,9 +87,9 @@ function applyStateToStore (exStore: ReturnType<typeof useExaminerStore>, state:
  */
 export function useExaminerDashboardPersistence (
   exStore: ReturnType<typeof useExaminerStore>,
-  isApplicationTab: Ref<boolean>,
-  isSplitEnabled: Ref<boolean>
+  isApplicationTab: Ref<boolean>
 ) {
+  const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
   // Refs that sync with sessionStorage (one per table)
   const appState = useSessionStorage(APP_KEY, defaultState())
   const regState = useSessionStorage(REG_KEY, defaultState())
@@ -97,17 +99,17 @@ export function useExaminerDashboardPersistence (
 
   // Overlay saved state on defaults so missing keys get default values
   const mergeSavedStateWithDefaults = (savedState: ReturnType<typeof defaultState>) =>
-    ({ ...defaultState(), ...savedState, filters: { ...emptyFilters(), ...savedState.filters } })
+    merge({}, defaultState(), savedState)
 
   // On mount: restore the active tab's saved state into the store (so back/logo brings back filters + page)
   onMounted(() => {
-    if (!isSplitEnabled.value) { return }
+    if (!isSplitDashboardTableEnabled.value) { return }
     applyStateToStore(exStore, mergeSavedStateWithDefaults(currentState()))
   })
 
   // When the user switches tab: persist tab, save current table to storage, load the other table's state into the store
   watch(isApplicationTab, (isApp, wasApp) => {
-    if (!isSplitEnabled.value) { return }
+    if (!isSplitDashboardTableEnabled.value) { return }
     sessionStorage.setItem(TAB_KEY, isApp ? 'applications' : 'registrations')
     if (wasApp !== undefined) {
       (wasApp ? appState : regState).value = getStateFromStore(exStore)
@@ -119,7 +121,7 @@ export function useExaminerDashboardPersistence (
   watch(
     () => [isApplicationTab.value, exStore.tableFilters, exStore.tablePage, exStore.tableLimit],
     () => {
-      if (!isSplitEnabled.value) { return }
+      if (!isSplitDashboardTableEnabled.value) { return }
       (isApplicationTab.value ? appState : regState).value = getStateFromStore(exStore)
       sessionStorage.setItem(TAB_KEY, isApplicationTab.value ? 'applications' : 'registrations')
     },

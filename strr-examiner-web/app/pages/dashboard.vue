@@ -120,7 +120,7 @@ watch(() => route.query.returnTab, (returnTab) => {
 }, { immediate: true })
 
 // Persist table state per tab in sessionStorage (restore on mount, save on change)
-useExaminerDashboardPersistence(exStore, isApplicationTab, isSplitDashboardTableEnabled)
+useExaminerDashboardPersistence(exStore, isApplicationTab)
 
 useHead({
   title: t('page.dashboardList.title')
