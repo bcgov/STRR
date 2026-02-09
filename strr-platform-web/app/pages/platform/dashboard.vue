@@ -23,7 +23,6 @@ const todos = ref<Todo[]>([])
 const addresses = ref<ConnectAccordionItem[]>([])
 const representatives = ref<ConnectAccordionItem[]>([])
 const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
-const isRenewalsEnabled: boolean = ldStore.getStoredFlag('enable-platform-registration-renewals')
 const hasPermitDetails = computed(() => Boolean(permitDetails.value && showPermitDetails.value))
 
 const getApplicationTodo = () => {
@@ -35,7 +34,7 @@ const getApplicationTodo = () => {
 }
 
 const getRenewalToDo = async (): Promise<Todo[]> => {
-  if (!registration.value || !isRenewalsEnabled) { return [] }
+  if (!registration.value) { return [] }
 
   const { hasRenewalTodo, hasRenewalDraft, hasRenewalPaymentPending, renewalDraftId, renewalPaymentPendingId } =
      await getTodoRegistration(registration.value.id)
