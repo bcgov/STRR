@@ -12,11 +12,15 @@ const props = withDefaults(defineProps<{
   applicationsLimit: 6
 })
 
-// Pagination state - persisted in URL for navigation preservation
-const { page: applicationsPage, resetPage: resetApplicationsPage } = useDashboardTablePagination('appPage')
+// Pagination state - persisted in session storage
+// reset when account changes so we don't show page 4 for an account with 1 page for example
+const { page: applicationsPage, resetPage: resetApplicationsPage } = useDashboardTablePagination(
+  'appPage',
+  () => accountStore.currentAccount.id
+)
 
-// Search state - persisted in URL for navigation preservation
-const { searchText } = useDashboardTableSearch('appSearch')
+// Search state - persisted in session storage; reset when account changes
+const { searchText } = useDashboardTableSearch('appSearch', () => accountStore.currentAccount.id)
 const isSearching = computed(() => searchText.value.length >= 3)
 
 // When starting a new search (or clearing), always return to page 1
