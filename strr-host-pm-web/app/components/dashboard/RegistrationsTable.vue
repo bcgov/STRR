@@ -12,21 +12,15 @@ const props = withDefaults(defineProps<{
   registrationsLimit: 6
 })
 
-// Pagination state - persisted in session storage
-// reset when account changes so we don't show page 4 for an account with 1 page for example
-const { page: registrationsPage, resetPage: resetRegistrationsPage } = useDashboardTablePagination(
-  'regPage',
-  () => accountStore.currentAccount.id
-)
-
-// Search state - persisted in session storage; reset when account changes
-const { searchText } = useDashboardTableSearch('regSearch', () => accountStore.currentAccount.id)
+// Pagination and search state from composable
+const { page: registrationsPage } = useDashboardTablePagination('regPage')
+const { searchText } = useDashboardTableSearch('regSearch')
 const isSearching = computed(() => searchText.value.length >= 3)
 
 // When starting a new search (or clearing), always return to page 1
 watch(searchText, () => {
   if (registrationsPage.value !== 1) {
-    resetRegistrationsPage()
+    registrationsPage.value = 1
   }
 })
 

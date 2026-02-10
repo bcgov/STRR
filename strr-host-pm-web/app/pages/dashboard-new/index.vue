@@ -1,7 +1,21 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
+const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
+
+// Persist table state in session storage; clear when account changes so we don't show page 4 for an account with 1 page
+const { resetPage: resetRegPage } = useDashboardTablePagination('regPage')
+const { clearSearch: clearRegSearch } = useDashboardTableSearch('regSearch')
+const { resetPage: resetAppPage } = useDashboardTablePagination('appPage')
+const { clearSearch: clearAppSearch } = useDashboardTableSearch('appSearch')
+
+watch(() => accountStore.currentAccount.id, () => {
+  resetRegPage()
+  clearRegSearch()
+  resetAppPage()
+  clearAppSearch()
+}, { immediate: false })
 
 useHead({
   title: t('page.dashboardList.title')
