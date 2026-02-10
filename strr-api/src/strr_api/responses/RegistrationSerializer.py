@@ -456,8 +456,8 @@ class RegistrationSerializer:
 
             registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
             # Preserve initiatedByPropertyManager flag in registrations
-            registration_data["propertyManager"]["initiatedByPropertyManager"] = (
-                cls._get_initiated_by_property_manager(registration)
+            registration_data["propertyManager"]["initiatedByPropertyManager"] = cls._get_initiated_by_property_manager(
+                registration
             )
 
     @classmethod
