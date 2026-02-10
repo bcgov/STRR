@@ -455,6 +455,19 @@ class RegistrationSerializer:
                     }
 
             registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
+            # Preserve completing-party flag so renewal applications get correct Completing Party (Property Manager vs Primary Contact)
+            registration_data["propertyManager"]["initiatedByPropertyManager"] = (
+                cls._get_initiated_by_property_manager(registration)
+            )
+
+    @classmethod
+    def _get_initiated_by_property_manager(cls, registration: Registration) -> Optional[bool]:
+        """Get initiatedByPropertyManager from registration_json (populated at create/renewal and by backfiller)."""
+        reg_json = registration.registration_json or {}
+        pm = reg_json.get("propertyManager") or {}
+        if isinstance(pm, dict) and "initiatedByPropertyManager" in pm:
+            return bool(pm["initiatedByPropertyManager"])
+        return None
 
     @classmethod
     def _build_primary_contact_dict(cls, primary_contact) -> dict:
