@@ -455,7 +455,7 @@ class RegistrationSerializer:
                     }
 
             registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
-            # Preserve completing-party flag so renewal applications get correct Completing Party (Property Manager vs Primary Contact)
+            # Preserve initiatedByPropertyManager flag in registrations
             registration_data["propertyManager"]["initiatedByPropertyManager"] = (
                 cls._get_initiated_by_property_manager(registration)
             )
