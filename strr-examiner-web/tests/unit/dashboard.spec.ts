@@ -36,13 +36,7 @@ const createMockStore = (initialFilters = {}) => {
   })
 
   const applicationsOnlyStatuses = [
-    ApplicationStatus.FULL_REVIEW,
-    ApplicationStatus.PAID,
-    ApplicationStatus.ADDITIONAL_INFO_REQUESTED,
-    ApplicationStatus.NOC_PENDING,
-    ApplicationStatus.NOC_EXPIRED,
-    ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
-    ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+    ApplicationStatus.FULL_REVIEW
   ]
 
   return {
