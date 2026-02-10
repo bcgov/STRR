@@ -461,7 +461,7 @@ class RegistrationSerializer:
             )
 
     @classmethod
-    def _get_initiated_by_property_manager(cls, registration: Registration) -> Optional[bool]:
+    def _get_initiated_by_property_manager(cls, registration: Registration) -> bool | None:
         """Get initiatedByPropertyManager from registration_json (populated at create/renewal and by backfiller)."""
         reg_json = registration.registration_json or {}
         pm = reg_json.get("propertyManager") or {}
