@@ -291,7 +291,7 @@ describe('Examiner Dashboard Page', () => {
       })
       await nextTick()
 
-      // User's status selection is preserved (e.g. when returning from application detail)
+      // User's status selection is preserved (when returning from application detail)
       expect(mockStore.tableFilters.status).toEqual(customStatusFilters)
     })
 

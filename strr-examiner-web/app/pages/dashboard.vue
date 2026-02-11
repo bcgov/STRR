@@ -322,7 +322,7 @@ const getConditionsColumnForRegistration = (reg: HousRegistrationResponse) => {
   return result
 }
 
-// Set applications-tab default status (Full Review only) only when status is empty, so we don't
+// Set applications table default status (Full Review only) only when status is empty, so we don't
 // overwrite the user's saved filters when returning from a detail page (persistence restores first).
 watch(
   () => [isApplicationTab.value, isSplitDashboardTableEnabled.value, exStore.tableFilters.status],
