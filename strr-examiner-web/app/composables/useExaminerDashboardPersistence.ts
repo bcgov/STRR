@@ -69,9 +69,19 @@ function getStateFromStore (exStore: ReturnType<typeof useExaminerStore>) {
  * Write a saved state back into the examiner store.
  * Page/limit are set in nextTick so the dashboard's "reset page when filters change" watch
  * doesn't overwrite the restored page.
+ * When on applications tab and the restored state has no status selection, apply the
+ * applications table default (Full Review only) so we don't overwrite user's saved status when returning.
  */
-function applyStateToStore (exStore: ReturnType<typeof useExaminerStore>, state: ReturnType<typeof defaultState>) {
+function applyStateToStore (
+  exStore: ReturnType<typeof useExaminerStore>,
+  state: ReturnType<typeof defaultState>,
+  isApplicationTab: boolean
+) {
   Object.assign(exStore.tableFilters, state.filters)
+  if (isApplicationTab && (!state.filters.status || state.filters.status.length === 0)) {
+    (exStore.tableFilters.status as ApplicationStatus[]).splice(
+      0, exStore.tableFilters.status.length, ...exStore.applicationsOnlyStatuses)
+  }
   nextTick(() => {
     exStore.tablePage = state.page
     exStore.tableLimit = state.limit
@@ -104,7 +114,8 @@ export function useExaminerDashboardPersistence (
   // On mount: restore the active tab's saved state into the store (so back/logo brings back filters + page)
   onMounted(() => {
     if (!isSplitDashboardTableEnabled.value) { return }
-    applyStateToStore(exStore, mergeSavedStateWithDefaults(currentState()))
+    const state = mergeSavedStateWithDefaults(currentState())
+    applyStateToStore(exStore, state, isApplicationTab.value)
   })
 
   // When the user switches tab: persist tab, save current table to storage, load the other table's state into the store
@@ -113,7 +124,8 @@ export function useExaminerDashboardPersistence (
     sessionStorage.setItem(TAB_KEY, isApp ? 'applications' : 'registrations')
     if (wasApp !== undefined) {
       (wasApp ? appState : regState).value = getStateFromStore(exStore)
-      applyStateToStore(exStore, mergeSavedStateWithDefaults((isApp ? appState : regState).value))
+      const state = mergeSavedStateWithDefaults((isApp ? appState : regState).value)
+      applyStateToStore(exStore, state, isApp)
     }
   })
 

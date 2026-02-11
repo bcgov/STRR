@@ -322,16 +322,17 @@ const getConditionsColumnForRegistration = (reg: HousRegistrationResponse) => {
   return result
 }
 
-// Set status to applications only when on applications tab
+// Set applications-tab default status (Full Review only) only when status is empty, so we don't
+// overwrite the user's saved filters when returning from a detail page (persistence restores first).
 watch(
-  () => [isApplicationTab.value, isSplitDashboardTableEnabled.value],
+  () => [isApplicationTab.value, isSplitDashboardTableEnabled.value, exStore.tableFilters.status],
   ([isApp, isEnabled]) => {
-    // only set status to applications only when on applications tab and split dashboard table is enabled
-    if (isApp && isEnabled) {
-      exStore.tableFilters.status = exStore.applicationsOnlyStatuses
+    if (isApp && isEnabled && (!exStore.tableFilters.status || exStore.tableFilters.status.length === 0)) {
+      (exStore.tableFilters.status as ApplicationStatus[]).splice(
+        0, exStore.tableFilters.status.length, ...exStore.applicationsOnlyStatuses)
     }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 )
 
 // Reset selected columns to default when switching tabs

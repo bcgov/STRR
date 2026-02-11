@@ -282,7 +282,7 @@ describe('Examiner Dashboard Page', () => {
       expect(mockStore.tableFilters.status).toEqual(mockStore.applicationsOnlyStatuses)
     })
 
-    it('should set status filters to applicationsOnlyStatuses when on applications tab', async () => {
+    it('should preserve custom status filters when on applications tab (do not overwrite with default)', async () => {
       const customStatusFilters = [ApplicationStatus.FULL_REVIEW, ApplicationStatus.PAID]
       mockStore = createMockStore({ status: customStatusFilters })
 
@@ -291,10 +291,8 @@ describe('Examiner Dashboard Page', () => {
       })
       await nextTick()
 
-      // The watcher sets status to applicationsOnlyStatuses when on applications tab
-      // This ensures default filters are applied when needed
-      expect(mockStore.tableFilters.status).toEqual(mockStore.applicationsOnlyStatuses)
-      expect(mockStore.tableFilters.status.length).toBeGreaterThan(0)
+      // User's status selection is preserved (e.g. when returning from application detail)
+      expect(mockStore.tableFilters.status).toEqual(customStatusFilters)
     })
 
     it('should NOT call resetFilters when switching to registrations tab (each tab has its own state)', async () => {
