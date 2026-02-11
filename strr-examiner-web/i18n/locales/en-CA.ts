@@ -213,7 +213,8 @@ export default {
       acknowledgeError: 'Close',
       editRentalUnit: 'Edit Rental Unit',
       setAside: 'SET ASIDE',
-      fileUpload: 'File Upload'
+      fileUpload: 'File Upload',
+      emptyVersionsTable: 'No previous versions'
     },
     text: {
       applicationMustInclude: 'Your application must include the following:',
@@ -675,6 +676,14 @@ export default {
     TENANCY_AGREEMENT: 'Tenancy Agreement',
     RENT_RECEIPT_OR_BANK_STATEMENT: 'Rent Receipt or Bank Statement',
     LOCAL_GOVT_BUSINESS_LICENSE: 'Business License',
+    TITLE_CERTIFICATE_OR_SEARCH: 'Land Title Certificate or Land Title Search',
+    SPECULATION_VACANCY_TAX_DECLARATION: 'Speculation and Vacancy Tax Declaration Summary',
+    HOME_OWNER_GRANT_APPROVAL: 'Home Owner Grant (Filing or Approval)',
+    NOTARIZED_REAL_ESTATE_DOC: 'Notarized Mortgage or Home Purchase Agreement',
+    PROPERTY_TRANSFER_TAX_RETURN: 'Property Transfer Tax Return',
+    AFFIDAVIT_PRINCIPAL_RESIDENCE: 'Affidavit of Legal Name and Principal Residence',
+    ASSESSMENT_ACT_NOTICE: 'Full BC Assessment Report (Annual)',
+    MORTGAGE_STATEMENT_OR_SAVINGS_DOC: 'Principal Residence Mortgage Statement',
     OTHERS: 'Other',
     undefined: 'N/A'
   },

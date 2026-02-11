@@ -39,8 +39,10 @@ const onViewSnapshot = async (snapshotEndpoint: string) => {
     <UTable
       :rows="snapshots"
       :columns="columns"
+      :empty-state="{ icon: '', label: t('strr.label.emptyVersionsTable') }"
       :ui="{
         wrapper: 'h-auto',
+        base: 'bg-white',
         divide: 'divide-y divide-gray-200',
         th: {
           base: 'text-sm text-gray-700',
