@@ -320,7 +320,7 @@ export default {
     },
     blExemption: 'Business Licence Exemption',
     blExemptionReason: 'Business Licence Exemption Reason',
-    blExemptionReasonOver30: 'Business licence not required. Every booking will be longer than the minimum days required by the local government.',
+    blExemptionReasonOver30: 'Every booking will be longer than the minimum days required by the local government',
     blExemptionReasonOther: 'Other',
     blExemptionReasonOtherPlaceholder: 'Reason',
     StrataHotelCategory: 'Strata Hotel Category',
