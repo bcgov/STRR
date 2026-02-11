@@ -630,9 +630,9 @@ export default {
     ANOTHER_UNIT: 'Not same property as host’s principal residence'
   },
   rentalUnitSetupOption: {
-    DIFFERENT_PROPERTY: 'Short-term renting a unit on a property you don\'t live at',
-    SEPARATE_UNIT_SAME_PROPERTY: 'Short-term renting a separate unit on the property where you live',
-    PRIMARY_RESIDENCE_OR_SHARED_SPACE: 'Short-term renting or sharing the space you live in'
+    DIFFERENT_PROPERTY: 'Option 1: Renting a unit on a property you don\'t live at',
+    SEPARATE_UNIT_SAME_PROPERTY: 'Option 2: Renting a separate unit on the property where you live',
+    PRIMARY_RESIDENCE_OR_SHARED_SPACE: 'Option 3: Renting or sharing the space you live in'
   },
   rentalUnitSetupType: {
     WHOLE_PRINCIPAL_RESIDENCE: "This unit is the host's principal residence", // The whole Host Principal Residence
