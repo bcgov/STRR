@@ -8,6 +8,8 @@ const props = defineProps<{
     label: string
     value: any
     disabled?: boolean
+    isChild?: boolean
+    childValues?: any[]
   }>
   sort?: TableSort
   searchable?: boolean
@@ -39,6 +41,37 @@ const displayLabel = computed(() => {
 const clearFilter = () => {
   filterModel.value = props.default ?? []
 }
+
+// Parent-child toggle logic for grouped options
+const parentOptions = computed(() => props.options.filter(o => o.childValues?.length))
+const isAdjusting = ref(false)
+
+watch(filterModel, (newVal, oldVal) => {
+  if (isAdjusting.value || !parentOptions.value.length) { return }
+  isAdjusting.value = true
+
+  const prev = new Set(oldVal)
+  const result = new Set(newVal)
+
+  for (const { value: parentVal, childValues } of parentOptions.value) {
+    const parentChecked = result.has(parentVal) && !prev.has(parentVal)
+    const parentUnchecked = !result.has(parentVal) && prev.has(parentVal)
+    const allChildrenSelected = childValues.every(c => result.has(c))
+
+    if (parentChecked) {
+      childValues.forEach(c => result.add(c))
+    } else if (parentUnchecked) {
+      childValues.forEach(c => result.delete(c))
+    } else if (allChildrenSelected) {
+      result.add(parentVal)
+    } else {
+      result.delete(parentVal)
+    }
+  }
+
+  filterModel.value = [...result]
+  nextTick(() => { isAdjusting.value = false })
+})
 
 const filterColumnRef = ref<any>(null)
 const initialWidth = ref<string>('auto')
@@ -82,7 +115,6 @@ onMounted(() => {
         clear-search-on-close
       >
         <template #default="{ open }">
-          <!-- TODO: aria labels? -->
           <UButton
             ref="filterColumnRef"
             variant="select_menu_trigger"
@@ -125,6 +157,7 @@ onMounted(() => {
           <div
             v-else
             class="flex cursor-pointer items-center gap-1 p-1"
+            :class="{ 'pl-5': option.isChild }"
           >
             <UCheckbox
               :model-value="selected"
