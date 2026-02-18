@@ -92,7 +92,7 @@ vi.mock('@/composables/useExaminerFeatureFlags', () => ({
 
 // Filter Persistence tests assert tab/store behavior without persistence side effects
 vi.mock('@/composables/useExaminerDashboardPersistence', () => ({
-  useExaminerDashboardPersistence: vi.fn(),
+  useExaminerDashboardPersistence: vi.fn(() => ({ hasSavedAppState: vi.fn(() => false) })),
   loadSavedTab: vi.fn(() => null)
 }))
 

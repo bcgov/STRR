@@ -62,7 +62,8 @@ describe('useExaminerDashboardPersistence', () => {
         adjudicator: ''
       }),
       tablePage: ref(1),
-      tableLimit: ref(50)
+      tableLimit: ref(50),
+      applicationsOnlyStatuses: ['FULL_REVIEW']
     }
 
     expect(() => {
@@ -88,7 +89,8 @@ describe('useExaminerDashboardPersistence', () => {
         adjudicator: ''
       }),
       tablePage: ref(1),
-      tableLimit: ref(50)
+      tableLimit: ref(50),
+      applicationsOnlyStatuses: ['FULL_REVIEW']
     }
 
     useExaminerDashboardPersistence(mockStore as any, ref(true))
