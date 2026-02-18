@@ -120,7 +120,7 @@ watch(() => route.query.returnTab, (returnTab) => {
 }, { immediate: true })
 
 // Persist table state per tab in sessionStorage (restore on mount, save on change)
-useExaminerDashboardPersistence(exStore, isApplicationTab)
+const { hasSavedAppState } = useExaminerDashboardPersistence(exStore, isApplicationTab)
 
 useHead({
   title: t('page.dashboardList.title')
@@ -322,9 +322,8 @@ const getConditionsColumnForRegistration = (reg: HousRegistrationResponse) => {
   return result
 }
 
-// Set applications table default status (Full Review only) only on initial load when status is empty,
-// so first-time visitors get the default. Do not run when status is cleared (X button) or when
-// switching back to applications tab with saved "nothing selected".
+// Set applications table default status (Full Review only) on first visit when status is empty.
+// When we have saved state (hasSavedAppState), never apply default so "nothing selected" persists.
 const hasAppliedApplicationsStatusDefault = ref(false)
 watch(
   () => [isApplicationTab.value, isSplitDashboardTableEnabled.value],
@@ -333,6 +332,7 @@ watch(
       !hasAppliedApplicationsStatusDefault.value &&
       isApp &&
       isEnabled &&
+      !hasSavedAppState() &&
       (!exStore.tableFilters.status || exStore.tableFilters.status.length === 0)
     ) {
       (exStore.tableFilters.status as ApplicationStatus[]).splice(

@@ -94,35 +94,40 @@ function applyStateToStore (
   })
 }
 
-/**
- * Persist applications and registrations table state per tab.
- * Call once from the dashboard with the store and tab ref; this composable handles:
- * - Restoring saved state when the dashboard mounts
- * - Saving current state and loading the other tab's state when the user switches tabs
- * - Saving the active tab and current table state whenever filters/page/limit change
- */
+/** True when applications-tab state has been saved (so dashboard should not apply default status). */
+export function hasSavedAppState (): boolean {
+  try {
+    if (typeof sessionStorage === 'undefined') { return false }
+    const raw = sessionStorage.getItem(APP_KEY)
+    return raw !== null && raw !== ''
+  } catch {
+    return false
+  }
+}
+
+/** Persist dashboard table state per tab so it survives navigation (e.g. back from application detail). */
 export function useExaminerDashboardPersistence (
   exStore: ReturnType<typeof useExaminerStore>,
   isApplicationTab: Ref<boolean>
 ) {
   const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
-  // Refs that sync with sessionStorage (one per table)
+  // Capture "had saved state" before useSessionStorage runs, so we don't treat first visit as returning
+  const hadSavedAppState = hasSavedAppState()
+
   const appState = useSessionStorage(APP_KEY, defaultState())
   const regState = useSessionStorage(REG_KEY, defaultState())
 
-  // Which ref is "current" depends on active tab
   const currentState = () => (isApplicationTab.value ? appState : regState).value
+  const mergeSavedStateWithDefaults = (saved: ReturnType<typeof defaultState>) =>
+    merge({}, defaultState(), saved)
 
-  // Overlay saved state on defaults so missing keys get default values
-  const mergeSavedStateWithDefaults = (savedState: ReturnType<typeof defaultState>) =>
-    merge({}, defaultState(), savedState)
-
-  // On mount: restore the active tab's saved state into the store (so back/logo brings back filters + page)
-  onMounted(() => {
-    if (!isSplitDashboardTableEnabled.value) { return }
+  // Restore once, synchronously, so the store is correct before the dashboard's
+  // "apply default when empty" watch runs.
+  if (isSplitDashboardTableEnabled.value) {
     const state = mergeSavedStateWithDefaults(currentState())
-    applyStateToStore(exStore, state, isApplicationTab.value, true)
-  })
+    const isApp = isApplicationTab.value
+    applyStateToStore(exStore, state, isApp, isApp && !hadSavedAppState)
+  }
 
   // When the user switches tab: persist tab, save current table to storage, load the other table's state into the store
   watch(isApplicationTab, (isApp, wasApp) => {
@@ -145,4 +150,19 @@ export function useExaminerDashboardPersistence (
     },
     { deep: true }
   )
+
+  // When leaving the dashboard (into an application for example), persist current store state immediately
+  onBeforeUnmount(() => {
+    if (!isSplitDashboardTableEnabled.value) { return }
+    try {
+      const key = isApplicationTab.value ? APP_KEY : REG_KEY
+      const state = getStateFromStore(exStore)
+      sessionStorage.setItem(key, JSON.stringify(state))
+      sessionStorage.setItem(TAB_KEY, isApplicationTab.value ? 'applications' : 'registrations')
+    } catch {
+      // ignore
+    }
+  })
+
+  return { hasSavedAppState }
 }
