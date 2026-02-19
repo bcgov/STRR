@@ -346,17 +346,13 @@ class Application(BaseModel):
         return None
 
     @classmethod
-    def _filter_by_application_requirement(cls, requirement: list[str], query: Query) -> Query:
-        """Filter query by requirements."""
-        if not requirement:
-            return query
-
+    def _collect_requirement_conditions(cls, requirement: list[str]):
+        """Build host, platform, and strata condition lists from requirement filters."""
         host_requirement_conditions = []
         platform_requirement_conditions = []
         strata_requirement_conditions = []
 
         for req in requirement:
-            # When both BL and PR selected: return BL, PR, or BL+PR (one OR condition)
             if req == StrrRequirement.BL.value and StrrRequirement.PR.value in requirement:
                 host_requirement_conditions.append(
                     db.or_(
@@ -366,7 +362,7 @@ class Application(BaseModel):
                 )
                 continue
             if req == StrrRequirement.PR.value and StrrRequirement.BL.value in requirement:
-                continue  # already added (BL OR PR) when we saw BL
+                continue
 
             host_condition = cls._get_host_requirement_condition(req)
             if host_condition is not None:
@@ -382,13 +378,22 @@ class Application(BaseModel):
             if strata_condition is not None:
                 strata_requirement_conditions.append(strata_condition)
 
+        return host_requirement_conditions, platform_requirement_conditions, strata_requirement_conditions
+
+    @classmethod
+    def _filter_by_application_requirement(cls, requirement: list[str], query: Query) -> Query:
+        """Filter query by requirements."""
+        if not requirement:
+            return query
+
+        host_list, platform_list, strata_list = cls._collect_requirement_conditions(requirement)
         combined_conditions = []
-        if host_requirement_conditions:
-            combined_conditions.append(db.and_(*host_requirement_conditions))
-        if platform_requirement_conditions:
-            combined_conditions.append(db.and_(*platform_requirement_conditions))
-        if strata_requirement_conditions:
-            combined_conditions.append(db.and_(*strata_requirement_conditions))
+        if host_list:
+            combined_conditions.append(db.and_(*host_list))
+        if platform_list:
+            combined_conditions.append(db.and_(*platform_list))
+        if strata_list:
+            combined_conditions.append(db.and_(*strata_list))
         if combined_conditions:
             query = query.filter(db.or_(*combined_conditions))
         return query
