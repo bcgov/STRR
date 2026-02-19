@@ -153,15 +153,11 @@ class Registration(Versioned, BaseModel):
     def _host_condition_bl_or_pr(cls, application_model):
         """BL+PR selected: records with BL true or PR true."""
         bl_true = (
-            application_model.application_json["registration"]["strRequirements"][
-                "isBusinessLicenceRequired"
-            ].astext
+            application_model.application_json["registration"]["strRequirements"]["isBusinessLicenceRequired"].astext
             == "true"
         )
         pr_true = (
-            application_model.application_json["registration"]["strRequirements"][
-                "isPrincipalResidenceRequired"
-            ].astext
+            application_model.application_json["registration"]["strRequirements"]["isPrincipalResidenceRequired"].astext
             == "true"
         )
         return db.exists().where(
@@ -188,9 +184,7 @@ class Registration(Versioned, BaseModel):
                 db.and_(
                     Application.registration_id == Registration.id,
                     db.or_(
-                        Application.application_json["registration"]["strRequirements"][
-                            "isStraaExempt"
-                        ].astext
+                        Application.application_json["registration"]["strRequirements"]["isStraaExempt"].astext
                         == "true",
                         db.and_(
                             Application.application_json["registration"]["strRequirements"][
@@ -245,13 +239,9 @@ class Registration(Versioned, BaseModel):
                 db.and_(
                     application_model.registration_id == Registration.id,
                     db.or_(
-                        application_model.application_json["registration"]["strataHotelDetails"][
-                            "category"
-                        ].astext
+                        application_model.application_json["registration"]["strataHotelDetails"]["category"].astext
                         == "FULL_SERVICE",
-                        application_model.application_json["registration"]["strataHotelDetails"][
-                            "category"
-                        ].astext
+                        application_model.application_json["registration"]["strataHotelDetails"]["category"].astext
                         == "POST_DECEMBER_2023",
                     ),
                 )
@@ -363,13 +353,9 @@ class Registration(Versioned, BaseModel):
                     )
                 )
             elif req == StrrRequirement.STRATA_NO_PR.value:
-                strata_conditions.append(
-                    cls._strata_condition_no_pr(Application, StrataHotel, StrataHotelRegistration)
-                )
+                strata_conditions.append(cls._strata_condition_no_pr(Application, StrataHotel, StrataHotelRegistration))
             elif req == StrrRequirement.STRATA_PR.value:
-                strata_conditions.append(
-                    cls._strata_condition_pr(Application, StrataHotel, StrataHotelRegistration)
-                )
+                strata_conditions.append(cls._strata_condition_pr(Application, StrataHotel, StrataHotelRegistration))
 
         # Combine conditions: AND within groups, OR between groups
         combined_conditions = []
