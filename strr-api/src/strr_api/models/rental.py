@@ -189,6 +189,30 @@ class Registration(Versioned, BaseModel):
         strata_conditions = []
 
         for req in requirement:
+            # When both BL and PR selected: return BL, PR, or BL+PR (one OR condition)
+            if req == StrrRequirement.BL.value and StrrRequirement.PR.value in requirement:
+                bl_true = (
+                    Application.application_json["registration"]["strRequirements"]["isBusinessLicenceRequired"].astext
+                    == "true"
+                )
+                pr_true = (
+                    Application.application_json["registration"]["strRequirements"][
+                        "isPrincipalResidenceRequired"
+                    ].astext
+                    == "true"
+                )
+                host_conditions.append(
+                    db.exists().where(
+                        db.and_(
+                            Application.registration_id == Registration.id,
+                            db.or_(bl_true, pr_true),
+                        )
+                    )
+                )
+                continue
+            if req == StrrRequirement.PR.value and StrrRequirement.BL.value in requirement:
+                continue  # already added (BL OR PR) when we saw BL
+
             # HOST requirements that need Application.application_json (strRequirements)
             if req == StrrRequirement.BL.value:
                 # BL required - check via Application's application_json
@@ -204,7 +228,6 @@ class Registration(Versioned, BaseModel):
                     )
                 )
             elif req == StrrRequirement.PR.value:
-                # The actual data access happens when the query executes, not during building
                 # PR required - check via Application's application_json
                 host_conditions.append(
                     db.exists().where(

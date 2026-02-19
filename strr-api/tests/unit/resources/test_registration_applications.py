@@ -1129,13 +1129,15 @@ def test_requirements_filter(session, client, jwt):
             and application["registration"]["strRequirements"]["isPrincipalResidenceRequired"] is False
         )
 
+    # BL+PR selected: returns BL-only, PR-only, or BL+PR (BL true or PR true)
     rv = client.get("/applications?requirement=PR&requirement=BL", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code
     response_json = rv.json
     applications = response_json["applications"]
     for application in applications:
-        assert application["registration"]["strRequirements"]["isPrincipalResidenceRequired"] is True
-        assert application["registration"]["strRequirements"]["isBusinessLicenceRequired"] is True
+        bl_ = application["registration"]["strRequirements"]["isBusinessLicenceRequired"]
+        pr_ = application["registration"]["strRequirements"]["isPrincipalResidenceRequired"]
+        assert bl_ is True or pr_ is True
 
     rv = client.get("/applications?requirement=PR_EXEMPT_FRACTIONAL_OWNERSHIP", headers=staff_headers)
     assert HTTPStatus.OK == rv.status_code

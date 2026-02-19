@@ -356,6 +356,18 @@ class Application(BaseModel):
         strata_requirement_conditions = []
 
         for req in requirement:
+            # When both BL and PR selected: return BL, PR, or BL+PR (one OR condition)
+            if req == StrrRequirement.BL.value and StrrRequirement.PR.value in requirement:
+                host_requirement_conditions.append(
+                    db.or_(
+                        cls._get_host_requirement_condition(StrrRequirement.BL.value),
+                        cls._get_host_requirement_condition(StrrRequirement.PR.value),
+                    )
+                )
+                continue
+            if req == StrrRequirement.PR.value and StrrRequirement.BL.value in requirement:
+                continue  # already added (BL OR PR) when we saw BL
+
             host_condition = cls._get_host_requirement_condition(req)
             if host_condition is not None:
                 host_requirement_conditions.append(host_condition)
