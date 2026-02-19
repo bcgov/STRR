@@ -249,34 +249,18 @@ class Registration(Versioned, BaseModel):
         )
 
     @classmethod
-    def _filter_by_registration_requirement(cls, requirement: list[str], query):
-        """Filter query by requirements.
-
-        Since registration_json is often null, we query the actual related tables:
-        - For HOST: RentalProperty table and Application.application_json for strRequirements
-        - For PLATFORM: Platform table via PlatformRegistration
-        - For STRATA_HOTEL: StrataHotel table via StrataHotelRegistration
-
-        Grouping logic matches Application model:
-        - Host conditions are ANDed together
-        - Platform conditions are ANDed together
-        - Strata conditions are ANDed together
-        - Then the groups are ORed together
-        """
+    def _collect_registration_requirement_conditions(cls, requirement: list[str]):
+        """Build host, platform, and strata condition lists from requirement filters."""
         # pylint: disable=import-outside-toplevel
         from strr_api.models.application import Application
         from strr_api.models.platforms import Platform, PlatformRegistration
         from strr_api.models.strata_hotels import StrataHotel, StrataHotelRegistration
-
-        if not requirement:
-            return query
 
         pr_exempt_mapping = {
             StrrRequirement.PR_EXEMPT_STRATA_HOTEL.value: "STRATA_HOTEL",
             StrrRequirement.PR_EXEMPT_FARM_LAND.value: "FARM_LAND",
             StrrRequirement.PR_EXEMPT_FRACTIONAL_OWNERSHIP.value: "FRACTIONAL_OWNERSHIP",
         }
-
         platform_req_mapping = {
             StrrRequirement.PLATFORM_MAJOR.value: "THOUSAND_AND_ABOVE",
             StrrRequirement.PLATFORM_MEDIUM.value: "BETWEEN_250_AND_999",
@@ -295,7 +279,6 @@ class Registration(Versioned, BaseModel):
                 continue
 
             if req == StrrRequirement.BL.value:
-                # BL required - check via Application's application_json
                 host_conditions.append(
                     db.exists().where(
                         db.and_(
@@ -308,7 +291,6 @@ class Registration(Versioned, BaseModel):
                     )
                 )
             elif req == StrrRequirement.PR.value:
-                # PR required - check via Application's application_json
                 host_conditions.append(
                     db.exists().where(
                         db.and_(
@@ -321,7 +303,6 @@ class Registration(Versioned, BaseModel):
                     )
                 )
             elif req == StrrRequirement.PROHIBITED.value:
-                # STR Prohibited - check via Application's application_json
                 host_conditions.append(
                     db.exists().where(
                         db.and_(
@@ -357,18 +338,36 @@ class Registration(Versioned, BaseModel):
             elif req == StrrRequirement.STRATA_PR.value:
                 strata_conditions.append(cls._strata_condition_pr(Application, StrataHotel, StrataHotelRegistration))
 
-        # Combine conditions: AND within groups, OR between groups
-        combined_conditions = []
-        if host_conditions:
-            combined_conditions.append(db.and_(*host_conditions))
-        if platform_conditions:
-            combined_conditions.append(db.and_(*platform_conditions))
-        if strata_conditions:
-            combined_conditions.append(db.and_(*strata_conditions))
+        return host_conditions, platform_conditions, strata_conditions
 
+    @classmethod
+    def _filter_by_registration_requirement(cls, requirement: list[str], query):
+        """Filter query by requirements.
+
+        Since registration_json is often null, we query the actual related tables:
+        - For HOST: RentalProperty table and Application.application_json for strRequirements
+        - For PLATFORM: Platform table via PlatformRegistration
+        - For STRATA_HOTEL: StrataHotel table via StrataHotelRegistration
+
+        Grouping logic matches Application model:
+        - Host conditions are ANDed together
+        - Platform conditions are ANDed together
+        - Strata conditions are ANDed together
+        - Then the groups are ORed together
+        """
+        if not requirement:
+            return query
+
+        host_list, platform_list, strata_list = cls._collect_registration_requirement_conditions(requirement)
+        combined_conditions = []
+        if host_list:
+            combined_conditions.append(db.and_(*host_list))
+        if platform_list:
+            combined_conditions.append(db.and_(*platform_list))
+        if strata_list:
+            combined_conditions.append(db.and_(*strata_list))
         if combined_conditions:
             query = query.filter(db.or_(*combined_conditions))
-
         return query
 
 
