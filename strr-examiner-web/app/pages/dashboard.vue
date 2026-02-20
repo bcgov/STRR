@@ -285,7 +285,7 @@ const RENEWAL_NOT_IN_PROGRESS_STATUSES = new Set<ApplicationStatus>([
   ApplicationStatus.AUTO_APPROVED
 ])
 
-/** Check if a registration has a renewal application that is not in progress */
+/** Check if a registration has a renewal application that is in progress */
 const hasRenewalInProgress = (reg: HousRegistrationResponse): boolean => {
   const applications = reg.header?.applications ?? []
   return applications.some(
