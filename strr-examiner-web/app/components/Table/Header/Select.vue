@@ -50,7 +50,7 @@ const isChildStatus = (value: any) => parentOptions.value.some(p => p.childStatu
 
 // Sync parent/child checkboxes: toggling a parent checks/unchecks all its children,
 // and checking all children automatically checks the parent (and vice versa).
-// isAdjusting prevents the watcher from re-triggering on its own updates.
+// isUpdatingFilter prevents the watcher from re-triggering on its own updates.
 watch(filterModel, (newVal, oldVal) => {
   const parents = parentOptions.value
   if (isUpdatingFilter.value || !parents.length) { return } // skip re-entrant calls and flat option lists
@@ -79,6 +79,7 @@ watch(filterModel, (newVal, oldVal) => {
   nextTick(() => { isUpdatingFilter.value = false }) // wait for DOM updates before re-enabling the watcher
 })
 
+// used to check if any child statuses selected to set indeterminate state for ui checkbox
 const isPartiallySelected = (option: { childStatuses?: any[] }) => {
   if (!option.childStatuses?.length) { return false }
   const selected = new Set(filterModel.value)

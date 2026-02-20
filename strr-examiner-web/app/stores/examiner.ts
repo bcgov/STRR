@@ -180,7 +180,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    */
   const processStatusFilters = (statusFilters: any[]) => {
     const regStatus: any[] = []
-    // separate application and registration statuses, excluding UI grouping labels
+    // Separate application and registration statuses, excluding UI grouping labels
     const statusValue = statusFilters.filter((status) => {
       if (Object.values(RegistrationStatus).includes(status as any)) {
         regStatus.push(status)
