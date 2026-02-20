@@ -8,8 +8,7 @@ const props = defineProps<{
     label: string
     value: any
     disabled?: boolean
-    isChild?: boolean
-    childValues?: any[]
+    childStatuses?: any[]
   }>
   sort?: TableSort
   searchable?: boolean
@@ -42,36 +41,51 @@ const clearFilter = () => {
   filterModel.value = props.default ?? []
 }
 
-// Parent-child toggle logic for grouped options
-const parentOptions = computed(() => props.options.filter(o => o.childValues?.length))
-const isAdjusting = ref(false)
+// parent-child toggle logic for grouped options
+const parentOptions = computed(() => props.options.filter(option => option.childStatuses?.length))
+const isUpdatingFilter = ref(false)
 
+// used to style the child statuses
+const isChildStatus = (value: any) => parentOptions.value.some(p => p.childStatuses?.includes(value))
+
+// Sync parent/child checkboxes: toggling a parent checks/unchecks all its children,
+// and checking all children automatically checks the parent (and vice versa).
+// isAdjusting prevents the watcher from re-triggering on its own updates.
 watch(filterModel, (newVal, oldVal) => {
-  if (isAdjusting.value || !parentOptions.value.length) { return }
-  isAdjusting.value = true
+  const parents = parentOptions.value
+  if (isUpdatingFilter.value || !parents.length) { return } // skip re-entrant calls and flat option lists
+  isUpdatingFilter.value = true
 
-  const prev = new Set(oldVal)
-  const result = new Set(newVal)
+  const prev = new Set(oldVal) // previous selection, used to detect what changed
+  const result = new Set(newVal) // mutable working copy of the new selection
 
-  for (const { value: parentVal, childValues } of parentOptions.value) {
+  for (const { value: parentVal, childStatuses } of parents) {
     const parentChecked = result.has(parentVal) && !prev.has(parentVal)
     const parentUnchecked = !result.has(parentVal) && prev.has(parentVal)
-    const allChildrenSelected = childValues.every(c => result.has(c))
+    const allChildrenSelected = childStatuses!.every(status => result.has(status))
 
     if (parentChecked) {
-      childValues.forEach(c => result.add(c))
+      childStatuses!.forEach(status => result.add(status)) // check all child statuses
     } else if (parentUnchecked) {
-      childValues.forEach(c => result.delete(c))
+      childStatuses!.forEach(status => result.delete(status)) // uncheck all child statuses
     } else if (allChildrenSelected) {
-      result.add(parentVal)
+      result.add(parentVal) // if all children checked - auto-check parent
     } else {
-      result.delete(parentVal)
+      result.delete(parentVal) // if some child unchecked - uncheck parent
     }
   }
 
   filterModel.value = [...result]
-  nextTick(() => { isAdjusting.value = false })
+  nextTick(() => { isUpdatingFilter.value = false }) // wait for DOM updates before re-enabling the watcher
 })
+
+const isPartiallySelected = (option: { childStatuses?: any[] }) => {
+  if (!option.childStatuses?.length) { return false }
+  const selected = new Set(filterModel.value)
+  const someSelected = option.childStatuses.some(status => selected.has(status))
+  const allSelected = option.childStatuses.every(status => selected.has(status))
+  return someSelected && !allSelected
+}
 
 const filterColumnRef = ref<any>(null)
 const initialWidth = ref<string>('auto')
@@ -157,10 +171,11 @@ onMounted(() => {
           <div
             v-else
             class="flex cursor-pointer items-center gap-1 p-1"
-            :class="{ 'pl-5': option.isChild }"
+            :class="{ 'pl-5': isChildStatus(option.value) }"
           >
             <UCheckbox
               :model-value="selected"
+              :indeterminate="isPartiallySelected(option)"
               class="pointer-events-none"
               :ui="{
                 base: 'h-4 w-4',

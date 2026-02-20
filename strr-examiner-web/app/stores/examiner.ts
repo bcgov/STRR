@@ -180,13 +180,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    */
   const processStatusFilters = (statusFilters: any[]) => {
     const regStatus: any[] = []
-    // Separate application and registration statuses
+    // separate application and registration statuses, excluding UI grouping labels
     const statusValue = statusFilters.filter((status) => {
       if (Object.values(RegistrationStatus).includes(status as any)) {
         regStatus.push(status)
         return false
       }
-      return true
+      // filter out any statuses that are not in ApplicationStatus (for grouping labels)
+      return Object.values(ApplicationStatus).includes(status as any)
     })
     // Start with default statuses list and these will be
     // provided if not status selected in filter

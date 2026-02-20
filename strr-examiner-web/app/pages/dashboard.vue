@@ -537,28 +537,34 @@ function handleColumnSort (column: string) {
 
 // Limit status options to the active table to prevent mixed-status filters.
 const applicationStatusOptions: {
-  label: string; value: any; disabled?: boolean
-  isChild?: boolean; childValues?: any[]
+  label: string,
+  value: any,
+  disabled?: boolean,
+  childStatuses?: any[]
 }[] = [
   {
-    label: 'Active',
-    value: RegistrationStatus.ACTIVE,
-    childValues: [
-      ApplicationStatus.PROVISIONALLY_APPROVED,
-      ApplicationStatus.FULL_REVIEW_APPROVED,
+    label: 'Open',
+    value: 'OPEN',
+    childStatuses: [
+      ApplicationStatus.FULL_REVIEW,
       ApplicationStatus.NOC_PENDING,
-      ApplicationStatus.NOC_EXPIRED,
-      ApplicationStatus.AUTO_APPROVED
+      ApplicationStatus.NOC_EXPIRED
     ]
   },
-  { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED, isChild: true },
-  { label: 'Fully Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED, isChild: true },
-  { label: 'NOC Pending', value: ApplicationStatus.NOC_PENDING, isChild: true },
-  { label: 'NOC Expired', value: ApplicationStatus.NOC_EXPIRED, isChild: true },
-  { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED, isChild: true },
-  { label: 'Expired', value: RegistrationStatus.EXPIRED },
-  { label: 'Suspended', value: RegistrationStatus.SUSPENDED },
-  { label: 'Cancelled', value: RegistrationStatus.CANCELLED }
+  { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },
+  { label: 'NOC - Pending', value: ApplicationStatus.NOC_PENDING },
+  { label: 'NOC - Expired', value: ApplicationStatus.NOC_EXPIRED },
+  { label: 'Closed', value: ApplicationStatus.DECLINED },
+  {
+    label: 'Not Submitted',
+    value: 'NOT_SUBMITTED',
+    childStatuses: [
+      ApplicationStatus.PAYMENT_DUE,
+      ApplicationStatus.DRAFT
+    ]
+  },
+  { label: 'Payment Due', value: ApplicationStatus.PAYMENT_DUE },
+  { label: 'Draft', value: ApplicationStatus.DRAFT }
 ]
 
 const registrationStatusOptions: { label: string; value: any; disabled?: boolean }[] = [
