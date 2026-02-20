@@ -277,13 +277,13 @@ const getRequirementsColumn = (app: HousApplicationResponse) => {
 }
 
 /** Application statuses where renewal is not in progress */
-const RENEWAL_NOT_IN_PROGRESS_STATUSES: ApplicationStatus[] = [
+const RENEWAL_NOT_IN_PROGRESS_STATUSES = new Set<ApplicationStatus>([
   ApplicationStatus.DECLINED,
   ApplicationStatus.PROVISIONALLY_DECLINED,
   ApplicationStatus.FULL_REVIEW_APPROVED,
   ApplicationStatus.PROVISIONALLY_APPROVED,
   ApplicationStatus.AUTO_APPROVED
-]
+])
 
 const hasRenewalInProgress = (reg: HousRegistrationResponse): boolean => {
   const applications = reg.header?.applications ?? []
@@ -291,7 +291,7 @@ const hasRenewalInProgress = (reg: HousRegistrationResponse): boolean => {
     app =>
       app.applicationType === 'renewal' &&
       app.applicationStatus &&
-      !RENEWAL_NOT_IN_PROGRESS_STATUSES.includes(app.applicationStatus as ApplicationStatus)
+      !RENEWAL_NOT_IN_PROGRESS_STATUSES.has(app.applicationStatus as ApplicationStatus)
   )
 }
 
