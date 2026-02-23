@@ -17,7 +17,7 @@ const isFileUploadOpen = ref(false)
 const docStore = useDocumentStore()
 const { application, registration, needsBusinessLicenseDocumentUpload } = storeToRefs(useHostPermitStore())
 
-const isRegistration = computed((): boolean => !!application.value?.header.registrationStartDate)
+const isRegistration = computed((): boolean => !!registration.value?.registrationNumber)
 const hasRegistrationNoc = computed(() => registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING)
 // used to display Add New Document button
 const isNocPending = computed(() =>
@@ -115,7 +115,6 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
             </div>
           </div>
         </div>
-
         <div
           v-if="showUploadButton"
           class="mt-4 md:mt-0"
