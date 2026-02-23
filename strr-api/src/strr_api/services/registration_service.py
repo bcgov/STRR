@@ -131,7 +131,24 @@ class RegistrationService:
             registration_request.get("header", {}).get("registrationId")
         )
         SnapshotService.snapshot_registration(registration)
-        registration.expiry_date = registration.expiry_date + relativedelta(years=1)
+        # If registration is already expired, set new expiry to TODAY + 365 days;
+        # otherwise extend from current expiry date.
+        now = datetime.now(timezone.utc)
+        expiry = registration.expiry_date
+        if expiry.tzinfo is None:
+            expiry_utc = expiry.replace(tzinfo=timezone.utc)
+        else:
+            expiry_utc = expiry.astimezone(timezone.utc)
+        if expiry_utc < now:
+            # Expired: new expiry = TODAY + 365 days (end of day before 1-year anniversary)
+            new_expiry = (now + relativedelta(years=1) - relativedelta(days=1)).replace(
+                hour=23, minute=59, second=59, microsecond=0
+            )
+            registration.expiry_date = (
+                new_expiry.astimezone(expiry.tzinfo) if expiry.tzinfo else new_expiry.replace(tzinfo=None)
+            )
+        else:
+            registration.expiry_date = registration.expiry_date + relativedelta(years=1)
         registration.status = RegistrationStatus.ACTIVE
         for doc in registration_details.get("documents", []):
             document = Document(

@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from unittest.mock import patch
 
@@ -644,6 +644,92 @@ def test_host_renewal_manual_full_approval_set_aside_then_full_approval_single_e
 
         registration_after_second_approval = RegistrationService.get_registration_by_id(registration_id)
         assert registration_after_second_approval.expiry_date == first_approval_expiry_date
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+@patch("strr_api.services.email_service.EmailService.send_application_status_update_email")
+def test_renewal_of_expired_registration_sets_expiry_to_today_plus_365_days(
+    mock_email, session, client, jwt
+):
+    """When renewing an already-expired registration, new expiry must be TODAY + 365 days, not old_expiry + 365."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+
+        # Create and approve initial registration
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(
+            f"/applications/{application_number}/status",
+            json=status_update_request,
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+        assert registration_id is not None
+
+        # Simulate long-expired registration (e.g. 400 days ago)
+        expired_registration = RegistrationService.get_registration_by_id(registration_id)
+        old_expiry_date = expired_registration.expiry_date
+        expired_registration.expiry_date = old_expiry_date - relativedelta(days=400)
+        expired_registration.status = RegistrationStatus.EXPIRED.value
+        expired_registration.save()
+
+        # Submit renewal and approve
+        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
+        json_data["header"] = renewal_header_json
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        renewal_application_number = response_json.get("header").get("applicationNumber")
+
+        renewal_application = Application.find_by_application_number(
+            application_number=renewal_application_number
+        )
+        renewal_application.payment_status = PaymentStatus.COMPLETED.value
+        renewal_application.status = Application.Status.FULL_REVIEW
+        renewal_application.save()
+
+        rv = client.put(f"/applications/{renewal_application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        rv = client.put(
+            f"/applications/{renewal_application_number}/status",
+            json={"status": Application.Status.FULL_REVIEW_APPROVED},
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        registration = RegistrationService.get_registration_by_id(registration_id)
+        new_expiry = registration.expiry_date
+        now_utc = datetime.now(timezone.utc)
+        if new_expiry.tzinfo is None:
+            now = datetime.utcnow()
+        else:
+            now = now_utc
+
+        # New expiry must be in the future (bug was: old_expiry + 365 was still in the past)
+        assert new_expiry > now, "Renewed registration expiry must be in the future"
+        # Must be ~TODAY + 365 days, not old_expiry + 365 (allow 3 days tolerance for test run)
+        expected_min = now + relativedelta(years=1) - timedelta(days=3)
+        expected_max = now + relativedelta(years=1) + timedelta(days=3)
+        assert expected_min <= new_expiry <= expected_max, (
+            f"New expiry should be ~TODAY+365 days, got {new_expiry}"
+        )
+        assert registration.status == RegistrationStatus.ACTIVE
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
