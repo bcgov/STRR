@@ -648,9 +648,7 @@ def test_host_renewal_manual_full_approval_set_aside_then_full_approval_single_e
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 @patch("strr_api.services.email_service.EmailService.send_application_status_update_email")
-def test_renewal_of_expired_registration_sets_expiry_to_today_plus_365_days(
-    mock_email, session, client, jwt
-):
+def test_renewal_of_expired_registration_sets_expiry_to_today_plus_365_days(mock_email, session, client, jwt):
     """When renewing an already-expired registration, new expiry must be TODAY + 365 days, not old_expiry + 365."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -697,9 +695,7 @@ def test_renewal_of_expired_registration_sets_expiry_to_today_plus_365_days(
         response_json = rv.json
         renewal_application_number = response_json.get("header").get("applicationNumber")
 
-        renewal_application = Application.find_by_application_number(
-            application_number=renewal_application_number
-        )
+        renewal_application = Application.find_by_application_number(application_number=renewal_application_number)
         renewal_application.payment_status = PaymentStatus.COMPLETED.value
         renewal_application.status = Application.Status.FULL_REVIEW
         renewal_application.save()
@@ -723,12 +719,10 @@ def test_renewal_of_expired_registration_sets_expiry_to_today_plus_365_days(
 
         # New expiry must be in the future (bug was: old_expiry + 365 was still in the past)
         assert new_expiry > now, "Renewed registration expiry must be in the future"
-        # Must be ~TODAY + 365 days, not old_expiry + 365 (allow 3 days tolerance for test run)
-        expected_min = now + relativedelta(years=1) - timedelta(days=3)
-        expected_max = now + relativedelta(years=1) + timedelta(days=3)
-        assert expected_min <= new_expiry <= expected_max, (
-            f"New expiry should be ~TODAY+365 days, got {new_expiry}"
-        )
+        # Must be exactly TODAY + 365 days (allow 2 days tolerance for test run)
+        expected_min = now + timedelta(days=364)
+        expected_max = now + timedelta(days=366)
+        assert expected_min <= new_expiry <= expected_max, f"New expiry should be TODAY+365 days, got {new_expiry}"
         assert registration.status == RegistrationStatus.ACTIVE
 
 

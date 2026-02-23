@@ -47,5 +47,6 @@
     "nuxt": "3.15.4",
     "uuid": "^11.1.0",
     "v-calendar": "^3.1.2"
-  }
+  },
+  "packageManager": "pnpm@10.21.0+sha1.a2cb35d3f07a58fecfe050af9277c5dc43a1b2e7"
 }

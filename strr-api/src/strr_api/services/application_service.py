@@ -253,6 +253,11 @@ class ApplicationService:
 
             if should_update_existing:
                 registration = RegistrationService.get_registration_by_id(application.registration_id)
+                if registration and application.type == ApplicationType.RENEWAL.value:
+                    # Only recalc expiry if still expired (e.g. provisional had set old+365);
+                    # if provisional already set TODAY+365, do not double-extend
+                    if RegistrationService.is_registration_expired(registration):
+                        RegistrationService.apply_renewal_expiry(registration)
             else:
                 registration = RegistrationService.create_registration(
                     application.submitter_id, application.payment_account, application.application_json
