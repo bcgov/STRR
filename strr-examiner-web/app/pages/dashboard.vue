@@ -276,6 +276,25 @@ const getRequirementsColumn = (app: HousApplicationResponse) => {
   return result
 }
 
+/** Application statuses that mean a renewal was completed (registration was renewed) */
+const RENEWAL_APPROVED_STATUSES = new Set<ApplicationStatus>([
+  ApplicationStatus.FULL_REVIEW_APPROVED,
+  ApplicationStatus.PROVISIONALLY_APPROVED,
+  ApplicationStatus.PROVISIONAL_REVIEW,
+  ApplicationStatus.AUTO_APPROVED
+])
+
+/** Check if a registration has been renewed. Draft renewals are ignored (Renewals in progress). */
+const hasBeenRenewed = (reg: HousRegistrationResponse): boolean => {
+  const applications = reg.header?.applications ?? []
+  return applications.some(
+    app =>
+      app.applicationType === 'renewal' &&
+      app.applicationStatus &&
+      RENEWAL_APPROVED_STATUSES.has(app.applicationStatus as ApplicationStatus)
+  )
+}
+
 const getConditionsColumnForRegistration = (reg: HousRegistrationResponse) => {
   let result = ''
   let listingSize = ''
@@ -385,7 +404,8 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
         applicantName: getApplicantNameColumnForRegistration(reg),
         propertyAddress: getPropertyAddressColumnForRegistration(reg),
         localGov: '', // TODO: implement this once API has made the changes
-        adjudicator: getAdjudicatorColumn(reg.header)
+        adjudicator: getAdjudicatorColumn(reg.header),
+        hasRenewed: hasBeenRenewed(reg)
       }))
 
       return { registrations, total: res.total }
@@ -428,6 +448,7 @@ const { data: applicationListResp, status } = await useAsyncData(
         applicationNumber: app.header.applicationNumber,
         registrationNumber: app.header.registrationNumber,
         registrationId: app.header.registrationId,
+        applicationType: app.header?.applicationType,
         registrationType: t(`registrationType.${app.registration.registrationType}`),
         requirements: getRequirementsColumn(app),
         applicantName: getApplicantNameColumn(app),
@@ -915,8 +936,16 @@ const tabLinks = computed(() => [
             <div v-if="isApplicationTab">
               {{ row.applicationNumber }}
             </div>
-            <div v-else>
-              {{ row.registrationNumber }}
+            <div v-else class="flex flex-col">
+              <span>{{ row.registrationNumber }}</span>
+              <UBadge
+                v-if="row.hasRenewed"
+                :label="t('label.renewal')"
+                color="primary"
+                variant="solid"
+                class="mt-1 w-fit text-xs font-bold uppercase"
+                data-testid="renewal-badge"
+              />
             </div>
             <UButton
               v-if="row.registrationNumber && isApplicationTab"
@@ -930,8 +959,8 @@ const tabLinks = computed(() => [
               {{ row.registrationNumber }}
             </UButton>
           </div>
-          <div v-else>
-            {{ row.applicationNumber }}
+          <div v-else class="flex flex-col">
+            <span>{{ row.applicationNumber }}</span>
             <UButton
               v-if="row.registrationNumber"
               icon="i-mdi-check-circle"
@@ -943,6 +972,14 @@ const tabLinks = computed(() => [
             >
               {{ row.registrationNumber }}
             </UButton>
+            <UBadge
+              v-if="row.applicationType === 'renewal'"
+              :label="t('label.renewal')"
+              color="primary"
+              variant="solid"
+              class="mt-1 w-fit text-xs font-bold uppercase"
+              data-testid="renewal-badge"
+            />
           </div>
         </template>
 
