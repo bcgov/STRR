@@ -444,8 +444,7 @@ class Registration(Versioned, BaseModel):
 
         from strr_api.models.application import Application
 
-        # Correlated subquery: for each registration, get the status of the
-        # most recent application (by application_date desc)
+        # for each registration, get the status of the most recent application
         latest_app_status_subq = (
             select(Application.status)
             .where(Application.registration_id == Registration.id)
