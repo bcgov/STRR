@@ -2515,7 +2515,9 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
         registration_number = response_json.get("header").get("registrationNumber")
         registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
 
-        # Add a "newer" renewal application with PROVISIONALLY_APPROVED (simulates renewal)
+        # Refresh application to get its application_date from DB, then add a renewal that is
+        # explicitly newer (guarantees correct ordering regardless of test execution timing)
+        session.refresh(application)
         renewal_app = Application(
             application_json=application.application_json,
             application_number=generate(alphabet="0123456789", size=14),
@@ -2523,7 +2525,7 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
             registration_type=application.registration_type,
             status=Application.Status.PROVISIONALLY_APPROVED,
             registration_id=registration.id,
-            application_date=datetime.now(timezone.utc) + timedelta(seconds=1),
+            application_date=application.application_date + timedelta(seconds=1),
         )
         session.add(renewal_app)
         session.commit()
