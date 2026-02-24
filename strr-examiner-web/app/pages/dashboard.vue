@@ -280,6 +280,7 @@ const getRequirementsColumn = (app: HousApplicationResponse) => {
 const RENEWAL_APPROVED_STATUSES = new Set<ApplicationStatus>([
   ApplicationStatus.FULL_REVIEW_APPROVED,
   ApplicationStatus.PROVISIONALLY_APPROVED,
+  ApplicationStatus.PROVISIONAL_REVIEW,
   ApplicationStatus.AUTO_APPROVED
 ])
 
