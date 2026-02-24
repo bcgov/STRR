@@ -141,6 +141,12 @@ class Registration(Versioned, BaseModel):
             )
         if filter_criteria.requirements:
             query = cls._filter_by_registration_requirement(filter_criteria.requirements, query)
+        if filter_criteria.approval_methods:
+            query = cls._filter_by_approval_method(filter_criteria.approval_methods, query)
+        if filter_criteria.noc_statuses:
+            query = query.filter(Registration.noc_status.in_(filter_criteria.noc_statuses))
+        if filter_criteria.is_set_aside is True:
+            query = query.filter(Registration.is_set_aside == True)  # noqa: E712
         sort_column = getattr(Registration, filter_criteria.sort_by, Registration.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
@@ -422,6 +428,32 @@ class Registration(Versioned, BaseModel):
         if combined_conditions:
             query = query.filter(db.or_(*combined_conditions))
         return query
+
+    @classmethod
+    def _filter_by_approval_method(cls, approval_methods: list[str], query):
+        """Filter registrations by application approval method.
+
+        Only considers the most recent application (index 0 when sorted by
+        application_date desc) for each registration. Returns registrations
+        where that most recent application's status is in the given approval methods.
+        """
+        if not approval_methods:
+            return query
+        # pylint: disable=import-outside-toplevel
+        from sqlalchemy import select
+
+        from strr_api.models.application import Application
+
+        # Correlated subquery: for each registration, get the status of the
+        # most recent application (by application_date desc)
+        latest_app_status_subq = (
+            select(Application.status)
+            .where(Application.registration_id == Registration.id)
+            .order_by(Application.application_date.desc())
+            .limit(1)
+            .scalar_subquery()
+        )
+        return query.filter(latest_app_status_subq.in_(approval_methods))
 
 
 class RentalProperty(Versioned, BaseModel):

@@ -1015,6 +1015,24 @@ def search_registrations():
         items:
           type: string
         description: Requirement filter (e.g., PR, BL, PROHIBITED, NO_REQ, PR_EXEMPT_STRATA_HOTEL, PR_EXEMPT_FARM_LAND, PR_EXEMPT_FRACTIONAL_OWNERSHIP, PLATFORM_MAJOR, PLATFORM_MEDIUM, PLATFORM_MINOR, STRATA_PR, STRATA_NO_PR). Can provide multiple values.
+      - in: query
+        name: approvalMethod
+        type: array
+        items:
+          type: string
+          enum: [FULL_REVIEW_APPROVED, AUTO_APPROVED, PROVISIONALLY_APPROVED]
+        description: Approval method filter. Can provide multiple values.
+      - in: query
+        name: nocStatus
+        type: array
+        items:
+          type: string
+          enum: [NOC_EXPIRED, NOC_PENDING]
+        description: NOC status filter. Can provide multiple values.
+      - in: query
+        name: isSetAside
+        type: boolean
+        description: Filter for set aside registrations when true.
     responses:
       200:
         description:
@@ -1034,6 +1052,10 @@ def search_registrations():
         sort_order = request.args.get("sortOrder", "desc")
         assignee = request.args.get("assignee", None)
         requirements = request.args.getlist("requirement") or None
+        approval_methods = request.args.getlist("approvalMethod") or None
+        noc_statuses = request.args.getlist("nocStatus") or None
+        is_set_aside_param = request.args.get("isSetAside", None)
+        is_set_aside = is_set_aside_param.lower() == "true" if is_set_aside_param else None
         if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1052,6 +1074,9 @@ def search_registrations():
             sort_order=sort_order,
             assignee=assignee,
             requirements=requirements,
+            approval_methods=approval_methods,
+            noc_statuses=noc_statuses,
+            is_set_aside=is_set_aside,
         )
 
         registration_list = RegistrationService.search_registrations(filter_criteria=filter_criteria)
