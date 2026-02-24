@@ -173,13 +173,13 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   })
 
   // approval method statuses to show how registration was approved (via its application status)
-  const approvalMethodStatuses = [
+  const approvalMethodStatuses = new Set([
     ApplicationStatus.PROVISIONALLY_APPROVED,
     ApplicationStatus.FULL_REVIEW_APPROVED,
     ApplicationStatus.AUTO_APPROVED
-  ]
+  ])
   // attributes of the registration
-  const NOC_ATTR = ['NOC_PENDING', 'NOC_EXPIRED']
+  const NOC_ATTR = new Set(['NOC_PENDING', 'NOC_EXPIRED'])
   const SET_ASIDE_ATTR = 'SET_ASIDE'
 
   /**
@@ -201,11 +201,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         regStatus.push(status)
         return false
       }
-      if (approvalMethodStatuses.includes(status)) {
+      if (approvalMethodStatuses.has(status)) {
         approvalMethods.push(status)
         return false
       }
-      if (NOC_ATTR.includes(status)) {
+      if (NOC_ATTR.has(status)) {
         nocStatuses.push(status)
         return false
       }
