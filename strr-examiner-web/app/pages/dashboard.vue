@@ -568,11 +568,19 @@ const applicationStatusOptions: {
 ]
 
 const registrationStatusOptions: { label: string; value: any; disabled?: boolean }[] = [
-  { label: 'Registration Status', value: undefined, disabled: true },
+  { label: 'Status', value: undefined, disabled: true },
   { label: 'Active', value: RegistrationStatus.ACTIVE },
+  { label: 'Expired', value: RegistrationStatus.EXPIRED },
   { label: 'Suspended', value: RegistrationStatus.SUSPENDED },
   { label: 'Cancelled', value: RegistrationStatus.CANCELLED },
-  { label: 'Expired', value: RegistrationStatus.EXPIRED }
+  { label: 'Approval Method', value: undefined, disabled: true },
+  { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
+  { label: 'Fully Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
+  { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
+  { label: 'Attributes', value: undefined, disabled: true },
+  { label: 'NOC Expired', value: 'NOC_EXPIRED' },
+  { label: 'NOC Pending', value: 'NOC_PENDING' },
+  { label: 'Set Aside', value: 'SET_ASIDE' }
 ]
 
 const statusFilterOptions = computed((): { label: string; value: any; disabled?: boolean }[] => {

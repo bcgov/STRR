@@ -165,7 +165,7 @@ onMounted(() => {
         <template #option="{ option, selected }">
           <div
             v-if="option.value === undefined && option.disabled"
-            class="w-full border-t border-gray-300 px-4 py-2 opacity-100"
+            class="w-full px-4 py-2 opacity-100"
           >
             <span>{{ option.label }}</span>
           </div>
