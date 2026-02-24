@@ -2482,7 +2482,7 @@ def test_search_registrations_with_approval_method_noc_status_set_aside_filters(
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_approval_method_uses_most_recent_application_only(session, client, jwt):
+def test_search_registrations_approval_method_uses_most_recent_application_only(mock_create_invoice, session, client, jwt):
     """Test that approvalMethod filter considers only the most recent application (index 0).
 
     When a registration has multiple applications (e.g. initial FULL_REVIEW_APPROVED,
