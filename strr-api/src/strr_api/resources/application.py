@@ -264,6 +264,11 @@ def get_applications():
         type: boolean
         default: true
         description: Include draft renewal applications
+      - in: query
+        name: applicationsOnly
+        type: boolean
+        default: false
+        description: When true, exclude applications that have a completed registration (except renewals). For split dashboard applications table.
     responses:
       200:
         description:
@@ -287,6 +292,7 @@ def get_applications():
         requirements = request.args.getlist("requirement", None)
         include_draft_registration = request.args.get("includeDraftRegistration", "true").lower() == "true"
         include_draft_renewal = request.args.get("includeDraftRenewal", "true").lower() == "true"
+        applications_only = request.args.get("applicationsOnly", "false").lower() == "true"
         if sort_by not in VALID_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -304,6 +310,7 @@ def get_applications():
             requirements=requirements,
             include_draft_registration=include_draft_registration,
             include_draft_renewal=include_draft_renewal,
+            applications_only=applications_only,
         )
         application_list = ApplicationService.list_applications(account_id, filter_criteria=filter_criteria)
         return jsonify(application_list), HTTPStatus.OK

@@ -216,6 +216,15 @@ class Application(BaseModel):
                     Application.type == ApplicationType.RENEWAL.value,
                 )
             )
+        if filter_criteria.applications_only:
+            # Exclude applications that have a completed registration, except renewals
+            # Include: no registration yet or renewal applications
+            query = query.filter(
+                db.or_(
+                    Application.registration_id.is_(None),
+                    Application.type == ApplicationType.RENEWAL.value,
+                )
+            )
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())

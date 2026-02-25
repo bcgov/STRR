@@ -52,6 +52,7 @@ class ApplicationSearch:
     requirements: list[str] | None = None
     include_draft_registration: bool = True
     include_draft_renewal: bool = True
+    applications_only: bool = False
     account_id: int | None = None
 
 
