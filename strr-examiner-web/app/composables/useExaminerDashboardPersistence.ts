@@ -77,7 +77,7 @@ function applyStateToStore (
   exStore: ReturnType<typeof useExaminerStore>,
   state: ReturnType<typeof defaultState>,
   isApplicationTab: boolean,
-  applyApplicationsDefaultWhenEmpty: boolean,
+  applyApplicationsDefaultWhenEmpty: boolean = false,
   applyRegistrationsDefaultWhenEmpty: boolean = false
 ) {
   Object.assign(exStore.tableFilters, state.filters)
