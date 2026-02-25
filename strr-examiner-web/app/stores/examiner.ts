@@ -155,7 +155,15 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   ]
 
   const applicationsOnlyStatuses = [
-    ApplicationStatus.FULL_REVIEW
+    ApplicationStatus.FULL_REVIEW,
+    ApplicationStatus.NOC_EXPIRED
+  ]
+
+  // as per requirements, registrations statuses in filter dropdown
+  // should reflect their respective application's statuses
+  const registrationsOnlyStatuses = [
+    ApplicationStatus.PROVISIONALLY_APPROVED,
+    ApplicationStatus.NOC_EXPIRED
   ]
 
   const tableFilters = reactive({
@@ -643,7 +651,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     tablePage.value = 1
   }
 
-  /** Reset to the registrations table default state (no filters = show all registrations). */
+  /** Reset to the registrations table default state (Provisionally Approved + NOC Expired). */
   const resetFiltersToRegistrationsDefault = () => {
     Object.assign(tableFilters, {
       searchText: '',
@@ -652,7 +660,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       requirements: [],
       applicantName: '',
       propertyAddress: '',
-      status: [],
+      status: [...registrationsOnlyStatuses],
       submissionDate: { start: null, end: null },
       lastModified: { start: null, end: null },
       localGov: '',
@@ -722,6 +730,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     hasUnsavedRentalUnitChanges,
 
     applicationsOnlyStatuses,
+    registrationsOnlyStatuses,
 
     viewReceipt,
     approveApplication,

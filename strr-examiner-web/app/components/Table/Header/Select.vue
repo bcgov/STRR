@@ -67,7 +67,13 @@ watch(filterModel, (newVal, oldVal) => {
     if (parentChecked) {
       childStatuses!.forEach(status => result.add(status)) // check all child statuses
     } else if (parentUnchecked) {
-      childStatuses!.forEach(status => result.delete(status)) // uncheck all child statuses
+      // cascade the uncheck to children only if all are still selected (user toggled parent off)
+      // skip cascade if any child is already gone, because of external change (clear filter button)
+      const allChildrenStillPresent = childStatuses!.every(status => result.has(status))
+      // this check distinguishes between the two cases so the watcher doesn't fight with external resets
+      if (allChildrenStillPresent) {
+        childStatuses!.forEach(status => result.delete(status)) // uncheck all child statuses
+      }
     } else if (allChildrenSelected) {
       result.add(parentVal) // if all children checked - auto-check parent
     } else {

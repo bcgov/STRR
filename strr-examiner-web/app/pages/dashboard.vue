@@ -120,7 +120,7 @@ watch(() => route.query.returnTab, (returnTab) => {
 }, { immediate: true })
 
 // Persist table state per tab in sessionStorage (restore on mount, save on change)
-const { hasSavedAppState } = useExaminerDashboardPersistence(exStore, isApplicationTab)
+const { hasSavedAppState, hasSavedRegState } = useExaminerDashboardPersistence(exStore, isApplicationTab)
 
 useHead({
   title: t('page.dashboardList.title')
@@ -323,7 +323,7 @@ const getConditionsColumnForRegistration = (reg: HousRegistrationResponse) => {
 }
 
 // Set applications table default status (Full Review only) on first visit when status is empty.
-// When we have saved state (hasSavedAppState), never apply default so "nothing selected" persists.
+// When we have saved state (hasSavedAppState), do not apply default filters.
 const hasAppliedApplicationsStatusDefault = ref(false)
 watch(
   () => [isApplicationTab.value, isSplitDashboardTableEnabled.value],
@@ -338,6 +338,27 @@ watch(
       (exStore.tableFilters.status as ApplicationStatus[]).splice(
         0, exStore.tableFilters.status.length, ...exStore.applicationsOnlyStatuses)
       hasAppliedApplicationsStatusDefault.value = true
+    }
+  },
+  { immediate: true }
+)
+
+// Set registrations table default status on first visit when status is empty.
+// When we have saved state (hasSavedRegState), do not apply default filter.
+const hasAppliedRegistrationsStatusDefault = ref(false)
+watch(
+  () => [isApplicationTab.value, isSplitDashboardTableEnabled.value],
+  ([isApp, isEnabled]) => {
+    if (
+      !hasAppliedRegistrationsStatusDefault.value &&
+      !isApp &&
+      isEnabled &&
+      !hasSavedRegState() &&
+      (!exStore.tableFilters.status || exStore.tableFilters.status.length === 0)
+    ) {
+      (exStore.tableFilters.status as any[]).splice(
+        0, exStore.tableFilters.status.length, ...exStore.registrationsOnlyStatuses)
+      hasAppliedRegistrationsStatusDefault.value = true
     }
   },
   { immediate: true }

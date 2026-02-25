@@ -77,7 +77,8 @@ function applyStateToStore (
   exStore: ReturnType<typeof useExaminerStore>,
   state: ReturnType<typeof defaultState>,
   isApplicationTab: boolean,
-  applyApplicationsDefaultWhenEmpty: boolean
+  applyApplicationsDefaultWhenEmpty: boolean,
+  applyRegistrationsDefaultWhenEmpty: boolean = false
 ) {
   Object.assign(exStore.tableFilters, state.filters)
   if (
@@ -88,22 +89,35 @@ function applyStateToStore (
     (exStore.tableFilters.status as ApplicationStatus[]).splice(
       0, exStore.tableFilters.status.length, ...exStore.applicationsOnlyStatuses)
   }
+  if (
+    applyRegistrationsDefaultWhenEmpty &&
+    !isApplicationTab &&
+    (!state.filters.status || state.filters.status.length === 0)
+  ) {
+    (exStore.tableFilters.status as any[]).splice(
+      0, exStore.tableFilters.status.length, ...exStore.registrationsOnlyStatuses)
+  }
   nextTick(() => {
     exStore.tablePage = state.page
     exStore.tableLimit = state.limit
   })
 }
 
-/** True when applications-tab state has been saved (so dashboard should not apply default status). */
-export function hasSavedAppState (): boolean {
+function hasSavedState (key: string): boolean {
   try {
     if (typeof sessionStorage === 'undefined') { return false }
-    const raw = sessionStorage.getItem(APP_KEY)
+    const raw = sessionStorage.getItem(key)
     return raw !== null && raw !== ''
   } catch {
     return false
   }
 }
+
+/** True when applications-tab state has been saved (so dashboard should not apply default status). */
+export const hasSavedAppState = () => hasSavedState(APP_KEY)
+
+/** True when registrations-tab state has been saved (so dashboard should not apply default status). */
+export const hasSavedRegState = () => hasSavedState(REG_KEY)
 
 /** Persist dashboard table state per tab so it survives navigation (e.g. back from application detail). */
 export function useExaminerDashboardPersistence (
@@ -113,6 +127,7 @@ export function useExaminerDashboardPersistence (
   const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
   // Capture "had saved state" before useSessionStorage runs, so we don't treat first visit as returning
   const hadSavedAppState = hasSavedAppState()
+  const hadSavedRegState = hasSavedRegState()
 
   const appState = useSessionStorage(APP_KEY, defaultState())
   const regState = useSessionStorage(REG_KEY, defaultState())
@@ -126,7 +141,7 @@ export function useExaminerDashboardPersistence (
   if (isSplitDashboardTableEnabled.value) {
     const state = mergeSavedStateWithDefaults(currentState())
     const isApp = isApplicationTab.value
-    applyStateToStore(exStore, state, isApp, isApp && !hadSavedAppState)
+    applyStateToStore(exStore, state, isApp, isApp && !hadSavedAppState, !isApp && !hadSavedRegState)
   }
 
   // When the user switches tab: persist tab, save current table to storage, load the other table's state into the store
@@ -164,5 +179,5 @@ export function useExaminerDashboardPersistence (
     }
   })
 
-  return { hasSavedAppState }
+  return { hasSavedAppState, hasSavedRegState }
 }
