@@ -4,6 +4,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { getAccountApplications } = useStrrApi()
   const { t } = useNuxtApp().$i18n
   const { $strrApi } = useNuxtApp()
+  const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
   const strrModal = useStrrModals()
   const { kcUser } = useKeycloak()
   const isFilingHistoryOpen = ref(false) // track state of Filing History between different expansion panels
@@ -252,6 +253,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const fetchApplications = () => {
     const { applicationStatuses, registrationStatuses } = processStatusFilters(tableFilters.status)
+    const applicationsOnly = isSplitDashboardTableEnabled.value
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
       return $strrApi('/applications/search', {
         query: {
@@ -283,7 +285,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           recordNumber: tableFilters.registrationNumber,
           assignee: tableFilters.adjudicator,
           requirement: tableFilters.requirements,
-          includeDraftRegistration: false
+          includeDraftRegistration: false,
+          applicationsOnly
         }
       })
     }
