@@ -70,3 +70,6 @@ class RegistrationSearch:
     assignee: str | None = None
     requirements: list[str] | None = None
     account_id: int | None = None
+    approval_methods: List[str] | None = None
+    noc_statuses: List[str] | None = None
+    is_set_aside: bool | None = None

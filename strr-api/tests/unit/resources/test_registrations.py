@@ -1,7 +1,7 @@
 import json
 import os
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from unittest.mock import patch
 
@@ -2412,3 +2412,147 @@ def test_search_registrations_requirement_with_sorting(session, client, jwt):
         registrations = rv.json
         assert "registrations" in registrations
         assert len(registrations.get("registrations")) >= 0
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_with_approval_method_noc_status_set_aside_filters(session, client, jwt):
+    """Test search registrations with approvalMethod, nocStatus, and isSetAside filters."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+
+        # Search by approval method - FULL_REVIEW_APPROVED
+        rv = client.get(
+            f"/registrations/search?approvalMethod=FULL_REVIEW_APPROVED&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) >= 1
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert found
+
+        # Search by nocStatus - create registration with NOC_PENDING and verify filter
+        registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
+        registration.noc_status = RegistrationNocStatus.NOC_PENDING.value
+        registration.save()
+
+        rv = client.get(
+            f"/registrations/search?nocStatus=NOC_PENDING&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) >= 1
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert found
+
+        # Search by isSetAside - set aside the registration and verify filter
+        registration.is_set_aside = True
+        registration.save()
+
+        rv = client.get(
+            f"/registrations/search?isSetAside=true&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) >= 1
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert found
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_approval_method_uses_most_recent_application_only(
+    mock_create_invoice, session, client, jwt
+):
+    """Test that approvalMethod filter considers only the most recent application (index 0).
+
+    When a registration has multiple applications (e.g. initial FULL_REVIEW_APPROVED,
+    renewal PROVISIONALLY_APPROVED), the filter should use only the most recent one.
+    So filtering for FULL_REVIEW_APPROVED should NOT return such a registration.
+    """
+    from nanoid import generate
+
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+        registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
+
+        # Refresh application to get its application_date from DB, then add a renewal that is
+        # explicitly newer (guarantees correct ordering regardless of test execution timing)
+        session.refresh(application)
+        renewal_app = Application(
+            application_json=application.application_json,
+            application_number=generate(alphabet="0123456789", size=14),
+            type=ApplicationType.RENEWAL.value,
+            registration_type=application.registration_type,
+            status=Application.Status.PROVISIONALLY_APPROVED,
+            registration_id=registration.id,
+            application_date=application.application_date + timedelta(seconds=1),
+        )
+        session.add(renewal_app)
+        session.commit()
+
+        # Filter for FULL_REVIEW_APPROVED - should NOT return this registration
+        # (most recent app is PROVISIONALLY_APPROVED)
+        rv = client.get(
+            f"/registrations/search?approvalMethod=FULL_REVIEW_APPROVED&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert (
+            not found
+        ), "Registration with most recent app PROVISIONALLY_APPROVED should not match FULL_REVIEW_APPROVED"
+
+        # Filter for PROVISIONALLY_APPROVED - should return this registration
+        rv = client.get(
+            f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert (
+            found
+        ), "Registration with most recent app PROVISIONALLY_APPROVED should match PROVISIONALLY_APPROVED filter"
