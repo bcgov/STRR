@@ -84,10 +84,12 @@ vi.stubGlobal('useAsyncData', () => ({
   }
 }))
 
+const { mockUseExaminerFeatureFlags } = vi.hoisted(() => ({
+  mockUseExaminerFeatureFlags: vi.fn()
+}))
+
 vi.mock('@/composables/useExaminerFeatureFlags', () => ({
-  useExaminerFeatureFlags: () => ({
-    isSplitDashboardTableEnabled: ref(true)
-  })
+  useExaminerFeatureFlags: mockUseExaminerFeatureFlags
 }))
 
 // Filter Persistence tests assert tab/store behavior without persistence side effects
@@ -100,6 +102,7 @@ describe('Examiner Dashboard Page', () => {
   let wrapper: any
 
   beforeEach(async () => {
+    mockUseExaminerFeatureFlags.mockReturnValue({ isSplitDashboardTableEnabled: ref(true) })
     mockStore = createMockStore()
     wrapper = await mountSuspended(Dashboard, {
       global: { plugins: [enI18n] }
@@ -558,6 +561,32 @@ describe('Examiner Dashboard Page', () => {
 
       const result = wrapper.vm.getConditionsColumnForRegistration(registration)
       expect(result).toBe('-')
+    })
+  })
+
+  describe('applicationStatusOptions', () => {
+    const hasValue = (options: any[], value: any) =>
+      options.some((o: any) => o.value === value)
+
+    it('uses splitDashboardApplicationStatusFilters when flag is enabled', () => {
+      // default beforeEach already sets flag to true and mounts
+      const statusOptions = wrapper.vm.applicationStatusOptions
+      expect(hasValue(statusOptions, 'OPEN')).toBe(true)
+      expect(hasValue(statusOptions, 'NOT_SUBMITTED')).toBe(true)
+      expect(hasValue(statusOptions, ApplicationStatus.PROVISIONAL)).toBe(false)
+      expect(hasValue(statusOptions, ApplicationStatus.PAID)).toBe(false)
+    })
+
+    it('uses legacyApplicationStatusFilters when flag is disabled', async () => {
+      mockUseExaminerFeatureFlags.mockReturnValue({ isSplitDashboardTableEnabled: ref(false) })
+      wrapper = await mountSuspended(Dashboard, {
+        global: { plugins: [enI18n] }
+      })
+      const statusOptions = wrapper.vm.applicationStatusOptions
+      expect(hasValue(statusOptions, ApplicationStatus.PROVISIONAL)).toBe(true)
+      expect(hasValue(statusOptions, ApplicationStatus.PAID)).toBe(true)
+      expect(hasValue(statusOptions, 'OPEN')).toBe(false)
+      expect(hasValue(statusOptions, 'NOT_SUBMITTED')).toBe(false)
     })
   })
 })

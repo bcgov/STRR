@@ -556,13 +556,7 @@ function handleColumnSort (column: string) {
   }
 }
 
-// Limit status options to the active table to prevent mixed-status filters.
-const applicationStatusOptions: {
-  label: string,
-  value: any,
-  disabled?: boolean,
-  childStatuses?: any[]
-}[] = [
+const splitDashboardApplicationStatusFilters = [
   {
     label: 'Open',
     value: 'OPEN',
@@ -587,6 +581,35 @@ const applicationStatusOptions: {
   { label: 'Payment Due', value: ApplicationStatus.PAYMENT_DUE },
   { label: 'Draft', value: ApplicationStatus.DRAFT }
 ]
+
+const legacyApplicationStatusFilters = [
+  { label: 'Application Status', value: undefined, disabled: true },
+  { label: 'Full Review', value: ApplicationStatus.FULL_REVIEW },
+  { label: 'Provisional Review', value: ApplicationStatus.PROVISIONAL_REVIEW },
+  { label: 'Payment Due', value: ApplicationStatus.PAYMENT_DUE },
+  { label: 'Provisional', value: ApplicationStatus.PROVISIONAL },
+  { label: 'Paid', value: ApplicationStatus.PAID },
+  { label: 'Additional Info Requested', value: ApplicationStatus.ADDITIONAL_INFO_REQUESTED },
+  { label: 'Provisionally Approved', value: ApplicationStatus.PROVISIONALLY_APPROVED },
+  { label: 'Declined', value: ApplicationStatus.DECLINED },
+  { label: 'Provisionally Declined', value: ApplicationStatus.PROVISIONALLY_DECLINED },
+  { label: 'Auto Approved', value: ApplicationStatus.AUTO_APPROVED },
+  { label: 'Full Review Approved', value: ApplicationStatus.FULL_REVIEW_APPROVED },
+  { label: 'NOC - Pending', value: ApplicationStatus.NOC_PENDING },
+  { label: 'NOC - Expired', value: ApplicationStatus.NOC_EXPIRED },
+  { label: 'NOC - Pending - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING },
+  { label: 'NOC - Expired - Provisional', value: ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED }
+]
+
+// Limit status options to the active table to prevent mixed-status filters.
+const applicationStatusOptions: {
+  label: string,
+  value: any,
+  disabled?: boolean,
+  childStatuses?: any[]
+}[] = isSplitDashboardTableEnabled.value
+  ? splitDashboardApplicationStatusFilters
+  : legacyApplicationStatusFilters
 
 const registrationStatusOptions: { label: string; value: any; disabled?: boolean }[] = [
   { label: 'Registration Status', value: undefined, disabled: true },
