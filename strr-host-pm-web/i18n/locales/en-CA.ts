@@ -61,38 +61,35 @@ export default {
         STRATA_GUEST_SUITE: 'Strata corporation guest suite'
       },
       docType: {
-        BC_DRIVERS_LICENSE: "BC Driver's Licence",
+        BC_DRIVERS_LICENSE: "BC Driver's Licence (front only)",
+        BCSC: 'BC Services Card (front only)',
+        COMBINED_BCSC_LICENSE: "Combined BC Driver's Licence and Services Card (front only)",
         PROPERTY_ASSESSMENT_NOTICE: 'Property Assessment Notice',
-        ICBC_CERTIFICATE_OF_INSURANCE: 'ICBC Certificate of Insurance',
-        ICBC_CERTIFICATE_OF_INSURANCE_FULL: 'ICBC vehicle insurance (all pages required)', // used for the updated PR Docs list
-        HOME_INSURANCE_SUMMARY: 'Home Insurance Summary',
-        PROPERTY_TAX_NOTICE: 'Property Tax Notice',
-        GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE: 'Government or Crown Corporation Official Notice',
-        TENANCY_AGREEMENT: 'Tenancy Agreement',
-        RENT_RECEIPT_OR_BANK_STATEMENT: 'Notice of Rent Increase',
-        LOCAL_GOVT_BUSINESS_LICENSE: 'Local Government Business Licence',
-        OTHERS: 'Other Proof Document (subject to review by registry staff)',
-        STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
-        FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
-        PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP: 'Property title document showing fractional ownership',
-        BCSC: 'British Columbia Services Card',
-        COMBINED_BCSC_LICENSE: 'Combined BC Driver’s Licence and Services Card',
-        undefined: 'N/A',
-
-        // Old documents types - to be removed
-        SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax Confirmation',
-        HOG_DECLARATION: 'Home Owner Grant declaration',
-        UTILITY_BILL: 'Utility Bill',
-
-        // Newly added document types
+        ICBC_CERTIFICATE_OF_INSURANCE: 'ICBC vehicle insurance (all pages)',
+        ICBC_CERTIFICATE_OF_INSURANCE_FULL: 'ICBC vehicle insurance (all pages)', // used for the updated PR Docs list
+        HOME_INSURANCE_SUMMARY: 'Home insurance (all pages)',
+        PROPERTY_TAX_NOTICE: 'Property tax notice',
+        GOVT_OR_CROWN_CORP_OFFICIAL_NOTICE: 'Official notice from government or crown corporation',
         TITLE_CERTIFICATE_OR_SEARCH: 'Land title certificate or land title search',
-        SPECULATION_VACANCY_TAX_DECLARATION: 'Speculation and Vacancy Tax declaration summary',
-        HOME_OWNER_GRANT_APPROVAL: 'Home Owner Grant (filing or approval)',
+        SPEC_TAX_CONFIRMATION: 'Speculation and Vacancy Tax declaration summary',
+        HOG_DECLARATION: 'Home Owner Grant (filing or approval)',
         NOTARIZED_REAL_ESTATE_DOC: 'Notarized mortgage or home purchase agreement',
         PROPERTY_TRANSFER_TAX_RETURN: 'Property Transfer Tax return',
         AFFIDAVIT_PRINCIPAL_RESIDENCE: 'Affidavit stating your legal name and your principal residence',
         ASSESSMENT_ACT_NOTICE: 'Full BC Assessment report (as received annually by mail)',
-        MORTGAGE_STATEMENT_OR_SAVINGS_DOC: 'Mortgage for principal residence from financial institution'
+        MORTGAGE_STATEMENT_OR_SAVINGS_DOC: 'Mortgage for principal residence from financial institution',
+        OTHERS: 'Other document (will be reviewed by Registrar)',
+        TENANCY_AGREEMENT: 'Tenancy (rental) agreement',
+        RENT_RECEIPT_OR_BANK_STATEMENT: 'Notice of rent increase from landlord',
+        FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
+        PROPERTY_TITLE_WITH_FRACTIONAL_OWNERSHIP: 'Property title document showing fractional ownership',
+        // legacy docs?
+        LOCAL_GOVT_BUSINESS_LICENSE: 'Business licence from local government',
+        STRATA_HOTEL_DOCUMENTATION: 'Supporting strata-titled hotel or motel documentation',
+        SPECULATION_VACANCY_TAX_DECLARATION: 'Speculation and Vacancy Tax declaration summary',
+        HOME_OWNER_GRANT_APPROVAL: 'Home Owner Grant (filing or approval)',
+        UTILITY_BILL: 'Utility Bill',
+        undefined: 'N/A'
       }
     }
   },
