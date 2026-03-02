@@ -984,6 +984,15 @@ def test_examiner_filter_record_number_application(session, client, jwt):
         assert rv.status_code == 200
         assert len(response_json.get("applications")) == 0
 
+        # Test applicationsOnly excludes approved registration applications (keeps renewals)
+        rv = client.get(
+            f"/applications?recordNumber={registration_number}&applicationsOnly=true",
+            headers=staff_headers,
+        )
+        response_json = rv.json
+        assert rv.status_code == 200
+        assert len(response_json.get("applications")) == 0  # Approved reg excluded when applicationsOnly=true
+
 
 def test_examiner_multi_select_filters(session, client, jwt):
     staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")

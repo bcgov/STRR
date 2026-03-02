@@ -4,6 +4,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { getAccountApplications } = useStrrApi()
   const { t } = useNuxtApp().$i18n
   const { $strrApi } = useNuxtApp()
+  const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
   const strrModal = useStrrModals()
   const { kcUser } = useKeycloak()
   const isFilingHistoryOpen = ref(false) // track state of Filing History between different expansion panels
@@ -155,7 +156,15 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   ]
 
   const applicationsOnlyStatuses = [
-    ApplicationStatus.FULL_REVIEW
+    ApplicationStatus.FULL_REVIEW,
+    ApplicationStatus.NOC_EXPIRED
+  ]
+
+  // as per requirements, registrations statuses in filter dropdown
+  // should reflect their respective application's statuses
+  const registrationsOnlyStatuses = [
+    ApplicationStatus.PROVISIONALLY_APPROVED,
+    ApplicationStatus.NOC_EXPIRED
   ]
 
   const tableFilters = reactive({
@@ -172,25 +181,54 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     adjudicator: ''
   })
 
+  // approval method statuses to show how registration was approved (via its application status)
+  const approvalMethodStatuses = new Set([
+    ApplicationStatus.PROVISIONALLY_APPROVED,
+    ApplicationStatus.FULL_REVIEW_APPROVED,
+    ApplicationStatus.AUTO_APPROVED
+  ])
+  // attributes of the registration
+  const NOC_ATTR = new Set(['NOC_PENDING', 'NOC_EXPIRED'])
+  const SET_ASIDE_ATTR = 'SET_ASIDE'
+
   /**
-   * Process status filters to separate application and registration statuses
+   * Process status filters to separate application statuses, registration statuses,
+   * approval methods, NOC statuses, and set-aside flag.
    *
    * @param {any[]} statusFilters - Array of status values to filter by
-   * @returns {Object} Object containing separated application and registration statuses
+   * @returns {Object} Object containing separated filter categories
    */
   const processStatusFilters = (statusFilters: any[]) => {
     const regStatus: any[] = []
+    const approvalMethods: any[] = []
+    const nocStatuses: any[] = []
+    let isSetAside: boolean | undefined
+
     // Separate application and registration statuses, excluding UI grouping labels
     const statusValue = statusFilters.filter((status) => {
       if (Object.values(RegistrationStatus).includes(status as any)) {
         regStatus.push(status)
         return false
       }
+      if (approvalMethodStatuses.has(status)) {
+        approvalMethods.push(status)
+        return false
+      }
+      if (NOC_ATTR.has(status)) {
+        nocStatuses.push(status)
+        return false
+      }
+      if (status === SET_ASIDE_ATTR) {
+        isSetAside = true
+        return false
+      }
       // filter out any statuses that are not in ApplicationStatus (for grouping labels)
       return Object.values(ApplicationStatus).includes(status as any)
     })
-    // Start with default statuses list and these will be
-    // provided if not status selected in filter
+    // use defaults only when nothing at all is selected
+    const anyFilterSelected =
+      statusValue.length > 0 || regStatus.length > 0 ||
+      approvalMethods.length > 0 || nocStatuses.length > 0 || isSetAside !== undefined
     let applicationStatuses = defaultApplicationStatuses
     let registrationStatuses = defaultRegistrationStatuses
     if (statusValue.length > 0 && regStatus.length === 0) {
@@ -205,12 +243,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       // Both application and registration statuses selected
       applicationStatuses = statusValue
       registrationStatuses = regStatus
+    } else if (anyFilterSelected) {
+      // only approval methods / NOC statuses / set-aside selected — no explicit status filter
+      applicationStatuses = []
+      registrationStatuses = []
     }
-    return { applicationStatuses, registrationStatuses }
+    return { applicationStatuses, registrationStatuses, approvalMethods, nocStatuses, isSetAside }
   }
 
   const fetchApplications = () => {
     const { applicationStatuses, registrationStatuses } = processStatusFilters(tableFilters.status)
+    const applicationsOnly = isSplitDashboardTableEnabled.value
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
       return $strrApi('/applications/search', {
         query: {
@@ -242,16 +285,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           recordNumber: tableFilters.registrationNumber,
           assignee: tableFilters.adjudicator,
           requirement: tableFilters.requirements,
-          includeDraftRegistration: false
+          includeDraftRegistration: false,
+          applicationsOnly
         }
       })
     }
   }
 
   const fetchRegistrations = () => {
-    const { registrationStatuses } = processStatusFilters(tableFilters.status)
+    const { registrationStatuses, approvalMethods, nocStatuses, isSetAside } = processStatusFilters(tableFilters.status)
 
-    const queryParams = {
+    const queryParams: Record<string, any> = {
       sortOrder: 'asc',
       limit: tableLimit.value,
       page: tablePage.value,
@@ -260,6 +304,16 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       requirement: tableFilters.requirements,
       recordNumber: tableFilters.registrationNumber,
       text: undefined as string | undefined
+    }
+
+    if (approvalMethods.length > 0) {
+      queryParams.approvalMethod = approvalMethods
+    }
+    if (nocStatuses.length > 0) {
+      queryParams.nocStatus = nocStatuses
+    }
+    if (isSetAside) {
+      queryParams.isSetAside = true
     }
 
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
@@ -600,7 +654,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     tablePage.value = 1
   }
 
-  /** Reset to the registrations table default state (no filters = show all registrations). */
+  /** Reset to the registrations table default state (Provisionally Approved + NOC Expired). */
   const resetFiltersToRegistrationsDefault = () => {
     Object.assign(tableFilters, {
       searchText: '',
@@ -609,7 +663,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       requirements: [],
       applicantName: '',
       propertyAddress: '',
-      status: [],
+      status: [...registrationsOnlyStatuses],
       submissionDate: { start: null, end: null },
       lastModified: { start: null, end: null },
       localGov: '',
@@ -679,6 +733,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     hasUnsavedRentalUnitChanges,
 
     applicationsOnlyStatuses,
+    registrationsOnlyStatuses,
 
     viewReceipt,
     approveApplication,

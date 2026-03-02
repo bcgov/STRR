@@ -85,11 +85,21 @@ def test_host_renewal_application_submission(session, client, jwt, request_json,
         json_data["header"] = renewal_header_json
         rv = client.post("/applications", json=json_data, headers=headers)
         response_json = rv.json
-        application_number = response_json.get("header").get("applicationNumber")
-        assert application_number is not None
-        application = Application.find_by_application_number(application_number=application_number)
+        renewal_application_number = response_json.get("header").get("applicationNumber")
+        assert renewal_application_number is not None
+        application = Application.find_by_application_number(application_number=renewal_application_number)
         assert application.registration_id == registration_id
         assert application.type == "renewal"
+
+        # Test applicationsOnly includes renewal applications (renewals have registration_id but are shown)
+        rv = client.get(
+            f"/applications?recordNumber={renewal_application_number}&applicationsOnly=true",
+            headers=staff_headers,
+        )
+        response_json = rv.json
+        assert rv.status_code == 200
+        assert len(response_json.get("applications")) == 1
+        assert response_json.get("applications")[0]["header"]["applicationNumber"] == renewal_application_number
 
 
 @pytest.mark.parametrize(

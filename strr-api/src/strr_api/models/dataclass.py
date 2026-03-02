@@ -52,6 +52,7 @@ class ApplicationSearch:
     requirements: list[str] | None = None
     include_draft_registration: bool = True
     include_draft_renewal: bool = True
+    applications_only: bool = False
     account_id: int | None = None
 
 
@@ -70,3 +71,6 @@ class RegistrationSearch:
     assignee: str | None = None
     requirements: list[str] | None = None
     account_id: int | None = None
+    approval_methods: List[str] | None = None
+    noc_statuses: List[str] | None = None
+    is_set_aside: bool | None = None
