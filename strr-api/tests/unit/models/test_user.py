@@ -85,7 +85,7 @@ def test_find_by_jwt_token_no_idp():
     assert result is None
 
 
-def test_get_or_create_user_by_jwt():
+def test_get_or_create_user_by_jwt(session):
     sample_token = {
         "iss": "test",
         "sub": "subTest",
@@ -103,7 +103,7 @@ def test_create_from_jwt_token_no_token():
     assert result is None
 
 
-def test_get_or_create_user_by_jwt_no_user():
+def test_get_or_create_user_by_jwt_no_user(session):
     sample_token = {
         "iss": "x",
         "sub": "x",

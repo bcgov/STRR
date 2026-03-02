@@ -23,7 +23,7 @@ MOCK_PAYMENT_COMPLETED_RESPONSE = {
 }
 
 
-def test_permit_does_not_exist(session, client, jwt):
+def test_permit_does_not_exist(app, session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     validate_permit_request = {"identifier": "H123", "address": {"streetNumber": "2435", "postalCode": "V4A 8H4"}}
     rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
@@ -42,7 +42,7 @@ def test_permit_does_not_exist(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_permit_exists(session, client, jwt):
+def test_permit_exists(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -86,7 +86,7 @@ def test_permit_exists(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_permit_details_mismatch(session, client, jwt):
+def test_permit_details_mismatch(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -134,7 +134,7 @@ def test_permit_details_mismatch(session, client, jwt):
         )
 
 
-def test_invalid_request_with_identifier(session, client, jwt):
+def test_invalid_request_with_identifier(app, session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     validate_permit_request = {"identifier": "H123", "address": {"postalCode": "V4A 8H4"}}
     rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)
@@ -150,7 +150,7 @@ def test_invalid_request_with_identifier(session, client, jwt):
     assert response_json.get("errors")[0].get("message") == "'streetNumber' is a required property"
 
 
-def test_invalid_request_without_identifier(session, client, jwt):
+def test_invalid_request_without_identifier(app, session, client, jwt):
     headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     validate_permit_request = {"address": {"streetNumber": "2435", "postalCode": "V4A 8H4"}}
     rv = client.post("/permits/:validatePermit", json=validate_permit_request, headers=headers)

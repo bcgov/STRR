@@ -50,13 +50,25 @@ class AuthService:
     """Wrapper service to interact with the Auth API."""
 
     @classmethod
-    def get_service_client_token(cls):
+    def get_service_client_token(
+        cls,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        token_url: str | None = None,
+        timeout: int | None = None,
+    ):
         """Get service account client token for cross api calls."""
 
-        client_id = current_app.config.get("STRR_SERVICE_ACCOUNT_CLIENT_ID")
-        client_secret = current_app.config.get("STRR_SERVICE_ACCOUNT_SECRET")
-        token_url = current_app.config.get("KEYCLOAK_AUTH_TOKEN_URL")
-        timeout = int(current_app.config.get("AUTH_SVC_TIMEOUT", 20))
+        if not [
+            client_id,
+            client_secret,
+            token_url,
+            timeout,
+        ]:
+            client_id = current_app.config.get("STRR_SERVICE_ACCOUNT_CLIENT_ID")
+            client_secret = current_app.config.get("STRR_SERVICE_ACCOUNT_SECRET")
+            token_url = current_app.config.get("KEYCLOAK_AUTH_TOKEN_URL")
+            timeout = int(current_app.config.get("AUTH_SVC_TIMEOUT", 20))
 
         data = "grant_type=client_credentials"
 

@@ -170,7 +170,7 @@ def test_dispatch_email_interaction_success(mock_requests_post, mock_get_token, 
 @patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
 @patch("strr_api.services.interaction.requests.post")
 def test_dispatch_email_interaction_failure_zero_id(
-    mock_requests_post, mock_get_token, session, setup_parents, inject_config
+    mock_requests_post, mock_get_token, app, session, setup_parents, inject_config
 ):
     """Assert that email interaction fails when notify_reference id is 0."""
     mock_requests_post.return_value.status_code = HTTPStatus.OK
@@ -195,7 +195,7 @@ def test_dispatch_email_interaction_failure_zero_id(
 @patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
 @patch("strr_api.services.interaction.requests.post")
 def test_dispatch_email_interaction_failure_none_id(
-    mock_requests_post, mock_get_token, session, setup_parents, inject_config
+    mock_requests_post, mock_get_token, session, setup_parents, inject_config, authed_g
 ):
     """Assert that email interaction fails when notify_reference is None."""
     mock_requests_post.return_value.status_code = HTTPStatus.BAD_REQUEST

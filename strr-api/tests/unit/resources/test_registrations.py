@@ -55,7 +55,7 @@ MOCK_PAYMENT_COMPLETED_RESPONSE = {
 MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 
-def test_get_registrations_200(session, client, jwt):
+def test_get_registrations_200(app, session, client, jwt):
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
     rv = client.get("/registrations", headers=headers)
@@ -73,7 +73,8 @@ def test_get_registrations_401(client):
 @patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
 @patch("strr_api.services.document_service.DocumentService.get_registration_document_by_key")
 @patch("strr_api.services.document_service.DocumentService.get_file_by_key")
-def test_get_registration_file_by_id_200(mock_get_file, mock_get_document, client):
+def test_get_registration_file_by_id_200(mock_get_file, mock_get_document, client, authed_g):
+    # Manually seed the context that flask-jwt-oidc is looking for
     mock_document = fake_document()
     mock_document.file_name = "test.pdf"
     mock_document.file_type = "application/pdf"
@@ -97,7 +98,7 @@ def test_get_registration_file_by_id_401(client):
 @patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
 @patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
 @patch("strr_api.services.registration_service.RegistrationService.get_registration", return_value=None)
-def test_get_registration_file_by_id_403(mock_get_registration, client):
+def test_get_registration_file_by_id_403(mock_get_registration, client, authed_g):
     rv = client.get("/registrations/1/documents/test-key")
     assert rv.status_code == HTTPStatus.FORBIDDEN
 
@@ -107,7 +108,7 @@ def test_get_registration_file_by_id_403(mock_get_registration, client):
 @patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
 @patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
 @patch("strr_api.services.document_service.DocumentService.get_registration_document_by_key", return_value=None)
-def test_get_registration_file_by_id_404(mock_get_document, client):
+def test_get_registration_file_by_id_404(mock_get_document, client, authed_g):
     rv = client.get("/registrations/1/documents/test-key")
     assert rv.status_code == HTTPStatus.NOT_FOUND
 
@@ -121,7 +122,7 @@ def test_get_registration_file_by_id_404(mock_get_document, client):
     "strr_api.services.document_service.DocumentService.get_file_by_key",
     side_effect=ExternalServiceException("External service error"),
 )
-def test_get_registration_file_by_id_502(mock_get_file, mock_get_document, client):
+def test_get_registration_file_by_id_502(mock_get_file, mock_get_document, client, authed_g):
     mock_document = fake_document()
     mock_get_document.return_value = mock_document
     rv = client.get("/registrations/1/documents/test-key")
@@ -129,7 +130,7 @@ def test_get_registration_file_by_id_502(mock_get_file, mock_get_document, clien
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_registration_events(session, client, jwt):
+def test_get_registration_events(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -173,7 +174,7 @@ def test_get_registration_events(session, client, jwt):
 
 @pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_examiner_issue_certificate_for_host_registration(session, client, jwt):
+def test_examiner_issue_certificate_for_host_registration(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -220,7 +221,7 @@ def test_examiner_issue_certificate_for_host_registration(session, client, jwt):
 
 @pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_examiner_issue_certificate_for_platform_registration(session, client, jwt):
+def test_examiner_issue_certificate_for_platform_registration(app, session, client, jwt):
     with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -252,7 +253,7 @@ def test_examiner_issue_certificate_for_platform_registration(session, client, j
 
 @pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_issue_certificate_public_user(session, client, jwt):
+def test_issue_certificate_public_user(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -284,7 +285,7 @@ def test_issue_certificate_public_user(session, client, jwt):
 
 @pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_registration_certificate(session, client, jwt):
+def test_get_registration_certificate(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -325,7 +326,7 @@ def test_get_registration_certificate_401(client):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_host_registration_by_id(session, client, jwt):
+def test_get_host_registration_by_id(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -357,7 +358,7 @@ def test_get_host_registration_by_id(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_platform_registration_by_id(session, client, jwt):
+def test_get_platform_registration_by_id(app, session, client, jwt):
     with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -394,7 +395,7 @@ def test_get_registration_by_id_unauthorized(client):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_get_registration_by_id_includes_document_added_on(session, client, jwt):
+def test_get_registration_by_id_includes_document_added_on(app, session, client, jwt):
     """GET /registrations/<id> returns documents with addedOn (from DB created when added_on is null)."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -485,7 +486,7 @@ def test_registration_serializer_document_added_on_uses_created_when_added_on_nu
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_cancel_registration(session, client, jwt):
+def test_cancel_registration(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -521,7 +522,7 @@ def test_cancel_registration(session, client, jwt):
         assert response_json.get("cancelledDate") is not None
 
 
-def test_get_expired_registration_todos_in_renewal_window(session, client, jwt):
+def test_get_expired_registration_todos_in_renewal_window(app, session, client, jwt):
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
 
@@ -553,7 +554,7 @@ def test_get_expired_registration_todos_in_renewal_window(session, client, jwt):
     assert response_json.get("todos")[0].get("task") is not None
 
 
-def test_get_expired_registration_todos_outside_renewal_window(session, client, jwt):
+def test_get_expired_registration_todos_outside_renewal_window(app, session, client, jwt):
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
 
@@ -585,7 +586,7 @@ def test_get_expired_registration_todos_outside_renewal_window(session, client, 
     assert response_json.get("todos") == []
 
 
-def test_get_active_registration_todos_in_renewal_window(session, client, jwt):
+def test_get_active_registration_todos_in_renewal_window(app, session, client, jwt):
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
 
@@ -617,7 +618,7 @@ def test_get_active_registration_todos_in_renewal_window(session, client, jwt):
     assert response_json.get("todos")[0].get("task") is not None
 
 
-def test_get_active_registration_todos_outside_renewal_window(session, client, jwt):
+def test_get_active_registration_todos_outside_renewal_window(app, session, client, jwt):
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
 
@@ -649,7 +650,7 @@ def test_get_active_registration_todos_outside_renewal_window(session, client, j
     assert response_json.get("todos") == []
 
 
-def test_get_todos_with_renewal_states(session, client, jwt):
+def test_get_todos_with_renewal_states(app, session, client, jwt):
     """Test renewal todos with draft, payment due status and default."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -722,7 +723,7 @@ def test_get_todos_with_renewal_states(session, client, jwt):
     assert todos[0].get("task").get("detail") == payment_due_application.application_number
 
 
-def test_get_todos_with_submitted_renewal_recent_and_old(session, client, jwt):
+def test_get_todos_with_submitted_renewal_recent_and_old(app, session, client, jwt):
     """Test renewal todos if renewal application was submitted."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -781,7 +782,7 @@ def test_get_todos_with_submitted_renewal_recent_and_old(session, client, jwt):
     "strr_api.services.approval_service.ApprovalService.getSTRDataForAddress",
     return_value={"organizationNm": "Test Municipality"},
 )
-def test_update_registration_str_address(mock_get_str_data, session, client, jwt):
+def test_update_registration_str_address(mock_get_str_data, app, session, client, jwt):
     """Test updating the STR address for a registration."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -851,7 +852,7 @@ def test_update_registration_str_address(mock_get_str_data, session, client, jwt
 @patch(
     "strr_api.services.approval_service.ApprovalService.getSTRDataForAddress", side_effect=Exception("Service error")
 )
-def test_update_registration_str_address_service_error_with_jurisdiction(mock_get_str_data, session, client, jwt):
+def test_update_registration_str_address_service_error_with_jurisdiction(mock_get_str_data, app, session, client, jwt):
     """Test updating STR address when getSTRDataForAddress returns an error."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -897,7 +898,7 @@ def test_update_registration_str_address_service_error_with_jurisdiction(mock_ge
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 @patch("strr_api.services.approval_service.ApprovalService.getSTRDataForAddress", return_value={"organizationNm": ""})
-def test_update_registration_str_address_empty_jurisdiction(mock_get_str_data, session, client, jwt):
+def test_update_registration_str_address_empty_jurisdiction(mock_get_str_data, app, session, client, jwt):
     """Test updating STR address when getSTRDataForAddress returns empty jurisdiction."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -942,7 +943,7 @@ def test_update_registration_str_address_empty_jurisdiction(mock_get_str_data, s
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_update_registration_str_address_with_jurisdiction(session, client, jwt):
+def test_update_registration_str_address_with_jurisdiction(app, session, client, jwt):
     """Test updating STR address when jurisdiction is provided in unit address."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -996,7 +997,7 @@ def test_update_registration_str_address_with_jurisdiction(session, client, jwt)
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_set_aside_registration_decision(session, client, jwt):
+def test_set_aside_registration_decision(app, session, client, jwt):
     """Test setting aside a registration decision."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1039,7 +1040,7 @@ def test_set_aside_registration_decision(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_reinstate_registration_using_status_endpoint(session, client, jwt):
+def test_reinstate_registration_using_status_endpoint(app, session, client, jwt):
     """Test reinstating a registration using the /status endpoint after set-aside."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1076,7 +1077,7 @@ def test_reinstate_registration_using_status_endpoint(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_set_aside_registration_events(session, client, jwt):
+def test_set_aside_registration_events(app, session, client, jwt):
     """Test that set-aside registration creates proper events."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1138,7 +1139,7 @@ def test_set_aside_registration_events(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_cancel_registration_using_status_endpoint(session, client, jwt):
+def test_cancel_registration_using_status_endpoint(app, session, client, jwt):
     """Test canceling a registration using the /status endpoint after set-aside."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1176,7 +1177,7 @@ def test_cancel_registration_using_status_endpoint(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_upload_registration_document(session, client, jwt):
+def test_upload_registration_document(app, session, client, jwt):
     """Test successful document upload to registration with NOC_PENDING status."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1416,7 +1417,7 @@ def test_send_notice_of_consideration_validation_errors(mock_invoice, session, c
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_assign_and_unassign_registration(session, client, jwt):
+def test_assign_and_unassign_registration(app, session, client, jwt):
     """Test assigning and unassigning a registration to a staff user."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1470,7 +1471,7 @@ def test_assign_and_unassign_registration(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_registration_status_update_sets_decider_id(session, client, jwt):
+def test_registration_status_update_sets_decider_id(app, session, client, jwt):
     """Test that updating registration status sets the decider_id field."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1515,7 +1516,7 @@ def test_registration_status_update_sets_decider_id(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_application_status_update_sets_decider_id(session, client, jwt):
+def test_application_status_update_sets_decider_id(app, session, client, jwt):
     """Test that updating application status sets the decider_id field."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1563,7 +1564,7 @@ def test_application_status_update_sets_decider_id(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_add_conditions_on_registration(session, client, jwt):
+def test_add_conditions_on_registration(app, session, client, jwt):
     """Test reinstating a registration using the /status endpoint after set-aside."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1607,7 +1608,7 @@ def test_add_conditions_on_registration(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_clear_conditions_on_registration(session, client, jwt):
+def test_clear_conditions_on_registration(app, session, client, jwt):
     """Test reinstating a registration using the /status endpoint after set-aside."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1660,7 +1661,7 @@ def test_clear_conditions_on_registration(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_clear_predefined_conditions(session, client, jwt):
+def test_clear_predefined_conditions(app, session, client, jwt):
     """Test reinstating a registration using the /status endpoint after set-aside."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -1721,7 +1722,7 @@ def test_clear_predefined_conditions(session, client, jwt):
         assert response_json.get("conditionsOfApproval").get("customConditions") == ["Condition 1", "Condition 2"]
 
 
-def test_strata_hotel_todos_60_day_renewal_window(session, client, jwt):
+def test_strata_hotel_todos_60_day_renewal_window(app, session, client, jwt):
     """Test that strata hotels show renewal todo 60 days before expiry."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -1755,7 +1756,7 @@ def test_strata_hotel_todos_60_day_renewal_window(session, client, jwt):
     assert response_json.get("todos")[0].get("task").get("type") == "REGISTRATION_RENEWAL"
 
 
-def test_strata_hotel_todos_outside_60_day_renewal_window(session, client, jwt):
+def test_strata_hotel_todos_outside_60_day_renewal_window(app, session, client, jwt):
     """Test that strata hotels does not show renewal todo outside 60-day window."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -1788,7 +1789,7 @@ def test_strata_hotel_todos_outside_60_day_renewal_window(session, client, jwt):
     assert response_json.get("todos") == []
 
 
-def test_host_todos_40_day_renewal_window(session, client, jwt):
+def test_host_todos_40_day_renewal_window(app, session, client, jwt):
     """Test that host registrations still use 40-day window."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -1821,7 +1822,7 @@ def test_host_todos_40_day_renewal_window(session, client, jwt):
     assert response_json.get("todos") == []
 
 
-def test_platform_todos_40_day_renewal_window(session, client, jwt):
+def test_platform_todos_40_day_renewal_window(app, session, client, jwt):
     """Test that platform registrations still use 40-day window."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -1854,7 +1855,7 @@ def test_platform_todos_40_day_renewal_window(session, client, jwt):
     assert response_json.get("todos") == []
 
 
-def test_get_platform_todos_with_all_renewal_states(session, client, jwt):
+def test_get_platform_todos_with_all_renewal_states(app, session, client, jwt):
     """Test platform renewal todos - Renewal, Draft, Payment Due."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -1924,7 +1925,7 @@ def test_get_platform_todos_with_all_renewal_states(session, client, jwt):
     assert todos[0].get("task").get("detail") == payment_due_application.application_number
 
 
-def test_get_strata_todos_with_all_renewal_states(session, client, jwt):
+def test_get_strata_todos_with_all_renewal_states(app, session, client, jwt):
     """Test platform renewal todos - Renewal, Draft, Payment Due."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -1995,7 +1996,7 @@ def test_get_strata_todos_with_all_renewal_states(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations(session, client, jwt):
+def test_search_registrations(app, session, client, jwt):
     """Test examiner search registrations endpoint."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2042,7 +2043,7 @@ def test_search_registrations_401(client):
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
 
 
-def test_search_registrations_short_search_text(session, client, jwt):
+def test_search_registrations_short_search_text(app, session, client, jwt):
     """Test examiner search registrations with search text less than 3 characters."""
     staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     rv = client.get("/registrations/search?text=ab", headers=staff_headers)
@@ -2050,7 +2051,7 @@ def test_search_registrations_short_search_text(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_user_search_registrations(session, client, jwt):
+def test_user_search_registrations(app, session, client, jwt):
     """Test user search registrations endpoint."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2099,14 +2100,14 @@ def test_user_search_registrations_401(client):
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
 
 
-def test_user_search_registrations_missing_account_id(session, client, jwt):
+def test_user_search_registrations_missing_account_id(app, session, client, jwt):
     """Test user search registrations endpoint returns 400 without Account-Id header."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     rv = client.get("/registrations/user/search", headers=headers)
     assert rv.status_code == HTTPStatus.BAD_REQUEST
 
 
-def test_user_search_registrations_short_search_text(session, client, jwt):
+def test_user_search_registrations_short_search_text(app, session, client, jwt):
     """Test user search registrations with search text less than 3 characters."""
     headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     headers["Account-Id"] = ACCOUNT_ID
@@ -2115,7 +2116,7 @@ def test_user_search_registrations_short_search_text(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_by_single_requirement(session, client, jwt):
+def test_search_registrations_by_single_requirement(app, session, client, jwt):
     """Test examiner search registrations filtered by single requirement."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2151,7 +2152,7 @@ def test_search_registrations_by_single_requirement(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_by_multiple_requirements(session, client, jwt):
+def test_search_registrations_by_multiple_requirements(app, session, client, jwt):
     """Test examiner search registrations filtered by single requirement (not multiple with AND logic)."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2187,7 +2188,7 @@ def test_search_registrations_by_multiple_requirements(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_requirement_and_status_combined(session, client, jwt):
+def test_search_registrations_requirement_and_status_combined(app, session, client, jwt):
     """Test search registrations with both requirement and status filters combined."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2226,7 +2227,7 @@ def test_search_registrations_requirement_and_status_combined(session, client, j
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_requirement_no_requirement(session, client, jwt):
+def test_search_registrations_requirement_no_requirement(app, session, client, jwt):
     """Test search registrations for NO_REQ (no requirements) hosts."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2258,7 +2259,7 @@ def test_search_registrations_requirement_no_requirement(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_with_registration_type_and_requirement(session, client, jwt):
+def test_search_registrations_with_registration_type_and_requirement(app, session, client, jwt):
     """Test search registrations with both registration type and requirement filters."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2297,7 +2298,7 @@ def test_search_registrations_with_registration_type_and_requirement(session, cl
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_by_platform_requirement(session, client, jwt):
+def test_search_registrations_by_platform_requirement(app, session, client, jwt):
     """Test search registrations for platform registrations with PLATFORM_MAJOR requirement."""
     with open(CREATE_PLATFORM_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2333,7 +2334,7 @@ def test_search_registrations_by_platform_requirement(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_by_strata_requirement(session, client, jwt):
+def test_search_registrations_by_strata_requirement(app, session, client, jwt):
     """Test search registrations for strata registrations with STRATA_PR requirement."""
     # Note: This test would require creating a strata hotel registration
     # For now, we'll test the endpoint accepts the parameter correctly
@@ -2348,7 +2349,7 @@ def test_search_registrations_by_strata_requirement(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_requirement_with_pagination(session, client, jwt):
+def test_search_registrations_requirement_with_pagination(app, session, client, jwt):
     """Test search registrations with requirement filter and pagination."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2381,7 +2382,7 @@ def test_search_registrations_requirement_with_pagination(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_requirement_with_sorting(session, client, jwt):
+def test_search_registrations_requirement_with_sorting(app, session, client, jwt):
     """Test search registrations with requirement filter and sorting."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -2415,7 +2416,7 @@ def test_search_registrations_requirement_with_sorting(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_with_approval_method_noc_status_set_aside_filters(session, client, jwt):
+def test_search_registrations_with_approval_method_noc_status_set_aside_filters(app, session, client, jwt):
     """Test search registrations with approvalMethod, nocStatus, and isSetAside filters."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
