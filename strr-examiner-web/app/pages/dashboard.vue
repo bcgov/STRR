@@ -219,6 +219,20 @@ const getAdjudicatorColumn = (header: ApiRegistrationHeader | ApplicationHeader)
   return header.assignee?.username || '-'
 }
 
+const getLocalGovColumnForRegistration = (reg: HousRegistrationResponse): string => {
+  if (reg.registrationType === ApplicationType.HOST) {
+    return (reg as HostRegistrationResp).unitDetails?.jurisdiction || '-'
+  }
+  return '-'
+}
+
+const getLocalGovColumn = (app: HousApplicationResponse): string => {
+  if (app.registration.registrationType === ApplicationType.HOST) {
+    return (app.registration as ApiHostApplication).strRequirements?.organizationNm || '-'
+  }
+  return '-'
+}
+
 /**
  * Get the display text for the registration status
  * @param status - The registration status
@@ -424,7 +438,7 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
         requirements: getConditionsColumnForRegistration(reg),
         applicantName: getApplicantNameColumnForRegistration(reg),
         propertyAddress: getPropertyAddressColumnForRegistration(reg),
-        localGov: '', // TODO: implement this once API has made the changes
+        localGov: getLocalGovColumnForRegistration(reg),
         adjudicator: getAdjudicatorColumn(reg.header),
         hasRenewed: hasBeenRenewed(reg)
       }))
@@ -474,6 +488,7 @@ const { data: applicationListResp, status } = await useAsyncData(
         requirements: getRequirementsColumn(app),
         applicantName: getApplicantNameColumn(app),
         propertyAddress: getPropertyAddressColumn(app),
+        localGov: getLocalGovColumn(app),
         status: app.header.registrationStatus ? app.header.examinerStatus : app.header.hostStatus,
         registrationStatus: app.header.registrationStatus,
         registrationNocStatus: app.header.registrationNocStatus,
