@@ -686,6 +686,7 @@ export default {
     FRACTIONAL_OWNERSHIP_AGREEMENT: 'Fractional ownership agreement',
     SPECULATION_VACANCY_TAX_DECLARATION: 'Speculation and Vacancy Tax Declaration Summary',
     HOME_OWNER_GRANT_APPROVAL: 'Home Owner Grant (Filing or Approval)',
+    UTILITY_BILL: 'Utility Bill',
     undefined: 'N/A',
     null: 'Other'
   },
