@@ -59,15 +59,12 @@ class AuthService:
     ):
         """Get service account client token for cross api calls."""
 
-        if not [
-            client_id,
-            client_secret,
-            token_url,
-            timeout,
-        ]:
+        # Load from config when any required arg is missing (empty list is falsy; [None, None, ...] is truthy)
+        if not all([client_id, client_secret, token_url]):
             client_id = current_app.config.get("STRR_SERVICE_ACCOUNT_CLIENT_ID")
             client_secret = current_app.config.get("STRR_SERVICE_ACCOUNT_SECRET")
             token_url = current_app.config.get("KEYCLOAK_AUTH_TOKEN_URL")
+        if timeout is None:
             timeout = int(current_app.config.get("AUTH_SVC_TIMEOUT", 20))
 
         data = "grant_type=client_credentials"
