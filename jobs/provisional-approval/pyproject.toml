@@ -8,7 +8,8 @@ license = "BSD 3-Clause"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12.2"
+# Cap at 3.13: 3.14 lacks wheels for Pillow, rpds-py, etc.
+python = ">=3.12.2,<3.14"
 flask = "^3.0.3"
 flask-sqlalchemy = "^3.0.3"
 flask-migrate = "^4.0.4"

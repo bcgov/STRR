@@ -786,10 +786,7 @@ files = [
 ]
 
 [package.dependencies]
-cffi = [
-    {version = ">=1.14", markers = "python_full_version < \"3.14.0\" and platform_python_implementation != \"PyPy\""},
-    {version = ">=2.0.0", markers = "python_full_version >= \"3.14.0\" and platform_python_implementation != \"PyPy\""},
-]
+cffi = {version = ">=1.14", markers = "python_full_version < \"3.14.0\" and platform_python_implementation != \"PyPy\""}
 
 [package.extras]
 docs = ["sphinx (>=5.3.0)", "sphinx-inline-tabs", "sphinx-rtd-theme (>=3.0.0)"]
@@ -4129,5 +4126,5 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.12.2"
-content-hash = "849d05cdb987c675e233ebcbb1066c55e07fedb3e0c7dbdfdcf8ad02fc6ca3d7"
+python-versions = ">=3.12.2,<3.14"
+content-hash = "41cba039e84a22f265afb253707e85e21a47fc04690559d84217042dfcfd91f8"
