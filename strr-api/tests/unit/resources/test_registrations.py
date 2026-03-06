@@ -2033,6 +2033,22 @@ def test_search_registrations(app, session, client, jwt):
         registrations = rv.json
         assert len(registrations.get("registrations")) == 0
 
+        # localGov filter: substring match
+        rv = client.get(
+            f"/registrations/search?recordNumber={registration_number}&localGov=Maple",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        assert len(rv.json.get("registrations")) == 1
+        assert rv.json.get("registrations")[0].get("registrationNumber") == registration_number
+
+        rv = client.get(
+            f"/registrations/search?recordNumber={registration_number}&localGov=Surrey",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        assert len(rv.json.get("registrations")) == 0
+
         rv = client.get(f"/registrations/{registration_id}", headers=headers)
         assert rv.status_code == HTTPStatus.OK
 

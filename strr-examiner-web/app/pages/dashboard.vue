@@ -423,7 +423,9 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
       () => exStore.tableFilters.status,
       () => exStore.tableFilters.requirements,
       () => exStore.tableFilters.registrationNumber,
-      () => exStore.tableFilters.searchText
+      () => exStore.tableFilters.searchText,
+      () => exStore.tableFilters.localGov,
+      () => exStore.tableFilters.adjudicator
     ],
     default: () => ({ registrations: [], total: 0 }),
     transform: (res: ApiRegistrationListResp) => {
@@ -470,7 +472,8 @@ const { data: applicationListResp, status } = await useAsyncData(
       () => exStore.tableFilters.registrationNumber,
       () => exStore.tableFilters.searchText,
       () => exStore.tableFilters.adjudicator,
-      () => exStore.tableFilters.requirements
+      () => exStore.tableFilters.requirements,
+      () => exStore.tableFilters.localGov
     ],
     // deep: true, watch: [() => exStore.tableFilters] // can do this once the rest of the table filters are added
     default: () => ({ applications: [], total: 0 }),

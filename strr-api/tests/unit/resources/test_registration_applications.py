@@ -615,6 +615,16 @@ def test_search_applications(session, client, jwt):
         applications = rv.json
         assert len(applications.get("applications")) == 1
 
+        # localGov filter: empty value does not filter
+        rv = client.get("/applications/search?text=12144 GREENWELL&localGov=", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        assert len(rv.json.get("applications")) == 1
+
+        # localGov filter: substring with no matching organizationNm returns 0
+        rv = client.get("/applications/search?text=12144 GREENWELL&localGov=Maple", headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        assert len(rv.json.get("applications")) == 0
+
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_create_platform_registration_application(session, client, jwt):
