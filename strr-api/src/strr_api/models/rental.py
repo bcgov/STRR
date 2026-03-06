@@ -147,6 +147,10 @@ class Registration(Versioned, BaseModel):
             query = query.filter(Registration.noc_status.in_(filter_criteria.noc_statuses))
         if filter_criteria.is_set_aside is True:
             query = query.filter(Registration.is_set_aside == True)  # noqa: E712
+        if filter_criteria.local_gov:
+            query = query.join(RentalProperty).filter(
+                RentalProperty.jurisdiction.ilike(f"%{filter_criteria.local_gov}%")
+            )
         sort_column = getattr(Registration, filter_criteria.sort_by, Registration.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())

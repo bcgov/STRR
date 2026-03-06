@@ -202,6 +202,13 @@ class Application(BaseModel):
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
             query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
+        if filter_criteria.local_gov:
+            query = query.filter(
+                Application.registration_type == Registration.RegistrationType.HOST,
+                Application.application_json["registration"]["strRequirements"]["organizationNm"].astext.ilike(
+                    f"%{filter_criteria.local_gov}%"
+                ),
+            )
         if not filter_criteria.include_draft_registration:
             query = query.filter(
                 ~db.and_(
@@ -458,6 +465,13 @@ class Application(BaseModel):
             query = cls._filter_by_assignee(filter_criteria.assignee, query)
         if filter_criteria.requirements:
             query = cls._filter_by_application_requirement(filter_criteria.requirements, query)
+        if filter_criteria.local_gov:
+            query = query.filter(
+                Application.registration_type == Registration.RegistrationType.HOST,
+                Application.application_json["registration"]["strRequirements"]["organizationNm"].astext.ilike(
+                    f"%{filter_criteria.local_gov}%"
+                ),
+            )
         if not filter_criteria.account_id:
             query = query.filter(Application.status != Application.Status.DRAFT)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)

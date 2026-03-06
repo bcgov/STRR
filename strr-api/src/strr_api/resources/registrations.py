@@ -1033,6 +1033,10 @@ def search_registrations():
         name: isSetAside
         type: boolean
         description: Filter for set aside registrations when true.
+      - in: query
+        name: localGov
+        type: string
+        description: Local government (jurisdiction) filter
     responses:
       200:
         description:
@@ -1056,6 +1060,7 @@ def search_registrations():
         noc_statuses = request.args.getlist("nocStatus") or None
         is_set_aside_param = request.args.get("isSetAside", None)
         is_set_aside = is_set_aside_param.lower() == "true" if is_set_aside_param else None
+        local_gov = request.args.get("localGov", None) or None
         if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1077,6 +1082,7 @@ def search_registrations():
             approval_methods=approval_methods,
             noc_statuses=noc_statuses,
             is_set_aside=is_set_aside,
+            local_gov=local_gov,
         )
 
         registration_list = RegistrationService.search_registrations(filter_criteria=filter_criteria)

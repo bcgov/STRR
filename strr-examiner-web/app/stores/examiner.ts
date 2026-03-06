@@ -268,7 +268,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           address: tableFilters.propertyAddress,
           recordNumber: tableFilters.registrationNumber,
           assignee: tableFilters.adjudicator,
-          requirement: tableFilters.requirements
+          requirement: tableFilters.requirements,
+          localGov: tableFilters.localGov || undefined
         }
       })
     } else {
@@ -285,6 +286,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
           recordNumber: tableFilters.registrationNumber,
           assignee: tableFilters.adjudicator,
           requirement: tableFilters.requirements,
+          localGov: tableFilters.localGov || undefined,
           includeDraftRegistration: false,
           applicationsOnly
         }
@@ -318,6 +320,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
       queryParams.text = tableFilters.searchText
+    }
+
+    if (tableFilters.localGov) {
+      queryParams.localGov = tableFilters.localGov
+    }
+
+    if (tableFilters.adjudicator) {
+      queryParams.assignee = tableFilters.adjudicator
     }
 
     return $strrApi('/registrations/search', {

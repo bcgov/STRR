@@ -54,6 +54,7 @@ class ApplicationSearch:
     include_draft_renewal: bool = True
     applications_only: bool = False
     account_id: int | None = None
+    local_gov: str | None = None
 
 
 @dataclass
@@ -74,3 +75,4 @@ class RegistrationSearch:
     approval_methods: List[str] | None = None
     noc_statuses: List[str] | None = None
     is_set_aside: bool | None = None
+    local_gov: str | None = None
