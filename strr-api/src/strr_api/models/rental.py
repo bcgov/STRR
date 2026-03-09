@@ -151,6 +151,8 @@ class Registration(Versioned, BaseModel):
             query = query.join(RentalProperty).filter(
                 RentalProperty.jurisdiction.ilike(f"%{filter_criteria.local_gov}%")
             )
+        if filter_criteria.renewals_only is True:
+            query = cls._filter_by_renewals_only(query)
         sort_column = getattr(Registration, filter_criteria.sort_by, Registration.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())
@@ -457,6 +459,30 @@ class Registration(Versioned, BaseModel):
             .scalar_subquery()
         )
         return query.filter(latest_app_status_subq.in_(approval_methods))
+
+    @classmethod
+    def _filter_by_renewals_only(cls, query):
+        """Filter to registrations that have at least one renewal application in an approved/provisional status."""
+        if not query:
+            return query
+        # pylint: disable=import-outside-toplevel
+        from strr_api.enums.enum import ApplicationType
+        from strr_api.models.application import Application
+
+        renewal_approved_statuses = [
+            Application.Status.FULL_REVIEW_APPROVED.value,
+            Application.Status.PROVISIONALLY_APPROVED.value,
+            Application.Status.PROVISIONAL_REVIEW.value,
+            Application.Status.AUTO_APPROVED.value,
+        ]
+        renewal_exists = db.exists().where(
+            db.and_(
+                Application.registration_id == Registration.id,
+                Application.type == ApplicationType.RENEWAL.value,
+                Application.status.in_(renewal_approved_statuses),
+            )
+        )
+        return query.filter(renewal_exists)
 
 
 class RentalProperty(Versioned, BaseModel):
