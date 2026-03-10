@@ -102,7 +102,7 @@ describe('Pending Renewal', () => {
     const { hasPendingRenewalProcessing } = useDashboardTodos()
     expect(hasPendingRenewalProcessing.value).toBe(false)
 
-    mockRegistration.value = { ...mockHostRegistration } as any
+    mockRegistration.value = { ...mockHostRegistration } as unknown as HostRegistrationResp
     expect(hasPendingRenewalProcessing.value).toBe(false)
   })
 
@@ -110,7 +110,7 @@ describe('Pending Renewal', () => {
     mockRegistration.value = {
       ...mockHostRegistration,
       header: { ...mockApplicationHeader, applications: [] }
-    } as any
+    } as unknown as HostRegistrationResp
     const { hasPendingRenewalProcessing } = useDashboardTodos()
     expect(hasPendingRenewalProcessing.value).toBe(false)
   })
@@ -122,7 +122,7 @@ describe('Pending Renewal', () => {
         ...mockApplicationHeader,
         applications: [{ applicationType: 'new', applicationStatus: ApplicationStatus.PAID }]
       }
-    } as any
+    } as unknown as HostRegistrationResp
     const { hasPendingRenewalProcessing } = useDashboardTodos()
     expect(hasPendingRenewalProcessing.value).toBe(false)
   })
@@ -134,7 +134,7 @@ describe('Pending Renewal', () => {
         ...mockApplicationHeader,
         applications: [{ applicationType: 'renewal', applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED }]
       }
-    } as any
+    } as unknown as HostRegistrationResp
     const { hasPendingRenewalProcessing } = useDashboardTodos()
     expect(hasPendingRenewalProcessing.value).toBe(false)
   })
@@ -146,7 +146,7 @@ describe('Pending Renewal', () => {
         ...mockApplicationHeader,
         applications: [{ applicationType: 'renewal', applicationStatus: ApplicationStatus.PAID }]
       }
-    } as any
+    } as unknown as HostRegistrationResp
     const { hasPendingRenewalProcessing } = useDashboardTodos()
     expect(hasPendingRenewalProcessing.value).toBe(true)
   })
@@ -158,7 +158,7 @@ describe('Pending Renewal', () => {
         ...mockApplicationHeader,
         applications: [{ applicationType: 'renewal', applicationStatus: ApplicationStatus.FULL_REVIEW }]
       }
-    } as any
+    } as unknown as HostRegistrationResp
     const { hasPendingRenewalProcessing } = useDashboardTodos()
     expect(hasPendingRenewalProcessing.value).toBe(true)
   })
@@ -174,7 +174,7 @@ describe('Pending Renewal', () => {
           { applicationType: 'renewal', applicationStatus: ApplicationStatus.PAID }
         ]
       }
-    } as any
+    } as unknown as HostRegistrationResp
     const { hasPendingRenewalProcessing } = useDashboardTodos()
     expect(hasPendingRenewalProcessing.value).toBe(false)
   })
@@ -302,13 +302,13 @@ describe('Setup Renewal Todos watcher', () => {
     mockIsEligibleForRenewal.value = true
     const { todos, setupRenewalTodosWatch } = useDashboardTodos()
     setupRenewalTodosWatch()
-    const renewalIds = [
+    const renewalIds = new Set([
       'todo-renew-registration-closed',
       'todo-renew-registration',
       'todo-renewal-draft',
       'todo-renewal-payment-pending'
-    ]
-    expect(todos.value.filter(t => renewalIds.includes(t.id))).toHaveLength(0)
+    ])
+    expect(todos.value.filter(t => renewalIds.has(t.id))).toHaveLength(0)
   })
 
   it('no renewal todo when renewals enabled but registration is null', () => {

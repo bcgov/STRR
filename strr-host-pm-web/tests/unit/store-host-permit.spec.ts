@@ -275,7 +275,7 @@ describe('useHostPermitStore - loading host data', () => {
       mockRegistrationRef.value = {
         ...mockHostRegistration,
         unitDetails: { ...mockHostRegistration.unitDetails, prExemptReason: 'Farm Land' }
-      } as any
+      } as unknown as HostRegistrationResp
     })
 
     await useHostPermitStore().loadHostRegistrationData('H847293615')
@@ -289,7 +289,7 @@ describe('useHostPermitStore - loading host data', () => {
       mockRegistrationRef.value = {
         ...mockHostRegistration,
         unitDetails: { ...mockHostRegistration.unitDetails, blExemptReason: 'Over 30 days' }
-      } as any
+      } as unknown as HostRegistrationResp
     })
 
     await useHostPermitStore().loadHostRegistrationData('H847293615')
