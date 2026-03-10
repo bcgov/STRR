@@ -463,8 +463,6 @@ class Registration(Versioned, BaseModel):
     @classmethod
     def _filter_by_renewals_only(cls, query):
         """Filter to registrations that have at least one renewal application in an approved/provisional status."""
-        if not query:
-            return query
         # pylint: disable=import-outside-toplevel
         from strr_api.enums.enum import ApplicationType
         from strr_api.models.application import Application
