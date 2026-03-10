@@ -8,7 +8,7 @@ defineProps<{
 <template>
   <ConnectDashboardSection
     id="to-do-section"
-    data-test-id="todo-section"
+    data-testid="todo-section"
     :title="$t('label.todo')"
     :title-num="todos.length"
     :loading="loading"
@@ -16,7 +16,7 @@ defineProps<{
     <!-- Renewal submitted success notification (separate from todos) -->
     <div
       v-if="showRenewalSubmitted"
-      data-test-id="renewal-submitted-notification"
+      data-testid="renewal-submitted-notification"
     >
       <div class="flex gap-3 rounded border-l-4 border-green-500 bg-green-50 p-6">
         <UIcon name="i-mdi-check-circle" class="size-5 shrink-0 text-green-500" />
@@ -33,7 +33,7 @@ defineProps<{
       <div class="h-3 bg-bcGovGray-100" />
     </div>
 
-    <TodoEmpty v-if="!todos.length" data-test-id="todo-empty" />
+    <TodoEmpty v-if="!todos.length" data-testid="todo-empty" />
     <template v-else>
       <template v-for="(todo, index) in todos" :key="todo.id">
         <Todo

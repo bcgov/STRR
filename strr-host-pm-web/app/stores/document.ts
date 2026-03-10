@@ -618,6 +618,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     removeStoredDocument,
     validateRequiredDocuments,
     validateDocumentDropdowns,
+    validatePrincipalResidenceDocuments,
     resetApiDocs,
     removeDocumentsByType,
     $reset

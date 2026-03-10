@@ -55,6 +55,7 @@ setBreadcrumbs([
         :label="$t('btn.registerAStr')"
         icon="i-mdi-plus"
         :to="localePath('/application')"
+        data-testid="register-new-rental-btn"
       />
 
       <!-- Registrations Table -->

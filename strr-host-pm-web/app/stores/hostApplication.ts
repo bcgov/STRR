@@ -115,6 +115,7 @@ export const useHostApplicationStore = defineStore('host/application', () => {
     userConfirmation,
     confirmationSchema,
     validateUserConfirmation,
+    createApplicationBody,
     submitApplication,
     $reset
   }

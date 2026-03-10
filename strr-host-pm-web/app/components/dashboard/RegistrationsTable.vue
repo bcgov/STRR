@@ -162,7 +162,9 @@ async function handleRegistrationSelect (row: any) {
 </script>
 
 <template>
-  <ConnectPageSection>
+  <ConnectPageSection
+    data-testid="registrations-table"
+  >
     <template #header>
       <div class="flex flex-wrap items-center gap-3 md:flex-nowrap md:gap-24">
         <h2 class="whitespace-nowrap font-normal">

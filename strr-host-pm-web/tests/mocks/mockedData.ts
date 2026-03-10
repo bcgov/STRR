@@ -134,7 +134,7 @@ export const mockHostOwner: HostOwner = {
   }
 }
 
-const mockUnitAddress: ApiUnitAddress = {
+export const mockUnitAddress: ApiUnitAddress = {
   addressLineTwo: 'Apt 3B',
   city: 'Victoria',
   country: 'CA',
@@ -147,19 +147,30 @@ const mockUnitAddress: ApiUnitAddress = {
   unitNumber: '3B'
 }
 
-export const mockHostRegistration: HostRegistrationResp = {
-  header: {
-    applicationDateTime: DateTime.utc(2025, 1, 1).setZone('America/Vancouver').toString(),
-    applicationNumber: '12345678901234',
-    examinerActions: ['CANCEL', 'SUSPEND'],
-    examinerStatus: 'Registered',
-    hostActions: [],
-    hostStatus: 'Registered',
-    assignee: {
-      username: 'examiner@idir',
-      displayName: 'Examiner One'
-    }
+export const mockApplicationHeader: ApplicationHeader = {
+  applicationDateTime: DateTime.utc(2025, 1, 1).setZone('America/Vancouver').toString(),
+  applicationNumber: '12345678901234',
+  examinerActions: ['CANCEL', 'SUSPEND'],
+  examinerStatus: 'Registered',
+  hostActions: [],
+  hostStatus: 'Registered',
+  assignee: {
+    username: 'examiner@idir',
+    displayName: 'Examiner One'
   },
+  decisionDate: undefined,
+  isCertificateIssued: false,
+  isSetAside: null,
+  name: '',
+  paymentAccount: '',
+  paymentMethod: ConnectPaymentMethod.DIRECT_PAY,
+  paymentStatus: '',
+  paymentToken: 0,
+  status: ApplicationStatus.ADDITIONAL_INFO_REQUESTED
+}
+
+export const mockHostRegistration: HostRegistrationResp = {
+
   id: 308,
   registrationType: ApplicationType.HOST,
   status: RegistrationStatus.ACTIVE,
@@ -223,3 +234,20 @@ export const mockStoredDocuments: UiDocument[] = [
     uploadDate: '2024-01-01'
   }
 ]
+
+export const mockApiDocuments: ApiDocument[] = [
+  {
+    documentType: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE,
+    fileKey: 'abc-123',
+    fileName: 'business-license.pdf',
+    fileType: 'application/pdf'
+  }
+]
+
+export const mockPropertyReqs = {
+  isBusinessLicenceRequired: false,
+  isPrincipalResidenceRequired: true,
+  isStrProhibited: false,
+  isStraaExempt: false,
+  organizationNm: 'City of Vancouver'
+}
