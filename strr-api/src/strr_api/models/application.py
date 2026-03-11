@@ -224,14 +224,14 @@ class Application(BaseModel):
                 )
             )
         if filter_criteria.applications_only:
-            # Exclude applications that have a completed registration, except renewals
-            # Include: no registration yet or renewal applications
-            query = query.filter(
-                db.or_(
-                    Application.registration_id.is_(None),
-                    Application.type == ApplicationType.RENEWAL.value,
-                )
+            # Exclude all applications that have an associated registration.
+            query = query.filter(Application.registration_id.is_(None))
+            # Also exclude when application_json has a registrationId in header (any non-null, non-empty value)
+            no_reg_in_json = db.or_(
+                Application.application_json["header"]["registrationId"].astext.is_(None),
+                Application.application_json["header"]["registrationId"].astext == "",
             )
+            query = query.filter(no_reg_in_json)
         sort_column = getattr(Application, filter_criteria.sort_by, Application.id)
         if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
             query = query.order_by(sort_column.asc())

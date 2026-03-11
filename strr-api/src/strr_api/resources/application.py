@@ -268,7 +268,7 @@ def get_applications():
         name: applicationsOnly
         type: boolean
         default: false
-        description: When true, exclude applications that have a completed registration (except renewals). For split dashboard applications table.
+        description: When true, exclude all applications that have an associated registration (including renewals). For split dashboard applications table.
     responses:
       200:
         description:
