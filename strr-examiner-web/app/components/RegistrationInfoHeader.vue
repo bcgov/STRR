@@ -50,12 +50,22 @@ const getRegistrationType = (): string => {
   }
 }
 
-const nocCountdown = computed(() => {
-  if (!activeReg.value.nocEndDate) { return null }
-  const daysLeft = dayCountdown(activeReg.value.nocEndDate.toString(), false)
+const nocCountdown = computed(() => ({
+  dateString: activeReg.value.nocEndDate
+    ? dateToString(activeReg.value.nocEndDate, 'y-MM-dd', true)
+    : '',
+  label: getExpiryCountdown(activeReg.value.nocEndDate?.toString())?.label,
+  isExpired: activeReg.value.nocStatus === RegistrationNocStatus.NOC_EXPIRED
+}))
+
+const registrationCountdown = computed(() => {
+  const expiryCountdown = getExpiryCountdown(activeReg.value.expiryDate?.toString())
   return {
-    days: daysLeft,
-    isExpired: activeReg.value.nocStatus === RegistrationNocStatus.NOC_EXPIRED
+    dateString: activeReg.value.expiryDate
+      ? dateToString(activeReg.value.expiryDate, 'y-MM-dd', true)
+      : '',
+    label: expiryCountdown?.label,
+    isExpired: expiryCountdown?.value < 0
   }
 })
 
@@ -149,14 +159,15 @@ const nocCountdown = computed(() => {
             data-testid="reg-expiry-date"
           >
             <strong>{{ t('strr.label.expiryDate') }}</strong>
-            {{ dateToString(activeReg.expiryDate, 'y-MM-dd', true) }}
-            ({{ dayCountdown(activeReg.expiryDate?.toString()) }} days left)
+            {{ registrationCountdown.dateString }}
+            ({{ registrationCountdown.label }})
           </span>
-          <template v-if="activeReg.nocEndDate">
+          <template v-if="nocCountdown.dateString">
             | <strong>{{ t('strr.label.nocExpiry') }}</strong>
-            {{ dateToString(activeReg.nocEndDate, 'y-MM-dd', true) }}
-            <span v-if="nocCountdown && !nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
-            <span v-else-if="nocCountdown && nocCountdown.isExpired" class="font-bold text-red-500"> (EXPIRED)</span>
+            {{ nocCountdown.dateString }}
+            <span :class="{ 'font-bold text-red-500': nocCountdown.isExpired }">
+              ({{ nocCountdown?.label }})
+            </span>
           </template>
         </div>
       </div>
