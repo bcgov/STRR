@@ -1,101 +1,117 @@
 {
-    "makefile.configureOnOpen": false,
-    "npm.packageManager": "pnpm",
-
-    "files.trimTrailingWhitespace": true,
-    "files.insertFinalNewline": true,
-    "editor.tabSize": 2,
-    "editor.detectIndentation": false,
-
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/.nuxt": true,
-        "**/dist": true,
-        "**/.venv": true,
-        "**/__pycache__": true,
-        "**/.coverage": true,
-        "**/coverage": true,
-        "**/*.lcov": true
-    },
-    "files.watcherExclude": {
-        "**/node_modules/**": true,
-        "**/.nuxt/**": true,
-        "**/dist/**": true,
-        "**/.venv/**": true,
-        "**/__pycache__/**": true
-    },
-
-    "[python]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.tabSize": 4,
-        "editor.rulers": [120],
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit"
-        }
-    },
-    "python.defaultInterpreterPath": "${workspaceFolder}/strr-api/.venv/bin/python",
-    "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestArgs": ["strr-api/tests"],
-
-    "black-formatter.args": ["--config", "${workspaceFolder}/strr-api/pyproject.toml"],
-    "isort.args": ["--settings-path", "${workspaceFolder}/strr-api/pyproject.toml"],
-    "isort.check": true,
-
-    "[vue]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-        "editor.rulers": [120],
-        "editor.codeActionsOnSave": {
-            "source.fixAll.eslint": "explicit"
-        }
-    },
-    "[typescript]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-        "editor.rulers": [120],
-        "editor.codeActionsOnSave": {
-            "source.fixAll.eslint": "explicit"
-        }
-    },
-    "[javascript]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-        "editor.rulers": [120],
-        "editor.codeActionsOnSave": {
-            "source.fixAll.eslint": "explicit"
-        }
-    },
-    "[json]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "vscode.json-language-features"
-    },
-    "[jsonc]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "vscode.json-language-features"
-    },
-    "eslint.validate": [
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "vue"
+  "makefile.configureOnOpen": false,
+  "npm.packageManager": "pnpm",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.nuxt": true,
+    "**/dist": true,
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "**/.coverage": true,
+    "**/coverage": true,
+    "**/*.lcov": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.nuxt/**": true,
+    "**/dist/**": true,
+    "**/.venv/**": true,
+    "**/__pycache__/**": true
+  },
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.tabSize": 4,
+    "editor.rulers": [
+      120
     ],
-    "eslint.format.enable": true,
-    "eslint.workingDirectories": [
-        { "mode": "auto" }
-    ],
-    "tailwindCSS.includeLanguages": {
-        "vue": "html",
-        "vue-html": "html"
-    },
-    "tailwindCSS.experimental.classRegex": [
-        ["class:\\s*?[\"'`]([^\"'`]*).*?[\"'`]", "[\"'`]([^\"'`]*).*?[\"'`]"]
-    ],
-    "files.associations": {
-        "*.css": "tailwindcss"
-    },
-    "editor.quickSuggestions": {
-        "strings": true
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
     }
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/strr-api/.venv/bin/python",
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "strr-api/tests"
+  ],
+  "black-formatter.args": [
+    "--config",
+    "${workspaceFolder}/strr-api/pyproject.toml"
+  ],
+  "isort.args": [
+    "--settings-path",
+    "${workspaceFolder}/strr-api/pyproject.toml"
+  ],
+  "isort.check": true,
+  "[vue]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.rulers": [
+      120
+    ],
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.rulers": [
+      120
+    ],
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[javascript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.rulers": [
+      120
+    ],
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[json]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "vue"
+  ],
+  "eslint.format.enable": true,
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "tailwindCSS.includeLanguages": {
+    "vue": "html",
+    "vue-html": "html"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    [
+      "class:\\s*?[\"'`]([^\"'`]*).*?[\"'`]",
+      "[\"'`]([^\"'`]*).*?[\"'`]"
+    ]
+  ],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "editor.quickSuggestions": {
+    "strings": true
+  }
 }

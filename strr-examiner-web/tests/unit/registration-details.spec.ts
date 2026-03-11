@@ -71,6 +71,14 @@ vi.mock('@/stores/document', () => ({
   })
 }))
 
+const { mockGetExpiryCountdown } = vi.hoisted(() => {
+  const mockGetExpiryCountdown = vi.fn((endDate: string | undefined) =>
+    endDate ? { label: '0 days left', value: 0 } : { label: '', value: Number.NaN }
+  )
+  return { mockGetExpiryCountdown }
+})
+mockNuxtImport('getExpiryCountdown', () => mockGetExpiryCountdown)
+
 mockNuxtImport('useConnectLaunchdarklyStore', () => {
   return () => ({
     getStoredFlag: vi.fn().mockReturnValue(true)
@@ -212,6 +220,26 @@ describe('Examiner - Registration Details Page', () => {
     })
     const allText = componentWrapper.text()
     expect(allText).toContain('Type: Strata Hotel')
+  })
+
+  it.each([
+    { scenario: 'future expiry', label: '5 days left', value: 5, expected: '(5 days left)' },
+    { scenario: 'expiry today', label: 'today', value: 0, expected: '(today)' },
+    { scenario: 'past expiry', label: '3 days ago', value: -3, expected: '(3 days ago)' }
+  ])('displays expiry label for scenario: $scenario', async ({ label, value, expected }) => {
+    currentMockData = mockHostRegistration
+    mockGetExpiryCountdown.mockReturnValue({
+      label,
+      value
+    })
+
+    const componentWrapper = await mountSuspended(RegistrationInfoHeader, {
+      global: { plugins: [enI18n] }
+    })
+
+    const expiryRow = componentWrapper.findTestId('reg-expiry-date')
+    expect(expiryRow.exists()).toBe(true)
+    expect(expiryRow.text()).toContain(expected)
   })
 
   it('displays reviewer information when available', async () => {
