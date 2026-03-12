@@ -369,7 +369,8 @@ export const mockHostRegistration: HostRegistrationResp = {
   listingDetails: [],
   sbc_account_id: 12345,
   updatedDate: MOCK_DATES.APPLICATION_DATE,
-  user_id: 123
+  user_id: 123,
+  nocStatus: null
 }
 
 export const mockPlatformRegistration: PlatformRegistrationResp = {
@@ -428,7 +429,8 @@ export const mockPlatformRegistration: PlatformRegistrationResp = {
   },
   sbc_account_id: 12345,
   updatedDate: MOCK_DATES.APPLICATION_DATE,
-  user_id: 123
+  user_id: 123,
+  nocStatus: null
 }
 
 export const mockStrataHotelRegistration: StrataHotelRegistrationResp = {
@@ -457,7 +459,8 @@ export const mockStrataHotelRegistration: StrataHotelRegistrationResp = {
   strataHotelRepresentatives: [MOCK_STRATA_REP] as ApiRep[],
   sbc_account_id: 12345,
   updatedDate: MOCK_DATES.STRATA_APPLICATION_DATE,
-  user_id: 123
+  user_id: 123,
+  nocStatus: null
 }
 
 export const mockExpiredRegistration: HostRegistrationResp = {
