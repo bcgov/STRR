@@ -1,0 +1,92 @@
+export const mockSubmitApplication = {
+  header: {
+    paymentMethod: 'PAD'
+  },
+  registration: {
+    registrationType: 'HOST',
+    primaryContact: {
+      firstName: 'The',
+      middleName: 'First',
+      lastName: 'Guy',
+      dateOfBirth: '1986-10-23',
+      preferredName: 'Mickey',
+      phoneCountryCode: '001',
+      phoneNumber: '604-999-9999',
+      extension: 'x64',
+      faxNumber: '604-777-7777',
+      emailAddress: 'test@test.test',
+      socialInsuranceNumber: '123 222 333',
+      mailingAddress: {
+        country: 'CA',
+        address: '12766 227st',
+        addressLineTwo: '',
+        city: 'MAPLE RIDGE',
+        province: 'BC',
+        postalCode: 'V2X 6K6'
+      }
+    },
+    secondaryContact: {
+      firstName: 'The',
+      middleName: 'Other',
+      lastName: 'Guy',
+      dateOfBirth: '1986-10-23',
+      preferredName: 'Mouse',
+      phoneCountryCode: '001',
+      phoneNumber: '604-888-8888',
+      extension: '',
+      faxNumber: '',
+      emailAddress: 'test2@test.test',
+      mailingAddress: {
+        country: 'CA',
+        address: '12766 227st',
+        addressLineTwo: '',
+        city: 'MAPLE RIDGE',
+        province: 'BC',
+        postalCode: 'V2X 6K6'
+      }
+    },
+    unitAddress: {
+      nickname: 'My Rental Property',
+      country: 'CA',
+      unitNumber: '',
+      streetNumber: '12166',
+      streetName: 'GREENWELL ST 7',
+      addressLineTwo: '',
+      city: 'MAPLE RIDGE',
+      province: 'BC',
+      postalCode: 'V2X 7N1'
+    },
+    strRequirements: {
+      isBusinessLicenceRequired: false,
+      isPrincipalResidenceRequired: true,
+      isStrProhibited: false,
+      isStraaExempt: null,
+      organizationNm: 'City of Maple Ridge'
+    },
+    unitDetails: {
+      parcelIdentifier: '000-460-991',
+      businessLicense: '7777777',
+      businessLicenseExpiryDate: '2025-01-01',
+      propertyType: 'SINGLE_FAMILY_HOME',
+      ownershipType: 'OWN',
+      rentalUnitSpaceType: 'ENTIRE_HOME',
+      hostResidence: 'SAME_UNIT',
+      isUnitOnPrincipalResidenceProperty: true,
+      numberOfRoomsForRent: 1,
+      strataHotelCategory: 'MULTI_UNIT_NON_PR',
+      blExemptReason: 'This short-term rental does not offer bookings of under 30 days',
+      prExemptReason: 'FRACTIONAL_OWNERSHIP'
+    },
+    listingDetails: [
+      { url: 'https://www.airbnb.ca/rooms/26359027' }
+    ],
+    documents: [
+      {
+        fileName: 'Drivers License',
+        fileType: 'pdf',
+        fileKey: 'a1234',
+        documentType: 'BC_DRIVERS_LICENSE'
+      }
+    ]
+  }
+}
