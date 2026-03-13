@@ -2,7 +2,8 @@
  * Submits a POST /applications request with a mock STRR host registration payload.
  */
 import http from 'k6/http'
-import { check } from 'k6'
+import { check, group } from 'k6'
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.2/index.js'
 import { mockSubmitApplication } from './mockPayloads.js'
 
 const BASE_URL = __ENV.STRR_API_URL
@@ -25,6 +26,10 @@ export const options = {
 
 const payload = JSON.stringify(mockSubmitApplication)
 
+// Track applicationNumbers submitted by the user to detect duplicates across the iterations,
+// because k6 virtual users run in isolated runtimes, so this does not catch cross-vu duplicates.
+const submittedApplicationNumbers = new Set()
+
 export function setup () {
   const token = __ENV.ACCESS_TOKEN
   if (!token) {
@@ -42,18 +47,70 @@ export default function (data) {
 
   const res = http.post(`${BASE_URL}/applications`, payload, { headers })
 
-  check(res, {
-    'status is 200 or 201': r => r.status === 200 || r.status === 201,
-    'applicationNumber exists': (r) => {
-      try { return !!JSON.parse(r.body)?.header?.applicationNumber } catch { return false }
-    },
-    'response has header.status': (r) => {
-      try { return !!JSON.parse(r.body)?.header?.status } catch { return false }
-    },
-    'registrationType is HOST': (r) => {
-      try { return JSON.parse(r.body)?.registration?.registrationType === 'HOST' } catch { return false }
-    }
+  let body = null
+  try { body = JSON.parse(res.body) } catch { /* handled by checks below */ }
+
+  group('Application created successfully', () => {
+    check(res, {
+      'status is 200 or 201': r => r.status === 200 || r.status === 201
+    })
+    check(body, {
+      'header.applicationNumber exists': b => !!b?.header?.applicationNumber,
+      'header.status exists': b => !!b?.header?.status
+    })
+  })
+
+  group('No duplicate application numbers', () => {
+    const appNumber = body?.header?.applicationNumber
+    check({ appNumber, submitted: submittedApplicationNumbers }, {
+      'applicationNumber is unique': ({ appNumber, submitted }) => {
+        if (!appNumber) { return false }
+        const isDuplicate = submitted.has(appNumber)
+        submitted.add(appNumber)
+        return !isDuplicate
+      }
+    })
+  })
+
+  group('No partial or corrupted records', () => {
+    check(body?.registration, {
+      'registration exists': r => !!r,
+      'registration.primaryContact exists': r => !!r?.primaryContact,
+      'registration.unitAddress exists': r => !!r?.unitAddress,
+      'registration.unitDetails exists': r => !!r?.unitDetails,
+      'registration.strRequirements exists': r => !!r?.strRequirements
+    })
+  })
+
+  group('Business rules applied', () => {
+    const submitted = mockSubmitApplication.registration
+    check(body?.registration, {
+      'registrationType match submitted value': r => r?.registrationType === submitted.registrationType,
+      'pr requirements match submitted value': r =>
+        r?.strRequirements?.isPrincipalResidenceRequired === submitted.strRequirements.isPrincipalResidenceRequired,
+      'propertyType match submitted value': r =>
+        r?.unitDetails?.propertyType === submitted.unitDetails.propertyType,
+      'ownershipType match submitted value': r =>
+        r?.unitDetails?.ownershipType === submitted.unitDetails.ownershipType
+    })
   })
 
   // sleep(1) // set time in seconds between test runs
+}
+
+// Summary docs: https://grafana.com/docs/k6/latest/results-output/end-of-test/custom-summary/
+export function handleSummary (data) {
+  // data.metrics.checks is undefined if no checks ran at all
+  const passes = data.metrics.checks?.values.passes ?? 0
+  const fails = data.metrics.checks?.values.fails ?? 0
+  const total = passes + fails
+  const pct = total > 0 ? ((passes / total) * 100).toFixed(1) : '0.0'
+
+  // overall result printed before the detailed breakdown
+  const summary = `[${fails === 0 ? 'PASSED' : 'FAILED'}] ${passes}/${total} checks passed (${pct}%)\n`
+
+  // textSummary reproduces k6's default output (groups, metrics, thresholds)
+  const defaultSummary = textSummary(data, { indent: ' ', enableColors: true })
+
+  return { stdout: summary + '\n' + defaultSummary }
 }
