@@ -80,6 +80,11 @@ export default {
     }
   },
   form: {},
+  label: {
+    expiryDaysLeft: '{count} jours restants',
+    expiryDaysAgo: 'il y a {count} jours',
+    expiryToday: "aujourd'hui"
+  },
   labels: {
     note: 'Note',
     optional: 'Optionnel',

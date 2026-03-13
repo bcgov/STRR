@@ -33,6 +33,25 @@ export function getDaysToExpiryColumn (heading: ApplicationHeader): { label: str
   return { label: t('label.dayCount', daysTillExpiry), value: daysTillExpiry }
 }
 
+/**
+ * Returns the countdown for an expiry date: label (e.g. "n days left") and numeric value for styling/sorting.
+ * When no endDate: { label: '', value: NaN }. Value is days until expiry (negative when expired).
+ */
+export function getExpiryCountdown (endDate: string | undefined): { label: string, value: number } {
+  if (!endDate) {
+    return { label: '', value: Number.NaN }
+  }
+  const { t } = useNuxtApp().$i18n
+  const days = dayCountdown(endDate, false)
+  if (days > 0) {
+    return { label: t('label.expiryDaysLeft', { count: days }), value: days }
+  }
+  if (days === 0) {
+    return { label: t('label.expiryToday'), value: days }
+  }
+  return { label: t('label.expiryDaysAgo', { count: Math.abs(days) }), value: days }
+}
+
 // return the application status based on the header
 export function getApplicationStatus (header: ApplicationHeader): string {
   // for Provisional Pending NOC we should display application host status instead of registration

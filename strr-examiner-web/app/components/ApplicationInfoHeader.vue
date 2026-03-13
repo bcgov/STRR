@@ -41,19 +41,22 @@ const goToRegistration = async (registrationId: string) => {
   await navigateTo(localePath(`${RoutesE.REGISTRATION}/${registrationId}`))
 }
 
-const nocCountdown = computed(() => {
-  const daysLeft = dayCountdown(activeHeader.value.nocEndDate.toString(), false)
-  return {
-    days: daysLeft,
-    isExpired: activeHeader.value.status === ApplicationStatus.NOC_EXPIRED
-  }
-})
+const nocCountdown = computed(() => ({
+  dateString: activeHeader.value.nocEndDate
+    ? dateToString(activeHeader.value.nocEndDate, 'y-MM-dd', true)
+    : '',
+  label: getExpiryCountdown(activeHeader.value.nocEndDate?.toString())?.label,
+  isExpired: activeHeader.value.status === ApplicationStatus.NOC_EXPIRED
+}))
 
 const registrationCountdown = computed(() => {
-  const daysLeft = dayCountdown(activeHeader.value.registrationEndDate.toString(), false)
+  const expiryCountdown = getExpiryCountdown(activeHeader.value.registrationEndDate?.toString())
   return {
-    days: daysLeft,
-    isExpired: daysLeft < 0
+    dateString: activeHeader.value.registrationEndDate
+      ? dateToString(activeHeader.value.registrationEndDate, 'y-MM-dd', true)
+      : '',
+    label: expiryCountdown?.label,
+    isExpired: expiryCountdown?.value < 0
   }
 })
 
@@ -138,11 +141,12 @@ const registrationCountdown = computed(() => {
           | <strong>{{ t('strr.label.declinedDate') }}</strong>
           {{ dateToString(activeHeader.decisionDate, 'y-MM-dd', true) }}
         </template>
-        <template v-else-if="activeHeader.nocEndDate">
+        <template v-else-if="nocCountdown.dateString">
           | <strong>{{ t('strr.label.nocExpiry') }}</strong>
-          {{ dateToString(activeHeader.nocEndDate, 'y-MM-dd', true) }}
-          <span v-if="!nocCountdown.isExpired">{{ `(${nocCountdown.days} days left)` }}</span>
-          <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
+          {{ nocCountdown.dateString }}
+          <span :class="{ 'font-bold text-red-500': nocCountdown.isExpired }">
+            ({{ nocCountdown.label }})
+          </span>
         </template>
         | <strong>{{ t('strr.label.assignee') }}</strong>
         {{ activeHeader.assignee?.username || '-' }}
@@ -165,9 +169,10 @@ const registrationCountdown = computed(() => {
         | <strong>{{ t('strr.label.registrationDate') }}</strong>
         {{ dateToString(activeHeader.registrationStartDate, 'y-MM-dd', true) }}
         | <strong>{{ t('strr.label.registrationEndDate') }}</strong>
-        {{ dateToString(activeHeader.registrationEndDate, 'y-MM-dd', true) }}
-        <span v-if="!registrationCountdown.isExpired">{{ `(${registrationCountdown.days} days left)` }}</span>
-        <span v-else class="font-bold text-red-500"> (EXPIRED)</span>
+        {{ registrationCountdown.dateString }}
+        <span :class="{ 'font-bold text-red-500': registrationCountdown.isExpired }">
+          ({{ registrationCountdown.label }})
+        </span>
       </div>
     </div>
   </div>
