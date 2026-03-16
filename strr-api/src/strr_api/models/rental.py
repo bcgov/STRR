@@ -443,8 +443,6 @@ class Registration(Versioned, BaseModel):
     @classmethod
     def _approval_method_condition(cls, approval_methods: list[str]):
         """Build SQL condition for filtering by latest application status."""
-        if not approval_methods:
-            return None
         # pylint: disable=import-outside-toplevel
         from sqlalchemy import select
 
