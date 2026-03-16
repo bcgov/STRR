@@ -28,6 +28,7 @@ const createMockStore = (initialFilters = {}) => {
     applicantName: '',
     propertyAddress: '',
     status: [],
+    subStatus: [],
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
     localGov: '',
@@ -38,12 +39,16 @@ const createMockStore = (initialFilters = {}) => {
   const applicationsOnlyStatuses = [
     ApplicationStatus.FULL_REVIEW
   ]
+  const registrationsOnlyStatuses = ['ACTIVE']
+  const registrationsOnlySubStatuses = ['REVIEW', 'REVIEW_RENEW', 'NOC_PENDING']
 
   return {
     tableFilters,
     tableLimit: ref(10),
     tablePage: ref(1),
     applicationsOnlyStatuses,
+    registrationsOnlyStatuses,
+    registrationsOnlySubStatuses,
     fetchApplications: vi.fn().mockResolvedValue(mockedResp),
     fetchRegistrations: vi.fn().mockResolvedValue({ registrations: [], total: 0 }),
     approveApplication: vi.fn(),
@@ -61,6 +66,7 @@ const createMockStore = (initialFilters = {}) => {
         applicantName: '',
         propertyAddress: '',
         status: [],
+        subStatus: [],
         submissionDate: { start: null, end: null },
         lastModified: { start: null, end: null },
         localGov: '',

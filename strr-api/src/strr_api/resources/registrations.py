@@ -1038,9 +1038,9 @@ def search_registrations():
         type: string
         description: Local government (jurisdiction) filter
       - in: query
-        name: renewalsOnly
+        name: reviewRenew
         type: boolean
-        description: When true, only return registrations that have a renewal application in an approved/provisional status (FULL_REVIEW_APPROVED, PROVISIONALLY_APPROVED, PROVISIONAL_REVIEW, AUTO_APPROVED).
+        description: When true, only return registrations that have a renewal application that is not fully approved (FULL_REVIEW, PROVISIONAL_REVIEW, PROVISIONALLY_APPROVED).
     responses:
       200:
         description:
@@ -1065,8 +1065,8 @@ def search_registrations():
         is_set_aside_param = request.args.get("isSetAside", None)
         is_set_aside = is_set_aside_param.lower() == "true" if is_set_aside_param else None
         local_gov = request.args.get("localGov", None) or None
-        renewals_only_param = request.args.get("renewalsOnly", None)
-        renewals_only = renewals_only_param.lower() == "true" if renewals_only_param else None
+        review_renew_param = request.args.get("reviewRenew", None)
+        review_renew = review_renew_param.lower() == "true" if review_renew_param else None
         if sort_by not in VALID_REGISTRATION_SORT_FIELDS:
             sort_by = "id"
         if sort_order not in ["asc", "desc"]:
@@ -1089,7 +1089,7 @@ def search_registrations():
             noc_statuses=noc_statuses,
             is_set_aside=is_set_aside,
             local_gov=local_gov,
-            renewals_only=renewals_only,
+            review_renew=review_renew,
         )
 
         registration_list = RegistrationService.search_registrations(filter_criteria=filter_criteria)

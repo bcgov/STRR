@@ -76,4 +76,4 @@ class RegistrationSearch:
     noc_statuses: List[str] | None = None
     is_set_aside: bool | None = None
     local_gov: str | None = None
-    renewals_only: bool | None = None
+    review_renew: bool | None = None

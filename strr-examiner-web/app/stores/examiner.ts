@@ -163,8 +163,13 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   // as per requirements, registrations statuses in filter dropdown
   // should reflect their respective application's statuses
   const registrationsOnlyStatuses = [
-    ApplicationStatus.PROVISIONALLY_APPROVED,
-    ApplicationStatus.NOC_EXPIRED
+    RegistrationStatus.ACTIVE
+  ]
+
+  const registrationsOnlySubStatuses = [
+    'REVIEW',
+    'REVIEW_RENEW',
+    'NOC_PENDING'
   ]
 
   const tableFilters = reactive({
@@ -175,6 +180,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     applicantName: '',
     propertyAddress: '',
     status: [], // show all statuses
+    subStatus: [],
     submissionDate: { start: null, end: null },
     lastModified: { start: null, end: null },
     localGov: '',
@@ -190,6 +196,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   // attributes of the registration
   const NOC_ATTR = new Set(['NOC_PENDING', 'NOC_EXPIRED'])
   const SET_ASIDE_ATTR = 'SET_ASIDE'
+  const REVIEW_SUB_STATUS = 'REVIEW'
+  const REVIEW_RENEW_SUB_STATUS = 'REVIEW_RENEW'
+  const APPROVED_SUB_STATUS = 'APPROVED'
 
   /**
    * Process status filters to separate application statuses, registration statuses,
@@ -295,7 +304,32 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const fetchRegistrations = () => {
-    const { registrationStatuses, approvalMethods, nocStatuses, isSetAside } = processStatusFilters(tableFilters.status)
+    const registrationStatuses = tableFilters.status.length > 0 ? tableFilters.status : defaultRegistrationStatuses
+    const subStatuses = tableFilters.subStatus ?? []
+    const approvalMethods = new Set<string>()
+    const nocStatuses = new Set<string>()
+    let isSetAside = false
+    let reviewRenew = false
+
+    for (const subStatus of subStatuses) {
+      if (subStatus === REVIEW_SUB_STATUS) {
+        approvalMethods.add(ApplicationStatus.PROVISIONALLY_APPROVED)
+        approvalMethods.add(ApplicationStatus.PROVISIONAL_REVIEW)
+      }
+      if (subStatus === APPROVED_SUB_STATUS) {
+        approvalMethods.add(ApplicationStatus.AUTO_APPROVED)
+        approvalMethods.add(ApplicationStatus.FULL_REVIEW_APPROVED)
+      }
+      if (NOC_ATTR.has(subStatus)) {
+        nocStatuses.add(subStatus)
+      }
+      if (subStatus === SET_ASIDE_ATTR) {
+        isSetAside = true
+      }
+      if (subStatus === REVIEW_RENEW_SUB_STATUS) {
+        reviewRenew = true
+      }
+    }
 
     const queryParams: Record<string, any> = {
       sortOrder: 'asc',
@@ -308,14 +342,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       text: undefined as string | undefined
     }
 
-    if (approvalMethods.length > 0) {
-      queryParams.approvalMethod = approvalMethods
+    if (approvalMethods.size > 0) {
+      queryParams.approvalMethod = [...approvalMethods]
     }
-    if (nocStatuses.length > 0) {
-      queryParams.nocStatus = nocStatuses
+    if (nocStatuses.size > 0) {
+      queryParams.nocStatus = [...nocStatuses]
     }
     if (isSetAside) {
       queryParams.isSetAside = true
+    }
+    if (reviewRenew) {
+      queryParams.reviewRenew = true
     }
 
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
@@ -638,6 +675,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         applicantName: '',
         propertyAddress: '',
         status: [],
+        subStatus: [],
         submissionDate: { start: null, end: null },
         lastModified: { start: null, end: null },
         localGov: '',
@@ -656,6 +694,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       applicantName: '',
       propertyAddress: '',
       status: [...applicationsOnlyStatuses],
+      subStatus: [],
       submissionDate: { start: null, end: null },
       lastModified: { start: null, end: null },
       localGov: '',
@@ -664,7 +703,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     tablePage.value = 1
   }
 
-  /** Reset to the registrations table default state (Provisionally Approved + NOC Expired). */
+  /** Reset to the registrations table default state. */
   const resetFiltersToRegistrationsDefault = () => {
     Object.assign(tableFilters, {
       searchText: '',
@@ -674,6 +713,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       applicantName: '',
       propertyAddress: '',
       status: [...registrationsOnlyStatuses],
+      subStatus: [...registrationsOnlySubStatuses],
       submissionDate: { start: null, end: null },
       lastModified: { start: null, end: null },
       localGov: '',
@@ -744,6 +784,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
     applicationsOnlyStatuses,
     registrationsOnlyStatuses,
+    registrationsOnlySubStatuses,
 
     viewReceipt,
     approveApplication,

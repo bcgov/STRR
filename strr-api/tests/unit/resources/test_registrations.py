@@ -2576,10 +2576,10 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_renewals_only_includes_registration_with_approved_renewal(
+def test_search_registrations_review_renew_includes_registration_with_renewal_not_fully_approved(
     mock_create_invoice, session, client, jwt
 ):
-    """Test that renewalsOnly=true returns registrations that have a renewal in an approved/provisional status."""
+    """Test that reviewRenew=true returns registrations that have a renewal that is not fully approved."""
     from nanoid import generate
 
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
@@ -2606,7 +2606,119 @@ def test_search_registrations_renewals_only_includes_registration_with_approved_
         registration_number = response_json.get("header").get("registrationNumber")
         registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
 
-        # Add a renewal application in an approved status
+        # Add a renewal application that is not fully approved (FULL_REVIEW, PROVISIONAL_REVIEW, PROVISIONALLY_APPROVED)
+        session.refresh(application)
+        renewal_app = Application(
+            application_json=application.application_json,
+            application_number=generate(alphabet="0123456789", size=14),
+            type=ApplicationType.RENEWAL.value,
+            registration_type=application.registration_type,
+            status=Application.Status.FULL_REVIEW.value,
+            registration_id=registration.id,
+            application_date=application.application_date + timedelta(seconds=1),
+        )
+        session.add(renewal_app)
+        session.commit()
+
+        # reviewRenew=true should return this registration (has renewal that is not fully approved)
+        rv = client.get(
+            f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 1
+        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
+
+        # reviewRenew=false should still return it (no filter)
+        rv = client.get(
+            f"/registrations/search?reviewRenew=false&recordNumber={registration_number}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 1
+        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_review_renew_excludes_registration_without_renewal(
+    mock_create_invoice, session, client, jwt
+):
+    """Test that reviewRenew=true excludes registrations that have no renewal application."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+
+        # reviewRenew=true should NOT return this registration (no renewal)
+        rv = client.get(
+            f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 0
+
+        # Without reviewRenew param, registration is returned
+        rv = client.get(
+            f"/registrations/search?recordNumber={registration_number}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 1
+        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_review_renew_excludes_renewal_fully_approved(mock_create_invoice, session, client, jwt):
+    """Test that reviewRenew=true excludes registrations whose only renewal is fully approved (e.g. FULL_REVIEW_APPROVED)."""
+    from nanoid import generate
+
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+        registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
+
+        # Add a renewal application that is fully approved (FULL_REVIEW_APPROVED)
         session.refresh(application)
         renewal_app = Application(
             application_json=application.application_json,
@@ -2620,123 +2732,9 @@ def test_search_registrations_renewals_only_includes_registration_with_approved_
         session.add(renewal_app)
         session.commit()
 
-        # renewalsOnly=true should return this registration (has approved renewal)
+        # reviewRenew=true should NOT return this registration (renewal is fully approved)
         rv = client.get(
-            f"/registrations/search?renewalsOnly=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
-            headers=staff_headers,
-        )
-        assert rv.status_code == HTTPStatus.OK
-        registrations = rv.json
-        assert len(registrations.get("registrations")) == 1
-        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
-
-        # renewalsOnly=false should still return it (no filter)
-        rv = client.get(
-            f"/registrations/search?renewalsOnly=false&recordNumber={registration_number}",
-            headers=staff_headers,
-        )
-        assert rv.status_code == HTTPStatus.OK
-        registrations = rv.json
-        assert len(registrations.get("registrations")) == 1
-        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
-
-
-@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_renewals_only_excludes_registration_without_renewal(
-    mock_create_invoice, session, client, jwt
-):
-    """Test that renewalsOnly=true excludes registrations that have no renewal application."""
-    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
-        json_data = json.load(f)
-        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-        headers["Account-Id"] = ACCOUNT_ID
-        rv = client.post("/applications", json=json_data, headers=headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
-        application_number = response_json.get("header").get("applicationNumber")
-
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
-        registration_number = response_json.get("header").get("registrationNumber")
-
-        # renewalsOnly=true should NOT return this registration (no renewal)
-        rv = client.get(
-            f"/registrations/search?renewalsOnly=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
-            headers=staff_headers,
-        )
-        assert rv.status_code == HTTPStatus.OK
-        registrations = rv.json
-        assert len(registrations.get("registrations")) == 0
-
-        # Without renewalsOnly param, registration is returned
-        rv = client.get(
-            f"/registrations/search?recordNumber={registration_number}",
-            headers=staff_headers,
-        )
-        assert rv.status_code == HTTPStatus.OK
-        registrations = rv.json
-        assert len(registrations.get("registrations")) == 1
-        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
-
-
-@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_renewals_only_excludes_renewal_in_non_approved_status(
-    mock_create_invoice, session, client, jwt
-):
-    """Test that renewalsOnly=true excludes registrations whose only renewal is not in an approved status."""
-    from nanoid import generate
-
-    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
-        json_data = json.load(f)
-        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-        headers["Account-Id"] = ACCOUNT_ID
-        rv = client.post("/applications", json=json_data, headers=headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
-        application_number = response_json.get("header").get("applicationNumber")
-
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
-        registration_number = response_json.get("header").get("registrationNumber")
-        registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
-
-        # Add a renewal application in DECLINED status (not in approved/provisional set)
-        session.refresh(application)
-        renewal_app = Application(
-            application_json=application.application_json,
-            application_number=generate(alphabet="0123456789", size=14),
-            type=ApplicationType.RENEWAL.value,
-            registration_type=application.registration_type,
-            status=Application.Status.DECLINED.value,
-            registration_id=registration.id,
-            application_date=application.application_date + timedelta(seconds=1),
-        )
-        session.add(renewal_app)
-        session.commit()
-
-        # renewalsOnly=true should NOT return this registration (renewal is DECLINED)
-        rv = client.get(
-            f"/registrations/search?renewalsOnly=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
+            f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
             headers=staff_headers,
         )
         assert rv.status_code == HTTPStatus.OK

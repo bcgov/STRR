@@ -20,6 +20,7 @@ const emptyFilters = () => ({
   applicantName: '',
   propertyAddress: '',
   status: [],
+  subStatus: [],
   localGov: '',
   adjudicator: '',
   submissionDate: { start: null, end: null },
@@ -55,6 +56,7 @@ function getStateFromStore (exStore: ReturnType<typeof useExaminerStore>) {
       applicantName: filters.applicantName,
       propertyAddress: filters.propertyAddress,
       status: [...filters.status],
+      subStatus: [...(filters.subStatus || [])],
       localGov: filters.localGov,
       adjudicator: filters.adjudicator,
       submissionDate: { start: filters.submissionDate?.start ?? null, end: filters.submissionDate?.end ?? null },
@@ -94,8 +96,10 @@ function applyStateToStore (
     !isApplicationTab &&
     (!state.filters.status || state.filters.status.length === 0)
   ) {
-    (exStore.tableFilters.status as any[]).splice(
-      0, exStore.tableFilters.status.length, ...exStore.registrationsOnlyStatuses)
+    const statusFilters = exStore.tableFilters.status as any[]
+    const subStatusFilters = exStore.tableFilters.subStatus as any[]
+    statusFilters.splice(0, statusFilters.length, ...exStore.registrationsOnlyStatuses)
+    subStatusFilters.splice(0, subStatusFilters.length, ...exStore.registrationsOnlySubStatuses)
   }
   nextTick(() => {
     exStore.tablePage = state.page
@@ -126,8 +130,8 @@ export function useExaminerDashboardPersistence (
 ) {
   const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
   // Capture "had saved state" before useSessionStorage runs, so we don't treat first visit as returning
-  const hadSavedAppState = hasSavedAppState()
-  const hadSavedRegState = hasSavedRegState()
+  const hadSavedAppStateOnLoad = hasSavedAppState()
+  const hadSavedRegStateOnLoad = hasSavedRegState()
 
   const appState = useSessionStorage(APP_KEY, defaultState())
   const regState = useSessionStorage(REG_KEY, defaultState())
@@ -141,7 +145,7 @@ export function useExaminerDashboardPersistence (
   if (isSplitDashboardTableEnabled.value) {
     const state = mergeSavedStateWithDefaults(currentState())
     const isApp = isApplicationTab.value
-    applyStateToStore(exStore, state, isApp, isApp && !hadSavedAppState, !isApp && !hadSavedRegState)
+    applyStateToStore(exStore, state, isApp, isApp && !hadSavedAppStateOnLoad, !isApp && !hadSavedRegStateOnLoad)
   }
 
   // When the user switches tab: persist tab, save current table to storage, load the other table's state into the store
@@ -179,5 +183,8 @@ export function useExaminerDashboardPersistence (
     }
   })
 
-  return { hasSavedAppState, hasSavedRegState }
+  return {
+    hasSavedAppState: () => hadSavedAppStateOnLoad,
+    hasSavedRegState: () => hadSavedRegStateOnLoad
+  }
 }
