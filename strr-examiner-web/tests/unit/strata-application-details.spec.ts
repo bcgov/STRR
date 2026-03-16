@@ -40,7 +40,7 @@ vi.mock('@/stores/examiner', () => ({
   })
 }))
 
-describe('Examiner - Strata Application Details Page', () => {
+describe('Strata Application Details Page', () => {
   let wrapper: any
 
   beforeAll(async () => {
@@ -50,7 +50,7 @@ describe('Examiner - Strata Application Details Page', () => {
     await nextTick()
   })
 
-  it('renders Application Details page and its components', () => {
+  it('should render Application Details page and its components', () => {
     expect(wrapper.exists()).toBe(true)
     expect(wrapper.findComponent(ApplicationInfoHeader).exists()).toBe(true)
     expect(wrapper.findComponent(HostSubHeader).exists()).toBe(false)
@@ -59,7 +59,7 @@ describe('Examiner - Strata Application Details Page', () => {
     expect(wrapper.findComponent(PlatformSubHeader).exists()).toBe(false)
   })
 
-  it('renders ApplicationInfoHeader component for Strata application', () => {
+  it('should render ApplicationInfoHeader component for Strata application', () => {
     const appHeaderInfo = wrapper.findComponent(ApplicationInfoHeader)
     expect(appHeaderInfo.exists()).toBe(true)
     expect(appHeaderInfo.findComponent(UBadge).exists()).toBe(true)
@@ -71,62 +71,43 @@ describe('Examiner - Strata Application Details Page', () => {
     expect(appHeaderInfoText).toContain('Strata Hotel')
   })
 
-  it('renders Strata SubHeader component for Strata application', () => {
+  it('should render Strata SubHeader component for Strata application', () => {
     const strataSubHeader = wrapper.findComponent(StrataSubHeader)
     expect(strataSubHeader.exists()).toBe(true)
 
     const { registration } = mockStrataApplication
     const strataSubHeaderText = strataSubHeader.text()
 
-    if (registration.businessDetails) {
-      expect(strataSubHeaderText).toContain(registration.businessDetails.legalName)
+    const { businessDetails, strataHotelRepresentatives, completingParty, strataHotelDetails } = registration
+    const attorney = businessDetails!.registeredOfficeOrAttorneyForServiceDetails!
+    const rep = strataHotelRepresentatives![0]!
 
-      if (registration.businessDetails.mailingAddress) {
-        expect(strataSubHeaderText).toContain(registration.businessDetails.mailingAddress.address)
-      }
-
-      const attorney = registration.businessDetails.registeredOfficeOrAttorneyForServiceDetails
-      if (attorney) {
-        if (attorney.attorneyName) {
-          expect(strataSubHeaderText).toContain(attorney.attorneyName)
-        }
-
-        if (attorney.mailingAddress) {
-          expect(strataSubHeaderText).toContain(attorney.mailingAddress.address)
-        }
-      }
-    }
-
-    if (registration.strataHotelRepresentatives && registration.strataHotelRepresentatives.length > 0) {
-      const rep = registration.strataHotelRepresentatives[0]
-      if (rep.firstName) {
-        expect(strataSubHeaderText).toContain(rep.firstName)
-      }
-      if (rep.emailAddress) {
-        expect(strataSubHeaderText).toContain(rep.emailAddress)
-      }
-    }
-
-    if (registration.completingParty) {
-      if (registration.completingParty.firstName) {
-        expect(strataSubHeaderText).toContain(registration.completingParty.firstName)
-      }
-      if (registration.completingParty.lastName) {
-        expect(strataSubHeaderText).toContain(registration.completingParty.lastName)
-      }
-    }
-
-    if (registration.strataHotelDetails) {
-      if (registration.strataHotelDetails.numberOfUnits !== undefined) {
-        expect(strataSubHeaderText).toContain(registration.strataHotelDetails.numberOfUnits.toString())
-      }
-      if (registration.strataHotelDetails.category) {
-        expect(strataSubHeaderText).toContain(registration.strataHotelDetails.category)
-      }
-    }
+    expect(strataSubHeaderText).toContain(businessDetails!.legalName)
+    expect(strataSubHeaderText).toContain(businessDetails!.mailingAddress!.address)
+    expect(strataSubHeaderText).toContain(attorney.attorneyName)
+    expect(strataSubHeaderText).toContain(attorney.mailingAddress!.address)
+    expect(strataSubHeaderText).toContain(rep.firstName)
+    expect(strataSubHeaderText).toContain(rep.emailAddress)
+    expect(strataSubHeaderText).toContain(completingParty!.firstName)
+    expect(strataSubHeaderText).toContain(completingParty!.lastName)
+    expect(strataSubHeaderText).toContain(strataHotelDetails!.numberOfUnits!.toString())
+    expect(strataSubHeaderText).toContain(strataHotelDetails!.category)
   })
 
-  it('hides NOC email and disables action buttons when isAssignedToUser is false', async () => {
+  it('should render Strata SubHeader with correct structure and primary building location', () => {
+    const strataSubHeader = wrapper.findComponent(StrataSubHeader)
+    expect(strataSubHeader.findTestId('strata-sub-header').exists()).toBe(true)
+    expect(strataSubHeader.findTestId('strata-primary-building').exists()).toBe(true)
+    expect(strataSubHeader.findTestId('strata-business').exists()).toBe(true)
+    expect(strataSubHeader.findTestId('strata-attorney').exists()).toBe(true)
+
+    const primaryBuilding = strataSubHeader.findTestId('strata-primary-building')
+    const { location } = mockStrataApplication.registration.strataHotelDetails
+    expect(primaryBuilding.text()).toContain(location.address)
+    expect(primaryBuilding.text()).toContain(location.city)
+  })
+
+  it('should hide NOC email and disable action buttons when isAssignedToUser is false', async () => {
     isAssignedToUser.value = false
     await nextTick()
     expect(wrapper.findTestId('compose-email').exists()).toBe(false)

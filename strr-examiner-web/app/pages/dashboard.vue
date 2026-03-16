@@ -127,7 +127,7 @@ useHead({
 })
 
 definePageMeta({
-  layout: 'examiner',
+  layout: 'dashboard',
   middleware: ['auth']
 })
 

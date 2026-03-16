@@ -140,6 +140,7 @@ watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
                 <UIcon
                   name="i-mdi-close"
                   class="p-0"
+                  data-testid="remove-condition-button"
                   @click.stop.prevent="removeItem(item)"
                 />
               </template>
