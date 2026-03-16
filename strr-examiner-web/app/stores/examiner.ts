@@ -260,6 +260,83 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return { applicationStatuses, registrationStatuses, approvalMethods, nocStatuses, isSetAside }
   }
 
+  type RegistrationSubStatusFilters = {
+    approvalMethods: string[]
+    nocStatuses: string[]
+    isSetAside: boolean
+    reviewRenew: boolean
+  }
+
+  const mapRegistrationSubStatuses = (subStatuses: string[]): RegistrationSubStatusFilters => {
+    const approvalMethods = new Set<string>()
+    const nocStatuses = new Set<string>()
+    let isSetAside = false
+    let reviewRenew = false
+
+    for (const subStatus of subStatuses) {
+      if (subStatus === REVIEW_SUB_STATUS) {
+        approvalMethods.add(ApplicationStatus.PROVISIONALLY_APPROVED)
+        approvalMethods.add(ApplicationStatus.PROVISIONAL_REVIEW)
+      } else if (subStatus === APPROVED_SUB_STATUS) {
+        approvalMethods.add(ApplicationStatus.AUTO_APPROVED)
+        approvalMethods.add(ApplicationStatus.FULL_REVIEW_APPROVED)
+      } else if (NOC_ATTR.has(subStatus)) {
+        nocStatuses.add(subStatus)
+      } else if (subStatus === SET_ASIDE_ATTR) {
+        isSetAside = true
+      } else if (subStatus === REVIEW_RENEW_SUB_STATUS) {
+        reviewRenew = true
+      }
+    }
+
+    return {
+      approvalMethods: [...approvalMethods],
+      nocStatuses: [...nocStatuses],
+      isSetAside,
+      reviewRenew
+    }
+  }
+
+  const buildRegistrationQueryParams = (
+    registrationStatuses: string[],
+    mappedSubStatuses: RegistrationSubStatusFilters
+  ): Record<string, any> => {
+    const queryParams: Record<string, any> = {
+      sortOrder: 'asc',
+      limit: tableLimit.value,
+      page: tablePage.value,
+      registrationType: tableFilters.registrationType,
+      status: registrationStatuses,
+      requirement: tableFilters.requirements,
+      recordNumber: tableFilters.registrationNumber,
+      text: undefined as string | undefined
+    }
+
+    if (mappedSubStatuses.approvalMethods.length > 0) {
+      queryParams.approvalMethod = mappedSubStatuses.approvalMethods
+    }
+    if (mappedSubStatuses.nocStatuses.length > 0) {
+      queryParams.nocStatus = mappedSubStatuses.nocStatuses
+    }
+    if (mappedSubStatuses.isSetAside) {
+      queryParams.isSetAside = true
+    }
+    if (mappedSubStatuses.reviewRenew) {
+      queryParams.reviewRenew = true
+    }
+
+    if (tableFilters.searchText && tableFilters.searchText.length > 2) {
+      queryParams.text = tableFilters.searchText
+    }
+    if (tableFilters.localGov) {
+      queryParams.localGov = tableFilters.localGov
+    }
+    if (tableFilters.adjudicator) {
+      queryParams.assignee = tableFilters.adjudicator
+    }
+    return queryParams
+  }
+
   const fetchApplications = () => {
     const { applicationStatuses, registrationStatuses } = processStatusFilters(tableFilters.status)
     const applicationsOnly = isSplitDashboardTableEnabled.value
@@ -305,67 +382,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const fetchRegistrations = () => {
     const registrationStatuses = tableFilters.status.length > 0 ? tableFilters.status : defaultRegistrationStatuses
-    const subStatuses = tableFilters.subStatus ?? []
-    const approvalMethods = new Set<string>()
-    const nocStatuses = new Set<string>()
-    let isSetAside = false
-    let reviewRenew = false
-
-    for (const subStatus of subStatuses) {
-      if (subStatus === REVIEW_SUB_STATUS) {
-        approvalMethods.add(ApplicationStatus.PROVISIONALLY_APPROVED)
-        approvalMethods.add(ApplicationStatus.PROVISIONAL_REVIEW)
-      }
-      if (subStatus === APPROVED_SUB_STATUS) {
-        approvalMethods.add(ApplicationStatus.AUTO_APPROVED)
-        approvalMethods.add(ApplicationStatus.FULL_REVIEW_APPROVED)
-      }
-      if (NOC_ATTR.has(subStatus)) {
-        nocStatuses.add(subStatus)
-      }
-      if (subStatus === SET_ASIDE_ATTR) {
-        isSetAside = true
-      }
-      if (subStatus === REVIEW_RENEW_SUB_STATUS) {
-        reviewRenew = true
-      }
-    }
-
-    const queryParams: Record<string, any> = {
-      sortOrder: 'asc',
-      limit: tableLimit.value,
-      page: tablePage.value,
-      registrationType: tableFilters.registrationType,
-      status: registrationStatuses,
-      requirement: tableFilters.requirements,
-      recordNumber: tableFilters.registrationNumber,
-      text: undefined as string | undefined
-    }
-
-    if (approvalMethods.size > 0) {
-      queryParams.approvalMethod = [...approvalMethods]
-    }
-    if (nocStatuses.size > 0) {
-      queryParams.nocStatus = [...nocStatuses]
-    }
-    if (isSetAside) {
-      queryParams.isSetAside = true
-    }
-    if (reviewRenew) {
-      queryParams.reviewRenew = true
-    }
-
-    if (tableFilters.searchText && tableFilters.searchText.length > 2) {
-      queryParams.text = tableFilters.searchText
-    }
-
-    if (tableFilters.localGov) {
-      queryParams.localGov = tableFilters.localGov
-    }
-
-    if (tableFilters.adjudicator) {
-      queryParams.assignee = tableFilters.adjudicator
-    }
+    const mappedSubStatuses = mapRegistrationSubStatuses(tableFilters.subStatus ?? [])
+    const queryParams = buildRegistrationQueryParams(registrationStatuses, mappedSubStatuses)
 
     return $strrApi('/registrations/search', {
       query: queryParams

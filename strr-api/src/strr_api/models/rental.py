@@ -118,6 +118,27 @@ class Registration(Versioned, BaseModel):
     def search_registrations(cls, filter_criteria: RegistrationSearch):
         """Returns the registrations matching the search criteria."""
         query = cls.query
+        query = cls._apply_base_search_filters(query, filter_criteria)
+        if filter_criteria.requirements:
+            query = cls._filter_by_registration_requirement(filter_criteria.requirements, query)
+        if filter_criteria.local_gov:
+            query = query.join(RentalProperty).filter(
+                RentalProperty.jurisdiction.ilike(f"%{filter_criteria.local_gov}%")
+            )
+        sub_status_conditions = cls._collect_sub_status_conditions(filter_criteria)
+        if sub_status_conditions:
+            query = query.filter(db.or_(*sub_status_conditions))
+        sort_column = getattr(Registration, filter_criteria.sort_by, Registration.id)
+        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+        paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        return paginated_result
+
+    @classmethod
+    def _apply_base_search_filters(cls, query, filter_criteria: RegistrationSearch):
+        """Apply common registration filters before specialized filters."""
         if filter_criteria.account_id:
             query = query.filter(Registration.sbc_account_id == filter_criteria.account_id)
         if filter_criteria.search_text:
@@ -139,8 +160,11 @@ class Registration(Versioned, BaseModel):
             query = query.join(User, Registration.reviewer_id == User.id).filter(
                 User.username.ilike(f"%{filter_criteria.assignee}%")
             )
-        if filter_criteria.requirements:
-            query = cls._filter_by_registration_requirement(filter_criteria.requirements, query)
+        return query
+
+    @classmethod
+    def _collect_sub_status_conditions(cls, filter_criteria: RegistrationSearch):
+        """Collect OR conditions for registration sub-status filters."""
         sub_status_conditions = []
         if filter_criteria.approval_methods:
             sub_status_conditions.append(cls._approval_method_condition(filter_criteria.approval_methods))
@@ -148,23 +172,9 @@ class Registration(Versioned, BaseModel):
             sub_status_conditions.append(Registration.noc_status.in_(filter_criteria.noc_statuses))
         if filter_criteria.is_set_aside is True:
             sub_status_conditions.append(Registration.is_set_aside == True)  # noqa: E712
-        if filter_criteria.local_gov:
-            query = query.join(RentalProperty).filter(
-                RentalProperty.jurisdiction.ilike(f"%{filter_criteria.local_gov}%")
-            )
         if filter_criteria.review_renew is True:
             sub_status_conditions.append(cls._review_renew_condition())
-        if sub_status_conditions:
-            # Sub-status filters are combined with OR so examiners can select
-            # multiple sub-status categories in a single search.
-            query = query.filter(db.or_(*sub_status_conditions))
-        sort_column = getattr(Registration, filter_criteria.sort_by, Registration.id)
-        if filter_criteria.sort_order and filter_criteria.sort_order.lower() == "asc":
-            query = query.order_by(sort_column.asc())
-        else:
-            query = query.order_by(sort_column.desc())
-        paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
-        return paginated_result
+        return sub_status_conditions
 
     @classmethod
     def _host_condition_bl_or_pr(cls, application_model):

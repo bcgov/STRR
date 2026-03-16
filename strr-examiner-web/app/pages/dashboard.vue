@@ -581,7 +581,7 @@ const columns = computed(() => {
   const sortable = enableTableFilters.value
 
   if (isSplitDashboardTableEnabled.value) {
-    return [
+    const splitColumns = [
       {
         key: 'registrationNumber',
         label: t(isApplicationTab.value
@@ -590,7 +590,6 @@ const columns = computed(() => {
         sortable
       },
       { key: 'status', label: t('page.dashboardList.columns.status'), sortable },
-      ...(!isApplicationTab.value ? [{ key: 'subStatus', label: 'Sub-status', sortable }] : []),
       { key: 'registrationType', label: t('page.dashboardList.columns.registrationType'), sortable },
       { key: 'requirements', label: t('page.dashboardList.columns.requirements'), sortable },
       { key: 'applicantName', label: t('page.dashboardList.columns.hostName'), sortable },
@@ -598,6 +597,12 @@ const columns = computed(() => {
       { key: 'localGov', label: 'Local Government', sortable },
       { key: 'adjudicator', label: t('page.dashboardList.columns.adjudicator'), sortable }
     ]
+    if (isApplicationTab.value) {
+      return splitColumns
+    }
+    // add sub-status column to registrations tab
+    splitColumns.splice(2, 0, { key: 'subStatus', label: 'Sub-status', sortable })
+    return splitColumns
   } else {
     return [
       { key: 'registrationNumber', label: t('page.dashboardList.columns.registrationNumber'), sortable },
