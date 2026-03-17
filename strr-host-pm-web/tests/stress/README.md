@@ -15,7 +15,8 @@ Fill in the required values into `.env`:
 | Variable | Required | Description |
 | --- | --- | --- |
 | `STRR_API_URL` | Yes | Base URL of the STRR API (e.g. `https://strr-api-dev-...run.app/`) |
-| `ACCOUNT_ID` | Yes | BC Registries account ID for the `Account-Id` header |
+| `ACCOUNT_ID` | Yes | BCSC account ID for the `Account-Id` header |
+| `IDIR_ACCOUNT_ID` | Yes | IDIR account ID for the `Account-Id` header (used by examiner scripts) |
 | `ACCESS_TOKEN` | Yes | Bearer token for the `Authorization` header |
 
 ## Running the Tests
@@ -32,9 +33,12 @@ Replace `<script>.js` with the name of the test script you want to run.
 
 ### `submit-applications.js`
 
-#### Default Configuration
+Submits a `POST /applications` request with a mock STRR host registration payload.
 
-| Setting | Value |
-| --- | --- |
-| Virtual users | 1 |
-| Iterations | 1 |
+### `search-applications.js`
+
+Simulates searching applications via `GET /applications` with various filter combinations (status, address, record number, assignee, draft registration toggle).
+
+### `search-registrations.js`
+
+Simulates searching registrations via `GET /registrations/search` with various filter combinations (status, approval method, NOC status, set-aside flag, text search).
