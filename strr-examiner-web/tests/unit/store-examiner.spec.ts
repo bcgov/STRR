@@ -144,6 +144,7 @@ describe('Store - Examiner', () => {
       applicantName: '',
       propertyAddress: '',
       status: [],
+      subStatus: [],
       submissionDate: { start: null, end: null },
       lastModified: { start: null, end: null },
       localGov: '',
