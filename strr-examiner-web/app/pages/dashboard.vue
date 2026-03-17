@@ -912,6 +912,7 @@ const tabLinks = computed(() => [
       </template>
       <UTable
         ref="tableRef"
+        :key="isApplicationTab ? 'applications-table' : 'registrations-table'"
         v-model:sort="sort"
         :columns="columnsTable"
         :rows="isApplicationTab ? applicationListResp.applications : registrationListResp.registrations"
