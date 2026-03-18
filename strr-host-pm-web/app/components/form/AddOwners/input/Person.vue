@@ -37,7 +37,10 @@ const isRenewalEditActive = computed((): boolean => (activeOwnerEditIndex.value 
 watch(
   () => isCraNumberOptional.value,
   (val) => {
-    if (val) { owner.value.taxNumber = '' }
+    if (val) {
+      owner.value.taxNumber = ''
+      ownerFormRef.value?.clear('taxNumber')
+    }
   }
 )
 
