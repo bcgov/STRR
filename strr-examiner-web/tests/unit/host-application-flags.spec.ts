@@ -43,16 +43,17 @@ describe('Host Application Alert Flags', () => {
     await nextTick()
   })
 
-  it('renders alert flags', () => {
+  it('renders host application detail without red alert flag icons', () => {
     expect(wrapper.exists()).toBe(true)
 
     const hostSubHeader = wrapper.findComponent(HostSubHeader)
-    expect(hostSubHeader.findTestId('flag-host-business').exists()).toBe(true)
-    expect(hostSubHeader.findTestId('flag-unit-number-missing').exists()).toBe(true)
-    expect(hostSubHeader.findTestId('flag-exceeds-reg-limit').exists()).toBe(true)
+    expect(hostSubHeader.exists()).toBe(true)
+    expect(hostSubHeader.findTestId('flag-host-business').exists()).toBe(false)
+    expect(hostSubHeader.findTestId('flag-unit-number-missing').exists()).toBe(false)
+    expect(hostSubHeader.findTestId('flag-exceeds-reg-limit').exists()).toBe(false)
 
     const hostSupportingInfo = wrapper.findComponent(HostSupportingInfo)
+    expect(hostSupportingInfo.exists()).toBe(true)
     expect(hostSupportingInfo.findTestId('str-prohibited-section').exists()).toBe(true)
-    expect(hostSupportingInfo.findTestId('flag-str-prohibited').exists()).toBe(true)
   })
 })

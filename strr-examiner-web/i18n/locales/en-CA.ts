@@ -14,9 +14,6 @@ export default {
     },
     prExempt: {
       title: "Short-term rentals are allowed in any of the host's properties."
-    },
-    businessLicense: {
-      title: 'Upload Business License - 21 local governments require valid business license'
     }
   },
   feeSummary: {
@@ -260,8 +257,7 @@ export default {
       hostAddressNotSame: 'PR requirement applies',
       hostIsBusiness: 'Host is a business',
       unitNumberMissing: 'Unit Number Missing',
-      notSameProperty: "Unit not on the same property as host's principal residence",
-      exceedsRegistrationLimit: 'More than 2 Registrations'
+      notSameProperty: "Unit not on the same property as host's principal residence"
     }
   },
   text: {
