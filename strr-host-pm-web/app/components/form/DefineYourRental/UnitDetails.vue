@@ -63,7 +63,7 @@ watch(() => reqStore.prRequirements.prExemptionReason, async (val) => {
     propStore.unitDetails.propertyType = PropertyType.STRATA_HOTEL
     await validateForm(unitDetailsFormRef.value, props.isComplete) // validate the form to clear the unit type errors
   }
-})
+}, { immediate: true })
 
 // watch and clear unit setup radio if one of the disabled options selected
 watch(() => propStore.unitDetails.hostType, (val) => {
