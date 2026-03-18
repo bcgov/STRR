@@ -152,9 +152,6 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
         :label="t('strr.label.strProhibited')"
         data-testid="str-prohibited-section"
       >
-        <template #icon>
-          <AlertFlag data-testid="flag-str-prohibited" />
-        </template>
         {{ t('strr.label.strProhibitedAction') }}
       </ApplicationDetailsSection>
       <div class="grid grid-cols-12 items-start gap-4">
@@ -172,13 +169,6 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
             :sub-label="getBlSectionSubLabel()"
             data-testid="business-lic-section"
           >
-            <template #icon>
-              <AlertFlag
-                v-if="shouldShowBlUploadBtnAlerts"
-                :tooltip-text="t('alert.businessLicense.title')"
-                data-testid="flag-business-license"
-              />
-            </template>
             <div class="flex items-start gap-1" :class="{ 'justify-between': shouldShowBlUploadBtnAlerts }">
               <div class="flex flex-1 flex-col gap-y-2">
                 <div v-if="businessLicenseExemptReason">
@@ -214,12 +204,6 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
             :sub-label="getPrSectionSubLabel()"
             data-testid="pr-req-section"
           >
-            <template #icon>
-              <AlertFlag
-                v-if="(isApplication && alertFlags.isNotSameProperty) || alertFlags.isHostTypeBusiness"
-                data-testid="flag-pr-requirement"
-              />
-            </template>
             <div class="flex items-start justify-between gap-1">
               <div class="flex flex-1 flex-col gap-y-2">
                 <div

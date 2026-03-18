@@ -49,10 +49,6 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         <div class="w-[150px]">
           <UIcon name="i-mdi-map-marker-outline" />
           {{ displayFullUnitAddress(activeReg.unitAddress) }}
-          <AlertFlag
-            v-if="alertFlags.isUnitNumberMissing"
-            data-testid="flag-unit-number-missing"
-          />
         </div>
         <div
           v-if="activeHeader?.organizationName ||
@@ -96,11 +92,6 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         <div v-if="activeReg.primaryContact?.contactType" class="flex gap-x-1">
           <strong>{{ t('strr.label.hostType') }}</strong>
           {{ t(`ownerType.${activeReg.primaryContact?.contactType}`) }}
-          <AlertFlag
-            v-if="alertFlags.isHostTypeBusiness"
-            :tooltip-text="t('strr.alertFlags.hostIsBusiness')"
-            data-testid="flag-host-business"
-          />
         </div>
         <div>
           <strong>{{ t('strr.label.ownerRenter') }}</strong>
@@ -132,11 +123,6 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
               ? t(`rentalUnitSetupOption.${activeReg.unitDetails?.rentalUnitSetupOption}`)
               : t(`hostResidence.${activeReg.unitDetails.hostResidence}`)
           }}
-          <AlertFlag
-            v-if="isApplication && alertFlags.isNotSameProperty"
-            :tooltip-text="t('strr.alertFlags.hostAddressNotSame')"
-            data-testid="flag-host-address-not-same"
-          />
         </div>
         <div v-if="activeReg.unitDetails?.parcelIdentifier">
           <strong>{{ t('strr.label.pid') }}</strong> {{ activeReg.unitDetails?.parcelIdentifier }}
@@ -144,11 +130,6 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         <div v-if="isApplication" class="flex gap-x-1">
           <strong>{{ t('strr.label.registeredRentals') }}</strong>
           {{ (activeHeader as ApplicationHeader)?.existingHostRegistrations }}
-          <AlertFlag
-            v-if="alertFlags.isRegLimitExceeded"
-            :tooltip-text="t('strr.alertFlags.exceedsRegistrationLimit')"
-            data-testid="flag-exceeds-reg-limit"
-          />
         </div>
         <!-- TODO: Get number of PR registered rentals -->
         <!-- <div>
