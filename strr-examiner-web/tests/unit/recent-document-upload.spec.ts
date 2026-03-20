@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
-describe('recentDocumentUpload utils', () => {
+describe('recent-document-upload utils', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-19T18:00:00.000Z'))

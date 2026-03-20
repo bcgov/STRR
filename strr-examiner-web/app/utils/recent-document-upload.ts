@@ -11,7 +11,6 @@ type RegistrationLike = {
   strataHotelDetails?: { documents?: ApiDocLike[] }
 }
 
-/** Inclusive calendar-day window: today plus the prior 13 days (14 days total). */
 export const RECENT_DOCUMENT_UPLOAD_WINDOW_DAYS = 14
 
 /**
