@@ -414,7 +414,9 @@ export default {
       select: 'Select',
       selected: 'Selected'
     },
-    renewal: 'Renewal'
+    renewal: 'Renewal',
+    recentDocumentBadge: 'New document',
+    recentDocumentUploadHint: 'An attachment was uploaded in the last 14 days.'
   },
   link: {
     learnMore: 'Learn More'
