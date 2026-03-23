@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { baseEnI18n } from '../mocks/i18n'
 
 // get translate function from i18n
@@ -22,7 +23,7 @@ const mockBlRequirements = reactive({ isBusinessLicenceExempt: true })
 
 const mockPermitStore = reactive({
   needsBusinessLicenseDocumentUpload: false,
-  application: null as { header: { status: string } } | null,
+  application: null as { header: { status: string; applicationNumber?: string } } | null,
   registration: null as { nocStatus: string } | null
 })
 
@@ -47,15 +48,34 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
   })
 }))
 
-vi.mock('@/composables/useStrrModals', () => ({
-  useStrrModals: () => ({
-    openErrorModal: vi.fn()
-  })
+const mockOpenErrorModal = vi.fn()
+const mockOpenAppSubmitError = vi.fn()
+
+mockNuxtImport('useStrrModals', () => () => ({
+  openErrorModal: mockOpenErrorModal,
+  openAppSubmitError: mockOpenAppSubmitError
 }))
 
 vi.mock('@/stores/hostPermit', () => ({
   useHostPermitStore: () => mockPermitStore
 }))
+
+const mockSubmitApplication = vi.fn()
+vi.mock('@/stores/hostApplication', () => ({
+  useHostApplicationStore: () => ({
+    submitApplication: mockSubmitApplication
+  })
+}))
+
+const mockStrrApi = vi.fn().mockResolvedValue(undefined)
+vi.mock('#app', () => ({
+  useNuxtApp: () => ({
+    $strrApi: mockStrrApi,
+    $i18n: baseEnI18n
+  })
+}))
+
+// logFetchError is auto-imported, no need to mock
 
 const makeUiDoc = (
   id: string,
@@ -406,14 +426,74 @@ describe('Document Removal', () => {
     const store = useDocumentStore()
     store.storedDocuments = []
     store.selectedDocType = undefined
+    mockPermitStore.application = null
+    mockSubmitApplication.mockReset()
+    mockStrrApi.mockReset()
+    mockOpenErrorModal.mockClear()
+    mockOpenAppSubmitError.mockClear()
   })
 
-  it('should remove the document', async () => {
+  it('should remove the document from local list when no application ID exists', async () => {
     const store = useDocumentStore()
     const doc = makeUiDoc('1', DocumentUploadType.BC_DRIVERS_LICENSE)
     store.storedDocuments = [doc]
+    mockPermitStore.application = null
+    mockStrrApi.mockResolvedValue(undefined)
+
     await store.removeStoredDocument(doc)
+
+    // Document should be removed from local list
     expect(store.storedDocuments).toHaveLength(0)
+    // Should not save draft when no application ID exists
+    expect(mockSubmitApplication).not.toHaveBeenCalled()
+  })
+
+  it('should save draft before deleting when application ID exists', async () => {
+    const store = useDocumentStore()
+    const doc = makeUiDoc('1', DocumentUploadType.BC_DRIVERS_LICENSE)
+    store.storedDocuments = [doc]
+    mockPermitStore.application = { header: { status: 'draft', applicationNumber: 'APP-123' } }
+    mockSubmitApplication.mockResolvedValue({ filingId: 'APP-123' })
+    mockStrrApi.mockResolvedValue(undefined)
+
+    await store.removeStoredDocument(doc)
+
+    // Document should be removed from local list
+    expect(store.storedDocuments).toHaveLength(0)
+    // Should save draft with updated document list before deleting
+    expect(mockSubmitApplication).toHaveBeenCalledWith(true, 'APP-123')
+  })
+
+  it('should restore document to list if draft save fails', async () => {
+    const store = useDocumentStore()
+    const doc = makeUiDoc('1', DocumentUploadType.BC_DRIVERS_LICENSE)
+    store.storedDocuments = [doc]
+    mockPermitStore.application = { header: { status: 'draft', applicationNumber: 'APP-123' } }
+    const saveError = new Error('Save failed')
+    mockSubmitApplication.mockRejectedValue(saveError)
+    await store.removeStoredDocument(doc)
+
+    // Document should be restored to list to prevent inconsistent state
+    expect(store.storedDocuments).toHaveLength(1)
+    expect(store.storedDocuments[0]?.id).toBe(doc.id)
+    expect(mockOpenAppSubmitError).toHaveBeenCalledWith(saveError)
+  })
+
+  it('should delete document even if delete fails after successful save', async () => {
+    const store = useDocumentStore()
+    const doc = makeUiDoc('1', DocumentUploadType.BC_DRIVERS_LICENSE)
+    store.storedDocuments = [doc]
+    mockPermitStore.application = { header: { status: 'draft', applicationNumber: 'APP-123' } }
+    mockSubmitApplication.mockResolvedValue({ filingId: 'APP-123' })
+    const deleteError = new Error('Delete failed')
+    mockStrrApi.mockRejectedValue(deleteError)
+
+    await store.removeStoredDocument(doc)
+
+    // Document should still be removed from list (save succeeded, application_json updated)
+    expect(store.storedDocuments).toHaveLength(0)
+    expect(mockSubmitApplication).toHaveBeenCalledWith(true, 'APP-123')
+    // Delete failure is acceptable - application_json is already updated, so no 502 issue
   })
 
   it('should not remove any document if names do not match the given types', async () => {
