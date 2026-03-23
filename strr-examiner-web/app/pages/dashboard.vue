@@ -11,7 +11,7 @@ const { t } = useNuxtApp().$i18n
 // const { getAccountApplications } = useStrrApi() // leaving this for reference
 const exStore = useExaminerStore()
 const ldStore = useConnectLaunchdarklyStore()
-const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
+const { isSplitDashboardTableEnabled, isNewDocumentIndicatorEnabled } = useExaminerFeatureFlags()
 
 const enableTableFilters = computed<boolean>(() => {
   const flag = ldStore.getStoredFlag('enable-examiner-table-filters')
@@ -1084,7 +1084,7 @@ const tabLinks = computed(() => [
             <div v-if="isApplicationTab" class="flex flex-col gap-1">
               <div class="flex flex-wrap items-center gap-2">
                 <UTooltip
-                  v-if="row.hasRecentDocumentUpload"
+                  v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
                   :text="t('label.recentDocumentUploadHint')"
                   :popper="{ placement: 'top', offsetDistance: 8 }"
                 >
@@ -1109,7 +1109,7 @@ const tabLinks = computed(() => [
             <div v-else class="flex flex-col gap-1">
               <div class="flex flex-wrap items-center gap-2">
                 <UTooltip
-                  v-if="row.hasRecentDocumentUpload"
+                  v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
                   :text="t('label.recentDocumentUploadHint')"
                   :popper="{ placement: 'top', offsetDistance: 8 }"
                 >
@@ -1154,7 +1154,7 @@ const tabLinks = computed(() => [
           <div v-else class="flex flex-col gap-1">
             <div class="flex flex-wrap items-center gap-2">
               <UTooltip
-                v-if="row.hasRecentDocumentUpload"
+                v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
                 :text="t('label.recentDocumentUploadHint')"
                 :popper="{ placement: 'top', offsetDistance: 8 }"
               >
