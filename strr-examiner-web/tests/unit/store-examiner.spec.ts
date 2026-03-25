@@ -12,6 +12,16 @@ import {
 } from '../mocks/mockedData'
 import { ApplicationStatus, RegistrationStatus } from '#imports'
 
+const { getSplitDashboardEnabled, setSplitDashboardEnabled } = vi.hoisted(() => {
+  let splitDashboardEnabled = false
+  return {
+    getSplitDashboardEnabled: () => splitDashboardEnabled,
+    setSplitDashboardEnabled: (value: boolean) => {
+      splitDashboardEnabled = value
+    }
+  }
+})
+
 // mock $strrApi accessed through useNuxtApp()
 const mockStrrApi = vi.fn().mockResolvedValue({})
 
@@ -33,11 +43,12 @@ mockNuxtImport('useStrrModals', () => () => ({
 }))
 
 vi.mock('@/composables/useExaminerFeatureFlags', () => ({
-  useExaminerFeatureFlags: () => ({ isSplitDashboardTableEnabled: ref(false) })
+  useExaminerFeatureFlags: () => ({ isSplitDashboardTableEnabled: ref(getSplitDashboardEnabled()) })
 }))
 
 describe('Store - Examiner', () => {
   beforeEach(() => {
+    setSplitDashboardEnabled(false)
     setActivePinia(createPinia())
     vi.clearAllMocks()
     mockStrrApi.mockResolvedValue({})
@@ -107,6 +118,62 @@ describe('Store - Examiner', () => {
       query: expect.objectContaining({
         status: [ApplicationStatus.FULL_REVIEW],
         registrationStatus: []
+      })
+    }))
+  })
+
+  it('should include approval and NOC statuses in application status query for old dashboard', async () => {
+    const store = useExaminerStore()
+
+    store.tableFilters.status = [
+      ApplicationStatus.PROVISIONALLY_APPROVED,
+      ApplicationStatus.AUTO_APPROVED,
+      ApplicationStatus.FULL_REVIEW_APPROVED,
+      ApplicationStatus.NOC_PENDING,
+      ApplicationStatus.NOC_EXPIRED
+    ] as any
+    await store.fetchApplications()
+
+    expect(mockStrrApi).toHaveBeenCalledWith('/applications', expect.objectContaining({
+      query: expect.objectContaining({
+        status: [
+          ApplicationStatus.PROVISIONALLY_APPROVED,
+          ApplicationStatus.AUTO_APPROVED,
+          ApplicationStatus.FULL_REVIEW_APPROVED,
+          ApplicationStatus.NOC_PENDING,
+          ApplicationStatus.NOC_EXPIRED
+        ],
+        registrationStatus: []
+      })
+    }))
+  })
+
+  it('should include NOC statuses in application status query for split dashboard', async () => {
+    setSplitDashboardEnabled(true)
+    const store = useExaminerStore()
+
+    store.tableFilters.status = [
+      ApplicationStatus.FULL_REVIEW,
+      ApplicationStatus.NOC_PENDING,
+      ApplicationStatus.NOC_EXPIRED,
+      ApplicationStatus.DECLINED,
+      ApplicationStatus.PAYMENT_DUE,
+      ApplicationStatus.DRAFT
+    ] as any
+    await store.fetchApplications()
+
+    expect(mockStrrApi).toHaveBeenCalledWith('/applications', expect.objectContaining({
+      query: expect.objectContaining({
+        status: [
+          ApplicationStatus.FULL_REVIEW,
+          ApplicationStatus.NOC_PENDING,
+          ApplicationStatus.NOC_EXPIRED,
+          ApplicationStatus.DECLINED,
+          ApplicationStatus.PAYMENT_DUE,
+          ApplicationStatus.DRAFT
+        ],
+        registrationStatus: [],
+        applicationsOnly: true
       })
     }))
   })
