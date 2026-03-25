@@ -350,8 +350,28 @@ export const useDocumentStore = defineStore('host/document', () => {
   }
 
   async function removeStoredDocument (uiDoc: UiDocument) {
+    // Remove document from local list to ensure createApplicationBody uses updated list
     const index = storedDocuments.value.findIndex(item => uiDoc.id === item.id)
     storedDocuments.value.splice(index, 1)
+
+    // Save draft with updated document list
+    const permitStore = useHostPermitStore()
+    const hostApplicationStore = useHostApplicationStore()
+    const applicationId = permitStore.application?.header?.applicationNumber
+
+    if (applicationId) {
+      try {
+        await hostApplicationStore.submitApplication(true, applicationId)
+      } catch (e) {
+        // Restore document to list if draft save fails to prevent inconsistent state
+        storedDocuments.value.splice(index, 0, uiDoc)
+        logFetchError(e, 'Error saving draft when removing document')
+        strrModal.openAppSubmitError(e)
+        return
+      }
+    }
+
+    // Delete document from storage
     if (uiDoc.apiDoc.fileKey) {
       await deleteDocument(uiDoc.apiDoc.fileKey)
     }

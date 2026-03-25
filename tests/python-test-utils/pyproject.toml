@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "strr-test-utils"
+version = "0.1.0"
+description = "Shared Test Utilities for STRR Jobs"
+authors = ["thor wolpert <thor@daxiom.com>"]
+packages = [{include = "strr_test_utils", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pytest = "^8.0.0"
+structlog = "*"
+testcontainers = {extras = ["postgres", "redis"], version = "^4.0.0"}
+sqlalchemy = "*"
+flask-sqlalchemy = "*"
+flask-migrate = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

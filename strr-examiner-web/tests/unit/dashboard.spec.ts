@@ -111,7 +111,10 @@ describe('Examiner Dashboard Page', () => {
   let wrapper: any
 
   beforeEach(async () => {
-    mockUseExaminerFeatureFlags.mockReturnValue({ isSplitDashboardTableEnabled: ref(true) })
+    mockUseExaminerFeatureFlags.mockReturnValue({
+      isSplitDashboardTableEnabled: ref(true),
+      isNewDocumentIndicatorEnabled: ref(true)
+    })
     mockStore = createMockStore()
     wrapper = await mountSuspended(Dashboard, {
       global: { plugins: [enI18n] }
@@ -587,7 +590,10 @@ describe('Examiner Dashboard Page', () => {
     })
 
     it('uses legacyApplicationStatusFilters when flag is disabled', async () => {
-      mockUseExaminerFeatureFlags.mockReturnValue({ isSplitDashboardTableEnabled: ref(false) })
+      mockUseExaminerFeatureFlags.mockReturnValue({
+        isSplitDashboardTableEnabled: ref(false),
+        isNewDocumentIndicatorEnabled: ref(true)
+      })
       wrapper = await mountSuspended(Dashboard, {
         global: { plugins: [enI18n] }
       })

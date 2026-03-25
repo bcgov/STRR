@@ -11,7 +11,7 @@ const { t } = useNuxtApp().$i18n
 // const { getAccountApplications } = useStrrApi() // leaving this for reference
 const exStore = useExaminerStore()
 const ldStore = useConnectLaunchdarklyStore()
-const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
+const { isSplitDashboardTableEnabled, isNewDocumentIndicatorEnabled } = useExaminerFeatureFlags()
 
 const enableTableFilters = computed<boolean>(() => {
   const flag = ldStore.getStoredFlag('enable-examiner-table-filters')
@@ -497,7 +497,8 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
         propertyAddress: getPropertyAddressColumnForRegistration(reg),
         localGov: getLocalGovColumnForRegistration(reg),
         adjudicator: getAdjudicatorColumn(reg.header),
-        hasRenewed: hasBeenRenewed(reg)
+        hasRenewed: hasBeenRenewed(reg),
+        hasRecentDocumentUpload: hasRecentDocumentUpload(getDocumentsFromRegistration(reg))
       }))
 
       return { registrations, total: res.total }
@@ -552,7 +553,8 @@ const { data: applicationListResp, status } = await useAsyncData(
         registrationNocStatus: app.header.registrationNocStatus,
         submissionDate: app.header.applicationDateTime,
         lastModified: getLastStatusChangeColumn(app.header),
-        adjudicator: getAdjudicatorColumn(app.header)
+        adjudicator: getAdjudicatorColumn(app.header),
+        hasRecentDocumentUpload: hasRecentDocumentUpload(getDocumentsFromApplication(app))
       }))
 
       return { applications, total: res.total }
@@ -1079,17 +1081,61 @@ const tabLinks = computed(() => [
           <div
             v-if="isSplitDashboardTableEnabled"
           >
-            <div v-if="isApplicationTab">
-              {{ row.applicationNumber }}
+            <div v-if="isApplicationTab" class="flex flex-col gap-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <UTooltip
+                  v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
+                  :text="t('label.recentDocumentUploadHint')"
+                  :popper="{ placement: 'top', offsetDistance: 8 }"
+                >
+                  <div
+                    class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
+                      text-xs font-semibold text-amber-900"
+                    data-testid="recent-document-indicator"
+                    :aria-label="t('label.recentDocumentUploadHint')"
+                    @click.stop
+                  >
+                    <UIcon
+                      name="i-mdi-attachment"
+                      class="size-4 shrink-0 text-amber-800"
+                      aria-hidden="true"
+                    />
+                    {{ t('label.recentDocumentBadge') }}
+                  </div>
+                </UTooltip>
+                <span>{{ row.applicationNumber }}</span>
+              </div>
             </div>
-            <div v-else class="flex flex-col">
-              <span>{{ row.registrationNumber }}</span>
+            <div v-else class="flex flex-col gap-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <UTooltip
+                  v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
+                  :text="t('label.recentDocumentUploadHint')"
+                  :popper="{ placement: 'top', offsetDistance: 8 }"
+                >
+                  <div
+                    class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
+                      text-xs font-semibold text-amber-900"
+                    data-testid="recent-document-indicator"
+                    :aria-label="t('label.recentDocumentUploadHint')"
+                    @click.stop
+                  >
+                    <UIcon
+                      name="i-mdi-attachment"
+                      class="size-4 shrink-0 text-amber-800"
+                      aria-hidden="true"
+                    />
+                    {{ t('label.recentDocumentBadge') }}
+                  </div>
+                </UTooltip>
+                <span>{{ row.registrationNumber }}</span>
+              </div>
               <UBadge
                 v-if="row.hasRenewed"
                 :label="t('label.renewal')"
                 color="primary"
                 variant="solid"
-                class="mt-1 w-fit text-xs font-bold uppercase"
+                class="w-fit text-xs font-bold uppercase"
                 data-testid="renewal-badge"
               />
             </div>
@@ -1105,8 +1151,30 @@ const tabLinks = computed(() => [
               {{ row.registrationNumber }}
             </UButton>
           </div>
-          <div v-else class="flex flex-col">
-            <span>{{ row.applicationNumber }}</span>
+          <div v-else class="flex flex-col gap-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <UTooltip
+                v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
+                :text="t('label.recentDocumentUploadHint')"
+                :popper="{ placement: 'top', offsetDistance: 8 }"
+              >
+                <div
+                  class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
+                    text-xs font-semibold text-amber-900"
+                  data-testid="recent-document-indicator"
+                  :aria-label="t('label.recentDocumentUploadHint')"
+                  @click.stop
+                >
+                  <UIcon
+                    name="i-mdi-attachment"
+                    class="size-4 shrink-0 text-amber-800"
+                    aria-hidden="true"
+                  />
+                  {{ t('label.recentDocumentBadge') }}
+                </div>
+              </UTooltip>
+              <span>{{ row.applicationNumber }}</span>
+            </div>
             <UButton
               v-if="row.registrationNumber"
               icon="i-mdi-check-circle"
@@ -1123,7 +1191,7 @@ const tabLinks = computed(() => [
               :label="t('label.renewal')"
               color="primary"
               variant="solid"
-              class="mt-1 w-fit text-xs font-bold uppercase"
+              class="w-fit text-xs font-bold uppercase"
               data-testid="renewal-badge"
             />
           </div>

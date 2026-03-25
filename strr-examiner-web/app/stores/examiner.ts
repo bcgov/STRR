@@ -219,15 +219,15 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         regStatus.push(status)
         return false
       }
-      if (approvalMethodStatuses.has(status)) {
-        approvalMethods.push(status)
-        return false
+      if (isSplitDashboardTableEnabled.value) {
+        if (approvalMethodStatuses.has(status)) {
+          approvalMethods.push(status)
+        }
+        if (NOC_ATTR.has(status)) {
+          nocStatuses.push(status)
+        }
       }
-      if (NOC_ATTR.has(status)) {
-        nocStatuses.push(status)
-        return false
-      }
-      if (status === SET_ASIDE_ATTR) {
+      if (isSplitDashboardTableEnabled.value && status === SET_ASIDE_ATTR) {
         isSetAside = true
         return false
       }
