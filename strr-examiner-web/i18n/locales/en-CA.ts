@@ -719,6 +719,7 @@ export default {
     MANUALLY_DENIED: 'Application rejected by staff',
     MORE_INFORMATION_REQUESTED: 'Additional information requested from the applicant',
     REGISTRATION_CREATED: 'Registration created',
+    REGISTRATION_RENEWED: 'Registration renewed',
     REGISTRATION_CANCELLED: 'Registration cancelled',
     CERTIFICATE_ISSUED: 'Certificate issued for the registration',
     REGISTRATION_EXPIRED: 'Registration expired',
@@ -736,7 +737,8 @@ export default {
     REGISTRATION_REINSTATED: 'Registration reinstated',
     REGISTRATION_APPROVED: 'Registration approved',
     CONDITIONS_OF_APPROVAL_UPDATED: 'Registration - Updated conditions of approval',
-    REGISTRATION_DOCUMENT_UPLOADED: 'Registration document uploaded'
+    REGISTRATION_DOCUMENT_UPLOADED: 'Registration document uploaded',
+    RENEWAL_REMINDER_SENT: 'Renewal reminder sent'
   },
   approvalConditions: {
     principalResidence: 'Principal Residence',
