@@ -22,8 +22,8 @@ load_dotenv(find_dotenv())
 
 CONFIGURATION = {
     "development": "auto_approval.config.DevConfig",
-    "unittest": "strr_pay.config.UnitTestConfig",
-    "test": "strr_pay.config.TestConfig",
+    "unittest": "auto_approval.config.UnitTestConfig",
+    "test": "auto_approval.config.TestConfig",
     "production": "auto_approval.config.ProdConfig",
     "default": "auto_approval.config.ProdConfig",
 }

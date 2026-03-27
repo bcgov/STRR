@@ -26,31 +26,14 @@ from strr_api.models import db
 from strr_api.models.application import Application
 from strr_api.services import ApprovalService, AuthService
 
-from auto_approval.config import CONFIGURATION
+from auto_approval.config import CONFIGURATION, _Config
 from auto_approval.utils.logging import setup_logging
 
 setup_logging(os.path.join(os.path.abspath(os.path.dirname(__file__)), "logging.conf"))
 
 SENTRY_LOGGING = LoggingIntegration(event_level=logging.ERROR)  # send errors as events
 
-
-def create_app(run_mode=os.getenv("FLASK_ENV", "production")):
-    """Return a configured Flask App using the Factory method."""
-    app = Flask(__name__)
-    app.config.from_object(CONFIGURATION[run_mode])
-    db.init_app(app)
-    register_shellcontext(app)
-    return app
-
-
-def register_shellcontext(app):
-    """Register shell context objects."""
-
-    def shell_context():
-        """Shell context objects."""
-        return {"app": app}
-
-    app.shell_context_processor(shell_context)
+from .app import create_app
 
 
 def get_submitted_applications(app):

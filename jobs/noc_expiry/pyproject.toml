@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "noc-expiry"
-version = "1.0.1"
+version = "1.1.0"
 description = ""
 authors = []
 packages = [{include = "noc_expiry", from = "src"}]
@@ -8,7 +8,7 @@ license = "BSD 3-Clause"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12.2"
+python = ">=3.12.2,<3.15"
 flask = "^3.0.3"
 flask-sqlalchemy = "^3.0.3"
 flask-migrate = "^4.0.4"
@@ -23,21 +23,21 @@ strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirector
 nanoid = "^2.0.0"
 
 [tool.poetry.group.test.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^7.1.0"
 freezegun = "^1.4.0"
 hypothesis = "^6.100.0"
 pexpect = "^4.9.0"
-pytest = "^7.4.4"
-pytest-cov = "^5.0.0"
 pytest-mock = "^3.14.0"
 requests-mock = "^1.12.1"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.7.0"
 faker = "^24.4.0"
-lovely-pytest-docker = "^0.3.1"
 isort = "^5.13.2"
 black = "^24.10.0"
 pylint = "^3.0.3"
+strr-test-utils = {path = "../../tests/python-test-utils", develop = true}
 
 [build-system]
 requires = ["poetry-core"]
@@ -48,3 +48,10 @@ profile = "black"
 
 [tool.pylint]
 max-line-length = 132
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning:testcontainers.*:",
+    "ignore::DeprecationWarning:docker.*:",
+    "ignore::ResourceWarning:testcontainers.*:"
+]

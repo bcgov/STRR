@@ -38,8 +38,6 @@ This module applied payments against applications and updates the application st
 from __future__ import annotations
 
 from flask import Flask
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
 from strr_api import db
 
 from .config import Config
@@ -52,14 +50,6 @@ def create_app(environment: Config = ProdConfig, **_kwargs) -> Flask:
     """Return a configured Flask App using the Factory method."""
     app = Flask(__name__)
     app.config.from_object(environment)
-
-    # Configure Sentry
-    if dsn := app.config.get("SENTRY_DSN", None):
-        sentry_sdk.init(
-            dsn=dsn,
-            integrations=[FlaskIntegration()],
-            send_default_pii=False,
-        )
 
     db.init_app(app)
     gcp_queue.init_app(app)

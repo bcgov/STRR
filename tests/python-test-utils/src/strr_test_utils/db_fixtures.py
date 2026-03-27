@@ -8,7 +8,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from testcontainers.postgres import PostgresContainer
 
 
@@ -24,15 +24,49 @@ def find_repo_root(start_path: Path) -> Optional[Path]:
 def package_info(request):
     """Discovers the package name of the job currently being tested."""
     root_path = Path(request.config.rootpath)
-    return {
-        "package": root_path.name.replace("-", "_"),
-        "root_path": root_path
-    }
+    return {"package": root_path.name.replace("-", "_"), "root_path": root_path}
 
 
 @pytest.fixture(scope="session")
-def postgres_container():
-    """Starts a Postgres Container."""
+def app_modules(package_info):
+    """
+    Dynamically imports the core modules.
+    Returns None values if it doesn't follow the Connect Python App pattern.
+    """
+    pkg = package_info["package"]
+    modules = {"config": None, "models": None}
+
+    try:
+        modules["config"] = importlib.import_module(f"{pkg}.config")
+    except ImportError:
+        pass
+
+    try:
+        modules["models"] = importlib.import_module(f"{pkg}.models")
+    except ImportError:
+        pass
+
+    return modules
+
+
+@pytest.fixture(scope="session")
+def postgres_container(request):
+    """
+    Starts a Postgres Container.
+    Only starts the Docker container if a test in the current run
+    actually has 'session', 'db', or 'app' in its arguments.
+    """
+    needed_by_test = False
+    db_fixtures = {"session", "app", "setup_database", "postgres_container"}
+    for item in request.session.items:
+        # Check if the test or any of its fixtures depend on our DB fixtures
+        if any(fixture in item.fixturenames for fixture in db_fixtures):
+            needed_by_test = True
+            break
+    # postgres container not needed, so don't start it.
+    if not needed_by_test:
+        return None
+
     with PostgresContainer("postgres:16-alpine") as postgres:
         os.environ["DATABASE_URL"] = postgres.get_connection_url()
         yield postgres
@@ -61,7 +95,7 @@ def setup_database(postgres_container, request):
         sys.path.insert(0, str(api_root))
 
     db_url = postgres_container.get_connection_url()
-    
+
     # Configure Alembic programmatically
     alembic_cfg = Config(str(ini_path))
     alembic_cfg.set_main_option("script_location", str(migrations_path))
@@ -82,33 +116,32 @@ def db_engine(setup_database):
 @pytest.fixture(scope="session")
 def app(db_engine, package_info):
     """
-    Optional Flask app fixture. 
+    Optional Flask app fixture.
     If the job has a create_app, it instantiates it using the test DB.
     """
     pkg = package_info["package"]
     try:
-        job_mod = importlib.import_module(f"{pkg}.job")
         cfg_mod = importlib.import_module(f"{pkg}.config")
-        
-        # if hasattr(job_mod, "create_app"):
-        if hasattr(pkg, "create_app"):
+        app_mod = importlib.import_module(f"{pkg}")
+
+        if hasattr(app_mod, "create_app"):
             TestConfig = getattr(cfg_mod, "TestConfig")
             # Update the config with our container URL
             TestConfig.SQLALCHEMY_DATABASE_URI = str(db_engine.url)
-            
+
             # _app = job_mod.create_app(TestConfig)
-            _app = pkg.create_app(TestConfig)
+            _app = app_mod.create_app(TestConfig)
             with _app.app_context():
                 yield _app
             return
     except ImportError:
         pass
-    
+
     yield None
 
 
 @pytest.fixture(scope="function")
-def session(db_engine, app):
+def session(db_engine, app, app_modules):
     """
     Transactional session fixture.
     Supports both Flask-SQLAlchemy (if app exists) and raw SQLAlchemy.
@@ -116,14 +149,24 @@ def session(db_engine, app):
     connection = db_engine.connect()
     transaction = connection.begin()
 
-    # If it's a Flask app, we want to bind the Flask-SQLAlchemy session
-    if app and "db" in app.extensions:
-        db = app.extensions["db"]
-        # Scoped session bound to our test connection
-        session = db._make_scoped_session(dict(bind=connection, binds={}))
-        db.session = session
-        yield session
-        session.remove()
+    db = None
+    if app and hasattr(app, "extensions") and "sqlalchemy" in app.extensions:
+        db = app.extensions["sqlalchemy"]
+
+    elif app_modules.get("models") and hasattr(app_modules["models"], "db"):
+        db = getattr(app_modules["models"], "db")
+
+    if db:
+        session_factory = sessionmaker(bind=connection)
+        test_session = scoped_session(session_factory)
+
+        old_session = db.session
+        db.session = test_session
+
+        yield test_session
+
+        db.session = old_session
+        test_session.remove()
     else:
         # For 'Lite' jobs using raw SQLAlchemy
         SessionLocal = sessionmaker(bind=connection)
@@ -133,11 +176,3 @@ def session(db_engine, app):
 
     transaction.rollback()
     connection.close()
-
-@pytest.fixture(scope="function")
-def db(session):
-    """
-    Short alias for the session fixture, 
-    making it feel like the standard Flask 'db' object.
-    """
-    return session
