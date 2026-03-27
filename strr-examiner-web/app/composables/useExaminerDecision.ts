@@ -12,7 +12,7 @@ const preDefinedConditions: string[] = [
 ]
 
 export const useExaminerDecision = () => {
-  const { isFeatureEnabled } = useFeatureFlags()
+  const { isExaminerDecisionsEnabled } = useExaminerFeatureFlags()
 
   const {
     conditions,
@@ -34,7 +34,7 @@ export const useExaminerDecision = () => {
   const { isApplication } = storeToRefs(useExaminerStore())
 
   const showDecisionPanel = computed((): boolean => {
-    return isFeatureEnabled('enable-examiner-decisions').value && !isApplication.value
+    return isExaminerDecisionsEnabled.value && !isApplication.value
   })
 
   // validate decision email for completing party

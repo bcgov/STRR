@@ -107,6 +107,28 @@ const mockPrimaryContactPerson: ApiHostContactPerson = {
   socialInsuranceNumber: '123 456 789'
 }
 
+const mockSecondaryContactPerson: ApiHostContactPerson = {
+  contactType: OwnerType.INDIVIDUAL,
+  emailAddress: 'bob.rob@email.com',
+  extension: '848',
+  faxNumber: '(962) 123-4433',
+  firstName: 'Bob',
+  lastName: 'Rob',
+  mailingAddress: {
+    address: '123 Murphy Corner',
+    addressLineTwo: '',
+    city: 'Dellfield',
+    country: 'CA',
+    locationDescription: 'Basement',
+    postalCode: 'C1K 0Y9',
+    province: 'NU'
+  },
+  middleName: 'Skyler',
+  phoneCountryCode: '1',
+  phoneNumber: '3712863886',
+  preferredName: 'Bob'
+}
+
 const mockPrimaryContactBusiness: ApiHostContactBusiness = {
   ...mockPrimaryContactPerson,
   contactType: OwnerType.BUSINESS,
@@ -307,6 +329,21 @@ export const mockHostApplicationWithoutReviewer: HostApplicationResp = {
   }
 }
 
+export const mockHostApplicationWithRegistrationNumber: HostApplicationResp = {
+  ...mockHostApplication,
+  header: {
+    ...mockHostApplication.header,
+    registrationNumber: 'REG12345678'
+  }
+}
+
+export const mockHostApplicationWithoutRegistrationNumber: HostApplicationResp = {
+  ...mockHostApplication,
+  header: {
+    ...mockHostApplication.header
+  }
+}
+
 export const mockApplications: ApiApplicationBaseResp [] = [
   mockHostApplication,
   mockStrataApplication,
@@ -490,6 +527,153 @@ export const mockCancelledRegistration: HostRegistrationResp = {
     ...mockHostRegistration.header,
     examinerStatus: 'Cancelled',
     hostStatus: 'Cancelled'
+  }
+}
+
+export const mockProvisionalReviewApplication: HostApplicationResp = {
+  header: {
+    applicationDateTime: new Date('2025-08-20T22:17:54.357834+00:00'),
+    applicationNumber: '74608479371044',
+    assignee: MOCK_EXAMINER_USER,
+    decisionDate: new Date('2025-08-20T22:20:26.419104+00:00'),
+    examinerActions: [
+      ApplicationActionsE.PROVISIONAL_APPROVE,
+      ApplicationActionsE.SEND_NOC
+    ],
+    examinerStatus: 'Provisional Examination',
+    existingHostRegistrations: 0,
+    hostActions: [],
+    hostStatus: 'Approved - Provisional',
+    isCertificateIssued: false,
+    isSetAside: false,
+    name: 'registration',
+    paymentAccount: '3452',
+    paymentMethod: ConnectPaymentMethod.DIRECT_PAY,
+    paymentStatus: 'COMPLETED',
+    paymentToken: 12345,
+    registrationAddress: {
+      addressLineTwo: '',
+      city: 'West Kelowna',
+      country: 'CA',
+      locationDescription: '',
+      postalCode: 'V1Z 3T6',
+      province: 'BC',
+      streetName: 'Bear Creek Lane',
+      streetNumber: '1234',
+      unitNumber: '',
+      nickname: ''
+    },
+    registrationEndDate: new Date('2026-08-19T23:59:59'),
+    registrationId: 413,
+    registrationNumber: 'H427802900',
+    registrationStartDate: new Date('2025-08-20T08:00:00'),
+    registrationStatus: RegistrationStatus.ACTIVE,
+    status: ApplicationStatus.PROVISIONAL_REVIEW
+    // need to add 'submitter' to interface and mock
+  },
+  registration: {
+    documents: [
+      {
+        addedOn: '2025-08-20T22:20:26.354338',
+        documentType: DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE,
+        fileKey: '36739d26-9ba5-4530-aba5-2d2ba811c672',
+        fileName: 'business-license.pdf',
+        fileType: 'application/pdf'
+      }
+    ],
+    listingDetails: [],
+    primaryContact: mockPrimaryContactPerson,
+    registrationType: ApplicationType.HOST,
+    strRequirements: {
+      isBusinessLicenceRequired: true,
+      isPrincipalResidenceRequired: false,
+      isStrProhibited: false,
+      isStraaExempt: false,
+      organizationNm: 'City of West Kelowna'
+    },
+    unitAddress: {
+      addressLineTwo: '',
+      city: 'West Kelowna',
+      country: 'CA',
+      locationDescription: '',
+      nickname: 'Bear Creek',
+      postalCode: 'V1Z 3T6',
+      province: 'BC',
+      streetName: 'Bear Creek Lane',
+      streetNumber: '1045',
+      unitNumber: ''
+    },
+    unitDetails: {
+      businessLicense: 'WK567890',
+      businessLicenseExpiryDate: '2026-08-29',
+      hostResidence: ResidenceType.SAME_UNIT,
+      isUnitOnPrincipalResidenceProperty: true,
+      numberOfRoomsForRent: 2,
+      ownershipType: OwnershipType.OWN,
+      propertyType: PropertyType.SINGLE_FAMILY_HOME,
+      rentalUnitSpaceType: RentalUnitType.ENTIRE_HOME
+    }
+  }
+}
+
+export const mockFullReviewApplication: HostApplicationResp = {
+  header: {
+    applicationDateTime: new Date('2025-01-04T00:11:38.319440+00:00'),
+    applicationNumber: '53325129073758',
+    assignee: MOCK_EXAMINER_USER,
+    decisionDate: undefined,
+    examinerActions: [
+      ApplicationActionsE.APPROVE,
+      ApplicationActionsE.SEND_NOC
+    ],
+    examinerStatus: 'Full Examination',
+    existingHostRegistrations: 10,
+    hostActions: [],
+    hostStatus: 'Pending Approval',
+    isCertificateIssued: false,
+    isSetAside: null,
+    name: 'registration',
+    paymentAccount: '3718',
+    paymentMethod: ConnectPaymentMethod.PAD,
+    paymentStatus: 'COMPLETED',
+    paymentToken: 12345,
+    status: ApplicationStatus.FULL_REVIEW
+  },
+  registration: {
+    documents: mockDocuments,
+    listingDetails: [],
+    primaryContact: mockPrimaryContactPerson,
+    propertyManager: {
+      business: {
+        businessNumber: '540473423BC6103',
+        legalName: 'My Business Inc',
+        mailingAddress: MOCK_MAILING_ADDRESS,
+        primaryContact: mockPrimaryContactPerson
+      },
+      initiatedByPropertyManager: false,
+      propertyManagerType: OwnerType.BUSINESS
+    },
+    registrationType: ApplicationType.HOST,
+    secondaryContact: mockSecondaryContactPerson,
+    strRequirements: {
+      isBusinessLicenceRequired: true,
+      isPrincipalResidenceRequired: true,
+      isStrProhibited: false,
+      isStraaExempt: false,
+      organizationNm: 'City of Coquitlam'
+    },
+    unitAddress: MOCK_UNIT_ADDRESS,
+    unitDetails: {
+      businessLicense: 'BC12345',
+      businessLicenseExpiryDate: '2025-11-01',
+      hostResidence: ResidenceType.SAME_UNIT,
+      isUnitOnPrincipalResidenceProperty: true,
+      numberOfRoomsForRent: 4,
+      ownershipType: OwnershipType.OWN,
+      parcelIdentifier: '325-918-248',
+      propertyType: PropertyType.SINGLE_FAMILY_HOME,
+      rentalUnitSpaceType: RentalUnitType.ENTIRE_HOME
+    }
   }
 }
 

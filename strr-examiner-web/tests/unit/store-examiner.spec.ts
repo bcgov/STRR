@@ -96,6 +96,24 @@ describe('Store - Examiner', () => {
     expect(header).toHaveProperty('examinerStatus', mockHostRegistration.header.examinerStatus)
   })
 
+  it('should return correct hasRegistrationNumber computed base on the header info', () => {
+    const store = useExaminerStore()
+
+    // no activeRecord
+    expect(store.hasRegistrationNumber).toBe(false)
+
+    // application header without registrationNumber
+    store.activeRecord = mockHostApplication
+    expect(store.hasRegistrationNumber).toBe(false)
+
+    // application header with registrationNumber
+    store.activeRecord = {
+      ...mockHostApplication,
+      header: { ...mockHostApplication.header, registrationNumber: 'REG12345678' }
+    }
+    expect(store.hasRegistrationNumber).toBe(true)
+  })
+
   it('should have correct status filter for application and registration in the query', async () => {
     const store = useExaminerStore()
 

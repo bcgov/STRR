@@ -2,9 +2,8 @@
 const { isAuthenticated } = useKeycloak()
 const headerOptions = useAppConfig().connect.core.header.options
 const localePath = useLocalePath()
-const { isApplication } = storeToRefs(useExaminerStore())
-const { isFeatureEnabled } = useFeatureFlags()
-const enableExaminerDecisions = isFeatureEnabled('enable-examiner-decisions')
+const { isApplication, hasRegistrationNumber } = storeToRefs(useExaminerStore())
+const { isExaminerDecisionsEnabled } = useExaminerFeatureFlags()
 const { isSnapshotRoute } = useExaminerRoute()
 
 </script>
@@ -48,8 +47,10 @@ const { isSnapshotRoute } = useExaminerRoute()
         </p>
       </template>
     </NuxtErrorBoundary>
-    <ConnectButtonControl v-if="!enableExaminerDecisions || isApplication" />
-    <ActionButtons v-else-if="enableExaminerDecisions && !isSnapshotRoute" />
+    <template v-if="!(isApplication && hasRegistrationNumber)">
+      <ConnectButtonControl v-if="!isExaminerDecisionsEnabled || isApplication" />
+      <ActionButtons v-else-if="isExaminerDecisionsEnabled && !isSnapshotRoute" />
+    </template>
     <ConnectFooter />
   </div>
 </template>
