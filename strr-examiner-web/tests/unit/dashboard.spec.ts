@@ -141,7 +141,8 @@ describe('Examiner Dashboard Page', () => {
       }
     })
 
-    expect(prRequirements2).toBe('BL, Prohibited')
+    expect(prRequirements2).not.toContain('Prohibited') // Prohibited was excluded in 1187
+    expect(prRequirements2).toBe('BL')
 
     const prRequirements3 = getPrReq({
       ...mockApplications[0]?.registration,
@@ -158,7 +159,8 @@ describe('Examiner Dashboard Page', () => {
       }
     })
 
-    expect(prRequirements3).toBe('PR-ex-farm, BL, Prohibited')
+    expect(prRequirements3).not.toContain('Prohibited') // Prohibited was excluded in 1187
+    expect(prRequirements3).toBe('PR-ex-farm, BL')
   })
 
   it('renders the Dashboard page and applications table', () => {
@@ -421,7 +423,7 @@ describe('Examiner Dashboard Page', () => {
       expect(result).not.toContain('BL')
     })
 
-    it('should display "Prohibited" when isStrProhibited is true in strRequirements', () => {
+    it('should not display "Prohibited" when isStrProhibited is true in strRequirements', () => {
       const registration: HostRegistrationResp = {
         ...mockHostRegistration,
         strRequirements: {
@@ -434,7 +436,7 @@ describe('Examiner Dashboard Page', () => {
       }
 
       const result = wrapper.vm.getConditionsColumnForRegistration(registration)
-      expect(result).toContain('Prohibited')
+      expect(result).not.toContain('Prohibited')
     })
 
     it('should display PR exempt reason from unitDetails', () => {
@@ -543,7 +545,7 @@ describe('Examiner Dashboard Page', () => {
       const result = wrapper.vm.getConditionsColumnForRegistration(registration)
       expect(result).toContain('PR')
       expect(result).toContain('BL')
-      expect(result).toContain('Prohibited')
+      expect(result).not.toContain('Prohibited')
       expect(result).toContain('PR-ex-fractional')
     })
 

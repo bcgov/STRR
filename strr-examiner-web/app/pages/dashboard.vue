@@ -37,7 +37,6 @@ const hostOptions = [
   { label: 'PR Exempt - Strata', value: 'PR_EXEMPT_STRATA_HOTEL' },
   { label: 'PR Exempt - Fractional', value: 'PR_EXEMPT_FRACTIONAL_OWNERSHIP' },
   { label: 'BL', value: 'BL' },
-  { label: 'Prohibited', value: 'PROHIBITED' },
   { label: 'No requirements', value: 'NO_REQ' }
 ]
 
@@ -132,7 +131,7 @@ definePageMeta({
 })
 
 const getHostPrRequirements = (hostApplication: ApiHostApplication): string => {
-  const { isBusinessLicenceRequired, isPrincipalResidenceRequired, isStrProhibited } =
+  const { isBusinessLicenceRequired, isPrincipalResidenceRequired } =
     hostApplication?.strRequirements as PropertyRequirements
 
   const { prExemptReason } = hostApplication.unitDetails
@@ -147,8 +146,7 @@ const getHostPrRequirements = (hostApplication: ApiHostApplication): string => {
     strataHotelCategory
       ? t(`strataHotelCategoryReview.${strataHotelCategory}`)
       : '',
-    isBusinessLicenceRequired ? t('page.dashboardList.requirements.host.bl') : '',
-    isStrProhibited ? t('page.dashboardList.requirements.host.prohibited') : ''
+    isBusinessLicenceRequired ? t('page.dashboardList.requirements.host.bl') : ''
   ].filter(Boolean).join(', ') ||
   // default value where there are no requirements
   t('page.dashboardList.requirements.host.none')
@@ -371,16 +369,12 @@ const getConditionsColumnForRegistration = (reg: HousRegistrationResponse) => {
       // Fall back to unitDetails for backwards compatibility
       const prRequired = hostReg.strRequirements?.isPrincipalResidenceRequired ?? hostReg.unitDetails?.prRequired
       const blRequired = hostReg.strRequirements?.isBusinessLicenceRequired ?? hostReg.unitDetails?.blRequired
-      const isStrProhibited = hostReg.strRequirements?.isStrProhibited
 
       if (prRequired) {
         requirements.push(t('page.dashboardList.requirements.host.pr'))
       }
       if (blRequired) {
         requirements.push(t('page.dashboardList.requirements.host.bl'))
-      }
-      if (isStrProhibited) {
-        requirements.push(t('page.dashboardList.requirements.host.prohibited'))
       }
       if (hostReg.unitDetails?.prExemptReason) {
         requirements.push(t(`page.dashboardList.requirements.host.${hostReg.unitDetails.prExemptReason}`))
