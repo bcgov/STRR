@@ -9,7 +9,12 @@ import {
 } from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
 import Dashboard from '~/pages/dashboard.vue'
-import { ApplicationStatus, ApplicationType, PrExemptionReason, StrataHotelCategory } from '#imports'
+import {
+  ApplicationStatus,
+  ApplicationType,
+  PrExemptionReason,
+  StrataHotelCategory
+} from '#imports'
 
 const mockedResp: ApiApplicationsListResp = {
   applications: mockApplications,
@@ -23,7 +28,7 @@ const createMockStore = (initialFilters = {}) => {
   const tableFilters = reactive({
     searchText: '',
     registrationNumber: '',
-    registrationType: [],
+    registrationType: [] as ApplicationType[],
     requirements: [],
     applicantName: '',
     propertyAddress: '',
@@ -59,7 +64,7 @@ const createMockStore = (initialFilters = {}) => {
       Object.assign(tableFilters, {
         searchText: '',
         registrationNumber: '',
-        registrationType: [],
+        registrationType: [] as ApplicationType[],
         requirements: [],
         applicantName: '',
         propertyAddress: '',
@@ -573,6 +578,124 @@ describe('Examiner Dashboard Page', () => {
 
       const result = wrapper.vm.getConditionsColumnForRegistration(registration)
       expect(result).toBe('-')
+    })
+  })
+
+  describe('shouldShowRenewalBadge', () => {
+    it('returns false when there is no renewal application on the registration', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          applications: []
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
+    it('returns true when any renewal still needs examiner action', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.FULL_REVIEW
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(true)
+    })
+
+    it('returns true when an older renewal still needs action even if a newer renewal is decided', () => {
+      // Newest-first order matches RegistrationSerializer._populate_applications
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED
+            },
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.FULL_REVIEW
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(true)
+    })
+
+    it('returns false when every renewal is in a terminal state that hides the badge', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED
+            },
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.AUTO_APPROVED
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
+    it('returns false when a renewal is in a terminal state that hides the badge', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
+    it('returns false when the latest renewal is in PROVISIONALLY_APPROVED (badge hidden)', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
+    it('returns false when renewal has no application status', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: undefined
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
     })
   })
 
