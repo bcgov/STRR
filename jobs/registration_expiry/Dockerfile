@@ -57,6 +57,7 @@ RUN --mount=type=cache,target="$POETRY_CACHE_DIR" \
 
 # Copy project source
 COPY --chown=web:web . /code
+RUN poetry install --only main
 
 # Switch to non-root user
 USER web
