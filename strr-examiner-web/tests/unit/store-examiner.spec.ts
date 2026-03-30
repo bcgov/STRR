@@ -272,23 +272,18 @@ describe('Store - Examiner', () => {
     expect(store.showComposeEmail).toBe(false)
   })
 
-  it('should set correct default statuses and reset page', () => {
+  it('should clear all filters, reset statuses and page', async () => {
     const store = useExaminerStore()
 
     store.tableFilters.searchText = 'test'
     store.tablePage = 5
 
-    store.resetFiltersToApplicationsDefault()
-    expect(store.tableFilters.searchText).toBe('')
-    expect(store.tableFilters.status).toEqual(store.applicationsOnlyStatuses)
-    expect(store.tablePage).toBe(1)
+    store.resetFilters()
+    await nextTick()
 
-    store.tableFilters.searchText = 'test'
-    store.tablePage = 5
-
-    store.resetFiltersToRegistrationsDefault()
     expect(store.tableFilters.searchText).toBe('')
-    expect(store.tableFilters.status).toEqual(store.registrationsOnlyStatuses)
+    expect(store.tableFilters.status).toEqual([])
+    expect(store.tableFilters.subStatus).toEqual([])
     expect(store.tablePage).toBe(1)
   })
 

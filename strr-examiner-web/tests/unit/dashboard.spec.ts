@@ -40,7 +40,6 @@ const createMockStore = (initialFilters = {}) => {
     ApplicationStatus.FULL_REVIEW
   ]
   const registrationsOnlyStatuses = ['ACTIVE']
-  const registrationsOnlySubStatuses = ['REVIEW', 'REVIEW_RENEW', 'NOC_PENDING']
 
   return {
     tableFilters,
@@ -48,7 +47,6 @@ const createMockStore = (initialFilters = {}) => {
     tablePage: ref(1),
     applicationsOnlyStatuses,
     registrationsOnlyStatuses,
-    registrationsOnlySubStatuses,
     fetchApplications: vi.fn().mockResolvedValue(mockedResp),
     fetchRegistrations: vi.fn().mockResolvedValue({ registrations: [], total: 0 }),
     approveApplication: vi.fn(),

@@ -65,8 +65,7 @@ describe('useExaminerDashboardPersistence', () => {
       tablePage: ref(1),
       tableLimit: ref(50),
       applicationsOnlyStatuses: ['FULL_REVIEW'],
-      registrationsOnlyStatuses: ['ACTIVE'],
-      registrationsOnlySubStatuses: ['REVIEW', 'REVIEW_RENEW', 'NOC_PENDING']
+      registrationsOnlyStatuses: ['ACTIVE']
     }
 
     expect(() => {
@@ -95,8 +94,7 @@ describe('useExaminerDashboardPersistence', () => {
       tablePage: ref(1),
       tableLimit: ref(50),
       applicationsOnlyStatuses: ['FULL_REVIEW'],
-      registrationsOnlyStatuses: ['ACTIVE'],
-      registrationsOnlySubStatuses: ['REVIEW', 'REVIEW_RENEW', 'NOC_PENDING']
+      registrationsOnlyStatuses: ['ACTIVE']
     }
 
     useExaminerDashboardPersistence(mockStore as any, ref(true))

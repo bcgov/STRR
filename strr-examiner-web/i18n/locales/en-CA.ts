@@ -394,7 +394,7 @@ export default {
     applicationListSectionAria: 'Application list, {count} results',
     newApplicationsTab: 'New Applications',
     registrationsAndRenewalsTab: 'Registrations & Renewals',
-    resetToDefaultFilters: 'Reset to Default Filters',
+    clearAllFilters: 'Clear All Filters',
     findInApplication: 'Find in application...',
     findInRegistration: 'Find in registration...',
     tableLimitDisplay: 'Display:',

@@ -435,9 +435,7 @@ watch(
       (!exStore.tableFilters.subStatus || exStore.tableFilters.subStatus.length === 0)
     ) {
       const statusFilters = exStore.tableFilters.status as any[]
-      const subStatusFilters = exStore.tableFilters.subStatus as any[]
       statusFilters.splice(0, statusFilters.length, ...exStore.registrationsOnlyStatuses)
-      subStatusFilters.splice(0, subStatusFilters.length, ...exStore.registrationsOnlySubStatuses)
       hasAppliedRegistrationsStatusDefault.value = true
     }
   },
@@ -746,18 +744,6 @@ const updateTabQuery = (isApp: boolean) => {
   router.replace({ query })
 }
 
-function resetToDefaultFilters () {
-  if (isSplitDashboardTableEnabled.value) {
-    if (isApplicationTab.value) {
-      exStore.resetFiltersToApplicationsDefault()
-    } else {
-      exStore.resetFiltersToRegistrationsDefault()
-    }
-  } else {
-    exStore.resetFilters()
-  }
-}
-
 const tabLinks = computed(() => [
   {
     label: t('label.newApplicationsTab'),
@@ -829,12 +815,12 @@ const tabLinks = computed(() => [
               :count="applicationOrRegistrationList?.total || 0"
             />
             <UButton
-              :label="$t('label.resetToDefaultFilters')"
+              :label="$t('label.clearAllFilters')"
               icon="i-mdi-close"
               variant="link"
               :padded="false"
               :ui="{ gap: { sm: 'gap-x-1' } }"
-              @click="resetToDefaultFilters"
+              @click="exStore.resetFilters()"
             />
           </div>
           <div class="flex flex-wrap items-center gap-3 text-gray-900">

@@ -97,9 +97,7 @@ function applyStateToStore (
     (!state.filters.status || state.filters.status.length === 0)
   ) {
     const statusFilters = exStore.tableFilters.status as any[]
-    const subStatusFilters = exStore.tableFilters.subStatus as any[]
     statusFilters.splice(0, statusFilters.length, ...exStore.registrationsOnlyStatuses)
-    subStatusFilters.splice(0, subStatusFilters.length, ...exStore.registrationsOnlySubStatuses)
   }
   nextTick(() => {
     exStore.tablePage = state.page

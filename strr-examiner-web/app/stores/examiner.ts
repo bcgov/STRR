@@ -167,12 +167,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     RegistrationStatus.ACTIVE
   ]
 
-  const registrationsOnlySubStatuses = [
-    'REVIEW',
-    'REVIEW_RENEW',
-    'NOC_PENDING'
-  ]
-
   const tableFilters = reactive({
     searchText: '',
     registrationNumber: '',
@@ -701,43 +695,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         adjudicator: ''
       }
     )
-  }
-
-  /** Reset to the applications table default state (default status filters, other filters clear). */
-  const resetFiltersToApplicationsDefault = () => {
-    Object.assign(tableFilters, {
-      searchText: '',
-      registrationNumber: '',
-      registrationType: [],
-      requirements: [],
-      applicantName: '',
-      propertyAddress: '',
-      status: [...applicationsOnlyStatuses],
-      subStatus: [],
-      submissionDate: { start: null, end: null },
-      lastModified: { start: null, end: null },
-      localGov: '',
-      adjudicator: ''
-    })
-    tablePage.value = 1
-  }
-
-  /** Reset to the registrations table default state. */
-  const resetFiltersToRegistrationsDefault = () => {
-    Object.assign(tableFilters, {
-      searchText: '',
-      registrationNumber: '',
-      registrationType: [],
-      requirements: [],
-      applicantName: '',
-      propertyAddress: '',
-      status: [...registrationsOnlyStatuses],
-      subStatus: [...registrationsOnlySubStatuses],
-      submissionDate: { start: null, end: null },
-      lastModified: { start: null, end: null },
-      localGov: '',
-      adjudicator: ''
-    })
     tablePage.value = 1
   }
 
@@ -804,7 +761,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
     applicationsOnlyStatuses,
     registrationsOnlyStatuses,
-    registrationsOnlySubStatuses,
 
     viewReceipt,
     approveApplication,
@@ -820,8 +776,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     setAsideRegistration,
     openDocInNewTab,
     resetFilters,
-    resetFiltersToApplicationsDefault,
-    resetFiltersToRegistrationsDefault,
     updateRegistrationStatus,
     getRegistrationById,
     assignApplication,
