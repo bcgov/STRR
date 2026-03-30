@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 from dateutil.relativedelta import relativedelta
 
-from strr_api.enums.enum import ErrorMessage, PaymentStatus, RegistrationStatus
+from strr_api.enums.enum import ApplicationType, ErrorMessage, PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
 from strr_api.services import ApprovalService, RegistrationService
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
@@ -287,6 +287,103 @@ def test_renewal_application_registration_id(session, client, jwt):
     )
     assert rv.status_code == HTTPStatus.BAD_REQUEST
     assert rv.json.get("message") == ErrorMessage.REGISTRATION_ID_MISMATCH.value
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_cancelled_registration_cannot_create_renewal_application(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        registration_payload = json.load(f)
+
+    rv = client.post("/applications", json=registration_payload, headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    application_number = rv.json.get("header").get("applicationNumber")
+
+    application = Application.find_by_application_number(application_number=application_number)
+    application.payment_status = PaymentStatus.COMPLETED.value
+    application.status = Application.Status.FULL_REVIEW
+    application.save()
+
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv_assign = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+    assert rv_assign.status_code == HTTPStatus.OK
+    rv_status = client.put(
+        f"/applications/{application_number}/status",
+        json={"status": Application.Status.FULL_REVIEW_APPROVED},
+        headers=staff_headers,
+    )
+    assert rv_status.status_code == HTTPStatus.OK
+    registration_id = rv_status.json.get("header").get("registrationId")
+
+    registration = RegistrationService.get_registration_by_id(registration_id)
+    registration.status = RegistrationStatus.CANCELLED.value
+    registration.save()
+
+    renewal_payload = json.loads(json.dumps(registration_payload))
+    renewal_payload["header"] = {
+        "applicationType": ApplicationType.RENEWAL.value,
+        "registrationId": registration_id,
+    }
+    rv = client.post("/applications", json=renewal_payload, headers=headers)
+    assert rv.status_code == HTTPStatus.BAD_REQUEST
+    assert rv.json.get("message") == ErrorMessage.REGISTRATION_RENEWAL_NOT_ALLOWED.value
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_cancelled_registration_cannot_be_renewed_on_approval(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        registration_payload = json.load(f)
+
+    rv = client.post("/applications", json=registration_payload, headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    application_number = rv.json.get("header").get("applicationNumber")
+
+    application = Application.find_by_application_number(application_number=application_number)
+    application.payment_status = PaymentStatus.COMPLETED.value
+    application.status = Application.Status.FULL_REVIEW
+    application.save()
+
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv_assign = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+    assert rv_assign.status_code == HTTPStatus.OK
+    rv_status = client.put(
+        f"/applications/{application_number}/status",
+        json={"status": Application.Status.FULL_REVIEW_APPROVED},
+        headers=staff_headers,
+    )
+    assert rv_status.status_code == HTTPStatus.OK
+    registration_id = rv_status.json.get("header").get("registrationId")
+
+    renewal_payload = json.loads(json.dumps(registration_payload))
+    renewal_payload["header"] = {
+        "applicationType": ApplicationType.RENEWAL.value,
+        "registrationId": registration_id,
+    }
+    rv = client.post("/applications", json=renewal_payload, headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    renewal_application_number = rv.json.get("header").get("applicationNumber")
+
+    renewal_application = Application.find_by_application_number(application_number=renewal_application_number)
+    renewal_application.payment_status = PaymentStatus.COMPLETED.value
+    renewal_application.status = Application.Status.FULL_REVIEW
+    renewal_application.save()
+
+    registration = RegistrationService.get_registration_by_id(registration_id)
+    registration.status = RegistrationStatus.CANCELLED.value
+    registration.save()
+
+    rv_assign = client.put(f"/applications/{renewal_application_number}/assign", headers=staff_headers)
+    assert rv_assign.status_code == HTTPStatus.OK
+    rv_status = client.put(
+        f"/applications/{renewal_application_number}/status",
+        json={"status": Application.Status.FULL_REVIEW_APPROVED},
+        headers=staff_headers,
+    )
+    assert rv_status.status_code == HTTPStatus.BAD_REQUEST
+    assert rv_status.json.get("message") == ErrorMessage.REGISTRATION_RENEWAL_NOT_ALLOWED.value
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

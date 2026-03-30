@@ -61,7 +61,7 @@ def update_status_for_registration_expired_applications(app):
     # Get the registration status for applications older then now.
     rentals = Registration.query.filter(
         and_(
-            Registration.status != RegistrationStatus.EXPIRED.value,
+            Registration.status.in_([RegistrationStatus.ACTIVE.value, RegistrationStatus.SUSPENDED.value]),
             Registration.expiry_date < cut_off_datetime,
         )
     ).all()
