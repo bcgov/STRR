@@ -294,30 +294,11 @@ const getRequirementsColumn = (app: HousApplicationResponse) => {
   return result
 }
 
-/** Application statuses that mean a renewal was completed (registration was renewed) */
-const RENEWAL_APPROVED_STATUSES = new Set<ApplicationStatus>([
-  ApplicationStatus.FULL_REVIEW_APPROVED,
-  ApplicationStatus.PROVISIONALLY_APPROVED,
-  ApplicationStatus.PROVISIONAL_REVIEW,
-  ApplicationStatus.AUTO_APPROVED
-])
-
 const REVIEW_RENEW_STATUSES = new Set<ApplicationStatus>([
   ApplicationStatus.FULL_REVIEW,
   ApplicationStatus.PROVISIONALLY_APPROVED,
   ApplicationStatus.PROVISIONAL_REVIEW
 ])
-
-/** Check if a registration has been renewed. Draft renewals are ignored (Renewals in progress). */
-const hasBeenRenewed = (reg: HousRegistrationResponse): boolean => {
-  const applications = reg.header?.applications ?? []
-  return applications.some(
-    app =>
-      app.applicationType === 'renewal' &&
-      app.applicationStatus &&
-      RENEWAL_APPROVED_STATUSES.has(app.applicationStatus as ApplicationStatus)
-  )
-}
 
 const isReviewRenew = (reg: HousRegistrationResponse): boolean => {
   const applications = reg.header?.applications ?? []
@@ -327,6 +308,31 @@ const isReviewRenew = (reg: HousRegistrationResponse): boolean => {
       app.applicationStatus &&
       REVIEW_RENEW_STATUSES.has(app.applicationStatus as ApplicationStatus)
   )
+}
+
+/**
+ * Statuses where the renewal no longer needs examiner action (badge hidden).
+ */
+const RENEWAL_BADGE_HIDDEN_STATUSES = new Set<ApplicationStatus>([
+  ApplicationStatus.FULL_REVIEW_APPROVED,
+  ApplicationStatus.DECLINED,
+  ApplicationStatus.PROVISIONALLY_DECLINED,
+  ApplicationStatus.AUTO_APPROVED
+])
+
+/**
+ * Show the "Renewal" badge when any renewal on this registration still needs examiner action.
+ */
+function shouldShowRenewalBadge (reg: HousRegistrationResponse): boolean {
+  const apps = reg.header?.applications ?? []
+  const renewals = apps.filter(a => a.applicationType === 'renewal')
+  return renewals.some((r) => {
+    const status = r.applicationStatus as ApplicationStatus | undefined
+    if (!status) {
+      return false
+    }
+    return !RENEWAL_BADGE_HIDDEN_STATUSES.has(status)
+  })
 }
 
 const getRegistrationSubStatus = (reg: HousRegistrationResponse): string => {
@@ -497,7 +503,7 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
         propertyAddress: getPropertyAddressColumnForRegistration(reg),
         localGov: getLocalGovColumnForRegistration(reg),
         adjudicator: getAdjudicatorColumn(reg.header),
-        hasRenewed: hasBeenRenewed(reg),
+        showRenewalBadge: shouldShowRenewalBadge(reg),
         hasRecentDocumentUpload: hasRecentDocumentUpload(getDocumentsFromRegistration(reg))
       }))
 
@@ -1131,7 +1137,7 @@ const tabLinks = computed(() => [
                 <span>{{ row.registrationNumber }}</span>
               </div>
               <UBadge
-                v-if="row.hasRenewed"
+                v-if="row.showRenewalBadge"
                 :label="t('label.renewal')"
                 color="primary"
                 variant="solid"

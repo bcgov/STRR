@@ -134,7 +134,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 .pnpm-store/**
-
+**/.pnpm-store/**
 
 # Distribution / packaging
 .eggs/
