@@ -3,7 +3,6 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
-
 from strr_api.enums.enum import RegistrationStatus
 from strr_api.models import User
 from strr_api.models.rental import Registration
