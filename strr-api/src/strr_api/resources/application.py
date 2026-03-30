@@ -50,7 +50,7 @@ from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
 from strr_api.common.auth import jwt
-from strr_api.enums.enum import ApplicationType, ErrorMessage, Role
+from strr_api.enums.enum import ApplicationType, ErrorMessage, RegistrationStatus, Role
 from strr_api.exceptions import (
     AuthException,
     ExternalServiceException,
@@ -69,6 +69,7 @@ from strr_api.services import (
     DocumentService,
     EventsService,
     LtsaService,
+    RegistrationService,
     UserService,
     strr_pay,
 )
@@ -156,6 +157,18 @@ def create_application(application_number: Optional[str] = None):
             if request.method == "PUT" and existing_registration_id != registration_id:
                 return error_response(
                     message=ErrorMessage.REGISTRATION_ID_MISMATCH.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
+
+            registration = RegistrationService.get_registration(account_id=account_id, registration_id=registration_id)
+            if not registration:
+                return error_response(
+                    message=ErrorMessage.REGISTRATION_NOT_FOUND.value,
+                    http_status=HTTPStatus.NOT_FOUND,
+                )
+            if registration.status == RegistrationStatus.CANCELLED:
+                return error_response(
+                    message=ErrorMessage.REGISTRATION_RENEWAL_NOT_ALLOWED.value,
                     http_status=HTTPStatus.BAD_REQUEST,
                 )
 
@@ -640,6 +653,17 @@ def update_application_status(application_number):
             if reg_id is None:
                 return error_response(
                     message=ErrorMessage.RENEWAL_APPLICATION_NO_REGISTRATION_ID.value,
+                    http_status=HTTPStatus.BAD_REQUEST,
+                )
+            registration = RegistrationService.get_registration_by_id(reg_id)
+            if not registration:
+                return error_response(
+                    message=ErrorMessage.REGISTRATION_NOT_FOUND.value,
+                    http_status=HTTPStatus.NOT_FOUND,
+                )
+            if registration.status == RegistrationStatus.CANCELLED:
+                return error_response(
+                    message=ErrorMessage.REGISTRATION_RENEWAL_NOT_ALLOWED.value,
                     http_status=HTTPStatus.BAD_REQUEST,
                 )
 
