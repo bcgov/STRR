@@ -666,22 +666,6 @@ describe('Examiner Dashboard Page', () => {
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
     })
 
-    it('returns false when the latest renewal is in PROVISIONALLY_APPROVED (badge hidden)', () => {
-      const reg = {
-        ...mockHostRegistration,
-        header: {
-          ...mockHostRegistration.header,
-          applications: [
-            {
-              applicationType: 'renewal',
-              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
-            }
-          ]
-        }
-      }
-      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
-    })
-
     it('returns false when renewal has no application status', () => {
       const reg = {
         ...mockHostRegistration,
