@@ -172,8 +172,8 @@ def token_callback(request):
 
 
 @pytest.mark.conf(
-    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
-    NOTIFY_SVC_URL="http://my-notify-mock",
+    KEYCLOAK_AUTH_TOKEN_URL="https://my-auth-url",
+    NOTIFY_SVC_URL="https://my-notify-mock",
     NOTIFY_API_TIMEOUT=30,
     EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
 )
@@ -268,8 +268,8 @@ def test_email_mocked_notify(
 
 
 @pytest.mark.conf(
-    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
-    NOTIFY_SVC_URL="http://my-notify-mock",
+    KEYCLOAK_AUTH_TOKEN_URL="https://my-auth-url",
+    NOTIFY_SVC_URL="https://my-notify-mock",
     NOTIFY_API_TIMEOUT=30,
     EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
 )
@@ -316,8 +316,8 @@ def test_registration_email_bad_request_is_acknowledged(
 
 
 @pytest.mark.conf(
-    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
-    NOTIFY_SVC_URL="http://my-notify-mock",
+    KEYCLOAK_AUTH_TOKEN_URL="https://my-auth-url",
+    NOTIFY_SVC_URL="https://my-notify-mock",
     NOTIFY_API_TIMEOUT=30,
     EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
 )

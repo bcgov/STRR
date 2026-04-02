@@ -87,6 +87,7 @@ EMAIL_SUBJECT = {
     "STRATA_HOTEL_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
     "PLATFORM_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
 }
+NOTIFY_POST_ERROR_MESSAGE = "Error posting email to notify-api."
 
 
 def _is_retryable_status(status_code: int | HTTPStatus | None) -> bool:
@@ -215,11 +216,14 @@ def worker():
         except ExternalServiceException as err:
             if _is_retryable_status(err.status_code):
                 logger.exception(f"Retryable error posting email to notify-api for: {str(ce)}")
-                return jsonify({"message": "Error posting email to notify-api."}), err.status_code
-            return _acknowledge_invalid_message("Error posting email to notify-api.", ce)
+                return jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}), err.status_code
+            return _acknowledge_invalid_message(NOTIFY_POST_ERROR_MESSAGE, ce)
         except Exception:
             logger.exception(f"Unexpected error posting email to notify-api for: {str(ce)}")
-            return jsonify({"message": "Error posting email to notify-api."}), HTTPStatus.SERVICE_UNAVAILABLE
+            return (
+                jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}),
+                HTTPStatus.SERVICE_UNAVAILABLE,
+            )
 
     else:
         try:
@@ -227,7 +231,7 @@ def worker():
             if not token:
                 logger.error(f"Notify auth token unavailable for: {str(ce)}")
                 return (
-                    jsonify({"message": "Error posting email to notify-api."}),
+                    jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}),
                     HTTPStatus.SERVICE_UNAVAILABLE,
                 )
             resp = requests.post(
@@ -242,7 +246,7 @@ def worker():
         except requests.RequestException:
             logger.exception(f"Retryable error posting email to notify-api for: {str(ce)}")
             return (
-                jsonify({"message": "Error posting email to notify-api."}),
+                jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}),
                 HTTPStatus.SERVICE_UNAVAILABLE,
             )
 
@@ -250,8 +254,8 @@ def worker():
         logger.info(f"Error {resp.status_code} - {_get_response_payload(resp)}")
         if _is_retryable_status(resp.status_code):
             logger.error(f"Retryable error posting email to notify-api for: {str(ce)}")
-            return jsonify({"message": "Error posting email to notify-api."}), resp.status_code
-        return _acknowledge_invalid_message("Error posting email to notify-api.", ce)
+            return jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}), resp.status_code
+        return _acknowledge_invalid_message(NOTIFY_POST_ERROR_MESSAGE, ce)
 
     logger.info(f"completed ce: {str(ce)}")
     return {}, HTTPStatus.OK
