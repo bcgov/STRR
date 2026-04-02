@@ -19,6 +19,7 @@ from http import HTTPStatus
 from unittest.mock import patch
 
 import pytest
+import requests
 
 from strr_api.enums.enum import ChannelType, InteractionStatus
 from strr_api.exceptions import ExternalServiceException, ValidationException
@@ -218,3 +219,72 @@ def test_dispatch_email_interaction_failure_none_id(
     mock_requests_post.assert_called_once()
     assert excinfo.value.status_code == HTTPStatus.BAD_REQUEST
     assert excinfo.value.error == "'Email not sent', 400"
+
+
+@pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
+@patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
+@patch("strr_api.services.interaction.requests.post")
+def test_dispatch_email_interaction_failure_server_error(
+    mock_requests_post, mock_get_token, session, setup_parents, inject_config, authed_g
+):
+    """Assert that retryable notify failures keep their upstream status code."""
+    mock_requests_post.return_value.status_code = HTTPStatus.SERVICE_UNAVAILABLE
+    mock_requests_post.return_value.json.return_value = {"message": "temporarily unavailable"}
+
+    email_info = EmailInfo(application_number="123", email_type="TEST", custom_content="some content")
+
+    with pytest.raises(ExternalServiceException) as excinfo:
+        InteractionService.dispatch(
+            registration_id=setup_parents["registration_id"],
+            channel_type=ChannelType.EMAIL,
+            payload=email_info,
+        )
+
+    mock_get_token.assert_called_once()
+    mock_requests_post.assert_called_once()
+    assert excinfo.value.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+    assert excinfo.value.error == "'Email not sent', 503"
+
+
+@pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
+@patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
+@patch("strr_api.services.interaction.requests.post", side_effect=requests.RequestException("boom"))
+def test_dispatch_email_interaction_failure_request_exception(
+    mock_requests_post, mock_get_token, session, setup_parents, inject_config, authed_g
+):
+    """Assert that network failures are marked retryable."""
+    email_info = EmailInfo(application_number="123", email_type="TEST", custom_content="some content")
+
+    with pytest.raises(ExternalServiceException) as excinfo:
+        InteractionService.dispatch(
+            registration_id=setup_parents["registration_id"],
+            channel_type=ChannelType.EMAIL,
+            payload=email_info,
+        )
+
+    mock_get_token.assert_called_once()
+    mock_requests_post.assert_called_once()
+    assert excinfo.value.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+    assert excinfo.value.error == "'Email service unavailable', 503"
+
+
+@pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
+@patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value=None)
+@patch("strr_api.services.interaction.requests.post")
+def test_dispatch_email_interaction_failure_missing_token(
+    mock_requests_post, mock_get_token, session, setup_parents, inject_config, authed_g
+):
+    """Assert that missing auth tokens are treated as retryable failures."""
+    email_info = EmailInfo(application_number="123", email_type="TEST", custom_content="some content")
+
+    with pytest.raises(ExternalServiceException) as excinfo:
+        InteractionService.dispatch(
+            registration_id=setup_parents["registration_id"],
+            channel_type=ChannelType.EMAIL,
+            payload=email_info,
+        )
+
+    mock_get_token.assert_called_once()
+    mock_requests_post.assert_not_called()
+    assert excinfo.value.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+    assert excinfo.value.error == "'Email service token unavailable', 503"

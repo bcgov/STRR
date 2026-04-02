@@ -50,6 +50,8 @@ import requests
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.enums.enum import ChannelType
 from strr_api.enums.enum import RegistrationNocStatus
+from strr_api.exceptions import ExternalServiceException
+from strr_api.exceptions import ValidationException
 from strr_api.models import Application
 from strr_api.models import CustomerInteraction
 from strr_api.models import Platform
@@ -87,6 +89,27 @@ EMAIL_SUBJECT = {
 }
 
 
+def _is_retryable_status(status_code: int | HTTPStatus | None) -> bool:
+    """Return True when the downstream failure should be retried."""
+    if status_code is None:
+        return False
+    return int(status_code) >= HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+def _get_response_payload(resp: requests.Response) -> str:
+    """Return a log-safe representation of the downstream response."""
+    try:
+        return str(resp.json())
+    except ValueError:
+        return resp.text
+
+
+def _acknowledge_invalid_message(message: str, ce: SimpleCloudEvent) -> tuple:
+    """Acknowledge a permanently invalid queue message so it does not loop forever."""
+    logger.error(f"{message} ce={str(ce)}")
+    return jsonify({"message": message}), HTTPStatus.OK
+
+
 @bp.route("/", methods=("POST",))
 def worker():
     """Process the incoming file uploaded event."""
@@ -111,9 +134,15 @@ def worker():
         # no email info or not an email event
         return {}, HTTPStatus.OK
 
-    template = Path(
-        f'{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{email_info.email_type}.md'
-    ).read_text("utf-8")
+    try:
+        template = Path(
+            f'{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{email_info.email_type}.md'
+        ).read_text("utf-8")
+    except FileNotFoundError:
+        return _acknowledge_invalid_message(
+            f"Email template not found for email type ({email_info.email_type}).",
+            ce,
+        )
     filled_template = substitute_template_parts(template)
     jinja_template = Template(filled_template, autoescape=True)
     email = None
@@ -126,12 +155,9 @@ def worker():
             application := Application.find_by_application_number(email_info.application_number)
         ):
             # no application matching the application number
-            logger.error(f"Error: application {email_info.application_number} not found.")
-            return (
-                jsonify(
-                    {"message": f"Application number ({email_info.application_number}) not found."}
-                ),
-                HTTPStatus.NOT_FOUND,
+            return _acknowledge_invalid_message(
+                f"Application number ({email_info.application_number}) not found.",
+                ce,
             )
 
         email = _get_application_update_email_content(application, email_info, jinja_template)
@@ -143,14 +169,9 @@ def worker():
             )
         ):
             # no application matching the application number
-            logger.error(f"Error: Registration {email_info.registration_number} not found.")
-            return (
-                jsonify(
-                    {
-                        "message": f"Registration number ({email_info.registration_number}) not found."
-                    }
-                ),
-                HTTPStatus.NOT_FOUND,
+            return _acknowledge_invalid_message(
+                f"Registration number ({email_info.registration_number}) not found.",
+                ce,
             )
         if registration.registration_type == Registration.RegistrationType.HOST:
             email = _get_registration_update_email_content_for_host(
@@ -189,26 +210,48 @@ def worker():
             logger.info(f"completed ce: {str(ce)}")
             return jsonify({"interaction": resp.interaction_uuid}), HTTPStatus.OK
 
-        except Exception as err:
-            logger.error(f"Error posting email to notify-api for: {str(ce)}")
-            return jsonify({"message": "Error posting email to notify-api."}), 400
+        except ValidationException as err:
+            return _acknowledge_invalid_message(f"{err.error}.", ce)
+        except ExternalServiceException as err:
+            if _is_retryable_status(err.status_code):
+                logger.exception(f"Retryable error posting email to notify-api for: {str(ce)}")
+                return jsonify({"message": "Error posting email to notify-api."}), err.status_code
+            return _acknowledge_invalid_message("Error posting email to notify-api.", ce)
+        except Exception:
+            logger.exception(f"Unexpected error posting email to notify-api for: {str(ce)}")
+            return jsonify({"message": "Error posting email to notify-api."}), HTTPStatus.SERVICE_UNAVAILABLE
 
     else:
-        token = AuthService.get_service_client_token()
-        resp = requests.post(
-            current_app.config["NOTIFY_SVC_URL"],
-            json=email,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {token}",
-            },
-            timeout=current_app.config["NOTIFY_API_TIMEOUT"],
-        )
+        try:
+            token = AuthService.get_service_client_token()
+            if not token:
+                logger.error(f"Notify auth token unavailable for: {str(ce)}")
+                return (
+                    jsonify({"message": "Error posting email to notify-api."}),
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                )
+            resp = requests.post(
+                current_app.config["NOTIFY_SVC_URL"],
+                json=email,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {token}",
+                },
+                timeout=current_app.config["NOTIFY_API_TIMEOUT"],
+            )
+        except requests.RequestException:
+            logger.exception(f"Retryable error posting email to notify-api for: {str(ce)}")
+            return (
+                jsonify({"message": "Error posting email to notify-api."}),
+                HTTPStatus.SERVICE_UNAVAILABLE,
+            )
 
     if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
-        logger.info(f"Error {resp.status_code} - {str(resp.json())}")
-        logger.error(f"Error posting email to notify-api for: {str(ce)}")
-        return jsonify({"message": "Error posting email to notify-api."}), resp.status_code
+        logger.info(f"Error {resp.status_code} - {_get_response_payload(resp)}")
+        if _is_retryable_status(resp.status_code):
+            logger.error(f"Retryable error posting email to notify-api for: {str(ce)}")
+            return jsonify({"message": "Error posting email to notify-api."}), resp.status_code
+        return _acknowledge_invalid_message("Error posting email to notify-api.", ce)
 
     logger.info(f"completed ce: {str(ce)}")
     return {}, HTTPStatus.OK

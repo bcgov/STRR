@@ -265,3 +265,159 @@ def test_email_mocked_notify(
     assert stored.notify_reference
     assert stored.registration_id == registration.id
     assert stored.status == InteractionStatus.SENT
+
+
+@pytest.mark.conf(
+    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
+    NOTIFY_SVC_URL="http://my-notify-mock",
+    NOTIFY_API_TIMEOUT=30,
+    EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
+)
+@responses.activate
+def test_registration_email_bad_request_is_acknowledged(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    setup_parents,
+    inject_config,
+):
+    """Bad request responses should be acknowledged so they do not poison the queue."""
+    responses.add(
+        responses.POST,
+        app.config.get("KEYCLOAK_AUTH_TOKEN_URL"),
+        json={"access_token": "123"},
+        status=200,
+    )
+    responses.add(
+        responses.POST,
+        app.config.get("NOTIFY_SVC_URL"),
+        json={"message": "recipient is not allowed"},
+        status=HTTPStatus.BAD_REQUEST,
+    )
+
+    registration = create_registration(session, setup_parents)
+    ce = simple_cloud_event(
+        data={
+            "application_number": None,
+            "email_type": "HOST_REGISTRATION_ACTIVE",
+            "custom_content": None,
+            "registration_number": registration.registration_number,
+        }
+    )
+    envelope = queue_envelope(cloud_event=ce)
+
+    response = client.post("/", json=envelope)
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.get_json() == {"message": "Error posting email to notify-api."}
+    assert session.scalars(select(CustomerInteraction)).all() == []
+
+
+@pytest.mark.conf(
+    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
+    NOTIFY_SVC_URL="http://my-notify-mock",
+    NOTIFY_API_TIMEOUT=30,
+    EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
+)
+@responses.activate
+def test_registration_email_server_error_is_retried(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    setup_parents,
+    inject_config,
+):
+    """Server-side notify errors should remain retryable."""
+    responses.add(
+        responses.POST,
+        app.config.get("KEYCLOAK_AUTH_TOKEN_URL"),
+        json={"access_token": "123"},
+        status=200,
+    )
+    responses.add(
+        responses.POST,
+        app.config.get("NOTIFY_SVC_URL"),
+        json={"message": "temporarily unavailable"},
+        status=HTTPStatus.SERVICE_UNAVAILABLE,
+    )
+
+    registration = create_registration(session, setup_parents)
+    ce = simple_cloud_event(
+        data={
+            "application_number": None,
+            "email_type": "HOST_REGISTRATION_ACTIVE",
+            "custom_content": None,
+            "registration_number": registration.registration_number,
+        }
+    )
+    envelope = queue_envelope(cloud_event=ce)
+
+    response = client.post("/", json=envelope)
+
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+    assert session.scalars(select(CustomerInteraction)).all() == []
+
+
+@pytest.mark.conf(
+    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
+    NOTIFY_SVC_URL="http://my-notify-mock",
+    NOTIFY_API_TIMEOUT=30,
+    EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
+)
+@responses.activate
+def test_renewal_email_bad_request_is_acknowledged(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    setup_parents,
+    inject_config,
+):
+    """Renewal emails should also acknowledge permanent notify failures."""
+    responses.add(
+        responses.POST,
+        app.config.get("KEYCLOAK_AUTH_TOKEN_URL"),
+        json={"access_token": "123"},
+        status=200,
+    )
+    responses.add(
+        responses.POST,
+        app.config.get("NOTIFY_SVC_URL"),
+        json={"message": "recipient is not allowed"},
+        status=HTTPStatus.BAD_REQUEST,
+    )
+
+    registration = create_registration(session, setup_parents)
+    interaction_uuid = InteractionService.queued(
+        channel_type=ChannelType.EMAIL,
+        payload=EmailInfo(
+            email_type="HOST_RENEWAL_REMINDER",
+            registration_number=registration.registration_number,
+        ),
+        registration_id=registration.id,
+    )
+    ce = simple_cloud_event(
+        data={
+            "application_number": None,
+            "email_type": "HOST_RENEWAL_REMINDER",
+            "custom_content": None,
+            "registration_number": registration.registration_number,
+            "interaction_uuid": interaction_uuid,
+        }
+    )
+    envelope = queue_envelope(cloud_event=ce)
+
+    response = client.post("/", json=envelope)
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.get_json() == {"message": "Error posting email to notify-api."}
+    stored = session.scalar(
+        select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == interaction_uuid)
+    )
+    assert stored.status == InteractionStatus.QUEUED
+    assert stored.notify_reference is None

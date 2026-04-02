@@ -169,7 +169,21 @@ class InteractionService:
 
     @staticmethod
     def _send_email_to_notify_service(email_info):
-        token = AuthService.get_service_client_token()
+        try:
+            token = AuthService.get_service_client_token()
+        except requests.RequestException as err:
+            current_app.logger.error(f"Email auth error, {err}")
+            raise ExternalServiceException(
+                error="Email service token unavailable",
+                status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            ) from err
+
+        if not token:
+            raise ExternalServiceException(
+                error="Email service token unavailable",
+                status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+
         try:
             resp = requests.post(
                 current_app.config["NOTIFY_SVC_URL"],
@@ -180,12 +194,18 @@ class InteractionService:
                 },
                 timeout=current_app.config["NOTIFY_API_TIMEOUT"],
             )
-        except Exception as err:
+        except requests.RequestException as err:
             current_app.logger.error(f"Email error, {err}")
-            return {"id": -1}
+            raise ExternalServiceException(
+                error="Email service unavailable",
+                status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            ) from err
 
         if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
             current_app.logger.info(f"Error {resp.status_code} - {str(resp.json())}")
-            return {"id": -1}
+            raise ExternalServiceException(
+                error="Email not sent",
+                status_code=resp.status_code,
+            )
 
         return resp.json()
