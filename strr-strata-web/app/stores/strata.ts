@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { formatBusinessDetailsUI, formatStrataDetailsUI } from '~/utils/strata-formating'
+import { formatBusinessDetailsUI, formatStrataDetailsUI } from '~/utils/strata-formatting'
 
 export const useStrrStrataStore = defineStore('strr/strata', () => {
   // TODO: move common pieces of strata and platform to base layer composable

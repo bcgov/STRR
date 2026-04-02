@@ -334,6 +334,7 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
         <template #rentalUnits>
           <UButton
             v-if="hasUnitListingGroups"
+            data-testid="unit-listing-link"
             variant="link"
             class="p-0 text-base text-bcGovColor-activeBlue underline"
             :padded="false"
@@ -369,7 +370,12 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
             <div v-if="!documentStore.storedDocuments.length">
               <p>{{ $t('text.noDocsUploaded') }}</p>
             </div>
-            <div v-for="doc in documentStore.storedDocuments" :key="doc.id" class="flex w-full gap-1">
+            <div
+              v-for="doc in documentStore.storedDocuments"
+              :key="doc.id"
+              data-testid="document-item"
+              class="flex w-full gap-1"
+            >
               <UIcon
                 name="i-mdi-paperclip"
                 class="size-5 shrink-0 text-blue-500"
