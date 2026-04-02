@@ -3,7 +3,7 @@ DOCKER_NAME := $(shell grep -m 1 '^name = ' pyproject.toml | cut -d '"' -f 2)
 VCS_REF     := $(shell git rev-parse --short HEAD)
 BUILD_DATE  := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-.PHONY: help install fmt lint test build benchmark clean
+.PHONY: help install fmt lint test build clean
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -23,12 +23,6 @@ lint: ## Check imports and formatting without making changes
 test: ## Run pytest suite
 	poetry run pytest
 
-benchmark: ## Run performance benchmarks comparing 1 vs 10 workers
-	@echo "Running Sequential Benchmark (1 worker)..."
-	MAX_WORKERS=1 poetry run pytest tests/load/test_benchmarks.py --benchmark-autosave --benchmark-group-by=group
-	@echo "\nRunning Parallel Benchmark (10 workers)..."
-	MAX_WORKERS=10 poetry run pytest tests/load/test_benchmarks.py --benchmark-compare --benchmark-group-by=group
-
 build: ## Build the multi-stage docker container
 	@echo "Building Docker image: $(DOCKER_NAME)"
 	docker build . -t $(DOCKER_NAME) \
@@ -39,4 +33,4 @@ build: ## Build the multi-stage docker container
 clean: ## Remove build artifacts and pyc files
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
-	rm -rf .pytest_cache .venv .benchmarks
+	rm -rf .pytest_cache .venv
