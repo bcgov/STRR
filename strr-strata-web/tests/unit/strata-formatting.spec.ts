@@ -18,7 +18,7 @@ describe('Strata Formatting utils', () => {
       unitListings: { primary: 'Penthouse', additional: ['Room 101'] }
     }
 
-    const result = formatStrataDetails(input as any)
+    const result = formatStrataDetails(input)
 
     expect(result.location.address).toBe('123 Main St')
     expect(result.location.city).toBe('Victoria')
@@ -30,7 +30,7 @@ describe('Strata Formatting utils', () => {
   it('formatStrataDetails: truncate additional unit listings to match building count', () => {
     const input = { ...mockStrataDetails, unitListings: { primary: '', additional: ['Room A', 'Room B'] } }
 
-    const result = formatStrataDetails(input as any)
+    const result = formatStrataDetails(input)
 
     expect(result.unitListings?.additional).toHaveLength(0)
   })
@@ -45,7 +45,7 @@ describe('Strata Formatting utils', () => {
       unitListings: { primary: 'Suite 1', additional: ['Apt A'] }
     }
 
-    const result = formatStrataDetailsUI(input as any)
+    const result = formatStrataDetailsUI(input)
 
     expect(result.location.street).toBe('123 Main St')
     expect(result.buildings).toHaveLength(1)
@@ -55,7 +55,7 @@ describe('Strata Formatting utils', () => {
   it('formatStrataDetailsUI: pad additional unit listings to match building count when too short', () => {
     const input = { ...mockApiStrataDetails, unitListings: { primary: '', additional: [] } } // 0 entries but 2 buildings
 
-    const result = formatStrataDetailsUI(input as any)
+    const result = formatStrataDetailsUI(input)
 
     expect(result.unitListings.additional).toHaveLength(2)
     expect(result.unitListings.additional).toEqual(['', ''])
@@ -75,7 +75,7 @@ describe('Strata Formatting utils', () => {
       }
     }
 
-    const result = formatBusinessDetails(input as any)
+    const result = formatBusinessDetails(input)
 
     expect(result.mailingAddress.address).toBe('123 Main St')
     expect(result.registeredOfficeOrAttorneyForServiceDetails.attorneyName).toBe('John Smith')
@@ -91,7 +91,7 @@ describe('Strata Formatting utils', () => {
       }
     }
 
-    const result = formatBusinessDetailsUI(input as any)
+    const result = formatBusinessDetailsUI(input)
 
     expect(result.hasRegOffAtt).toBe(true)
     expect(result.regOfficeOrAtt.attorneyName).toBe('Jane Doe')
