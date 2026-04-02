@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { MultiFormValidationResult, StrataApplicationPayload, StrataApplicationResp, StrrBusiness } from '#imports'
-import { formatBusinessDetails, formatStrataDetails } from '~/utils/strata-formating'
+import { formatBusinessDetails, formatStrataDetails } from '~/utils/strata-formatting'
 
 export const useStrrStrataApplicationStore = defineStore('strr/strataApplication', () => {
   const { t } = useNuxtApp().$i18n
