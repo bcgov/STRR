@@ -30,11 +30,12 @@ google-cloud-run = "0.10.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
+pytest-cov = "^7.1.0"
 pytest-mock = "^3.14.0"
 black = "^24.4.2"
 zimports = "^0.6.1"
-lovely-pytest-docker = "^0.3.1"
 isort = "^5.13.2"
+strr-test-utils = {path = "../../tests/python-test-utils", develop = true}
 
 [tool.black]
 line-length = 100
@@ -56,6 +57,35 @@ profile = "google"
 line_length = 100
 known_first_party = ["batch_permit_validator"]
 
+[tool.pytest.ini_options]
+minversion = "2.0"
+testpaths = [
+   "tests",
+]
+addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term"
+python_files = [
+   "test*.py"
+]
+norecursedirs = [
+   ".git", ".tox", "venv*", "requirements*", "build",
+]
+log_cli = true
+log_cli_level = "1"
+filterwarnings = [
+   "ignore::UserWarning"
+]
+markers = [
+   "slow",
+   "serial",
+   "conf: Inject flask config values into the app fixture",
+   "integration: HTTP-level tests with real gcp-queue parsing (see tests/integration/)",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "**/batch_permit_validator/utils.py",
+]
 
 [build-system]
 requires = ["poetry-core"]

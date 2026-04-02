@@ -39,6 +39,17 @@ openshift/      - OpenShift-specific files
 * Developer Workstation Requirements/Setup
 * Application Specific Setup
 
+## Testing
+
+From this directory (`queue_services/batch-permit-validator`), install dev dependencies and run the suite:
+
+```bash
+poetry install
+make test
+```
+
+By default, pytest runs with coverage for `src/` (terminal summary, `htmlcov/index.html`, and `coverage.xml`). `src/batch_permit_validator/utils.py` is omitted from the coverage total (see `pyproject.toml`).
+
 
 ## Getting Help or Reporting an Issue
 
