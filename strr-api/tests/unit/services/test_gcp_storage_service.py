@@ -30,12 +30,96 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests for GCPStorageService (registration document creation time)."""
+import base64
+import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from strr_api.services.gcp_storage_service import GCPStorageService
+
+
+def _encoded_service_account_key():
+    """Return a base64 encoded service account key for storage client tests."""
+    service_account_info = {
+        "client_email": "sa-api@example.com",
+        "private_key_id": "test-key-id",
+    }
+    return base64.b64encode(json.dumps(service_account_info).encode("utf-8")).decode("utf-8")
+
+
+@pytest.mark.conf(
+    DEPLOYMENT_PLATFORM="GCP",
+    GCP_AUTH_KEY=_encoded_service_account_key(),
+    GCP_CS_PROJECT_ID="bcrbk9-test",
+    GCP_CS_SA_SCOPE="https://www.googleapis.com/auth/cloud-platform",
+)
+def test_get_bucket_uses_adc_on_gcp(app, inject_config):
+    """get_bucket uses Cloud Run ADC on GCP and ignores GCP_AUTH_KEY."""
+    with (
+        patch("strr_api.services.gcp_storage_service.storage.Client") as mock_storage_client,
+        patch("strr_api.services.gcp_storage_service.service_account.Credentials") as mock_credentials,
+    ):
+        with app.app_context():
+            bucket = GCPStorageService.get_bucket("test-bucket")
+
+    mock_credentials.from_service_account_info.assert_not_called()
+    mock_storage_client.assert_called_once_with(project="bcrbk9-test")
+    mock_storage_client.return_value.bucket.assert_called_once_with("test-bucket")
+    assert bucket == mock_storage_client.return_value.bucket.return_value
+
+
+@pytest.mark.conf(
+    DEPLOYMENT_PLATFORM=None,
+    GCP_AUTH_KEY=_encoded_service_account_key(),
+    GCP_CS_PROJECT_ID="bcrbk9-test",
+    GCP_CS_SA_SCOPE="https://www.googleapis.com/auth/cloud-platform",
+)
+def test_get_bucket_uses_service_account_key_outside_gcp(app, inject_config):
+    """get_bucket preserves the explicit key fallback outside GCP."""
+    expected_info = {
+        "client_email": "sa-api@example.com",
+        "private_key_id": "test-key-id",
+    }
+
+    with (
+        patch("strr_api.services.gcp_storage_service.storage.Client") as mock_storage_client,
+        patch("strr_api.services.gcp_storage_service.service_account.Credentials") as mock_credentials,
+    ):
+        mock_credentials.from_service_account_info.return_value = "credentials"
+
+        with app.app_context():
+            bucket = GCPStorageService.get_bucket("test-bucket")
+
+    mock_credentials.from_service_account_info.assert_called_once_with(
+        expected_info,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    )
+    mock_storage_client.assert_called_once_with(project="bcrbk9-test", credentials="credentials")
+    mock_storage_client.return_value.bucket.assert_called_once_with("test-bucket")
+    assert bucket == mock_storage_client.return_value.bucket.return_value
+
+
+@pytest.mark.conf(
+    DEPLOYMENT_PLATFORM=None,
+    GCP_AUTH_KEY=None,
+    GCP_CS_PROJECT_ID="bcrbk9-test",
+    GCP_CS_SA_SCOPE="https://www.googleapis.com/auth/cloud-platform",
+)
+def test_get_bucket_uses_adc_when_key_missing(app, inject_config):
+    """get_bucket falls back to ADC when no GCP_AUTH_KEY is configured."""
+    with (
+        patch("strr_api.services.gcp_storage_service.storage.Client") as mock_storage_client,
+        patch("strr_api.services.gcp_storage_service.service_account.Credentials") as mock_credentials,
+    ):
+        with app.app_context():
+            bucket = GCPStorageService.get_bucket("test-bucket")
+
+    mock_credentials.from_service_account_info.assert_not_called()
+    mock_storage_client.assert_called_once_with(project="bcrbk9-test")
+    mock_storage_client.return_value.bucket.assert_called_once_with("test-bucket")
+    assert bucket == mock_storage_client.return_value.bucket.return_value
 
 
 @patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
