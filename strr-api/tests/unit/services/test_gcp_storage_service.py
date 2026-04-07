@@ -32,7 +32,7 @@
 """Tests for GCPStorageService (registration document creation time)."""
 import base64
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -120,6 +120,62 @@ def test_get_bucket_uses_adc_when_key_missing(app, inject_config):
     mock_storage_client.assert_called_once_with(project="bcrbk9-test")
     mock_storage_client.return_value.bucket.assert_called_once_with("test-bucket")
     assert bucket == mock_storage_client.return_value.bucket.return_value
+
+
+@pytest.mark.conf(GCP_CS_BUCKET_ID="registration-bucket")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")
+def test_registration_documents_bucket_uses_configured_bucket(mock_get_bucket, app, inject_config):
+    """registration_documents_bucket uses the configured registration documents bucket."""
+    with app.app_context():
+        bucket = GCPStorageService.registration_documents_bucket()
+
+    mock_get_bucket.assert_called_once_with("registration-bucket")
+    assert bucket == mock_get_bucket.return_value
+
+
+@patch("strr_api.services.gcp_storage_service.uuid.uuid4", return_value="file-key")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
+def test_registration_document_blob_operations_succeed(mock_bucket, mock_uuid):
+    """Registration document upload, delete, and fetch delegate to the bucket blob."""
+    mock_blob = MagicMock()
+    mock_blob.download_as_bytes.return_value = b"file contents"
+    mock_bucket.return_value.blob.return_value = mock_blob
+
+    upload_key = GCPStorageService.upload_registration_document("application/pdf", b"file contents")
+    GCPStorageService.delete_registration_document("file-key")
+    contents = GCPStorageService.fetch_registration_document("file-key")
+
+    assert upload_key == "file-key"
+    assert contents == b"file contents"
+    mock_uuid.assert_called_once()
+    mock_bucket.return_value.blob.assert_any_call("file-key")
+    mock_blob.upload_from_string.assert_called_once_with(data=b"file contents", content_type="application/pdf")
+    mock_blob.delete.assert_called_once()
+    mock_blob.download_as_bytes.assert_called_once()
+
+
+@patch("strr_api.services.gcp_storage_service.uuid.uuid4", return_value="file-key")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")
+def test_file_upload_and_presigned_url_succeed(mock_get_bucket, mock_uuid):
+    """Generic file upload and presigned URL generation use the target bucket."""
+    mock_blob = MagicMock()
+    mock_blob.generate_signed_url.return_value = "https://signed-url"
+    mock_get_bucket.return_value.blob.return_value = mock_blob
+
+    upload_key = GCPStorageService.upload_file("text/csv", b"file contents", "target-bucket")
+    url = GCPStorageService.get_presigned_url("target-bucket", "file-key", 10)
+
+    assert upload_key == "file-key"
+    assert url == "https://signed-url"
+    mock_uuid.assert_called_once()
+    mock_get_bucket.assert_any_call("target-bucket")
+    mock_get_bucket.return_value.blob.assert_any_call("file-key")
+    mock_blob.upload_from_string.assert_called_once_with(data=b"file contents", content_type="text/csv")
+    mock_blob.generate_signed_url.assert_called_once_with(
+        version="v4",
+        expiration=timedelta(minutes=10),
+        method="GET",
+    )
 
 
 @patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
