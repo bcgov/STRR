@@ -45,9 +45,11 @@ from dotenv import load_dotenv
 from gcp_queue.gcp_queue import GcpQueue
 
 from strr_api import create_app
+from strr_api.enums.enum import ChannelType
 from strr_api.models import Application, Registration, User
 from strr_api.services import ApplicationService
 from strr_api.services.email_service import EmailService
+from strr_api.services.interaction import EmailInfo
 
 HOST_REGISTRATION_JSON = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
@@ -150,3 +152,83 @@ def test_email_queue_publish(app, mock_publisher_client, mock_credentials, regis
 
     # set back to original topic
     app.config["GCP_EMAIL_TOPIC"] = orig_topic
+
+
+@patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue")
+@patch("strr_api.services.InteractionService.queued", return_value="queued-uuid")
+def test_send_renewal_reminder_passes_job_key_to_queue(
+    mock_queued,
+    mock_publish,
+    app,
+):
+    """Renewal reminders should keep the job key on the queued interaction and queue message."""
+    original_topic = app.config["GCP_EMAIL_TOPIC"]
+    app.config["GCP_EMAIL_TOPIC"] = "test-topic"
+    registration = MagicMock(
+        id=123,
+        registration_number="H1234567",
+        registration_type=Registration.RegistrationType.HOST,
+    )
+    job_key = "2026:RENEWAL_REMINDER:40"
+
+    try:
+        with app.app_context():
+            EmailService.send_renewal_reminder_for_registration(
+                registration=registration,
+                interaction=job_key,
+            )
+    finally:
+        app.config["GCP_EMAIL_TOPIC"] = original_topic
+
+    mock_queued.assert_called_once()
+    queued_kwargs = mock_queued.call_args.kwargs
+    assert queued_kwargs["channel_type"] == ChannelType.EMAIL
+    assert queued_kwargs["idempotency_key"] == job_key
+    assert queued_kwargs["registration_id"] == registration.id
+    assert isinstance(queued_kwargs["payload"], EmailInfo)
+    assert queued_kwargs["payload"].email_type == "HOST_RENEWAL_REMINDER"
+    assert queued_kwargs["payload"].registration_number == registration.registration_number
+    assert queued_kwargs["payload"].interaction == job_key
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+    assert queue_message.topic == "test-topic"
+    assert queue_message.payload["registrationNumber"] == registration.registration_number
+    assert queue_message.payload["emailType"] == "HOST_RENEWAL_REMINDER"
+    assert queue_message.payload["interaction"] == job_key
+    assert queue_message.payload["interaction_uuid"] == "queued-uuid"
+
+
+@patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue", side_effect=RuntimeError("boom"))
+@patch("strr_api.services.email_service.CustomerInteraction.find_by_uuid")
+@patch("strr_api.services.InteractionService.queued", return_value="queued-uuid")
+def test_send_renewal_reminder_removes_orphaned_queue_record(
+    mock_queued,
+    mock_find_by_uuid,
+    mock_publish,
+    app,
+):
+    """A failed queue publish should not leave a queued checkpoint behind."""
+    original_topic = app.config["GCP_EMAIL_TOPIC"]
+    app.config["GCP_EMAIL_TOPIC"] = "test-topic"
+    registration = MagicMock(
+        id=123,
+        registration_number="H1234567",
+        registration_type=Registration.RegistrationType.HOST,
+    )
+    queued_interaction = MagicMock()
+    mock_find_by_uuid.return_value = queued_interaction
+
+    try:
+        with app.app_context():
+            EmailService.send_renewal_reminder_for_registration(
+                registration=registration,
+                interaction="2026:RENEWAL_REMINDER:40",
+            )
+    finally:
+        app.config["GCP_EMAIL_TOPIC"] = original_topic
+
+    mock_queued.assert_called_once()
+    mock_publish.assert_called_once()
+    mock_find_by_uuid.assert_called_once_with("queued-uuid")
+    queued_interaction.delete.assert_called_once()

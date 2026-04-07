@@ -38,7 +38,7 @@ from typing import TYPE_CHECKING, Optional
 from flask import current_app
 
 from strr_api.enums.enum import ChannelType, RegistrationStatus
-from strr_api.models import Application, Registration
+from strr_api.models import Application, CustomerInteraction, Registration
 from strr_api.services import gcp_queue_publisher
 
 # from strr_api.services import InteractionService
@@ -150,7 +150,9 @@ class EmailService:
                         message_type=EMAIL_TYPE,
                         payload={
                             "registrationNumber": registration.registration_number,
-                            "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
+                            "emailType": (
+                                f"{registration.registration_type.value}_REGISTRATION_{registration.status.name}"
+                            ),
                             "customContent": email_content,
                             "interaction": interaction,
                         },
@@ -176,14 +178,32 @@ class EmailService:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
 
     @staticmethod
-    def send_renewal_reminder_for_registration(registration: Registration):
+    def send_renewal_reminder_for_registration(
+        registration: Registration,
+        interaction: Optional[str] = None,
+    ):
         """Send renewal reminder for the registration."""
         # TODO: fix circular import issue
         from strr_api.services import InteractionService
+        from strr_api.services.interaction import EmailInfo
 
-        email_type = "RENEWAL_REMINDER"
-        email_type = f"{registration.registration_type}_{email_type}"
-        interaction_uuid = InteractionService.queued(channel_type=ChannelType.EMAIL, registration_id=registration.id)
+        email_type = f"{registration.registration_type.value}_RENEWAL_REMINDER"
+        topic = current_app.config.get("GCP_EMAIL_TOPIC")
+        if topic is None:
+            logger.info("Skipping renewal reminder queue message because the topic is not set.")
+            return
+
+        email_info = EmailInfo(
+            email_type=email_type,
+            registration_number=registration.registration_number,
+            interaction=interaction,
+        )
+        interaction_uuid = InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=email_info,
+            idempotency_key=interaction,
+            registration_id=registration.id,
+        )
         try:
             gcp_queue_publisher.publish_to_queue(
                 gcp_queue_publisher.QueueMessage(
@@ -192,10 +212,13 @@ class EmailService:
                     payload={
                         "registrationNumber": registration.registration_number,
                         "emailType": email_type,
+                        "interaction": interaction,
                         "interaction_uuid": interaction_uuid,
                     },
-                    topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+                    topic=topic,
                 )
             )
         except Exception as err:
+            if queued_interaction := CustomerInteraction.find_by_uuid(interaction_uuid):
+                queued_interaction.delete()
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))

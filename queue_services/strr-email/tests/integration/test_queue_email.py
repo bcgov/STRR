@@ -274,7 +274,7 @@ def test_email_mocked_notify(
     EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
 )
 @responses.activate
-def test_registration_email_bad_request_is_acknowledged(
+def test_registration_email_bad_request_is_retried(
     app,
     client,
     session,
@@ -283,7 +283,7 @@ def test_registration_email_bad_request_is_acknowledged(
     setup_parents,
     inject_config,
 ):
-    """Bad request responses should be acknowledged so they do not poison the queue."""
+    """Bad request responses should stay on the retry/DLQ path."""
     responses.add(
         responses.POST,
         app.config.get("KEYCLOAK_AUTH_TOKEN_URL"),
@@ -310,7 +310,7 @@ def test_registration_email_bad_request_is_acknowledged(
 
     response = client.post("/", json=envelope)
 
-    assert response.status_code == HTTPStatus.OK
+    assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.get_json() == {"message": "Error posting email to notify-api."}
     assert session.scalars(select(CustomerInteraction)).all() == []
 
@@ -363,13 +363,13 @@ def test_registration_email_server_error_is_retried(
 
 
 @pytest.mark.conf(
-    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
-    NOTIFY_SVC_URL="http://my-notify-mock",
+    KEYCLOAK_AUTH_TOKEN_URL="https://my-auth-url",
+    NOTIFY_SVC_URL="https://my-notify-mock",
     NOTIFY_API_TIMEOUT=30,
     EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
 )
 @responses.activate
-def test_renewal_email_bad_request_is_acknowledged(
+def test_renewal_email_bad_request_is_retried(
     app,
     client,
     session,
@@ -378,7 +378,7 @@ def test_renewal_email_bad_request_is_acknowledged(
     setup_parents,
     inject_config,
 ):
-    """Renewal emails should also acknowledge permanent notify failures."""
+    """Renewal email failures should stay on the retry/DLQ path."""
     responses.add(
         responses.POST,
         app.config.get("KEYCLOAK_AUTH_TOKEN_URL"),
@@ -414,7 +414,7 @@ def test_renewal_email_bad_request_is_acknowledged(
 
     response = client.post("/", json=envelope)
 
-    assert response.status_code == HTTPStatus.OK
+    assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.get_json() == {"message": "Error posting email to notify-api."}
     stored = session.scalar(
         select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == interaction_uuid)

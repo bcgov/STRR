@@ -216,8 +216,9 @@ def worker():
         except ExternalServiceException as err:
             if _is_retryable_status(err.status_code):
                 logger.exception(f"Retryable error posting email to notify-api for: {str(ce)}")
-                return jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}), err.status_code
-            return _acknowledge_invalid_message(NOTIFY_POST_ERROR_MESSAGE, ce)
+            else:
+                logger.error(f"Permanent error posting email to notify-api for: {str(ce)}")
+            return jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}), err.status_code
         except Exception:
             logger.exception(f"Unexpected error posting email to notify-api for: {str(ce)}")
             return (
@@ -254,8 +255,9 @@ def worker():
         logger.info(f"Error {resp.status_code} - {_get_response_payload(resp)}")
         if _is_retryable_status(resp.status_code):
             logger.error(f"Retryable error posting email to notify-api for: {str(ce)}")
-            return jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}), resp.status_code
-        return _acknowledge_invalid_message(NOTIFY_POST_ERROR_MESSAGE, ce)
+        else:
+            logger.error(f"Permanent error posting email to notify-api for: {str(ce)}")
+        return jsonify({"message": NOTIFY_POST_ERROR_MESSAGE}), resp.status_code
 
     logger.info(f"completed ce: {str(ce)}")
     return {}, HTTPStatus.OK
