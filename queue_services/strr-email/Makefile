@@ -1,5 +1,6 @@
 .PHONY: lint
 .PHONY: build
+.PHONY: test
 
 MKFILE_PATH:=$(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_ABS_DIR:=$(patsubst %/,%,$(dir $(MKFILE_PATH)))

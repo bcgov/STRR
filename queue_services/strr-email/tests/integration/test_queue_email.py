@@ -12,10 +12,6 @@ from sqlalchemy import select
 from strr_api.enums.enum import ChannelType
 from strr_api.enums.enum import InteractionStatus
 from strr_api.enums.enum import PropertyType
-from strr_api.enums.enum import RegistrationNocStatus
-from strr_api.enums.enum import RegistrationStatus
-from strr_api.enums.enum import StrataHotelCategory
-from strr_api.enums.enum import StrrRequirement
 from strr_api.models import Address
 from strr_api.models import Contact
 from strr_api.models import CustomerInteraction
