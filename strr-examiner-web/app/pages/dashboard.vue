@@ -265,8 +265,12 @@ const getRegistrationNocStatusDisplay = (nocStatus: RegistrationNocStatus | unde
   return t(`registrationNocStatus.${nocStatus}`)
 }
 
+/** Newest application first (matches API RegistrationSerializer application_date desc). */
+const getLatestRegistrationApplication = (reg: HousRegistrationResponse) =>
+  reg.header?.applications?.[0]
+
 const getLatestRegistrationApplicationStatus = (reg: HousRegistrationResponse): ApplicationStatus | undefined => {
-  return reg.header?.applications?.[0]?.applicationStatus as ApplicationStatus | undefined
+  return getLatestRegistrationApplication(reg)?.applicationStatus as ApplicationStatus | undefined
 }
 
 const getRequirementsColumn = (app: HousApplicationResponse) => {
@@ -309,28 +313,18 @@ const isReviewRenew = (reg: HousRegistrationResponse): boolean => {
 }
 
 /**
- * Statuses where the renewal no longer needs examiner action (badge hidden).
+ * Show the "Renewal" badge when the latest application is a provisionally approved renewal
+ * and no registration-level decision has been recorded yet.
  */
-const RENEWAL_BADGE_HIDDEN_STATUSES = new Set<ApplicationStatus>([
-  ApplicationStatus.FULL_REVIEW_APPROVED,
-  ApplicationStatus.DECLINED,
-  ApplicationStatus.PROVISIONALLY_DECLINED,
-  ApplicationStatus.AUTO_APPROVED
-])
-
-/**
- * Show the "Renewal" badge when any renewal on this registration still needs examiner action.
- */
-function shouldShowRenewalBadge (reg: HousRegistrationResponse): boolean {
-  const apps = reg.header?.applications ?? []
-  const renewals = apps.filter(a => a.applicationType === 'renewal')
-  return renewals.some((r) => {
-    const status = r.applicationStatus as ApplicationStatus | undefined
-    if (!status) {
-      return false
-    }
-    return !RENEWAL_BADGE_HIDDEN_STATUSES.has(status)
-  })
+const shouldShowRenewalBadge = (reg: HousRegistrationResponse): boolean => {
+  const latest = getLatestRegistrationApplication(reg)
+  if (!latest || latest.applicationType !== 'renewal') {
+    return false
+  }
+  if (latest.applicationStatus !== ApplicationStatus.PROVISIONALLY_APPROVED) {
+    return false
+  }
+  return !reg.header?.decider?.username
 }
 
 const getRegistrationSubStatus = (reg: HousRegistrationResponse): string => {
