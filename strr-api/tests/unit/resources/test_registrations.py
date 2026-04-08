@@ -2544,6 +2544,8 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
             registration_type=application.registration_type,
             status=Application.Status.PROVISIONALLY_APPROVED,
             registration_id=registration.id,
+            reviewer_id=application.reviewer_id,
+            decider_id=None,
             application_date=application.application_date + timedelta(seconds=1),
         )
         session.add(renewal_app)
@@ -2573,6 +2575,34 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
         assert (
             found
         ), "Registration with most recent app PROVISIONALLY_APPROVED should match PROVISIONALLY_APPROVED filter"
+
+        # examinerReviewed=false should include this registration because latest app has no decider
+        rv = client.get(
+            (
+                f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED"
+                f"&examinerReviewed=false&status={RegistrationStatus.ACTIVE.value}"
+            ),
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert found, "Provisional record without decider should match examinerReviewed=false filter"
+
+        # examinerReviewed=true should exclude this registration (latest app has no decider)
+        rv = client.get(
+            (
+                f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED"
+                f"&examinerReviewed=true&status={RegistrationStatus.ACTIVE.value}"
+            ),
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert (
+            not found
+        ), "Provisional record without decider should not match examinerReviewed=true filter"
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -2733,6 +2763,58 @@ def test_search_registrations_review_renew_excludes_renewal_fully_approved(mock_
         session.commit()
 
         # reviewRenew=true should NOT return this registration (renewal is fully approved)
+        rv = client.get(
+            f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 0
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_review_renew_excludes_latest_reviewed_renewal(mock_create_invoice, session, client, jwt):
+    """Test that reviewRenew=true excludes registrations when latest renewal already has a decider."""
+    from nanoid import generate
+
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+        registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
+
+        session.refresh(application)
+        renewal_app = Application(
+            application_json=application.application_json,
+            application_number=generate(alphabet="0123456789", size=14),
+            type=ApplicationType.RENEWAL.value,
+            registration_type=application.registration_type,
+            status=Application.Status.PROVISIONALLY_APPROVED.value,
+            registration_id=registration.id,
+            decider_id=application.decider_id,
+            application_date=application.application_date + timedelta(seconds=1),
+        )
+        session.add(renewal_app)
+        session.commit()
+
         rv = client.get(
             f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
             headers=staff_headers,

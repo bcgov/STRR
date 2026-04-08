@@ -273,6 +273,12 @@ const getLatestRegistrationApplicationStatus = (reg: HousRegistrationResponse): 
   return getLatestRegistrationApplication(reg)?.applicationStatus as ApplicationStatus | undefined
 }
 
+const hasExaminerReview = (reg: HousRegistrationResponse): boolean => {
+  const latestApplication = reg.header?.applications?.[0]
+  const decider = latestApplication?.decider ?? reg.header?.decider
+  return Boolean(decider?.username || decider?.displayName)
+}
+
 const getRequirementsColumn = (app: HousApplicationResponse) => {
   let result = ''
   let listingSize = ''
@@ -302,14 +308,19 @@ const REVIEW_RENEW_STATUSES = new Set<ApplicationStatus>([
   ApplicationStatus.PROVISIONAL_REVIEW
 ])
 
-const isReviewRenew = (reg: HousRegistrationResponse): boolean => {
+const getLatestRenewalApplication = (reg: HousRegistrationResponse) => {
   const applications = reg.header?.applications ?? []
-  return applications.some(
-    app =>
-      app.applicationType === 'renewal' &&
-      app.applicationStatus &&
-      REVIEW_RENEW_STATUSES.has(app.applicationStatus as ApplicationStatus)
-  )
+  return applications.find(app => app.applicationType === 'renewal')
+}
+
+const isReviewRenew = (reg: HousRegistrationResponse): boolean => {
+  const latestRenewal = getLatestRenewalApplication(reg)
+  if (!latestRenewal?.applicationStatus) {
+    return false
+  }
+
+  const hasRenewalDecider = Boolean(latestRenewal.decider?.username || latestRenewal.decider?.displayName)
+  return REVIEW_RENEW_STATUSES.has(latestRenewal.applicationStatus as ApplicationStatus) && !hasRenewalDecider
 }
 
 /**
@@ -337,6 +348,12 @@ const getRegistrationSubStatus = (reg: HousRegistrationResponse): string => {
   if (reg.nocStatus === RegistrationNocStatus.NOC_EXPIRED) {
     return 'NOC - Expired'
   }
+  if (reg.status === RegistrationStatus.CANCELLED) {
+    return 'Cancelled'
+  }
+  if (reg.status === RegistrationStatus.SUSPENDED) {
+    return 'Suspended'
+  }
   if (isReviewRenew(reg)) {
     return 'Review Renew'
   }
@@ -346,7 +363,7 @@ const getRegistrationSubStatus = (reg: HousRegistrationResponse): string => {
     latestAppStatus === ApplicationStatus.PROVISIONALLY_APPROVED ||
     latestAppStatus === ApplicationStatus.PROVISIONAL_REVIEW
   ) {
-    return 'Review'
+    return hasExaminerReview(reg) ? 'Approved' : 'Review'
   }
   if (
     latestAppStatus === ApplicationStatus.AUTO_APPROVED ||

@@ -1023,6 +1023,10 @@ def search_registrations():
           enum: [FULL_REVIEW_APPROVED, AUTO_APPROVED, PROVISIONALLY_APPROVED]
         description: Approval method filter. Can provide multiple values.
       - in: query
+        name: examinerReviewed
+        type: boolean
+        description: When provided with approvalMethod, filter provisional approval records by whether an examiner has reviewed the latest application.
+      - in: query
         name: nocStatus
         type: array
         items:
@@ -1040,7 +1044,7 @@ def search_registrations():
       - in: query
         name: reviewRenew
         type: boolean
-        description: When true, only return registrations that have a renewal application that is not fully approved (FULL_REVIEW, PROVISIONAL_REVIEW, PROVISIONALLY_APPROVED).
+        description: When true, only return registrations where the latest renewal application is in review/provisional status (FULL_REVIEW, PROVISIONAL_REVIEW, PROVISIONALLY_APPROVED) and has no decider.
     responses:
       200:
         description:
@@ -1061,6 +1065,8 @@ def search_registrations():
         assignee = request.args.get("assignee", None)
         requirements = request.args.getlist("requirement") or None
         approval_methods = request.args.getlist("approvalMethod") or None
+        examiner_reviewed_param = request.args.get("examinerReviewed", None)
+        examiner_reviewed = examiner_reviewed_param.lower() == "true" if examiner_reviewed_param else None
         noc_statuses = request.args.getlist("nocStatus") or None
         is_set_aside_param = request.args.get("isSetAside", None)
         is_set_aside = is_set_aside_param.lower() == "true" if is_set_aside_param else None
@@ -1086,6 +1092,7 @@ def search_registrations():
             assignee=assignee,
             requirements=requirements,
             approval_methods=approval_methods,
+            examiner_reviewed=examiner_reviewed,
             noc_statuses=noc_statuses,
             is_set_aside=is_set_aside,
             local_gov=local_gov,

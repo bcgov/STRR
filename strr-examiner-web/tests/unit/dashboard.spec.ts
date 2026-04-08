@@ -12,6 +12,7 @@ import Dashboard from '~/pages/dashboard.vue'
 import {
   ApplicationStatus,
   ApplicationType,
+  RegistrationStatus,
   PrExemptionReason,
   StrataHotelCategory
 } from '#imports'
@@ -691,6 +692,121 @@ describe('Examiner Dashboard Page', () => {
         }
       }
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
+  })
+
+  describe('getRegistrationSubStatus', () => {
+    it('shows Review for provisional status when there is no examiner review', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          assignee: {},
+          decider: {},
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Review')
+    })
+
+    it('shows Review for provisional status when only assignee exists', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          assignee: { username: 'examiner1' },
+          decider: {},
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED,
+              assignee: { username: 'examiner1' },
+              decider: {}
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Review')
+    })
+
+    it('shows Approved for provisional status when an examiner reviewed the file', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          decider: { username: 'examiner1' },
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Approved')
+    })
+
+    it('shows Cancelled when registration is cancelled, even if latest application is review', () => {
+      const reg = {
+        ...mockHostRegistration,
+        status: RegistrationStatus.CANCELLED,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Cancelled')
+    })
+
+    it('shows Suspended when registration is suspended, even if renewal review exists', () => {
+      const reg = {
+        ...mockHostRegistration,
+        status: RegistrationStatus.SUSPENDED,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.FULL_REVIEW
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Suspended')
+    })
+
+    it('shows Approved instead of Review Renew when latest renewal has a decider', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED,
+              decider: { username: 'examiner1' }
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Approved')
     })
   })
 
