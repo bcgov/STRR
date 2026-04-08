@@ -2576,7 +2576,8 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
             found
         ), "Registration with most recent app PROVISIONALLY_APPROVED should match PROVISIONALLY_APPROVED filter"
 
-        # examinerReviewed=false should include this registration because latest app has no decider
+        # examinerReviewed=false should NOT include this registration because the
+        # registration level decider fallback marks it as reviewed.
         rv = client.get(
             (
                 f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED"
@@ -2587,9 +2588,10 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
         assert rv.status_code == HTTPStatus.OK
         registrations = rv.json
         found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
-        assert found, "Provisional record without decider should match examinerReviewed=false filter"
+        assert not found, "Record should not match examinerReviewed=false when registration decider fallback is present"
 
-        # examinerReviewed=true should exclude this registration (latest app has no decider)
+        # examinerReviewed=true should include this registration due registration
+        # decider fallback even though latest app decider is null.
         rv = client.get(
             (
                 f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED"
@@ -2600,9 +2602,7 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
         assert rv.status_code == HTTPStatus.OK
         registrations = rv.json
         found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
-        assert (
-            not found
-        ), "Provisional record without decider should not match examinerReviewed=true filter"
+        assert found, "Record should match examinerReviewed=true due registration level decider fallback"
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

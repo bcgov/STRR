@@ -693,7 +693,6 @@ describe('Examiner Dashboard Page', () => {
       }
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
     })
-
   })
 
   describe('getRegistrationSubStatus', () => {
