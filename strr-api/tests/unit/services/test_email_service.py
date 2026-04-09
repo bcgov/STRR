@@ -43,9 +43,11 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 from dotenv import load_dotenv
 from gcp_queue.gcp_queue import GcpQueue
+from sqlalchemy import select
 
 from strr_api import create_app
-from strr_api.models import Application, Registration, User
+from strr_api.enums.enum import InteractionStatus
+from strr_api.models import Application, CustomerInteraction, Registration, User
 from strr_api.services import ApplicationService
 from strr_api.services.email_service import EmailService
 
@@ -150,3 +152,31 @@ def test_email_queue_publish(app, mock_publisher_client, mock_credentials, regis
 
     # set back to original topic
     app.config["GCP_EMAIL_TOPIC"] = orig_topic
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_renewal_reminder_queues_interaction_and_publishes_payload(session, setup_parents, inject_config):
+    """Test that renewal reminders preserve the queued interaction key in the event."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+    job_key = "2026:RENEWAL_REMINDER:40"
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_renewal_reminder_for_registration(registration=registration, interaction=job_key)
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+    payload = queue_message.payload
+
+    assert queue_message.topic == "test"
+    assert payload["registrationNumber"] == registration.registration_number
+    assert payload["emailType"] == "HOST_RENEWAL_REMINDER"
+    assert payload["interaction"] == job_key
+    assert payload["interaction_uuid"]
+
+    stored = session.scalar(
+        select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == payload["interaction_uuid"])
+    )
+
+    assert stored.registration_id == registration.id
+    assert stored.idempotency_key == job_key
+    assert stored.status == InteractionStatus.QUEUED

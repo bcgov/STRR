@@ -176,14 +176,25 @@ class EmailService:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
 
     @staticmethod
-    def send_renewal_reminder_for_registration(registration: Registration):
+    def send_renewal_reminder_for_registration(registration: Registration, interaction: str | None = None):
         """Send renewal reminder for the registration."""
         # TODO: fix circular import issue
         from strr_api.services import InteractionService
+        from strr_api.services.interaction import EmailInfo
 
-        email_type = "RENEWAL_REMINDER"
-        email_type = f"{registration.registration_type}_{email_type}"
-        interaction_uuid = InteractionService.queued(channel_type=ChannelType.EMAIL, registration_id=registration.id)
+        registration_type = getattr(registration.registration_type, "value", registration.registration_type)
+        email_type = f"{registration_type}_RENEWAL_REMINDER"
+        email_info = EmailInfo(
+            email_type=email_type,
+            registration_number=registration.registration_number,
+            interaction=interaction,
+        )
+        interaction_uuid = InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=email_info,
+            registration_id=registration.id,
+            idempotency_key=interaction,
+        )
         try:
             gcp_queue_publisher.publish_to_queue(
                 gcp_queue_publisher.QueueMessage(
@@ -192,6 +203,7 @@ class EmailService:
                     payload={
                         "registrationNumber": registration.registration_number,
                         "emailType": email_type,
+                        "interaction": interaction,
                         "interaction_uuid": interaction_uuid,
                     },
                     topic=current_app.config.get("GCP_EMAIL_TOPIC"),
