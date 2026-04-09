@@ -180,3 +180,27 @@ def test_send_renewal_reminder_queues_interaction_and_publishes_payload(session,
     assert stored.registration_id == registration.id
     assert stored.idempotency_key == job_key
     assert stored.status == InteractionStatus.QUEUED
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_renewal_reminder_logs_publish_failure(session, setup_parents, inject_config):
+    """Test that renewal reminder publish failures are logged without changing queued tracking."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+    job_key = "2026:RENEWAL_REMINDER:41"
+
+    with (
+        patch(
+            "strr_api.services.email_service.gcp_queue_publisher.publish_to_queue",
+            side_effect=RuntimeError("publish failed"),
+        ),
+        patch("strr_api.services.email_service.logger.error") as mock_logger,
+    ):
+        EmailService.send_renewal_reminder_for_registration(registration=registration, interaction=job_key)
+
+    stored = session.scalar(select(CustomerInteraction).where(CustomerInteraction.idempotency_key == job_key))
+
+    assert stored.registration_id == registration.id
+    assert stored.status == InteractionStatus.QUEUED
+    mock_logger.assert_called_once()
+    assert mock_logger.call_args.args[0] == "Failed to publish email notification: %s"
+    assert str(mock_logger.call_args.args[1]) == "publish failed"
