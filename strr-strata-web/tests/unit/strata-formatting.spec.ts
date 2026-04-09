@@ -104,12 +104,9 @@ describe('Strata Formatting utils', () => {
   })
 
   it('formatBusinessDetailsUI: handle missing registered office details gracefully', () => {
-    const input = {
-      ...mockBusinessDetails
-    } as any
-    delete input.registeredOfficeOrAttorneyForServiceDetails
+    delete (mockBusinessDetails as any).registeredOfficeOrAttorneyForServiceDetails
 
-    const result = formatBusinessDetailsUI(input as ApiBusinessDetails)
+    const result = formatBusinessDetailsUI(mockBusinessDetails as ApiBusinessDetails)
 
     expect(result.hasRegOffAtt).toBe(false)
     expect(result.regOfficeOrAtt.attorneyName).toBe('')
