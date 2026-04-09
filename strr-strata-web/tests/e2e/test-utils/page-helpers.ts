@@ -114,16 +114,6 @@ export async function completeStep2 (
   await page.getByTestId('mailingAddress.postalCode').fill(businessDetails.mailingAddress.postalCode)
   await page.getByTestId('address-location-description').fill(businessDetails.mailingAddress.locationDescription)
 
-  // check yes for attourney info
-  await page.getByTestId('strata-business-hasRegOffAtt').getByText('Yes').check()
-  await page.getByTestId('strata-att-for-svc-name').fill(businessDetails.regOfficeOrAtt.attorneyName)
-  await page.getByTestId('strata-registered-office-address-street')
-    .fill(businessDetails.regOfficeOrAtt.mailingAddress.street)
-  await page.getByTestId('regOfficeOrAtt.mailingAddress.city')
-    .fill(businessDetails.regOfficeOrAtt.mailingAddress.city)
-  await page.getByTestId('regOfficeOrAtt.mailingAddress.postalCode')
-    .fill(businessDetails.regOfficeOrAtt.mailingAddress.postalCode)
-
   // finalize step 2
   page.getByRole('button', { name: i18nText.strr.step.description[2], exact: true }).click()
   await expect(getH2(page)).toContainText(i18nText.strr.step.title[2])
@@ -216,9 +206,6 @@ export async function completeStep4 (
   await expect(businessInfoSection).toContainText(businessDetails.businessNumber)
   await expect(businessInfoSection).toContainText(businessDetails.mailingAddress.street)
   await expect(businessInfoSection).toContainText(businessDetails.mailingAddress.city)
-  await expect(businessInfoSection).toContainText(businessDetails.regOfficeOrAtt.attorneyName)
-  await expect(businessInfoSection).toContainText(businessDetails.regOfficeOrAtt.mailingAddress.street)
-  await expect(businessInfoSection).toContainText(businessDetails.regOfficeOrAtt.mailingAddress.city)
 
   // strata details section
   const strataDetailsSection = page.locator('section').filter({ hasText: i18nText.strr.section.title.details })
@@ -277,14 +264,6 @@ export const assertDashboardDetailsView = async (
   await expect(regBusSection).toContainText(businessDetails.mailingAddress.postalCode)
   await expect(regBusSection).toContainText(businessDetails.homeJurisdiction)
   await expect(regBusSection).toContainText(businessDetails.businessNumber)
-
-  // Registered Office or Attorney for Service section
-  const regOfficeOrAttSection = page.locator('section').filter(
-    { hasText: 'Registered Office or Attorney for Service' }
-  )
-  await expect(regOfficeOrAttSection).toContainText(businessDetails.regOfficeOrAtt.attorneyName)
-  await expect(regOfficeOrAttSection).toContainText(businessDetails.regOfficeOrAtt.mailingAddress.street)
-  await expect(regOfficeOrAttSection).toContainText(businessDetails.regOfficeOrAtt.mailingAddress.postalCode)
 
   // docs section
   const docsSection = page.locator('section').filter({ hasText: 'Supporting Documentation' })

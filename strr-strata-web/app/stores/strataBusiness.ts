@@ -2,9 +2,16 @@ export const useStrrStrataBusinessStore = defineStore('strr/strataBusiness', () 
   const {
     strrBusiness: strataBusiness,
     isMailingInBC,
-    getBaseBusinessSchema: getBusinessSchema,
+    getBaseBusinessSchema,
     getEmptyBusiness
   } = useStrrBaseBusiness<StrrBusiness>()
+
+  const getBusinessSchema = () => {
+    return getBaseBusinessSchema().omit({
+      hasRegOffAtt: true,
+      regOfficeOrAtt: true
+    })
+  }
 
   const validateStrataBusiness = (returnBool = false): MultiFormValidationResult | boolean => {
     const schema = getBusinessSchema()
