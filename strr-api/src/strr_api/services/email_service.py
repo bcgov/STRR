@@ -74,7 +74,7 @@ class EmailService:
             try:
                 payload_data = {
                     "applicationNumber": application.application_number,
-                    "emailType": f"{application.registration_type.value}_{application.status}",
+                    "emailType": f"{application.registration_type.value}_{application.status.name}",
                 }
                 if custom_content and application.status in [
                     Application.Status.PROVISIONALLY_DECLINED,
