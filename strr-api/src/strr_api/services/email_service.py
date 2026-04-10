@@ -72,9 +72,11 @@ class EmailService:
         Assumes the application.status has been changed."""
         if application.status in APPLICATION_EMAIL_STATES.get(application.registration_type, []):
             try:
+                registration_type = getattr(application.registration_type, "value", application.registration_type)
+                application_status = getattr(application.status, "name", application.status)
                 payload_data = {
                     "applicationNumber": application.application_number,
-                    "emailType": f"{application.registration_type.value}_{application.status.name}",
+                    "emailType": f"{registration_type}_{application_status}",
                 }
                 if custom_content and application.status in [
                     Application.Status.PROVISIONALLY_DECLINED,
