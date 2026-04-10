@@ -204,3 +204,52 @@ def test_send_renewal_reminder_logs_publish_failure(session, setup_parents, inje
     mock_logger.assert_called_once()
     assert mock_logger.call_args.args[0] == "Failed to publish email notification: %s"
     assert str(mock_logger.call_args.args[1]) == "publish failed"
+
+
+@pytest.mark.parametrize(
+    ("status", "expected_email_type"),
+    [
+        (Application.Status.PROVISIONAL_REVIEW_NOC_PENDING, "PROVISIONAL_REVIEW_NOC"),
+        (Application.Status.AUTO_APPROVED, "NOC"),
+    ],
+)
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_notice_of_consideration_for_application_publishes_payload(
+    app, status, expected_email_type, inject_config
+):
+    """Test that application notice-of-consideration emails publish the expected payload."""
+    application = Application()
+    application.application_number = "A-123456"
+    application.status = status
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_notice_of_consideration_for_application(application)
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "applicationNumber": "A-123456",
+        "emailType": expected_email_type,
+    }
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_set_aside_email_publishes_payload(app, inject_config):
+    """Test that set-aside emails publish the expected payload."""
+    application = Application()
+    application.application_number = "A-654321"
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_set_aside_email(application, email_content="set aside body")
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "applicationNumber": "A-654321",
+        "emailType": "SET_ASIDE",
+        "message": "set aside body",
+    }
