@@ -2793,7 +2793,9 @@ def test_search_registrations_review_renew_excludes_when_latest_status_not_provi
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_review_renew_excludes_registration_with_decider(mock_create_invoice, session, client, jwt):
+def test_search_registrations_review_renew_excludes_registration_with_decider(
+    mock_create_invoice, session, client, jwt
+):
     """Test that reviewRenew=true excludes registrations with a registration-level decider."""
     from nanoid import generate
 
