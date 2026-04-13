@@ -19,7 +19,7 @@ vi.mock('@/stores/examiner', () => ({
     isFilingHistoryOpen: ref(true),
     emailContent: ref({ content: '' }),
     activePaymentTotal: ref(null),
-    activePaymentDate: ref(null),
+    activePaymentDate: ref(null)
   })
 }))
 

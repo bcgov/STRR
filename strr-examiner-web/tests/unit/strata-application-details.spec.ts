@@ -38,7 +38,7 @@ vi.mock('@/stores/examiner', () => ({
     isAssignedToUser,
     emailContent: ref({ content: '' }),
     activePaymentTotal: ref(null),
-    activePaymentDate: ref(null),
+    activePaymentDate: ref(null)
   })
 }))
 
