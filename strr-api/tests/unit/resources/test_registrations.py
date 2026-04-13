@@ -2544,6 +2544,8 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
             registration_type=application.registration_type,
             status=Application.Status.PROVISIONALLY_APPROVED,
             registration_id=registration.id,
+            reviewer_id=application.reviewer_id,
+            decider_id=None,
             application_date=application.application_date + timedelta(seconds=1),
         )
         session.add(renewal_app)
@@ -2574,12 +2576,40 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
             found
         ), "Registration with most recent app PROVISIONALLY_APPROVED should match PROVISIONALLY_APPROVED filter"
 
+        # examinerReviewed=false should NOT include this registration because the
+        # registration-level decider marks it as reviewed.
+        rv = client.get(
+            (
+                f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED"
+                f"&examinerReviewed=false&status={RegistrationStatus.ACTIVE.value}"
+            ),
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert not found, "Record should not match examinerReviewed=false when registration decider is present"
+
+        # examinerReviewed=true should include this registration due registration
+        # decider, even though latest app decider is null.
+        rv = client.get(
+            (
+                f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED"
+                f"&examinerReviewed=true&status={RegistrationStatus.ACTIVE.value}"
+            ),
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert found, "Record should match examinerReviewed=true due registration decider"
+
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_review_renew_includes_registration_with_renewal_not_fully_approved(
+def test_search_registrations_review_renew_includes_registration_with_filed_renewal_and_no_registration_decider(
     mock_create_invoice, session, client, jwt
 ):
-    """Test that reviewRenew=true returns registrations that have a renewal that is not fully approved."""
+    """Test that reviewRenew=true returns registrations with a filed renewal and no decider."""
     from nanoid import generate
 
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
@@ -2606,21 +2636,25 @@ def test_search_registrations_review_renew_includes_registration_with_renewal_no
         registration_number = response_json.get("header").get("registrationNumber")
         registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
 
-        # Add a renewal application that is not fully approved (FULL_REVIEW, PROVISIONAL_REVIEW, PROVISIONALLY_APPROVED)
+        # Clear registration-level decider to simulate backlog requiring examiner review.
+        registration.decider_id = None
+        registration.save()
+
+        # Add a filed renewal application.
         session.refresh(application)
         renewal_app = Application(
             application_json=application.application_json,
             application_number=generate(alphabet="0123456789", size=14),
             type=ApplicationType.RENEWAL.value,
             registration_type=application.registration_type,
-            status=Application.Status.FULL_REVIEW.value,
+            status=Application.Status.PROVISIONALLY_APPROVED.value,
             registration_id=registration.id,
             application_date=application.application_date + timedelta(seconds=1),
         )
         session.add(renewal_app)
         session.commit()
 
-        # reviewRenew=true should return this registration (has renewal that is not fully approved)
+        # reviewRenew=true should return this registration (filed renewal + no decider)
         rv = client.get(
             f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
             headers=staff_headers,
@@ -2630,7 +2664,7 @@ def test_search_registrations_review_renew_includes_registration_with_renewal_no
         assert len(registrations.get("registrations")) == 1
         assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
 
-        # reviewRenew=false should still return it (no filter)
+        # reviewRenew=false behaves as no extra filter (same as omitting reviewRenew).
         rv = client.get(
             f"/registrations/search?reviewRenew=false&recordNumber={registration_number}",
             headers=staff_headers,
@@ -2688,10 +2722,22 @@ def test_search_registrations_review_renew_excludes_registration_without_renewal
         assert len(registrations.get("registrations")) == 1
         assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
 
+        # reviewRenew=false behaves as no extra filter (same as omitting reviewRenew)
+        rv = client.get(
+            f"/registrations/search?reviewRenew=false&recordNumber={registration_number}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 1
+        assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
+
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_search_registrations_review_renew_excludes_renewal_fully_approved(mock_create_invoice, session, client, jwt):
-    """Test that reviewRenew=true excludes registrations whose only renewal is fully approved (e.g. FULL_REVIEW_APPROVED)."""
+def test_search_registrations_review_renew_excludes_when_latest_status_not_provisional_queue(
+    mock_create_invoice, session, client, jwt
+):
+    """Test that reviewRenew=true excludes registrations when latest status is not provisional queue."""
     from nanoid import generate
 
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
@@ -2718,7 +2764,11 @@ def test_search_registrations_review_renew_excludes_renewal_fully_approved(mock_
         registration_number = response_json.get("header").get("registrationNumber")
         registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
 
-        # Add a renewal application that is fully approved (FULL_REVIEW_APPROVED)
+        # Registration is not yet examiner-decided.
+        registration.decider_id = None
+        registration.save()
+
+        # Add a filed renewal application that is fully approved.
         session.refresh(application)
         renewal_app = Application(
             application_json=application.application_json,
@@ -2732,7 +2782,61 @@ def test_search_registrations_review_renew_excludes_renewal_fully_approved(mock_
         session.add(renewal_app)
         session.commit()
 
-        # reviewRenew=true should NOT return this registration (renewal is fully approved)
+        # reviewRenew=true should NOT return this registration because latest status is not provisional queue.
+        rv = client.get(
+            f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 0
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_review_renew_excludes_registration_with_decider(
+    mock_create_invoice, session, client, jwt
+):
+    """Test that reviewRenew=true excludes registrations with a registration-level decider."""
+    from nanoid import generate
+
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+        registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
+
+        session.refresh(application)
+        renewal_app = Application(
+            application_json=application.application_json,
+            application_number=generate(alphabet="0123456789", size=14),
+            type=ApplicationType.RENEWAL.value,
+            registration_type=application.registration_type,
+            status=Application.Status.PROVISIONALLY_APPROVED.value,
+            registration_id=registration.id,
+            decider_id=None,
+            application_date=application.application_date + timedelta(seconds=1),
+        )
+        session.add(renewal_app)
+        session.commit()
+
         rv = client.get(
             f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
             headers=staff_headers,

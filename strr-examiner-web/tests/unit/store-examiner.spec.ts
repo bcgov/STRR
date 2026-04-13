@@ -306,6 +306,23 @@ describe('Store - Examiner', () => {
     }))
   })
 
+  it('should include examinerReviewed=false when filtering by Review sub-status', async () => {
+    const store = useExaminerStore()
+
+    store.tableFilters.subStatus = ['REVIEW'] as any
+    await store.fetchRegistrations()
+
+    expect(mockStrrApi).toHaveBeenCalledWith('/registrations/search', expect.objectContaining({
+      query: expect.objectContaining({
+        approvalMethod: [
+          ApplicationStatus.PROVISIONALLY_APPROVED,
+          ApplicationStatus.PROVISIONAL_REVIEW
+        ],
+        examinerReviewed: false
+      })
+    }))
+  })
+
   it('should include all active table filters in the search query', async () => {
     const store = useExaminerStore()
 

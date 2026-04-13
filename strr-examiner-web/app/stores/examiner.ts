@@ -257,6 +257,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   type RegistrationSubStatusFilters = {
     approvalMethods: string[]
+    examinerReviewed?: boolean
     nocStatuses: string[]
     isSetAside: boolean
     reviewRenew: boolean
@@ -267,12 +268,16 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     const nocStatuses = new Set<string>()
     let isSetAside = false
     let reviewRenew = false
+    let hasReviewSubStatus = false
+    let hasApprovedSubStatus = false
 
     for (const subStatus of subStatuses) {
       if (subStatus === REVIEW_SUB_STATUS) {
+        hasReviewSubStatus = true
         approvalMethods.add(ApplicationStatus.PROVISIONALLY_APPROVED)
         approvalMethods.add(ApplicationStatus.PROVISIONAL_REVIEW)
       } else if (subStatus === APPROVED_SUB_STATUS) {
+        hasApprovedSubStatus = true
         approvalMethods.add(ApplicationStatus.AUTO_APPROVED)
         approvalMethods.add(ApplicationStatus.FULL_REVIEW_APPROVED)
       } else if (NOC_ATTR.has(subStatus)) {
@@ -284,8 +289,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       }
     }
 
+    const examinerReviewed = (hasReviewSubStatus && !hasApprovedSubStatus) ? false : undefined
+
     return {
       approvalMethods: [...approvalMethods],
+      examinerReviewed,
       nocStatuses: [...nocStatuses],
       isSetAside,
       reviewRenew
@@ -309,6 +317,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
     if (mappedSubStatuses.approvalMethods.length > 0) {
       queryParams.approvalMethod = mappedSubStatuses.approvalMethods
+    }
+    if (mappedSubStatuses.examinerReviewed !== undefined) {
+      queryParams.examinerReviewed = mappedSubStatuses.examinerReviewed
     }
     if (mappedSubStatuses.nocStatuses.length > 0) {
       queryParams.nocStatus = mappedSubStatuses.nocStatuses
