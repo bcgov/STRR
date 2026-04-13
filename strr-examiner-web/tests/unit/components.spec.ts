@@ -18,7 +18,9 @@ vi.mock('@/stores/examiner', () => ({
     getApplicationFilingHistory: vi.fn().mockResolvedValue(mockApplicationFilingHistory),
     getRegistrationFilingHistory: vi.fn().mockResolvedValue(mockRegistrationFilingHistory),
     isFilingHistoryOpen: ref(true),
-    resetEditRentalUnitAddress: vi.fn()
+    resetEditRentalUnitAddress: vi.fn(),
+    activePaymentTotal: ref(150),
+    activePaymentDate: ref('2026-01-15T10:00:00')
   })
 }))
 
@@ -65,6 +67,8 @@ describe('ApplicationInfoHeader Component', () => {
     expect(appInfoHeaderWrapper.find('[data-testid="application-set-aside-badge"]').exists()).toBe(true)
     expect(appInfoHeaderWrapper.text()).toContain('Host')
     expect(appInfoHeaderWrapper.text()).toContain(mockHostApplication.header.assignee?.username)
+    expect(appInfoHeaderWrapper.text()).toContain('$150.00')
+    expect(appInfoHeaderWrapper.text()).toContain('2026-01-15')
   })
 })
 

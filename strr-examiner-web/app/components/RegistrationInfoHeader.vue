@@ -145,7 +145,7 @@ const registrationCountdown = computed(() => {
           />
           <strong>{{ t('strr.label.registrationDate') }}</strong>
           {{ dateToString(activeReg.startDate, 'y-MM-dd', true) }} |
-          <strong>{{ t('strr.label.submittedDate') }}</strong>
+          <strong>{{ t('strr.label.draftCreationDate') }}</strong>
           {{ dateToString(activeHeader?.applicationDateTime, 'y-MM-dd', true) }} |
           <span
             v-if="activeReg.status === RegistrationStatus.CANCELLED"

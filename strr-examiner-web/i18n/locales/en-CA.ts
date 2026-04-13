@@ -176,12 +176,15 @@ export default {
       applicationType: 'Type:',
       submitted: 'Submitted:',
       submittedDate: 'Submitted Date:',
+      draftCreationDate: 'Draft Creation Date:',
       registrationNumber: 'Registration Number:',
       registrationDate: 'Registration Date:',
       registrationEndDate: 'Registration Expiry:',
       expiryDate: 'Expiry Date:',
       cancelledDate: 'Cancellation Date:',
       nocExpiry: 'NOC Expiry:',
+      invoiceAmount: 'Invoice Amount:',
+      paymentDate: 'Payment Date:',
       declinedDate: 'Declined Date:',
       businessLicenceExpiryDate: 'Expiry:',
       primaryBuilding: 'Primary Building',
@@ -325,6 +328,7 @@ export default {
     downloadReceipt: {
       description: 'We could not download the receipt at this time. If error persists, please contact us.'
     },
+    fetchInvoiceInfo: 'An error occurred while fetching invoice information.',
     checkAssignee: {
       description: 'We could not verify if you are the assignee for this application. If error persists, please contact us.'
     },
