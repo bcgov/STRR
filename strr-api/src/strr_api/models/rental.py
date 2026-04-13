@@ -478,75 +478,62 @@ class Registration(Versioned, BaseModel):
             # Backward-compatible behavior: only filter by approval method/status.
             return approval_status_condition
 
-        latest_app_decider_subq = (
-            select(Application.decider_id)
-            .where(Application.registration_id == Registration.id)
-            .order_by(Application.application_date.desc())
-            .limit(1)
-            .scalar_subquery()
-        )
-        reviewed_condition = db.or_(
-            # latest application was decided by an examiner.
-            latest_app_decider_subq.isnot(None),
-            # fallback for older data paths where registration level decider is set.
-            Registration.decider_id.isnot(None),
-        )
+        # Per examiner workflow, review state for registrations is represented by
+        # the registration level decider.
+        reviewed_condition = Registration.decider_id.isnot(None)
 
-        # examinerReviewed=false -> "review queue" (not yet examiner decided)
+        # examinerReviewed=false -> "review queue" (not yet examiner decided, no renewal filed)
         # examinerReviewed=true  -> already reviewed by an examiner
         return (
             db.and_(approval_status_condition, reviewed_condition)
             if examiner_reviewed
-            else db.and_(approval_status_condition, db.not_(reviewed_condition))
+            else db.and_(
+                approval_status_condition,
+                db.not_(reviewed_condition),
+                db.not_(cls._has_renewal_filed_condition()),
+            )
         )
 
     @classmethod
     def _review_renew_condition(cls):
         """Build SQL condition for renewals requiring human review.
 
-        A registration matches only when its latest renewal is in review/provisional
-        statuses and that latest renewal has no decider yet.
+        A registration matches when all are true:
+        - a renewal is filed
+        - no registration-level decision exists yet
+        - latest application is still in provisional review queue
         """
         # pylint: disable=import-outside-toplevel
-        from sqlalchemy import select
-
-        from strr_api.enums.enum import ApplicationType
         from strr_api.models.application import Application
 
-        renewal_not_fully_approved_statuses = [
-            Application.Status.FULL_REVIEW.value,
+        provisional_statuses = [
             Application.Status.PROVISIONALLY_APPROVED.value,
             Application.Status.PROVISIONAL_REVIEW.value,
         ]
-
-        # Latest renewal status for this registration.
-        latest_renewal_status_subq = (
-            select(Application.status)
-            .where(
-                Application.registration_id == Registration.id,
-                Application.type == ApplicationType.RENEWAL.value,
-            )
-            .order_by(Application.application_date.desc())
-            .limit(1)
-            .scalar_subquery()
-        )
-        # Latest renewal decider for this registration.
-        # Using the renewal application's decider (not registration level decider)
-        latest_renewal_decider_subq = (
-            select(Application.decider_id)
-            .where(
-                Application.registration_id == Registration.id,
-                Application.type == ApplicationType.RENEWAL.value,
-            )
-            .order_by(Application.application_date.desc())
-            .limit(1)
-            .scalar_subquery()
-        )
         return db.and_(
-            # "Review Renew" means latest renewal is still in review/provisional state
-            latest_renewal_status_subq.in_(renewal_not_fully_approved_statuses),
-            # and has not been examiner reviewed yet.
-            latest_renewal_decider_subq.is_(None),
+            cls._has_renewal_filed_condition(),
+            Registration.decider_id.is_(None),
+            cls._approval_method_condition(provisional_statuses),
+        )
+
+    @classmethod
+    def _has_renewal_filed_condition(cls):
+        """Return SQL condition indicating the registration has a filed renewal."""
+        # pylint: disable=import-outside-toplevel
+        from strr_api.enums.enum import ApplicationType
+        from strr_api.models.application import Application
+
+        return db.exists().where(
+            db.and_(
+                Application.registration_id == Registration.id,
+                Application.type == ApplicationType.RENEWAL.value,
+                Application.status.notin_(
+                    [
+                        Application.Status.DRAFT.value,
+                        Application.Status.PAYMENT_DUE.value,
+                    ]
+                ),
+            )
         )
 
 

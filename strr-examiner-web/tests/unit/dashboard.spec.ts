@@ -600,7 +600,7 @@ describe('Examiner Dashboard Page', () => {
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
     })
 
-    it('returns false when the latest application is not a renewal', () => {
+    it('returns false when there is no renewal application', () => {
       const reg = {
         ...mockHostRegistration,
         header: {
@@ -609,10 +609,6 @@ describe('Examiner Dashboard Page', () => {
             {
               applicationType: 'host',
               applicationStatus: ApplicationStatus.FULL_REVIEW
-            },
-            {
-              applicationType: 'renewal',
-              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
             }
           ]
         }
@@ -622,9 +618,10 @@ describe('Examiner Dashboard Page', () => {
 
     it.each([
       { status: ApplicationStatus.FULL_REVIEW, label: 'full review' },
-      { status: ApplicationStatus.PROVISIONAL_REVIEW, label: 'provisional review' },
+      { status: ApplicationStatus.FULL_REVIEW_APPROVED, label: 'full review approved' },
+      { status: ApplicationStatus.AUTO_APPROVED, label: 'auto approved' },
       { status: undefined, label: 'missing status' }
-    ])('returns false when latest renewal is not provisionally approved ($label)', ({ status }) => {
+    ])('returns false when latest status is not provisional review queue status ($label)', ({ status }) => {
       const reg = {
         ...mockHostRegistration,
         header: {
@@ -640,7 +637,7 @@ describe('Examiner Dashboard Page', () => {
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
     })
 
-    it('returns false when provisionally approved renewal but registration has a decider', () => {
+    it('returns false when review-renew conditions are met except registration has a decider', () => {
       const reg = {
         ...mockHostRegistration,
         header: {
@@ -657,7 +654,7 @@ describe('Examiner Dashboard Page', () => {
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
     })
 
-    it('returns true when latest is provisionally approved renewal and no registration decider', () => {
+    it('returns true when it matches Review Renew predicate', () => {
       const reg = {
         ...mockHostRegistration,
         header: {
@@ -673,16 +670,15 @@ describe('Examiner Dashboard Page', () => {
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(true)
     })
 
-    it('returns false when an older renewal is provisionally approved but latest app is decided renewal', () => {
-      // Newest-first order matches RegistrationSerializer._populate_applications
+    it('returns true when an older renewal exists and latest provisional application is registration', () => {
       const reg = {
         ...mockHostRegistration,
         header: {
           ...headerBase,
           applications: [
             {
-              applicationType: 'renewal',
-              applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
             },
             {
               applicationType: 'renewal',
@@ -691,7 +687,7 @@ describe('Examiner Dashboard Page', () => {
           ]
         }
       }
-      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(true)
     })
   })
 
@@ -790,16 +786,35 @@ describe('Examiner Dashboard Page', () => {
       expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Suspended')
     })
 
-    it('shows Approved instead of Review Renew when latest renewal has a decider', () => {
+    it('shows Approved instead of Review Renew when registration has a decider', () => {
       const reg = {
         ...mockHostRegistration,
         header: {
           ...mockHostRegistration.header,
+          decider: { username: 'examiner1' },
           applications: [
             {
               applicationType: 'renewal',
               applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED,
-              decider: { username: 'examiner1' }
+              decider: {}
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Approved')
+    })
+
+    it('does not show Review Renew when latest status is not provisional queue status', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          decider: {},
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED
             }
           ]
         }

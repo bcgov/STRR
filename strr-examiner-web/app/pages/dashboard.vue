@@ -273,9 +273,12 @@ const getLatestRegistrationApplicationStatus = (reg: HousRegistrationResponse): 
   return getLatestRegistrationApplication(reg)?.applicationStatus as ApplicationStatus | undefined
 }
 
+const isProvisionalReviewQueueStatus = (status: ApplicationStatus | undefined): boolean => {
+  return status === ApplicationStatus.PROVISIONALLY_APPROVED || status === ApplicationStatus.PROVISIONAL_REVIEW
+}
+
 const hasExaminerReview = (reg: HousRegistrationResponse): boolean => {
-  const latestApplication = reg.header?.applications?.[0]
-  const decider = latestApplication?.decider ?? reg.header?.decider
+  const decider = reg.header?.decider
   return Boolean(decider?.username || decider?.displayName)
 }
 
@@ -302,40 +305,21 @@ const getRequirementsColumn = (app: HousApplicationResponse) => {
   return result
 }
 
-const REVIEW_RENEW_STATUSES = new Set<ApplicationStatus>([
-  ApplicationStatus.FULL_REVIEW,
-  ApplicationStatus.PROVISIONALLY_APPROVED,
-  ApplicationStatus.PROVISIONAL_REVIEW
-])
-
-const getLatestRenewalApplication = (reg: HousRegistrationResponse) => {
+const hasRenewalApplication = (reg: HousRegistrationResponse): boolean => {
   const applications = reg.header?.applications ?? []
-  return applications.find(app => app.applicationType === 'renewal')
+  return applications.some(app => app.applicationType === 'renewal')
 }
 
 const isReviewRenew = (reg: HousRegistrationResponse): boolean => {
-  const latestRenewal = getLatestRenewalApplication(reg)
-  if (!latestRenewal?.applicationStatus) {
-    return false
-  }
-
-  const hasRenewalDecider = Boolean(latestRenewal.decider?.username || latestRenewal.decider?.displayName)
-  return REVIEW_RENEW_STATUSES.has(latestRenewal.applicationStatus as ApplicationStatus) && !hasRenewalDecider
+  const latestAppStatus = getLatestRegistrationApplicationStatus(reg)
+  return hasRenewalApplication(reg) && !hasExaminerReview(reg) && isProvisionalReviewQueueStatus(latestAppStatus)
 }
 
 /**
- * Show the "Renewal" badge when the latest application is a provisionally approved renewal
- * and no registration-level decision has been recorded yet.
+ * Show the "Renewal" badge with the exact same predicate used by "Review Renew".
  */
 const shouldShowRenewalBadge = (reg: HousRegistrationResponse): boolean => {
-  const latest = getLatestRegistrationApplication(reg)
-  if (!latest || latest.applicationType !== 'renewal') {
-    return false
-  }
-  if (latest.applicationStatus !== ApplicationStatus.PROVISIONALLY_APPROVED) {
-    return false
-  }
-  return !reg.header?.decider?.username
+  return isReviewRenew(reg)
 }
 
 const getRegistrationSubStatus = (reg: HousRegistrationResponse): string => {
@@ -359,10 +343,7 @@ const getRegistrationSubStatus = (reg: HousRegistrationResponse): string => {
   }
 
   const latestAppStatus = getLatestRegistrationApplicationStatus(reg)
-  if (
-    latestAppStatus === ApplicationStatus.PROVISIONALLY_APPROVED ||
-    latestAppStatus === ApplicationStatus.PROVISIONAL_REVIEW
-  ) {
+  if (isProvisionalReviewQueueStatus(latestAppStatus)) {
     return hasExaminerReview(reg) ? 'Approved' : 'Review'
   }
   if (
