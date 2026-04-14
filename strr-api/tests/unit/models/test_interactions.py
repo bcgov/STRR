@@ -94,6 +94,30 @@ def test_create_interaction_with_application(session, setup_parents):
     assert interaction.application_id == setup_parents["app_id"]
 
 
+def test_find_by_uuid_returns_requested_interaction(session, setup_parents):
+    """Test that UUID lookup does not match unrelated interaction rows."""
+    interaction_one = generate_interaction_data(customer_id=setup_parents["customer_id"])
+    interaction_two = generate_interaction_data(application_id=setup_parents["app_id"])
+    session.add_all([interaction_one, interaction_two])
+    session.commit()
+
+    stored = CustomerInteraction.find_by_uuid(interaction_two.interaction_uuid)
+
+    assert stored.id == interaction_two.id
+
+
+def test_find_by_id_idempotency_key_respects_key(session, setup_parents):
+    """Test that idempotency lookup filters by the requested key."""
+    interaction_one = generate_interaction_data(registration_id=setup_parents["reg_id"], idempotency_key="job-key-one")
+    interaction_two = generate_interaction_data(registration_id=setup_parents["reg_id"], idempotency_key="job-key-two")
+    session.add_all([interaction_one, interaction_two])
+    session.commit()
+
+    stored = CustomerInteraction.find_by_id_idempotency_key("job-key-two", registration_id=setup_parents["reg_id"])
+
+    assert stored.id == interaction_two.id
+
+
 def test_jsonb_metadata_storage(session, setup_parents):
     """Test that the JSONB column correctly stores and retrieves dictionaries."""
     meta = {"campaign_id": 123, "tags": ["urgent", "promo"]}

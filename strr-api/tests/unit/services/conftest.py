@@ -32,7 +32,6 @@ def setup_parents(session: Session, random_string, random_integer):
     session.flush()
 
     app = Application(
-        id=random_integer(),
         application_json={},
         registration_id=reg.id,
         application_number=random_string(10),
