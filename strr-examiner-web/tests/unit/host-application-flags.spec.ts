@@ -17,7 +17,9 @@ vi.mock('@/stores/examiner', () => ({
     isApplication: ref(true),
     isAssignedToUser: ref(true),
     isFilingHistoryOpen: ref(true),
-    emailContent: ref({ content: '' })
+    emailContent: ref({ content: '' }),
+    activePaymentTotal: ref(null),
+    activePaymentDate: ref(null)
   })
 }))
 
