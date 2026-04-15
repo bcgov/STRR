@@ -36,7 +36,9 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 from flask import Flask
+import pytest
 
+from strr_api.exceptions import ExternalServiceException
 from strr_api.services.gcp_storage_service import GCPStorageService
 
 
@@ -139,6 +141,45 @@ def test_registration_document_blob_operations_succeed(mock_bucket, mock_uuid):
     mock_blob.download_as_bytes.assert_called_once()
 
 
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
+def test_upload_registration_document_raises_external_service_exception_on_failure(mock_bucket):
+    """upload_registration_document wraps storage errors in ExternalServiceException."""
+    mock_blob = MagicMock()
+    mock_blob.upload_from_string.side_effect = RuntimeError("upload failed")
+    mock_bucket.return_value.blob.return_value = mock_blob
+
+    with pytest.raises(ExternalServiceException) as exc_info:
+        GCPStorageService.upload_registration_document("application/pdf", b"file contents")
+    assert exc_info.value.message == "Error uploading registration document to gcp bucket."
+    assert isinstance(exc_info.value.__cause__, RuntimeError)
+
+
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
+def test_delete_registration_document_raises_external_service_exception_on_failure(mock_bucket):
+    """delete_registration_document wraps storage errors in ExternalServiceException."""
+    mock_blob = MagicMock()
+    mock_blob.delete.side_effect = RuntimeError("delete failed")
+    mock_bucket.return_value.blob.return_value = mock_blob
+
+    with pytest.raises(ExternalServiceException) as exc_info:
+        GCPStorageService.delete_registration_document("file-key")
+    assert exc_info.value.message == "Error deleting registration document from gcp bucket."
+    assert isinstance(exc_info.value.__cause__, RuntimeError)
+
+
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
+def test_fetch_registration_document_raises_external_service_exception_on_failure(mock_bucket):
+    """fetch_registration_document wraps storage errors in ExternalServiceException."""
+    mock_blob = MagicMock()
+    mock_blob.download_as_bytes.side_effect = RuntimeError("download failed")
+    mock_bucket.return_value.blob.return_value = mock_blob
+
+    with pytest.raises(ExternalServiceException) as exc_info:
+        GCPStorageService.fetch_registration_document("file-key")
+    assert exc_info.value.message == "Error fetching registration document from gcp bucket."
+    assert isinstance(exc_info.value.__cause__, RuntimeError)
+
+
 @patch("strr_api.services.gcp_storage_service.uuid.uuid4", return_value="file-key")
 @patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")
 def test_file_upload_and_presigned_url_succeed(mock_get_bucket, mock_uuid):
@@ -161,6 +202,19 @@ def test_file_upload_and_presigned_url_succeed(mock_get_bucket, mock_uuid):
         expiration=timedelta(minutes=10),
         method="GET",
     )
+
+
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")
+def test_upload_file_raises_external_service_exception_on_failure(mock_get_bucket):
+    """upload_file wraps storage errors in ExternalServiceException."""
+    mock_blob = MagicMock()
+    mock_blob.upload_from_string.side_effect = RuntimeError("upload failed")
+    mock_get_bucket.return_value.blob.return_value = mock_blob
+
+    with pytest.raises(ExternalServiceException) as exc_info:
+        GCPStorageService.upload_file("text/csv", b"file contents", "target-bucket")
+    assert exc_info.value.message == "Error uploading document to cloud storage bucket."
+    assert isinstance(exc_info.value.__cause__, RuntimeError)
 
 
 @patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
