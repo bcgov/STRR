@@ -20,7 +20,7 @@ from unittest.mock import patch
 
 import pytest
 
-from strr_api.enums.enum import ChannelType, InteractionStatus
+from strr_api.enums.enum import ChannelType
 from strr_api.exceptions import ExternalServiceException, ValidationException
 from strr_api.models import CustomerInteraction
 from strr_api.services import InteractionService
@@ -170,40 +170,22 @@ def test_dispatch_email_interaction_success(mock_requests_post, mock_get_token, 
     assert db_interaction.notify_reference == "123"
 
 
+@pytest.mark.parametrize(
+    "response_status_code, response_json",
+    [
+        (HTTPStatus.OK, {"id": 0}),
+        (HTTPStatus.BAD_REQUEST, {"message": "error"}),
+    ],
+)
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
 @patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
 @patch("strr_api.services.interaction.requests.post")
-def test_dispatch_email_interaction_failure_zero_id(
-    mock_requests_post, mock_get_token, app, session, setup_parents, inject_config
+def test_dispatch_email_interaction_failure(
+    mock_requests_post, mock_get_token, session, setup_parents, inject_config, response_status_code, response_json
 ):
-    """Assert that email interaction fails when notify_reference id is 0."""
-    mock_requests_post.return_value.status_code = HTTPStatus.OK
-    mock_requests_post.return_value.json.return_value = {"id": 0}  # Simulate failure with id = 0
-
-    email_info = EmailInfo(application_number="123", email_type="TEST", custom_content="some content")
-
-    with pytest.raises(ExternalServiceException) as excinfo:
-        InteractionService.dispatch(
-            registration_id=setup_parents["registration_id"],
-            channel_type=ChannelType.EMAIL,
-            payload=email_info,
-        )
-
-    mock_get_token.assert_called_once()
-    mock_requests_post.assert_called_once()
-    assert excinfo.value.status_code == HTTPStatus.BAD_REQUEST
-    assert excinfo.value.error == "'Email not sent', 400"
-
-
-@pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
-@patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
-@patch("strr_api.services.interaction.requests.post")
-def test_dispatch_email_interaction_failure_none_id(
-    mock_requests_post, mock_get_token, session, setup_parents, inject_config, authed_g
-):
-    """Assert that email interaction fails when notify_reference is None."""
-    mock_requests_post.return_value.status_code = HTTPStatus.BAD_REQUEST
-    mock_requests_post.return_value.json.return_value = {"message": "error"}  # Simulate http error
+    """Assert that email interaction raises ExternalServiceException when notify returns a failure response."""
+    mock_requests_post.return_value.status_code = response_status_code
+    mock_requests_post.return_value.json.return_value = response_json
 
     email_info = EmailInfo(application_number="123", email_type="TEST", custom_content="some content")
 
