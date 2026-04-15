@@ -1,7 +1,6 @@
 import copy
 import json
 import os
-from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
@@ -11,6 +10,7 @@ from strr_api.enums.enum import PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import ApplicationService
+from tests.unit.resources.conftest import ACCOUNT_ID, MOCK_INVOICE_RESPONSE, MOCK_PAYMENT_COMPLETED_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
@@ -38,15 +38,6 @@ CREATE_REGISTRATION_BUSINESS_AS_COHOST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/business_and_business_as_hosts.json"
 )
 
-ACCOUNT_ID = 1234
-
-MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": ACCOUNT_ID}}
-MOCK_PAYMENT_COMPLETED_RESPONSE = {
-    "id": 123,
-    "statusCode": "COMPLETED",
-    "paymentAccount": {"accountId": ACCOUNT_ID},
-    "paymentDate": datetime.now().isoformat(),
-}
 MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 

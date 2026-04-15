@@ -1,7 +1,7 @@
 import json
 import os
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from http import HTTPStatus
 from unittest.mock import patch
 
@@ -18,10 +18,10 @@ from strr_api.enums.enum import (
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Document, Events, Registration, User
 from strr_api.responses import RegistrationSerializer
+from tests.unit.resources.conftest import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 from tests.unit.utils.mocks import (
     fake_document,
-    fake_examiner_from_token,
     fake_get_token_auth_header,
     fake_registration,
     fake_user_from_token,
@@ -43,15 +43,6 @@ CREATE_PLATFORM_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/platform_registration.json"
 )
 
-ACCOUNT_ID = 1234
-
-MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": ACCOUNT_ID}}
-MOCK_PAYMENT_COMPLETED_RESPONSE = {
-    "id": 123,
-    "statusCode": "COMPLETED",
-    "paymentAccount": {"accountId": ACCOUNT_ID},
-    "paymentDate": datetime.now().isoformat(),
-}
 MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 

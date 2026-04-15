@@ -20,7 +20,7 @@
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS”
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
 # THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 # ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
@@ -38,35 +38,26 @@ import os
 from http import HTTPStatus
 from unittest.mock import patch
 
-import jwt as jot
 import pytest
 
-from strr_api.enums.enum import PaymentStatus, RegistrationStatus
-from strr_api.models import Application, Events, User
-from strr_api.services import RegistrationService, SnapshotService
-from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
+from strr_api.models import Application
+from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
 
 MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": 1234}}
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
 )
-CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/business_and_individual_as_hosts.json"
-)
-
 
 ACCOUNT_ID = 1234
 
 
-# @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 @pytest.mark.skip
 @patch("strr_api.resources.application.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_create_snapshot(session, client, jwt, random_string):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id", idp_userid=random_string(), sub=random_string(36))
         headers["Account-Id"] = ACCOUNT_ID
-        # headers["isDraft"] = True
         json_data = json.load(f)
 
         rv = client.post("/applications", json=json_data, headers=headers)
@@ -74,55 +65,7 @@ def test_create_snapshot(session, client, jwt, random_string):
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        apl = Application.find_by_application_number(application_number)
+        Application.find_by_application_number(application_number)
 
         rv = client.put(f"/applications/{application_number}", json=json_data, headers=headers)
         assert HTTPStatus.OK == rv.status_code
-
-
-# with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
-#     headers = create_header(jwt, [PUBLIC_USER], "Account-Id", idp_userid=random_string())
-#     headers["Account-Id"] = 1234
-#     headers["isDraft"] = True
-#     json_data = json.load(f)
-
-#     rv = client.post("/applications", json=json_data, headers=headers)
-#     response_json = rv.json
-#     application_number = response_json.get("header").get("applicationNumber")
-
-#     application = Application.find_by_application_number(application_number=application_number)
-#     application.payment_status = PaymentStatus.COMPLETED.value
-#     application.status = Application.Status.FULL_REVIEW
-#     application.save()
-
-#     staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-#     rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-#     assert HTTPStatus.OK == rv.status_code
-#     status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-#     rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-#     assert HTTPStatus.OK == rv.status_code
-#     response_json = rv.json
-#     assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
-#     assert response_json.get("header").get("registrationId") is not None
-#     assert response_json.get("header").get("registrationNumber") is not None
-
-#     registration = RegistrationService.get_registration_by_id(response_json.get("header").get("registrationId"))
-#     snapshot_1 = SnapshotService.snapshot_registration(registration=registration)
-#     snapshot_1.version = 1
-#     snapshot_2 = SnapshotService.snapshot_registration(registration=registration)
-#     snapshot_2.version = 2
-#     all_snapshots = registration.snapshots
-#     assert len(all_snapshots) == 2
-
-#     registration_response = client.get(f"/registrations/{registration.id}", headers=headers)
-#     assert registration_response.status_code == HTTPStatus.OK
-#     snapshots = registration_response.json.get("snapshots")
-#     assert snapshots
-#     assert snapshots[0]["id"] == snapshot_2.id
-#     assert snapshots[0]["snapshotEndpoint"].endswith(f"/registrations/{registration.id}/snapshots/{snapshot_2.id}")
-
-#     snapshot_response = client.get(f"/registrations/{registration.id}/snapshots/{snapshot_2.id}", headers=headers)
-#     assert snapshot_response.status_code == HTTPStatus.OK
-#     snapshot_json = snapshot_response.json
-#     assert snapshot_json.get("id") == snapshot_2.id
-#     assert snapshot_json.get("snapshotData", {}).get("id") == registration.id
