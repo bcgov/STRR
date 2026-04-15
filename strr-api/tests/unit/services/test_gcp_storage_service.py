@@ -35,8 +35,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
-from flask import Flask
 import pytest
+from flask import Flask
 
 from strr_api.exceptions import ExternalServiceException
 from strr_api.services.gcp_storage_service import GCPStorageService
