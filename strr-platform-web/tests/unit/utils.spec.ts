@@ -1,5 +1,5 @@
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
-import { vi, describe, beforeEach, it, expect } from 'vitest'
+import { describe, beforeEach, it, expect } from 'vitest'
 import {
   mockApiAddress,
   mockEmptyApiAddress,
