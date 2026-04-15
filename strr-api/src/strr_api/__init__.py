@@ -33,7 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """The STRR API.
 
-This module is the API for the Short Term Rental Registry.
+This module is the API for the Short-Term Rental Registry.
 """
 import logging.config
 import os

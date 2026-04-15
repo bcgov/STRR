@@ -61,7 +61,7 @@ bp_with_version = Blueprint("str-requirements-version", __name__)
 @jwt.requires_auth
 def get_str_requirements(action):
     """
-    Returns the Short Term Rental requirements for this address.
+    Returns the Short-Term Rental requirements for this address.
     ---
     tags:
       - address

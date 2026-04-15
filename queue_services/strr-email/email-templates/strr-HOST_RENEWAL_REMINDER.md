@@ -18,7 +18,7 @@
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% endif %}
 
-**Renew your registration today** to keep your registration active and avoid any interruptions in your short term rental services.  
+**Renew your registration today** to keep your registration active and avoid any interruptions in your short-term rental services.  
 
 ---
 # How to Renew Your Registration

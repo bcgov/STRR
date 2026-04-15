@@ -4,12 +4,12 @@
 **Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{{reg_num}}  
 **Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
 
-**Renew your registration today** to keep your registration active and avoid any interruptions in your short term rental services.  
+**Renew your registration today** to keep your registration active and avoid any interruptions in your short-term rental services.  
 
 ---
 # How to Renew Your Registration
 Ensure all your business documents **are up to date and ready to upload** before starting the renewal process.
-1. Log in to your [Short Term Rental Registry Dashboard](https://platform.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) and submit your renewal **application and documents** before your **registration expires**.
+1. Log in to your [Short-Term Rental Registry Dashboard](https://platform.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) and submit your renewal **application and documents** before your **registration expires**.
 2. Make sure to **check our website for any updates** to your type of registration.
 
 ---

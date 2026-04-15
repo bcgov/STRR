@@ -3,7 +3,7 @@
 
 
 # Application Name
-Short Term Rental Registry (STRR)
+Short-Term Rental Registry (STRR)
 
 # INTIAL SETUP
 - global install python 3.11

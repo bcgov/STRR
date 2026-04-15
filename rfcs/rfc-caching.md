@@ -17,7 +17,7 @@ Platforms like Airbnb, vrbo etc. will submit bulk requests for permit validation
 50k records. The batch will be submitted daily. Also, the same address/permit entry will be part of batch validation requests
 by different platforms.
 
-Some addresses are exempt from the short term rental requirements. The information regarding whether an address is determined
+Some addresses are exempt from the short-term rental requirements. The information regarding whether an address is determined
 using a third party service call. The information changes very rarely. Inorder to not overwhelm the third party service,
 this information can be cached in Cloud Memorystore for Redis after the first service call and can be looked up in the cache
 for the subsequent calls.
