@@ -123,7 +123,7 @@ def register_endpoints(app: Flask):
     app.register_blueprint(meta_endpoint)
 
     app.config["SWAGGER"] = {
-        "title": "Short Term Rental Registry API",
+        "title": "Short-Term Rental Registry API",
         "specs_route": "/",
         "uiversion": 3,
         "securityDefinitions": {

@@ -1,6 +1,6 @@
 [![License](https://img.shields.io/badge/License-BSD%203%20Clause-blue.svg)](LICENSE)
 
-# Short Term Rental Registry - Host & Property Manager UI
+# Short-Term Rental Registry - Host & Property Manager UI
 
 ## Development & Contributing
 

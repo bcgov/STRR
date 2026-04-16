@@ -2,14 +2,14 @@ openapi: 3.0.0
 x-stoplight:
   id: 1d3quzhv06iyi
 info:
-  title: BC Short Term Rental Registry Validation API
+  title: BC Short-Term Rental Registry Validation API
   version: '0.1'
   termsOfService: 'https://developer.connect.gov.bc.ca/shared/api-terms-of-use.pdf'
   contact:
     url: 'https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals'
     name: Developer Engagement
     email: thor@daxiom.com
-  description: This service is used to validate the registration and key elements of listing details against Short Term Rental Registrations and annual Permits.
+  description: This service is used to validate the registration and key elements of listing details against Short-Term Rental Registrations and annual Permits.
   license:
     name: bsd-3-clause
     url: 'https://opensource.org/license/bsd-3-clause'
@@ -283,8 +283,8 @@ paths:
                     postalCode: H0H0H0
                     province: BC
                     city: Test city
-        description: Post the address to get the short term rental requirements.
-      description: Post the address to get the short term rental requirements for that address.
+        description: Post the address to get the short-term rental requirements.
+      description: Post the address to get the short-term rental requirements for that address.
       x-stoplight:
         id: 4sqp07r1juk5x
     parameters: []
@@ -607,7 +607,7 @@ components:
       title: addressRequirements
       x-stoplight:
         id: n0699fszvtnml
-      description: Short term rental requirements for an address.
+      description: Short-term rental requirements for an address.
       type: object
       x-examples:
         Example:
@@ -644,9 +644,9 @@ components:
 tags:
   - name: Draft
     description: The release state
-  - name: Short Term Rental
+  - name: Short-Term Rental
     description: 'Short-term rentals are defined under the Act as accommodations provided to members of the public in a host''s property, in exchange for money, for a period of less than 90 consecutive days.'
   - name: Verification
-    description: The process of establishing the validity of a host's property as a qualified Short Term Rental
+    description: The process of establishing the validity of a host's property as a qualified Short-Term Rental
 security:
   - api_key: []

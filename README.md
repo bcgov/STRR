@@ -1,5 +1,5 @@
 # STRR
-Short Term Rental Registry
+Short-Term Rental Registry
 
 ---
 # Local Environment Setup

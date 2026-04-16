@@ -7,12 +7,12 @@
 **City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 
-**Renew your registration today** to keep your registration active and avoid any interruptions in your short term rental services.  
+**Renew your registration today** to keep your registration active and avoid any interruptions in your short-term rental services.  
 
 ---
 # How to Renew Your Registration
 Ensure all your business documents **are up to date and ready to upload** before starting the renewal process.
-1. Log in to your [Short Term Rental Registry Dashboard](https://stratahotel.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) and submit your renewal **application and documents** before your **registration expires**.
+1. Log in to your [Short-Term Rental Registry Dashboard](https://stratahotel.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) and submit your renewal **application and documents** before your **registration expires**.
 2. Make sure to **check our website for any updates** to your type of registration.
 3. Make sure to **check with your local government** if there has been any changes to the local bylaws or requirements in the area.
 

@@ -387,7 +387,7 @@ export default {
       h1: 'Short-Term Rental Registry'
     },
     tos: {
-      title: 'Terms of Use - Short Term Rental Registry',
+      title: 'Terms of Use - Short-Term Rental Registry',
       h1: 'Terms of Use',
       acceptCheckbox: 'I have read and accept the Terms of Use'
     }

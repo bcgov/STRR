@@ -658,7 +658,7 @@ export default {
     },
     SEPARATE_UNIT_SAME_PROPERTY: {
       label: 'Option 2: You are short-term renting a separate unit on the property where you live',
-      desc: "This option applies if you live at a property and are short term renting out a separate, self-contained unit (secondary or basement suite, laneway house or garden suite) on that same property. You live in the main unit on the property and you are renting out the space you don't physically live in.",
+      desc: "This option applies if you live at a property and are short-term renting out a separate, self-contained unit (secondary or basement suite, laneway house or garden suite) on that same property. You live in the main unit on the property and you are renting out the space you don't physically live in.",
       scenarioA: '{boldStart}Scenario A:{boldEnd} You live in the main part of a house and rent out the basement suite.',
       scenarioB: '{boldStart}Scenario B:{boldEnd} You live in the main house and rent out a separate laneway house or garden suite in the backyard.',
       scenarioC: '{boldStart}Scenario C:{boldEnd} You live in the basement suite, laneway house or garden suite in the backyard and rent out the main house.',
