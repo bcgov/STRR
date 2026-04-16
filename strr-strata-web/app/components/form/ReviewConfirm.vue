@@ -226,10 +226,6 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
           {
             title: $t('strr.section.subTitle.businessMailAddress'),
             slot: 'businessMailAddress'
-          },
-          {
-            title: $t('strr.review.busInfo.attForSvcName'),
-            slot: 'regOfficeAtt'
           }
         ]"
         @edit="$emit('edit', 1)"
@@ -255,20 +251,6 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
             :address="businessStore.strataBusiness.mailingAddress"
           />
           <span v-else> - </span>
-        </template>
-        <template #regOfficeAtt>
-          <p>{{ businessStore.strataBusiness.regOfficeOrAtt.attorneyName || '-' }}</p>
-          <ConnectInfoBox
-            :title="$t('strr.section.subTitle.regOfficeAttSvcAddrress')"
-            title-class="font-bold text-bcGovGray-900"
-            class="mt-5"
-          >
-            <ConnectFormAddressDisplay
-              v-if="businessStore.strataBusiness.regOfficeOrAtt.mailingAddress.street"
-              :address="businessStore.strataBusiness.regOfficeOrAtt.mailingAddress"
-            />
-            <span v-else> - </span>
-          </ConnectInfoBox>
         </template>
       </FormCommonReviewSection>
     </ConnectPageSection>

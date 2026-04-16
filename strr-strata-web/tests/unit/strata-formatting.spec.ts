@@ -78,8 +78,8 @@ describe('Strata Formatting utils', () => {
     const result = formatBusinessDetails(input)
 
     expect(result.mailingAddress.address).toBe('123 Main St')
-    expect(result.registeredOfficeOrAttorneyForServiceDetails.attorneyName).toBe('John Smith')
-    expect(result.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.address).toBe('789 Elm St')
+    expect(result.registeredOfficeOrAttorneyForServiceDetails.attorneyName).toBe('')
+    expect(result.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.address).toBe('')
   })
 
   it('formatBusinessDetailsUI: set hasRegOffAtt to true when attorney name is present', () => {
@@ -101,6 +101,19 @@ describe('Strata Formatting utils', () => {
     const result = formatBusinessDetailsUI(mockBusinessDetails)
 
     expect(result.hasRegOffAtt).toBe(false)
+  })
+
+  it('formatBusinessDetailsUI: handle missing registered office details gracefully', () => {
+    const input = {
+      ...mockBusinessDetails
+    } as any
+    delete input.registeredOfficeOrAttorneyForServiceDetails
+
+    const result = formatBusinessDetailsUI(input as ApiBusinessDetails)
+
+    expect(result.hasRegOffAtt).toBe(false)
+    expect(result.regOfficeOrAtt.attorneyName).toBe('')
+    expect(result.regOfficeOrAtt.mailingAddress.street).toBe('')
   })
 
   it('formatStrataUnitAddressLines: return empty array when address is undefined', () => {
