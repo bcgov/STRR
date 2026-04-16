@@ -58,87 +58,51 @@ const hasDecisionChanges = computed(() =>
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
 const approveRegistrationAction = () => {
-  openConfirmActionModal(
-    t('modal.approveRegistration.title'),
-    t('modal.approveRegistration.message'),
-    t('btn.yesApprove'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.ACTIVE,
-        decisionEmailContent.value.content,
-        {
-          predefinedConditions: conditions.value,
-          ...(customConditions.value && { customConditions: customConditions.value }),
-          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-        }
-      )
-      refreshNuxtData()
-    },
-    t('btn.cancel')
+  updateRegistrationStatus(
+    activeReg.value.id,
+    RegistrationStatus.ACTIVE,
+    decisionEmailContent.value.content,
+    {
+      predefinedConditions: conditions.value,
+      ...(customConditions.value && { customConditions: customConditions.value }),
+      ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+    }
   )
+  refreshNuxtData()
 }
 
 const updateApprovalAction = () => {
-  openConfirmActionModal(
-    t('modal.updateApproval.title'),
-    t('modal.updateApproval.message'),
-    t('btn.updateApproval'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.ACTIVE,
-        decisionEmailContent.value.content,
-        {
-          predefinedConditions: conditions.value,
-          ...(customConditions.value && { customConditions: customConditions.value }),
-          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-        }
-      )
-      refreshNuxtData()
-    },
-    t('btn.cancel')
+  updateRegistrationStatus(
+    activeReg.value.id,
+    RegistrationStatus.ACTIVE,
+    decisionEmailContent.value.content,
+    {
+      predefinedConditions: conditions.value,
+      ...(customConditions.value && { customConditions: customConditions.value }),
+      ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+    }
   )
+  refreshNuxtData()
 }
 
 const cancelRegistrationAction = async () => {
   // validate email form
   if (!await isDecisionEmailValid()) { return }
 
-  openConfirmActionModal(
-    t('modal.cancelRegistration.title'),
-    t('modal.cancelRegistration.message'),
-    t('btn.cancelRegistration'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.CANCELLED,
-        decisionEmailContent.value.content
-      )
-      refreshNuxtData()
-    },
-    t('btn.back')
+  updateRegistrationStatus(
+    activeReg.value.id,
+    RegistrationStatus.CANCELLED,
+    decisionEmailContent.value.content
   )
+  refreshNuxtData()
 }
 
 const suspendRegistrationAction = () => {
-  openConfirmActionModal(
-    t('modal.suspendRegistration.title'),
-    t('modal.suspendRegistration.message'),
-    t('btn.yesSuspend'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.SUSPENDED
-      )
-      refreshNuxtData()
-    },
-    t('btn.cancel')
+  updateRegistrationStatus(
+    activeReg.value.id,
+    RegistrationStatus.SUSPENDED
   )
+  refreshNuxtData()
 }
 
 const reinstateRegistration = () => {
@@ -168,20 +132,12 @@ const sendNoticeAction = async () => {
   // validate email form
   if (!await isDecisionEmailValid()) { return }
 
-  openConfirmActionModal(
-    t('modal.sendNotice.title'),
-    t('modal.sendNotice.message'),
-    t('btn.yesSend'),
-    () => {
-      closeConfirmActionModal()
-      sendNoticeOfConsiderationForRegistration(
-        activeReg.value.id,
-        decisionEmailContent.value.content
-      )
-      decisionEmailContent.value.content = ''
-      refreshNuxtData()
-    }
+  sendNoticeOfConsiderationForRegistration(
+    activeReg.value.id,
+    decisionEmailContent.value.content
   )
+  decisionEmailContent.value.content = ''
+  refreshNuxtData()
 }
 
 const actionButtons: ConnectBtnControlItem[] = [

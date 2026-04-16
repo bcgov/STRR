@@ -50,6 +50,8 @@ const handleRegistrationAction = (
   if (action === RegistrationActionsE.CANCEL) {
     actionFn = updateRegistrationStatus
     additionalArgs = [RegistrationStatus.CANCELLED, emailContent.value.content]
+    // validate email form
+    validateFn = async () => await validateForm(emailFormRef.value, true).then(errors => !errors)
   } else if (action === RegistrationActionsE.REINSTATE || action === RegistrationActionsE.APPROVE) {
     actionFn = updateRegistrationStatus
     additionalArgs = [RegistrationStatus.ACTIVE]
@@ -87,18 +89,7 @@ const handleAssigneeAction = (
   buttonIndex: number
 ) => {
   if (isAssignedToUser.value) {
-    if (action === RegistrationActionsE.CANCEL) {
-      openConfirmActionModal(
-        t('modal.cancelRegistration.title'),
-        t('modal.cancelRegistration.message'),
-        t('btn.cancelRegistration'),
-        () => {
-          closeConfirmActionModal()
-          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
-        },
-        t('btn.back')
-      )
-    } else if (action === RegistrationActionsE.REINSTATE) {
+    if (action === RegistrationActionsE.REINSTATE) {
       openConfirmActionModal(
         t('modal.reinstateRegistration.title'),
         t('modal.reinstateRegistration.message'),
@@ -108,38 +99,6 @@ const handleAssigneeAction = (
           handleRegistrationAction(id, action, buttonPosition, buttonIndex)
         },
         t('btn.cancel')
-      )
-    } else if (action === RegistrationActionsE.APPROVE) {
-      openConfirmActionModal(
-        t('modal.approveRegistration.title'),
-        t('modal.approveRegistration.message'),
-        t('btn.yesApprove'),
-        () => {
-          closeConfirmActionModal()
-          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
-        },
-        t('btn.cancel')
-      )
-    } else if (action === RegistrationActionsE.SUSPEND) {
-      openConfirmActionModal(
-        t('modal.suspendRegistration.title'),
-        t('modal.suspendRegistration.message'),
-        t('btn.yesSuspend'),
-        () => {
-          closeConfirmActionModal()
-          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
-        },
-        t('btn.cancel')
-      )
-    } else if (action === RegistrationActionsE.SEND_NOC) {
-      openConfirmActionModal(
-        t('modal.sendNotice.title'),
-        t('modal.sendNotice.message'),
-        t('btn.yesSend'),
-        () => {
-          closeConfirmActionModal()
-          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
-        }
       )
     } else {
       return handleRegistrationAction(id, action, buttonPosition, buttonIndex)

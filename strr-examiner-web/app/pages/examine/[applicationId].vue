@@ -75,6 +75,8 @@ const handleApplicationAction = (
       ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
     ].includes(activeHeader.value?.status)
     additionalArgs = [isProvisional, emailContent.value.content]
+    // validate email form
+    validateFn = async () => await validateForm(emailFormRef.value, true).then(errors => !errors)
   } else if (action === ApplicationActionsE.SET_ASIDE) {
     actionFn = setAsideApplication
   }
@@ -98,43 +100,7 @@ const handleAssigneeAction = (
   buttonIndex: number
 ) => {
   if (isAssignedToUser.value) {
-    if (action === ApplicationActionsE.APPROVE || action === ApplicationActionsE.PROVISIONAL_APPROVE) {
-      openConfirmActionModal(
-        t('modal.approveApplication.title'),
-        t('modal.approveApplication.message'),
-        t('btn.yesApprove'),
-        () => {
-          closeConfirmActionModal() // for smoother UX, close the modal before initiating the action
-          handleApplicationAction(id, action, buttonPosition, buttonIndex)
-        }
-      )
-    } else if (action === ApplicationActionsE.SEND_NOC) {
-      openConfirmActionModal(
-        t('modal.sendNotice.title'),
-        t('modal.sendNotice.message'),
-        t('btn.yesSend'),
-        () => {
-          closeConfirmActionModal() // for smoother UX, close the modal before initiating the action
-          handleApplicationAction(id, action, buttonPosition, buttonIndex)
-        }
-      )
-    } else if (action === ApplicationActionsE.REJECT) {
-      openConfirmActionModal(
-        activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
-          ? t('modal.cancelRegistration.title')
-          : t('modal.rejectApplication.title'),
-        activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
-          ? t('modal.cancelRegistration.message')
-          : t('modal.rejectApplication.message'),
-        t('btn.yesRefuse'),
-        () => {
-          closeConfirmActionModal() // for smoother UX, close the modal before initiating the action
-          handleApplicationAction(id, action, buttonPosition, buttonIndex)
-        }
-      )
-    } else {
-      return handleApplicationAction(id, action, buttonPosition, buttonIndex)
-    }
+    return handleApplicationAction(id, action, buttonPosition, buttonIndex)
   } else {
     openConfirmActionModal(
       t('modal.assignError.title'),
