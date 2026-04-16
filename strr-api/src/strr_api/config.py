@@ -62,6 +62,7 @@ class Config:  # pylint: disable=too-few-public-methods
     CSRF_ENABLED = True
     SECRET_KEY = "this-really-needs-to-be-changed"
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+    DEPLOYMENT_PLATFORM = os.getenv("DEPLOYMENT_PLATFORM")
     POD_NAMESPACE = os.getenv("DEPLOYMENT_ENV", "production")
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
