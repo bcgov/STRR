@@ -53,6 +53,7 @@ onMounted(async () => {
                     color="primary"
                     trailing-icon="i-mdi-close"
                     variant="ghost"
+                    data-testid="remove-btn"
                     @click="removeBrandAtIndex(i)"
                   />
                 </div>
@@ -85,6 +86,7 @@ onMounted(async () => {
                 color="primary"
                 icon="i-mdi-domain-plus"
                 variant="outline"
+                data-testid="add-platform-btn"
                 @click="addNewEmptyBrand()"
               />
             </div>
