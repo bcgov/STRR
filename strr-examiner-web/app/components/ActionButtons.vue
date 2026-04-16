@@ -57,7 +57,8 @@ const hasDecisionChanges = computed(() =>
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
-const approveRegistrationAction = () => {
+// Shared ACTIVE status update for approve actions
+const applyActiveApprovalStatus = () => {
   updateRegistrationStatus(
     activeReg.value.id,
     RegistrationStatus.ACTIVE,
@@ -71,18 +72,14 @@ const approveRegistrationAction = () => {
   refreshNuxtData()
 }
 
+// Handles first time approval from the main action button
+const approveRegistrationAction = () => {
+  applyActiveApprovalStatus()
+}
+
+// Handles approval updates when a registration is already active
 const updateApprovalAction = () => {
-  updateRegistrationStatus(
-    activeReg.value.id,
-    RegistrationStatus.ACTIVE,
-    decisionEmailContent.value.content,
-    {
-      predefinedConditions: conditions.value,
-      ...(customConditions.value && { customConditions: customConditions.value }),
-      ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-    }
-  )
-  refreshNuxtData()
+  applyActiveApprovalStatus()
 }
 
 const cancelRegistrationAction = async () => {
