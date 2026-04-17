@@ -6,7 +6,7 @@ authors = [
     {name = "Thor", email = "thor@daxiom.com"}
 ]
 license = {text = "BSD 3-Clause"}
-requires-python = ">=3.11,<3.15"
+requires-python = ">=3.12,<3.15"
 
 # Leaving the local working api here as an example
 dependencies = [
@@ -27,20 +27,17 @@ packages = [{include = "interactions_update", from = "src"}]
 # [tool.poetry.dependencies]
 # strr-api = {develop = true}
 
-[dependency-groups]
-dev = [
-    "pytest (>=9.0.2,<10.0.0)",
-    "pytest-mock (>=3.15.1,<4.0.0)",
-    "black (>=26.1.0,<27.0.0)",
-    "isort (>=8.0.0,<9.0.0)",
-    "testcontainers (>=4.14.1,<5.0.0)",
-    "responses (>=0.26.0,<0.27.0)",
-    "pytest-benchmark (>=5.2.3,<6.0.0)",
-    "flake8 (>=7.3.0,<8.0.0)"
-]
-
+# Dev deps live here (not in [dependency-groups]) so path packages resolve into poetry.lock and CI installs them.
 [tool.poetry.group.dev.dependencies]
-strr-test-utils = {path = "../../tests/python-test-utils", develop = true}
+pytest = ">=9.0.2,<10.0.0"
+pytest-mock = ">=3.15.1,<4.0.0"
+black = ">=26.1.0,<27.0.0"
+isort = ">=8.0.0,<9.0.0"
+testcontainers = ">=4.14.1,<5.0.0"
+responses = ">=0.26.0,<0.27.0"
+pytest-benchmark = ">=5.2.3,<6.0.0"
+flake8 = ">=7.3.0,<8.0.0"
+strr-test-utils = { path = "../../tests/python-test-utils", develop = true }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
