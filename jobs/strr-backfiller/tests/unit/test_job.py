@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, PropertyMock
 
 import pytest
+
 from backfiller.job import (
     _get_json_from_application,
     _log_progress,
@@ -41,13 +42,17 @@ def _patch_registration_join(mocker, *registrations):
     mocker.patch("backfiller.job.Registration", reg)
 
 
-def _patch_strata_and_application(mocker, hotels, application_first=None, application_side_effect=None):
+def _patch_strata_and_application(
+    mocker, hotels, application_first=None, application_side_effect=None
+):
     sh = MagicMock()
     sh.query.filter.return_value.all.return_value = hotels
     mocker.patch("backfiller.job.StrataHotel", sh)
     app_model = MagicMock()
     if application_side_effect is not None:
-        app_model.query.filter_by.return_value.first.side_effect = application_side_effect
+        app_model.query.filter_by.return_value.first.side_effect = (
+            application_side_effect
+        )
     else:
         app_model.query.filter_by.return_value.first.return_value = application_first
     mocker.patch("backfiller.job.Application", app_model)
@@ -204,7 +209,9 @@ def test_backfill_jurisdiction_logs_when_no_str_data(mocker):
     rental = MagicMock(address=_address_mock(), save=MagicMock())
     registration = MagicMock(id=9, rental_property=rental)
     _patch_registration_join(mocker, registration)
-    mocker.patch("backfiller.job.ApprovalService.getSTRDataForAddress", return_value=None)
+    mocker.patch(
+        "backfiller.job.ApprovalService.getSTRDataForAddress", return_value=None
+    )
     backfill_jurisdiction(app)
     rental.save.assert_not_called()
 
@@ -229,7 +236,9 @@ def test_backfill_strata_hotel_category_success(mocker):
     reg_link.registration = MagicMock(id=55)
     strata_hotel = _strata_hotel(700, [reg_link])
     application = MagicMock(
-        application_json={"registration": {"strataHotelDetails": {"category": "FULL_SERVICE"}}},
+        application_json={
+            "registration": {"strataHotelDetails": {"category": "FULL_SERVICE"}}
+        },
         application_number="APP-1",
     )
     _patch_strata_and_application(mocker, [strata_hotel], application_first=application)
@@ -287,14 +296,18 @@ def test_backfill_strata_hotel_invalid_category_enum(mocker):
 def test_backfill_strata_hotel_outer_exception(mocker):
     strata_hotel = _strata_hotel(3, [MagicMock()])
     app = MagicMock()
-    _patch_strata_and_application(mocker, [strata_hotel], application_side_effect=RuntimeError("db down"))
+    _patch_strata_and_application(
+        mocker, [strata_hotel], application_side_effect=RuntimeError("db down")
+    )
     backfill_strata_hotel_category(app)
     app.logger.error.assert_called()
 
 
 def test_backfill_registration_search_processes_batches(mocker):
     app = MagicMock()
-    registration = MagicMock(id=200, registration_type="HOST", registration_json={"x": 1})
+    registration = MagicMock(
+        id=200, registration_type="HOST", registration_json={"x": 1}
+    )
     batch_query = MagicMock()
     batch_query.all.side_effect = [[registration], []]
     limit_mock = MagicMock()

@@ -34,7 +34,9 @@ def test_backfill_runs_with_seeded_registration(session, app, setup_parents):
     assert Registration.query.get(setup_parents["registration_id"]) is not None
 
 
-def test_backfill_skips_when_enrich_unchanged(app, session, random_string, random_integer):
+def test_backfill_skips_when_enrich_unchanged(
+    app, session, random_string, random_integer
+):
     reg = create_host_registration(
         session,
         random_string,
@@ -44,10 +46,14 @@ def test_backfill_skips_when_enrich_unchanged(app, session, random_string, rando
         include_rental=True,
     )
     backfill_registration_search(app, batch_size=10)
-    assert Registration.query.get(reg.id).registration_json == {"registrationType": "HOST"}
+    assert Registration.query.get(reg.id).registration_json == {
+        "registrationType": "HOST"
+    }
 
 
-def test_backfill_updates_adds_jurisdiction_from_rental(app, session, random_string, random_integer):
+def test_backfill_updates_adds_jurisdiction_from_rental(
+    app, session, random_string, random_integer
+):
     reg = create_host_registration(
         session,
         random_string,
@@ -62,7 +68,9 @@ def test_backfill_updates_adds_jurisdiction_from_rental(app, session, random_str
     assert refreshed.registration_json["registrationType"] == "HOST"
 
 
-def test_backfill_skips_when_jurisdiction_already_matches(app, session, random_string, random_integer):
+def test_backfill_skips_when_jurisdiction_already_matches(
+    app, session, random_string, random_integer
+):
     reg = create_host_registration(
         session,
         random_string,
@@ -80,7 +88,9 @@ def test_backfill_skips_when_jurisdiction_already_matches(app, session, random_s
     assert refreshed.registration_json["registrationType"] == "HOST"
 
 
-def test_backfill_strips_documents_when_updating(app, session, random_string, random_integer):
+def test_backfill_strips_documents_when_updating(
+    app, session, random_string, random_integer
+):
     reg = create_host_registration(
         session,
         random_string,
@@ -126,7 +136,9 @@ def test_backfill_skips_when_null_json_cannot_reconstruct(
     assert Registration.query.get(reg.id).registration_json is None
 
 
-def test_backfill_reconstructs_json_from_latest_approved_application(app, session, random_string, random_integer):
+def test_backfill_reconstructs_json_from_latest_approved_application(
+    app, session, random_string, random_integer
+):
     reg = create_host_registration(
         session,
         random_string,
@@ -142,7 +154,9 @@ def test_backfill_reconstructs_json_from_latest_approved_application(app, sessio
         random_string,
         random_integer,
         reg,
-        application_json={"registration": {"registrationType": "HOST", "source": "older"}},
+        application_json={
+            "registration": {"registrationType": "HOST", "source": "older"}
+        },
         decision_date=older,
     )
     attach_application(
@@ -150,7 +164,9 @@ def test_backfill_reconstructs_json_from_latest_approved_application(app, sessio
         random_string,
         random_integer,
         reg,
-        application_json={"registration": {"registrationType": "HOST", "source": "newer"}},
+        application_json={
+            "registration": {"registrationType": "HOST", "source": "newer"}
+        },
         decision_date=newer,
     )
     backfill_registration_search(app, batch_size=10)
@@ -159,7 +175,9 @@ def test_backfill_reconstructs_json_from_latest_approved_application(app, sessio
     assert refreshed.registration_json["jurisdiction"] == "Reconstructed Jurisdiction"
 
 
-def test_backfill_platform_skips_without_rental(app, session, random_string, random_integer):
+def test_backfill_platform_skips_without_rental(
+    app, session, random_string, random_integer
+):
     reg = create_host_registration(
         session,
         random_string,
@@ -169,10 +187,14 @@ def test_backfill_platform_skips_without_rental(app, session, random_string, ran
         include_rental=False,
     )
     backfill_registration_search(app, batch_size=10)
-    assert Registration.query.get(reg.id).registration_json == {"registrationType": "PLATFORM"}
+    assert Registration.query.get(reg.id).registration_json == {
+        "registrationType": "PLATFORM"
+    }
 
 
-def test_backfill_processes_multiple_batches(app, session, random_string, random_integer):
+def test_backfill_processes_multiple_batches(
+    app, session, random_string, random_integer
+):
     for _ in range(5):
         create_host_registration(
             session,
