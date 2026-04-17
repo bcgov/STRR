@@ -1,6 +1,4 @@
 import os
-import random
-import string
 import sys
 import time
 
@@ -13,56 +11,7 @@ from testcontainers.postgres import PostgresContainer
 # This is a known issue for testcontainers.
 os.environ["TESTCONTAINERS_RYUK_DISABLED"] = "true"
 
-
-@pytest.fixture(scope="function")
-def random_string():
-    """Returns a random string, defult length is 10."""
-
-    def _generate(length=10):
-        characters = string.ascii_letters + string.digits
-        return "".join(random.choices(characters, k=length))
-
-    return _generate
-
-
-@pytest.fixture(scope="function")
-def random_integer():
-    """Returns a random integer, defult max is 1000."""
-
-    def _generate(max=1000):
-        return random.randint(1, max)
-
-    return _generate
-
-
-@pytest.fixture
-def inject_config(app, request):
-    """
-    Safely injects config variables for a single test and reverts them afterwards.
-    Usage: @pytest.mark.conf(KEY="value")
-    """
-    marker = request.node.get_closest_marker("conf")
-
-    if not marker:
-        yield
-        return
-
-    new_config = marker.kwargs
-    original_values = {}
-
-    for key in new_config:
-        original_values[key] = app.config.get(key)
-
-    app.config.update(new_config)
-
-    yield
-
-    # RESTORE: Revert to original values
-    for key, old_value in original_values.items():
-        if old_value is None:
-            app.config.pop(key, None)
-        else:
-            app.config[key] = old_value
+pytest_plugins = ["strr_test_utils.utils_fixtures"]
 
 
 @pytest.fixture(scope="session")
