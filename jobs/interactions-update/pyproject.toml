@@ -39,6 +39,9 @@ dev = [
     "flake8 (>=7.3.0,<8.0.0)"
 ]
 
+[tool.poetry.group.dev.dependencies]
+strr-test-utils = {path = "../../tests/python-test-utils", develop = true}
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"

@@ -23,13 +23,13 @@ structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", 
 # strr-api = {git = "https://github.com/bcgov/STRR.git", branch = "feature-validator-updates", subdirectory = "strr-api"}
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
-redis = "^5.2.1"
+redis = "^7.0.0"
 
 [tool.poetry.group.test.dependencies]
 freezegun = "^1.4.0"
 hypothesis = "^6.100.0"
 pexpect = "^4.9.0"
-pytest = "^7.4.4"
+pytest = "^8.2.0"
 pytest-cov = "^5.0.0"
 pytest-mock = "^3.14.0"
 requests-mock = "^1.12.1"
@@ -41,6 +41,7 @@ isort = "^5.13.2"
 black = "^24.10.0"
 pylint = "^3.0.3"
 testcontainers = "^4.14.0"
+strr-test-utils = {path = "../../tests/python-test-utils", develop = true}
 
 [build-system]
 requires = ["poetry-core"]
@@ -67,8 +68,12 @@ exclude = '''
 )/
 '''
 
-[tool.pylint]
+[tool.pylint.main]
 max-line-length = 132
+# CI runs `pylint .` with in-project `.venv`; basename + path patterns both apply in practice.
+ignore = [".venv"]
+ignore-paths = ["^\\.venv/"]
+ignore-patterns = ["^\\.#"]
 
 [tool.pytest.ini_options]
 minversion = "2.0"

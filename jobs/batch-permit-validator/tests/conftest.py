@@ -36,6 +36,7 @@ import pytest
 
 # pylint: disable=invalid-name
 pytest_plugins = [
+    "strr_test_utils.utils_fixtures",
     "tests.fixtures.utils_fixtures",
     "tests.fixtures.db_fixtures",
     "tests.fixtures.redis_fixtures",
