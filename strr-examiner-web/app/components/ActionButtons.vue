@@ -102,27 +102,9 @@ const suspendRegistrationAction = () => {
   refreshNuxtData()
 }
 
+// Reinstates a cancelled/suspended registration by re-applying the ACTIVE status
 const reinstateRegistration = () => {
-  openConfirmActionModal(
-    t('modal.reinstateRegistration.title'),
-    t('modal.reinstateRegistration.message'),
-    t('btn.yesReinstate'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.ACTIVE,
-        decisionEmailContent.value.content,
-        {
-          predefinedConditions: conditions.value,
-          ...(customConditions.value && { customConditions: customConditions.value }),
-          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-        }
-      )
-      refreshNuxtData()
-    },
-    t('btn.cancel')
-  )
+  applyActiveApprovalStatus()
 }
 
 const sendNoticeAction = async () => {

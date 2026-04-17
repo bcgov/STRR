@@ -297,7 +297,6 @@ export default {
     declineApplication: 'Refuse Application',
     approveApplication: 'Approve Application',
     setAside: 'Set Aside',
-    yesReinstate: 'Yes, Reinstate',
     yesUpdate: 'Update Approval',
     // examiner decisions buttons
     APPROVE: 'Approve Registration',
@@ -447,10 +446,6 @@ export default {
     unsavedChanges: {
       title: 'Unsaved Changes',
       message: 'Are you sure you want to discard your changes?'
-    },
-    reinstateRegistration: {
-      title: 'Reinstate Registration',
-      message: 'Reinstating the registration will make it valid again. Are you sure you want to continue?'
     }
   },
   table: {

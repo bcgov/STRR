@@ -89,20 +89,7 @@ const handleAssigneeAction = (
   buttonIndex: number
 ) => {
   if (isAssignedToUser.value) {
-    if (action === RegistrationActionsE.REINSTATE) {
-      openConfirmActionModal(
-        t('modal.reinstateRegistration.title'),
-        t('modal.reinstateRegistration.message'),
-        t('btn.yesReinstate'),
-        () => {
-          closeConfirmActionModal()
-          handleRegistrationAction(id, action, buttonPosition, buttonIndex)
-        },
-        t('btn.cancel')
-      )
-    } else {
-      return handleRegistrationAction(id, action, buttonPosition, buttonIndex)
-    }
+    return handleRegistrationAction(id, action, buttonPosition, buttonIndex)
   } else {
     openConfirmActionModal(
       t('modal.assignError.title'),
