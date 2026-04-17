@@ -89,7 +89,9 @@ def attach_application(
     return app_row
 
 
-def create_host_registration_null_json(session, random_string, random_integer) -> Registration:
+def create_host_registration_null_json(
+    session, random_string, random_integer
+) -> Registration:
     """HOST registration with registration_json=None (user committed)."""
     user = create_user(session)
     reg = Registration(
