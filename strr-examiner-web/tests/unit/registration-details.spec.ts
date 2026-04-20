@@ -338,8 +338,8 @@ describe('Examiner - Registration Details Page', () => {
     expect(wrapper.text()).toContain(mockHistoricalApplications[1]?.applicationNumber)
 
     // verify local government is displayed
-    expect(wrapper.text()).toContain(mockHistoricalApplications[0]?.organizationName)
-    expect(wrapper.text()).toContain(mockHistoricalApplications[1]?.organizationName)
+    expect(wrapper.text()).toContain(dateToString(mockHistoricalApplications[0]!.applicationDateTime, 'y-MM-dd'))
+    expect(wrapper.text()).toContain(dateToString(mockHistoricalApplications[1]!.applicationDateTime, 'y-MM-dd'))
 
     // verify renewal badge only appears for renewal application
     const renewalBadges = wrapper.findAll('[data-testid="renewal-badge"]')

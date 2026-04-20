@@ -8,13 +8,9 @@ defineProps<{
 const localePath = useLocalePath()
 
 const columns = [
-  { key: 'number', label: t('table.historicalApps.number') },
-  { key: 'type', label: t('table.historicalApps.type') },
-  { key: 'conditions', label: t('table.historicalApps.conditions') },
-  { key: 'propertyHostName', label: t('table.historicalApps.propertyHostName') },
-  { key: 'address', label: t('table.historicalApps.address') },
-  { key: 'localGovernment', label: t('table.historicalApps.localGovernment') },
-  { key: 'action', label: t('table.historicalApps.action') }
+  { key: 'number', label: t('table.historicalApps.number'), class: 'w-3/12' },
+  { key: 'submitDate', label: t('table.historicalApps.submitDate'), class: 'w-full' },
+  { key: 'action', label: t('table.historicalApps.action'), class: 'w-px' }
 ]
 
 const isRenewal = (applicationType: string): boolean => applicationType === 'renewal'
@@ -60,7 +56,7 @@ const onViewApplication = async (applicationNumber: string) => {
     >
       <template #number-data="{ row }">
         <div class="flex flex-col">
-          <span class="font-medium">{{ row.applicationNumber }}</span>
+          {{ row.applicationNumber }}
           <UBadge
             v-if="isRenewal(row.applicationType)"
             :label="t('label.renewal')"
@@ -69,31 +65,12 @@ const onViewApplication = async (applicationNumber: string) => {
             class="mt-1 w-fit text-xs font-bold uppercase"
             data-testid="renewal-badge"
           />
-          <span class="mt-3 text-sm italic text-[#757575]">
-            {{ dateToString(row.applicationDateTime, 'y-MM-dd', true) }}
-            {{ dateToString(row.applicationDateTime, 'a', true) }}
-          </span>
         </div>
       </template>
 
-      <template #type-data>
-        -
-      </template>
-
-      <template #conditions-data>
-        -
-      </template>
-
-      <template #propertyHostName-data>
-        -
-      </template>
-
-      <template #address-data>
-        -
-      </template>
-
-      <template #localGovernment-data="{ row }">
-        {{ row.organizationName || '-' }}
+      <template #submitDate-data="{ row }">
+        {{ dateToString(row.applicationDateTime, 'y-MM-dd', true) }}
+        {{ dateToString(row.applicationDateTime, 'a', true) }}
       </template>
 
       <template #action-data="{ row }">

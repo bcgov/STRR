@@ -454,12 +454,8 @@ export default {
       emptyText: "You don't have any properties yet. Add a property above."
     },
     historicalApps: {
-      number: 'Number',
-      type: 'Type',
-      conditions: 'Conditions',
-      propertyHostName: 'Property Host Name',
-      address: 'Address',
-      localGovernment: 'Local Government',
+      number: 'Application Number',
+      submitDate: 'Date Submitted',
       action: 'Action'
     },
     registrationSnapshots: {
