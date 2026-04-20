@@ -207,3 +207,5 @@ def test_backfill_processes_multiple_batches(
     assert Registration.query.count() == 5
     backfill_registration_search(app, batch_size=2)
     assert Registration.query.count() == 5
+    assert Registration.query.count() == 5
+    assert Registration.query.count() == 5

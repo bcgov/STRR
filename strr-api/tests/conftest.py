@@ -46,6 +46,7 @@ pytest_plugins = (
     "tests.fixtures.local",
     "strr_test_utils.utils_fixtures",
     "strr_test_utils.redis_fixtures",
+    "strr_test_utils.parent_fixtures",
 )
 
 # from strr_api import create_app

@@ -180,7 +180,7 @@ def test_email_mocked_notify(
     session,
     simple_cloud_event,
     queue_envelope,
-    setup_parents,
+    setup_parents_committed,
     random_integer,
     inject_config,
 ):
@@ -220,7 +220,7 @@ def test_email_mocked_notify(
     )
 
     # Create a registration with enough info to email out.
-    registration = create_registration(session, setup_parents)
+    registration = create_registration(session, setup_parents_committed)
 
     # Create a CustomerInteraction
     email_info = EmailInfo(

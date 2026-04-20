@@ -181,7 +181,13 @@ def test_dispatch_email_interaction_success(mock_requests_post, mock_get_token, 
 @patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
 @patch("strr_api.services.interaction.requests.post")
 def test_dispatch_email_interaction_failure(
-    mock_requests_post, mock_get_token, session, setup_parents, inject_config, response_status_code, response_json
+    mock_requests_post,
+    mock_get_token,
+    session,
+    setup_parents,
+    inject_config,
+    response_status_code,
+    response_json,
 ):
     """Assert that email interaction raises ExternalServiceException when notify returns a failure response."""
     mock_requests_post.return_value.status_code = response_status_code

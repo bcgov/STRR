@@ -55,7 +55,7 @@ bandit = "^1.7.6"
 isort = "^5.13.2"
 testcontainers = "^4.14.0"
 pytest-check = "^2.6.2"
-strr-test-utils = { git = "https://github.com/bcgov/STRR.git", subdirectory = "tests/python-test-utils", branch = "main" }
+strr-test-utils = { path = "../tests/python-test-utils", develop = true }
 
 [tool.bandit]
 exclude_dirs = [".venv","tests"]
