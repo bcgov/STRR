@@ -1,3 +1,5 @@
+"""Fixtures for strr-pay integration tests (Docker Postgres + migrated schema)."""
+
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -11,13 +13,9 @@ from strr_api.models import User
 
 
 @pytest.fixture
-def setup_parents(session: Session, random_string, random_integer):
-    """
-    Creates one parent record in each table so we have valid IDs
-    to link our interactions to.
+def setup_payment_application(session: Session, random_string, random_integer):
+    """User, registration, and application in PAYMENT_DUE with a known invoice_id."""
 
-    TODO: this should be part of a session wide set of fixture strategy
-    """
     customer = User()
     user = User()
     session.add_all([user, customer])
@@ -35,21 +33,26 @@ def setup_parents(session: Session, random_string, random_integer):
     session.add(reg)
     session.flush()
 
-    app = Application(
+    invoice_id = random_integer(999999)
+
+    app_row = Application(
         id=random_integer(),
         application_json={},
         registration_id=reg.id,
         application_number=random_string(10),
         type="",
         registration_type=Registration.RegistrationType.HOST,
+        invoice_id=invoice_id,
+        status=Application.Status.PAYMENT_DUE.value,
     )
 
-    session.add(app)
+    session.add(app_row)
     session.commit()
 
     return {
-        "application_id": app.id,
-        "customer_id": customer.id,
-        "registration_id": reg.id,
-        "user_id": user.id,
+        "application": app_row,
+        "customer": customer,
+        "invoice_id": invoice_id,
+        "registration": reg,
+        "user": user,
     }
