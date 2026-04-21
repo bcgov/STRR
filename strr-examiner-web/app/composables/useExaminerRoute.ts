@@ -117,13 +117,15 @@ export const useExaminerRoute = () => {
       const currentLabels = currentButtons.rightButtons.map(btn => btn.label)
       const commonLabels = configLabels.filter(label => currentLabels.includes(label))
       const processedLabels = new Set<string>()
-      const uniqueRightButtons = examinerActions?.length > 0 && currentButtons.rightButtons.filter((btn) => {
-        if (processedLabels.has(btn.label) || commonLabels.includes(btn.label)) {
-          return false
-        }
-        processedLabels.add(btn.label)
-        return true
-      })
+      const uniqueRightButtons: ConnectBtnControlItem[] = examinerActions?.length > 0
+        ? currentButtons.rightButtons.filter((btn) => {
+          if (processedLabels.has(btn.label) || commonLabels.includes(btn.label)) {
+            return false
+          }
+          processedLabels.add(btn.label)
+          return true
+        })
+        : []
       if (examinerActions && examinerActions.length > 0) {
         if (buttonConfig.assign && (!activeHeader.value?.assignee?.username)) {
           uniqueRightButtons.unshift({
@@ -157,7 +159,7 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             icon: 'i-mdi-rotate-left',
             color: 'primary',
-            disabled: buttonConfig.cancel!.disabled ?? false
+            disabled: buttonConfig.registrationSetAside!.disabled ?? false
           })
         }
 
@@ -202,7 +204,7 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             icon: 'i-mdi-pause',
             color: 'primary',
-            disabled: buttonConfig.cancel!.disabled ?? false
+            disabled: buttonConfig.suspend!.disabled ?? false
           })
         }
 
@@ -225,7 +227,7 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             color: 'primary',
             icon: 'i-mdi-rotate-left',
-            disabled: buttonConfig.cancel!.disabled ?? false
+            disabled: buttonConfig.reinstate!.disabled ?? false
           })
         }
 
@@ -236,7 +238,7 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             color: 'green',
             icon: 'i-mdi-check',
-            disabled: buttonConfig.cancel!.disabled ?? false
+            disabled: buttonConfig.registrationApprove!.disabled ?? false
           })
         }
 

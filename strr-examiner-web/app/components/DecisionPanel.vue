@@ -37,7 +37,7 @@ const localConditions = ref<string[]>([])
 const customCondition = ref<string>('') // custom condition to be added to lit of all conditions
 
 const decisionEmailPlaceholder = computed((): string =>
-  [ApplicationActionsE.SEND_NOC,
+  !!decisionIntent.value && [ApplicationActionsE.SEND_NOC,
     ApplicationActionsE.REJECT,
     RegistrationActionsE.CANCEL,
     RegistrationActionsE.SUSPEND
@@ -47,13 +47,13 @@ const decisionEmailPlaceholder = computed((): string =>
 )
 
 const enableApproveButton = computed(() =>
-  activeHeader.value.examinerActions.includes(ApplicationActionsE.APPROVE) ||
-  activeHeader.value.examinerActions.includes(ApplicationActionsE.PROVISIONAL_APPROVE) ||
-  activeHeader.value.isSetAside ||
-  activeReg.value.status === RegistrationStatus.ACTIVE
+  activeHeader.value?.examinerActions?.includes(ApplicationActionsE.APPROVE) ||
+  activeHeader.value?.examinerActions?.includes(ApplicationActionsE.PROVISIONAL_APPROVE) ||
+  activeHeader.value?.isSetAside ||
+  activeReg.value?.status === RegistrationStatus.ACTIVE
 )
 
-const decisionButtons = [
+const decisionButtons = computed(() => [
   {
     action: ApplicationActionsE.APPROVE,
     label: t('btn.approve'),
@@ -68,7 +68,7 @@ const decisionButtons = [
     color: 'blue',
     activeStyle: 'bg-str-bgBlue text-str-textGray hover:bg-str-bgBlue',
     icon: 'i-mdi-send',
-    disabled: !activeHeader.value.examinerActions.includes(ApplicationActionsE.SEND_NOC)
+    disabled: !activeHeader.value?.examinerActions?.includes(ApplicationActionsE.SEND_NOC)
   },
   {
     action: ApplicationActionsE.REJECT,
@@ -76,7 +76,7 @@ const decisionButtons = [
     color: 'red',
     activeStyle: 'bg-str-bgRed text-str-textGray hover:bg-str-bgRed',
     icon: 'i-mdi-close',
-    disabled: !activeHeader.value.examinerActions.includes(ApplicationActionsE.REJECT),
+    disabled: !activeHeader.value?.examinerActions?.includes(ApplicationActionsE.REJECT),
     hidden: !isApplication.value
   },
   {
@@ -85,10 +85,10 @@ const decisionButtons = [
     color: 'red',
     activeStyle: 'bg-str-bgRed text-str-textGray hover:bg-str-bgRed',
     icon: 'i-mdi-close',
-    disabled: !activeHeader.value.examinerActions.includes(RegistrationActionsE.CANCEL),
+    disabled: !activeHeader.value?.examinerActions?.includes(RegistrationActionsE.CANCEL),
     hidden: isApplication.value
   }
-]
+])
 
 // always visible buttons actions (approve and prov approve is one button)
 const mainActions = [
@@ -102,7 +102,7 @@ const mainActions = [
 
 // additional actions in the dropdown menu
 const moreActionItems = computed(() =>
-  activeHeader.value.examinerActions
+  (activeHeader.value?.examinerActions ?? [])
     .filter((action: ApplicationActionsE) => !mainActions.includes(action))
     .map(
       (action: ApplicationActionsE) => {
@@ -182,7 +182,7 @@ watch(customCondition, (val) => {
 
 onMounted(() => {
   resetDecision()
-  if (activeReg.value.status === RegistrationStatus.ACTIVE) {
+  if (activeReg.value?.status === RegistrationStatus.ACTIVE) {
     setDecisionIntent(ApplicationActionsE.APPROVE)
     loadExistingConditions() // requirement: load conditions only for active registrations
   }
