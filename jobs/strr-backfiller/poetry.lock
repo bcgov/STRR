@@ -3679,14 +3679,14 @@ name = "strr-test-utils"
 version = "0.1.0"
 description = "Shared Test Utilities for STRR Jobs"
 optional = false
-python-versions = "^3.12"
+python-versions = ">=3.12.2,<4.0"
 groups = ["dev"]
 files = []
 develop = true
 
 [package.dependencies]
 flask-sqlalchemy = "*"
-pytest = "^8.0.0"
+pytest = ">=8.0.0,<10.0.0"
 sqlalchemy = "*"
 structlog = "*"
 testcontainers = {version = "^4.0.0", extras = ["postgres", "redis"]}

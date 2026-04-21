@@ -6,7 +6,7 @@ authors = [
     {name = "Thor", email = "thor@daxiom.com"}
 ]
 license = {text = "BSD 3-Clause"}
-requires-python = ">=3.12,<3.15"
+requires-python = ">=3.12.2,<3.15"
 
 # Leaving the local working api here as an example
 dependencies = [

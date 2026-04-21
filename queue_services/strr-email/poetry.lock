@@ -3685,7 +3685,7 @@ name = "strr-test-utils"
 version = "0.1.0"
 description = "Shared Test Utilities for STRR Jobs"
 optional = false
-python-versions = "^3.12"
+python-versions = ">=3.12.2,<4.0"
 groups = ["dev"]
 files = []
 develop = true

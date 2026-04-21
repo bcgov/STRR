@@ -12,9 +12,9 @@ structlog = "*"
 testcontainers = {extras = ["postgres", "redis"], version = "^4.0.0"}
 sqlalchemy = "*"
 flask-sqlalchemy = "*"
-strr-api = { path = "../../strr-api", develop = true }
 
 [tool.poetry.group.dev.dependencies]
+strr-api = { path = "../../strr-api", develop = true }
 isort = "^8.0.1"
 black = "^26.3.1"
 

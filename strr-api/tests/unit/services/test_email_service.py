@@ -257,7 +257,7 @@ def test_send_registration_status_update_email_publishes_payload(session, setup_
     assert queue_message.topic == "test"
     assert queue_message.payload == {
         "registrationNumber": registration.registration_number,
-        "emailType": "HOST_REGISTRATION_ACTIVE",
+        "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
         "customContent": "message body",
         "interaction": interaction,
     }
