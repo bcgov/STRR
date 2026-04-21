@@ -32,7 +32,7 @@ It appears your registration may not meet all the requirements from the short-te
 
 {{noc_content | escape }}
 
-Please **log in** to your [Short Term Rental Registry Dashboard](https://host.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) to **upload your documents and submissions** before the due date.
+Please **log in** to your [Short-Term Rental Registry Dashboard](https://host.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/) to **upload your documents and submissions** before the due date.
 
 If you need help uploading your documents or have any questions, please contact [Registry.STR@gov.bc.ca](mailto:Registry.STR@gov.bc.ca).
 

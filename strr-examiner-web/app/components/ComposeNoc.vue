@@ -6,7 +6,8 @@ const {
   emailContent,
   showComposeNocEmail,
   isAssignedToUser,
-  activeHeader
+  activeHeader,
+  hasRegistrationNumber
 } = storeToRefs(useExaminerStore())
 const { t } = useNuxtApp().$i18n
 const formSchema = computed(
@@ -32,7 +33,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="(showComposeEmail || showComposeNocEmail) && isAssignedToUser" class="app-inner-container">
+  <div
+    v-if="(showComposeEmail || showComposeNocEmail) && isAssignedToUser && !hasRegistrationNumber"
+    class="app-inner-container"
+  >
     <div class="mb-8 rounded bg-white py-6">
       <UForm
         ref="emailFormRef"

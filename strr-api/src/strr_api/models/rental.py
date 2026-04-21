@@ -167,7 +167,12 @@ class Registration(Versioned, BaseModel):
         """Collect OR conditions for registration sub-status filters."""
         sub_status_conditions = []
         if filter_criteria.approval_methods:
-            sub_status_conditions.append(cls._approval_method_condition(filter_criteria.approval_methods))
+            sub_status_conditions.append(
+                cls._approval_method_condition(
+                    filter_criteria.approval_methods,
+                    filter_criteria.examiner_reviewed,
+                )
+            )
         if filter_criteria.noc_statuses:
             sub_status_conditions.append(Registration.noc_status.in_(filter_criteria.noc_statuses))
         if filter_criteria.is_set_aside is True:
@@ -451,14 +456,16 @@ class Registration(Versioned, BaseModel):
         return query
 
     @classmethod
-    def _approval_method_condition(cls, approval_methods: list[str]):
-        """Build SQL condition for filtering by latest application status."""
+    def _approval_method_condition(cls, approval_methods: list[str], examiner_reviewed: bool | None = None):
+        """Build SQL condition for filtering by latest application status and review state."""
         # pylint: disable=import-outside-toplevel
         from sqlalchemy import select
 
         from strr_api.models.application import Application
 
-        # for each registration, get the status of the most recent application
+        # For each registration, evaluate only the latest application (same ordering
+        # used by the dashboard payload). This keeps filtering aligned with what users
+        # see in the Sub-Status column.
         latest_app_status_subq = (
             select(Application.status)
             .where(Application.registration_id == Registration.id)
@@ -466,28 +473,68 @@ class Registration(Versioned, BaseModel):
             .limit(1)
             .scalar_subquery()
         )
-        return latest_app_status_subq.in_(approval_methods)
+        approval_status_condition = latest_app_status_subq.in_(approval_methods)
+        if examiner_reviewed is None:
+            # Backward-compatible behavior: only filter by approval method/status.
+            return approval_status_condition
+
+        # Per examiner workflow, review state for registrations is represented by
+        # the registration level decider.
+        reviewed_condition = Registration.decider_id.isnot(None)
+
+        # examinerReviewed=false -> "review queue" (not yet examiner decided, no renewal filed)
+        # examinerReviewed=true  -> already reviewed by an examiner
+        return (
+            db.and_(approval_status_condition, reviewed_condition)
+            if examiner_reviewed
+            else db.and_(
+                approval_status_condition,
+                db.not_(reviewed_condition),
+                db.not_(cls._has_renewal_filed_condition()),
+            )
+        )
 
     @classmethod
     def _review_renew_condition(cls):
-        """Build SQL condition for registrations requiring renewal review."""
+        """Build SQL condition for renewals requiring human review.
+
+        A registration matches when all are true:
+        - a renewal is filed
+        - no registration-level decision exists yet
+        - latest application is still in provisional review queue
+        """
+        # pylint: disable=import-outside-toplevel
+        from strr_api.models.application import Application
+
+        provisional_statuses = [
+            Application.Status.PROVISIONALLY_APPROVED.value,
+            Application.Status.PROVISIONAL_REVIEW.value,
+        ]
+        return db.and_(
+            cls._has_renewal_filed_condition(),
+            Registration.decider_id.is_(None),
+            cls._approval_method_condition(provisional_statuses),
+        )
+
+    @classmethod
+    def _has_renewal_filed_condition(cls):
+        """Return SQL condition indicating the registration has a filed renewal."""
         # pylint: disable=import-outside-toplevel
         from strr_api.enums.enum import ApplicationType
         from strr_api.models.application import Application
 
-        renewal_not_fully_approved_statuses = [
-            Application.Status.FULL_REVIEW.value,
-            Application.Status.PROVISIONALLY_APPROVED.value,
-            Application.Status.PROVISIONAL_REVIEW.value,
-        ]
-        renewal_exists = db.exists().where(
+        return db.exists().where(
             db.and_(
                 Application.registration_id == Registration.id,
                 Application.type == ApplicationType.RENEWAL.value,
-                Application.status.in_(renewal_not_fully_approved_statuses),
+                Application.status.notin_(
+                    [
+                        Application.Status.DRAFT.value,
+                        Application.Status.PAYMENT_DUE.value,
+                    ]
+                ),
             )
         )
-        return renewal_exists
 
 
 class RentalProperty(Versioned, BaseModel):

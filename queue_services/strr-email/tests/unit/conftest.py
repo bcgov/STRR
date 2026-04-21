@@ -4,6 +4,7 @@ from datetime import timezone
 
 import pytest
 from sqlalchemy.orm import Session
+from strr_api.enums.enum import RegistrationStatus
 from strr_api.models import Application
 from strr_api.models import Registration
 from strr_api.models import User
@@ -26,7 +27,7 @@ def setup_parents(session: Session, random_string, random_integer):
         registration_type=Registration.RegistrationType.HOST,
         registration_number=random_string(10),
         sbc_account_id=random_integer(),
-        status="ACTIVE",
+        status=RegistrationStatus.ACTIVE,
         user_id=user.id,
         start_date=datetime.now(timezone.utc),
         expiry_date=(datetime.now(timezone.utc) + timedelta(days=365)).date(),

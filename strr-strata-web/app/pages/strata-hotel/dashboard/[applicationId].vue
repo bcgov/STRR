@@ -234,11 +234,6 @@ definePageMeta({
           <SummaryBusiness />
         </div>
       </ConnectDashboardSection>
-      <ConnectDashboardSection :title="$t('strr.label.regOfficeAttSvc')" :loading="loading">
-        <div class="rounded p-3">
-          <SummaryRegOfficeAttorney />
-        </div>
-      </ConnectDashboardSection>
       <ConnectDashboardSection
         id="summary-supporting-info"
         :title="$t('label.supportingDocs')"

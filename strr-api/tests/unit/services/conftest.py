@@ -3,6 +3,14 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy.orm import Session
 
+
+@pytest.fixture
+def app_ctx(app):
+    """Flask application context for service calls (avoids repeating app.app_context())."""
+    with app.app_context():
+        yield app
+
+
 from strr_api.models import Application, Registration, User
 
 
@@ -32,7 +40,6 @@ def setup_parents(session: Session, random_string, random_integer):
     session.flush()
 
     app = Application(
-        id=random_integer(),
         application_json={},
         registration_id=reg.id,
         application_number=random_string(10),

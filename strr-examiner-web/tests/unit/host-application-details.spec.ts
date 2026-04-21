@@ -59,6 +59,8 @@ vi.mock('@/stores/examiner', () => ({
     resetEditRentalUnitAddress: vi.fn(),
     assignApplication: mockAssignApplication,
     viewReceipt: mockViewReceipt,
+    activePaymentTotal: ref(null),
+    activePaymentDate: ref(null),
     openDocInNewTab: vi.fn().mockImplementation(() => {
       const url = URL.createObjectURL(new Blob(['test']))
       window.open(url, '_blank')

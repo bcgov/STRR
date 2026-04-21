@@ -38,14 +38,13 @@ describe('BusinessDetails form component', () => {
     const wrapper = await mountComponent()
 
     expect(wrapper.find('[data-testid="business-details"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="strata-business-hasRegOffAtt"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="strata-business-hasRegOffAtt"]').exists()).toBe(false)
   })
 
-  it('should show the registered office address section when hasRegOffAtt is true', async () => {
+  it('should not render registered office or attorney fields', async () => {
     const wrapper = await mountComponent({ hasRegOffAtt: true })
 
-    // attorney name field should be visible when hasRegOffAtt is true
     const attorneyName = wrapper.find('#strata-att-for-svc-name')
-    expect(attorneyName.exists()).toBe(true)
+    expect(attorneyName.exists()).toBe(false)
   })
 })

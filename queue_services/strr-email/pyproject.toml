@@ -82,7 +82,7 @@ minversion = "2.0"
 testpaths = [
    "tests",
 ]
-addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml"
+addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term"
 python_files = [
    "test*.py"
 ]
@@ -97,5 +97,14 @@ filterwarnings = [
 markers = [
    "slow",
    "serial",
+   "integration: tests requiring Docker DB and strr_test_utils fixtures",
    "conf: Inject flask config values into the app fixture",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "**/strr_email/utils.py",
+    "**/strr_email/config.py",
+    "**/strr_email/__init__.py",
 ]

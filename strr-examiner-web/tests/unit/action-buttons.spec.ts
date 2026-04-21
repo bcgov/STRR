@@ -61,9 +61,6 @@ const mount = () => mountSuspended(ActionButtons, { global: { plugins: [enI18n] 
 const clickMainButton = (wrapper: any) =>
   wrapper.find('[data-testid="main-action-button"]').trigger('click')
 
-// Get confirmHandler action, from openConfirmActionModal (confirmHandler is at position 3)
-const getConfirmCallback = () => mockOpenConfirmActionModal.mock.lastCall!.at(3) as () => void
-
 describe('ActionButtons Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -209,7 +206,7 @@ describe('ActionButtons Component', () => {
     expect(mockUnassignRegistration).not.toHaveBeenCalled()
   })
 
-  it('should open confirm modal for APPROVE decision on an active registration', async () => {
+  it('should update registration status with ACTIVE immediately when approve is clicked', async () => {
     activeReg.value = {
       ...activeReg.value,
       status: RegistrationStatus.ACTIVE,
@@ -223,10 +220,17 @@ describe('ActionButtons Component', () => {
     await clickMainButton(wrapper)
     await flushPromises()
 
-    expect(mockOpenConfirmActionModal).toHaveBeenCalledOnce()
+    expect(mockOpenConfirmActionModal).not.toHaveBeenCalled()
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledWith(
+      'reg-123',
+      RegistrationStatus.ACTIVE,
+      '',
+      { predefinedConditions: conditions.value }
+    )
   })
 
-  it('should update registration status with CANCELLED when cancel confirm is clicked', async () => {
+  it('should update registration status with CANCELLED directly when cancel is clicked', async () => {
     decisionIntent.value = RegistrationActionsE.CANCEL
     decisionEmailContent.value = { content: 'cancellation notice' }
 
@@ -236,11 +240,7 @@ describe('ActionButtons Component', () => {
     await clickMainButton(wrapper)
     await flushPromises()
 
-    expect(mockOpenConfirmActionModal).toHaveBeenCalledOnce()
-
-    getConfirmCallback()()
-    await flushPromises()
-
+    expect(mockOpenConfirmActionModal).not.toHaveBeenCalled()
     expect(mockUpdateRegistrationStatus).toHaveBeenCalledOnce()
     expect(mockUpdateRegistrationStatus).toHaveBeenCalledWith(
       'reg-123',
@@ -249,7 +249,7 @@ describe('ActionButtons Component', () => {
     )
   })
 
-  it('should update registration status with ACTIVE when approve confirm is clicked', async () => {
+  it('should update registration status with ACTIVE when approve is clicked', async () => {
     activeReg.value = {
       ...activeReg.value,
       status: RegistrationStatus.CANCELLED,
@@ -266,17 +266,7 @@ describe('ActionButtons Component', () => {
     await clickMainButton(wrapper)
     await flushPromises()
 
-    expect(mockOpenConfirmActionModal).toHaveBeenCalledWith(
-      expect.stringContaining('Approve'),
-      expect.any(String),
-      expect.stringContaining('Approve'),
-      expect.any(Function),
-      expect.any(String)
-    )
-
-    getConfirmCallback()()
-    await flushPromises()
-
+    expect(mockOpenConfirmActionModal).not.toHaveBeenCalled()
     expect(mockUpdateRegistrationStatus).toHaveBeenCalledOnce()
     expect(mockUpdateRegistrationStatus).toHaveBeenCalledWith(
       'reg-123',
@@ -286,7 +276,7 @@ describe('ActionButtons Component', () => {
     )
   })
 
-  it('should send notice and clear content when send notice confirm is clicked', async () => {
+  it('should send notice and clear content directly when send notice is clicked', async () => {
     decisionIntent.value = ApplicationActionsE.SEND_NOC
     decisionEmailContent.value = { content: 'notice of consideration body' }
 
@@ -297,16 +287,7 @@ describe('ActionButtons Component', () => {
     await clickMainButton(wrapper)
     await flushPromises()
 
-    expect(mockOpenConfirmActionModal).toHaveBeenCalledWith(
-      expect.stringContaining('Notice'),
-      expect.any(String),
-      expect.stringContaining('Send'),
-      expect.any(Function)
-    )
-
-    getConfirmCallback()()
-    await flushPromises()
-
+    expect(mockOpenConfirmActionModal).not.toHaveBeenCalled()
     expect(mockSendNotice).toHaveBeenCalledOnce()
     expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'notice of consideration body')
     expect(decisionEmailContent.value.content).toBe('')

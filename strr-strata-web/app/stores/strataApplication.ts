@@ -35,6 +35,10 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
   }
 
   const createApplicationBody = () => {
+    const businessDetails = formatBusinessDetails(businessStore.strataBusiness || {} as StrrBusiness) as any
+    // CR: Registered office/attorney data is deprecated for strata hotel filings.
+    delete businessDetails.registeredOfficeOrAttorneyForServiceDetails
+
     const applicationBody: StrataApplicationPayload = {
       header: {
         paymentMethod: useConnectFeeStore().userSelectedPaymentMethod,
@@ -47,7 +51,7 @@ export const useStrrStrataApplicationStore = defineStore('strr/strataApplication
       registration: {
         registrationType: ApplicationType.STRATA_HOTEL,
         completingParty: formatParty(contactStore.completingParty),
-        businessDetails: formatBusinessDetails(businessStore.strataBusiness || {} as StrrBusiness),
+        businessDetails,
         strataHotelRepresentatives: [],
         strataHotelDetails: formatStrataDetails(detailsStore.strataDetails),
         documents: documentStore.apiDocuments

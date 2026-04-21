@@ -1,26 +1,16 @@
 import json
 import os
-from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
-from strr_api.enums.enum import PaymentStatus, RegistrationStatus
-from strr_api.models import Application, Events
+from strr_api.enums.enum import PaymentStatus
+from strr_api.models import Application
+from tests.unit.resources.conftest import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
 )
-
-ACCOUNT_ID = 1234
-
-MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": ACCOUNT_ID}}
-MOCK_PAYMENT_COMPLETED_RESPONSE = {
-    "id": 123,
-    "statusCode": "COMPLETED",
-    "paymentAccount": {"accountId": ACCOUNT_ID},
-    "paymentDate": datetime.now().isoformat(),
-}
 
 
 def test_permit_does_not_exist(app, session, client, jwt):

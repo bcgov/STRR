@@ -32,7 +32,7 @@ export function formatAddressUI <T extends ApiBaseAddress> (add: T): ConnectAddr
     city: add.city,
     postalCode: add.postalCode,
     street: add.address || '',
-    streetAdditional: add.addressLineTwo,
+    streetAdditional: add.addressLineTwo || '',
     region: add.province,
     locationDescription: add.locationDescription
   }

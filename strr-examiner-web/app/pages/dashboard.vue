@@ -265,8 +265,21 @@ const getRegistrationNocStatusDisplay = (nocStatus: RegistrationNocStatus | unde
   return t(`registrationNocStatus.${nocStatus}`)
 }
 
+/** Newest application first (matches API RegistrationSerializer application_date desc). */
+const getLatestRegistrationApplication = (reg: HousRegistrationResponse) =>
+  reg.header?.applications?.[0]
+
 const getLatestRegistrationApplicationStatus = (reg: HousRegistrationResponse): ApplicationStatus | undefined => {
-  return reg.header?.applications?.[0]?.applicationStatus as ApplicationStatus | undefined
+  return getLatestRegistrationApplication(reg)?.applicationStatus as ApplicationStatus | undefined
+}
+
+const isProvisionalReviewQueueStatus = (status: ApplicationStatus | undefined): boolean => {
+  return status === ApplicationStatus.PROVISIONALLY_APPROVED || status === ApplicationStatus.PROVISIONAL_REVIEW
+}
+
+const hasExaminerReview = (reg: HousRegistrationResponse): boolean => {
+  const decider = reg.header?.decider
+  return Boolean(decider?.username || decider?.displayName)
 }
 
 const getRequirementsColumn = (app: HousApplicationResponse) => {
@@ -292,45 +305,21 @@ const getRequirementsColumn = (app: HousApplicationResponse) => {
   return result
 }
 
-const REVIEW_RENEW_STATUSES = new Set<ApplicationStatus>([
-  ApplicationStatus.FULL_REVIEW,
-  ApplicationStatus.PROVISIONALLY_APPROVED,
-  ApplicationStatus.PROVISIONAL_REVIEW
-])
+const hasRenewalApplication = (reg: HousRegistrationResponse): boolean => {
+  const applications = reg.header?.applications ?? []
+  return applications.some(app => app.applicationType === 'renewal')
+}
 
 const isReviewRenew = (reg: HousRegistrationResponse): boolean => {
-  const applications = reg.header?.applications ?? []
-  return applications.some(
-    app =>
-      app.applicationType === 'renewal' &&
-      app.applicationStatus &&
-      REVIEW_RENEW_STATUSES.has(app.applicationStatus as ApplicationStatus)
-  )
+  const latestAppStatus = getLatestRegistrationApplicationStatus(reg)
+  return hasRenewalApplication(reg) && !hasExaminerReview(reg) && isProvisionalReviewQueueStatus(latestAppStatus)
 }
 
 /**
- * Statuses where the renewal no longer needs examiner action (badge hidden).
+ * Show the "Renewal" badge with the exact same predicate used by "Review Renew".
  */
-const RENEWAL_BADGE_HIDDEN_STATUSES = new Set<ApplicationStatus>([
-  ApplicationStatus.FULL_REVIEW_APPROVED,
-  ApplicationStatus.DECLINED,
-  ApplicationStatus.PROVISIONALLY_DECLINED,
-  ApplicationStatus.AUTO_APPROVED
-])
-
-/**
- * Show the "Renewal" badge when any renewal on this registration still needs examiner action.
- */
-function shouldShowRenewalBadge (reg: HousRegistrationResponse): boolean {
-  const apps = reg.header?.applications ?? []
-  const renewals = apps.filter(a => a.applicationType === 'renewal')
-  return renewals.some((r) => {
-    const status = r.applicationStatus as ApplicationStatus | undefined
-    if (!status) {
-      return false
-    }
-    return !RENEWAL_BADGE_HIDDEN_STATUSES.has(status)
-  })
+const shouldShowRenewalBadge = (reg: HousRegistrationResponse): boolean => {
+  return isReviewRenew(reg)
 }
 
 const getRegistrationSubStatus = (reg: HousRegistrationResponse): string => {
@@ -343,16 +332,19 @@ const getRegistrationSubStatus = (reg: HousRegistrationResponse): string => {
   if (reg.nocStatus === RegistrationNocStatus.NOC_EXPIRED) {
     return 'NOC - Expired'
   }
+  if (reg.status === RegistrationStatus.CANCELLED) {
+    return 'Cancelled'
+  }
+  if (reg.status === RegistrationStatus.SUSPENDED) {
+    return 'Suspended'
+  }
   if (isReviewRenew(reg)) {
     return 'Review Renew'
   }
 
   const latestAppStatus = getLatestRegistrationApplicationStatus(reg)
-  if (
-    latestAppStatus === ApplicationStatus.PROVISIONALLY_APPROVED ||
-    latestAppStatus === ApplicationStatus.PROVISIONAL_REVIEW
-  ) {
-    return 'Review'
+  if (isProvisionalReviewQueueStatus(latestAppStatus)) {
+    return hasExaminerReview(reg) ? 'Approved' : 'Review'
   }
   if (
     latestAppStatus === ApplicationStatus.AUTO_APPROVED ||

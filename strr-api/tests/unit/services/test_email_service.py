@@ -43,9 +43,11 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 from dotenv import load_dotenv
 from gcp_queue.gcp_queue import GcpQueue
+from sqlalchemy import select
 
 from strr_api import create_app
-from strr_api.models import Application, Registration, User
+from strr_api.enums.enum import InteractionStatus
+from strr_api.models import Application, CustomerInteraction, Registration, User
 from strr_api.services import ApplicationService
 from strr_api.services.email_service import EmailService
 
@@ -150,3 +152,269 @@ def test_email_queue_publish(app, mock_publisher_client, mock_credentials, regis
 
     # set back to original topic
     app.config["GCP_EMAIL_TOPIC"] = orig_topic
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_renewal_reminder_queues_interaction_and_publishes_payload(session, setup_parents, inject_config):
+    """Test that renewal reminders preserve the queued interaction key in the event."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+    job_key = "2026:RENEWAL_REMINDER:40"
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_renewal_reminder_for_registration(registration=registration, interaction=job_key)
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+    payload = queue_message.payload
+
+    assert queue_message.topic == "test"
+    assert payload["registrationNumber"] == registration.registration_number
+    assert payload["emailType"] == "HOST_RENEWAL_REMINDER"
+    assert payload["interaction"] == job_key
+    assert payload["interaction_uuid"]
+
+    stored = session.scalar(
+        select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == payload["interaction_uuid"])
+    )
+
+    assert stored.registration_id == registration.id
+    assert stored.idempotency_key == job_key
+    assert stored.status == InteractionStatus.QUEUED
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_renewal_reminder_logs_publish_failure(session, setup_parents, inject_config):
+    """Test that renewal reminder publish failures are logged without changing queued tracking."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+    job_key = "2026:RENEWAL_REMINDER:41"
+
+    with (
+        patch(
+            "strr_api.services.email_service.gcp_queue_publisher.publish_to_queue",
+            side_effect=RuntimeError("publish failed"),
+        ),
+        patch("strr_api.services.email_service.logger.error") as mock_logger,
+    ):
+        EmailService.send_renewal_reminder_for_registration(registration=registration, interaction=job_key)
+
+    stored = session.scalar(select(CustomerInteraction).where(CustomerInteraction.idempotency_key == job_key))
+
+    assert stored.registration_id == registration.id
+    assert stored.status == InteractionStatus.QUEUED
+    mock_logger.assert_called_once()
+    assert mock_logger.call_args.args[0] == "Failed to publish email notification: %s"
+    assert str(mock_logger.call_args.args[1]) == "publish failed"
+
+
+@pytest.mark.parametrize(
+    ("status", "expected_email_type"),
+    [
+        (Application.Status.PROVISIONAL_REVIEW_NOC_PENDING, "PROVISIONAL_REVIEW_NOC"),
+        (Application.Status.AUTO_APPROVED, "NOC"),
+    ],
+)
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_notice_of_consideration_for_application_publishes_payload(
+    app, status, expected_email_type, inject_config
+):
+    """Test that application notice-of-consideration emails publish the expected payload."""
+    application = Application()
+    application.application_number = "A-123456"
+    application.status = status
+
+    with app.app_context():
+        with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+            EmailService.send_notice_of_consideration_for_application(application)
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "applicationNumber": "A-123456",
+        "emailType": expected_email_type,
+    }
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_registration_status_update_email_publishes_payload(session, setup_parents, inject_config):
+    """Test that registration status emails publish the expected payload."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+    interaction = "2026:REGISTRATION_STATUS:41"
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_registration_status_update_email(
+            registration=registration,
+            email_content="message body",
+            interaction=interaction,
+        )
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "registrationNumber": registration.registration_number,
+        "emailType": "HOST_REGISTRATION_ACTIVE",
+        "customContent": "message body",
+        "interaction": interaction,
+    }
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_registration_status_update_email_skips_non_notifiable_status(session, setup_parents, inject_config):
+    """Test that non-notifiable registration statuses do not publish emails."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+    registration.status = "EXPIRED"
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_registration_status_update_email(registration=registration)
+
+    mock_publish.assert_not_called()
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_notice_of_consideration_for_registration_publishes_payload(session, setup_parents, inject_config):
+    """Test that registration NOC emails publish the expected payload."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_notice_of_consideration_for_registration(registration=registration)
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "registrationNumber": registration.registration_number,
+        "emailType": "REGISTRATION_NOC",
+    }
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_notice_of_consideration_for_application_logs_publish_failure(app, inject_config):
+    """Test that application NOC publish failures are logged."""
+    application = Application()
+    application.application_number = "A-999991"
+    application.status = Application.Status.AUTO_APPROVED
+
+    with app.app_context():
+        with (
+            patch(
+                "strr_api.services.email_service.gcp_queue_publisher.publish_to_queue",
+                side_effect=RuntimeError("publish failed"),
+            ),
+            patch("strr_api.services.email_service.logger.error") as mock_logger,
+        ):
+            EmailService.send_notice_of_consideration_for_application(application)
+
+    mock_logger.assert_called_once()
+    assert mock_logger.call_args.args[0] == "Failed to publish email notification: %s"
+    assert str(mock_logger.call_args.args[1]) == "publish failed"
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_notice_of_consideration_for_registration_logs_publish_failure(session, setup_parents, inject_config):
+    """Test that registration NOC publish failures are logged."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+
+    with (
+        patch(
+            "strr_api.services.email_service.gcp_queue_publisher.publish_to_queue",
+            side_effect=RuntimeError("publish failed"),
+        ),
+        patch("strr_api.services.email_service.logger.error") as mock_logger,
+    ):
+        EmailService.send_notice_of_consideration_for_registration(registration=registration)
+
+    mock_logger.assert_called_once()
+    assert mock_logger.call_args.args[0] == "Failed to publish email notification: %s"
+    assert str(mock_logger.call_args.args[1]) == "publish failed"
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_set_aside_email_publishes_payload(app, inject_config):
+    """Test that set-aside emails publish the expected payload."""
+    application = Application()
+    application.application_number = "A-654321"
+
+    with app.app_context():
+        with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+            EmailService.send_set_aside_email(application, email_content="set aside body")
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "applicationNumber": "A-654321",
+        "emailType": "SET_ASIDE",
+        "message": "set aside body",
+    }
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_set_aside_email_logs_publish_failure(app, inject_config):
+    """Test that set-aside publish failures are logged."""
+    application = Application()
+    application.application_number = "A-999992"
+
+    with app.app_context():
+        with (
+            patch(
+                "strr_api.services.email_service.gcp_queue_publisher.publish_to_queue",
+                side_effect=RuntimeError("publish failed"),
+            ),
+            patch("strr_api.services.email_service.logger.error") as mock_logger,
+        ):
+            EmailService.send_set_aside_email(application, email_content="set aside body")
+
+    mock_logger.assert_called_once()
+    assert mock_logger.call_args.args[0] == "Failed to publish email notification: %s"
+    assert str(mock_logger.call_args.args[1]) == "publish failed"
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_application_status_update_email_includes_custom_content(app, inject_config):
+    """Test that declined application status emails include custom content."""
+    application = Application()
+    application.registration_type = Registration.RegistrationType.HOST
+    application.status = Application.Status.DECLINED
+    application.application_number = "A-777777"
+
+    with app.app_context():
+        with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+            EmailService.send_application_status_update_email(application, custom_content="decline details")
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "applicationNumber": "A-777777",
+        "emailType": "HOST_DECLINED",
+        "customContent": "decline details",
+    }
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_application_status_update_email_logs_publish_failure(app, inject_config):
+    """Test that application status email publish failures are logged."""
+    application = Application()
+    application.registration_type = Registration.RegistrationType.HOST
+    application.status = Application.Status.AUTO_APPROVED
+    application.application_number = "A-888888"
+
+    with app.app_context():
+        with (
+            patch(
+                "strr_api.services.email_service.gcp_queue_publisher.publish_to_queue",
+                side_effect=RuntimeError("publish failed"),
+            ),
+            patch("strr_api.services.email_service.logger.error") as mock_logger,
+        ):
+            EmailService.send_application_status_update_email(application)
+
+    mock_logger.assert_called_once()
+    assert mock_logger.call_args.args[0] == "Failed to publish email notification: %s"
+    assert str(mock_logger.call_args.args[1]) == "publish failed"

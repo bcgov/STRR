@@ -57,131 +57,66 @@ const hasDecisionChanges = computed(() =>
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
-const approveRegistrationAction = () => {
-  openConfirmActionModal(
-    t('modal.approveRegistration.title'),
-    t('modal.approveRegistration.message'),
-    t('btn.yesApprove'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.ACTIVE,
-        decisionEmailContent.value.content,
-        {
-          predefinedConditions: conditions.value,
-          ...(customConditions.value && { customConditions: customConditions.value }),
-          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-        }
-      )
-      refreshNuxtData()
-    },
-    t('btn.cancel')
+// Shared ACTIVE status update for approve actions
+const applyActiveApprovalStatus = () => {
+  updateRegistrationStatus(
+    activeReg.value.id,
+    RegistrationStatus.ACTIVE,
+    decisionEmailContent.value.content,
+    {
+      predefinedConditions: conditions.value,
+      ...(customConditions.value && { customConditions: customConditions.value }),
+      ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+    }
   )
+  refreshNuxtData()
 }
 
+// Handles first time approval from the main action button
+const approveRegistrationAction = () => {
+  applyActiveApprovalStatus()
+}
+
+// Handles approval updates when a registration is already active
 const updateApprovalAction = () => {
-  openConfirmActionModal(
-    t('modal.updateApproval.title'),
-    t('modal.updateApproval.message'),
-    t('btn.updateApproval'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.ACTIVE,
-        decisionEmailContent.value.content,
-        {
-          predefinedConditions: conditions.value,
-          ...(customConditions.value && { customConditions: customConditions.value }),
-          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-        }
-      )
-      refreshNuxtData()
-    },
-    t('btn.cancel')
-  )
+  applyActiveApprovalStatus()
 }
 
 const cancelRegistrationAction = async () => {
   // validate email form
   if (!await isDecisionEmailValid()) { return }
 
-  openConfirmActionModal(
-    t('modal.cancelRegistration.title'),
-    t('modal.cancelRegistration.message'),
-    t('btn.cancelRegistration'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.CANCELLED,
-        decisionEmailContent.value.content
-      )
-      refreshNuxtData()
-    },
-    t('btn.back')
+  updateRegistrationStatus(
+    activeReg.value.id,
+    RegistrationStatus.CANCELLED,
+    decisionEmailContent.value.content
   )
+  refreshNuxtData()
 }
 
 const suspendRegistrationAction = () => {
-  openConfirmActionModal(
-    t('modal.suspendRegistration.title'),
-    t('modal.suspendRegistration.message'),
-    t('btn.yesSuspend'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.SUSPENDED
-      )
-      refreshNuxtData()
-    },
-    t('btn.cancel')
+  updateRegistrationStatus(
+    activeReg.value.id,
+    RegistrationStatus.SUSPENDED
   )
+  refreshNuxtData()
 }
 
+// Reinstates a cancelled/suspended registration by re-applying the ACTIVE status
 const reinstateRegistration = () => {
-  openConfirmActionModal(
-    t('modal.reinstateRegistration.title'),
-    t('modal.reinstateRegistration.message'),
-    t('btn.yesReinstate'),
-    () => {
-      closeConfirmActionModal()
-      updateRegistrationStatus(
-        activeReg.value.id,
-        RegistrationStatus.ACTIVE,
-        decisionEmailContent.value.content,
-        {
-          predefinedConditions: conditions.value,
-          ...(customConditions.value && { customConditions: customConditions.value }),
-          ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-        }
-      )
-      refreshNuxtData()
-    },
-    t('btn.cancel')
-  )
+  applyActiveApprovalStatus()
 }
 
 const sendNoticeAction = async () => {
   // validate email form
   if (!await isDecisionEmailValid()) { return }
 
-  openConfirmActionModal(
-    t('modal.sendNotice.title'),
-    t('modal.sendNotice.message'),
-    t('btn.yesSend'),
-    () => {
-      closeConfirmActionModal()
-      sendNoticeOfConsiderationForRegistration(
-        activeReg.value.id,
-        decisionEmailContent.value.content
-      )
-      decisionEmailContent.value.content = ''
-      refreshNuxtData()
-    }
+  sendNoticeOfConsiderationForRegistration(
+    activeReg.value.id,
+    decisionEmailContent.value.content
   )
+  decisionEmailContent.value.content = ''
+  refreshNuxtData()
 }
 
 const actionButtons: ConnectBtnControlItem[] = [

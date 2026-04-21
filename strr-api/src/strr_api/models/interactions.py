@@ -116,7 +116,7 @@ class CustomerInteraction(Versioned, SimpleBaseModel):
     ) -> CustomerInteraction | None:
         """Return an Interation if it exists."""
         return cls.query.filter(
-            idempotency_key == idempotency_key,
+            cls.idempotency_key == idempotency_key,
             or_(cls.registration_id == registration_id, cls.application_id == application_id),
         ).one_or_none()
 
@@ -126,4 +126,4 @@ class CustomerInteraction(Versioned, SimpleBaseModel):
         interaction_uuid: str,
     ):
         """Return an Interation if it exists."""
-        return cls.query.filter(interaction_uuid == interaction_uuid).one_or_none()
+        return cls.query.filter(cls.interaction_uuid == interaction_uuid).one_or_none()

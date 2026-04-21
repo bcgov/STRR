@@ -153,7 +153,7 @@ export default {
   modal: {
     helpRegisteringStrata: {
       triggerBtn: 'Help with registering and managing short-term rentals',
-      title: 'Short Term Rental Help',
+      title: 'Short-Term Rental Help',
       content: 'Help Text Here'
     },
     helpRegisterStrataHotel: {

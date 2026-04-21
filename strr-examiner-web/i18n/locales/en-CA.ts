@@ -176,12 +176,15 @@ export default {
       applicationType: 'Type:',
       submitted: 'Submitted:',
       submittedDate: 'Submitted Date:',
+      draftCreationDate: 'Draft Creation Date:',
       registrationNumber: 'Registration Number:',
       registrationDate: 'Registration Date:',
       registrationEndDate: 'Registration Expiry:',
       expiryDate: 'Expiry Date:',
       cancelledDate: 'Cancellation Date:',
       nocExpiry: 'NOC Expiry:',
+      invoiceAmount: 'Invoice Amount:',
+      paymentDate: 'Payment Date:',
       declinedDate: 'Declined Date:',
       businessLicenceExpiryDate: 'Expiry:',
       primaryBuilding: 'Primary Building',
@@ -294,11 +297,6 @@ export default {
     declineApplication: 'Refuse Application',
     approveApplication: 'Approve Application',
     setAside: 'Set Aside',
-    yesApprove: 'Yes, Approve',
-    yesSend: 'Yes, Send',
-    yesRefuse: 'Yes, Refuse',
-    yesSuspend: 'Yes, Suspend',
-    yesReinstate: 'Yes, Reinstate',
     yesUpdate: 'Update Approval',
     // examiner decisions buttons
     APPROVE: 'Approve Registration',
@@ -325,6 +323,7 @@ export default {
     downloadReceipt: {
       description: 'We could not download the receipt at this time. If error persists, please contact us.'
     },
+    fetchInvoiceInfo: 'An error occurred while fetching invoice information.',
     checkAssignee: {
       description: 'We could not verify if you are the assignee for this application. If error persists, please contact us.'
     },
@@ -447,38 +446,6 @@ export default {
     unsavedChanges: {
       title: 'Unsaved Changes',
       message: 'Are you sure you want to discard your changes?'
-    },
-    approveApplication: {
-      title: 'Approve Application',
-      message: 'This action will fully register the short-term rental unit. Are you sure you want to continue?'
-    },
-    sendNotice: {
-      title: 'Send Notice of Consideration',
-      message: 'This action will notify the applicant to provide additional documents. Are you sure you want to continue?'
-    },
-    rejectApplication: {
-      title: 'Refuse Application',
-      message: 'Are you sure you want to refuse the application? This will send an email to the host letting them know their application has been refused.'
-    },
-    cancelRegistration: {
-      title: 'Cancel Registration',
-      message: 'Are you sure you want to cancel the registration? This will send an email to the host letting them know their registration has been cancelled.'
-    },
-    reinstateRegistration: {
-      title: 'Reinstate Registration',
-      message: 'Reinstating the registration will make it valid again. Are you sure you want to continue?'
-    },
-    approveRegistration: {
-      title: 'Approve Registration',
-      message: 'This action will fully register the short-term rental unit. Are you sure you want to continue?'
-    },
-    suspendRegistration: {
-      title: 'Suspend Registration',
-      message: 'Suspending this registration will make it temporarily invalid. You can reinstate it at any time. Do you want to continue?'
-    },
-    updateApproval: {
-      title: 'Are you sure you want to update the approval? ',
-      message: 'This will send an email to the host letting them know about the changes made.'
     }
   },
   table: {
@@ -487,12 +454,8 @@ export default {
       emptyText: "You don't have any properties yet. Add a property above."
     },
     historicalApps: {
-      number: 'Number',
-      type: 'Type',
-      conditions: 'Conditions',
-      propertyHostName: 'Property Host Name',
-      address: 'Address',
-      localGovernment: 'Local Government',
+      number: 'Application Number',
+      submitDate: 'Date Submitted',
       action: 'Action'
     },
     registrationSnapshots: {

@@ -12,6 +12,7 @@ import Dashboard from '~/pages/dashboard.vue'
 import {
   ApplicationStatus,
   ApplicationType,
+  RegistrationStatus,
   PrExemptionReason,
   StrataHotelCategory
 } from '#imports'
@@ -582,20 +583,195 @@ describe('Examiner Dashboard Page', () => {
   })
 
   describe('shouldShowRenewalBadge', () => {
-    it('returns false when there is no renewal application on the registration', () => {
+    const headerBase = {
+      ...mockHostRegistration.header,
+      decider: {} as { username?: string },
+      applications: [] as { applicationType?: string, applicationStatus?: ApplicationStatus }[]
+    }
+
+    it('returns false when there are no applications', () => {
       const reg = {
         ...mockHostRegistration,
         header: {
-          ...mockHostRegistration.header,
+          ...headerBase,
           applications: []
         }
       }
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
     })
 
-    it('returns true when any renewal still needs examiner action', () => {
+    it('returns false when there is no renewal application', () => {
       const reg = {
         ...mockHostRegistration,
+        header: {
+          ...headerBase,
+          applications: [
+            {
+              applicationType: 'host',
+              applicationStatus: ApplicationStatus.FULL_REVIEW
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
+    it.each([
+      { status: ApplicationStatus.FULL_REVIEW, label: 'full review' },
+      { status: ApplicationStatus.FULL_REVIEW_APPROVED, label: 'full review approved' },
+      { status: ApplicationStatus.AUTO_APPROVED, label: 'auto approved' },
+      { status: undefined, label: 'missing status' }
+    ])('returns false when latest status is not provisional review queue status ($label)', ({ status }) => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...headerBase,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: status
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
+    it('returns false when review-renew conditions are met except registration has a decider', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...headerBase,
+          decider: { username: 'examiner' },
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
+    it('returns true when it matches Review Renew predicate', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...headerBase,
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(true)
+    })
+
+    it('returns true when an older renewal exists and latest provisional application is registration', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...headerBase,
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            },
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(true)
+    })
+  })
+
+  describe('getRegistrationSubStatus', () => {
+    it('shows Review for provisional status when there is no examiner review', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          assignee: {},
+          decider: {},
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Review')
+    })
+
+    it('shows Review for provisional status when only assignee exists', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          assignee: { username: 'examiner1' },
+          decider: {},
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED,
+              assignee: { username: 'examiner1' },
+              decider: {}
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Review')
+    })
+
+    it('shows Approved for provisional status when an examiner reviewed the file', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          decider: { username: 'examiner1' },
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Approved')
+    })
+
+    it('shows Cancelled when registration is cancelled, even if latest application is review', () => {
+      const reg = {
+        ...mockHostRegistration,
+        status: RegistrationStatus.CANCELLED,
+        header: {
+          ...mockHostRegistration.header,
+          applications: [
+            {
+              applicationType: 'registration',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Cancelled')
+    })
+
+    it('shows Suspended when registration is suspended, even if renewal review exists', () => {
+      const reg = {
+        ...mockHostRegistration,
+        status: RegistrationStatus.SUSPENDED,
         header: {
           ...mockHostRegistration.header,
           applications: [
@@ -606,55 +782,35 @@ describe('Examiner Dashboard Page', () => {
           ]
         }
       }
-      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(true)
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Suspended')
     })
 
-    it('returns true when an older renewal still needs action even if a newer renewal is decided', () => {
-      // Newest-first order matches RegistrationSerializer._populate_applications
+    it('shows Approved instead of Review Renew when registration has a decider', () => {
       const reg = {
         ...mockHostRegistration,
         header: {
           ...mockHostRegistration.header,
+          decider: { username: 'examiner1' },
           applications: [
             {
               applicationType: 'renewal',
-              applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED
-            },
-            {
-              applicationType: 'renewal',
-              applicationStatus: ApplicationStatus.FULL_REVIEW
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED,
+              decider: {}
             }
           ]
         }
       }
-      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(true)
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Approved')
     })
 
-    it('returns false when every renewal is in a terminal state that hides the badge', () => {
+    it('does not show Review Renew when latest status is not provisional queue status', () => {
       const reg = {
         ...mockHostRegistration,
         header: {
           ...mockHostRegistration.header,
-          applications: [
-            {
-              applicationType: 'renewal',
-              applicationStatus: ApplicationStatus.FULL_REVIEW_APPROVED
-            },
-            {
-              applicationType: 'renewal',
-              applicationStatus: ApplicationStatus.AUTO_APPROVED
-            }
-          ]
-        }
-      }
-      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
-    })
-
-    it('returns false when a renewal is in a terminal state that hides the badge', () => {
-      const reg = {
-        ...mockHostRegistration,
-        header: {
-          ...mockHostRegistration.header,
+          decider: {},
           applications: [
             {
               applicationType: 'renewal',
@@ -663,23 +819,8 @@ describe('Examiner Dashboard Page', () => {
           ]
         }
       }
-      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
-    })
 
-    it('returns false when renewal has no application status', () => {
-      const reg = {
-        ...mockHostRegistration,
-        header: {
-          ...mockHostRegistration.header,
-          applications: [
-            {
-              applicationType: 'renewal',
-              applicationStatus: undefined
-            }
-          ]
-        }
-      }
-      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Approved')
     })
   })
 

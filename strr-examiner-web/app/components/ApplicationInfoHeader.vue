@@ -2,7 +2,7 @@
 
 const { t } = useNuxtApp().$i18n
 const exStore = useExaminerStore()
-const { activeHeader, activeReg, isFilingHistoryOpen } = storeToRefs(exStore)
+const { activeHeader, activeReg, isFilingHistoryOpen, activePaymentTotal, activePaymentDate } = storeToRefs(exStore)
 const { toggleFilingHistory, checkAndPerformAction } = useHostExpansion()
 const localePath = useLocalePath()
 const { isSnapshotRoute } = useExaminerRoute()
@@ -134,7 +134,7 @@ const registrationCountdown = computed(() => {
         />
         <strong>{{ t('strr.label.applicationType') }}</strong>
         {{ t(`applicationType.${activeReg?.registrationType}`) }} |
-        <strong>{{ t('strr.label.submitted') }}</strong>
+        <strong>{{ t('strr.label.draftCreationDate') }}</strong>
         {{ dateToString(activeHeader.applicationDateTime, 'y-MM-dd', true) }}
         ({{ dayCountdown(activeHeader.applicationDateTime.toString(), true) }} days ago)
         <template v-if="activeHeader.status === ApplicationStatus.DECLINED">
@@ -154,6 +154,10 @@ const registrationCountdown = computed(() => {
           | <strong>{{ t('strr.label.decider') }}</strong>
           {{ activeHeader.decider?.username }}
         </template>
+        | <strong>{{ t('strr.label.invoiceAmount') }}</strong>
+        {{ activePaymentTotal !== null ? '$'.concat(activePaymentTotal.toFixed(2)) : 'N/A' }}
+        | <strong>{{ t('strr.label.paymentDate') }}</strong>
+        {{ activePaymentDate ? dateToString(activePaymentDate, 'y-MM-dd', true) : 'N/A' }}
       </div>
       <div
         v-if="activeHeader?.registrationNumber"

@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { getAccountApplications } = useStrrApi()
   const { t } = useNuxtApp().$i18n
-  const { $strrApi } = useNuxtApp()
+  const { $strrApi, $payApi } = useNuxtApp()
   const { isSplitDashboardTableEnabled } = useExaminerFeatureFlags()
   const strrModal = useStrrModals()
   const { kcUser } = useKeycloak()
@@ -11,6 +11,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const tableLimit = ref(50)
   const tablePage = ref(1)
   const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)
+  const activePaymentTotal = ref<number | null>(null)
+  const activePaymentDate = ref<string | null>(null)
   const isApplication = computed<boolean>(() => {
     return !!activeRecord.value && 'registration' in activeRecord.value
   })
@@ -257,6 +259,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   type RegistrationSubStatusFilters = {
     approvalMethods: string[]
+    examinerReviewed?: boolean
     nocStatuses: string[]
     isSetAside: boolean
     reviewRenew: boolean
@@ -267,12 +270,16 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     const nocStatuses = new Set<string>()
     let isSetAside = false
     let reviewRenew = false
+    let hasReviewSubStatus = false
+    let hasApprovedSubStatus = false
 
     for (const subStatus of subStatuses) {
       if (subStatus === REVIEW_SUB_STATUS) {
+        hasReviewSubStatus = true
         approvalMethods.add(ApplicationStatus.PROVISIONALLY_APPROVED)
         approvalMethods.add(ApplicationStatus.PROVISIONAL_REVIEW)
       } else if (subStatus === APPROVED_SUB_STATUS) {
+        hasApprovedSubStatus = true
         approvalMethods.add(ApplicationStatus.AUTO_APPROVED)
         approvalMethods.add(ApplicationStatus.FULL_REVIEW_APPROVED)
       } else if (NOC_ATTR.has(subStatus)) {
@@ -284,8 +291,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       }
     }
 
+    const examinerReviewed = (hasReviewSubStatus && !hasApprovedSubStatus) ? false : undefined
+
     return {
       approvalMethods: [...approvalMethods],
+      examinerReviewed,
       nocStatuses: [...nocStatuses],
       isSetAside,
       reviewRenew
@@ -309,6 +319,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
     if (mappedSubStatuses.approvalMethods.length > 0) {
       queryParams.approvalMethod = mappedSubStatuses.approvalMethods
+    }
+    if (mappedSubStatuses.examinerReviewed !== undefined) {
+      queryParams.examinerReviewed = mappedSubStatuses.examinerReviewed
     }
     if (mappedSubStatuses.nocStatuses.length > 0) {
       queryParams.nocStatus = mappedSubStatuses.nocStatuses
@@ -409,6 +422,57 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       body: { status: ApplicationStatus.PROVISIONALLY_APPROVED }
     })
   }
+
+  const getApplicationPaymentInfo = async (): Promise<void> => {
+    const header = activeHeader.value
+    activePaymentTotal.value = null
+    activePaymentDate.value = null
+
+    if (!header?.paymentToken || !header?.paymentAccount) {
+      return
+    }
+    try {
+      const accountStore = useConnectAccountStore()
+      const appDate = new Date(header.applicationDateTime)
+      const formatDate = (d: Date) => d.toISOString().split('T')[0]
+
+      const resp = await $payApi<{ items: Array<{ id: number; total: number; paymentDate: string }> }>(
+        `/accounts/${header.paymentAccount}/payments/queries`,
+        {
+          method: 'POST',
+          headers: { 'Account-Id': accountStore.currentAccount.id },
+          query: { limit: 50 }, // hoping that desired transaction will be within this limit
+          body: {
+            dateFilter: {
+              startDate: formatDate(appDate),
+              isDefault: true
+            },
+            excludeCounts: true
+          }
+        }
+      )
+      // queries return a list of all transactions within the specified param
+      // need to find the payment info based on paymentToken
+      const payment = resp.items?.find(item => item.id === header.paymentToken)
+      activePaymentTotal.value = payment?.total ?? null
+      activePaymentDate.value = payment?.paymentDate ?? null
+    } catch (e) {
+      logFetchError(e, t('error.fetchInvoiceInfo'))
+    }
+  }
+
+  watch(
+    () => activeHeader.value?.paymentToken,
+    (token) => {
+      if (isApplication.value && token) {
+        getApplicationPaymentInfo()
+      } else {
+        activePaymentTotal.value = null
+        activePaymentDate.value = null
+      }
+    },
+    { immediate: true }
+  )
 
   const viewReceipt = async (applicationNumber: string) => {
     try {
@@ -762,6 +826,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     applicationsOnlyStatuses,
     registrationsOnlyStatuses,
 
+    activePaymentTotal,
+    activePaymentDate,
     viewReceipt,
     approveApplication,
     provisionallyApproveApplication,

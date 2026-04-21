@@ -21,37 +21,62 @@ const normalizeAdditionalUnitListings = (units: string[] | undefined, targetLeng
 }
 
 export function formatBusinessDetails (bus: StrrBusiness): ApiBusinessDetails {
+  const emptyAddress: ConnectAddress = {
+    street: '',
+    streetAdditional: '',
+    city: '',
+    region: '',
+    country: '',
+    postalCode: '',
+    locationDescription: ''
+  }
+
   return {
     legalName: bus.legalName,
     homeJurisdiction: bus.homeJurisdiction,
     businessNumber: bus.businessNumber,
     mailingAddress: formatAddress(bus.mailingAddress),
     registeredOfficeOrAttorneyForServiceDetails: {
-      attorneyName: bus.regOfficeOrAtt.attorneyName,
-      mailingAddress: formatAddress(bus.regOfficeOrAtt.mailingAddress)
+      attorneyName: '',
+      mailingAddress: formatAddress(emptyAddress)
     }
   }
 }
 
 export function formatBusinessDetailsUI (bus: ApiBusinessDetails): StrrBusiness {
+  const emptyApiAddress: ApiAddress = {
+    address: '',
+    addressLineTwo: '',
+    city: '',
+    province: '',
+    country: '',
+    postalCode: '',
+    locationDescription: ''
+  }
+  const attorneyDetails = bus.registeredOfficeOrAttorneyForServiceDetails || {
+    attorneyName: '',
+    mailingAddress: emptyApiAddress
+  }
+  const attorneyAddress = attorneyDetails.mailingAddress || emptyApiAddress
+
   return {
     legalName: bus.legalName,
     homeJurisdiction: bus.homeJurisdiction,
     businessNumber: bus.businessNumber,
     mailingAddress: formatAddressUI(bus.mailingAddress),
-    hasRegOffAtt: !!bus.registeredOfficeOrAttorneyForServiceDetails.attorneyName ||
-      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.address ||
-      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.addressLineTwo ||
-      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.city ||
-      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.country ||
-      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.postalCode ||
-      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.province ||
-      !!bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress.locationDescription,
+    hasRegOffAtt: !!attorneyDetails.attorneyName ||
+      !!attorneyAddress.address ||
+      !!attorneyAddress.addressLineTwo ||
+      !!attorneyAddress.city ||
+      !!attorneyAddress.country ||
+      !!attorneyAddress.postalCode ||
+      !!attorneyAddress.province ||
+      !!attorneyAddress.locationDescription,
     regOfficeOrAtt: {
       sameAsMailAddress: isSameAddress(
-        bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress, bus.mailingAddress),
-      attorneyName: bus.registeredOfficeOrAttorneyForServiceDetails.attorneyName,
-      mailingAddress: formatAddressUI(bus.registeredOfficeOrAttorneyForServiceDetails.mailingAddress)
+        attorneyAddress, bus.mailingAddress),
+      attorneyName: attorneyDetails.attorneyName,
+      mailingAddress: formatAddressUI(attorneyAddress)
     }
   }
 }

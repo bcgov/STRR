@@ -10,6 +10,7 @@ from dateutil.relativedelta import relativedelta
 from strr_api.enums.enum import ApplicationType, ErrorMessage, PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
 from strr_api.services import ApprovalService, RegistrationService
+from tests.unit.resources.conftest import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
@@ -27,16 +28,6 @@ CREATE_PLATFORM_REGISTRATION_REQUEST = os.path.join(
 CREATE_STRATA_HOTEL_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/strata_hotel_registration.json"
 )
-
-ACCOUNT_ID = 1234
-
-MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": ACCOUNT_ID}}
-MOCK_PAYMENT_COMPLETED_RESPONSE = {
-    "id": 123,
-    "statusCode": "COMPLETED",
-    "paymentAccount": {"accountId": ACCOUNT_ID},
-    "paymentDate": datetime.now().isoformat(),
-}
 
 
 @pytest.mark.parametrize(
@@ -317,7 +308,7 @@ def test_cancelled_registration_cannot_create_renewal_application(session, clien
     registration_id = rv_status.json.get("header").get("registrationId")
 
     registration = RegistrationService.get_registration_by_id(registration_id)
-    registration.status = RegistrationStatus.CANCELLED.value
+    registration.status = RegistrationStatus.CANCELLED
     registration.save()
 
     renewal_payload = json.loads(json.dumps(registration_payload))
@@ -372,7 +363,7 @@ def test_cancelled_registration_cannot_be_renewed_on_approval(session, client, j
     renewal_application.save()
 
     registration = RegistrationService.get_registration_by_id(registration_id)
-    registration.status = RegistrationStatus.CANCELLED.value
+    registration.status = RegistrationStatus.CANCELLED
     registration.save()
 
     rv_assign = client.put(f"/applications/{renewal_application_number}/assign", headers=staff_headers)
