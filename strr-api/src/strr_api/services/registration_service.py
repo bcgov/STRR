@@ -94,6 +94,16 @@ REGISTRATION_STATES_STAFF_ACTION = [
     RegistrationStatus.CANCELLED.value,
 ]
 
+# Registration statuses where an examiner is allowed to assign/unassign themselves
+# and update the STR unit address. EXPIRED is included so that staff can still
+# intervene on expired registrations (correct an address to unblock renewals).
+REGISTRATION_STATES_STAFF_ASSIGNABLE = [
+    RegistrationStatus.ACTIVE.value,
+    RegistrationStatus.SUSPENDED.value,
+    RegistrationStatus.CANCELLED.value,
+    RegistrationStatus.EXPIRED.value,
+]
+
 
 class RegistrationService:
     """Service to save and load registration details from the database."""
@@ -864,15 +874,29 @@ class RegistrationService:
                     update_applied = True
 
         if update_applied:
+            jurisdiction_update_warning = None
             address_obj.save()
             if not jurisdiction_provided:
-                RegistrationService._update_jurisdiction_for_address(registration)
+                try:
+                    RegistrationService._update_jurisdiction_for_address(registration)
+                except JurisdictionUpdateException as exception:
+                    jurisdiction_update_warning = exception.message
+                    logger.warning(
+                        "Address updated for registration %s but jurisdiction lookup failed: %s",
+                        registration.id,
+                        exception.message,
+                    )
             registration.save()
+            event_details = previous_address_details
+            if jurisdiction_update_warning:
+                event_details = (
+                    f"{previous_address_details}; " f"Jurisdiction lookup warning: {jurisdiction_update_warning}"
+                )
             EventsService.save_event(
                 event_type=Events.EventType.REGISTRATION,
                 event_name=Events.EventName.HOST_REGISTRATION_UNIT_ADDRESS_UPDATED,
                 registration_id=registration.id,
-                details=previous_address_details,
+                details=event_details,
                 user_id=user.id,
                 visible_to_applicant=True,
             )
