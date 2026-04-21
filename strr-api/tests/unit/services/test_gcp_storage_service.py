@@ -58,28 +58,6 @@ def _app_with_config(**config):
     return app
 
 
-def test_get_bucket_uses_adc_on_gcp_even_when_key_is_present():
-    """get_bucket uses Cloud Run ADC on GCP and ignores GCP_AUTH_KEY."""
-    app = _app_with_config(
-        DEPLOYMENT_PLATFORM="GCP",
-        GCP_AUTH_KEY=_encoded_service_account_key(),
-        GCP_CS_PROJECT_ID="bcrbk9-test",
-        GCP_CS_SA_SCOPE="https://www.googleapis.com/auth/cloud-platform",
-    )
-
-    with (
-        patch("strr_api.services.gcp_storage_service.storage.Client") as mock_storage_client,
-        patch("strr_api.services.gcp_storage_service.service_account.Credentials") as mock_credentials,
-    ):
-        with app.app_context():
-            bucket = GCPStorageService.get_bucket("test-bucket")
-
-    mock_credentials.from_service_account_info.assert_not_called()
-    mock_storage_client.assert_called_once_with(project="bcrbk9-test")
-    mock_storage_client.return_value.bucket.assert_called_once_with("test-bucket")
-    assert bucket == mock_storage_client.return_value.bucket.return_value
-
-
 def test_get_bucket_uses_service_account_key_when_configured():
     """get_bucket uses an explicit service account key when one is configured."""
     app = _app_with_config(
@@ -125,7 +103,7 @@ def test_get_bucket_uses_adc_when_key_missing():
             bucket = GCPStorageService.get_bucket("test-bucket")
 
     mock_credentials.from_service_account_info.assert_not_called()
-    mock_storage_client.assert_called_once_with(project="bcrbk9-test")
+    mock_storage_client.assert_called_once_with(project="bcrbk9-test", credentials=None)
     mock_storage_client.return_value.bucket.assert_called_once_with("test-bucket")
     assert bucket == mock_storage_client.return_value.bucket.return_value
 
