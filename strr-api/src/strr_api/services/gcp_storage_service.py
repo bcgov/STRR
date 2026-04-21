@@ -56,10 +56,8 @@ class GCPStorageService:
         """Get gcp bucket for saving or deleting registration documents."""
 
         project_id = current_app.config.get("GCP_CS_PROJECT_ID")
-        auth_key = current_app.config.get("GCP_AUTH_KEY")
-
         credentials = None
-        if auth_key:
+        if auth_key := current_app.config.get("GCP_AUTH_KEY"):
             scope = current_app.config.get("GCP_CS_SA_SCOPE")
             service_account_info = json.loads(base64.b64decode(auth_key).decode("utf-8"))
             credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=[scope])
