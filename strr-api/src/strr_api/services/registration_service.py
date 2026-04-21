@@ -889,9 +889,7 @@ class RegistrationService:
             registration.save()
             event_details = previous_address_details
             if jurisdiction_update_warning:
-                event_details = (
-                    f"{previous_address_details}; " f"Jurisdiction lookup warning: {jurisdiction_update_warning}"
-                )
+                event_details = f"{previous_address_details}; Jurisdiction lookup warning: {jurisdiction_update_warning}"
             EventsService.save_event(
                 event_type=Events.EventType.REGISTRATION,
                 event_name=Events.EventName.HOST_REGISTRATION_UNIT_ADDRESS_UPDATED,
