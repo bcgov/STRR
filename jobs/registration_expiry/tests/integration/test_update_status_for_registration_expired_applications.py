@@ -1,181 +1,108 @@
-# pylint: disable=C0114, C0116, W1514
-import json
+# pylint: disable=C0114, C0116
+"""Integration tests for registration expiry job (Postgres + migrations via strr-test-utils)."""
+
+from datetime import datetime, timezone
+from uuid import uuid4
 
 import pytest
-from sqlalchemy import text
-from strr_api.models import db
+from freezegun import freeze_time
+from strr_api.enums.enum import RegistrationStatus
+from strr_api.models import Registration, User
 
 from registration_expiry.job import update_status_for_registration_expired_applications
 
+pytestmark = pytest.mark.integration
 
-@pytest.mark.skip(reason="Test needs to be rewritten to use models.")
-def test_update_status_for_registration_active_applications(app):
-    db.session.execute(text("DELETE FROM events"))
-    db.session.execute(text("DELETE FROM application"))
-    db.session.execute(text("DELETE FROM registrations_history"))
-    db.session.execute(text("DELETE FROM registrations"))
-    db.session.execute(text("DELETE FROM users"))
-    db.session.commit()
 
-    with open("test_registrations.json") as f:
-        data = json.load(f)
+def _reg_number() -> str:
+    return f"INT-{uuid4().hex[:12]}"
 
-    for row in data["users"]:
-        db.session.execute(
-            text(
-                "INSERT INTO users (id, firstname, lastname) VALUES (:id, :firstname, :lastname)"
-            ),
-            row,
-        )
-    for row in data["registrations"]:
-        db.session.execute(
-            text(
-                """
-                INSERT INTO registrations (
-                    id, registration_type, registration_number,
-                    sbc_account_id, status, start_date, expiry_date,
-                    updated_date, user_id, version
-                ) VALUES (
-                    :id, :registration_type, :registration_number,
-                    :sbc_account_id, :status, :start_date, :expiry_date,
-                    :updated_date, :user_id, :version
-                )
-            """
-            ),
-            row,
-        )
-    db.session.commit()
 
-    # Run the function
+@freeze_time("2026-06-01 12:00:00")
+def test_updates_only_active_and_suspended_past_expiry(session, app):
+    """Eligible rows (ACTIVE/SUSPENDED with expiry before cutoff) become EXPIRED."""
+    user = User()
+    session.add(user)
+    session.flush()
+
+    past = datetime(2024, 1, 15, tzinfo=timezone.utc)
+    future = datetime(2030, 1, 15, tzinfo=timezone.utc)
+
+    r_active_due = Registration(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number=_reg_number(),
+        sbc_account_id=90001,
+        status=RegistrationStatus.ACTIVE,
+        user_id=user.id,
+        start_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        expiry_date=past,
+    )
+    r_suspended_due = Registration(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number=_reg_number(),
+        sbc_account_id=90002,
+        status=RegistrationStatus.SUSPENDED,
+        user_id=user.id,
+        start_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        expiry_date=past,
+    )
+    r_active_future = Registration(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number=_reg_number(),
+        sbc_account_id=90003,
+        status=RegistrationStatus.ACTIVE,
+        user_id=user.id,
+        start_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        expiry_date=future,
+    )
+    session.add_all([r_active_due, r_suspended_due, r_active_future])
+    session.commit()
+
     update_status_for_registration_expired_applications(app)
 
-    # Now assert that expired registrations were updated
-    result = db.session.execute(
-        text("SELECT COUNT(*) FROM registrations WHERE status = 'EXPIRED'")
-    ).scalar_one()
-    assert result == 4, "Expected four registration to be marked as EXPIRED"
+    session.refresh(r_active_due)
+    session.refresh(r_suspended_due)
+    session.refresh(r_active_future)
 
-    result = db.session.execute(
-        text("SELECT COUNT(*) FROM registrations WHERE status = 'ACTIVE'")
-    ).scalar_one()
-    assert result == 1, "Expected one registration to be marked as ACTIVE"
+    assert r_active_due.status == RegistrationStatus.EXPIRED
+    assert r_suspended_due.status == RegistrationStatus.EXPIRED
+    assert r_active_future.status == RegistrationStatus.ACTIVE
 
 
-@pytest.mark.skip(reason="Test needs to be rewritten to use models.")
-def test_cancelled_registrations_update_status(app):
-    db.session.execute(text("DELETE FROM events"))
-    db.session.execute(text("DELETE FROM application"))
-    db.session.execute(text("DELETE FROM registrations_history"))
-    db.session.execute(text("DELETE FROM registrations"))
-    db.session.execute(text("DELETE FROM users"))
-    db.session.commit()
+@freeze_time("2026-06-01 12:00:00")
+def test_does_not_select_cancelled_expired_or_future(session, app):
+    """CANCELLED and already-EXPIRED registrations are not processed."""
+    user = User()
+    session.add(user)
+    session.flush()
 
-    with open("test_registrations.json") as f:
-        data = json.load(f)
+    past = datetime(2024, 1, 15, tzinfo=timezone.utc)
 
-    for row in data["users"]:
-        db.session.execute(
-            text(
-                "INSERT INTO users (id, firstname, lastname) VALUES (:id, :firstname, :lastname)"
-            ),
-            row,
-        )
-    for row in data["registrations"]:
-        db.session.execute(
-            text(
-                """
-                INSERT INTO registrations (
-                    id, registration_type, registration_number,
-                    sbc_account_id, status, start_date, expiry_date,
-                    updated_date, user_id, version
-                ) VALUES (
-                    :id, :registration_type, :registration_number,
-                    :sbc_account_id, :status, :start_date, :expiry_date,
-                    :updated_date, :user_id, :version
-                )
-            """
-            ),
-            row,
-        )
-    db.session.commit()
+    r_cancelled = Registration(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number=_reg_number(),
+        sbc_account_id=91001,
+        status=RegistrationStatus.CANCELLED,
+        user_id=user.id,
+        start_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        expiry_date=past,
+    )
+    r_already_expired = Registration(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number=_reg_number(),
+        sbc_account_id=91002,
+        status=RegistrationStatus.EXPIRED,
+        user_id=user.id,
+        start_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        expiry_date=past,
+    )
+    session.add_all([r_cancelled, r_already_expired])
+    session.commit()
 
-    # assert that a cancelled registration was insterted
-    result_before = db.session.execute(
-        text("SELECT COUNT(*) FROM registrations WHERE status = 'CANCELLED'")
-    ).scalar_one()
-    assert result_before == 1, "Expected one registration to be marked as CANCELLED"
-
-    # Run the function
     update_status_for_registration_expired_applications(app)
 
-    # assert that registrations were updated to expired
-    result = db.session.execute(
-        text("SELECT COUNT(*) FROM registrations WHERE status = 'EXPIRED'")
-    ).scalar_one()
-    assert result == 4, "Expected four registration to be marked as EXPIRED"
+    session.refresh(r_cancelled)
+    session.refresh(r_already_expired)
 
-    # assert that cancelled registrations were updated
-    result = db.session.execute(
-        text("SELECT COUNT(*) FROM registrations WHERE status = 'CANCELLED'")
-    ).scalar_one()
-    assert result == 0, "Expected zero registration to be marked as CANCELLED"
-
-
-@pytest.mark.skip(reason="Test needs to be rewritten to use models.")
-def test_suspended_registrations_update_status(app):
-    db.session.execute(text("DELETE FROM events"))
-    db.session.execute(text("DELETE FROM application"))
-    db.session.execute(text("DELETE FROM registrations_history"))
-    db.session.execute(text("DELETE FROM registrations"))
-    db.session.execute(text("DELETE FROM users"))
-    db.session.commit()
-
-    with open("test_registrations.json") as f:
-        data = json.load(f)
-
-    for row in data["users"]:
-        db.session.execute(
-            text(
-                "INSERT INTO users (id, firstname, lastname) VALUES (:id, :firstname, :lastname)"
-            ),
-            row,
-        )
-    for row in data["registrations"]:
-        db.session.execute(
-            text(
-                """
-                INSERT INTO registrations (
-                    id, registration_type, registration_number,
-                    sbc_account_id, status, start_date, expiry_date,
-                    updated_date, user_id, version
-                ) VALUES (
-                    :id, :registration_type, :registration_number,
-                    :sbc_account_id, :status, :start_date, :expiry_date,
-                    :updated_date, :user_id, :version
-                )
-            """
-            ),
-            row,
-        )
-    db.session.commit()
-
-    # assert that a suspended registration was insterted
-    result_before = db.session.execute(
-        text("SELECT COUNT(*) FROM registrations WHERE status = 'SUSPENDED'")
-    ).scalar_one()
-    assert result_before == 1, "Expected one registration to be marked as SUSPENDED"
-
-    # Run the function
-    update_status_for_registration_expired_applications(app)
-
-    # assert that registrations were updated
-    result = db.session.execute(
-        text("SELECT COUNT(*) FROM registrations WHERE status = 'EXPIRED'")
-    ).scalar_one()
-    assert result == 4, "Expected four registration to be marked as EXPIRED"
-
-    # assert that suspended registrations were updated
-    result = db.session.execute(
-        text("SELECT COUNT(*) FROM registrations WHERE status = 'SUSPENDED'")
-    ).scalar_one()
-    assert result == 0, "Expected zero registration to be marked as SUSPENDED"
+    assert r_cancelled.status == RegistrationStatus.CANCELLED
+    assert r_already_expired.status == RegistrationStatus.EXPIRED
