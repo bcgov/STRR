@@ -32,6 +32,7 @@ google-cloud-storage = "2.14.0"
 geoalchemy2 = "^0.15.1"
 weasyprint = "^62.3"
 sqlalchemy-utils = "^0.41.2"
+nanoid = "^2.0.0"
 sql-versioning = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/sql-versioning", branch = "main" }
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 testcontainers = "^4.14.0"
@@ -44,7 +45,6 @@ pytest = "^8.0.0"
 pytest-cov = "^4.0.0"
 pytest-mock = "^3.10.0"
 requests-mock = "^1.11.0"
-nanoid = "^2.0.0"
 testcontainers = "^4.14.0"
 
 [tool.poetry.group.dev.dependencies]
