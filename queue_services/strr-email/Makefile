@@ -1,6 +1,8 @@
 .PHONY: lint
 .PHONY: build
 .PHONY: test
+.PHONY: fmt
+.PHONY: fmt-check
 
 MKFILE_PATH:=$(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_ABS_DIR:=$(patsubst %/,%,$(dir $(MKFILE_PATH)))
@@ -15,13 +17,21 @@ DOCKER_NAME:=strr-email
 #################################################################################
 # COMMANDS - CI                                                                 #
 #################################################################################
+fmt: ## Format code with isort and black
+	poetry run isort .
+	poetry run black .
+
+fmt-check: ## Check isort and black without changing files
+	poetry run isort . --check
+	poetry run black . --check
+
 pylint: ## Linting with pylint
 	pylint --rcfile=setup.cfg src/$(PROJECT_NAME)
 
 flake8: ## Linting with flake8 ## tests
 	flake8 src/$(PROJECT_NAME)
 
-lint: pylint flake8 ## run all lint type scripts
+lint: fmt-check pylint flake8 ## isort/black check, pylint, and flake8
 
 test: ## Unit testing
 	pytest

@@ -19,62 +19,59 @@ flask-jwt-oidc = "^0.8.0"
 gunicorn = "^21.2.0"
 flask-cors = "^4.0.0"
 pg8000 = "^1.31.2"
-protobuf = "3.19.5"
+protobuf = "^5.29.0"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 pytest-cov = "^7.1.0"
 pytest-mock = "^3.14.0"
 black = "^24.4.2"
-zimports = "^0.6.1"
 isort = "^5.13.2"
 flake8 = "^7.1.1"
+flake8-pyproject = "^1.2.4"
 pylint = "^3.0.3"
 strr-test-utils = {path = "../../tests/python-test-utils", develop = true}
 
 [tool.black]
 line-length = 100
 target-version = ['py312']
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.venv
-  | \.mypy_cache
-  | \.pytest_cache
-  | build
-  | dist
-)/
-'''
 
 [tool.isort]
 profile = "google"
 line_length = 100
 known_first_party = ["strr_pay"]
 
+# Flake8 does not read [tool.flake8] natively; Flake8-pyproject registers a plugin so this is honored.
 [tool.flake8]
 max-line-length = 100
-extend-ignore = [
-    "E203",
-    "W503",
+extend-ignore = ["E203", "W503", "I100", "I201"]
+# I100/I201: import layout is enforced by `isort --check` in fmt-check; flake8-isort can disagree.
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src",
 ]
-exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    ".venv",
-    ".eggs",
-    "*.egg",
-    ".pytest_cache",
+testpaths = [
+    "tests",
 ]
-import-order-style = "google"
-application-import-names = ["strr_pay"]
+addopts = "--verbose --strict -p no:warnings --cov=src --cov-report=term-missing"
+filterwarnings = [
+    "ignore::UserWarning",
+]
+markers = [
+    "integration: Docker Postgres, migrations, and strr_test_utils DB fixtures",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "**/strr_pay/config.py",
+    "**/strr_pay/__init__.py",
+]
 
 [build-system]
 requires = ["poetry-core"]

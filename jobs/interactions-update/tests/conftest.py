@@ -11,7 +11,10 @@ from testcontainers.postgres import PostgresContainer
 # This is a known issue for testcontainers.
 os.environ["TESTCONTAINERS_RYUK_DISABLED"] = "true"
 
-pytest_plugins = ["strr_test_utils.utils_fixtures"]
+pytest_plugins = [
+    "strr_test_utils.utils_fixtures",
+    "strr_test_utils.parent_fixtures",
+]
 
 
 @pytest.fixture(scope="session")
@@ -80,3 +83,9 @@ def db_session(db_engine):
 
     session.rollback()
     session.close()
+
+
+@pytest.fixture
+def session(db_session):
+    """Alias so ``strr_test_utils.parent_fixtures`` can use the same ``session`` name as other jobs."""
+    yield db_session

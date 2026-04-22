@@ -155,9 +155,11 @@ def test_email_queue_publish(app, mock_publisher_client, mock_credentials, regis
 
 
 @pytest.mark.conf(GCP_EMAIL_TOPIC="test")
-def test_send_renewal_reminder_queues_interaction_and_publishes_payload(session, setup_parents, inject_config):
+def test_send_renewal_reminder_queues_interaction_and_publishes_payload(
+    session, setup_parents_committed, inject_config
+):
     """Test that renewal reminders preserve the queued interaction key in the event."""
-    registration = session.get(Registration, setup_parents["registration_id"])
+    registration = session.get(Registration, setup_parents_committed["registration_id"])
     job_key = "2026:RENEWAL_REMINDER:40"
 
     with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
@@ -183,9 +185,9 @@ def test_send_renewal_reminder_queues_interaction_and_publishes_payload(session,
 
 
 @pytest.mark.conf(GCP_EMAIL_TOPIC="test")
-def test_send_renewal_reminder_logs_publish_failure(session, setup_parents, inject_config):
+def test_send_renewal_reminder_logs_publish_failure(session, setup_parents_committed, inject_config):
     """Test that renewal reminder publish failures are logged without changing queued tracking."""
-    registration = session.get(Registration, setup_parents["registration_id"])
+    registration = session.get(Registration, setup_parents_committed["registration_id"])
     job_key = "2026:RENEWAL_REMINDER:41"
 
     with (
@@ -255,7 +257,7 @@ def test_send_registration_status_update_email_publishes_payload(session, setup_
     assert queue_message.topic == "test"
     assert queue_message.payload == {
         "registrationNumber": registration.registration_number,
-        "emailType": "HOST_REGISTRATION_ACTIVE",
+        "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
         "customContent": "message body",
         "interaction": interaction,
     }
