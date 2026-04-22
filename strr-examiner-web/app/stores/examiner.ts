@@ -432,30 +432,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       return
     }
     try {
-      const accountStore = useConnectAccountStore()
-      const appDate = new Date(header.applicationDateTime)
-      const formatDate = (d: Date) => d.toISOString().split('T')[0]
+      const resp = await $payApi<PaymentInvoice>(`/payment-requests/${header.paymentToken}`, { method: 'GET' })
 
-      const resp = await $payApi<{ items: Array<{ id: number; total: number; paymentDate: string }> }>(
-        `/accounts/${header.paymentAccount}/payments/queries`,
-        {
-          method: 'POST',
-          headers: { 'Account-Id': accountStore.currentAccount.id },
-          query: { limit: 50 }, // hoping that desired transaction will be within this limit
-          body: {
-            dateFilter: {
-              startDate: formatDate(appDate),
-              isDefault: true
-            },
-            excludeCounts: true
-          }
-        }
-      )
-      // queries return a list of all transactions within the specified param
-      // need to find the payment info based on paymentToken
-      const payment = resp.items?.find(item => item.id === header.paymentToken)
-      activePaymentTotal.value = payment?.total ?? null
-      activePaymentDate.value = payment?.paymentDate ?? null
+      activePaymentTotal.value = resp?.total ?? null
+      activePaymentDate.value = resp?.paymentDate ?? null
     } catch (e) {
       logFetchError(e, t('error.fetchInvoiceInfo'))
     }
