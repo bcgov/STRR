@@ -71,7 +71,10 @@ from strr_api.models.dataclass import RegistrationSearch
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, SnapshotService, UserService
-from strr_api.services.registration_service import REGISTRATION_STATES_STAFF_ACTION
+from strr_api.services.registration_service import (
+    REGISTRATION_STATES_STAFF_ACTION,
+    REGISTRATION_STATES_STAFF_ASSIGNABLE,
+)
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
 
 logger = logging.getLogger("api")
@@ -635,12 +638,12 @@ def update_registration_unit_address(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
-        if (
-            registration.registration_type != RegistrationType.HOST.value
-            or registration.status != RegistrationStatus.ACTIVE
+        if registration.registration_type != RegistrationType.HOST.value or registration.status not in (
+            RegistrationStatus.ACTIVE,
+            RegistrationStatus.EXPIRED,
         ):
             return error_response(
-                message="Unit address update is only allowed for active Host type registrations",
+                message="Unit address update is only allowed for active or expired Host type registrations",
                 http_status=HTTPStatus.BAD_REQUEST,
             )
         registration = RegistrationService.update_host_unit_address(registration, unit_address, user)
@@ -885,7 +888,7 @@ def assign_registration(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
-        if registration.status.value not in REGISTRATION_STATES_STAFF_ACTION:
+        if registration.status.value not in REGISTRATION_STATES_STAFF_ASSIGNABLE:
             return error_response(
                 message="Registration status does not allow assignment",
                 http_status=HTTPStatus.BAD_REQUEST,
@@ -933,7 +936,7 @@ def unassign_registration(registration_id):
         registration = RegistrationService.get_registration_by_id(registration_id)
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
-        if registration.status.value not in REGISTRATION_STATES_STAFF_ACTION:
+        if registration.status.value not in REGISTRATION_STATES_STAFF_ASSIGNABLE:
             return error_response(
                 message="Registration status does not allow assignment changes",
                 http_status=HTTPStatus.BAD_REQUEST,

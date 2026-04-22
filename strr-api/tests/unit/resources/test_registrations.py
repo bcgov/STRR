@@ -841,10 +841,74 @@ def test_update_registration_str_address(mock_get_str_data, app, session, client
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 @patch(
+    "strr_api.services.approval_service.ApprovalService.getSTRDataForAddress",
+    return_value={"organizationNm": "Test Municipality"},
+)
+def test_update_registration_str_address_expired(mock_get_str_data, app, session, client, jwt):
+    """Staff should be able to update the STR address on an expired host registration."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        # Expire the registration
+        registration = Registration.query.filter_by(id=registration_id).one_or_none()
+        registration.status = RegistrationStatus.EXPIRED
+        registration.save()
+
+        # Examiner can still assign themselves to an expired registration
+        rv = client.put(f"/registrations/{registration_id}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        valid_updated_address = {
+            "unitAddress": {
+                "unitNumber": "1",
+                "streetNumber": "66211",
+                "streetName": "COTTONWOOD DR",
+                "city": "MAPLE RIDGE",
+                "postalCode": "V2X 3L8",
+                "province": "BC",
+                "locationDescription": "Located at the corner of Cottonwood Dr and 119 Ave",
+            }
+        }
+        rv = client.patch(
+            f"/registrations/{registration_id}/str-address", json=valid_updated_address, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        updated_addr_response = response_json.get("unitAddress")
+        assert updated_addr_response.get("streetNumber") == "66211"
+        assert updated_addr_response.get("streetName") == "COTTONWOOD DR"
+        assert updated_addr_response.get("unitNumber") == "1"
+        assert updated_addr_response.get("city") == "MAPLE RIDGE"
+        assert updated_addr_response.get("postalCode") == "V2X 3L8"
+        # Status should remain EXPIRED after the address update
+        assert response_json.get("status") == RegistrationStatus.EXPIRED.name
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+@patch(
     "strr_api.services.approval_service.ApprovalService.getSTRDataForAddress", side_effect=Exception("Service error")
 )
 def test_update_registration_str_address_service_error_with_jurisdiction(mock_get_str_data, app, session, client, jwt):
-    """Test updating STR address when getSTRDataForAddress returns an error."""
+    """Address updates should succeed even if jurisdiction lookup errors."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -882,15 +946,17 @@ def test_update_registration_str_address_service_error_with_jurisdiction(mock_ge
         rv = client.patch(
             f"/registrations/{registration_id}/str-address", json=valid_updated_address, headers=staff_headers
         )
-        assert HTTPStatus.UNPROCESSABLE_ENTITY == rv.status_code
+        assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert "Error updating jurisdiction" in response_json.get("message", "")
+        updated_addr_response = response_json.get("unitAddress")
+        assert updated_addr_response.get("streetNumber") == "66211"
+        assert updated_addr_response.get("streetName") == "COTTONWOOD DR"
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 @patch("strr_api.services.approval_service.ApprovalService.getSTRDataForAddress", return_value={"organizationNm": ""})
 def test_update_registration_str_address_empty_jurisdiction(mock_get_str_data, app, session, client, jwt):
-    """Test updating STR address when getSTRDataForAddress returns empty jurisdiction."""
+    """Address updates should succeed even when lookup returns no jurisdiction."""
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
         headers["Account-Id"] = ACCOUNT_ID
@@ -928,9 +994,11 @@ def test_update_registration_str_address_empty_jurisdiction(mock_get_str_data, a
         rv = client.patch(
             f"/registrations/{registration_id}/str-address", json=valid_updated_address, headers=staff_headers
         )
-        assert HTTPStatus.UNPROCESSABLE_ENTITY == rv.status_code
+        assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
-        assert "No jurisdiction found for address" in response_json.get("message", "")
+        updated_addr_response = response_json.get("unitAddress")
+        assert updated_addr_response.get("streetNumber") == "66211"
+        assert updated_addr_response.get("streetName") == "COTTONWOOD DR"
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -1443,15 +1511,21 @@ def test_assign_and_unassign_registration(app, session, client, jwt):
         response_json = rv.json
         assert response_json.get("header").get("assignee") == {}
 
+        # Expired registrations should still allow examiners to assign/unassign
+        # so staff can intervene (e.g. correct STR address) after expiry.
         registration = Registration.query.filter_by(id=registration_id).one_or_none()
         registration.status = RegistrationStatus.EXPIRED
         registration.save()
 
         rv = client.put(f"/registrations/{registration_id}/assign", headers=staff_headers)
-        assert HTTPStatus.BAD_REQUEST == rv.status_code
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("assignee").get("username") is not None
 
         rv = client.put(f"/registrations/{registration_id}/unassign", headers=staff_headers)
-        assert HTTPStatus.BAD_REQUEST == rv.status_code
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        assert response_json.get("header").get("assignee") == {}
 
         non_existent_reg_id = 999999
         rv = client.put(f"/registrations/{non_existent_reg_id}/assign", headers=staff_headers)
