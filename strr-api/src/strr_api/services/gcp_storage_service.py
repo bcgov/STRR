@@ -55,11 +55,14 @@ class GCPStorageService:
     def get_bucket(cls, bucket_id):
         """Get gcp bucket for saving or deleting registration documents."""
 
-        scope = current_app.config.get("GCP_CS_SA_SCOPE")
+        project_id = current_app.config.get("GCP_CS_PROJECT_ID")
+        credentials = None
+        if auth_key := current_app.config.get("GCP_AUTH_KEY"):
+            scope = current_app.config.get("GCP_CS_SA_SCOPE")
+            service_account_info = json.loads(base64.b64decode(auth_key).decode("utf-8"))
+            credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=[scope])
 
-        service_account_info = json.loads(base64.b64decode(current_app.config.get("GCP_AUTH_KEY")).decode("utf-8"))
-        credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=[scope])
-        storage_client = storage.Client(credentials=credentials)
+        storage_client = storage.Client(project=project_id, credentials=credentials)
         bucket = storage_client.bucket(bucket_id)
         return bucket
 
