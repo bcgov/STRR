@@ -30,8 +30,8 @@ export const useFlags = () => {
    * when rental unit setup is "not on same property as host".
    */
   const isNotSameProperty = computed((): boolean => {
-    const strRequirements = activeReg.value?.strRequirements as PropertyRequirements | undefined
-    const unitDetails = activeReg.value?.unitDetails as ApiUnitDetails | undefined
+    const strRequirements = activeReg.value?.strRequirements
+    const unitDetails = activeReg.value?.unitDetails
 
     if (!strRequirements || !unitDetails) {
       return false

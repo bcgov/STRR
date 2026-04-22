@@ -159,7 +159,7 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             icon: 'i-mdi-rotate-left',
             color: 'primary',
-            disabled: buttonConfig.registrationSetAside!.disabled ?? false
+            disabled: buttonConfig.registrationSetAside.disabled ?? false
           })
         }
 
@@ -204,7 +204,7 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             icon: 'i-mdi-pause',
             color: 'primary',
-            disabled: buttonConfig.suspend!.disabled ?? false
+            disabled: buttonConfig.suspend.disabled ?? false
           })
         }
 
@@ -227,7 +227,7 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             color: 'primary',
             icon: 'i-mdi-rotate-left',
-            disabled: buttonConfig.reinstate!.disabled ?? false
+            disabled: buttonConfig.reinstate.disabled ?? false
           })
         }
 
@@ -238,7 +238,7 @@ export const useExaminerRoute = () => {
             variant: 'outline',
             color: 'green',
             icon: 'i-mdi-check',
-            disabled: buttonConfig.registrationApprove!.disabled ?? false
+            disabled: buttonConfig.registrationApprove.disabled ?? false
           })
         }
 
