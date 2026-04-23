@@ -83,3 +83,6 @@ omit = [
     "**/noc_expiry/config.py",
     "**/noc_expiry/utils/logging.py",
 ]
+
+[tool.coverage.report]
+fail_under = 80

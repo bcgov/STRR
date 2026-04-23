@@ -111,3 +111,6 @@ omit = [
     "**/strr_email/config.py",
     "**/strr_email/__init__.py",
 ]
+
+[tool.coverage.report]
+fail_under = 80

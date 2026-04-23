@@ -23,3 +23,4 @@ jobs:
       app_name: "renewal-reminders-job"
       working_directory: "./jobs/renewal-reminders"
       codecov_flag: "renewalRemindersjob"
+      coverage_threshold: "80"

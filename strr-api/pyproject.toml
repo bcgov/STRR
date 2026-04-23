@@ -117,7 +117,7 @@ minversion = "2.0"
 testpaths = [
    "tests",
 ]
-addopts = "--verbose --strict -p no:warnings --cov=src --cov-config=pyproject.toml --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term-missing --cov-fail-under=78"
+addopts = "--verbose --strict -p no:warnings --cov=src --cov-config=pyproject.toml --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term-missing"
 python_files = [
    "test*.py"
 ]
@@ -148,6 +148,7 @@ omit = [
 ]
 
 [tool.coverage.report]
+fail_under = 80
 exclude_lines = [
    "pragma: no cover",
    "from",

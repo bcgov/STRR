@@ -23,3 +23,4 @@ jobs:
       app_name: "strr-noc-expiry"
       working_directory: "./jobs/noc_expiry"
       codecov_flag: "nocjob"
+      coverage_threshold: "80"

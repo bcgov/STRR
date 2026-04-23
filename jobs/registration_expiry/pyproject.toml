@@ -84,3 +84,6 @@ omit = [
     "**/registration_expiry/utils/__init__.py",
     "**/registration_expiry/utils/logging.py",
 ]
+
+[tool.coverage.report]
+fail_under = 80

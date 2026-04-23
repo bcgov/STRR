@@ -23,3 +23,4 @@ jobs:
       app_name: "provisional-approval-job"
       working_directory: "./jobs/provisional-approval"
       codecov_flag: "provisionalApprovaljob"
+      coverage_threshold: "80"

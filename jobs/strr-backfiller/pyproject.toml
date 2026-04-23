@@ -81,3 +81,6 @@ omit = [
     "**/backfiller/__init__.py",
     "**/backfiller/utils/logging.py",
 ]
+
+[tool.coverage.report]
+fail_under = 80

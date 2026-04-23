@@ -73,6 +73,9 @@ omit = [
     "**/strr_pay/__init__.py",
 ]
 
+[tool.coverage.report]
+fail_under = 80
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
