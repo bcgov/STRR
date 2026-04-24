@@ -35,10 +35,10 @@ const getBlRequired = (): string => {
     : t('pr.notRequired')
 }
 
-const prExemptReason = activeReg.value?.unitDetails?.prExemptReason
-const businessLicenseExemptReason = activeReg.value?.unitDetails?.blExemptReason
-const businessLicenseNum = activeReg.value.unitDetails?.businessLicense
-const businessLicenseExpiryDate = activeReg.value.unitDetails?.businessLicenseExpiryDate
+const prExemptReason = computed(() => activeReg.value?.unitDetails?.prExemptReason)
+const businessLicenseExemptReason = computed(() => activeReg.value?.unitDetails?.blExemptReason)
+const businessLicenseNum = computed(() => activeReg.value?.unitDetails?.businessLicense)
+const businessLicenseExpiryDate = computed(() => activeReg.value?.unitDetails?.businessLicenseExpiryDate)
 
 const getPrExemptReason = (label: string): string =>
   t(`prExemptReason.${label}`)
@@ -71,16 +71,16 @@ const hasPRFlags = computed(() =>
   (isApplication.value && alertFlags.isNotSameProperty) || alertFlags.isHostTypeBusiness)
 
 const hasBusinessLicenseDocument = computed((): boolean =>
-  activeReg.value.documents.some((doc: ApiDocument) =>
+  activeReg.value?.documents?.some((doc: ApiDocument) =>
     doc.documentType === DocumentUploadType.LOCAL_GOVT_BUSINESS_LICENSE
-  )
+  ) ?? false
 )
 
 const hasBlSection = computed((): boolean =>
   hasBusinessLicenseDocument.value ||
-  businessLicenseExemptReason ||
-  businessLicenseNum ||
-  businessLicenseExpiryDate
+  !!businessLicenseExemptReason.value ||
+  !!businessLicenseNum.value ||
+  !!businessLicenseExpiryDate.value
 )
 
 const needsBusinessLicenseDocumentUpload = computed(() => {
