@@ -108,7 +108,7 @@ class InteractionService:
             not notify_json
             or not isinstance(notify_json, dict)
             or not (notify_id := notify_json.get("id"))
-            or (notify_id < 1)
+            or (isinstance(notify_id, (int, float)) and notify_id < 1)
         ):
             raise ExternalServiceException(error="Email not sent", status_code=HTTPStatus.BAD_REQUEST)
 
@@ -120,7 +120,7 @@ class InteractionService:
         interaction.registration_id = registration_id
         interaction.customer_id = customer_id
         interaction.user_id = user_id
-        interaction.notify_reference = notify_id
+        interaction.notify_reference = notify_json.get("ids") or notify_id
         interaction.idempotency_key = idempotency_key
         interaction.save()
 
@@ -169,11 +169,43 @@ class InteractionService:
 
     @staticmethod
     def _send_email_to_notify_service(email_info):
+        """Send an email via the notify-api.
+
+        When the email has multiple recipients, dispatch a separate notify request
+        per recipient so a single malformed address cannot block delivery to the
+        rest of the recipients.
+        """
+        email = email_info.email if isinstance(email_info.email, dict) else None
+        raw_recipients = (email or {}).get("recipients") if email else None
+        recipients = [r.strip() for r in (raw_recipients or "").split(",") if r.strip()]
+
+        if len(recipients) <= 1:
+            return InteractionService._post_email_to_notify(email_info.email)
+
+        success_ids: list = []
+        last_result: dict = {"id": -1}
+        for recipient in recipients:
+            single_email = {**email, "recipients": recipient}
+            result = InteractionService._post_email_to_notify(single_email)
+            notify_id = result.get("id") if isinstance(result, dict) else None
+            if notify_id and not (isinstance(notify_id, (int, float)) and notify_id < 1):
+                success_ids.append(notify_id)
+                last_result = result
+
+        if not success_ids:
+            return {"id": -1}
+
+        combined_ids = ",".join(str(i) for i in success_ids)[:100]
+        return {**last_result, "id": success_ids[0], "ids": combined_ids}
+
+    @staticmethod
+    def _post_email_to_notify(email_payload):
+        """Post a single email payload to the notify-api."""
         token = AuthService.get_service_client_token()
         try:
             resp = requests.post(
                 current_app.config["NOTIFY_SVC_URL"],
-                json=email_info.email,
+                json=email_payload,
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {token}",

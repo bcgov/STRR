@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 from unittest.mock import MagicMock
 
@@ -343,3 +344,78 @@ def test_worker_legacy_notify_status(app, mocker, ce_factory, notify_status, exp
     )
     with app.test_request_context("/", method="POST", data=b"{}"):
         assert worker()[1] == expected_status
+
+
+def _multi_recipient_app_dict():
+    return {
+        "header": {"registrationNumber": "RN1", "registrationEndDate": "2026-01-01T00:00:00+00:00"},
+        "registration": {
+            "registrationType": Registration.RegistrationType.HOST.value,
+            "unitAddress": {"streetNumber": "1", "city": "Vic", "postalCode": "V8V1A1"},
+            "primaryContact": {"emailAddress": "host@example.com"},
+            "propertyManager": {"contact": {"emailAddress": "bas@ba$.com"}},
+        },
+    }
+
+
+@responses.activate
+def test_worker_legacy_sends_one_request_per_recipient(app, mocker, ce_factory):
+    """Each recipient gets its own notify-api request so a bad email does not block the others."""
+    ce = ce_factory(applicationNumber="APP-1", emailType="HOST_DECLINED")
+    app_obj = MagicMock(
+        application_number="APP-1",
+        registration_type=Registration.RegistrationType.HOST,
+        noc=None,
+    )
+    _patch_legacy_application_flow(mocker, app_obj, ce)
+    mocker.patch(
+        "strr_email.resources.email_listener.ApplicationSerializer.to_dict",
+        return_value=_multi_recipient_app_dict(),
+    )
+
+    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"id": 1}, status=200)
+    responses.add(
+        responses.POST,
+        app.config["NOTIFY_SVC_URL"],
+        json={"message": "bad email"},
+        status=400,
+    )
+
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        status = worker()[1]
+
+    assert status == HTTPStatus.OK  # at least one recipient succeeded
+    assert len(responses.calls) == 2
+    sent_recipients = [
+        json.loads(call.request.body)["recipients"] for call in responses.calls
+    ]
+    assert sent_recipients == ["host@example.com", "bas@ba$.com"]
+
+
+@responses.activate
+def test_worker_legacy_all_recipients_fail(app, mocker, ce_factory):
+    """If every recipient send fails, the worker returns the failing notify-api status."""
+    ce = ce_factory(applicationNumber="APP-1", emailType="HOST_DECLINED")
+    app_obj = MagicMock(
+        application_number="APP-1",
+        registration_type=Registration.RegistrationType.HOST,
+        noc=None,
+    )
+    _patch_legacy_application_flow(mocker, app_obj, ce)
+    mocker.patch(
+        "strr_email.resources.email_listener.ApplicationSerializer.to_dict",
+        return_value=_multi_recipient_app_dict(),
+    )
+
+    responses.add(
+        responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400
+    )
+    responses.add(
+        responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400
+    )
+
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        status = worker()[1]
+
+    assert status == 400
+    assert len(responses.calls) == 2
