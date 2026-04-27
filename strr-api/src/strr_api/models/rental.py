@@ -112,6 +112,22 @@ class Registration(Versioned, BaseModel):
             postgresql_using="gin",
             postgresql_ops={"registration_json": "jsonb_path_ops"},
         ),
+        # Sub-status filtering support: the examiner dashboard filters on
+        # noc_status, is_set_aside, and decider_id. Each is highly selective
+        # in production (most rows are NULL/false) so partial indexes give us
+        # the smallest, fastest indexes possible while still covering the
+        # filter paths used in `_collect_sub_status_conditions`.
+        db.Index(
+            "ix_registrations_noc_status",
+            "noc_status",
+            postgresql_where=db.text("noc_status IS NOT NULL"),
+        ),
+        db.Index(
+            "ix_registrations_is_set_aside",
+            "is_set_aside",
+            postgresql_where=db.text("is_set_aside = true"),
+        ),
+        db.Index("ix_registrations_decider_id", "decider_id"),
     )
 
     @classmethod
@@ -456,24 +472,33 @@ class Registration(Versioned, BaseModel):
         return query
 
     @classmethod
-    def _approval_method_condition(cls, approval_methods: list[str], examiner_reviewed: bool | None = None):
-        """Build SQL condition for filtering by latest application status and review state."""
+    def _latest_application_status_subq(cls):
+        """Return correlated scalar subquery for the latest application's status.
+
+        Backed by the composite index ``ix_application_registration_id_date``
+        on ``application (registration_id, application_date DESC)`` so the
+        per-row lookup is an index seek rather than a sequential scan. Keep
+        the (registration_id, ORDER BY application_date DESC LIMIT 1) shape
+        in sync with that index — changing the ORDER BY direction or adding
+        another sort column will break the index match.
+        """
         # pylint: disable=import-outside-toplevel
         from sqlalchemy import select
 
         from strr_api.models.application import Application
 
-        # For each registration, evaluate only the latest application (same ordering
-        # used by the dashboard payload). This keeps filtering aligned with what users
-        # see in the Sub-Status column.
-        latest_app_status_subq = (
+        return (
             select(Application.status)
             .where(Application.registration_id == Registration.id)
             .order_by(Application.application_date.desc())
             .limit(1)
             .scalar_subquery()
         )
-        approval_status_condition = latest_app_status_subq.in_(approval_methods)
+
+    @classmethod
+    def _approval_method_condition(cls, approval_methods: list[str], examiner_reviewed: bool | None = None):
+        """Build SQL condition for filtering by latest application status and review state."""
+        approval_status_condition = cls._latest_application_status_subq().in_(approval_methods)
         if examiner_reviewed is None:
             # Backward-compatible behavior: only filter by approval method/status.
             return approval_status_condition
