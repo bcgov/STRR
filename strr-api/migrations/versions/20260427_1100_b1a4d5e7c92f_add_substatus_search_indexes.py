@@ -11,15 +11,15 @@ falling back to sequential scans on the ``registrations`` table.
 This migration adds the indexes required to turn those access paths into
 index scans:
 
-  * ``ix_application_registration_id_date`` — composite ``(registration_id,
+  * ``ix_application_registration_id_date`` - composite ``(registration_id,
     application_date DESC)`` so the latest-application-per-registration
     scalar subquery can be served by a single index lookup. Also benefits
     the EXISTS subquery used by ``_has_renewal_filed_condition``.
-  * ``ix_registrations_noc_status`` — partial index on rows where
+  * ``ix_registrations_noc_status`` - partial index on rows where
     ``noc_status IS NOT NULL`` (the only path the filter ever uses).
-  * ``ix_registrations_is_set_aside`` — partial index on rows where
+  * ``ix_registrations_is_set_aside`` - partial index on rows where
     ``is_set_aside = true``.
-  * ``ix_registrations_decider_id`` — supports ``decider_id IS NULL`` /
+  * ``ix_registrations_decider_id`` - supports ``decider_id IS NULL`` /
     ``IS NOT NULL`` checks used by the examiner review queue.
 
 All indexes are created with ``CREATE INDEX CONCURRENTLY`` so they do not

@@ -479,7 +479,7 @@ class Registration(Versioned, BaseModel):
         on ``application (registration_id, application_date DESC)`` so the
         per-row lookup is an index seek rather than a sequential scan. Keep
         the (registration_id, ORDER BY application_date DESC LIMIT 1) shape
-        in sync with that index — changing the ORDER BY direction or adding
+        in sync with that index - changing the ORDER BY direction or adding
         another sort column will break the index match.
         """
         # pylint: disable=import-outside-toplevel
