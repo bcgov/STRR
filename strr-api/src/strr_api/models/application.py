@@ -126,6 +126,16 @@ class Application(BaseModel):
             postgresql_using="gin",
             postgresql_ops={"application_json": "jsonb_path_ops"},
         ),
+        # Critical for Registration sub-status filtering: the dashboard runs a
+        # correlated "latest application per registration" scalar subquery
+        # ordered by application_date DESC. Without this composite index the
+        # planner falls back to a seq scan on the application table for every
+        # candidate registration row, which caused CPU spikes in production.
+        db.Index(
+            "ix_application_registration_id_date",
+            "registration_id",
+            application_date.desc(),
+        ),
     )
 
     submitter = db.relationship(
