@@ -18,3 +18,4 @@ jobs:
       app_name: "strr-pay"
       working_directory: "./queue_services/strr-pay"
       codecov_flag: "strrpay"
+      coverage_threshold: "80"

@@ -23,3 +23,4 @@ jobs:
       app_name: "strr-backfiller"
       working_directory: "./jobs/strr-backfiller"
       codecov_flag: "backfillerjob"
+      coverage_threshold: "80"

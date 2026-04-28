@@ -18,3 +18,4 @@ jobs:
       app_name: "strr-email"
       working_directory: "./queue_services/strr-email"
       codecov_flag: "strremail"
+      coverage_threshold: "80"

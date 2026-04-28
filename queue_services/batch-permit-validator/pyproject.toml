@@ -90,6 +90,9 @@ omit = [
     "**/batch_permit_validator/utils.py",
 ]
 
+[tool.coverage.report]
+fail_under = 80
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

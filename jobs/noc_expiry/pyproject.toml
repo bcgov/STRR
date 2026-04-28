@@ -23,13 +23,14 @@ strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirector
 nanoid = "^2.0.0"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^8.0.0"
-pytest-cov = "^7.1.0"
 freezegun = "^1.4.0"
 hypothesis = "^6.100.0"
 pexpect = "^4.9.0"
+pytest = "^8.2.0"
+pytest-cov = "^7.1.0"
 pytest-mock = "^3.14.0"
 requests-mock = "^1.12.1"
+testcontainers = "^4.14.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.7.0"
@@ -50,8 +51,38 @@ profile = "black"
 max-line-length = 132
 
 [tool.pytest.ini_options]
-filterwarnings = [
-    "ignore::DeprecationWarning:testcontainers.*:",
-    "ignore::DeprecationWarning:docker.*:",
-    "ignore::ResourceWarning:testcontainers.*:"
+minversion = "2.0"
+testpaths = [
+   "tests",
 ]
+addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term"
+python_files = [
+   "test*.py"
+]
+norecursedirs = [
+   ".git", ".tox", "venv*", "requirements*", "build",
+]
+log_cli = true
+log_cli_level = "1"
+filterwarnings = [
+   "ignore::UserWarning",
+   "ignore::DeprecationWarning:testcontainers.*:",
+   "ignore::DeprecationWarning:docker.*:",
+   "ignore::ResourceWarning:testcontainers.*:",
+]
+markers = [
+   "integration: tests requiring Docker DB and strr_test_utils fixtures",
+   "conf: inject flask config values into the app fixture for one test",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "**/__main__.py",
+    "**/noc_expiry/**/__init__.py",
+    "**/noc_expiry/config.py",
+    "**/noc_expiry/utils/logging.py",
+]
+
+[tool.coverage.report]
+fail_under = 80

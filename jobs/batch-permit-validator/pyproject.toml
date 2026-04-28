@@ -98,3 +98,6 @@ markers = [
    "conf: Inject flask config values into the app fixture",
    "load: mark test as a heavy load test to exclude from standard CI runs",
 ]
+
+[tool.coverage.report]
+fail_under = 80

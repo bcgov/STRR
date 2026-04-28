@@ -89,3 +89,6 @@ omit = [
     "**/auto_approval/utils/logging.py",
     "**/auto_approval/config.py",
 ]
+
+[tool.coverage.report]
+fail_under = 80

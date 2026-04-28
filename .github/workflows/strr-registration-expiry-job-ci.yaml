@@ -23,3 +23,4 @@ jobs:
       app_name: " registration-expiry-job-cd"
       working_directory: "./jobs/registration_expiry"
       codecov_flag: "regexpiryjob"
+      coverage_threshold: "80"

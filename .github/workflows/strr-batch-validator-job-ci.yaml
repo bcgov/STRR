@@ -23,3 +23,4 @@ jobs:
       app_name: "batch-permit-job"
       working_directory: "./jobs/batch-permit-validator"
       codecov_flag: "permitjob"
+      coverage_threshold: "80"

@@ -18,3 +18,4 @@ jobs:
       app_name: "batch-permit-listener"
       working_directory: "./queue_services/batch-permit-validator"
       codecov_flag: "batchlistener"
+      coverage_threshold: "80"

@@ -18,3 +18,4 @@ jobs:
       app_name: "strr-api"
       working_directory: "./strr-api"
       codecov_flag: "strrapi"
+      coverage_threshold: "80"
