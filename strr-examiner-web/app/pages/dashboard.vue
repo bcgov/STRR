@@ -626,14 +626,14 @@ async function handleRowSelect (row: any) {
   if (row.id) {
     regStatus.value = 'pending'
     const currentTab = isApplicationTab.value ? 'applications' : 'registrations'
-    await navigateTo(localePath(`${RoutesE.REGISTRATION}/${row.id}?returnTab=${currentTab}`))
+    await navigateTo(`${localePath(`${RoutesE.REGISTRATION}/${row.id}`)}?returnTab=${currentTab}`)
   }
 }
 
 async function goToRegistration (registrationId: string) {
   regStatus.value = 'pending'
   const currentTab = isApplicationTab.value ? 'applications' : 'registrations'
-  await navigateTo(localePath(`${RoutesE.REGISTRATION}/${registrationId}?returnTab=${currentTab}`))
+  await navigateTo(`${localePath(`${RoutesE.REGISTRATION}/${registrationId}`)}?returnTab=${currentTab}`)
 }
 
 function handleColumnSort (column: string) {
@@ -745,6 +745,7 @@ const updateTabQuery = (isApp: boolean) => {
 const tabLinks = computed(() => [
   {
     label: t('label.newApplicationsTab'),
+    'data-testid': 'tab-applications',
     click: () => {
       isApplicationTab.value = true
       updateTabQuery(true)
@@ -753,6 +754,7 @@ const tabLinks = computed(() => [
   },
   {
     label: t('label.registrationsAndRenewalsTab'),
+    'data-testid': 'tab-registrations',
     click: () => {
       isApplicationTab.value = false
       updateTabQuery(false)
@@ -786,7 +788,10 @@ const tabLinks = computed(() => [
       :aria-label="$t('label.applicationListSectionAria', { count: applicationOrRegistrationList?.total || 0 })"
     >
       <template #header>
-        <div class="flex flex-wrap items-center justify-between gap-3 text-gray-900">
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 text-gray-900"
+          data-testid="applications-table-header"
+        >
           <div class="flex flex-wrap items-center gap-3">
             <UInput
               v-model="exStore.tableFilters.searchText"
@@ -796,6 +801,7 @@ const tabLinks = computed(() => [
               size="sm"
               trailing
               icon="i-mdi-search"
+              data-testid="dashboard-search-input"
               :ui="{
                 icon: {
                   base: 'text-bcGovColor-activeBlue',
@@ -818,6 +824,7 @@ const tabLinks = computed(() => [
               variant="link"
               :padded="false"
               :ui="{ gap: { sm: 'gap-x-1' } }"
+              data-testid="clear-filters-button"
               @click="exStore.resetFilters()"
             />
           </div>
