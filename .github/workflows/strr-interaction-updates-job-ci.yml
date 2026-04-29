@@ -71,7 +71,7 @@ jobs:
       - name: Install dependencies
         run: poetry install
       - name: Run Load Tests
-        run: poetry run pytest -m "load"
+        run: poetry run pytest -m "load" --no-cov
 
   # --- STAGE 3: PERFORMANCE BENCHMARK ---
   performance-benchmark:
@@ -91,7 +91,7 @@ jobs:
         run: poetry install
       - name: Run Benchmark
         # Generating JSON for the artifact
-        run: poetry run pytest tests/load/test_benchmarks.py --benchmark-json benchmark_results.json
+        run: poetry run pytest tests/load/test_benchmarks.py --benchmark-json benchmark_results.json --no-cov
       - name: Upload Benchmark Results
         uses: actions/upload-artifact@v4
         with:
