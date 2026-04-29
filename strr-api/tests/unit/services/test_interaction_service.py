@@ -211,9 +211,7 @@ def test_dispatch_email_interaction_failure(
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
 @patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
 @patch("strr_api.services.interaction.requests.post")
-def test_dispatch_email_splits_recipients(
-    mock_requests_post, mock_get_token, session, setup_parents, inject_config
-):
+def test_dispatch_email_splits_recipients(mock_requests_post, mock_get_token, session, setup_parents, inject_config):
     """Assert that each recipient is sent to notify-api as a separate request."""
     mock_responses = [
         MagicMock(status_code=HTTPStatus.OK, **{"json.return_value": {"id": 111}}),
@@ -227,9 +225,7 @@ def test_dispatch_email_splits_recipients(
         "requestBy": "STRR",
         "content": {"subject": "s", "body": "b"},
     }
-    email_info = EmailInfo(
-        application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload
-    )
+    email_info = EmailInfo(application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload)
 
     interaction = InteractionService.dispatch(
         channel_type=ChannelType.EMAIL,
@@ -238,9 +234,7 @@ def test_dispatch_email_splits_recipients(
     )
 
     assert mock_requests_post.call_count == 3
-    posted_recipients = [
-        call.kwargs["json"]["recipients"] for call in mock_requests_post.call_args_list
-    ]
+    posted_recipients = [call.kwargs["json"]["recipients"] for call in mock_requests_post.call_args_list]
     assert posted_recipients == ["foo@foo.com", "bar@bar.com", "baz@baz.com"]
     assert interaction.notify_reference == "111,222,333"
 
@@ -264,9 +258,7 @@ def test_dispatch_email_partial_recipient_failure(
         "requestBy": "STRR",
         "content": {"subject": "s", "body": "b"},
     }
-    email_info = EmailInfo(
-        application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload
-    )
+    email_info = EmailInfo(application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload)
 
     interaction = InteractionService.dispatch(
         channel_type=ChannelType.EMAIL,
@@ -281,9 +273,7 @@ def test_dispatch_email_partial_recipient_failure(
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
 @patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
 @patch("strr_api.services.interaction.requests.post")
-def test_dispatch_email_all_recipients_fail(
-    mock_requests_post, mock_get_token, session, setup_parents, inject_config
-):
+def test_dispatch_email_all_recipients_fail(mock_requests_post, mock_get_token, session, setup_parents, inject_config):
     """Assert that if all recipient sends fail the dispatch raises an exception."""
     mock_responses = [
         MagicMock(status_code=HTTPStatus.BAD_REQUEST, **{"json.return_value": {"message": "bad email"}}),
@@ -296,9 +286,7 @@ def test_dispatch_email_all_recipients_fail(
         "requestBy": "STRR",
         "content": {"subject": "s", "body": "b"},
     }
-    email_info = EmailInfo(
-        application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload
-    )
+    email_info = EmailInfo(application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload)
 
     with pytest.raises(ExternalServiceException) as excinfo:
         InteractionService.dispatch(
