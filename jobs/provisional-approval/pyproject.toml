@@ -32,10 +32,11 @@ psycopg2-binary = ">=2.9.10"
 freezegun = "^1.4.0"
 hypothesis = "^6.100.0"
 pexpect = "^4.9.0"
-pytest = "^8.0.0"
+pytest = "^8.2.0"
 pytest-cov = "^7.1.0"
 pytest-mock = "^3.14.0"
 requests-mock = "^1.12.1"
+testcontainers = "^4.14.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.7.0"
@@ -54,3 +55,39 @@ profile = "black"
 
 [tool.pylint]
 max-line-length = 132
+
+[tool.pytest.ini_options]
+minversion = "2.0"
+testpaths = [
+   "tests",
+]
+addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term"
+python_files = [
+   "test*.py"
+]
+norecursedirs = [
+   ".git", ".tox", "venv*", "requirements*", "build",
+]
+log_cli = true
+log_cli_level = "1"
+filterwarnings = [
+   "ignore::UserWarning",
+   "ignore::DeprecationWarning:testcontainers.*:",
+   "ignore::DeprecationWarning:docker.*:",
+   "ignore::ResourceWarning:testcontainers.*:",
+]
+markers = [
+   "integration: tests requiring Docker DB and strr_test_utils fixtures",
+   "conf: inject flask config values into the app fixture for one test",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "**/__main__.py",
+    "**/provisional_approval/**/__init__.py",
+    "**/provisional_approval/config.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
