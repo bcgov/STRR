@@ -11,10 +11,11 @@ Job: Interactions-Update
 
 - use `make` to:
   - help: describe the commands below
-  - install: install the dependencies using poetry
+  - install: install dependencies (Poetry, including dev and test groups)
   - fmt: Format code using black and isort
   - lint: Check imports and formatting without making changes
-  - test: Run pytest suite
+  - test: Run the full pytest suite (unit, integration, and load/benchmark; needs Docker for DB)
+  - test-unit: Run fast unit tests only (excludes integration, load, and benchmark markers)
   - benchmark: Run performance benchmarks comparing 1 vs 10 workers
   - build: Build the multi-stage docker container -> targets linux/amd64
   - clean: Remove build artifacts and pyc files

@@ -5,14 +5,6 @@ from sqlalchemy.orm import Session
 from interactions_update import database
 
 
-@pytest.fixture(autouse=True)
-def reset_engine():
-    """Reset the global _engine singleton to ensure test isolation."""
-    database._engine = None
-    yield
-    database._engine = None
-
-
 def test_get_engine_singleton(monkeypatch, postgres_container):
     """
     Verify that multiple calls return the exact same engine object.

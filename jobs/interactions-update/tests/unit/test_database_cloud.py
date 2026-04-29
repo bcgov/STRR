@@ -6,14 +6,6 @@ import pytest
 from interactions_update import database
 
 
-@pytest.fixture(autouse=True)
-def reset_engine():
-    """Clear the singleton before and after each test."""
-    database._engine = None
-    yield
-    database._engine = None
-
-
 @patch("interactions_update.database.create_engine")
 @patch("google.cloud.sql.connector.Connector")
 def test_get_engine_cloud_sql_happy_path(
