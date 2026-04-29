@@ -1,5 +1,5 @@
-import json
 from http import HTTPStatus
+import json
 from unittest.mock import MagicMock
 
 import pytest
