@@ -226,12 +226,20 @@ def worker():
         last_failure_status = None
         for recipient in recipients_list:
             single_email = {**email, "recipients": recipient}
-            resp = requests.post(
-                current_app.config["NOTIFY_SVC_URL"],
-                json=single_email,
-                headers=headers,
-                timeout=current_app.config["NOTIFY_API_TIMEOUT"],
-            )
+            try:
+                resp = requests.post(
+                    current_app.config["NOTIFY_SVC_URL"],
+                    json=single_email,
+                    headers=headers,
+                    timeout=current_app.config["NOTIFY_API_TIMEOUT"],
+                )
+            except Exception as err:  # noqa: BLE001
+                logger.info(f"Error sending recipient {recipient}: {str(err)}")
+                logger.error(
+                    f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
+                )
+                last_failure_status = HTTPStatus.BAD_REQUEST
+                continue
             if resp.status_code in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
                 success_count += 1
             else:
@@ -243,12 +251,13 @@ def worker():
                 logger.error(
                     f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
                 )
-                last_failure_status = resp.status_code
+                # Return a 4xx from this worker for recipient-level notify failures.
+                last_failure_status = HTTPStatus.BAD_REQUEST
 
         if success_count == 0:
             return (
                 jsonify({"message": "Error posting email to notify-api."}),
-                last_failure_status or HTTPStatus.BAD_GATEWAY,
+                last_failure_status or HTTPStatus.BAD_REQUEST,
             )
 
     logger.info("completed ce (event_id=%s): %s", event_id, ce)
