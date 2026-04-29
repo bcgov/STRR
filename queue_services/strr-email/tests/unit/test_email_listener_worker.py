@@ -1,6 +1,7 @@
 from http import HTTPStatus
 import json
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 import responses
@@ -326,7 +327,7 @@ def _patch_legacy_application_flow(mocker, app_obj, ce):
         (HTTPStatus.OK, HTTPStatus.OK),
         (HTTPStatus.ACCEPTED, HTTPStatus.OK),
         (HTTPStatus.CREATED, HTTPStatus.OK),
-        (502, 502),
+        (502, HTTPStatus.BAD_REQUEST),
     ],
 )
 @responses.activate
@@ -418,3 +419,28 @@ def test_worker_legacy_all_recipients_fail(app, mocker, ce_factory):
 
     assert status == 400
     assert len(responses.calls) == 3
+
+
+def test_worker_legacy_request_exception_returns_400(app, mocker, ce_factory):
+    """A request exception should be treated as recipient failure and return 400 if all fail."""
+    ce = ce_factory(applicationNumber="APP-1", emailType="HOST_DECLINED")
+    app_obj = MagicMock(
+        application_number="APP-1",
+        registration_type=Registration.RegistrationType.HOST,
+        noc=None,
+    )
+    _patch_legacy_application_flow(mocker, app_obj, ce)
+    mocker.patch(
+        "strr_email.resources.email_listener.ApplicationSerializer.to_dict",
+        return_value=_multi_recipient_app_dict(),
+    )
+
+    with patch(
+        "strr_email.resources.email_listener.requests.post",
+        side_effect=RuntimeError("network timeout"),
+    ) as mock_post:
+        with app.test_request_context("/", method="POST", data=b"{}"):
+            status = worker()[1]
+
+    assert status == HTTPStatus.BAD_REQUEST
+    assert mock_post.call_count == 3
