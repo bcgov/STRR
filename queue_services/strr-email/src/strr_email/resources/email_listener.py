@@ -194,21 +194,57 @@ def worker():
             return jsonify({"message": "Error posting email to notify-api."}), 400
 
     else:
-        token = AuthService.get_service_client_token()
-        resp = requests.post(
-            current_app.config["NOTIFY_SVC_URL"],
-            json=email,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {token}",
-            },
-            timeout=current_app.config["NOTIFY_API_TIMEOUT"],
-        )
+        # Send a separate notify-api request per recipient so that a single
+        # malformed email address does not block delivery to the other recipients.
+        recipients_list = [
+            r.strip() for r in (email.get("recipients") or "").split(",") if r.strip()
+        ]
+        if not recipients_list:
+            logger.error(f"No recipients to email for ce: {str(ce)}")
+            return jsonify({"message": "No recipients for email."}), HTTPStatus.BAD_REQUEST
 
-    if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
-        logger.info(f"Error {resp.status_code} - {str(resp.json())}")
-        logger.error(f"Error posting email to notify-api for: {str(ce)}")
-        return jsonify({"message": "Error posting email to notify-api."}), resp.status_code
+        token = AuthService.get_service_client_token()
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}",
+        }
+        success_count = 0
+        last_failure_status = None
+        for recipient in recipients_list:
+            single_email = {**email, "recipients": recipient}
+            try:
+                resp = requests.post(
+                    current_app.config["NOTIFY_SVC_URL"],
+                    json=single_email,
+                    headers=headers,
+                    timeout=current_app.config["NOTIFY_API_TIMEOUT"],
+                )
+            except Exception as err:  # noqa: BLE001
+                logger.info(f"Error sending recipient {recipient}: {str(err)}")
+                logger.error(
+                    f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
+                )
+                last_failure_status = HTTPStatus.BAD_REQUEST
+                continue
+            if resp.status_code in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
+                success_count += 1
+            else:
+                try:
+                    err_body = resp.json()
+                except Exception:  # noqa: BLE001
+                    err_body = resp.text
+                logger.info(f"Error {resp.status_code} - {str(err_body)}")
+                logger.error(
+                    f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
+                )
+                # Return a 4xx from this worker for recipient-level notify failures.
+                last_failure_status = HTTPStatus.BAD_REQUEST
+
+        if success_count == 0:
+            return (
+                jsonify({"message": "Error posting email to notify-api."}),
+                last_failure_status or HTTPStatus.BAD_REQUEST,
+            )
 
     logger.info(f"completed ce: {str(ce)}")
     return {}, HTTPStatus.OK

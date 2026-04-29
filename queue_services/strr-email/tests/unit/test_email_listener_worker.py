@@ -1,5 +1,7 @@
 from http import HTTPStatus
+import json
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 import responses
@@ -325,7 +327,7 @@ def _patch_legacy_application_flow(mocker, app_obj, ce):
         (HTTPStatus.OK, HTTPStatus.OK),
         (HTTPStatus.ACCEPTED, HTTPStatus.OK),
         (HTTPStatus.CREATED, HTTPStatus.OK),
-        (502, 502),
+        (502, HTTPStatus.BAD_REQUEST),
     ],
 )
 @responses.activate
@@ -343,3 +345,102 @@ def test_worker_legacy_notify_status(app, mocker, ce_factory, notify_status, exp
     )
     with app.test_request_context("/", method="POST", data=b"{}"):
         assert worker()[1] == expected_status
+
+
+def _multi_recipient_app_dict():
+    return {
+        "header": {"registrationNumber": "RN1", "registrationEndDate": "2026-01-01T00:00:00+00:00"},
+        "registration": {
+            "registrationType": Registration.RegistrationType.HOST.value,
+            "unitAddress": {"streetNumber": "1", "city": "Vic", "postalCode": "V8V1A1"},
+            "primaryContact": {"emailAddress": "host@example.com"},
+            "propertyManager": {"contact": {"emailAddress": "bas@ba$.com"}},
+        },
+    }
+
+
+@responses.activate
+def test_worker_legacy_sends_one_request_per_recipient(app, mocker, ce_factory):
+    """Each recipient gets its own notify-api request so a bad email does not block the others."""
+    ce = ce_factory(applicationNumber="APP-1", emailType="HOST_DECLINED")
+    app_obj = MagicMock(
+        application_number="APP-1",
+        registration_type=Registration.RegistrationType.HOST,
+        noc=None,
+    )
+    _patch_legacy_application_flow(mocker, app_obj, ce)
+    mocker.patch(
+        "strr_email.resources.email_listener.ApplicationSerializer.to_dict",
+        return_value=_multi_recipient_app_dict(),
+    )
+
+    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"id": 1}, status=200)
+    responses.add(
+        responses.POST,
+        app.config["NOTIFY_SVC_URL"],
+        json={"message": "bad email"},
+        status=400,
+    )
+
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        status = worker()[1]
+
+    assert status == HTTPStatus.OK  # at least one recipient succeeded
+    assert len(responses.calls) == 3
+    sent_recipients = [json.loads(call.request.body)["recipients"] for call in responses.calls]
+    assert sent_recipients == [
+        app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"],
+        "host@example.com",
+        "bas@ba$.com",
+    ]
+
+
+@responses.activate
+def test_worker_legacy_all_recipients_fail(app, mocker, ce_factory):
+    """If every recipient send fails, the worker returns the failing notify-api status."""
+    ce = ce_factory(applicationNumber="APP-1", emailType="HOST_DECLINED")
+    app_obj = MagicMock(
+        application_number="APP-1",
+        registration_type=Registration.RegistrationType.HOST,
+        noc=None,
+    )
+    _patch_legacy_application_flow(mocker, app_obj, ce)
+    mocker.patch(
+        "strr_email.resources.email_listener.ApplicationSerializer.to_dict",
+        return_value=_multi_recipient_app_dict(),
+    )
+
+    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
+    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
+    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
+
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        status = worker()[1]
+
+    assert status == 400
+    assert len(responses.calls) == 3
+
+
+def test_worker_legacy_request_exception_returns_400(app, mocker, ce_factory):
+    """A request exception should be treated as recipient failure and return 400 if all fail."""
+    ce = ce_factory(applicationNumber="APP-1", emailType="HOST_DECLINED")
+    app_obj = MagicMock(
+        application_number="APP-1",
+        registration_type=Registration.RegistrationType.HOST,
+        noc=None,
+    )
+    _patch_legacy_application_flow(mocker, app_obj, ce)
+    mocker.patch(
+        "strr_email.resources.email_listener.ApplicationSerializer.to_dict",
+        return_value=_multi_recipient_app_dict(),
+    )
+
+    with patch(
+        "strr_email.resources.email_listener.requests.post",
+        side_effect=RuntimeError("network timeout"),
+    ) as mock_post:
+        with app.test_request_context("/", method="POST", data=b"{}"):
+            status = worker()[1]
+
+    assert status == HTTPStatus.BAD_REQUEST
+    assert mock_post.call_count == 3
