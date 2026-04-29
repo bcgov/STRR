@@ -18,8 +18,8 @@
     "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./tests/coverage/clover.xml ./coverage.xml",
     "test:unit": "vitest --dir tests/unit",
     "test:unit:cov": "vitest run --dir tests/unit --coverage",
-    "test:e2e": "npx playwright test",
-    "test:e2e:ui": "npx playwright test --ui"
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
