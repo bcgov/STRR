@@ -385,9 +385,13 @@ def test_worker_legacy_sends_one_request_per_recipient(app, mocker, ce_factory):
         status = worker()[1]
 
     assert status == HTTPStatus.OK  # at least one recipient succeeded
-    assert len(responses.calls) == 2
+    assert len(responses.calls) == 3
     sent_recipients = [json.loads(call.request.body)["recipients"] for call in responses.calls]
-    assert sent_recipients == ["host@example.com", "bas@ba$.com"]
+    assert sent_recipients == [
+        app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"],
+        "host@example.com",
+        "bas@ba$.com",
+    ]
 
 
 @responses.activate
@@ -407,9 +411,10 @@ def test_worker_legacy_all_recipients_fail(app, mocker, ce_factory):
 
     responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
     responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
+    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
 
     with app.test_request_context("/", method="POST", data=b"{}"):
         status = worker()[1]
 
     assert status == 400
-    assert len(responses.calls) == 2
+    assert len(responses.calls) == 3
