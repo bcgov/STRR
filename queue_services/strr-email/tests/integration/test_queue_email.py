@@ -20,7 +20,11 @@ from strr_api.models import Address
 from strr_api.models import Contact
 from strr_api.models import CustomerInteraction
 from strr_api.models import PropertyContact
+from strr_api.models import Registration
 from strr_api.models import RentalProperty
+from strr_api.models import StrataHotel
+from strr_api.models import StrataHotelRegistration
+from strr_api.models import StrataHotelRepresentative
 from strr_api.services import InteractionService
 from strr_api.services.interaction import EmailInfo
 
@@ -165,6 +169,48 @@ def create_registration(session, setup_parents):
     return registration
 
 
+def create_strata_hotel_registration(session, setup_parents):
+    """Create a strata hotel registration with enough data to send email."""
+    registration = setup_parents["registration"]
+    registration.registration_type = Registration.RegistrationType.STRATA_HOTEL
+    session.add(registration)
+    session.flush()
+
+    location = Address(
+        country="CA",
+        street_address="100 Strata Way",
+        city="Vancouver",
+        province="BC",
+        postal_code="V6B1A1",
+    )
+    mailing_address = Address(
+        country="CA",
+        street_address="200 Mailing Way",
+        city="Vancouver",
+        province="BC",
+        postal_code="V6B2B2",
+    )
+    representative_contact = Contact(lastname="Representative", email="strata.rep@gov.bc.ca")
+    session.add_all([location, mailing_address, representative_contact])
+    session.flush()
+
+    strata_hotel = StrataHotel(
+        legal_name="Test Strata Hotel",
+        home_jurisdiction="BC",
+        brand_name="Test Brand",
+        website="https://example.com",
+        number_of_units=10,
+        category=StrataHotelCategory.FULL_SERVICE,
+        mailingAddress=mailing_address,
+        location=location,
+    )
+    strata_hotel.representatives.append(StrataHotelRepresentative(contact=representative_contact))
+    registration.strata_hotel_registration = StrataHotelRegistration(strata_hotel=strata_hotel)
+    session.add(registration)
+    session.commit()
+    return registration
+
+
 def token_callback(request):
     """Response callback, for the bearer token call."""
     token = {"access_token": "my-token"}
@@ -265,3 +311,60 @@ def test_email_mocked_notify(
     assert stored.notify_reference
     assert stored.registration_id == registration.id
     assert stored.status == InteractionStatus.SENT
+
+
+@pytest.mark.conf(
+    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
+    NOTIFY_SVC_URL="http://my-notify-mock",
+    NOTIFY_API_TIMEOUT=30,
+    EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
+    EMAIL_SUBJECT_PREFIX="[TEST]",
+)
+@responses.activate
+def test_strata_hotel_registration_active_email_posts_to_notify(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    setup_parents,
+    inject_config,
+):
+    """Test that strata hotel active registration emails are sent to Notify."""
+    notify_payloads = []
+
+    def notify_callback(request):
+        payload = json.loads(request.body)
+        notify_payloads.append(payload)
+        return (200, {}, json.dumps({"id": "notify-id"}))
+
+    responses.add(
+        responses.POST,
+        app.config.get("KEYCLOAK_AUTH_TOKEN_URL"),
+        json={"access_token": "123"},
+        status=200,
+    )
+    responses.add_callback(
+        responses.POST,
+        app.config.get("NOTIFY_SVC_URL"),
+        callback=notify_callback,
+        content_type="application/json",
+    )
+
+    registration = create_strata_hotel_registration(session, setup_parents)
+    ce = simple_cloud_event(
+        data={
+            "registration_number": registration.registration_number,
+            "email_type": "STRATA_HOTEL_REGISTRATION_ACTIVE",
+            "custom_content": "Approval condition",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.OK
+    assert notify_payloads[0]["recipients"] == "remove@gov.bc.ca,strata.rep@gov.bc.ca"
+    assert notify_payloads[0]["content"]["subject"] == (
+        f"[TEST] {registration.registration_number} - Short-Term Rental Registration Approved"
+    )
+    assert "Approval condition" in notify_payloads[0]["content"]["body"]

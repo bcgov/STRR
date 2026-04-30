@@ -81,6 +81,7 @@ EMAIL_SUBJECT = {
     "HOST_DECLINED": "Short-Term Rental Application Refused",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
+    "STRATA_HOTEL_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
     "STRATA_HOTEL_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
     "PLATFORM_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
@@ -157,7 +158,10 @@ def worker():
                 registration, email_info, jinja_template
             )
         elif registration.registration_type == Registration.RegistrationType.STRATA_HOTEL:
-            if email_info.email_type == "STRATA_HOTEL_RENEWAL_REMINDER":
+            if email_info.email_type in (
+                "STRATA_HOTEL_REGISTRATION_ACTIVE",
+                "STRATA_HOTEL_RENEWAL_REMINDER",
+            ):
                 email = _get_registration_update_email_content_for_strata_hotel(
                     registration, email_info, jinja_template
                 )
@@ -292,6 +296,7 @@ def _get_registration_update_email_content_for_strata_hotel(
         postal_code=strata_hotel.location.postal_code,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        custom_content=email_info.custom_content,
         tac_url=_get_registration_tac_url(registration),
     )
     subject_number = registration.registration_number
