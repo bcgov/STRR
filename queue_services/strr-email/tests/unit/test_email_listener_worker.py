@@ -327,7 +327,7 @@ def _patch_legacy_application_flow(mocker, app_obj, ce):
         (HTTPStatus.OK, HTTPStatus.OK),
         (HTTPStatus.ACCEPTED, HTTPStatus.OK),
         (HTTPStatus.CREATED, HTTPStatus.OK),
-        (502, HTTPStatus.BAD_REQUEST),
+        (502, HTTPStatus.BAD_GATEWAY),
     ],
 )
 @responses.activate
@@ -410,19 +410,25 @@ def test_worker_legacy_all_recipients_fail(app, mocker, ce_factory):
         return_value=_multi_recipient_app_dict(),
     )
 
-    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
-    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
-    responses.add(responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad"}, status=400)
+    responses.add(
+        responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad email"}, status=400
+    )
+    responses.add(
+        responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad email"}, status=400
+    )
+    responses.add(
+        responses.POST, app.config["NOTIFY_SVC_URL"], json={"message": "bad email"}, status=400
+    )
 
     with app.test_request_context("/", method="POST", data=b"{}"):
         status = worker()[1]
 
-    assert status == 400
+    assert status == HTTPStatus.BAD_REQUEST
     assert len(responses.calls) == 3
 
 
-def test_worker_legacy_request_exception_returns_400(app, mocker, ce_factory):
-    """A request exception should be treated as recipient failure and return 400 if all fail."""
+def test_worker_legacy_request_exception_returns_502(app, mocker, ce_factory):
+    """A request exception should be treated as system failure and return 502 if all fail."""
     ce = ce_factory(applicationNumber="APP-1", emailType="HOST_DECLINED")
     app_obj = MagicMock(
         application_number="APP-1",
@@ -442,5 +448,5 @@ def test_worker_legacy_request_exception_returns_400(app, mocker, ce_factory):
         with app.test_request_context("/", method="POST", data=b"{}"):
             status = worker()[1]
 
-    assert status == HTTPStatus.BAD_REQUEST
+    assert status == HTTPStatus.BAD_GATEWAY
     assert mock_post.call_count == 3

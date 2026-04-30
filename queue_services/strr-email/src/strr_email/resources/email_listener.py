@@ -87,6 +87,17 @@ EMAIL_SUBJECT = {
 }
 
 
+def _is_invalid_email_error(error_body: object) -> bool:
+    """Return True when the upstream error indicates a malformed email address."""
+    error_text = str(error_body).lower()
+    return bool(
+        re.search(
+            r"(invalid|malformed|bad|not valid).{0,25}email|email.{0,25}(invalid|malformed|not valid)",
+            error_text,
+        )
+    )
+
+
 @bp.route("/", methods=("POST",))
 def worker():
     """Process the incoming file uploaded event."""
@@ -209,7 +220,7 @@ def worker():
             "Authorization": f"Bearer {token}",
         }
         success_count = 0
-        last_failure_status = None
+        has_non_format_failure = False
         for recipient in recipients_list:
             single_email = {**email, "recipients": recipient}
             try:
@@ -224,7 +235,7 @@ def worker():
                 logger.error(
                     f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
                 )
-                last_failure_status = HTTPStatus.BAD_REQUEST
+                has_non_format_failure = True
                 continue
             if resp.status_code in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
                 success_count += 1
@@ -237,13 +248,22 @@ def worker():
                 logger.error(
                     f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
                 )
-                # Return a 4xx from this worker for recipient-level notify failures.
-                last_failure_status = HTTPStatus.BAD_REQUEST
+                if (
+                    HTTPStatus.BAD_REQUEST <= resp.status_code < HTTPStatus.INTERNAL_SERVER_ERROR
+                    and _is_invalid_email_error(err_body)
+                ):
+                    # Invalid recipient format is treated as a user-level 4xx.
+                    pass
+                else:
+                    has_non_format_failure = True
 
         if success_count == 0:
+            failure_status = (
+                HTTPStatus.BAD_GATEWAY if has_non_format_failure else HTTPStatus.BAD_REQUEST
+            )
             return (
                 jsonify({"message": "Error posting email to notify-api."}),
-                last_failure_status or HTTPStatus.BAD_REQUEST,
+                failure_status,
             )
 
     logger.info(f"completed ce: {str(ce)}")
