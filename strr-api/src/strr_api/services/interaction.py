@@ -94,7 +94,6 @@ class InteractionService:
         customer_id: int | None = None,
     ):
         """Dispatch interaction."""
-        the_type = type(payload)
         match channel_type:
             case ChannelType.EMAIL:
                 if not isinstance(payload, EmailInfo):
@@ -120,7 +119,13 @@ class InteractionService:
         interaction.registration_id = registration_id
         interaction.customer_id = customer_id
         interaction.user_id = user_id
-        interaction.notify_reference = notify_json.get("ids") or notify_id
+        # Keep notify_reference backward compatible as a single notify ID
+        interaction.notify_reference = str(notify_id)
+        if notify_ids := notify_json.get("ids"):
+            interaction.meta_data = {
+                **(interaction.meta_data or {}),
+                "notify_references": notify_ids,
+            }
         interaction.idempotency_key = idempotency_key
         interaction.save()
 

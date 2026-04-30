@@ -236,7 +236,8 @@ def test_dispatch_email_splits_recipients(mock_requests_post, mock_get_token, se
     assert mock_requests_post.call_count == 3
     posted_recipients = [call.kwargs["json"]["recipients"] for call in mock_requests_post.call_args_list]
     assert posted_recipients == ["foo@foo.com", "bar@bar.com", "baz@baz.com"]
-    assert interaction.notify_reference == "111,222,333"
+    assert interaction.notify_reference == "111"
+    assert interaction.meta_data == {"notify_references": "111,222,333"}
 
 
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
@@ -267,7 +268,8 @@ def test_dispatch_email_partial_recipient_failure(
     )
 
     assert mock_requests_post.call_count == 3
-    assert interaction.notify_reference == "111,333"
+    assert interaction.notify_reference == "111"
+    assert interaction.meta_data == {"notify_references": "111,333"}
 
 
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
