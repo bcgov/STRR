@@ -1,6 +1,6 @@
 *Issue:*
 
-- bcgov/entity/issues/
+- bcgov/strr/issues/
 
 *Description of changes:*
 
