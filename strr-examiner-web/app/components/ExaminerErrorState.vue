@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="m-auto flex max-w-screen-sm flex-col">
+  <div class="m-auto flex max-w-screen-sm flex-col" data-testid="examiner-error-state">
     <ConnectPageSection
       :heading="{
         label: `Error Fetching ${itemType}`,
