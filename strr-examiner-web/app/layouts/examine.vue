@@ -11,7 +11,7 @@ const isStrataHotelRenewalApplication = computed(() => {
   const header = activeHeader.value as { applicationType?: string } | undefined
   return isApplication.value &&
     hasRegistrationNumber.value &&
-    activeReg.value?.registrationType === 'STRATA_HOTEL' &&
+    activeReg.value?.registrationType === ApplicationType.STRATA_HOTEL &&
     header?.applicationType === 'renewal'
 })
 
