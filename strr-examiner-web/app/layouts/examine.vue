@@ -2,9 +2,23 @@
 const { isAuthenticated } = useKeycloak()
 const headerOptions = useAppConfig().connect.core.header.options
 const localePath = useLocalePath()
-const { isApplication, hasRegistrationNumber } = storeToRefs(useExaminerStore())
+const { isApplication, hasRegistrationNumber, activeReg, activeHeader } = storeToRefs(useExaminerStore())
 const { isExaminerDecisionsEnabled } = useExaminerFeatureFlags()
 const { isSnapshotRoute } = useExaminerRoute()
+
+/* show the bottom action buttons for strata hotel renewal applications */
+const isStrataHotelRenewalApplication = computed(() => {
+  const header = activeHeader.value as { applicationType?: string } | undefined
+  return isApplication.value &&
+    hasRegistrationNumber.value &&
+    activeReg.value?.registrationType === ApplicationType.STRATA_HOTEL &&
+    header?.applicationType === 'renewal'
+})
+
+/* hide the bottom action buttons for other applications */
+const shouldHideBottomActions = computed(() => {
+  return isApplication.value && hasRegistrationNumber.value && !isStrataHotelRenewalApplication.value
+})
 
 </script>
 <template>
@@ -47,7 +61,7 @@ const { isSnapshotRoute } = useExaminerRoute()
         </p>
       </template>
     </NuxtErrorBoundary>
-    <template v-if="!(isApplication && hasRegistrationNumber)">
+    <template v-if="!shouldHideBottomActions">
       <ConnectButtonControl v-if="!isExaminerDecisionsEnabled || isApplication" />
       <ActionButtons v-else-if="isExaminerDecisionsEnabled && !isSnapshotRoute" />
     </template>
