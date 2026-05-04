@@ -344,6 +344,15 @@ export const mockHostApplicationWithoutRegistrationNumber: HostApplicationResp =
   }
 }
 
+export const mockStrataRenewalApplicationWithRegistrationNumber: StrataApplicationResp = {
+  ...mockStrataApplication,
+  header: {
+    ...mockStrataApplication.header,
+    applicationType: 'renewal',
+    registrationNumber: 'REG54321876'
+  }
+}
+
 export const mockApplications: ApiApplicationBaseResp [] = [
   mockHostApplication,
   mockStrataApplication,
