@@ -191,6 +191,7 @@ class RegistrationService:
                 file_type=doc.get("fileType"),
                 path=doc.get("fileKey"),
                 document_type=doc.get("documentType"),
+                added_on=doc.get("uploadDate") or doc.get("addedOn"),
             )
             registration.documents.append(document)
         if registration_type == RegistrationType.HOST.value:
@@ -236,6 +237,7 @@ class RegistrationService:
                 file_type=doc.get("fileType"),
                 path=doc.get("fileKey"),
                 document_type=doc.get("documentType"),
+                added_on=doc.get("uploadDate") or doc.get("addedOn"),
             )
             documents.append(document)
         if documents:

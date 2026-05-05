@@ -328,7 +328,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       id: uuidv4(),
       loading: true,
       uploadStep,
-      uploadDate: new Date().toISOString().split('T')[0]
+      uploadDate: new Date().toISOString()
     }
 
     storedDocuments.value.push(uiDoc)
@@ -441,8 +441,6 @@ export const useDocumentStore = defineStore('host/document', () => {
       const formData = new FormData()
       formData.append('file', uiDoc.file)
       formData.append('documentType', uiDoc.type)
-      uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
-      uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
 
       // submit file
       const res = await $strrApi<ApiDocument>('/documents', {
@@ -451,6 +449,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       })
       // api doesn't give documentType back in this response
       res.documentType = uiDoc.type
+      if (uiDoc.uploadStep) { res.uploadStep = uiDoc.uploadStep }
+      if (uiDoc.uploadDate) { res.uploadDate = uiDoc.uploadDate }
       // update ui object with backend response
       updateStoredDocument(uiDoc.id, 'apiDoc', res)
     } catch (e) {
