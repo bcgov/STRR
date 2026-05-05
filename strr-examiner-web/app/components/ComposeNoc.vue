@@ -22,9 +22,9 @@ const isStrataHotelRenewalApplication = computed(() => {
 })
 
 const canShowComposeEmail = computed(() =>
-  (showComposeEmail.value || showComposeNocEmail.value) &&
-  isAssignedToUser.value &&
-  (!hasRegistrationNumber.value || isStrataHotelRenewalApplication.value)
+  (!!showComposeEmail?.value || !!showComposeNocEmail?.value) &&
+  !!isAssignedToUser?.value &&
+  (!hasRegistrationNumber?.value || isStrataHotelRenewalApplication.value)
 )
 const formSchema = computed(
   () =>
