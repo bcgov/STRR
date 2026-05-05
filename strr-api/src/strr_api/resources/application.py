@@ -900,7 +900,7 @@ def get_document(application_number, file_key):
             if doc.get("fileKey") == file_key
         ]
         if not application_documents:
-            return error_response(ErrorMessage.DOCUMENT_NOT_FOUND.value, HTTPStatus.BAD_REQUEST)
+            return error_response(http_status=HTTPStatus.BAD_REQUEST, message=ErrorMessage.DOCUMENT_NOT_FOUND.value)
         document = application_documents[0]
         file_content = DocumentService.get_file_by_key(file_key)
         return send_file(

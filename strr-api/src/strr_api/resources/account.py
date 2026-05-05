@@ -69,7 +69,7 @@ def search_accounts():
             )
         return AuthService.search_accounts(account_name=account_name), HTTPStatus.OK
     except ExternalServiceException as service_exception:
-        return error_response(service_exception.message, service_exception.status_code)
+        return error_response(http_status=service_exception.status_code, message=service_exception.message)
 
 
 @bp.route("/", methods=("GET",))
@@ -94,7 +94,7 @@ def get_user_accounts():
         token = jwt.get_token_auth_header()
         return AuthService.get_user_accounts(bearer_token=token), HTTPStatus.OK
     except ExternalServiceException as service_exception:
-        return error_response(service_exception.message, service_exception.status_code)
+        return error_response(http_status=service_exception.status_code, message=service_exception.message)
 
 
 @bp.route("/", methods=("POST",))
