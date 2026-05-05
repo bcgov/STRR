@@ -7,9 +7,25 @@ const {
   showComposeNocEmail,
   isAssignedToUser,
   activeHeader,
-  hasRegistrationNumber
+  hasRegistrationNumber,
+  isApplication,
+  activeReg
 } = storeToRefs(useExaminerStore())
 const { t } = useNuxtApp().$i18n
+
+const isStrataHotelRenewalApplication = computed(() => {
+  const header = activeHeader.value as { applicationType?: string } | undefined
+  return isApplication.value &&
+    hasRegistrationNumber.value &&
+    activeReg.value?.registrationType === ApplicationType.STRATA_HOTEL &&
+    header?.applicationType === 'renewal'
+})
+
+const canShowComposeEmail = computed(() =>
+  (showComposeEmail.value || showComposeNocEmail.value) &&
+  isAssignedToUser.value &&
+  (!hasRegistrationNumber.value || isStrataHotelRenewalApplication.value)
+)
 const formSchema = computed(
   () =>
     [
@@ -34,7 +50,7 @@ onMounted(() => {
 
 <template>
   <div
-    v-if="(showComposeEmail || showComposeNocEmail) && isAssignedToUser && !hasRegistrationNumber"
+    v-if="canShowComposeEmail"
     class="app-inner-container"
   >
     <div class="mb-8 rounded bg-white py-6">
