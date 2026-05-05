@@ -35,7 +35,7 @@ def update_user_profile():
         user_details = AuthService.update_user_profile()
         return user_details, HTTPStatus.OK
     except ExternalServiceException as service_exception:
-        return error_response(service_exception.message, service_exception.status_code)
+        return error_response(http_status=service_exception.status_code, message=service_exception.message)
 
 
 @bp.route("/tos", methods=["GET"])
@@ -47,7 +47,7 @@ def get_user_tos():
         user_tos = AuthService.get_user_tos()
         return user_tos, HTTPStatus.OK
     except ExternalServiceException as service_exception:
-        return error_response(service_exception.message, service_exception.status_code)
+        return error_response(http_status=service_exception.status_code, message=service_exception.message)
 
 
 @bp.route("/tos", methods=["PATCH"])
@@ -65,4 +65,4 @@ def update_user_tos():
         user_tos = AuthService.update_user_tos(request_json)
         return user_tos, HTTPStatus.OK
     except ExternalServiceException as service_exception:
-        return error_response(service_exception.message, service_exception.status_code)
+        return error_response(http_status=service_exception.status_code, message=service_exception.message)
