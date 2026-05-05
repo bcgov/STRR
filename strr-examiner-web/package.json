@@ -2,7 +2,7 @@
   "name": "strr-examiner-web",
   "private": true,
   "type": "module",
-  "version": "0.2.39a",
+  "version": "0.2.39b",
   "engines": {
     "node": ">=24"
   },
