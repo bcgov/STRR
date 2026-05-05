@@ -1,8 +1,4 @@
-"""Seed applications (and optional events) for integration tests.
-
-P2 policy: patch external I/O (``DocumentService``, ``strr_pay``, GCP) at the test
-boundary—see ``test_applications_staff_api`` / ``test_registrations_staff_api``.
-"""
+"""Seed applications (and optional events) for integration tests."""
 
 from __future__ import annotations
 
