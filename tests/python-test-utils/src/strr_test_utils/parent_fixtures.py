@@ -25,6 +25,8 @@ def seed_parent_user_registration_application(
     """Insert User, Registration, Application; return IDs and ORM instances.
 
     ``application_kwargs`` are merged into ``Application`` (e.g. ``invoice_id``, ``status``).
+    For integration suites that need full ``application_json`` + ``payment_account``, prefer
+    ``strr-api/tests/integration/application_seed.py`` (``seed_listable_application``).
     """
     customer = User()
     user = User()
@@ -44,7 +46,6 @@ def seed_parent_user_registration_application(
     session.flush()
 
     app_fields: dict[str, Any] = {
-        "id": random_integer(),
         "application_json": {},
         "registration_id": reg.id,
         "application_number": random_string(10),

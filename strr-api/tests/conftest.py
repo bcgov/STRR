@@ -37,24 +37,20 @@ from contextlib import contextmanager
 
 import pytest
 from flask import g
-from flask_migrate import upgrade
 from ldclient.integrations.test_data import TestData
-from sqlalchemy.orm import Session as AppSession
-from testcontainers.postgres import PostgresContainer
 
 pytest_plugins = (
-    "tests.fixtures.local",
     "strr_test_utils.utils_fixtures",
+    "strr_test_utils.db_fixtures",
     "strr_test_utils.redis_fixtures",
+    "strr_test_utils.client_fixtures",
     "strr_test_utils.parent_fixtures",
 )
 
-# from strr_api import create_app
-from strr_api import db as _db
-from strr_api import jwt as _jwt
-from strr_api.config import Testing
+from sqlalchemy.orm import Session as AppSession
 
-postgres_image = "postgres:16-alpine"
+from strr_api import db as _db
+from strr_api.config import Testing
 
 
 @contextmanager
@@ -76,35 +72,10 @@ def ld():
     yield td
 
 
-# @pytest.fixture(scope="session")
-# def client(app):  # pylint: disable=redefined-outer-name
-#     """Return a session-wide Flask test client."""
-#     return app.test_client()
-@pytest.fixture(scope="function")
-def client(app):
-    """
-    Return a function-scoped test client.
-    This allows @patch decorators on individual tests to work correctly
-    without leaking state or context between tests.
-    """
-    with app.test_client() as client:
-        # We provide the client, and the @patch decorators in your test
-        # will now correctly intercept calls made during client.get()
-        yield client
-
-
-@pytest.fixture(scope="session")
-def jwt():
-    """Return a session-wide jwt manager."""
-    return _jwt
-
-
 @pytest.fixture
 def authed_g(app):
     """Fixture to seed 'g' with basic JWT info for tests that use mocks."""
-    # This automatically uses the app context provided by the app fixture
     with app.app_context():
-        # Pre-seed the attribute that flask-jwt-oidc expects
         setattr(g, "jwt_oidc_token_info", {"sub": "test-user", "realm_access": {"roles": []}})
         yield g
 
@@ -117,70 +88,52 @@ def client_ctx(app):  # pylint: disable=redefined-outer-name
 
 
 @pytest.fixture(scope="session")
-def postgres_container():
-    """
-    Spins up a Postgres container.
-    """
-    with PostgresContainer(postgres_image) as postgres:
-        yield postgres
-
-
-@pytest.fixture(scope="session")
-def app(ld, postgres_container):
+def app(ld, db_engine):
+    """Flask app bound to the migrated test DB from strr_test_utils.db_fixtures."""
     from strr_api import create_app
 
-    db_url = postgres_container.get_connection_url()
+    # str(engine.url) masks the password; Flask needs the real credentials.
+    db_url = db_engine.url.render_as_string(hide_password=False)
     Testing.SQLALCHEMY_DATABASE_URI = db_url
     Testing.POD_NAMESPACE = "Testing"
-
-    # Still set this so the standalone-logic in env.py has a backup
     os.environ["DATABASE_URL"] = db_url
 
-    app = create_app(Testing, **{"ld_test_data": ld})
-    return app
-
-
-@pytest.fixture(scope="session")
-def setup_database(app):
-    # This is the ONLY place where the context is pushed for migrations
-    with app.app_context():
-        upgrade()
-    yield
+    _app = create_app(Testing, **{"ld_test_data": ld})
+    return _app
 
 
 @pytest.fixture(scope="function")
-def session(app, setup_database):
+def session(app, db_engine):
     """
-    Creates a test session that behaves like a scoped_session but
-    is bound to an external transaction for easy rollback.
+    Transactional ORM session bound to a savepoint-nested connection.
+
+    strr_test_utils.db_fixtures.session uses a plain scoped_session; strr-api
+    relies on join_transaction_mode=\"create_savepoint\" so HTTP handler commits
+    nest inside an outer rollback (see sql_versioning + Flask request cycles).
     """
-    with app.app_context():  # Re-establish context for the individual test
-        # 1. Start the external transaction on the connection
+    _ = db_engine  # fixture dependency: migrations before app binds engine
+    with app.app_context():
         connection = _db.engine.connect()
         transaction = connection.begin()
 
-        # 2. Create the Session
-        session = AppSession(bind=connection, join_transaction_mode="create_savepoint")
+        orm_session = AppSession(bind=connection, join_transaction_mode="create_savepoint")
 
-        # 3. Create a Proxy to mimic Flask-SQLAlchemy's db.session
         class TestScopedSession:
             def __call__(self):
-                return session
+                return orm_session
 
             def __getattr__(self, name):
-                return getattr(session, name)
+                return getattr(orm_session, name)
 
             def remove(self):
-                session.close()
+                orm_session.close()
 
-        # 4. Patch global db.session
         original_session_lookup = _db.session
         _db.session = TestScopedSession()
 
-        yield session
+        yield orm_session
 
-        # 5. Cleanup
-        session.close()
+        orm_session.close()
         transaction.rollback()
         connection.close()
         _db.session = original_session_lookup
