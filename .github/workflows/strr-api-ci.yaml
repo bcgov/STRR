@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "strr-api/**"
+      - "tests/python-test-utils/**"
   workflow_dispatch:
 
 defaults:

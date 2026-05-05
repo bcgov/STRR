@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "queue_services/strr-pay/**"
+      - "tests/python-test-utils/**"
   workflow_dispatch:
 
 defaults:
