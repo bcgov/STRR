@@ -78,11 +78,23 @@ def test_delete_draft_applications(session, client, jwt):
 
 
 def test_staff_cannot_access_draft_applications(session, client, jwt):
-    headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-    rv = client.get("/applications/search", headers=headers)
+    """Examiner search excludes drafts; do not assume an otherwise empty database."""
+    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        headers["isDraft"] = True
+        json_data = json.load(f)
+
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        draft_number = rv.json.get("header").get("applicationNumber")
+
+    examiner_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv = client.get("/applications/search", headers=examiner_headers)
     assert HTTPStatus.OK == rv.status_code
-    applications = rv.json
-    assert len(applications.get("applications")) == 0
+    applications = rv.json.get("applications") or []
+    returned_numbers = {a.get("header", {}).get("applicationNumber") for a in applications}
+    assert draft_number not in returned_numbers
 
 
 @pytest.mark.parametrize(
