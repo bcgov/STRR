@@ -127,12 +127,16 @@ norecursedirs = [
 log_cli = true
 log_cli_level = "1"
 filterwarnings = [
-   "ignore::UserWarning"
+   "ignore::UserWarning",
+   "ignore::DeprecationWarning:testcontainers.*:",
+   "ignore::DeprecationWarning:docker.*:",
+   "ignore::ResourceWarning:testcontainers.*:",
 ]
 markers = [
    "slow",
    "serial",
    "conf: Inject flask config values into the app fixture",
+   "integration: full-stack tests using strr_test_utils (Postgres, Redis, HTTP)",
 ]
 
 [tool.coverage.run]

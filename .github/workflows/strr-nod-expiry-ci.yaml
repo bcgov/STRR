@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "jobs/noc_expiry/**"
+      - "tests/python-test-utils/**"
       - "src/strr_api/models/**"
       - "src/strr_api/services/**"
       - "src/strr_api/enums/**"

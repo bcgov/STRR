@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "queue_services/batch-permit-validator/**"
+      - "tests/python-test-utils/**"
   workflow_dispatch:
 
 defaults:

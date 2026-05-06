@@ -5,10 +5,12 @@ on:
     branches: [ main, develop ]
     paths:
       - "jobs/interactions-update/**"
+      - "tests/python-test-utils/**"
   pull_request:
     branches: [ main ]
     paths:
       - "jobs/interactions-update/**"
+      - "tests/python-test-utils/**"
 
 # Set the default directory for all shell commands
 defaults:
