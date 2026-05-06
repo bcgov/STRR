@@ -77,7 +77,8 @@ minversion = "2.0"
 testpaths = [
    "tests",
 ]
-addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml"
+# Default: unit tests only.
+addopts = "--verbose --strict -p no:warnings --cov=src --cov-report html:htmlcov --cov-report xml:coverage.xml --cov-report term -m \"not load\""
 python_files = [
    "test*.py"
 ]
@@ -87,11 +88,27 @@ norecursedirs = [
 log_cli = true
 log_cli_level = "1"
 filterwarnings = [
-   "ignore::UserWarning"
+   "ignore::UserWarning",
+   "ignore::DeprecationWarning:testcontainers.*:",
+   "ignore::DeprecationWarning:docker.*:",
+   "ignore::ResourceWarning:testcontainers.*:",
 ]
 markers = [
    "slow",
    "serial",
+   "integration: tests requiring Docker DB and strr_test_utils fixtures",
    "conf: Inject flask config values into the app fixture",
    "load: mark test as a heavy load test to exclude from standard CI runs",
 ]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "**/__main__.py",
+    "**/renewal_reminders/__init__.py",
+    "**/renewal_reminders/config.py",
+    "**/renewal_reminders/utils/logging.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
