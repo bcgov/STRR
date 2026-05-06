@@ -6,40 +6,47 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from strr_api.enums.enum import ChannelType, InteractionStatus
+from strr_api.enums.enum import ChannelType, InteractionStatus, RegistrationStatus
 from strr_api.models import Application, Registration, User
 from strr_api.models.interactions import CustomerInteraction
 
 
 @pytest.fixture
-def setup_parents(session: Session, random_string):
+def interaction_parents(session: Session, random_string, random_integer):
     """
-    Creates one parent record in each table so we have valid IDs
-    to link our interactions to.
+    Seed User / Registration / Application rows for interaction tests.
 
-    TODO: this should be part of a session wide set of fixture strategy
+    Uses DB-generated primary keys (no hard-coded ids) so tests stay isolated when the
+    shared ``setup_parents`` fixture from ``strr_test_utils.parent_fixtures`` also inserts
+    users in the same Postgres database during the suite.
     """
-    customer = User(id=2)
-    user = User(id=1)
-    app = Application(
-        id=1,
-        application_json={},
-        application_number=random_string(10),
-        type="",
-        registration_type=Registration.RegistrationType.HOST,
-    )
+    customer = User()
+    user = User()
+    session.add_all([user, customer])
+    session.flush()
+
     reg = Registration(
-        id=1,
         registration_type=Registration.RegistrationType.HOST,
         registration_number=random_string(10),
-        sbc_account_id=1,
-        status="ACTIVE",
+        sbc_account_id=random_integer(),
+        status=RegistrationStatus.ACTIVE,
         user_id=user.id,
         start_date=datetime.now(timezone.utc),
         expiry_date=(datetime.now(timezone.utc) + timedelta(days=365)).date(),
     )
+    session.add(reg)
+    session.flush()
 
-    session.add_all([user, app, customer, reg])
+    app = Application(
+        application_json={},
+        application_number=random_string(10),
+        type="",
+        registration_type=Registration.RegistrationType.HOST,
+        registration_id=reg.id,
+    )
+    session.add(app)
+    session.flush()
+
     session.commit()
 
     return {
@@ -66,9 +73,11 @@ def generate_interaction_data(**kwargs):
 # -------------------------------------------------------------------
 
 
-def test_create_interaction_with_customer(session, setup_parents):
+def test_create_interaction_with_customer(session, interaction_parents):
     """Test creating an interaction linked ONLY to a Customer."""
-    interaction = generate_interaction_data(user_id=setup_parents["user_id"], customer_id=setup_parents["customer_id"])
+    interaction = generate_interaction_data(
+        user_id=interaction_parents["user_id"], customer_id=interaction_parents["customer_id"]
+    )
 
     session.add(interaction)
     session.commit()
@@ -76,28 +85,28 @@ def test_create_interaction_with_customer(session, setup_parents):
     # Verify data persistence
     stored = session.scalar(select(CustomerInteraction).where(CustomerInteraction.id == interaction.id))
     assert stored is not None
-    assert stored.user_id == setup_parents["user_id"]
-    assert stored.customer_id == setup_parents["customer_id"]
+    assert stored.user_id == interaction_parents["user_id"]
+    assert stored.customer_id == interaction_parents["customer_id"]
     assert stored.application_id is None
     assert stored.registration_id is None
     assert stored.status == InteractionStatus.SENT
     assert stored.created_at is not None  # Verify server default func.now()
 
 
-def test_create_interaction_with_application(session, setup_parents):
+def test_create_interaction_with_application(session, interaction_parents):
     """Test creating an interaction linked ONLY to an Application."""
-    interaction = generate_interaction_data(application_id=setup_parents["app_id"])
+    interaction = generate_interaction_data(application_id=interaction_parents["app_id"])
     session.add(interaction)
     session.commit()
 
     assert interaction.id is not None
-    assert interaction.application_id == setup_parents["app_id"]
+    assert interaction.application_id == interaction_parents["app_id"]
 
 
-def test_find_by_uuid_returns_requested_interaction(session, setup_parents):
+def test_find_by_uuid_returns_requested_interaction(session, interaction_parents):
     """Test that UUID lookup does not match unrelated interaction rows."""
-    interaction_one = generate_interaction_data(customer_id=setup_parents["customer_id"])
-    interaction_two = generate_interaction_data(application_id=setup_parents["app_id"])
+    interaction_one = generate_interaction_data(customer_id=interaction_parents["customer_id"])
+    interaction_two = generate_interaction_data(application_id=interaction_parents["app_id"])
     session.add_all([interaction_one, interaction_two])
     session.commit()
 
@@ -106,22 +115,28 @@ def test_find_by_uuid_returns_requested_interaction(session, setup_parents):
     assert stored.id == interaction_two.id
 
 
-def test_find_by_id_idempotency_key_respects_key(session, setup_parents):
+def test_find_by_id_idempotency_key_respects_key(session, interaction_parents):
     """Test that idempotency lookup filters by the requested key."""
-    interaction_one = generate_interaction_data(registration_id=setup_parents["reg_id"], idempotency_key="job-key-one")
-    interaction_two = generate_interaction_data(registration_id=setup_parents["reg_id"], idempotency_key="job-key-two")
+    interaction_one = generate_interaction_data(
+        registration_id=interaction_parents["reg_id"], idempotency_key="job-key-one"
+    )
+    interaction_two = generate_interaction_data(
+        registration_id=interaction_parents["reg_id"], idempotency_key="job-key-two"
+    )
     session.add_all([interaction_one, interaction_two])
     session.commit()
 
-    stored = CustomerInteraction.find_by_id_idempotency_key("job-key-two", registration_id=setup_parents["reg_id"])
+    stored = CustomerInteraction.find_by_id_idempotency_key(
+        "job-key-two", registration_id=interaction_parents["reg_id"]
+    )
 
     assert stored.id == interaction_two.id
 
 
-def test_jsonb_metadata_storage(session, setup_parents):
+def test_jsonb_metadata_storage(session, interaction_parents):
     """Test that the JSONB column correctly stores and retrieves dictionaries."""
     meta = {"campaign_id": 123, "tags": ["urgent", "promo"]}
-    interaction = generate_interaction_data(customer_id=setup_parents["customer_id"], meta_data=meta)
+    interaction = generate_interaction_data(customer_id=interaction_parents["customer_id"], meta_data=meta)
     session.add(interaction)
     session.commit()
 
@@ -135,13 +150,14 @@ def test_jsonb_metadata_storage(session, setup_parents):
 # -------------------------------------------------------------------
 
 
-def test_constraint_fails_if_multiple_parents(session, setup_parents):
+def test_constraint_fails_if_multiple_parents(session, interaction_parents):
     """
     Ensure the DB rejects rows that have MORE than 1 parent set.
     (e.g., customer_id AND application_id are both set)
     """
     interaction = generate_interaction_data(
-        customer_id=setup_parents["customer_id"], application_id=setup_parents["app_id"]  # Invalid: Can't have both
+        customer_id=interaction_parents["customer_id"],
+        application_id=interaction_parents["app_id"],  # Invalid: Can't have both
     )
     session.add(interaction)
 
@@ -171,17 +187,17 @@ def test_constraint_fails_if_zero_parents(session):
 # -------------------------------------------------------------------
 
 
-def test_unique_interaction_uuid(session, setup_parents):
+def test_unique_interaction_uuid(session, interaction_parents):
     """Test that interaction_uuid must be unique."""
     uid = str(uuid.uuid4())
 
     # First one
-    i1 = generate_interaction_data(interaction_uuid=uid, customer_id=setup_parents["customer_id"])
+    i1 = generate_interaction_data(interaction_uuid=uid, customer_id=interaction_parents["customer_id"])
     session.add(i1)
     session.commit()
 
     # Second one with same UUID
-    i2 = generate_interaction_data(interaction_uuid=uid, customer_id=setup_parents["customer_id"])
+    i2 = generate_interaction_data(interaction_uuid=uid, customer_id=interaction_parents["customer_id"])
     session.add(i2)
 
     with pytest.raises(IntegrityError):
