@@ -87,6 +87,17 @@ EMAIL_SUBJECT = {
 }
 
 
+def _is_invalid_email_error(error_body: object) -> bool:
+    """Return True when the upstream error indicates a malformed email address."""
+    error_text = str(error_body).lower()
+    return bool(
+        re.search(
+            r"(invalid|malformed|bad|not valid).{0,25}email|email.{0,25}(invalid|malformed|not valid)",
+            error_text,
+        )
+    )
+
+
 @bp.route("/", methods=("POST",))
 def worker():
     """Process the incoming file uploaded event."""
@@ -194,21 +205,66 @@ def worker():
             return jsonify({"message": "Error posting email to notify-api."}), 400
 
     else:
-        token = AuthService.get_service_client_token()
-        resp = requests.post(
-            current_app.config["NOTIFY_SVC_URL"],
-            json=email,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {token}",
-            },
-            timeout=current_app.config["NOTIFY_API_TIMEOUT"],
-        )
+        # Send a separate notify-api request per recipient so that a single
+        # malformed email address does not block delivery to the other recipients.
+        recipients_list = [
+            r.strip() for r in (email.get("recipients") or "").split(",") if r.strip()
+        ]
+        if not recipients_list:
+            logger.error(f"No recipients to email for ce: {str(ce)}")
+            return jsonify({"message": "No recipients for email."}), HTTPStatus.BAD_REQUEST
 
-    if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
-        logger.info(f"Error {resp.status_code} - {str(resp.json())}")
-        logger.error(f"Error posting email to notify-api for: {str(ce)}")
-        return jsonify({"message": "Error posting email to notify-api."}), resp.status_code
+        token = AuthService.get_service_client_token()
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}",
+        }
+        success_count = 0
+        has_non_format_failure = False
+        for recipient in recipients_list:
+            single_email = {**email, "recipients": recipient}
+            try:
+                resp = requests.post(
+                    current_app.config["NOTIFY_SVC_URL"],
+                    json=single_email,
+                    headers=headers,
+                    timeout=current_app.config["NOTIFY_API_TIMEOUT"],
+                )
+            except Exception as err:  # noqa: BLE001
+                logger.info(f"Error sending recipient {recipient}: {str(err)}")
+                logger.error(
+                    f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
+                )
+                has_non_format_failure = True
+                continue
+            if resp.status_code in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
+                success_count += 1
+            else:
+                try:
+                    err_body = resp.json()
+                except Exception:  # noqa: BLE001
+                    err_body = resp.text
+                logger.info(f"Error {resp.status_code} - {str(err_body)}")
+                logger.error(
+                    f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
+                )
+                if (
+                    HTTPStatus.BAD_REQUEST <= resp.status_code < HTTPStatus.INTERNAL_SERVER_ERROR
+                    and _is_invalid_email_error(err_body)
+                ):
+                    # Invalid recipient format is treated as a user-level 4xx.
+                    pass
+                else:
+                    has_non_format_failure = True
+
+        if success_count == 0:
+            failure_status = (
+                HTTPStatus.BAD_GATEWAY if has_non_format_failure else HTTPStatus.BAD_REQUEST
+            )
+            return (
+                jsonify({"message": "Error posting email to notify-api."}),
+                failure_status,
+            )
 
     logger.info(f"completed ce: {str(ce)}")
     return {}, HTTPStatus.OK
