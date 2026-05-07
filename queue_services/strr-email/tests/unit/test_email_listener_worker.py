@@ -249,6 +249,7 @@ def test_worker_strata_renewal_dispatch_success(app, mocker, ce_factory):
 
 
 def test_worker_renewal_dispatch_raises_returns_400(app, mocker, ce_factory):
+    log_mock = mocker.patch("strr_email.resources.email_listener.logger")
     ce = ce_factory(registrationNumber="H1", emailType="HOST_RENEWAL_REMINDER")
     reg = _host_reg()
     mocker.patch(
@@ -258,6 +259,10 @@ def test_worker_renewal_dispatch_raises_returns_400(app, mocker, ce_factory):
     _patch_read_pipeline(mocker, ce, reg, _HOST_TPL)
     with app.test_request_context("/", method="POST", data=b"{}"):
         assert worker()[1] == 400
+    log_mock.exception.assert_called_once_with(
+        "Error dispatching renewal reminder email via InteractionService (ce=%s)",
+        ce,
+    )
 
 
 def _minimal_app_dict():

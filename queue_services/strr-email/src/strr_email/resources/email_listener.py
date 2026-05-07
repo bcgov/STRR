@@ -189,8 +189,11 @@ def worker():
             logger.info(f"completed ce: {str(ce)}")
             return jsonify({"interaction": resp.interaction_uuid}), HTTPStatus.OK
 
-        except Exception as err:
-            logger.error(f"Error posting email to notify-api for: {str(ce)}")
+        except Exception:
+            logger.exception(
+                "Error dispatching renewal reminder email via InteractionService (ce=%s)",
+                ce,
+            )
             return jsonify({"message": "Error posting email to notify-api."}), 400
 
     else:
