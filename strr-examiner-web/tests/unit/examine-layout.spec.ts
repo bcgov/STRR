@@ -2,7 +2,12 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { nextTick } from 'vue'
 
-import { mockProvisionalReviewApplication, mockFullReviewApplication, mockHostRegistration } from '../mocks/mockedData'
+import {
+  mockProvisionalReviewApplication,
+  mockFullReviewApplication,
+  mockHostRegistration,
+  mockStrataRenewalApplicationWithRegistrationNumber
+} from '../mocks/mockedData'
 import { enI18n } from '../mocks/i18n'
 import ExamineLayout from '~/layouts/examine.vue'
 import { ActionButtons, ConnectButtonControl } from '#components'
@@ -55,6 +60,14 @@ describe('Examine Layout', () => {
 
   it('should show ConnectButtonControl for Applications in Full Review', async () => {
     store.activeRecord = mockFullReviewApplication
+    await nextTick()
+
+    expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(true)
+    expect(wrapper.findComponent(ActionButtons).exists()).toBe(false)
+  })
+
+  it('should show ConnectButtonControl for strata hotel renewal applications with registration number', async () => {
+    store.activeRecord = mockStrataRenewalApplicationWithRegistrationNumber
     await nextTick()
 
     expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(true)
