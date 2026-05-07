@@ -194,7 +194,7 @@ def worker():
                 "Error dispatching renewal reminder email via InteractionService (ce=%s)",
                 ce,
             )
-            return jsonify({"message": "Error posting email to notify-api."}), 400
+            return jsonify({"message": "Unable to send renewal reminder email."}), 400
 
     else:
         token = AuthService.get_service_client_token()
