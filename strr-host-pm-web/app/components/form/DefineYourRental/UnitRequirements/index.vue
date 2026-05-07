@@ -1,11 +1,12 @@
 <script setup lang="ts">
 defineProps<{ isComplete: boolean }>()
 const reqStore = usePropertyReqStore()
+const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
 </script>
 <template>
   <div class="flex flex-col gap-4" data-testid="property-requirements-section">
     <FormDefineYourRentalUnitRequirementsError
-      v-if="reqStore.propertyReqError.type !== undefined"
+      v-if="reqStore.propertyReqError.type !== undefined && !isRegistrationRenewal"
       class="mt-10"
     />
 
