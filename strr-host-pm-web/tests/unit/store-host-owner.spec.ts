@@ -231,3 +231,20 @@ describe('useHostOwnerStore - add/remove owners', () => {
     expect(store.hostOwners).toHaveLength(0)
   })
 })
+
+describe('useHostOwnerStore - $reset', () => {
+  it('should clear transient owner form state', () => {
+    const store = useHostOwnerStore()
+    store.activeOwner = { ...mockHostOwner }
+    store.activeOwnerEditIndex = 2
+    store.isCraNumberOptional = true
+    store.addHostOwner({ ...mockHostOwner, role: OwnerRole.HOST })
+
+    store.$reset()
+
+    expect(store.hostOwners).toEqual([])
+    expect(store.activeOwner).toBeUndefined()
+    expect(store.activeOwnerEditIndex).toBe(-1)
+    expect(store.isCraNumberOptional).toBe(false)
+  })
+})

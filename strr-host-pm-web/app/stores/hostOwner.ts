@@ -130,6 +130,9 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
 
   const $reset = () => {
     hostOwners.value = []
+    activeOwner.value = undefined
+    activeOwnerEditIndex.value = -1
+    isCraNumberOptional.value = false
   }
 
   return {
