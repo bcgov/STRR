@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.unit.resources.conftest import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
+from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, STRR_INVESTIGATOR, SYSTEM_ROLE, create_header
 
 # Role strings (defined here so ``src`` and shared unit auth_helpers stay unchanged).

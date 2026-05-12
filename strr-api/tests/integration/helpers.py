@@ -106,3 +106,13 @@ def collect_strr_routes(app) -> frozenset[tuple[str, str]]:
 def protected_routes_with_prefix(app, prefix: str) -> list[tuple[str, str]]:
     """Collect protected routes matching ``prefix`` from the running app map."""
     return routes_with_prefix(collect_strr_routes(app) - PUBLIC_ROUTES, prefix)
+
+
+def assert_unauthenticated_returns_401_for_protected_prefix(client, app, prefix: str) -> None:
+    """Assert every protected route under ``prefix`` returns 401 without ``Authorization``."""
+    rows = protected_routes_with_prefix(app, prefix)
+    assert rows, f"expected at least one protected {prefix} route"
+    for method, rule in rows:
+        path = resolve_path_for_unauth(rule)
+        rv = unauthenticated_request(client, method, path)
+        assert rv.status_code == HTTPStatus.UNAUTHORIZED, f"{method} {rule}"

@@ -1,17 +1,17 @@
 """Shared fixtures and constants for resource-level integration tests."""
-from datetime import datetime
+
 from unittest.mock import patch
 
 import pytest
 
-ACCOUNT_ID = 1234
-MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": ACCOUNT_ID}}
-MOCK_PAYMENT_COMPLETED_RESPONSE = {
-    "id": 123,
-    "statusCode": "COMPLETED",
-    "paymentAccount": {"accountId": ACCOUNT_ID},
-    "paymentDate": datetime.now().isoformat(),
-}
+from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE, MOCK_PAYMENT_COMPLETED_RESPONSE
+
+__all__ = [
+    "ACCOUNT_ID",
+    "MOCK_INVOICE_RESPONSE",
+    "MOCK_PAYMENT_COMPLETED_RESPONSE",
+    "mock_create_invoice",
+]
 
 
 @pytest.fixture
