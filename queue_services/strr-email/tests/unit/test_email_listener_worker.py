@@ -370,11 +370,15 @@ def test_worker_legacy_notify_status(app, mocker, ce_factory, notify_status, exp
     if expected_status == HTTPStatus.OK:
         log_mock.info.assert_any_call("completed ce (event_id=%s): %s", "e1", ce)
     else:
-        log_mock.error.assert_called_once()
-        _, *log_args = log_mock.error.call_args.args
-        assert log_args[0] == "e1"
-        assert log_args[1] == notify_status
-        assert log_args[3] == ce
+        expected_recipients = [
+            app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"],
+            _minimal_app_dict()["registration"]["primaryContact"]["emailAddress"],
+        ]
+        assert log_mock.error.call_count == len(expected_recipients)
+        for recipient in expected_recipients:
+            log_mock.error.assert_any_call(
+                f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
+            )
 
 
 def _multi_recipient_app_dict():
