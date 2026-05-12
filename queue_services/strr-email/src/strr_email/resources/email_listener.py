@@ -32,13 +32,13 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0911, R0912
-"""This Module processes and sends email messages via the notify-api.
-"""
+"""This Module processes and sends email messages via the notify-api."""
 from dataclasses import dataclass
 from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 import re
+import traceback
 from zoneinfo import ZoneInfo
 
 from flask import Blueprint
@@ -199,11 +199,12 @@ def worker():
             return jsonify({"interaction": resp.interaction_uuid}), HTTPStatus.OK
 
         except Exception:
-            logger.exception(
+            logger.error(
                 "Error dispatching renewal reminder email via InteractionService "
-                "(event_id=%s, ce=%s)",
+                "(event_id=%s, ce=%s)\n%s",
                 event_id,
                 ce,
+                traceback.format_exc(),
             )
             return jsonify({"message": "Unable to send renewal reminder email."}), 400
 

@@ -274,11 +274,14 @@ def test_worker_renewal_dispatch_raises_returns_400(app, mocker, ce_factory):
         body, status = worker()
     assert status == 400
     assert body.get_json()["message"] == "Unable to send renewal reminder email."
-    log_mock.exception.assert_called_once_with(
-        "Error dispatching renewal reminder email via InteractionService (event_id=%s, ce=%s)",
-        "e1",
-        ce,
+    log_mock.error.assert_called_once()
+    call = log_mock.error.call_args
+    assert call[0][0].startswith(
+        "Error dispatching renewal reminder email via InteractionService (event_id=%s, ce=%s)\n"
     )
+    assert call[0][1] == "e1"
+    assert call[0][2] is ce
+    assert "RuntimeError: notify down" in call[0][3]
 
 
 def _minimal_app_dict():
