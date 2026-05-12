@@ -104,7 +104,8 @@ def worker():
         logger.info("get_simple_cloud_event returned none")
         return {}, HTTPStatus.OK
 
-    logger.info(f"received ce: {str(ce)}")
+    event_id = getattr(ce, "id", None)
+    logger.info("received ce (event_id=%s): %s", event_id, ce)
 
     # 2. Get email information
     if not (email_info := get_email_info(ce)):
@@ -126,7 +127,11 @@ def worker():
             application := Application.find_by_application_number(email_info.application_number)
         ):
             # no application matching the application number
-            logger.error(f"Error: application {email_info.application_number} not found.")
+            logger.error(
+                "Error: application %s not found (event_id=%s)",
+                email_info.application_number,
+                event_id,
+            )
             return (
                 jsonify(
                     {"message": f"Application number ({email_info.application_number}) not found."}
@@ -143,7 +148,11 @@ def worker():
             )
         ):
             # no application matching the application number
-            logger.error(f"Error: Registration {email_info.registration_number} not found.")
+            logger.error(
+                "Error: Registration %s not found (event_id=%s)",
+                email_info.registration_number,
+                event_id,
+            )
             return (
                 jsonify(
                     {
@@ -186,12 +195,17 @@ def worker():
                 application_id=application.id if application else None,
                 registration_id=registration.id if registration else None,
             )
-            logger.info(f"completed ce: {str(ce)}")
+            logger.info("completed ce (event_id=%s): %s", event_id, ce)
             return jsonify({"interaction": resp.interaction_uuid}), HTTPStatus.OK
 
-        except Exception as err:
-            logger.error(f"Error posting email to notify-api for: {str(ce)}")
-            return jsonify({"message": "Error posting email to notify-api."}), 400
+        except Exception:
+            logger.exception(
+                "Error dispatching renewal reminder email via InteractionService "
+                "(event_id=%s, ce=%s)",
+                event_id,
+                ce,
+            )
+            return jsonify({"message": "Unable to send renewal reminder email."}), 400
 
     else:
         token = AuthService.get_service_client_token()
@@ -206,11 +220,16 @@ def worker():
         )
 
     if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
-        logger.info(f"Error {resp.status_code} - {str(resp.json())}")
-        logger.error(f"Error posting email to notify-api for: {str(ce)}")
+        logger.error(
+            "Error posting email to notify-api (event_id=%s, status=%s, response=%s, ce=%s)",
+            event_id,
+            resp.status_code,
+            resp.text,
+            ce,
+        )
         return jsonify({"message": "Error posting email to notify-api."}), resp.status_code
 
-    logger.info(f"completed ce: {str(ce)}")
+    logger.info("completed ce (event_id=%s): %s", event_id, ce)
     return {}, HTTPStatus.OK
 
 

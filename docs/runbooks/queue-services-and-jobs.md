@@ -86,6 +86,25 @@ resource.labels.service_name="strr-email-prod"
 jsonPayload.message=~"(completed ce|Error)"
 ```
 
+**Trace one queue event (recommended):**
+
+```text
+resource.type="cloud_run_revision"
+resource.labels.service_name="strr-email-prod"
+jsonPayload.message=~"event_id=<cloud_event_id>"
+```
+
+Use this to follow a single message across received/completed/error logs in `strr-email`.
+
+**Errors for one event:**
+
+```text
+resource.type="cloud_run_revision"
+resource.labels.service_name="strr-email-prod"
+severity>="ERROR"
+jsonPayload.message=~"event_id=<cloud_event_id>"
+```
+
 ## Log diving: Cloud Run Jobs
 
 **Resource type:** `cloud_run_job` (verify in your project; filters differ from `cloud_run_revision`).

@@ -126,13 +126,17 @@ def test_worker_no_cloud_event_returns_200(app, mocker):
 
 
 def test_worker_no_email_info_returns_200(app, mocker, ce_factory):
-    mocker.patch.object(gcp_queue, "get_simple_cloud_event", return_value=ce_factory(foo="bar"))
+    log_mock = mocker.patch("strr_email.resources.email_listener.logger")
+    ce = ce_factory(foo="bar")
+    mocker.patch.object(gcp_queue, "get_simple_cloud_event", return_value=ce)
     mocker.patch("strr_email.resources.email_listener.get_email_info", return_value=None)
     with app.test_request_context("/", method="POST", data=b"{}"):
         assert worker()[1] == HTTPStatus.OK
+    log_mock.info.assert_any_call("received ce (event_id=%s): %s", "e1", ce)
 
 
 def test_worker_application_not_found(app, mocker, ce_factory):
+    log_mock = mocker.patch("strr_email.resources.email_listener.logger")
     ce = ce_factory(applicationNumber="A-404", emailType="HOST_DECLINED")
     mocker.patch.object(gcp_queue, "get_simple_cloud_event", return_value=ce)
     mocker.patch("strr_email.resources.email_listener.Path.read_text", return_value="# x\n")
@@ -145,9 +149,13 @@ def test_worker_application_not_found(app, mocker, ce_factory):
     )
     with app.test_request_context("/", method="POST", data=b"{}"):
         assert worker()[1] == HTTPStatus.NOT_FOUND
+    log_mock.error.assert_called_once_with(
+        "Error: application %s not found (event_id=%s)", "A-404", "e1"
+    )
 
 
 def test_worker_registration_not_found(app, mocker, ce_factory):
+    log_mock = mocker.patch("strr_email.resources.email_listener.logger")
     ce = ce_factory(registrationNumber="R-404", emailType="HOST_RENEWAL_REMINDER")
     mocker.patch.object(gcp_queue, "get_simple_cloud_event", return_value=ce)
     mocker.patch("strr_email.resources.email_listener.Path.read_text", return_value="# x\n")
@@ -160,6 +168,9 @@ def test_worker_registration_not_found(app, mocker, ce_factory):
     )
     with app.test_request_context("/", method="POST", data=b"{}"):
         assert worker()[1] == HTTPStatus.NOT_FOUND
+    log_mock.error.assert_called_once_with(
+        "Error: Registration %s not found (event_id=%s)", "R-404", "e1"
+    )
 
 
 @pytest.mark.parametrize(
@@ -189,6 +200,7 @@ def test_worker_registration_branch_returns_empty_ok(
 
 
 def test_worker_renewal_dispatch_success(app, mocker, ce_factory):
+    log_mock = mocker.patch("strr_email.resources.email_listener.logger")
     ce = ce_factory(registrationNumber="H1", emailType="HOST_RENEWAL_REMINDER")
     reg = _host_reg()
     mocker.patch(
@@ -199,6 +211,7 @@ def test_worker_renewal_dispatch_success(app, mocker, ce_factory):
     with app.test_request_context("/", method="POST", data=b"{}"):
         resp = worker()
     assert resp[1] == HTTPStatus.OK and resp[0].get_json().get("interaction") == "uuid-1"
+    log_mock.info.assert_any_call("completed ce (event_id=%s): %s", "e1", ce)
 
 
 def test_worker_platform_renewal_dispatch_success(app, mocker, ce_factory):
@@ -249,6 +262,7 @@ def test_worker_strata_renewal_dispatch_success(app, mocker, ce_factory):
 
 
 def test_worker_renewal_dispatch_raises_returns_400(app, mocker, ce_factory):
+    log_mock = mocker.patch("strr_email.resources.email_listener.logger")
     ce = ce_factory(registrationNumber="H1", emailType="HOST_RENEWAL_REMINDER")
     reg = _host_reg()
     mocker.patch(
@@ -257,7 +271,14 @@ def test_worker_renewal_dispatch_raises_returns_400(app, mocker, ce_factory):
     )
     _patch_read_pipeline(mocker, ce, reg, _HOST_TPL)
     with app.test_request_context("/", method="POST", data=b"{}"):
-        assert worker()[1] == 400
+        body, status = worker()
+    assert status == 400
+    assert body.get_json()["message"] == "Unable to send renewal reminder email."
+    log_mock.exception.assert_called_once_with(
+        "Error dispatching renewal reminder email via InteractionService (event_id=%s, ce=%s)",
+        "e1",
+        ce,
+    )
 
 
 def _minimal_app_dict():
@@ -330,6 +351,7 @@ def _patch_legacy_application_flow(mocker, app_obj, ce):
 )
 @responses.activate
 def test_worker_legacy_notify_status(app, mocker, ce_factory, notify_status, expected_status):
+    log_mock = mocker.patch("strr_email.resources.email_listener.logger")
     ce = ce_factory(applicationNumber="APP-1", emailType="HOST_DECLINED")
     app_obj = MagicMock(
         application_number="APP-1",
@@ -343,3 +365,11 @@ def test_worker_legacy_notify_status(app, mocker, ce_factory, notify_status, exp
     )
     with app.test_request_context("/", method="POST", data=b"{}"):
         assert worker()[1] == expected_status
+    if expected_status == HTTPStatus.OK:
+        log_mock.info.assert_any_call("completed ce (event_id=%s): %s", "e1", ce)
+    else:
+        log_mock.error.assert_called_once()
+        _, *log_args = log_mock.error.call_args.args
+        assert log_args[0] == "e1"
+        assert log_args[1] == notify_status
+        assert log_args[3] == ce
