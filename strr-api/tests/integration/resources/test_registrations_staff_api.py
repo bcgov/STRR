@@ -1,4 +1,11 @@
-"""Integration tests for staff / privileged ``/registrations`` flows."""
+"""Integration tests for staff / privileged ``/registrations`` flows.
+
+``RegistrationService.get_registration`` and ``create_registration_for_permit_validation`` are
+wrapped (``_get_registration_coerce_header_account_id``, ``_permit_create_coerce_json_types``):
+the HTTP layer passes shapes the service methods were not written for (JWT dict vs account id;
+JSON ISO strings and status names vs datetimes/enums). Prefer fixing the resource/service contract
+in ``src`` and deleting these shims once the API and service agree on inputs.
+"""
 
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
@@ -11,7 +18,7 @@ from strr_api.enums.enum import RegistrationStatus
 from strr_api.services.registration_service import RegistrationService
 from tests.integration.helpers import assert_json_keys, assert_status
 from tests.integration.registration_seed import seed_registration_document
-from tests.unit.resources.conftest import ACCOUNT_ID
+from tests.shared_test_constants import ACCOUNT_ID
 
 _original_get_registration = RegistrationService.get_registration
 _original_permit_create = RegistrationService.create_registration_for_permit_validation

@@ -15,45 +15,30 @@ from tests.integration.application_seed import (
 from tests.integration.helpers import (
     assert_json_keys,
     assert_status,
+    assert_unauthenticated_returns_401_for_protected_prefix,
     load_mock_json,
-    protected_routes_with_prefix,
-    resolve_path_for_unauth,
-    unauthenticated_request,
 )
 
 
 def test_applications_routes_require_auth_without_bearer(client, app):
-    rows = protected_routes_with_prefix(app, "/applications")
-    assert rows, "expected at least one protected /applications route"
-    for method, rule in rows:
-        path = resolve_path_for_unauth(rule)
-        rv = unauthenticated_request(client, method, path)
-        assert rv.status_code == HTTPStatus.UNAUTHORIZED, f"{method} {rule}"
+    assert_unauthenticated_returns_401_for_protected_prefix(client, app, "/applications")
 
 
 @patch("strr_api.services.strr_pay.create_invoice")
 @pytest.mark.slow
 def test_post_application_with_invoice_mock_returns_success(
-    mock_invoice, client, jwt, integration_account_id, mock_invoice_response
+    mock_invoice, client, integration_account_id, mock_invoice_response, headers_public_user
 ):
     mock_invoice.return_value = mock_invoice_response
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = str(integration_account_id)
     payload = load_mock_json("host_registration.json")
-    rv = client.post("/applications", json=payload, headers=headers)
+    rv = client.post("/applications", json=payload, headers=headers_public_user(integration_account_id))
     assert rv.status_code in (HTTPStatus.OK, HTTPStatus.CREATED), rv.get_data(as_text=True)
 
 
-def test_get_applications_list_ok(client, jwt, integration_account_id):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = str(integration_account_id)
-    rv = client.get("/applications", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    assert rv.is_json
+def test_get_applications_list_ok(client, headers_public_user, integration_account_id):
+    rv = client.get("/applications", headers=headers_public_user(integration_account_id))
+    assert_status(rv, HTTPStatus.OK)
+    assert_json_keys(rv, "page", "limit", "applications", "total")
 
 
 def test_get_applications_list_envelope_and_row(client, headers_public_user, serializable_application):
@@ -140,11 +125,8 @@ def test_applications_user_search_short_query_bad_request(client, headers_public
     assert_status(rv, HTTPStatus.BAD_REQUEST)
 
 
-def test_applications_user_search_requires_account_id(client, jwt):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER])
-    rv = client.get("/applications/user/search?text=abc", headers=headers)
+def test_applications_user_search_requires_account_id(client, headers_public_user):
+    rv = client.get("/applications/user/search?text=abc", headers=headers_public_user(account_id=None))
     assert_status(rv, HTTPStatus.BAD_REQUEST)
 
 

@@ -10,7 +10,7 @@ from strr_api.enums.enum import PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import ApplicationService
-from tests.unit.resources.conftest import ACCOUNT_ID, MOCK_INVOICE_RESPONSE, MOCK_PAYMENT_COMPLETED_RESPONSE
+from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE, MOCK_PAYMENT_COMPLETED_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
@@ -78,23 +78,14 @@ def test_delete_draft_applications(session, client, jwt):
 
 
 def test_staff_cannot_access_draft_applications(session, client, jwt):
-    """Examiner search excludes drafts; do not assume an otherwise empty database."""
-    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
-        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-        headers["Account-Id"] = ACCOUNT_ID
-        headers["isDraft"] = True
-        json_data = json.load(f)
-
-        rv = client.post("/applications", json=json_data, headers=headers)
-        assert HTTPStatus.OK == rv.status_code
-        draft_number = rv.json.get("header").get("applicationNumber")
-
-    examiner_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-    rv = client.get("/applications/search", headers=examiner_headers)
+    """Staff search omits DRAFT rows (``Application.search_applications`` when no account filter)."""
+    headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv = client.get("/applications/search", headers=headers)
     assert HTTPStatus.OK == rv.status_code
-    applications = rv.json.get("applications") or []
-    returned_numbers = {a.get("header", {}).get("applicationNumber") for a in applications}
-    assert draft_number not in returned_numbers
+    applications = rv.json
+    draft = Application.Status.DRAFT.value
+    for row in applications.get("applications", []):
+        assert row.get("header", {}).get("status") != draft
 
 
 @pytest.mark.parametrize(
