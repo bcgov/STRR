@@ -73,16 +73,20 @@ class GCPStorageService:
         return GCPStorageService.get_bucket(bucket_id)
 
     @classmethod
-    def upload_registration_document(cls, file_type, file_contents):
+    def upload_registration_document(cls, file_type, file_contents, metadata=None):
         """Save STRR uploaded document to gcp bucket."""
 
+        upload_metadata = cls._upload_metadata(file_type, file_contents, metadata)
         try:
             registration_documents_bucket = cls.registration_documents_bucket()
             blob_name = str(uuid.uuid4())
             blob = registration_documents_bucket.blob(blob_name)
+            blob.metadata = upload_metadata
             blob.upload_from_string(data=file_contents, content_type=file_type)
+            cls._log_document_upload("strr.document_upload.succeeded", blob_name, upload_metadata)
             return blob_name
         except Exception as e:
+            cls._log_document_upload("strr.document_upload.failed", None, upload_metadata, e)
             logger.error(traceback.format_exc())
             raise ExternalServiceException(message="Error uploading registration document to gcp bucket.") from e
 
@@ -129,16 +133,24 @@ class GCPStorageService:
             return None
 
     @classmethod
-    def upload_file(cls, file_type, file_contents, bucket_id):
+    def upload_file(cls, file_type, file_contents, bucket_id, metadata=None):
         """Save the document to the specified bucket."""
 
+        upload_metadata = cls._upload_metadata(file_type, file_contents, metadata)
         try:
             bucket = cls.get_bucket(bucket_id)
             blob_name = str(uuid.uuid4())
             blob = bucket.blob(blob_name)
+            blob.metadata = upload_metadata
             blob.upload_from_string(data=file_contents, content_type=file_type)
+            cls._log_document_upload(
+                "strr.cloud_storage_upload.succeeded", blob_name, upload_metadata, bucket_id=bucket_id
+            )
             return blob_name
         except Exception as e:
+            cls._log_document_upload(
+                "strr.cloud_storage_upload.failed", None, upload_metadata, error=e, bucket_id=bucket_id
+            )
             logger.error(traceback.format_exc())
             raise ExternalServiceException(message="Error uploading document to cloud storage bucket.") from e
 
@@ -152,3 +164,34 @@ class GCPStorageService:
         url = blob.generate_signed_url(version="v4", expiration=timedelta(minutes=expiration_minutes), method="GET")
 
         return url
+
+    @classmethod
+    def _upload_metadata(cls, file_type, file_contents, metadata=None):
+        """Build GCS object metadata for uploaded documents."""
+        file_size = len(file_contents) if file_contents is not None else 0
+        if isinstance(file_contents, str):
+            file_size = len(file_contents.encode("utf-8"))
+        upload_metadata = {
+            "content_type": file_type,
+            "size": str(file_size),
+            "environment": current_app.config.get("POD_NAMESPACE", "unknown"),
+        }
+        upload_metadata.update(metadata or {})
+        return {
+            str(key): str(value)[:1024] for key, value in upload_metadata.items() if value is not None and value != ""
+        }
+
+    @classmethod
+    def _log_document_upload(cls, event_name, blob_name, metadata, error=None, bucket_id=None):
+        """Emit alertable document upload logs with consistent fields."""
+        payload = {
+            "event": event_name,
+            "blob_name": blob_name,
+            "bucket_id": bucket_id or current_app.config.get("GCP_CS_BUCKET_ID"),
+            **metadata,
+        }
+        if error:
+            payload["error"] = str(error)
+            logger.error("%s %s", event_name, json.dumps(payload, sort_keys=True))
+        else:
+            logger.info("%s %s", event_name, json.dumps(payload, sort_keys=True))

@@ -5,6 +5,7 @@ import re
 import uuid
 from datetime import datetime
 from datetime import timezone
+from unittest.mock import patch
 
 import pytest
 import responses
@@ -131,6 +132,58 @@ def test_run_failure_502(db_session, setup_bulk_interactions, monkeypatch):
     interactions = db_session.scalars(stmt).all()
     for interaction in interactions:
         assert interaction.status == InteractionStatus.SENT
+
+
+@pytest.mark.parametrize("setup_bulk_interactions", [{"records": 1}], indirect=True)
+def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
+    """Test that stale SENT interactions are logged for alerting."""
+
+    class ScalarResult:
+        """Small result object matching the SQLAlchemy scalars().all() call used by the job."""
+
+        def __init__(self, values):
+            self._values = values
+
+        def all(self):
+            return self._values
+
+    class SessionProxy:
+        """Return one stale SENT interaction id and one SENT interaction id."""
+
+        def __init__(self, interaction_id):
+            self._interaction_id = interaction_id
+
+        def scalars(self, _stmt):
+            return ScalarResult([self._interaction_id])
+
+        def close(self):
+            return None
+
+    interaction_id = setup_bulk_interactions["interaction_ids"][0]
+
+    monkeypatch.setenv("STALE_SENT_HOURS", "0")
+    monkeypatch.setattr(
+        "interactions_update.job.get_session",
+        lambda: iter([SessionProxy(interaction_id)]),
+    )
+    monkeypatch.setattr(
+        "interactions_update.job.AuthService.get_service_client_token",
+        lambda **kwargs: "123",
+    )
+    monkeypatch.setattr(
+        "interactions_update.job.fetch_and_update",
+        lambda *args: "unchanged",
+    )
+
+    with patch("interactions_update.job.logger.warning") as mock_warning:
+        run(max_workers=1)
+
+    mock_warning.assert_any_call(
+        "strr.interactions.stale_sent_detected stale_sent_count=%s stale_sent_hours=%s interaction_ids=%s",
+        1,
+        0,
+        [interaction_id],
+    )
 
 
 scenario_bulk = {

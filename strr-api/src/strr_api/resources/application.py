@@ -781,7 +781,18 @@ def upload_registration_supporting_document(application_number):
 
         filename = secure_filename(file.filename)
 
-        document = DocumentService.upload_document(filename, file.content_type, file.read())
+        document = DocumentService.upload_document(
+            filename,
+            file.content_type,
+            file.read(),
+            metadata={
+                "upload_source": "application",
+                "entity_id": application.id,
+                "application_number": application.application_number,
+                "document_type": "SUPPORTING_DOCUMENT",
+                "upload_step": "application_supporting_document",
+            },
+        )
         return document, HTTPStatus.CREATED
     except AuthException as auth_exception:
         return exception_response(auth_exception)
@@ -837,7 +848,18 @@ def update_registration_supporting_document(application_number):
 
         filename = secure_filename(file.filename)
 
-        document = DocumentService.upload_document(filename, file.content_type, file.read())
+        document = DocumentService.upload_document(
+            filename,
+            file.content_type,
+            file.read(),
+            metadata={
+                "upload_source": "application",
+                "entity_id": application.id,
+                "application_number": application.application_number,
+                "document_type": document_type,
+                "upload_step": upload_step,
+            },
+        )
         document["documentType"] = document_type
         document["uploadStep"] = upload_step
         # Store upload date for application-stage docs (no registration yet, so not in documents table)

@@ -86,7 +86,16 @@ def upload_supporting_document():
     try:
         file = validate_document_upload(request.files)
         filename = secure_filename(file.filename)
-        document = DocumentService.upload_document(filename, file.content_type, file.read())
+        document = DocumentService.upload_document(
+            filename,
+            file.content_type,
+            file.read(),
+            metadata={
+                "upload_source": "documents",
+                "document_type": "SUPPORTING_DOCUMENT",
+                "upload_step": "standalone_supporting_document",
+            },
+        )
         return document, HTTPStatus.CREATED
     except AuthException as auth_exception:
         return exception_response(auth_exception)

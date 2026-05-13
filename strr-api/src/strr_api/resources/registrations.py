@@ -388,7 +388,18 @@ def upload_registration_document(registration_id):
         file = validate_document_upload(request.files)
         filename = secure_filename(file.filename)
 
-        document_response = DocumentService.upload_document(filename, file.content_type, file.read())
+        document_response = DocumentService.upload_document(
+            filename,
+            file.content_type,
+            file.read(),
+            metadata={
+                "upload_source": "registration",
+                "entity_id": registration.id,
+                "registration_number": registration.registration_number,
+                "document_type": document_type,
+                "upload_step": "registration_document",
+            },
+        )
 
         registration = RegistrationService.upload_document_to_registration(
             registration=registration,

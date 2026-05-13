@@ -1,6 +1,9 @@
 import concurrent.futures
 import logging
 import os
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 
 import requests
 from dotenv import find_dotenv
@@ -26,7 +29,7 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
     try:
         interaction = session.get(CustomerInteraction, interaction_id)
         if not interaction or not interaction.notify_reference:
-            return False
+            return "missing_reference"
 
         notify_request = f"{notify_url}/notify/{interaction.notify_reference}"
         resp = requests.get(notify_request, headers=headers, timeout=timeout)
@@ -46,8 +49,8 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
                 interaction.provider_reference = str(data.get("id"))
                 interaction.meta_data = data
                 session.commit()
-                return True
-        return False
+                return new_status.value
+        return "unchanged"
     finally:
         session.close()
 
@@ -79,12 +82,31 @@ def run(max_workers=None):
     session = next(session_gen)
 
     try:
+        stale_sent_hours = int(os.getenv("STALE_SENT_HOURS", "24"))
+        stale_threshold = datetime.now(timezone.utc) - timedelta(hours=stale_sent_hours)
+        stale_stmt = select(CustomerInteraction.id).where(
+            CustomerInteraction.status == InteractionStatus.SENT,
+            CustomerInteraction.created_at < stale_threshold,
+        )
+        stale_interaction_ids = session.scalars(stale_stmt).all()
+        if stale_interaction_ids:
+            logger.warning(
+                "strr.interactions.stale_sent_detected stale_sent_count=%s stale_sent_hours=%s interaction_ids=%s",
+                len(stale_interaction_ids),
+                stale_sent_hours,
+                stale_interaction_ids[:25],
+            )
+
         stmt = select(CustomerInteraction.id).where(
             CustomerInteraction.status == InteractionStatus.SENT
         )
         interaction_ids = session.scalars(stmt).all()
 
         if not interaction_ids:
+            logger.info(
+                "strr.interactions.update_completed sent_count=0 stale_sent_count=%s",
+                len(stale_interaction_ids),
+            )
             return
 
         token = AuthService.get_service_client_token(**_get_auth_config())
@@ -93,10 +115,13 @@ def run(max_workers=None):
             "Content-Type": "application/json",
         }
 
+        results = []
         # If max_workers is 1, run sequentially used in benchmarking comparison
         if max_workers == 1:
             for i_id in interaction_ids:
-                fetch_and_update(i_id, notify_url, headers, notify_timeout)
+                results.append(
+                    fetch_and_update(i_id, notify_url, headers, notify_timeout)
+                )
         else:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=max_workers
@@ -107,6 +132,22 @@ def run(max_workers=None):
                     )
                     for i_id in interaction_ids
                 ]
-                concurrent.futures.wait(futures)
+                for future in concurrent.futures.as_completed(futures):
+                    results.append(future.result())
+
+        failed_count = results.count(InteractionStatus.FAILED.value)
+        delivered_count = results.count(InteractionStatus.DELIVERED.value)
+        if failed_count:
+            logger.warning(
+                "strr.interactions.failed_detected interaction_status=FAILED failed_count=%s",
+                failed_count,
+            )
+        logger.info(
+            "strr.interactions.update_completed sent_count=%s delivered_count=%s failed_count=%s stale_sent_count=%s",
+            len(interaction_ids),
+            delivered_count,
+            failed_count,
+            len(stale_interaction_ids),
+        )
     finally:
         session.close()

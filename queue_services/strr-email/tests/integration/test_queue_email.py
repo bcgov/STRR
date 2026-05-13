@@ -359,8 +359,19 @@ def test_strata_hotel_registration_active_email_posts_to_notify(
     response = client.post("/", json=queue_envelope(cloud_event=ce))
 
     assert response.status_code == HTTPStatus.OK
+    json_data = response.get_json()
+    interaction_uuid = json_data.get("interaction", None)
+
     assert notify_payloads[0]["recipients"] == "remove@gov.bc.ca,strata.rep@gov.bc.ca"
     assert notify_payloads[0]["content"]["subject"] == (
         f"[TEST] {registration.registration_number} - Short-Term Rental Registration Approved"
     )
     assert "Approval condition" in notify_payloads[0]["content"]["body"]
+
+    stored = session.scalar(
+        select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == interaction_uuid)
+    )
+    assert stored.notify_reference == "notify-id"
+    assert stored.registration_id == registration.id
+    assert stored.status == InteractionStatus.SENT
+    assert stored.meta_data["email_type"] == "STRATA_HOTEL_REGISTRATION_ACTIVE"

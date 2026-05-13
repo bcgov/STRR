@@ -254,3 +254,61 @@ def test_get_registration_document_creation_time_returns_none_when_time_created_
 
     assert result is None
     mock_blob.reload.assert_called_once()
+
+
+@pytest.mark.conf(POD_NAMESPACE="test", GCP_CS_BUCKET_ID="registration-docs")
+@patch("strr_api.services.gcp_storage_service.uuid.uuid4", return_value="blob-id")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
+def test_upload_registration_document_sets_metadata(mock_bucket, mock_uuid, app, inject_config):
+    """upload_registration_document tags the GCS object with observability metadata."""
+    mock_blob = MagicMock()
+    mock_bucket.return_value.blob.return_value = mock_blob
+
+    with app.app_context():
+        result = GCPStorageService.upload_registration_document(
+            "application/pdf",
+            b"abc",
+            metadata={
+                "upload_source": "registration",
+                "entity_id": 123,
+                "document_type": "NOC",
+                "upload_step": "registration_document",
+            },
+        )
+
+    assert result == "blob-id"
+    assert mock_blob.metadata == {
+        "content_type": "application/pdf",
+        "size": "3",
+        "environment": "test",
+        "upload_source": "registration",
+        "entity_id": "123",
+        "document_type": "NOC",
+        "upload_step": "registration_document",
+    }
+    mock_blob.upload_from_string.assert_called_once_with(data=b"abc", content_type="application/pdf")
+
+
+@pytest.mark.conf(POD_NAMESPACE="test", GCP_CS_BUCKET_ID="registration-docs")
+@patch("strr_api.services.gcp_storage_service.uuid.uuid4", return_value="blob-id")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.registration_documents_bucket")
+def test_upload_registration_document_logs_failure(mock_bucket, mock_uuid, app, inject_config):
+    """upload_registration_document emits an alertable failure log before raising."""
+    mock_blob = MagicMock()
+    mock_blob.upload_from_string.side_effect = RuntimeError("upload failed")
+    mock_bucket.return_value.blob.return_value = mock_blob
+
+    with app.app_context(), patch("strr_api.services.gcp_storage_service.logger.error") as mock_logger:
+        with pytest.raises(ExternalServiceException):
+            GCPStorageService.upload_registration_document(
+                "application/pdf",
+                b"abc",
+                metadata={
+                    "upload_source": "registration",
+                    "entity_id": 123,
+                    "document_type": "NOC",
+                    "upload_step": "registration_document",
+                },
+            )
+
+    assert any("strr.document_upload.failed" in str(arg) for call in mock_logger.call_args_list for arg in call.args)

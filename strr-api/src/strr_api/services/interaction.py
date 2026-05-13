@@ -31,13 +31,14 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+import json
 import uuid
 from dataclasses import dataclass
 from http import HTTPStatus
 from typing import overload
 
 import requests
-from flask import current_app, jsonify
+from flask import current_app
 
 from strr_api.enums.enum import ChannelType, InteractionStatus
 from strr_api.exceptions import ExternalServiceException, ValidationException
@@ -106,28 +107,38 @@ class InteractionService:
         if (
             not notify_json
             or not isinstance(notify_json, dict)
-            or not (notify_id := notify_json.get("id"))
-            or (isinstance(notify_id, (int, float)) and notify_id < 1)
+            or not InteractionService._valid_notify_id(notify_json.get("id"))
         ):
+            InteractionService._save_interaction(
+                channel_type=channel_type,
+                payload=payload,
+                status=InteractionStatus.FAILED,
+                idempotency_key=idempotency_key,
+                interaction_uuid=interaction_uuid,
+                user_id=user_id,
+                application_id=application_id,
+                registration_id=registration_id,
+                customer_id=customer_id,
+                notify_json=notify_json if isinstance(notify_json, dict) else None,
+            )
             raise ExternalServiceException(error="Email not sent", status_code=HTTPStatus.BAD_REQUEST)
 
-        if not (interaction := CustomerInteraction.find_by_uuid(interaction_uuid)):
-            interaction = CustomerInteraction()
-        interaction.channel = channel_type
-        interaction.status = InteractionStatus.SENT
-        interaction.application_id = application_id
-        interaction.registration_id = registration_id
-        interaction.customer_id = customer_id
-        interaction.user_id = user_id
-        # Keep notify_reference backward compatible as a single notify ID
-        interaction.notify_reference = str(notify_id)
-        if notify_ids := notify_json.get("ids"):
-            interaction.meta_data = {
-                **(interaction.meta_data or {}),
-                "notify_references": notify_ids,
-            }
-        interaction.idempotency_key = idempotency_key
-        interaction.save()
+        interaction = InteractionService._save_interaction(
+            channel_type=channel_type,
+            payload=payload,
+            status=InteractionStatus.SENT,
+            idempotency_key=idempotency_key,
+            interaction_uuid=interaction_uuid,
+            user_id=user_id,
+            application_id=application_id,
+            registration_id=registration_id,
+            customer_id=customer_id,
+            notify_json=notify_json,
+        )
+
+        event_name = InteractionService.email_event_mapper.get(payload.email_type)
+        if not event_name:
+            return interaction
 
         event_type = (
             Events.EventType.REGISTRATION
@@ -136,8 +147,6 @@ class InteractionService:
             if application_id
             else Events.EventType.USER
         )
-        event_name = InteractionService.email_event_mapper[payload.email_type]
-
         EventsService.save_event(
             event_type=event_type,
             event_name=event_name,
@@ -168,9 +177,145 @@ class InteractionService:
             customer_id=customer_id,
             user_id=user_id,
             idempotency_key=idempotency_key,
+            body_content=InteractionService._body_content(payload),
+            meta_data=InteractionService._interaction_metadata(
+                payload=payload,
+                status=InteractionStatus.QUEUED,
+                application_id=application_id,
+                registration_id=registration_id,
+                customer_id=customer_id,
+            ),
         )
         interaction.save()
         return interaction.interaction_uuid
+
+    @staticmethod
+    def _save_interaction(
+        channel_type: ChannelType,
+        payload: dict | str | EmailInfo,
+        status: InteractionStatus,
+        idempotency_key: str | None = None,
+        interaction_uuid: str | None = None,
+        user_id: int | None = None,
+        application_id: int | None = None,
+        registration_id: int | None = None,
+        customer_id: int | None = None,
+        notify_json: dict | None = None,
+    ):
+        """Create or update the tracked interaction row for an outbound message."""
+        interaction = CustomerInteraction.find_by_uuid(interaction_uuid) if interaction_uuid else None
+        if not interaction:
+            interaction = CustomerInteraction()
+
+        interaction.channel = channel_type
+        interaction.status = status
+        interaction.application_id = application_id
+        interaction.registration_id = registration_id
+        interaction.customer_id = customer_id
+        interaction.user_id = user_id
+        interaction.idempotency_key = idempotency_key
+
+        notify_id = notify_json.get("id") if notify_json else None
+        if InteractionService._valid_notify_id(notify_id):
+            interaction.notify_reference = str(notify_id)
+
+        if body_content := InteractionService._body_content(payload):
+            interaction.body_content = body_content
+
+        meta_data = interaction.meta_data.copy() if interaction.meta_data else {}
+        meta_data.update(
+            InteractionService._interaction_metadata(
+                payload=payload,
+                status=status,
+                application_id=application_id,
+                registration_id=registration_id,
+                customer_id=customer_id,
+                notify_json=notify_json,
+            )
+        )
+        interaction.meta_data = meta_data
+        interaction.save()
+        if status == InteractionStatus.FAILED:
+            notify_error = None
+            notify_status_code = None
+            if isinstance(notify_json, dict):
+                notify_error = notify_json.get("error")
+                notify_status_code = notify_json.get("status_code")
+            current_app.logger.warning(
+                "strr.interactions.failed_detected interaction_status=FAILED interaction_uuid=%s email_type=%s "
+                "target_entity=%s target_id=%s application_number=%s registration_number=%s "
+                "notify_status_code=%s notify_error=%s",
+                interaction.interaction_uuid,
+                meta_data.get("email_type"),
+                meta_data.get("target_entity"),
+                meta_data.get("target_id"),
+                meta_data.get("application_number"),
+                meta_data.get("registration_number"),
+                notify_status_code,
+                notify_error,
+            )
+        return interaction
+
+    @staticmethod
+    def _valid_notify_id(notify_id) -> bool:
+        """Return true when Notify returned a usable reference."""
+        if notify_id is None or isinstance(notify_id, bool):
+            return False
+        if isinstance(notify_id, (int, float)):
+            return notify_id > 0
+        return str(notify_id).strip() not in {"", "0", "-1"}
+
+    @staticmethod
+    def _body_content(payload: dict | str | EmailInfo) -> str | None:
+        """Extract a non-sensitive body summary for interaction audit rows."""
+        if not isinstance(payload, EmailInfo) or not payload.email:
+            return None
+        return payload.email.get("content", {}).get("subject")
+
+    @staticmethod
+    def _interaction_metadata(
+        payload: dict | str | EmailInfo,
+        status: InteractionStatus,
+        application_id: int | None = None,
+        registration_id: int | None = None,
+        customer_id: int | None = None,
+        notify_json: dict | None = None,
+    ) -> dict:
+        """Build searchable metadata for dashboards, alerts, and audit support."""
+        target_entity = "application" if application_id else "registration" if registration_id else "customer"
+        target_id = application_id or registration_id or customer_id
+        metadata = {
+            "status": status.value,
+            "target_entity": target_entity,
+            "target_id": str(target_id) if target_id is not None else None,
+        }
+        if isinstance(payload, EmailInfo):
+            metadata.update(
+                {
+                    "email_type": payload.email_type,
+                    "application_number": payload.application_number,
+                    "registration_number": payload.registration_number,
+                }
+            )
+            if payload.email:
+                metadata["notify_request"] = {
+                    "requestBy": payload.email.get("requestBy"),
+                    "subject": payload.email.get("content", {}).get("subject"),
+                }
+        if notify_json:
+            metadata["notify_response"] = InteractionService._json_safe(notify_json)
+            if notify_ids := notify_json.get("ids"):
+                metadata["notify_references"] = notify_ids
+        return {key: value for key, value in metadata.items() if value is not None}
+
+    @staticmethod
+    def _json_safe(value):
+        """Return metadata that can be stored in a JSONB column."""
+        try:
+            json.dumps(value)
+            return value
+        except TypeError:
+            return str(value)
 
     @staticmethod
     def _send_email_to_notify_service(email_info):
@@ -185,15 +330,15 @@ class InteractionService:
         recipients = [r.strip() for r in (raw_recipients or "").split(",") if r.strip()]
 
         if len(recipients) <= 1:
-            return InteractionService._post_email_to_notify(email_info.email)
+            return InteractionService._post_email_to_notify(email_info.email, email_info)
 
         success_ids: list = []
         last_result: dict = {"id": -1}
         for recipient in recipients:
             single_email = {**email, "recipients": recipient}
-            result = InteractionService._post_email_to_notify(single_email)
+            result = InteractionService._post_email_to_notify(single_email, email_info)
             notify_id = result.get("id") if isinstance(result, dict) else None
-            if notify_id and not (isinstance(notify_id, (int, float)) and notify_id < 1):
+            if InteractionService._valid_notify_id(notify_id):
                 success_ids.append(notify_id)
                 last_result = result
 
@@ -204,7 +349,7 @@ class InteractionService:
         return {**last_result, "id": success_ids[0], "ids": combined_ids}
 
     @staticmethod
-    def _post_email_to_notify(email_payload):
+    def _post_email_to_notify(email_payload, email_info: EmailInfo | None = None):
         """Post a single email payload to the notify-api."""
         token = AuthService.get_service_client_token()
         try:
@@ -218,11 +363,34 @@ class InteractionService:
                 timeout=current_app.config["NOTIFY_API_TIMEOUT"],
             )
         except Exception as err:
-            current_app.logger.error(f"Email error, {err}")
-            return {"id": -1}
+            current_app.logger.error(
+                "strr.email.notify.failed Error posting email to notify-api "
+                "email_type=%s application_number=%s registration_number=%s interaction_uuid=%s error=%s",
+                getattr(email_info, "email_type", None),
+                getattr(email_info, "application_number", None),
+                getattr(email_info, "registration_number", None),
+                getattr(email_info, "interaction_uuid", None),
+                err,
+            )
+            return {"id": -1, "error": str(err)}
 
         if resp.status_code not in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
-            current_app.logger.info(f"Error {resp.status_code} - {str(resp.json())}")
-            return {"id": -1}
+            try:
+                response_body = resp.json()
+            except Exception:  # pragma: no cover - defensive for malformed downstream responses
+                response_body = getattr(resp, "text", "")
+            current_app.logger.info(f"Error {resp.status_code} - {str(response_body)}")
+            current_app.logger.error(
+                "strr.email.notify.failed Error posting email to notify-api "
+                "email_type=%s application_number=%s registration_number=%s interaction_uuid=%s status_code=%s "
+                "notify_error=%s",
+                getattr(email_info, "email_type", None),
+                getattr(email_info, "application_number", None),
+                getattr(email_info, "registration_number", None),
+                getattr(email_info, "interaction_uuid", None),
+                resp.status_code,
+                response_body,
+            )
+            return {"id": -1, "status_code": resp.status_code, "error": response_body}
 
         return resp.json()

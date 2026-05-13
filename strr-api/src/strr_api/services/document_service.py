@@ -42,10 +42,10 @@ class DocumentService:
     """Service to manage documents."""
 
     @classmethod
-    def upload_document(cls, file_name, file_type, file_contents):
+    def upload_document(cls, file_name, file_type, file_contents, metadata=None):
         """Uploads the document to GCP."""
 
-        blob_name = GCPStorageService.upload_registration_document(file_type, file_contents)
+        blob_name = GCPStorageService.upload_registration_document(file_type, file_contents, metadata=metadata)
         file_key = blob_name
         response = {
             "fileName": file_name,
