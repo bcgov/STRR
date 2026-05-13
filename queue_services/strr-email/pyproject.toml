@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strr-email"
-version = "1.2.0"
+version = "1.2.1"
 description = "BC Registries - strr-email"
 authors = []
 license = "BSD-3-Clause"
