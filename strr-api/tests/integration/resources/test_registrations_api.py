@@ -11,9 +11,7 @@ from strr_api.models.rental import Document
 from tests.integration.helpers import (
     assert_json_keys,
     assert_status,
-    protected_routes_with_prefix,
-    resolve_path_for_unauth,
-    unauthenticated_request,
+    assert_unauthenticated_returns_401_for_protected_prefix,
 )
 from tests.integration.registration_seed import (
     seed_applicant_visible_registration_event,
@@ -23,22 +21,13 @@ from tests.integration.registration_seed import (
 
 
 def test_registrations_routes_require_auth_without_bearer(client, app):
-    rows = protected_routes_with_prefix(app, "/registrations")
-    assert rows, "expected at least one protected /registrations route"
-    for method, rule in rows:
-        path = resolve_path_for_unauth(rule)
-        rv = unauthenticated_request(client, method, path)
-        assert rv.status_code == HTTPStatus.UNAUTHORIZED, f"{method} {rule}"
+    assert_unauthenticated_returns_401_for_protected_prefix(client, app, "/registrations")
 
 
-def test_get_registrations_list_ok(client, jwt, integration_account_id):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-    headers["Account-Id"] = str(integration_account_id)
-    rv = client.get("/registrations", headers=headers)
-    assert rv.status_code == HTTPStatus.OK
-    assert rv.is_json
+def test_get_registrations_list_ok(client, headers_public_user, integration_account_id):
+    rv = client.get("/registrations", headers=headers_public_user(integration_account_id))
+    assert_status(rv, HTTPStatus.OK)
+    assert_json_keys(rv, "page", "limit", "registrations", "total")
 
 
 def test_get_registrations_list_envelope_and_row(client, headers_public_user, serializable_host_registration):
@@ -130,11 +119,8 @@ def test_registrations_search_unauthorized_for_public_user(client, headers_publi
     assert rv.status_code == HTTPStatus.UNAUTHORIZED
 
 
-def test_registrations_user_search_requires_account_id(client, jwt):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER])
-    rv = client.get("/registrations/user/search?text=abc", headers=headers)
+def test_registrations_user_search_requires_account_id(client, headers_public_user):
+    rv = client.get("/registrations/user/search?text=abc", headers=headers_public_user(account_id=None))
     assert_status(rv, HTTPStatus.BAD_REQUEST)
 
 

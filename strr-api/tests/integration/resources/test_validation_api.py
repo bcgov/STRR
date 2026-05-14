@@ -3,47 +3,34 @@
 from http import HTTPStatus
 from unittest.mock import patch
 
-from tests.integration.helpers import (
-    assert_status,
-    protected_routes_with_prefix,
-    resolve_path_for_unauth,
-    unauthenticated_request,
-)
+from tests.integration.helpers import assert_status, assert_unauthenticated_returns_401_for_protected_prefix
 
 
 def test_permits_routes_require_auth_without_bearer(client, app):
-    rows = protected_routes_with_prefix(app, "/permits")
-    assert rows, "expected at least one protected /permits route"
-    for method, rule in rows:
-        path = resolve_path_for_unauth(rule)
-        rv = unauthenticated_request(client, method, path)
-        assert rv.status_code == HTTPStatus.UNAUTHORIZED, f"{method} {rule}"
+    assert_unauthenticated_returns_401_for_protected_prefix(client, app, "/permits")
 
 
 def test_v1_permits_routes_require_auth_without_bearer(client, app):
-    rows = protected_routes_with_prefix(app, "/v1/permits")
-    assert rows, "expected at least one protected /v1/permits route"
-    for method, rule in rows:
-        path = resolve_path_for_unauth(rule)
-        rv = unauthenticated_request(client, method, path)
-        assert rv.status_code == HTTPStatus.UNAUTHORIZED, f"{method} {rule}"
+    assert_unauthenticated_returns_401_for_protected_prefix(client, app, "/v1/permits")
 
 
 @patch("strr_api.resources.validation.ValidationService.validate_permit", return_value=({}, HTTPStatus.OK))
-def test_validate_permit_legacy_ok(mock_val, client, jwt):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER])
-    rv = client.post("/permits/:validatePermit", json={"registrationNumber": "X"}, headers=headers)
+def test_validate_permit_legacy_ok(mock_val, client, headers_public_user):
+    rv = client.post(
+        "/permits/:validatePermit",
+        json={"registrationNumber": "X"},
+        headers=headers_public_user(account_id=None),
+    )
     assert rv.status_code == HTTPStatus.OK
 
 
 @patch("strr_api.resources.validation.ValidationService.validate_permit", return_value=({}, HTTPStatus.OK))
-def test_validate_permit_v1_ok(mock_val, client, jwt):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER])
-    rv = client.post("/v1/permits/:validatePermit", json={"registrationNumber": "X"}, headers=headers)
+def test_validate_permit_v1_ok(mock_val, client, headers_public_user):
+    rv = client.post(
+        "/v1/permits/:validatePermit",
+        json={"registrationNumber": "X"},
+        headers=headers_public_user(account_id=None),
+    )
     assert rv.status_code == HTTPStatus.OK
 
 
@@ -75,14 +62,11 @@ def test_validate_permit_v1_real_service_ok(client, headers_public_user, seriali
     "strr_api.resources.validation.ValidationService.validate_permit",
     return_value=({"errors": [{"code": "PERMIT_NOT_FOUND"}]}, HTTPStatus.NOT_FOUND),
 )
-def test_validate_permit_legacy_not_found_shape(mock_val, client, jwt):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER])
+def test_validate_permit_legacy_not_found_shape(mock_val, client, headers_public_user):
     rv = client.post(
         "/permits/:validatePermit",
         json={"identifier": "NO-SUCH-REG", "address": {"streetNumber": "1", "postalCode": "V8V1A1"}},
-        headers=headers,
+        headers=headers_public_user(account_id=None),
     )
     assert_status(rv, HTTPStatus.NOT_FOUND)
 
@@ -91,13 +75,10 @@ def test_validate_permit_legacy_not_found_shape(mock_val, client, jwt):
     "strr_api.resources.validation.ValidationService.validate_permit",
     return_value=({"errors": [{"code": "PERMIT_NOT_FOUND"}]}, HTTPStatus.NOT_FOUND),
 )
-def test_validate_permit_v1_not_found_shape(mock_val, client, jwt):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-    headers = create_header(jwt, [PUBLIC_USER])
+def test_validate_permit_v1_not_found_shape(mock_val, client, headers_public_user):
     rv = client.post(
         "/v1/permits/:validatePermit",
         json={"identifier": "NO-SUCH-REG", "address": {"streetNumber": "1", "postalCode": "V8V1A1"}},
-        headers=headers,
+        headers=headers_public_user(account_id=None),
     )
     assert_status(rv, HTTPStatus.NOT_FOUND)

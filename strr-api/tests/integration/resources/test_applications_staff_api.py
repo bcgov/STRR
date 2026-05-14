@@ -4,23 +4,19 @@ from http import HTTPStatus
 from io import BytesIO
 from unittest.mock import patch
 
+import pytest
 from flask import Response
 
 from strr_api.models.application import Application as AppModel
 from tests.integration.application_seed import generate_application_number, seed_listable_application
 from tests.integration.helpers import assert_json_keys, assert_status, load_mock_json
-from tests.unit.resources.conftest import MOCK_PAYMENT_COMPLETED_RESPONSE
+from tests.shared_test_constants import MOCK_PAYMENT_COMPLETED_RESPONSE
 
 
-def test_applications_search_examiner_envelope(client, headers_strr_examiner):
-    rv = client.get("/applications/search?text=abc", headers=headers_strr_examiner())
-    assert_status(rv, HTTPStatus.OK)
-    data = assert_json_keys(rv, "page", "limit", "applications", "total")
-    assert isinstance(data["applications"], list)
-
-
-def test_applications_search_investigator_envelope(client, headers_strr_investigator):
-    rv = client.get("/applications/search?text=abc", headers=headers_strr_investigator())
+@pytest.mark.parametrize("headers_fixture", ["headers_strr_examiner", "headers_strr_investigator"])
+def test_applications_search_staff_roles_envelope(client, request, headers_fixture):
+    headers_maker = request.getfixturevalue(headers_fixture)
+    rv = client.get("/applications/search?text=abc", headers=headers_maker())
     assert_status(rv, HTTPStatus.OK)
     data = assert_json_keys(rv, "page", "limit", "applications", "total")
     assert isinstance(data["applications"], list)
@@ -245,12 +241,13 @@ def test_delete_application_document_ok_patched(client, session, headers_public_
     assert_status(rv, HTTPStatus.NO_CONTENT)
 
 
-def test_put_payment_details_missing_account_id_bad_request(client, jwt, serializable_application):
-    from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
+def test_put_payment_details_missing_account_id_bad_request(client, serializable_application, headers_public_user):
     num = serializable_application["application_number"]
-    headers = create_header(jwt, [PUBLIC_USER])
-    rv = client.put(f"/applications/{num}/payment-details", headers=headers, json={})
+    rv = client.put(
+        f"/applications/{num}/payment-details",
+        headers=headers_public_user(account_id=None),
+        json={},
+    )
     assert_status(rv, HTTPStatus.BAD_REQUEST)
 
 

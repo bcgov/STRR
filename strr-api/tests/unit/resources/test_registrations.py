@@ -18,7 +18,7 @@ from strr_api.enums.enum import (
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, Document, Events, Registration, User
 from strr_api.responses import RegistrationSerializer
-from tests.unit.resources.conftest import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
+from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 from tests.unit.utils.mocks import (
     fake_document,
