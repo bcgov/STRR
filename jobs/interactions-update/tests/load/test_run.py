@@ -156,7 +156,9 @@ def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
             self._interaction_id = interaction_id
 
         def execute(self, _stmt):
-            return QueryResult([SimpleNamespace(id=self._interaction_id, is_stale=True)])
+            return QueryResult(
+                [SimpleNamespace(id=self._interaction_id, is_stale=True)]
+            )
 
         def close(self):
             return None

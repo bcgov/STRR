@@ -95,7 +95,9 @@ def run(max_workers=None):
         stale_threshold = datetime.now(timezone.utc) - timedelta(hours=stale_sent_hours)
         stmt = select(
             CustomerInteraction.id,
-            case((CustomerInteraction.created_at < stale_threshold, True), else_=False).label("is_stale"),
+            case(
+                (CustomerInteraction.created_at < stale_threshold, True), else_=False
+            ).label("is_stale"),
         ).where(CustomerInteraction.status == InteractionStatus.SENT)
         sent_interactions = session.execute(stmt).all()
         interaction_ids = [row.id for row in sent_interactions]
