@@ -39,7 +39,7 @@ import logging
 from http import HTTPStatus
 
 from flasgger import swag_from
-from flask import Blueprint, g, request
+from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
@@ -102,7 +102,7 @@ def upload_supporting_document():
                 "uploaded_by_login_source": token_info.get("loginSource"),
             },
         )
-        return document, HTTPStatus.CREATED
+        return jsonify(document), HTTPStatus.CREATED
     except AuthException as auth_exception:
         return exception_response(auth_exception)
     except ValidationException as auth_exception:
