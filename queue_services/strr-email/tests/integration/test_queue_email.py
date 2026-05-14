@@ -12,6 +12,7 @@ from sqlalchemy import select
 from strr_api.enums.enum import ChannelType
 from strr_api.enums.enum import InteractionStatus
 from strr_api.enums.enum import PropertyType
+from strr_api.enums.enum import StrataHotelCategory
 from strr_api.models import Address
 from strr_api.models import Contact
 from strr_api.models import CustomerInteraction
@@ -214,8 +215,8 @@ def token_callback(request):
 
 
 @pytest.mark.conf(
-    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
-    NOTIFY_SVC_URL="http://my-notify-mock",
+    KEYCLOAK_AUTH_TOKEN_URL="https://my-auth-url",
+    NOTIFY_SVC_URL="https://my-notify-mock",
     NOTIFY_API_TIMEOUT=30,
     EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
 )
@@ -310,8 +311,8 @@ def test_email_mocked_notify(
 
 
 @pytest.mark.conf(
-    KEYCLOAK_AUTH_TOKEN_URL="http://my-auth-url",
-    NOTIFY_SVC_URL="http://my-notify-mock",
+    KEYCLOAK_AUTH_TOKEN_URL="https://my-auth-url",
+    NOTIFY_SVC_URL="https://my-notify-mock",
     NOTIFY_API_TIMEOUT=30,
     EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
     EMAIL_SUBJECT_PREFIX="[TEST]",
@@ -362,7 +363,10 @@ def test_strata_hotel_registration_active_email_posts_to_notify(
     json_data = response.get_json()
     interaction_uuid = json_data.get("interaction", None)
 
-    assert notify_payloads[0]["recipients"] == "remove@gov.bc.ca,strata.rep@gov.bc.ca"
+    assert [payload["recipients"] for payload in notify_payloads] == [
+        "remove@gov.bc.ca",
+        "strata.rep@gov.bc.ca",
+    ]
     assert notify_payloads[0]["content"]["subject"] == (
         f"[TEST] {registration.registration_number} - Short-Term Rental Registration Approved"
     )
