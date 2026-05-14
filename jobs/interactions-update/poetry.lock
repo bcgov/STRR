@@ -4225,7 +4225,7 @@ weasyprint = "^62.3"
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
 reference = "main"
-resolved_reference = "35236a0bf2223ca5490c06d23ef10747280f8dcf"
+resolved_reference = "a66749470823adf3b71201feb64d6b422111f9db"
 subdirectory = "strr-api"
 
 [[package]]
