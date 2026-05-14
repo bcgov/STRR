@@ -4,21 +4,30 @@ import os
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+from enum import StrEnum
 
 import requests
 from dotenv import find_dotenv
 from dotenv import load_dotenv
+from sqlalchemy import case
 from sqlalchemy import select
 
 from interactions_update.database import get_session
 from strr_api.enums.enum import InteractionStatus
 from strr_api.models import CustomerInteraction
-from strr_api.services import AuthService
+from strr_api.services.auth_service import AuthService
 
 load_dotenv(find_dotenv())
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+class UpdateResult(StrEnum):
+    """Job outcomes that do not map to a terminal Notify delivery status."""
+
+    MISSING_REFERENCE = "MISSING_REFERENCE"
+    UNCHANGED = "UNCHANGED"
 
 
 def fetch_and_update(interaction_id, notify_url, headers, timeout):
@@ -29,7 +38,7 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
     try:
         interaction = session.get(CustomerInteraction, interaction_id)
         if not interaction or not interaction.notify_reference:
-            return "missing_reference"
+            return UpdateResult.MISSING_REFERENCE
 
         notify_request = f"{notify_url}/notify/{interaction.notify_reference}"
         resp = requests.get(notify_request, headers=headers, timeout=timeout)
@@ -49,8 +58,8 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
                 interaction.provider_reference = str(data.get("id"))
                 interaction.meta_data = data
                 session.commit()
-                return new_status.value
-        return "unchanged"
+                return new_status
+        return UpdateResult.UNCHANGED
     finally:
         session.close()
 
@@ -84,11 +93,13 @@ def run(max_workers=None):
     try:
         stale_sent_hours = int(os.getenv("STALE_SENT_HOURS", "24"))
         stale_threshold = datetime.now(timezone.utc) - timedelta(hours=stale_sent_hours)
-        stale_stmt = select(CustomerInteraction.id).where(
-            CustomerInteraction.status == InteractionStatus.SENT,
-            CustomerInteraction.created_at < stale_threshold,
-        )
-        stale_interaction_ids = session.scalars(stale_stmt).all()
+        stmt = select(
+            CustomerInteraction.id,
+            case((CustomerInteraction.created_at < stale_threshold, True), else_=False).label("is_stale"),
+        ).where(CustomerInteraction.status == InteractionStatus.SENT)
+        sent_interactions = session.execute(stmt).all()
+        interaction_ids = [row.id for row in sent_interactions]
+        stale_interaction_ids = [row.id for row in sent_interactions if row.is_stale]
         if stale_interaction_ids:
             logger.warning(
                 "strr.interactions.stale_sent_detected stale_sent_count=%s stale_sent_hours=%s interaction_ids=%s",
@@ -96,11 +107,6 @@ def run(max_workers=None):
                 stale_sent_hours,
                 stale_interaction_ids[:25],
             )
-
-        stmt = select(CustomerInteraction.id).where(
-            CustomerInteraction.status == InteractionStatus.SENT
-        )
-        interaction_ids = session.scalars(stmt).all()
 
         if not interaction_ids:
             logger.info(
@@ -135,8 +141,8 @@ def run(max_workers=None):
                 for future in concurrent.futures.as_completed(futures):
                     results.append(future.result())
 
-        failed_count = results.count(InteractionStatus.FAILED.value)
-        delivered_count = results.count(InteractionStatus.DELIVERED.value)
+        failed_count = results.count(InteractionStatus.FAILED)
+        delivered_count = results.count(InteractionStatus.DELIVERED)
         if failed_count:
             logger.warning(
                 "strr.interactions.failed_detected interaction_status=FAILED failed_count=%s",

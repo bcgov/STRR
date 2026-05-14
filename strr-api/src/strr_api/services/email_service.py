@@ -33,16 +33,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """This module provides Email type services."""
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from flask import current_app
 
 from strr_api.enums.enum import ChannelType, RegistrationStatus
 from strr_api.models import Application, Registration
 from strr_api.services import gcp_queue_publisher
-
-# from strr_api.services import InteractionService
-
+from strr_api.services.interaction import EmailInfo, InteractionService
 
 logger = logging.getLogger("api")
 
@@ -74,10 +72,6 @@ class EmailService:
         idempotency_key: str | None = None,
     ):
         """Create a queued interaction before publishing the email event."""
-        # TODO: fix circular import issue
-        from strr_api.services import InteractionService
-        from strr_api.services.interaction import EmailInfo
-
         email_info = EmailInfo(
             application_number=payload_data.get("applicationNumber"),
             email_type=payload_data.get("emailType"),
@@ -171,10 +165,12 @@ class EmailService:
         """Send status update email for a registration."""
         if registration.status in [RegistrationStatus.CANCELLED, RegistrationStatus.ACTIVE]:
             try:
+                registration_type = getattr(registration.registration_type, "value", registration.registration_type)
+                registration_status = getattr(registration.status, "name", registration.status)
                 EmailService._publish_tracked_email(
                     payload_data={
                         "registrationNumber": registration.registration_number,
-                        "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
+                        "emailType": f"{registration_type}_REGISTRATION_{registration_status}",
                         "customContent": email_content,
                         "interaction": interaction,
                     },

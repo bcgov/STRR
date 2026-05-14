@@ -38,6 +38,7 @@ from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 import re
+import traceback
 from zoneinfo import ZoneInfo
 
 from flask import Blueprint
@@ -182,7 +183,7 @@ def worker():
         else:
             return {}, HTTPStatus.OK
 
-    # 4. Send email via InteractionService so every email has an interaction audit row.
+    # 4. InteractionService splits comma-separated recipients before sending to Notify.
     try:
         email_info.email = email
         resp = InteractionService.dispatch(
@@ -200,7 +201,7 @@ def worker():
         logger.error(
             "strr.email.notify.failed Error posting email to notify-api "
             "cloud_event_id=%s email_type=%s application_number=%s registration_number=%s "
-            "interaction_uuid=%s interaction_key=%s error=%s",
+            "interaction_uuid=%s interaction_key=%s error=%s traceback=%s",
             getattr(ce, "id", None),
             email_info.email_type,
             email_info.application_number,
@@ -208,6 +209,7 @@ def worker():
             email_info.interaction_uuid,
             email_info.interaction,
             err,
+            traceback.format_exc(),
         )
         return jsonify({"message": "Error posting email to notify-api."}), HTTPStatus.BAD_REQUEST
 

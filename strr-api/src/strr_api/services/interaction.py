@@ -43,7 +43,7 @@ from flask import current_app
 from strr_api.enums.enum import ChannelType, InteractionStatus
 from strr_api.exceptions import ExternalServiceException, ValidationException
 from strr_api.models import CustomerInteraction, Events
-from strr_api.services import AuthService
+from strr_api.services.auth_service import AuthService
 from strr_api.services.events_service import EventsService
 from strr_api.utils.validate_calls import validate_mutex
 

@@ -460,7 +460,7 @@ def test_examiner_approve_platform_registration_application(app, session, client
 
 def test_post_and_delete_registration_documents(session, client, jwt):
     with patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE):
-        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers = create_header(jwt, [PUBLIC_USER])
         headers["Account-Id"] = ACCOUNT_ID
         with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
             json_data = json.load(f)
@@ -470,9 +470,9 @@ def test_post_and_delete_registration_documents(session, client, jwt):
             with patch(
                 "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
                 return_value="Test Key",
-            ):
+            ) as mock_upload:
                 with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
-                    data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}
+                    data = {"file": (df, MOCK_DOCUMENT_UPLOAD), "documentType": "BC_DRIVERS_LICENSE"}
                     rv = client.post(
                         f"/applications/{application_number}/documents",
                         content_type="multipart/form-data",
@@ -483,6 +483,11 @@ def test_post_and_delete_registration_documents(session, client, jwt):
                     assert rv.status_code == HTTPStatus.CREATED
                     fileKey = rv.json.get("fileKey")
                     assert fileKey == "Test Key"
+                    metadata = mock_upload.call_args.kwargs["metadata"]
+                    assert metadata["account_id"] == str(ACCOUNT_ID)
+                    assert metadata["document_type"] == "BC_DRIVERS_LICENSE"
+                    assert metadata["uploaded_by"] == "test-user"
+                    assert metadata["uploaded_by_idp_userid"] == "123"
                     with patch(
                         "strr_api.services.gcp_storage_service.GCPStorageService.delete_registration_document",
                         return_value="Test Key",

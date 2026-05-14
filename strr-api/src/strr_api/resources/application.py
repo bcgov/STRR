@@ -773,6 +773,8 @@ def upload_registration_supporting_document(application_number):
     try:
         account_id = request.headers.get("Account-Id", None)
         file = validate_document_upload(request.files)
+        document_type = request.form.get("documentType", "OTHERS")
+        token_info = getattr(g, "jwt_oidc_token_info", {}) or {}
 
         # only allow upload for registrations that belong to the user
         application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
@@ -787,10 +789,14 @@ def upload_registration_supporting_document(application_number):
             file.read(),
             metadata={
                 "upload_source": "application",
+                "account_id": account_id,
                 "entity_id": application.id,
                 "application_number": application.application_number,
-                "document_type": "SUPPORTING_DOCUMENT",
+                "document_type": document_type,
                 "upload_step": "application_supporting_document",
+                "uploaded_by": token_info.get("username") or token_info.get("preferred_username"),
+                "uploaded_by_idp_userid": token_info.get("idp_userid"),
+                "uploaded_by_login_source": token_info.get("loginSource"),
             },
         )
         return document, HTTPStatus.CREATED

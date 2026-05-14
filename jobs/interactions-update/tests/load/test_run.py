@@ -5,12 +5,14 @@ import re
 import uuid
 from datetime import datetime
 from datetime import timezone
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
 import responses
 from sqlalchemy import select
 
+from interactions_update.job import UpdateResult
 from interactions_update.job import run
 from strr_api.enums.enum import ChannelType
 from strr_api.enums.enum import InteractionStatus
@@ -138,8 +140,8 @@ def test_run_failure_502(db_session, setup_bulk_interactions, monkeypatch):
 def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
     """Test that stale SENT interactions are logged for alerting."""
 
-    class ScalarResult:
-        """Small result object matching the SQLAlchemy scalars().all() call used by the job."""
+    class QueryResult:
+        """Small result object matching the SQLAlchemy execute().all() call used by the job."""
 
         def __init__(self, values):
             self._values = values
@@ -153,8 +155,8 @@ def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
         def __init__(self, interaction_id):
             self._interaction_id = interaction_id
 
-        def scalars(self, _stmt):
-            return ScalarResult([self._interaction_id])
+        def execute(self, _stmt):
+            return QueryResult([SimpleNamespace(id=self._interaction_id, is_stale=True)])
 
         def close(self):
             return None
@@ -172,7 +174,7 @@ def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
     )
     monkeypatch.setattr(
         "interactions_update.job.fetch_and_update",
-        lambda *args: "unchanged",
+        lambda *args: UpdateResult.UNCHANGED,
     )
 
     with patch("interactions_update.job.logger.warning") as mock_warning:

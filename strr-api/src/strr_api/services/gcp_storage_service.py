@@ -39,7 +39,7 @@ import traceback
 import uuid
 from datetime import timedelta
 
-from flask import current_app
+from flask import current_app, has_app_context
 from google.cloud import storage
 from google.oauth2 import service_account
 
@@ -50,6 +50,11 @@ logger = logging.getLogger("api")
 
 class GCPStorageService:
     """Service to save and load files from gcp buckets."""
+
+    @staticmethod
+    def _config_value(key, default=None):
+        """Return Flask config when available, otherwise a safe default for isolated tests."""
+        return current_app.config.get(key, default) if has_app_context() else default
 
     @classmethod
     def get_bucket(cls, bucket_id):
@@ -174,7 +179,7 @@ class GCPStorageService:
         upload_metadata = {
             "content_type": file_type,
             "size": str(file_size),
-            "environment": current_app.config.get("POD_NAMESPACE", "unknown"),
+            "environment": cls._config_value("POD_NAMESPACE", "unknown"),
         }
         upload_metadata.update(metadata or {})
         return {
@@ -187,7 +192,7 @@ class GCPStorageService:
         payload = {
             "event": event_name,
             "blob_name": blob_name,
-            "bucket_id": bucket_id or current_app.config.get("GCP_CS_BUCKET_ID"),
+            "bucket_id": bucket_id or cls._config_value("GCP_CS_BUCKET_ID"),
             **metadata,
         }
         if error:

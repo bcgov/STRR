@@ -34,19 +34,25 @@ def test_post_documents_ok_patched_upload(client, jwt):
     from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
 
     headers = create_header(jwt, [PUBLIC_USER])
+    headers["Account-Id"] = "12345"
     with patch(
         "strr_api.services.document_service.DocumentService.upload_document",
         return_value={"fileKey": "global-doc-1", "fileName": "a.txt", "fileType": "text/plain"},
-    ):
+    ) as mock_upload:
         rv = client.post(
             "/documents",
             headers=headers,
-            data={"file": (BytesIO(b"x"), "a.txt")},
+            data={"file": (BytesIO(b"x"), "a.txt"), "documentType": "BC_DRIVERS_LICENSE"},
             content_type="multipart/form-data",
         )
     assert_status(rv, HTTPStatus.CREATED)
     body = rv.get_json()
     assert body.get("fileKey") == "global-doc-1"
+    metadata = mock_upload.call_args.kwargs["metadata"]
+    assert metadata["account_id"] == "12345"
+    assert metadata["document_type"] == "BC_DRIVERS_LICENSE"
+    assert metadata["uploaded_by"] == "test-user"
+    assert metadata["uploaded_by_idp_userid"] == "123"
 
 
 def test_delete_documents_ok_patched(client, jwt):
