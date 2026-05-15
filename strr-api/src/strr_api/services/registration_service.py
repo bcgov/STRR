@@ -83,6 +83,7 @@ from strr_api.requests import RegistrationRequest
 from strr_api.responses import RegistrationSerializer
 from strr_api.services.email_service import EmailService
 from strr_api.services.events_service import EventsService
+from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.snapshot_service import SnapshotService
 from strr_api.services.user_service import UserService
 
@@ -616,7 +617,10 @@ class RegistrationService:
 
         search_results = []
         for registration in paginated_result.items:
-            search_results.append(RegistrationService.serialize(registration))
+            reg_dict = RegistrationService.serialize(registration)
+            if registration.noc_status:
+                RegistrationService.enrich_document_added_on_from_gcp(reg_dict)
+            search_results.append(reg_dict)
 
         return {
             "page": offset,
@@ -724,6 +728,16 @@ class RegistrationService:
     def serialize(cls, registration: Registration) -> dict:
         """Returns registration JSON."""
         return RegistrationSerializer.serialize(registration=registration)
+
+    @staticmethod
+    def enrich_document_added_on_from_gcp(registration_dict: dict) -> None:
+        """Overwrite addedOn for each document with the GCP blob creation timestamp."""
+        for doc_item in registration_dict.get("documents", []):
+            file_key = doc_item.get("fileKey")
+            if file_key:
+                created_iso = GCPStorageService.get_registration_document_creation_time(file_key)
+                if created_iso:
+                    doc_item["addedOn"] = created_iso
 
     @classmethod
     def update_registration_status(
@@ -1092,7 +1106,10 @@ class RegistrationService:
         paginated_result = Registration.search_registrations(filter_criteria)
         search_results = []
         for item in paginated_result.items:
-            search_results.append(RegistrationService.serialize(item))
+            reg_dict = RegistrationService.serialize(item)
+            if item.noc_status:
+                RegistrationService.enrich_document_added_on_from_gcp(reg_dict)
+            search_results.append(reg_dict)
 
         return {
             "page": filter_criteria.page,

@@ -67,6 +67,7 @@ export interface ApiExtraRegistrationDetails {
   nocStatus: RegistrationNocStatus | null
   nocStartDate?: Date
   nocEndDate?: Date
+  nocSentDate?: Date
   updatedDate: Date
   cancelledDate?: Date
   user_id: number
@@ -113,6 +114,7 @@ export interface ApplicationHeader {
   }
   nocStartDate?: Date
   nocEndDate?: Date
+  nocSentDate?: Date
 }
 
 export interface ApiRegistrationResp extends ApiBaseRegistration, ApiExtraRegistrationDetails { }
