@@ -654,6 +654,24 @@ describe('Examiner Dashboard Page', () => {
       expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
     })
 
+    it('returns false when latest renewal application has a decider', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...headerBase,
+          decider: {},
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED,
+              decider: { username: 'examiner' }
+            }
+          ]
+        }
+      }
+      expect(wrapper.vm.shouldShowRenewalBadge(reg)).toBe(false)
+    })
+
     it('returns true when it matches Review Renew predicate', () => {
       const reg = {
         ...mockHostRegistration,
@@ -797,6 +815,25 @@ describe('Examiner Dashboard Page', () => {
               applicationType: 'renewal',
               applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED,
               decider: {}
+            }
+          ]
+        }
+      }
+
+      expect(wrapper.vm.getRegistrationSubStatus(reg)).toBe('Approved')
+    })
+
+    it('shows Approved instead of Review Renew when latest renewal application has a decider', () => {
+      const reg = {
+        ...mockHostRegistration,
+        header: {
+          ...mockHostRegistration.header,
+          decider: {},
+          applications: [
+            {
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.PROVISIONALLY_APPROVED,
+              decider: { username: 'examiner1' }
             }
           ]
         }
