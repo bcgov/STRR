@@ -36,9 +36,6 @@
   "python.defaultInterpreterPath": "${workspaceFolder}/strr-api/.venv/bin/python",
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestArgs": [
-    "strr-api/tests"
-  ],
   "black-formatter.args": [
     "--config",
     "${workspaceFolder}/strr-api/pyproject.toml"

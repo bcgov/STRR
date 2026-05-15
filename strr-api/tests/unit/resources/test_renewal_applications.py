@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 from datetime import datetime, timedelta, timezone
@@ -7,10 +8,18 @@ from unittest.mock import patch
 import pytest
 from dateutil.relativedelta import relativedelta
 
-from strr_api.enums.enum import ApplicationType, ErrorMessage, PaymentStatus, RegistrationStatus
+from strr_api.enums.enum import ErrorMessage, PaymentStatus, RegistrationStatus
 from strr_api.models import Application, Events
 from strr_api.services import ApprovalService, RegistrationService
+from tests.integration.application_seed import (
+    count_renewal_applications_for_account_registration,
+    host_renewal_application_json,
+)
 from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
+from tests.unit.utils.application_flow_helpers import (
+    assign_examiner_and_full_review_approve,
+    set_application_ready_for_examiner_review,
+)
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
@@ -56,24 +65,13 @@ def test_host_renewal_application_submission(session, client, jwt, request_json,
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, staff_headers = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         assert registration_id is not None
         assert response_json.get("header").get("registrationNumber") is not None
 
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         rv = client.post("/applications", json=json_data, headers=headers)
         response_json = rv.json
         renewal_application_number = response_json.get("header").get("applicationNumber")
@@ -115,18 +113,8 @@ def test_examiner_approve_host_registration__renewal_application(
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, staff_headers = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         assert registration_id is not None
         assert response_json.get("header").get("registrationNumber") is not None
@@ -136,8 +124,7 @@ def test_examiner_approve_host_registration__renewal_application(
         prev_registration.save()
         prev_expiry_date = prev_registration.expiry_date
 
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         json_data["registration"]["unitAddress"]["nickname"] = "My Rental Property renewal"
         rv = client.post("/applications", json=json_data, headers=headers)
         response_json = rv.json
@@ -147,18 +134,8 @@ def test_examiner_approve_host_registration__renewal_application(
         assert application.registration_id == registration_id
         assert application.type == "renewal"
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, staff_headers = assign_examiner_and_full_review_approve(client, jwt, application_number)
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") == registration_id
@@ -185,22 +162,13 @@ def test_renewal_application_registration_id(session, client, jwt):
         registration_payload = json.load(f)
 
     def _complete_registration(app_number: str) -> int:
-        application = Application.find_by_application_number(application_number=app_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
+        set_application_ready_for_examiner_review(app_number)
+        data, _ = assign_examiner_and_full_review_approve(client, jwt, app_number)
+        return data.get("header").get("registrationId")
 
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv_assign = client.put(f"/applications/{app_number}/assign", headers=staff_headers)
-        assert rv_assign.status_code == HTTPStatus.OK
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv_status = client.put(
-            f"/applications/{app_number}/status",
-            json=status_update_request,
-            headers=staff_headers,
-        )
-        assert rv_status.status_code == HTTPStatus.OK
-        return rv_status.json.get("header").get("registrationId")
+    def _complete_renewal_to_terminal(renewal_app_number: str) -> None:
+        set_application_ready_for_examiner_review(renewal_app_number)
+        assign_examiner_and_full_review_approve(client, jwt, renewal_app_number)
 
     rv = client.post("/applications", json=registration_payload, headers=headers)
     assert rv.status_code == HTTPStatus.OK
@@ -208,21 +176,19 @@ def test_renewal_application_registration_id(session, client, jwt):
     registration_id = _complete_registration(application_number)
 
     # Successful renewal application creation
-    renewal_payload = json.loads(json.dumps(registration_payload))
-    renewal_payload["header"] = {
-        "applicationType": "renewal",
-        "registrationId": registration_id,
-    }
+    renewal_payload = host_renewal_application_json(registration_id, base_json=registration_payload)
 
     rv = client.post("/applications", json=renewal_payload, headers=headers)
     assert rv.status_code == HTTPStatus.OK
+    first_renewal_application_number = rv.json.get("header").get("applicationNumber")
+    _complete_renewal_to_terminal(first_renewal_application_number)
 
     # Successful renewal draft application creation
     draft_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
     draft_headers["Account-Id"] = ACCOUNT_ID
     draft_headers["isDraft"] = True
 
-    draft_payload = json.loads(json.dumps(renewal_payload))
+    draft_payload = host_renewal_application_json(registration_id, base_json=registration_payload)
     rv = client.post("/applications", json=draft_payload, headers=draft_headers)
     assert rv.status_code == HTTPStatus.OK
     draft_application_number = rv.json.get("header").get("applicationNumber")
@@ -281,6 +247,112 @@ def test_renewal_application_registration_id(session, client, jwt):
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_second_renewal_create_without_application_number_returns_conflict(session, client, jwt):
+    """A second POST /applications renewal for the same registration must not create a duplicate row."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        registration_payload = json.load(f)
+
+    rv = client.post("/applications", json=registration_payload, headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    app_no = rv.json.get("header").get("applicationNumber")
+    set_application_ready_for_examiner_review(app_no)
+    rv_done_json, _ = assign_examiner_and_full_review_approve(client, jwt, app_no)
+    registration_id = rv_done_json.get("header").get("registrationId")
+
+    renewal_payload = host_renewal_application_json(registration_id, base_json=registration_payload)
+    draft_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    draft_headers["Account-Id"] = ACCOUNT_ID
+    draft_headers["isDraft"] = True
+
+    rv_first = client.post("/applications", json=renewal_payload, headers=draft_headers)
+    assert rv_first.status_code == HTTPStatus.OK
+    renewal_count = count_renewal_applications_for_account_registration(
+        session, account_id=ACCOUNT_ID, registration_id=registration_id
+    )
+
+    rv_dup = client.post("/applications", json=renewal_payload, headers=draft_headers)
+    assert rv_dup.status_code == HTTPStatus.CONFLICT
+    assert rv_dup.json.get("message") == ErrorMessage.RENEWAL_APPLICATION_ALREADY_IN_PROGRESS.value
+    assert rv_dup.json.get("errorCode") == "RENEWAL_ALREADY_IN_PROGRESS"
+    assert (
+        count_renewal_applications_for_account_registration(
+            session, account_id=ACCOUNT_ID, registration_id=registration_id
+        )
+        == renewal_count
+    )
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_put_renewal_draft_allowed_when_second_create_rejected(session, client, jwt):
+    """After a duplicate renewal POST returns 409, the client can still update the existing draft via PUT."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        registration_payload = json.load(f)
+
+    rv = client.post("/applications", json=registration_payload, headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    app_no = rv.json.get("header").get("applicationNumber")
+    set_application_ready_for_examiner_review(app_no)
+    rv_done_json, _ = assign_examiner_and_full_review_approve(client, jwt, app_no)
+    registration_id = rv_done_json.get("header").get("registrationId")
+
+    renewal_payload = host_renewal_application_json(registration_id, base_json=registration_payload)
+    draft_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    draft_headers["Account-Id"] = ACCOUNT_ID
+    draft_headers["isDraft"] = True
+
+    rv_first = client.post("/applications", json=renewal_payload, headers=draft_headers)
+    assert rv_first.status_code == HTTPStatus.OK
+    draft_application_number = rv_first.json.get("header").get("applicationNumber")
+
+    rv_dup = client.post("/applications", json=renewal_payload, headers=draft_headers)
+    assert rv_dup.status_code == HTTPStatus.CONFLICT
+
+    updated = copy.deepcopy(renewal_payload)
+    updated["header"]["applicationNumber"] = draft_application_number
+    rv_put = client.put(
+        f"/applications/{draft_application_number}",
+        json=updated,
+        headers=draft_headers,
+    )
+    assert rv_put.status_code == HTTPStatus.OK
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_new_renewal_create_succeeds_when_prior_renewal_is_terminal(session, client, jwt):
+    """After the only renewal for a registration reaches a terminal status, a new renewal may be created."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        registration_payload = json.load(f)
+
+    rv = client.post("/applications", json=registration_payload, headers=headers)
+    assert rv.status_code == HTTPStatus.OK
+    app_no = rv.json.get("header").get("applicationNumber")
+    set_application_ready_for_examiner_review(app_no)
+    rv_done_json, _ = assign_examiner_and_full_review_approve(client, jwt, app_no)
+    registration_id = rv_done_json.get("header").get("registrationId")
+
+    renewal_payload = host_renewal_application_json(registration_id, base_json=registration_payload)
+
+    rv_first = client.post("/applications", json=renewal_payload, headers=headers)
+    assert rv_first.status_code == HTTPStatus.OK
+    first_renewal_no = rv_first.json.get("header").get("applicationNumber")
+    set_application_ready_for_examiner_review(first_renewal_no)
+    assign_examiner_and_full_review_approve(client, jwt, first_renewal_no)
+
+    draft_headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+    draft_headers["Account-Id"] = ACCOUNT_ID
+    draft_headers["isDraft"] = True
+    rv_second = client.post("/applications", json=renewal_payload, headers=draft_headers)
+    assert rv_second.status_code == HTTPStatus.OK
+    assert rv_second.json.get("header").get("applicationNumber") != first_renewal_no
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_cancelled_registration_cannot_create_renewal_application(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -291,31 +363,15 @@ def test_cancelled_registration_cannot_create_renewal_application(session, clien
     assert rv.status_code == HTTPStatus.OK
     application_number = rv.json.get("header").get("applicationNumber")
 
-    application = Application.find_by_application_number(application_number=application_number)
-    application.payment_status = PaymentStatus.COMPLETED.value
-    application.status = Application.Status.FULL_REVIEW
-    application.save()
-
-    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-    rv_assign = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-    assert rv_assign.status_code == HTTPStatus.OK
-    rv_status = client.put(
-        f"/applications/{application_number}/status",
-        json={"status": Application.Status.FULL_REVIEW_APPROVED},
-        headers=staff_headers,
-    )
-    assert rv_status.status_code == HTTPStatus.OK
-    registration_id = rv_status.json.get("header").get("registrationId")
+    set_application_ready_for_examiner_review(application_number)
+    rv_status_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
+    registration_id = rv_status_json.get("header").get("registrationId")
 
     registration = RegistrationService.get_registration_by_id(registration_id)
     registration.status = RegistrationStatus.CANCELLED
     registration.save()
 
-    renewal_payload = json.loads(json.dumps(registration_payload))
-    renewal_payload["header"] = {
-        "applicationType": ApplicationType.RENEWAL.value,
-        "registrationId": registration_id,
-    }
+    renewal_payload = host_renewal_application_json(registration_id, base_json=registration_payload)
     rv = client.post("/applications", json=renewal_payload, headers=headers)
     assert rv.status_code == HTTPStatus.BAD_REQUEST
     assert rv.json.get("message") == ErrorMessage.REGISTRATION_RENEWAL_NOT_ALLOWED.value
@@ -332,40 +388,22 @@ def test_cancelled_registration_cannot_be_renewed_on_approval(session, client, j
     assert rv.status_code == HTTPStatus.OK
     application_number = rv.json.get("header").get("applicationNumber")
 
-    application = Application.find_by_application_number(application_number=application_number)
-    application.payment_status = PaymentStatus.COMPLETED.value
-    application.status = Application.Status.FULL_REVIEW
-    application.save()
+    set_application_ready_for_examiner_review(application_number)
+    rv_status_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
+    registration_id = rv_status_json.get("header").get("registrationId")
 
-    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-    rv_assign = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-    assert rv_assign.status_code == HTTPStatus.OK
-    rv_status = client.put(
-        f"/applications/{application_number}/status",
-        json={"status": Application.Status.FULL_REVIEW_APPROVED},
-        headers=staff_headers,
-    )
-    assert rv_status.status_code == HTTPStatus.OK
-    registration_id = rv_status.json.get("header").get("registrationId")
-
-    renewal_payload = json.loads(json.dumps(registration_payload))
-    renewal_payload["header"] = {
-        "applicationType": ApplicationType.RENEWAL.value,
-        "registrationId": registration_id,
-    }
+    renewal_payload = host_renewal_application_json(registration_id, base_json=registration_payload)
     rv = client.post("/applications", json=renewal_payload, headers=headers)
     assert rv.status_code == HTTPStatus.OK
     renewal_application_number = rv.json.get("header").get("applicationNumber")
 
-    renewal_application = Application.find_by_application_number(application_number=renewal_application_number)
-    renewal_application.payment_status = PaymentStatus.COMPLETED.value
-    renewal_application.status = Application.Status.FULL_REVIEW
-    renewal_application.save()
+    set_application_ready_for_examiner_review(renewal_application_number)
 
     registration = RegistrationService.get_registration_by_id(registration_id)
     registration.status = RegistrationStatus.CANCELLED
     registration.save()
 
+    staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
     rv_assign = client.put(f"/applications/{renewal_application_number}/assign", headers=staff_headers)
     assert rv_assign.status_code == HTTPStatus.OK
     rv_status = client.put(
@@ -388,24 +426,13 @@ def test_platform_renewal_application_submission(session, client, jwt):
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         assert registration_id is not None
         assert response_json.get("header").get("registrationNumber") is not None
 
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         rv = client.post("/applications", json=json_data, headers=headers)
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
@@ -426,25 +453,14 @@ def test_examiner_approve_platform_registration__renewal_application(session, cl
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         registration_number = response_json.get("header").get("registrationNumber")
         assert registration_id is not None
         assert registration_number is not None
 
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         json_data["registration"]["businessDetails"]["legalName"] = "Updated Platform Legal Name"
         json_data["registration"]["platformDetails"]["listingSize"] = "BETWEEN_250_AND_999"
 
@@ -456,16 +472,8 @@ def test_examiner_approve_platform_registration__renewal_application(session, cl
         assert application.registration_id == registration_id
         assert application.type == "renewal"
 
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") == registration_id
@@ -491,24 +499,13 @@ def test_strata_hotel_renewal_application_submission(session, client, jwt):
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         assert registration_id is not None
         assert response_json.get("header").get("registrationNumber") is not None
 
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         rv = client.post("/applications", json=json_data, headers=headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
@@ -531,25 +528,14 @@ def test_examiner_approve_strata_hotel_registration__renewal_application(session
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         registration_number = response_json.get("header").get("registrationNumber")
         assert registration_id is not None
         assert registration_number is not None
 
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         json_data["registration"]["businessDetails"]["legalName"] = "Updated Strata Hotel Legal Name"
         json_data["registration"]["strataHotelDetails"]["numberOfUnits"] = 75
 
@@ -562,16 +548,8 @@ def test_examiner_approve_strata_hotel_registration__renewal_application(session
         assert application.registration_id == registration_id
         assert application.type == "renewal"
 
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") == registration_id
@@ -600,19 +578,8 @@ def test_host_renewal_provisional_then_manual_full_approval_single_extension(moc
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, staff_headers = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         assert registration_id is not None
 
@@ -620,8 +587,7 @@ def test_host_renewal_provisional_then_manual_full_approval_single_extension(moc
         prev_expiry_date = prev_registration.expiry_date
 
         # Create renewal application for same registration
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         rv = client.post("/applications", json=json_data, headers=headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
@@ -675,19 +641,8 @@ def test_host_renewal_manual_full_approval_set_aside_then_full_approval_single_e
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, staff_headers = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         assert registration_id is not None
 
@@ -695,28 +650,14 @@ def test_host_renewal_manual_full_approval_set_aside_then_full_approval_single_e
         initial_expiry_date = initial_registration.expiry_date
 
         # Create renewal application for same registration
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         rv = client.post("/applications", json=json_data, headers=headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         renewal_application_number = response_json.get("header").get("applicationNumber")
 
-        renewal_application = Application.find_by_application_number(application_number=renewal_application_number)
-        renewal_application.payment_status = PaymentStatus.COMPLETED.value
-        renewal_application.status = Application.Status.FULL_REVIEW
-        renewal_application.save()
-
-        # First manual FULL_REVIEW_APPROVED for the renewal
-        rv = client.put(f"/applications/{renewal_application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(
-            f"/applications/{renewal_application_number}/status",
-            json=status_update_request,
-            headers=staff_headers,
-        )
-        assert HTTPStatus.OK == rv.status_code
+        set_application_ready_for_examiner_review(renewal_application_number)
+        _, staff_headers = assign_examiner_and_full_review_approve(client, jwt, renewal_application_number)
 
         registration_after_first_approval = RegistrationService.get_registration_by_id(registration_id)
         first_approval_expiry_date = registration_after_first_approval.expiry_date
@@ -758,22 +699,8 @@ def test_renewal_of_expired_registration_sets_expiry_to_today_plus_365_days(mock
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(
-            f"/applications/{application_number}/status",
-            json=status_update_request,
-            headers=staff_headers,
-        )
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         registration_id = response_json.get("header").get("registrationId")
         assert registration_id is not None
 
@@ -785,26 +712,14 @@ def test_renewal_of_expired_registration_sets_expiry_to_today_plus_365_days(mock
         expired_registration.save()
 
         # Submit renewal and approve
-        renewal_header_json = {"registrationId": registration_id, "applicationType": "renewal"}
-        json_data["header"] = renewal_header_json
+        json_data = host_renewal_application_json(registration_id, base_json=json_data)
         rv = client.post("/applications", json=json_data, headers=headers)
         assert HTTPStatus.OK == rv.status_code
         response_json = rv.json
         renewal_application_number = response_json.get("header").get("applicationNumber")
 
-        renewal_application = Application.find_by_application_number(application_number=renewal_application_number)
-        renewal_application.payment_status = PaymentStatus.COMPLETED.value
-        renewal_application.status = Application.Status.FULL_REVIEW
-        renewal_application.save()
-
-        rv = client.put(f"/applications/{renewal_application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        rv = client.put(
-            f"/applications/{renewal_application_number}/status",
-            json={"status": Application.Status.FULL_REVIEW_APPROVED},
-            headers=staff_headers,
-        )
-        assert HTTPStatus.OK == rv.status_code
+        set_application_ready_for_examiner_review(renewal_application_number)
+        assign_examiner_and_full_review_approve(client, jwt, renewal_application_number)
 
         registration = RegistrationService.get_registration_by_id(registration_id)
         new_expiry = registration.expiry_date

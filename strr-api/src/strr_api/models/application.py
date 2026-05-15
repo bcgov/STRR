@@ -262,6 +262,27 @@ class Application(BaseModel):
         return cls.query.filter_by(registration_id=registration_id).all()
 
     @classmethod
+    def find_non_terminal_renewal_for_payment_account(
+        cls,
+        payment_account: str | int | None,
+        registration_id: int,
+        terminal_status_values: tuple[str, ...],
+    ) -> Application | None:
+        """Return a renewal for this account+registration that is not in a terminal status, if any."""
+        if payment_account is None:
+            return None
+        return (
+            cls.query.filter(
+                cls.type == ApplicationType.RENEWAL.value,
+                cls.registration_id == registration_id,
+                cls.payment_account == str(payment_account),
+                ~cls.status.in_(terminal_status_values),
+            )
+            .order_by(cls.id.desc())
+            .first()
+        )
+
+    @classmethod
     def _filter_by_application_registration_number(cls, search_term: str, query: Query) -> Query:
         """Filter query by application or registration number."""
         if not search_term:
