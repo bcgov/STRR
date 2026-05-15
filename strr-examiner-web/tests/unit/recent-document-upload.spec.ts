@@ -1,4 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import {
+  hasRecentDocumentUpload,
+  getDocumentsFromApplication,
+  getDocumentsFromRegistration
+} from '~/utils/recent-document-upload'
 
 describe('recent-document-upload utils', () => {
   beforeEach(() => {
@@ -11,32 +16,49 @@ describe('recent-document-upload utils', () => {
   })
 
   describe('hasRecentDocumentUpload', () => {
+    const NOC_SENT_DATE = '2026-03-10T17:00:00.000Z'
+
     it('returns false when documents missing or empty', () => {
-      expect(hasRecentDocumentUpload(undefined)).toBe(false)
-      expect(hasRecentDocumentUpload(null)).toBe(false)
-      expect(hasRecentDocumentUpload([])).toBe(false)
+      expect(hasRecentDocumentUpload(undefined, NOC_SENT_DATE)).toBe(false)
+      expect(hasRecentDocumentUpload(null, NOC_SENT_DATE)).toBe(false)
+      expect(hasRecentDocumentUpload([], NOC_SENT_DATE)).toBe(false)
+    })
+
+    it('returns false when nocSentDate is not provided', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-15' }], undefined)).toBe(false)
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-15' }], null)).toBe(false)
     })
 
     it('returns false when no document has a date', () => {
-      expect(hasRecentDocumentUpload([{ fileKey: 'a' } as any])).toBe(false)
+      expect(hasRecentDocumentUpload([{ fileKey: 'a' } as any], NOC_SENT_DATE)).toBe(false)
     })
 
-    it('returns true for addedOn on first day of 14-day window', () => {
-      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-06' }])).toBe(true)
+    it('returns true when doc is on the same calendar day as the NOC', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10' }], NOC_SENT_DATE)).toBe(true)
     })
 
-    it('returns true for uploadDate on today', () => {
-      expect(hasRecentDocumentUpload([{ uploadDate: '2026-03-19' }])).toBe(true)
+    it('returns true when doc is after the NOC day', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-15' }], NOC_SENT_DATE)).toBe(true)
     })
 
-    it('returns false when newest date is before the window', () => {
-      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-05' }])).toBe(false)
+    it('returns true for full datetime on the same day as the NOC', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10T20:00:00.000Z' }], NOC_SENT_DATE)).toBe(true)
+    })
+
+    it('returns false when doc is before the NOC day', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-09' }], NOC_SENT_DATE)).toBe(false)
     })
 
     it('prefers addedOn over uploadDate when both set', () => {
       expect(
-        hasRecentDocumentUpload([{ addedOn: '2026-03-05', uploadDate: '2026-03-19' }])
+        hasRecentDocumentUpload([{ addedOn: '2026-03-05', uploadDate: '2026-03-19' }], NOC_SENT_DATE)
       ).toBe(false)
+    })
+
+    it('returns true when at least one doc qualifies among mixed dates', () => {
+      expect(
+        hasRecentDocumentUpload([{ addedOn: '2026-03-05' }, { addedOn: '2026-03-10' }], NOC_SENT_DATE)
+      ).toBe(true)
     })
   })
 

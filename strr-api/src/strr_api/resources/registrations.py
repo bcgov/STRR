@@ -179,7 +179,9 @@ def get_registration(registration_id):
         if not registration:
             return error_response(HTTPStatus.NOT_FOUND, "Registration not found")
 
-        return RegistrationService.serialize(registration), HTTPStatus.OK
+        reg_dict = RegistrationService.serialize(registration)
+        RegistrationService.enrich_document_added_on_from_gcp(reg_dict)
+        return reg_dict, HTTPStatus.OK
 
     except AuthException as auth_exception:
         return exception_response(auth_exception)
