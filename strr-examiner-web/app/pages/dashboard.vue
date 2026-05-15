@@ -277,9 +277,17 @@ const isProvisionalReviewQueueStatus = (status: ApplicationStatus | undefined): 
   return status === ApplicationStatus.PROVISIONALLY_APPROVED || status === ApplicationStatus.PROVISIONAL_REVIEW
 }
 
-const hasExaminerReview = (reg: HousRegistrationResponse): boolean => {
-  const decider = reg.header?.decider
+const hasDecider = (decider: { username?: string, displayName?: string } | undefined): boolean => {
   return Boolean(decider?.username || decider?.displayName)
+}
+
+const hasExaminerReview = (reg: HousRegistrationResponse): boolean => {
+  if (hasDecider(reg.header?.decider)) {
+    return true
+  }
+
+  // Legacy renewal approvals could set decider on the application entry only.
+  return hasDecider(getLatestRegistrationApplication(reg)?.decider)
 }
 
 const getRequirementsColumn = (app: HousApplicationResponse) => {
