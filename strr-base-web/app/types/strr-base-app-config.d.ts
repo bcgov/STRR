@@ -16,6 +16,9 @@ declare module 'nuxt/schema' {
       feeWidget?: {
         itemLabelTooltip: Record<string, { i18nkey: string, hrefRtcKey?: keyof PublicRuntimeConfig }> // typeCode
       },
+      feeInfo?: {
+        hrefRtcKey?: keyof PublicRuntimeConfig
+      },
       sbcWebMsg: {
         enable: boolean
       }
@@ -40,6 +43,9 @@ declare module 'nuxt/schema' {
       },
       feeWidget?: {
         itemLabelTooltip: Record<string, { i18nkey: string, hrefRtcKey?: keyof PublicRuntimeConfig }> // typeCode
+      },
+      feeInfo?: {
+        hrefRtcKey?: keyof PublicRuntimeConfig
       },
       sbcWebMsg: {
         enable: boolean

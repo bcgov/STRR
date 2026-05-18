@@ -21,6 +21,9 @@ export default defineAppConfig({
         }
       }
     },
+    feeInfo: {
+      hrefRtcKey: ''
+    },
     sbcWebMsg: {
       enable: false
     }
