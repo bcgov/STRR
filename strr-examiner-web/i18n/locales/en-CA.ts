@@ -415,7 +415,7 @@ export default {
     },
     renewal: 'Renewal',
     recentDocumentBadge: 'New document',
-    recentDocumentUploadHint: 'An attachment was uploaded in the last 14 days.'
+    recentDocumentUploadHint: 'New documents were submitted in response to a Notice of Consideration.'
   },
   link: {
     learnMore: 'Learn More'

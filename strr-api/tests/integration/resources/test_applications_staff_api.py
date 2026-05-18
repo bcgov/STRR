@@ -88,6 +88,10 @@ def test_post_notice_ok_when_assignee(client, session, headers_strr_examiner, se
         json={"content": "Notice content for integration."},
     )
     assert_status(rv, HTTPStatus.OK)
+    response_json = rv.get_json()
+    assert response_json["header"].get("nocStartDate") is not None
+    assert response_json["header"].get("nocEndDate") is not None
+    assert response_json["header"].get("nocSentDate") is not None
 
 
 def test_post_set_aside_ok_when_assignee(client, session, headers_strr_examiner, serializable_application):

@@ -488,13 +488,22 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
         localGov: getLocalGovColumnForRegistration(reg),
         adjudicator: getAdjudicatorColumn(reg.header),
         showRenewalBadge: shouldShowRenewalBadge(reg),
-        hasRecentDocumentUpload: hasRecentDocumentUpload(getDocumentsFromRegistration(reg))
+        hasRecentDocumentUpload: reg.status !== RegistrationStatus.EXPIRED &&
+          hasRecentDocumentUpload(getDocumentsFromRegistration(reg), reg.nocSentDate)
       }))
 
       return { registrations, total: res.total }
     }
   }
 )
+
+// Application statuses with an active NOC for which 'New Document' logic will run
+const NOC_APP_STATUSES = new Set([
+  ApplicationStatus.NOC_PENDING,
+  ApplicationStatus.NOC_EXPIRED,
+  ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+  ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+])
 
 // text currently matches anything, same as existing examiners app
 // cannot combine search and registration type at this point in time - so hacky if/else for the moment
@@ -544,7 +553,10 @@ const { data: applicationListResp, status } = await useAsyncData(
         submissionDate: app.header.applicationDateTime,
         lastModified: getLastStatusChangeColumn(app.header),
         adjudicator: getAdjudicatorColumn(app.header),
-        hasRecentDocumentUpload: hasRecentDocumentUpload(getDocumentsFromApplication(app))
+        hasRecentDocumentUpload: hasRecentDocumentUpload(
+          getDocumentsFromApplication(app),
+          NOC_APP_STATUSES.has(app.header.status) ? app.header.nocSentDate : undefined
+        )
       }))
 
       return { applications, total: res.total }
