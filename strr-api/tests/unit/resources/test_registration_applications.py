@@ -942,6 +942,7 @@ def test_examiner_send_notice_of_consideration(mock_noc, mock_invoice, session, 
         assert response_json.get("header").get("hostActions") == []
         assert response_json.get("header").get("nocStartDate") is not None
         assert response_json.get("header").get("nocEndDate") is not None
+        assert response_json.get("header").get("nocSentDate") is not None
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -1221,6 +1222,7 @@ def test_send_notice_of_consideration_for_provisional_review(mock_noc, mock_invo
         assert response_json.get("header").get("hostActions") == []
         assert response_json.get("header").get("nocStartDate") is not None
         assert response_json.get("header").get("nocEndDate") is not None
+        assert response_json.get("header").get("nocSentDate") is not None
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
