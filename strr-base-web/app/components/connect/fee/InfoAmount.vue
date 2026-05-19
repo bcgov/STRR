@@ -76,14 +76,16 @@ const linkHref = computed(() => {
         </ul>
         <UButton
           v-if="linkHref"
-          :label="t('ConnectFeeInfo.allFeeTypes')"
           :to="linkHref"
           variant="link"
           :padded="false"
           target="_blank"
           trailing-icon="i-mdi-open-in-new"
           class="mt-2 text-base"
-        />
+        >
+          {{ t('ConnectFeeInfo.allFeeTypes') }}
+          <span class="sr-only">{{ t('ConnectFeeInfo.allFeeTypesAria') }}</span>
+        </UButton>
       </div>
     </ConnectTransitionCollapse>
   </div>

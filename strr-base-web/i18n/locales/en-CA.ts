@@ -626,6 +626,7 @@ export default {
   ConnectFeeInfo: {
     title: 'Why this amount?',
     allFeeTypes: 'All fee types and details',
+    allFeeTypesAria: 'All fee types and details, opens in new tab',
     scenarios: {
       primaryResidence: {
         heading: 'Host lives at the property',
