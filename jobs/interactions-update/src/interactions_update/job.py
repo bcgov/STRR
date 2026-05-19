@@ -4,7 +4,6 @@ import os
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-from enum import StrEnum
 
 import requests
 from dotenv import find_dotenv
@@ -23,13 +22,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class UpdateResult(StrEnum):
-    """Job outcomes that do not map to a terminal Notify delivery status."""
-
-    MISSING_REFERENCE = "MISSING_REFERENCE"
-    UNCHANGED = "UNCHANGED"
-
-
 def fetch_and_update(interaction_id, notify_url, headers, timeout):
     """Worker function to fetch status for a single interaction."""
     # We fetch the interaction in a local session or use IDs to avoid thread-safety issues with ORM objects
@@ -38,7 +30,7 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
     try:
         interaction = session.get(CustomerInteraction, interaction_id)
         if not interaction or not interaction.notify_reference:
-            return UpdateResult.MISSING_REFERENCE
+            return None
 
         notify_request = f"{notify_url}/notify/{interaction.notify_reference}"
         resp = requests.get(notify_request, headers=headers, timeout=timeout)
@@ -59,7 +51,7 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
                 interaction.meta_data = data
                 session.commit()
                 return new_status
-        return UpdateResult.UNCHANGED
+        return None
     finally:
         session.close()
 
@@ -98,10 +90,18 @@ def run(max_workers=None):
             case(
                 (CustomerInteraction.created_at < stale_threshold, True), else_=False
             ).label("is_stale"),
+            case(
+                (CustomerInteraction.notify_reference.is_(None), True), else_=False
+            ).label("missing_notify_reference"),
         ).where(CustomerInteraction.status == InteractionStatus.SENT)
         sent_interactions = session.execute(stmt).all()
-        interaction_ids = [row.id for row in sent_interactions]
+        interaction_ids = [
+            row.id for row in sent_interactions if not row.missing_notify_reference
+        ]
         stale_interaction_ids = [row.id for row in sent_interactions if row.is_stale]
+        missing_reference_count = sum(
+            1 for row in sent_interactions if row.missing_notify_reference
+        )
         if stale_interaction_ids:
             logger.warning(
                 "strr.interactions.stale_sent_detected stale_sent_count=%s stale_sent_hours=%s interaction_ids=%s",
@@ -112,8 +112,10 @@ def run(max_workers=None):
 
         if not interaction_ids:
             logger.info(
-                "strr.interactions.update_completed sent_count=0 stale_sent_count=%s",
+                "strr.interactions.update_completed sent_count=%s delivered_count=0 failed_count=0 stale_sent_count=%s missing_reference_count=%s",
+                len(sent_interactions),
                 len(stale_interaction_ids),
+                missing_reference_count,
             )
             return
 
@@ -151,11 +153,12 @@ def run(max_workers=None):
                 failed_count,
             )
         logger.info(
-            "strr.interactions.update_completed sent_count=%s delivered_count=%s failed_count=%s stale_sent_count=%s",
-            len(interaction_ids),
+            "strr.interactions.update_completed sent_count=%s delivered_count=%s failed_count=%s stale_sent_count=%s missing_reference_count=%s",
+            len(sent_interactions),
             delivered_count,
             failed_count,
             len(stale_interaction_ids),
+            missing_reference_count,
         )
     finally:
         session.close()

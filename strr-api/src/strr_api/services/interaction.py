@@ -136,25 +136,21 @@ class InteractionService:
             notify_json=notify_json,
         )
 
-        event_name = InteractionService.email_event_mapper.get(payload.email_type)
-        if not event_name:
-            return interaction
-
-        event_type = (
-            Events.EventType.REGISTRATION
-            if registration_id
-            else Events.EventType.APPLICATION
-            if application_id
-            else Events.EventType.USER
-        )
-        EventsService.save_event(
-            event_type=event_type,
-            event_name=event_name,
-            details=f"Interaction sent via {channel_type.value}",
-            application_id=application_id,
-            registration_id=registration_id,
-            user_id=user_id,
-        )
+        if event_name := InteractionService.email_event_mapper.get(payload.email_type):
+            if registration_id:
+                event_type = Events.EventType.REGISTRATION
+            elif application_id:
+                event_type = Events.EventType.APPLICATION
+            else:
+                event_type = Events.EventType.USER
+            EventsService.save_event(
+                event_type=event_type,
+                event_name=event_name,
+                details=f"Interaction sent via {channel_type.value}",
+                application_id=application_id,
+                registration_id=registration_id,
+                user_id=user_id,
+            )
 
         return interaction
 
@@ -282,7 +278,12 @@ class InteractionService:
         notify_json: dict | None = None,
     ) -> dict:
         """Build searchable metadata for dashboards, alerts, and audit support."""
-        target_entity = "application" if application_id else "registration" if registration_id else "customer"
+        if application_id:
+            target_entity = "application"
+        elif registration_id:
+            target_entity = "registration"
+        else:
+            target_entity = "customer"
         target_id = application_id or registration_id or customer_id
         metadata = {
             "status": status.value,
@@ -363,14 +364,13 @@ class InteractionService:
                 timeout=current_app.config["NOTIFY_API_TIMEOUT"],
             )
         except Exception as err:
-            current_app.logger.error(
+            current_app.logger.exception(
                 "strr.email.notify.failed Error posting email to notify-api "
-                "email_type=%s application_number=%s registration_number=%s interaction_uuid=%s error=%s",
+                "email_type=%s application_number=%s registration_number=%s interaction_uuid=%s",
                 getattr(email_info, "email_type", None),
                 getattr(email_info, "application_number", None),
                 getattr(email_info, "registration_number", None),
                 getattr(email_info, "interaction_uuid", None),
-                err,
             )
             return {"id": -1, "error": str(err)}
 

@@ -12,7 +12,6 @@ import pytest
 import responses
 from sqlalchemy import select
 
-from interactions_update.job import UpdateResult
 from interactions_update.job import run
 from strr_api.enums.enum import ChannelType
 from strr_api.enums.enum import InteractionStatus
@@ -157,7 +156,13 @@ def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
 
         def execute(self, _stmt):
             return QueryResult(
-                [SimpleNamespace(id=self._interaction_id, is_stale=True)]
+                [
+                    SimpleNamespace(
+                        id=self._interaction_id,
+                        is_stale=True,
+                        missing_notify_reference=False,
+                    )
+                ]
             )
 
         def close(self):
@@ -176,7 +181,7 @@ def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
     )
     monkeypatch.setattr(
         "interactions_update.job.fetch_and_update",
-        lambda *args: UpdateResult.UNCHANGED,
+        lambda *args: None,
     )
 
     with patch("interactions_update.job.logger.warning") as mock_warning:
@@ -187,6 +192,41 @@ def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
         1,
         0,
         [interaction_id],
+    )
+
+
+@pytest.mark.parametrize("setup_bulk_interactions", [{"records": 2}], indirect=True)
+def test_run_counts_missing_notify_references(
+    db_session, setup_bulk_interactions, monkeypatch
+):
+    """Test that SENT interactions without Notify references are counted and skipped."""
+
+    interaction_ids = setup_bulk_interactions["interaction_ids"]
+    interaction_with_reference = db_session.get(CustomerInteraction, interaction_ids[0])
+    interaction_with_reference.notify_reference = "mock-notify-123"
+    db_session.commit()
+
+    monkeypatch.setenv("NOTIFY_API_URL", "https://my-notify-mock")
+    monkeypatch.setenv("NOTIFY_API_VERSION", "/api/v1")
+    monkeypatch.setattr(
+        "interactions_update.job.AuthService.get_service_client_token",
+        lambda **kwargs: "123",
+    )
+    monkeypatch.setattr(
+        "interactions_update.job.fetch_and_update",
+        lambda *args: None,
+    )
+
+    with patch("interactions_update.job.logger.info") as mock_info:
+        run(max_workers=1)
+
+    mock_info.assert_any_call(
+        "strr.interactions.update_completed sent_count=%s delivered_count=%s failed_count=%s stale_sent_count=%s missing_reference_count=%s",
+        2,
+        0,
+        0,
+        0,
+        1,
     )
 
 

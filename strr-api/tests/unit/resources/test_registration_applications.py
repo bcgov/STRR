@@ -41,6 +41,29 @@ CREATE_REGISTRATION_BUSINESS_AS_COHOST = os.path.join(
 MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 
+def test_standalone_supporting_document_upload_tags_metadata(client, jwt):
+    headers = create_header(jwt, [PUBLIC_USER])
+    headers["Account-Id"] = ACCOUNT_ID
+
+    with patch(
+        "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
+        return_value="standalone-file-key",
+    ) as mock_upload:
+        with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+            data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}
+            rv = client.post("/documents", content_type="multipart/form-data", data=data, headers=headers)
+
+    assert rv.status_code == HTTPStatus.CREATED
+    assert rv.json["fileKey"] == "standalone-file-key"
+    metadata = mock_upload.call_args.kwargs["metadata"]
+    assert metadata["upload_source"] == "documents"
+    assert metadata["account_id"] == str(ACCOUNT_ID)
+    assert metadata["document_type"] == "OTHERS"
+    assert metadata["upload_step"] == "standalone_supporting_document"
+    assert metadata["uploaded_by"] == "test-user"
+    assert metadata["uploaded_by_idp_userid"] == "123"
+
+
 def test_save_and_resume_applications(session, client, jwt):
     with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
@@ -475,8 +498,12 @@ def test_post_and_delete_registration_documents(session, client, jwt):
                     fileKey = rv.json.get("fileKey")
                     assert fileKey == "Test Key"
                     metadata = mock_upload.call_args.kwargs["metadata"]
+                    assert metadata["upload_source"] == "application"
                     assert metadata["account_id"] == str(ACCOUNT_ID)
+                    assert metadata["entity_id"] == Application.find_by_application_number(application_number).id
+                    assert metadata["application_number"] == application_number
                     assert metadata["document_type"] == "BC_DRIVERS_LICENSE"
+                    assert metadata["upload_step"] == "application_supporting_document"
                     assert metadata["uploaded_by"] == "test-user"
                     assert metadata["uploaded_by_idp_userid"] == "123"
                     with patch(
@@ -501,7 +528,7 @@ def test_put_application_documents_includes_added_on(session, client, jwt):
         with patch(
             "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
             return_value="put-doc-file-key-456",
-        ):
+        ) as mock_upload:
             with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
                 data = {
                     "file": (df, MOCK_DOCUMENT_UPLOAD),
@@ -516,6 +543,13 @@ def test_put_application_documents_includes_added_on(session, client, jwt):
                     headers=headers,
                 )
                 assert rv.status_code == HTTPStatus.OK
+        assert mock_upload.call_args.kwargs["metadata"] == {
+            "upload_source": "application",
+            "entity_id": Application.find_by_application_number(application_number).id,
+            "application_number": application_number,
+            "document_type": "BC_DRIVERS_LICENSE",
+            "upload_step": "step1",
+        }
         response_json = rv.json
         docs = response_json.get("registration", {}).get("documents", [])
         doc_uploaded = next((d for d in docs if d.get("fileKey") == "put-doc-file-key-456"), None)
