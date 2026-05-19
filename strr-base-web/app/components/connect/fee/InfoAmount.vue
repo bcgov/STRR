@@ -9,6 +9,7 @@ const isExpanded = ref(false)
 
 const FEE_INFO_MAP = {
   [FeeInfo.FEE_INFO_1]: {
+    id: 'fee-info-1',
     heading: 'ConnectFeeInfo.scenarios.primaryResidence.heading',
     bullets: [
       'ConnectFeeInfo.scenarios.primaryResidence.bullet1',
@@ -17,6 +18,7 @@ const FEE_INFO_MAP = {
     ]
   },
   [FeeInfo.FEE_INFO_2]: {
+    id: 'fee-info-2',
     heading: 'ConnectFeeInfo.scenarios.separateUnit.heading',
     bullets: [
       'ConnectFeeInfo.scenarios.separateUnit.bullet1',
@@ -24,6 +26,7 @@ const FEE_INFO_MAP = {
     ]
   },
   [FeeInfo.FEE_INFO_3]: {
+    id: 'fee-info-3',
     heading: 'ConnectFeeInfo.scenarios.differentProperty.heading',
     bullets: [
       'ConnectFeeInfo.scenarios.differentProperty.bullet1'
@@ -45,7 +48,6 @@ const linkHref = computed(() => {
   <div
     v-if="feeScenario && total"
     class="w-full rounded bg-white shadow-md"
-    data-testid="fee-why-this-amount"
   >
     <button
       class="flex w-full items-center justify-between px-4 py-3 text-left font-bold text-str-textGray"
@@ -59,7 +61,7 @@ const linkHref = computed(() => {
       />
     </button>
     <ConnectTransitionCollapse>
-      <div v-if="isExpanded" class="px-4 pb-4">
+      <div v-if="isExpanded" :data-testid="feeScenario.id" class="px-4 pb-4">
         <p class="text-str-bodyGray">
           {{ t(feeScenario.heading) }}
         </p>
