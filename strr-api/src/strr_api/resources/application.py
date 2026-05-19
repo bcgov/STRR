@@ -100,19 +100,43 @@ def create_application(application_number: Optional[str] = None):
     tags:
       - application
     parameters:
+      - in: header
+        name: Account-Id
+        required: true
+        type: string
+        description: SBC account id (string). Required for applicant application create and update; must match the account that owns the registration / application rows.
+        default: "1500014996"
       - in: body
         name: body
+        required: true
+        description: >
+          Registration or renewal JSON. For `renewal`, set `header.applicationType` to `renewal` and
+          include `header.registrationId`. Final (non-draft) submits require a full payload consistent
+          with `tests/mocks/json/host_registration.json` (or the equivalent platform/strata fixture).
         schema:
           type: object
+          example:
+            header:
+              applicationType: renewal
+              registrationId: 15000
+              paymentMethod: DIRECT_PAY
     responses:
       200:
-        description:
+        description: Application created or updated; JSON body is serialized application.
       400:
-        description:
+        description: Validation or business rule failure (e.g. missing registrationId for renewal).
       401:
-        description:
+        description: Unauthorized.
+      404:
+        description: Application not found (when path includes application_number).
+      409:
+        description: >
+          Renewal conflict — pathless POST /applications for renewal when a non-terminal renewal
+          already exists for the same registration and Account-Id (errorCode RENEWAL_ALREADY_IN_PROGRESS).
+      402:
+        description: Payment required (e.g. invoice creation failed on final submit).
       502:
-        description:
+        description: Bad gateway / external service failure.
     """
 
     try:
@@ -171,6 +195,29 @@ def create_application(application_number: Optional[str] = None):
                     message=ErrorMessage.REGISTRATION_RENEWAL_NOT_ALLOWED.value,
                     http_status=HTTPStatus.BAD_REQUEST,
                 )
+
+            if application is None:
+                terminal_status_values = tuple(s.value for s in APPLICATION_TERMINAL_STATES)
+                conflicting = ApplicationModel.find_non_terminal_renewal_for_payment_account(
+                    account_id, registration_id, terminal_status_values
+                )
+                if conflicting:
+                    logger.info(
+                        "STRR renewal create returned 409: a non-terminal renewal already exists for this "
+                        "registration and payment account. "
+                        "registration_id=%s payment_account=%s existing_renewal_id=%s "
+                        "existing_application_number=%s existing_renewal_status=%s error_code=RENEWAL_ALREADY_IN_PROGRESS",
+                        registration_id,
+                        account_id,
+                        conflicting.id,
+                        conflicting.application_number,
+                        conflicting.status,
+                    )
+                    return error_response(
+                        message=ErrorMessage.RENEWAL_APPLICATION_ALREADY_IN_PROGRESS.value,
+                        http_status=HTTPStatus.CONFLICT,
+                        error_code="RENEWAL_ALREADY_IN_PROGRESS",
+                    )
 
         # Validate only the final submissions
         if not is_draft:

@@ -127,7 +127,12 @@ def register_endpoints(app: Flask):
         "specs_route": "/",
         "uiversion": 3,
         "securityDefinitions": {
-            "Bearer": {"type": "apiKey", "in": "header", "name": "Authorization"},
+            "Bearer": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "Authorization",
+                "description": "JWT access token. Send as `Bearer <token>` (include the `Bearer ` prefix).",
+            },
         },
         "security": [{"Bearer": []}],
     }

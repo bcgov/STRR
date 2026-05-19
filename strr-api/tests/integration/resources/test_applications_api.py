@@ -1,16 +1,21 @@
 """Integration tests for public/account ``/applications`` paths and auth smoke."""
 
+import copy
 from http import HTTPStatus
 from unittest.mock import patch
 
 import pytest
 
-from strr_api.enums.enum import ApplicationType, ErrorMessage
+from strr_api.enums.enum import ErrorMessage
 from tests.integration.application_seed import (
+    count_renewal_applications_for_account_registration,
     generate_application_number,
+    host_renewal_application_json,
     seed_applicant_visible_application_event,
     seed_draft_application,
+    seed_flushed_host_renewal_draft,
     seed_listable_application,
+    seed_terminal_host_renewal,
 )
 from tests.integration.helpers import (
     assert_json_keys,
@@ -18,6 +23,7 @@ from tests.integration.helpers import (
     assert_unauthenticated_returns_401_for_protected_prefix,
     load_mock_json,
 )
+from tests.integration.registration_seed import seed_serializable_host_registration
 
 
 def test_applications_routes_require_auth_without_bearer(client, app):
@@ -242,6 +248,187 @@ def test_post_draft_application_with_is_draft_does_not_call_invoice(
     assert body["header"]["applicationNumber"] == num
 
 
+def test_post_second_renewal_without_path_returns_conflict_when_seeded_non_terminal_exists(
+    client,
+    session,
+    headers_public_user,
+    integration_account_id,
+    serializable_host_registration,
+):
+    """``POST /applications`` must not create a second renewal row while one is already non-terminal."""
+    rid = serializable_host_registration["registration_id"]
+    uid = serializable_host_registration["user_id"]
+    seed_flushed_host_renewal_draft(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=uid,
+        registration_id=rid,
+    )
+    before = count_renewal_applications_for_account_registration(
+        session, account_id=integration_account_id, registration_id=rid
+    )
+    assert before == 1
+
+    payload = host_renewal_application_json(rid)
+    headers = headers_public_user(integration_account_id)
+    headers["isDraft"] = "true"
+    rv = client.post("/applications", json=payload, headers=headers)
+    assert_status(rv, HTTPStatus.CONFLICT)
+    body = rv.get_json()
+    assert body is not None
+    assert body.get("message") == ErrorMessage.RENEWAL_APPLICATION_ALREADY_IN_PROGRESS.value
+    assert body.get("errorCode") == "RENEWAL_ALREADY_IN_PROGRESS"
+    after = count_renewal_applications_for_account_registration(
+        session, account_id=integration_account_id, registration_id=rid
+    )
+    assert after == before
+
+
+@pytest.mark.parametrize("is_draft", ["true", "false"])
+@patch("strr_api.services.strr_pay.create_invoice")
+def test_post_second_renewal_conflict_for_draft_and_final_attempt(
+    mock_invoice,
+    client,
+    session,
+    headers_public_user,
+    integration_account_id,
+    serializable_host_registration,
+    mock_invoice_response,
+    is_draft,
+):
+    """Duplicate renewal is rejected before save whether or not ``isDraft`` is set; invoice is never created."""
+    rid = serializable_host_registration["registration_id"]
+    uid = serializable_host_registration["user_id"]
+    seed_flushed_host_renewal_draft(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=uid,
+        registration_id=rid,
+    )
+    before = count_renewal_applications_for_account_registration(
+        session, account_id=integration_account_id, registration_id=rid
+    )
+
+    payload = host_renewal_application_json(rid)
+    headers = headers_public_user(integration_account_id)
+    if is_draft == "true":
+        headers["isDraft"] = "true"
+    else:
+        mock_invoice.return_value = mock_invoice_response
+
+    rv = client.post("/applications", json=payload, headers=headers)
+    assert_status(rv, HTTPStatus.CONFLICT)
+    mock_invoice.assert_not_called()
+    assert (
+        count_renewal_applications_for_account_registration(
+            session, account_id=integration_account_id, registration_id=rid
+        )
+        == before
+    )
+
+
+def test_put_renewal_draft_succeeds_after_duplicate_post_returns_conflict(
+    client,
+    session,
+    headers_public_user,
+    integration_account_id,
+    serializable_host_registration,
+):
+    """Client can still update the existing renewal draft via ``PUT`` after a duplicate ``POST`` is rejected."""
+    rid = serializable_host_registration["registration_id"]
+    uid = serializable_host_registration["user_id"]
+    existing_num = seed_flushed_host_renewal_draft(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=uid,
+        registration_id=rid,
+    )
+
+    payload = host_renewal_application_json(rid)
+    dup_headers = headers_public_user(integration_account_id)
+    dup_headers["isDraft"] = "true"
+    rv_dup = client.post("/applications", json=payload, headers=dup_headers)
+    assert_status(rv_dup, HTTPStatus.CONFLICT)
+
+    put_headers = headers_public_user(integration_account_id)
+    put_headers["isDraft"] = "true"
+    updated = copy.deepcopy(payload)
+    updated["header"]["applicationNumber"] = existing_num
+    rv_put = client.put(f"/applications/{existing_num}", json=updated, headers=put_headers)
+    assert_status(rv_put, HTTPStatus.OK)
+    assert rv_put.get_json()["header"]["applicationNumber"] == existing_num
+
+
+def test_post_renewal_succeeds_when_prior_renewal_on_same_registration_is_terminal(
+    client,
+    session,
+    headers_public_user,
+    integration_account_id,
+    serializable_host_registration,
+):
+    """After a terminal renewal exists for the registration, a new ``POST`` may create another renewal."""
+    rid = serializable_host_registration["registration_id"]
+    uid = serializable_host_registration["user_id"]
+    terminal_num = seed_terminal_host_renewal(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=uid,
+        registration_id=rid,
+    )
+
+    payload = host_renewal_application_json(rid)
+    headers = headers_public_user(integration_account_id)
+    headers["isDraft"] = "true"
+    rv = client.post("/applications", json=payload, headers=headers)
+    assert_status(rv, HTTPStatus.OK)
+    new_num = rv.get_json()["header"]["applicationNumber"]
+    assert new_num != terminal_num
+    assert (
+        count_renewal_applications_for_account_registration(
+            session, account_id=integration_account_id, registration_id=rid
+        )
+        == 2
+    )
+
+
+def test_post_renewal_for_different_registration_succeeds_when_first_registration_has_open_renewal(
+    client,
+    session,
+    headers_public_user,
+    integration_account_id,
+    random_string,
+):
+    """Open renewal on registration A must not block a new renewal draft for registration B (same account)."""
+
+    suffix_a = random_string(10).upper().replace("-", "")[:10]
+    suffix_b = random_string(10).upper().replace("-", "")[:10]
+    reg_a = seed_serializable_host_registration(
+        session,
+        account_id=integration_account_id,
+        registration_number=f"INTA{suffix_a}",
+    )
+    reg_b = seed_serializable_host_registration(
+        session,
+        account_id=integration_account_id,
+        registration_number=f"INTB{suffix_b}",
+    )
+    session.flush()
+
+    seed_flushed_host_renewal_draft(
+        session,
+        account_id=integration_account_id,
+        submitter_user_id=reg_a["user_id"],
+        registration_id=reg_a["registration_id"],
+    )
+
+    payload_b = host_renewal_application_json(reg_b["registration_id"])
+    headers = headers_public_user(integration_account_id)
+    headers["isDraft"] = "true"
+    rv = client.post("/applications", json=payload_b, headers=headers)
+    assert_status(rv, HTTPStatus.OK)
+    assert rv.get_json()["header"]["applicationNumber"] is not None
+
+
 def test_put_renewal_draft_registration_id_mismatch_returns_bad_request(
     client,
     session,
@@ -250,18 +437,13 @@ def test_put_renewal_draft_registration_id_mismatch_returns_bad_request(
     serializable_host_registration,
 ):
     rid = serializable_host_registration["registration_id"]
-    num = generate_application_number()
-    seed_draft_application(
+    num = seed_flushed_host_renewal_draft(
         session,
         account_id=integration_account_id,
         submitter_user_id=serializable_host_registration["user_id"],
         registration_id=rid,
-        application_number=num,
-        application_type=ApplicationType.RENEWAL.value,
     )
-    session.flush()
-    payload = load_mock_json("host_registration.json")
-    payload.setdefault("header", {})["applicationType"] = ApplicationType.RENEWAL.value
+    payload = host_renewal_application_json(rid)
     payload["header"]["registrationId"] = rid + 987654321  # differs from draft row
     headers = headers_public_user()
     headers["isDraft"] = "true"
@@ -285,21 +467,13 @@ def test_put_renewal_draft_final_submit_with_invoice_mock(
 ):
     """Non-draft PUT on a renewal draft runs validation, invoice, and status update (SBC pay mocked)."""
     rid = serializable_host_registration["registration_id"]
-    num = generate_application_number()
-    seed_draft_application(
+    num = seed_flushed_host_renewal_draft(
         session,
         account_id=integration_account_id,
         submitter_user_id=serializable_host_registration["user_id"],
         registration_id=rid,
-        application_number=num,
-        application_type=ApplicationType.RENEWAL.value,
     )
-    session.flush()
-    payload = load_mock_json("host_registration.json")
-    payload["header"] = {
-        "applicationType": ApplicationType.RENEWAL.value,
-        "registrationId": rid,
-    }
+    payload = host_renewal_application_json(rid)
     mock_invoice.return_value = mock_invoice_response
     rv = client.put(f"/applications/{num}", json=payload, headers=headers_public_user())
     assert rv.status_code in (HTTPStatus.OK, HTTPStatus.CREATED), rv.get_data(as_text=True)

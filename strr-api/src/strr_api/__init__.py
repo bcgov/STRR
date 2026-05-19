@@ -46,6 +46,7 @@ from flask_migrate import Migrate
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from .common.auth import jwt
+from .common.log_sanitization import install_log_injection_filter
 from .common.run_version import get_run_version
 from .config import Config, Production
 from .models import db
@@ -55,6 +56,7 @@ from .translations import babel
 
 logging.config.fileConfig(fname=os.path.join(os.path.abspath(os.path.dirname(__file__)), "logging.conf"))
 coloredlogs.install()
+install_log_injection_filter()
 logger = logging.getLogger("api")
 
 

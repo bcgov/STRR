@@ -40,10 +40,16 @@ from .exceptions import BaseExceptionE, ExternalServiceException
 
 
 def error_response(
-    http_status: HTTPStatus = HTTPStatus.BAD_REQUEST, message: str = "Bad request", errors: list[dict[str, str]] = None
+    http_status: HTTPStatus = HTTPStatus.BAD_REQUEST,
+    message: str = "Bad request",
+    errors: list[dict[str, str]] = None,
+    error_code: str | None = None,
 ):
     """Build generic request response with errors."""
-    return jsonify({"message": message, "details": errors or []}), http_status
+    payload: dict = {"message": message, "details": errors or []}
+    if error_code:
+        payload["errorCode"] = error_code
+    return jsonify(payload), http_status
 
 
 def exception_response(exception: BaseExceptionE):

@@ -192,6 +192,10 @@ class ErrorMessage(Enum):
     REGISTRATION_ID_REQUIRED = "Registration Id is required for renewal applications."
     REGISTRATION_ID_NOT_INTEGER = "Registration Id must be an integer."
     REGISTRATION_RENEWAL_NOT_ALLOWED = "Renewal is not allowed for the current registration status."
+    RENEWAL_APPLICATION_ALREADY_IN_PROGRESS = (
+        "A renewal application is already in progress for this registration. "
+        "Continue with your existing renewal application, or wait until it reaches a final decision."
+    )
     RENEWAL_APPLICATION_NO_REGISTRATION_ID = "Renewal application does not have a linked registration id."
 
 
