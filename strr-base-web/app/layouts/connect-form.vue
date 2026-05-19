@@ -9,7 +9,10 @@
           <slot />
         </div>
         <aside class="sticky bottom-0 z-10 w-full lg:static lg:mt-[96px] lg:w-[340px] lg:px-5">
-          <ConnectFeeWidget class="sticky lg:top-10" />
+          <div class="lg:sticky lg:top-10">
+            <ConnectFeeWidget />
+            <ConnectFeeInfoAmount class="my-2 md:mt-5 lg:w-[320px]" />
+          </div>
         </aside>
       </div>
     </main>

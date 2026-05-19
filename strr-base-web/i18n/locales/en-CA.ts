@@ -622,5 +622,27 @@ export default {
       JV: 'Paying with Journal Voucher',
       undefined: 'Paying with default method'
     }
+  },
+  ConnectFeeInfo: {
+    title: 'Why this amount?',
+    allFeeTypes: 'All fee types and details',
+    allFeeTypesAria: 'All fee types and details, opens in new tab',
+    scenarios: {
+      primaryResidence: {
+        heading: 'Host lives at the property',
+        bullet1: "Guests share host's kitchen, bathroom and common area.",
+        bullet2: "Guests use the host's entire unit while the host is away (have access to or use the host's bedroom, bathroom, kitchen, and common area).",
+        bullet3: "Guests rent a bedroom and have to walk through the host's front door and common area (living room, dining room, kitchen etc.) to access their room."
+      },
+      separateUnit: {
+        heading: 'Host lives at the property',
+        bullet1: "Secondary suite or cottage, carriage home, lane house etc. guests have their own space, and their own door into the unit from the outside (guests don't have access to the hosts' space).",
+        bullet2: "Guests use the host's front door but otherwise have their own private space with cooking facilities, washroom and bedroom."
+      },
+      differentProperty: {
+        heading: 'Host lives at a different property',
+        bullet1: 'All units if the host lives at a different property.'
+      }
+    }
   }
 }

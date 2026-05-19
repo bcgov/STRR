@@ -1,4 +1,5 @@
 import { ConnectPaymentMethod } from '~/enums/connect-payment-method'
+import { FeeInfo } from '~/enums/fee-info'
 
 export const useConnectFeeStore = defineStore('connect/fee', () => {
   const { $payApi } = useNuxtApp()
@@ -115,6 +116,12 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     placeholderFeeItem.value.serviceFees = fees
   }
 
+  // info about the fee under the Fee Widget, set by the Host app
+  const feeInfo = ref<FeeInfo | undefined>(undefined)
+  const setFeeInfo = (info: FeeInfo | undefined) => {
+    feeInfo.value = info
+  }
+
   // alternate payment option stuff
   const PAD_PENDING_STATES = [ConnectPayCfsStatus.PENDING, ConnectPayCfsStatus.PENDING_PAD_ACTIVATION]
   const userPaymentAccount = ref<ConnectPayAccount>({} as ConnectPayAccount)
@@ -197,6 +204,8 @@ export const useConnectFeeStore = defineStore('connect/fee', () => {
     setFeeQuantity,
     setPlaceholderFilingTypeCode,
     setPlaceholderServiceFee,
+    feeInfo,
+    setFeeInfo,
     initAlternatePaymentMethod,
     userPaymentAccount,
     userSelectedPaymentMethod,
