@@ -15,7 +15,6 @@ const {
   application,
   registration,
   permitDetails,
-  renewalRegId,
   isPaidApplication,
   showPermitDetails,
   needsBusinessLicenseDocumentUpload
@@ -201,7 +200,7 @@ watch([isRenewalsEnabled,
       buttons: [{
         label: t('btn.renew'),
         action: async () => {
-          renewalRegId.value = registration.value?.id.toString()
+          permitStore.setRenewalRegistrationContext(registration.value!.id)
           await navigateTo({
             path: localePath('/application'),
             query: { renew: 'true' }
@@ -219,7 +218,7 @@ watch([isRenewalsEnabled,
         {
           label: t('todos.renewalDraft.resumeButton'),
           action: async () => {
-            renewalRegId.value = undefined // reset renewal id, so the draft app is loaded instead of registration
+            permitStore.clearRenewalRegistrationContext()
             await navigateTo({
               path: localePath('/application'),
               query: { renew: 'true', applicationId: renewalDraftId.value }
