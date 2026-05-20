@@ -1028,7 +1028,7 @@ def search_registrations():
       - in: query
         name: examinerReviewed
         type: boolean
-        description: When provided with approvalMethod, filter provisional records by whether an examiner decision exists at the registration level.
+        description: When provided with approvalMethod, filter provisional records by whether an examiner decision exists at either registration level or latest application level.
       - in: query
         name: nocStatus
         type: array
@@ -1047,7 +1047,7 @@ def search_registrations():
       - in: query
         name: reviewRenew
         type: boolean
-        description: When true, only return registrations with a filed renewal, no registration-level decider, and latest application status in PROVISIONALLY_APPROVED/PROVISIONAL_REVIEW.
+        description: When true, only return registrations with a filed renewal, no registration-level or latest-application decider, and latest application status in PROVISIONALLY_APPROVED/PROVISIONAL_REVIEW.
     responses:
       200:
         description:
