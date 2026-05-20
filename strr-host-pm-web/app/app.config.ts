@@ -60,6 +60,9 @@ export default defineAppConfig({
         }
       })
     },
+    feeInfo: {
+      hrefRtcKey: 'hostFeesUrl'
+    },
     sbcWebMsg: {
       enable: true
     }
