@@ -473,14 +473,25 @@ class Registration(Versioned, BaseModel):
             .limit(1)
             .scalar_subquery()
         )
+        latest_app_decider_subq = (
+            select(Application.decider_id)
+            .where(Application.registration_id == Registration.id)
+            .order_by(Application.application_date.desc())
+            .limit(1)
+            .scalar_subquery()
+        )
         approval_status_condition = latest_app_status_subq.in_(approval_methods)
         if examiner_reviewed is None:
             # Backward-compatible behavior: only filter by approval method/status.
             return approval_status_condition
 
-        # Per examiner workflow, review state for registrations is represented by
-        # the registration level decider.
-        reviewed_condition = Registration.decider_id.isnot(None)
+        # Review state can be represented by either:
+        # - registration level decision (newer flow)
+        # - latest application level decision (legacy flow)
+        reviewed_condition = db.or_(
+            Registration.decider_id.isnot(None),
+            latest_app_decider_subq.isnot(None),
+        )
 
         # examinerReviewed=false -> "review queue" (not yet examiner decided, no renewal filed)
         # examinerReviewed=true  -> already reviewed by an examiner
@@ -500,19 +511,29 @@ class Registration(Versioned, BaseModel):
 
         A registration matches when all are true:
         - a renewal is filed
-        - no registration-level decision exists yet
+        - no registration level or latest application decision exists yet
         - latest application is still in provisional review queue
         """
         # pylint: disable=import-outside-toplevel
+        from sqlalchemy import select
+
         from strr_api.models.application import Application
 
         provisional_statuses = [
             Application.Status.PROVISIONALLY_APPROVED.value,
             Application.Status.PROVISIONAL_REVIEW.value,
         ]
+        latest_app_decider_subq = (
+            select(Application.decider_id)
+            .where(Application.registration_id == Registration.id)
+            .order_by(Application.application_date.desc())
+            .limit(1)
+            .scalar_subquery()
+        )
         return db.and_(
             cls._has_renewal_filed_condition(),
             Registration.decider_id.is_(None),
+            latest_app_decider_subq.is_(None),
             cls._approval_method_condition(provisional_statuses),
         )
 
