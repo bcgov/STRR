@@ -182,6 +182,22 @@ class Registration(Versioned, BaseModel):
         return sub_status_conditions
 
     @classmethod
+    def _latest_application_field_subquery(cls, application_field):
+        """Select a field from the latest application for each registration."""
+        # pylint: disable=import-outside-toplevel
+        from sqlalchemy import select
+
+        from strr_api.models.application import Application
+
+        return (
+            select(application_field)
+            .where(Application.registration_id == Registration.id)
+            .order_by(Application.application_date.desc())
+            .limit(1)
+            .scalar_subquery()
+        )
+
+    @classmethod
     def _host_condition_bl_or_pr(cls, application_model):
         """BL+PR selected: records with BL true or PR true."""
         bl_true = (
@@ -458,32 +474,18 @@ class Registration(Versioned, BaseModel):
     @classmethod
     def _approval_method_condition(cls, approval_methods: list[str], examiner_reviewed: bool | None = None):
         """Build SQL condition for filtering by latest application status and review state."""
-        # pylint: disable=import-outside-toplevel
-        from sqlalchemy import select
-
         from strr_api.models.application import Application
 
         # For each registration, evaluate only the latest application (same ordering
         # used by the dashboard payload). This keeps filtering aligned with what users
         # see in the Sub-Status column.
-        latest_app_status_subq = (
-            select(Application.status)
-            .where(Application.registration_id == Registration.id)
-            .order_by(Application.application_date.desc())
-            .limit(1)
-            .scalar_subquery()
-        )
-        latest_app_decider_subq = (
-            select(Application.decider_id)
-            .where(Application.registration_id == Registration.id)
-            .order_by(Application.application_date.desc())
-            .limit(1)
-            .scalar_subquery()
-        )
+        latest_app_status_subq = cls._latest_application_field_subquery(Application.status)
         approval_status_condition = latest_app_status_subq.in_(approval_methods)
         if examiner_reviewed is None:
             # Backward-compatible behavior: only filter by approval method/status.
             return approval_status_condition
+
+        latest_app_decider_subq = cls._latest_application_field_subquery(Application.decider_id)
 
         # Review state can be represented by either:
         # - registration level decision (newer flow)
@@ -514,22 +516,13 @@ class Registration(Versioned, BaseModel):
         - no registration level or latest application decision exists yet
         - latest application is still in provisional review queue
         """
-        # pylint: disable=import-outside-toplevel
-        from sqlalchemy import select
-
         from strr_api.models.application import Application
 
         provisional_statuses = [
             Application.Status.PROVISIONALLY_APPROVED.value,
             Application.Status.PROVISIONAL_REVIEW.value,
         ]
-        latest_app_decider_subq = (
-            select(Application.decider_id)
-            .where(Application.registration_id == Registration.id)
-            .order_by(Application.application_date.desc())
-            .limit(1)
-            .scalar_subquery()
-        )
+        latest_app_decider_subq = cls._latest_application_field_subquery(Application.decider_id)
         return db.and_(
             cls._has_renewal_filed_condition(),
             Registration.decider_id.is_(None),
