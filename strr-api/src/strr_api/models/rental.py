@@ -112,22 +112,6 @@ class Registration(Versioned, BaseModel):
             postgresql_using="gin",
             postgresql_ops={"registration_json": "jsonb_path_ops"},
         ),
-        # Sub-status filtering support: the examiner dashboard filters on
-        # noc_status, is_set_aside, and decider_id. Each is highly selective
-        # in production (most rows are NULL/false) so partial indexes give us
-        # the smallest, fastest indexes possible while still covering the
-        # filter paths used in `_collect_sub_status_conditions`.
-        db.Index(
-            "ix_registrations_noc_status",
-            "noc_status",
-            postgresql_where=db.text("noc_status IS NOT NULL"),
-        ),
-        db.Index(
-            "ix_registrations_is_set_aside",
-            "is_set_aside",
-            postgresql_where=db.text("is_set_aside = true"),
-        ),
-        db.Index("ix_registrations_decider_id", "decider_id"),
     )
 
     @classmethod
@@ -196,6 +180,22 @@ class Registration(Versioned, BaseModel):
         if filter_criteria.review_renew is True:
             sub_status_conditions.append(cls._review_renew_condition())
         return sub_status_conditions
+
+    @classmethod
+    def _latest_application_field_subquery(cls, application_field):
+        """Select a field from the latest application for each registration."""
+        # pylint: disable=import-outside-toplevel
+        from sqlalchemy import select
+
+        from strr_api.models.application import Application
+
+        return (
+            select(application_field)
+            .where(Application.registration_id == Registration.id)
+            .order_by(Application.application_date.desc())
+            .limit(1)
+            .scalar_subquery()
+        )
 
     @classmethod
     def _host_condition_bl_or_pr(cls, application_model):
@@ -472,40 +472,28 @@ class Registration(Versioned, BaseModel):
         return query
 
     @classmethod
-    def _latest_application_status_subq(cls):
-        """Return correlated scalar subquery for the latest application's status.
-
-        Backed by the composite index ``ix_application_registration_id_date``
-        on ``application (registration_id, application_date DESC)`` so the
-        per-row lookup is an index seek rather than a sequential scan. Keep
-        the (registration_id, ORDER BY application_date DESC LIMIT 1) shape
-        in sync with that index - changing the ORDER BY direction or adding
-        another sort column will break the index match.
-        """
-        # pylint: disable=import-outside-toplevel
-        from sqlalchemy import select
-
-        from strr_api.models.application import Application
-
-        return (
-            select(Application.status)
-            .where(Application.registration_id == Registration.id)
-            .order_by(Application.application_date.desc())
-            .limit(1)
-            .scalar_subquery()
-        )
-
-    @classmethod
     def _approval_method_condition(cls, approval_methods: list[str], examiner_reviewed: bool | None = None):
         """Build SQL condition for filtering by latest application status and review state."""
-        approval_status_condition = cls._latest_application_status_subq().in_(approval_methods)
+        from strr_api.models.application import Application
+
+        # For each registration, evaluate only the latest application (same ordering
+        # used by the dashboard payload). This keeps filtering aligned with what users
+        # see in the Sub-Status column.
+        latest_app_status_subq = cls._latest_application_field_subquery(Application.status)
+        approval_status_condition = latest_app_status_subq.in_(approval_methods)
         if examiner_reviewed is None:
             # Backward-compatible behavior: only filter by approval method/status.
             return approval_status_condition
 
-        # Per examiner workflow, review state for registrations is represented by
-        # the registration level decider.
-        reviewed_condition = Registration.decider_id.isnot(None)
+        latest_app_decider_subq = cls._latest_application_field_subquery(Application.decider_id)
+
+        # Review state can be represented by either:
+        # - registration level decision (newer flow)
+        # - latest application level decision (legacy flow)
+        reviewed_condition = db.or_(
+            Registration.decider_id.isnot(None),
+            latest_app_decider_subq.isnot(None),
+        )
 
         # examinerReviewed=false -> "review queue" (not yet examiner decided, no renewal filed)
         # examinerReviewed=true  -> already reviewed by an examiner
@@ -525,19 +513,20 @@ class Registration(Versioned, BaseModel):
 
         A registration matches when all are true:
         - a renewal is filed
-        - no registration-level decision exists yet
+        - no registration level or latest application decision exists yet
         - latest application is still in provisional review queue
         """
-        # pylint: disable=import-outside-toplevel
         from strr_api.models.application import Application
 
         provisional_statuses = [
             Application.Status.PROVISIONALLY_APPROVED.value,
             Application.Status.PROVISIONAL_REVIEW.value,
         ]
+        latest_app_decider_subq = cls._latest_application_field_subquery(Application.decider_id)
         return db.and_(
             cls._has_renewal_filed_condition(),
             Registration.decider_id.is_(None),
+            latest_app_decider_subq.is_(None),
             cls._approval_method_condition(provisional_statuses),
         )
 
