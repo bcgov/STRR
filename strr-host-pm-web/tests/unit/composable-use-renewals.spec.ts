@@ -3,6 +3,7 @@ import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import { DateTime } from 'luxon'
 import { mockHostRegistration } from '../mocks/mockedData'
+import { emptyTodoRegistration } from './helpers/renewal-test-utils'
 
 const mockRegistration = ref<HostRegistrationResp | null>(null)
 
@@ -12,18 +13,16 @@ vi.mock('@/stores/hostPermit', () => ({
   useHostPermitStore: vi.fn(() => ({}))
 }))
 
-const mockGetRegistrationToDos = vi.fn()
+const mockGetTodoRegistration = vi.fn()
 
-mockNuxtImport('useStrrApi', () => () => ({
-  getRegistrationToDos: mockGetRegistrationToDos
+vi.mock('#baseWeb/utils/todoItems', () => ({
+  getTodoRegistration: (...args: unknown[]) => mockGetTodoRegistration(...args)
 }))
-
-const setupTodo = (type: RegistrationTodoType, detail?: string) => ({ task: { type, detail } })
 
 function resetState () {
   mockRegistration.value = null
-  mockGetRegistrationToDos.mockClear()
-  mockGetRegistrationToDos.mockResolvedValue({ todos: [] })
+  mockGetTodoRegistration.mockClear()
+  mockGetTodoRegistration.mockResolvedValue(emptyTodoRegistration)
 }
 
 describe('Computed Properties in Renewals', () => {
@@ -95,7 +94,7 @@ describe('Registration Renewal Todo', () => {
     mockRegistration.value = null
     const { isEligibleForRenewal, hasRegistrationRenewalDraft, hasRegistrationRenewalPaymentPending } = useRenewals()
     await flushPromises()
-    expect(mockGetRegistrationToDos).not.toHaveBeenCalled()
+    expect(mockGetTodoRegistration).not.toHaveBeenCalled()
     expect(isEligibleForRenewal.value).toBe(false)
     expect(hasRegistrationRenewalDraft.value).toBe(false)
     expect(hasRegistrationRenewalPaymentPending.value).toBe(false)
@@ -103,19 +102,27 @@ describe('Registration Renewal Todo', () => {
 
   it('set isEligibleForRenewal when REGISTRATION_RENEWAL todo is present', async () => {
     mockRegistration.value = { ...mockHostRegistration }
-    mockGetRegistrationToDos.mockResolvedValue({
-      todos: [setupTodo(RegistrationTodoType.REGISTRATION_RENEWAL)]
+    mockGetTodoRegistration.mockResolvedValue({
+      hasRenewalTodo: true,
+      hasRenewalDraft: false,
+      hasRenewalPaymentPending: false,
+      renewalDraftId: null,
+      renewalPaymentPendingId: null
     })
     const { isEligibleForRenewal } = useRenewals()
     await flushPromises()
-    expect(mockGetRegistrationToDos).toHaveBeenCalledWith(mockHostRegistration.id)
+    expect(mockGetTodoRegistration).toHaveBeenCalledWith(mockHostRegistration.id)
     expect(isEligibleForRenewal.value).toBe(true)
   })
 
   it('set hasRegistrationRenewalDraft and renewalDraftId for renewal draft', async () => {
     mockRegistration.value = { ...mockHostRegistration }
-    mockGetRegistrationToDos.mockResolvedValue({
-      todos: [setupTodo(RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT, '0987654321')]
+    mockGetTodoRegistration.mockResolvedValue({
+      hasRenewalTodo: false,
+      hasRenewalDraft: true,
+      hasRenewalPaymentPending: false,
+      renewalDraftId: '0987654321',
+      renewalPaymentPendingId: null
     })
     const { hasRegistrationRenewalDraft, renewalDraftId } = useRenewals()
     await flushPromises()
@@ -125,8 +132,12 @@ describe('Registration Renewal Todo', () => {
 
   it('set hasRegistrationRenewalPaymentPending and renewalPaymentPendingId for payment pending todo', async () => {
     mockRegistration.value = { ...mockHostRegistration }
-    mockGetRegistrationToDos.mockResolvedValue({
-      todos: [setupTodo(RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING, '12345')]
+    mockGetTodoRegistration.mockResolvedValue({
+      hasRenewalTodo: false,
+      hasRenewalDraft: false,
+      hasRenewalPaymentPending: true,
+      renewalDraftId: null,
+      renewalPaymentPendingId: '12345'
     })
     const { hasRegistrationRenewalPaymentPending, renewalPaymentPendingId } = useRenewals()
     await flushPromises()

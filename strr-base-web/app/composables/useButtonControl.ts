@@ -1,14 +1,14 @@
 import type { ConnectBtnControl } from '#imports'
 
 export const useButtonControl = () => {
-  const route = useRoute()
+  const buttonControlState = useState<ConnectBtnControl | undefined>('connect-button-control', () => undefined)
 
   function setButtonControl (buttonControl: ConnectBtnControl) {
-    route.meta.buttonControl = buttonControl
+    buttonControlState.value = buttonControl
   }
 
-  function getButtonControl (): ConnectBtnControl {
-    return route.meta.buttonControl as ConnectBtnControl
+  function getButtonControl (): ConnectBtnControl | undefined {
+    return buttonControlState.value
   }
 
   function handleButtonLoading (reset: boolean, buttonGrp?: 'left' | 'right', buttonIndex?: number) {
@@ -25,10 +25,13 @@ export const useButtonControl = () => {
       }
     }
     const buttonControl = getButtonControl()
+    if (!buttonControl) {
+      return
+    }
     // update left buttons with loading / disabled as required
-    updateButtonGrp(buttonControl.leftButtons, 'left')
+    updateButtonGrp(buttonControl.leftButtons ?? [], 'left')
     // update right buttons with loading / disabled as required
-    updateButtonGrp(buttonControl.rightButtons, 'right')
+    updateButtonGrp(buttonControl.rightButtons ?? [], 'right')
   }
 
   return {
