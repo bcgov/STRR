@@ -192,9 +192,61 @@ const saveApplication = async (resumeLater = false) => {
   }
 }
 
+type SubmitApplicationResult = Awaited<ReturnType<typeof submitApplication>>
+
+async function collectValidationErrors (): Promise<MultiFormValidationResult> {
+  // TODO: use common fn for here and ReviewConfirm.vue
+  const validations = [
+    propertyStore.validateBusinessLicense(),
+    propertyStore.validateUnitAddress(),
+    propertyStore.validateUnitDetails(),
+    validateOwners(),
+    validateUserConfirmation(),
+    propertyReqStore.validateBlExemption(),
+    propertyReqStore.validatePrRequirements()
+  ]
+
+  const validationResults = await Promise.all(validations)
+  const formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
+
+  if (documentsStore.validateRequiredDocuments().length > 0) {
+    formErrors.push({
+      formId: 'supporting-documents',
+      success: false,
+      errors: []
+    })
+  }
+
+  return formErrors
+}
+
+function buildPostSubmitRedirect (result: SubmitApplicationResult): string {
+  const { applicationType, registrationId, registrationNumber, filingId } = result
+
+  if (!isNewDashboardEnabled.value) {
+    return `/dashboard/${filingId}`
+  }
+
+  if (applicationType === 'renewal' && registrationId && registrationNumber) {
+    permitStore.persistSelectedRegistrationId(registrationId)
+    sessionStorage.setItem('renewalApplicationNumber', filingId)
+    return `/dashboard/registration/${registrationNumber}`
+  }
+
+  return `/dashboard/application/${filingId}`
+}
+
+async function finalizeSuccessfulSubmit (result: SubmitApplicationResult) {
+  const redirectPath = buildPostSubmitRedirect(result)
+  if (result.applicationStatus === ApplicationStatus.PAYMENT_DUE) {
+    handlePaymentRedirect(result.paymentToken, redirectPath)
+    return
+  }
+  await navigateTo(localePath(redirectPath))
+}
+
 // need to cleanup the setButtonControl somehow
 const handleSubmit = async () => {
-  let formErrors: MultiFormValidationResult = []
   shouldSkipConfirmModal = true
   try {
     // set buttons to loading state
@@ -202,73 +254,20 @@ const handleSubmit = async () => {
 
     activeStep.value.complete = true // set final review step as active before validation
     reviewFormRef.value?.validateConfirmation() // validate confirmation checkboxes on submit
-
-    // TODO: use common fn for here and ReviewConfirm.vue
-    // all step validations
-    const validations = [
-      propertyStore.validateBusinessLicense(),
-      propertyStore.validateUnitAddress(),
-      propertyStore.validateUnitDetails(),
-      validateOwners(),
-      validateUserConfirmation(),
-      propertyReqStore.validateBlExemption(),
-      propertyReqStore.validatePrRequirements()
-    ]
-
-    const validationResults = await Promise.all(validations)
-    formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
-    // add documents section error if applicable
-    if (documentsStore.validateRequiredDocuments().length > 0) {
-      formErrors.push({
-        formId: 'supporting-documents',
-        success: false,
-        errors: []
-      })
-    }
-
+    const formErrors = await collectValidationErrors()
     const isApplicationValid = formErrors.every(result => result.success === true)
-    // console.info('is application valid: ', isApplicationValid, formErrors)
-
-    // if all steps valid, submit form with store function
-    if (isApplicationValid) {
-      shouldSkipConfirmModal = true
-      const res = await runWithSubmitLock(() =>
-        submitApplication(false, effectiveApplicationNumber.value)
-      )
-      if (res === undefined) {
-        return
-      }
-      const {
-        paymentToken,
-        filingId,
-        applicationStatus,
-        registrationId,
-        registrationNumber,
-        applicationType
-      } = res
-
-      // Determine redirect path based on feature flag and application type
-      let redirectPath: string
-      if (isNewDashboardEnabled.value) {
-        if (applicationType === 'renewal' && registrationId && registrationNumber) {
-          permitStore.persistSelectedRegistrationId(registrationId)
-          sessionStorage.setItem('renewalApplicationNumber', filingId)
-          redirectPath = `/dashboard/registration/${registrationNumber}`
-        } else {
-          redirectPath = `/dashboard/application/${filingId}`
-        }
-      } else {
-        redirectPath = `/dashboard/${filingId}`
-      }
-
-      if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
-        handlePaymentRedirect(paymentToken, redirectPath)
-      } else {
-        await navigateTo(localePath(redirectPath))
-      }
-    } else {
+    if (!isApplicationValid) {
       stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
+      return
     }
+
+    const result = await runWithSubmitLock(() =>
+      submitApplication(false, effectiveApplicationNumber.value)
+    )
+    if (result === undefined) {
+      return
+    }
+    await finalizeSuccessfulSubmit(result)
   } catch (e) {
     logFetchError(e, 'Error creating host application')
     strrModal.openAppSubmitError(e)
