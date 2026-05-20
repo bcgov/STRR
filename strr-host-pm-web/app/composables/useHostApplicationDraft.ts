@@ -74,7 +74,11 @@ export function useHostApplicationDraft () {
    */
   async function loadInitialPermitData () {
     if (isRegRenewalFlow.value) {
-      await permitStore.loadHostRegistrationData(effectiveRegistrationId.value!, true)
+      const registrationId = effectiveRegistrationId.value
+      if (!registrationId) {
+        return
+      }
+      await permitStore.loadHostRegistrationData(registrationId, true)
       isRegistrationRenewal.value = true
       await resumeRenewalDraftFromTodosIfNeeded()
     } else if (isRenewal.value && applicationId.value) {

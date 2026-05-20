@@ -16,7 +16,7 @@ const {
   navigateTo
 } = vi.hoisted(() => {
   return {
-    selectedRegistrationId: { value: undefined } as Ref<string | undefined>,
+    selectedRegistrationId: { value: undefined, __v_isRef: true } as unknown as Ref<string | undefined>,
     loadHostRegistrationData: vi.fn().mockResolvedValue(undefined),
     readStoredSelectedRegistrationId: vi.fn(),
     clearStoredSelectedRegistrationId: vi.fn(),

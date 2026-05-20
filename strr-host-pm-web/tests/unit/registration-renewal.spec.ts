@@ -21,10 +21,10 @@ const {
   isRegistrationRenewalRef
 } = vi.hoisted(() => {
   return {
-    renewalRegId: { value: '12345' } as Ref<string>,
-    registrationRef: { value: { id: 12345 } } as Ref<{ id: number } | undefined>,
-    applicationRef: { value: undefined } as Ref<unknown>,
-    isRegistrationRenewalRef: { value: true } as Ref<boolean>
+    renewalRegId: { value: '12345', __v_isRef: true } as unknown as Ref<string>,
+    registrationRef: { value: { id: 12345 }, __v_isRef: true } as unknown as Ref<{ id: number } | undefined>,
+    applicationRef: { value: undefined, __v_isRef: true } as unknown as Ref<unknown>,
+    isRegistrationRenewalRef: { value: true, __v_isRef: true } as unknown as Ref<boolean>
   }
 })
 
@@ -150,7 +150,9 @@ const mountRenewalApplication = () =>
   mountSuspended(Application, { global: { plugins: [baseEnI18n], stubs: draftSaveStubs } })
 
 async function clickSaveDraft () {
-  await lastButtonControl!.leftButtons![2]!.action()
+  const saveAction = lastButtonControl?.leftButtons?.[2]?.action
+  expect(saveAction).toBeTypeOf('function')
+  await saveAction?.()
   await flushPromises()
 }
 
