@@ -39,7 +39,7 @@ import logging
 from http import HTTPStatus
 
 from flasgger import swag_from
-from flask import Blueprint, request
+from flask import Blueprint, g, jsonify, request
 from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
@@ -86,8 +86,23 @@ def upload_supporting_document():
     try:
         file = validate_document_upload(request.files)
         filename = secure_filename(file.filename)
-        document = DocumentService.upload_document(filename, file.content_type, file.read())
-        return document, HTTPStatus.CREATED
+        token_info = getattr(g, "jwt_oidc_token_info", {}) or {}
+        document_type = request.form.get("documentType", "OTHERS")
+        document = DocumentService.upload_document(
+            filename,
+            file.content_type,
+            file.read(),
+            metadata={
+                "upload_source": "documents",
+                "account_id": request.headers.get("Account-Id"),
+                "document_type": document_type,
+                "upload_step": "standalone_supporting_document",
+                "uploaded_by": token_info.get("username") or token_info.get("preferred_username"),
+                "uploaded_by_idp_userid": token_info.get("idp_userid"),
+                "uploaded_by_login_source": token_info.get("loginSource"),
+            },
+        )
+        return jsonify(document), HTTPStatus.CREATED
     except AuthException as auth_exception:
         return exception_response(auth_exception)
     except ValidationException as auth_exception:

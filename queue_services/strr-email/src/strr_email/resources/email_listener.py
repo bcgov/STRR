@@ -46,17 +46,14 @@ from flask import current_app
 from flask import jsonify
 from flask import request
 from jinja2 import Template
-import requests
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.enums.enum import ChannelType
 from strr_api.enums.enum import RegistrationNocStatus
 from strr_api.models import Application
-from strr_api.models import CustomerInteraction
 from strr_api.models import Platform
 from strr_api.models import Registration
 from strr_api.models import StrataHotel
 from strr_api.models.application import ApplicationSerializer
-from strr_api.services import AuthService
 from strr_api.services import InteractionService
 from strr_api.services import RegistrationService
 from strr_api.services.interaction import EmailInfo
@@ -81,21 +78,11 @@ EMAIL_SUBJECT = {
     "HOST_DECLINED": "Short-Term Rental Application Refused",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
+    "STRATA_HOTEL_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
     "STRATA_HOTEL_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
     "PLATFORM_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
 }
-
-
-def _is_invalid_email_error(error_body: object) -> bool:
-    """Return True when the upstream error indicates a malformed email address."""
-    error_text = str(error_body).lower()
-    return bool(
-        re.search(
-            r"(invalid|malformed|bad|not valid).{0,25}email|email.{0,25}(invalid|malformed|not valid)",
-            error_text,
-        )
-    )
 
 
 @bp.route("/", methods=("POST",))
@@ -177,7 +164,10 @@ def worker():
                 registration, email_info, jinja_template
             )
         elif registration.registration_type == Registration.RegistrationType.STRATA_HOTEL:
-            if email_info.email_type == "STRATA_HOTEL_RENEWAL_REMINDER":
+            if email_info.email_type in (
+                "STRATA_HOTEL_REGISTRATION_ACTIVE",
+                "STRATA_HOTEL_RENEWAL_REMINDER",
+            ):
                 email = _get_registration_update_email_content_for_strata_hotel(
                     registration, email_info, jinja_template
                 )
@@ -193,96 +183,35 @@ def worker():
         else:
             return {}, HTTPStatus.OK
 
-    # 4. Send email via InteractionService or notify-api
-    # Manage RENEWALS first, others still be the legacy method
-    if "RENEWAL_REMINDER" in email_info.email_type:
-        try:
-            email_info.email = email
-            resp = InteractionService.dispatch(
-                channel_type=ChannelType.EMAIL,
-                payload=email_info,
-                idempotency_key=email_info.interaction,
-                interaction_uuid=email_info.interaction_uuid,
-                application_id=application.id if application else None,
-                registration_id=registration.id if registration else None,
-            )
-            logger.info("completed ce (event_id=%s): %s", event_id, ce)
-            return jsonify({"interaction": resp.interaction_uuid}), HTTPStatus.OK
+    # 4. InteractionService splits comma-separated recipients before sending to Notify.
+    try:
+        email_info.email = email
+        resp = InteractionService.dispatch(
+            channel_type=ChannelType.EMAIL,
+            payload=email_info,
+            idempotency_key=email_info.interaction,
+            interaction_uuid=email_info.interaction_uuid,
+            application_id=application.id if application else None,
+            registration_id=registration.id if registration else None,
+        )
+        logger.info("completed ce (event_id=%s): %s", event_id, ce)
+        return jsonify({"interaction": resp.interaction_uuid}), HTTPStatus.OK
 
-        except Exception:
-            logger.error(
-                "Error dispatching renewal reminder email via InteractionService "
-                "(event_id=%s, ce=%s)\n%s",
-                event_id,
-                ce,
-                traceback.format_exc(),
-            )
-            return jsonify({"message": "Unable to send renewal reminder email."}), 400
-
-    else:
-        # Send a separate notify-api request per recipient so that a single
-        # malformed email address does not block delivery to the other recipients.
-        recipients_list = [
-            r.strip() for r in (email.get("recipients") or "").split(",") if r.strip()
-        ]
-        if not recipients_list:
-            logger.error(f"No recipients to email for ce: {str(ce)}")
-            return jsonify({"message": "No recipients for email."}), HTTPStatus.BAD_REQUEST
-
-        token = AuthService.get_service_client_token()
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {token}",
-        }
-        success_count = 0
-        has_non_format_failure = False
-        for recipient in recipients_list:
-            single_email = {**email, "recipients": recipient}
-            try:
-                resp = requests.post(
-                    current_app.config["NOTIFY_SVC_URL"],
-                    json=single_email,
-                    headers=headers,
-                    timeout=current_app.config["NOTIFY_API_TIMEOUT"],
-                )
-            except Exception as err:  # noqa: BLE001
-                logger.info(f"Error sending recipient {recipient}: {str(err)}")
-                logger.error(
-                    f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
-                )
-                has_non_format_failure = True
-                continue
-            if resp.status_code in [HTTPStatus.OK, HTTPStatus.ACCEPTED, HTTPStatus.CREATED]:
-                success_count += 1
-            else:
-                try:
-                    err_body = resp.json()
-                except Exception:  # noqa: BLE001
-                    err_body = resp.text
-                logger.info(f"Error {resp.status_code} - {str(err_body)}")
-                logger.error(
-                    f"Error posting email to notify-api for recipient {recipient}: {str(ce)}"
-                )
-                if (
-                    HTTPStatus.BAD_REQUEST <= resp.status_code < HTTPStatus.INTERNAL_SERVER_ERROR
-                    and _is_invalid_email_error(err_body)
-                ):
-                    # Invalid recipient format is treated as a user-level 4xx.
-                    pass
-                else:
-                    has_non_format_failure = True
-
-        if success_count == 0:
-            failure_status = (
-                HTTPStatus.BAD_GATEWAY if has_non_format_failure else HTTPStatus.BAD_REQUEST
-            )
-            return (
-                jsonify({"message": "Error posting email to notify-api."}),
-                failure_status,
-            )
-
-    logger.info("completed ce (event_id=%s): %s", event_id, ce)
-    return {}, HTTPStatus.OK
+    except Exception as err:
+        logger.error(
+            "strr.email.notify.failed Error posting email to notify-api "
+            "cloud_event_id=%s email_type=%s application_number=%s registration_number=%s "
+            "interaction_uuid=%s interaction_key=%s error=%s traceback=%s",
+            getattr(ce, "id", None),
+            email_info.email_type,
+            email_info.application_number,
+            email_info.registration_number,
+            email_info.interaction_uuid,
+            email_info.interaction,
+            err,
+            traceback.format_exc(),
+        )
+        return jsonify({"message": "Error posting email to notify-api."}), HTTPStatus.BAD_REQUEST
 
 
 def _get_registration_update_email_content_for_host(
@@ -363,6 +292,7 @@ def _get_registration_update_email_content_for_strata_hotel(
         postal_code=strata_hotel.location.postal_code,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        custom_content=email_info.custom_content,
         tac_url=_get_registration_tac_url(registration),
     )
     subject_number = registration.registration_number

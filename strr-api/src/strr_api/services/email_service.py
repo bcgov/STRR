@@ -33,16 +33,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """This module provides Email type services."""
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from flask import current_app
 
 from strr_api.enums.enum import ChannelType, RegistrationStatus
 from strr_api.models import Application, Registration
 from strr_api.services import gcp_queue_publisher
-
-# from strr_api.services import InteractionService
-
+from strr_api.services.interaction import EmailInfo, InteractionService
 
 logger = logging.getLogger("api")
 
@@ -66,6 +64,39 @@ class EmailService:
     """Service to handle email logic and to interact with the email queue."""
 
     @staticmethod
+    def _publish_tracked_email(
+        *,
+        payload_data: dict,
+        application_id: int | None = None,
+        registration_id: int | None = None,
+        idempotency_key: str | None = None,
+    ):
+        """Create a queued interaction before publishing the email event."""
+        email_info = EmailInfo(
+            application_number=payload_data.get("applicationNumber"),
+            email_type=payload_data.get("emailType"),
+            custom_content=payload_data.get("customContent"),
+            registration_number=payload_data.get("registrationNumber"),
+            interaction=idempotency_key,
+        )
+        interaction_uuid = InteractionService.queued(
+            channel_type=ChannelType.EMAIL,
+            payload=email_info,
+            application_id=application_id,
+            registration_id=registration_id,
+            idempotency_key=idempotency_key,
+        )
+        payload_data["interaction_uuid"] = interaction_uuid
+        gcp_queue_publisher.publish_to_queue(
+            gcp_queue_publisher.QueueMessage(
+                source=EMAIL_SOURCE,
+                message_type=EMAIL_TYPE,
+                payload=payload_data,
+                topic=current_app.config.get("GCP_EMAIL_TOPIC"),
+            )
+        )
+
+    @staticmethod
     def send_application_status_update_email(application: Application, custom_content: Optional[str] = None):
         """Send email notification for the application if applicable.
 
@@ -83,15 +114,11 @@ class EmailService:
                     Application.Status.DECLINED,
                 ]:
                     payload_data["customContent"] = custom_content
-                gcp_queue_publisher.publish_to_queue(
-                    # NOTE: if registrationType / status typing (str vs enum)
-                    #       is updated in the model 'emailType' may need changes
-                    gcp_queue_publisher.QueueMessage(
-                        source=EMAIL_SOURCE,
-                        message_type=EMAIL_TYPE,
-                        payload=payload_data,
-                        topic=current_app.config.get("GCP_EMAIL_TOPIC"),
-                    )
+                # NOTE: if registrationType / status typing (str vs enum)
+                #       is updated in the model 'emailType' may need changes
+                EmailService._publish_tracked_email(
+                    payload_data=payload_data,
+                    application_id=application.id,
                 )
             except Exception as err:
                 logger.error("Failed to publish email notification: %s", err.with_traceback(None))
@@ -100,20 +127,16 @@ class EmailService:
     def send_notice_of_consideration_for_application(application: Application):
         """Send notice of consideration for the application."""
         try:
-            gcp_queue_publisher.publish_to_queue(
-                gcp_queue_publisher.QueueMessage(
-                    source=EMAIL_SOURCE,
-                    message_type=EMAIL_TYPE,
-                    payload={
-                        "applicationNumber": application.application_number,
-                        "emailType": (
-                            "PROVISIONAL_REVIEW_NOC"
-                            if application.status == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
-                            else "NOC"
-                        ),
-                    },
-                    topic=current_app.config.get("GCP_EMAIL_TOPIC"),
-                )
+            EmailService._publish_tracked_email(
+                payload_data={
+                    "applicationNumber": application.application_number,
+                    "emailType": (
+                        "PROVISIONAL_REVIEW_NOC"
+                        if application.status == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
+                        else "NOC"
+                    ),
+                },
+                application_id=application.id,
             )
         except Exception as err:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
@@ -122,17 +145,13 @@ class EmailService:
     def send_set_aside_email(application: Application, email_content=None):
         """Send notice of consideration for the application."""
         try:
-            gcp_queue_publisher.publish_to_queue(
-                gcp_queue_publisher.QueueMessage(
-                    source=EMAIL_SOURCE,
-                    message_type=EMAIL_TYPE,
-                    payload={
-                        "applicationNumber": application.application_number,
-                        "emailType": "SET_ASIDE",
-                        "message": email_content,
-                    },
-                    topic=current_app.config.get("GCP_EMAIL_TOPIC"),
-                )
+            EmailService._publish_tracked_email(
+                payload_data={
+                    "applicationNumber": application.application_number,
+                    "emailType": "SET_ASIDE",
+                    "customContent": email_content,
+                },
+                application_id=application.id,
             )
         except Exception as err:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
@@ -146,18 +165,17 @@ class EmailService:
         """Send status update email for a registration."""
         if registration.status in [RegistrationStatus.CANCELLED, RegistrationStatus.ACTIVE]:
             try:
-                gcp_queue_publisher.publish_to_queue(
-                    gcp_queue_publisher.QueueMessage(
-                        source=EMAIL_SOURCE,
-                        message_type=EMAIL_TYPE,
-                        payload={
-                            "registrationNumber": registration.registration_number,
-                            "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
-                            "customContent": email_content,
-                            "interaction": interaction,
-                        },
-                        topic=current_app.config.get("GCP_EMAIL_TOPIC"),
-                    )
+                registration_type = getattr(registration.registration_type, "value", registration.registration_type)
+                registration_status = getattr(registration.status, "name", registration.status)
+                EmailService._publish_tracked_email(
+                    payload_data={
+                        "registrationNumber": registration.registration_number,
+                        "emailType": f"{registration_type}_REGISTRATION_{registration_status}",
+                        "customContent": email_content,
+                        "interaction": interaction,
+                    },
+                    registration_id=registration.id,
+                    idempotency_key=interaction,
                 )
             except Exception as err:
                 logger.error("Failed to publish email notification: %s", err.with_traceback(None))
@@ -166,13 +184,9 @@ class EmailService:
     def send_notice_of_consideration_for_registration(registration: Registration):
         """Send notice of consideration for the application."""
         try:
-            gcp_queue_publisher.publish_to_queue(
-                gcp_queue_publisher.QueueMessage(
-                    source=EMAIL_SOURCE,
-                    message_type=EMAIL_TYPE,
-                    payload={"registrationNumber": registration.registration_number, "emailType": "REGISTRATION_NOC"},
-                    topic=current_app.config.get("GCP_EMAIL_TOPIC"),
-                )
+            EmailService._publish_tracked_email(
+                payload_data={"registrationNumber": registration.registration_number, "emailType": "REGISTRATION_NOC"},
+                registration_id=registration.id,
             )
         except Exception as err:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))
@@ -180,36 +194,17 @@ class EmailService:
     @staticmethod
     def send_renewal_reminder_for_registration(registration: Registration, interaction: str | None = None):
         """Send renewal reminder for the registration."""
-        # TODO: fix circular import issue
-        from strr_api.services import InteractionService
-        from strr_api.services.interaction import EmailInfo
-
         registration_type = getattr(registration.registration_type, "value", registration.registration_type)
         email_type = f"{registration_type}_RENEWAL_REMINDER"
-        email_info = EmailInfo(
-            email_type=email_type,
-            registration_number=registration.registration_number,
-            interaction=interaction,
-        )
-        interaction_uuid = InteractionService.queued(
-            channel_type=ChannelType.EMAIL,
-            payload=email_info,
-            registration_id=registration.id,
-            idempotency_key=interaction,
-        )
         try:
-            gcp_queue_publisher.publish_to_queue(
-                gcp_queue_publisher.QueueMessage(
-                    source=EMAIL_SOURCE,
-                    message_type=EMAIL_TYPE,
-                    payload={
-                        "registrationNumber": registration.registration_number,
-                        "emailType": email_type,
-                        "interaction": interaction,
-                        "interaction_uuid": interaction_uuid,
-                    },
-                    topic=current_app.config.get("GCP_EMAIL_TOPIC"),
-                )
+            EmailService._publish_tracked_email(
+                payload_data={
+                    "registrationNumber": registration.registration_number,
+                    "emailType": email_type,
+                    "interaction": interaction,
+                },
+                registration_id=registration.id,
+                idempotency_key=interaction,
             )
         except Exception as err:
             logger.error("Failed to publish email notification: %s", err.with_traceback(None))

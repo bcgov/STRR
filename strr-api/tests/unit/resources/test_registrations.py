@@ -1264,7 +1264,7 @@ def test_upload_registration_document(app, session, client, jwt):
         with patch(
             "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
             return_value="Test Key",
-        ):
+        ) as mock_upload:
             with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
                 data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}
                 rv = client.post(
@@ -1284,6 +1284,13 @@ def test_upload_registration_document(app, session, client, jwt):
                     headers=staff_headers,
                 )
                 assert rv_staff.status_code == HTTPStatus.CREATED
+                assert mock_upload.call_args.kwargs["metadata"] == {
+                    "upload_source": "registration",
+                    "entity_id": registration.id,
+                    "registration_number": registration.registration_number,
+                    "document_type": "OTHERS",
+                    "upload_step": "registration_document",
+                }
 
             registration.noc_status = RegistrationNocStatus.NOC_PENDING.value
             registration.save()

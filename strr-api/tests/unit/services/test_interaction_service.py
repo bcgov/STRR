@@ -20,7 +20,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from strr_api.enums.enum import ChannelType
+from strr_api.enums.enum import ChannelType, InteractionStatus
 from strr_api.exceptions import ExternalServiceException, ValidationException
 from strr_api.models import CustomerInteraction
 from strr_api.services import InteractionService
@@ -170,6 +170,109 @@ def test_dispatch_email_interaction_success(mock_requests_post, mock_get_token, 
     assert db_interaction.notify_reference == "123"
 
 
+def test_queued_email_interaction_records_metadata(session, setup_parents):
+    """Assert queued email interactions include observability metadata."""
+    email_info = EmailInfo(
+        registration_number="REG-123",
+        email_type="HOST_REGISTRATION_ACTIVE",
+        custom_content="some content",
+    )
+
+    interaction_uuid = InteractionService.queued(
+        channel_type=ChannelType.EMAIL,
+        payload=email_info,
+        registration_id=setup_parents["registration_id"],
+        idempotency_key="status-update-1",
+    )
+
+    stored = CustomerInteraction.find_by_uuid(interaction_uuid)
+
+    assert stored.status == InteractionStatus.QUEUED
+    assert stored.meta_data["email_type"] == "HOST_REGISTRATION_ACTIVE"
+    assert stored.meta_data["registration_number"] == "REG-123"
+    assert stored.meta_data["target_entity"] == "registration"
+    assert stored.meta_data["target_id"] == str(setup_parents["registration_id"])
+
+
+@pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
+@patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
+@patch("strr_api.services.interaction.requests.post")
+def test_dispatch_updates_queued_interaction_with_notify_metadata(
+    mock_requests_post, mock_get_token, session, setup_parents, inject_config
+):
+    """Assert dispatch updates the queued interaction instead of creating a disconnected row."""
+    mock_requests_post.return_value.status_code = HTTPStatus.OK
+    mock_requests_post.return_value.json.return_value = {"id": "notify-123", "notifyStatus": "QUEUED"}
+
+    email_info = EmailInfo(
+        registration_number="REG-123",
+        email_type="HOST_REGISTRATION_ACTIVE",
+        email={"requestBy": "STRR", "content": {"subject": "Subject", "body": "Body"}},
+    )
+    interaction_uuid = InteractionService.queued(
+        channel_type=ChannelType.EMAIL,
+        payload=email_info,
+        registration_id=setup_parents["registration_id"],
+    )
+
+    interaction = InteractionService.dispatch(
+        channel_type=ChannelType.EMAIL,
+        payload=email_info,
+        interaction_uuid=interaction_uuid,
+        registration_id=setup_parents["registration_id"],
+    )
+    session.expire_all()
+    stored = CustomerInteraction.find_by_uuid(interaction_uuid)
+
+    mock_get_token.assert_called_once()
+    mock_requests_post.assert_called_once()
+    assert interaction.interaction_uuid == interaction_uuid
+    assert stored.status == InteractionStatus.SENT
+    assert stored.notify_reference == "notify-123"
+    assert stored.body_content == "Subject"
+    assert stored.meta_data["notify_request"]["subject"] == "Subject"
+    assert stored.meta_data["notify_response"]["notifyStatus"] == "QUEUED"
+
+
+@pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
+@patch("strr_api.services.auth_service.AuthService.get_service_client_token", return_value="dummy_token")
+@patch("strr_api.services.interaction.requests.post")
+def test_dispatch_marks_existing_interaction_failed_on_notify_error(
+    mock_requests_post, mock_get_token, session, setup_parents, inject_config
+):
+    """Assert Notify failures update the interaction while preserving Pub/Sub retry behavior."""
+    mock_requests_post.return_value.status_code = HTTPStatus.BAD_REQUEST
+    mock_requests_post.return_value.json.return_value = {"message": "error"}
+
+    email_info = EmailInfo(
+        registration_number="REG-123",
+        email_type="HOST_REGISTRATION_ACTIVE",
+        email={"requestBy": "STRR", "content": {"subject": "Subject", "body": "Body"}},
+    )
+    interaction_uuid = InteractionService.queued(
+        channel_type=ChannelType.EMAIL,
+        payload=email_info,
+        registration_id=setup_parents["registration_id"],
+    )
+
+    with pytest.raises(ExternalServiceException):
+        InteractionService.dispatch(
+            channel_type=ChannelType.EMAIL,
+            payload=email_info,
+            interaction_uuid=interaction_uuid,
+            registration_id=setup_parents["registration_id"],
+        )
+
+    session.expire_all()
+    stored = CustomerInteraction.find_by_uuid(interaction_uuid)
+
+    mock_get_token.assert_called_once()
+    mock_requests_post.assert_called_once()
+    assert stored.status == InteractionStatus.FAILED
+    assert stored.meta_data["notify_response"]["status_code"] == HTTPStatus.BAD_REQUEST
+    assert stored.meta_data["notify_response"]["error"] == {"message": "error"}
+
+
 @pytest.mark.parametrize(
     "response_status_code, response_json",
     [
@@ -237,7 +340,8 @@ def test_dispatch_email_splits_recipients(mock_requests_post, mock_get_token, se
     posted_recipients = [call.kwargs["json"]["recipients"] for call in mock_requests_post.call_args_list]
     assert posted_recipients == ["foo@foo.com", "bar@bar.com", "baz@baz.com"]
     assert interaction.notify_reference == "111"
-    assert interaction.meta_data == {"notify_references": "111,222,333"}
+    assert interaction.meta_data["notify_references"] == "111,222,333"
+    assert interaction.meta_data["notify_response"]["ids"] == "111,222,333"
 
 
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
@@ -269,7 +373,8 @@ def test_dispatch_email_partial_recipient_failure(
 
     assert mock_requests_post.call_count == 3
     assert interaction.notify_reference == "111"
-    assert interaction.meta_data == {"notify_references": "111,333"}
+    assert interaction.meta_data["notify_references"] == "111,333"
+    assert interaction.meta_data["notify_response"]["ids"] == "111,333"
 
 
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
