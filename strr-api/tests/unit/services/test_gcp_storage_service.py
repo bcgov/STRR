@@ -312,6 +312,8 @@ def test_upload_registration_document_logs_failure(mock_bucket, mock_uuid, app, 
             )
 
     assert any("strr.document_upload.failed" in str(arg) for call in mock_logger.call_args_list for arg in call.args)
+
+
 @patch("strr_api.services.gcp_storage_service.GCPStorageService._create_storage_client")
 def test_get_batch_registration_document_creation_times_returns_empty_dict_for_empty_input(mock_make_client):
     """get_batch_registration_document_creation_times returns {} without calling GCP when given no blob names."""

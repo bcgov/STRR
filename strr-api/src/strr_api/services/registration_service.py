@@ -738,15 +738,12 @@ class RegistrationService:
         """Returns registration JSON."""
         return RegistrationSerializer.serialize(registration=registration)
 
-    @staticmethod
-    def enrich_document_added_on_from_gcp(registration_dict: dict) -> None:
+    @classmethod
+    def enrich_document_added_on_from_gcp(cls, registration_dict: dict) -> None:
         """Overwrite addedOn for each document with the GCP blob creation timestamp."""
-        for doc_item in registration_dict.get("documents", []):
-            file_key = doc_item.get("fileKey")
-            if file_key:
-                created_iso = GCPStorageService.get_registration_document_creation_time(file_key)
-                if created_iso:
-                    doc_item["addedOn"] = created_iso
+        file_keys = [doc.get("fileKey") for doc in registration_dict.get("documents", []) if doc.get("fileKey")]
+        timestamps = GCPStorageService.get_batch_registration_document_creation_times(file_keys)
+        cls._apply_document_timestamps(registration_dict, timestamps)
 
     @staticmethod
     def _apply_document_timestamps(registration_dict: dict, timestamps: dict) -> None:
