@@ -3,6 +3,7 @@ import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { nextTick } from 'vue'
 import { mockApplicationHeader, mockHostRegistration } from '../mocks/mockedData'
 import { baseEnI18n } from '../mocks/i18n'
+import { renewalNavigatePayload } from './helpers/renewal-test-utils'
 
 const $t = baseEnI18n.global.t
 
@@ -19,7 +20,14 @@ mockNuxtImport('storeToRefs', () => (_store: any) => ({
 }))
 
 vi.mock('@/stores/hostPermit', () => ({
-  useHostPermitStore: vi.fn(() => ({}))
+  useHostPermitStore: vi.fn(() => ({
+    setRenewalRegistrationContext: (id: string | number) => {
+      mockRenewalRegId.value = String(id)
+    },
+    clearRenewalRegistrationContext: () => {
+      mockRenewalRegId.value = undefined
+    }
+  }))
 }))
 
 const mockIsEligibleForRenewal = ref(false)
@@ -352,7 +360,7 @@ describe('Renewal Todos buttons', () => {
     expect(mockNavigateTo).toHaveBeenCalledWith({ path: '/application', query: { renew: 'true' } })
   })
 
-  it('resume draft button clears renewalRegId and navigates with draft applicationId', async () => {
+  it('resume draft button clears renewal context and navigates with draft applicationId', async () => {
     mockHasRegistrationRenewalDraft.value = true
     mockRenewalDraftId.value = '1234567890'
     const { todos, setupRenewalTodosWatch } = useDashboardTodos()
@@ -360,10 +368,7 @@ describe('Renewal Todos buttons', () => {
     const todo = todos.value.find(t => t.id === 'todo-renewal-draft')!
     await todo.buttons![0]!.action()
     expect(mockRenewalRegId.value).toBeUndefined()
-    expect(mockNavigateTo).toHaveBeenCalledWith({
-      path: '/application',
-      query: { renew: 'true', applicationId: '1234567890' }
-    })
+    expect(mockNavigateTo).toHaveBeenCalledWith(renewalNavigatePayload('1234567890'))
   })
 
   it('delete draft button calls deleteApplication, remove draft todo, and reload renewal todos', async () => {

@@ -2,7 +2,6 @@ import { DateTime } from 'luxon'
 
 // Registration Renewals composable
 export const useRenewals = () => {
-  const { getRegistrationToDos } = useStrrApi()
   const { registration } = storeToRefs(useHostPermitStore())
 
   const isEligibleForRenewal = ref(false)
@@ -40,25 +39,19 @@ export const useRenewals = () => {
       return
     }
 
-    const { todos } = await getRegistrationToDos(registration.value.id)
-    // check if todos have a renewable registration
-    isEligibleForRenewal.value = todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL)
-    // check if todos have a renewable registration draft
-    hasRegistrationRenewalDraft.value =
-      todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)
-    // check if todos have a payment pending renewal
-    hasRegistrationRenewalPaymentPending.value =
-      todos.some(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING)
+    const {
+      hasRenewalTodo,
+      hasRenewalDraft,
+      hasRenewalPaymentPending,
+      renewalDraftId: draftId,
+      renewalPaymentPendingId: paymentPendingId
+    } = await getTodoRegistration(registration.value.id)
 
-    if (hasRegistrationRenewalDraft.value) {
-      renewalDraftId.value = todos
-        .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT)?.task?.detail
-    }
-
-    if (hasRegistrationRenewalPaymentPending.value) {
-      renewalPaymentPendingId.value = todos
-        .find(todo => todo?.task?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING)?.task?.detail
-    }
+    isEligibleForRenewal.value = hasRenewalTodo
+    hasRegistrationRenewalDraft.value = hasRenewalDraft
+    hasRegistrationRenewalPaymentPending.value = hasRenewalPaymentPending
+    renewalDraftId.value = draftId ?? ''
+    renewalPaymentPendingId.value = paymentPendingId ?? ''
   }
 
   watch(registration, async () => {

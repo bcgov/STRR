@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ConnectStepper, FormReview } from '#components'
+
 const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
 const strrModal = useStrrModals()
@@ -19,9 +20,15 @@ const {
   $reset: applicationReset
 } = useHostApplicationStore()
 const permitStore = useHostPermitStore()
-const { renewalRegId, application, isRegistrationRenewal } = storeToRefs(permitStore)
+const { isRegistrationRenewal } = storeToRefs(permitStore)
 
-const { applicationId, isRenewal } = useRouterParams()
+const { isRenewal } = useRouterParams()
+const {
+  effectiveApplicationNumber,
+  persistDraftApplicationId,
+  loadInitialPermitData,
+  runWithSubmitLock
+} = useHostApplicationDraft()
 const { isSaveDraftEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
 const { fetchStrrFees, getApplicationFee } = useHostApplicationFee()
 const loading = ref(false)
@@ -42,7 +49,6 @@ const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee4 = ref<ConnectFeeItem | undefined>(undefined)
 
-const isRegRenewalFlow = computed(() => isRenewal.value && !!renewalRegId.value)
 let shouldSkipConfirmModal = false
 
 // show default confirm modal when closing or refreshing the tab while in renewal flow
@@ -66,19 +72,7 @@ onMounted(async () => {
   applicationReset()
   permitStore.$reset()
 
-  if (isRegRenewalFlow.value) {
-    await permitStore.loadHostRegistrationData(renewalRegId.value!, true)
-    isRegistrationRenewal.value = true
-  } else if (isRenewal.value && applicationId.value) {
-    await permitStore.loadHostData(applicationId.value, true)
-    isRegistrationRenewal.value = true
-  } else if (applicationId.value) {
-    await permitStore.loadHostData(applicationId.value, true)
-    // for renewals draft keep the flag on
-    if (application.value?.header.applicationType === 'renewal') {
-      isRegistrationRenewal.value = true
-    }
-  }
+  await loadInitialPermitData()
 
   const { fee1, fee2, fee3 } = await fetchStrrFees()
 
@@ -160,43 +154,99 @@ const steps = ref<Step[]>([
   }
 ])
 const activeStepIndex = ref<number>(0)
-const draftApplicationId = ref<string | undefined>(undefined)
 const activeStep = ref<Step>(steps.value[activeStepIndex.value] as Step)
 const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
 const reviewFormRef = shallowRef<InstanceType<typeof FormReview> | null>(null)
 
 const saveApplication = async (resumeLater = false) => {
-  handleButtonLoading(false, 'left', resumeLater ? 1 : 2)
-  // prevent flicker of buttons by waiting half a second
-  try {
-    let appId = applicationId.value
-    if (draftApplicationId.value) {
-      appId = draftApplicationId.value
+  const result = await runWithSubmitLock(async () => {
+    handleButtonLoading(false, 'left', resumeLater ? 1 : 2)
+    // prevent flicker of buttons by waiting half a second
+    try {
+      const submitResult = await Promise.all([
+        new Promise(resolve => setTimeout(resolve, 500)),
+        submitApplication(true, effectiveApplicationNumber.value)
+      ])
+      const { filingId } = submitResult[1] as Awaited<ReturnType<typeof submitApplication>>
+      await persistDraftApplicationId(filingId)
+      if (resumeLater) {
+        await navigateTo(localePath('/dashboard'))
+      } else {
+        shouldSkipConfirmModal = true
+        setOnBeforeSessionExpired(() => {
+          shouldSkipConfirmModal = true
+          return submitApplication(true, effectiveApplicationNumber.value)
+        })
+      }
+      return { filingId }
+    } catch (e) {
+      logFetchError(e, 'Error saving host application')
+      strrModal.openAppSubmitError(e)
+      throw e
+    } finally {
+      handleButtonLoading(true)
     }
-    const [, { filingId }] = await Promise.all([
-      new Promise(resolve => setTimeout(resolve, 500)),
-      submitApplication(true, appId)
-    ])
-    draftApplicationId.value = filingId
-    applicationId.value = filingId
-    if (resumeLater) {
-      await navigateTo(localePath('/dashboard'))
-    } else {
-      shouldSkipConfirmModal = true
-      // update route meta to save application before session expires with new application id
-      setOnBeforeSessionExpired(() => submitApplication(true, filingId))
-    }
-  } catch (e) {
-    logFetchError(e, 'Error saving host application')
-    strrModal.openAppSubmitError(e)
-  } finally {
-    handleButtonLoading(true)
+  })
+  if (result === undefined) {
+    return false
   }
+}
+
+type SubmitApplicationResult = Awaited<ReturnType<typeof submitApplication>>
+
+async function collectValidationErrors (): Promise<MultiFormValidationResult> {
+  // TODO: use common fn for here and ReviewConfirm.vue
+  const validations = [
+    propertyStore.validateBusinessLicense(),
+    propertyStore.validateUnitAddress(),
+    propertyStore.validateUnitDetails(),
+    validateOwners(),
+    validateUserConfirmation(),
+    propertyReqStore.validateBlExemption(),
+    propertyReqStore.validatePrRequirements()
+  ]
+
+  const validationResults = await Promise.all(validations)
+  const formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
+
+  if (documentsStore.validateRequiredDocuments().length > 0) {
+    formErrors.push({
+      formId: 'supporting-documents',
+      success: false,
+      errors: []
+    })
+  }
+
+  return formErrors
+}
+
+function buildPostSubmitRedirect (result: SubmitApplicationResult): string {
+  const { applicationType, registrationId, registrationNumber, filingId } = result
+
+  if (!isNewDashboardEnabled.value) {
+    return `/dashboard/${filingId}`
+  }
+
+  if (applicationType === 'renewal' && registrationId && registrationNumber) {
+    permitStore.persistSelectedRegistrationId(registrationId)
+    sessionStorage.setItem('renewalApplicationNumber', filingId)
+    return `/dashboard/registration/${registrationNumber}`
+  }
+
+  return `/dashboard/application/${filingId}`
+}
+
+async function finalizeSuccessfulSubmit (result: SubmitApplicationResult) {
+  const redirectPath = buildPostSubmitRedirect(result)
+  if (result.applicationStatus === ApplicationStatus.PAYMENT_DUE) {
+    handlePaymentRedirect(result.paymentToken, redirectPath)
+    return
+  }
+  await navigateTo(localePath(redirectPath))
 }
 
 // need to cleanup the setButtonControl somehow
 const handleSubmit = async () => {
-  let formErrors: MultiFormValidationResult = []
   shouldSkipConfirmModal = true
   try {
     // set buttons to loading state
@@ -204,69 +254,20 @@ const handleSubmit = async () => {
 
     activeStep.value.complete = true // set final review step as active before validation
     reviewFormRef.value?.validateConfirmation() // validate confirmation checkboxes on submit
-
-    // TODO: use common fn for here and ReviewConfirm.vue
-    // all step validations
-    const validations = [
-      propertyStore.validateBusinessLicense(),
-      propertyStore.validateUnitAddress(),
-      propertyStore.validateUnitDetails(),
-      validateOwners(),
-      validateUserConfirmation(),
-      propertyReqStore.validateBlExemption(),
-      propertyReqStore.validatePrRequirements()
-    ]
-
-    const validationResults = await Promise.all(validations)
-    formErrors = validationResults.flatMap(result => result as MultiFormValidationResult)
-    // add documents section error if applicable
-    if (documentsStore.validateRequiredDocuments().length > 0) {
-      formErrors.push({
-        formId: 'supporting-documents',
-        success: false,
-        errors: []
-      })
-    }
-
+    const formErrors = await collectValidationErrors()
     const isApplicationValid = formErrors.every(result => result.success === true)
-    // console.info('is application valid: ', isApplicationValid, formErrors)
-
-    // if all steps valid, submit form with store function
-    if (isApplicationValid) {
-      shouldSkipConfirmModal = true
-      const {
-        paymentToken,
-        filingId,
-        applicationStatus,
-        registrationId,
-        registrationNumber,
-        applicationType
-      } = await submitApplication(false, applicationId.value)
-
-      // Determine redirect path based on feature flag and application type
-      let redirectPath: string
-      if (isNewDashboardEnabled.value) {
-        if (applicationType === 'renewal' && registrationId && registrationNumber) {
-          permitStore.selectedRegistrationId = String(registrationId)
-          // Persist to sessionStorage to survive external payment redirect
-          sessionStorage.setItem('selectedRegistrationId', String(registrationId))
-          sessionStorage.setItem('renewalApplicationNumber', filingId)
-          redirectPath = `/dashboard/registration/${registrationNumber}`
-        } else {
-          redirectPath = `/dashboard/application/${filingId}`
-        }
-      } else {
-        redirectPath = `/dashboard/${filingId}`
-      }
-
-      if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
-        handlePaymentRedirect(paymentToken, redirectPath)
-      } else {
-        await navigateTo(localePath(redirectPath))
-      }
-    } else {
+    if (!isApplicationValid) {
       stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
+      return
     }
+
+    const result = await runWithSubmitLock(() =>
+      submitApplication(false, effectiveApplicationNumber.value)
+    )
+    if (result === undefined) {
+      return
+    }
+    await finalizeSuccessfulSubmit(result)
   } catch (e) {
     logFetchError(e, 'Error creating host application')
     strrModal.openAppSubmitError(e)
@@ -276,8 +277,7 @@ const handleSubmit = async () => {
   }
 }
 
-// TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
-watch([activeStepIndex, isRegistrationRenewal], () => {
+function updateButtonControl () {
   const buttons: ConnectBtnControlItem[] = []
   if (activeStepIndex.value !== 0) {
     buttons.push({
@@ -317,7 +317,16 @@ watch([activeStepIndex, isRegistrationRenewal], () => {
     leftButtons: isSaveDraftEnabled.value ? leftActionButtons : [],
     rightButtons: buttons
   })
-}, { immediate: true })
+}
+
+async function handleStepperNewStep () {
+  // Ensure button control reflects the latest active step model/index after step transition.
+  await nextTick()
+  updateButtonControl()
+}
+
+// TODO: musing - should we move this into the stepper component and add button items to the 'Step' object
+watch([activeStepIndex, isRegistrationRenewal], updateButtonControl, { immediate: true, flush: 'sync' })
 
 // remove unnecessary docs when/if exemption options change
 watch(() => prRequirements.value.prExemptionReason, async (newVal) => {
@@ -390,7 +399,7 @@ definePageMeta({
 // save application before session expires
 setOnBeforeSessionExpired(() => {
   shouldSkipConfirmModal = true
-  submitApplication(true, applicationId.value)
+  return submitApplication(true, effectiveApplicationNumber.value)
 })
 </script>
 <template>
@@ -409,6 +418,7 @@ setOnBeforeSessionExpired(() => {
       v-model:active-step-index="activeStepIndex"
       v-model:active-step="activeStep"
       :stepper-label="$t('strr.step.stepperLabel')"
+      @new-step="handleStepperNewStep"
     />
     <div v-if="activeStepIndex === 0" key="define-your-rental">
       <FormDefineYourRental :is-complete="activeStep.complete" />

@@ -38,6 +38,53 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const isRegistrationRenewal = ref(false)
   const selectedRegistrationId = ref<string | undefined>(undefined)
 
+  const SELECTED_REGISTRATION_ID_KEY = 'selectedRegistrationId'
+
+  /** Registration id for renewal entry: in-flight renew context, dashboard selection, or payment return. */
+  const effectiveRegistrationId = computed((): string | undefined => {
+    if (renewalRegId.value) {
+      return renewalRegId.value
+    }
+    if (selectedRegistrationId.value) {
+      return selectedRegistrationId.value
+    }
+    if (import.meta.client) {
+      return sessionStorage.getItem(SELECTED_REGISTRATION_ID_KEY) ?? undefined
+    }
+    return undefined
+  })
+
+  const setRenewalRegistrationContext = (registrationId: string | number) => {
+    const id = String(registrationId)
+    renewalRegId.value = id
+    selectedRegistrationId.value = id
+  }
+
+  const clearRenewalRegistrationContext = () => {
+    renewalRegId.value = undefined
+  }
+
+  const persistSelectedRegistrationId = (registrationId: string | number) => {
+    const id = String(registrationId)
+    selectedRegistrationId.value = id
+    if (import.meta.client) {
+      sessionStorage.setItem(SELECTED_REGISTRATION_ID_KEY, id)
+    }
+  }
+
+  const readStoredSelectedRegistrationId = (): string | undefined => {
+    if (!import.meta.client) {
+      return undefined
+    }
+    return sessionStorage.getItem(SELECTED_REGISTRATION_ID_KEY) ?? undefined
+  }
+
+  const clearStoredSelectedRegistrationId = () => {
+    if (import.meta.client) {
+      sessionStorage.removeItem(SELECTED_REGISTRATION_ID_KEY)
+    }
+  }
+
   const needsBusinessLicenseDocumentUpload = computed(() => {
     if (!isBusinessLicenseDocumentUploadEnabled.value || !registration.value) {
       return false
@@ -157,6 +204,12 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     renewalRegId,
     isRegistrationRenewal,
     selectedRegistrationId,
+    effectiveRegistrationId,
+    setRenewalRegistrationContext,
+    clearRenewalRegistrationContext,
+    persistSelectedRegistrationId,
+    readStoredSelectedRegistrationId,
+    clearStoredSelectedRegistrationId,
     needsBusinessLicenseDocumentUpload,
     checkBusinessLicenseRequirement,
     downloadApplicationReceipt,

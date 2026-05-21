@@ -324,3 +324,63 @@ describe('useHostPermitStore - loading host data', () => {
     expect(storedDocuments.value).toHaveLength(0)
   })
 })
+
+describe('useHostPermitStore - renewal registration context', () => {
+  const storageKey = 'selectedRegistrationId'
+
+  beforeEach(() => {
+    resetAllState()
+    sessionStorage.clear()
+    const store = useHostPermitStore()
+    store.renewalRegId = undefined
+    store.selectedRegistrationId = undefined
+  })
+
+  it('effectiveRegistrationId prefers renewalRegId, then selectedRegistrationId, then sessionStorage', () => {
+    const store = useHostPermitStore()
+    expect(store.effectiveRegistrationId).toBeUndefined()
+
+    store.selectedRegistrationId = '99'
+    expect(store.effectiveRegistrationId).toBe('99')
+
+    store.setRenewalRegistrationContext(42)
+    expect(store.effectiveRegistrationId).toBe('42')
+
+    store.clearRenewalRegistrationContext()
+    expect(store.effectiveRegistrationId).toBe('42')
+
+    store.selectedRegistrationId = undefined
+    sessionStorage.setItem(storageKey, '88')
+    expect(store.effectiveRegistrationId).toBe('88')
+  })
+
+  it('setRenewalRegistrationContext sets renewalRegId and selectedRegistrationId', () => {
+    const store = useHostPermitStore()
+    store.setRenewalRegistrationContext(123)
+    expect(store.renewalRegId).toBe('123')
+    expect(store.selectedRegistrationId).toBe('123')
+  })
+
+  it('clearRenewalRegistrationContext clears renewalRegId only', () => {
+    const store = useHostPermitStore()
+    store.setRenewalRegistrationContext(123)
+    store.clearRenewalRegistrationContext()
+    expect(store.renewalRegId).toBeUndefined()
+    expect(store.selectedRegistrationId).toBe('123')
+  })
+
+  it('persistSelectedRegistrationId updates store and sessionStorage', () => {
+    const store = useHostPermitStore()
+    store.persistSelectedRegistrationId(456)
+    expect(store.selectedRegistrationId).toBe('456')
+    expect(sessionStorage.getItem(storageKey)).toBe('456')
+  })
+
+  it('readStoredSelectedRegistrationId and clearStoredSelectedRegistrationId', () => {
+    sessionStorage.setItem(storageKey, '777')
+    const store = useHostPermitStore()
+    expect(store.readStoredSelectedRegistrationId()).toBe('777')
+    store.clearStoredSelectedRegistrationId()
+    expect(sessionStorage.getItem(storageKey)).toBeNull()
+  })
+})
