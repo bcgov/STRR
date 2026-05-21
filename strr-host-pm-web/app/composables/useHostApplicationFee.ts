@@ -7,8 +7,21 @@ type FeeMatrix = Partial<
 
 let APPLICATION_FEE_MATRIX: FeeMatrix = {}
 
+const feeMap: Record<RentalUnitSetupOption, FeeInfo> = {
+  [RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE]: FeeInfo.FEE_INFO_1,
+  [RentalUnitSetupOption.SEPARATE_UNIT_SAME_PROPERTY]: FeeInfo.FEE_INFO_2,
+  [RentalUnitSetupOption.DIFFERENT_PROPERTY]: FeeInfo.FEE_INFO_3
+}
+
 export const useHostApplicationFee = () => {
-  const { getFee } = useConnectFeeStore()
+  const { getFee, setFeeInfo } = useConnectFeeStore()
+  const { unitDetails } = storeToRefs(useHostPropertyStore())
+
+  watch(
+    () => unitDetails.value.rentalUnitSetupOption,
+    option => setFeeInfo(option ? feeMap[option] : undefined),
+    { immediate: true }
+  )
 
   /**
    * Fetch three different STRR fees and setup application fee matrix based on the retrieved fees.
