@@ -166,7 +166,7 @@ class GCPStorageService:
             return {}
 
     @classmethod
-    def upload_file(cls, file_type, file_contents, bucket_id):
+    def upload_file(cls, file_type, file_contents, bucket_id, metadata=None):
         """Save the document to the specified bucket."""
 
         upload_metadata = cls._upload_metadata(file_type, file_contents, metadata)
