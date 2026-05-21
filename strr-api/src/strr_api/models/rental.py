@@ -112,6 +112,22 @@ class Registration(Versioned, BaseModel):
             postgresql_using="gin",
             postgresql_ops={"registration_json": "jsonb_path_ops"},
         ),
+        # Sub-status filtering support: the examiner dashboard filters on
+        # noc_status, is_set_aside, and decider_id. Each is highly selective
+        # in production (most rows are NULL/false) so partial indexes give us
+        # the smallest, fastest indexes possible while still covering the
+        # filter paths used in `_collect_sub_status_conditions`.
+        db.Index(
+            "ix_registrations_noc_status",
+            "noc_status",
+            postgresql_where=db.text("noc_status IS NOT NULL"),
+        ),
+        db.Index(
+            "ix_registrations_is_set_aside",
+            "is_set_aside",
+            postgresql_where=db.text("is_set_aside = true"),
+        ),
+        db.Index("ix_registrations_decider_id", "decider_id"),
     )
 
     @classmethod
