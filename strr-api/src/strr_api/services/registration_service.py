@@ -616,11 +616,20 @@ class RegistrationService:
         paginated_result = query.paginate(per_page=limit, page=offset)
 
         search_results = []
+        noc_reg_dicts = []
+        all_file_keys = []
         for registration in paginated_result.items:
             reg_dict = RegistrationService.serialize(registration)
-            if registration.noc_status:
-                RegistrationService.enrich_document_added_on_from_gcp(reg_dict)
             search_results.append(reg_dict)
+            if registration.noc_status:
+                noc_reg_dicts.append(reg_dict)
+                for doc in reg_dict.get("documents", []):
+                    if fk := doc.get("fileKey"):
+                        all_file_keys.append(fk)
+
+        timestamps = GCPStorageService.get_batch_registration_document_creation_times(all_file_keys)
+        for reg_dict in noc_reg_dicts:
+            RegistrationService._apply_document_timestamps(reg_dict, timestamps)
 
         return {
             "page": offset,
@@ -736,6 +745,16 @@ class RegistrationService:
             file_key = doc_item.get("fileKey")
             if file_key:
                 created_iso = GCPStorageService.get_registration_document_creation_time(file_key)
+                if created_iso:
+                    doc_item["addedOn"] = created_iso
+
+    @staticmethod
+    def _apply_document_timestamps(registration_dict: dict, timestamps: dict) -> None:
+        """Overwrite addedOn for each document with the GCP blob creation timestamp."""
+        for doc_item in registration_dict.get("documents", []):
+            file_key = doc_item.get("fileKey")
+            if file_key:
+                created_iso = timestamps.get(file_key)
                 if created_iso:
                     doc_item["addedOn"] = created_iso
 
@@ -1105,11 +1124,20 @@ class RegistrationService:
         """List all registrations matching the search criteria."""
         paginated_result = Registration.search_registrations(filter_criteria)
         search_results = []
+        noc_reg_dicts = []
+        all_file_keys = []
         for item in paginated_result.items:
             reg_dict = RegistrationService.serialize(item)
-            if item.noc_status:
-                RegistrationService.enrich_document_added_on_from_gcp(reg_dict)
             search_results.append(reg_dict)
+            if item.noc_status:
+                noc_reg_dicts.append(reg_dict)
+                for doc in reg_dict.get("documents", []):
+                    if fk := doc.get("fileKey"):
+                        all_file_keys.append(fk)
+
+        timestamps = GCPStorageService.get_batch_registration_document_creation_times(all_file_keys)
+        for reg_dict in noc_reg_dicts:
+            RegistrationService._apply_document_timestamps(reg_dict, timestamps)
 
         return {
             "page": filter_criteria.page,

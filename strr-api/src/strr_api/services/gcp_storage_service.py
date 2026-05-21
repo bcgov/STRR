@@ -57,19 +57,20 @@ class GCPStorageService:
         return current_app.config.get(key, default) if has_app_context() else default
 
     @classmethod
-    def get_bucket(cls, bucket_id):
-        """Get gcp bucket for saving or deleting registration documents."""
-
+    def _create_storage_client(cls):
+        """Build and return an authenticated GCS storage client."""
         project_id = current_app.config.get("GCP_CS_PROJECT_ID")
         credentials = None
         if auth_key := current_app.config.get("GCP_AUTH_KEY"):
             scope = current_app.config.get("GCP_CS_SA_SCOPE")
             service_account_info = json.loads(base64.b64decode(auth_key).decode("utf-8"))
             credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=[scope])
+        return storage.Client(project=project_id, credentials=credentials)
 
-        storage_client = storage.Client(project=project_id, credentials=credentials)
-        bucket = storage_client.bucket(bucket_id)
-        return bucket
+    @classmethod
+    def get_bucket(cls, bucket_id):
+        """Get gcp bucket for saving or deleting registration documents."""
+        return cls._create_storage_client().bucket(bucket_id)
 
     @classmethod
     def registration_documents_bucket(cls):
@@ -138,7 +139,34 @@ class GCPStorageService:
             return None
 
     @classmethod
-    def upload_file(cls, file_type, file_contents, bucket_id, metadata=None):
+    def get_batch_registration_document_creation_times(cls, blob_names: list) -> dict:
+        """
+        Batch get creation timestamps for multiple documents in a single GCP request.
+        """
+        if not blob_names:
+            return {}
+        try:
+            storage_client = cls._create_storage_client()
+            bucket_id = current_app.config.get("GCP_CS_BUCKET_ID")
+            bucket = storage_client.bucket(bucket_id)
+            blobs = {name: bucket.blob(name) for name in blob_names}
+            # send all requests as one HTTP batch when the block exits
+            with storage_client.batch():
+                for blob in blobs.values():
+                    blob.reload()  # fetch metadata without downloading file content
+            result = {}
+            for name, blob in blobs.items():
+                if blob.time_created:
+                    result[name] = blob.time_created.isoformat()
+                else:
+                    logger.warning("No time_created for blob %s — addedOn will not be updated", name)
+            return result
+        except Exception as e:
+            logger.debug("Could not batch get creation times for blobs: %s", e)
+            return {}
+
+    @classmethod
+    def upload_file(cls, file_type, file_contents, bucket_id):
         """Save the document to the specified bucket."""
 
         upload_metadata = cls._upload_metadata(file_type, file_contents, metadata)
