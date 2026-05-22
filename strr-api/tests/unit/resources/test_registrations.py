@@ -2700,6 +2700,55 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_search_registrations_approved_filter_includes_auto_approved_without_decider_when_examiner_reviewed_true(
+    mock_create_invoice, session, client, jwt
+):
+    """Approved filters should include AUTO/FULL regardless of decider."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_number = response_json.get("header").get("registrationNumber")
+        registration = Registration.query.filter_by(registration_number=registration_number).one_or_none()
+
+        # Simulate legacy data with no decider at either level while latest status is AUTO_APPROVED.
+        application.status = Application.Status.AUTO_APPROVED
+        application.decider_id = None
+        registration.decider_id = None
+        session.commit()
+
+        rv = client.get(
+            (
+                f"/registrations/search?approvalMethod={Application.Status.AUTO_APPROVED.value}"
+                f"&approvalMethod={Application.Status.PROVISIONALLY_APPROVED.value}"
+                f"&examinerReviewed=true&status={RegistrationStatus.ACTIVE.value}"
+            ),
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert found, "AUTO_APPROVED should be included even when decider is missing"
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_search_registrations_review_renew_includes_registration_with_filed_renewal_and_no_registration_decider(
     mock_create_invoice, session, client, jwt
 ):

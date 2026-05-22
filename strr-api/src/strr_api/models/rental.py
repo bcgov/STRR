@@ -511,17 +511,34 @@ class Registration(Versioned, BaseModel):
             latest_app_decider_subq.isnot(None),
         )
 
-        # examinerReviewed=false -> "review queue" (not yet examiner decided, no renewal filed)
-        # examinerReviewed=true  -> already reviewed by an examiner
-        return (
-            db.and_(approval_status_condition, reviewed_condition)
-            if examiner_reviewed
-            else db.and_(
-                approval_status_condition,
-                db.not_(reviewed_condition),
-                db.not_(cls._has_renewal_filed_condition()),
+        # examinerReviewed only applies to provisional workflow statuses.
+        provisional_statuses = {
+            Application.Status.PROVISIONALLY_APPROVED.value,
+            Application.Status.PROVISIONAL_REVIEW.value,
+        }
+        provisional_approval_methods = [status for status in approval_methods if status in provisional_statuses]
+        terminal_approval_methods = [status for status in approval_methods if status not in provisional_statuses]
+
+        filter_conditions = []
+        if terminal_approval_methods:
+            # AUTO_APPROVED/FULL_REVIEW_APPROVED are approved regardless of decider.
+            filter_conditions.append(latest_app_status_subq.in_(terminal_approval_methods))
+
+        if provisional_approval_methods:
+            provisional_status_condition = latest_app_status_subq.in_(provisional_approval_methods)
+            filter_conditions.append(
+                db.and_(provisional_status_condition, reviewed_condition)
+                if examiner_reviewed
+                else db.and_(
+                    provisional_status_condition,
+                    db.not_(reviewed_condition),
+                    db.not_(cls._has_renewal_filed_condition()),
+                )
             )
-        )
+
+        if not filter_conditions:
+            return db.false()
+        return db.or_(*filter_conditions)
 
     @classmethod
     def _review_renew_condition(cls):
