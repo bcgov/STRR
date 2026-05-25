@@ -20,6 +20,7 @@ ENV VCS_REF=${VCS_REF} \
     # Poetry 2.x configurations
     POETRY_VERSION=2.3.2 \
     POETRY_NO_INTERACTION=1 \
+    POETRY_SYSTEM_GIT_CLIENT=true \
     POETRY_VIRTUALENVS_CREATE=false \
     POETRY_CACHE_DIR='/var/cache/pypoetry' \
     POETRY_HOME='/usr/local'
