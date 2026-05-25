@@ -295,11 +295,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       }
     }
 
-    const examinerReviewed = hasReviewSubStatus && !hasApprovedSubStatus
-      ? false
-      : hasApprovedSubStatus && !hasReviewSubStatus
-        ? true
-        : undefined
+    let examinerReviewed: boolean | undefined
+    if (hasReviewSubStatus && !hasApprovedSubStatus) {
+      examinerReviewed = false
+    } else if (hasApprovedSubStatus && !hasReviewSubStatus) {
+      examinerReviewed = true
+    } else {
+      examinerReviewed = undefined
+    }
 
     return {
       approvalMethods: [...approvalMethods],
