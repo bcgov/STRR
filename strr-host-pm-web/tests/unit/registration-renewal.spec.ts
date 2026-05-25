@@ -29,7 +29,16 @@ const {
 })
 
 const submitApplicationMock = vi.fn()
+const openAppSubmitErrorMock = vi.fn()
 let lastButtonControl: { leftButtons: { action: () => void | Promise<void> }[] } | null = null
+
+const duplicateRenewalError = {
+  statusCode: 409,
+  data: {
+    message: 'A renewal application is already in progress for this registration.',
+    errorCode: 'RENEWAL_ALREADY_IN_PROGRESS'
+  }
+}
 
 mockNuxtImport('useRouter', () => () => ({ replace: replaceMock }))
 mockNuxtImport('useRoute', () => () => mockRoute)
@@ -132,8 +141,8 @@ vi.mock('@/composables/useHostApplicationFee', () => ({
   })
 }))
 
-vi.mock('@/composables/useStrrModals', () => ({
-  useStrrModals: () => ({ openAppSubmitError: vi.fn() })
+mockNuxtImport('useStrrModals', () => () => ({
+  openAppSubmitError: openAppSubmitErrorMock
 }))
 
 vi.mock('@/composables/useConnectNav', () => ({
@@ -166,6 +175,7 @@ describe('Application page — renewal draft save', () => {
     registrationRef.value = undefined
     isRegistrationRenewalRef.value = false
     submitApplicationMock.mockReset()
+    openAppSubmitErrorMock.mockReset()
     submitApplicationMock.mockResolvedValue({
       paymentToken: '',
       filingId: 'NEW-DRAFT-ID',
@@ -200,5 +210,22 @@ describe('Application page — renewal draft save', () => {
     submitApplicationMock.mockClear()
     await (mockRoute.meta.onBeforeSessionExpired as () => Promise<unknown>)()
     expect(submitApplicationMock).toHaveBeenCalledWith(true, 'NEW-DRAFT-ID')
+  }, 10000)
+
+  it('opens submit error modal when duplicate renewal POST returns 409', async () => {
+    submitApplicationMock.mockRejectedValue(duplicateRenewalError)
+
+    await mountRenewalApplication()
+    await flushPromises()
+
+    const saveAction = lastButtonControl?.leftButtons?.[2]?.action
+    expect(saveAction).toBeTypeOf('function')
+    replaceMock.mockClear()
+    await expect(saveAction?.()).rejects.toEqual(duplicateRenewalError)
+    await flushPromises()
+
+    expect(submitApplicationMock).toHaveBeenCalledWith(true, undefined)
+    expect(openAppSubmitErrorMock).toHaveBeenCalledWith(duplicateRenewalError)
+    expect(replaceMock).not.toHaveBeenCalled()
   }, 10000)
 })
