@@ -120,6 +120,32 @@ describe('useHostPmModals composable', () => {
     expect(modal?.props.actions[0].label).toBe($t('btn.closeBtn'))
   })
 
+  describe('openConfirmProceedToPay modal on step 4 of the Application form', () => {
+    it('should open a modal with two actions', () => {
+      const { openConfirmProceedToPay } = useHostPmModals()
+      const result = openConfirmProceedToPay()
+      expect(result).toBeInstanceOf(Promise)
+      expect(mockModalOpen).toHaveBeenCalled()
+      expect(modal?.props.actions).toHaveLength(2)
+    })
+
+    it('should resolve false when the first action is clicked', async () => {
+      const { openConfirmProceedToPay } = useHostPmModals()
+      const promise = openConfirmProceedToPay()
+      modal?.props.actions[0].handler() // simulate clicking on first button
+      await expect(promise).resolves.toBe(false)
+      expect(mockModalClose).toHaveBeenCalled()
+    })
+
+    it('should resolve true when the second action is clicked', async () => {
+      const { openConfirmProceedToPay } = useHostPmModals()
+      const promise = openConfirmProceedToPay()
+      modal?.props.actions[1].handler() // simulate clicking on second button
+      await expect(promise).resolves.toBe(true)
+      expect(mockModalClose).toHaveBeenCalled()
+    })
+  })
+
   it('should call modal close', () => {
     useHostPmModals().close()
     expect(mockModalClose).toHaveBeenCalled()

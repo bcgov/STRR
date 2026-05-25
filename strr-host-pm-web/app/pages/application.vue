@@ -12,7 +12,7 @@ const { unitDetails } = storeToRefs(propertyStore)
 const { showUnitDetailsForm, prRequirements } = storeToRefs(propertyReqStore)
 const { validateOwners } = useHostOwnerStore()
 const documentsStore = useDocumentStore()
-const { openConfirmUnsavedChanges } = useHostPmModals()
+const { openConfirmUnsavedChanges, openConfirmProceedToPay } = useHostPmModals()
 const {
   submitApplication,
   validateUserConfirmation,
@@ -229,43 +229,49 @@ const handleSubmit = async () => {
     }
 
     const isApplicationValid = formErrors.every(result => result.success === true)
-    // console.info('is application valid: ', isApplicationValid, formErrors)
 
-    // if all steps valid, submit form with store function
-    if (isApplicationValid) {
-      shouldSkipConfirmModal = true
-      const {
-        paymentToken,
-        filingId,
-        applicationStatus,
-        registrationId,
-        registrationNumber,
-        applicationType
-      } = await submitApplication(false, applicationId.value)
+    if (!isApplicationValid) {
+      shouldSkipConfirmModal = false
+      stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
+      return
+    }
 
-      // Determine redirect path based on feature flag and application type
-      let redirectPath: string
-      if (isNewDashboardEnabled.value) {
-        if (applicationType === 'renewal' && registrationId && registrationNumber) {
-          permitStore.selectedRegistrationId = String(registrationId)
-          // Persist to sessionStorage to survive external payment redirect
-          sessionStorage.setItem('selectedRegistrationId', String(registrationId))
-          sessionStorage.setItem('renewalApplicationNumber', filingId)
-          redirectPath = `/dashboard/registration/${registrationNumber}`
-        } else {
-          redirectPath = `/dashboard/application/${filingId}`
-        }
+    // show confirmation modal only when application is valid
+    const confirmed = await openConfirmProceedToPay()
+    if (!confirmed) {
+      shouldSkipConfirmModal = false
+      return // user clicked 'Go back' or closed modal
+    }
+
+    const {
+      paymentToken,
+      filingId,
+      applicationStatus,
+      registrationId,
+      registrationNumber,
+      applicationType
+    } = await submitApplication(false, applicationId.value)
+
+    // Determine redirect path based on feature flag and application type
+    let redirectPath: string
+    if (isNewDashboardEnabled.value) {
+      if (applicationType === 'renewal' && registrationId && registrationNumber) {
+        permitStore.selectedRegistrationId = String(registrationId)
+        // Persist to sessionStorage to survive external payment redirect
+        sessionStorage.setItem('selectedRegistrationId', String(registrationId))
+        sessionStorage.setItem('renewalApplicationNumber', filingId)
+        redirectPath = `/dashboard/registration/${registrationNumber}`
       } else {
-        redirectPath = `/dashboard/${filingId}`
-      }
-
-      if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
-        handlePaymentRedirect(paymentToken, redirectPath)
-      } else {
-        await navigateTo(localePath(redirectPath))
+        redirectPath = `/dashboard/application/${filingId}`
       }
     } else {
-      stepperRef.value?.buttonRefs[activeStepIndex.value]?.focus() // move focus to stepper on form validation errors
+      redirectPath = `/dashboard/${filingId}`
+    }
+
+    if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
+      handlePaymentRedirect(paymentToken, redirectPath)
+    } else {
+      await navigateTo(localePath(redirectPath))
     }
   } catch (e) {
     logFetchError(e, 'Error creating host application')
@@ -291,7 +297,7 @@ watch([activeStepIndex, isRegistrationRenewal], () => {
   buttons.push({
     action: isLastStep ? handleSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
-    label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${activeStepIndex.value + 1}`),
+    label: isLastStep ? t('btn.proceedToPay') : t(`strr.step.description.${activeStepIndex.value + 1}`),
     trailing: true
   })
 

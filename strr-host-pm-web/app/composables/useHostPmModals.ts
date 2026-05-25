@@ -55,6 +55,31 @@ export const useHostPmModals = () => {
     })
   }
 
+  function openConfirmProceedToPay (): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+      const resolveAndClose = (value: boolean) => {
+        resolve(value)
+        close()
+      }
+
+      modal.open(ModalBase, {
+        title: t('modal.proceedToPay.title'),
+        content: t('modal.proceedToPay.content'),
+        actions: [
+          {
+            label: t('modal.proceedToPay.closeBtn'),
+            handler: () => resolveAndClose(false),
+            variant: 'outline'
+          },
+          {
+            label: t('modal.proceedToPay.confirmBtn'),
+            handler: () => resolveAndClose(true)
+          }
+        ]
+      })
+    })
+  }
+
   function openConfirmUnsavedChanges () {
     return new Promise<boolean>((resolve) => {
       const resolveAndClose = (value: boolean) => {
@@ -101,6 +126,7 @@ export const useHostPmModals = () => {
     openHelpCreateAccountModal,
     openConfirmRestartApplicationModal,
     openStrataRegNumberHelpModal,
+    openConfirmProceedToPay,
     openConfirmUnsavedChanges,
     openSupportingDocumentsHelpModal,
     close

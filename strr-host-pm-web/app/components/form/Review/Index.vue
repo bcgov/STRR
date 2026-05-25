@@ -191,6 +191,27 @@ const agreedToRentalActListItems = computed(() => {
           </div>
         </template>
       </ConnectFormCertify>
+
+      <UAlert
+        color="yellow"
+        class="mb-12 w-auto"
+        icon="i-mdi-alert"
+        :close-button="null"
+        variant="subtle"
+        :ui="{
+          inner: 'pt-0',
+          icon: {
+            base: 'flex-shrink-0 w-5 h-5 self-start'
+          }
+        }"
+        data-testid="alert-leaving-application"
+      >
+        <template #title>
+          <ConnectI18nHelper
+            translation-path="alert.leavingApplication"
+          />
+        </template>
+      </UAlert>
     </UForm>
   </div>
 </template>
