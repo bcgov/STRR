@@ -623,9 +623,7 @@ class RegistrationService:
             search_results.append(reg_dict)
             if registration.noc_status:
                 noc_reg_dicts.append(reg_dict)
-                for doc in reg_dict.get("documents", []):
-                    if fk := doc.get("fileKey"):
-                        all_file_keys.append(fk)
+                all_file_keys.extend(doc["fileKey"] for doc in reg_dict.get("documents", []) if doc.get("fileKey"))
 
         timestamps = GCPStorageService.get_batch_registration_document_creation_times(all_file_keys)
         for reg_dict in noc_reg_dicts:
