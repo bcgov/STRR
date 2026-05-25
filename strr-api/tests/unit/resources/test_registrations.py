@@ -2676,6 +2676,35 @@ def test_search_registrations_approval_method_uses_most_recent_application_only(
         found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
         assert found, "Record should match examinerReviewed=true due registration decider"
 
+        # Legacy path: registration decider is empty but latest application decider exists.
+        registration.decider_id = None
+        renewal_app.decider_id = application.reviewer_id
+        session.commit()
+
+        rv = client.get(
+            (
+                f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED"
+                f"&examinerReviewed=false&status={RegistrationStatus.ACTIVE.value}"
+            ),
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert not found, "Record should not match examinerReviewed=false when latest app decider is present"
+
+        rv = client.get(
+            (
+                f"/registrations/search?approvalMethod=PROVISIONALLY_APPROVED"
+                f"&examinerReviewed=true&status={RegistrationStatus.ACTIVE.value}"
+            ),
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        found = any(r.get("registrationNumber") == registration_number for r in registrations.get("registrations"))
+        assert found, "Record should match examinerReviewed=true due latest application decider"
+
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_search_registrations_review_renew_includes_registration_with_filed_renewal_and_no_registration_decider(
@@ -2735,6 +2764,17 @@ def test_search_registrations_review_renew_includes_registration_with_filed_rene
         registrations = rv.json
         assert len(registrations.get("registrations")) == 1
         assert registrations.get("registrations")[0].get("registrationNumber") == registration_number
+
+        # Once latest renewal has a decider, it should no longer appear in reviewRenew.
+        renewal_app.decider_id = application.reviewer_id
+        session.commit()
+        rv = client.get(
+            f"/registrations/search?reviewRenew=true&recordNumber={registration_number}&status={RegistrationStatus.ACTIVE.value}",
+            headers=staff_headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        registrations = rv.json
+        assert len(registrations.get("registrations")) == 0
 
         # reviewRenew=false behaves as no extra filter (same as omitting reviewRenew).
         rv = client.get(
