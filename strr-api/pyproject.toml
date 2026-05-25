@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "strr-api"
-version = "0.3.18c"
+version = "0.3.19a"
 description = ""
 authors = ["thorwolpert <thor@wolpert.ca>"]
 license = "BSD 3-Clause"
