@@ -80,6 +80,7 @@ vi.mock('@/stores/propertyRequirements', () => ({
 vi.mock('@/stores/hostOwner', () => ({
   useHostOwnerStore: () => ({
     validateOwners: () => true,
+    findCompPartyIndex: () => -1,
     hostOwners: ref([]),
     activeOwner: ref(undefined),
     activeOwnerEditIndex: ref(undefined),
@@ -463,5 +464,21 @@ describe('Rental Application - Step 3', () => {
 
     // reset feature flag
     isEnhancedDocumentUploadEnabled.value = false
+  })
+
+  it('renders the Step 4 and its components', async () => {
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n],
+        stubs: { SummaryProperty: true, SummaryOwners: true, SummarySupportingInfo: true }
+      }
+    })
+    await flushPromises()
+    await wrapper.findComponent(ConnectStepper).vm.$emit('update:activeStepIndex', 3)
+
+    const formReview = wrapper.findComponent(FormReview)
+    expect(formReview.exists()).toBe(true)
+
+    expect(formReview.find('[data-testid="alert-leaving-application"]').exists()).toBe(true)
   })
 })
