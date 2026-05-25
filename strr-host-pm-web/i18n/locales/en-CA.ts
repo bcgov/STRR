@@ -26,7 +26,7 @@ export default {
       description: 'Your local government requires a business licence to operate a short-term rental at this address.'
     },
     platformMatchRequired: '{boldStart}Important: Platform Address Match Required.{boldEnd} If you’re hosting on a Platform (e.g., Airbnb, Vrbo), make sure the address listed there matches this STR Registry address exactly. If it doesn’t, please contact the Platform directly to update it.',
-    leavingApplication: "{boldStart}Important:{boldEnd} After selecting {boldStart}Proceed to pay{boldEnd}, you'll leave your application and won't be able to review or change your information. This applies even if payment isn't completed."
+    leavingApplication: "{boldStart}Important:{boldEnd} After selecting {boldStart}Proceed to Payment{boldEnd}, you'll leave your application and won't be able to review or change your information. This applies even if payment isn't completed."
   },
   certify: {
     1: '{terms} I agree to comply with the {link} of registration.',
@@ -259,7 +259,7 @@ export default {
     done: 'Done',
     cancel: 'Cancel',
     submti: 'Submit',
-    proceedToPay: 'Proceed to pay',
+    proceedToPay: 'Proceed to Payment',
     exitReg: 'Exit Registration',
     regDiffUnit: 'Register a Different Rental Unit',
     contWithReg: 'Continue with Registration',
