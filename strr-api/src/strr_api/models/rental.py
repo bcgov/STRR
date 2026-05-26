@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from sql_versioning import Versioned
-from sqlalchemy import Boolean, Enum
+from sqlalchemy import Boolean, Enum, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils.types.ts_vector import TSVectorType
@@ -198,17 +198,12 @@ class Registration(Versioned, BaseModel):
         return sub_status_conditions
 
     @classmethod
-    def _latest_application_field_subquery(cls, application_field):
+    def _latest_application_field_subquery(cls, application_model, application_field):
         """Select a field from the latest application for each registration."""
-        # pylint: disable=import-outside-toplevel
-        from sqlalchemy import select
-
-        from strr_api.models.application import Application
-
         return (
             select(application_field)
-            .where(Application.registration_id == Registration.id)
-            .order_by(Application.application_date.desc())
+            .where(application_model.registration_id == Registration.id)
+            .order_by(application_model.application_date.desc())
             .limit(1)
             .scalar_subquery()
         )
@@ -495,13 +490,13 @@ class Registration(Versioned, BaseModel):
         # For each registration, evaluate only the latest application (same ordering
         # used by the dashboard payload). This keeps filtering aligned with what users
         # see in the Sub-Status column.
-        latest_app_status_subq = cls._latest_application_field_subquery(Application.status)
+        latest_app_status_subq = cls._latest_application_field_subquery(Application, Application.status)
         approval_status_condition = latest_app_status_subq.in_(approval_methods)
         if examiner_reviewed is None:
             # Backward-compatible behavior: only filter by approval method/status.
             return approval_status_condition
 
-        latest_app_decider_subq = cls._latest_application_field_subquery(Application.decider_id)
+        latest_app_decider_subq = cls._latest_application_field_subquery(Application, Application.decider_id)
 
         # Review state can be represented by either:
         # - registration level decision (newer flow)
@@ -538,7 +533,7 @@ class Registration(Versioned, BaseModel):
             Application.Status.PROVISIONALLY_APPROVED.value,
             Application.Status.PROVISIONAL_REVIEW.value,
         ]
-        latest_app_decider_subq = cls._latest_application_field_subquery(Application.decider_id)
+        latest_app_decider_subq = cls._latest_application_field_subquery(Application, Application.decider_id)
         return db.and_(
             cls._has_renewal_filed_condition(),
             Registration.decider_id.is_(None),
