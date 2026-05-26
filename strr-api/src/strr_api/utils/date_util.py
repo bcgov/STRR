@@ -13,8 +13,7 @@
 # limitations under the License.
 """Date utilities."""
 from datetime import datetime
-
-import pytz
+from zoneinfo import ZoneInfo
 
 
 class DateUtil:
@@ -25,7 +24,12 @@ class DateUtil:
     @staticmethod
     def as_legislation_timezone(date_time: datetime) -> datetime:
         """Return a datetime adjusted to the legislation timezone."""
-        return date_time.astimezone(pytz.timezone(DateUtil.LEGISLATIVE_TIMEZONE))
+        return date_time.astimezone(ZoneInfo(DateUtil.LEGISLATIVE_TIMEZONE))
+
+    @staticmethod
+    def now_as_legislation_timezone() -> datetime:
+        """Return the current datetime adjusted to the legislation timezone."""
+        return datetime.now(ZoneInfo(DateUtil.LEGISLATIVE_TIMEZONE))
 
     @staticmethod
     def format_as_string(date_time: datetime) -> str:
