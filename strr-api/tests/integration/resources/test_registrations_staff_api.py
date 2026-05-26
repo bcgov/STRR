@@ -209,6 +209,10 @@ def test_post_notice_ok_when_assignee(client, session, headers_strr_examiner, se
         json={"content": "Notice content for integration."},
     )
     assert_status(rv, HTTPStatus.OK)
+    response_json = rv.get_json()
+    assert response_json.get("nocStartDate") is not None
+    assert response_json.get("nocEndDate") is not None
+    assert response_json.get("nocSentDate") is not None
 
 
 def test_patch_str_address_forbidden_for_public(client, headers_public_user, serializable_host_registration):

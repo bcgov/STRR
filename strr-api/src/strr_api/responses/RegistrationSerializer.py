@@ -57,6 +57,7 @@ class RegistrationSerializer:
             latest_noc = max(registration.nocs, key=lambda noc: noc.start_date)
             registration_data["nocStartDate"] = latest_noc.start_date.isoformat()
             registration_data["nocEndDate"] = latest_noc.end_date.isoformat()
+            registration_data["nocSentDate"] = latest_noc.creation_date.isoformat()
 
         if registration.conditionsOfApproval:
             registration_data["conditionsOfApproval"] = {

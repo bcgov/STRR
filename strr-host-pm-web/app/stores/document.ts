@@ -424,6 +424,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       })
 
       uiDoc.apiDoc = res
+      if (uiDoc.uploadStep) { res.uploadStep = uiDoc.uploadStep }
+      if (uiDoc.uploadDate) { res.uploadDate = uiDoc.uploadDate }
       storedDocuments.value.push(uiDoc)
     } catch (e) {
       logFetchError(e, 'Error uploading document')
@@ -441,6 +443,8 @@ export const useDocumentStore = defineStore('host/document', () => {
       const formData = new FormData()
       formData.append('file', uiDoc.file)
       formData.append('documentType', uiDoc.type)
+      if (uiDoc.uploadStep) { formData.append('uploadStep', uiDoc.uploadStep) }
+      if (uiDoc.uploadDate) { formData.append('uploadDate', uiDoc.uploadDate) }
 
       // submit file
       const res = await $strrApi<ApiDocument>('/documents', {
