@@ -48,10 +48,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     if (selectedRegistrationId.value) {
       return selectedRegistrationId.value
     }
-    if (import.meta.client) {
-      return sessionStorage.getItem(SELECTED_REGISTRATION_ID_KEY) ?? undefined
-    }
-    return undefined
+    return sessionStorage.getItem(SELECTED_REGISTRATION_ID_KEY) ?? undefined
   })
 
   const setRenewalRegistrationContext = (registrationId: string | number) => {
@@ -67,22 +64,15 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const persistSelectedRegistrationId = (registrationId: string | number) => {
     const id = String(registrationId)
     selectedRegistrationId.value = id
-    if (import.meta.client) {
-      sessionStorage.setItem(SELECTED_REGISTRATION_ID_KEY, id)
-    }
+    sessionStorage.setItem(SELECTED_REGISTRATION_ID_KEY, id)
   }
 
   const readStoredSelectedRegistrationId = (): string | undefined => {
-    if (!import.meta.client) {
-      return undefined
-    }
     return sessionStorage.getItem(SELECTED_REGISTRATION_ID_KEY) ?? undefined
   }
 
   const clearStoredSelectedRegistrationId = () => {
-    if (import.meta.client) {
-      sessionStorage.removeItem(SELECTED_REGISTRATION_ID_KEY)
-    }
+    sessionStorage.removeItem(SELECTED_REGISTRATION_ID_KEY)
   }
 
   const needsBusinessLicenseDocumentUpload = computed(() => {
