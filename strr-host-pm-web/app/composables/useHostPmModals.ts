@@ -57,23 +57,20 @@ export const useHostPmModals = () => {
 
   function openConfirmProceedToPay (): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-      const resolveAndClose = (value: boolean) => {
-        resolve(value)
-        close()
-      }
-
+      let confirmed = false
       modal.open(ModalBase, {
         title: t('modal.proceedToPay.title'),
         content: t('modal.proceedToPay.content'),
+        onAfterLeave: () => resolve(confirmed),
         actions: [
           {
             label: t('modal.proceedToPay.closeBtn'),
-            handler: () => resolveAndClose(false),
+            handler: () => { confirmed = false; close() },
             variant: 'outline'
           },
           {
             label: t('modal.proceedToPay.confirmBtn'),
-            handler: () => resolveAndClose(true)
+            handler: () => { confirmed = true; close() }
           }
         ]
       })
