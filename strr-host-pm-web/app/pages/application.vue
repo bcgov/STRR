@@ -26,8 +26,7 @@ const { isRenewal } = useRouterParams()
 const {
   effectiveApplicationNumber,
   persistDraftApplicationId,
-  loadInitialPermitData,
-  runWithSubmitLock
+  loadInitialPermitData
 } = useHostApplicationDraft()
 const { isSaveDraftEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
 const { fetchStrrFees, getApplicationFee } = useHostApplicationFee()
@@ -159,36 +158,31 @@ const stepperRef = shallowRef<InstanceType<typeof ConnectStepper> | null>(null)
 const reviewFormRef = shallowRef<InstanceType<typeof FormReview> | null>(null)
 
 const saveApplication = async (resumeLater = false) => {
-  const result = await runWithSubmitLock(async () => {
-    handleButtonLoading(false, 'left', resumeLater ? 1 : 2)
-    // prevent flicker of buttons by waiting half a second
-    try {
-      const submitResult = await Promise.all([
-        new Promise(resolve => setTimeout(resolve, 500)),
-        submitApplication(true, effectiveApplicationNumber.value)
-      ])
-      const { filingId } = submitResult[1] as Awaited<ReturnType<typeof submitApplication>>
-      await persistDraftApplicationId(filingId)
-      if (resumeLater) {
-        await navigateTo(localePath('/dashboard'))
-      } else {
+  handleButtonLoading(false, 'left', resumeLater ? 1 : 2)
+  // prevent flicker of buttons by waiting half a second
+  try {
+    const submitResult = await Promise.all([
+      new Promise(resolve => setTimeout(resolve, 500)),
+      submitApplication(true, effectiveApplicationNumber.value)
+    ])
+    const { filingId } = submitResult[1] as Awaited<ReturnType<typeof submitApplication>>
+    await persistDraftApplicationId(filingId)
+    if (resumeLater) {
+      await navigateTo(localePath('/dashboard'))
+    } else {
+      shouldSkipConfirmModal = true
+      setOnBeforeSessionExpired(() => {
         shouldSkipConfirmModal = true
-        setOnBeforeSessionExpired(() => {
-          shouldSkipConfirmModal = true
-          return submitApplication(true, effectiveApplicationNumber.value)
-        })
-      }
-      return { filingId }
-    } catch (e) {
-      logFetchError(e, 'Error saving host application')
-      strrModal.openAppSubmitError(e)
-      throw e
-    } finally {
-      handleButtonLoading(true)
+        return submitApplication(true, effectiveApplicationNumber.value)
+      })
     }
-  })
-  if (result === undefined) {
-    return false
+    return { filingId }
+  } catch (e) {
+    logFetchError(e, 'Error saving host application')
+    strrModal.openAppSubmitError(e)
+    throw e
+  } finally {
+    handleButtonLoading(true)
   }
 }
 
@@ -270,12 +264,7 @@ const handleSubmit = async () => {
     }
 
     shouldSkipConfirmModal = true
-    const result = await runWithSubmitLock(() =>
-      submitApplication(false, effectiveApplicationNumber.value)
-    )
-    if (result === undefined) {
-      return
-    }
+    const result = await submitApplication(false, effectiveApplicationNumber.value)
     await finalizeSuccessfulSubmit(result)
   } catch (e) {
     logFetchError(e, 'Error creating host application')

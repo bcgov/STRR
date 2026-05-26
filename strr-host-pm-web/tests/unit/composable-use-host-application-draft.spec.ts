@@ -1,6 +1,6 @@
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import { emptyTodoRegistration } from './helpers/renewal-test-utils'
 
@@ -173,25 +173,6 @@ describe('useHostApplicationDraft', () => {
         expect(loadHostDataMock).not.toHaveBeenCalled()
       }
       expect(isRegistrationRenewalRef.value).toBe(expected.renewal)
-    })
-  })
-
-  describe('runWithSubmitLock', () => {
-    it('coalesces a second call while the first is in flight', async () => {
-      const { runWithSubmitLock } = await useDraft()
-      let resolveFirst!: (value: string) => void
-      const firstFn = vi.fn(() => new Promise<string>((resolve) => { resolveFirst = resolve }))
-      const secondFn = vi.fn(() => Promise.resolve('second'))
-
-      const firstResult = runWithSubmitLock(firstFn)
-      await nextTick()
-      const secondResult = runWithSubmitLock(secondFn)
-      expect(secondFn).not.toHaveBeenCalled()
-
-      resolveFirst('first')
-      await expect(firstResult).resolves.toBe('first')
-      await expect(secondResult).resolves.toBe('first')
-      await flushPromises()
     })
   })
 })

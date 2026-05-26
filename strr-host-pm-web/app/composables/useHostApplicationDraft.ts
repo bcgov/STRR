@@ -14,7 +14,6 @@ export function useHostApplicationDraft () {
   } = storeToRefs(permitStore)
 
   const draftApplicationId = ref<string | undefined>(undefined)
-  const inFlightSubmit = shallowRef<Promise<unknown> | null>(null)
 
   const isRegRenewalFlow = computed(
     () => isRenewal.value && !!effectiveRegistrationId.value
@@ -92,27 +91,11 @@ export function useHostApplicationDraft () {
     }
   }
 
-  /**
-   * Coalesce concurrent submit/save attempts by returning the in-flight promise.
-   * Prevents duplicate API calls from rapid clicks or competing triggers.
-   */
-  function runWithSubmitLock<T> (fn: () => Promise<T>): Promise<T | undefined> {
-    if (inFlightSubmit.value) {
-      return inFlightSubmit.value as Promise<T | undefined>
-    }
-    const submitPromise = fn().finally(() => {
-      inFlightSubmit.value = null
-    })
-    inFlightSubmit.value = submitPromise
-    return submitPromise
-  }
-
   return {
     draftApplicationId,
     isRegRenewalFlow,
     effectiveApplicationNumber,
     persistDraftApplicationId,
-    loadInitialPermitData,
-    runWithSubmitLock
+    loadInitialPermitData
   }
 }
