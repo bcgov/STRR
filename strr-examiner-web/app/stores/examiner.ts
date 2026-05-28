@@ -280,6 +280,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         approvalMethods.add(ApplicationStatus.PROVISIONAL_REVIEW)
       } else if (subStatus === APPROVED_SUB_STATUS) {
         hasApprovedSubStatus = true
+        // "Approved" includes auto/full approvals and provisionals that were
+        // reviewed by an examiner.
+        approvalMethods.add(ApplicationStatus.PROVISIONALLY_APPROVED)
+        approvalMethods.add(ApplicationStatus.PROVISIONAL_REVIEW)
         approvalMethods.add(ApplicationStatus.AUTO_APPROVED)
         approvalMethods.add(ApplicationStatus.FULL_REVIEW_APPROVED)
       } else if (NOC_ATTR.has(subStatus)) {
@@ -291,7 +295,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       }
     }
 
-    const examinerReviewed = (hasReviewSubStatus && !hasApprovedSubStatus) ? false : undefined
+    let examinerReviewed: boolean | undefined
+    if (hasReviewSubStatus && !hasApprovedSubStatus) {
+      examinerReviewed = false
+    } else if (hasApprovedSubStatus && !hasReviewSubStatus) {
+      examinerReviewed = true
+    } else {
+      examinerReviewed = undefined
+    }
 
     return {
       approvalMethods: [...approvalMethods],
