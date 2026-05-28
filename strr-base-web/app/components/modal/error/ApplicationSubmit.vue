@@ -3,25 +3,41 @@ const props = defineProps<{
   error: unknown
 }>()
 
-const getErrorKey = () => {
-  const error = props.error
+type ApplicationSubmitErrorKey =
+  | 'renewalAlreadyInProgress'
+  | 'badRequest'
+  | 'internal'
+  | 'unknown'
 
-  if (error && typeof error === 'object') {
-    const hasStatusCode = 'statusCode' in error
-
-    if (hasStatusCode) {
-      const code = error.statusCode as number
-      if (code > 399 && code < 500) {
-        return 'badRequest'
-      } else if (code >= 500) {
-        return 'internal'
-      }
-    }
+function resolveApplicationSubmitErrorKey (error: unknown): ApplicationSubmitErrorKey {
+  if (!error || typeof error !== 'object') {
+    return 'unknown'
   }
+
+  const statusCode = 'statusCode' in error
+    ? (error as { statusCode?: number }).statusCode
+    : undefined
+  const data = 'data' in error ? (error as { data?: unknown }).data : undefined
+  const errorCode = data && typeof data === 'object' && 'errorCode' in data
+    ? String((data as { errorCode?: unknown }).errorCode)
+    : undefined
+
+  if (statusCode === 409 && errorCode === 'RENEWAL_ALREADY_IN_PROGRESS') {
+    return 'renewalAlreadyInProgress'
+  }
+
+  if (statusCode !== undefined && statusCode > 399 && statusCode < 500) {
+    return 'badRequest'
+  }
+
+  if (statusCode !== undefined && statusCode >= 500) {
+    return 'internal'
+  }
+
   return 'unknown'
 }
 
-const errorKey = getErrorKey()
+const errorKey = computed(() => resolveApplicationSubmitErrorKey(props.error))
 </script>
 <template>
   <ModalBase>

@@ -669,6 +669,7 @@ class ApplicationSerializer:
         if application.noc:
             application_dict["header"]["nocStartDate"] = application.noc.start_date.strftime("%Y-%m-%d")
             application_dict["header"]["nocEndDate"] = application.noc.end_date.strftime("%Y-%m-%d")
+            application_dict["header"]["nocSentDate"] = application.noc.creation_date.isoformat()
 
         # Set addedOn for registration documents (application-stage docs live only in application_json, not in DB)
         if registration_docs := application_dict.get("registration", {}).get("documents"):

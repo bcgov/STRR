@@ -312,3 +312,73 @@ def test_upload_registration_document_logs_failure(mock_bucket, mock_uuid, app, 
             )
 
     assert any("strr.document_upload.failed" in str(arg) for call in mock_logger.call_args_list for arg in call.args)
+
+
+@patch("strr_api.services.gcp_storage_service.GCPStorageService._create_storage_client")
+def test_get_batch_registration_document_creation_times_returns_empty_dict_for_empty_input(mock_make_client):
+    """get_batch_registration_document_creation_times returns {} without calling GCP when given no blob names."""
+    result = GCPStorageService.get_batch_registration_document_creation_times([])
+    assert result == {}
+    mock_make_client.assert_not_called()
+
+
+@patch("strr_api.services.gcp_storage_service.GCPStorageService._create_storage_client")
+def test_get_batch_registration_document_creation_times_batches_and_returns_timestamps(mock_make_client):
+    """get_batch_registration_document_creation_times issues one batch request and maps file keys to ISO timestamps."""
+    created_a = datetime(2025, 1, 10, 8, 0, 0, tzinfo=timezone.utc)
+    created_b = datetime(2025, 2, 20, 12, 0, 0, tzinfo=timezone.utc)
+
+    blob_a = MagicMock()
+    blob_a.time_created = created_a
+    blob_b = MagicMock()
+    blob_b.time_created = created_b
+
+    mock_client = MagicMock()
+    mock_client.bucket.return_value.blob.side_effect = lambda name: {"key-a": blob_a, "key-b": blob_b}[name]
+    mock_client.batch.return_value.__enter__ = MagicMock(return_value=None)
+    mock_client.batch.return_value.__exit__ = MagicMock(return_value=False)
+    mock_make_client.return_value = mock_client
+
+    app = _app_with_config(GCP_CS_BUCKET_ID="test-bucket")
+    with app.app_context():
+        result = GCPStorageService.get_batch_registration_document_creation_times(["key-a", "key-b"])
+
+    assert result == {
+        "key-a": created_a.isoformat(),
+        "key-b": created_b.isoformat(),
+    }
+    mock_client.batch.assert_called_once()
+
+
+@patch("strr_api.services.gcp_storage_service.GCPStorageService._create_storage_client")
+def test_get_batch_registration_document_creation_times_omits_blobs_without_time_created(mock_make_client):
+    """get_batch_registration_document_creation_times omits blobs that have no time_created."""
+    blob_ok = MagicMock()
+    blob_ok.time_created = datetime(2025, 3, 1, tzinfo=timezone.utc)
+    blob_no_time = MagicMock()
+    blob_no_time.time_created = None
+
+    mock_client = MagicMock()
+    mock_client.bucket.return_value.blob.side_effect = lambda name: {"key-ok": blob_ok, "key-none": blob_no_time}[name]
+    mock_client.batch.return_value.__enter__ = MagicMock(return_value=None)
+    mock_client.batch.return_value.__exit__ = MagicMock(return_value=False)
+    mock_make_client.return_value = mock_client
+
+    app = _app_with_config(GCP_CS_BUCKET_ID="test-bucket")
+    with app.app_context():
+        result = GCPStorageService.get_batch_registration_document_creation_times(["key-ok", "key-none"])
+
+    assert "key-ok" in result
+    assert "key-none" not in result
+
+
+@patch("strr_api.services.gcp_storage_service.GCPStorageService._create_storage_client")
+def test_get_batch_registration_document_creation_times_returns_empty_dict_on_error(mock_make_client):
+    """get_batch_registration_document_creation_times returns {} and does not raise when GCP errors."""
+    mock_make_client.side_effect = Exception("GCP unavailable")
+
+    app = _app_with_config(GCP_CS_BUCKET_ID="test-bucket")
+    with app.app_context():
+        result = GCPStorageService.get_batch_registration_document_creation_times(["key-a"])
+
+    assert result == {}

@@ -133,6 +133,7 @@ describe('useHostPmModals composable', () => {
       const { openConfirmProceedToPay } = useHostPmModals()
       const promise = openConfirmProceedToPay()
       modal?.props.actions[0].handler() // simulate clicking on first button
+      modal?.props.onAfterLeave()
       await expect(promise).resolves.toBe(false)
       expect(mockModalClose).toHaveBeenCalled()
     })
@@ -141,6 +142,7 @@ describe('useHostPmModals composable', () => {
       const { openConfirmProceedToPay } = useHostPmModals()
       const promise = openConfirmProceedToPay()
       modal?.props.actions[1].handler() // simulate clicking on second button
+      modal?.props.onAfterLeave()
       await expect(promise).resolves.toBe(true)
       expect(mockModalClose).toHaveBeenCalled()
     })

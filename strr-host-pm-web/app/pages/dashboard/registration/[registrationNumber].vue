@@ -41,11 +41,11 @@ onMounted(async () => {
   // If not in store, try sessionStorage (survives external payment redirect)
   let returningFromPayment = false
   if (!selectedRegistrationId.value) {
-    const storedId = sessionStorage.getItem('selectedRegistrationId')
+    const storedId = permitStore.readStoredSelectedRegistrationId()
     if (storedId) {
       selectedRegistrationId.value = storedId
       returningFromPayment = true
-      sessionStorage.removeItem('selectedRegistrationId') // Clean up after use
+      permitStore.clearStoredSelectedRegistrationId()
     }
   }
 

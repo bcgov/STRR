@@ -328,6 +328,10 @@ export default {
     },
     error: {
       applicationSubmit: {
+        renewalAlreadyInProgress: {
+          title: 'Renewal Already in Progress',
+          content: 'A renewal application is already in progress for this registration. Go to your dashboard and continue it. If it has already been submitted, wait until it reaches a final decision before starting another renewal.'
+        },
         badRequest: {
           title: 'Invalid Request',
           content: 'There was an issue with the information submitted. Please review your input and try again.'

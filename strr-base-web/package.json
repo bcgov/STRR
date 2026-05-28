@@ -2,7 +2,7 @@
   "name": "strr-base-web",
   "private": true,
   "type": "module",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "engines": {
     "node": ">=24"
   },
@@ -53,10 +53,5 @@
     "luxon": "^3.5.0",
     "nuxt-gtag": "^3.0.3",
     "vue-country-flag-next": "^2.3.2"
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "6.0.15"
-    }
   }
 }

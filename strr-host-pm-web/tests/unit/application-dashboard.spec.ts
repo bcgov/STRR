@@ -1,6 +1,5 @@
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
-import { describe, it, expect, vi, beforeAll } from 'vitest'
-import { DateTime } from 'luxon'
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
 import { baseEnI18n } from '../mocks/i18n'
 import { mockApplication, mockHostOwner, mockHostRegistration } from '../mocks/mockedData'
 import ApplicationDashboard from '~/pages/dashboard/[applicationId].vue'
@@ -12,10 +11,19 @@ import {
   UButton
 } from '#components'
 
+const {
+  mockIsEligibleForRenewal
+} = vi.hoisted(() => {
+  return {
+    mockIsEligibleForRenewal: { value: true }
+  }
+})
+
 vi.mock('@/stores/hostPermit', () => ({
   useHostPermitStore: () => ({
     loadHostData: vi.fn(),
     downloadApplicationReceipt: vi.fn(),
+    deleteApplication: vi.fn().mockResolvedValue(undefined),
     permitDetails: ref({
       unitAddress: mockApplication.registration.unitAddress,
       documents: [],
@@ -25,7 +33,9 @@ vi.mock('@/stores/hostPermit', () => ({
     showPermitDetails: ref(true),
     application: ref(mockApplication),
     registration: ref(mockApplication.registration),
-    needsBusinessLicenseDocumentUpload: ref(false)
+    needsBusinessLicenseDocumentUpload: ref(false),
+    setRenewalRegistrationContext: vi.fn(),
+    clearRenewalRegistrationContext: vi.fn()
   })
 }))
 
@@ -61,15 +71,26 @@ vi.mock('@/stores/hostProperty', () => ({
   })
 }))
 
-vi.mock('@/composables/useRenewals', () => ({
-  useRenewals: () => ({
-    isEligibleForRenewal: ref(true),
-    renewalDueDate: computed(() =>
-      DateTime.fromISO(mockHostRegistration.expiryDate).setZone('America/Vancouver').toLocaleString(DateTime.DATE_MED)),
-    renewalDateCounter: computed(() => 20),
-    isRenewalPeriodClosed: ref(false),
-    isRenewalsEnabled: ref(true)
-    // getRegistrationRenewalTodos: vi.fn()
+vi.mock('@/composables/useRenewals', () => {
+  return {
+    useRenewals: () => ({
+      isEligibleForRenewal: mockIsEligibleForRenewal,
+      hasRegistrationRenewalDraft: { value: false },
+      hasRegistrationRenewalPaymentPending: { value: false },
+      renewalDraftId: { value: '' },
+      renewalPaymentPendingId: { value: '' },
+      renewalDueDate: { value: 'Dec 31, 2025' },
+      renewalDateCounter: { value: 20 },
+      isRenewalPeriodClosed: { value: false },
+      getRegistrationRenewalTodos: vi.fn().mockResolvedValue(undefined)
+    })
+  }
+})
+
+vi.mock('@/composables/useHostFeatureFlags', () => ({
+  useHostFeatureFlags: () => ({
+    isRenewalsEnabled: ref(true),
+    isNewDashboardEnabled: ref(false)
   })
 }))
 
@@ -91,6 +112,11 @@ vi.mock('@/composables/useStrrApi', () => ({
 
 describe('Dashboard Application Page', () => {
   let wrapper: any
+
+  beforeEach(() => {
+    mockIsEligibleForRenewal.value = true
+    vi.clearAllMocks()
+  })
 
   beforeAll(async () => {
     wrapper = await mountSuspended(ApplicationDashboard, {

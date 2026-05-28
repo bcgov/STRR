@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { ConnectBtnControl } from '#imports'
-
-const buttonControl = computed(() => useRoute().meta.buttonControl as ConnectBtnControl)
+const { getButtonControl } = useButtonControl()
+const buttonControl = computed(() => getButtonControl())
 const leftButtons = computed(() => buttonControl.value?.leftButtons || [])
 const rightButtons = computed(() => buttonControl.value?.rightButtons || [])
 

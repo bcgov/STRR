@@ -1,8 +1,9 @@
-import os
 import logging
+import os
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool, create_engine
+
 from alembic import context
+from sqlalchemy import create_engine, pool, text
 
 # 1. Passive Detection: Don't create an app, just look for one
 try:
@@ -40,14 +41,22 @@ def get_engine_url():
 def get_metadata():
     return target_metadata
 
+
 config.set_main_option('sqlalchemy.url', get_engine_url())
+
 
 def run_migrations_online():
     connectable = get_engine()
     with connectable.connect() as connection:
+        owner_role = os.getenv("DATABASE_OWNER_ROLE")
+        if owner_role:
+            safe_role = owner_role.replace('"', '""')  # Escape any quotes for SQL safety
+            connection.execute(text(f'SET ROLE "{safe_role}"'))
+            connection.commit()
+
         # Only pull migrate args if Flask is actually present
         extra_args = current_app.extensions['migrate'].configure_args if use_flask else {}
-        
+
         context.configure(
             connection=connection,
             target_metadata=get_metadata(),
