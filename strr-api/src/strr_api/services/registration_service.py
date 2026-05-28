@@ -42,7 +42,6 @@ import random
 import traceback
 from datetime import date, datetime, time, timedelta, timezone
 
-import pytz
 from dateutil.relativedelta import relativedelta
 from flask import current_app, render_template
 from weasyprint import HTML
@@ -86,6 +85,7 @@ from strr_api.services.events_service import EventsService
 from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.snapshot_service import SnapshotService
 from strr_api.services.user_service import UserService
+from strr_api.utils.date_util import DateUtil
 
 logger = logging.getLogger("api")
 
@@ -1068,7 +1068,7 @@ class RegistrationService:
         notice_of_consideration.content = content
         notice_of_consideration.registration_id = registration.id
         notice_of_consideration.start_date = datetime.combine(
-            datetime.now(pytz.timezone("America/Vancouver")) + timedelta(days=1), time(0, 1, 0)
+            DateUtil.now_as_legislation_timezone() + timedelta(days=1), time(0, 1, 0)
         )
         days = current_app.config.get("NOC_EXPIRY_DAYS", 8)
         notice_of_consideration.end_date = notice_of_consideration.start_date + timedelta(days=int(days))

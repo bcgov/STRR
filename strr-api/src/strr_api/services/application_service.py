@@ -36,7 +36,6 @@ import copy
 from datetime import datetime, time, timedelta, timezone
 from typing import Optional
 
-import pytz
 from flask import current_app
 
 from strr_api.enums.enum import ApplicationType, PaymentStatus, RegistrationStatus
@@ -49,6 +48,7 @@ from strr_api.services.events_service import EventsService
 from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.registration_service import RegistrationService
 from strr_api.services.user_service import UserService
+from strr_api.utils.date_util import DateUtil
 
 APPLICATION_TERMINAL_STATES = [
     Application.Status.FULL_REVIEW_APPROVED,
@@ -386,7 +386,7 @@ class ApplicationService:
         notice_of_consideration.content = content
         notice_of_consideration.application_id = application.id
         notice_of_consideration.start_date = datetime.combine(
-            datetime.now(pytz.timezone("America/Vancouver")) + timedelta(days=1), time(0, 1, 0)
+            DateUtil.now_as_legislation_timezone() + timedelta(days=1), time(0, 1, 0)
         )
         days = current_app.config.get("NOC_EXPIRY_DAYS", 8)
         notice_of_consideration.end_date = notice_of_consideration.start_date + timedelta(days=int(days))
