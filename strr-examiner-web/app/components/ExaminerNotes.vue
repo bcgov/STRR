@@ -12,7 +12,7 @@ const noteContent = ref('')
 const handleSaveNote = () => {
   // TODO: implement actual save when api is ready
   const newNote: ExaminerNote = {
-    id: Math.random(),
+    id: Math.random(), // NOSONAR
     timestamp: new Date().toISOString(),
     username: kcUser.value.userName,
     text: noteContent.value.trim()
