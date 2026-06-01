@@ -11,6 +11,7 @@ export const useExaminerFeatureFlags = () => {
     isSplitDashboardTableEnabled: isFeatureEnabled('enable-examiner-split-dashboard-table'),
     isHistoricalApplicationsTableEnabled: isFeatureEnabled('enable-examiner-historical-applications-table'),
     isExaminerDecisionsEnabled: isFeatureEnabled('enable-examiner-decisions'),
-    isSnapshotVersionsTableEnabled: isFeatureEnabled('enable-examiner-snapshot-versions-table')
+    isSnapshotVersionsTableEnabled: isFeatureEnabled('enable-examiner-snapshot-versions-table'),
+    isExaminerNotesEnabled: isFeatureEnabled('enable-examiner-notes')
   }
 }

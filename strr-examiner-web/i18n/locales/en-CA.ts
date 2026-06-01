@@ -305,7 +305,8 @@ export default {
     CANCEL: 'Cancel Registration',
     REINSTATE: 'Reinstate Registration',
     SUSPEND: 'Suspend Registration',
-    updateApproval: 'Update Approval'
+    updateApproval: 'Update Approval',
+    save: 'Save'
   },
   error: {
     action: {
@@ -415,7 +416,9 @@ export default {
     },
     renewal: 'Renewal',
     recentDocumentBadge: 'New document',
-    recentDocumentUploadHint: 'New documents were submitted in response to a Notice of Consideration.'
+    recentDocumentUploadHint: 'New documents were submitted in response to a Notice of Consideration.',
+    examinerNotes: 'Notes',
+    examinerNotePlaceholder: 'Type new note here'
   },
   link: {
     learnMore: 'Learn More'
@@ -446,6 +449,12 @@ export default {
     unsavedChanges: {
       title: 'Unsaved Changes',
       message: 'Are you sure you want to discard your changes?'
+    },
+    discardNote: {
+      title: 'Discard note?',
+      message: 'Your note has not been saved.',
+      confirmBtn: 'Discard Note',
+      keepEditing: 'Keep Editing'
     }
   },
   table: {

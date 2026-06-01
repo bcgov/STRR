@@ -12,7 +12,11 @@ const {
 const { isAssignedToUser, emailContent, emailFormRef, activeRecord, isApplication } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 const { showDecisionPanel } = useExaminerDecision()
-const { isHistoricalApplicationsTableEnabled, isSnapshotVersionsTableEnabled } = useExaminerFeatureFlags()
+const {
+  isHistoricalApplicationsTableEnabled,
+  isSnapshotVersionsTableEnabled,
+  isExaminerNotesEnabled
+} = useExaminerFeatureFlags()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -170,6 +174,7 @@ watch(
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
       <DecisionPanel />
+      <ExaminerNotes v-if="isExaminerNotesEnabled" />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
       <HistoricalApplicationsTable
         v-if="!isApplication && isHistoricalApplicationsTableEnabled"
