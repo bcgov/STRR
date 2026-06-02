@@ -269,6 +269,7 @@ export default {
     ariaViewDetails: 'View details for property: {name}, {address}',
     registerAStr: 'Register a Short-Term Rental',
     renew: 'Renew',
+    payNow: 'Pay Now',
     closeBtn: 'Close',
     viewReceipt: 'View Receipt'
   },
