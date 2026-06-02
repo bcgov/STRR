@@ -197,8 +197,8 @@ class ErrorMessage(Enum):
         "Continue with your existing renewal application, or wait until it reaches a final decision."
     )
     RENEWAL_APPLICATION_NO_REGISTRATION_ID = "Renewal application does not have a linked registration id."
-    EXAMINER_NOTE_BODY_REQUIRED = "Note body is required."
-    EXAMINER_NOTE_BODY_TOO_LONG = "Note body exceeds maximum length."
+    EXAMINER_NOTE_TEXT_REQUIRED = "Note text is required."
+    EXAMINER_NOTE_TEXT_TOO_LONG = "Note text exceeds maximum length."
     EXAMINER_NOTE_APPLICATION_REGISTERED = (
         "This application is linked to a registration. Add examiner notes on the registration instead."
     )

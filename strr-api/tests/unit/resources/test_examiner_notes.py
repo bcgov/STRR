@@ -1,5 +1,6 @@
 # Copyright © 2024 Province of British Columbia
 """Resource tests for examiner notes endpoints."""
+
 from datetime import datetime, timedelta
 from http import HTTPStatus
 
@@ -172,19 +173,19 @@ def test_application_notes_not_found(session, client, jwt):
 def test_registration_list_excludes_application_notes(session, client, jwt, app_and_registration):
     app, reg, user = app_and_registration
     headers = _headers(jwt, (STRR_EXAMINER,))
-    ExaminerNote(body="on app", application_id=app.id, author_user_id=user.id).save()
+    ExaminerNote(text="on app", application_id=app.id, author_user_id=user.id).save()
     request_notes(client, "POST", registration_notes_url(reg.id), headers, body="on reg")
     rv = request_notes(client, "GET", registration_notes_url(reg.id), headers)
     assert rv.status_code == HTTPStatus.OK
     assert len(rv.json["notes"]) == 1
-    assert rv.json["notes"][0]["body"] == "on reg"
+    assert rv.json["notes"][0]["text"] == "on reg"
 
 
 def test_application_notes_truncated_flag(session, client, jwt, monkeypatch, app_and_registration):
     monkeypatch.setattr("strr_api.services.examiner_note_service.NOTE_LIST_MAX", 2)
     app, _reg, user = app_and_registration
     for i in range(3):
-        ExaminerNote(body=f"n{i}", application_id=app.id, author_user_id=user.id).save()
+        ExaminerNote(text=f"n{i}", application_id=app.id, author_user_id=user.id).save()
     rv = request_notes(client, "GET", application_notes_url(app), _headers(jwt, (STRR_EXAMINER,)))
     assert rv.status_code == HTTPStatus.OK
     assert rv.json["truncated"] is True

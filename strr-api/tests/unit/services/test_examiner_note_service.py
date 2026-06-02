@@ -11,10 +11,10 @@ from strr_api.exceptions import ValidationException
 from strr_api.models import Application, ExaminerNote, Registration, User
 from strr_api.services.examiner_note_service import ExaminerNoteNotAllowedException, ExaminerNoteService
 
-VALIDATE_BODY_CASES = [
+VALIDATE_TEXT_CASES = [
     pytest.param("  hello  ", "hello", None, id="trims"),
-    pytest.param("   ", None, ErrorMessage.EXAMINER_NOTE_BODY_REQUIRED.value, id="empty"),
-    pytest.param("x" * 4001, None, ErrorMessage.EXAMINER_NOTE_BODY_TOO_LONG.value, id="too-long"),
+    pytest.param("   ", None, ErrorMessage.EXAMINER_NOTE_TEXT_REQUIRED.value, id="empty"),
+    pytest.param("x" * 4001, None, ErrorMessage.EXAMINER_NOTE_TEXT_TOO_LONG.value, id="too-long"),
 ]
 
 CAN_POST_CASES = [
@@ -83,14 +83,14 @@ def _application(session, *, registration_id=None, status=Application.Status.FUL
     return app
 
 
-@pytest.mark.parametrize("body,expected,error_fragment", VALIDATE_BODY_CASES)
-def test_validate_body(session, body, expected, error_fragment):
+@pytest.mark.parametrize("text,expected,error_fragment", VALIDATE_TEXT_CASES)
+def test_validate_text(session, text, expected, error_fragment):
     if error_fragment:
         with pytest.raises(ValidationException) as exc:
-            ExaminerNoteService.validate_body(body)
+            ExaminerNoteService.validate_text(text)
         assert error_fragment in exc.value.message
     else:
-        assert ExaminerNoteService.validate_body(body) == expected
+        assert ExaminerNoteService.validate_text(text) == expected
 
 
 @pytest.mark.parametrize("registration_id,status,can_post,block_fragment", CAN_POST_CASES)
@@ -118,11 +118,11 @@ def test_list_truncated_when_over_cap(session, monkeypatch):
     user = _staff_user(session)
     app = _application(session)
     for i in range(3):
-        ExaminerNote(body=f"note-{i}", application_id=app.id, author_user_id=user.id).save()
+        ExaminerNote(text=f"note-{i}", application_id=app.id, author_user_id=user.id).save()
     notes, truncated = ExaminerNoteService.list_by_application_id(app.id)
     assert len(notes) == 2
     assert truncated is True
-    assert notes[0].body == "note-2"
+    assert notes[0].text == "note-2"
 
 
 def test_serialize_shape(session):
@@ -130,7 +130,7 @@ def test_serialize_shape(session):
     app = _application(session)
     note = ExaminerNoteService.create_application_note(app, user, "hello")
     payload = ExaminerNoteService.serialize(note)
-    assert set(payload.keys()) == {"id", "body", "authorUserId", "authorUsername", "createdAt"}
+    assert set(payload.keys()) == {"id", "text", "authorUserId", "authorUsername", "createdAt"}
     assert payload["authorUserId"] == user.id
     assert payload["authorUsername"] == user.username
     assert "application_id" not in payload
@@ -159,4 +159,4 @@ def test_registration_notes_isolated_from_application(session):
     ExaminerNoteService.create_registration_note(reg, user, "reg note")
     reg_notes, _ = ExaminerNoteService.list_by_registration_id(reg.id)
     assert len(reg_notes) == 1
-    assert reg_notes[0].body == "reg note"
+    assert reg_notes[0].text == "reg note"

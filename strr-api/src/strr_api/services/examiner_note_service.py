@@ -49,7 +49,7 @@ from strr_api.models import Application, ExaminerNote, Registration, User
 logger = logging.getLogger(__name__)
 
 NOTE_LIST_MAX = 500
-NOTE_MAX_BODY_LENGTH = 4000
+NOTE_MAX_TEXT_LENGTH = 4000
 
 # Application statuses where note creation is blocked.
 APPLICATION_NOTE_BLOCKED_STATUSES = frozenset(
@@ -78,22 +78,22 @@ class ExaminerNoteService:
     """Create and list examiner notes."""
 
     @staticmethod
-    def validate_body(body: str | None) -> str:
-        """Trim and validate note body; raises ValidationException on failure."""
-        if body is None:
-            logger.warning("Examiner note validation failed: body is None")
-            raise ValidationException(message=ErrorMessage.EXAMINER_NOTE_BODY_REQUIRED.value)
-        trimmed = body.strip()
+    def validate_text(text: str | None) -> str:
+        """Trim and validate note text; raises ValidationException on failure."""
+        if text is None:
+            logger.warning("Examiner note validation failed: text is None")
+            raise ValidationException(message=ErrorMessage.EXAMINER_NOTE_TEXT_REQUIRED.value)
+        trimmed = text.strip()
         if not trimmed:
-            logger.warning("Examiner note validation failed: body is empty after trim")
-            raise ValidationException(message=ErrorMessage.EXAMINER_NOTE_BODY_REQUIRED.value)
-        if len(trimmed) > NOTE_MAX_BODY_LENGTH:
+            logger.warning("Examiner note validation failed: text is empty after trim")
+            raise ValidationException(message=ErrorMessage.EXAMINER_NOTE_TEXT_REQUIRED.value)
+        if len(trimmed) > NOTE_MAX_TEXT_LENGTH:
             logger.warning(
-                "Examiner note validation failed: body length %d exceeds maximum %d",
+                "Examiner note validation failed: text length %d exceeds maximum %d",
                 len(trimmed),
-                NOTE_MAX_BODY_LENGTH,
+                NOTE_MAX_TEXT_LENGTH,
             )
-            raise ValidationException(message=ErrorMessage.EXAMINER_NOTE_BODY_TOO_LONG.value)
+            raise ValidationException(message=ErrorMessage.EXAMINER_NOTE_TEXT_TOO_LONG.value)
         return trimmed
 
     @staticmethod
@@ -131,9 +131,9 @@ class ExaminerNoteService:
         return rows, truncated
 
     @classmethod
-    def create_application_note(cls, application: Application, user: User, body: str) -> ExaminerNote:
+    def create_application_note(cls, application: Application, user: User, text: str) -> ExaminerNote:
         """Create a note on an application."""
-        validated_body = cls.validate_body(body)
+        validated_text = cls.validate_text(text)
         block_reason = cls.application_note_post_block_reason(application)
         if block_reason:
             logger.warning(
@@ -145,38 +145,38 @@ class ExaminerNoteService:
             )
             raise ExaminerNoteNotAllowedException(block_reason)
         note = ExaminerNote(
-            body=validated_body,
+            text=validated_text,
             application_id=application.id,
             author_user_id=user.id,
         )
         note.save()
         note.author = user
         logger.info(
-            "Created examiner note id=%s for application_id=%s by user=%s (body_length=%d)",
+            "Created examiner note id=%s for application_id=%s by user=%s (text_length=%d)",
             note.id,
             application.id,
             user.username,
-            len(validated_body),
+            len(validated_text),
         )
         return note
 
     @classmethod
-    def create_registration_note(cls, registration: Registration, user: User, body: str) -> ExaminerNote:
+    def create_registration_note(cls, registration: Registration, user: User, text: str) -> ExaminerNote:
         """Create a note on a registration."""
-        validated_body = cls.validate_body(body)
+        validated_text = cls.validate_text(text)
         note = ExaminerNote(
-            body=validated_body,
+            text=validated_text,
             registration_id=registration.id,
             author_user_id=user.id,
         )
         note.save()
         note.author = user
         logger.info(
-            "Created examiner note id=%s for registration_id=%s by user=%s (body_length=%d)",
+            "Created examiner note id=%s for registration_id=%s by user=%s (text_length=%d)",
             note.id,
             registration.id,
             user.username,
-            len(validated_body),
+            len(validated_text),
         )
         return note
 
@@ -188,7 +188,7 @@ class ExaminerNoteService:
             created_at = created_at.replace(tzinfo=timezone.utc)
         return {
             "id": note.id,
-            "body": note.body,
+            "text": note.text,
             "authorUserId": note.author_user_id,
             "authorUsername": note.author.username if note.author else None,
             "createdAt": created_at.isoformat(),

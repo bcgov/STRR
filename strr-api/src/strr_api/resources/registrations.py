@@ -544,16 +544,16 @@ def create_registration_note(registration_id):
         schema:
           type: object
           required:
-            - body
+            - text
           properties:
-            body:
+            text:
               type: string
               description: Plain-text note (1-4000 characters after trim)
     responses:
       201:
-        description: Note created (id, body, authorUserId, authorUsername, createdAt)
+        description: Note created (id, text, authorUserId, authorUsername, createdAt)
       400:
-        description: Invalid note body
+        description: Invalid note text
       401:
         description:
       403:
@@ -569,7 +569,7 @@ def create_registration_note(registration_id):
         if not registration:
             return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
         json_input = request.get_json(silent=True) or {}
-        note = ExaminerNoteService.create_registration_note(registration, user, json_input.get("body"))
+        note = ExaminerNoteService.create_registration_note(registration, user, json_input.get("text"))
         current_app.logger.info(
             "Created examiner note id=%s for registration_id=%s (number=%s) by user=%s",
             note.id,
