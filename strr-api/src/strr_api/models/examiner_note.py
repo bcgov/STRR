@@ -1,6 +1,7 @@
 """
 ORM mapping for examiner notes on applications and registrations.
 """
+
 from __future__ import annotations
 
 from sqlalchemy.orm import relationship
@@ -17,7 +18,7 @@ class ExaminerNote(SimpleBaseModel):
     __tablename__ = "examiner_notes"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    body = db.Column(db.Text, nullable=False)
+    text = db.Column(db.Text, nullable=False)
 
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True, index=True)
     registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=True, index=True)

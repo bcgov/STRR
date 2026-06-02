@@ -1,5 +1,6 @@
 # Copyright © 2024 Province of British Columbia
 """Shared helpers for examiner notes API tests (unit and integration)."""
+
 from __future__ import annotations
 
 from http import HTTPStatus
@@ -27,7 +28,7 @@ def assert_notes_role_denied(rv: TestResponse) -> None:
 def request_notes(client, method: str, url: str, headers, *, body: str | None = None) -> TestResponse:
     if method == "GET":
         return client.get(url, headers=headers)
-    return client.post(url, json={"body": body if body is not None else "note"}, headers=headers)
+    return client.post(url, json={"text": body if body is not None else "note"}, headers=headers)
 
 
 def application_notes_url(application) -> str:
@@ -62,7 +63,7 @@ def assert_registration_notes_roundtrip(client, registration_id: int, headers, b
     assert rv.status_code == HTTPStatus.OK
     data = response_json(rv)
     assert data["registrationId"] == registration_id
-    assert any(n["body"] == body for n in data["notes"])
+    assert any(n["text"] == body for n in data["notes"])
 
 
 def assert_application_notes_roundtrip(client, application_number: str, headers, note_body: str) -> None:
@@ -77,7 +78,7 @@ def assert_application_notes_roundtrip(client, application_number: str, headers,
     rv = request_notes(client, "POST", url, headers, body=note_body)
     assert rv.status_code == HTTPStatus.CREATED
     note = response_json(rv)
-    assert note["body"] == note_body
+    assert note["text"] == note_body
     assert "authorUserId" in note
     assert "authorUsername" in note
     note_id = note["id"]

@@ -712,16 +712,16 @@ def create_application_note(application_number):
         schema:
           type: object
           required:
-            - body
+            - text
           properties:
-            body:
+            text:
               type: string
               description: Plain-text note (1-4000 characters after trim)
     responses:
       201:
-        description: Note created (id, body, authorUserId, authorUsername, createdAt)
+        description: Note created (id, text, authorUserId, authorUsername, createdAt)
       400:
-        description: Invalid note body
+        description: Invalid note text
       401:
         description:
       403:
@@ -739,7 +739,7 @@ def create_application_note(application_number):
         if not application:
             return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
         json_input = request.get_json(silent=True) or {}
-        note = ExaminerNoteService.create_application_note(application, user, json_input.get("body"))
+        note = ExaminerNoteService.create_application_note(application, user, json_input.get("text"))
         current_app.logger.info(
             "Created examiner note id=%s for application_id=%s (number=%s) by user=%s",
             note.id,

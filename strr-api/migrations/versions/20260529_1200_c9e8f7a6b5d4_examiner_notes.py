@@ -5,9 +5,9 @@ Revises: b1a4d5e7c92f
 Create Date: 2026-06-02 08:54:08.000000
 
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 revision = "c9e8f7a6b5d4"
 down_revision = "b1a4d5e7c92f"
@@ -19,7 +19,7 @@ def upgrade() -> None:
     op.create_table(
         "examiner_notes",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("body", sa.Text(), nullable=False),
+        sa.Column("text", sa.Text(), nullable=False),
         sa.Column("application_id", sa.Integer(), nullable=True),
         sa.Column("registration_id", sa.Integer(), nullable=True),
         sa.Column("author_user_id", sa.Integer(), nullable=False),
@@ -39,20 +39,16 @@ def upgrade() -> None:
             name="chk_examiner_notes_single_parent",
         ),
     )
-    op.execute(
-        """
+    op.execute("""
         CREATE INDEX ix_examiner_notes_application_id_created_at
             ON examiner_notes (application_id, created_at DESC)
             WHERE application_id IS NOT NULL
-        """
-    )
-    op.execute(
-        """
+        """)
+    op.execute("""
         CREATE INDEX ix_examiner_notes_registration_id_created_at
             ON examiner_notes (registration_id, created_at DESC)
             WHERE registration_id IS NOT NULL
-        """
-    )
+        """)
 
 
 def downgrade() -> None:
