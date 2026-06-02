@@ -14,7 +14,7 @@ from strr_api.services.examiner_note_service import ExaminerNoteNotAllowedExcept
 VALIDATE_TEXT_CASES = [
     pytest.param("  hello  ", "hello", None, id="trims"),
     pytest.param("   ", None, ErrorMessage.EXAMINER_NOTE_TEXT_REQUIRED.value, id="empty"),
-    pytest.param("x" * 4001, None, ErrorMessage.EXAMINER_NOTE_TEXT_TOO_LONG.value, id="too-long"),
+    pytest.param("x" * 1001, None, ErrorMessage.EXAMINER_NOTE_TEXT_TOO_LONG.value, id="too-long"),
 ]
 
 CAN_POST_CASES = [

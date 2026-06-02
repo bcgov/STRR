@@ -206,7 +206,6 @@ class ErrorMessage(Enum):
         "Cannot add examiner notes while the application status is {status}. "
         "Notes are only allowed during active examination."
     )
-    EXAMINER_NOTE_STAFF_ONLY = "Examiner notes are available to STRR staff only."
 
 
 class ApplicationRole(Enum):
