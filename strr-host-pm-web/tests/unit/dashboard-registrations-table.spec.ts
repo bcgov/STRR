@@ -74,15 +74,15 @@ const createRegistration = (overrides: Record<string, any> = {}) => {
     ...overrides,
     header: {
       ...baseRegistration.header,
-      ...(overrides.header ?? {})
+      ...overrides.header
     },
     unitAddress: {
       ...baseRegistration.unitAddress,
-      ...(overrides.unitAddress ?? {})
+      ...overrides.unitAddress
     },
     unitDetails: {
       ...baseRegistration.unitDetails,
-      ...(overrides.unitDetails ?? {})
+      ...overrides.unitDetails
     }
   }
 }

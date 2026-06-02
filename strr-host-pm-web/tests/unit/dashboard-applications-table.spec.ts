@@ -116,18 +116,18 @@ const createApplication = (overrides: Record<string, any> = {}) => {
     ...overrides,
     header: {
       ...baseApplication.header,
-      ...(overrides.header ?? {})
+      ...overrides.header
     },
     registration: {
       ...baseApplication.registration,
-      ...(overrides.registration ?? {}),
+      ...overrides.registration,
       unitAddress: {
         ...baseApplication.registration.unitAddress,
-        ...(overrides.registration?.unitAddress ?? {})
+        ...overrides.registration?.unitAddress
       },
       strRequirements: {
         ...baseApplication.registration.strRequirements,
-        ...(overrides.registration?.strRequirements ?? {})
+        ...overrides.registration?.strRequirements
       }
     }
   }
