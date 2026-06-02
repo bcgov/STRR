@@ -90,7 +90,7 @@ const mapApplicationsList = (applications: any[]) => {
   return applications.map((app: any) => {
     const displayAddress = app.header.registrationAddress || app.registration.unitAddress
     return {
-      number: app.header.registrationNumber || app.header.applicationNumber,
+      number: app.header.applicationNumber,
       status: app.header.hostStatus,
       statusKey: app.header.status,
       hostActions: app.header.hostActions || [],

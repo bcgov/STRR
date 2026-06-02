@@ -91,7 +91,6 @@ const createApplication = (overrides: Record<string, any> = {}) => {
   const baseApplication = {
     header: {
       applicationNumber: '12345678901234',
-      registrationNumber: 'H123456789',
       applicationDateTime: '2026-01-01T00:00:00.000Z',
       hostStatus: 'Pending Approval',
       status: ApplicationStatus.FULL_REVIEW,
@@ -153,7 +152,7 @@ describe('Dashboard Applications Table', () => {
 
     const numberLink = wrapper.find('a')
     expect(numberLink.exists()).toBe(true)
-    expect(numberLink.text()).toContain('H123456789')
+    expect(numberLink.text()).toContain('12345678901234')
   })
 
   it('renders Resume Draft action and opens draft application', async () => {
