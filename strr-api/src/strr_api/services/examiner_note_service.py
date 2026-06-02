@@ -1,4 +1,4 @@
-# Copyright © 2024 Province of British Columbia
+# Copyright © 2026 Province of British Columbia
 #
 # Licensed under the BSD 3 Clause License, (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ from strr_api.models import Application, ExaminerNote, Registration, User
 logger = logging.getLogger(__name__)
 
 NOTE_LIST_MAX = 500
-NOTE_MAX_TEXT_LENGTH = 4000
+NOTE_MAX_TEXT_LENGTH = 1000
 
 # Application statuses where note creation is blocked.
 APPLICATION_NOTE_BLOCKED_STATUSES = frozenset(

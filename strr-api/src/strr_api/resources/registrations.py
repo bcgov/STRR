@@ -548,7 +548,7 @@ def create_registration_note(registration_id):
           properties:
             text:
               type: string
-              description: Plain-text note (1-4000 characters after trim)
+              description: Plain-text note (1-1000 characters after trim)
     responses:
       201:
         description: Note created (id, text, authorUserId, authorUsername, createdAt)
