@@ -197,6 +197,16 @@ class ErrorMessage(Enum):
         "Continue with your existing renewal application, or wait until it reaches a final decision."
     )
     RENEWAL_APPLICATION_NO_REGISTRATION_ID = "Renewal application does not have a linked registration id."
+    EXAMINER_NOTE_BODY_REQUIRED = "Note body is required."
+    EXAMINER_NOTE_BODY_TOO_LONG = "Note body exceeds maximum length."
+    EXAMINER_NOTE_APPLICATION_REGISTERED = (
+        "This application is linked to a registration. Add examiner notes on the registration instead."
+    )
+    EXAMINER_NOTE_APPLICATION_STATUS_NOT_ALLOWED = (
+        "Cannot add examiner notes while the application status is {status}. "
+        "Notes are only allowed during active examination."
+    )
+    EXAMINER_NOTE_STAFF_ONLY = "Examiner notes are available to STRR staff only."
 
 
 class ApplicationRole(Enum):

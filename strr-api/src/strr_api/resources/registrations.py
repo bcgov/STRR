@@ -45,7 +45,7 @@ from io import BytesIO
 
 from dateutil.relativedelta import relativedelta
 from flasgger import swag_from
-from flask import Blueprint, g, jsonify, request, send_file
+from flask import Blueprint, current_app, g, jsonify, request, send_file
 from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 
@@ -71,6 +71,7 @@ from strr_api.models.dataclass import RegistrationSearch
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
 from strr_api.services import DocumentService, EventsService, RegistrationService, SnapshotService, UserService
+from strr_api.services.examiner_note_service import ExaminerNoteNotAllowedException, ExaminerNoteService
 from strr_api.services.registration_service import (
     REGISTRATION_STATES_STAFF_ACTION,
     REGISTRATION_STATES_STAFF_ASSIGNABLE,
@@ -470,6 +471,122 @@ def get_registration_events(registration_id):
         )
     except AuthException as auth_exception:
         return exception_response(auth_exception)
+
+
+@bp.route("/<registration_id>/notes", methods=("GET",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def get_registration_notes(registration_id):
+    """
+    List examiner notes for a registration (staff only).
+    ---
+    tags:
+      - registration
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+    responses:
+      200:
+        description: registrationId, truncated, notes (registration-owned only, max 500)
+      401:
+        description:
+      403:
+        description: Not STRR staff
+      404:
+        description: Registration not found
+    """
+    try:
+        registration = RegistrationService.get_registration(None, registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        notes, truncated = ExaminerNoteService.list_by_registration_id(registration_id)
+        logger.info(
+            "Listed %d examiner notes for registration_id=%s (number=%s), truncated=%s",
+            len(notes),
+            registration.id,
+            registration.registration_number,
+            truncated,
+        )
+        return (
+            jsonify(ExaminerNoteService.build_registration_list_response(registration, notes, truncated)),
+            HTTPStatus.OK,
+        )
+    except Exception as exception:
+        logger.exception(exception)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@bp.route("/<registration_id>/notes", methods=("POST",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+@jwt.has_one_of_roles([Role.STRR_EXAMINER.value, Role.STRR_INVESTIGATOR.value])
+def create_registration_note(registration_id):
+    """
+    Create an examiner note on a registration (staff only).
+    ---
+    tags:
+      - registration
+    parameters:
+      - in: path
+        name: registration_id
+        type: integer
+        required: true
+        description: Registration ID
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - body
+          properties:
+            body:
+              type: string
+              description: Plain-text note (1-4000 characters after trim)
+    responses:
+      201:
+        description: Note created (id, body, authorUserId, authorUsername, createdAt)
+      400:
+        description: Invalid note body
+      401:
+        description:
+      403:
+        description: Not STRR staff
+      404:
+        description: Registration not found
+    """
+    try:
+        user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        if not user:
+            raise AuthException()
+        registration = RegistrationService.get_registration(None, registration_id)
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+        json_input = request.get_json(silent=True) or {}
+        note = ExaminerNoteService.create_registration_note(registration, user, json_input.get("body"))
+        current_app.logger.info(
+            "Created examiner note id=%s for registration_id=%s (number=%s) by user=%s",
+            note.id,
+            registration.id,
+            registration.registration_number,
+            user.username,
+        )
+        return jsonify(ExaminerNoteService.serialize(note)), HTTPStatus.CREATED
+    except ExaminerNoteNotAllowedException as not_allowed:
+        return error_response(http_status=not_allowed.status_code, message=not_allowed.message)
+    except ValidationException as validation_exception:
+        return exception_response(validation_exception)
+    except AuthException as auth_exception:
+        return exception_response(auth_exception)
+    except Exception as exception:
+        logger.exception(exception)
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @bp.route("/<registration_id>/status", methods=("PUT",))

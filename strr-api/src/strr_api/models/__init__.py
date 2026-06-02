@@ -41,6 +41,7 @@ from .certificate import Certificate
 from .conditions_of_approval import ConditionsOfApproval
 from .db import db  # noqa: I001
 from .events import Events
+from .examiner_note import ExaminerNote
 from .interactions import CustomerInteraction
 from .ltsa import LTSARecord
 from .notice_of_consideration import NoticeOfConsideration
@@ -65,6 +66,7 @@ __all__ = (
     "CustomerInteraction",
     "Document",
     "Events",
+    "ExaminerNote",
     "LTSARecord",
     "NoticeOfConsideration",
     "PlatformBrand",
