@@ -13,7 +13,7 @@ const NOTE_MAX_LENGTH = 1000
 const noteContent = ref('')
 
 const handleSaveNote = () => {
-  // TODO: implement actual save when api is ready
+  // implement actual save when api is ready
   const newNote: ExaminerNote = {
     id: Math.random(), // NOSONAR
     timestamp: new Date().toISOString(),
