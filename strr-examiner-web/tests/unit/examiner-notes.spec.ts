@@ -56,4 +56,22 @@ describe('Examiner Notes', () => {
     expect(args![2]).toBe('Discard Note')
     expect(args![4]).toBe('Keep Editing')
   })
+
+  it('should show empty state when notes array is empty', async () => {
+    const wrapper = await mountSuspended(ExaminerNotes, {
+      props: { isReadonly: true },
+      global: { plugins: [enI18n] }
+    })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="no-notes-available"]').exists()).toBe(true)
+  })
+
+  it('should not show textarea when readonly', async () => {
+    const wrapper = await mountSuspended(ExaminerNotes, {
+      props: { isReadonly: true },
+      global: { plugins: [enI18n] }
+    })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="note-textarea"]').exists()).toBe(false)
+  })
 })

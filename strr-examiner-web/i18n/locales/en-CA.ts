@@ -418,7 +418,8 @@ export default {
     recentDocumentBadge: 'New document',
     recentDocumentUploadHint: 'New documents were submitted in response to a Notice of Consideration.',
     examinerNotes: 'Notes',
-    examinerNotePlaceholder: 'Type new note here'
+    examinerNotePlaceholder: 'Type new note here',
+    noNotesAvailable: 'No notes available.'
   },
   link: {
     learnMore: 'Learn More'

@@ -1,10 +1,13 @@
 <script lang="ts" setup>
-import { mockExaminerNotes } from '../../tests/mocks/mockedData'
 const { openConfirmActionModal, close } = useStrrModals()
 const { t } = useNuxtApp().$i18n
 const { kcUser } = useKeycloak()
 
-const notes = ref<ExaminerNote[]>([...mockExaminerNotes])
+defineProps<{
+  isReadonly?: boolean
+}>()
+
+const notes = ref<ExaminerNote[]>([])
 
 const NOTE_MAX_LENGTH = 1000
 const noteContent = ref('')
@@ -53,9 +56,9 @@ const handleDiscardNote = () => {
     </div>
 
     <div class="bg-white p-6">
-      <div class="grid grid-cols-2 gap-x-5">
+      <div :class="isReadonly ? 'grid grid-cols-1' : 'grid grid-cols-2 gap-x-5'">
         <!-- Left side: textarea, character counter, Discard and Save buttons -->
-        <div>
+        <div v-if="!isReadonly">
           <UForm :state="{}" :validate-on="['submit']">
             <UFormGroup
               name="noteContent"
@@ -75,6 +78,7 @@ const handleDiscardNote = () => {
                     sm: 'p-4'
                   }
                 }"
+                data-testid="note-textarea"
               />
             </UFormGroup>
           </UForm>
@@ -107,14 +111,21 @@ const handleDiscardNote = () => {
         </div>
 
         <!-- Right side: scrollable note list -->
-        <div class="h-[290px] overflow-auto pr-2">
+        <div :class="notes.length > 0 ? 'h-[290px] overflow-auto pr-2' : ''">
+          <p
+            v-if="notes.length === 0"
+            class="text-sm text-str-textGray"
+            data-testid="no-notes-available"
+          >
+            {{ t('label.noNotesAvailable') }}
+          </p>
           <template
             v-for="note in notes"
             :key="note.id"
           >
             <div class="mb-4 text-sm">
               <div class="flex gap-3 text-[#495057]">
-                <span>{{ note.timestamp }}</span>
+                <span>{{ dateToString(note.timestamp, 'MMM d, y a', true) }}</span>
                 <span class="font-bold">{{ note.username }}</span>
               </div>
               <div class="mt-1 whitespace-pre-line text-str-textGray">
