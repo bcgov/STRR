@@ -35,6 +35,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return currentRecordHeader
   })
   const hasRegistrationNumber = computed(() => !!activeHeader.value?.registrationNumber)
+  const isHostApplication = computed(() => activeReg.value?.registrationType === ApplicationType.HOST)
   const _isAssignedToUser = ref(false)
 
   const snapshotInfo = ref<ApiSnapshot>({} as ApiSnapshot)
@@ -793,6 +794,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     activeReg,
     activeHeader,
     hasRegistrationNumber,
+    isHostApplication,
     isAssignedToUser,
     sendNocSchema,
     emailContent,

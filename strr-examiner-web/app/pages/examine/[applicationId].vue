@@ -14,7 +14,28 @@ const {
   setAsideApplication
 } = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
-const { emailContent, emailFormRef, activeHeader, isAssignedToUser } = storeToRefs(useExaminerStore())
+const {
+  emailContent,
+  emailFormRef,
+  activeHeader,
+  isAssignedToUser,
+  isHostApplication
+} = storeToRefs(useExaminerStore())
+const { isExaminerNotesEnabled } = useExaminerFeatureFlags()
+
+// Statuses when Examiner Notes could be added, otherwise readonly
+const ADD_NOTES_STATUSES = new Set([
+  ApplicationStatus.FULL_REVIEW,
+  ApplicationStatus.NOC_PENDING,
+  ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+  ApplicationStatus.NOC_EXPIRED,
+  ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED,
+  ApplicationStatus.DECLINED
+])
+
+const isNotesReadonly = computed(() =>
+  !(ADD_NOTES_STATUSES.has(activeHeader.value?.status) || activeHeader.value?.isSetAside)
+)
 
 useHead({
   title: t('page.dashboardList.title')
@@ -183,6 +204,10 @@ watch(
         </template>
       </ApplicationDetailsView>
       <ComposeNoc />
+      <ExaminerNotes
+        v-if="isExaminerNotesEnabled && isHostApplication"
+        :is-readonly="isNotesReadonly"
+      />
       <AssignmentActions @refresh="refresh" />
     </template>
   </div>
