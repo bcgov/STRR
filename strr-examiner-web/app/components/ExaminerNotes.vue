@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useTimeoutFn } from '@vueuse/core'
 const { openConfirmActionModal, close } = useStrrModals()
 const { t } = useNuxtApp().$i18n
 const { kcUser } = useKeycloak()
@@ -8,9 +9,16 @@ defineProps<{
 }>()
 
 const notes = ref<ExaminerNote[]>([])
+const notesContainer = ref<HTMLElement>()
+const showHighlight = ref(false)
 
+const NOTE_ANIMATION_DURATION = 3000 // new note background highlight in ms
 const NOTE_MAX_LENGTH = 1000
 const noteContent = ref('')
+
+const { start: highlightNewNote } = useTimeoutFn(() => {
+  showHighlight.value = false
+}, NOTE_ANIMATION_DURATION)
 
 const handleSaveNote = () => {
   // implement actual save when api is ready
@@ -22,6 +30,10 @@ const handleSaveNote = () => {
   }
   notes.value.unshift(newNote)
   noteContent.value = ''
+  showHighlight.value = true
+
+  notesContainer.value!.scrollTop = 0
+  highlightNewNote()
 }
 
 const handleDiscardNote = () => {
@@ -55,8 +67,8 @@ const handleDiscardNote = () => {
       </div>
     </div>
 
-    <div class="bg-white p-6">
-      <div :class="isReadonly ? 'grid grid-cols-1' : 'grid grid-cols-2 gap-x-5'">
+    <div class="bg-white">
+      <div :class="isReadonly ? 'grid grid-cols-1' : 'grid grid-cols-2 gap-x-4 p-6'">
         <!-- Left side: textarea, character counter, Discard and Save buttons -->
         <div v-if="!isReadonly">
           <UForm :state="{}" :validate-on="['submit']">
@@ -73,7 +85,7 @@ const handleDiscardNote = () => {
                 color="gray"
                 :maxlength="NOTE_MAX_LENGTH"
                 :ui="{
-                  base: 'h-[290px] !bg-str-bgGray focus:ring-0',
+                  base: 'h-[241px] !bg-str-bgGray focus:ring-0',
                   padding: {
                     sm: 'p-4'
                   }
@@ -82,7 +94,7 @@ const handleDiscardNote = () => {
               />
             </UFormGroup>
           </UForm>
-          <div class="mt-1 flex justify-end text-xs text-gray-500">
+          <div class="ml-3 mt-1 text-xs text-[#495057]">
             {{ noteContent.length }}/{{ NOTE_MAX_LENGTH }}
           </div>
           <div
@@ -111,7 +123,10 @@ const handleDiscardNote = () => {
         </div>
 
         <!-- Right side: scrollable note list -->
-        <div :class="notes.length > 0 ? 'h-[290px] overflow-auto pr-2' : ''">
+        <div
+          ref="notesContainer"
+          :class="notes.length > 0 ? 'h-[313px] overflow-auto pr-2' : ''"
+        >
           <p
             v-if="notes.length === 0"
             class="text-sm text-str-textGray"
@@ -119,20 +134,20 @@ const handleDiscardNote = () => {
           >
             {{ t('label.noNotesAvailable') }}
           </p>
-          <template
-            v-for="note in notes"
+          <div
+            v-for="(note, index) in notes"
             :key="note.id"
+            class="rounded p-3 text-sm transition-colors duration-300"
+            :class="{ 'bg-[#F0F9FF]' : index === 0 && showHighlight }"
           >
-            <div class="mb-4 text-sm">
-              <div class="flex gap-3 text-[#495057]">
-                <span>{{ dateToString(note.timestamp, 'MMM d, y a', true) }}</span>
-                <span class="font-bold">{{ note.username }}</span>
-              </div>
-              <div class="mt-1 whitespace-pre-line text-str-textGray">
-                {{ note.text }}
-              </div>
+            <div class="flex gap-3 text-[#495057]">
+              <span>{{ dateToString(note.timestamp, 'MMM d, y a', true) }}</span>
+              <span class="font-bold">{{ note.username }}</span>
             </div>
-          </template>
+            <div class="mt-1 whitespace-pre-line text-str-textGray">
+              {{ note.text }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
