@@ -66,50 +66,44 @@ const paginationUI = {
   }
 }
 
-enum ExpiryState {
-  EXPIRED = 'expired',
-  EXPIRING_SOON = 'expiringSoon',
-  VALID = 'valid'
-}
-
 // Helper functions
 /** Returns true when the registration has a renewal draft application. */
-const hasRenewalDraft = (registration: any): boolean => {
+const hasRenewalDraft = (registration: RegistrationRecord): boolean => {
   if (!registration?.header?.applications) {
     return false
   }
-  return registration.header.applications.some((app: any) =>
-    app.applicationType === 'renewal' && app.applicationStatus === 'DRAFT'
+  return registration.header.applications.some((app: RegistrationApplicationSummary) =>
+    app.applicationType === 'renewal' && app.applicationStatus === ApplicationStatus.DRAFT
   )
 }
 
 /** Returns true when the registration has a renewal payment due application. */
-const hasRenewalPaymentPending = (registration: any): boolean => {
+const hasRenewalPaymentPending = (registration: RegistrationRecord): boolean => {
   if (!registration?.header?.applications) {
     return false
   }
-  return registration.header.applications.some((app: any) =>
-    app.applicationType === 'renewal' && app.applicationStatus === 'PAYMENT_DUE'
+  return registration.header.applications.some((app: RegistrationApplicationSummary) =>
+    app.applicationType === 'renewal' &&
+    app.applicationStatus === ApplicationStatus.PAYMENT_DUE
   )
 }
 
 /** Gets the renewal draft application number from linked applications. */
-const getRenewalDraftApplicationNumber = (registration: any): string | undefined => {
+const getRenewalDraftApplicationNumber = (registration: RegistrationRecord): string | undefined => {
   if (!registration?.header?.applications) {
     return undefined
   }
 
-  const renewalDraft = registration.header.applications.find((app: any) =>
-    app.applicationType === 'renewal' && app.applicationStatus === 'DRAFT'
+  const renewalDraft = registration.header.applications.find((app: RegistrationApplicationSummary) =>
+    app.applicationType === 'renewal' && app.applicationStatus === ApplicationStatus.DRAFT
   )
 
   return renewalDraft?.applicationNumber
 }
 
 /** Returns the renewal warning window in days by registration type. */
-const getRenewalWindowDays = (registrationType: string): number => {
-  const normalizedType = registrationType?.toUpperCase()
-  if (normalizedType === 'STRATA_HOTEL' || normalizedType === 'PLATFORM') {
+const getRenewalWindowDays = (registrationType?: ApplicationType): number => {
+  if (registrationType === ApplicationType.STRATA_HOTEL || registrationType === ApplicationType.PLATFORM) {
     return 60
   }
   return 40
@@ -131,7 +125,7 @@ const getDaysUntilExpiry = (expiryDate: string): number | null => {
 }
 
 /** Maps an expiry date to an expiry state used for UI styling and actions. */
-const getExpiryState = (registrationType: string, expiryDate: string): ExpiryState => {
+const getExpiryState = (registrationType: ApplicationType | undefined, expiryDate: string | undefined): ExpiryState => {
   const daysUntilExpiry = getDaysUntilExpiry(expiryDate)
   if (daysUntilExpiry === null) {
     return ExpiryState.VALID
@@ -150,7 +144,7 @@ const getRegistrationDetailsPath = (registrationNumber: string): string =>
   localePath('/dashboard/registration/' + registrationNumber)
 
 /** Persists selected registration id before navigating to details. */
-const handleRegistrationLinkClick = (row: any) => {
+const handleRegistrationLinkClick = (row: RegistrationRow) => {
   permitStore.selectedRegistrationId = row.registrationId?.toString()
 }
 
@@ -166,11 +160,11 @@ const canShowRenewAction = (
 }
 
 // Data mapping
-const mapRegistrationsList = (registrations: any[]) => {
+const mapRegistrationsList = (registrations: RegistrationRecord[]): RegistrationRow[] => {
   if (!registrations) {
     return []
   }
-  return registrations.map((registration: any) => {
+  return registrations.map((registration: RegistrationRecord): RegistrationRow => {
     const displayAddress = registration.unitAddress
     const expiryState = getExpiryState(registration.registrationType, registration.expiryDate)
     const renewalDraftExists = hasRenewalDraft(registration)
@@ -234,7 +228,7 @@ const { data: registrationsResp, status: registrationsStatus } = await useAsyncD
 const registrationsList = computed(() => mapRegistrationsList(registrationsResp.value?.registrations || []))
 
 /** Starts a new renewal flow for the selected registration. */
-async function handleRenewRegistration (row: any) {
+async function handleRenewRegistration (row: RegistrationRow) {
   permitStore.renewalRegId = row.registrationId?.toString()
   await navigateTo({
     path: localePath('/application'),
@@ -243,7 +237,7 @@ async function handleRenewRegistration (row: any) {
 }
 
 /** Opens the existing renewal draft for the selected registration. */
-async function handleResumeRenewalDraft (row: any) {
+async function handleResumeRenewalDraft (row: RegistrationRow) {
   if (!row.renewalDraftApplicationNumber) {
     return
   }

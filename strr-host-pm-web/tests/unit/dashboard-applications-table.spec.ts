@@ -6,12 +6,10 @@ import ApplicationsTable from '~/components/dashboard/ApplicationsTable.vue'
 const {
   mockNavigateTo,
   mockHandlePaymentRedirect,
-  mockGetAccountApplication,
   mockDeleteApplication
 } = vi.hoisted(() => ({
   mockNavigateTo: vi.fn(),
   mockHandlePaymentRedirect: vi.fn(),
-  mockGetAccountApplication: vi.fn(),
   mockDeleteApplication: vi.fn()
 }))
 
@@ -24,7 +22,6 @@ vi.mock('@/composables/useConnectNav', () => ({
 vi.mock('@/composables/useStrrApi', () => ({
   useStrrApi: () => ({
     deleteApplication: mockDeleteApplication,
-    getAccountApplication: mockGetAccountApplication,
     getAccountApplications: vi.fn(),
     searchApplications: vi.fn()
   })
@@ -53,7 +50,6 @@ mockNuxtImport('useConnectNav', () => {
 mockNuxtImport('useStrrApi', () => {
   return () => ({
     deleteApplication: mockDeleteApplication,
-    getAccountApplication: mockGetAccountApplication,
     getAccountApplications: vi.fn(),
     searchApplications: vi.fn()
   })
@@ -136,7 +132,6 @@ describe('Dashboard Applications Table', () => {
   beforeEach(() => {
     mockNavigateTo.mockReset()
     mockHandlePaymentRedirect.mockReset()
-    mockGetAccountApplication.mockReset()
   })
 
   it('renders number as hyperlink for non-draft application', async () => {
@@ -207,7 +202,7 @@ describe('Dashboard Applications Table', () => {
     expect(mockHandlePaymentRedirect).toHaveBeenCalledWith(9999, '/dashboard/application/12345678901234')
   })
 
-  it('fetches payment token before redirect when token missing on row', async () => {
+  it('does not redirect to payment when token is missing on row', async () => {
     asyncDataMocks['host-applications-list'] = {
       applications: [createApplication({
         header: {
@@ -220,9 +215,6 @@ describe('Dashboard Applications Table', () => {
       total: 1,
       filteredCount: 1
     }
-    mockGetAccountApplication.mockResolvedValue({
-      header: { paymentToken: 2468 }
-    })
 
     const wrapper = await mountSuspended(ApplicationsTable, {
       global: { plugins: [baseEnI18n] }
@@ -232,7 +224,6 @@ describe('Dashboard Applications Table', () => {
       .find(btn => btn.text().includes('Pay Now'))
     await payNowBtn!.trigger('click')
 
-    expect(mockGetAccountApplication).toHaveBeenCalledWith('12345678901234')
-    expect(mockHandlePaymentRedirect).toHaveBeenCalledWith(2468, '/dashboard/application/12345678901234')
+    expect(mockHandlePaymentRedirect).not.toHaveBeenCalled()
   })
 })

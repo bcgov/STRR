@@ -4,7 +4,7 @@ const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
 const { handlePaymentRedirect } = useConnectNav()
-const { deleteApplication, getAccountApplication, getAccountApplications, searchApplications } = useStrrApi()
+const { deleteApplication, getAccountApplications, searchApplications } = useStrrApi()
 const { isDashboardTableSortingEnabled, isHostSearchTextFieldsEnabled } = useHostFeatureFlags()
 
 const props = withDefaults(defineProps<{
@@ -83,17 +83,17 @@ const paginationUI = {
 }
 
 // Data mapping
-const mapApplicationsList = (applications: any[]) => {
+const mapApplicationsList = (applications: HostApplicationResp['applications']): ApplicationRow[] => {
   if (!applications) {
     return []
   }
-  return applications.map((app: any) => {
+  return applications.map((app): ApplicationRow => {
     const displayAddress = app.header.registrationAddress || app.registration.unitAddress
     return {
       number: app.header.applicationNumber,
       status: app.header.hostStatus,
       statusKey: app.header.status,
-      hostActions: app.header.hostActions || [],
+      hostActions: (app.header.hostActions || []) as HostActions[],
       address: displayAddress,
       localGovernment: app.registration?.strRequirements?.organizationNm || t('text.notAvailable'),
       dateSubmitted: app.header.applicationDateTime,
@@ -159,7 +159,7 @@ const totalFilteredApplications = computed(() => applicationsResp.value?.filtere
 
 // Delete draft application
 const deleting = ref(false)
-async function deleteDraft (row: any) {
+async function deleteDraft (row: ApplicationRow) {
   try {
     deleting.value = true
     row.class = 'bg-red-50 animate-pulse'
@@ -178,32 +178,27 @@ async function deleteDraft (row: any) {
 }
 
 // Navigate to application
-async function handleApplicationSelect (row: any) {
+async function handleApplicationSelect (row: ApplicationRow) {
   await navigateTo(localePath('/application?applicationId=' + row.applicationNumber))
 }
 
 /** Returns true when an application row is in draft status. */
-const isDraftApplication = (row: any): boolean =>
-  row.statusKey === ApplicationStatus.DRAFT || row.status === 'Draft'
+const isDraftApplication = (row: ApplicationRow): boolean =>
+  row.statusKey === ApplicationStatus.DRAFT
 
 /** Returns true when an application row should show the Pay Now action. */
-const isPaymentDueApplication = (row: any): boolean =>
-  row.statusKey === ApplicationStatus.PAYMENT_DUE || row.hostActions.includes('SUBMIT_PAYMENT')
+const isPaymentDueApplication = (row: ApplicationRow): boolean =>
+  row.statusKey === ApplicationStatus.PAYMENT_DUE || row.hostActions.includes(HostActions.SUBMIT_PAYMENT)
 
 /** Builds the application details route for a given application number. */
 const getApplicationDetailsPath = (applicationNumber: string): string =>
   localePath('/dashboard/application/' + applicationNumber)
 
 /** Redirects the user to payment for a payment due application. */
-async function handlePayNow (row: any) {
-  let paymentToken = row.paymentToken
-  if (!paymentToken) {
-    const applicationResponse = await getAccountApplication(row.applicationNumber)
-    paymentToken = applicationResponse?.header?.paymentToken
-  }
-  if (paymentToken) {
+function handlePayNow (row: ApplicationRow) {
+  if (row.paymentToken) {
     handlePaymentRedirect(
-      paymentToken,
+      row.paymentToken,
       '/dashboard/application/' + row.applicationNumber
     )
   }
