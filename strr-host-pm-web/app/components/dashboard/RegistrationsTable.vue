@@ -128,7 +128,7 @@ const getDaysUntilExpiry = (expiryDate: string): number | null => {
 const getExpiryState = (registrationType: ApplicationType | undefined, expiryDate: string | undefined): ExpiryState => {
   const daysUntilExpiry = getDaysUntilExpiry(expiryDate)
   if (daysUntilExpiry === null) {
-    return ExpiryState.VALID
+    return ExpiryState.ACTIVE
   }
   if (daysUntilExpiry < 0) {
     return ExpiryState.EXPIRED
@@ -136,7 +136,7 @@ const getExpiryState = (registrationType: ApplicationType | undefined, expiryDat
   if (daysUntilExpiry <= getRenewalWindowDays(registrationType)) {
     return ExpiryState.EXPIRING_SOON
   }
-  return ExpiryState.VALID
+  return ExpiryState.ACTIVE
 }
 
 /** Builds the registration details route for a registration number. */

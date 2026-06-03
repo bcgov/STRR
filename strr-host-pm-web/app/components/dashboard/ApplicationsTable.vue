@@ -92,6 +92,7 @@ const mapApplicationsList = (applications: HostApplicationResp['applications']):
     return {
       number: app.header.applicationNumber,
       status: app.header.hostStatus,
+      // Use enum status for action checks, hostStatus is only for display text
       statusKey: app.header.status,
       hostActions: (app.header.hostActions || []) as HostActions[],
       address: displayAddress,
