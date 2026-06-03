@@ -102,7 +102,7 @@ const getRenewalDraftApplicationNumber = (registration: RegistrationRecord): str
 }
 
 /** Returns the renewal warning window in days by registration type. */
-const getRenewalWindowDays = (registrationType?: ApplicationType): number => {
+const getRenewalWindowDays = (registrationType: ApplicationType): number => {
   if (registrationType === ApplicationType.STRATA_HOTEL || registrationType === ApplicationType.PLATFORM) {
     return 60
   }
@@ -125,7 +125,7 @@ const getDaysUntilExpiry = (expiryDate: string): number | null => {
 }
 
 /** Maps an expiry date to an expiry state used for UI styling and actions. */
-const getExpiryState = (registrationType: ApplicationType | undefined, expiryDate: string | undefined): ExpiryState => {
+const getExpiryState = (registrationType: ApplicationType, expiryDate: string | undefined): ExpiryState => {
   const daysUntilExpiry = getDaysUntilExpiry(expiryDate)
   if (daysUntilExpiry === null) {
     return ExpiryState.ACTIVE
