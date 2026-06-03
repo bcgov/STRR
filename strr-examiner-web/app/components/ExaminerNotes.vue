@@ -24,7 +24,7 @@ const handleSaveNote = () => {
   // implement actual save when api is ready
   const newNote: ExaminerNote = {
     id: Math.random(), // NOSONAR
-    timestamp: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     username: kcUser.value.userName,
     text: noteContent.value.trim()
   }
@@ -141,7 +141,7 @@ const handleDiscardNote = () => {
             :class="{ 'bg-[#F0F9FF]' : index === 0 && showHighlight }"
           >
             <div class="flex gap-3 text-[#495057]">
-              <span>{{ dateToString(note.timestamp, 'MMM d, y a', true) }}</span>
+              <span>{{ dateToString(note.createdAt, 'MMM d, y a', true) }}</span>
               <span class="font-bold">{{ note.username }}</span>
             </div>
             <div class="mt-1 whitespace-pre-line text-str-textGray">

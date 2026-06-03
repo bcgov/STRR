@@ -1,10 +1,6 @@
 export interface ExaminerNote {
   id: number
-  timestamp: string
+  createdAt: string
   username: string
   text: string
-  event?: {
-    label: string
-    timestamp: string
-  }
 }
