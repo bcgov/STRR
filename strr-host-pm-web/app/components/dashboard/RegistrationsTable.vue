@@ -103,7 +103,7 @@ const getRenewalDraftApplicationNumber = (registration: RegistrationRecord): str
 
 /** Returns the renewal warning window in days by registration type. */
 const getRenewalWindowDays = (registrationType: ApplicationType): number => {
-  if (registrationType === ApplicationType.STRATA_HOTEL || registrationType === ApplicationType.PLATFORM) {
+  if (registrationType === ApplicationType.STRATA_HOTEL) {
     return 60
   }
   return 40
