@@ -103,6 +103,8 @@ const getRenewalDraftApplicationNumber = (registration: RegistrationRecord): str
 
 /** Returns the renewal warning window in days by registration type. */
 const getRenewalWindowDays = (registrationType: ApplicationType): number => {
+  // Keep these values in sync with backend DAYS_BEFORE_EXPIRY_BY_TYPE.
+  // TODO: Remove hardcoded fallback values and let API provide the values so that they stay in sync.
   if (registrationType === ApplicationType.STRATA_HOTEL) {
     return 60
   }
