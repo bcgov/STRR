@@ -3,6 +3,7 @@ const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
 const strrModal = useStrrModals()
+const { handlePaymentRedirect } = useConnectNav()
 const { deleteApplication, getAccountApplications, searchApplications } = useStrrApi()
 const { isDashboardTableSortingEnabled, isHostSearchTextFieldsEnabled } = useHostFeatureFlags()
 
@@ -82,19 +83,23 @@ const paginationUI = {
 }
 
 // Data mapping
-const mapApplicationsList = (applications: any[]) => {
+const mapApplicationsList = (applications: HostApplicationResp['applications']): ApplicationRow[] => {
   if (!applications) {
     return []
   }
-  return applications.map((app: any) => {
+  return applications.map((app): ApplicationRow => {
     const displayAddress = app.header.registrationAddress || app.registration.unitAddress
     return {
       number: app.header.applicationNumber,
       status: app.header.hostStatus,
+      // Use enum status for action checks, hostStatus is only for display text
+      statusKey: app.header.status,
+      hostActions: (app.header.hostActions || []) as HostActions[],
       address: displayAddress,
       localGovernment: app.registration?.strRequirements?.organizationNm || t('text.notAvailable'),
       dateSubmitted: app.header.applicationDateTime,
-      applicationNumber: app.header.applicationNumber
+      applicationNumber: app.header.applicationNumber,
+      paymentToken: app.header.paymentToken
     }
   })
 }
@@ -155,7 +160,7 @@ const totalFilteredApplications = computed(() => applicationsResp.value?.filtere
 
 // Delete draft application
 const deleting = ref(false)
-async function deleteDraft (row: any) {
+async function deleteDraft (row: ApplicationRow) {
   try {
     deleting.value = true
     row.class = 'bg-red-50 animate-pulse'
@@ -174,11 +179,29 @@ async function deleteDraft (row: any) {
 }
 
 // Navigate to application
-async function handleApplicationSelect (row: any) {
-  if (row.status === 'Draft') {
-    await navigateTo(localePath('/application?applicationId=' + row.applicationNumber))
-  } else {
-    await navigateTo(localePath('/dashboard/application/' + row.applicationNumber))
+async function handleApplicationSelect (row: ApplicationRow) {
+  await navigateTo(localePath('/application?applicationId=' + row.applicationNumber))
+}
+
+/** Returns true when an application row is in draft status. */
+const isDraftApplication = (row: ApplicationRow): boolean =>
+  row.statusKey === ApplicationStatus.DRAFT
+
+/** Returns true when an application row should show the Pay Now action. */
+const isPaymentDueApplication = (row: ApplicationRow): boolean =>
+  row.statusKey === ApplicationStatus.PAYMENT_DUE || row.hostActions.includes(HostActions.SUBMIT_PAYMENT)
+
+/** Builds the application details route for a given application number. */
+const getApplicationDetailsPath = (applicationNumber: string): string =>
+  localePath('/dashboard/application/' + applicationNumber)
+
+/** Redirects the user to payment for a payment due application. */
+function handlePayNow (row: ApplicationRow) {
+  if (row.paymentToken) {
+    handlePaymentRedirect(
+      row.paymentToken,
+      '/dashboard/application/' + row.applicationNumber
+    )
   }
 }
 </script>
@@ -230,6 +253,17 @@ async function handleApplicationSelect (row: any) {
       :empty-state="{ icon: '', label: t('page.dashboardList.noApplicationsInProgress') }"
       :ui="tableUI"
     >
+      <template #number-data="{ row }">
+        <NuxtLink
+          v-if="!isDraftApplication(row)"
+          :to="getApplicationDetailsPath(row.applicationNumber)"
+          class="w-fit text-bcGovColor-activeBlue hover:underline"
+        >
+          {{ row.number }}
+        </NuxtLink>
+        <span v-else>{{ row.number }}</span>
+      </template>
+
       <template #address-data="{ row }">
         <div class="flex flex-col">
           <span>
@@ -250,13 +284,19 @@ async function handleApplicationSelect (row: any) {
       <template #actions-data="{ row }">
         <div class="flex flex-col gap-px lg:flex-row">
           <UButton
-            :class="row.status === 'Draft' ? 'justify-center grow lg:rounded-r-none' : ''"
-            :label="row.status === 'Draft' ? $t('label.resumeDraft') : $t('btn.view')"
-            :block="row.status !== 'Draft'"
+            v-if="isDraftApplication(row)"
+            class="grow justify-center lg:rounded-r-none"
+            :label="$t('label.resumeDraft')"
             :disabled="row.disabled"
             @click="handleApplicationSelect(row)"
           />
-          <UPopover v-if="row.status === 'Draft'" :popper="{ placement: 'bottom-end' }">
+          <UButton
+            v-else-if="isPaymentDueApplication(row)"
+            :label="$t('btn.payNow')"
+            block
+            @click="handlePayNow(row)"
+          />
+          <UPopover v-if="isDraftApplication(row)" :popper="{ placement: 'bottom-end' }">
             <UButton
               class="grow justify-center lg:flex-none lg:rounded-l-none"
               icon="i-mdi-menu-down"

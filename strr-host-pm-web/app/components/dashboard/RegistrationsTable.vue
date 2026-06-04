@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DateTime } from 'luxon'
 const { t } = useNuxtApp().$i18n
 const localePath = useLocalePath()
 const accountStore = useConnectAccountStore()
@@ -66,54 +67,128 @@ const paginationUI = {
 }
 
 // Helper functions
-const hasRenewalDraft = (registration: any): boolean => {
+/** Returns true when the registration has a renewal draft application. */
+const hasRenewalDraft = (registration: RegistrationRecord): boolean => {
   if (!registration?.header?.applications) {
     return false
   }
-  return registration.header.applications.some((app: any) =>
-    app.applicationType === 'renewal' && app.applicationStatus === 'DRAFT'
+  return registration.header.applications.some((app: RegistrationApplicationSummary) =>
+    app.applicationType === 'renewal' && app.applicationStatus === ApplicationStatus.DRAFT
   )
 }
 
-const getLatestApplicationNumber = (registration: any): string => {
-  if (!registration?.header?.applications || registration.header.applications.length === 0) {
-    return registration.registrationNumber
-  }
-  return registration.header.applications[0].applicationNumber
-}
-
-const isExpiryDateCritical = (expiryDate: string): boolean => {
-  if (!expiryDate) {
+/** Returns true when the registration has a renewal payment due application. */
+const hasRenewalPaymentPending = (registration: RegistrationRecord): boolean => {
+  if (!registration?.header?.applications) {
     return false
   }
-  const expiry = new Date(expiryDate)
-  const today = new Date()
-  const daysUntilExpiry = Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-  return daysUntilExpiry <= 40 || daysUntilExpiry < 0
+  return registration.header.applications.some((app: RegistrationApplicationSummary) =>
+    app.applicationType === 'renewal' &&
+    app.applicationStatus === ApplicationStatus.PAYMENT_DUE
+  )
+}
+
+/** Gets the renewal draft application number from linked applications. */
+const getRenewalDraftApplicationNumber = (registration: RegistrationRecord): string | undefined => {
+  if (!registration?.header?.applications) {
+    return undefined
+  }
+
+  const renewalDraft = registration.header.applications.find((app: RegistrationApplicationSummary) =>
+    app.applicationType === 'renewal' && app.applicationStatus === ApplicationStatus.DRAFT
+  )
+
+  return renewalDraft?.applicationNumber
+}
+
+/** Returns the renewal warning window in days by registration type. */
+const getRenewalWindowDays = (registrationType: ApplicationType): number => {
+  // Keep these values in sync with backend DAYS_BEFORE_EXPIRY_BY_TYPE.
+  // TODO: Remove hardcoded fallback values and let API provide the values so that they stay in sync.
+  if (registrationType === ApplicationType.STRATA_HOTEL) {
+    return 60
+  }
+  return 40
+}
+
+/** Calculates whole days remaining until the expiry date in Pacific time. */
+const getDaysUntilExpiry = (expiryDate: string): number | null => {
+  if (!expiryDate) {
+    return null
+  }
+
+  const expiry = DateTime.fromISO(expiryDate).setZone('America/Vancouver')
+  if (!expiry.isValid) {
+    return null
+  }
+  const today = DateTime.now().setZone('America/Vancouver')
+
+  return Math.floor(expiry.diff(today, 'days').toObject().days ?? 0)
+}
+
+/** Maps an expiry date to an expiry state used for UI styling and actions. */
+const getExpiryState = (registrationType: ApplicationType, expiryDate: string | undefined): ExpiryState => {
+  const daysUntilExpiry = getDaysUntilExpiry(expiryDate)
+  if (daysUntilExpiry === null) {
+    return ExpiryState.ACTIVE
+  }
+  if (daysUntilExpiry < 0) {
+    return ExpiryState.EXPIRED
+  }
+  if (daysUntilExpiry <= getRenewalWindowDays(registrationType)) {
+    return ExpiryState.EXPIRING_SOON
+  }
+  return ExpiryState.ACTIVE
+}
+
+/** Builds the registration details route for a registration number. */
+const getRegistrationDetailsPath = (registrationNumber: string): string =>
+  localePath('/dashboard/registration/' + registrationNumber)
+
+/** Persists selected registration id before navigating to details. */
+const handleRegistrationLinkClick = (row: RegistrationRow) => {
+  permitStore.selectedRegistrationId = row.registrationId?.toString()
+}
+
+/** Determines whether the Renew action should be shown for a row. */
+const canShowRenewAction = (
+  expiryState: ExpiryState,
+  renewalDraftExists: boolean,
+  renewalPaymentPending: boolean
+): boolean => {
+  return [ExpiryState.EXPIRED, ExpiryState.EXPIRING_SOON].includes(expiryState) &&
+    !renewalDraftExists &&
+    !renewalPaymentPending
 }
 
 // Data mapping
-const mapRegistrationsList = (registrations: any[]) => {
+const mapRegistrationsList = (registrations: RegistrationRecord[]): RegistrationRow[] => {
   if (!registrations) {
     return []
   }
-  return registrations.map((registration: any) => {
+  return registrations.map((registration: RegistrationRecord): RegistrationRow => {
     const displayAddress = registration.unitAddress
+    const expiryState = getExpiryState(registration.registrationType, registration.expiryDate)
+    const renewalDraftExists = hasRenewalDraft(registration)
+    const renewalPaymentPending = hasRenewalPaymentPending(registration)
+    const renewalDraftApplicationNumber = getRenewalDraftApplicationNumber(registration)
     return {
       number: registration.registrationNumber,
       status: registration.header?.hostStatus || registration.status,
       address: displayAddress,
       localGovernment: registration.unitDetails?.jurisdiction || t('text.notAvailable'),
       expiryDate: registration.expiryDate,
-      isExpiryCritical: isExpiryDateCritical(registration.expiryDate),
-      hasRenewalDraft: hasRenewalDraft(registration),
-      latestApplicationNumber: getLatestApplicationNumber(registration),
+      expiryState,
+      hasRenewalDraft: renewalDraftExists,
+      renewalDraftApplicationNumber,
+      canRenew: canShowRenewAction(expiryState, renewalDraftExists, renewalPaymentPending),
       registrationId: registration.id
     }
   })
 }
 
 // Fetch Registrations
+/** Fetches registration rows from search or account list endpoints. */
 const fetchRegistrations = async () => {
   if (isSearching.value) {
     const resp = await searchRegistrations<ApiRegistrationResp>(
@@ -154,10 +229,29 @@ const { data: registrationsResp, status: registrationsStatus } = await useAsyncD
 
 const registrationsList = computed(() => mapRegistrationsList(registrationsResp.value?.registrations || []))
 
-// Navigation handler
-async function handleRegistrationSelect (row: any) {
-  permitStore.selectedRegistrationId = row.registrationId
-  await navigateTo(localePath('/dashboard/registration/' + row.number))
+/** Starts a new renewal flow for the selected registration. */
+async function handleRenewRegistration (row: RegistrationRow) {
+  permitStore.renewalRegId = row.registrationId?.toString()
+  await navigateTo({
+    path: localePath('/application'),
+    query: { renew: 'true' }
+  })
+}
+
+/** Opens the existing renewal draft for the selected registration. */
+async function handleResumeRenewalDraft (row: RegistrationRow) {
+  if (!row.renewalDraftApplicationNumber) {
+    return
+  }
+
+  permitStore.renewalRegId = undefined
+  await navigateTo({
+    path: localePath('/application'),
+    query: {
+      renew: 'true',
+      applicationId: row.renewalDraftApplicationNumber
+    }
+  })
 }
 </script>
 
@@ -209,7 +303,13 @@ async function handleRegistrationSelect (row: any) {
     >
       <template #number-data="{ row }">
         <div class="flex flex-col gap-1">
-          <span>{{ row.number }}</span>
+          <NuxtLink
+            :to="getRegistrationDetailsPath(row.number)"
+            class="w-fit text-bcGovColor-activeBlue hover:underline"
+            @click="handleRegistrationLinkClick(row)"
+          >
+            {{ row.number }}
+          </NuxtLink>
           <div class="flex gap-1">
             <UBadge
               v-if="row.hasRenewalDraft"
@@ -238,16 +338,28 @@ async function handleRegistrationSelect (row: any) {
       </template>
 
       <template #expiryDate-data="{ row }">
-        <span :class="{'font-bold text-red-500': row.isExpiryCritical}">
+        <span
+          :class="{
+            'font-bold text-bcGovColor-error': row.expiryState === ExpiryState.EXPIRED,
+            'font-bold text-bcGovColor-caution': row.expiryState === ExpiryState.EXPIRING_SOON
+          }"
+        >
           {{ row.expiryDate ? dateToStringPacific(row.expiryDate) : t('text.notAvailable') }}
         </span>
       </template>
 
       <template #actions-data="{ row }">
         <UButton
-          :label="$t('btn.view')"
+          v-if="row.hasRenewalDraft"
+          :label="$t('label.resumeDraft')"
           block
-          @click="handleRegistrationSelect(row)"
+          @click="handleResumeRenewalDraft(row)"
+        />
+        <UButton
+          v-else-if="row.canRenew"
+          :label="$t('btn.renew')"
+          block
+          @click="handleRenewRegistration(row)"
         />
       </template>
     </UTable>
