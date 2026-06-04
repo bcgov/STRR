@@ -15,25 +15,36 @@ const showHighlight = ref(false)
 const NOTE_ANIMATION_DURATION = 3000 // new note background highlight in ms
 const NOTE_MAX_LENGTH = 1000
 const noteContent = ref('')
+const showSaveError = ref(false)
+
+watch(noteContent, () => {
+  // clear error alert when note content is updated
+  showSaveError.value = false
+})
 
 const { start: highlightNewNote } = useTimeoutFn(() => {
   showHighlight.value = false
 }, NOTE_ANIMATION_DURATION)
 
 const handleSaveNote = () => {
-  // implement actual save when api is ready
-  const newNote: ExaminerNote = {
-    id: Math.random(), // NOSONAR
-    createdAt: new Date().toISOString(),
-    username: kcUser.value.userName,
-    text: noteContent.value.trim()
-  }
-  notes.value.unshift(newNote)
-  noteContent.value = ''
-  showHighlight.value = true
+  try {
+    // implement actual save when api is ready
+    const newNote: ExaminerNote = {
+      id: Math.random(), // NOSONAR
+      createdAt: new Date().toISOString(),
+      username: kcUser.value.userName,
+      text: noteContent.value.trim()
+    }
+    notes.value.unshift(newNote)
+    noteContent.value = ''
+    showSaveError.value = false
+    showHighlight.value = true
 
-  notesContainer.value!.scrollTop = 0
-  highlightNewNote()
+    notesContainer.value!.scrollTop = 0
+    highlightNewNote()
+  } catch {
+    showSaveError.value = true
+  }
 }
 
 const handleDiscardNote = () => {
@@ -120,6 +131,25 @@ const handleDiscardNote = () => {
               {{ t('btn.save') }}
             </UButton>
           </div>
+          <UAlert
+            v-if="showSaveError"
+            class="mt-3"
+            color="red"
+            icon="i-mdi-alert-circle-outline"
+            variant="subtle"
+            data-testid="save-note-error"
+            :close-button="null"
+            :description="t('error.saveNote')"
+            :ui="{
+              wrapper: 'border border-[#D3272C]',
+              inner: 'pt-0 text-[#495057] ',
+              description: 'text-base',
+              padding: 'px-6 py-4',
+              icon: {
+                base: 'flex-shrink-0 w-5 h-5 self-start'
+              },
+            }"
+          />
         </div>
 
         <!-- Right side: scrollable note list -->
