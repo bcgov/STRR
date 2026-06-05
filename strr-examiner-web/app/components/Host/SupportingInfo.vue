@@ -44,12 +44,12 @@ const getPrExemptReason = (label: string): string =>
   t(`prExemptReason.${label}`)
 
 const getPrExempt = (): string =>
-  prExemptReason
+  prExemptReason.value
     ? t('pr.exempt')
     : t('pr.notExempt')
 
 const getBlExempt = (): string =>
-  businessLicenseExemptReason
+  businessLicenseExemptReason.value
     ? t('pr.exempt')
     : t('pr.notExempt')
 
@@ -218,7 +218,7 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
                   </span>
                 </div>
                 <div
-                  v-if="activeReg.documents && !isEmpty(activeReg.documents)"
+                  v-if="activeReg?.documents && !isEmpty(activeReg?.documents)"
                   data-testid="pr-req-documents"
                 >
                   <SupportingDocuments
