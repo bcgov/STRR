@@ -5,6 +5,7 @@ const localePath = useLocalePath()
 const { isApplication, hasRegistrationNumber, activeReg, activeHeader } = storeToRefs(useExaminerStore())
 const { isExaminerDecisionsEnabled } = useExaminerFeatureFlags()
 const { isSnapshotRoute } = useExaminerRoute()
+const { setButtonControl } = useButtonControl()
 
 /* show the bottom action buttons for strata hotel renewal applications */
 const isStrataHotelRenewalApplication = computed(() => {
@@ -19,6 +20,12 @@ const isStrataHotelRenewalApplication = computed(() => {
 const shouldHideBottomActions = computed(() => {
   return isApplication.value && hasRegistrationNumber.value && !isStrataHotelRenewalApplication.value
 })
+
+// clear buttons when switching between routes
+watch(
+  () => useRoute().name,
+  () => setButtonControl({ leftButtons: [], rightButtons: [] })
+)
 
 </script>
 <template>
