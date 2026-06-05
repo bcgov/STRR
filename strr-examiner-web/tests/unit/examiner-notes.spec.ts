@@ -3,9 +3,11 @@ import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 import { enI18n } from '../mocks/i18n'
+import { MOCK_EXAMINER_USER } from '../mocks/mockedData'
 import ExaminerNotes from '~/components/ExaminerNotes.vue'
 
 const mockOpenConfirmActionModal = vi.fn()
+const mockKcUser = ref<any>(MOCK_EXAMINER_USER)
 
 mockNuxtImport('useStrrModals', () => () => ({
   openConfirmActionModal: mockOpenConfirmActionModal,
@@ -14,13 +16,14 @@ mockNuxtImport('useStrrModals', () => () => ({
 
 mockNuxtImport('useKeycloak', () => () => ({
   isAuthenticated: ref(true),
-  kcUser: ref({ userName: 'test-examiner', loginSource: 'idir' }),
+  kcUser: mockKcUser,
   logout: vi.fn()
 }))
 
 describe('Examiner Notes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockKcUser.value = MOCK_EXAMINER_USER
   })
 
   it('should render the notes header', async () => {
@@ -73,5 +76,14 @@ describe('Examiner Notes', () => {
     })
     await flushPromises()
     expect(wrapper.find('[data-testid="note-textarea"]').exists()).toBe(false)
+  })
+
+  it('should show error alert when saving the note fails', async () => {
+    mockKcUser.value = null // will cause the save error
+    const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
+    await wrapper.find('textarea').setValue('Some note text')
+    expect(wrapper.find('[data-testid="save-note-error"]').exists()).toBe(false)
+    await wrapper.find('[data-testid="save-note-btn"]').trigger('click')
+    expect(wrapper.find('[data-testid="save-note-error"]').exists()).toBe(true)
   })
 })
