@@ -101,8 +101,10 @@ describe('useExaminerNotes', () => {
 
       withNoteCheck(action)
       expect(capturedConfirmHandler).not.toBeNull()
-
-      await capturedConfirmHandler!()
+      if (capturedConfirmHandler === null) {
+        throw new Error('confirm handler was not captured')
+      }
+      await capturedConfirmHandler()
 
       expect(noteContent.value).toBe('')
       expect(mockClose).toHaveBeenCalledOnce()
