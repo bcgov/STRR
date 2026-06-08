@@ -19,6 +19,7 @@ const {
   sendNoticeOfConsiderationForRegistration
 } = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
+const { withNoteCheck } = useExaminerNotes()
 
 const hasSetAsideAction = computed((): boolean =>
   activeHeader.value?.examinerActions.includes(ApplicationActionsE.SET_ASIDE))
@@ -189,6 +190,9 @@ const setAside = async () => {
   await setAsideRegistration(activeReg.value.id)
   refreshNuxtData()
 }
+
+const handleSetAside = () => withNoteCheck(() => setAside())
+const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action())
 </script>
 
 <template>
@@ -206,7 +210,7 @@ const setAside = async () => {
               color="primary"
               :disabled="!isAssignedToUser"
               data-testid="action-button-set-aside"
-              @click="setAside"
+              @click="handleSetAside"
             />
           </div>
         </div>
@@ -239,7 +243,7 @@ const setAside = async () => {
               variant="outline"
               class="max-w-fit px-7 py-3"
               data-testid="main-action-button"
-              @click="selectedAction?.action"
+              @click="handleMainAction"
             />
           </div>
         </div>

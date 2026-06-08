@@ -1,18 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { enI18n } from '../mocks/i18n'
 import { MOCK_EXAMINER_USER } from '../mocks/mockedData'
 import ExaminerNotes from '~/components/ExaminerNotes.vue'
 
-const mockOpenConfirmActionModal = vi.fn()
-const mockKcUser = ref<any>(MOCK_EXAMINER_USER)
+const mockWithNoteCheck = vi.fn()
+const mockNoteContent = ref('')
 
-mockNuxtImport('useStrrModals', () => () => ({
-  openConfirmActionModal: mockOpenConfirmActionModal,
-  close: vi.fn()
+mockNuxtImport('useExaminerNotes', () => () => ({
+  noteContent: mockNoteContent,
+  withNoteCheck: mockWithNoteCheck,
+  hasUnsavedNote: computed(() => mockNoteContent.value.trim().length > 0),
+  useNoteLeaveGuard: vi.fn()
 }))
+
+const mockKcUser = ref<any>(MOCK_EXAMINER_USER)
 
 mockNuxtImport('useKeycloak', () => () => ({
   isAuthenticated: ref(true),
@@ -24,11 +28,11 @@ describe('Examiner Notes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockKcUser.value = MOCK_EXAMINER_USER
+    mockNoteContent.value = ''
   })
 
   it('should render the notes header', async () => {
     const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
-    await flushPromises()
     expect(wrapper.find('h3').exists()).toBe(true)
   })
 
@@ -48,16 +52,37 @@ describe('Examiner Notes', () => {
     expect(wrapper.find('[data-testid="discard-note-btn"]').exists()).toBe(true)
   })
 
-  it('should call openConfirmActionModal with correct args when discarding', async () => {
+  it('should call withNoteCheck when the Discard button is clicked', async () => {
     const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
     await wrapper.find('textarea').setValue('Draft note')
     await wrapper.find('[data-testid="discard-note-btn"]').trigger('click')
-    expect(mockOpenConfirmActionModal).toHaveBeenCalledOnce()
-    const args = mockOpenConfirmActionModal.mock.calls[0]
-    expect(args![0]).toBe('Discard note?')
-    expect(args![1]).toBe('Your note has not been saved.')
-    expect(args![2]).toBe('Discard Note')
-    expect(args![4]).toBe('Keep Editing')
+    expect(mockWithNoteCheck).toHaveBeenCalledOnce()
+  })
+
+  it('should clear noteContent after saving a note', async () => {
+    const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
+    await wrapper.find('textarea').setValue('A saved note')
+    await wrapper.find('[data-testid="save-note-btn"]').trigger('click')
+    await flushPromises()
+    expect(mockNoteContent.value).toBe('')
+  })
+
+  it('should add the note to the list and display it after saving', async () => {
+    const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
+    expect(wrapper.find('[data-testid="no-notes-available"]').exists()).toBe(true)
+    await wrapper.find('textarea').setValue('A new note')
+    await wrapper.find('[data-testid="save-note-btn"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-testid="no-notes-available"]').exists()).toBe(false)
+  })
+
+  it('should display the character counter', async () => {
+    const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('0/1000')
+    await wrapper.find('textarea').setValue('hello')
+    await flushPromises()
+    expect(wrapper.text()).toContain('5/1000')
   })
 
   it('should show empty state when notes array is empty', async () => {
@@ -79,11 +104,23 @@ describe('Examiner Notes', () => {
   })
 
   it('should show error alert when saving the note fails', async () => {
-    mockKcUser.value = null // will cause the save error
+    mockKcUser.value = null // forces an error inside handleSaveNote
     const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
     await wrapper.find('textarea').setValue('Some note text')
     expect(wrapper.find('[data-testid="save-note-error"]').exists()).toBe(false)
     await wrapper.find('[data-testid="save-note-btn"]').trigger('click')
     expect(wrapper.find('[data-testid="save-note-error"]').exists()).toBe(true)
+  })
+
+  it('should clear the save error alert when note content is updated', async () => {
+    mockKcUser.value = null // force an initial save error
+    const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
+    await wrapper.find('textarea').setValue('Note text')
+    await wrapper.find('[data-testid="save-note-btn"]').trigger('click')
+    expect(wrapper.find('[data-testid="save-note-error"]').exists()).toBe(true)
+
+    await wrapper.find('textarea').setValue('Updated note text')
+    await flushPromises()
+    expect(wrapper.find('[data-testid="save-note-error"]').exists()).toBe(false)
   })
 })

@@ -22,6 +22,8 @@ const {
   isHostApplication
 } = storeToRefs(useExaminerStore())
 const { isExaminerNotesEnabled } = useExaminerFeatureFlags()
+const { withNoteCheck, useNoteLeaveGuard } = useExaminerNotes()
+useNoteLeaveGuard()
 
 // Statuses when Examiner Notes could be added, otherwise readonly
 const ADD_NOTES_STATUSES = new Set([
@@ -121,7 +123,7 @@ const handleAssigneeAction = (
   buttonIndex: number
 ) => {
   if (isAssignedToUser.value) {
-    return handleApplicationAction(id, action, buttonPosition, buttonIndex)
+    withNoteCheck(() => handleApplicationAction(id, action, buttonPosition, buttonIndex))
   } else {
     openConfirmActionModal(
       t('modal.assignError.title'),

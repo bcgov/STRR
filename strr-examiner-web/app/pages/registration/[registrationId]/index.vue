@@ -24,6 +24,8 @@ const {
   isSnapshotVersionsTableEnabled,
   isExaminerNotesEnabled
 } = useExaminerFeatureFlags()
+const { withNoteCheck, useNoteLeaveGuard } = useExaminerNotes()
+useNoteLeaveGuard()
 
 useHead({
   title: t('page.dashboardList.title')
@@ -100,7 +102,7 @@ const handleAssigneeAction = (
   buttonIndex: number
 ) => {
   if (isAssignedToUser.value) {
-    return handleRegistrationAction(id, action, buttonPosition, buttonIndex)
+    withNoteCheck(() => handleRegistrationAction(id, action, buttonPosition, buttonIndex))
   } else {
     openConfirmActionModal(
       t('modal.assignError.title'),
