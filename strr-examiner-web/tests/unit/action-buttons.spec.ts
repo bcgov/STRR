@@ -56,6 +56,16 @@ vi.mock('nuxt/app', () => ({
   refreshNuxtData: vi.fn()
 }))
 
+// withNoteCheck passes the action straight through — note-guard logic is tested in use-examiner-notes.spec.ts
+vi.mock('@/composables/useExaminerNotes', () => ({
+  useExaminerNotes: () => ({
+    noteContent: ref(''),
+    hasUnsavedNote: ref(false),
+    withNoteCheck: vi.fn((action: () => void) => action()),
+    useNoteLeaveGuard: vi.fn()
+  })
+}))
+
 const mount = () => mountSuspended(ActionButtons, { global: { plugins: [enI18n] } })
 
 const clickMainButton = (wrapper: any) =>

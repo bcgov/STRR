@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { useTimeoutFn } from '@vueuse/core'
-const { openConfirmActionModal, close } = useStrrModals()
 const { t } = useNuxtApp().$i18n
 const { kcUser } = useKeycloak()
+const { noteContent, withNoteCheck } = useExaminerNotes()
 
 defineProps<{
   isReadonly?: boolean
@@ -14,7 +14,6 @@ const showHighlight = ref(false)
 
 const NOTE_ANIMATION_DURATION = 3000 // new note background highlight in ms
 const NOTE_MAX_LENGTH = 1000
-const noteContent = ref('')
 const showSaveError = ref(false)
 
 watch(noteContent, () => {
@@ -48,17 +47,7 @@ const handleSaveNote = () => {
 }
 
 const handleDiscardNote = () => {
-  openConfirmActionModal(
-    t('modal.discardNote.title'),
-    t('modal.discardNote.message'),
-    t('modal.discardNote.confirmBtn'),
-    () => {
-      noteContent.value = ''
-      close()
-      return Promise.resolve()
-    },
-    t('modal.discardNote.keepEditing')
-  )
+  withNoteCheck(() => {})
 }
 
 </script>
