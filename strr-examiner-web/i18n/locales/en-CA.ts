@@ -333,6 +333,7 @@ export default {
     setAsideApplication: 'An error occurred while setting aside this application.',
     setAsideRegistration: 'An error occurred while setting aside this registration.',
     filingHistory: 'An error occurred while retrieving the filing history.',
+    fetchNotes: 'An error occurred while retrieving examiner notes.',
     saveAddress: 'An error occurred while updating the STR address',
     saveNote: 'Unable to save note. Please try again.',
     saveAddressConfig: 'Either application number or registration ID must be provided',

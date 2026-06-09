@@ -779,74 +779,86 @@ export const mockSnapshots: ApiSnapshot[] = [
 export const mockExaminerNotes: ExaminerNote[] = [
   {
     id: 1,
+    authorUserId: 1,
     createdAt: 'May 14, 2026 3:22 pm',
-    username: 'idir@user1',
+    authorUsername: 'idir@user1',
     text: 'Reviewed all supporting documents. Principal residence confirmed via utility bill.'
   },
   {
     id: 2,
+    authorUserId: 1,
     createdAt: 'Apr 30, 2026 10:05 am',
-    username: 'idir@user1',
+    authorUsername: 'idir@user1',
     text: 'Contacted applicant regarding missing business licence. Awaiting response.'
   },
   {
     id: 3,
+    authorUserId: 2,
     createdAt: 'Apr 12, 2026 2:47 pm',
-    username: 'idir@user2',
+    authorUsername: 'idir@user2',
     text: 'NOC sent to completing party. 21-day window begins today.'
   },
   {
     id: 4,
+    authorUserId: 1,
     createdAt: 'Mar 25, 2026 1:56 pm',
-    username: 'idir@user1',
+    authorUsername: 'idir@user1',
     text: 'Initial review started. Address flagged for further PR verification.'
   },
   {
     id: 5,
+    authorUserId: 1,
     createdAt: 'Mar 10, 2026 4:20 pm',
-    username: 'idir@user1',
+    authorUsername: 'idir@user1',
     text: 'Application received and auto-assigned for full review.'
   },
   {
     id: 6,
+    authorUserId: 3,
     createdAt: 'Feb 28, 2026 11:13 am',
-    username: 'idir@user3',
+    authorUsername: 'idir@user3',
     text: 'Cross-referenced strata lot number with land title records. Ownership matches applicant name.'
   },
   {
     id: 7,
+    authorUserId: 2,
     createdAt: 'Feb 14, 2026 9:45 am',
-    username: 'idir@user2',
+    authorUsername: 'idir@user2',
     text: 'Strata bylaws reviewed. No short-term rental prohibition found in the submitted documents.'
   },
   {
     id: 8,
+    authorUserId: 1,
     createdAt: 'Jan 31, 2026 3:05 pm',
-    username: 'idir@user1',
+    authorUsername: 'idir@user1',
     text: 'Escalated to supervisor for second review — property has two separate suites under the same civic address.'
   },
   {
     id: 9,
+    authorUserId: 3,
     createdAt: 'Jan 20, 2026 2:30 pm',
-    username: 'idir@user3',
+    authorUsername: 'idir@user3',
     text: 'Applicant confirmed primary residence via signed statutory declaration. File updated accordingly.'
   },
   {
     id: 10,
+    authorUserId: 2,
     createdAt: 'Jan 08, 2026 10:55 am',
-    username: 'idir@user2',
+    authorUsername: 'idir@user2',
     text: 'Duplicate application detected. Flagged for merge review — possible re-submission under a different address.'
   },
   {
     id: 11,
+    authorUserId: 1,
     createdAt: 'Dec 19, 2025 4:02 pm',
-    username: 'idir@user1',
+    authorUsername: 'idir@user1',
     text: 'Business license number verified with City of Vancouver registry.'
   },
   {
     id: 12,
+    authorUserId: 3,
     createdAt: 'Dec 05, 2025 1:18 pm',
-    username: 'idir@user3',
+    authorUsername: 'idir@user3',
     /* eslint-disable max-len */
     text: `Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.
 
@@ -859,20 +871,23 @@ export const mockExaminerNotes: ExaminerNote[] = [
   },
   {
     id: 13,
+    authorUserId: 2,
     createdAt: 'Nov 22, 2025 8:50 am',
-    username: 'idir@user2',
+    authorUsername: 'idir@user2',
     text: 'PR affidavit reviewed. Notarization date is within acceptable range. No concerns.'
   },
   {
     id: 14,
+    authorUserId: 1,
     createdAt: 'Nov 07, 2025 5:33 pm',
-    username: 'idir@user1',
+    authorUsername: 'idir@user1',
     text: 'Application placed on hold pending receipt of updated ID documents. Applicant notified by email.'
   },
   {
     id: 15,
+    authorUserId: 3,
     createdAt: 'Oct 29, 2025 11:40 am',
-    username: 'idir@user3',
+    authorUsername: 'idir@user3',
     text: 'All required documents received. Moving to final decision stage.'
   }
 ]

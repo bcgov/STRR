@@ -706,6 +706,56 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   /**
+   * Get examiner notes for an application.
+   *
+   * @param {string} applicationNumber - Application number.
+   */
+  const getApplicationNotes = async (applicationNumber: string): Promise<ExaminerNote[]> => {
+    const resp = await $strrApi<{ notes: ExaminerNote[] }>(`/applications/${applicationNumber}/notes`, {
+      method: 'GET'
+    })
+    return resp.notes
+  }
+
+  /**
+   * Get examiner notes for a registration.
+   *
+   * @param {number} registrationId - Registration id.
+   */
+  const getRegistrationNotes = async (registrationId: number): Promise<ExaminerNote[]> => {
+    const resp = await $strrApi<{ notes: ExaminerNote[] }>(`/registrations/${registrationId}/notes`, {
+      method: 'GET'
+    })
+    return resp.notes
+  }
+
+  /**
+   * Create an examiner note on an application.
+   *
+   * @param {string} applicationNumber - Application number.
+   * @param {string} content - Note text.
+   */
+  const createApplicationNote = async (applicationNumber: string, text: string): Promise<ExaminerNote> => {
+    return await $strrApi<ExaminerNote>(`/applications/${applicationNumber}/notes`, {
+      method: 'POST',
+      body: { text }
+    })
+  }
+
+  /**
+   * Create an examiner note on a registration.
+   *
+   * @param {number} registrationId - Registration id.
+   * @param {string} content - Note text.
+   */
+  const createRegistrationNote = async (registrationId: number, text: string): Promise<ExaminerNote> => {
+    return await $strrApi<ExaminerNote>(`/registrations/${registrationId}/notes`, {
+      method: 'POST',
+      body: { text }
+    })
+  }
+
+  /**
    * Get a snapshot by registrationId and snapshotId.
    *
    * @param {string} registrationId - The registrationId for the registration
@@ -844,6 +894,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     setAsideApplication,
     getApplicationFilingHistory,
     getRegistrationFilingHistory,
+    getApplicationNotes,
+    getRegistrationNotes,
+    createApplicationNote,
+    createRegistrationNote,
     getSnapshotById,
     startEditRentalUnitAddress,
     resetEditRentalUnitAddress,
