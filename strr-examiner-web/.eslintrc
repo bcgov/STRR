@@ -28,7 +28,8 @@
         "list-upperAlpha",
         "max-w-bcGovInput",
         "text-bcGovColor-activeBlue",
-        "text-bcGovColor-midGray"
+        "text-bcGovColor-midGray",
+        ".*str-.*"
       ]
     }],
     "no-use-before-define": "off"
