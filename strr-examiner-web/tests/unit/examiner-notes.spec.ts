@@ -84,6 +84,7 @@ describe('Examiner Notes', () => {
 
   it('should add the note to the list and display it after saving', async () => {
     const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
+    await flushPromises()
     expect(wrapper.find('[data-testid="no-notes-available"]').exists()).toBe(true)
     await wrapper.find('textarea').setValue('A new note')
     await wrapper.find('[data-testid="save-note-btn"]').trigger('click')
@@ -130,10 +131,11 @@ describe('Examiner Notes', () => {
   })
 
   it('should clear the save error alert when note content is updated', async () => {
-    mockKcUser.value = null // force an initial save error
+    mockCreateApplicationNote.mockRejectedValueOnce(new Error('save error'))
     const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
     await wrapper.find('textarea').setValue('Note text')
     await wrapper.find('[data-testid="save-note-btn"]').trigger('click')
+    await flushPromises()
     expect(wrapper.find('[data-testid="save-note-error"]').exists()).toBe(true)
 
     await wrapper.find('textarea').setValue('Updated note text')
