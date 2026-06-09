@@ -12,12 +12,15 @@ module.exports = {
         str: {
           green: '#18691C',
           bgGreen: '#E8F5E9',
+          lightBlue: '#F0F9FF',
           blue: '#38598A',
           bgBlue: '#E4EDF7',
           red: '#D3272C',
           bgRed: '#FAE9E9',
           textGray: '#212529',
-          bgGray: '#F1F3F5'
+          bgGray: '#F1F3F5',
+          lightGray: '#E2E8EE',
+          darkGray: '#495057'
         },
         green: {
           50: '#f2fbf4',

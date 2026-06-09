@@ -95,6 +95,8 @@ const handleSaveNote = async () => {
   }
 }
 
+const formatAuthorUsername = (username: string) => username.replace('@idir', '')
+
 const handleDiscardNote = () => {
   withNoteCheck(() => {})
 }
@@ -104,7 +106,7 @@ const handleDiscardNote = () => {
 <template>
   <div class="app-inner-container mb-4">
     <!-- Header -->
-    <div class="flex items-center justify-between rounded-t-lg bg-[#E2E8EE] px-6 py-4">
+    <div class="flex items-center justify-between rounded-t-lg bg-str-lightGray px-6 py-4">
       <div class="flex items-center gap-2">
         <UIcon
           name="i-mdi-message-text-outline"
@@ -133,7 +135,7 @@ const handleDiscardNote = () => {
             }"
             data-testid="note-textarea"
           />
-          <div class="ml-3 mt-1 text-xs text-[#495057]">
+          <div class="ml-3 mt-1 text-xs text-str-darkGray">
             {{ noteContent.length }}/{{ NOTE_MAX_LENGTH }}
           </div>
           <div
@@ -169,8 +171,8 @@ const handleDiscardNote = () => {
             :close-button="null"
             :description="t('error.saveNote')"
             :ui="{
-              wrapper: 'border border-[#D3272C]',
-              inner: 'pt-0 text-[#495057]',
+              wrapper: 'border border-str-red',
+              inner: 'pt-0 text-str-darkGray',
               description: 'text-base',
               padding: 'px-6 py-4',
               icon: {
@@ -202,8 +204,8 @@ const handleDiscardNote = () => {
             :close-button="null"
             :description="t('error.fetchNotes')"
             :ui="{
-              wrapper: 'border border-[#D3272C]',
-              inner: 'pt-0 text-[#495057]',
+              wrapper: 'border border-str-red',
+              inner: 'pt-0 text-str-darkGray',
               description: 'text-base',
               padding: 'px-6 py-4',
               icon: {
@@ -225,7 +227,7 @@ const handleDiscardNote = () => {
             >
               <div
                 v-if="'eventName' in note"
-                class="my-3 flex items-center gap-4 text-sm text-[#495057]"
+                class="my-3 flex items-center gap-4 text-sm text-str-darkGray"
               >
                 <div class="h-px flex-1 bg-gray-300" />
                 <span class="font-bold">{{ t(`filingHistoryEvents.${note.eventName}`) }}</span>
@@ -235,11 +237,11 @@ const handleDiscardNote = () => {
               <div
                 v-else
                 class="rounded p-3 text-sm transition-colors duration-300"
-                :class="{ 'bg-[#F0F9FF]' : index === 0 && showHighlight }"
+                :class="{ 'bg-str-lightBlue' : index === 0 && showHighlight }"
               >
-                <div class="flex gap-3 text-[#495057]">
+                <div class="flex gap-3 text-str-darkGray">
                   <span>{{ dateToString(note.createdAt, 'MMM d, y a', true) }}</span>
-                  <span class="font-bold">{{ note.authorUsername }}</span>
+                  <span class="font-bold">{{ formatAuthorUsername(note.authorUsername) }}</span>
                 </div>
                 <div class="mt-1 whitespace-pre-line text-str-textGray">
                   {{ note.text }}
