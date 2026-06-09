@@ -24,6 +24,21 @@ mockNuxtImport('useKeycloak', () => () => ({
   logout: vi.fn()
 }))
 
+const mockGetApplicationNotes = vi.fn().mockResolvedValue([])
+const mockCreateApplicationNote = vi.fn().mockResolvedValue(
+  { id: 1, text: '', createdAt: '', authorUserId: 1, authorUsername: '' }
+)
+mockNuxtImport('useExaminerStore', () => () => ({
+  getApplicationNotes: mockGetApplicationNotes,
+  getRegistrationNotes: vi.fn(),
+  createApplicationNote: mockCreateApplicationNote,
+  createRegistrationNote: vi.fn(),
+  getRegistrationFilingHistory: vi.fn(),
+  isApplication: ref(true),
+  activeRecord: ref<any>(undefined),
+  activeHeader: ref<any>({ applicationNumber: '1234567890' })
+}))
+
 describe('Examiner Notes', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -105,6 +120,8 @@ describe('Examiner Notes', () => {
 
   it('should show error alert when saving the note fails', async () => {
     mockKcUser.value = null // forces an error inside handleSaveNote
+    mockCreateApplicationNote.mockRejectedValueOnce(new Error('save error'))
+
     const wrapper = await mountSuspended(ExaminerNotes, { global: { plugins: [enI18n] } })
     await wrapper.find('textarea').setValue('Some note text')
     expect(wrapper.find('[data-testid="save-note-error"]').exists()).toBe(false)

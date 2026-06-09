@@ -1,14 +1,24 @@
 <script lang="ts" setup>
 import { useTimeoutFn } from '@vueuse/core'
 const { t } = useNuxtApp().$i18n
-const { kcUser } = useKeycloak()
 const { noteContent, withNoteCheck } = useExaminerNotes()
+
+const {
+  getApplicationNotes,
+  getRegistrationNotes,
+  createApplicationNote,
+  createRegistrationNote,
+  getRegistrationFilingHistory
+} = useExaminerStore()
+const { isApplication, activeRecord, activeHeader } = storeToRefs(useExaminerStore())
 
 defineProps<{
   isReadonly?: boolean
 }>()
 
-const notes = ref<ExaminerNote[]>([])
+// the notes list also displays the "Registration created" filing history event inline, sorted by date
+type ExaminerNoteListItem = ExaminerNote | { eventName: FilingHistoryEventName, createdAt: string }
+
 const notesContainer = ref<HTMLElement>()
 const showHighlight = ref(false)
 
@@ -16,25 +26,63 @@ const NOTE_ANIMATION_DURATION = 3000 // new note background highlight in ms
 const NOTE_MAX_LENGTH = 1000
 const showSaveError = ref(false)
 
+const {
+  data: notes,
+  status,
+  error: notesFetchError
+} = useLazyAsyncData<ExaminerNoteListItem[]>('examiner-notes', async () => {
+  if (isApplication.value) {
+    const applicationNotes = await getApplicationNotes(activeHeader.value!.applicationNumber)
+    return [...applicationNotes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
+
+  // for Registrations, show notes from both the initial application and the registration itself
+  const registration = activeRecord.value as HousRegistrationResponse
+
+  const initialApplicationNumber = registration.header.applications
+    ?.find(application => application.applicationType === 'registration')
+    ?.applicationNumber
+
+  const [applicationNotes, registrationNotes, filingHistory] = await Promise.all([
+    initialApplicationNumber
+      ? getApplicationNotes(initialApplicationNumber)
+      : Promise.resolve([]),
+    getRegistrationNotes(registration.id),
+    getRegistrationFilingHistory(registration.id)
+  ])
+
+  const allNotes: ExaminerNoteListItem[] = [...applicationNotes, ...registrationNotes]
+
+  // include "Registration created" event in the notes
+  const regCreated = filingHistory.find(event => event.eventName === FilingHistoryEventName.REGISTRATION_CREATED)
+  if (regCreated) {
+    allNotes.push({ eventName: regCreated.eventName, createdAt: regCreated.createdDate })
+  }
+
+  // sort notes by date
+  return allNotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}, { default: () => [] })
+
 watch(noteContent, () => {
   // clear error alert when note content is updated
   showSaveError.value = false
 })
 
+const notesCount = computed(() => notes.value
+  .filter(n => !('eventName' in n)).length) // filter out event type entries from the notes
+
 const { start: highlightNewNote } = useTimeoutFn(() => {
   showHighlight.value = false
 }, NOTE_ANIMATION_DURATION)
 
-const handleSaveNote = () => {
+const handleSaveNote = async () => {
   try {
-    // implement actual save when api is ready
-    const newNote: ExaminerNote = {
-      id: Math.random(), // NOSONAR
-      createdAt: new Date().toISOString(),
-      username: kcUser.value.userName,
-      text: noteContent.value.trim()
-    }
-    notes.value.unshift(newNote)
+    const text = noteContent.value.trim()
+    const newNote = isApplication.value
+      ? await createApplicationNote(activeHeader.value!.applicationNumber, text)
+      : await createRegistrationNote((activeRecord.value as HousRegistrationResponse).id, text)
+
+    notes.value = [newNote, ...notes.value]
     noteContent.value = ''
     showSaveError.value = false
     showHighlight.value = true
@@ -62,38 +110,28 @@ const handleDiscardNote = () => {
           class="size-6 text-str-blue"
         />
         <h3 class="text-lg text-str-textGray">
-          {{ t('label.examinerNotes') }} ({{ notes.length }})
+          {{ t('label.examinerNotes') }} ({{ notesCount }})
         </h3>
       </div>
     </div>
 
     <div class="bg-white">
-      <div :class="isReadonly ? 'grid grid-cols-1' : 'grid grid-cols-2 gap-x-4 p-6'">
+      <div :class="isReadonly ? 'grid grid-cols-1 p-6' : 'grid grid-cols-2 gap-x-4 p-6'">
         <!-- Left side: textarea, character counter, Discard and Save buttons -->
         <div v-if="!isReadonly">
-          <UForm :state="{}" :validate-on="['submit']">
-            <UFormGroup
-              name="noteContent"
-              :ui="{
-                wrapper: 'mb-1',
-                error: 'text-xs mt-1'
-              }"
-            >
-              <UTextarea
-                v-model="noteContent"
-                :placeholder="t('label.examinerNotePlaceholder')"
-                color="gray"
-                :maxlength="NOTE_MAX_LENGTH"
-                :ui="{
-                  base: 'h-[241px] !bg-str-bgGray focus:ring-0',
-                  padding: {
-                    sm: 'p-4'
-                  }
-                }"
-                data-testid="note-textarea"
-              />
-            </UFormGroup>
-          </UForm>
+          <UTextarea
+            v-model="noteContent"
+            :placeholder="t('label.examinerNotePlaceholder')"
+            color="gray"
+            :maxlength="NOTE_MAX_LENGTH"
+            :ui="{
+              base: 'h-[241px] !bg-str-bgGray focus:ring-0',
+              padding: {
+                sm: 'p-4'
+              }
+            }"
+            data-testid="note-textarea"
+          />
           <div class="ml-3 mt-1 text-xs text-[#495057]">
             {{ noteContent.length }}/{{ NOTE_MAX_LENGTH }}
           </div>
@@ -131,7 +169,7 @@ const handleDiscardNote = () => {
             :description="t('error.saveNote')"
             :ui="{
               wrapper: 'border border-[#D3272C]',
-              inner: 'pt-0 text-[#495057] ',
+              inner: 'pt-0 text-[#495057]',
               description: 'text-base',
               padding: 'px-6 py-4',
               icon: {
@@ -144,29 +182,70 @@ const handleDiscardNote = () => {
         <!-- Right side: scrollable note list -->
         <div
           ref="notesContainer"
-          :class="notes.length > 0 ? 'h-[313px] overflow-auto pr-2' : ''"
+          :class="isReadonly ? (notesCount > 0 && 'max-h-[313px] overflow-auto') : 'h-[313px] overflow-auto pr-2'"
         >
-          <p
-            v-if="notes.length === 0"
-            class="text-sm text-str-textGray"
-            data-testid="no-notes-available"
-          >
-            {{ t('label.noNotesAvailable') }}
-          </p>
           <div
-            v-for="(note, index) in notes"
-            :key="note.id"
-            class="rounded p-3 text-sm transition-colors duration-300"
-            :class="{ 'bg-[#F0F9FF]' : index === 0 && showHighlight }"
+            v-if="status === 'pending'"
+            class="flex justify-center py-4"
           >
-            <div class="flex gap-3 text-[#495057]">
-              <span>{{ dateToString(note.createdAt, 'MMM d, y a', true) }}</span>
-              <span class="font-bold">{{ note.username }}</span>
-            </div>
-            <div class="mt-1 whitespace-pre-line text-str-textGray">
-              {{ note.text }}
-            </div>
+            <UIcon
+              name="i-mdi-loading"
+              class="size-6 shrink-0 animate-spin"
+            />
           </div>
+          <UAlert
+            v-else-if="notesFetchError"
+            color="red"
+            icon="i-mdi-alert-circle-outline"
+            variant="subtle"
+            :close-button="null"
+            :description="t('error.fetchNotes')"
+            :ui="{
+              wrapper: 'border border-[#D3272C]',
+              inner: 'pt-0 text-[#495057]',
+              description: 'text-base',
+              padding: 'px-6 py-4',
+              icon: {
+                base: 'flex-shrink-0 w-5 h-5 self-start'
+              }
+            }"
+          />
+          <template v-else>
+            <p
+              v-if="notes.length === 0"
+              class="text-sm text-str-textGray"
+              data-testid="no-notes-available"
+            >
+              {{ t('label.noNotesAvailable') }}
+            </p>
+            <div
+              v-for="(note, index) in notes"
+              :key="'eventName' in note ? `${note.eventName}-${note.createdAt}` : note.id"
+            >
+              <div
+                v-if="'eventName' in note"
+                class="my-3 flex items-center gap-4 text-sm text-[#495057]"
+              >
+                <div class="h-px flex-1 bg-gray-300" />
+                <span class="font-bold">{{ t(`filingHistoryEvents.${note.eventName}`) }}</span>
+                {{ dateToString(note.createdAt, 'MMM d, y a', true) }}
+                <div class="h-px flex-1 bg-gray-300" />
+              </div>
+              <div
+                v-else
+                class="rounded p-3 text-sm transition-colors duration-300"
+                :class="{ 'bg-[#F0F9FF]' : index === 0 && showHighlight }"
+              >
+                <div class="flex gap-3 text-[#495057]">
+                  <span>{{ dateToString(note.createdAt, 'MMM d, y a', true) }}</span>
+                  <span class="font-bold">{{ note.authorUsername }}</span>
+                </div>
+                <div class="mt-1 whitespace-pre-line text-str-textGray">
+                  {{ note.text }}
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </div>
