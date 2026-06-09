@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useTimeoutFn } from '@vueuse/core'
+import orderBy from 'lodash/orderBy'
 const { t } = useNuxtApp().$i18n
 const { noteContent, withNoteCheck } = useExaminerNotes()
 
@@ -33,7 +34,7 @@ const {
 } = useLazyAsyncData<ExaminerNoteListItem[]>('examiner-notes', async () => {
   if (isApplication.value) {
     const applicationNotes = await getApplicationNotes(activeHeader.value!.applicationNumber)
-    return [...applicationNotes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    return orderBy(applicationNotes, n => new Date(n.createdAt).getTime(), 'desc')
   }
 
   // for Registrations, show notes from both the initial application and the registration itself
@@ -60,7 +61,7 @@ const {
   }
 
   // sort notes by date
-  return allNotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  return orderBy(allNotes, n => new Date(n.createdAt).getTime(), 'desc')
 }, { default: () => [] })
 
 watch(noteContent, () => {
