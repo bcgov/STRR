@@ -187,6 +187,11 @@ describe('Examiner - Host Application Details Page', () => {
     expect(mockOpen).toHaveBeenCalledWith('blob:url', '_blank')
   })
 
+  it('should show Not Exempt label in the PR section when no prExemptReason is set', () => {
+    const prSection = wrapper.findComponent(HostSupportingInfo).findTestId('pr-req-section')
+    expect(prSection.text()).toContain('Not Exempt')
+  })
+
   it('displays PR exemption reason and Strata category', async () => {
     currentMockData = mockWithPrExemptAndStrataHotel
 
