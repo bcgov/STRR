@@ -95,7 +95,7 @@ const handleSaveNote = async () => {
   }
 }
 
-const formatAuthorUsername = (username: string) => username.replace('@idir', '')
+const formatAuthorUsername = (username: string) => username.replace('@idir', '').replace('idir\\', '')
 
 const handleDiscardNote = () => {
   withNoteCheck(() => {})
