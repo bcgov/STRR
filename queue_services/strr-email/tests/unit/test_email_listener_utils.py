@@ -4,15 +4,13 @@ import pytest
 from simple_cloudevent import SimpleCloudEvent
 from strr_api.models import Registration
 
-from strr_email.resources.email_listener import (
-    _get_address_detail,
-    _get_client_recipients,
-    _get_expiry_date,
-    _get_rental_nickname,
-    _get_service_provider,
-    dict_keys_to_snake_case,
-    get_email_info,
-)
+from strr_email.resources.email_listener import _get_address_detail
+from strr_email.resources.email_listener import _get_client_recipients
+from strr_email.resources.email_listener import _get_expiry_date
+from strr_email.resources.email_listener import _get_rental_nickname
+from strr_email.resources.email_listener import _get_service_provider
+from strr_email.resources.email_listener import dict_keys_to_snake_case
+from strr_email.resources.email_listener import get_email_info
 
 
 class TestDictKeysToSnakeCase:

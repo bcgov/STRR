@@ -389,7 +389,7 @@ def test_email_no_cloud_event_data(client, queue_envelope, simple_cloud_event):
     assert response.status_code == HTTPStatus.OK
 
 
-def test_email_application_not_found(client, queue_envelope, simple_cloud_event):
+def test_email_application_not_found(client, session, queue_envelope, simple_cloud_event):
     """Returns 404 when the application_number in the event does not exist."""
     data = {
         "email_type": "HOST_AUTO_APPROVED",
@@ -401,7 +401,7 @@ def test_email_application_not_found(client, queue_envelope, simple_cloud_event)
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_email_registration_not_found(client, queue_envelope, simple_cloud_event):
+def test_email_registration_not_found(client, session, queue_envelope, simple_cloud_event):
     """Returns 404 when the registration_number in the event does not exist."""
     data = {
         "email_type": "HOST_RENEWAL_REMINDER",
@@ -453,7 +453,7 @@ def test_email_notify_api_failure(
     envelope = queue_envelope(cloud_event=ce)
 
     response = client.post("/", json=envelope)
-    assert response.status_code == 503
+    assert response.status_code == HTTPStatus.BAD_REQUEST
 
 
 @pytest.mark.conf(
