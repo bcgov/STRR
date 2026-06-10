@@ -34,6 +34,7 @@
 """The email queue listener service."""
 from __future__ import annotations
 
+from cloud_sql_connector import setup_pg8000_close_event_listener
 from flask import Flask
 from flask_migrate import Migrate
 import sentry_sdk
@@ -62,6 +63,9 @@ def create_app(environment: Config = ProdConfig, **_kwargs) -> Flask:
     db.init_app(app)
     if app.config.get("POD_NAMESPACE", None) == "Testing":
         Migrate(app, db)
+
+    with app.app_context():
+        setup_pg8000_close_event_listener(db.engine)
 
     gcp_queue.init_app(app)
     register_endpoints(app)
