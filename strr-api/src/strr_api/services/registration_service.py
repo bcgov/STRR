@@ -767,14 +767,16 @@ class RegistrationService:
             "CANCELLED": Events.EventName.REGISTRATION_CANCELLED,
         }
         event_name = None
-        if status != previous_status.value or registration.is_set_aside:
-            if status == RegistrationStatus.ACTIVE.value:
-                if previous_status == RegistrationStatus.SUSPENDED:
-                    event_name = Events.EventName.REGISTRATION_REINSTATED
-                else:
-                    event_name = Events.EventName.REGISTRATION_APPROVED
+        if status == RegistrationStatus.ACTIVE.value:
+            # Always fire an approval event when setting ACTIVE, regardless of previous status.
+            # This ensures Update Approval on an already ACTIVE renewal registration always
+            # writes a history entry and triggers the approval email.
+            if previous_status == RegistrationStatus.SUSPENDED:
+                event_name = Events.EventName.REGISTRATION_REINSTATED
             else:
-                event_name = event_status_map.get(status)
+                event_name = Events.EventName.REGISTRATION_APPROVED
+        elif status != previous_status.value or registration.is_set_aside:
+            event_name = event_status_map.get(status)
 
         registration.status = status
         registration.is_set_aside = False
