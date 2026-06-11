@@ -43,6 +43,7 @@ export const useExaminerNotes = () => {
    * all Vue lifecycle hooks).
    */
   const useNoteLeaveGuard = () => {
+    // In-app navigation guard - shows the custom Discard Note modal.
     onBeforeRouteLeave((to, _from, next) => {
       if (!hasUnsavedNote.value) {
         next()
@@ -64,6 +65,17 @@ export const useExaminerNotes = () => {
         t('modal.discardNote.keepEditing')
       )
     })
+
+    // Browser tab close / refresh / external navigation guard.
+    // Browsers only allow their native "Leave site?" dialog here
+    // custom modals are not permitted in this case.
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedNote.value) { return }
+      event.preventDefault()
+    }
+
+    window.addEventListener('beforeunload', onBeforeUnload)
+    onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
   }
 
   return {
