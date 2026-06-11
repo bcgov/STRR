@@ -21,7 +21,7 @@ export function hasRecentDocumentUpload (
   if (!documents?.length || !nocSentDate) {
     return false
   }
-  // typed as Date in ApplicationHeader/ApiExtraRegistrationDetails, but the API delivers an ISO string
+
   const nocSent = nocSentDate instanceof Date
     ? DateTime.fromJSDate(nocSentDate)
     : DateTime.fromISO(nocSentDate)
