@@ -33,16 +33,21 @@ describe('recent-document-upload utils', () => {
       expect(hasRecentDocumentUpload([{ fileKey: 'a' } as any], NOC_SENT_DATE)).toBe(false)
     })
 
-    it('returns true when doc is on the same calendar day as the NOC', () => {
-      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10' }], NOC_SENT_DATE)).toBe(true)
+    it('returns false for date-only value on the NOC day, without exact upload time', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10' }], NOC_SENT_DATE)).toBe(false)
     })
 
     it('returns true when doc is after the NOC day', () => {
       expect(hasRecentDocumentUpload([{ addedOn: '2026-03-15' }], NOC_SENT_DATE)).toBe(true)
     })
 
-    it('returns true for full datetime on the same day as the NOC', () => {
+    it('returns true for full datetime after the NOC sent time on the same day', () => {
       expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10T20:00:00.000Z' }], NOC_SENT_DATE)).toBe(true)
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10T17:01:00.000Z' }], NOC_SENT_DATE)).toBe(true)
+    })
+
+    it('returns false for full datetime before the NOC sent time on the same day', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10T16:59:00.000Z' }], NOC_SENT_DATE)).toBe(false)
     })
 
     it('returns false when doc is before the NOC day', () => {
@@ -57,7 +62,7 @@ describe('recent-document-upload utils', () => {
 
     it('returns true when at least one doc qualifies among mixed dates', () => {
       expect(
-        hasRecentDocumentUpload([{ addedOn: '2026-03-05' }, { addedOn: '2026-03-10' }], NOC_SENT_DATE)
+        hasRecentDocumentUpload([{ addedOn: '2026-03-05' }, { addedOn: '2026-03-11' }], NOC_SENT_DATE)
       ).toBe(true)
     })
   })

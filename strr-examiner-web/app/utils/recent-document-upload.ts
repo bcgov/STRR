@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon'
-import { dateStringToDate } from '#imports'
 
 /** Document fields used for the dashboard "New document" indicator. */
 type ApiDocLike = { addedOn?: string; uploadDate?: string }
@@ -12,22 +11,7 @@ type RegistrationLike = {
 }
 
 /**
- * Local midnight for the calendar day in dateString (YYYY-MM-DD or datetime string).
- * Returns null if invalid.
- */
-function documentLocalDayStart (dateString: string): DateTime | null {
-  const trimmed = dateString.trim()
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    const date = dateStringToDate(trimmed)
-    return date ? DateTime.fromJSDate(date).startOf('day') : null
-  }
-  const dateTime = DateTime.fromJSDate(new Date(trimmed))
-  return dateTime.isValid ? dateTime.startOf('day') : null
-}
-
-/**
- * True when at least one document was uploaded on or after the day the NOC was sent.
- * Compares calendar days in local timezone — including same-day uploads.
+ * True when at least one document was uploaded after the NOC was sent.
  * Return false if nocSentDate is not provided (no active NOC or no decision pending).
  */
 export function hasRecentDocumentUpload (
@@ -37,17 +21,16 @@ export function hasRecentDocumentUpload (
   if (!documents?.length || !nocSentDate) {
     return false
   }
-  const nocDay = DateTime.fromISO(String(nocSentDate)).toLocal().startOf('day')
-  if (!nocDay.isValid) {
+  // typed as Date in ApplicationHeader/ApiExtraRegistrationDetails, but the API delivers an ISO string
+  const nocSent = nocSentDate instanceof Date
+    ? DateTime.fromJSDate(nocSentDate)
+    : DateTime.fromISO(nocSentDate)
+  if (!nocSent.isValid) {
     return false
   }
   return documents.some((doc) => {
-    const docDate = doc.addedOn || doc.uploadDate
-    if (!docDate) {
-      return false
-    }
-    const docDay = documentLocalDayStart(docDate)
-    return docDay !== null && docDay >= nocDay
+    const uploaded = DateTime.fromISO(doc.addedOn || doc.uploadDate || '')
+    return uploaded.isValid && uploaded > nocSent
   })
 }
 
