@@ -54,9 +54,7 @@ class TestGetEmailInfo:
         assert get_email_info(ce) is None
 
     def test_returns_none_when_data_is_not_dict(self):
-        ce = SimpleCloudEvent(
-            id="id", source="src", subject="sub", type="email", data="not-a-dict"
-        )
+        ce = SimpleCloudEvent(id="id", source="src", subject="sub", type="email", data="not-a-dict")
         assert get_email_info(ce) is None
 
     def test_converts_camel_case_fields(self):
