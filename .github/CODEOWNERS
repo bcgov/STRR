@@ -1,7 +1,3 @@
-# Global code owner for the entire repository
-
-* @jimmypalelil @JazzarKarim @dimak1
-
 # Specify a code owner for the strr-api directory
 
 /strr-api @Jacky-Pham @JazzarKarim @thorwolpert @dimak1 @jimmypalelil
