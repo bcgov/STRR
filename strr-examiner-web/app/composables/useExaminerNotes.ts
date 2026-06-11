@@ -69,7 +69,7 @@ export const useExaminerNotes = () => {
     // Browser tab close / refresh / external navigation guard.
     // Browsers only allow their native "Leave site?" dialog here
     // custom modals are not permitted in this case.
-    useEventListener(window, 'beforeunload', (event: BeforeUnloadEvent) => {
+    useEventListener(globalThis, 'beforeunload', (event: BeforeUnloadEvent) => {
       if (!hasUnsavedNote.value) { return }
       event.preventDefault()
     })
