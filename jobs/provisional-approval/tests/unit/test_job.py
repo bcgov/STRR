@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from strr_api.models.application import Application
 from strr_api.models.events import Events
+from strr_api.models.rental import Registration
 
 from provisional_approval.job import (
     create_app,
@@ -43,6 +44,16 @@ def test_get_applications_returns_limited_query(job_app):
     query_mock.filter.assert_called_once()
     filter_args = query_mock.filter.call_args[0]
     assert len(filter_args) == 3
+    assert filter_args[0].compare(Application.status == Application.Status.FULL_REVIEW)
+    assert filter_args[1].compare(
+        Application.registration_type.in_(
+            [
+                Registration.RegistrationType.HOST,
+                Registration.RegistrationType.STRATA_HOTEL,
+            ]
+        )
+    )
+    assert filter_args[2].compare(Application.type == "renewal")
     filter_result.order_by.assert_called_once_with(Application.id)
     filter_result.order_by.return_value.limit.assert_called_once_with(25)
 

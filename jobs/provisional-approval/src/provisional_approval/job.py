@@ -49,14 +49,20 @@ def register_shellcontext(app):
 
 def get_applications_in_full_review_status(app):
     """Retrieve applications for processing."""
+    batch_size = int(app.config.get("BATCH_SIZE"))
+    application_registration_types = [
+        Registration.RegistrationType.HOST,
+        Registration.RegistrationType.STRATA_HOTEL,
+    ]
+
     return (
         Application.query.filter(
             Application.status == Application.Status.FULL_REVIEW,
-            Application.registration_type == Registration.RegistrationType.HOST,
+            Application.registration_type.in_(application_registration_types),
             Application.type == "renewal",
         )
         .order_by(Application.id)
-        .limit(int(app.config.get("BATCH_SIZE")))
+        .limit(batch_size)
     )
 
 
