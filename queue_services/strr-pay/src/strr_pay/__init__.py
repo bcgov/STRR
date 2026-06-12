@@ -37,6 +37,7 @@ This module applied payments against applications and updates the application st
 """
 from __future__ import annotations
 
+from cloud_sql_connector import setup_pg8000_close_event_listener
 from flask import Flask
 from strr_api import db
 
@@ -52,6 +53,10 @@ def create_app(environment: Config = ProdConfig, **_kwargs) -> Flask:
     app.config.from_object(environment)
 
     db.init_app(app)
+
+    with app.app_context():
+        setup_pg8000_close_event_listener(db.engine)
+
     gcp_queue.init_app(app)
     register_endpoints(app)
 
