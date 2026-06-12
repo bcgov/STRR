@@ -1090,7 +1090,7 @@ def get_document(application_number, file_key):
             raise AuthException()
         application_documents = [
             doc
-            for doc in application.application_json.get("registration").get("documents", [])
+            for doc in application.application_json.get("registration", {}).get("documents", [])
             if doc.get("fileKey") == file_key
         ]
         if not application_documents:

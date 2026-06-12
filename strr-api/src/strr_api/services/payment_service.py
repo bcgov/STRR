@@ -159,11 +159,11 @@ class PayService:
         return payload
 
     def _get_platform_filing_type(self, registration_json, application_type):
-        cpbc_number = registration_json.get("businessDetails").get("consumerProtectionBCLicenceNumber")
+        cpbc_number = registration_json.get("businessDetails", {}).get("consumerProtectionBCLicenceNumber")
         if cpbc_number and (not cpbc_number.isspace()):
             filing_type = PLATFORM_FEE_WAIVED if application_type == "registration" else PLATFORM_RENEWAL_WAIVED
             self.app.logger.info("Filing type for Platform application - CPBC::" + filing_type)
-        elif registration_json.get("platformDetails").get("listingSize") == "THOUSAND_AND_ABOVE":
+        elif registration_json.get("platformDetails", {}).get("listingSize") == "THOUSAND_AND_ABOVE":
             filing_type = PLATFORM_LARGE_USER_BASE if application_type == "registration" else PLATFORM_RENEWAL_LARGE
             self.app.logger.info("Filing type for Platform application - Thousand and above::" + filing_type)
         else:
@@ -174,8 +174,9 @@ class PayService:
     def _get_host_filing_type(self, registration_json, application_type="registration"):
         quantity = 1
         filing_type = None
-        rental_unit_setup_option = registration_json.get("unitDetails").get("rentalUnitSetupOption")
-        property_type = registration_json.get("unitDetails").get("propertyType")
+        unit_details = registration_json.get("unitDetails", {})
+        rental_unit_setup_option = unit_details.get("rentalUnitSetupOption")
+        property_type = unit_details.get("propertyType")
         if application_type == "registration":
             if rental_unit_setup_option:
                 if property_type == PropertyType.BED_AND_BREAKFAST.name:
@@ -195,13 +196,12 @@ class PayService:
         return filing_type, quantity
 
     def _get_host_registration_fee_using_legacy_option(self, filing_type, quantity, registration_json):
-        rental_unit_space_type = registration_json.get("unitDetails").get("rentalUnitSpaceType")
-        is_rental_unit_on_principal_residence = registration_json.get("unitDetails").get(
-            "isUnitOnPrincipalResidenceProperty"
-        )
+        unit_details = registration_json.get("unitDetails", {})
+        rental_unit_space_type = unit_details.get("rentalUnitSpaceType")
+        is_rental_unit_on_principal_residence = unit_details.get("isUnitOnPrincipalResidenceProperty")
         if rental_unit_space_type == RentalProperty.RentalUnitSpaceType.ENTIRE_HOME:
             if is_rental_unit_on_principal_residence:
-                host_residence = registration_json.get("unitDetails").get("hostResidence")
+                host_residence = unit_details.get("hostResidence")
                 if host_residence == RentalProperty.HostResidence.SAME_UNIT:
                     filing_type = HOST_REGISTRATION_FEE_1
                 elif host_residence == RentalProperty.HostResidence.ANOTHER_UNIT:
@@ -210,11 +210,11 @@ class PayService:
                 filing_type = HOST_REGISTRATION_FEE_2
         elif rental_unit_space_type == RentalProperty.RentalUnitSpaceType.SHARED_ACCOMMODATION:
             filing_type = HOST_REGISTRATION_FEE_1
-            property_type = registration_json.get("unitDetails").get("propertyType")
+            property_type = unit_details.get("propertyType")
             if property_type in {PropertyType.BED_AND_BREAKFAST.name, PropertyType.RECREATIONAL.name}:
                 filing_type = HOST_REGISTRATION_FEE_3
-            elif registration_json.get("unitDetails").get("numberOfRoomsForRent"):
-                quantity = registration_json.get("unitDetails").get("numberOfRoomsForRent")
+            elif unit_details.get("numberOfRoomsForRent"):
+                quantity = unit_details.get("numberOfRoomsForRent")
         return filing_type, quantity
 
     def _get_renewal_filing_type_for_host(self, rental_unit_setup_option, property_type):

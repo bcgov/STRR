@@ -322,8 +322,8 @@ class RegistrationService:
                 postal_code=mailing_address.get("postalCode"),
                 location_description=mailing_address.get("locationDescription"),
             ),
-            brand_name=strata_hotel_details_dict.get("brand").get("name"),
-            website=strata_hotel_details_dict.get("brand").get("website"),
+            brand_name=strata_hotel_details_dict.get("brand", {}).get("name"),
+            website=strata_hotel_details_dict.get("brand", {}).get("website"),
             number_of_units=strata_hotel_details_dict.get("numberOfUnits"),
             category=strata_hotel_details_dict.get("category"),
             unit_listings=strata_hotel_details_dict.get("unitListings"),
@@ -850,9 +850,9 @@ class RegistrationService:
     def find_all_by_host_sin(sin: str, count_only=False) -> list[Registration] | int:
         """Return all registrations with the given host SIN."""
         query = (
-            Registration.query.join(RentalProperty)
-            .join(PropertyContact)
-            .join(Contact)
+            Registration.query.join(RentalProperty, Registration.id == RentalProperty.registration_id)
+            .join(PropertyContact, RentalProperty.id == PropertyContact.property_id)
+            .join(Contact, PropertyContact.contact_id == Contact.id)
             .filter(Registration.status.in_([RegistrationStatus.ACTIVE, RegistrationStatus.SUSPENDED]))
             .filter(PropertyContact.is_primary)
             .filter(PropertyContact.contact_type == PropertyContact.ContactType.INDIVIDUAL)

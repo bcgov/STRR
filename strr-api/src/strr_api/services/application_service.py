@@ -127,7 +127,7 @@ class ApplicationService:
         application_type = request_json.get("header", {}).get("applicationType")
         if not application:
             application = Application()
-            application.registration_type = request_json.get("registration").get("registrationType")
+            application.registration_type = request_json.get("registration", {}).get("registrationType")
             application.application_number = Application.generate_unique_application_number()
         application.payment_account = account_id
         application.submitter_id = user.id
@@ -185,7 +185,7 @@ class ApplicationService:
             return application
 
         application.invoice_id = invoice_details["id"]
-        application.payment_account = invoice_details.get("paymentAccount").get("accountId")
+        application.payment_account = invoice_details.get("paymentAccount", {}).get("accountId")
         application.payment_status_code = invoice_details.get("statusCode")
 
         if (
@@ -411,7 +411,11 @@ class ApplicationService:
     def update_document_list(application: Application, document: str) -> Application:
         """Updates the document list of an application."""
         application_json = copy.deepcopy(application.application_json)
-        application_json.get("registration").get("documents", []).append(document)
+        registration = application_json.get("registration", {})
+        if "documents" not in registration:
+            registration["documents"] = []
+        registration["documents"].append(document)
+        application_json["registration"] = registration
         application.application_json = application_json
         application.save()
         return application
