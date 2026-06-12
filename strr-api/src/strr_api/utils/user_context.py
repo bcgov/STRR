@@ -37,9 +37,7 @@ class UserContext:  # pylint: disable=too-many-instance-attributes
         self._first_name: str = token_info.get("firstname", None)
         self._last_name: str = token_info.get("lastname", None)
         self._bearer_token: str = _get_token()
-        self._roles: list = (
-            token_info.get("realm_access", None).get("roles", []) if "realm_access" in token_info else []
-        )
+        self._roles: list = token_info.get("realm_access", {}).get("roles", [])
         self._sub: str = token_info.get("sub", None)
         self._login_source: str = token_info.get("loginSource", None)
         self._name: str = f"{token_info.get('firstname', None)} {token_info.get('lastname', None)}"

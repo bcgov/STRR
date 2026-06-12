@@ -138,7 +138,7 @@ class Registration(Versioned, BaseModel):
         if filter_criteria.requirements:
             query = cls._filter_by_registration_requirement(filter_criteria.requirements, query)
         if filter_criteria.local_gov:
-            query = query.join(RentalProperty).filter(
+            query = query.join(RentalProperty, Registration.id == RentalProperty.registration_id).filter(
                 RentalProperty.jurisdiction.ilike(f"%{filter_criteria.local_gov}%")
             )
         sub_status_conditions = cls._collect_sub_status_conditions(filter_criteria)

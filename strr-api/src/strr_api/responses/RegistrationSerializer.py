@@ -164,14 +164,17 @@ class RegistrationSerializer:
         registration_data["header"]["applications"] = []
 
         for application in sorted_applications:
+            organization_name = None
+            if registration_json := application.application_json.get("registration"):
+                if str_requirements := registration_json.get("strRequirements"):
+                    organization_name = str_requirements.get("organizationNm")
+
             application_data = {
                 "applicationNumber": application.application_number,
                 "applicationDateTime": application.application_date.isoformat(),
                 "applicationType": application.type,
                 "applicationStatus": application.status,
-                "organizationName": application.application_json.get("registration")
-                .get("strRequirements", {})
-                .get("organizationNm"),
+                "organizationName": organization_name,
             }
             application_data["assignee"] = cls._get_user_info(application.reviewer_id, application.reviewer)
             application_data["decider"] = cls._get_user_info(application.decider_id, application.decider)
@@ -521,4 +524,6 @@ class RegistrationSerializer:
             return None
 
         latest_application = sorted(applications, key=lambda app: app.application_date, reverse=True)[0]
+        if not latest_application.application_json:
+            return None
         return latest_application.application_json.get("registration", {}).get("strRequirements", {})
