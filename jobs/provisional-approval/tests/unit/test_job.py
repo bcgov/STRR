@@ -30,9 +30,15 @@ def test_register_shellcontext_exposes_app(mocker):
 
 def test_get_applications_returns_limited_query(job_app):
     job_app.config["BATCH_SIZE"] = "25"
-    limited_query = MagicMock()
+
+    expected_result = [MagicMock(spec=Application), MagicMock(spec=Application)]
+
+    limit_mock = MagicMock()
+    limit_mock.all.return_value = expected_result
+
     filter_result = MagicMock()
-    filter_result.order_by.return_value.limit.return_value = limited_query
+    filter_result.order_by.return_value.limit.return_value = limit_mock
+
     query_mock = MagicMock()
     query_mock.filter.return_value = filter_result
 
@@ -40,8 +46,9 @@ def test_get_applications_returns_limited_query(job_app):
         with patch("provisional_approval.job.Application.query", query_mock):
             result = get_applications_in_full_review_status(job_app)
 
-    assert result is limited_query
+    assert result is expected_result
     query_mock.filter.assert_called_once()
+
     filter_args = query_mock.filter.call_args[0]
     assert len(filter_args) == 3
     assert filter_args[0].compare(Application.status == Application.Status.FULL_REVIEW)
@@ -54,8 +61,10 @@ def test_get_applications_returns_limited_query(job_app):
         )
     )
     assert filter_args[2].compare(Application.type == "renewal")
+
     filter_result.order_by.assert_called_once_with(Application.id)
     filter_result.order_by.return_value.limit.assert_called_once_with(25)
+    limit_mock.all.assert_called_once()
 
 
 def test_process_applications_calls_approval_service(mocker, job_app):
@@ -114,10 +123,10 @@ def test_run_invokes_pipeline_or_logs_on_failure(
     expect_process,
 ):
     mock_app = MagicMock()
-    cm = MagicMock()
-    cm.__enter__ = MagicMock(return_value=None)
-    cm.__exit__ = MagicMock(return_value=False)
-    mock_app.app_context.return_value = cm
+    context_manager = MagicMock()
+    context_manager.__enter__ = MagicMock(return_value=None)
+    context_manager.__exit__ = MagicMock(return_value=False)
+    mock_app.app_context.return_value = context_manager
 
     mocker.patch("provisional_approval.job.create_app", return_value=mock_app)
     get_mock = mocker.patch(
@@ -136,4 +145,5 @@ def test_run_invokes_pipeline_or_logs_on_failure(
         mock_logger.error.assert_called_once_with("Unexpected error: boom")
         return
 
+    get_mock.assert_called_once_with(mock_app)
     mock_process.assert_called_once_with([])
