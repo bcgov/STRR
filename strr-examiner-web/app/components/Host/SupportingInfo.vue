@@ -17,23 +17,15 @@ const docStore = useExaminerDocumentStore()
 const { isPrUploadOpen } = storeToRefs(docStore)
 
 // Principal Residence Requirements:
-const getPrRequired = (): string => {
-  if (!isApplication.value) {
-    return ''
-  }
-  return activeReg.value?.strRequirements?.isPrincipalResidenceRequired
+const getPrRequired = (): string =>
+  activeReg.value?.strRequirements?.isPrincipalResidenceRequired
     ? t('pr.required')
     : t('pr.notRequired')
-}
 
-const getBlRequired = (): string => {
-  if (!isApplication.value) {
-    return ''
-  }
-  return activeReg.value?.strRequirements?.isBusinessLicenceRequired
+const getBlRequired = (): string =>
+  activeReg.value?.strRequirements?.isBusinessLicenceRequired
     ? t('pr.required')
     : t('pr.notRequired')
-}
 
 const prExemptReason = computed(() => activeReg.value?.unitDetails?.prExemptReason)
 const businessLicenseExemptReason = computed(() => activeReg.value?.unitDetails?.blExemptReason)

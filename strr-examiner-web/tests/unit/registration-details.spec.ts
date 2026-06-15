@@ -15,6 +15,7 @@ import RegistrationDetails from '~/pages/registration/[registrationId]/index.vue
 import {
   DecisionPanel,
   HistoricalApplicationsTable,
+  HostSupportingInfo,
   RegistrationInfoHeader,
   SnapshotVersionsTable,
   SnapshotInfo
@@ -98,6 +99,16 @@ describe('Examiner - Registration Details Page', () => {
   it('renders Application Details page and its components', () => {
     expect(wrapper.exists()).toBe(true)
     expect(wrapper.findComponent(RegistrationInfoHeader).exists()).toBe(true)
+  })
+
+  it('should show Required label in the PR section for registrations', () => {
+    const prSection = wrapper.findComponent(HostSupportingInfo).findTestId('pr-req-section')
+    expect(prSection.text()).toContain('Required')
+  })
+
+  it('should show Required label in the BL section for registrations', () => {
+    const blSection = wrapper.findComponent(HostSupportingInfo).findTestId('business-lic-section')
+    expect(blSection.text()).toContain('Required')
   })
 
   it('displays correct badge color for ACTIVE status', async () => {
