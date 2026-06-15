@@ -16,10 +16,23 @@ from provisional_approval.job import (
 pytestmark = pytest.mark.integration
 
 
-def test_returns_host_renewal_in_full_review(
-    session, app, seed_full_review_host_renewal_application
+@pytest.mark.parametrize(
+    "registration_type",
+    [
+        Registration.RegistrationType.HOST,
+        Registration.RegistrationType.STRATA_HOTEL,
+    ],
+    ids=["host", "strata_hotel"],
+)
+def test_returns_eligible_renewal_in_full_review(
+    session,
+    app,
+    seed_full_review_host_renewal_application,
+    registration_type,
 ):
-    data = seed_full_review_host_renewal_application()
+    data = seed_full_review_host_renewal_application(
+        registration_type=registration_type,
+    )
     session.commit()
 
     rows = list(get_applications_in_full_review_status(app))
@@ -46,7 +59,7 @@ def test_excludes_non_renewal_type(
     assert list(get_applications_in_full_review_status(app)) == []
 
 
-def test_excludes_non_host_registration_type(
+def test_excludes_non_eligible_registration_type(
     session, app, seed_full_review_host_renewal_application
 ):
     seed_full_review_host_renewal_application(
