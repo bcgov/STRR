@@ -510,6 +510,17 @@ export const mockStrataHotelRegistration: StrataHotelRegistrationResp = {
   nocStatus: null
 }
 
+export const mockHostRegistrationNotRequired: HostRegistrationResp = {
+  ...mockHostRegistration,
+  strRequirements: {
+    isBusinessLicenceRequired: false,
+    isPrincipalResidenceRequired: false,
+    isStrProhibited: false,
+    isStraaExempt: false,
+    organizationNm: 'City of Vancouver'
+  }
+}
+
 export const mockExpiredRegistration: HostRegistrationResp = {
   ...mockHostRegistration,
   status: RegistrationStatus.EXPIRED,

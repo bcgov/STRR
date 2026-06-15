@@ -2,6 +2,7 @@ import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import {
   mockHostRegistration,
+  mockHostRegistrationNotRequired,
   mockPlatformRegistration,
   mockStrataHotelRegistration,
   mockExpiredRegistration,
@@ -109,6 +110,22 @@ describe('Examiner - Registration Details Page', () => {
   it('should show Required label in the BL section for registrations', () => {
     const blSection = wrapper.findComponent(HostSupportingInfo).findTestId('business-lic-section')
     expect(blSection.text()).toContain('Required')
+  })
+
+  it('should show Not Required label in the PR section when isPrincipalResidenceRequired is false', async () => {
+    currentMockData = mockHostRegistrationNotRequired
+    const notRequiredWrapper = await mountSuspended(HostSupportingInfo, {
+      global: { plugins: [enI18n] }
+    })
+    expect(notRequiredWrapper.findTestId('pr-req-section').text()).toContain('Not Required')
+  })
+
+  it('should show Not Required label in the BL section when isBusinessLicenceRequired is false', async () => {
+    currentMockData = mockHostRegistrationNotRequired
+    const notRequiredWrapper = await mountSuspended(HostSupportingInfo, {
+      global: { plugins: [enI18n] }
+    })
+    expect(notRequiredWrapper.findTestId('business-lic-section').text()).toContain('Not Required')
   })
 
   it('displays correct badge color for ACTIVE status', async () => {
