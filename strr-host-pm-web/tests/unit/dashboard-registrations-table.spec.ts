@@ -213,7 +213,7 @@ describe('Dashboard Registrations Table', () => {
       expect(wrapper.find('tbody tr td:nth-child(2)').text()).toBe('Expiring soon')
     })
 
-    it('shows the original hostStatus in the status column for a registration with a far-future expiry date', async () => {
+    it('shows the original hostStatus in the status column for a registration with a future expiry date', async () => {
       asyncDataMocks['host-registrations-list'] = {
         registrations: [createRegistration({ expiryDate: daysFromNowIso(200) })],
         total: 1
