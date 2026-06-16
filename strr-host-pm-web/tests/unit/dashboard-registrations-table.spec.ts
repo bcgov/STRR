@@ -186,6 +186,47 @@ describe('Dashboard Registrations Table', () => {
     })
   })
 
+  describe('status column overrides based on expiry state', () => {
+    it('shows "Expired" in the status column for a registration with a past expiry date', async () => {
+      asyncDataMocks['host-registrations-list'] = {
+        registrations: [createRegistration({ expiryDate: daysFromNowIso(-1) })],
+        total: 1
+      }
+
+      const wrapper = await mountSuspended(RegistrationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      expect(wrapper.find('tbody tr td:nth-child(2)').text()).toBe('Expired')
+    })
+
+    it('shows "Expiring soon" in the status column for a host registration expiring within 40 days', async () => {
+      asyncDataMocks['host-registrations-list'] = {
+        registrations: [createRegistration({ expiryDate: daysFromNowIso(20) })],
+        total: 1
+      }
+
+      const wrapper = await mountSuspended(RegistrationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      expect(wrapper.find('tbody tr td:nth-child(2)').text()).toBe('Expiring soon')
+    })
+
+    it('shows the original hostStatus in the status column for a registration with a far-future expiry date', async () => {
+      asyncDataMocks['host-registrations-list'] = {
+        registrations: [createRegistration({ expiryDate: daysFromNowIso(200) })],
+        total: 1
+      }
+
+      const wrapper = await mountSuspended(RegistrationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      expect(wrapper.find('tbody tr td:nth-child(2)').text()).toBe('Registered')
+    })
+  })
+
   it('colors expired and expiring-soon dates correctly', async () => {
     asyncDataMocks['host-registrations-list'] = {
       registrations: [
