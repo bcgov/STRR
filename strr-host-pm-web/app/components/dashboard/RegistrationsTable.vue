@@ -324,6 +324,16 @@ async function handleResumeRenewalDraft (row: RegistrationRow) {
         </div>
       </template>
 
+      <template #status-data="{ row }">
+        <span v-if="row.expiryState === ExpiryState.EXPIRED" class="text-bcGovColor-midGray">
+          {{ t('label.expired') }}
+        </span>
+        <span v-else-if="row.expiryState === ExpiryState.EXPIRING_SOON" class="text-bcGovColor-midGray">
+          {{ t('label.expiringSoon') }}
+        </span>
+        <span v-else>{{ row.status }}</span>
+      </template>
+
       <template #address-data="{ row }">
         <div class="flex flex-col">
           <span>

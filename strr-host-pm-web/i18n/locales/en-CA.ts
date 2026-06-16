@@ -303,6 +303,7 @@ export default {
     accountInfo: 'Account Information',
     primaryContactInfo: 'Primary Contact Information',
     expired: 'Expired',
+    expiringSoon: 'Expiring soon',
     expiresToday: 'Expires today',
     lastStatusChange: 'Last Status Change',
     property: 'Property',
