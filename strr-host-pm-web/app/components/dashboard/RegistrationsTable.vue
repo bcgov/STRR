@@ -359,18 +359,27 @@ async function handleResumeRenewalDraft (row: RegistrationRow) {
       </template>
 
       <template #actions-data="{ row }">
-        <UButton
-          v-if="row.hasRenewalDraft"
-          :label="$t('label.resumeDraft')"
-          block
-          @click="handleResumeRenewalDraft(row)"
-        />
-        <UButton
-          v-else-if="row.canRenew"
-          :label="$t('btn.renew')"
-          block
-          @click="handleRenewRegistration(row)"
-        />
+        <div class="flex gap-2">
+          <UButton
+            v-if="row.hasRenewalDraft"
+            class="grow justify-center"
+            :label="$t('label.resumeDraft')"
+            @click="handleResumeRenewalDraft(row)"
+          />
+          <UButton
+            v-else-if="row.canRenew"
+            class="grow justify-center"
+            :label="$t('btn.renew')"
+            @click="handleRenewRegistration(row)"
+          />
+          <UButton
+            class="grow justify-center"
+            :label="$t('btn.view')"
+            variant="outline"
+            :to="getRegistrationDetailsPath(row.number)"
+            @click="handleRegistrationLinkClick(row)"
+          />
+        </div>
       </template>
     </UTable>
   </ConnectPageSection>

@@ -282,36 +282,45 @@ function handlePayNow (row: ApplicationRow) {
       </template>
 
       <template #actions-data="{ row }">
-        <div class="flex flex-col gap-px lg:flex-row">
-          <UButton
-            v-if="isDraftApplication(row)"
-            class="grow justify-center lg:rounded-r-none"
-            :label="$t('label.resumeDraft')"
-            :disabled="row.disabled"
-            @click="handleApplicationSelect(row)"
-          />
-          <UButton
-            v-else-if="isPaymentDueApplication(row)"
-            :label="$t('btn.payNow')"
-            block
-            @click="handlePayNow(row)"
-          />
-          <UPopover v-if="isDraftApplication(row)" :popper="{ placement: 'bottom-end' }">
+        <div class="flex gap-px">
+          <template v-if="isDraftApplication(row)">
             <UButton
-              class="grow justify-center lg:flex-none lg:rounded-l-none"
-              icon="i-mdi-menu-down"
-              :aria-label="$t('text.showMoreOptions')"
+              class="grow justify-center lg:rounded-r-none"
+              :label="$t('label.resumeDraft')"
               :disabled="row.disabled"
+              @click="handleApplicationSelect(row)"
             />
-            <template #panel>
+            <UPopover :popper="{ placement: 'bottom-end' }">
               <UButton
-                class="m-2"
-                :label="$t('btn.deleteApplication')"
-                variant="link"
-                @click="deleteDraft(row)"
+                class="grow justify-center lg:flex-none lg:rounded-l-none"
+                icon="i-mdi-menu-down"
+                :aria-label="$t('text.showMoreOptions')"
+                :disabled="row.disabled"
               />
-            </template>
-          </UPopover>
+              <template #panel>
+                <UButton
+                  class="m-2"
+                  :label="$t('btn.deleteApplication')"
+                  variant="link"
+                  @click="deleteDraft(row)"
+                />
+              </template>
+            </UPopover>
+          </template>
+          <template v-else>
+            <UButton
+              v-if="isPaymentDueApplication(row)"
+              class="mr-2 grow justify-center"
+              :label="$t('btn.payNow')"
+              @click="handlePayNow(row)"
+            />
+            <UButton
+              class="grow justify-center"
+              :label="$t('btn.view')"
+              variant="outline"
+              :to="getApplicationDetailsPath(row.applicationNumber)"
+            />
+          </template>
         </div>
       </template>
     </UTable>
