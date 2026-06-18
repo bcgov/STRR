@@ -186,6 +186,101 @@ describe('Dashboard Registrations Table', () => {
     })
   })
 
+  describe('View button in actions column', () => {
+    it('shows only View for an active registration with no renewal action', async () => {
+      asyncDataMocks['host-registrations-list'] = {
+        registrations: [createRegistration({ expiryDate: daysFromNowIso(200) })],
+        total: 1
+      }
+
+      const wrapper = await mountSuspended(RegistrationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      const viewLink = wrapper.findAll('a').find(a => a.text() === 'View')
+      expect(viewLink).toBeTruthy()
+      expect(viewLink!.attributes('href')).toContain('H123456789')
+
+      const renewBtn = wrapper.findAll('button').find(btn => btn.text().includes('Renew'))
+      expect(renewBtn).toBeUndefined()
+    })
+
+    it('shows Renew and View together for an expired registration', async () => {
+      asyncDataMocks['host-registrations-list'] = {
+        registrations: [createRegistration({ expiryDate: daysFromNowIso(-10) })],
+        total: 1
+      }
+
+      const wrapper = await mountSuspended(RegistrationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      const renewBtn = wrapper.findAll('button').find(btn => btn.text().includes('Renew'))
+      expect(renewBtn).toBeTruthy()
+
+      const viewLink = wrapper.findAll('a').find(a => a.text() === 'View')
+      expect(viewLink).toBeTruthy()
+    })
+
+    it('shows Renew and View together for an expiring-soon registration', async () => {
+      asyncDataMocks['host-registrations-list'] = {
+        registrations: [createRegistration({ expiryDate: daysFromNowIso(20) })],
+        total: 1
+      }
+
+      const wrapper = await mountSuspended(RegistrationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      const renewBtn = wrapper.findAll('button').find(btn => btn.text().includes('Renew'))
+      expect(renewBtn).toBeTruthy()
+
+      const viewLink = wrapper.findAll('a').find(a => a.text() === 'View')
+      expect(viewLink).toBeTruthy()
+    })
+
+    it('shows Resume Draft and View together for a registration with a renewal draft', async () => {
+      asyncDataMocks['host-registrations-list'] = {
+        registrations: [createRegistration({
+          header: {
+            hostStatus: 'Registered',
+            applications: [{
+              applicationType: 'renewal',
+              applicationStatus: ApplicationStatus.DRAFT,
+              applicationNumber: '12345678901234'
+            }]
+          }
+        })],
+        total: 1
+      }
+
+      const wrapper = await mountSuspended(RegistrationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      const resumeBtn = wrapper.findAll('button').find(btn => btn.text().includes('label.resumeDraft'))
+      expect(resumeBtn).toBeTruthy()
+
+      const viewLink = wrapper.findAll('a').find(a => a.text() === 'View')
+      expect(viewLink).toBeTruthy()
+    })
+
+    it('View button stores selected registration id on click', async () => {
+      asyncDataMocks['host-registrations-list'] = {
+        registrations: [createRegistration({ expiryDate: daysFromNowIso(200) })],
+        total: 1
+      }
+
+      const wrapper = await mountSuspended(RegistrationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      const viewLink = wrapper.findAll('a').find(a => a.text() === 'View')
+      await viewLink!.trigger('click')
+      expect(testState.selectedRegistrationId).toBe('308')
+    })
+  })
+
   describe('status column overrides based on expiry state', () => {
     it('shows "Expired" in the status column for a registration with a past expiry date', async () => {
       asyncDataMocks['host-registrations-list'] = {

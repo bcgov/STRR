@@ -226,4 +226,70 @@ describe('Dashboard Applications Table', () => {
 
     expect(mockHandlePaymentRedirect).not.toHaveBeenCalled()
   })
+
+  describe('View button in actions column', () => {
+    it('shows only View for a non-draft non-payment-due application', async () => {
+      asyncDataMocks['host-applications-list'] = {
+        applications: [createApplication()],
+        total: 1,
+        filteredCount: 1
+      }
+
+      const wrapper = await mountSuspended(ApplicationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      const viewLink = wrapper.findAll('a').find(a => a.text() === 'View')
+      expect(viewLink).toBeTruthy()
+      expect(viewLink!.attributes('href')).toContain('/dashboard/application/12345678901234')
+
+      const payNowBtn = wrapper.findAll('button').find(btn => btn.text().includes('Pay Now'))
+      expect(payNowBtn).toBeUndefined()
+    })
+
+    it('shows Pay Now and View together for a payment due application', async () => {
+      asyncDataMocks['host-applications-list'] = {
+        applications: [createApplication({
+          header: {
+            status: ApplicationStatus.PAYMENT_DUE,
+            hostStatus: 'Payment Due',
+            hostActions: [HostActions.SUBMIT_PAYMENT],
+            paymentToken: 9999
+          }
+        })],
+        total: 1,
+        filteredCount: 1
+      }
+
+      const wrapper = await mountSuspended(ApplicationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      const payNowBtn = wrapper.findAll('button').find(btn => btn.text().includes('Pay Now'))
+      expect(payNowBtn).toBeTruthy()
+
+      const viewLink = wrapper.findAll('a').find(a => a.text() === 'View')
+      expect(viewLink).toBeTruthy()
+    })
+
+    it('does not show View for draft applications', async () => {
+      asyncDataMocks['host-applications-list'] = {
+        applications: [createApplication({
+          header: {
+            status: ApplicationStatus.DRAFT,
+            hostStatus: 'Draft'
+          }
+        })],
+        total: 1,
+        filteredCount: 1
+      }
+
+      const wrapper = await mountSuspended(ApplicationsTable, {
+        global: { plugins: [baseEnI18n] }
+      })
+
+      const viewLink = wrapper.findAll('a').find(a => a.text() === 'View')
+      expect(viewLink).toBeUndefined()
+    })
+  })
 })
