@@ -346,53 +346,21 @@ class RegistrationSerializer:
         registration_json = registration.registration_json or {}
 
         registration_data["primaryContact"] = {
-            "firstName": cls._get_override_value(
-                registration_json, "primaryContact.firstName", primary_property_contact.contact.firstname
-            ),
-            "middleName": cls._get_override_value(
-                registration_json, "primaryContact.middleName", primary_property_contact.contact.middlename
-            ),
-            "lastName": cls._get_override_value(
-                registration_json, "primaryContact.lastName", primary_property_contact.contact.lastname
-            ),
-            "dateOfBirth": cls._get_override_value(
-                registration_json,
-                "primaryContact.dateOfBirth",
-                primary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
-                if primary_property_contact.contact.date_of_birth
-                else None,
-            ),
-            "socialInsuranceNumber": cls._get_override_value(
-                registration_json,
-                "primaryContact.socialInsuranceNumber",
-                primary_property_contact.contact.social_insurance_number,
-            ),
-            "businessNumber": cls._get_override_value(
-                registration_json, "primaryContact.businessNumber", primary_property_contact.contact.business_number
-            ),
-            "contactType": cls._get_override_value(
-                registration_json, "primaryContact.contactType", primary_property_contact.contact_type
-            ),
-            "businessLegalName": cls._get_override_value(
-                registration_json, "primaryContact.businessLegalName", primary_property_contact.business_legal_name
-            ),
-            "preferredName": cls._get_override_value(
-                registration_json, "primaryContact.preferredName", primary_property_contact.contact.preferredname
-            ),
-            "phoneNumber": cls._get_override_value(
-                registration_json, "primaryContact.phoneNumber", primary_property_contact.contact.phone_number
-            ),
-            "phoneCountryCode": cls._get_override_value(
-                registration_json,
-                "primaryContact.phoneCountryCode",
-                primary_property_contact.contact.phone_country_code,
-            ),
-            "extension": cls._get_override_value(
-                registration_json, "primaryContact.extension", primary_property_contact.contact.phone_extension
-            ),
-            "faxNumber": cls._get_override_value(
-                registration_json, "primaryContact.faxNumber", primary_property_contact.contact.fax_number
-            ),
+            "firstName": primary_property_contact.contact.firstname,
+            "middleName": primary_property_contact.contact.middlename,
+            "lastName": primary_property_contact.contact.lastname,
+            "dateOfBirth": primary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
+            if primary_property_contact.contact.date_of_birth
+            else None,
+            "socialInsuranceNumber": primary_property_contact.contact.social_insurance_number,
+            "businessNumber": primary_property_contact.contact.business_number,
+            "contactType": primary_property_contact.contact_type,
+            "businessLegalName": primary_property_contact.business_legal_name,
+            "preferredName": primary_property_contact.contact.preferredname,
+            "phoneNumber": primary_property_contact.contact.phone_number,
+            "phoneCountryCode": primary_property_contact.contact.phone_country_code,
+            "extension": primary_property_contact.contact.phone_extension,
+            "faxNumber": primary_property_contact.contact.fax_number,
             "emailAddress": cls._get_override_value(
                 registration_json, "primaryContact.emailAddress", primary_property_contact.contact.email
             ),
@@ -409,57 +377,21 @@ class RegistrationSerializer:
         registration_data["secondaryContact"] = None
         if secondary_property_contact:
             registration_data["secondaryContact"] = {
-                "firstName": cls._get_override_value(
-                    registration_json, "secondaryContact.firstName", secondary_property_contact.contact.firstname
-                ),
-                "middleName": cls._get_override_value(
-                    registration_json, "secondaryContact.middleName", secondary_property_contact.contact.middlename
-                ),
-                "lastName": cls._get_override_value(
-                    registration_json, "secondaryContact.lastName", secondary_property_contact.contact.lastname
-                ),
-                "dateOfBirth": cls._get_override_value(
-                    registration_json,
-                    "secondaryContact.dateOfBirth",
-                    secondary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
-                    if secondary_property_contact.contact.date_of_birth
-                    else None,
-                ),
-                "socialInsuranceNumber": cls._get_override_value(
-                    registration_json,
-                    "secondaryContact.socialInsuranceNumber",
-                    secondary_property_contact.contact.social_insurance_number,
-                ),
-                "contactType": cls._get_override_value(
-                    registration_json, "secondaryContact.contactType", secondary_property_contact.contact_type
-                ),
-                "businessNumber": cls._get_override_value(
-                    registration_json,
-                    "secondaryContact.businessNumber",
-                    secondary_property_contact.contact.business_number,
-                ),
-                "preferredName": cls._get_override_value(
-                    registration_json,
-                    "secondaryContact.preferredName",
-                    secondary_property_contact.contact.preferredname,
-                ),
-                "phoneNumber": cls._get_override_value(
-                    registration_json, "secondaryContact.phoneNumber", secondary_property_contact.contact.phone_number
-                ),
-                "phoneCountryCode": cls._get_override_value(
-                    registration_json,
-                    "secondaryContact.phoneCountryCode",
-                    secondary_property_contact.contact.phone_country_code,
-                ),
-                "extension": cls._get_override_value(
-                    registration_json, "secondaryContact.extension", secondary_property_contact.contact.phone_extension
-                ),
-                "faxNumber": cls._get_override_value(
-                    registration_json, "secondaryContact.faxNumber", secondary_property_contact.contact.fax_number
-                ),
-                "emailAddress": cls._get_override_value(
-                    registration_json, "secondaryContact.emailAddress", secondary_property_contact.contact.email
-                ),
+                "firstName": secondary_property_contact.contact.firstname,
+                "middleName": secondary_property_contact.contact.middlename,
+                "lastName": secondary_property_contact.contact.lastname,
+                "dateOfBirth": secondary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
+                if secondary_property_contact.contact.date_of_birth
+                else None,
+                "socialInsuranceNumber": secondary_property_contact.contact.social_insurance_number,
+                "contactType": secondary_property_contact.contact_type,
+                "businessNumber": secondary_property_contact.contact.business_number,
+                "preferredName": secondary_property_contact.contact.preferredname,
+                "phoneNumber": secondary_property_contact.contact.phone_number,
+                "phoneCountryCode": secondary_property_contact.contact.phone_country_code,
+                "extension": secondary_property_contact.contact.phone_extension,
+                "faxNumber": secondary_property_contact.contact.fax_number,
+                "emailAddress": secondary_property_contact.contact.email,
                 "mailingAddress": {
                     "address": secondary_property_contact.contact.address.street_address,
                     "addressLineTwo": secondary_property_contact.contact.address.street_address_additional,

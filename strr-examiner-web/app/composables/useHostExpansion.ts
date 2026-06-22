@@ -60,11 +60,7 @@ export const useHostExpansion = () => {
       (isEditingRentalUnit.value && hasUnsavedRentalUnitChanges.value) ||
       (isEditingRegistrationEmail.value && hasUnsavedRegistrationEmailChanges.value)
 
-    if (!hasUnsavedChanges) {
-      resetEditRentalUnitAddress()
-      resetEditRegistrationEmail()
-      actionFn()
-    } else {
+    if (hasUnsavedChanges) {
       openConfirmActionModal(
         t('modal.unsavedChanges.title'),
         t('modal.unsavedChanges.message'),
@@ -78,6 +74,10 @@ export const useHostExpansion = () => {
         },
         t('btn.keepEditing')
       )
+    } else {
+      resetEditRentalUnitAddress()
+      resetEditRegistrationEmail()
+      actionFn()
     }
   }
 

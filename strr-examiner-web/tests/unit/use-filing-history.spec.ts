@@ -111,4 +111,35 @@ describe('useFilingHistory helpers', () => {
       )
     ).toBe(true)
   })
+
+  it('uses friendly fallback text for unserializable change values', async () => {
+    const { getFilingHistoryAccordionContent } =
+      await import('~/composables/useFilingHistory')
+
+    const circular: Record<string, unknown> = {}
+    circular.self = circular
+
+    const content = getFilingHistoryAccordionContent(
+      {
+        createdDate: '2025-03-21T16:44:07.559788',
+        eventName: FilingHistoryEventName.REGISTRATION_UPDATED,
+        eventType: FilingHistoryEventType.REGISTRATION,
+        idir: null,
+        message: 'Registration updated',
+        details: null,
+        structuredDetails: {
+          changes: [
+            {
+              field: 'primaryContact.emailAddress',
+              oldValue: circular,
+              newValue: 'new@example.com'
+            }
+          ]
+        }
+      },
+      t
+    )
+
+    expect(content).toContain('filingHistoryChangeLog.unavailableValue')
+  })
 })

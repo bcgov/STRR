@@ -18,9 +18,9 @@ class Events(BaseModel):
     eventName: str
     message: str
     createdDate: datetime
-    details: Optional[str]
-    structuredDetails: Optional[dict[str, Any] | list[Any]]
-    idir: Optional[str]
+    details: Optional[str] = None
+    structuredDetails: Optional[dict[str, Any] | list[Any]] = None
+    idir: Optional[str] = None
 
     @staticmethod
     def _deserialize_structured_details(details: Optional[str]) -> Optional[dict[str, Any] | list[Any]]:

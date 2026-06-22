@@ -821,8 +821,7 @@ def update_registration(registration_id):
         registration = RegistrationService.update_registration(registration, json_input, user)
         return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
     except Exception as exception:
-        logger.error(exception)
-        logging.error("Traceback: %s", traceback.format_exc())
+        logger.exception(exception)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 

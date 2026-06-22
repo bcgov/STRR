@@ -11,16 +11,16 @@ export const FILING_HISTORY_FIELD_MAP: Record<string, string> = {
   'primaryContact.emailAddress': 'filingHistoryFields.primaryContactEmail'
 }
 
-const HIDDEN_EVENTS: FilingHistoryEventName[] = [
+const HIDDEN_EVENTS: Set<FilingHistoryEventName> = new Set([
   FilingHistoryEventName.AUTO_APPROVAL_FULL_REVIEW,
   FilingHistoryEventName.AUTO_APPROVAL_PROVISIONAL,
   FilingHistoryEventName.AUTO_APPROVAL_APPROVED
-]
+])
 
-const EXPANDABLE_EVENTS: FilingHistoryEventName[] = [
+const EXPANDABLE_EVENTS: Set<FilingHistoryEventName> = new Set([
   FilingHistoryEventName.CONDITIONS_OF_APPROVAL_UPDATED,
   FilingHistoryEventName.REGISTRATION_UPDATED
-]
+])
 
 const stringifyChangeValue = (value: unknown, translate: (key: string) => string): string => {
   if (value === null || value === undefined || value === '') {
@@ -34,6 +34,14 @@ const stringifyChangeValue = (value: unknown, translate: (key: string) => string
   try {
     return JSON.stringify(value)
   } catch {
+    if (Array.isArray(value)) {
+      return translate('filingHistoryChangeLog.unavailableValue')
+    }
+
+    if (typeof value === 'object') {
+      return translate('filingHistoryChangeLog.unavailableValue')
+    }
+
     return String(value)
   }
 }
@@ -93,7 +101,7 @@ const getRegistrationUpdateChanges = (
 export const sortAndFilterFilingHistory = (events: FilingHistoryEvent[]): FilingHistoryEvent[] => {
   return [...events]
     .sort((a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime())
-    .filter(event => !HIDDEN_EVENTS.includes(event.eventName))
+    .filter(event => !HIDDEN_EVENTS.has(event.eventName))
     .reverse()
 }
 
@@ -159,7 +167,7 @@ export const getFilingHistoryAccordionContent = (
 }
 
 export const shouldRenderFilingHistoryAccordion = (event: FilingHistoryEvent): boolean => {
-  return EXPANDABLE_EVENTS.includes(event.eventName)
+  return EXPANDABLE_EVENTS.has(event.eventName)
 }
 
 export const isEmptyFilingHistoryAccordion = (
@@ -189,11 +197,14 @@ export const useFilingHistory = async () => {
 
   const record = activeRecord.value as FilingHistoryRecord | null | undefined
 
-  const cacheKey = !record
-    ? 'filing-history-empty'
-    : isApplication.value
+  let cacheKey: string
+  if (record) {
+    cacheKey = isApplication.value
       ? `filing-history-application-${record.header?.applicationNumber || 'unknown'}`
       : `filing-history-registration-${record.id ?? 'unknown'}`
+  } else {
+    cacheKey = 'filing-history-empty'
+  }
 
   const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEvent[]>(
     cacheKey,

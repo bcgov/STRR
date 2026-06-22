@@ -691,7 +691,8 @@ export default {
   filingHistoryChangeLog: {
     template: 'Changed {field} from "{old}" to "{new}"',
     fallbackTemplate: 'Changed {field}',
-    noValue: 'not set'
+    noValue: 'not set',
+    unavailableValue: 'unavailable'
   },
   filingHistoryEvents: {
     APPLICATION_SUBMITTED: 'Application submitted',
