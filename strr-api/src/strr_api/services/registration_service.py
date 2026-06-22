@@ -37,13 +37,16 @@
 # pylint: disable=C0302
 # pylint: disable=R0904
 """Manages registration model interactions."""
+import json
 import logging
 import random
 import traceback
+from copy import deepcopy
 from datetime import date, datetime, time, timedelta, timezone
 
 from dateutil.relativedelta import relativedelta
 from flask import current_app, render_template
+from sqlalchemy.orm.attributes import flag_modified
 from weasyprint import HTML
 
 from strr_api.enums.enum import (
@@ -932,6 +935,71 @@ class RegistrationService:
                 user_id=user.id,
                 visible_to_applicant=True,
             )
+        return registration
+
+    @staticmethod
+    def update_registration(registration: Registration, update_data: dict, user: User) -> Registration:
+        """
+        Updates registration details and creates an event with change tracking.
+
+        Supports updating primaryContact.emailAddress.
+        """
+        registration_json = deepcopy(registration.registration_json) if registration.registration_json else {}
+        new_email = update_data.get("primaryContact", {}).get("emailAddress")
+
+        if new_email is None:
+            return registration
+
+        # Use serializer as source of truth for current value because registration_json can be partial overrides.
+        try:
+            from strr_api.responses import RegistrationSerializer
+
+            real_old_value = (
+                RegistrationSerializer.serialize(registration).get("primaryContact", {}).get("emailAddress")
+            )
+        except Exception:
+            real_old_value = registration_json.get("primaryContact", {}).get("emailAddress")
+
+        if real_old_value == new_email:
+            return registration
+
+        if "primaryContact" not in registration_json or not isinstance(registration_json["primaryContact"], dict):
+            registration_json["primaryContact"] = {}
+
+        registration_json["primaryContact"]["emailAddress"] = new_email
+        registration.registration_json = registration_json
+        registration.updated_date = datetime.now()
+        flag_modified(registration, "registration_json")
+
+        # Sync primaryContact.emailAddress change to the Contact DB record.
+        if registration.rental_property:
+            primary_contacts = [pc for pc in registration.rental_property.contacts if pc.is_primary]
+            if primary_contacts:
+                primary_contacts[0].contact.email = new_email
+
+        registration.save()
+
+        event_details = json.dumps(
+            {
+                "changes": [
+                    {
+                        "field": "primaryContact.emailAddress",
+                        "oldValue": real_old_value,
+                        "newValue": new_email,
+                    }
+                ]
+            }
+        )
+
+        EventsService.save_event(
+            event_type=Events.EventType.REGISTRATION,
+            event_name=Events.EventName.REGISTRATION_UPDATED,
+            registration_id=registration.id,
+            details=event_details,
+            user_id=user.id,
+            visible_to_applicant=True,
+        )
+
         return registration
 
     @staticmethod

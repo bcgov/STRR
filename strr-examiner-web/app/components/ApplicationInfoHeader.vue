@@ -2,7 +2,9 @@
 
 const { t } = useNuxtApp().$i18n
 const exStore = useExaminerStore()
-const { activeHeader, activeReg, isFilingHistoryOpen, activePaymentTotal, activePaymentDate } = storeToRefs(exStore)
+const {
+  activeHeader, activeReg, isFilingHistoryOpen, activePaymentTotal, activePaymentDate
+} = storeToRefs(exStore)
 const { toggleFilingHistory, checkAndPerformAction } = useHostExpansion()
 const localePath = useLocalePath()
 const { isSnapshotRoute } = useExaminerRoute()

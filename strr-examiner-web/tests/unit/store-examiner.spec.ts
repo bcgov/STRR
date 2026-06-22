@@ -413,6 +413,41 @@ describe('Store - Examiner', () => {
     expect(mockStrrApi).toHaveBeenCalledWith('/applications/1234567890/str-address', expect.anything())
   })
 
+  it(
+    'should call registration PATCH endpoint, update activeRecord, and clear edit state on patchRegistration',
+    async () => {
+      const store = useExaminerStore()
+      const updatedRegistration = {
+        ...mockHostRegistration,
+        primaryContact: {
+          ...mockHostRegistration.primaryContact,
+          emailAddress: 'updated-host@example.com'
+        }
+      }
+      mockStrrApi.mockResolvedValueOnce(updatedRegistration)
+
+      store.activeRecord = mockHostRegistration
+      store.startEditRegistrationEmail()
+      store.hasUnsavedRegistrationEmailChanges = true
+
+      await store.patchRegistration(99, 'updated-host@example.com')
+
+      expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: {
+            primaryContact: {
+              emailAddress: 'updated-host@example.com'
+            }
+          }
+        }))
+      expect(store.activeRecord).toEqual(updatedRegistration)
+      expect(store.isEditingRegistrationEmail).toBe(false)
+      expect(store.registrationEmailToEdit).toBe('')
+      expect(store.hasUnsavedRegistrationEmailChanges).toBe(false)
+    }
+  )
+
   it('should call correct endpoint on updateRegistrationStatus', async () => {
     const store = useExaminerStore()
 
@@ -551,5 +586,66 @@ describe('Store - Examiner', () => {
     expect(store.isEditingRentalUnit).toBe(false)
     expect(store.rentalUnitAddressToEdit).toEqual({})
     expect(store.hasUnsavedRentalUnitChanges).toBe(false)
+  })
+
+  it('should close registration email edit and filing history when rental unit edit starts', () => {
+    const store = useExaminerStore()
+    store.activeRecord = mockHostRegistration
+
+    // Pre-condition: email editing and history are open
+    store.isEditingRegistrationEmail = true
+    store.isFilingHistoryOpen = true
+
+    store.startEditRentalUnitAddress()
+
+    expect(store.isEditingRentalUnit).toBe(true)
+    expect(store.isEditingRegistrationEmail).toBe(false)
+    expect(store.isFilingHistoryOpen).toBe(false)
+  })
+
+  it('should close rental unit edit and filing history when registration email edit starts', () => {
+    const store = useExaminerStore()
+    store.activeRecord = mockHostRegistration
+
+    // Pre-condition: rental unit editing and history are open
+    store.isEditingRentalUnit = true
+    store.isFilingHistoryOpen = true
+
+    store.startEditRegistrationEmail()
+
+    expect(store.isEditingRegistrationEmail).toBe(true)
+    expect(store.isEditingRentalUnit).toBe(false)
+    expect(store.isFilingHistoryOpen).toBe(false)
+  })
+
+  it('should correctly edit and reset registration email', () => {
+    const store = useExaminerStore()
+    store.activeRecord = mockHostRegistration
+
+    store.startEditRegistrationEmail()
+
+    expect(store.isEditingRegistrationEmail).toBe(true)
+    expect(store.registrationEmailToEdit).toBe(mockHostRegistration.primaryContact?.emailAddress)
+    expect(store.hasUnsavedRegistrationEmailChanges).toBe(false)
+
+    store.hasUnsavedRegistrationEmailChanges = true
+    store.resetEditRegistrationEmail()
+
+    expect(store.isEditingRegistrationEmail).toBe(false)
+    expect(store.registrationEmailToEdit).toBe('')
+    expect(store.hasUnsavedRegistrationEmailChanges).toBe(false)
+  })
+
+  it('should expose registrationUpdateSchema requiring a valid email address', async () => {
+    const store = useExaminerStore()
+
+    await expect(store.registrationUpdateSchema.parseAsync({ emailAddress: 'valid@example.com' }))
+      .resolves.toEqual({ emailAddress: 'valid@example.com' })
+
+    await expect(store.registrationUpdateSchema.parseAsync({ emailAddress: '' }))
+      .rejects.toThrow()
+
+    await expect(store.registrationUpdateSchema.parseAsync({ emailAddress: 'not-an-email' }))
+      .rejects.toThrow()
   })
 })

@@ -786,6 +786,46 @@ def update_registration_unit_address(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@bp.route("/<registration_id>", methods=("PATCH",))
+@swag_from({"security": [{"Bearer": []}]})
+@cross_origin(origin="*")
+@jwt.requires_auth
+def update_registration(registration_id):
+    """Update registration details (currently supports email only)."""
+    try:
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        json_input = request.get_json()
+
+        [valid, errors] = validate(json_input, "registration_update")
+        if not valid:
+            return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
+
+        # Get registration - validate ownership or staff role
+        is_staff = UserService.is_strr_staff_or_system()
+        if is_staff:
+            registration = RegistrationService.get_registration_by_id(registration_id)
+        else:
+            account_id = request.headers.get("Account-Id")
+            registration = RegistrationService.get_registration(account_id, registration_id)
+
+        if not registration:
+            return error_response(http_status=HTTPStatus.NOT_FOUND, message=ErrorMessage.REGISTRATION_NOT_FOUND.value)
+
+        if registration.registration_type != RegistrationType.HOST.value:
+            return error_response(
+                message="Registration update is only allowed for Host type registrations",
+                http_status=HTTPStatus.BAD_REQUEST,
+            )
+
+        # Update registration
+        registration = RegistrationService.update_registration(registration, json_input, user)
+        return jsonify(RegistrationService.serialize(registration)), HTTPStatus.OK
+    except Exception as exception:
+        logger.error(exception)
+        logging.error("Traceback: %s", traceback.format_exc())
+        return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
 # TODO: Certificates are not supported for the MVP release. This functionality will be supported in a future release.
 # @bp.route("/<registration_id>/certificate", methods=("POST",))
 # @swag_from({"security": [{"Bearer": []}]})

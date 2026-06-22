@@ -1,61 +1,19 @@
 <script setup lang="ts">
 
+import { useFilingHistory } from '~/composables/useFilingHistory'
+
 defineEmits<{ close: [void] }>()
 
-const { getApplicationFilingHistory, getRegistrationFilingHistory } = useExaminerStore()
-const { isApplication, activeRecord } = storeToRefs(useExaminerStore())
+const { t } = useI18n()
 
-// business requirement: don’t show auto approval logic events - it’s implied that it’s done by the system
-const HIDDEN_EVENTS: FilingHistoryEventName[] = [
-  FilingHistoryEventName.AUTO_APPROVAL_FULL_REVIEW,
-  FilingHistoryEventName.AUTO_APPROVAL_PROVISIONAL,
-  FilingHistoryEventName.AUTO_APPROVAL_APPROVED
-]
-
-const { data: filingHistory, status } = await useLazyAsyncData<FilingHistoryEvent[]>(
-  'application-filing-history',
-  async () => {
-    let allFilingHistory: FilingHistoryEvent[] = []
-
-    if (isApplication.value) {
-      allFilingHistory =
-        await getApplicationFilingHistory((activeRecord.value as HousApplicationResponse).header.applicationNumber)
-    } else {
-      // for Registrations include Application and Registration histories
-      const [applicationHistory, registrationHistory] = await Promise.all([
-        getApplicationFilingHistory(
-          (activeRecord.value as HousRegistrationResponse).header.applications[0].applicationNumber
-        ),
-        getRegistrationFilingHistory((activeRecord.value as HousRegistrationResponse).id)
-      ])
-
-      const REG_CREATED_EVENT = FilingHistoryEventName.REGISTRATION_CREATED
-
-      const hasDuplicatedEvent = applicationHistory.some(event => event.eventName === REG_CREATED_EVENT) &&
-        registrationHistory.some(event => event.eventName === REG_CREATED_EVENT)
-
-      // check if App and Reg histories have same Reg Created event
-      if (hasDuplicatedEvent) {
-        // filter out Reg Created event
-        const filteredApplicationHistory = applicationHistory.filter(event => event.eventName !== REG_CREATED_EVENT)
-        allFilingHistory = [...filteredApplicationHistory, ...registrationHistory]
-      } else {
-        allFilingHistory = [...applicationHistory, ...registrationHistory]
-      }
-    }
-
-    // sort history by date
-    allFilingHistory.sort((a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime())
-
-    // filter out events defined by the requirements
-    return allFilingHistory.filter(event => !HIDDEN_EVENTS.includes(event.eventName)).reverse()
-  }
-)
-
-const historyTableColumns = [
-  { key: 'createdDate', width: 200 },
-  { key: 'message' }
-]
+const {
+  filingHistory,
+  status,
+  historyTableColumns,
+  shouldRenderFilingHistoryAccordion,
+  getFilingHistoryAccordionContent,
+  isEmptyFilingHistoryAccordion
+} = await useFilingHistory()
 
 </script>
 
@@ -65,7 +23,7 @@ const historyTableColumns = [
   >
     <div class="flex justify-between">
       <div class="w-[200px] font-bold">
-        {{ $t('label.history') }}
+        {{ t('label.history') }}
       </div>
       <UIcon
         v-if="status === 'pending'"
@@ -102,10 +60,10 @@ const historyTableColumns = [
           </template>
           <template #message-data="{ row }">
             <UAccordion
-              v-if="row.eventName === FilingHistoryEventName.CONDITIONS_OF_APPROVAL_UPDATED"
-              :items="[{ content: row.details || $t('label.noApprovalConditions') }]"
+              v-if="shouldRenderFilingHistoryAccordion(row)"
+              :items="[{ content: getFilingHistoryAccordionContent(row, t) }]"
               class="whitespace-pre-line"
-              :class="!row.details && 'italic'"
+              :class="isEmptyFilingHistoryAccordion(row, t) && 'italic'"
               :ui="{
                 item: {
                   base: 'bg-str-bgGray leading-7 my-3 ml-2 rounded-[4px]',
@@ -120,7 +78,7 @@ const historyTableColumns = [
                 >
                   <template #leading>
                     <div class="flex items-center gap-1 text-gray-700">
-                      <span class="font-semibold">{{ $t(`filingHistoryEvents.${row.eventName}`) }}</span>
+                      <span class="font-semibold">{{ t(`filingHistoryEvents.${row.eventName}`) }}</span>
                       <ConnectI18nHelper
                         v-if="row.idir"
                         translation-path="label.filingHistoryIdir"
@@ -141,7 +99,7 @@ const historyTableColumns = [
               v-else
               class="block px-2 py-3"
             >
-              <b>{{ $t(`filingHistoryEvents.${row.eventName}`) }}</b>
+              <b>{{ t(`filingHistoryEvents.${row.eventName}`) }}</b>
               <ConnectI18nHelper
                 v-if="row.idir"
                 translation-path="label.filingHistoryIdir"
@@ -156,7 +114,7 @@ const historyTableColumns = [
         class="flex w-[150px] justify-end align-top"
       >
         <UButton
-          :label="$t('btn.close')"
+          :label="t('btn.close')"
           trailing-icon="i-mdi-close"
           variant="ghost"
           class="h-min"

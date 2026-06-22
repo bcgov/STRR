@@ -16,16 +16,21 @@ import RegistrationDetails from '~/pages/registration/[registrationId]/index.vue
 import {
   DecisionPanel,
   HistoricalApplicationsTable,
+  HostSubHeader,
   HostSupportingInfo,
+  PlatformSubHeader,
   RegistrationInfoHeader,
   SnapshotVersionsTable,
-  SnapshotInfo
+  SnapshotInfo,
+  StrataSubHeader
 } from '#components'
 import ApprovalConditions from '~/components/ApprovalConditions.vue'
 
 const mockViewReceipt = vi.fn()
 let currentMockData = mockHostRegistration
 const isAssignedToUser = ref(true)
+const isEditingRentalUnit = ref(false)
+const isEditingRegistrationEmail = ref(false)
 const mockRightButtons = [
   { key: 'cancel', disabled: false }
 ]
@@ -50,6 +55,8 @@ vi.mock('@/stores/examiner', () => ({
     isAssignedToUser,
     viewReceipt: mockViewReceipt,
     isFilingHistoryOpen: ref(false),
+    isEditingRentalUnit,
+    isEditingRegistrationEmail,
     conditions: ref([]),
     customConditions: ref([]),
     minBookingDays: ref(null),
@@ -100,6 +107,7 @@ describe('Examiner - Registration Details Page', () => {
   it('renders Application Details page and its components', () => {
     expect(wrapper.exists()).toBe(true)
     expect(wrapper.findComponent(RegistrationInfoHeader).exists()).toBe(true)
+    expect(wrapper.findComponent(HostSubHeader).findTestId('edit-registration-email').exists()).toBe(true)
   })
 
   it('should show Required label in the PR section for registrations', () => {
@@ -195,6 +203,16 @@ describe('Examiner - Registration Details Page', () => {
     expect(nameElement.text()).toContain('Test Platform Inc.')
   })
 
+  it('does not render HostSubHeader edit email affordance for PLATFORM registrations', async () => {
+    currentMockData = mockPlatformRegistration
+
+    const componentWrapper = await mountSuspended(PlatformSubHeader, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(componentWrapper.findTestId('edit-registration-email').exists()).toBe(false)
+  })
+
   it('displays correct application name for STRATA_HOTEL type', async () => {
     currentMockData = mockStrataHotelRegistration
 
@@ -204,6 +222,16 @@ describe('Examiner - Registration Details Page', () => {
 
     const nameElement = componentWrapper.find('.text-2xl')
     expect(nameElement.text()).toContain('Doe Enterprises')
+  })
+
+  it('does not render HostSubHeader edit email affordance for STRATA registrations', async () => {
+    currentMockData = mockStrataHotelRegistration
+
+    const componentWrapper = await mountSuspended(StrataSubHeader, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(componentWrapper.findTestId('edit-registration-email').exists()).toBe(false)
   })
 
   it('displays website button for STRATA_HOTEL type', async () => {

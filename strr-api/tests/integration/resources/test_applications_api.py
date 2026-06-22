@@ -95,9 +95,11 @@ def test_get_application_events_item_keys(client, session, headers_public_user, 
     events = rv.get_json()
     assert isinstance(events, list)
     assert events, "expected seeded applicant-visible event"
-    first = events[0]
-    for k in ("eventType", "eventName", "message", "createdDate"):
+    first = next((e for e in events if e.get("eventName") == "APPLICATION_SUBMITTED"), events[0])
+    for k in ("eventType", "eventName", "message", "createdDate", "details", "structuredDetails"):
         assert k in first, first
+    assert first["details"] == "Integration seed"
+    assert first["structuredDetails"] is None
 
 
 def test_get_application_not_found_wrong_account(client, session, headers_public_user, serializable_host_registration):

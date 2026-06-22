@@ -1,0 +1,65 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Cloud SQL proxy (dev)",
+      "type": "shell",
+      "command": "cloud-sql-proxy --port=54321 bcrbk9-dev:northamerica-northeast1:strr-db-dev",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "cloud-sql-proxy"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Cloud SQL proxy (test)",
+      "type": "shell",
+      "command": "cloud-sql-proxy --port=54322 bcrbk9-test:northamerica-northeast1:strr-db-test",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "cloud-sql-proxy"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Cloud SQL proxy (sandbox / tools)",
+      "type": "shell",
+      "command": "cloud-sql-proxy --port=54323 bcrbk9-tools:northamerica-northeast1:strr-db-sandbox",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "cloud-sql-proxy"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Cloud SQL proxy (prod)",
+      "type": "shell",
+      "command": "cloud-sql-proxy --port=54324 bcrbk9-prod:northamerica-northeast1:strr-db-prod",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "cloud-sql-proxy"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Cloud SQL proxy (prod replica)",
+      "type": "shell",
+      "command": "cloud-sql-proxy --port=54325 bcrbk9-prod:northamerica-northeast1:strr-db-prod-replica",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "cloud-sql-proxy"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

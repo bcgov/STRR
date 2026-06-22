@@ -148,6 +148,8 @@ export default {
       secondarySuite: 'Secondary Suite',
       singleFamily: 'Single Family Home',
       host: 'Host',
+      editHostEmail: 'Edit Host Email',
+      editHostEmailDescription: 'Update the host primary contact email for this registration.',
       strataHotel: 'Strata Hotel',
       platform: 'Platform',
       townHome: 'Town Home',
@@ -412,6 +414,8 @@ export default {
     minBookingDays: 'Min. booking days',
     minNumberBookingDays: 'Min. number of booking days',
     noApprovalConditions: 'All conditions removed',
+    noRegistrationUpdateDetails: 'No registration update details available',
+    unknownField: 'Unknown field',
     combobox: {
       select: 'Select',
       selected: 'Selected'
@@ -681,6 +685,14 @@ export default {
     PLATFORM: 'Platform',
     STRATA_HOTEL: 'Strata Hotel'
   },
+  filingHistoryFields: {
+    primaryContactEmail: 'Primary Contact Email'
+  },
+  filingHistoryChangeLog: {
+    template: 'Changed {field} from "{old}" to "{new}"',
+    fallbackTemplate: 'Changed {field}',
+    noValue: 'not set'
+  },
   filingHistoryEvents: {
     APPLICATION_SUBMITTED: 'Application submitted',
     INVOICE_GENERATED: 'Invoice generated',
@@ -694,6 +706,7 @@ export default {
     MANUALLY_DENIED: 'Application rejected by staff',
     MORE_INFORMATION_REQUESTED: 'Additional information requested from the applicant',
     REGISTRATION_CREATED: 'Registration created',
+    REGISTRATION_UPDATED: 'Registration updated',
     REGISTRATION_RENEWED: 'Registration renewed',
     REGISTRATION_CANCELLED: 'Registration cancelled',
     CERTIFICATE_ISSUED: 'Certificate issued for the registration',
