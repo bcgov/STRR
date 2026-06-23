@@ -314,6 +314,24 @@ class RegistrationSerializer:
         registration_data["platformDetails"] = {"brands": platform_brands, "listingSize": platform.listing_size}
 
     @classmethod
+    def _get_override_value(cls, registration_json: dict, path: str, default_value):
+        """
+        Get value from registration_json if it exists (as an override), otherwise use default_value.
+        Path uses dot notation (e.g., "primaryContact.emailAddress").
+        """
+        if not registration_json:
+            return default_value
+
+        keys = path.split(".")
+        value = registration_json
+        for key in keys:
+            if isinstance(value, dict) and key in value:
+                value = value[key]
+            else:
+                return default_value
+        return value
+
+    @classmethod
     def populate_host_registration_details(cls, registration_data: dict, registration: Registration):
         """Populates host registration details into response object."""
 
@@ -324,6 +342,8 @@ class RegistrationSerializer:
             filter(lambda x: x.is_primary is False, registration.rental_property.contacts)
         )
         secondary_property_contact = secondary_property_contacts[0] if secondary_property_contacts else None
+
+        registration_json = registration.registration_json or {}
 
         registration_data["primaryContact"] = {
             "firstName": primary_property_contact.contact.firstname,
@@ -341,7 +361,9 @@ class RegistrationSerializer:
             "phoneCountryCode": primary_property_contact.contact.phone_country_code,
             "extension": primary_property_contact.contact.phone_extension,
             "faxNumber": primary_property_contact.contact.fax_number,
-            "emailAddress": primary_property_contact.contact.email,
+            "emailAddress": cls._get_override_value(
+                registration_json, "primaryContact.emailAddress", primary_property_contact.contact.email
+            ),
             "mailingAddress": {
                 "address": primary_property_contact.contact.address.street_address,
                 "addressLineTwo": primary_property_contact.contact.address.street_address_additional,  # noqa: E501

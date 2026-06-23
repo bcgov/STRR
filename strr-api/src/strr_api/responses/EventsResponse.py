@@ -1,8 +1,9 @@
 """
 EventRecord response object.
 """
+import json
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -17,8 +18,23 @@ class Events(BaseModel):
     eventName: str
     message: str
     createdDate: datetime
-    details: Optional[str]
-    idir: Optional[str]
+    details: Optional[str] = None
+    structuredDetails: Optional[dict[str, Any] | list[Any]] = None
+    idir: Optional[str] = None
+
+    @staticmethod
+    def _deserialize_structured_details(details: Optional[str]) -> Optional[dict[str, Any] | list[Any]]:
+        """Parse details JSON when possible and return structured payloads only."""
+        if details is None:
+            return None
+
+        try:
+            parsed = json.loads(details)
+            if isinstance(parsed, (dict, list)):
+                return parsed
+            return None
+        except (json.JSONDecodeError, TypeError):
+            return None
 
     @classmethod
     def from_db(cls, source: EventsModel):
@@ -29,5 +45,6 @@ class Events(BaseModel):
             message=EVENT_MESSAGES.get(source.event_name, ""),
             createdDate=source.created_date,
             details=source.details,
+            structuredDetails=cls._deserialize_structured_details(source.details),
             idir=source.user.username if source.user else None,
         )

@@ -4,4 +4,6 @@ export interface FilingHistoryEvent {
   eventType: string
   idir: string | null
   message: string
+  details: string | null
+  structuredDetails: Record<string, unknown[]> | unknown[] | null
 }

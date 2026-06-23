@@ -6,9 +6,11 @@ const {
   activeReg,
   activeHeader,
   isEditingRentalUnit,
+  isEditingRegistrationEmail,
   isAssignedToUser
 } = storeToRefs(useExaminerStore())
-const { openEditRentalUnitForm } = useHostExpansion()
+
+const { openEditRentalUnitForm, openEditRegistrationEmailForm } = useHostExpansion()
 const { t } = useNuxtApp().$i18n
 const alertFlags = reactive(useFlags())
 const { isFeatureEnabled } = useFeatureFlags()
@@ -40,7 +42,7 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
             data-testid="edit-rental-unit-button"
             :aria-label="t('strr.label.editRentalUnit')"
             class="flex items-center gap-1"
-            @click="openEditRentalUnitForm"
+            @click="checkAndPerformAction(openEditRentalUnitForm)"
           >
             <UIcon name="i-mdi-pencil-outline" class="size-4" />
             {{ t('btn.edit') }}
@@ -70,7 +72,23 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         id="host-details"
         class="space-y-2 pl-5"
       >
-        <strong>{{ t('strr.label.host').toUpperCase() }}</strong>
+        <div class="flex items-center justify-between gap-2">
+          <strong>{{ t('strr.label.host').toUpperCase() }}</strong>
+          <UButton
+            v-if="!isApplication && !isSnapshotRoute"
+            variant="link"
+            size="xs"
+            color="blue"
+            :disabled="isEditingRegistrationEmail || !isAssignedToUser"
+            data-testid="edit-registration-email"
+            :aria-label="t('strr.label.editHostEmail')"
+            class="flex items-center gap-1"
+            @click="checkAndPerformAction(openEditRegistrationEmailForm)"
+          >
+            <UIcon name="i-mdi-pencil-outline" class="size-4" />
+            {{ t('btn.edit') }}
+          </UButton>
+        </div>
         <div class="w-[150px]">
           <UIcon name="i-mdi-map-marker-outline" />
           {{ displayFullAddress(activeReg.primaryContact?.mailingAddress) }}

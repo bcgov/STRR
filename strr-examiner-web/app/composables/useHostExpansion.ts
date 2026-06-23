@@ -4,11 +4,23 @@ import {
   HostExpansionOwners,
   HostExpansionEditRentalUnitForm
 } from '#components'
+import EditRegistrationEmailForm from '~/components/Host/Expansion/EditRegistrationEmailForm.vue'
 
 export const useHostExpansion = () => {
   const exp = useStrrExpansion()
-  const { startEditRentalUnitAddress, resetEditRentalUnitAddress } = useExaminerStore()
-  const { isFilingHistoryOpen, isEditingRentalUnit, hasUnsavedRentalUnitChanges } = storeToRefs(useExaminerStore())
+  const {
+    startEditRentalUnitAddress,
+    resetEditRentalUnitAddress,
+    startEditRegistrationEmail,
+    resetEditRegistrationEmail
+  } = useExaminerStore()
+  const {
+    isFilingHistoryOpen,
+    isEditingRentalUnit,
+    hasUnsavedRentalUnitChanges,
+    isEditingRegistrationEmail,
+    hasUnsavedRegistrationEmailChanges
+  } = storeToRefs(useExaminerStore())
   const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
   const { t } = useNuxtApp().$i18n
   isFilingHistoryOpen.value = false // reset so it's starts hidden by default
@@ -34,22 +46,38 @@ export const useHostExpansion = () => {
     })
   }
 
+  function openEditRegistrationEmailForm () {
+    startEditRegistrationEmail()
+    exp.open(EditRegistrationEmailForm, {
+      onClose () {
+        exp.close()
+      }
+    })
+  }
+
   const checkAndPerformAction = (actionFn: () => void) => {
-    if (!isEditingRentalUnit.value || !hasUnsavedRentalUnitChanges.value) {
-      resetEditRentalUnitAddress()
-      actionFn()
-    } else {
+    const hasUnsavedChanges =
+      (isEditingRentalUnit.value && hasUnsavedRentalUnitChanges.value) ||
+      (isEditingRegistrationEmail.value && hasUnsavedRegistrationEmailChanges.value)
+
+    if (hasUnsavedChanges) {
       openConfirmActionModal(
         t('modal.unsavedChanges.title'),
         t('modal.unsavedChanges.message'),
         t('btn.discardChanges'),
-        () => {
+        async () => {
+          await Promise.resolve()
           closeConfirmActionModal()
           resetEditRentalUnitAddress()
+          resetEditRegistrationEmail()
           actionFn()
         },
         t('btn.keepEditing')
       )
+    } else {
+      resetEditRentalUnitAddress()
+      resetEditRegistrationEmail()
+      actionFn()
     }
   }
 
@@ -73,6 +101,7 @@ export const useHostExpansion = () => {
   return {
     openHostOwners,
     openEditRentalUnitForm,
+    openEditRegistrationEmailForm,
     checkAndPerformAction,
     toggleFilingHistory,
     close

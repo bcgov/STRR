@@ -68,6 +68,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const isEditingRentalUnit = ref(false)
   const hasUnsavedRentalUnitChanges = ref(false)
   const rentalUnitAddressToEdit = ref<Partial<EditStrAddress>>({})
+  const isEditingRegistrationEmail = ref(false)
+  const hasUnsavedRegistrationEmailChanges = ref(false)
+  const registrationEmailToEdit = ref<string>('')
   const rentalUnitAddressSchema = computed(() => z.object({
     addressLineTwo: z.string().optional().default(''),
     city: z.string().min(1, t('validation.address.city')),
@@ -96,6 +99,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }))
   const startEditRentalUnitAddress = () => {
+    resetEditRegistrationEmail()
+    isFilingHistoryOpen.value = false
     const addressData = JSON.parse(JSON.stringify(activeReg.value?.unitAddress || {}))
     if (addressData.locationDescription === null) {
       addressData.locationDescription = ''
@@ -108,6 +113,24 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     isEditingRentalUnit.value = false
     rentalUnitAddressToEdit.value = {}
     hasUnsavedRentalUnitChanges.value = false
+  }
+
+  const registrationUpdateSchema = computed(() => z.object({
+    emailAddress: z.string().trim().min(1, t('validation.required')).email(t('validation.email'))
+  }))
+
+  const startEditRegistrationEmail = () => {
+    resetEditRentalUnitAddress()
+    isFilingHistoryOpen.value = false
+    registrationEmailToEdit.value = activeReg.value?.primaryContact?.emailAddress || ''
+    isEditingRegistrationEmail.value = true
+    hasUnsavedRegistrationEmailChanges.value = false
+  }
+
+  const resetEditRegistrationEmail = () => {
+    isEditingRegistrationEmail.value = false
+    registrationEmailToEdit.value = ''
+    hasUnsavedRegistrationEmailChanges.value = false
   }
 
   const showComposeNocEmail = computed(() => {
@@ -835,6 +858,34 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     }
   }
 
+  /**
+   * Patches registration data.
+   *
+   * @param {number} registrationId - The registration ID to update.
+   * @param {string} updatedEmail - The new primary contact email.
+   * @returns {Promise<void>}
+   */
+  const patchRegistration = async (
+    registrationId: number,
+    updatedEmail: string
+  ): Promise<void> => {
+    try {
+      const resp = await $strrApi(`/registrations/${registrationId}`, {
+        method: 'PATCH',
+        body: {
+          primaryContact: {
+            emailAddress: updatedEmail
+          }
+        }
+      })
+      activeRecord.value = resp
+      resetEditRegistrationEmail()
+    } catch (e) {
+      logFetchError(e, t('error.saveAddress'))
+      strrModal.openErrorModal('Error', t('error.saveAddress'), false)
+    }
+  }
+
   return {
     tableFilters,
     tableLimit,
@@ -865,6 +916,9 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     isEditingRentalUnit,
     rentalUnitAddressToEdit,
     hasUnsavedRentalUnitChanges,
+    isEditingRegistrationEmail,
+    registrationEmailToEdit,
+    hasUnsavedRegistrationEmailChanges,
 
     applicationsOnlyStatuses,
     registrationsOnlyStatuses,
@@ -902,6 +956,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     startEditRentalUnitAddress,
     resetEditRentalUnitAddress,
     saveRentalUnitAddress,
-    rentalUnitAddressSchema
+    rentalUnitAddressSchema,
+    startEditRegistrationEmail,
+    resetEditRegistrationEmail,
+    patchRegistration,
+    registrationUpdateSchema
   }
 }, { persist: true }) // will persist data in session storage

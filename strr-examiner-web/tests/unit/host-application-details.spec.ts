@@ -153,6 +153,7 @@ describe('Examiner - Host Application Details Page', () => {
     expect(hostSubHeaderText).toContain(registration.strRequirements!.organizationNm)
     expect(hostSubHeaderText).toContain(registration.primaryContact!.firstName)
     expect(hostSubHeaderText).toContain(registration.unitDetails!.parcelIdentifier)
+    expect(hostSubHeader.findTestId('edit-registration-email').exists()).toBe(false)
   })
 
   it('renders Host Supporting Info component for Host application', () => {
