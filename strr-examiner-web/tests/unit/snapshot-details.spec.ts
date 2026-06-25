@@ -22,7 +22,8 @@ vi.mock('@/stores/examiner', () => ({
     isEditingRentalUnit: ref(false),
     hasUnsavedRentalUnitChanges: ref(false),
     startEditRentalUnitAddress: vi.fn(),
-    resetEditRentalUnitAddress: vi.fn()
+    resetEditRentalUnitAddress: vi.fn(),
+    resetEditRegistrationEmail: vi.fn()
   })
 }))
 
