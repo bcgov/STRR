@@ -25,6 +25,7 @@ export const useHostExpansion = () => {
   const { t } = useNuxtApp().$i18n
   isFilingHistoryOpen.value = false // reset so it's starts hidden by default
   resetEditRentalUnitAddress()
+  resetEditRegistrationEmail()
   function openHostOwners (
     display: 'primaryContact' | 'secondaryContact' | 'propertyManager'
   ) {
