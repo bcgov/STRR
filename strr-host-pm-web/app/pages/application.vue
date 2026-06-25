@@ -289,7 +289,7 @@ function updateButtonControl () {
   buttons.push({
     action: isLastStep ? handleSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
-    label: isLastStep ? t('btn.proceedToPay') : t(`strr.step.description.${activeStepIndex.value + 1}`),
+    label: isLastStep ? t('btn.proceedToPay') : t('btn.next'),
     trailing: true
   })
 

@@ -209,7 +209,7 @@ watch(activeStepIndex, (val) => {
   buttons.push({
     action: isLastStep ? handleStrataSubmit : () => stepperRef.value?.setNextStep(),
     icon: 'i-mdi-chevron-right',
-    label: isLastStep ? t('btn.submitAndPay') : t(`strr.step.description.${val + 1}`),
+    label: isLastStep ? t('btn.submitAndPay') : t('btn.next'),
     trailing: true
   })
 
