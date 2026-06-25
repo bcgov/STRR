@@ -11,6 +11,7 @@ vi.mock('@/stores/examiner', () => ({
     getApplicationById: vi.fn().mockResolvedValue(mockHostApplicationWithFlags),
     assignApplication: vi.fn().mockImplementation(() => Promise.resolve()),
     resetEditRentalUnitAddress: vi.fn(),
+    resetEditRegistrationEmail: vi.fn(),
     activeReg: ref(mockHostApplicationWithFlags.registration),
     activeHeader: ref(mockHostApplicationWithFlags.header),
     activeRecord: ref(mockHostApplicationWithFlags),

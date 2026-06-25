@@ -57,6 +57,7 @@ vi.mock('@/stores/examiner', () => ({
     isApplication: ref(true),
     isAssignedToUser,
     resetEditRentalUnitAddress: vi.fn(),
+    // resetEditRegistrationEmail: vi.fn(),
     assignApplication: mockAssignApplication,
     viewReceipt: mockViewReceipt,
     activePaymentTotal: ref(null),

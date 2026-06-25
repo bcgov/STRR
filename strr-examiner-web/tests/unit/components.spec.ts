@@ -19,6 +19,7 @@ vi.mock('@/stores/examiner', () => ({
     getRegistrationFilingHistory: vi.fn().mockResolvedValue(mockRegistrationFilingHistory),
     isFilingHistoryOpen: ref(true),
     resetEditRentalUnitAddress: vi.fn(),
+    resetEditRegistrationEmail: vi.fn(),
     activePaymentTotal: ref(150),
     activePaymentDate: ref('2026-01-15T10:00:00')
   })
