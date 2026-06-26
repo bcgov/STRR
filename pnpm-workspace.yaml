@@ -7,7 +7,7 @@ packages:
   - strr-web
 
 onlyBuiltDependencies:
-  - @parcel/watcher
+  - "@parcel/watcher"
   - esbuild
   - sharp
   - unrs-resolver
