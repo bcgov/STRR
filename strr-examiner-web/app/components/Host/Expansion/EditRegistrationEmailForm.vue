@@ -98,7 +98,7 @@ const handleCancel = () => {
             :schema="registrationUpdateSchema"
             :state="currentState"
             :validate-on="['change', 'submit']"
-            class="w-full space-y-4"
+            class="space-y-4"
             data-testid="edit-registration-email-form"
             @submit="updateRegistrationEmail"
           >
