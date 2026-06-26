@@ -97,19 +97,19 @@ const handleCancel = () => {
             ref="editRegistrationEmailForm"
             :schema="registrationUpdateSchema"
             :state="currentState"
-            :validate-on="['submit']"
-            class="space-y-4"
+            :validate-on="['change', 'submit']"
+            class="w-full space-y-4"
             data-testid="edit-registration-email-form"
             @submit="updateRegistrationEmail"
           >
             <ConnectFormFieldGroup
               id="edit-host-email"
               v-model="currentState.emailAddress"
+              class="[&_.max-w-bcGovInput]:max-w-full"
               :aria-label="t('label.emailAddress')"
               name="emailAddress"
               :placeholder="t('label.emailAddress')"
               :is-required="true"
-              type="email"
             />
 
             <div class="mt-4 flex justify-end gap-3 border-t border-gray-200 pt-6">
