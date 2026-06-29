@@ -434,7 +434,6 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getNextApplication = async <T extends ApiApplicationBaseResp>(): Promise<T | undefined> => {
-    // TODO: update when requirements are flushed out and backend is updated.
     const resp = await getAccountApplications<T>(
       undefined, undefined, ApplicationType.HOST, ApplicationStatus.FULL_REVIEW,
       ApplicationSortBy.APPLICATION_DATE, ApplicationSortOrder.ASC
