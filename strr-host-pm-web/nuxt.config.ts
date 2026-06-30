@@ -23,7 +23,7 @@ export default defineNuxtConfig({
         file: 'en-CA.ts'
       },
       {
-        name: 'Français',
+        name: 'Fran�ais',
         code: 'fr-CA',
         language: 'fr-CA',
         dir: 'ltr',
@@ -82,6 +82,25 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    css: {
+      preprocessorOptions: {
+        scss: {
+          // tailwindcss v3 has no .scss files; actual CSS processing done by PostCSS plugin
+          // Vite 6 uses Sass modern API requiring canonicalize+load (not legacy importer function)
+          importers: [{
+            canonicalize (url: string) {
+              if (url.startsWith('tailwindcss')) {
+                return new URL('tailwindcss-stub:' + url)
+              }
+              return null
+            },
+            load (_canonicalUrl: URL) {
+              return { contents: '', syntax: 'scss' as const }
+            }
+          }]
+        }
+      }
+    },
     optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
       include: ['zod', 'uuid', 'vitest']
     },
