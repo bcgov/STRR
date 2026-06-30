@@ -4,11 +4,13 @@ on:
     branches: [feat/upgrade-pnpm-v11]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   test-pnpm-v11:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         app: [strr-examiner-web, strr-host-pm-web, strr-strata-web, strr-platform-web, strr-base-web]
     defaults:
