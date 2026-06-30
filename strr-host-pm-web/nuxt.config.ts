@@ -23,7 +23,7 @@ export default defineNuxtConfig({
         file: 'en-CA.ts'
       },
       {
-        name: 'Français',
+        name: 'Fran�ais',
         code: 'fr-CA',
         language: 'fr-CA',
         dir: 'ltr',
@@ -82,6 +82,20 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    css: {
+      preprocessorOptions: {
+        scss: {
+          // tailwindcss v3 has no .scss files; actual CSS processing done by PostCSS plugin
+          // This importer returns empty content for tailwindcss/* @use imports from remote layers (.c12)
+          importer (url: string) {
+            if (url.startsWith('tailwindcss')) {
+              return { contents: '' }
+            }
+            return null
+          }
+        }
+      }
+    },
     optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
       include: ['zod', 'uuid', 'vitest']
     },
