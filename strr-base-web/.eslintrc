@@ -24,7 +24,8 @@
         "connect-date-picker",
         "connect-date-picker__err",
         "prose-bcGov",
-        "max-w-bcGovInput"
+        "max-w-bcGovInput",
+        "button-control"
       ]
     }],
     "no-use-before-define": "off"
