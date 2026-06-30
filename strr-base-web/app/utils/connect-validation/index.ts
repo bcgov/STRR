@@ -15,11 +15,6 @@ export const optionalOrEmptyString = z
   .optional()
   .transform(e => (e === '' ? undefined : e))
 
-// TODO: implement for number fields ???
-// export const optionalOrEmptyNumber = z
-//   .number()
-//   .optional()
-
 export const getRequiredNonEmptyString = (message: string) => z.string().refine(e => e.trim() !== '', message)
 
 export const checkSpecialCharacters = (input: string | undefined): boolean => {

@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon'
 import { HostActions } from '~/enums/host-actions'
 
-// TODO: host actions enums
 export const getTodoApplication = (
   applicationPath: string,
   payRedirectPath: string,
@@ -49,15 +48,15 @@ export const getTodoApplication = (
   } else if (
     applicationInfo?.hostActions.includes(HostActions.SUBMIT_PAYMENT) &&
     applicationInfo?.applicationType !== 'renewal'
-  ) { // TODO: handle other host actions, exclude renewal applications
+  ) {
     const { handlePaymentRedirect } = useConnectNav()
     todos.push({
       id: 'todo-complete-payment',
       title: t('label.completePayment'),
-      subtitle: undefined, // TODO: add subtitle ?
+      subtitle: undefined,
       buttons: [{
-        label: t('label.payNow'), // TODO: alert if no application info
-        action: () => // TODO: how to complete payment for PAD accounts?
+        label: t('label.payNow'),
+        action: () =>
           handlePaymentRedirect(applicationInfo.paymentToken, payRedirectPath)
       }]
     })

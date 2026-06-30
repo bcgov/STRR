@@ -6,7 +6,6 @@ const localePath = useLocalePath()
 const route = useRoute()
 const router = useRouter()
 const { t } = useNuxtApp().$i18n
-// TODO: ApplicationStatus.FULL_REVIEW is temporary until we have reqs defined
 // const { limit, page, getApplicationList } = useStrrBasePermitList(undefined, undefined) // leaving this for reference
 // const { getAccountApplications } = useStrrApi() // leaving this for reference
 const exStore = useExaminerStore()

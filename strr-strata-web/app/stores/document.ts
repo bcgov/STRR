@@ -25,7 +25,6 @@ export const useDocumentStore = defineStore('strata/document', () => {
 
     // selectedDocType.value = undefined // use this if adding mutliple document types
 
-    // await sleep(3000) // TODO: remove
     await postDocument(uiDoc)
   }
 
