@@ -95,7 +95,7 @@ export default defineNuxtConfig({
               return null
             },
             load (_canonicalUrl: URL) {
-              return { contents: '' }
+              return { contents: '', syntax: 'scss' as const }
             }
           }]
         }
