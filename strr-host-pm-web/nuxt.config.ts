@@ -86,13 +86,18 @@ export default defineNuxtConfig({
       preprocessorOptions: {
         scss: {
           // tailwindcss v3 has no .scss files; actual CSS processing done by PostCSS plugin
-          // This importer returns empty content for tailwindcss/* @use imports from remote layers (.c12)
-          importer (url: string) {
-            if (url.startsWith('tailwindcss')) {
+          // Vite 6 uses Sass modern API requiring canonicalize+load (not legacy importer function)
+          importers: [{
+            canonicalize (url: string) {
+              if (url.startsWith('tailwindcss')) {
+                return new URL('tailwindcss-stub:' + url)
+              }
+              return null
+            },
+            load (_canonicalUrl: URL) {
               return { contents: '' }
             }
-            return null
-          }
+          }]
         }
       }
     },
