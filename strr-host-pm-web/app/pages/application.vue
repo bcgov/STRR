@@ -440,3 +440,15 @@ setOnBeforeSessionExpired(() => {
     </div>
   </div>
 </template>
+
+<style>
+@media (min-width: 1024px) {
+  .button-control .app-inner-container > div::after {
+    content: '';
+    display: block;
+    width: 340px;
+    padding: 0 1.25rem;
+    flex-shrink: 0;
+  }
+}
+</style>
