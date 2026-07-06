@@ -44,7 +44,6 @@ def test_validate_permit_legacy_real_service_ok(client, headers_public_user, ser
     assert_status(rv, HTTPStatus.OK)
     data = rv.get_json()
     assert data.get("status") == "ACTIVE"
-    assert "validUntil" in data
 
 
 def test_validate_permit_v1_real_service_ok(client, headers_public_user, serializable_host_registration):

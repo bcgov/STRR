@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "STRR API: Flask debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "flask",
+      "args": [
+        "run",
+        "--port",
+        "8000",
+        "--no-reload",
+        "--debugger"
+      ],
+      "env": {
+        "FLASK_DEBUG": "1"
+      },
+      "cwd": "${workspaceFolder}/strr-api",
+      "jinja": true,
+      "justMyCode": true
+    }
+  ]
+}

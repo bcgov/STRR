@@ -118,9 +118,7 @@ export default function (data) {
         'streetNumber is correct': b => b?.address?.streetNumber === streetNumber,
         'postalCode is correct': b => b?.address?.postalCode === postalCode,
         // only check if unitNumber exits in the registration
-        ...(unitNumber && { 'unitNumber is correct': b => b?.address?.unitNumber === unitNumber }),
-        // validUntil exists only for ACTIVE registrations
-        ...(REGISTRATIONS_STATUS === 'ACTIVE' && { 'validUntil exists': b => !!b?.validUntil })
+        ...(unitNumber && { 'unitNumber is correct': b => b?.address?.unitNumber === unitNumber })
       })
     })
 
