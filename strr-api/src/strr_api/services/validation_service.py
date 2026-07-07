@@ -46,7 +46,6 @@ from strr_api.models import BulkValidation, RealTimeValidation, Registration
 from strr_api.schemas.utils import validate
 from strr_api.services.gcp_storage_service import GCPStorageService
 from strr_api.services.registration_service import RegistrationService
-from strr_api.utils.date_util import DateUtil
 
 
 class ValidationService:
@@ -182,7 +181,6 @@ class ValidationService:
             status_code = HTTPStatus.BAD_REQUEST
         else:
             response["status"] = registration.status.name
-            response["validUntil"] = DateUtil.as_legislation_timezone(registration.expiry_date).strftime("%Y-%m-%d")
         return response, status_code
 
     @classmethod

@@ -72,7 +72,6 @@ def test_permit_exists(app, session, client, jwt):
             response_json = rv.json
 
             assert response_json.get("status")
-            assert response_json.get("validUntil")
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
