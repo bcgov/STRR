@@ -23,7 +23,7 @@ export default defineNuxtConfig({
         file: 'en-CA.ts'
       },
       {
-        name: 'Fran�ais',
+        name: 'Français',
         code: 'fr-CA',
         language: 'fr-CA',
         dir: 'ltr',
