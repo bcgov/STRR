@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "STRR API: Flask Run",
+      "type": "shell",
+      "command": "${workspaceFolder}/strr-api/.venv/bin/python",
+      "args": [
+        "-m",
+        "flask",
+        "run",
+        "--port",
+        "8000",
+        "--no-reload",
+        "--debugger"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/strr-api",
+        "env": {
+          "FLASK_DEBUG": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Interactions Update: Run Job",
+      "type": "shell",
+      // Point this directly to your virtual environment's python binary
+      "command": "${workspaceFolder}/jobs/interactions-update/.venv/bin/python",
+      "args": [
+        "-m",
+        "interactions_update"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/jobs/interactions-update",
+        "envFile": "${workspaceFolder}/jobs/interactions-update/.env"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}
