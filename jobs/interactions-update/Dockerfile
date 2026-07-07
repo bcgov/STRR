@@ -43,7 +43,7 @@ COPY ./poetry.lock ./pyproject.toml /code/
 
 # Install dependencies into .venv inside /code
 RUN --mount=type=cache,target="$POETRY_CACHE_DIR" \
-    poetry install --no-root --no-interaction --no-ansi
+    poetry install --only main --no-root --no-interaction --no-ansi
 
 # --- Final Runner Stage ---
 FROM python:3.14-slim-bookworm AS runner
