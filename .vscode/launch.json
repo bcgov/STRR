@@ -19,6 +19,16 @@
       "cwd": "${workspaceFolder}/strr-api",
       "jinja": true,
       "justMyCode": true
-    }
+    },
+    {
+      "name": "Interactions Update: Run Job",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "interactions_update",
+      "cwd": "${workspaceFolder}/jobs/interactions-update",
+      "envFile": "${workspaceFolder}/jobs/interactions-update/.env",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
   ]
 }
