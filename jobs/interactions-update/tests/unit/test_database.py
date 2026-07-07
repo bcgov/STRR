@@ -59,7 +59,7 @@ def test_cloud_sql_missing_vars_raises_error(monkeypatch):
     monkeypatch.delenv("INSTANCE_CONNECTION_NAME", raising=False)
 
     with pytest.raises(
-        ValueError, match="Missing Cloud SQL connection environment variables"
+        ValueError, match="Missing database connection environment variables"
     ):
         database.get_engine()
 

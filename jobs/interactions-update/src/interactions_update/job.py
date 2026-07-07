@@ -1,13 +1,17 @@
 import concurrent.futures
 import logging
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 
 import requests
-from dotenv import find_dotenv, load_dotenv
-from interactions_update.database import get_session
-from sqlalchemy import case, select
+from dotenv import find_dotenv
+from dotenv import load_dotenv
+from sqlalchemy import case
+from sqlalchemy import select
 
+from interactions_update.database import get_session
 from strr_api.enums.enum import InteractionStatus
 from strr_api.models import CustomerInteraction
 from strr_api.services.auth_service import AuthService
@@ -102,7 +106,9 @@ def _recipient_metadata(notify_reference, data, normalized_status):
 
     return {
         "notify_reference": notify_reference,
-        "provider_reference": (str(data.get("id")) if data.get("id") is not None else None),
+        "provider_reference": (
+            str(data.get("id")) if data.get("id") is not None else None
+        ),
         "status": normalized_status,
         "status_description": status_description,
         "failure_type": failure_type,
@@ -130,7 +136,11 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
         if not notify_references:
             return None
 
-        existing_meta_data = interaction.meta_data.copy() if isinstance(interaction.meta_data, dict) else {}
+        existing_meta_data = (
+            interaction.meta_data.copy()
+            if isinstance(interaction.meta_data, dict)
+            else {}
+        )
         recipient_statuses = {}
         mapped_statuses = []
         primary_payload = None
@@ -173,7 +183,9 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
 
         if primary_payload:
             existing_meta_data["notify_response"] = primary_payload
-            existing_meta_data["notifyStatus"] = _normalize_notify_status(primary_payload)
+            existing_meta_data["notifyStatus"] = _normalize_notify_status(
+                primary_payload
+            )
 
         first_provider_reference = next(
             (
@@ -195,7 +207,10 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
         if new_status and new_status != interaction.status:
             interaction.status = new_status
             did_change = True
-        if first_provider_reference and first_provider_reference != interaction.provider_reference:
+        if (
+            first_provider_reference
+            and first_provider_reference != interaction.provider_reference
+        ):
             interaction.provider_reference = first_provider_reference
             did_change = True
         if existing_meta_data != interaction.meta_data:
@@ -244,7 +259,9 @@ def run(max_workers=None):
             CustomerInteraction.created_at,
             CustomerInteraction.notify_reference,
             CustomerInteraction.meta_data,
-            case((CustomerInteraction.created_at < stale_threshold, True), else_=False).label("is_stale"),
+            case(
+                (CustomerInteraction.created_at < stale_threshold, True), else_=False
+            ).label("is_stale"),
         ).where(CustomerInteraction.status == InteractionStatus.SENT)
         sent_interactions = session.execute(stmt).all()
         logger.info(
@@ -292,11 +309,17 @@ def run(max_workers=None):
         # If max_workers is 1, run sequentially used in benchmarking comparison
         if max_workers == 1:
             for i_id in interaction_ids:
-                results.append(fetch_and_update(i_id, notify_url, headers, notify_timeout))
+                results.append(
+                    fetch_and_update(i_id, notify_url, headers, notify_timeout)
+                )
         else:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=max_workers
+            ) as executor:
                 futures = [
-                    executor.submit(fetch_and_update, i_id, notify_url, headers, notify_timeout)
+                    executor.submit(
+                        fetch_and_update, i_id, notify_url, headers, notify_timeout
+                    )
                     for i_id in interaction_ids
                 ]
                 for future in concurrent.futures.as_completed(futures):
