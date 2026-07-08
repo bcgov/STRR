@@ -19,3 +19,4 @@ jobs:
       working_directory: "./strr-base-web"
       codecov_flag: "strrbasewebui"
       node_version: 24
+      pnpm_version: 11.9.0
