@@ -6,7 +6,6 @@ import types
 
 import pytest
 
-
 ENV_KEYS = (
     "CLOUD_RUN_JOB",
     "CLOUDSQL_INSTANCE_CONNECTION_NAME",

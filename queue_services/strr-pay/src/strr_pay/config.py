@@ -72,13 +72,9 @@ def _use_cloudsql_iam() -> bool:
 
 
 def _require_cloudsql_env():
-    missing = [
-        env_name for env_name in CLOUDSQL_REQUIRED_ENVS if not os.getenv(env_name)
-    ]
+    missing = [env_name for env_name in CLOUDSQL_REQUIRED_ENVS if not os.getenv(env_name)]
     if missing:
-        raise RuntimeError(
-            f"Missing Cloud SQL IAM environment variables: {', '.join(missing)}"
-        )
+        raise RuntimeError(f"Missing Cloud SQL IAM environment variables: {', '.join(missing)}")
 
 
 def _cloudsql_ip_type():
