@@ -6,6 +6,32 @@ from sqlalchemy.orm import sessionmaker
 # Global singleton to hold the pooled engine
 _engine = None
 
+CLOUDSQL_REQUIRED_ENVS = (
+    "CLOUDSQL_INSTANCE_CONNECTION_NAME",
+    "DATABASE_NAME",
+    "DATABASE_USERNAME",
+)
+
+
+def _require_cloudsql_env():
+    missing = [
+        env_name for env_name in CLOUDSQL_REQUIRED_ENVS if not os.getenv(env_name)
+    ]
+    if missing:
+        raise ValueError(
+            f"Missing Cloud SQL IAM connection environment variables: {', '.join(missing)}"
+        )
+
+
+def _cloudsql_ip_type():
+    from google.cloud.sql.connector import IPTypes
+
+    ip_type_name = os.getenv("CLOUDSQL_IP_TYPE", "PUBLIC").upper()
+    try:
+        return getattr(IPTypes, ip_type_name)
+    except AttributeError as exc:
+        raise ValueError("CLOUDSQL_IP_TYPE must be PUBLIC or PRIVATE") from exc
+
 
 def get_engine():
     """Lazily initialize the pooled engine with recycling and pooling."""
@@ -34,25 +60,19 @@ def get_engine():
 
     # Google Cloud SQL
     from google.cloud.sql.connector import Connector
-    from google.cloud.sql.connector import IPTypes
 
-    instance_conn = os.getenv("INSTANCE_CONNECTION_NAME")
-    db_user = os.getenv("DB_USER")
-    db_name = os.getenv("DB_NAME")
-
-    if not all([instance_conn, db_user, db_name]):
-        raise ValueError("Missing Cloud SQL connection environment variables.")
+    _require_cloudsql_env()
 
     connector = Connector()
 
     def get_conn():
         return connector.connect(
-            instance_conn,
+            os.environ["CLOUDSQL_INSTANCE_CONNECTION_NAME"],
             "pg8000",
-            user=db_user,
-            db=db_name,
+            user=os.environ["DATABASE_USERNAME"],
+            db=os.environ["DATABASE_NAME"],
             enable_iam_auth=True,
-            ip_type=IPTypes.PUBLIC,
+            ip_type=_cloudsql_ip_type(),
         )
 
     # Apply pooling params to the creator-based engine

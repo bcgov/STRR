@@ -56,6 +56,85 @@ CONFIGURATION = {
 }
 
 
+CLOUDSQL_REQUIRED_ENVS = (
+    "CLOUDSQL_INSTANCE_CONNECTION_NAME",
+    "DATABASE_NAME",
+    "DATABASE_USERNAME",
+)
+
+
+def _is_deployed_gcp() -> bool:
+    return bool(os.getenv("K_SERVICE") or os.getenv("CLOUD_RUN_JOB"))
+
+
+def _use_cloudsql_iam() -> bool:
+    return bool(os.getenv("CLOUDSQL_INSTANCE_CONNECTION_NAME")) or _is_deployed_gcp()
+
+
+def _require_cloudsql_env():
+    missing = [
+        env_name for env_name in CLOUDSQL_REQUIRED_ENVS if not os.getenv(env_name)
+    ]
+    if missing:
+        raise RuntimeError(
+            f"Missing Cloud SQL IAM environment variables: {', '.join(missing)}"
+        )
+
+
+def _cloudsql_ip_type():
+    from google.cloud.sql.connector import IPTypes
+
+    ip_type_name = os.getenv("CLOUDSQL_IP_TYPE", "PUBLIC").upper()
+    try:
+        return getattr(IPTypes, ip_type_name)
+    except AttributeError as exc:
+        raise RuntimeError("CLOUDSQL_IP_TYPE must be PUBLIC or PRIVATE") from exc
+
+
+def _make_cloudsql_getconn():  # pragma: no cover - exercised through unit mocks
+    from google.cloud.sql.connector import Connector
+
+    connector = None
+
+    def getconn():
+        nonlocal connector
+
+        if connector is None:
+            connector = Connector()
+
+        return connector.connect(
+            os.environ["CLOUDSQL_INSTANCE_CONNECTION_NAME"],
+            "pg8000",
+            user=os.environ["DATABASE_USERNAME"],
+            db=os.environ["DATABASE_NAME"],
+            enable_iam_auth=True,
+            ip_type=_cloudsql_ip_type(),
+        )
+
+    return getconn
+
+
+def _local_database_uri() -> str:
+    db_user = os.getenv("DATABASE_USERNAME", "")
+    db_password = os.getenv("DATABASE_PASSWORD", "")
+    db_name = os.getenv("DATABASE_NAME", "")
+    db_host = os.getenv("DATABASE_HOST", "")
+    db_port = os.getenv("DATABASE_PORT", "5432")
+
+    if db_unix_socket := os.getenv("DATABASE_UNIX_SOCKET", None):
+        return f"postgresql+pg8000://{db_user}:{db_password}@/{db_name}?unix_sock={db_unix_socket}/.s.PGSQL.5432"
+
+    return f"postgresql+pg8000://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
+
+def _database_settings() -> tuple[str, dict]:
+    if _use_cloudsql_iam():
+        _require_cloudsql_env()
+        return "postgresql+pg8000://", {"creator": _make_cloudsql_getconn()}
+
+    return _local_database_uri(), {}
+
+
 def get_named_config(config_name: str = "production"):
     """Return the configuration object based on the name.
 
@@ -97,19 +176,7 @@ class Config:  # pylint: disable=too-few-public-methods
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # POSTGRESQL
-    DB_USER = os.getenv("DATABASE_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_NAME", "")
-    DB_HOST = os.getenv("DATABASE_HOST", "")
-    DB_PORT = os.getenv("DATABASE_PORT", "5432")
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{
-            DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
-    else:
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{
-                DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = _database_settings()
 
 
 class DevConfig(Config):  # pylint: disable=too-few-public-methods
@@ -127,6 +194,7 @@ class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
 
     DEBUG = True
     TESTING = True
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 
 
 class TestConfig(Config):  # pylint: disable=too-few-public-methods

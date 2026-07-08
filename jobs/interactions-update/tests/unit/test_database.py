@@ -56,10 +56,10 @@ def test_cloud_sql_missing_vars_raises_error(monkeypatch):
     """Verify that falling back to Cloud SQL without vars raises ValueError."""
     # Ensure DATABASE_URL is NOT set to trigger the fallback branch
     monkeypatch.delenv("DATABASE_URL", raising=False)
-    monkeypatch.delenv("INSTANCE_CONNECTION_NAME", raising=False)
+    monkeypatch.delenv("CLOUDSQL_INSTANCE_CONNECTION_NAME", raising=False)
 
     with pytest.raises(
-        ValueError, match="Missing Cloud SQL connection environment variables"
+        ValueError, match="Missing Cloud SQL IAM connection environment variables"
     ):
         database.get_engine()
 

@@ -15,9 +15,10 @@ def test_get_engine_cloud_sql_happy_path(
 
     # Setup environment to trigger Cloud SQL branch (no DATABASE_URL)
     monkeypatch.delenv("DATABASE_URL", raising=False)
-    monkeypatch.setenv("INSTANCE_CONNECTION_NAME", "project:region:instance")
-    monkeypatch.setenv("DB_USER", "test-user")
-    monkeypatch.setenv("DB_NAME", "test-db")
+    monkeypatch.setenv("CLOUDSQL_INSTANCE_CONNECTION_NAME", "project:region:instance")
+    monkeypatch.setenv("CLOUDSQL_IP_TYPE", "PUBLIC")
+    monkeypatch.setenv("DATABASE_USERNAME", "test-user")
+    monkeypatch.setenv("DATABASE_NAME", "test-db")
     monkeypatch.setenv("MAX_WORKERS", "12")
 
     # Setup Mock Connector instance
