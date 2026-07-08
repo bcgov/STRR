@@ -43,6 +43,7 @@
     "otpauth": "^9.4.1",
     "playwright-core": "^1.55.0",
     "sass": "^1.90.0",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },

@@ -102,6 +102,9 @@ importers:
       sass:
         specifier: ^1.90.0
         version: 1.100.0
+      tailwindcss:
+        specifier: ^3.4.19
+        version: 3.4.19(yaml@2.9.0)
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
