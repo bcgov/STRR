@@ -5,14 +5,12 @@ import json
 
 import pytest
 import responses
-from sqlalchemy import select
-from sqlalchemy import update
-
 from interactions_update.database import get_session
 from interactions_update.job import run
+from sqlalchemy import select, update
+
 from strr_api.enums.enum import InteractionStatus
-from strr_api.models import CustomerInteraction
-from strr_api.models import User
+from strr_api.models import CustomerInteraction, User
 
 pytestmark = pytest.mark.integration
 
@@ -27,9 +25,7 @@ def test_db_session_smoke(session):
 
 @responses.activate
 @pytest.mark.parametrize("setup_bulk_interactions", [{"records": 20}], indirect=True)
-def test_full_job_roundtrip_pooled(
-    db_session, setup_bulk_interactions, notify_job_integration_env, monkeypatch
-):
+def test_full_job_roundtrip_pooled(db_session, setup_bulk_interactions, notify_job_integration_env, monkeypatch):
     """
     End-to-end: seed -> multi-threaded job -> Notify mock -> assertions via pooled session.
     """
@@ -48,9 +44,7 @@ def test_full_job_roundtrip_pooled(
     )
     db_session.commit()
 
-    responses.add(
-        responses.POST, auth_url, json={"access_token": "mock-token"}, status=200
-    )
+    responses.add(responses.POST, auth_url, json={"access_token": "mock-token"}, status=200)
 
     def notify_callback(request):
         return (
@@ -78,9 +72,7 @@ def test_full_job_roundtrip_pooled(
     verify_session = next(session_gen)
 
     try:
-        stmt = select(CustomerInteraction).where(
-            CustomerInteraction.id.in_(interaction_ids)
-        )
+        stmt = select(CustomerInteraction).where(CustomerInteraction.id.in_(interaction_ids))
         updated_records = verify_session.scalars(stmt).all()
 
         assert len(updated_records) == 20
@@ -113,18 +105,17 @@ def test_updates_when_primary_notify_reference_missing_but_metadata_present(
     }
     db_session.commit()
 
-    responses.add(
-        responses.POST, auth_url, json={"access_token": "mock-token"}, status=200
-    )
+    responses.add(responses.POST, auth_url, json={"access_token": "mock-token"}, status=200)
     responses.add(
         responses.GET,
         f"{notify_svc}/notify/ref-meta-only",
         json={
             "id": "provider-id-meta",
-            "status": "sent",
+            "notifyStatus": "sent",
             "status_description": "Sent",
-            "email_address": "meta@example.com",
-            "completed_at": "2026-07-07T10:00:00Z",
+            "recipients": "meta@example.com",
+            "sentDate": "2026-07-07T10:00:00Z",
+            "requestDate": "2026-07-07T09:59:00Z",
         },
         status=200,
     )
@@ -136,12 +127,7 @@ def test_updates_when_primary_notify_reference_missing_but_metadata_present(
     try:
         updated = verify_session.get(CustomerInteraction, interaction_id)
         assert updated.status == InteractionStatus.DELIVERED
-        assert (
-            updated.meta_data["notify_delivery"]["recipient_statuses"]["ref-meta-only"][
-                "status"
-            ]
-            == "SENT"
-        )
+        assert updated.meta_data["notify_delivery"]["recipient_statuses"]["ref-meta-only"]["status"] == "SENT"
     finally:
         verify_session.close()
 
@@ -166,18 +152,17 @@ def test_updates_all_notify_references_and_failure_metadata(
     }
     db_session.commit()
 
-    responses.add(
-        responses.POST, auth_url, json={"access_token": "mock-token"}, status=200
-    )
+    responses.add(responses.POST, auth_url, json={"access_token": "mock-token"}, status=200)
     responses.add(
         responses.GET,
         f"{notify_svc}/notify/ref-meta-primary",
         json={
             "id": "provider-id-primary",
-            "status": "delivered",
+            "notifyStatus": "delivered",
             "status_description": "Delivered",
-            "email_address": "primary@example.com",
-            "completed_at": "2026-07-07T10:00:00Z",
+            "recipients": "primary@example.com",
+            "sentDate": "2026-07-07T10:00:00Z",
+            "requestDate": "2026-07-07T09:59:00Z",
         },
         status=200,
     )
@@ -186,11 +171,12 @@ def test_updates_all_notify_references_and_failure_metadata(
         f"{notify_svc}/notify/ref-meta-secondary",
         json={
             "id": "provider-id-secondary",
-            "status": "technical-failure",
+            "notifyStatus": "technical-failure",
             "status_description": "Tech issue",
             "provider_response": "Mailbox provider unavailable",
-            "email_address": "secondary@example.com",
-            "completed_at": "2026-07-07T10:01:00Z",
+            "recipients": "secondary@example.com",
+            "sentDate": "2026-07-07T10:01:00Z",
+            "requestDate": "2026-07-07T10:00:00Z",
         },
         status=200,
     )
@@ -214,22 +200,10 @@ def test_updates_all_notify_references_and_failure_metadata(
         }
         assert recipient_statuses["ref-meta-primary"]["status"] == "DELIVERED"
         assert recipient_statuses["ref-meta-secondary"]["status"] == "TECHNICAL_FAILURE"
-        assert (
-            recipient_statuses["ref-meta-secondary"]["failure_type"]
-            == "TECHNICAL_FAILURE"
-        )
-        assert (
-            recipient_statuses["ref-meta-secondary"]["failure_reason"]
-            == "Mailbox provider unavailable"
-        )
-        assert (
-            recipient_statuses["ref-meta-secondary"]["email_address"]
-            == "secondary@example.com"
-        )
-        assert (
-            recipient_statuses["ref-meta-secondary"]["completed_at"]
-            == "2026-07-07T10:01:00Z"
-        )
+        assert recipient_statuses["ref-meta-secondary"]["failure_type"] == "TECHNICAL_FAILURE"
+        assert recipient_statuses["ref-meta-secondary"]["failure_reason"] == "Mailbox provider unavailable"
+        assert recipient_statuses["ref-meta-secondary"]["email_address"] == "secondary@example.com"
+        assert recipient_statuses["ref-meta-secondary"]["sent_date"] == "2026-07-07T10:01:00Z"
     finally:
         verify_session.close()
 
@@ -254,18 +228,17 @@ def test_updates_when_primary_notify_reference_missing_but_metadata_present(
     }
     db_session.commit()
 
-    responses.add(
-        responses.POST, auth_url, json={"access_token": "mock-token"}, status=200
-    )
+    responses.add(responses.POST, auth_url, json={"access_token": "mock-token"}, status=200)
     responses.add(
         responses.GET,
         f"{notify_svc}/notify/ref-meta-only",
         json={
             "id": "provider-id-meta",
-            "status": "sent",
+            "notifyStatus": "sent",
             "status_description": "Sent",
-            "email_address": "meta@example.com",
-            "completed_at": "2026-07-07T10:00:00Z",
+            "recipients": "meta@example.com",
+            "sentDate": "2026-07-07T10:00:00Z",
+            "requestDate": "2026-07-07T09:59:00Z",
         },
         status=200,
     )
@@ -277,11 +250,6 @@ def test_updates_when_primary_notify_reference_missing_but_metadata_present(
     try:
         updated = verify_session.get(CustomerInteraction, interaction_id)
         assert updated.status == InteractionStatus.DELIVERED
-        assert (
-            updated.meta_data["notify_delivery"]["recipient_statuses"]["ref-meta-only"][
-                "status"
-            ]
-            == "SENT"
-        )
+        assert updated.meta_data["notify_delivery"]["recipient_statuses"]["ref-meta-only"]["status"] == "SENT"
     finally:
         verify_session.close()

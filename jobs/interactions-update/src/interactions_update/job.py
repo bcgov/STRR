@@ -1,6 +1,7 @@
 import concurrent.futures
 import logging
 import os
+import time
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -83,7 +84,23 @@ def _extract_notify_references_from_parts(notify_reference, meta_data):
 
 def _normalize_notify_status(data):
     """Normalize status across notify-api and GC Notify response shapes."""
-    raw_status = data.get("status") or data.get("notifyStatus")
+    raw_status = data.get("gc_notify_status") or data.get("notifyStatus")
+    if raw_status is None:
+        return None
+    return str(raw_status).strip().upper().replace("-", "_")
+
+
+def _normalize_transport_status(data):
+    """Normalize the transport-level status field returned by notify-api."""
+    raw_status = data.get("notifyStatus")
+    if raw_status is None:
+        return None
+    return str(raw_status).strip().upper().replace("-", "_")
+
+
+def _normalize_gc_notify_status(data):
+    """Normalize the downstream GC Notify delivery status when available."""
+    raw_status = data.get("gc_notify_status")
     if raw_status is None:
         return None
     return str(raw_status).strip().upper().replace("-", "_")
@@ -110,15 +127,11 @@ def _recipient_metadata(notify_reference, data, normalized_status):
             str(data.get("id")) if data.get("id") is not None else None
         ),
         "status": normalized_status,
-        "status_description": status_description,
         "failure_type": failure_type,
         "failure_reason": provider_response or status_description,
-        "provider_response": provider_response,
-        "email_address": data.get("email_address"),
-        "completed_at": data.get("completed_at"),
-        "sent_at": data.get("sent_at"),
-        "created_at": data.get("created_at"),
-        "raw": data,
+        "email_address": data.get("recipients"),
+        "sent_date": data.get("sentDate"),
+        "request_date": data.get("requestDate"),
     }
 
 
@@ -130,11 +143,25 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
     try:
         interaction = session.get(CustomerInteraction, interaction_id)
         if not interaction:
+            logger.warning(
+                "strr.interactions.interaction_not_found interaction_id=%s",
+                interaction_id,
+            )
             return None
 
         notify_references = _extract_notify_references(interaction)
         if not notify_references:
+            logger.debug(
+                "strr.interactions.no_references_skipped interaction_id=%s",
+                interaction_id,
+            )
             return None
+
+        logger.debug(
+            "strr.interactions.processing interaction_id=%s reference_count=%s",
+            interaction_id,
+            len(notify_references),
+        )
 
         existing_meta_data = (
             interaction.meta_data.copy()
@@ -147,15 +174,58 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
 
         for notify_reference in notify_references:
             notify_request = f"{notify_url}/notify/{notify_reference}"
-            resp = requests.get(notify_request, headers=headers, timeout=timeout)
+            logger.debug(
+                "strr.interactions.notify_request interaction_id=%s notify_reference=%s url=%s",
+                interaction_id,
+                notify_reference,
+                notify_request,
+            )
+            t0 = time.monotonic()
+            try:
+                resp = requests.get(notify_request, headers=headers, timeout=timeout)
+            except requests.exceptions.Timeout:
+                logger.error(
+                    "strr.interactions.notify_request_timeout interaction_id=%s notify_reference=%s timeout_seconds=%s",
+                    interaction_id,
+                    notify_reference,
+                    timeout,
+                )
+                continue
+            except requests.exceptions.ConnectionError as exc:
+                logger.error(
+                    "strr.interactions.notify_request_connection_error interaction_id=%s notify_reference=%s error=%s",
+                    interaction_id,
+                    notify_reference,
+                    exc,
+                )
+                continue
+            except requests.exceptions.RequestException as exc:
+                logger.error(
+                    "strr.interactions.notify_request_error interaction_id=%s notify_reference=%s error=%s",
+                    interaction_id,
+                    notify_reference,
+                    exc,
+                )
+                continue
+            duration_ms = int((time.monotonic() - t0) * 1000)
+
             if resp.status_code != 200:
                 logger.warning(
-                    "strr.interactions.notify_status_fetch_failed interaction_id=%s notify_reference=%s status_code=%s",
+                    "strr.interactions.notify_status_fetch_failed interaction_id=%s notify_reference=%s status_code=%s duration_ms=%s",
                     interaction_id,
                     notify_reference,
                     resp.status_code,
+                    duration_ms,
                 )
                 continue
+
+            logger.debug(
+                "strr.interactions.notify_request_success interaction_id=%s notify_reference=%s status_code=%s duration_ms=%s",
+                interaction_id,
+                notify_reference,
+                resp.status_code,
+                duration_ms,
+            )
 
             data = resp.json()
             normalized_status = _normalize_notify_status(data)
@@ -183,9 +253,17 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
 
         if primary_payload:
             existing_meta_data["notify_response"] = primary_payload
-            existing_meta_data["notifyStatus"] = _normalize_notify_status(
-                primary_payload
-            )
+            transport_status = _normalize_transport_status(primary_payload)
+            if transport_status:
+                existing_meta_data["notifyStatus"] = transport_status
+            else:
+                existing_meta_data.pop("notifyStatus", None)
+
+            gc_notify_status = _normalize_gc_notify_status(primary_payload)
+            if gc_notify_status:
+                existing_meta_data["gc_notify_status"] = gc_notify_status
+            else:
+                existing_meta_data.pop("gc_notify_status", None)
 
         first_provider_reference = next(
             (
@@ -219,7 +297,24 @@ def fetch_and_update(interaction_id, notify_url, headers, timeout):
 
         if did_change:
             session.commit()
+            logger.info(
+                "strr.interactions.updated interaction_id=%s new_status=%s provider_reference=%s",
+                interaction_id,
+                new_status.value if new_status else None,
+                first_provider_reference,
+            )
             return new_status
+        logger.debug(
+            "strr.interactions.no_change interaction_id=%s",
+            interaction_id,
+        )
+        return None
+    except Exception as exc:
+        logger.exception(
+            "strr.interactions.fetch_and_update_error interaction_id=%s error=%s",
+            interaction_id,
+            exc,
+        )
         return None
     finally:
         session.close()
@@ -241,12 +336,18 @@ def _get_auth_config():
 
 def run(max_workers=None):
     """Executes the update job. If max_workers=1, it runs sequentially."""
+    job_start = time.monotonic()
     if max_workers is None:
         max_workers = int(os.getenv("MAX_WORKERS", "10"))
 
     notify_url = os.getenv("NOTIFY_API_URL", "") + os.getenv("NOTIFY_API_VERSION", "")
     os.environ["NOTIFY_SVC_URL"] = notify_url
     notify_timeout = int(os.getenv("NOTIFY_API_TIMEOUT", "10"))
+    logger.info(
+        "strr.interactions.job_started max_workers=%s notify_timeout=%s",
+        max_workers,
+        notify_timeout,
+    )
 
     session_gen = get_session()
     session = next(session_gen)
@@ -291,11 +392,13 @@ def run(max_workers=None):
             )
 
         if not interaction_ids:
+            duration_ms = int((time.monotonic() - job_start) * 1000)
             logger.info(
-                "strr.interactions.update_completed sent_count=%s delivered_count=0 failed_count=0 stale_sent_count=%s missing_reference_count=%s",
+                "strr.interactions.update_completed sent_count=%s delivered_count=0 failed_count=0 stale_sent_count=%s missing_reference_count=%s duration_ms=%s",
                 len(sent_interactions),
                 len(stale_interaction_ids),
                 missing_reference_count,
+                duration_ms,
             )
             return
 
@@ -316,29 +419,40 @@ def run(max_workers=None):
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=max_workers
             ) as executor:
-                futures = [
+                futures = {
                     executor.submit(
                         fetch_and_update, i_id, notify_url, headers, notify_timeout
-                    )
+                    ): i_id
                     for i_id in interaction_ids
-                ]
+                }
                 for future in concurrent.futures.as_completed(futures):
-                    results.append(future.result())
+                    i_id = futures[future]
+                    try:
+                        results.append(future.result())
+                    except Exception as exc:
+                        logger.exception(
+                            "strr.interactions.worker_error interaction_id=%s error=%s",
+                            i_id,
+                            exc,
+                        )
+                        results.append(None)
 
         failed_count = results.count(InteractionStatus.FAILED)
         delivered_count = results.count(InteractionStatus.DELIVERED)
+        duration_ms = int((time.monotonic() - job_start) * 1000)
         if failed_count:
             logger.warning(
                 "strr.interactions.failed_detected interaction_status=FAILED failed_count=%s",
                 failed_count,
             )
         logger.info(
-            "strr.interactions.update_completed sent_count=%s delivered_count=%s failed_count=%s stale_sent_count=%s missing_reference_count=%s",
+            "strr.interactions.update_completed sent_count=%s delivered_count=%s failed_count=%s stale_sent_count=%s missing_reference_count=%s duration_ms=%s",
             len(sent_interactions),
             delivered_count,
             failed_count,
             len(stale_interaction_ids),
             missing_reference_count,
+            duration_ms,
         )
     finally:
         session.close()

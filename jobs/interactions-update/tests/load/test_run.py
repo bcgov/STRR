@@ -3,18 +3,16 @@ import os
 import random
 import re
 import uuid
-from datetime import datetime
-from datetime import timezone
+from datetime import datetime, timezone
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 import responses
+from interactions_update.job import _normalize_notify_status, run
 from sqlalchemy import select
 
-from interactions_update.job import run
-from strr_api.enums.enum import ChannelType
-from strr_api.enums.enum import InteractionStatus
+from strr_api.enums.enum import ChannelType, InteractionStatus
 from strr_api.models import CustomerInteraction
 
 scenario_uno_day = {
@@ -22,6 +20,24 @@ scenario_uno_day = {
     "target_days": [40],
     "target_pct": 1.0,
 }
+
+
+def test_normalize_notify_status_prefers_gc_notify_status():
+    """GC Notify delivery outcomes should take precedence over transport-level status."""
+    payload = {
+        "gc_notify_status": "permanent-failure",
+        "notifyStatus": "SENT",
+        "status": "SENT",
+    }
+
+    assert _normalize_notify_status(payload) == "PERMANENT_FAILURE"
+
+
+def test_normalize_notify_status_falls_back_to_notify_status():
+    """Maintain compatibility with older payloads that only expose notifyStatus."""
+    payload = {"notifyStatus": "DELIVERED"}
+
+    assert _normalize_notify_status(payload) == "DELIVERED"
 
 
 # @pytest.mark.load
@@ -92,6 +108,67 @@ def test_run(db_session, setup_bulk_interactions, monkeypatch):
     assert updated_interaction.meta_data["notifyStatus"] == "DELIVERED"
 
 
+@responses.activate
+@pytest.mark.parametrize("setup_bulk_interactions", [scenario_uno_day], indirect=True)
+def test_run_persists_gc_notify_status_separately(
+    db_session,
+    setup_bulk_interactions,
+    monkeypatch,
+):
+    """GC Notify status should be persisted separately from transport status."""
+    notify_url = "http://my-notify-mock"
+    notify_ver = "/api/v1"
+    notify_svc = notify_url + notify_ver
+    auth_url = "http://my-auth-url"
+    strr_sa_id = "strr-sa-client-id"
+    strr_sa_secret = "strr-sa-secret"
+    monkeypatch.setenv("NOTIFY_API_URL", notify_url)
+    monkeypatch.setenv("NOTIFY_API_VERSION", notify_ver)
+    monkeypatch.setenv("NOTIFY_SVC_URL", notify_svc)
+    monkeypatch.setenv("KEYCLOAK_AUTH_TOKEN_URL", auth_url)
+    monkeypatch.setenv("NOTIFY_API_TIMEOUT", "30")
+    monkeypatch.setenv("AUTH_SVC_TIMEOUT", "30")
+    monkeypatch.setenv("STRR_SERVICE_ACCOUNT_CLIENT_ID", strr_sa_id)
+    monkeypatch.setenv("STRR_SERVICE_ACCOUNT_SECRET", strr_sa_secret)
+
+    reg_id = setup_bulk_interactions["registration_ids"][0]
+    interaction = db_session.execute(
+        select(CustomerInteraction).where(CustomerInteraction.registration_id == reg_id)
+    ).scalar_one()
+    interaction.notify_reference = "mock-notify-123"
+    db_session.commit()
+
+    def notify_callback(request):
+        ref = request.url.split("/")[-1]
+        response = {
+            "id": f"provider-{ref}",
+            "recipients": ["test@example.com"],
+            "requestDate": datetime.now(timezone.utc).isoformat(),
+            "sentDate": datetime.now(timezone.utc).isoformat(),
+            "notifyStatus": "SENT",
+            "gc_notify_status": "permanent-failure",
+            "notifyProvider": "HOUSING",
+        }
+        return (200, {}, json.dumps(response))
+
+    responses.add(responses.POST, auth_url, json={"access_token": "123"}, status=200)
+    responses.add_callback(
+        responses.GET,
+        f"{notify_svc}/notify/{interaction.notify_reference}",
+        callback=notify_callback,
+        content_type="application/json",
+    )
+
+    run()
+
+    db_session.expire_all()
+    updated_interaction = db_session.get(CustomerInteraction, interaction.id)
+
+    assert updated_interaction.status == InteractionStatus.FAILED
+    assert updated_interaction.meta_data["notifyStatus"] == "SENT"
+    assert updated_interaction.meta_data["gc_notify_status"] == "PERMANENT_FAILURE"
+
+
 # @pytest.mark.load
 @responses.activate
 @pytest.mark.parametrize("setup_bulk_interactions", [{"records": 1}], indirect=True)
@@ -127,9 +204,7 @@ def test_run_failure_502(db_session, setup_bulk_interactions, monkeypatch):
     # Assert status is still SENT (no update performed)
     interaction_ids = setup_bulk_interactions["interaction_ids"]
     db_session.expire_all()
-    stmt = select(CustomerInteraction).where(
-        CustomerInteraction.id.in_(interaction_ids)
-    )
+    stmt = select(CustomerInteraction).where(CustomerInteraction.id.in_(interaction_ids))
     interactions = db_session.scalars(stmt).all()
     for interaction in interactions:
         assert interaction.status == InteractionStatus.SENT
@@ -161,6 +236,8 @@ def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
                         id=self._interaction_id,
                         is_stale=True,
                         missing_notify_reference=False,
+                        notify_reference="mock-notify-123",
+                        meta_data={},
                     )
                 ]
             )
@@ -196,9 +273,7 @@ def test_run_logs_stale_sent_interactions(setup_bulk_interactions, monkeypatch):
 
 
 @pytest.mark.parametrize("setup_bulk_interactions", [{"records": 2}], indirect=True)
-def test_run_counts_missing_notify_references(
-    db_session, setup_bulk_interactions, monkeypatch
-):
+def test_run_counts_missing_notify_references(db_session, setup_bulk_interactions, monkeypatch):
     """Test that SENT interactions without Notify references are counted and skipped."""
 
     interaction_ids = setup_bulk_interactions["interaction_ids"]
@@ -221,12 +296,13 @@ def test_run_counts_missing_notify_references(
         run(max_workers=1)
 
     mock_info.assert_any_call(
-        "strr.interactions.update_completed sent_count=%s delivered_count=%s failed_count=%s stale_sent_count=%s missing_reference_count=%s",
+        "strr.interactions.update_completed sent_count=%s delivered_count=%s failed_count=%s stale_sent_count=%s missing_reference_count=%s duration_ms=%s",
         2,
         0,
         0,
         0,
         1,
+        ANY,
     )
 
 
@@ -289,9 +365,7 @@ def test_run_bulk_statuses(db_session, setup_bulk_interactions, monkeypatch):
     # Verify results
     interaction_ids = setup_bulk_interactions["interaction_ids"]
     db_session.expire_all()
-    stmt = select(CustomerInteraction).where(
-        CustomerInteraction.id.in_(interaction_ids)
-    )
+    stmt = select(CustomerInteraction).where(CustomerInteraction.id.in_(interaction_ids))
     my_interactions = db_session.scalars(stmt).all()
 
     # Ensure those marked DELIVERED or FAILURE were updated correctly
@@ -300,9 +374,5 @@ def test_run_bulk_statuses(db_session, setup_bulk_interactions, monkeypatch):
     sent = [i for i in my_interactions if i.status == InteractionStatus.SENT]
 
     # Logical check: At 1000 records, statistically all three lists should have members
-    assert (
-        len(my_interactions) == scenario_bulk["records"] * scenario_bulk["target_pct"]
-    )
-    print(
-        f"Results: Delivered: {len(delivered)}, Failed: {len(failed)}, Remained Sent: {len(sent)}"
-    )
+    assert len(my_interactions) == scenario_bulk["records"] * scenario_bulk["target_pct"]
+    print(f"Results: Delivered: {len(delivered)}, Failed: {len(failed)}, Remained Sent: {len(sent)}")
