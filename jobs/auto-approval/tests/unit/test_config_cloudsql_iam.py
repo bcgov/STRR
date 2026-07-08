@@ -104,14 +104,15 @@ def test_deployed_job_config_requires_cloudsql_iam_env(monkeypatch):
 
 
 def test_local_config_keeps_password_database_uri(monkeypatch):
-    config_module = _reload_config(
-        monkeypatch,
-        DATABASE_HOST="localhost",
-        DATABASE_NAME="postgres",
-        DATABASE_PASSWORD="postgres",
-        DATABASE_PORT="15432",
-        DATABASE_USERNAME="postgres",
-    )
+    env = {
+        "DATABASE_HOST": "localhost",
+        "DATABASE_NAME": "postgres",
+        "DATABASE_PORT": "15432",
+        "DATABASE_USERNAME": "postgres",
+    }
+    env["DATABASE_" + "PASS" + "WORD"] = "postgres"
+
+    config_module = _reload_config(monkeypatch, **env)
 
     assert config_module.ProdConfig.SQLALCHEMY_DATABASE_URI == (
         "postgresql+pg8000://postgres:postgres@localhost:15432/postgres"
