@@ -43,6 +43,8 @@ import os
 
 from dotenv import find_dotenv
 from dotenv import load_dotenv
+from google.cloud.sql.connector import Connector
+from google.cloud.sql.connector import IPTypes
 
 # this will load all the envars from a .env file located in the project root (api)
 load_dotenv(find_dotenv())
@@ -78,8 +80,6 @@ def _require_cloudsql_env():
 
 
 def _cloudsql_ip_type():
-    from google.cloud.sql.connector import IPTypes
-
     ip_type_name = os.getenv("CLOUDSQL_IP_TYPE", "PUBLIC").upper()
     try:
         return getattr(IPTypes, ip_type_name)
@@ -88,8 +88,6 @@ def _cloudsql_ip_type():
 
 
 def _make_cloudsql_getconn():  # pragma: no cover - exercised through unit mocks
-    from google.cloud.sql.connector import Connector
-
     connector = None
 
     def getconn():
@@ -118,7 +116,12 @@ def _local_database_uri() -> str:
     db_port = os.getenv("DATABASE_PORT", "5432")
 
     if db_unix_socket := os.getenv("DATABASE_UNIX_SOCKET", None):
-        return f"postgresql+pg8000://{db_user}:{db_password}@/{db_name}?unix_sock={db_unix_socket}/.s.PGSQL.5432"
+        return (
+            f"postgresql+pg8000://"
+            f"{db_user}:{db_password}@/"
+            f"{db_name}?unix_sock={db_unix_socket}/"
+            f".s.PGSQL.5432"
+        )
 
     return f"postgresql+pg8000://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 

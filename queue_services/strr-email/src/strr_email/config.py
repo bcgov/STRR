@@ -43,6 +43,8 @@ import os
 
 from dotenv import find_dotenv
 from dotenv import load_dotenv
+from google.cloud.sql.connector import Connector
+from google.cloud.sql.connector import IPTypes
 
 # this will load all the envars from a .env file located in the project root (api)
 load_dotenv(find_dotenv())
@@ -72,18 +74,12 @@ def _use_cloudsql_iam() -> bool:
 
 
 def _require_cloudsql_env():
-    missing = [
-        env_name for env_name in CLOUDSQL_REQUIRED_ENVS if not os.getenv(env_name)
-    ]
+    missing = [env_name for env_name in CLOUDSQL_REQUIRED_ENVS if not os.getenv(env_name)]
     if missing:
-        raise RuntimeError(
-            f"Missing Cloud SQL IAM environment variables: {', '.join(missing)}"
-        )
+        raise RuntimeError(f"Missing Cloud SQL IAM environment variables: {', '.join(missing)}")
 
 
 def _cloudsql_ip_type():
-    from google.cloud.sql.connector import IPTypes
-
     ip_type_name = os.getenv("CLOUDSQL_IP_TYPE", "PUBLIC").upper()
     try:
         return getattr(IPTypes, ip_type_name)
@@ -92,8 +88,6 @@ def _cloudsql_ip_type():
 
 
 def _make_cloudsql_getconn():  # pragma: no cover - exercised through unit mocks
-    from google.cloud.sql.connector import Connector
-
     connector = None
 
     def getconn():
