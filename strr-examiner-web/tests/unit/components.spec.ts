@@ -9,13 +9,36 @@ import {
 import SupportingDocuments from '~/components/SupportingDocuments.vue'
 import { ApplicationInfoHeader, HostExpansionFilingHistory, UBadge, UButton } from '#components'
 
+const mockApplicationFilingHistoryWithEmail = [
+  ...mockApplicationFilingHistory,
+  {
+    createdDate: '2026-07-08T20:53:21.399598+00:00',
+    eventName: FilingHistoryEventName.EMAIL_DELIVERED,
+    eventType: FilingHistoryEventType.APPLICATION,
+    idir: null,
+    message: 'Email delivered',
+    details: null,
+    structuredDetails: {
+      emailType: 'HOST_FULL_REVIEW_APPROVED',
+      interactionStatus: 'DELIVERED',
+      recipientStatuses: [
+        {
+          email_address: 'test@example.com',
+          status: 'SENT',
+          sent_date: '2026-06-09T22:23:11.714837'
+        }
+      ]
+    }
+  }
+]
+
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     isApplication: ref(true),
     activeReg: ref(mockHostApplication.registration),
     activeHeader: ref(mockHostApplication.header),
     activeRecord: ref(mockHostApplication),
-    getApplicationFilingHistory: vi.fn().mockResolvedValue(mockApplicationFilingHistory),
+    getApplicationFilingHistory: vi.fn().mockResolvedValue(mockApplicationFilingHistoryWithEmail),
     getRegistrationFilingHistory: vi.fn().mockResolvedValue(mockRegistrationFilingHistory),
     isFilingHistoryOpen: ref(true),
     resetEditRentalUnitAddress: vi.fn(),
@@ -34,13 +57,14 @@ describe('FilingHistory Component', async () => {
     expect(filingHistoryWrapper.exists()).toBe(true)
 
     const historyTableRows = filingHistoryWrapper.find('[data-testid="history-table"]').findAll('tbody tr')
-    expect(historyTableRows.length).toBe(3) // only 3 events because AUTO_APPROVAL_FULL_REVIEW is hidden by the requirement
+    expect(historyTableRows.length).toBe(4) // includes email delivered; AUTO_APPROVAL_FULL_REVIEW remains hidden
 
     // events should be in reverse order
-    expect(historyTableRows.at(0)?.text()).toContain(mockApplicationFilingHistory.at(3)?.message)
-    expect(historyTableRows.at(0)?.text()).toContain(mockApplicationFilingHistory.at(3)?.idir)
-    expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(1)?.message)
-    expect(historyTableRows.at(2)?.text()).toContain(mockApplicationFilingHistory.at(0)?.message)
+    expect(historyTableRows.at(0)?.text()).toContain('Host full review approved')
+    expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(3)?.message)
+    expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(3)?.idir)
+    expect(historyTableRows.at(2)?.text()).toContain(mockApplicationFilingHistory.at(1)?.message)
+    expect(historyTableRows.at(3)?.text()).toContain(mockApplicationFilingHistory.at(0)?.message)
     expect(filingHistoryWrapper.findAll('[data-testid="filing-history-idir"]').length).toBe(1)
   })
 })
