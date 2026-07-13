@@ -3687,10 +3687,10 @@ files = [
 
 [[package]]
 name = "strr-api"
-version = "0.3.9"
+version = "0.3.29"
 description = ""
 optional = false
-python-versions = "^3.11"
+python-versions = "^3.12.2"
 groups = ["main"]
 files = []
 develop = false
@@ -3712,6 +3712,7 @@ google-cloud-storage = "2.14.0"
 gunicorn = "^21.2.0"
 jsonschema = {version = "^4.20.0", extras = ["format"]}
 launchdarkly-server-sdk = "^9.0.1"
+nanoid = "^2.0.0"
 psycopg2-binary = "^2.9.9"
 pycountry = "^23.12.11"
 pydantic = {version = "^2.12.5", extras = ["email"]}
@@ -3727,7 +3728,7 @@ weasyprint = "^62.3"
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
 reference = "main"
-resolved_reference = "2d102dd4e9fd37d0d37b8069b55c7e25afa7c7d8"
+resolved_reference = "e2c2f26d5a30bc60d2477dbca1754bdf14a4b56b"
 subdirectory = "strr-api"
 
 [[package]]
