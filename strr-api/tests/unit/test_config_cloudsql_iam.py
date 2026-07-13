@@ -1,14 +1,10 @@
 """Tests for strr-api Cloud SQL IAM database configuration."""
 
 import importlib
-import sys
-import types
 
 import pytest
 
 ENV_KEYS = (
-    "CLOUDSQL_INSTANCE_CONNECTION_NAME",
-    "CLOUDSQL_IP_TYPE",
     "DATABASE_HOST",
     "DATABASE_MIGRATION_USERNAME",
     "DATABASE_NAME",
@@ -37,85 +33,58 @@ def _reload_config(monkeypatch, **env):
     return importlib.reload(config_module)
 
 
-def _install_fake_connector(monkeypatch):
-    calls = {}
-
-    google_module = types.ModuleType("google")
-    cloud_module = types.ModuleType("google.cloud")
-    sql_module = types.ModuleType("google.cloud.sql")
-    connector_module = types.ModuleType("google.cloud.sql.connector")
-
-    class FakeIPTypes:
-        PUBLIC = "PUBLIC"
-        PRIVATE = "PRIVATE"
-
-    class FakeConnector:
-        def __init__(self):
-            calls["connector_count"] = calls.get("connector_count", 0) + 1
-
-        def connect(self, *args, **kwargs):
-            calls["args"] = args
-            calls["kwargs"] = kwargs
-            return "connection"
-
-    connector_module.Connector = FakeConnector
-    connector_module.IPTypes = FakeIPTypes
-
-    monkeypatch.setitem(sys.modules, "google", google_module)
-    monkeypatch.setitem(sys.modules, "google.cloud", cloud_module)
-    monkeypatch.setitem(sys.modules, "google.cloud.sql", sql_module)
-    monkeypatch.setitem(sys.modules, "google.cloud.sql.connector", connector_module)
-
-    return calls
-
-
-def test_production_config_uses_cloudsql_iam_connector(monkeypatch):
-    calls = _install_fake_connector(monkeypatch)
-
+def test_production_config_uses_cloudsql_proxy_iam_uri(monkeypatch):
     config_module = _reload_config(
         monkeypatch,
         DEPLOYMENT_ENV="production",
-        CLOUDSQL_INSTANCE_CONNECTION_NAME="bcrbk9-prod:northamerica-northeast1:strr-db-prod",
-        CLOUDSQL_IP_TYPE="PUBLIC",
+        DATABASE_HOST="127.0.0.1",
         DATABASE_NAME="strr-db",
+        DATABASE_PORT="5432",
         DATABASE_USERNAME="sa-api@bcrbk9-prod.iam",
     )
 
-    assert config_module.Production.SQLALCHEMY_DATABASE_URI == "postgresql+pg8000://"
-
-    creator = config_module.Production.SQLALCHEMY_ENGINE_OPTIONS["creator"]
-    assert creator() == "connection"
-    assert calls["connector_count"] == 1
-    assert calls["args"] == ("bcrbk9-prod:northamerica-northeast1:strr-db-prod", "pg8000")
-    assert calls["kwargs"] == {
-        "user": "sa-api@bcrbk9-prod.iam",
-        "db": "strr-db",
-        "enable_iam_auth": True,
-        "ip_type": "PUBLIC",
-    }
+    assert (
+        config_module.Production.SQLALCHEMY_DATABASE_URI
+        == "postgresql+psycopg2://sa-api%40bcrbk9-prod.iam@127.0.0.1:5432/strr-db"
+    )
+    assert config_module.Production.SQLALCHEMY_ENGINE_OPTIONS == {}
 
 
 def test_migration_mode_uses_migration_iam_username(monkeypatch):
-    calls = _install_fake_connector(monkeypatch)
-
     config_module = _reload_config(
         monkeypatch,
         DEPLOYMENT_ENV="migration",
-        CLOUDSQL_INSTANCE_CONNECTION_NAME="bcrbk9-dev:northamerica-northeast1:strr-db-dev",
-        CLOUDSQL_IP_TYPE="PUBLIC",
+        DATABASE_HOST="127.0.0.1",
         DATABASE_MIGRATION_USERNAME="sa-db-migrate@bcrbk9-dev.iam",
         DATABASE_NAME="strr-db",
+        DATABASE_PORT="5432",
         DATABASE_USERNAME="sa-api@bcrbk9-dev.iam",
     )
 
-    creator = config_module.Migration.SQLALCHEMY_ENGINE_OPTIONS["creator"]
-    creator()
+    assert (
+        config_module.Migration.SQLALCHEMY_DATABASE_URI
+        == "postgresql+psycopg2://sa-db-migrate%40bcrbk9-dev.iam@127.0.0.1:5432/strr-db"
+    )
 
-    assert calls["kwargs"]["user"] == "sa-db-migrate@bcrbk9-dev.iam"
+
+def test_production_config_can_use_cloudsql_proxy_unix_socket(monkeypatch):
+    config_module = _reload_config(
+        monkeypatch,
+        DEPLOYMENT_ENV="production",
+        DATABASE_NAME="strr-db",
+        DATABASE_UNIX_SOCKET="/cloudsql/bcrbk9-dev:northamerica-northeast1:strr-db-dev",
+        DATABASE_USERNAME="sa-api@bcrbk9-dev.iam",
+    )
+
+    assert (
+        config_module.Production.SQLALCHEMY_DATABASE_URI == "postgresql+psycopg2://sa-api%40bcrbk9-dev.iam@/strr-db"
+        "?host=%2Fcloudsql%2Fbcrbk9-dev%3Anorthamerica-northeast1%3Astrr-db-dev"
+    )
+    assert config_module.Production.SQLALCHEMY_ENGINE_OPTIONS == {}
 
 
-def test_deployed_config_requires_cloudsql_iam_env(monkeypatch):
-    with pytest.raises(RuntimeError, match="CLOUDSQL_INSTANCE_CONNECTION_NAME, DATABASE_NAME, DATABASE_USERNAME"):
+def test_deployed_config_requires_cloudsql_proxy_iam_env(monkeypatch):
+    with pytest.raises(RuntimeError, match="DATABASE_NAME, DATABASE_USERNAME"):
         _reload_config(monkeypatch, DEPLOYMENT_ENV="production")
 
 

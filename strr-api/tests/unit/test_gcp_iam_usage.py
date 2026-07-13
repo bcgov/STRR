@@ -69,16 +69,16 @@ def test_cd_workflows_use_workload_identity_deployment_secrets():
 
 
 def test_migrated_strr_api_vault_mapping_uses_cloudsql_iam():
-    """The migrated API deployment should no longer source DB password/socket values."""
+    """The migrated API deployment should use passwordless DB access through the proxy."""
     contents = (REPO_ROOT / "strr-api" / "devops" / "vaults.gcp.env").read_text(encoding="utf-8")
 
-    for forbidden_env in ("DATABASE_PASSWORD=", "DATABASE_PORT=", "DATABASE_UNIX_SOCKET="):
+    for forbidden_env in ("DATABASE_PASSWORD=", "DATABASE_UNIX_SOCKET="):
         assert forbidden_env not in contents
 
     for required_env in (
-        "CLOUDSQL_INSTANCE_CONNECTION_NAME=",
-        "CLOUDSQL_IP_TYPE=",
+        'DATABASE_HOST="127.0.0.1"',
         "DATABASE_MIGRATION_USERNAME=",
+        'DATABASE_PORT="5432"',
         "DATABASE_USERNAME=",
     ):
         assert required_env in contents
