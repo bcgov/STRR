@@ -3666,6 +3666,17 @@ files = [
 ]
 
 [[package]]
+name = "ratelimit"
+version = "2.2.1"
+description = "API rate limit decorator"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "ratelimit-2.2.1.tar.gz", hash = "sha256:af8a9b64b821529aca09ebaf6d8d279100d766f19e90b5059ac6a718ca6dee42"},
+]
+
+[[package]]
 name = "redis"
 version = "7.4.0"
 description = "Python client for Redis database and key-value store"
@@ -4262,6 +4273,22 @@ files = [
 ]
 
 [[package]]
+name = "tenacity"
+version = "8.5.0"
+description = "Retry code until it succeeds"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "tenacity-8.5.0-py3-none-any.whl", hash = "sha256:b594c2a5945830c267ce6b79a166228323ed52718f30302c1359836112346687"},
+    {file = "tenacity-8.5.0.tar.gz", hash = "sha256:8bc6c0c8a09b31e6cad13c47afbed1a567518250a9a171418582ed8d9c20ca78"},
+]
+
+[package.extras]
+doc = ["reno", "sphinx"]
+test = ["pytest", "tornado (>=4.5)", "typeguard"]
+
+[[package]]
 name = "testcontainers"
 version = "4.14.2"
 description = "Python library for throwaway instances of anything that can run in a Docker container"
@@ -4844,4 +4871,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.2,<3.15"
-content-hash = "08cbb13912a65d11ec374631d5520b3e1f5dc953849edb130d6118dfdc6a957d"
+content-hash = "b3b5aceb30238faec22478d6ef7b76e58920acadc4d2478ec3c6a049e424a36e"

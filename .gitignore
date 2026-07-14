@@ -154,7 +154,6 @@ htmlcov/
 # IDEs
 .idea
 .history
-.vscode/tasks.json
 .zed
 
 # bods csvs
