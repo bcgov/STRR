@@ -483,7 +483,7 @@ describe('Store - Examiner', () => {
     mockStrrApi.mockResolvedValueOnce(mockEvents)
 
     const result = await store.getApplicationFilingHistory('1234567890')
-    expect(mockStrrApi).toHaveBeenCalledWith('/applications/1234567890/events',
+    expect(mockStrrApi).toHaveBeenCalledWith('/applications/1234567890/events?include_interaction_delivery=true',
       expect.objectContaining({ method: 'GET' }))
     expect(result).toEqual(mockEvents)
 
@@ -498,7 +498,7 @@ describe('Store - Examiner', () => {
     mockStrrApi.mockResolvedValueOnce(mockEvents)
 
     const result = await store.getRegistrationFilingHistory(99)
-    expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99/events',
+    expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99/events?include_interaction_delivery=true',
       expect.objectContaining({ method: 'GET' }))
     expect(result).toEqual(mockEvents)
 
