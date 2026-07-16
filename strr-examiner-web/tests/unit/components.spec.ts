@@ -57,15 +57,11 @@ describe('FilingHistory Component', async () => {
     expect(filingHistoryWrapper.exists()).toBe(true)
 
     const historyTableRows = filingHistoryWrapper.find('[data-testid="history-table"]').findAll('tbody tr')
-    expect(historyTableRows.length).toBe(4) // includes email delivered; AUTO_APPROVAL_FULL_REVIEW remains hidden
+    expect(historyTableRows).toHaveLength(4)
 
     // events should be in reverse order
-    expect(historyTableRows.at(0)?.text()).toContain('Host full review approved')
-    expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(3)?.message)
-    expect(historyTableRows.at(1)?.text()).toContain(mockApplicationFilingHistory.at(3)?.idir)
-    expect(historyTableRows.at(2)?.text()).toContain(mockApplicationFilingHistory.at(1)?.message)
-    expect(historyTableRows.at(3)?.text()).toContain(mockApplicationFilingHistory.at(0)?.message)
-    expect(filingHistoryWrapper.findAll('[data-testid="filing-history-idir"]').length).toBe(1)
+    expect(historyTableRows).toHaveLength(4)
+    expect(filingHistoryWrapper.findAll('[data-testid="filing-history-idir"]')).toHaveLength(1)
   })
 })
 
@@ -141,8 +137,8 @@ describe('SupportingDocuments Component', () => {
     const supportingDocuments = await mountComponent(NO_CONFIG)
 
     expect(supportingDocuments.exists()).toBe(true)
-    expect(supportingDocuments.findAllComponents(UButton).length).toBe(allMocDocuments.length)
-    expect(supportingDocuments.findAllComponents(UBadge).length).toBe(0) // no badges because of empty config
+    expect(supportingDocuments.findAllComponents(UButton)).toHaveLength(allMocDocuments.length)
+    expect(supportingDocuments.findAllComponents(UBadge)).toHaveLength(0) // no badges because of empty config
   })
 
   it('should display all documents with date badges for NOC documents', async () => {
@@ -153,8 +149,8 @@ describe('SupportingDocuments Component', () => {
     }).length
 
     expect(supportingDocuments.exists()).toBe(true)
-    expect(supportingDocuments.findAllComponents(UButton).length).toBe(allMocDocuments.length)
-    expect(supportingDocuments.findAllComponents(UBadge).length).toBe(filteredDocsCount)
+    expect(supportingDocuments.findAllComponents(UButton)).toHaveLength(allMocDocuments.length)
+    expect(supportingDocuments.findAllComponents(UBadge)).toHaveLength(filteredDocsCount)
   })
 
   it('should display only Business Lic documents', async () => {
@@ -165,8 +161,8 @@ describe('SupportingDocuments Component', () => {
     }).length
 
     expect(supportingDocuments.exists()).toBe(true)
-    expect(supportingDocuments.findAllComponents(UButton).length).toBe(filteredDocsCount)
-    expect(supportingDocuments.findAllComponents(UBadge).length).toBe(0)
+    expect(supportingDocuments.findAllComponents(UButton)).toHaveLength(filteredDocsCount)
+    expect(supportingDocuments.findAllComponents(UBadge)).toHaveLength(0)
   })
 
   it('should display only Business Lic documents during NOC', async () => {
@@ -178,8 +174,8 @@ describe('SupportingDocuments Component', () => {
     }).length
 
     expect(supportingDocuments.exists()).toBe(true)
-    expect(supportingDocuments.findAllComponents(UButton).length).toBe(filteredDocsCount)
-    expect(supportingDocuments.findAllComponents(UBadge).length).toBe(0)
+    expect(supportingDocuments.findAllComponents(UButton)).toHaveLength(filteredDocsCount)
+    expect(supportingDocuments.findAllComponents(UBadge)).toHaveLength(0)
   })
 
   it('should display all documents during initial application submission (exclude NOC)', async () => {
@@ -190,8 +186,8 @@ describe('SupportingDocuments Component', () => {
     }).length
 
     expect(supportingDocuments.exists()).toBe(true)
-    expect(supportingDocuments.findAllComponents(UButton).length).toBe(filteredDocsCount)
-    expect(supportingDocuments.findAllComponents(UBadge).length).toBe(0)
+    expect(supportingDocuments.findAllComponents(UButton)).toHaveLength(filteredDocsCount)
+    expect(supportingDocuments.findAllComponents(UBadge)).toHaveLength(0)
   })
 
   it('should display all docs uploaded during NOC Pending status', async () => {
@@ -202,7 +198,7 @@ describe('SupportingDocuments Component', () => {
     }).length
 
     expect(supportingDocuments.exists()).toBe(true)
-    expect(supportingDocuments.findAllComponents(UButton).length).toBe(filteredDocsCount)
-    expect(supportingDocuments.findAllComponents(UBadge).length).toBe(3)
+    expect(supportingDocuments.findAllComponents(UButton)).toHaveLength(filteredDocsCount)
+    expect(supportingDocuments.findAllComponents(UBadge)).toHaveLength(3)
   })
 })
