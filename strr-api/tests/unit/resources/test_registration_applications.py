@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
-from strr_api.enums.enum import PaymentStatus, RegistrationStatus
-from strr_api.models import Application, Events
+from strr_api.enums.enum import ChannelType, InteractionStatus, PaymentStatus, RegistrationStatus
+from strr_api.models import Application, CustomerInteraction, Events
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import ApplicationService
 from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE, MOCK_PAYMENT_COMPLETED_RESPONSE
@@ -301,6 +301,12 @@ def test_get_application_auto_approval_invalid_application(session, client, jwt)
     assert HTTPStatus.NOT_FOUND == rv.status_code
 
 
+def test_get_application_events_invalid_application(session, client, jwt):
+    headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+    rv = client.get("/applications/100/events", headers=headers)
+    assert HTTPStatus.NOT_FOUND == rv.status_code
+
+
 def test_get_application_auto_approval(session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         json_data = json.load(f)
@@ -332,6 +338,67 @@ def test_get_application_events_user(session, client, jwt):
         events_response = rv.json
         assert events_response[0].get("eventName") == Events.EventName.APPLICATION_SUBMITTED
         assert events_response[0].get("eventType") == Events.EventType.APPLICATION
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_get_application_events_with_interaction_delivery(session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        json_data = json.load(f)
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json_data, headers=headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+        application = Application.find_by_application_number(application_number)
+
+        interaction = CustomerInteraction(
+            channel=ChannelType.EMAIL,
+            status=InteractionStatus.DELIVERED,
+            application_id=application.id,
+            body_content="Renewal reminder",
+            notify_reference="notify-ref-001",
+            provider_reference="provider-ref-001",
+            meta_data={
+                "email_type": "HOST_RENEWAL_REMINDER",
+                "notify_delivery": {
+                    "updated_at": "2026-07-10T12:00:00+00:00",
+                    "recipient_statuses": {
+                        "notify-ref-001": {
+                            "email_address": "karim.jazzar@gov.bc.ca",
+                            "failure_reason": None,
+                            "failure_type": None,
+                            "notify_reference": "notify-ref-001",
+                            "provider_reference": "provider-ref-001",
+                            "request_date": "2026-06-09T22:23:11.634878",
+                            "sent_date": "2026-06-09T22:23:11.714837",
+                            "status": "SENT",
+                        }
+                    },
+                },
+            },
+        )
+        interaction.save()
+
+        rv = client.get(
+            f"/applications/{application_number}/events?include_interaction_delivery=true",
+            headers=headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+        events_response = rv.json
+        delivery_event = next(
+            (event for event in events_response if event.get("eventName") == "EMAIL_DELIVERED"),
+            None,
+        )
+        assert delivery_event is not None
+        assert delivery_event.get("eventType") == "APPLICATION"
+        assert delivery_event.get("details") is None
+        assert delivery_event.get("idir") is None
+        assert delivery_event.get("structuredDetails", {}).get("interactionStatus") == "DELIVERED"
+        assert delivery_event.get("structuredDetails", {}).get("recipientStatusUpdatedAt")
+        recipient_statuses = delivery_event.get("structuredDetails", {}).get("recipientStatuses", [])
+        assert isinstance(recipient_statuses, list)
+        assert recipient_statuses[0].get("notify_reference") == "notify-ref-001"
 
 
 def test_update_application_payment(session, client, jwt):

@@ -70,7 +70,14 @@ from strr_api.models import Application, Document, User
 from strr_api.models.dataclass import RegistrationSearch
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
-from strr_api.services import DocumentService, EventsService, RegistrationService, SnapshotService, UserService
+from strr_api.services import (
+    DocumentService,
+    EventsService,
+    InteractionService,
+    RegistrationService,
+    SnapshotService,
+    UserService,
+)
 from strr_api.services.examiner_note_service import ExaminerNoteNotAllowedException, ExaminerNoteService
 from strr_api.services.registration_service import (
     REGISTRATION_STATES_STAFF_ACTION,
@@ -456,6 +463,7 @@ def get_registration_events(registration_id):
     try:
         account_id = request.headers.get("Account-Id")
         user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        include_interaction_delivery = request.args.get("include_interaction_delivery", "false").lower() == "true"
         if not user:
             raise AuthException()
 
@@ -465,8 +473,12 @@ def get_registration_events(registration_id):
             raise AuthException()
 
         records = EventsService.fetch_registration_events(registration_id, only_show_visible_to_user)
+        response_events = [Events.from_db(record).model_dump(mode="json") for record in records]
+        if include_interaction_delivery:
+            response_events.extend(InteractionService.filing_history_rows_for_registration(registration_id))
+            response_events.sort(key=lambda event: event.get("createdDate") or "")
         return (
-            jsonify([Events.from_db(record).model_dump(mode="json") for record in records]),
+            jsonify(response_events),
             HTTPStatus.OK,
         )
     except AuthException as auth_exception:

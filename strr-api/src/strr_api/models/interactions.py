@@ -127,3 +127,13 @@ class CustomerInteraction(Versioned, SimpleBaseModel):
     ):
         """Return an Interation if it exists."""
         return cls.query.filter(cls.interaction_uuid == interaction_uuid).one_or_none()
+
+    @classmethod
+    def fetch_application_interactions(cls, application_id: int) -> list[CustomerInteraction]:
+        """Return interactions for an application sorted by create time."""
+        return cls.query.filter(cls.application_id == application_id).order_by(cls.created_at).all()
+
+    @classmethod
+    def fetch_registration_interactions(cls, registration_id: int) -> list[CustomerInteraction]:
+        """Return interactions for a registration sorted by create time."""
+        return cls.query.filter(cls.registration_id == registration_id).order_by(cls.created_at).all()

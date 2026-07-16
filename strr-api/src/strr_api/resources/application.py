@@ -68,6 +68,7 @@ from strr_api.services import (
     ApprovalService,
     DocumentService,
     EventsService,
+    InteractionService,
     LtsaService,
     RegistrationService,
     UserService,
@@ -622,23 +623,31 @@ def get_application_events(application_number):
     try:
         account_id = request.headers.get("Account-Id", None)
         applicant_visible_events_only = True
+        include_interaction_delivery = request.args.get("include_interaction_delivery", "false").lower() == "true"
         UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         if UserService.is_strr_staff_or_system():
             account_id = None
             applicant_visible_events_only = False
         application = ApplicationService.get_application(application_number=application_number, account_id=account_id)
-        application_id = application.id
         if not application:
             return error_response(HTTPStatus.NOT_FOUND, ErrorMessage.APPLICATION_NOT_FOUND.value)
+        application_id = application.id
 
         records = EventsService.fetch_application_events(application_id, applicant_visible_events_only)
+        response_events = [Events.from_db(record).model_dump(mode="json") for record in records]
+        if include_interaction_delivery:
+            response_events.extend(InteractionService.filing_history_rows_for_application(application_id))
+            response_events.sort(key=lambda event: event.get("createdDate") or "")
         return (
-            jsonify([Events.from_db(record).model_dump(mode="json") for record in records]),
+            jsonify(response_events),
             HTTPStatus.OK,
         )
     except Exception as exception:
-        logger.error(exception)
-        return error_response("ErrorMessage.PROCESSING_ERROR.value", HTTPStatus.INTERNAL_SERVER_ERROR)
+        logger.exception(exception)
+        return error_response(
+            message=ErrorMessage.PROCESSING_ERROR.value,
+            http_status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
 
 @bp.route("/<application_number>/notes", methods=("GET",))

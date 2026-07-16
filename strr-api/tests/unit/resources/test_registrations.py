@@ -10,13 +10,15 @@ from dateutil.relativedelta import relativedelta
 
 from strr_api.enums.enum import (
     ApplicationType,
+    ChannelType,
+    InteractionStatus,
     PaymentStatus,
     RegistrationNocStatus,
     RegistrationStatus,
     RegistrationType,
 )
 from strr_api.exceptions import ExternalServiceException
-from strr_api.models import Application, Document, Events, Registration, User
+from strr_api.models import Application, CustomerInteraction, Document, Events, Registration, User
 from strr_api.responses import RegistrationSerializer
 from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
@@ -161,6 +163,78 @@ def test_get_registration_events(app, session, client, jwt):
         first_application = applications[0]
         assert first_application.get("applicationType") == ApplicationType.REGISTRATION.value
         assert first_application.get("applicationStatus") == Application.Status.FULL_REVIEW_APPROVED
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_get_registration_events_with_interaction_delivery(app, session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        response_json = rv.json
+        application_number = response_json.get("header").get("applicationNumber")
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+        response_json = rv.json
+        registration_id = response_json.get("header").get("registrationId")
+
+        interaction = CustomerInteraction(
+            channel=ChannelType.EMAIL,
+            status=InteractionStatus.FAILED,
+            registration_id=registration_id,
+            body_content="Renewal reminder",
+            notify_reference="notify-ref-002",
+            provider_reference="provider-ref-002",
+            meta_data={
+                "email_type": "HOST_RENEWAL_REMINDER",
+                "notify_delivery": {
+                    "updated_at": "2026-07-10T12:30:00+00:00",
+                    "recipient_statuses": {
+                        "notify-ref-002": {
+                            "email_address": "karim.jazzar@gov.bc.ca",
+                            "failure_reason": "Mailbox unavailable",
+                            "failure_type": "permanent",
+                            "notify_reference": "notify-ref-002",
+                            "provider_reference": "provider-ref-002",
+                            "request_date": "2026-06-09T22:23:11.634878",
+                            "sent_date": "2026-06-09T22:23:11.714837",
+                            "status": "FAILED",
+                        }
+                    },
+                },
+            },
+        )
+        interaction.save()
+
+        rv = client.get(
+            f"/registrations/{registration_id}/events?include_interaction_delivery=true",
+            headers=headers,
+        )
+        assert rv.status_code == HTTPStatus.OK
+        events = rv.json
+        delivery_event = next(
+            (event for event in events if event.get("eventName") == "EMAIL_FAILED"),
+            None,
+        )
+        assert delivery_event is not None
+        assert delivery_event.get("eventType") == "REGISTRATION"
+        assert delivery_event.get("details") is None
+        assert delivery_event.get("idir") is None
+        assert delivery_event.get("structuredDetails", {}).get("interactionStatus") == "FAILED"
+        recipient_statuses = delivery_event.get("structuredDetails", {}).get("recipientStatuses", [])
+        assert isinstance(recipient_statuses, list)
+        assert recipient_statuses[0].get("notify_reference") == "notify-ref-002"
 
 
 @pytest.mark.skip(reason="Skipping the test until certificate generation is supported")
