@@ -769,6 +769,28 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
+name = "cloud-sql-connector"
+version = "0.2.3"
+description = "Cloud SQL connection utilities for database connectivity with authentication and schema management"
+optional = false
+python-versions = "^3.12"
+groups = ["main"]
+files = []
+develop = false
+
+[package.dependencies]
+cloud-sql-python-connector = "^1.16.0"
+pg8000 = "^1.30.0"
+sqlalchemy = "^2.0.0"
+
+[package.source]
+type = "git"
+url = "https://github.com/bcgov/sbc-connect-common.git"
+reference = "main"
+resolved_reference = "42a520b3fc6f989d9401a34aa2267907ec1dc75f"
+subdirectory = "python/cloud-sql-connector"
+
+[[package]]
 name = "cloud-sql-python-connector"
 version = "1.20.4"
 description = "Google Cloud SQL Python Connector library"
@@ -786,7 +808,6 @@ aiohttp = "*"
 cryptography = ">=42.0.0"
 dnspython = ">=2.0.0"
 google-auth = ">=2.28.0"
-pg8000 = {version = ">=1.31.1", optional = true, markers = "extra == \"pg8000\""}
 Requests = "*"
 
 [package.extras]
@@ -4964,4 +4985,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.2,<3.15"
-content-hash = "bdd528a9b8bf56800c3643afa844bae6e7d096cde03dacf352ed305439be4de6"
+content-hash = "ae50d2173248b235f8dabeda0fa470f787326e2adb703b2178517d271eae65a3"

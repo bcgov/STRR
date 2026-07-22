@@ -10,7 +10,7 @@ requires-python = ">=3.12.2,<3.15"
 
 # Leaving the local working api here as an example
 dependencies = [
-    "cloud-sql-python-connector[pg8000] (>=1.20.0,<2.0.0)",
+    "cloud-sql-connector @ git+https://github.com/bcgov/sbc-connect-common.git@main#subdirectory=python/cloud-sql-connector",
     "google-auth (>=2.48.0,<3.0.0)",
     "sqlalchemy (>=2.0.47,<3.0.0)",
     "requests (>=2.32.5,<3.0.0)",

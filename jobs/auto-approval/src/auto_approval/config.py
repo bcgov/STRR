@@ -16,6 +16,7 @@
 import os
 import sys
 
+from cloud_sql_connector import DBConfig, getconn
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
@@ -54,37 +55,22 @@ def _require_cloudsql_env():
         )
 
 
-def _cloudsql_ip_type():
-    from google.cloud.sql.connector import IPTypes
-
+def _cloudsql_ip_type() -> str:
     ip_type_name = os.getenv("CLOUDSQL_IP_TYPE", "PUBLIC").upper()
-    try:
-        return getattr(IPTypes, ip_type_name)
-    except AttributeError as exc:
-        raise RuntimeError("CLOUDSQL_IP_TYPE must be PUBLIC or PRIVATE") from exc
+    if ip_type_name not in ("PUBLIC", "PRIVATE"):
+        raise RuntimeError("CLOUDSQL_IP_TYPE must be PUBLIC or PRIVATE")
+    return ip_type_name
 
 
-def _make_cloudsql_getconn():  # pragma: no cover - exercised through unit mocks
-    from google.cloud.sql.connector import Connector
-
-    connector = None
-
-    def getconn():
-        nonlocal connector
-
-        if connector is None:
-            connector = Connector()
-
-        return connector.connect(
-            os.environ["CLOUDSQL_INSTANCE_CONNECTION_NAME"],
-            "pg8000",
-            user=os.environ["DATABASE_USERNAME"],
-            db=os.environ["DATABASE_NAME"],
-            enable_iam_auth=True,
-            ip_type=_cloudsql_ip_type(),
-        )
-
-    return getconn
+def _cloudsql_engine_options() -> dict:
+    config = DBConfig(
+        instance_name=os.environ["CLOUDSQL_INSTANCE_CONNECTION_NAME"],
+        database=os.environ["DATABASE_NAME"],
+        user=os.environ["DATABASE_USERNAME"],
+        ip_type=_cloudsql_ip_type(),
+        schema="",
+    )
+    return {"creator": lambda: getconn(config)}
 
 
 def _local_database_uri() -> str:
@@ -103,7 +89,7 @@ def _local_database_uri() -> str:
 def _database_settings() -> tuple[str, dict]:
     if _use_cloudsql_iam():
         _require_cloudsql_env()
-        return "postgresql+pg8000://", {"creator": _make_cloudsql_getconn()}
+        return "postgresql+pg8000://", _cloudsql_engine_options()
 
     return _local_database_uri(), {}
 

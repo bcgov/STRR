@@ -1,17 +1,12 @@
-from unittest.mock import MagicMock
 from unittest.mock import patch
-
-import pytest
 
 from interactions_update import database
 
 
 @patch("interactions_update.database.create_engine")
-@patch("google.cloud.sql.connector.Connector")
-def test_get_engine_cloud_sql_happy_path(
-    mock_connector_class, mock_create_engine, monkeypatch
-):
-    """Verify that get_engine correctly configures the Google Cloud SQL Connector."""
+@patch("interactions_update.database.getconn")
+def test_get_engine_cloud_sql_happy_path(mock_getconn, mock_create_engine, monkeypatch):
+    """Verify that get_engine uses the shared Cloud SQL connector configuration."""
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.delenv("DATABASE_HOST", raising=False)
     monkeypatch.delenv("DATABASE_UNIX_SOCKET", raising=False)
@@ -21,12 +16,8 @@ def test_get_engine_cloud_sql_happy_path(
     monkeypatch.setenv("DATABASE_NAME", "test-db")
     monkeypatch.setenv("MAX_WORKERS", "12")
 
-    mock_connector_inst = MagicMock()
-    mock_connector_class.return_value = mock_connector_inst
-
     database.get_engine()
 
-    mock_connector_class.assert_called_once()
     args, kwargs = mock_create_engine.call_args
     assert args[0] == "postgresql+pg8000://"
     assert kwargs["pool_size"] == 12
@@ -34,14 +25,13 @@ def test_get_engine_cloud_sql_happy_path(
 
     kwargs["creator"]()
 
-    mock_connector_inst.connect.assert_called_once_with(
-        "project:region:instance",
-        "pg8000",
-        user="test-user",
-        db="test-db",
-        enable_iam_auth=True,
-        ip_type=pytest.importorskip("google.cloud.sql.connector").IPTypes.PUBLIC,
-    )
+    mock_getconn.assert_called_once()
+    config = mock_getconn.call_args.args[0]
+    assert config.instance_name == "project:region:instance"
+    assert config.database == "test-db"
+    assert config.user == "test-user"
+    assert config.ip_type == "PUBLIC"
+    assert config.enable_iam_auth is True
 
 
 @patch("interactions_update.database.create_engine")

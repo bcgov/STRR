@@ -1,8 +1,6 @@
 """Tests for auto-approval Cloud SQL IAM database configuration."""
 
 import importlib
-import sys
-import types
 
 import pytest
 
@@ -35,41 +33,7 @@ def _reload_config(monkeypatch, **env):
     return importlib.reload(config_module)
 
 
-def _install_fake_connector(monkeypatch):
-    calls = {}
-
-    google_module = types.ModuleType("google")
-    cloud_module = types.ModuleType("google.cloud")
-    sql_module = types.ModuleType("google.cloud.sql")
-    connector_module = types.ModuleType("google.cloud.sql.connector")
-
-    class FakeIPTypes:
-        PUBLIC = "PUBLIC"
-        PRIVATE = "PRIVATE"
-
-    class FakeConnector:
-        def __init__(self):
-            calls["connector_count"] = calls.get("connector_count", 0) + 1
-
-        def connect(self, *args, **kwargs):
-            calls["args"] = args
-            calls["kwargs"] = kwargs
-            return "connection"
-
-    connector_module.Connector = FakeConnector
-    connector_module.IPTypes = FakeIPTypes
-
-    monkeypatch.setitem(sys.modules, "google", google_module)
-    monkeypatch.setitem(sys.modules, "google.cloud", cloud_module)
-    monkeypatch.setitem(sys.modules, "google.cloud.sql", sql_module)
-    monkeypatch.setitem(sys.modules, "google.cloud.sql.connector", connector_module)
-
-    return calls
-
-
 def test_production_config_uses_cloudsql_iam_connector(monkeypatch):
-    calls = _install_fake_connector(monkeypatch)
-
     config_module = _reload_config(
         monkeypatch,
         CLOUDSQL_INSTANCE_CONNECTION_NAME="bcrbk9-prod:northamerica-northeast1:strr-db-prod",
@@ -80,19 +44,22 @@ def test_production_config_uses_cloudsql_iam_connector(monkeypatch):
 
     assert config_module.ProdConfig.SQLALCHEMY_DATABASE_URI == "postgresql+pg8000://"
 
+    calls = {}
+
+    def fake_getconn(config):
+        calls["config"] = config
+        return "connection"
+
+    monkeypatch.setattr(config_module, "getconn", fake_getconn)
     creator = config_module.ProdConfig.SQLALCHEMY_ENGINE_OPTIONS["creator"]
     assert creator() == "connection"
-    assert calls["connector_count"] == 1
-    assert calls["args"] == (
-        "bcrbk9-prod:northamerica-northeast1:strr-db-prod",
-        "pg8000",
+    assert calls["config"].instance_name == (
+        "bcrbk9-prod:northamerica-northeast1:strr-db-prod"
     )
-    assert calls["kwargs"] == {
-        "user": "sa-job@bcrbk9-prod.iam",
-        "db": "strr-db",
-        "enable_iam_auth": True,
-        "ip_type": "PUBLIC",
-    }
+    assert calls["config"].database == "strr-db"
+    assert calls["config"].user == "sa-job@bcrbk9-prod.iam"
+    assert calls["config"].ip_type == "PUBLIC"
+    assert calls["config"].enable_iam_auth is True
 
 
 def test_deployed_job_config_requires_cloudsql_iam_env(monkeypatch):

@@ -1,5 +1,7 @@
 import os
 
+from cloud_sql_connector import DBConfig
+from cloud_sql_connector import getconn
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -23,14 +25,11 @@ def _require_cloudsql_env():
         )
 
 
-def _cloudsql_ip_type():
-    from google.cloud.sql.connector import IPTypes
-
+def _cloudsql_ip_type() -> str:
     ip_type_name = os.getenv("CLOUDSQL_IP_TYPE", "PUBLIC").upper()
-    try:
-        return getattr(IPTypes, ip_type_name)
-    except AttributeError as exc:
-        raise ValueError("CLOUDSQL_IP_TYPE must be PUBLIC or PRIVATE") from exc
+    if ip_type_name not in ("PUBLIC", "PRIVATE"):
+        raise ValueError("CLOUDSQL_IP_TYPE must be PUBLIC or PRIVATE")
+    return ip_type_name
 
 
 def _build_database_url_from_env() -> str:
@@ -80,25 +79,19 @@ def get_engine():
         _engine = create_engine(url, **pool_params)
         return _engine
 
-    # Google Cloud SQL
-    from google.cloud.sql.connector import Connector
-
     _require_cloudsql_env()
-
-    connector = Connector()
-
-    def get_conn():
-        return connector.connect(
-            os.environ["CLOUDSQL_INSTANCE_CONNECTION_NAME"],
-            "pg8000",
-            user=os.environ["DATABASE_USERNAME"],
-            db=os.environ["DATABASE_NAME"],
-            enable_iam_auth=True,
-            ip_type=_cloudsql_ip_type(),
-        )
+    config = DBConfig(
+        instance_name=os.environ["CLOUDSQL_INSTANCE_CONNECTION_NAME"],
+        database=os.environ["DATABASE_NAME"],
+        user=os.environ["DATABASE_USERNAME"],
+        ip_type=_cloudsql_ip_type(),
+        schema="",
+    )
 
     # Apply pooling params to the creator-based engine
-    _engine = create_engine("postgresql+pg8000://", creator=get_conn, **pool_params)
+    _engine = create_engine(
+        "postgresql+pg8000://", creator=lambda: getconn(config), **pool_params
+    )
     return _engine
 
 

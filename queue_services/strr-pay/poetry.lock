@@ -800,7 +800,6 @@ aiohttp = "*"
 cryptography = ">=42.0.0"
 dnspython = ">=2.0.0"
 google-auth = ">=2.28.0"
-pg8000 = {version = ">=1.31.1", optional = true, markers = "extra == \"pg8000\""}
 Requests = "*"
 
 [package.extras]
@@ -4875,4 +4874,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.2,<3.15"
-content-hash = "05b613c1f1f8f2b5fbdcf9ac0f09cf68c38b37bc17be37760dff5edcf388d4ad"
+content-hash = "78f70e8d87253907d2cedfaafed8652513eedec3bba93d4add9b986e58affc6d"
