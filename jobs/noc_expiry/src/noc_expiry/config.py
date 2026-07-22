@@ -16,6 +16,7 @@
 import os
 import sys
 
+from cloud_sql_connector import DBConfig, getconn
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
@@ -27,6 +28,70 @@ CONFIGURATION = {
     "production": "noc_expiry.config.ProdConfig",
     "default": "noc_expiry.config.ProdConfig",
 }
+
+
+CLOUDSQL_REQUIRED_ENVS = (
+    "CLOUDSQL_INSTANCE_CONNECTION_NAME",
+    "DATABASE_NAME",
+    "DATABASE_USERNAME",
+)
+
+
+def _is_deployed_gcp() -> bool:
+    return bool(os.getenv("K_SERVICE") or os.getenv("CLOUD_RUN_JOB"))
+
+
+def _use_cloudsql_iam() -> bool:
+    return bool(os.getenv("CLOUDSQL_INSTANCE_CONNECTION_NAME")) or _is_deployed_gcp()
+
+
+def _require_cloudsql_env():
+    missing = [
+        env_name for env_name in CLOUDSQL_REQUIRED_ENVS if not os.getenv(env_name)
+    ]
+    if missing:
+        raise RuntimeError(
+            f"Missing Cloud SQL IAM environment variables: {', '.join(missing)}"
+        )
+
+
+def _cloudsql_ip_type() -> str:
+    ip_type_name = os.getenv("CLOUDSQL_IP_TYPE", "PUBLIC").upper()
+    if ip_type_name not in ("PUBLIC", "PRIVATE"):
+        raise RuntimeError("CLOUDSQL_IP_TYPE must be PUBLIC or PRIVATE")
+    return ip_type_name
+
+
+def _cloudsql_engine_options() -> dict:
+    config = DBConfig(
+        instance_name=os.environ["CLOUDSQL_INSTANCE_CONNECTION_NAME"],
+        database=os.environ["DATABASE_NAME"],
+        user=os.environ["DATABASE_USERNAME"],
+        ip_type=_cloudsql_ip_type(),
+        schema="",
+    )
+    return {"creator": lambda: getconn(config)}
+
+
+def _local_database_uri() -> str:
+    db_user = os.getenv("DATABASE_USERNAME", "")
+    db_password = os.getenv("DATABASE_PASSWORD", "")
+    db_name = os.getenv("DATABASE_NAME", "")
+    db_host = os.getenv("DATABASE_HOST", "")
+    db_port = int(os.getenv("DATABASE_PORT", "5432"))
+
+    if db_unix_socket := os.getenv("DATABASE_UNIX_SOCKET", None):
+        return f"postgresql+pg8000://{db_user}:{db_password}@/{db_name}?unix_sock={db_unix_socket}/.s.PGSQL.5432"
+
+    return f"postgresql+pg8000://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
+
+def _database_settings() -> tuple[str, dict]:
+    if _use_cloudsql_iam():
+        _require_cloudsql_env()
+        return "postgresql+pg8000://", _cloudsql_engine_options()
+
+    return _local_database_uri(), {}
 
 
 def get_named_config(config_name: str = "production"):
@@ -50,20 +115,7 @@ class _Config:  # pylint: disable=too-few-public-methods
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
     SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 
-    # DATABASE
-    DB_USER = os.getenv("DATABASE_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_NAME", "")
-    DB_HOST = os.getenv("DATABASE_HOST", "")
-    DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
-
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
-    else:
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = _database_settings()
 
     TESTING = False
     DEBUG = False
@@ -99,6 +151,7 @@ class TestConfig(_Config):  # pylint: disable=too-few-public-methods
         f"postgresql://{DATABASE_TEST_USERNAME}:{DATABASE_TEST_PASSWORD}"
         f"@{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
     )
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 
 
 class ProdConfig(_Config):  # pylint: disable=too-few-public-methods
