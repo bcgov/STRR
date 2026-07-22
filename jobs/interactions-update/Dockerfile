@@ -43,19 +43,24 @@ COPY ./poetry.lock ./pyproject.toml /code/
 
 # Install dependencies into .venv inside /code
 RUN --mount=type=cache,target="$POETRY_CACHE_DIR" \
-    poetry install --no-root --no-interaction --no-ansi
+    poetry install --only main --no-root --no-interaction --no-ansi
 
 # --- Final Runner Stage ---
 FROM python:3.14-slim-bookworm AS runner
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH="/code/src" \
     PATH="/code/.venv/bin:$PATH" \
     UID=1000 \
     GID=1000
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     libpq5 \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libcairo2 \
+    libgdk-pixbuf-2.0-0 \
     bash \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
