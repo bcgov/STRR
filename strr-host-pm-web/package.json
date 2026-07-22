@@ -43,16 +43,21 @@
     "otpauth": "^9.4.1",
     "playwright-core": "^1.55.0",
     "sass": "^1.90.0",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
+    "@vuepic/vue-datepicker": "^10.0.0",
+    "@zadigetvoltaire/nuxt-gtm": "^0.0.13",
     "country-codes-list": "^2.0.0",
     "lodash.uniqby": "^4.7.0",
+    "luxon": "^3.5.0",
     "nuxt": "3.15.4",
+    "nuxt-gtag": "^3.0.3",
     "uuid": "^11.1.0",
     "vue-country-flag-next": "^2.3.2"
   },
-  "packageManager": "pnpm@10.21.0+sha1.a2cb35d3f07a58fecfe050af9277c5dc43a1b2e7"
+  "packageManager": "pnpm@11.9.0"
 }

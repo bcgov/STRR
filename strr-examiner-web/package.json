@@ -41,14 +41,21 @@
     "happy-dom": "^20.0.11",
     "playwright-core": "^1.57.0",
     "sass": "^1.77.6",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "vitest": "3.2.4"
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
+    "@vuepic/vue-datepicker": "^10.0.0",
+    "@zadigetvoltaire/nuxt-gtm": "^0.0.13",
     "country-codes-list": "^2.0.0",
+    "luxon": "^3.5.0",
     "nuxt": "3.15.4",
+    "nuxt-gtag": "^3.0.3",
     "uuid": "^11.1.0",
-    "v-calendar": "^3.1.2"
-  }
+    "v-calendar": "^3.1.2",
+    "vue-country-flag-next": "^2.3.2"
+  },
+  "packageManager": "pnpm@11.9.0"
 }

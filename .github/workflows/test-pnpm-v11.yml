@@ -1,0 +1,34 @@
+name: Test pnpm v11 upgrade - STRR apps
+on:
+  push:
+    branches: [feat/upgrade-pnpm-v11]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-pnpm-v11:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [strr-examiner-web, strr-host-pm-web, strr-strata-web, strr-platform-web, strr-base-web]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+        with:
+          version: latest-11
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: ${{ matrix.app }}/pnpm-lock.yaml
+      - name: Install
+        run: pnpm install --ignore-scripts
+      - name: Build
+        run: pnpm build
+      - name: pnpm version
+        run: pnpm --version
