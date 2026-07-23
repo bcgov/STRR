@@ -42,7 +42,9 @@ export default defineAppConfig({
         redirectPath: RoutesE.DASHBOARD,
         options: {
           createAccount: false,
-          idps: () => ['idir'] // function required to overwrite default value, will merge if no function
+          requiredRealmRoles: () => ['strr_examiner'],
+          idps: () => ['idir', 'bceid'], // function required to overwrite default value, will merge if no function
+          loginButtonIdps: () => ['idir']
         }
       }
     }
