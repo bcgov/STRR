@@ -705,28 +705,36 @@ export const mockApplicationFilingHistory: FilingHistoryEvent[] =
       eventName: FilingHistoryEventName.INVOICE_GENERATED,
       eventType: FilingHistoryEventType.APPLICATION,
       idir: null,
-      message: 'Invoice generated'
+      message: 'Invoice generated',
+      details: '',
+      structuredDetails: null
     },
     {
       createdDate: '2025-03-20T23:21:14.008389',
       eventName: FilingHistoryEventName.PAYMENT_COMPLETE,
       eventType: FilingHistoryEventType.APPLICATION,
       idir: null,
-      message: 'Payment completed'
+      message: 'Payment completed',
+      details: '',
+      structuredDetails: null
     },
     {
       createdDate: '2025-03-20T23:25:24.559788',
       eventName: FilingHistoryEventName.AUTO_APPROVAL_FULL_REVIEW,
       eventType: FilingHistoryEventType.APPLICATION,
       idir: null,
-      message: 'Application marked for full review by the auto approval process'
+      message: 'Application marked for full review by the auto approval process',
+      details: '',
+      structuredDetails: null
     },
     {
       createdDate: '2025-03-21T16:44:07.559788',
       eventName: FilingHistoryEventName.MANUALLY_APPROVED,
       eventType: FilingHistoryEventType.APPLICATION,
       idir: 'user1@idir',
-      message: 'Application approved by staff'
+      message: 'Application approved by staff',
+      details: '',
+      structuredDetails: null
     }
   ]
 
@@ -737,21 +745,27 @@ export const mockRegistrationFilingHistory: FilingHistoryEvent[] =
       eventName: FilingHistoryEventName.REGISTRATION_CREATED,
       eventType: FilingHistoryEventType.REGISTRATION,
       idir: 'user2@idir',
-      message: 'Registration created'
+      message: 'Registration created',
+      details: '',
+      structuredDetails: null
     },
     {
       createdDate: '2025-03-05T15:08:41.997418',
       eventName: FilingHistoryEventName.NON_COMPLIANCE_SUSPENDED,
       eventType: FilingHistoryEventType.REGISTRATION,
       idir: 'user2@idir',
-      message: 'Registration suspended due to non compliance'
+      message: 'Registration suspended due to non compliance',
+      details: '',
+      structuredDetails: null
     },
     {
       createdDate: '2025-03-05T15:08:45.966389',
       eventName: FilingHistoryEventName.REGISTRATION_CANCELLED,
       eventType: FilingHistoryEventType.REGISTRATION,
       idir: 'user2@idir',
-      message: 'Registration cancelled'
+      message: 'Registration cancelled',
+      details: '',
+      structuredDetails: null
     }
   ]
 
