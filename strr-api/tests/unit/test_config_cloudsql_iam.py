@@ -2,6 +2,7 @@
 
 import importlib
 
+import dotenv
 import pytest
 
 ENV_KEYS = (
@@ -25,6 +26,8 @@ def _clear_env(monkeypatch):
 
 def _reload_config(monkeypatch, **env):
     _clear_env(monkeypatch)
+    # Keep these tests independent from each developer's local .env file.
+    monkeypatch.setattr(dotenv, "load_dotenv", lambda *_args, **_kwargs: False)
     for env_name, value in env.items():
         monkeypatch.setenv(env_name, value)
 
