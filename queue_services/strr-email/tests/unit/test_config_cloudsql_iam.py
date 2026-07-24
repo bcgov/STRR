@@ -3,6 +3,7 @@
 import importlib
 
 import pytest
+from cloud_sql_connector import connector as connector_module
 
 ENV_KEYS = (
     "CLOUD_RUN_JOB",
@@ -50,7 +51,7 @@ def test_production_config_uses_cloudsql_iam_connector(monkeypatch):
         calls["config"] = config
         return "connection"
 
-    monkeypatch.setattr(config_module, "getconn", fake_getconn)
+    monkeypatch.setattr(connector_module, "getconn", fake_getconn)
     creator = config_module.ProdConfig.SQLALCHEMY_ENGINE_OPTIONS["creator"]
     assert creator() == "connection"
     assert calls["config"].instance_name == ("bcrbk9-prod:northamerica-northeast1:strr-db-prod")
