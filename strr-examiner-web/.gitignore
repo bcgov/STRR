@@ -145,6 +145,7 @@ playwright-report
 !test-results/screenshots
 # playwright auth user info
 tests/e2e/.auth/**
+tests/e2e/.env
 
 #firebase service account
 service-account.json
