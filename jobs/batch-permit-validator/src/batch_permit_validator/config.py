@@ -67,9 +67,7 @@ class _Config:  # pylint: disable=too-few-public-methods
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = (
-        sqlalchemy_settings_from_env()
-    )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env()
 
     GCP_CS_PROJECT_ID = os.getenv("GCP_CS_PROJECT_ID")
     GCP_CS_SA_SCOPE = os.getenv("GCP_CS_SA_SCOPE")

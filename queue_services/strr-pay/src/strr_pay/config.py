@@ -98,9 +98,7 @@ class Config:  # pylint: disable=too-few-public-methods
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = (
-        sqlalchemy_settings_from_env()
-    )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env()
 
 
 class DevConfig(Config):  # pylint: disable=too-few-public-methods

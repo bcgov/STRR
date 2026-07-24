@@ -105,9 +105,7 @@ class _Config:  # pylint: disable=too-few-public-methods
     GEOCODER_SVC_URL = os.getenv("GEOCODER_API_URL", "")
     GEOCODER_SVC_AUTH_KEY = os.getenv("GEOCODER_API_AUTH_KEY", "")
 
-    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = (
-        sqlalchemy_settings_from_env()
-    )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env()
 
     # projects/<project_id-env>/topics/<topic_name>
     GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC")

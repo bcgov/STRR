@@ -53,9 +53,7 @@ class _Config:  # pylint: disable=too-few-public-methods
 
     BATCH_SIZE = os.getenv("BATCH_SIZE", "10")
 
-    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = (
-        sqlalchemy_settings_from_env()
-    )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env()
 
     # projects/<project_id-env>/topics/<topic_name>
     GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC")

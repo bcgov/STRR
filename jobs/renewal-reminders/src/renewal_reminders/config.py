@@ -52,9 +52,7 @@ class _Config:  # pylint: disable=too-few-public-methods
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
     SENTRY_DSN = os.getenv("SENTRY_DSN", "")
 
-    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = (
-        sqlalchemy_settings_from_env()
-    )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env()
 
     # projects/<project_id-env>/topics/<topic_name>
     GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC")
