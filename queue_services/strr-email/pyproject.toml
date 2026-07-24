@@ -25,7 +25,7 @@ isort = "^5.13.2"
 pylint = "^3.0.3"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
-cloud-sql-connector = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/cloud-sql-connector", rev = "19bab0b5fb005714cf5d57a626c3cad1ece86be5" }
+cloud-sql-connector = { git = "https://github.com/Jacky-Pham/sbc-connect-common.git", subdirectory = "python/cloud-sql-connector", rev = "19bab0b5fb005714cf5d57a626c3cad1ece86be5" }
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 # strr-api = {path = "/workspaces/STRR/strr-api", develop = true}
