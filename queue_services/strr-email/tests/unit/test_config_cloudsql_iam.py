@@ -2,8 +2,8 @@
 
 import importlib
 
-import pytest
 from cloud_sql_connector import connector as connector_module
+import pytest
 
 ENV_KEYS = (
     "CLOUD_RUN_JOB",
