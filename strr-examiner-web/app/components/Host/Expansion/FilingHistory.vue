@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+import { DateTime } from 'luxon'
 import { useFilingHistory } from '~/composables/useFilingHistory'
 
 defineEmits<{ close: [void] }>()
@@ -18,50 +19,12 @@ const {
   isEmptyFilingHistoryAccordion
 } = await useFilingHistory()
 
-const formatSentDateTime = (value: string): string => {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
+const toPacificDate = (val: string, fmt: string): string =>
+  val ? DateTime.fromISO(val, { zone: 'utc' }).setZone('America/Vancouver').toFormat(fmt).toLowerCase() : ''
 
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Vancouver',
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).format(date)
-}
-
-const formatHistoryDate = (value: string): string => {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Vancouver',
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric'
-  }).format(date)
-}
-
-const formatHistoryTime = (value: string): string => {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Vancouver',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).format(date)
-}
+const formatSentDateTime = (val: string): string => toPacificDate(val, 'MMM dd, yyyy, h:mm a')
+const formatHistoryDate = (val: string): string => toPacificDate(val, 'MMM dd, yyyy')
+const formatHistoryTime = (val: string): string => toPacificDate(val, 'h:mm a')
 
 const recipientStatusClass = (status: string): string => {
   if (status === 'DELIVERED') {
