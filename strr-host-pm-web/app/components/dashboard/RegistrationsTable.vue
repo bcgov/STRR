@@ -109,8 +109,7 @@ const getRenewalDraftApplicationNumber = (registration: RegistrationRecord): str
 
 /** Returns the renewal warning window in days by registration type. */
 const getRenewalWindowDays = (registrationType?: ApplicationType): number => {
-  // Keep these values in sync with backend DAYS_BEFORE_EXPIRY_BY_TYPE.
-  // TODO: Remove hardcoded fallback values and let API provide the values so that they stay in sync.
+  // Keep fallback values in sync with backend DAYS_BEFORE_EXPIRY_BY_TYPE.
   if (registrationType === ApplicationType.STRATA_HOTEL) {
     return 60
   }
@@ -156,16 +155,6 @@ const handleRegistrationLinkClick = (row: RegistrationRow) => {
   permitStore.selectedRegistrationId = row.registrationId?.toString()
 }
 
-/** Determines whether the Renew action should be shown for a row. */
-const canShowRenewAction = (
-  registration: RegistrationRecordWithTodos,
-  expiryState: ExpiryState,
-  renewalDraftExists: boolean,
-  renewalPaymentPending: boolean
-): boolean => {
-  return canRenewRegistration(registration, expiryState, renewalDraftExists, renewalPaymentPending)
-}
-
 // Data mapping
 const mapRegistrationsList = (registrations: RegistrationRecordWithTodos[]): RegistrationRow[] => {
   if (!registrations) {
@@ -192,7 +181,7 @@ const mapRegistrationsList = (registrations: RegistrationRecordWithTodos[]): Reg
       expiryState,
       hasRenewalDraft: renewalDraftExists,
       renewalDraftApplicationNumber,
-      canRenew: canShowRenewAction(registration, expiryState, renewalDraftExists, renewalPaymentPending),
+      canRenew: canRenewRegistration(registration, expiryState, renewalDraftExists, renewalPaymentPending),
       registrationId: registration.id
     }
   })

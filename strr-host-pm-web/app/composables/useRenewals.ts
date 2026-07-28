@@ -18,7 +18,7 @@ export const useRenewals = () => {
   const checkIsRenewalPeriodClosed = (
     reg: Partial<RegistrationRecord> | ApiRegistrationResp | HostRegistrationResp | null | undefined
   ): boolean => {
-    if (!reg || !reg.expiryDate) {
+    if (!reg?.expiryDate) {
       return false
     }
     const isRegExpired = reg.status === RegistrationStatus.EXPIRED
@@ -57,7 +57,7 @@ export const useRenewals = () => {
     }
     const today = DateTime.now().setZone('America/Vancouver')
     const days = expDate.diff(today, 'days').days
-    return days !== undefined && !isNaN(days) ? Math.floor(days) : 0
+    return days !== undefined && !Number.isNaN(days) ? Math.floor(days) : 0
   })
 
   const getRegistrationRenewalTodos = async () => {
@@ -148,7 +148,7 @@ export const useRenewals = () => {
   const fetchRegistrationsWithRenewalTodos = async <T extends { id: number }>(
     registrations: T[]
   ): Promise<(T & RenewalTodoDetails)[]> => {
-    if (!registrations || registrations.length === 0) {
+    if (!registrations?.length) {
       return []
     }
     return await Promise.all(
@@ -163,8 +163,7 @@ export const useRenewals = () => {
             renewalDraftId: todoInfo.renewalDraftId,
             renewalPaymentPendingId: todoInfo.renewalPaymentPendingId
           } as T & RenewalTodoDetails
-        } catch (e) {
-          console.error('Failed to load todos for registration', reg.id, e)
+        } catch {
           return {
             ...reg,
             hasRenewalTodo: false,
