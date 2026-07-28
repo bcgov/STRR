@@ -156,20 +156,17 @@ class InteractionService:
     @classmethod
     def _build_delivery_row(cls, interaction: CustomerInteraction, event_type: str) -> dict | None:
         """Convert a single interaction row into filing-history event shape."""
-        if not isinstance(interaction.meta_data, dict):
-            return None
-
-        notify_delivery = interaction.meta_data.get("notify_delivery")
-        if not isinstance(notify_delivery, dict):
-            return None
-
-        recipient_statuses = notify_delivery.get("recipient_statuses")
-        if not isinstance(recipient_statuses, dict) or not recipient_statuses:
-            return None
-
         channel = interaction.channel.value if interaction.channel else ""
         if channel != ChannelType.EMAIL.value:
             return None
+
+        meta_data = interaction.meta_data if isinstance(interaction.meta_data, dict) else {}
+        notify_delivery = meta_data.get("notify_delivery") if isinstance(meta_data.get("notify_delivery"), dict) else {}
+        recipient_statuses = (
+            notify_delivery.get("recipient_statuses")
+            if isinstance(notify_delivery.get("recipient_statuses"), dict)
+            else {}
+        )
         status = interaction.status.value if interaction.status else ""
 
         return {
@@ -180,7 +177,7 @@ class InteractionService:
             "details": None,
             "structuredDetails": {
                 "channel": channel,
-                "emailType": interaction.meta_data.get("email_type"),
+                "emailType": meta_data.get("email_type"),
                 "interactionStatus": status,
                 "recipientStatusUpdatedAt": notify_delivery.get("updated_at"),
                 "recipientStatuses": cls._normalize_recipient_statuses(recipient_statuses),

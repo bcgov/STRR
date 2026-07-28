@@ -482,7 +482,7 @@ def test_filing_history_rows_application_maps_status_to_event_name(
             {
                 "email_type": "HOST_FULL_REVIEW_APPROVED",
             },
-            0,
+            1,
         ),
         (
             ChannelType.EMAIL,
@@ -511,8 +511,8 @@ def test_filing_history_rows_application_edge_cases(session, setup_parents, chan
     rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
     assert len(rows) == expected_count
     if expected_count:
-        recipient = rows[0]["structuredDetails"]["recipientStatuses"][0]
-        assert recipient["notify_reference"] == "610066"
+        assert rows[0]["eventName"] == "EMAIL_SENT"
+        assert rows[0]["structuredDetails"]["interactionStatus"] == "SENT"
 
 
 @pytest.mark.parametrize(
