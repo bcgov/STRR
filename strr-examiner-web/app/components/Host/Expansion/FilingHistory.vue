@@ -25,6 +25,7 @@ const formatSentDateTime = (value: string): string => {
   }
 
   return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Vancouver',
     month: 'short',
     day: '2-digit',
     year: 'numeric',
@@ -41,6 +42,7 @@ const formatHistoryDate = (value: string): string => {
   }
 
   return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Vancouver',
     month: 'short',
     day: '2-digit',
     year: 'numeric'
@@ -54,6 +56,7 @@ const formatHistoryTime = (value: string): string => {
   }
 
   return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Vancouver',
     hour: 'numeric',
     minute: '2-digit',
     hour12: true
