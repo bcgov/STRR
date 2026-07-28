@@ -30,7 +30,8 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
   useHostFeatureFlags: () => ({
     isDashboardTableSortingEnabled: ref(false),
     isHostSearchTextFieldsEnabled: ref(false),
-    isNewDashboardEnabled: ref(false)
+    isNewDashboardEnabled: ref(false),
+    isRenewalsEnabled: ref(true)
   })
 }))
 
