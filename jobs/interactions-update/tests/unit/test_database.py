@@ -57,6 +57,7 @@ def test_cloud_sql_missing_vars_raises_error(monkeypatch):
     # Ensure DATABASE_URL is NOT set to trigger the fallback branch
     monkeypatch.setattr(database, "_engine", None)
     monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("CLOUDSQL_INSTANCE_CONNECTION_NAME", raising=False)
     monkeypatch.delenv("DATABASE_USERNAME", raising=False)
     monkeypatch.delenv("DATABASE_PASSWORD", raising=False)
     monkeypatch.delenv("DATABASE_NAME", raising=False)
@@ -65,7 +66,7 @@ def test_cloud_sql_missing_vars_raises_error(monkeypatch):
     monkeypatch.delenv("DATABASE_UNIX_SOCKET", raising=False)
 
     with pytest.raises(
-        ValueError, match="Missing database connection environment variables"
+        ValueError, match="Missing Cloud SQL IAM connection environment variables"
     ):
         database.get_engine()
 

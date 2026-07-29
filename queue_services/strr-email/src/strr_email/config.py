@@ -41,6 +41,8 @@ or by accessing this configuration directly.
 """
 import os
 
+from cloud_sql_connector import database_uri_from_env
+from cloud_sql_connector import sqlalchemy_settings_from_env
 from dotenv import find_dotenv
 from dotenv import load_dotenv
 
@@ -115,24 +117,7 @@ class Config:  # pylint: disable=too-few-public-methods
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # POSTGRESQL
-    DB_USER = os.getenv("DATABASE_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_NAME", "")
-    DB_HOST = os.getenv("DATABASE_HOST", "")
-    DB_PORT = os.getenv("DATABASE_PORT", "5432")
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://"
-            f"{DB_USER}:{DB_PASSWORD}@/"
-            f"{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/"
-            f".s.PGSQL.5432"
-        )
-    else:
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env()
 
     TAC_URL_HOST = os.getenv(
         "TAC_URL_HOST",
@@ -157,25 +142,14 @@ class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
     Used by the py.test suite
     """
 
-    DB_USER = os.getenv("DATABASE_TEST_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_TEST_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_TEST_NAME", "")
-    DB_HOST = os.getenv("DATABASE_TEST_HOST", "")
-    DB_PORT = os.getenv("DATABASE_TEST_PORT", "5432")
-
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://"
-            f"{DB_USER}:{DB_PASSWORD}@/"
-            f"{DB_NAME}"
-            f"?unix_sock={DB_UNIX_SOCKET}/"
-            f".s.PGSQL.5432"
-        )
-    else:
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        )
+    SQLALCHEMY_DATABASE_URI = database_uri_from_env(
+        username_env="DATABASE_TEST_USERNAME",
+        password_env="DATABASE_TEST_PASSWORD",
+        name_env="DATABASE_TEST_NAME",
+        host_env="DATABASE_TEST_HOST",
+        port_env="DATABASE_TEST_PORT",
+    )
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 
     DEBUG = True
     TESTING = True
