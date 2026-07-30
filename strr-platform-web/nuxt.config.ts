@@ -1,3 +1,22 @@
+import { existsSync } from 'node:fs'
+import { execSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+
+// strr-base-web is extended as a local sibling layer (not a published package),
+// so its own generated .nuxt/tsconfig.json may not exist yet in a fresh checkout
+// (e.g. CI, where only this app's own `nuxt prepare` runs). Without it, jiti fails
+// to resolve strr-base-web/tsconfig.json's "extends" while evaluating its
+// tailwind.config.ts, breaking the whole build. Prepare it eagerly if missing.
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const baseWebDir = resolve(__dirname, '../strr-base-web')
+if (!existsSync(resolve(baseWebDir, 'node_modules'))) {
+  execSync('npx --yes pnpm install --ignore-scripts', { cwd: baseWebDir, stdio: 'inherit' })
+}
+if (!existsSync(resolve(baseWebDir, '.nuxt/tsconfig.json'))) {
+  execSync('npx --yes nuxi prepare', { cwd: baseWebDir, stdio: 'inherit' })
+}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
@@ -20,8 +39,7 @@ export default defineNuxtConfig({
   ],
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: false }],
-    // '../strr-base-web', // dev only
+    '../strr-base-web',
     '@daxiom/nuxt-core-layer-test' // extend again, this prevents the payApi plugin error
   ],
 
