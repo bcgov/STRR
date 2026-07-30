@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { watch } from 'vue'
-
 const { t } = useNuxtApp().$i18n
 const route = useRoute()
 const config = useRuntimeConfig().public
@@ -22,22 +20,14 @@ const {
 const { unitAddress } = storeToRefs(useHostPropertyStore())
 
 const {
-  isEligibleForRenewal,
-  hasRegistrationRenewalDraft,
-  hasRegistrationRenewalPaymentPending,
-  renewalDraftId,
-  renewalPaymentPendingId,
-  renewalDueDate,
-  renewalDateCounter,
-  isRenewalPeriodClosed,
-  getRegistrationRenewalTodos
-} = useRenewals()
+  todos,
+  setupRenewalTodosWatch
+} = useDashboardTodos()
 
-const { getAccountApplication, deleteApplication } = useStrrApi()
+setupRenewalTodosWatch()
 
-const todos = ref<Todo[]>([])
 const owners = ref<ConnectAccordionItem[]>([])
-const { isRenewalsEnabled, isNewDashboardEnabled } = useHostFeatureFlags()
+const { isNewDashboardEnabled } = useHostFeatureFlags()
 
 onMounted(async () => {
   loading.value = true
@@ -62,7 +52,7 @@ onMounted(async () => {
       linkEnd: '</button>'
     }
 
-    const nocEndDate = dateToString(permitDetails.value.nocEndDate as Date)
+    const nocEndDate = dateToString((permitDetails.value as HostRegistrationResp).nocEndDate as Date)
 
     todos.value.push({
       id: 'todo-reg-noc-add-docs',
@@ -154,118 +144,6 @@ definePageMeta({
     return true
   }
 })
-
-// watch for Registration Renewals props and update related ToDos
-watch([isRenewalsEnabled,
-  isRenewalPeriodClosed,
-  registration,
-  isEligibleForRenewal,
-  hasRegistrationRenewalDraft,
-  hasRegistrationRenewalPaymentPending], () => {
-  const translationProps = {
-    newLine: '<br/>',
-    boldStart: '<strong>',
-    boldEnd: '</strong>'
-  }
-
-  // remove all renewal todos before adding new ones
-  const renewalTodoIds = [
-    'todo-renew-registration-closed',
-    'todo-renew-registration',
-    'todo-renewal-draft',
-    'todo-renewal-payment-pending'
-  ]
-  todos.value = todos.value.filter(todo => !renewalTodoIds.includes(todo.id))
-
-  if (isRenewalsEnabled.value && isRenewalPeriodClosed.value) {
-    // todo for renewal period closed after 3 years without renewal
-    todos.value.push({
-      id: 'todo-renew-registration-closed',
-      title: t('todos.renewalClosed.title'),
-      subtitle: t('todos.renewalClosed.subtitle', translationProps)
-    })
-  } else if (isRenewalsEnabled.value && registration.value && isEligibleForRenewal.value) {
-    const isOverdue = renewalDateCounter.value < 0
-    // label for the due days count
-    const dueDateCount = isOverdue
-      ? t('label.renewalOverdue')
-      : t('label.renewalDayCount', renewalDateCounter.value)
-
-    todos.value.push({
-      id: 'todo-renew-registration',
-      title: `${t('todos.renewal.title1')} ${renewalDueDate.value} ${t('todos.renewal.title2')} (${dueDateCount})`,
-      subtitle: t(isOverdue
-        ? 'todos.renewal.expired'
-        : 'todos.renewal.expiresSoon', translationProps),
-      buttons: [{
-        label: t('btn.renew'),
-        action: async () => {
-          permitStore.setRenewalRegistrationContext(registration.value!.id)
-          await navigateTo({
-            path: localePath('/application'),
-            query: { renew: 'true' }
-          })
-        }
-      }]
-    })
-  } else if (isRenewalsEnabled.value && registration.value && hasRegistrationRenewalDraft.value) {
-    // todo for existing renewal draft
-    todos.value.push({
-      id: 'todo-renewal-draft',
-      title: t('todos.renewalDraft.title'),
-      subtitle: t('todos.renewalDraft.subtitle'),
-      buttons: [
-        {
-          label: t('todos.renewalDraft.resumeButton'),
-          action: async () => {
-            permitStore.clearRenewalRegistrationContext()
-            await navigateTo({
-              path: localePath('/application'),
-              query: { renew: 'true', applicationId: renewalDraftId.value }
-            })
-          }
-        },
-        {
-          label: t('todos.renewalDraft.deleteDraft'),
-          icon: 'i-mdi-delete',
-          action: async () => {
-            // delete draft application
-            await deleteApplication(renewalDraftId.value)
-            // remove renewal draft todo
-            todos.value = todos.value.filter(todo => todo.id !== 'todo-renewal-draft')
-            // reload registration renewal todos
-            await getRegistrationRenewalTodos()
-          }
-        }
-      ]
-    })
-  } else if (isRenewalsEnabled.value && registration.value && hasRegistrationRenewalPaymentPending.value) {
-    // todo for renewal payment pending
-    todos.value.push({
-      id: 'todo-renewal-payment-pending',
-      title: t('todos.renewalPayment.title'),
-      subtitle: t('todos.renewalPayment.subtitle'),
-      buttons: [{
-        label: t('todos.renewalPayment.button'),
-        action: async () => {
-          const { handlePaymentRedirect } = useConnectNav()
-          // Get the payment token
-          const applicationResponse = await getAccountApplication(
-            renewalPaymentPendingId.value
-          )
-          const paymentToken = applicationResponse?.header.paymentToken
-          const appNum = applicationResponse?.header.applicationNumber
-          if (paymentToken) {
-            handlePaymentRedirect(
-              paymentToken,
-              '/dashboard/' + appNum
-            )
-          }
-        }
-      }]
-    })
-  }
-}, { immediate: true })
 
 setBreadcrumbs([
   {

@@ -46,3 +46,13 @@ export interface RegistrationRow {
   canRenew: boolean
   registrationId: number
 }
+
+export interface RenewalTodoDetails {
+  hasRenewalTodo?: boolean
+  hasRenewalDraft?: boolean
+  hasRenewalPaymentPending?: boolean
+  renewalDraftId?: string | null
+  renewalPaymentPendingId?: string | null
+}
+
+export interface RegistrationRecordWithTodos extends RegistrationRecord, RenewalTodoDetails {}
