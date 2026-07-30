@@ -193,3 +193,75 @@ def test_update_registration_empty_registration_json(session):
     change = details["changes"][0]
     assert change["oldValue"] is None
     assert change["newValue"] == "new@example.com"
+
+
+def test_create_host_registration_with_cohost_address(session):
+    """Test creating host registration with co-host (secondaryContact) having a unique mailing address."""
+    payload = {
+        "registration": {
+            "registrationType": "HOST",
+            "primaryContact": {
+                "contactType": "INDIVIDUAL",
+                "firstName": "Primary",
+                "lastName": "Host",
+                "emailAddress": "primary@example.com",
+                "mailingAddress": {
+                    "country": "CA",
+                    "address": "100 Primary St",
+                    "addressLineTwo": "",
+                    "city": "Vancouver",
+                    "province": "BC",
+                    "postalCode": "V6B 1A1",
+                },
+            },
+            "secondaryContact": {
+                "contactType": "INDIVIDUAL",
+                "firstName": "Secondary",
+                "lastName": "Cohost",
+                "emailAddress": "cohost@example.com",
+                "mailingAddress": {
+                    "country": "CA",
+                    "address": "200 Cohost Ave",
+                    "addressLineTwo": "Suite 5",
+                    "city": "Victoria",
+                    "province": "BC",
+                    "postalCode": "V8V 2B2",
+                },
+            },
+            "unitAddress": {
+                "nickname": "Rental Property",
+                "country": "CA",
+                "unitNumber": "",
+                "streetNumber": "300",
+                "streetName": "Rental St",
+                "city": "Victoria",
+                "province": "BC",
+                "postalCode": "V8V 3C3",
+            },
+            "unitDetails": {
+                "parcelIdentifier": "000-111-222",
+                "businessLicense": "12345",
+                "propertyType": "SINGLE_FAMILY_HOME",
+                "ownershipType": "OWN",
+                "rentalUnitSetupOption": "WHOLE_PRINCIPAL_RESIDENCE",
+                "hostResidence": "SAME_UNIT",
+                "isUnitOnPrincipalResidenceProperty": True,
+                "numberOfRoomsForRent": 1,
+            },
+            "listingDetails": [{"url": "https://www.airbnb.ca/rooms/12345"}],
+        }
+    }
+
+    rental_property = RegistrationService._create_host_registration(payload)
+    assert len(rental_property.contacts) == 2
+
+    primary_pc = next(c for c in rental_property.contacts if c.is_primary)
+    secondary_pc = next(c for c in rental_property.contacts if not c.is_primary)
+
+    assert primary_pc.contact.address.street_address == "100 Primary St"
+    assert primary_pc.contact.address.city == "Vancouver"
+
+    assert secondary_pc.contact.address.street_address == "200 Cohost Ave"
+    assert secondary_pc.contact.address.street_address_additional == "Suite 5"
+    assert secondary_pc.contact.address.city == "Victoria"
+    assert secondary_pc.contact.address.postal_code == "V8V 2B2"
