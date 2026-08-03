@@ -6,4 +6,7 @@ allowBuilds:
   unrs-resolver: true
 patchedDependencies:
   '@vitejs/plugin-vue@6.0.8': patches/@vitejs__plugin-vue@6.0.8.patch
-  vite@8.2.1: patches/vite@8.2.1.patch
+  # vite@8.2.1's patch is intentionally omitted here: unlike host-pm-web/
+  # examiner-web, this app's own dependency tree resolves an older vite
+  # (6.4.1/7.3.x) that the patch doesn't target - pnpm errors on an unused
+  # patch rather than silently ignoring it.
