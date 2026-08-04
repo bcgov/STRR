@@ -2,17 +2,33 @@
 
 from pathlib import Path
 
+import docker
+import pytest
 from alembic import command
 from alembic.config import Config
+from docker.errors import DockerException
 from sqlalchemy import create_engine, text
 from testcontainers.postgres import PostgresContainer
 
 
+def _require_docker():
+    try:
+        client = docker.from_env()
+        client.ping()
+    except DockerException as exc:
+        pytest.skip(f"Docker is required for this integration test: {exc}")
+    finally:
+        if "client" in locals():
+            client.close()
+
+
 def test_alembic_runs_with_configured_owner_role(monkeypatch):
     """Alembic runs migrations with the configured DB owner role."""
+    _require_docker()
+
     api_root = Path(__file__).resolve().parents[2]
     migrations_path = api_root / "migrations"
-    owner = "sa-api@bcrbk9-test.iam"
+    owner = "strr"
 
     with PostgresContainer("postgres:16-alpine") as postgres:
         db_url = postgres.get_connection_url()
