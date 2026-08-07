@@ -135,13 +135,18 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
   showDateBadgeForAll: true
 }
 
-const canAddDocument = computed(() =>
-  !isSnapshotRoute.value &&
-  ((isApplication.value && !hasRegistrationNumber.value) ||
-    (!isApplication.value &&
-      (activeReg.value?.status === RegistrationStatus.ACTIVE ||
-        activeReg.value?.status === RegistrationStatus.SUSPENDED)))
-)
+const canAddDocument = computed(() => {
+  const snapshot = isSnapshotRoute?.value ?? false
+  const isApp = isApplication?.value ?? false
+  const hasReg = hasRegistrationNumber?.value ?? false
+  const regStatus = activeReg?.value?.status
+
+  return !snapshot &&
+    ((isApp && !hasReg) ||
+      (!isApp &&
+        (regStatus === RegistrationStatus.ACTIVE ||
+          regStatus === RegistrationStatus.SUSPENDED)))
+})
 </script>
 
 <template>
