@@ -164,7 +164,7 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
 
       uiDoc.apiDoc = res as any
 
-      if (res && res.registration) {
+      if (res?.registration) {
         exStore.activeRecord = res
       }
     } catch (e) {
