@@ -150,8 +150,12 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
       const formData = new FormData()
       formData.append('file', uiDoc.file)
       formData.append('documentType', uiDoc.type)
-      uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
-      uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
+      if (uiDoc.uploadStep) {
+        formData.append('uploadStep', uiDoc.uploadStep)
+      }
+      if (uiDoc.uploadDate) {
+        formData.append('uploadDate', uiDoc.uploadDate)
+      }
 
       const res = await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}/documents`, {
         method: 'PUT',
