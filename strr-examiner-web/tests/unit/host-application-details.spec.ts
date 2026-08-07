@@ -169,7 +169,7 @@ describe('Examiner - Host Application Details Page', () => {
       .toContain(mockHostApplication.registration.unitDetails!.businessLicense)
     expect(hostSupportingInfo.findTestId('pr-req-section').exists()).toBe(true)
     expect(hostSupportingInfo.findTestId('pr-req-documents').exists()).toBe(true)
-    expect(hostSupportingInfo.findTestId('add-pr-doc-btn').exists()).toBe(false)
+    expect(hostSupportingInfo.findTestId('add-pr-doc-btn').exists()).toBe(true)
   })
 
   it('opens document in new tab when business license button is clicked', async () => {

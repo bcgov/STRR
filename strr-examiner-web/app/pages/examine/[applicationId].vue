@@ -205,6 +205,7 @@ watch(
           <ApplicationInfoHeader />
         </template>
       </ApplicationDetailsView>
+      <DocumentUpload />
       <ComposeNoc />
       <ExaminerNotes
         v-if="isExaminerNotesEnabled && isHostApplication"
