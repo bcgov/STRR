@@ -9,14 +9,14 @@ const { t } = useNuxtApp().$i18n
 const exStore = useExaminerStore()
 const { openDocInNewTab } = exStore
 const { activeReg, activeHeader, isApplication } = storeToRefs(exStore)
-const { applicationNumber } = activeHeader.value
-const { documents } = activeReg.value as { documents: ApiDocument[] }
+const applicationNumber = computed(() => activeHeader.value?.applicationNumber)
+const documents = computed(() => (activeReg.value?.documents || []) as ApiDocument[])
 
 // filters documents based on the provided configuration
 const filterDocumentsByConfig = (config: SupportingDocumentsConfig): ApiDocument[] => {
   const { includeTypes = [], excludeTypes = [], includeUploadStep = [], excludeUploadStep = [] } = config
 
-  return documents.filter((doc: ApiDocument) => {
+  return documents.value.filter((doc: ApiDocument) => {
     const includeType = includeTypes.length ? includeTypes.includes(doc.documentType) : true
     const excludeType = excludeTypes.includes(doc.documentType)
     const includeStep = includeUploadStep.length
@@ -38,12 +38,12 @@ const sortByDate = (docs: ApiDocument[]): ApiDocument[] => {
 
 // optionally filter documents based on config, or return all documents, sorted by date
 const filteredDocuments = computed(() => {
-  const docs = props.config ? filterDocumentsByConfig(props.config) : documents
+  const docs = props.config ? filterDocumentsByConfig(props.config) : documents.value
   return sortByDate(docs)
 })
 
 const appRegNumber = computed((): string | number =>
-  isApplication.value ? applicationNumber : activeReg.value.id
+  isApplication.value ? applicationNumber.value || '' : activeReg.value?.id
 )
 
 const displayDate = (date: string = '') => dateToString(date, 'y-MM-dd', true)

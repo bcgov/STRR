@@ -10,7 +10,9 @@ const { isBlUploadOpen, isPrUploadOpen } = storeToRefs(docStore)
 const showDocumentUpload = computed(() => isBlUploadOpen.value || isPrUploadOpen.value)
 
 const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | number) => {
-  if (!isApplication.value) {
+  if (isApplication.value) {
+    await docStore.addDocumentToApplication(uiDoc, appRegNumber as string)
+  } else {
     await docStore.addDocumentToRegistration(uiDoc, appRegNumber as number)
   }
   docStore.closeUpload()

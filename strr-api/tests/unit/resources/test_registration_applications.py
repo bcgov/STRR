@@ -1,13 +1,14 @@
 import copy
 import json
 import os
+from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
 import pytest
 
 from strr_api.enums.enum import ChannelType, InteractionStatus, PaymentStatus, RegistrationStatus
-from strr_api.models import Application, CustomerInteraction, Events
+from strr_api.models import Application, CustomerInteraction, Events, Registration
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import ApplicationService
 from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE, MOCK_PAYMENT_COMPLETED_RESPONSE
@@ -631,6 +632,42 @@ def test_put_application_documents_includes_added_on(session, client, jwt):
         doc_uploaded = next((d for d in docs if d.get("fileKey") == "put-doc-file-key-456"), None)
         assert doc_uploaded is not None
         assert doc_uploaded.get("addedOn") is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_put_application_documents_rejected_when_registered(mock_invoice, session, client, jwt):
+    """PUT /applications/<id>/documents returns 400 when application has registration_id."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        application_number = rv.json.get("header").get("applicationNumber")
+        app = Application.find_by_application_number(application_number)
+        reg = Registration(
+            user_id=1,
+            sbc_account_id=ACCOUNT_ID,
+            status=RegistrationStatus.ACTIVE,
+            registration_number="REG123456",
+            start_date=datetime.now(),
+            expiry_date=datetime.now(),
+            registration_type=Registration.RegistrationType.HOST,
+            registration_json={},
+        )
+        reg.save()
+        app.registration_id = reg.id
+        app.save()
+
+        with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+            data = {"file": (df, MOCK_DOCUMENT_UPLOAD), "documentType": "BC_DRIVERS_LICENSE"}
+            rv = client.put(
+                f"/applications/{application_number}/documents",
+                content_type="multipart/form-data",
+                data=data,
+                headers=headers,
+            )
+            assert rv.status_code == HTTPStatus.BAD_REQUEST
+            assert "linked to a registration" in rv.json.get("message", "")
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

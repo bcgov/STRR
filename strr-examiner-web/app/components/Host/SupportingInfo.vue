@@ -6,7 +6,7 @@ import { useExaminerDocumentStore } from '~/stores/document'
 import { useFlags } from '~/composables/useFlags'
 
 const exStore = useExaminerStore()
-const { activeReg, isApplication } = storeToRefs(exStore)
+const { activeReg, isApplication, hasRegistrationNumber } = storeToRefs(exStore)
 const { t } = useNuxtApp().$i18n
 const alertFlags = reactive(useFlags())
 const { isFeatureEnabled } = useFeatureFlags()
@@ -135,7 +135,15 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
   showDateBadgeForAll: true
 }
 
+const canAddDocument = computed(() =>
+  !isSnapshotRoute.value &&
+  ((isApplication.value && !hasRegistrationNumber.value) ||
+    (!isApplication.value &&
+      (activeReg.value?.status === RegistrationStatus.ACTIVE ||
+        activeReg.value?.status === RegistrationStatus.SUSPENDED)))
+)
 </script>
+
 <template>
   <ConnectPageSection>
     <div class="divide-y px-10 py-6">
@@ -148,11 +156,7 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
       </ApplicationDetailsSection>
       <div class="grid grid-cols-12 items-start gap-4">
         <div
-          :class="!isApplication &&
-            (activeReg?.status === RegistrationStatus.ACTIVE ||
-              activeReg?.status === RegistrationStatus.SUSPENDED)
-            ? 'col-span-11'
-            : 'col-span-12'"
+          :class="canAddDocument ? 'col-span-11' : 'col-span-12'"
           class="divide-y"
         >
           <ApplicationDetailsSection
@@ -246,9 +250,7 @@ const businessLicenseRegistrationConfig: SupportingDocumentsConfig = {
           </ApplicationDetailsSection>
         </div>
         <div
-          v-if="!isApplication && !isSnapshotRoute &&
-            (activeReg?.status === RegistrationStatus.ACTIVE ||
-              activeReg?.status === RegistrationStatus.SUSPENDED)"
+          v-if="canAddDocument"
           class="col-span-1 flex justify-end"
         >
           <UButton

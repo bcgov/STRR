@@ -115,4 +115,30 @@ describe('Document Store', () => {
       documentType: DocumentUploadType.UTILITY_BILL
     })
   })
+
+  it('should call PUT /applications/{applicationNumber}/documents when adding document to application', async () => {
+    const exStore = useExaminerStore()
+    const docStore = useExaminerDocumentStore()
+    const appNumber = 'APP12345'
+
+    const apiDocResponse = {
+      header: { applicationNumber: appNumber },
+      registration: { documents: [{ fileKey: 'app-doc-key', documentType: DocumentUploadType.UTILITY_BILL }] }
+    }
+    mockStrrApi.mockResolvedValueOnce(apiDocResponse)
+
+    const uiDoc = {
+      file: new File(['content'], 'utility-bill.pdf', { type: 'application/pdf' }),
+      type: DocumentUploadType.UTILITY_BILL,
+      loading: false
+    } as UiDocument
+
+    await docStore.addDocumentToApplication(uiDoc, appNumber)
+
+    expect(mockStrrApi).toHaveBeenCalledWith(
+      `/applications/${appNumber}/documents`,
+      expect.objectContaining({ method: 'PUT' })
+    )
+    expect(exStore.activeRecord).toEqual(apiDocResponse)
+  })
 })

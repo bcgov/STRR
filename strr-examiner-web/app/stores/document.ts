@@ -137,6 +137,42 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
   }
 
   /**
+   * Add a document to an application.
+   *
+   * @param {UiDocument} uiDoc - The document to upload, containing file data and metadata.
+   * @param {string} applicationNumber - The application number to which the document is being added.
+   * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
+   */
+  async function addDocumentToApplication (uiDoc: UiDocument, applicationNumber: string): Promise<void> {
+    try {
+      uiDoc.loading = true
+
+      const formData = new FormData()
+      formData.append('file', uiDoc.file)
+      formData.append('documentType', uiDoc.type)
+      uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
+      uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
+
+      const res = await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}/documents`, {
+        method: 'PUT',
+        body: formData
+      })
+
+      uiDoc.apiDoc = res as any
+
+      if (res && res.registration) {
+        exStore.activeRecord = res
+      }
+    } catch (e) {
+      logFetchError(e, 'Error uploading document to application')
+      strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      throw e
+    } finally {
+      uiDoc.loading = false
+    }
+  }
+
+  /**
    * Reset the selected document type.
    */
   function reset (): void {
@@ -180,6 +216,7 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
     uploadSectionType,
     docTypeOptions,
     addDocumentToRegistration,
+    addDocumentToApplication,
     reset,
     openBlUpload,
     openPrUpload,
