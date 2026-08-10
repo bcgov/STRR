@@ -74,6 +74,7 @@ class InteractionService:
 
     RECIPIENT_DELIVERY_STATUS_MAP = {
         "CREATED": "CREATED",
+        "QUEUED": "PENDING",
         "SENDING": "IN_TRANSIT",
         "SENT": "SENT",
         "PENDING": "PENDING",
@@ -154,6 +155,45 @@ class InteractionService:
         return normalized
 
     @classmethod
+    def _fallback_recipient_statuses(
+        cls, meta_data: dict, default_status: str, default_created_at: str | None
+    ) -> list[dict]:
+        """Construct recipient status fallback rows from notify_response metadata when notify_delivery is missing."""
+        notify_response = meta_data.get("notify_response")
+        if not isinstance(notify_response, dict):
+            return []
+
+        raw_recipients = notify_response.get("recipients") or ""
+        recipients = [r.strip() for r in raw_recipients.split(",") if r.strip()]
+        if not recipients:
+            return []
+
+        sent_date = notify_response.get("sentDate") or notify_response.get("requestDate") or default_created_at
+        request_date = notify_response.get("requestDate")
+        notify_ref = (
+            str(notify_response.get("id"))
+            if notify_response.get("id") is not None
+            else meta_data.get("notify_references")
+        )
+        provider_status = notify_response.get("notifyStatus")
+        mapped_status = cls._map_recipient_delivery_status(provider_status or default_status)
+
+        return [
+            {
+                "email_address": recipient,
+                "failure_reason": None,
+                "failure_type": None,
+                "notify_reference": notify_ref,
+                "provider_reference": None,
+                "request_date": request_date,
+                "sent_date": sent_date,
+                "status": mapped_status,
+                "provider_status": provider_status,
+            }
+            for recipient in recipients
+        ]
+
+    @classmethod
     def _build_delivery_row(cls, interaction: CustomerInteraction, event_type: str) -> dict | None:
         """Convert a single interaction row into filing-history event shape."""
         channel = interaction.channel.value if interaction.channel else ""
@@ -162,25 +202,38 @@ class InteractionService:
 
         meta_data = interaction.meta_data if isinstance(interaction.meta_data, dict) else {}
         notify_delivery = meta_data.get("notify_delivery") if isinstance(meta_data.get("notify_delivery"), dict) else {}
-        recipient_statuses = (
+        recipient_statuses_dict = (
             notify_delivery.get("recipient_statuses")
             if isinstance(notify_delivery.get("recipient_statuses"), dict)
             else {}
         )
         status = interaction.status.value if interaction.status else ""
+        created_at_iso = interaction.created_at.isoformat() if interaction.created_at else None
+
+        recipient_statuses = cls._normalize_recipient_statuses(recipient_statuses_dict)
+        if not recipient_statuses:
+            recipient_statuses = cls._fallback_recipient_statuses(meta_data, status, created_at_iso)
+
+        notify_response = meta_data.get("notify_response") if isinstance(meta_data.get("notify_response"), dict) else {}
+        recipient_status_updated_at = (
+            notify_delivery.get("updated_at")
+            or notify_response.get("sentDate")
+            or notify_response.get("requestDate")
+            or created_at_iso
+        )
 
         return {
             "eventType": event_type,
             "eventName": cls._event_name_for_status(status),
             "message": cls._message_for_delivery_status(channel, status),
-            "createdDate": interaction.created_at.isoformat() if interaction.created_at else None,
+            "createdDate": created_at_iso,
             "details": None,
             "structuredDetails": {
                 "channel": channel,
                 "emailType": meta_data.get("email_type"),
                 "interactionStatus": status,
-                "recipientStatusUpdatedAt": notify_delivery.get("updated_at"),
-                "recipientStatuses": cls._normalize_recipient_statuses(recipient_statuses),
+                "recipientStatusUpdatedAt": recipient_status_updated_at,
+                "recipientStatuses": recipient_statuses,
             },
             "idir": None,
         }

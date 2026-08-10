@@ -559,3 +559,79 @@ def test_filing_history_rows_application_maps_provider_status_to_internal_status
     recipient = rows[0]["structuredDetails"]["recipientStatuses"][0]
     assert recipient["status"] == expected_status
     assert recipient["provider_status"] == provider_status
+
+
+def test_filing_history_rows_fallback_when_notify_delivery_missing(session, setup_parents):
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.SENT,
+        registration_id=setup_parents["registration_id"],
+        meta_data={
+            "status": "SENT",
+            "target_id": "25469",
+            "email_type": "HOST_RENEWAL_REMINDER",
+            "target_entity": "registration",
+            "notify_request": {
+                "subject": "H992462492 - Short-Term Rental Registration Renewal Reminder",
+                "requestBy": "STRR",
+            },
+            "notify_response": {
+                "id": 1989809,
+                "ids": "1989809,1989810",
+                "content": {
+                    "id": 1989809,
+                    "subject": "H992462492 - Short-Term Rental Registration Renewal Reminder",
+                },
+                "sentDate": "2026-07-02T07:02:05.960593",
+                "requestBy": "STRR",
+                "notifyType": "EMAIL",
+                "recipients": "julio_zaharia@yahoo.com",
+                "requestDate": "2026-07-02T07:02:05.870865",
+                "notifyStatus": "QUEUED",
+                "notifyProvider": "HOUSING",
+            },
+            "notify_references": "1989809,1989810",
+            "registration_number": "H992462492",
+        },
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_registration(setup_parents["registration_id"])
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["structuredDetails"]["recipientStatusUpdatedAt"] == "2026-07-02T07:02:05.960593"
+    recipients = row["structuredDetails"]["recipientStatuses"]
+    assert len(recipients) == 1
+    assert recipients[0]["email_address"] == "julio_zaharia@yahoo.com"
+    assert recipients[0]["sent_date"] == "2026-07-02T07:02:05.960593"
+    assert recipients[0]["request_date"] == "2026-07-02T07:02:05.870865"
+    assert recipients[0]["notify_reference"] == "1989809"
+    assert recipients[0]["status"] == "PENDING"
+    assert recipients[0]["provider_status"] == "QUEUED"
+
+
+def test_filing_history_rows_fallback_multiple_recipients(session, setup_parents):
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.SENT,
+        application_id=setup_parents["application_id"],
+        meta_data={
+            "email_type": "HOST_FULL_REVIEW_APPROVED",
+            "notify_response": {
+                "id": 2000001,
+                "sentDate": "2026-07-05T10:00:00.000000",
+                "recipients": "first@example.com, second@example.com",
+                "notifyStatus": "SENT",
+            },
+        },
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == 1
+    recipients = rows[0]["structuredDetails"]["recipientStatuses"]
+    assert len(recipients) == 2
+    assert recipients[0]["email_address"] == "first@example.com"
+    assert recipients[0]["status"] == "SENT"
+    assert recipients[1]["email_address"] == "second@example.com"
+    assert recipients[1]["status"] == "SENT"
