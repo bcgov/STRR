@@ -79,11 +79,12 @@ describe('Registration Detail Page logic', () => {
 
   describe('NOC todo logic', () => {
     const shouldAddNocTodo = (nocStatus: string): boolean => {
-      return nocStatus === 'NOC_PENDING'
+      return nocStatus === 'NOC_PENDING' || nocStatus === 'NOC_EXPIRED'
     }
 
-    it('returns true for NOC_PENDING status', () => {
+    it('returns true for NOC_PENDING and NOC_EXPIRED status', () => {
       expect(shouldAddNocTodo('NOC_PENDING')).toBe(true)
+      expect(shouldAddNocTodo('NOC_EXPIRED')).toBe(true)
     })
 
     it('returns false for other statuses', () => {

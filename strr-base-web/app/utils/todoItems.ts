@@ -63,11 +63,14 @@ export const getTodoApplication = (
   }
 
   if (applicationInfo?.status === ApplicationStatus.NOC_PENDING ||
-    applicationInfo?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+    applicationInfo?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+    applicationInfo?.status === ApplicationStatus.NOC_EXPIRED ||
+    applicationInfo?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
   ) {
     const nocEndDate = dateToString(applicationInfo!.nocEndDate as Date, 'DDD')
     const isHost = applicationType === ApplicationType.HOST
-    const isProvisional = applicationInfo?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING
+    const isProvisional = applicationInfo?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+      applicationInfo?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
 
     const translationProps = {
       newLine: '<br/>',

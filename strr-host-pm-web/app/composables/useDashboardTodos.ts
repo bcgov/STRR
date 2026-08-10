@@ -55,7 +55,9 @@ export const useDashboardTodos = () => {
 
   // Add NOC todo if applicable
   const addNocTodo = () => {
-    if (registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING) {
+    if (registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING ||
+      registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
+    ) {
       const translationProps = getScrollLinkTranslationProps()
       const nocEndDate = dateToString((permitDetails.value as HostRegistrationResp).nocEndDate as Date)
 

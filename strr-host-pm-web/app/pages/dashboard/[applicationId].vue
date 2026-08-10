@@ -41,7 +41,9 @@ onMounted(async () => {
     ApplicationType.HOST
   ))
 
-  if (registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING) {
+  if (registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING ||
+    registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
+  ) {
     const translationProps = {
       newLine: '<br/>',
       boldStart: '<strong>',
@@ -93,7 +95,10 @@ onMounted(async () => {
     subtitles.value = [{ text: getAddressDisplayParts(unitAddress.value.address, true).join(', ') }]
 
     // for Provisional Pending NOC the header details should be based on the application
-    if (!registration.value || application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING) {
+    if (!registration.value ||
+      application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+      application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+    ) {
       setHeaderDetails(
         application.value?.header.hostStatus,
         undefined,
