@@ -35,7 +35,7 @@ import json
 import uuid
 from dataclasses import dataclass
 from http import HTTPStatus
-from typing import Any, overload
+from typing import overload
 
 import requests
 from flask import current_app
