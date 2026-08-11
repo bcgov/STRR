@@ -1027,6 +1027,12 @@ def update_registration_supporting_document(application_number):
         if not application:
             raise AuthException()
 
+        if application.registration_id is not None:
+            return error_response(
+                http_status=HTTPStatus.BAD_REQUEST,
+                message="This application is linked to a registration. Upload documents on the registration instead.",
+            )
+
         filename = secure_filename(file.filename)
 
         document = DocumentService.upload_document(

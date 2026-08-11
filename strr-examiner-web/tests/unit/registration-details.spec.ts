@@ -339,6 +339,7 @@ describe('Examiner - Registration Details Page', () => {
       expect(button?.disabled).toBe(true)
     })
     isAssignedToUser.value = true
+    await nextTick()
   })
 
   it('displays Decision panel for Examiner', async () => {
