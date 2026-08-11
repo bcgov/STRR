@@ -35,7 +35,7 @@ import json
 import uuid
 from dataclasses import dataclass
 from http import HTTPStatus
-from typing import overload
+from typing import Any, overload
 
 import requests
 from flask import current_app
@@ -154,6 +154,14 @@ class InteractionService:
             )
         return normalized
 
+    @staticmethod
+    def _to_list(value: Any) -> list[str]:
+        """Convert a string, list, or scalar to a cleaned list of strings."""
+        if value is None:
+            return []
+        items = value if isinstance(value, list) else str(value).split(",")
+        return [str(x).strip() for x in items if str(x).strip()]
+
     @classmethod
     def _fallback_recipient_statuses(
         cls, meta_data: dict, default_status: str, default_created_at: str | None
@@ -163,57 +171,33 @@ class InteractionService:
         if not isinstance(notify_response, dict):
             return []
 
-        raw_recipients = notify_response.get("recipients") or ""
-        if isinstance(raw_recipients, list):
-            recipients = [str(r).strip() for r in raw_recipients if str(r).strip()]
-        elif isinstance(raw_recipients, str):
-            recipients = [r.strip() for r in raw_recipients.split(",") if r.strip()]
-        else:
-            recipients = []
-
+        recipients = cls._to_list(notify_response.get("recipients"))
         if not recipients:
             return []
 
-        raw_refs = (
-            notify_response.get("ids")
-            or meta_data.get("notify_references")
-            or (str(notify_response.get("id")) if notify_response.get("id") is not None else "")
+        ref_list = cls._to_list(
+            notify_response.get("ids") or meta_data.get("notify_references") or notify_response.get("id")
         )
-        if isinstance(raw_refs, list):
-            ref_list = [str(ref).strip() for ref in raw_refs if str(ref).strip()]
-        elif isinstance(raw_refs, (str, int, float)):
-            ref_list = [ref.strip() for ref in str(raw_refs).split(",") if ref.strip()]
-        else:
-            ref_list = []
 
         sent_date = notify_response.get("sentDate") or notify_response.get("requestDate") or default_created_at
         request_date = notify_response.get("requestDate")
         provider_status = notify_response.get("notifyStatus")
         mapped_status = cls._map_recipient_delivery_status(provider_status or default_status)
 
-        fallback_rows = []
-        for i, recipient in enumerate(recipients):
-            if i < len(ref_list):
-                notify_ref = ref_list[i]
-            elif ref_list:
-                notify_ref = ref_list[0]
-            else:
-                notify_ref = None
-
-            fallback_rows.append(
-                {
-                    "email_address": recipient,
-                    "failure_reason": None,
-                    "failure_type": None,
-                    "notify_reference": notify_ref,
-                    "provider_reference": None,
-                    "request_date": request_date,
-                    "sent_date": sent_date,
-                    "status": mapped_status,
-                    "provider_status": provider_status,
-                }
-            )
-        return fallback_rows
+        return [
+            {
+                "email_address": recipient,
+                "failure_reason": None,
+                "failure_type": None,
+                "notify_reference": ref_list[i] if i < len(ref_list) else (ref_list[0] if ref_list else None),
+                "provider_reference": None,
+                "request_date": request_date,
+                "sent_date": sent_date,
+                "status": mapped_status,
+                "provider_status": provider_status,
+            }
+            for i, recipient in enumerate(recipients)
+        ]
 
     @classmethod
     def _build_delivery_row(cls, interaction: CustomerInteraction, event_type: str) -> dict | None:
