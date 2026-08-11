@@ -164,7 +164,13 @@ class InteractionService:
             return []
 
         raw_recipients = notify_response.get("recipients") or ""
-        recipients = [r.strip() for r in raw_recipients.split(",") if r.strip()]
+        if isinstance(raw_recipients, list):
+            recipients = [str(r).strip() for r in raw_recipients if str(r).strip()]
+        elif isinstance(raw_recipients, str):
+            recipients = [r.strip() for r in raw_recipients.split(",") if r.strip()]
+        else:
+            recipients = []
+
         if not recipients:
             return []
 
@@ -173,7 +179,12 @@ class InteractionService:
             or meta_data.get("notify_references")
             or (str(notify_response.get("id")) if notify_response.get("id") is not None else "")
         )
-        ref_list = [ref.strip() for ref in str(raw_refs).split(",") if ref.strip()]
+        if isinstance(raw_refs, list):
+            ref_list = [str(ref).strip() for ref in raw_refs if str(ref).strip()]
+        elif isinstance(raw_refs, (str, int, float)):
+            ref_list = [ref.strip() for ref in str(raw_refs).split(",") if ref.strip()]
+        else:
+            ref_list = []
 
         sent_date = notify_response.get("sentDate") or notify_response.get("requestDate") or default_created_at
         request_date = notify_response.get("requestDate")

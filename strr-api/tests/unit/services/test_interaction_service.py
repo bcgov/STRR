@@ -639,3 +639,32 @@ def test_filing_history_rows_fallback_multiple_recipients(session, setup_parents
     assert recipients[1]["email_address"] == "second@example.com"
     assert recipients[1]["notify_reference"] == "2000002"
     assert recipients[1]["status"] == "SENT"
+
+
+def test_filing_history_rows_fallback_list_recipients_and_ids(session, setup_parents):
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.SENT,
+        application_id=setup_parents["application_id"],
+        meta_data={
+            "email_type": "HOST_FULL_REVIEW_APPROVED",
+            "notify_response": {
+                "ids": [3000001, 3000002],
+                "sentDate": "2026-07-05T10:00:00.000000",
+                "recipients": ["list1@example.com", "list2@example.com"],
+                "notifyStatus": "DELIVERED",
+            },
+        },
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == 1
+    recipients = rows[0]["structuredDetails"]["recipientStatuses"]
+    assert len(recipients) == 2
+    assert recipients[0]["email_address"] == "list1@example.com"
+    assert recipients[0]["notify_reference"] == "3000001"
+    assert recipients[0]["status"] == "DELIVERED"
+    assert recipients[1]["email_address"] == "list2@example.com"
+    assert recipients[1]["notify_reference"] == "3000002"
+    assert recipients[1]["status"] == "DELIVERED"
