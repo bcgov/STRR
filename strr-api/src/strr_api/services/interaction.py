@@ -40,6 +40,7 @@ from typing import Any, overload
 import requests
 from flask import current_app
 
+from strr_api.common.utils import normalize_to_list
 from strr_api.enums.enum import ChannelType, InteractionStatus
 from strr_api.exceptions import ExternalServiceException, ValidationException
 from strr_api.models import CustomerInteraction, Events
@@ -154,14 +155,6 @@ class InteractionService:
             )
         return normalized
 
-    @staticmethod
-    def _to_list(value: Any) -> list[str]:
-        """Convert a string, list, or scalar to a cleaned list of strings."""
-        if value is None:
-            return []
-        items = value if isinstance(value, list) else str(value).split(",")
-        return [str(x).strip() for x in items if str(x).strip()]
-
     @classmethod
     def _fallback_recipient_statuses(
         cls, meta_data: dict, default_status: str, default_created_at: str | None
@@ -171,11 +164,11 @@ class InteractionService:
         if not isinstance(notify_response, dict):
             return []
 
-        recipients = cls._to_list(notify_response.get("recipients"))
+        recipients = normalize_to_list(notify_response.get("recipients"))
         if not recipients:
             return []
 
-        ref_list = cls._to_list(
+        ref_list = normalize_to_list(
             notify_response.get("ids") or meta_data.get("notify_references") or notify_response.get("id")
         )
 
