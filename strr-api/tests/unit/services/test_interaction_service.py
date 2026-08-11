@@ -619,10 +619,12 @@ def test_filing_history_rows_fallback_multiple_recipients(session, setup_parents
             "email_type": "HOST_FULL_REVIEW_APPROVED",
             "notify_response": {
                 "id": 2000001,
+                "ids": "2000001,2000002",
                 "sentDate": "2026-07-05T10:00:00.000000",
                 "recipients": "first@example.com, second@example.com",
                 "notifyStatus": "SENT",
             },
+            "notify_references": "2000001,2000002",
         },
     )
     interaction.save()
@@ -632,6 +634,8 @@ def test_filing_history_rows_fallback_multiple_recipients(session, setup_parents
     recipients = rows[0]["structuredDetails"]["recipientStatuses"]
     assert len(recipients) == 2
     assert recipients[0]["email_address"] == "first@example.com"
+    assert recipients[0]["notify_reference"] == "2000001"
     assert recipients[0]["status"] == "SENT"
     assert recipients[1]["email_address"] == "second@example.com"
+    assert recipients[1]["notify_reference"] == "2000002"
     assert recipients[1]["status"] == "SENT"

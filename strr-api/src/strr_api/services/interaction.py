@@ -168,30 +168,41 @@ class InteractionService:
         if not recipients:
             return []
 
+        raw_refs = (
+            notify_response.get("ids")
+            or meta_data.get("notify_references")
+            or (str(notify_response.get("id")) if notify_response.get("id") is not None else "")
+        )
+        ref_list = [ref.strip() for ref in str(raw_refs).split(",") if ref.strip()]
+
         sent_date = notify_response.get("sentDate") or notify_response.get("requestDate") or default_created_at
         request_date = notify_response.get("requestDate")
-        notify_ref = (
-            str(notify_response.get("id"))
-            if notify_response.get("id") is not None
-            else meta_data.get("notify_references")
-        )
         provider_status = notify_response.get("notifyStatus")
         mapped_status = cls._map_recipient_delivery_status(provider_status or default_status)
 
-        return [
-            {
-                "email_address": recipient,
-                "failure_reason": None,
-                "failure_type": None,
-                "notify_reference": notify_ref,
-                "provider_reference": None,
-                "request_date": request_date,
-                "sent_date": sent_date,
-                "status": mapped_status,
-                "provider_status": provider_status,
-            }
-            for recipient in recipients
-        ]
+        fallback_rows = []
+        for i, recipient in enumerate(recipients):
+            if i < len(ref_list):
+                notify_ref = ref_list[i]
+            elif ref_list:
+                notify_ref = ref_list[0]
+            else:
+                notify_ref = None
+
+            fallback_rows.append(
+                {
+                    "email_address": recipient,
+                    "failure_reason": None,
+                    "failure_type": None,
+                    "notify_reference": notify_ref,
+                    "provider_reference": None,
+                    "request_date": request_date,
+                    "sent_date": sent_date,
+                    "status": mapped_status,
+                    "provider_status": provider_status,
+                }
+            )
+        return fallback_rows
 
     @classmethod
     def _build_delivery_row(cls, interaction: CustomerInteraction, event_type: str) -> dict | None:
