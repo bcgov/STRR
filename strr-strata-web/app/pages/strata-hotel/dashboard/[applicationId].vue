@@ -227,6 +227,8 @@ definePageMeta({
           :title="todo.title"
           :subtitle="todo.subtitle"
           :buttons="todo.buttons"
+          :badge="todo.badge"
+          :badge-color="todo.badgeColor"
         />
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('strr.label.registeringBusiness')" :loading="loading">
