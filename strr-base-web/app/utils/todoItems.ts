@@ -35,6 +35,79 @@ const toVancouverDateTime = (date: Date | string): DateTime => {
   return DateTime.fromISO(isoDate).setZone('America/Vancouver')
 }
 
+const createBeginAppTodo = (t: Function, localePath: Function, applicationPath: string): Todo => ({
+  id: 'todo-begin-app',
+  title: t('strr.title.application'),
+  subtitle: undefined,
+  buttons: [{
+    label: t('btn.beginApplication'),
+    action: async () => {
+      await navigateTo(localePath(applicationPath))
+    }
+  }]
+})
+
+const createResumeAppTodo = (
+  t: Function,
+  localePath: Function,
+  applicationPath: string,
+  applicationInfo: ApplicationHeader
+): Todo => ({
+  id: 'todo-resume-app',
+  title: t('strr.title.application'),
+  subtitle: applicationInfo.status,
+  buttons: [{
+    label: t('btn.resumeApplication'),
+    action: async () => {
+      await navigateTo({
+        path: localePath(applicationPath),
+        query: { override: 'true', applicationId: applicationInfo.applicationNumber }
+      })
+    }
+  }]
+})
+
+const createPaymentTodo = (t: Function, payRedirectPath: string, applicationInfo: ApplicationHeader): Todo => {
+  const { handlePaymentRedirect } = useConnectNav()
+  return {
+    id: 'todo-complete-payment',
+    title: t('label.completePayment'),
+    subtitle: undefined,
+    buttons: [{
+      label: t('label.payNow'),
+      action: () => handlePaymentRedirect(applicationInfo.paymentToken, payRedirectPath)
+    }]
+  }
+}
+
+const createNocTodoItem = (
+  t: Function,
+  applicationInfo: ApplicationHeader,
+  applicationType?: ApplicationType
+): Todo | null => {
+  const status = applicationInfo.status
+  if (!status || !NOC_STATUSES.has(status) || !applicationInfo.nocEndDate) {
+    return null
+  }
+
+  const isProvisional = PROVISIONAL_NOC_STATUSES.has(status)
+  const isExpired = EXPIRED_NOC_STATUSES.has(status)
+  const isHost = applicationType === ApplicationType.HOST
+  const prefix = isProvisional ? 'provisionalNoc' : 'noc'
+  const nocEndDate = dateToString(applicationInfo.nocEndDate as Date, 'DDD')
+
+  const generalSubtitle = t(`todos.${prefix}.general`, NOC_TRANSLATION_PROPS)
+  const hostSubtitle = isHost ? t(`todos.${prefix}.host`, NOC_TRANSLATION_PROPS) : ''
+
+  return {
+    id: isProvisional ? 'todo-provisional-noc-add-docs' : 'todo-noc-add-docs',
+    title: `${t(`todos.${prefix}.title1`)} ${nocEndDate} ${t(`todos.${prefix}.title2`)}`,
+    subtitle: `${generalSubtitle}${hostSubtitle}`,
+    badge: isExpired ? t('label.expired') : undefined,
+    badgeColor: isExpired ? 'red' : undefined
+  }
+}
+
 export const getTodoApplication = (
   applicationPath: string,
   payRedirectPath: string,
@@ -43,83 +116,23 @@ export const getTodoApplication = (
 ): Todo[] => {
   const { t } = useNuxtApp().$i18n
   const localePath = useLocalePath()
-  const todos: Todo[] = []
 
-  // Case 1: Unstarted application
   if (!applicationInfo) {
-    todos.push({
-      id: 'todo-begin-app',
-      title: t('strr.title.application'),
-      subtitle: undefined,
-      buttons: [{
-        label: t('btn.beginApplication'),
-        action: async () => {
-          await navigateTo(localePath(applicationPath))
-        }
-      }]
-    })
-    return todos
+    return [createBeginAppTodo(t, localePath, applicationPath)]
   }
 
-  // Case 2: Draft application (non-renewal)
-  if (applicationInfo.status === ApplicationStatus.DRAFT && applicationInfo.applicationType !== 'renewal') {
-    todos.push({
-      id: 'todo-resume-app',
-      title: t('strr.title.application'),
-      subtitle: applicationInfo.status,
-      buttons: [{
-        label: t('btn.resumeApplication'),
-        action: async () => {
-          await navigateTo({
-            path: localePath(applicationPath),
-            query: { override: 'true', applicationId: applicationInfo.applicationNumber }
-          })
-        }
-      }]
-    })
-    return todos
+  const isRenewal = applicationInfo.applicationType === 'renewal'
+
+  if (applicationInfo.status === ApplicationStatus.DRAFT && !isRenewal) {
+    return [createResumeAppTodo(t, localePath, applicationPath, applicationInfo)]
   }
 
-  // Case 3: Payment submission required (non-renewal)
-  if (
-    applicationInfo.hostActions?.includes(HostActions.SUBMIT_PAYMENT) &&
-    applicationInfo.applicationType !== 'renewal'
-  ) {
-    const { handlePaymentRedirect } = useConnectNav()
-    todos.push({
-      id: 'todo-complete-payment',
-      title: t('label.completePayment'),
-      subtitle: undefined,
-      buttons: [{
-        label: t('label.payNow'),
-        action: () => handlePaymentRedirect(applicationInfo.paymentToken, payRedirectPath)
-      }]
-    })
-    return todos
+  if (applicationInfo.hostActions?.includes(HostActions.SUBMIT_PAYMENT) && !isRenewal) {
+    return [createPaymentTodo(t, payRedirectPath, applicationInfo)]
   }
 
-  // Case 4: Notice of Consideration (Active or Expired)
-  const status = applicationInfo.status
-  if (status && NOC_STATUSES.has(status) && applicationInfo.nocEndDate) {
-    const isProvisional = PROVISIONAL_NOC_STATUSES.has(status)
-    const isExpired = EXPIRED_NOC_STATUSES.has(status)
-    const isHost = applicationType === ApplicationType.HOST
-    const prefix = isProvisional ? 'provisionalNoc' : 'noc'
-    const nocEndDate = dateToString(applicationInfo.nocEndDate as Date, 'DDD')
-
-    const generalSubtitle = t(`todos.${prefix}.general`, NOC_TRANSLATION_PROPS)
-    const hostSubtitle = isHost ? t(`todos.${prefix}.host`, NOC_TRANSLATION_PROPS) : ''
-
-    todos.push({
-      id: isProvisional ? 'todo-provisional-noc-add-docs' : 'todo-noc-add-docs',
-      title: `${t(`todos.${prefix}.title1`)} ${nocEndDate} ${t(`todos.${prefix}.title2`)}`,
-      subtitle: `${generalSubtitle}${hostSubtitle}`,
-      badge: isExpired ? t('label.expired') : undefined,
-      badgeColor: isExpired ? 'red' : undefined
-    })
-  }
-
-  return todos
+  const nocTodo = createNocTodoItem(t, applicationInfo, applicationType)
+  return nocTodo ? [nocTodo] : []
 }
 
 export const getTodoRegistration = async (regId: number) => {
