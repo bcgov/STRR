@@ -216,6 +216,8 @@ describe('NOC Todo', () => {
     addNocTodo()
     expect(todos.value).toHaveLength(1)
     expect(todos.value[0]!.id).toBe('todo-reg-noc-add-docs')
+    expect(todos.value[0]!.badge).toBe('Expired')
+    expect(todos.value[0]!.badgeColor).toBe('red')
   })
 
   it('NOC todo when nocStatus is NOC_PENDING', () => {

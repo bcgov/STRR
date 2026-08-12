@@ -273,9 +273,9 @@ definePageMeta({
           <div
             v-if="
               application?.header.status === ApplicationStatus.NOC_PENDING ||
-              application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
-              application?.header.status === ApplicationStatus.NOC_EXPIRED ||
-              application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+                application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+                application?.header.status === ApplicationStatus.NOC_EXPIRED ||
+                application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
             "
           >
             <UButton

@@ -60,11 +60,14 @@ export const useDashboardTodos = () => {
     ) {
       const translationProps = getScrollLinkTranslationProps()
       const nocEndDate = dateToString((permitDetails.value as HostRegistrationResp).nocEndDate as Date)
+      const isExpired = registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
 
       todos.value.push({
         id: 'todo-reg-noc-add-docs',
         title: `${t('todos.registrationNoc.title1')} ${nocEndDate} ${t('todos.registrationNoc.title2')}`,
-        subtitle: `${t('todos.registrationNoc.general', translationProps)}`
+        subtitle: `${t('todos.registrationNoc.general', translationProps)}`,
+        badge: isExpired ? t('label.expired') : undefined,
+        badgeColor: isExpired ? 'red' : undefined
       })
     }
   }
