@@ -96,12 +96,14 @@ const createNocTodoItem = (
   const prefix = isProvisional ? 'provisionalNoc' : 'noc'
   const nocEndDate = dateToString(applicationInfo.nocEndDate as Date, 'DDD')
 
-  const generalSubtitle = t(`todos.${prefix}.general`, NOC_TRANSLATION_PROPS)
-  const hostSubtitle = isHost ? t(`todos.${prefix}.host`, NOC_TRANSLATION_PROPS) : ''
+  const title1 = t('todos.' + prefix + '.title1')
+  const title2 = t('todos.' + prefix + '.title2')
+  const generalSubtitle = t('todos.' + prefix + '.general', NOC_TRANSLATION_PROPS)
+  const hostSubtitle = isHost ? t('todos.' + prefix + '.host', NOC_TRANSLATION_PROPS) : ''
 
   return {
     id: isProvisional ? 'todo-provisional-noc-add-docs' : 'todo-noc-add-docs',
-    title: `${t(`todos.${prefix}.title1`)} ${nocEndDate} ${t(`todos.${prefix}.title2`)}`,
+    title: `${title1} ${nocEndDate} ${title2}`,
     subtitle: `${generalSubtitle}${hostSubtitle}`,
     badge: isExpired ? t('label.expired') : undefined,
     badgeColor: isExpired ? 'red' : undefined
