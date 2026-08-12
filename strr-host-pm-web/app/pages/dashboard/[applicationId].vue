@@ -29,11 +29,7 @@ setupRenewalTodosWatch()
 const owners = ref<ConnectAccordionItem[]>([])
 const { isNewDashboardEnabled } = useHostFeatureFlags()
 
-onMounted(async () => {
-  loading.value = true
-  const applicationId = route.params.applicationId as string
-  await permitStore.loadHostData(applicationId)
-
+const setupDashboardTodos = () => {
   todos.value.push(...getTodoApplication(
     '/application',
     '/dashboard/' + application.value?.header.applicationNumber,
@@ -41,9 +37,8 @@ onMounted(async () => {
     ApplicationType.HOST
   ))
 
-  if (registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING ||
-    registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
-  ) {
+  const nocStatus = registration.value?.nocStatus
+  if (nocStatus === RegistrationNocStatus.NOC_PENDING || nocStatus === RegistrationNocStatus.NOC_EXPIRED) {
     const translationProps = {
       newLine: '<br/>',
       boldStart: '<strong>',
@@ -55,7 +50,7 @@ onMounted(async () => {
     }
 
     const nocEndDate = dateToString((permitDetails.value as HostRegistrationResp).nocEndDate as Date)
-    const isExpired = registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
+    const isExpired = nocStatus === RegistrationNocStatus.NOC_EXPIRED
 
     todos.value.push({
       id: 'todo-reg-noc-add-docs',
@@ -87,53 +82,66 @@ onMounted(async () => {
       iconClass: 'text-orange-500'
     })
   }
+}
 
+const setupDashboardHeaderDetails = () => {
   if (!permitDetails.value || !showPermitDetails.value) {
     // TODO: probably not ever going to get here? Filing would launch from the other account dashboard?
     title.value = t('strr.title.dashboard')
-  } else {
-    // existing registration or application under the account
-    // set left side of header
-    title.value = permitDetails.value.unitAddress.nickname || t('strr.label.unnamed')
-    subtitles.value = [{ text: getAddressDisplayParts(unitAddress.value.address, true).join(', ') }]
-
-    // for Provisional Pending NOC the header details should be based on the application
-    if (!registration.value ||
-      application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
-      application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
-    ) {
-      setHeaderDetails(
-        application.value?.header.hostStatus,
-        undefined,
-        isPaidApplication.value ? permitStore.downloadApplicationReceipt : undefined)
-    } else {
-      setHeaderDetails(
-        registration.value.status,
-        undefined,
-        permitStore.downloadApplicationReceipt)
-    }
-
-    // host right side details
-    setSideHeaderDetails(registration.value, application.value?.header)
-
-    // set sidebar accordion reps
-    owners.value = getHostPermitDashOwners()
-
-    // update breadcrumbs with strata business name
-    setBreadcrumbs([
-      {
-        label: t('label.bcregDash'),
-        to: config.registryHomeURL + 'dashboard',
-        appendAccountId: true,
-        external: true
-      },
-      {
-        label: t('strr.title.dashboard'),
-        to: localePath(isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard')
-      },
-      { label: permitDetails.value.unitAddress.nickname || t('strr.label.unnamed') }
-    ])
+    return
   }
+
+  // existing registration or application under the account
+  // set left side of header
+  title.value = permitDetails.value.unitAddress.nickname || t('strr.label.unnamed')
+  subtitles.value = [{ text: getAddressDisplayParts(unitAddress.value.address, true).join(', ') }]
+
+  // for Provisional Pending NOC the header details should be based on the application
+  const appStatus = application.value?.header.status
+  const isProvisional = appStatus === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+    appStatus === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+
+  if (!registration.value || isProvisional) {
+    setHeaderDetails(
+      application.value?.header.hostStatus,
+      undefined,
+      isPaidApplication.value ? permitStore.downloadApplicationReceipt : undefined)
+  } else {
+    setHeaderDetails(
+      registration.value.status,
+      undefined,
+      permitStore.downloadApplicationReceipt)
+  }
+
+  // host right side details
+  setSideHeaderDetails(registration.value, application.value?.header)
+
+  // set sidebar accordion reps
+  owners.value = getHostPermitDashOwners()
+
+  // update breadcrumbs with strata business name
+  setBreadcrumbs([
+    {
+      label: t('label.bcregDash'),
+      to: config.registryHomeURL + 'dashboard',
+      appendAccountId: true,
+      external: true
+    },
+    {
+      label: t('strr.title.dashboard'),
+      to: localePath(isNewDashboardEnabled.value ? '/dashboard-new' : '/dashboard')
+    },
+    { label: permitDetails.value.unitAddress.nickname || t('strr.label.unnamed') }
+  ])
+}
+
+onMounted(async () => {
+  loading.value = true
+  const applicationId = route.params.applicationId as string
+  await permitStore.loadHostData(applicationId)
+
+  setupDashboardTodos()
+  setupDashboardHeaderDetails()
 
   loading.value = false
 })
