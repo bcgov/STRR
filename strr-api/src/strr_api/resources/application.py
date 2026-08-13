@@ -801,6 +801,7 @@ def update_application_status(application_number):
         json_input = request.get_json()
         status = json_input.get("status")
         custom_content = json_input.get("emailContent")
+        decision = json_input.get("decision")
         if not status or status.upper() not in APPLICATION_STATES_STAFF_ACTION:
             return error_response(
                 message=ErrorMessage.INVALID_APPLICATION_STATUS.value,
@@ -842,7 +843,9 @@ def update_application_status(application_number):
                     http_status=HTTPStatus.BAD_REQUEST,
                 )
 
-        application = ApplicationService.update_application_status(application, status.upper(), user, custom_content)
+        application = ApplicationService.update_application_status(
+          application, status.upper(), user, custom_content, decision
+        )
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:
         logger.error(exception)
