@@ -201,12 +201,23 @@ describe('Pending Renewal', () => {
 describe('NOC Todo', () => {
   beforeEach(resetState)
 
-  it('does not add a todo when nocStatus is not NOC_PENDING', () => {
-    mockRegistration.value = { ...mockHostRegistration, nocStatus: RegistrationNocStatus.NOC_EXPIRED }
+  it('does not add a todo when nocStatus is null', () => {
+    mockRegistration.value = { ...mockHostRegistration, nocStatus: null as any }
     mockPermitDetails.value = { nocEndDate: new Date('2025-10-18') }
     const { todos, addNocTodo } = useDashboardTodos()
     addNocTodo()
     expect(todos.value).toHaveLength(0)
+  })
+
+  it('adds NOC todo when nocStatus is NOC_EXPIRED', () => {
+    mockRegistration.value = { ...mockHostRegistration, nocStatus: RegistrationNocStatus.NOC_EXPIRED }
+    mockPermitDetails.value = { nocEndDate: new Date('2025-10-18') }
+    const { todos, addNocTodo } = useDashboardTodos()
+    addNocTodo()
+    expect(todos.value).toHaveLength(1)
+    expect(todos.value[0]!.id).toBe('todo-reg-noc-add-docs')
+    expect(todos.value[0]!.badge).toBe('Expired')
+    expect(todos.value[0]!.badgeColor).toBe('red')
   })
 
   it('NOC todo when nocStatus is NOC_PENDING', () => {

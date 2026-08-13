@@ -43,6 +43,8 @@ defineProps<{
           :buttons="todo?.buttons"
           :icon="todo?.icon"
           :icon-class="todo?.iconClass"
+          :badge="todo?.badge"
+          :badge-color="todo?.badgeColor"
         />
         <div v-if="index < todos.length - 1" class="h-px w-full border-b border-gray-100" />
       </template>

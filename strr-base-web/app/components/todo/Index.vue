@@ -7,6 +7,8 @@ const props = defineProps<{
   subtitle?: string,
   icon?: string,
   iconClass?: string,
+  badge?: string,
+  badgeColor?: string,
   buttons?: Array<{
     label: string,
     action: Function,
@@ -42,8 +44,16 @@ const dropdownItems = computed((): DropdownItem[] => {
         </div>
         <div class="grow space-y-2">
           <slot name="title">
-            <h3 class="text-base font-bold">
-              {{ title }}
+            <h3 class="flex flex-wrap items-center gap-2 text-base font-bold">
+              <span>{{ title }}</span>
+              <UBadge
+                v-if="badge"
+                :label="badge"
+                :color="badgeColor || 'red'"
+                variant="subtle"
+                size="sm"
+                class="font-bold"
+              />
             </h3>
           </slot>
           <slot name="subtitle">

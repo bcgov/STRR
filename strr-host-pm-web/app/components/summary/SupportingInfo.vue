@@ -18,12 +18,18 @@ const docStore = useDocumentStore()
 const { application, registration, needsBusinessLicenseDocumentUpload } = storeToRefs(useHostPermitStore())
 
 const isRegistration = computed((): boolean => !!registration.value?.registrationNumber)
-const hasRegistrationNoc = computed(() => registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING)
+const hasRegistrationNoc = computed(() =>
+  registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING ||
+  registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
+)
 // used to display Add New Document button
 const isNocPending = computed(() =>
   application.value?.header.status === ApplicationStatus.NOC_PENDING ||
   application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
-  registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING
+  application.value?.header.status === ApplicationStatus.NOC_EXPIRED ||
+  application.value?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED ||
+  registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING ||
+  registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
 )
 
 // Show upload button if NOC is pending OR business license is required
