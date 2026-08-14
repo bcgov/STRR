@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
-    "@nuxt/devtools": "^3.1.1",
+    "@nuxt/devtools": "3.3.1",
     "@nuxt/image": "^2.0.0",
     "@nuxt/test-utils": "^3.21.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
@@ -39,7 +39,7 @@
     "eslint": "^8.57.1",
     "eslint-plugin-tailwindcss": "^3.17.4",
     "happy-dom": "^20.0.11",
-    "nuxt": "3.15.4",
+    "nuxt": "3.21.10",
     "playwright-core": "^1.57.0",
     "sass": "^1.77.6",
     "typescript": "^5.9.3",
