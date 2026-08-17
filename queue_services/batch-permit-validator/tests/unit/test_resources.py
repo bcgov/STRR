@@ -107,7 +107,7 @@ def test_send_bulk_validation_response_posts_callback(client, mocker):
 
 
 def test_send_bulk_validation_response_callback_non_200(client, mocker):
-    """Non-200 from callback URL yields 500."""
+    """Non-200 from callback URL yields 500 with error payload."""
     ce = SimpleCloudEvent(
         id="1",
         source="test",
@@ -120,7 +120,7 @@ def test_send_bulk_validation_response_callback_non_200(client, mocker):
     )
     mocker.patch(
         "batch_permit_validator.resources.batch_permit_validator.requests.post",
-        return_value=MagicMock(status_code=500),
+        return_value=MagicMock(status_code=500, text="Internal Server Error"),
     )
     with patch(
         "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
@@ -128,6 +128,33 @@ def test_send_bulk_validation_response_callback_non_200(client, mocker):
     ):
         response = client.post("/bulk-validation-response", data=b"{}")
     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.get_json() == {"error": "Callback endpoint failed with status 500"}
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"callBackUrl": "", "preSignedUrl": "https://storage.example/out.json"},
+        {"callBackUrl": "https://callback.example/hook", "preSignedUrl": ""},
+        {"callBackUrl": None, "preSignedUrl": "https://storage.example/out.json"},
+    ],
+)
+def test_send_bulk_validation_response_missing_required_urls(client, data):
+    """Missing callback or presigned URL yields 400 BAD_REQUEST."""
+    ce = SimpleCloudEvent(
+        id="1",
+        source="test",
+        subject="subj",
+        type="strr.batchPermitValidationResult",
+        data=data,
+    )
+    with patch(
+        "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
+        return_value=ce,
+    ):
+        response = client.post("/bulk-validation-response", data=b"{}")
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.get_json() == {"error": "Missing required callback URL or presigned URL"}
 
 
 def test_send_bulk_validation_response_no_validation_payload_when_wrong_event_type(client):
@@ -147,8 +174,10 @@ def test_send_bulk_validation_response_no_validation_payload_when_wrong_event_ty
     assert response.status_code == HTTPStatus.OK
 
 
-def test_send_bulk_validation_response_propagates_when_post_raises(client, mocker):
-    """Callback POST failure re-raises after logging."""
+def test_send_bulk_validation_response_timeout(client, mocker):
+    """Timeout from requests.post yields 504 GATEWAY_TIMEOUT."""
+    import requests
+
     ce = SimpleCloudEvent(
         id="1",
         source="test",
@@ -161,14 +190,67 @@ def test_send_bulk_validation_response_propagates_when_post_raises(client, mocke
     )
     mocker.patch(
         "batch_permit_validator.resources.batch_permit_validator.requests.post",
-        side_effect=RuntimeError("network down"),
+        side_effect=requests.exceptions.Timeout("timed out"),
     )
     with patch(
         "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
         return_value=ce,
     ):
-        with pytest.raises(RuntimeError, match="network down"):
-            client.post("/bulk-validation-response", data=b"{}")
+        response = client.post("/bulk-validation-response", data=b"{}")
+    assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
+    assert response.get_json() == {"error": "Callback URL timed out"}
+
+
+def test_send_bulk_validation_response_request_exception(client, mocker):
+    """RequestException from requests.post yields 500 INTERNAL_SERVER_ERROR."""
+    import requests
+
+    ce = SimpleCloudEvent(
+        id="1",
+        source="test",
+        subject="subj",
+        type="strr.batchPermitValidationResult",
+        data={
+            "callBackUrl": "https://callback.example/hook",
+            "preSignedUrl": "https://storage.example/out.json",
+        },
+    )
+    mocker.patch(
+        "batch_permit_validator.resources.batch_permit_validator.requests.post",
+        side_effect=requests.exceptions.RequestException("connection dropped"),
+    )
+    with patch(
+        "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
+        return_value=ce,
+    ):
+        response = client.post("/bulk-validation-response", data=b"{}")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.get_json() == {"error": "Callback request failure"}
+
+
+def test_send_bulk_validation_response_unexpected_exception(client, mocker):
+    """Generic exception from requests.post yields 500 INTERNAL_SERVER_ERROR."""
+    ce = SimpleCloudEvent(
+        id="1",
+        source="test",
+        subject="subj",
+        type="strr.batchPermitValidationResult",
+        data={
+            "callBackUrl": "https://callback.example/hook",
+            "preSignedUrl": "https://storage.example/out.json",
+        },
+    )
+    mocker.patch(
+        "batch_permit_validator.resources.batch_permit_validator.requests.post",
+        side_effect=RuntimeError("unexpected"),
+    )
+    with patch(
+        "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
+        return_value=ce,
+    ):
+        response = client.post("/bulk-validation-response", data=b"{}")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.get_json() == {"error": "Internal server error"}
 
 
 def test_worker_propagates_when_run_job_raises(client):
@@ -197,9 +279,10 @@ def test_test_response_endpoint_logs_json(client):
 
 
 def test_test_response_logs_error_when_get_json_raises(client):
-    """Exception in /test-response is logged; bare except leaves no return (Flask 3 → TypeError)."""
+    """Exception in /test-response is logged and returns 500."""
     mock_request = MagicMock()
     mock_request.get_json.side_effect = ValueError("bad json")
     with patch.object(bpvm_module, "request", mock_request):
-        with pytest.raises(TypeError, match="did not return a valid response"):
-            client.post("/test-response")
+        response = client.post("/test-response")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.get_json() == {"error": "Internal server error"}
