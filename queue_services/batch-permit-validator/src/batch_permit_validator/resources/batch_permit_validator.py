@@ -64,18 +64,10 @@ def worker():
     if not request.data:
         return {}, HTTPStatus.OK
 
-    logger.info("Incoming raw msg: %s", request.get_json())
-    ce = request.get_json()
-    logger.info("%s", ce)
-    file_name = (
-        ce.get("message", {})
-        .get("attributes", {})
-        .get(
-            "objectId",
-        )
-        if isinstance(ce, dict)
-        else None
-    )
+    ce = request.get_json() or {}
+    logger.info("Incoming raw msg: %s", ce)
+
+    file_name = _extract_uploaded_file_name(ce)
     logger.info("File Name: %s", file_name)
     if not file_name:
         return {"error": "Invalid File Name"}, HTTPStatus.BAD_REQUEST
@@ -84,6 +76,18 @@ def worker():
 
     logger.info("Finished processing: %s", str(ce))
     return {}, HTTPStatus.OK
+
+
+def _extract_uploaded_file_name(ce: dict) -> Optional[str]:
+    """Extract object/file name from direct GCS events or Pub/Sub wrapped messages."""
+    if not isinstance(ce, dict):
+        return None
+    if file_name := ce.get("name") or ce.get("objectId"):
+        return file_name
+    if isinstance(message := ce.get("message"), dict):
+        if isinstance(attributes := message.get("attributes"), dict):
+            return attributes.get("objectId") or attributes.get("name")
+    return None
 
 
 def _trigger_batch_permit_validator_job(file_name=""):

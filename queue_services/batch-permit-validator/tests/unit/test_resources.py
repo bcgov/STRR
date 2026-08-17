@@ -22,25 +22,48 @@ def test_empty_post(client):
     [
         {"message": {"attributes": {}}},
         {"message": {"attributes": {"objectId": ""}}},
+        {"message": "not-a-dict"},
+        {"kind": "storage#object"},
+        {"name": ""},
+        ["list-not-dict"],
+        {},
     ],
 )
 def test_worker_invalid_file_name(client, payload):
-    """Missing or empty objectId returns 400."""
+    """Missing or empty file name returns 400."""
     response = client.post("/", json=payload)
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.get_json() == {"error": "Invalid File Name"}
 
 
-def test_worker_triggers_cloud_run_job(client):
-    """Valid objectId triggers Cloud Run Jobs run_job with configured parent and file arg."""
+@pytest.mark.parametrize(
+    "payload,expected_file_name",
+    [
+        (
+            {"message": {"attributes": {"objectId": "bulk-validation/requests/file.json"}}},
+            "bulk-validation/requests/file.json",
+        ),
+        (
+            {"message": {"attributes": {"name": "bulk-validation/requests/file.json"}}},
+            "bulk-validation/requests/file.json",
+        ),
+        (
+            {
+                "kind": "storage#object",
+                "name": "4ddfd945-2248-4f66-ba35-570a5de7582d",
+                "bucket": "strr_bulk_validation_requests_dev",
+            },
+            "4ddfd945-2248-4f66-ba35-570a5de7582d",
+        ),
+        (
+            {"objectId": "4ddfd945-2248-4f66-ba35-570a5de7582d"},
+            "4ddfd945-2248-4f66-ba35-570a5de7582d",
+        ),
+    ],
+)
+def test_worker_triggers_cloud_run_job(client, payload, expected_file_name):
+    """Valid file name in GCS object event or Pub/Sub triggers Cloud Run Jobs run_job."""
     mock_jobs_client = MagicMock()
-    payload = {
-        "message": {
-            "attributes": {
-                "objectId": "bulk-validation/requests/file.json",
-            }
-        }
-    }
     with patch(
         "batch_permit_validator.resources.batch_permit_validator.run_v2.JobsClient",
         return_value=mock_jobs_client,
@@ -54,9 +77,7 @@ def test_worker_triggers_cloud_run_job(client):
     assert job_request.name == (
         "projects/test-project/locations/us-central1/jobs/batch-permit-validator-job"
     )
-    assert job_request.overrides.container_overrides[0].args == [
-        "bulk-validation/requests/file.json",
-    ]
+    assert job_request.overrides.container_overrides[0].args == [expected_file_name]
     assert job_request.overrides.timeout.seconds == 45 * 60
     assert job_request.overrides.task_count == 1
 
