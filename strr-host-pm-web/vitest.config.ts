@@ -3,6 +3,9 @@ import path from 'path'
 import { defineVitestConfig } from '@nuxt/test-utils/config'
 
 export default defineVitestConfig({
+  esbuild: {
+    tsconfigRaw: '{}'
+  },
   test: {
     environment: 'nuxt',
     dir: 'tests',
