@@ -35,7 +35,7 @@ export default defineNuxtConfig({
   },
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: true }]
+    ['github:bcgov/STRR/strr-base-web#Jacky/nuxt-devtools-security-upgrade', { install: true }]
     // '../strr-base-web' // dev only
   ],
 
