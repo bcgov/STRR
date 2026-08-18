@@ -50,5 +50,6 @@
     "country-codes-list": "^2.0.0",
     "nuxt": "3.21.10",
     "vue-country-flag-next": "^2.3.2"
-  }
+  },
+  "packageManager": "pnpm@10.21.0+sha1.a2cb35d3f07a58fecfe050af9277c5dc43a1b2e7"
 }
