@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
-    "@nuxt/devtools": "^3.1.1",
+    "@nuxt/devtools": "3.3.1",
     "@nuxt/image": "^2.0.0",
     "@nuxt/test-utils": "3.21.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
@@ -50,7 +50,7 @@
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "country-codes-list": "^2.0.0",
-    "nuxt": "3.15.4",
+    "nuxt": "3.21.10",
     "uuid": "^11.1.0",
     "v-calendar": "^3.1.2"
   }
