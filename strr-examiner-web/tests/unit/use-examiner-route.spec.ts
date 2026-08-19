@@ -1,7 +1,8 @@
 import { describe, it, beforeEach, vi } from 'vitest'
 import { mockHostApplication } from '../mocks/mockedData'
 
-vi.mock('#app', () => ({
+vi.mock('#app', async importOriginal => ({
+  ...await importOriginal<typeof import('#app')>(),
   useLocalePath: (path: string) => path
 }))
 

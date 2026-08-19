@@ -40,12 +40,25 @@ const duplicateRenewalError = {
   }
 }
 
-mockNuxtImport('useRouter', () => () => ({ replace: replaceMock }))
+mockNuxtImport('useRouter', () => () => ({
+  afterEach: vi.fn(),
+  beforeResolve: vi.fn(),
+  replace: replaceMock
+}))
 mockNuxtImport('useRoute', () => () => mockRoute)
+mockNuxtImport('useLocalePath', () => () => (path: string) => path)
+mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
+  $i18n: baseEnI18n.global
+}))
 
-vi.mock('vue-router', () => ({
+vi.mock('vue-router', async importOriginal => ({
+  ...await importOriginal<typeof import('vue-router')>(),
   useRoute: vi.fn(() => mockRoute),
-  useRouter: () => ({ replace: replaceMock }),
+  useRouter: () => ({
+    afterEach: vi.fn(),
+    beforeResolve: vi.fn(),
+    replace: replaceMock
+  }),
   onBeforeRouteLeave: vi.fn()
 }))
 
@@ -145,8 +158,13 @@ mockNuxtImport('useStrrModals', () => () => ({
   openAppSubmitError: openAppSubmitErrorMock
 }))
 
-vi.mock('@/composables/useConnectNav', () => ({
-  useConnectNav: () => ({ handlePaymentRedirect: vi.fn() })
+mockNuxtImport('useConnectNav', () => () => ({ handlePaymentRedirect: vi.fn() }))
+mockNuxtImport('useConnectFeeStore', () => () => ({
+  addReplaceFee: vi.fn(),
+  initAlternatePaymentMethod: vi.fn().mockResolvedValue(undefined),
+  removeFee: vi.fn(),
+  setPlaceholderFilingTypeCode: vi.fn(),
+  setPlaceholderServiceFee: vi.fn()
 }))
 
 vi.mock('@/composables/useHostPmModals', () => ({
