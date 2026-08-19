@@ -22,6 +22,7 @@ const {
   isHostApplication
 } = storeToRefs(useExaminerStore())
 const { isExaminerNotesEnabled } = useExaminerFeatureFlags()
+const { showDecisionPanel } = useExaminerDecision()
 const { withNoteCheck, useNoteLeaveGuard } = useExaminerNotes()
 useNoteLeaveGuard()
 
@@ -206,7 +207,8 @@ watch(
         </template>
       </ApplicationDetailsView>
       <DocumentUpload />
-      <ComposeNoc />
+      <ComposeNoc v-if="!showDecisionPanel" />
+      <DecisionPanel />
       <ExaminerNotes
         v-if="isExaminerNotesEnabled && isHostApplication"
         :is-readonly="isNotesReadonly"

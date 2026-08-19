@@ -555,12 +555,12 @@ class ApplicationSerializer:
 
     EXAMINER_ACTIONS = {
         Application.Status.FULL_REVIEW_APPROVED: [],
-        Application.Status.FULL_REVIEW: ["APPROVE", "SEND_NOC"],
-        Application.Status.NOC_PENDING: ["APPROVE", "REJECT"],
-        Application.Status.NOC_EXPIRED: ["APPROVE", "REJECT"],
-        Application.Status.PROVISIONAL_REVIEW: ["PROVISIONAL_APPROVE", "SEND_NOC"],
-        Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: ["PROVISIONAL_APPROVE", "REJECT"],
-        Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: ["PROVISIONAL_APPROVE", "REJECT"],
+        Application.Status.FULL_REVIEW: ["APPROVE", "SEND_NOC", "REJECT", "WITHDRAW"],
+        Application.Status.NOC_PENDING: ["APPROVE", "REJECT", "WITHDRAW"],
+        Application.Status.NOC_EXPIRED: ["APPROVE", "REJECT", "WITHDRAW"],
+        Application.Status.PROVISIONAL_REVIEW: ["PROVISIONAL_APPROVE", "SEND_NOC", "REJECT", "WITHDRAW"],
+        Application.Status.PROVISIONAL_REVIEW_NOC_PENDING: ["PROVISIONAL_APPROVE", "REJECT", "WITHDRAW"],
+        Application.Status.PROVISIONAL_REVIEW_NOC_EXPIRED: ["PROVISIONAL_APPROVE", "REJECT", "WITHDRAW"],
         Application.Status.PROVISIONALLY_DECLINED: [],
         Application.Status.DECLINED: ["SET_ASIDE"],
     }

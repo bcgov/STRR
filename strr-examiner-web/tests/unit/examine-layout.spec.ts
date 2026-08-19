@@ -58,20 +58,20 @@ describe('Examine Layout', () => {
     expect(wrapper.findComponent(ActionButtons).exists()).toBe(false)
   })
 
-  it('should show ConnectButtonControl for Applications in Full Review', async () => {
+  it('should show ActionButtons for Applications in Full Review', async () => {
     store.activeRecord = mockFullReviewApplication
     await nextTick()
 
-    expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(true)
-    expect(wrapper.findComponent(ActionButtons).exists()).toBe(false)
+    expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(false)
+    expect(wrapper.findComponent(ActionButtons).exists()).toBe(true)
   })
 
-  it('should show ConnectButtonControl for strata hotel renewal applications with registration number', async () => {
+  it('should show ActionButtons for strata hotel renewal applications with registration number', async () => {
     store.activeRecord = mockStrataRenewalApplicationWithRegistrationNumber
     await nextTick()
 
-    expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(true)
-    expect(wrapper.findComponent(ActionButtons).exists()).toBe(false)
+    expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(false)
+    expect(wrapper.findComponent(ActionButtons).exists()).toBe(true)
   })
 
   it('should show ActionButtons for Registrations', async () => {

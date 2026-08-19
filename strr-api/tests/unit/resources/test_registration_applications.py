@@ -1072,7 +1072,7 @@ def test_examiner_send_notice_of_consideration(mock_noc, mock_invoice, session, 
         assert response_json.get("header").get("status") == Application.Status.NOC_PENDING
         assert response_json.get("header").get("hostStatus") == "Notice of Consideration"
         assert response_json.get("header").get("examinerStatus") == "NOC - Pending"
-        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT"]
+        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT", "WITHDRAW"]
         assert response_json.get("header").get("hostActions") == []
         assert response_json.get("header").get("nocStartDate") is not None
         assert response_json.get("header").get("nocEndDate") is not None
@@ -1352,7 +1352,11 @@ def test_send_notice_of_consideration_for_provisional_review(mock_noc, mock_invo
         assert response_json.get("header").get("status") == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
         assert response_json.get("header").get("hostStatus") == "Notice of Consideration"
         assert response_json.get("header").get("examinerStatus") == "NOC - Pending"
-        assert response_json.get("header").get("examinerActions") == ["PROVISIONAL_APPROVE", "REJECT"]
+        assert response_json.get("header").get("examinerActions") == [
+            "PROVISIONAL_APPROVE",
+            "REJECT",
+            "WITHDRAW",
+        ]
         assert response_json.get("header").get("hostActions") == []
         assert response_json.get("header").get("nocStartDate") is not None
         assert response_json.get("header").get("nocEndDate") is not None
@@ -1387,8 +1391,12 @@ def test_examiner_decline_application_registration_provisional_review(app, sessi
         application.status = Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
         application.save()
 
-        status_update_request = {"status": Application.Status.PROVISIONALLY_DECLINED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        status_update_request = {"status": Application.Status.PROVISIONALLY_DECLINED, "decision": "WITHDRAW"}
+        with patch("strr_api.services.email_service.EmailService.send_application_status_update_email") as mock_email:
+            rv = client.put(
+                f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers
+            )
+            mock_email.assert_not_called()
         assert HTTPStatus.OK == rv.status_code
 
         application = Application.find_by_application_number(application_number=application_number)
