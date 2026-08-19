@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n'
-import baseEn from '../../../strr-base-web/i18n/locales/en-CA'
-import baseFr from '../../../strr-base-web/i18n/locales/fr-CA'
+import baseEn from '#baseWeb/../i18n/locales/en-CA'
+import baseFr from '#baseWeb/../i18n/locales/fr-CA'
 import en from '~~/i18n/locales/en-CA'
 import fr from '~~/i18n/locales/fr-CA'
 
