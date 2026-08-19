@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
-    "@nuxt/devtools": "3.3.1",
+    "@nuxt/devtools": "3.4.1",
     "@nuxt/image": "^2.0.0",
     "@nuxt/test-utils": "^3.21.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
@@ -39,7 +39,7 @@
     "eslint": "^8.57.1",
     "eslint-plugin-tailwindcss": "^3.17.4",
     "happy-dom": "^20.0.11",
-    "nuxt": "3.21.10",
+    "nuxt": "4.5.2",
     "playwright-core": "^1.57.0",
     "sass": "^1.77.6",
     "typescript": "^5.9.3",
@@ -48,7 +48,7 @@
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "@vuepic/vue-datepicker": "^10.0.0",
-    "@zadigetvoltaire/nuxt-gtm": "^0.0.13",
+    "@gtm-support/vue-gtm": "3.2.0",
     "country-codes-list": "^2.0.0",
     "luxon": "^3.5.0",
     "nuxt-gtag": "^3.0.3",
