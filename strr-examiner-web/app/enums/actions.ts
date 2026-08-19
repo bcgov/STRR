@@ -1,6 +1,7 @@
 export enum ApplicationActionsE {
     APPROVE = 'APPROVE',
     REJECT = 'REJECT',
+    WITHDRAW = 'WITHDRAW',
     SEND_NOC = 'SEND_NOC',
     PROVISIONAL_APPROVE = 'PROVISIONAL_APPROVE',
     SET_ASIDE = 'SET_ASIDE'

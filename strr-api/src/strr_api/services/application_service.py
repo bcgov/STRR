@@ -228,6 +228,7 @@ class ApplicationService:
         application_status: Application.Status,
         reviewer: User,
         custom_content: Optional[str] = None,
+        decision: Optional[str] = None,
     ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
         original_status = application.status
@@ -313,7 +314,8 @@ class ApplicationService:
             details=f"Custom Email Content: {custom_content}" if custom_content else None,
         )
 
-        EmailService.send_application_status_update_email(application, custom_content)
+        if decision != "WITHDRAW":
+            EmailService.send_application_status_update_email(application, custom_content)
 
         return application
 
