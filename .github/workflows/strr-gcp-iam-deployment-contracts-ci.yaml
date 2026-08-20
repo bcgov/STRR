@@ -35,6 +35,9 @@ on:
       - "jobs/strr-backfiller/devops/vaults.gcp.env"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   deployment-contracts:
     runs-on: ubuntu-latest
