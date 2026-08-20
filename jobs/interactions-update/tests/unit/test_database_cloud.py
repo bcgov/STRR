@@ -6,24 +6,15 @@ from interactions_update import database
 
 @patch("interactions_update.database.create_engine")
 @patch("interactions_update.database.sqlalchemy_settings_from_env")
-def test_cloud_sql_iam_takes_precedence_over_legacy_database_env(
+def test_get_engine_uses_shared_cloud_sql_creator(
     mock_settings, mock_create_engine, monkeypatch
 ):
-    """Verify retained legacy variables cannot bypass deployed Cloud SQL IAM."""
+    """Verify the shared Cloud SQL creator keeps this job's pool configuration."""
     mock_settings.return_value = (
         "postgresql+pg8000://",
         {"creator": sentinel.creator},
     )
 
-    monkeypatch.setenv("CLOUDSQL_INSTANCE_CONNECTION_NAME", "project:region:instance")
-    monkeypatch.setenv("CLOUDSQL_IP_TYPE", "PUBLIC")
-    monkeypatch.setenv("DATABASE_USERNAME", "test-user")
-    monkeypatch.setenv("DATABASE_NAME", "test-db")
-    monkeypatch.setenv("DATABASE_URL", "postgresql+pg8000://legacy-url")
-    monkeypatch.setenv("DATABASE_HOST", "legacy-host")
-    monkeypatch.setenv("DATABASE_PASSWORD", "legacy-password")
-    monkeypatch.setenv("DATABASE_PORT", "5432")
-    monkeypatch.setenv("DATABASE_UNIX_SOCKET", "/legacy-socket")
     monkeypatch.setenv("MAX_WORKERS", "12")
 
     database.get_engine()

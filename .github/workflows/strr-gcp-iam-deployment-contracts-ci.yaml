@@ -6,33 +6,19 @@ on:
     paths:
       - ".github/workflows/strr-gcp-iam-deployment-contracts-ci.yaml"
       - "tests/deployment/test_gcp_iam_vaults.py"
-      - "queue_services/strr-email/devops/vaults.gcp.env"
-      - "queue_services/strr-email/devops/gcp/clouddeploy.yaml"
-      - "queue_services/strr-pay/devops/vaults.gcp.env"
-      - "jobs/auto-approval/devops/vaults.gcp.env"
-      - "jobs/batch-permit-validator/devops/vaults.gcp.env"
-      - "jobs/interactions-update/devops/vaults.gcp.env"
-      - "jobs/noc_expiry/devops/vaults.gcp.env"
-      - "jobs/provisional-approval/devops/vaults.gcp.env"
-      - "jobs/registration_expiry/devops/vaults.gcp.env"
-      - "jobs/renewal-reminders/devops/vaults.gcp.env"
-      - "jobs/strr-backfiller/devops/vaults.gcp.env"
+      - "queue_services/strr-*/devops/vaults.gcp.env"
+      - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
+      - "jobs/*/devops/vaults.gcp.env"
+      - "jobs/*/devops/gcp/clouddeploy.yaml"
   pull_request:
     branches: [main]
     paths:
       - ".github/workflows/strr-gcp-iam-deployment-contracts-ci.yaml"
       - "tests/deployment/test_gcp_iam_vaults.py"
-      - "queue_services/strr-email/devops/vaults.gcp.env"
-      - "queue_services/strr-email/devops/gcp/clouddeploy.yaml"
-      - "queue_services/strr-pay/devops/vaults.gcp.env"
-      - "jobs/auto-approval/devops/vaults.gcp.env"
-      - "jobs/batch-permit-validator/devops/vaults.gcp.env"
-      - "jobs/interactions-update/devops/vaults.gcp.env"
-      - "jobs/noc_expiry/devops/vaults.gcp.env"
-      - "jobs/provisional-approval/devops/vaults.gcp.env"
-      - "jobs/registration_expiry/devops/vaults.gcp.env"
-      - "jobs/renewal-reminders/devops/vaults.gcp.env"
-      - "jobs/strr-backfiller/devops/vaults.gcp.env"
+      - "queue_services/strr-*/devops/vaults.gcp.env"
+      - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
+      - "jobs/*/devops/vaults.gcp.env"
+      - "jobs/*/devops/gcp/clouddeploy.yaml"
   workflow_dispatch:
 
 permissions:
