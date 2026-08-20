@@ -53,15 +53,11 @@ load_dotenv(find_dotenv())
 
 
 def _deployment_env() -> str:
-    return os.getenv("DEPLOYMENT_ENV", os.getenv("POD_NAMESPACE", "local"))
+    return os.getenv("DEPLOYMENT_ENV", "production")
 
 
 def _iam_username_env() -> str:
     return "DATABASE_MIGRATION_USERNAME" if _deployment_env() == "migration" else "DATABASE_USERNAME"
-
-
-def _database_settings() -> tuple[str, dict]:
-    return sqlalchemy_settings_from_env(iam_username_env=_iam_username_env())
 
 
 class Config:  # pylint: disable=too-few-public-methods
@@ -78,7 +74,9 @@ class Config:  # pylint: disable=too-few-public-methods
     POD_NAMESPACE = _deployment_env()
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = _database_settings()
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env(
+        iam_username_env=_iam_username_env()
+    )
 
     LD_SDK_KEY = os.getenv("LD_SDK_KEY", None)
 
