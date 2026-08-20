@@ -53,11 +53,12 @@ def test_get_session_yields_session(monkeypatch, postgres_container):
 
 
 def test_cloud_sql_missing_vars_raises_error(monkeypatch):
-    """Verify that falling back to Cloud SQL without vars raises ValueError."""
-    # Ensure DATABASE_URL is NOT set to trigger the fallback branch
+    """Verify that missing local and Cloud SQL configuration raises ValueError."""
     monkeypatch.setattr(database, "_engine", None)
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.delenv("CLOUDSQL_INSTANCE_CONNECTION_NAME", raising=False)
+    monkeypatch.delenv("CLOUD_RUN_JOB", raising=False)
+    monkeypatch.delenv("K_SERVICE", raising=False)
     monkeypatch.delenv("DATABASE_USERNAME", raising=False)
     monkeypatch.delenv("DATABASE_PASSWORD", raising=False)
     monkeypatch.delenv("DATABASE_NAME", raising=False)
@@ -66,7 +67,7 @@ def test_cloud_sql_missing_vars_raises_error(monkeypatch):
     monkeypatch.delenv("DATABASE_UNIX_SOCKET", raising=False)
 
     with pytest.raises(
-        ValueError, match="Missing Cloud SQL IAM connection environment variables"
+        ValueError, match="Missing database connection environment variables"
     ):
         database.get_engine()
 

@@ -778,8 +778,8 @@ sqlalchemy = "^2.0.0"
 [package.source]
 type = "git"
 url = "https://github.com/Jacky-Pham/sbc-connect-common.git"
-reference = "19bab0b5fb005714cf5d57a626c3cad1ece86be5"
-resolved_reference = "19bab0b5fb005714cf5d57a626c3cad1ece86be5"
+reference = "b8ee1d3568e99c0ac0530ebd839f474737f38680"
+resolved_reference = "b8ee1d3568e99c0ac0530ebd839f474737f38680"
 subdirectory = "python/cloud-sql-connector"
 
 [[package]]
@@ -4874,4 +4874,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.2,<3.15"
-content-hash = "56da9fe7885cdce9ca07209adfbdb9ab6f36f8f4ed95442fa012d6b07c9f7554"
+content-hash = "05555af0df185cf63065fb8d9432d1492ce940fc2e0ec77f9d06f1f44224f399"

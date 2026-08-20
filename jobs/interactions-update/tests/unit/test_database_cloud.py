@@ -1,37 +1,42 @@
 from unittest.mock import patch
+from unittest.mock import sentinel
 
 from interactions_update import database
 
 
 @patch("interactions_update.database.create_engine")
-@patch("interactions_update.database.getconn")
-def test_get_engine_cloud_sql_happy_path(mock_getconn, mock_create_engine, monkeypatch):
-    """Verify that get_engine uses the shared Cloud SQL connector configuration."""
-    monkeypatch.delenv("DATABASE_URL", raising=False)
-    monkeypatch.delenv("DATABASE_HOST", raising=False)
-    monkeypatch.delenv("DATABASE_UNIX_SOCKET", raising=False)
+@patch("interactions_update.database.sqlalchemy_settings_from_env")
+def test_cloud_sql_iam_takes_precedence_over_legacy_database_env(
+    mock_settings, mock_create_engine, monkeypatch
+):
+    """Verify retained legacy variables cannot bypass deployed Cloud SQL IAM."""
+    mock_settings.return_value = (
+        "postgresql+pg8000://",
+        {"creator": sentinel.creator},
+    )
+
     monkeypatch.setenv("CLOUDSQL_INSTANCE_CONNECTION_NAME", "project:region:instance")
     monkeypatch.setenv("CLOUDSQL_IP_TYPE", "PUBLIC")
     monkeypatch.setenv("DATABASE_USERNAME", "test-user")
     monkeypatch.setenv("DATABASE_NAME", "test-db")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+pg8000://legacy-url")
+    monkeypatch.setenv("DATABASE_HOST", "legacy-host")
+    monkeypatch.setenv("DATABASE_PASSWORD", "legacy-password")
+    monkeypatch.setenv("DATABASE_PORT", "5432")
+    monkeypatch.setenv("DATABASE_UNIX_SOCKET", "/legacy-socket")
     monkeypatch.setenv("MAX_WORKERS", "12")
 
     database.get_engine()
 
+    mock_settings.assert_called_once_with()
     args, kwargs = mock_create_engine.call_args
     assert args[0] == "postgresql+pg8000://"
+    assert kwargs["creator"] is sentinel.creator
     assert kwargs["pool_size"] == 12
-    assert "creator" in kwargs
-
-    kwargs["creator"]()
-
-    mock_getconn.assert_called_once()
-    config = mock_getconn.call_args.args[0]
-    assert config.instance_name == "project:region:instance"
-    assert config.database == "test-db"
-    assert config.user == "test-user"
-    assert config.ip_type == "PUBLIC"
-    assert config.enable_iam_auth is True
+    assert kwargs["max_overflow"] == 5
+    assert kwargs["pool_pre_ping"] is True
+    assert kwargs["pool_recycle"] == 3600
+    assert kwargs["pool_timeout"] == 30
 
 
 @patch("interactions_update.database.create_engine")
