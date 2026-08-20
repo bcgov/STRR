@@ -44,79 +44,24 @@ Environment variables are used to store the necessary values for each setting.
 
 import os
 
+from cloud_sql_connector import sqlalchemy_settings_from_env
 from dotenv import find_dotenv, load_dotenv
-from sqlalchemy.engine import URL
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 load_dotenv(find_dotenv())
-
-GCP_DEPLOYMENT_ENVS = {"development", "test", "uat", "sandbox", "production", "migration"}
-PROXY_REQUIRED_ENVS = ("DATABASE_NAME",)
 
 
 def _deployment_env() -> str:
     return os.getenv("DEPLOYMENT_ENV", os.getenv("POD_NAMESPACE", "local"))
 
 
-def _is_deployed_gcp() -> bool:
-    return bool(os.getenv("K_SERVICE")) or _deployment_env() in GCP_DEPLOYMENT_ENVS
-
-
-def _use_proxy_iam() -> bool:
-    return _is_deployed_gcp()
-
-
-def _cloudsql_user_env() -> str:
+def _iam_username_env() -> str:
     return "DATABASE_MIGRATION_USERNAME" if _deployment_env() == "migration" else "DATABASE_USERNAME"
 
 
-def _require_proxy_env(user_env: str):
-    required = (*PROXY_REQUIRED_ENVS, user_env)
-    missing = [env_name for env_name in required if not os.getenv(env_name)]
-    if missing:
-        raise RuntimeError(f"Missing Cloud SQL IAM proxy environment variables: {', '.join(missing)}")
-
-
-def _proxy_database_uri(user_env: str) -> str:
-    db_user = os.environ[user_env]
-    db_name = os.environ["DATABASE_NAME"]
-    db_host = os.getenv("DATABASE_HOST", "127.0.0.1")
-    db_port = int(os.getenv("DATABASE_PORT", "5432"))
-
-    if db_unix_socket := os.getenv("DATABASE_UNIX_SOCKET", None):
-        return str(
-            URL.create(
-                "postgresql+psycopg2",
-                username=db_user,
-                database=db_name,
-                query={"host": db_unix_socket},
-            )
-        )
-
-    return str(URL.create("postgresql+psycopg2", username=db_user, host=db_host, port=db_port, database=db_name))
-
-
-def _local_database_uri() -> str:
-    db_user = os.getenv("DATABASE_USERNAME", "")
-    db_password = os.getenv("DATABASE_PASSWORD", "")
-    db_name = os.getenv("DATABASE_NAME", "")
-    db_host = os.getenv("DATABASE_HOST", "")
-    db_port = int(os.getenv("DATABASE_PORT", "5432"))
-
-    if db_unix_socket := os.getenv("DATABASE_UNIX_SOCKET", None):
-        return f"postgresql+psycopg2://{db_user}:{db_password}@/{db_name}?host={db_unix_socket}"
-
-    return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-
-
 def _database_settings() -> tuple[str, dict]:
-    if _use_proxy_iam():
-        user_env = _cloudsql_user_env()
-        _require_proxy_env(user_env)
-        return _proxy_database_uri(user_env), {}
-
-    return _local_database_uri(), {}
+    return sqlalchemy_settings_from_env(iam_username_env=_iam_username_env())
 
 
 class Config:  # pylint: disable=too-few-public-methods
@@ -216,7 +161,6 @@ class Migration(Config):  # pylint: disable=too-few-public-methods
 
     TESTING = False
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = _database_settings()
 
 
 class Testing(Config):  # pylint: disable=too-few-public-methods
