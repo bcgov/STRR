@@ -1,16 +1,8 @@
-import { writeTypes } from 'nuxt/kit'
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
   ssr: false,
-  buildDir: '.nuxt',
-
-  hooks: {
-    ready (nuxt) {
-      nuxt.hook('build:before', () => writeTypes(nuxt))
-    }
-  },
+  buildDir: 'node_modules/.cache/nuxt/.nuxt',
 
   future: {
     compatibilityVersion: 4
