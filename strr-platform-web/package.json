@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build-check": "nuxt build",
-    "build": "nuxt generate",
+    "build": "nuxt prepare && nuxt generate",
     "dev": "nuxt dev --port 3000",
     "generate": "nuxt generate",
     "preview": "nuxt preview",

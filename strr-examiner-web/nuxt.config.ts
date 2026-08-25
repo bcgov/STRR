@@ -2,7 +2,6 @@
 export default defineNuxtConfig({
   devtools: { enabled: false },
   ssr: false,
-  buildDir: 'node_modules/.cache/nuxt/.nuxt',
 
   future: {
     compatibilityVersion: 4
