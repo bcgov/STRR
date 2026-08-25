@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
+import requests
 from simple_cloudevent import SimpleCloudEvent
 
 import batch_permit_validator.resources.batch_permit_validator as bpvm_module
@@ -20,6 +21,7 @@ def test_empty_post(client):
 @pytest.mark.parametrize(
     "payload",
     [
+        # Empty/missing file names
         {"message": {"attributes": {}}},
         {"message": {"attributes": {"objectId": ""}}},
         {"message": "not-a-dict"},
@@ -27,10 +29,18 @@ def test_empty_post(client):
         {"name": ""},
         ["list-not-dict"],
         {},
+        # Whitespace-only strings
+        {"name": "   "},
+        {"objectId": "   "},
+        {"message": {"attributes": {"objectId": "   "}}},
+        # Non-string file names (lists, dicts, ints)
+        {"name": ["file.json"]},
+        {"name": {"path": "file.json"}},
+        {"name": 123},
     ],
 )
 def test_worker_invalid_file_name(client, payload):
-    """Missing or empty file name returns 400."""
+    """Invalid, empty, whitespace-only, or non-string file names return 400 BAD_REQUEST."""
     response = client.post("/", json=payload)
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.get_json() == {"error": "Invalid File Name"}
@@ -98,27 +108,16 @@ def test_send_bulk_validation_response_no_cloud_event(client):
     assert response.status_code == HTTPStatus.OK
 
 
-def test_send_bulk_validation_response_posts_callback(client, mocker):
+def test_send_bulk_validation_response_posts_callback(
+    client, mocker, validation_event_valid, patch_get_simple_cloud_event
+):
     """Successful callback POST returns 200."""
-    ce = SimpleCloudEvent(
-        id="1",
-        source="test",
-        subject="subj",
-        type="strr.batchPermitValidationResult",
-        data={
-            "callBackUrl": "https://callback.example/hook",
-            "preSignedUrl": "https://storage.example/out.json",
-        },
-    )
     mock_post = mocker.patch(
         "batch_permit_validator.resources.batch_permit_validator.requests.post",
         return_value=MagicMock(status_code=200),
     )
-    with patch(
-        "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
-        return_value=ce,
-    ):
-        response = client.post("/bulk-validation-response", data=b"{}")
+    patch_get_simple_cloud_event(validation_event_valid)
+    response = client.post("/bulk-validation-response", data=b"{}")
     assert response.status_code == HTTPStatus.OK
     mock_post.assert_called_once_with(
         "https://callback.example/hook",
@@ -127,27 +126,16 @@ def test_send_bulk_validation_response_posts_callback(client, mocker):
     )
 
 
-def test_send_bulk_validation_response_callback_non_200(client, mocker):
+def test_send_bulk_validation_response_callback_non_200(
+    client, mocker, validation_event_valid, patch_get_simple_cloud_event
+):
     """Non-200 from callback URL yields 500 with error payload."""
-    ce = SimpleCloudEvent(
-        id="1",
-        source="test",
-        subject="subj",
-        type="strr.batchPermitValidationResult",
-        data={
-            "callBackUrl": "https://callback.example/hook",
-            "preSignedUrl": "https://storage.example/out.json",
-        },
-    )
     mocker.patch(
         "batch_permit_validator.resources.batch_permit_validator.requests.post",
         return_value=MagicMock(status_code=500, text="Internal Server Error"),
     )
-    with patch(
-        "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
-        return_value=ce,
-    ):
-        response = client.post("/bulk-validation-response", data=b"{}")
+    patch_get_simple_cloud_event(validation_event_valid)
+    response = client.post("/bulk-validation-response", data=b"{}")
     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     assert response.get_json() == {"error": "Callback endpoint failed with status 500"}
 
@@ -155,13 +143,34 @@ def test_send_bulk_validation_response_callback_non_200(client, mocker):
 @pytest.mark.parametrize(
     "data",
     [
+        # Empty/missing URLs
         {"callBackUrl": "", "preSignedUrl": "https://storage.example/out.json"},
         {"callBackUrl": "https://callback.example/hook", "preSignedUrl": ""},
         {"callBackUrl": None, "preSignedUrl": "https://storage.example/out.json"},
+        # Non-string callback URLs
+        {
+            "callBackUrl": ["https://callback.example/hook"],
+            "preSignedUrl": "https://storage.example/out.json",
+        },
+        {"callBackUrl": 123, "preSignedUrl": "https://storage.example/out.json"},
+        {
+            "callBackUrl": {"url": "https://callback.example/hook"},
+            "preSignedUrl": "https://storage.example/out.json",
+        },
+        # Non-string presigned URLs
+        {
+            "callBackUrl": "https://callback.example/hook",
+            "preSignedUrl": ["https://storage.example/out.json"],
+        },
+        {"callBackUrl": "https://callback.example/hook", "preSignedUrl": 456},
+        {
+            "callBackUrl": "https://callback.example/hook",
+            "preSignedUrl": {"url": "https://storage.example/out.json"},
+        },
     ],
 )
-def test_send_bulk_validation_response_missing_required_urls(client, data):
-    """Missing callback or presigned URL yields 400 BAD_REQUEST."""
+def test_send_bulk_validation_response_invalid_urls(client, data):
+    """Invalid, empty, or non-string callback/presigned URLs return 400 BAD_REQUEST."""
     ce = SimpleCloudEvent(
         id="1",
         source="test",
@@ -195,81 +204,44 @@ def test_send_bulk_validation_response_no_validation_payload_when_wrong_event_ty
     assert response.status_code == HTTPStatus.OK
 
 
-def test_send_bulk_validation_response_timeout(client, mocker):
+def test_send_bulk_validation_response_timeout(
+    client, mocker, validation_event_valid, patch_get_simple_cloud_event
+):
     """Timeout from requests.post yields 504 GATEWAY_TIMEOUT."""
-    import requests
-
-    ce = SimpleCloudEvent(
-        id="1",
-        source="test",
-        subject="subj",
-        type="strr.batchPermitValidationResult",
-        data={
-            "callBackUrl": "https://callback.example/hook",
-            "preSignedUrl": "https://storage.example/out.json",
-        },
-    )
     mocker.patch(
         "batch_permit_validator.resources.batch_permit_validator.requests.post",
         side_effect=requests.exceptions.Timeout("timed out"),
     )
-    with patch(
-        "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
-        return_value=ce,
-    ):
-        response = client.post("/bulk-validation-response", data=b"{}")
+    patch_get_simple_cloud_event(validation_event_valid)
+    response = client.post("/bulk-validation-response", data=b"{}")
     assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
     assert response.get_json() == {"error": "Callback URL timed out"}
 
 
-def test_send_bulk_validation_response_request_exception(client, mocker):
+def test_send_bulk_validation_response_request_exception(
+    client, mocker, validation_event_valid, patch_get_simple_cloud_event
+):
     """RequestException from requests.post yields 500 INTERNAL_SERVER_ERROR."""
-    import requests
-
-    ce = SimpleCloudEvent(
-        id="1",
-        source="test",
-        subject="subj",
-        type="strr.batchPermitValidationResult",
-        data={
-            "callBackUrl": "https://callback.example/hook",
-            "preSignedUrl": "https://storage.example/out.json",
-        },
-    )
     mocker.patch(
         "batch_permit_validator.resources.batch_permit_validator.requests.post",
         side_effect=requests.exceptions.RequestException("connection dropped"),
     )
-    with patch(
-        "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
-        return_value=ce,
-    ):
-        response = client.post("/bulk-validation-response", data=b"{}")
+    patch_get_simple_cloud_event(validation_event_valid)
+    response = client.post("/bulk-validation-response", data=b"{}")
     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     assert response.get_json() == {"error": "Callback request failure"}
 
 
-def test_send_bulk_validation_response_unexpected_exception(client, mocker):
+def test_send_bulk_validation_response_unexpected_exception(
+    client, mocker, validation_event_valid, patch_get_simple_cloud_event
+):
     """Generic exception from requests.post yields 500 INTERNAL_SERVER_ERROR."""
-    ce = SimpleCloudEvent(
-        id="1",
-        source="test",
-        subject="subj",
-        type="strr.batchPermitValidationResult",
-        data={
-            "callBackUrl": "https://callback.example/hook",
-            "preSignedUrl": "https://storage.example/out.json",
-        },
-    )
     mocker.patch(
         "batch_permit_validator.resources.batch_permit_validator.requests.post",
         side_effect=RuntimeError("unexpected"),
     )
-    with patch(
-        "batch_permit_validator.resources.batch_permit_validator.gcp_queue.get_simple_cloud_event",
-        return_value=ce,
-    ):
-        response = client.post("/bulk-validation-response", data=b"{}")
+    patch_get_simple_cloud_event(validation_event_valid)
+    response = client.post("/bulk-validation-response", data=b"{}")
     assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     assert response.get_json() == {"error": "Internal server error"}
 

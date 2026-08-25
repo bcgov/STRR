@@ -83,21 +83,24 @@ def _extract_uploaded_file_name(ce: dict) -> Optional[str]:
     if not isinstance(ce, dict):
         return None
     if file_name := ce.get("name") or ce.get("objectId"):
-        return file_name
+        if isinstance(file_name, str) and file_name.strip():
+            return file_name
     if isinstance(message := ce.get("message"), dict):
         if isinstance(attributes := message.get("attributes"), dict):
-            return attributes.get("objectId") or attributes.get("name")
+            if name := attributes.get("objectId") or attributes.get("name"):
+                if isinstance(name, str) and name.strip():
+                    return name
     return None
 
 
 def _trigger_batch_permit_validator_job(file_name=""):
     try:
-        client = run_v2.JobsClient()
-
         project_id = current_app.config.get("GCP_PROJECT_ID")
         location = current_app.config.get("GCP_CLOUD_RUN_JOB_LOCATION")
         job_name = current_app.config.get("GCP_CLOUD_RUN_JOB_NAME")
         parent = f"projects/{project_id}/locations/{location}/jobs/{job_name}"
+
+        client = run_v2.JobsClient()
 
         overrides = {
             "container_overrides": [{"args": [file_name]}],
@@ -120,7 +123,7 @@ def _trigger_batch_permit_validator_job(file_name=""):
         logger.info("Execution triggered for job %s", job_name)
 
     except Exception as e:
-        logger.error("Error triggering job %s: %s", job_name, e, exc_info=True)
+        logger.error("Error triggering Cloud Run job: %s", e, exc_info=True)
         raise e
 
 
@@ -149,20 +152,32 @@ def send_bulk_validation_response():
             logger.warning("Event %s is not a valid BulkValidationResponse event", event_id)
             return {}, HTTPStatus.OK
 
-        if not validation_response.call_back_url or not validation_response.pre_signed_url:
+        # Validate callback URL and presigned URL are non-empty strings
+        if (
+            not isinstance(validation_response.call_back_url, str)
+            or not validation_response.call_back_url.strip()
+        ):
             logger.error(
-                "Invalid BulkValidationResponse payload for event %s: call_back_url=%s, pre_signed_url=%s",
+                "Invalid BulkValidationResponse payload for event %s: call_back_url is missing or not a string",
                 event_id,
-                validation_response.call_back_url,
-                bool(validation_response.pre_signed_url),
             )
             return {
                 "error": "Missing required callback URL or presigned URL"
             }, HTTPStatus.BAD_REQUEST
 
-        logger.info(
-            "Sending callback for event %s to %s", event_id, validation_response.call_back_url
-        )
+        if (
+            not isinstance(validation_response.pre_signed_url, str)
+            or not validation_response.pre_signed_url.strip()
+        ):
+            logger.error(
+                "Invalid BulkValidationResponse payload for event %s: pre_signed_url is missing or not a string",
+                event_id,
+            )
+            return {
+                "error": "Missing required callback URL or presigned URL"
+            }, HTTPStatus.BAD_REQUEST
+
+        logger.info("Sending callback for event %s", event_id)
 
         response = requests.post(
             validation_response.call_back_url,
@@ -172,10 +187,9 @@ def send_bulk_validation_response():
 
         if response.status_code != HTTPStatus.OK:
             logger.error(
-                "Callback URL responded with error: event_id=%s, status_code=%s, url=%s, response_text=%s",
+                "Callback endpoint responded with error: event_id=%s, status_code=%s, response_text=%s",
                 event_id,
                 response.status_code,
-                validation_response.call_back_url,
                 response.text[:500],
             )
             return {
@@ -185,15 +199,12 @@ def send_bulk_validation_response():
         logger.info("Completed event %s: callback sent successfully", event_id)
         return {}, HTTPStatus.OK
     except requests.exceptions.Timeout as e:
-        cb_url = getattr(validation_response, "call_back_url", None)
-        logger.error("Timeout sending callback for event %s to %s: %s", event_id, cb_url, e)
+        logger.error("Timeout sending callback for event %s: %s", event_id, e)
         return {"error": "Callback URL timed out"}, HTTPStatus.GATEWAY_TIMEOUT
     except requests.exceptions.RequestException as e:
-        cb_url = getattr(validation_response, "call_back_url", None)
         logger.error(
-            "Request error sending callback for event %s to %s: %s",
+            "Request error sending callback for event %s: %s",
             event_id,
-            cb_url,
             e,
             exc_info=True,
         )
