@@ -7,7 +7,9 @@ export default defineNuxtConfig({
   buildDir: '.nuxt',
 
   hooks: {
-    ready: writeTypes
+    ready (nuxt) {
+      nuxt.hook('build:before', () => writeTypes(nuxt))
+    }
   },
 
   future: {
