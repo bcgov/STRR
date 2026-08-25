@@ -56,6 +56,7 @@ vi.mock('@/stores/examiner', () => ({
     activeRecord: ref(currentMockData),
     isApplication: ref(true),
     isAssignedToUser,
+    hasRegistrationNumber: ref(false),
     resetEditRentalUnitAddress: vi.fn(),
     assignApplication: mockAssignApplication,
     viewReceipt: mockViewReceipt,
@@ -67,7 +68,14 @@ vi.mock('@/stores/examiner', () => ({
       URL.revokeObjectURL(url)
       setTimeout(() => URL.revokeObjectURL(url), 100)
     }),
-    emailContent: ref({ content: '' })
+    emailContent: ref({ content: '' }),
+    decisionEmailContent: ref({ content: '' }),
+    decisionEmailFormRef: ref({
+      clear: vi.fn()
+    }),
+    conditions: ref([]),
+    customConditions: ref(null),
+    minBookingDays: ref(null)
   })
 }))
 

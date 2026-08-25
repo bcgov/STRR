@@ -11,10 +11,14 @@ const mockUnassignRegistration = vi.fn().mockResolvedValue(undefined)
 const mockSetAsideRegistration = vi.fn().mockResolvedValue(undefined)
 const mockUpdateRegistrationStatus = vi.fn().mockResolvedValue(undefined)
 const mockSendNotice = vi.fn().mockResolvedValue(undefined)
+const mockWithdrawApplication = vi.fn().mockResolvedValue(undefined)
+const mockIsDecisionEmailValid = vi.fn().mockResolvedValue(true)
 const mockOpenConfirmActionModal = vi.fn()
+const mockRefreshNuxtData = vi.hoisted(() => vi.fn())
 
 const activeHeader = ref<any>({ examinerActions: [], isSetAside: false, assignee: { username: '' } })
 const activeReg = ref<any>({ id: 'reg-123', status: RegistrationStatus.ACTIVE, conditionsOfApproval: null })
+const isApplication = ref(false)
 const isAssignedToUser = ref(true)
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
 const conditions = ref([])
@@ -29,6 +33,14 @@ vi.mock('@/stores/examiner', () => ({
     setAsideRegistration: mockSetAsideRegistration,
     updateRegistrationStatus: mockUpdateRegistrationStatus,
     sendNoticeOfConsiderationForRegistration: mockSendNotice,
+    withdrawApplication: mockWithdrawApplication,
+    rejectApplication: vi.fn().mockResolvedValue(undefined),
+    sendNoticeOfConsideration: vi.fn().mockResolvedValue(undefined),
+    approveApplication: vi.fn().mockResolvedValue(undefined),
+    provisionallyApproveApplication: vi.fn().mockResolvedValue(undefined),
+    assignApplication: vi.fn().mockResolvedValue(undefined),
+    unassignApplication: vi.fn().mockResolvedValue(undefined),
+    isApplication,
     isAssignedToUser,
     activeHeader,
     activeReg,
@@ -43,7 +55,7 @@ vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
     decisionIntent,
     isMainActionDisabled: ref(false),
-    isDecisionEmailValid: vi.fn().mockResolvedValue(true)
+    isDecisionEmailValid: mockIsDecisionEmailValid
   })
 }))
 
@@ -54,7 +66,7 @@ mockNuxtImport('useStrrModals', () => () => ({
 
 vi.mock('nuxt/app', async importOriginal => ({
   ...await importOriginal<typeof import('nuxt/app')>(),
-  refreshNuxtData: vi.fn()
+  refreshNuxtData: mockRefreshNuxtData
 }))
 
 // withNoteCheck passes the action straight through — note-guard logic is tested in use-examiner-notes.spec.ts
@@ -78,11 +90,13 @@ describe('ActionButtons Component', () => {
     activeHeader.value = { examinerActions: [], isSetAside: false, assignee: { username: '' } }
     activeReg.value = { id: 'reg-123', status: RegistrationStatus.ACTIVE, conditionsOfApproval: null }
     isAssignedToUser.value = true
+    isApplication.value = false
     decisionIntent.value = null
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null
     decisionEmailContent.value = { content: '' }
+    mockRefreshNuxtData.mockClear()
   })
 
   it('should show assign button when no assignee, and unassign button when assignee exists', async () => {
@@ -239,6 +253,7 @@ describe('ActionButtons Component', () => {
       '',
       { predefinedConditions: conditions.value }
     )
+    expect(mockRefreshNuxtData).toHaveBeenCalledWith('registration-details-view')
   })
 
   it('should update registration status with CANCELLED directly when cancel is clicked', async () => {
@@ -302,5 +317,25 @@ describe('ActionButtons Component', () => {
     expect(mockSendNotice).toHaveBeenCalledOnce()
     expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'notice of consideration body')
     expect(decisionEmailContent.value.content).toBe('')
+    expect(mockRefreshNuxtData).toHaveBeenCalledWith('registration-details-view')
+  })
+
+  it('should withdraw an application without validating email content', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      applicationNumber: 'APP-005',
+      examinerActions: [ApplicationActionsE.WITHDRAW],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    decisionIntent.value = ApplicationActionsE.WITHDRAW
+
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockWithdrawApplication).toHaveBeenCalledWith('APP-005', false)
+    expect(mockIsDecisionEmailValid).not.toHaveBeenCalled()
   })
 })

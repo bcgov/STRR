@@ -64,34 +64,48 @@ def worker():
     if not request.data:
         return {}, HTTPStatus.OK
 
-    logger.info(f"Incoming raw msg: {request.get_json()}")
-    ce = request.get_json()
-    logger.info(ce)
-    file_name = (
-        ce.get("message", {})
-        .get("attributes", {})
-        .get(
-            "objectId",
-        )
-    )
-    logger.info(f"File Name: {file_name}")
+    ce = request.get_json() or {}
+    logger.info("Incoming raw msg: %s", ce)
+
+    file_name = _extract_uploaded_file_name(ce)
+    logger.info("File Name: %s", file_name)
     if not file_name:
         return {"error": "Invalid File Name"}, HTTPStatus.BAD_REQUEST
 
     _trigger_batch_permit_validator_job(file_name=file_name)
 
-    logger.info(f"Finished processing : {str(ce)}")
+    logger.info("Finished processing: %s", str(ce))
     return {}, HTTPStatus.OK
+
+
+def _extract_uploaded_file_name(ce: dict) -> Optional[str]:
+    """Extract object/file name from direct GCS events or Pub/Sub wrapped messages."""
+    if not isinstance(ce, dict):
+        return None
+    file_name = _get_valid_file_name(ce, "name", "objectId")
+    if file_name:
+        return file_name
+
+    message = ce.get("message")
+    attributes = message.get("attributes") if isinstance(message, dict) else None
+    return _get_valid_file_name(attributes, "objectId", "name")
+
+
+def _get_valid_file_name(payload: object, primary_key: str, fallback_key: str) -> Optional[str]:
+    if not isinstance(payload, dict):
+        return None
+    file_name = payload.get(primary_key) or payload.get(fallback_key)
+    return file_name if isinstance(file_name, str) and file_name.strip() else None
 
 
 def _trigger_batch_permit_validator_job(file_name=""):
     try:
-        client = run_v2.JobsClient()
-
         project_id = current_app.config.get("GCP_PROJECT_ID")
         location = current_app.config.get("GCP_CLOUD_RUN_JOB_LOCATION")
         job_name = current_app.config.get("GCP_CLOUD_RUN_JOB_NAME")
         parent = f"projects/{project_id}/locations/{location}/jobs/{job_name}"
+
+        client = run_v2.JobsClient()
 
         overrides = {
             "container_overrides": [{"args": [file_name]}],
@@ -99,7 +113,7 @@ def _trigger_batch_permit_validator_job(file_name=""):
             "task_count": 1,
         }
 
-        logger.info(overrides)
+        logger.info("%s", overrides)
 
         # Initialize request argument(s)
         job_request = run_v2.RunJobRequest(
@@ -111,34 +125,64 @@ def _trigger_batch_permit_validator_job(file_name=""):
         client.run_job(request=job_request)
 
         # Output the execution details
-        logger.info(f"Execution triggered for job {job_name}")
+        logger.info("Execution triggered for job %s", job_name)
 
     except Exception as e:
-        logger.error(e, stack_info=True, exc_info=True)
-        logger.error(f"Error triggering job: {e}")
+        logger.error("Error triggering Cloud Run job: %s", e, exc_info=True)
         raise e
 
 
 @bp.route("/bulk-validation-response", methods=("POST",))
 def send_bulk_validation_response():
     """Process the incoming bulk validation response event."""
+    event_id = None
+    validation_response = None
     try:
         if not request.data:
-            # logger(request, "INFO", f"No incoming raw msg.")
+            logger.info("Empty request data received on /bulk-validation-response")
             return {}, HTTPStatus.OK
 
-        logger.info(f"Incoming raw msg: {str(request.data)}")
+        logger.info("Incoming raw msg: %s", str(request.data))
 
         # 1. Get cloud event
         if not (ce := gcp_queue.get_simple_cloud_event(request, wrapped=True)):
+            logger.warning("Could not extract SimpleCloudEvent from incoming request")
             return {}, HTTPStatus.OK
-        logger.info(f"received ce: {str(ce)}")
+
+        event_id = getattr(ce, "id", None)
+        logger.info("Received event (id=%s, type=%s)", event_id, getattr(ce, "type", None))
 
         # 2. Get validation response information
         if not (validation_response := get_bulk_validation_response(ce)):
+            logger.warning("Event %s is not a valid BulkValidationResponse event", event_id)
             return {}, HTTPStatus.OK
 
-        logger.info(f"File url: {validation_response.pre_signed_url}")
+        # Validate callback URL and presigned URL are non-empty strings
+        if (
+            not isinstance(validation_response.call_back_url, str)
+            or not validation_response.call_back_url.strip()
+        ):
+            logger.error(
+                "Invalid BulkValidationResponse payload for event %s: call_back_url is missing or not a string",
+                event_id,
+            )
+            return {
+                "error": "Missing required callback URL or presigned URL"
+            }, HTTPStatus.BAD_REQUEST
+
+        if (
+            not isinstance(validation_response.pre_signed_url, str)
+            or not validation_response.pre_signed_url.strip()
+        ):
+            logger.error(
+                "Invalid BulkValidationResponse payload for event %s: pre_signed_url is missing or not a string",
+                event_id,
+            )
+            return {
+                "error": "Missing required callback URL or presigned URL"
+            }, HTTPStatus.BAD_REQUEST
+
+        logger.info("Sending callback for event %s", event_id)
 
         response = requests.post(
             validation_response.call_back_url,
@@ -146,25 +190,49 @@ def send_bulk_validation_response():
             timeout=10,
         )
 
-        if response.status_code != 200:
-            return {}, HTTPStatus.INTERNAL_SERVER_ERROR
+        if response.status_code != HTTPStatus.OK:
+            logger.error(
+                "Callback endpoint responded with error: event_id=%s, status_code=%s, response_text=%s",
+                event_id,
+                response.status_code,
+                response.text[:500],
+            )
+            return {
+                "error": f"Callback endpoint failed with status {response.status_code}",
+            }, HTTPStatus.INTERNAL_SERVER_ERROR
 
-        logger.info(f"completed ce: {str(ce)}")
+        logger.info("Completed event %s: callback sent successfully", event_id)
         return {}, HTTPStatus.OK
+    except requests.exceptions.Timeout as e:
+        logger.error("Timeout sending callback for event %s: %s", event_id, e)
+        return {"error": "Callback URL timed out"}, HTTPStatus.GATEWAY_TIMEOUT
+    except requests.exceptions.RequestException as e:
+        logger.error(
+            "Request error sending callback for event %s: %s",
+            event_id,
+            e,
+            exc_info=True,
+        )
+        return {"error": "Callback request failure"}, HTTPStatus.INTERNAL_SERVER_ERROR
     except Exception as e:
-        logger.error(e, stack_info=True, exc_info=True)
-        logger.error(f"Error sending response to callback url: {e}")
-        raise e
+        logger.error(
+            "Unexpected error in send_bulk_validation_response (event_id=%s): %s",
+            event_id,
+            e,
+            exc_info=True,
+        )
+        return {"error": "Internal server error"}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 @bp.route("/test-response", methods=("POST",))
 def dummy_response():
     """Process the incoming bulk validation response event."""
     try:
-        logger.info(f"Incoming message: {request.get_json()}")
+        logger.info("Incoming message: %s", request.get_json())
         return {}, HTTPStatus.OK
     except Exception as e:
-        logger.error(e, stack_info=True, exc_info=True)
+        logger.error("Error processing test response: %s", e, exc_info=True)
+        return {"error": "Internal server error"}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 @dataclass

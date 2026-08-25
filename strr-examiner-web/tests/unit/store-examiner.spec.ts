@@ -557,6 +557,16 @@ describe('Store - Examiner', () => {
         emailContent: 'email body'
       })
     }))
+
+    mockStrrApi.mockClear()
+
+    await store.withdrawApplication('APP-005', false)
+    expect(mockStrrApi).toHaveBeenCalledWith('/applications/APP-005/status', expect.objectContaining({
+      body: {
+        status: ApplicationStatus.DECLINED,
+        decision: 'WITHDRAW'
+      }
+    }))
   })
 
   it('should have correct response for getSnapshotById', async () => {

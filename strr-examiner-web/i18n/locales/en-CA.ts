@@ -304,6 +304,7 @@ export default {
     APPROVE: 'Approve Registration',
     SEND_NOC: 'Send Notice',
     REJECT: 'Refuse Application',
+    WITHDRAW: 'Withdraw Application',
     CANCEL: 'Cancel Registration',
     REINSTATE: 'Reinstate Registration',
     SUSPEND: 'Suspend Registration',
