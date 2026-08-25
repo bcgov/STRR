@@ -82,15 +82,20 @@ def _extract_uploaded_file_name(ce: dict) -> Optional[str]:
     """Extract object/file name from direct GCS events or Pub/Sub wrapped messages."""
     if not isinstance(ce, dict):
         return None
-    if file_name := ce.get("name") or ce.get("objectId"):
-        if isinstance(file_name, str) and file_name.strip():
-            return file_name
-    if isinstance(message := ce.get("message"), dict):
-        if isinstance(attributes := message.get("attributes"), dict):
-            if name := attributes.get("objectId") or attributes.get("name"):
-                if isinstance(name, str) and name.strip():
-                    return name
-    return None
+    file_name = _get_valid_file_name(ce, "name", "objectId")
+    if file_name:
+        return file_name
+
+    message = ce.get("message")
+    attributes = message.get("attributes") if isinstance(message, dict) else None
+    return _get_valid_file_name(attributes, "objectId", "name")
+
+
+def _get_valid_file_name(payload: object, primary_key: str, fallback_key: str) -> Optional[str]:
+    if not isinstance(payload, dict):
+        return None
+    file_name = payload.get(primary_key) or payload.get(fallback_key)
+    return file_name if isinstance(file_name, str) and file_name.strip() else None
 
 
 def _trigger_batch_permit_validator_job(file_name=""):
