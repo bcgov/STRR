@@ -1,3 +1,18 @@
+import { existsSync, realpathSync, statSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+const nuxtTypesPath = resolve('.nuxt-types/tsconfig.app.json')
+const nuxtTypesExists = existsSync(nuxtTypesPath)
+
+console.info('[nuxt-types-start]', JSON.stringify({
+  argv: process.argv,
+  cwd: process.cwd(),
+  path: nuxtTypesPath,
+  exists: nuxtTypesExists,
+  realpath: nuxtTypesExists ? realpathSync(nuxtTypesPath) : null,
+  size: nuxtTypesExists ? statSync(nuxtTypesPath).size : null
+}))
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
