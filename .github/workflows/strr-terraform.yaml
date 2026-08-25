@@ -1,0 +1,71 @@
+name: STRR Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Terraform action for the dev environment
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+        default: plan
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: strr-terraform-dev
+  cancel-in-progress: false
+
+jobs:
+  terraform:
+    name: Terraform dev - ${{ inputs.action }}
+    runs-on: ubuntu-latest
+    environment: dev
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/331250273634/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
+          service_account: sa-strr-infra@bcrbk9-tools.iam.gserviceaccount.com
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+          terraform_wrapper: false
+
+      - name: Terraform init
+        run: terraform init -input=false -lockfile=readonly
+
+      - name: Terraform format check
+        run: terraform fmt -check -diff -recursive
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Require main for apply
+        if: inputs.action == 'apply' && github.ref != 'refs/heads/main'
+        run: exit 1
+
+      - name: Terraform plan
+        run: terraform plan -input=false -lock-timeout=5m -var-file=dev.tfvars -out=tfplan
+
+      - name: Terraform apply
+        if: inputs.action == 'apply'
+        run: terraform apply -input=false -auto-approve tfplan
