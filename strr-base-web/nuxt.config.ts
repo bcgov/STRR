@@ -31,7 +31,6 @@ export default defineNuxtConfig({
     '@nuxtjs/eslint-module',
     '@nuxt/test-utils/module',
     '@nuxt/image',
-    '@zadigetvoltaire/nuxt-gtm',
     'nuxt-gtag'
   ],
 
@@ -84,13 +83,6 @@ export default defineNuxtConfig({
     fallback: 'light'
   },
 
-  gtm: {
-    enabled: isGtmEnabled,
-    id: isGtmEnabled ? process.env.NUXT_GTM_ID?.trim() as string : 'GTM-UNDEFINED',
-    debug: true,
-    defer: true
-  },
-
   gtag: {
     enabled: !!process.env.NUXT_GTAG_ID?.trim(),
     id: process.env.NUXT_GTAG_ID?.trim()
@@ -99,6 +91,13 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // Keys within public, will be also exposed to the client-side
+      gtm: {
+        enabled: isGtmEnabled,
+        id: isGtmEnabled ? process.env.NUXT_GTM_ID?.trim() as string : 'GTM-UNDEFINED',
+        debug: true,
+        defer: true,
+        enableRouterSync: true
+      },
       addressCompleteKey: process.env.NUXT_ADDRESS_COMPLETE_KEY,
       payApiURL: `${process.env.NUXT_PAY_API_URL}${process.env.NUXT_PAY_API_VERSION}`,
       legalApiURL: `${process.env.NUXT_LEGAL_API_URL}${process.env.NUXT_LEGAL_API_VERSION}`,
