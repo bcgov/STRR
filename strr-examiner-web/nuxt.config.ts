@@ -1,34 +1,7 @@
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
-import type { Nuxt } from 'nuxt/schema'
-
-function logNuxtTypeFiles (stage: string, nuxt: Nuxt) {
-  const rootTypesDir = resolve(nuxt.options.rootDir, '.nuxt')
-  const typeFiles = ['tsconfig.app.json', 'tsconfig.server.json', 'tsconfig.shared.json', 'tsconfig.node.json']
-
-  console.info('[nuxt-types-debug]', JSON.stringify({
-    stage,
-    pid: process.pid,
-    cwd: process.cwd(),
-    rootDir: nuxt.options.rootDir,
-    buildDir: nuxt.options.buildDir,
-    prepare: nuxt.options._prepare,
-    rootTypes: Object.fromEntries(typeFiles.map(file => [file, existsSync(resolve(rootTypesDir, file))])),
-    buildTypes: Object.fromEntries(typeFiles.map(file => [file, existsSync(resolve(nuxt.options.buildDir, file))]))
-  }))
-}
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
   ssr: false,
-
-  hooks: {
-    ready (nuxt) {
-      logNuxtTypeFiles('ready', nuxt)
-      nuxt.hook('build:before', () => logNuxtTypeFiles('build:before', nuxt))
-    }
-  },
 
   future: {
     compatibilityVersion: 4
