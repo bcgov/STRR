@@ -1,12 +1,23 @@
 {
-    "python.testing.pytestArgs": [
-        "tests"
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.analysis.extraPaths": [
+    "../../tests/python-test-utils/src"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.tabSize": 4,
+    "editor.rulers": [
+      120
     ],
-    "python.analysis.extraPaths": [
-        "../../tests/python-test-utils/src"
-    ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
-    "python-envs.defaultEnvManager": "ms-python.python:poetry",
-    "python-envs.defaultPackageManager": "ms-python.python:poetry"
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "isort.check": true,
 }
