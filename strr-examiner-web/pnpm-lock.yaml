@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@vitejs/plugin-vue@6.0.8':
-    hash: 7314a364a640bc96f754e076d23eff67ebd9ccca3f2d0dad6a03500abf8c59e9
+    hash: a86011b3380859cf6182f49871e0869110bcfb26546be5114b56cd3523cb5abc
     path: patches/@vitejs__plugin-vue@6.0.8.patch
 
 importers:
@@ -8241,7 +8241,7 @@ snapshots:
   '@nuxt/vite-builder@4.5.2(d79014d1eae3b7a000789941f81133fa)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.2.0)(magicast@0.5.3)(oxc-parser@0.128.0)(rolldown@1.2.5)(unplugin@3.3.0(esbuild@0.28.0)(rolldown@1.2.5)(rollup@4.60.4)(vite@8.2.1(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(webpack@5.107.2(esbuild@0.28.0)(lightningcss@1.33.0)(postcss@8.5.26)))
-      '@vitejs/plugin-vue': 6.0.8(patch_hash=7314a364a640bc96f754e076d23eff67ebd9ccca3f2d0dad6a03500abf8c59e9)(vite@8.2.1(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))
+      '@vitejs/plugin-vue': 6.0.8(patch_hash=a86011b3380859cf6182f49871e0869110bcfb26546be5114b56cd3523cb5abc)(vite@8.2.1(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))
       '@vitejs/plugin-vue-jsx': 5.1.6(vite@8.2.1(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))
       autoprefixer: 10.5.4(postcss@8.5.26)
       consola: 3.4.2
@@ -9330,7 +9330,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitejs/plugin-vue@6.0.8(patch_hash=7314a364a640bc96f754e076d23eff67ebd9ccca3f2d0dad6a03500abf8c59e9)(vite@8.2.1(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))':
+  '@vitejs/plugin-vue@6.0.8(patch_hash=a86011b3380859cf6182f49871e0869110bcfb26546be5114b56cd3523cb5abc)(vite@8.2.1(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.2.1(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0)
