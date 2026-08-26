@@ -17,6 +17,7 @@ console.info('[nuxt-types-start]', JSON.stringify({
 export default defineNuxtConfig({
   devtools: { enabled: false },
   ssr: false,
+  vite: { oxc: false },
 
   future: {
     compatibilityVersion: 4
