@@ -1,8 +1,9 @@
 {
-  "python-envs.defaultEnvManager": "ms-python.python:poetry",
-  "python-envs.defaultPackageManager": "ms-python.python:poetry",
   "python.testing.pytestArgs": [
     "tests"
+  ],
+  "python.analysis.extraPaths": [
+    "../../tests/python-test-utils/src"
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
@@ -18,5 +19,7 @@
       "source.organizeImports": "explicit"
     }
   },
-  "isort.check": true
+  "isort.check": true,
+  "python-envs.defaultEnvManager": "ms-python.python:poetry",
+  "python-envs.defaultPackageManager": "ms-python.python:poetry"
 }

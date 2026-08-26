@@ -36,14 +36,6 @@
   "python.defaultInterpreterPath": "${workspaceFolder}/strr-api/.venv/bin/python",
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
-  "black-formatter.args": [
-    "--config",
-    "${workspaceFolder}/strr-api/pyproject.toml"
-  ],
-  "isort.args": [
-    "--settings-path",
-    "${workspaceFolder}/strr-api/pyproject.toml"
-  ],
   "isort.check": true,
   "[vue]": {
     "editor.formatOnSave": true,
