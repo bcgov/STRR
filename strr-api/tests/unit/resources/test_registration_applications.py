@@ -83,18 +83,22 @@ def test_application_document_upload_event_is_visible_to_applicant(session, clie
     application_number = create_response.json["header"]["applicationNumber"]
     application = Application.find_by_application_number(application_number)
 
-    with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
-        data = {
-            "file": (df, "supporting-doc.txt"),
-            "documentType": "OTHERS",
-            "uploadStep": "application_supporting_document",
-        }
-        upload_response = client.put(
-            f"/applications/{application_number}/documents",
-            content_type="multipart/form-data",
-            data=data,
-            headers=headers,
-        )
+    with patch(
+        "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
+        return_value="application-upload-file-key",
+    ):
+        with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+            data = {
+                "file": (df, "supporting-doc.txt"),
+                "documentType": "OTHERS",
+                "uploadStep": "application_supporting_document",
+            }
+            upload_response = client.put(
+                f"/applications/{application_number}/documents",
+                content_type="multipart/form-data",
+                data=data,
+                headers=headers,
+            )
 
     assert HTTPStatus.OK == upload_response.status_code
     applicant_events = Events.fetch_application_events(application.id, applicant_visible_events_only=True)
