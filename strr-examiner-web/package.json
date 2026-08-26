@@ -58,7 +58,8 @@
   "packageManager": "pnpm@10.21.0+sha1.a2cb35d3f07a58fecfe050af9277c5dc43a1b2e7",
   "pnpm": {
     "patchedDependencies": {
-      "@vitejs/plugin-vue@6.0.8": "patches/@vitejs__plugin-vue@6.0.8.patch"
+      "@vitejs/plugin-vue@6.0.8": "patches/@vitejs__plugin-vue@6.0.8.patch",
+      "vite@8.2.1": "patches/vite@8.2.1.patch"
     }
   }
 }
