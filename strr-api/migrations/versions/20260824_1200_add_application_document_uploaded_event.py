@@ -44,4 +44,5 @@ def upgrade():
 
 
 def downgrade():
+    op.execute("DELETE FROM events WHERE event_name = 'APPLICATION_DOCUMENT_UPLOADED'")
     _replace_event_enum(old_options)

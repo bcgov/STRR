@@ -73,6 +73,37 @@ def test_standalone_supporting_document_upload_tags_metadata(client, jwt):
     assert metadata["uploaded_by_idp_userid"] == "123"
 
 
+def test_application_document_upload_event_is_visible_to_applicant(session, client, jwt):
+    headers = create_header_account(jwt, roles=[PUBLIC_USER], account_id=ACCOUNT_ID)
+    headers["isDraft"] = True
+    json_data = _load_json(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST)
+
+    create_response = client.post("/applications", json=json_data, headers=headers)
+    assert HTTPStatus.OK == create_response.status_code
+    application_number = create_response.json["header"]["applicationNumber"]
+    application = Application.find_by_application_number(application_number)
+
+    with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+        data = {
+            "file": (df, "supporting-doc.txt"),
+            "documentType": "OTHERS",
+            "uploadStep": "application_supporting_document",
+        }
+        upload_response = client.put(
+            f"/applications/{application_number}/documents",
+            content_type="multipart/form-data",
+            data=data,
+            headers=headers,
+        )
+
+    assert HTTPStatus.OK == upload_response.status_code
+    applicant_events = Events.fetch_application_events(application.id, applicant_visible_events_only=True)
+    assert any(
+        event.event_name == Events.EventName.APPLICATION_DOCUMENT_UPLOADED and event.visible_to_applicant is True
+        for event in applicant_events
+    )
+
+
 def test_save_and_resume_applications(session, client, jwt):
     headers = create_header_account(jwt, roles=[PUBLIC_USER], account_id=ACCOUNT_ID)
     headers["isDraft"] = True
