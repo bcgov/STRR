@@ -1,0 +1,47 @@
+"""Add APPLICATION_DOCUMENT_UPLOADED event name.
+
+Revision ID: e8f7a6b5c4d3
+Revises: d7f3a8b9c6e2
+Create Date: 2026-08-24 12:00:00.000000
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+
+revision = "e8f7a6b5c4d3"
+down_revision = "d7f3a8b9c6e2"
+branch_labels = None
+depends_on = None
+
+old_options = (
+    "APPLICATION_SUBMITTED", "INVOICE_GENERATED", "PAYMENT_COMPLETE",
+    "PENDING_AUTO_APPROVAL_PROCESSING", "AUTO_APPROVAL_FULL_REVIEW",
+    "AUTO_APPROVAL_PROVISIONAL", "AUTO_APPROVAL_APPROVED", "FULL_REVIEW_IN_PROGRESS",
+    "MANUALLY_APPROVED", "MANUALLY_DENIED", "MORE_INFORMATION_REQUESTED",
+    "REGISTRATION_CREATED", "REGISTRATION_RENEWED", "CERTIFICATE_ISSUED",
+    "REGISTRATION_EXPIRED", "NON_COMPLIANCE_SUSPENDED", "REGISTRATION_CANCELLED",
+    "REGISTRATION_APPROVED", "REGISTRATION_REINSTATED", "APPLICATION_REVIEWER_ASSIGNED",
+    "APPLICATION_REVIEWER_UNASSIGNED", "REGISTRATION_ASSIGNEE_ASSIGNED",
+    "REGISTRATION_ASSIGNEE_UNASSIGNED", "NOC_SENT", "NOC_EXPIRED",
+    "HOST_APPLICATION_UNIT_ADDRESS_UPDATED", "HOST_REGISTRATION_UNIT_ADDRESS_UPDATED",
+    "APPLICATION_DECISION_SET_ASIDE", "REGISTRATION_DECISION_SET_ASIDE",
+    "REGISTRATION_DOCUMENT_UPLOADED", "CONDITIONS_OF_APPROVAL_UPDATED",
+    "RENEWAL_REMINDER_SENT", "REGISTRATION_UPDATED",
+)
+new_options = old_options + ("APPLICATION_DOCUMENT_UPLOADED",)
+
+
+def _replace_event_enum(options):
+    op.execute("ALTER TYPE eventname RENAME TO tmp_eventname")
+    sa.Enum(*options, name="eventname").create(op.get_bind())
+    op.execute("ALTER TABLE events ALTER COLUMN event_name TYPE eventname USING event_name::text::eventname")
+    op.execute("DROP TYPE tmp_eventname")
+
+
+def upgrade():
+    _replace_event_enum(new_options)
+
+
+def downgrade():
+    _replace_event_enum(old_options)

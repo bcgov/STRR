@@ -1057,7 +1057,8 @@ def update_registration_supporting_document(application_number):
         document["uploadDate"] = upload_date if upload_date else now_iso
         document["addedOn"] = now_iso
 
-        application = ApplicationService.update_document_list(application=application, document=document)
+        user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        application = ApplicationService.update_document_list(application=application, document=document, user=user)
 
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except AuthException as auth_exception:

@@ -410,7 +410,7 @@ class ApplicationService:
         return application
 
     @staticmethod
-    def update_document_list(application: Application, document: str) -> Application:
+    def update_document_list(application: Application, document: str, user: User) -> Application:
         """Updates the document list of an application."""
         application_json = copy.deepcopy(application.application_json)
         registration = application_json.get("registration", {})
@@ -420,6 +420,15 @@ class ApplicationService:
         application_json["registration"] = registration
         application.application_json = application_json
         application.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.APPLICATION_DOCUMENT_UPLOADED,
+            application_id=application.id,
+            details=f"Document uploaded: {document.get('fileName', '')}",
+            user_id=user.id,
+            visible_to_applicant=True,
+        )
         return application
 
     @staticmethod
