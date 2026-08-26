@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Form } from '#ui/types'
 import { z } from 'zod'
+import type { Form } from '#ui/types'
+
 const { $strrApi } = useNuxtApp()
 const localePath = useLocalePath()
 const { t } = useNuxtApp().$i18n

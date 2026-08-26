@@ -1,0 +1,36 @@
+diff --git a/dist/node/chunks/node.js b/dist/node/chunks/node.js
+index 6aae7eea37a45fd8ddde7b86a4a59dac09c0ee46..50846c3eabe33bd62779affc1f79f95a5f3b3158 100644
+--- a/dist/node/chunks/node.js
++++ b/dist/node/chunks/node.js
+@@ -4127,7 +4127,8 @@ function oxcPlugin(config) {
+ 	const getModifiedOxcTransformOptions = (oxcTransformOptions, id, code, environment) => {
+ 		const result = {
+ 			...oxcTransformOptions,
+-			sourcemap: environment.mode !== "build" || !!environment.config.build.sourcemap
++			sourcemap: environment.mode !== "build" || !!environment.config.build.sourcemap,
++			tsconfig: environment.config.isBundled ? false : void 0
+ 		};
+ 		const jsxOptions = result.jsx;
+ 		const [filepath] = id.split("?");
+@@ -4143,21 +4144,6 @@ function oxcPlugin(config) {
+ 	return {
+ 		name: "vite:oxc",
+ 		applyToEnvironment(environment) {
+-			if (environment.config.isBundled) {
+-				const { jsxInject, include = /\.(m?ts|[jt]sx)$/, exclude = /\.js$/, jsxRefreshInclude, jsxRefreshExclude, ..._transformOptions } = environment.config.oxc;
+-				const transformOptions = _transformOptions;
+-				transformOptions.sourcemap = environment.config.mode !== "build" || !!environment.config.build.sourcemap;
+-				return viteTransformPlugin({
+-					root: environment.config.root,
+-					include,
+-					exclude,
+-					jsxRefreshInclude,
+-					jsxRefreshExclude,
+-					isServerConsumer: environment.config.consumer === "server",
+-					jsxInject,
+-					transformOptions
+-				});
+-			}
+ 			return true;
+ 		},
+ 		configureServer(_server) {
