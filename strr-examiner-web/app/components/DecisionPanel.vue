@@ -31,7 +31,7 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 const isDecisionEmailDisabled = computed((): boolean =>
-  !!decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE)
+  !decisionIntent.value || decisionIntent.value === ApplicationActionsE.APPROVE)
 
 const localConditions = ref<string[]>([])
 const customCondition = ref<string>('') // custom condition to be added to lit of all conditions
