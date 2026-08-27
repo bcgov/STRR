@@ -133,6 +133,21 @@ describe('ActionButtons Component', () => {
     expect(wrapper.find('[data-testid="main-action-button"]').exists()).toBe(true)
   })
 
+  it('should label the application approval action as Approve Application', async () => {
+    isApplication.value = true
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      applicationNumber: 'APP-123'
+    }
+
+    const wrapper = await mount()
+
+    expect(wrapper.find('[data-testid="main-action-button"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="main-action-button"]').text()).toContain('Approve Application')
+  })
+
   it('should show main Approve action button only when conditions have changed', async () => {
     activeReg.value = {
       ...activeReg.value,

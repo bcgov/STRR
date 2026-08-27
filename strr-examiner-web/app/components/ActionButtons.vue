@@ -249,7 +249,12 @@ const unassign = async () => {
 }
 
 const setAside = async () => {
-  await setAsideRegistration(activeReg.value.id)
+  if (isApplication?.value) {
+    if (!applicationNumber.value) { return }
+    await useExaminerStore().setAsideApplication(applicationNumber.value)
+  } else {
+    await setAsideRegistration(activeReg.value.id)
+  }
   await refreshDecisionData()
 }
 
@@ -297,8 +302,13 @@ const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action(
             <!-- main button -->
             <UButton
               v-if="isMainActionButtonVisible"
-              :label="isRegApproved && isApproveDecisionSelected
-                ? t('btn.updateApproval') : t(`btn.${selectedAction?.label}`)"
+              :label="isApplication
+                ? selectedAction?.label === ApplicationActionsE.APPROVE
+                  ? t('btn.approveApplication')
+                  : t(`btn.${selectedAction?.label}`)
+                : isRegApproved && isApproveDecisionSelected
+                  ? t('btn.updateApproval')
+                  : t(`btn.${selectedAction?.label}`)"
               :color="(selectedAction?.color || 'primary') as any"
               :icon="selectedAction?.icon"
               :disabled="isMainActionDisabled"
