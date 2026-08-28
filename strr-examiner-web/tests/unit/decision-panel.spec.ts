@@ -1,12 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { ref, reactive, toRef } from 'vue'
+import { computed, ref, reactive, toRef } from 'vue'
 import { enI18n } from '../mocks/i18n'
 import DecisionPanel from '~/components/DecisionPanel.vue'
 import { ApplicationActionsE, RegistrationStatus } from '#imports'
 
 const decisionIntent = ref<ApplicationActionsE | null>(null)
-const showDecisionPanel = ref(true)
 const isApplication = ref(true)
 const isAssignedToUser = ref(true)
 const activeHeader = ref({
@@ -14,7 +13,7 @@ const activeHeader = ref({
   isSetAside: false,
   assignee: { username: 'examiner1' }
 })
-const activeReg = ref({
+const activeReg = ref<any>({
   status: RegistrationStatus.ACTIVE,
   conditionsOfApproval: { predefinedConditions: [], customConditions: null, minBookingDays: null }
 })
@@ -53,7 +52,11 @@ vi.mock('@/stores/examiner', () => ({
 
 vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
-    showDecisionPanel,
+    showDecisionPanel: computed(() =>
+      !isApplication.value ||
+      !activeHeader.value.registrationNumber ||
+      activeHeader.value.examinerActions.includes(ApplicationActionsE.PROVISIONAL_APPROVE)
+    ),
     decisionIntent,
     preDefinedConditions: ['principalResidence', 'validBL'],
     resetDecision: vi.fn(),
@@ -64,7 +67,6 @@ vi.mock('@/composables/useExaminerDecision', () => ({
 describe('DecisionPanel', () => {
   beforeEach(() => {
     decisionIntent.value = null
-    showDecisionPanel.value = true
     isApplication.value = true
     isAssignedToUser.value = true
     conditions.value = []
@@ -121,7 +123,7 @@ describe('DecisionPanel', () => {
         customConditions: ['Keep records available'],
         minBookingDays: 14
       }
-    }
+    } as any
 
     const wrapper = await mountSuspended(DecisionPanel, {
       global: { plugins: [enI18n] }
@@ -133,5 +135,37 @@ describe('DecisionPanel', () => {
     expect(wrapper.find('[data-testid="approval-conditions"]').text()).toContain('Principal Residence')
     expect(wrapper.find('[data-testid="approval-conditions"]').text()).toContain('Custom Cond.')
     expect(minBookingDays.value).toBe(14)
+  })
+
+  it('should show the decision panel for provisional application approval', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      examinerActions: [ApplicationActionsE.PROVISIONAL_APPROVE],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    decisionIntent.value = ApplicationActionsE.APPROVE
+
+    const wrapper = await mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(wrapper.find('[data-testid="decision-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="approval-conditions"]').exists()).toBe(true)
+  })
+
+  it('should hide the decision panel for a registered application without provisional approval', async () => {
+    activeHeader.value = {
+      examinerActions: [ApplicationActionsE.APPROVE],
+      registrationNumber: 'REG-123',
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+
+    const wrapper = await mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(wrapper.find('[data-testid="decision-panel"]').exists()).toBe(false)
   })
 })
