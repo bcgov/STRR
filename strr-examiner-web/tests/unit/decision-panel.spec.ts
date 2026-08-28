@@ -111,4 +111,27 @@ describe('DecisionPanel', () => {
 
     expect(wrapper.find('[data-testid="decision-email"]').attributes('disabled')).toBeDefined()
   })
+
+  it('should load existing application conditions when approve is selected without edits', async () => {
+    decisionIntent.value = null
+    activeReg.value = {
+      status: RegistrationStatus.ACTIVE,
+      conditionsOfApproval: {
+        predefinedConditions: ['principalResidence'],
+        customConditions: ['Keep records available'],
+        minBookingDays: 14
+      }
+    }
+
+    const wrapper = await mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })
+
+    await wrapper.find('[data-testid="decision-button-approve"]').trigger('click')
+
+    expect(wrapper.find('[data-testid="approval-conditions"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="approval-conditions"]').text()).toContain('Principal Residence')
+    expect(wrapper.find('[data-testid="approval-conditions"]').text()).toContain('Custom Cond.')
+    expect(minBookingDays.value).toBe(14)
+  })
 })

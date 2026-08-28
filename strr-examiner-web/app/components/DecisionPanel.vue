@@ -27,6 +27,9 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   customConditions.value = null
   minBookingDays.value = null
   decisionEmailFormRef?.value?.clear()
+  if (action === ApplicationActionsE.APPROVE) {
+    loadExistingConditions()
+  }
 }
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
@@ -188,7 +191,6 @@ onMounted(() => {
   resetDecision()
   if (!isApplication.value && activeReg.value?.status === RegistrationStatus.ACTIVE) {
     setDecisionIntent(ApplicationActionsE.APPROVE)
-    loadExistingConditions() // requirement: load conditions only for active registrations
   }
 })
 
