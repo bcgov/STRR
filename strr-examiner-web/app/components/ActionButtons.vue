@@ -95,6 +95,12 @@ const hasDecisionChanges = computed(() =>
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
+const approvalConditions = computed<ConditionsOfApproval>(() => ({
+  predefinedConditions: conditions.value,
+  ...(customConditions.value && { customConditions: customConditions.value }),
+  ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+}))
+
 // Shared ACTIVE status update for approve actions
 const applyActiveApprovalStatus = async () => {
   if (isApplication?.value) {
@@ -102,7 +108,7 @@ const applyActiveApprovalStatus = async () => {
     const approve = activeHeader.value?.examinerActions?.includes(ApplicationActionsE.PROVISIONAL_APPROVE)
       ? provisionallyApproveApplication
       : approveApplication
-    await approve(applicationNumber.value)
+    await approve(applicationNumber.value, approvalConditions.value)
     await refreshDecisionData()
     return
   }
@@ -110,11 +116,7 @@ const applyActiveApprovalStatus = async () => {
     activeReg.value.id,
     RegistrationStatus.ACTIVE,
     decisionEmailContent.value.content,
-    {
-      predefinedConditions: conditions.value,
-      ...(customConditions.value && { customConditions: customConditions.value }),
-      ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-    }
+    approvalConditions.value
   )
   await refreshDecisionData()
 }

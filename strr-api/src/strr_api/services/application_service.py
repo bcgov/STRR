@@ -229,6 +229,7 @@ class ApplicationService:
         reviewer: User,
         custom_content: Optional[str] = None,
         decision: Optional[str] = None,
+        conditions_of_approval: Optional[dict] = None,
     ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
         original_status = application.status
@@ -269,6 +270,11 @@ class ApplicationService:
                 registration.reviewer_id = reviewer.id
                 registration.decider_id = reviewer.id
                 registration.save()
+                RegistrationService._update_conditions_of_registration(
+                    registration,
+                    {"conditionsOfApproval": conditions_of_approval} if conditions_of_approval else {},
+                    reviewer.id,
+                )
 
                 event_name = (
                     Events.EventName.REGISTRATION_RENEWED
