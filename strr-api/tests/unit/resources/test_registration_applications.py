@@ -1516,6 +1516,7 @@ def test_examiner_provisional_approve_application_persists_conditions(app, sessi
         "invalid",
         {"predefinedConditions": ["unknownCondition"]},
         {"predefinedConditions": [], "minBookingDays": 90},
+        [],
     ],
 )
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

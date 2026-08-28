@@ -801,15 +801,15 @@ def update_application_status(application_number):
     try:
         user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
         json_input = request.get_json()
-        status = json_input.get("status")
-        custom_content = json_input.get("emailContent")
-        decision = json_input.get("decision")
-        conditions_of_approval = json_input.get("conditionsOfApproval")
         [valid, errors] = validate(json_input, "application_status_update")
         if not valid:
             return error_response(
                 message=ErrorMessage.INVALID_REQUEST.value, http_status=HTTPStatus.BAD_REQUEST, errors=errors
             )
+        status = json_input.get("status")
+        custom_content = json_input.get("emailContent")
+        decision = json_input.get("decision")
+        conditions_of_approval = json_input.get("conditionsOfApproval")
         if not status or status.upper() not in APPLICATION_STATES_STAFF_ACTION:
             return error_response(
                 message=ErrorMessage.INVALID_APPLICATION_STATUS.value,
