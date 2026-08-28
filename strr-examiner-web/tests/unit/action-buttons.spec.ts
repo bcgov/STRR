@@ -159,7 +159,7 @@ describe('ActionButtons Component', () => {
       examinerActions: [ApplicationActionsE.APPROVE]
     }
     decisionIntent.value = ApplicationActionsE.APPROVE
-    conditions.value = ['principalResidence']
+    conditions.value = ['principalResidence', 'minBookingDays']
     customConditions.value = ['Keep records available']
     minBookingDays.value = 14
 

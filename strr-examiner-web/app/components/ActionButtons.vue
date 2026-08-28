@@ -96,7 +96,7 @@ const hasDecisionChanges = computed(() =>
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
 const approvalConditions = computed<ConditionsOfApproval>(() => ({
-  predefinedConditions: conditions.value,
+  predefinedConditions: conditions.value.filter(condition => condition !== 'minBookingDays'),
   ...(customConditions.value && { customConditions: customConditions.value }),
   ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
 }))

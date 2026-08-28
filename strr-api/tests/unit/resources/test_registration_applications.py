@@ -1452,6 +1452,94 @@ def test_examiner_approve_application_persists_conditions(app, session, client, 
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_provisional_approve_application_persists_conditions(app, session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json.load(f), headers=headers)
+        application_number = rv.json["header"]["applicationNumber"]
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.put(
+            f"/applications/{application_number}/status",
+            json={"status": Application.Status.FULL_REVIEW_APPROVED},
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.status = Application.Status.PROVISIONAL_REVIEW
+        application.save()
+
+        status_update_request = {
+            "status": Application.Status.PROVISIONALLY_APPROVED,
+            "conditionsOfApproval": {
+                "predefinedConditions": ["principalResidence"],
+                "customConditions": ["Keep records available"],
+                "minBookingDays": 14,
+            },
+        }
+        rv = client.put(
+            f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        approval_conditions = application.registration.conditionsOfApproval
+        assert approval_conditions.preapproved_conditions == ["principalResidence"]
+        assert approval_conditions.custom_conditions == ["Keep records available"]
+        assert approval_conditions.minBookingDays == 14
+
+
+@pytest.mark.parametrize(
+    "conditions_of_approval",
+    [
+        "invalid",
+        {"predefinedConditions": ["unknownCondition"]},
+        {"predefinedConditions": [], "minBookingDays": 90},
+    ],
+)
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_approve_application_rejects_invalid_conditions(
+    mock_invoice, app, session, client, jwt, conditions_of_approval
+):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json.load(f), headers=headers)
+        application_number = rv.json["header"]["applicationNumber"]
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.put(
+            f"/applications/{application_number}/status",
+            json={
+                "status": Application.Status.FULL_REVIEW_APPROVED,
+                "conditionsOfApproval": conditions_of_approval,
+            },
+            headers=staff_headers,
+        )
+        assert HTTPStatus.BAD_REQUEST == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.status == Application.Status.FULL_REVIEW
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_examiner_set_aside_application_refusal_decision(app, session, client, jwt):
     with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
         headers = create_header(jwt, [PUBLIC_USER], "Account-Id")

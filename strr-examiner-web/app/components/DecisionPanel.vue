@@ -134,7 +134,8 @@ const loadExistingConditions = () => {
     localConditions.value.push(...customConditions)
   }
 
-  if (minDays) {
+  if (minDays !== null && minDays !== undefined) {
+    localConditions.value.push('minBookingDays')
     minBookingDays.value = minDays
   }
 }
@@ -154,7 +155,6 @@ watch([localConditions, minBookingDays],
         if (!newMinBookingDays) { continue }
         const minBookingDaysText =
           t('approvalConditionsExpanded.minBookingDays', { minDays: newMinBookingDays })
-        conditions.value.push(condition)
         items.push(`\u2022 ${minBookingDaysText}`)
         continue
       }
