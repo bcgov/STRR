@@ -1439,9 +1439,7 @@ def test_examiner_approve_application_persists_conditions(app, session, client, 
                 "minBookingDays": 14,
             },
         }
-        rv = client.put(
-            f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers
-        )
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
 
         application = Application.find_by_application_number(application_number=application_number)
@@ -1487,9 +1485,7 @@ def test_examiner_provisional_approve_application_persists_conditions(app, sessi
                 "minBookingDays": 14,
             },
         }
-        rv = client.put(
-            f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers
-        )
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
         assert HTTPStatus.OK == rv.status_code
 
         application = Application.find_by_application_number(application_number=application_number)

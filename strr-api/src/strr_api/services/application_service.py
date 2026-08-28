@@ -289,10 +289,14 @@ class ApplicationService:
         if application_status == Application.Status.PROVISIONALLY_APPROVED:
             registration = application.registration
 
-        if application_status in [
-            Application.Status.FULL_REVIEW_APPROVED,
-            Application.Status.PROVISIONALLY_APPROVED,
-        ] and registration:
+        if (
+            application_status
+            in [
+                Application.Status.FULL_REVIEW_APPROVED,
+                Application.Status.PROVISIONALLY_APPROVED,
+            ]
+            and registration
+        ):
             RegistrationService._update_conditions_of_registration(
                 registration,
                 {"conditionsOfApproval": conditions_of_approval} if conditions_of_approval else {},
