@@ -261,7 +261,7 @@ onMounted(() => {
           </UTooltip>
 
           <ApprovalConditions
-            v-if="isApproveDecisionSelected && isAssignedToUser && !isApplication"
+            v-if="isApproveDecisionSelected && isAssignedToUser"
             v-model:conditions="localConditions"
             v-model:custom-condition="customCondition"
             v-model:min-booking-days="minBookingDays"
