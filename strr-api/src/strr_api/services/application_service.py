@@ -295,6 +295,7 @@ class ApplicationService:
                 Application.Status.FULL_REVIEW_APPROVED,
                 Application.Status.PROVISIONALLY_APPROVED,
             ]
+            and conditions_of_approval is not None
             and registration
         ):
             RegistrationService._update_conditions_of_registration(

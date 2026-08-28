@@ -1448,6 +1448,21 @@ def test_examiner_approve_application_persists_conditions(app, session, client, 
         assert approval_conditions.custom_conditions == ["Keep records available"]
         assert approval_conditions.minBookingDays == 14
 
+        application.status = Application.Status.PROVISIONAL_REVIEW
+        application.save()
+        rv = client.put(
+            f"/applications/{application_number}/status",
+            json={"status": Application.Status.PROVISIONALLY_APPROVED},
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        approval_conditions = application.registration.conditionsOfApproval
+        assert approval_conditions.preapproved_conditions == ["principalResidence"]
+        assert approval_conditions.custom_conditions == ["Keep records available"]
+        assert approval_conditions.minBookingDays == 14
+
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
 def test_examiner_provisional_approve_application_persists_conditions(app, session, client, jwt):
