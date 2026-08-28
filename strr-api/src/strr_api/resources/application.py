@@ -800,7 +800,7 @@ def update_application_status(application_number):
 
     try:
         user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        json_input = request.get_json()
+        json_input = request.get_json(silent=True)
         [valid, errors] = validate(json_input, "application_status_update")
         if not valid:
             return error_response(
