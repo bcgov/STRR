@@ -191,14 +191,16 @@ class GCPStorageService:
     @classmethod
     def get_presigned_url(cls, bucket_id, blob_name, expiration_minutes):
         """Gets the presigned url for a file."""
-        storage_client = cls._create_storage_client()
-        bucket = storage_client.bucket(bucket_id)
+        bucket = cls.get_bucket(bucket_id)
         blob = bucket.blob(blob_name)
         signed_url_kwargs = {}
 
-        credentials = storage_client._credentials  # pylint: disable=protected-access
+        credentials = bucket.client._credentials  # pylint: disable=protected-access
         if credentials and not isinstance(credentials, service_account.Credentials):
-            credentials.refresh(Request())
+            # IAM signBlob is called outside the storage client's authenticated transport,
+            # so make sure ADC has a current access token before generating the URL.
+            if not credentials.valid:
+                credentials.refresh(Request())
             if service_account_email := getattr(credentials, "service_account_email", None):
                 signed_url_kwargs = {
                     "service_account_email": service_account_email,
