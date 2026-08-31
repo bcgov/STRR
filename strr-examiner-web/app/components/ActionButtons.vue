@@ -5,13 +5,20 @@ import isEqual from 'lodash/isEqual'
 const { t } = useNuxtApp().$i18n
 const { decisionIntent, isMainActionDisabled, isDecisionEmailValid } = useExaminerDecision()
 const {
-  activeHeader, activeReg, isAssignedToUser,
+  activeHeader, activeReg, isApplication, isAssignedToUser,
   conditions,
   customConditions,
   minBookingDays,
   decisionEmailContent
 } = storeToRefs(useExaminerStore())
 const {
+  assignApplication,
+  unassignApplication,
+  approveApplication,
+  provisionallyApproveApplication,
+  rejectApplication,
+  withdrawApplication,
+  sendNoticeOfConsideration,
   assignRegistration,
   unassignRegistration,
   setAsideRegistration,
@@ -22,13 +29,43 @@ const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals
 const { withNoteCheck } = useExaminerNotes()
 
 const hasSetAsideAction = computed((): boolean =>
-  activeHeader.value?.examinerActions.includes(ApplicationActionsE.SET_ASIDE))
+  activeHeader.value?.examinerActions?.includes(ApplicationActionsE.SET_ASIDE) ?? false)
 
-const isSetAside = computed((): boolean => activeHeader.value?.isSetAside)
+const isSetAside = computed((): boolean => activeHeader.value?.isSetAside ?? false)
 
 const isRegApproved = computed((): boolean =>
-  activeReg.value.status === RegistrationStatus.ACTIVE
+  activeReg.value?.status === RegistrationStatus.ACTIVE
 )
+const applicationNumber = computed(() => activeHeader.value?.applicationNumber)
+const isProvisionalApplication = computed(() => [
+  ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+  ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+].includes(activeHeader.value?.status))
+
+const refreshDecisionData = async () => {
+  await refreshNuxtData(isApplication?.value ? 'application-details-view' : 'registration-details-view')
+}
+
+const withApplicationNumber = (action: (number: string) => Promise<void>) => {
+  const number = applicationNumber.value
+  return number ? action(number) : Promise.resolve()
+}
+
+const assignCurrentRecord = async () => {
+  if (isApplication?.value) {
+    await withApplicationNumber(number => assignApplication(number))
+  } else {
+    await assignRegistration(activeReg.value!.id)
+  }
+}
+
+const unassignCurrentRecord = async () => {
+  if (isApplication?.value) {
+    await withApplicationNumber(number => unassignApplication(number))
+  } else {
+    await unassignRegistration(activeReg.value!.id)
+  }
+}
 
 const isMainActionButtonVisible = computed((): boolean => {
   if (!isAssignedToUser.value || !decisionIntent.value) {
@@ -38,7 +75,7 @@ const isMainActionButtonVisible = computed((): boolean => {
     return true // if set aside - always show the button
   }
   if (decisionIntent.value === ApplicationActionsE.APPROVE) {
-    return hasDecisionChanges.value // if Approve selected - show based on tracked changes
+    return isApplication?.value || hasDecisionChanges.value // applications have no approval conditions to track
   } else {
     return !!decisionIntent.value // is some decision selected - show the button
   }
@@ -47,7 +84,7 @@ const isMainActionButtonVisible = computed((): boolean => {
 // track changes between original conditions and new conditions
 const hasDecisionChanges = computed(() =>
   !isEqual(
-    activeReg.value.conditionsOfApproval,
+    activeReg.value?.conditionsOfApproval,
     {
       customConditions: customConditions.value,
       minBookingDays: minBookingDays.value,
@@ -59,8 +96,17 @@ const hasDecisionChanges = computed(() =>
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
 // Shared ACTIVE status update for approve actions
-const applyActiveApprovalStatus = () => {
-  updateRegistrationStatus(
+const applyActiveApprovalStatus = async () => {
+  if (isApplication?.value) {
+    if (!applicationNumber.value) { return }
+    const approve = activeHeader.value?.examinerActions?.includes(ApplicationActionsE.PROVISIONAL_APPROVE)
+      ? provisionallyApproveApplication
+      : approveApplication
+    await approve(applicationNumber.value)
+    await refreshDecisionData()
+    return
+  }
+  await updateRegistrationStatus(
     activeReg.value.id,
     RegistrationStatus.ACTIVE,
     decisionEmailContent.value.content,
@@ -70,59 +116,69 @@ const applyActiveApprovalStatus = () => {
       ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
     }
   )
-  refreshNuxtData()
-}
-
-// Handles first time approval from the main action button
-const approveRegistrationAction = () => {
-  applyActiveApprovalStatus()
-}
-
-// Handles approval updates when a registration is already active
-const updateApprovalAction = () => {
-  applyActiveApprovalStatus()
+  await refreshDecisionData()
 }
 
 const cancelRegistrationAction = async () => {
   // validate email form
   if (!await isDecisionEmailValid()) { return }
 
-  updateRegistrationStatus(
-    activeReg.value.id,
-    RegistrationStatus.CANCELLED,
-    decisionEmailContent.value.content
-  )
-  refreshNuxtData()
+  if (isApplication?.value) {
+    if (!applicationNumber.value) { return }
+    await rejectApplication(
+      applicationNumber.value,
+      isProvisionalApplication.value,
+      decisionEmailContent.value.content
+    )
+  } else {
+    await updateRegistrationStatus(
+      activeReg.value!.id,
+      RegistrationStatus.CANCELLED,
+      decisionEmailContent.value.content
+    )
+  }
+  await refreshDecisionData()
 }
 
-const suspendRegistrationAction = () => {
-  updateRegistrationStatus(
+const withdrawApplicationAction = async () => {
+  if (!applicationNumber.value) { return }
+  await withdrawApplication(applicationNumber.value, isProvisionalApplication.value)
+  await refreshDecisionData()
+}
+
+const suspendRegistrationAction = async () => {
+  await updateRegistrationStatus(
     activeReg.value.id,
     RegistrationStatus.SUSPENDED
   )
-  refreshNuxtData()
+  await refreshDecisionData()
 }
 
 // Reinstates a cancelled/suspended registration by re-applying the ACTIVE status
-const reinstateRegistration = () => {
-  applyActiveApprovalStatus()
+const reinstateRegistration = async () => {
+  await applyActiveApprovalStatus()
 }
 
 const sendNoticeAction = async () => {
   // validate email form
   if (!await isDecisionEmailValid()) { return }
 
-  sendNoticeOfConsiderationForRegistration(
-    activeReg.value.id,
-    decisionEmailContent.value.content
-  )
+  if (isApplication?.value) {
+    if (!applicationNumber.value) { return }
+    await sendNoticeOfConsideration(applicationNumber.value, decisionEmailContent.value.content)
+  } else {
+    await sendNoticeOfConsiderationForRegistration(
+      activeReg.value!.id,
+      decisionEmailContent.value.content
+    )
+  }
   decisionEmailContent.value.content = ''
-  refreshNuxtData()
+  await refreshDecisionData()
 }
 
 const actionButtons: ConnectBtnControlItem[] = [
   {
-    action: () => isRegApproved.value ? updateApprovalAction() : approveRegistrationAction(),
+    action: () => applyActiveApprovalStatus(),
     label: ApplicationActionsE.APPROVE,
     color: 'green',
     icon: 'i-mdi-check'
@@ -134,10 +190,16 @@ const actionButtons: ConnectBtnControlItem[] = [
     icon: 'i-mdi-send'
   },
   {
-    action: () => {}, // TODO: add reject action when on decisions for Applications
+    action: () => cancelRegistrationAction(),
     label: ApplicationActionsE.REJECT,
     color: 'red',
     icon: 'i-mdi-close'
+  },
+  {
+    action: () => withdrawApplicationAction(),
+    label: ApplicationActionsE.WITHDRAW,
+    color: 'primary',
+    icon: 'i-mdi-undo'
   },
   {
     action: () => cancelRegistrationAction(),
@@ -164,14 +226,14 @@ const selectedAction = computed(() =>
 )
 
 const assign = async () => {
-  await assignRegistration(activeReg.value.id)
-  refreshNuxtData()
+  await assignCurrentRecord()
+  await refreshDecisionData()
 }
 
 const unassign = async () => {
   if (isAssignedToUser.value) {
-    await unassignRegistration(activeReg.value.id)
-    refreshNuxtData()
+    await unassignCurrentRecord()
+    await refreshDecisionData()
   } else {
     openConfirmActionModal(
       t('modal.unassign.title'),
@@ -179,16 +241,21 @@ const unassign = async () => {
       t('strr.label.unAssign'),
       async () => {
         closeConfirmActionModal()
-        await unassignRegistration(activeReg.value.id)
-        refreshNuxtData()
+        await unassignCurrentRecord()
+        await refreshDecisionData()
       }
     )
   }
 }
 
 const setAside = async () => {
-  await setAsideRegistration(activeReg.value.id)
-  refreshNuxtData()
+  if (isApplication?.value) {
+    if (!applicationNumber.value) { return }
+    await useExaminerStore().setAsideApplication(applicationNumber.value)
+  } else {
+    await setAsideRegistration(activeReg.value.id)
+  }
+  await refreshDecisionData()
 }
 
 const handleSetAside = () => withNoteCheck(() => setAside())
@@ -235,9 +302,14 @@ const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action(
             <!-- main button -->
             <UButton
               v-if="isMainActionButtonVisible"
-              :label="isRegApproved && isApproveDecisionSelected
-                ? t('btn.updateApproval') : t(`btn.${selectedAction?.label}`)"
-              :color="selectedAction?.color || 'primary'"
+              :label="isApplication
+                ? selectedAction?.label === ApplicationActionsE.APPROVE
+                  ? t('btn.approveApplication')
+                  : t(`btn.${selectedAction?.label}`)
+                : isRegApproved && isApproveDecisionSelected
+                  ? t('btn.updateApproval')
+                  : t(`btn.${selectedAction?.label}`)"
+              :color="(selectedAction?.color || 'primary') as any"
               :icon="selectedAction?.icon"
               :disabled="isMainActionDisabled"
               variant="outline"

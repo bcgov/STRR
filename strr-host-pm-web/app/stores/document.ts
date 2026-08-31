@@ -299,10 +299,13 @@ export const useDocumentStore = defineStore('host/document', () => {
   const docTypeOptions = computed(() => {
     const permitStore = useHostPermitStore()
     const needsBusinessLicense = permitStore.needsBusinessLicenseDocumentUpload
-    // Check if NOC is pending
+    // Check if NOC is pending or expired
     const isNocPending = permitStore.application?.header.status === ApplicationStatus.NOC_PENDING ||
       permitStore.application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
-      permitStore.registration?.nocStatus === RegistrationNocStatus.NOC_PENDING
+      permitStore.application?.header.status === ApplicationStatus.NOC_EXPIRED ||
+      permitStore.application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED ||
+      permitStore.registration?.nocStatus === RegistrationNocStatus.NOC_PENDING ||
+      permitStore.registration?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
     // If both business license is needed AND NOC is pending
     if (needsBusinessLicense && isNocPending) {
       return allDocTypeOptions

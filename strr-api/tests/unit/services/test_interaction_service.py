@@ -405,3 +405,266 @@ def test_dispatch_email_all_recipients_fail(mock_requests_post, mock_get_token, 
     assert mock_requests_post.call_count == 2
     assert excinfo.value.status_code == HTTPStatus.BAD_REQUEST
     assert excinfo.value.error == "'Email not sent', 400"
+
+
+@pytest.mark.parametrize(
+    "interaction_status, expected_event_name",
+    [
+        (InteractionStatus.QUEUED, "EMAIL_QUEUED"),
+        (InteractionStatus.SENT, "EMAIL_SENT"),
+        (InteractionStatus.DELIVERED, "EMAIL_DELIVERED"),
+        (InteractionStatus.FAILED, "EMAIL_FAILED"),
+        (InteractionStatus.OPENED, "EMAIL_OPENED"),
+    ],
+)
+def test_filing_history_rows_application_maps_status_to_event_name(
+    session, setup_parents, interaction_status, expected_event_name
+):
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=interaction_status,
+        application_id=setup_parents["application_id"],
+        user_id=setup_parents["user_id"],
+        notify_reference="notify-ref-status",
+        provider_reference="provider-ref-status",
+        meta_data={
+            "email_type": "HOST_FULL_REVIEW_APPROVED",
+            "notify_delivery": {
+                "updated_at": "2026-07-08T20:53:21.399598+00:00",
+                "recipient_statuses": {
+                    "610066": {
+                        "email_address": "karim.jazzar@gov.bc.ca",
+                        "failure_reason": None,
+                        "failure_type": None,
+                        "notify_reference": "610066",
+                        "provider_reference": "610522",
+                        "request_date": "2026-06-09T22:23:11.634878",
+                        "sent_date": "2026-06-09T22:23:11.714837",
+                        "status": "SENT",
+                    }
+                },
+            },
+        },
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["eventName"] == expected_event_name
+    assert row["details"] is None
+    assert row["structuredDetails"]["recipientStatusUpdatedAt"] == "2026-07-08T20:53:21.399598+00:00"
+    assert isinstance(row["structuredDetails"]["recipientStatuses"], list)
+    assert row["structuredDetails"]["recipientStatuses"][0]["notify_reference"] == "610066"
+    assert row["structuredDetails"]["recipientStatuses"][0]["status"] == "SENT"
+
+
+@pytest.mark.parametrize(
+    "channel, meta_data, expected_count",
+    [
+        (
+            ChannelType.SMS,
+            {
+                "email_type": "HOST_FULL_REVIEW_APPROVED",
+                "notify_delivery": {
+                    "updated_at": "2026-07-08T20:53:21.399598+00:00",
+                    "recipient_statuses": {
+                        "610066": {
+                            "status": "SENT",
+                        }
+                    },
+                },
+            },
+            0,
+        ),
+        (
+            ChannelType.EMAIL,
+            {
+                "email_type": "HOST_FULL_REVIEW_APPROVED",
+            },
+            1,
+        ),
+        (
+            ChannelType.EMAIL,
+            {
+                "email_type": "HOST_FULL_REVIEW_APPROVED",
+                "notify_delivery": {
+                    "updated_at": "2026-07-08T20:53:21.399598+00:00",
+                    "recipient_statuses": {
+                        "610066": "malformed",
+                    },
+                },
+            },
+            1,
+        ),
+    ],
+)
+def test_filing_history_rows_application_edge_cases(session, setup_parents, channel, meta_data, expected_count):
+    interaction = CustomerInteraction(
+        channel=channel,
+        status=InteractionStatus.SENT,
+        application_id=setup_parents["application_id"],
+        meta_data=meta_data,
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == expected_count
+    if expected_count:
+        assert rows[0]["eventName"] == "EMAIL_SENT"
+        assert rows[0]["structuredDetails"]["interactionStatus"] == "SENT"
+
+
+@pytest.mark.parametrize(
+    "provider_status, expected_status",
+    [
+        ("created", "CREATED"),
+        ("sending", "IN_TRANSIT"),
+        ("pending", "PENDING"),
+        ("delivered", "DELIVERED"),
+        ("sent", "SENT"),
+        ("permanent-failure", "FAILED"),
+        ("temporary-failure", "FAILED"),
+        ("technical-failure", "FAILED"),
+        ("pending-virus-check", "PENDING"),
+        ("virus-scan-failed", "FAILED"),
+    ],
+)
+def test_filing_history_rows_application_maps_provider_status_to_internal_status(
+    session, setup_parents, provider_status, expected_status
+):
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.SENT,
+        application_id=setup_parents["application_id"],
+        meta_data={
+            "email_type": "HOST_RENEWAL_REMINDER",
+            "notify_delivery": {
+                "updated_at": "2026-07-08T20:53:21.399598+00:00",
+                "recipient_statuses": {
+                    "610066": {
+                        "email_address": "karim.jazzar@gov.bc.ca",
+                        "notify_reference": "610066",
+                        "provider_reference": "610522",
+                        "status": provider_status,
+                    }
+                },
+            },
+        },
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == 1
+    recipient = rows[0]["structuredDetails"]["recipientStatuses"][0]
+    assert recipient["status"] == expected_status
+    assert recipient["provider_status"] == provider_status
+
+
+def test_filing_history_rows_fallback_when_notify_delivery_missing(session, setup_parents):
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.SENT,
+        registration_id=setup_parents["registration_id"],
+        meta_data={
+            "status": "SENT",
+            "target_id": "25469",
+            "email_type": "HOST_RENEWAL_REMINDER",
+            "target_entity": "registration",
+            "notify_request": {
+                "subject": "H992462492 - Short-Term Rental Registration Renewal Reminder",
+                "requestBy": "STRR",
+            },
+            "notify_response": {
+                "id": 1989809,
+                "ids": "1989809,1989810",
+                "content": {
+                    "id": 1989809,
+                    "subject": "H992462492 - Short-Term Rental Registration Renewal Reminder",
+                },
+                "sentDate": "2026-07-02T07:02:05.960593",
+                "requestBy": "STRR",
+                "notifyType": "EMAIL",
+                "recipients": "julio_zaharia@yahoo.com",
+                "requestDate": "2026-07-02T07:02:05.870865",
+                "notifyStatus": "QUEUED",
+                "notifyProvider": "HOUSING",
+            },
+            "notify_references": "1989809,1989810",
+            "registration_number": "H992462492",
+        },
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_registration(setup_parents["registration_id"])
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["structuredDetails"]["recipientStatusUpdatedAt"] == "2026-07-02T07:02:05.960593"
+    recipients = row["structuredDetails"]["recipientStatuses"]
+    assert len(recipients) == 1
+    assert recipients[0]["email_address"] == "julio_zaharia@yahoo.com"
+    assert recipients[0]["sent_date"] == "2026-07-02T07:02:05.960593"
+    assert recipients[0]["request_date"] == "2026-07-02T07:02:05.870865"
+    assert recipients[0]["notify_reference"] == "1989809"
+    assert recipients[0]["status"] == "PENDING"
+    assert recipients[0]["provider_status"] == "QUEUED"
+
+
+def test_filing_history_rows_fallback_multiple_recipients(session, setup_parents):
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.SENT,
+        application_id=setup_parents["application_id"],
+        meta_data={
+            "email_type": "HOST_FULL_REVIEW_APPROVED",
+            "notify_response": {
+                "id": 2000001,
+                "ids": "2000001,2000002",
+                "sentDate": "2026-07-05T10:00:00.000000",
+                "recipients": "first@example.com, second@example.com",
+                "notifyStatus": "SENT",
+            },
+            "notify_references": "2000001,2000002",
+        },
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == 1
+    recipients = rows[0]["structuredDetails"]["recipientStatuses"]
+    assert len(recipients) == 2
+    assert recipients[0]["email_address"] == "first@example.com"
+    assert recipients[0]["notify_reference"] == "2000001"
+    assert recipients[0]["status"] == "SENT"
+    assert recipients[1]["email_address"] == "second@example.com"
+    assert recipients[1]["notify_reference"] == "2000002"
+    assert recipients[1]["status"] == "SENT"
+
+
+def test_filing_history_rows_fallback_list_recipients_and_ids(session, setup_parents):
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.SENT,
+        application_id=setup_parents["application_id"],
+        meta_data={
+            "email_type": "HOST_FULL_REVIEW_APPROVED",
+            "notify_response": {
+                "ids": [3000001, 3000002],
+                "sentDate": "2026-07-05T10:00:00.000000",
+                "recipients": ["list1@example.com", "list2@example.com"],
+                "notifyStatus": "DELIVERED",
+            },
+        },
+    )
+    interaction.save()
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == 1
+    recipients = rows[0]["structuredDetails"]["recipientStatuses"]
+    assert len(recipients) == 2
+    assert recipients[0]["email_address"] == "list1@example.com"
+    assert recipients[0]["notify_reference"] == "3000001"
+    assert recipients[0]["status"] == "DELIVERED"
+    assert recipients[1]["email_address"] == "list2@example.com"
+    assert recipients[1]["notify_reference"] == "3000002"
+    assert recipients[1]["status"] == "DELIVERED"

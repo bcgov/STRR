@@ -13,4 +13,6 @@ export interface Todo {
   icon?: string
   iconClass?: string
   detail?: string
+  badge?: string
+  badgeColor?: string
 }

@@ -3,7 +3,6 @@
  */
 export const useDashboardTodos = () => {
   const { t } = useNuxtApp().$i18n
-  const localePath = useLocalePath()
   const permitStore = useHostPermitStore()
   const {
     registration,
@@ -20,7 +19,9 @@ export const useDashboardTodos = () => {
     renewalDueDate,
     renewalDateCounter,
     isRenewalPeriodClosed,
-    getRegistrationRenewalTodos
+    getRegistrationRenewalTodos,
+    startRenewal,
+    resumeRenewalDraft
   } = useRenewals()
 
   const { getAccountApplication, deleteApplication } = useStrrApi()
@@ -30,14 +31,15 @@ export const useDashboardTodos = () => {
 
   // Check if there's a pending renewal application (PAID or FULL_REVIEW status)
   const hasPendingRenewalProcessing = computed(() => {
-    const apps = (registration.value as any)?.header?.applications || []
+    const apps = (registration.value as Partial<RegistrationRecord> | undefined)?.header?.applications || []
     if (apps.length === 0) {
       return false
     }
     const latestApp = apps[0]
     const pendingStatuses = [ApplicationStatus.PAID, ApplicationStatus.FULL_REVIEW]
     return latestApp?.applicationType === 'renewal' &&
-      pendingStatuses.includes(latestApp?.applicationStatus)
+      !!latestApp?.applicationStatus &&
+      pendingStatuses.includes(latestApp.applicationStatus as ApplicationStatus)
   })
 
   // Common translation props for scroll-to-link
@@ -53,14 +55,19 @@ export const useDashboardTodos = () => {
 
   // Add NOC todo if applicable
   const addNocTodo = () => {
-    if (registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING) {
+    if (registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING ||
+      registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
+    ) {
       const translationProps = getScrollLinkTranslationProps()
-      const nocEndDate = dateToString(permitDetails.value.nocEndDate as Date)
+      const nocEndDate = dateToString((permitDetails.value as HostRegistrationResp).nocEndDate as Date)
+      const isExpired = registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
 
       todos.value.push({
         id: 'todo-reg-noc-add-docs',
         title: `${t('todos.registrationNoc.title1')} ${nocEndDate} ${t('todos.registrationNoc.title2')}`,
-        subtitle: `${t('todos.registrationNoc.general', translationProps)}`
+        subtitle: `${t('todos.registrationNoc.general', translationProps)}`,
+        badge: isExpired ? t('label.expired') : undefined,
+        badgeColor: isExpired ? 'red' : undefined
       })
     }
   }
@@ -129,11 +136,7 @@ export const useDashboardTodos = () => {
           buttons: [{
             label: t('btn.renew'),
             action: async () => {
-              permitStore.setRenewalRegistrationContext(registration.value!.id)
-              await navigateTo({
-                path: localePath('/application'),
-                query: { renew: 'true' }
-              })
+              await startRenewal(registration.value!.id)
             }
           }]
         })
@@ -147,11 +150,7 @@ export const useDashboardTodos = () => {
             {
               label: t('todos.renewalDraft.resumeButton'),
               action: async () => {
-                permitStore.clearRenewalRegistrationContext()
-                await navigateTo({
-                  path: localePath('/application'),
-                  query: { renew: 'true', applicationId: renewalDraftId.value }
-                })
+                await resumeRenewalDraft(renewalDraftId.value)
               }
             },
             {

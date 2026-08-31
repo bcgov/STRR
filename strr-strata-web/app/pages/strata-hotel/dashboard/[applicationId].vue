@@ -227,6 +227,8 @@ definePageMeta({
           :title="todo.title"
           :subtitle="todo.subtitle"
           :buttons="todo.buttons"
+          :badge="todo.badge"
+          :badge-color="todo.badgeColor"
         />
       </ConnectDashboardSection>
       <ConnectDashboardSection :title="$t('strr.label.registeringBusiness')" :loading="loading">
@@ -271,7 +273,12 @@ definePageMeta({
           </div>
 
           <div
-            v-if="application?.header.status === ApplicationStatus.NOC_PENDING"
+            v-if="
+              application?.header.status === ApplicationStatus.NOC_PENDING ||
+                application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
+                application?.header.status === ApplicationStatus.NOC_EXPIRED ||
+                application?.header.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+            "
           >
             <UButton
               :label="t('btn.addNewDocuments')"

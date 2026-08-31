@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
-from strr_api.enums.enum import ErrorMessage
+from strr_api.enums.enum import ChannelType, ErrorMessage, InteractionStatus
+from strr_api.models import CustomerInteraction
 from tests.integration.application_seed import (
     count_renewal_applications_for_account_registration,
     generate_application_number,
@@ -100,6 +101,63 @@ def test_get_application_events_item_keys(client, session, headers_public_user, 
         assert k in first, first
     assert first["details"] == "Integration seed"
     assert first["structuredDetails"] is None
+
+
+@pytest.mark.parametrize(
+    "include_interaction_delivery, expected_present",
+    [
+        (False, False),
+        (True, True),
+    ],
+)
+def test_get_application_events_include_interaction_delivery_toggle(
+    client,
+    session,
+    headers_public_user,
+    serializable_application,
+    include_interaction_delivery,
+    expected_present,
+):
+    aid = serializable_application["application_id"]
+    num = serializable_application["application_number"]
+
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.DELIVERED,
+        application_id=aid,
+        meta_data={
+            "email_type": "HOST_FULL_REVIEW_APPROVED",
+            "notify_delivery": {
+                "updated_at": "2026-07-08T20:53:21.399598+00:00",
+                "recipient_statuses": {
+                    "610066": {
+                        "email_address": "karim.jazzar@gov.bc.ca",
+                        "failure_reason": None,
+                        "failure_type": None,
+                        "notify_reference": "610066",
+                        "provider_reference": "610522",
+                        "request_date": "2026-06-09T22:23:11.634878",
+                        "sent_date": "2026-06-09T22:23:11.714837",
+                        "status": "SENT",
+                    }
+                },
+            },
+        },
+    )
+    session.add(interaction)
+    session.flush()
+
+    query = "?include_interaction_delivery=true" if include_interaction_delivery else ""
+    rv = client.get(f"/applications/{num}/events{query}", headers=headers_public_user())
+    assert_status(rv, HTTPStatus.OK)
+    events = rv.get_json()
+    email_event = next((e for e in events if e.get("eventName") == "EMAIL_DELIVERED"), None)
+    assert (email_event is not None) is expected_present
+    if expected_present:
+        assert email_event["details"] is None
+        assert email_event["idir"] is None
+        assert email_event["structuredDetails"]["interactionStatus"] == "DELIVERED"
+        assert isinstance(email_event["structuredDetails"]["recipientStatuses"], list)
 
 
 def test_get_application_not_found_wrong_account(client, session, headers_public_user, serializable_host_registration):

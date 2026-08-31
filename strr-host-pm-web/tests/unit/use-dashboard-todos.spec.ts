@@ -3,7 +3,6 @@ import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { nextTick } from 'vue'
 import { mockApplicationHeader, mockHostRegistration } from '../mocks/mockedData'
 import { baseEnI18n } from '../mocks/i18n'
-import { renewalNavigatePayload } from './helpers/renewal-test-utils'
 
 const $t = baseEnI18n.global.t
 
@@ -56,6 +55,9 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
   })
 }))
 
+const mockStartRenewal = vi.fn()
+const mockResumeRenewalDraft = vi.fn()
+
 vi.mock('@/composables/useRenewals', () => ({
   useRenewals: () => ({
     isEligibleForRenewal: mockIsEligibleForRenewal,
@@ -66,7 +68,9 @@ vi.mock('@/composables/useRenewals', () => ({
     renewalDueDate: mockRenewalDueDate,
     renewalDateCounter: mockRenewalDateCounter,
     isRenewalPeriodClosed: mockIsRenewalPeriodClosed,
-    getRegistrationRenewalTodos: mockGetRegistrationRenewalTodos
+    getRegistrationRenewalTodos: mockGetRegistrationRenewalTodos,
+    startRenewal: mockStartRenewal,
+    resumeRenewalDraft: mockResumeRenewalDraft
   })
 }))
 
@@ -111,6 +115,12 @@ describe('Pending Renewal', () => {
     expect(hasPendingRenewalProcessing.value).toBe(false)
 
     mockRegistration.value = { ...mockHostRegistration } as unknown as HostRegistrationResp
+    expect(hasPendingRenewalProcessing.value).toBe(false)
+
+    mockRegistration.value = {
+      ...mockHostRegistration,
+      header: undefined
+    } as unknown as HostRegistrationResp
     expect(hasPendingRenewalProcessing.value).toBe(false)
   })
 
@@ -191,12 +201,23 @@ describe('Pending Renewal', () => {
 describe('NOC Todo', () => {
   beforeEach(resetState)
 
-  it('does not add a todo when nocStatus is not NOC_PENDING', () => {
-    mockRegistration.value = { ...mockHostRegistration, nocStatus: RegistrationNocStatus.NOC_EXPIRED }
+  it('does not add a todo when nocStatus is null', () => {
+    mockRegistration.value = { ...mockHostRegistration, nocStatus: null as any }
     mockPermitDetails.value = { nocEndDate: new Date('2025-10-18') }
     const { todos, addNocTodo } = useDashboardTodos()
     addNocTodo()
     expect(todos.value).toHaveLength(0)
+  })
+
+  it('adds NOC todo when nocStatus is NOC_EXPIRED', () => {
+    mockRegistration.value = { ...mockHostRegistration, nocStatus: RegistrationNocStatus.NOC_EXPIRED }
+    mockPermitDetails.value = { nocEndDate: new Date('2025-10-18') }
+    const { todos, addNocTodo } = useDashboardTodos()
+    addNocTodo()
+    expect(todos.value).toHaveLength(1)
+    expect(todos.value[0]!.id).toBe('todo-reg-noc-add-docs')
+    expect(todos.value[0]!.badge).toBe('Expired')
+    expect(todos.value[0]!.badgeColor).toBe('red')
   })
 
   it('NOC todo when nocStatus is NOC_PENDING', () => {
@@ -350,25 +371,23 @@ describe('Renewal Todos buttons', () => {
     mockRegistration.value = { ...mockHostRegistration }
   })
 
-  it('renew button sets renewalRegId and navigates to /application with renew query', async () => {
+  it('renew button calls startRenewal', async () => {
     mockIsEligibleForRenewal.value = true
     const { todos, setupRenewalTodosWatch } = useDashboardTodos()
     setupRenewalTodosWatch()
     const todo = todos.value.find(t => t.id === 'todo-renew-registration')!
     await todo.buttons![0]!.action()
-    expect(mockRenewalRegId.value).toBe(mockHostRegistration.id.toString())
-    expect(mockNavigateTo).toHaveBeenCalledWith({ path: '/application', query: { renew: 'true' } })
+    expect(mockStartRenewal).toHaveBeenCalledWith(mockHostRegistration.id)
   })
 
-  it('resume draft button clears renewal context and navigates with draft applicationId', async () => {
+  it('resume draft button calls resumeRenewalDraft with draft applicationId', async () => {
     mockHasRegistrationRenewalDraft.value = true
     mockRenewalDraftId.value = '1234567890'
     const { todos, setupRenewalTodosWatch } = useDashboardTodos()
     setupRenewalTodosWatch()
     const todo = todos.value.find(t => t.id === 'todo-renewal-draft')!
     await todo.buttons![0]!.action()
-    expect(mockRenewalRegId.value).toBeUndefined()
-    expect(mockNavigateTo).toHaveBeenCalledWith(renewalNavigatePayload('1234567890'))
+    expect(mockResumeRenewalDraft).toHaveBeenCalledWith('1234567890')
   })
 
   it('delete draft button calls deleteApplication, remove draft todo, and reload renewal todos', async () => {

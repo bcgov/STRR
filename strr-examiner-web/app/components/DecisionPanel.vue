@@ -31,7 +31,7 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 const isDecisionEmailDisabled = computed((): boolean =>
-  !!decisionIntent.value && decisionIntent.value === ApplicationActionsE.APPROVE)
+  !decisionIntent.value || decisionIntent.value === ApplicationActionsE.APPROVE)
 
 const localConditions = ref<string[]>([])
 const customCondition = ref<string>('') // custom condition to be added to lit of all conditions
@@ -118,7 +118,11 @@ const moreActionItems = computed(() =>
 const loadExistingConditions = () => {
   localConditions.value = []
 
-  const { predefinedConditions, customConditions, minBookingDays: minDays } = activeReg.value.conditionsOfApproval || {}
+  const {
+    predefinedConditions,
+    customConditions,
+    minBookingDays: minDays
+  } = activeReg.value?.conditionsOfApproval || {}
 
   // load pre-defined conditions
   if (predefinedConditions?.length) {
@@ -182,7 +186,7 @@ watch(customCondition, (val) => {
 
 onMounted(() => {
   resetDecision()
-  if (activeReg.value?.status === RegistrationStatus.ACTIVE) {
+  if (!isApplication.value && activeReg.value?.status === RegistrationStatus.ACTIVE) {
     setDecisionIntent(ApplicationActionsE.APPROVE)
     loadExistingConditions() // requirement: load conditions only for active registrations
   }
@@ -231,7 +235,7 @@ onMounted(() => {
               :key="'button-' + i"
               class="h-[44px] grow justify-center"
               :class="decisionIntent === button.action && button.activeStyle"
-              :color="button.color || 'primary'"
+              :color="(button.color || 'primary') as any"
               :disabled="button.disabled || !isAssignedToUser"
               :icon="button.icon || ''"
               :label="button.label"
@@ -257,7 +261,7 @@ onMounted(() => {
           </UTooltip>
 
           <ApprovalConditions
-            v-if="isApproveDecisionSelected && isAssignedToUser"
+            v-if="isApproveDecisionSelected && isAssignedToUser && !isApplication"
             v-model:conditions="localConditions"
             v-model:custom-condition="customCondition"
             v-model:min-booking-days="minBookingDays"

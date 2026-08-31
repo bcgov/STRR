@@ -19,8 +19,179 @@ const HIDDEN_EVENTS: Set<FilingHistoryEventName> = new Set([
 
 const EXPANDABLE_EVENTS: Set<FilingHistoryEventName> = new Set([
   FilingHistoryEventName.CONDITIONS_OF_APPROVAL_UPDATED,
-  FilingHistoryEventName.REGISTRATION_UPDATED
+  FilingHistoryEventName.REGISTRATION_UPDATED,
+  FilingHistoryEventName.EMAIL_QUEUED,
+  FilingHistoryEventName.EMAIL_SENT,
+  FilingHistoryEventName.EMAIL_DELIVERED,
+  FilingHistoryEventName.EMAIL_FAILED,
+  FilingHistoryEventName.EMAIL_OPENED
 ])
+
+const EMAIL_EVENTS: Set<FilingHistoryEventName> = new Set([
+  FilingHistoryEventName.EMAIL_QUEUED,
+  FilingHistoryEventName.EMAIL_SENT,
+  FilingHistoryEventName.EMAIL_DELIVERED,
+  FilingHistoryEventName.EMAIL_FAILED,
+  FilingHistoryEventName.EMAIL_OPENED
+])
+
+type EmailRecipientStatus = {
+  email_address?: string
+  failure_reason?: string | null
+  failure_type?: string | null
+  notify_reference?: string
+  provider_reference?: string
+  request_date?: string
+  sent_date?: string
+  status?: string
+}
+
+type EmailStructuredDetails = {
+  emailType?: string
+  interactionStatus?: string
+  recipientStatuses?: EmailRecipientStatus[]
+}
+
+export type EmailRecipientAccordionDetail = {
+  email: string
+  status: string
+  statusLabel: string
+  sentDate?: string
+  failureReason?: string
+}
+
+export type EmailAccordionDetail = {
+  emailTypeLabel: string
+  recipients: EmailRecipientAccordionDetail[]
+}
+
+const EMAIL_TYPE_LABELS: Record<string, string> = {
+  HOST_RENEWAL_REMINDER: 'Host renewal reminder',
+  STRATA_HOTEL_RENEWAL_REMINDER: 'Strata hotel renewal reminder',
+  PLATFORM_RENEWAL_REMINDER: 'Platform renewal reminder',
+  HOST_FULL_REVIEW_APPROVED: 'Host full review approved',
+  HOST_REGISTRATION_ACTIVE: 'Host registration active'
+}
+
+const RECIPIENT_STATUS_LABELS: Record<string, string> = {
+  CREATED: 'Created',
+  IN_TRANSIT: 'In transit',
+  PENDING: 'Pending',
+  SENT: 'Sent',
+  DELIVERED: 'Delivered',
+  FAILED: 'Failed',
+  UNKNOWN: 'Unknown'
+}
+
+const humanizeEmailType = (value: string | undefined): string => {
+  if (!value) {
+    return 'Unknown'
+  }
+
+  if (EMAIL_TYPE_LABELS[value]) {
+    return EMAIL_TYPE_LABELS[value]
+  }
+
+  return value
+    .toLowerCase()
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+const humanizeRecipientStatus = (value: string | undefined): string => {
+  if (!value) {
+    return RECIPIENT_STATUS_LABELS.UNKNOWN || 'Unknown'
+  }
+
+  const mapped = RECIPIENT_STATUS_LABELS[value]
+  if (mapped) {
+    return mapped
+  }
+
+  return value
+    .toLowerCase()
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+const getEmailAccordionDetails = (event: FilingHistoryEvent): string[] => {
+  if (!event.structuredDetails || Array.isArray(event.structuredDetails)) {
+    return []
+  }
+
+  const structured = event.structuredDetails as EmailStructuredDetails
+  const recipients = Array.isArray(structured.recipientStatuses)
+    ? structured.recipientStatuses
+    : []
+
+  const lines: string[] = [
+    `Email type: ${humanizeEmailType(structured.emailType)}`
+  ]
+
+  for (const recipient of recipients) {
+    const email = recipient.email_address || 'Unknown email'
+    const details: string[] = [`Status: ${humanizeRecipientStatus(recipient.status)}`]
+
+    if (recipient.sent_date && (recipient.status === 'SENT' || recipient.status === 'DELIVERED')) {
+      details.push(`Sent: ${recipient.sent_date}`)
+    }
+
+    if (recipient.status === 'FAILED' && recipient.failure_reason) {
+      details.push(`Failure reason: ${recipient.failure_reason}`)
+    }
+
+    if (details.length > 0) {
+      lines.push(`- ${email} (${details.join(', ')})`)
+    } else {
+      lines.push(`- ${email}`)
+    }
+  }
+
+  return lines
+}
+
+export const isEmailFilingHistoryEvent = (event: FilingHistoryEvent): boolean => {
+  return EMAIL_EVENTS.has(event.eventName)
+}
+
+export const getEmailFilingHistoryDetails = (event: FilingHistoryEvent): EmailAccordionDetail => {
+  if (!event.structuredDetails || Array.isArray(event.structuredDetails)) {
+    return {
+      emailTypeLabel: humanizeEmailType(undefined),
+      recipients: []
+    }
+  }
+
+  const structured = event.structuredDetails as EmailStructuredDetails
+  const recipients = Array.isArray(structured.recipientStatuses)
+    ? structured.recipientStatuses
+    : []
+
+  return {
+    emailTypeLabel: humanizeEmailType(structured.emailType),
+    recipients: recipients.map((recipient) => {
+      return {
+        email: recipient.email_address || 'Unknown email',
+        status: recipient.status || 'UNKNOWN',
+        statusLabel: humanizeRecipientStatus(recipient.status),
+        sentDate: recipient.sent_date && (recipient.status === 'SENT' || recipient.status === 'DELIVERED')
+          ? recipient.sent_date
+          : undefined,
+        failureReason: recipient.status === 'FAILED' ? recipient.failure_reason || undefined : undefined
+      }
+    })
+  }
+}
+
+export const getEmailFilingHistoryTypeLabel = (event: FilingHistoryEvent): string => {
+  if (!isEmailFilingHistoryEvent(event)) {
+    return ''
+  }
+
+  return getEmailFilingHistoryDetails(event).emailTypeLabel
+}
 
 const stringifyChangeValue = (value: unknown, translate: (key: string) => string): string => {
   if (value === null || value === undefined || value === '') {
@@ -150,6 +321,11 @@ export const getFilingHistoryAccordionContent = (
   event: FilingHistoryEvent,
   translate: (key: string, params?: Record<string, string>) => string
 ): string => {
+  if (EMAIL_EVENTS.has(event.eventName)) {
+    const details = getEmailAccordionDetails(event)
+    return details.join('\n')
+  }
+
   if (event.eventName === FilingHistoryEventName.CONDITIONS_OF_APPROVAL_UPDATED) {
     return event.details || translate('label.noApprovalConditions')
   }
@@ -174,6 +350,10 @@ export const isEmptyFilingHistoryAccordion = (
   event: FilingHistoryEvent,
   translate: (key: string, params?: Record<string, string>) => string
 ): boolean => {
+  if (EMAIL_EVENTS.has(event.eventName)) {
+    return getEmailAccordionDetails(event).length === 0
+  }
+
   if (event.eventName === FilingHistoryEventName.CONDITIONS_OF_APPROVAL_UPDATED) {
     return !event.details
   }
@@ -225,6 +405,9 @@ export const useFilingHistory = async () => {
     filingHistory,
     status,
     historyTableColumns,
+    isEmailFilingHistoryEvent,
+    getEmailFilingHistoryDetails,
+    getEmailFilingHistoryTypeLabel,
     shouldRenderFilingHistoryAccordion,
     getFilingHistoryAccordionContent,
     isEmptyFilingHistoryAccordion,

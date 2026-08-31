@@ -85,7 +85,8 @@ const { data: hostPmListResp, status, refresh } = await useAsyncData(
 )
 
 const hasRegistrationNOC = (header: ApplicationHeader): boolean => {
-  return header.registrationNocStatus === RegistrationNocStatus.NOC_PENDING
+  return header.registrationNocStatus === RegistrationNocStatus.NOC_PENDING ||
+    header.registrationNocStatus === RegistrationNocStatus.NOC_EXPIRED
 }
 
 const needsAttention = (app: any): boolean => {

@@ -518,6 +518,19 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     })
   }
 
+  const withdrawApplication = async (
+    applicationNumber: string,
+    isProvisional: boolean = false
+  ): Promise<void> => {
+    await $strrApi(`/applications/${applicationNumber}/status`, {
+      method: 'PUT',
+      body: {
+        status: isProvisional ? ApplicationStatus.PROVISIONALLY_DECLINED : ApplicationStatus.DECLINED,
+        decision: 'WITHDRAW'
+      }
+    })
+  }
+
   const getApplicationById = async (applicationNumber: string): Promise<HousApplicationResponse> => {
     const resp = await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}`, {
       method: 'GET'
@@ -707,7 +720,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const getApplicationFilingHistory = async (applicationNumber: string): Promise<FilingHistoryEvent[]> => {
     try {
-      return await $strrApi<FilingHistoryEvent[]>(`/applications/${applicationNumber}/events`, {
+      return await $strrApi<FilingHistoryEvent[]>(`/applications/${applicationNumber}/events?include_interaction_delivery=true`, {
         method: 'GET'
       })
     } catch (e) {
@@ -718,7 +731,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const getRegistrationFilingHistory = async (registrationId: number): Promise<FilingHistoryEvent[]> => {
     try {
-      return await $strrApi<FilingHistoryEvent[]>(`/registrations/${registrationId}/events`, {
+      return await $strrApi<FilingHistoryEvent[]>(`/registrations/${registrationId}/events?include_interaction_delivery=true`, {
         method: 'GET'
       })
     } catch (e) {
@@ -928,6 +941,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     approveApplication,
     provisionallyApproveApplication,
     rejectApplication,
+    withdrawApplication,
     sendNoticeOfConsideration,
     sendNoticeOfConsiderationForRegistration,
     fetchApplications,

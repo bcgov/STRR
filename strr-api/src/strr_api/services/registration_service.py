@@ -524,13 +524,15 @@ class RegistrationService:
                 social_insurance_number=registration_request.secondaryContact.socialInsuranceNumber,
                 business_number=registration_request.secondaryContact.businessNumber,
                 address=Address(
-                    country=registration_request.primaryContact.mailingAddress.country,
-                    street_address=registration_request.primaryContact.mailingAddress.address,
-                    street_address_additional=registration_request.primaryContact.mailingAddress.addressLineTwo,
-                    city=registration_request.primaryContact.mailingAddress.city,
-                    province=registration_request.primaryContact.mailingAddress.province,
-                    postal_code=registration_request.primaryContact.mailingAddress.postalCode,
-                ),
+                    country=registration_request.secondaryContact.mailingAddress.country,
+                    street_address=registration_request.secondaryContact.mailingAddress.address,
+                    street_address_additional=registration_request.secondaryContact.mailingAddress.addressLineTwo,
+                    city=registration_request.secondaryContact.mailingAddress.city,
+                    province=registration_request.secondaryContact.mailingAddress.province,
+                    postal_code=registration_request.secondaryContact.mailingAddress.postalCode,
+                )
+                if registration_request.secondaryContact.mailingAddress
+                else None,
             )
             rental_property.contacts.append(secondary_property_contact)
 

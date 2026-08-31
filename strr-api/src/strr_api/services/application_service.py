@@ -228,6 +228,7 @@ class ApplicationService:
         application_status: Application.Status,
         reviewer: User,
         custom_content: Optional[str] = None,
+        decision: Optional[str] = None,
     ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
         original_status = application.status
@@ -313,7 +314,8 @@ class ApplicationService:
             details=f"Custom Email Content: {custom_content}" if custom_content else None,
         )
 
-        EmailService.send_application_status_update_email(application, custom_content)
+        if decision != "WITHDRAW":
+            EmailService.send_application_status_update_email(application, custom_content)
 
         return application
 
@@ -408,7 +410,7 @@ class ApplicationService:
         return application
 
     @staticmethod
-    def update_document_list(application: Application, document: str) -> Application:
+    def update_document_list(application: Application, document: str, user: User) -> Application:
         """Updates the document list of an application."""
         application_json = copy.deepcopy(application.application_json)
         registration = application_json.get("registration", {})
@@ -418,6 +420,15 @@ class ApplicationService:
         application_json["registration"] = registration
         application.application_json = application_json
         application.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.APPLICATION_DOCUMENT_UPLOADED,
+            application_id=application.id,
+            details=f"Document uploaded: {document.get('fileName', '')}",
+            user_id=user.id,
+            visible_to_applicant=True,
+        )
         return application
 
     @staticmethod

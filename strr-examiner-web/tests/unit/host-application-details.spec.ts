@@ -56,6 +56,7 @@ vi.mock('@/stores/examiner', () => ({
     activeRecord: ref(currentMockData),
     isApplication: ref(true),
     isAssignedToUser,
+    hasRegistrationNumber: ref(false),
     resetEditRentalUnitAddress: vi.fn(),
     assignApplication: mockAssignApplication,
     viewReceipt: mockViewReceipt,
@@ -67,7 +68,14 @@ vi.mock('@/stores/examiner', () => ({
       URL.revokeObjectURL(url)
       setTimeout(() => URL.revokeObjectURL(url), 100)
     }),
-    emailContent: ref({ content: '' })
+    emailContent: ref({ content: '' }),
+    decisionEmailContent: ref({ content: '' }),
+    decisionEmailFormRef: ref({
+      clear: vi.fn()
+    }),
+    conditions: ref([]),
+    customConditions: ref(null),
+    minBookingDays: ref(null)
   })
 }))
 
@@ -169,7 +177,7 @@ describe('Examiner - Host Application Details Page', () => {
       .toContain(mockHostApplication.registration.unitDetails!.businessLicense)
     expect(hostSupportingInfo.findTestId('pr-req-section').exists()).toBe(true)
     expect(hostSupportingInfo.findTestId('pr-req-documents').exists()).toBe(true)
-    expect(hostSupportingInfo.findTestId('add-pr-doc-btn').exists()).toBe(false)
+    expect(hostSupportingInfo.findTestId('add-pr-doc-btn').exists()).toBe(true)
   })
 
   it('opens document in new tab when business license button is clicked', async () => {
