@@ -36,6 +36,7 @@
 Actual user data is kept in the OIDC and IDP services, this data is
 here as a convenience for audit and db reporting.
 """
+
 from __future__ import annotations
 
 from datetime import datetime

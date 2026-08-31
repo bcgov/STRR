@@ -36,6 +36,7 @@
 # pylint: disable=R0917
 
 """Events Service."""
+
 from strr_api.models import Events
 
 

@@ -32,4 +32,5 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests utils module."""
+
 from .auth_helpers import create_header, create_header_account, create_jwt

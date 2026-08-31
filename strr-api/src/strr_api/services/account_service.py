@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Service to interact with the account roles model."""
+
 from typing import List
 
 from strr_api.models import AccountRoles, User
