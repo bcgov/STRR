@@ -16,6 +16,7 @@
 import os
 import sys
 
+from cloud_sql_connector import sqlalchemy_settings_from_env
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
@@ -52,20 +53,7 @@ class _Config:  # pylint: disable=too-few-public-methods
 
     BATCH_SIZE = os.getenv("BATCH_SIZE", "10")
 
-    # DATABASE
-    DB_USER = os.getenv("DATABASE_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_NAME", "")
-    DB_HOST = os.getenv("DATABASE_HOST", "")
-    DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
-
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
-    else:
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env()
 
     # projects/<project_id-env>/topics/<topic_name>
     GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC")
@@ -104,6 +92,7 @@ class TestConfig(_Config):  # pylint: disable=too-few-public-methods
         f"postgresql://{DATABASE_TEST_USERNAME}:{DATABASE_TEST_PASSWORD}"
         f"@{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
     )
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 
     GCP_EMAIL_TOPIC = os.getenv("GCP_EMAIL_TOPIC_TEST", None)
 
