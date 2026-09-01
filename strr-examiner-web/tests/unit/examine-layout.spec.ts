@@ -50,8 +50,22 @@ describe('Examine Layout', () => {
     store = useExaminerStore()
   })
 
-  it('should hide ConnectButtonControl and ActionButtons when application has a registration number', async () => {
+  it('should show ActionButtons for provisional application approval with a registration number', async () => {
     store.activeRecord = mockProvisionalReviewApplication
+    await nextTick()
+
+    expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(false)
+    expect(wrapper.findComponent(ActionButtons).exists()).toBe(true)
+  })
+
+  it('should hide actions for a registered non-provisional application', async () => {
+    store.activeRecord = {
+      ...mockProvisionalReviewApplication,
+      header: {
+        ...mockProvisionalReviewApplication.header,
+        examinerActions: [ApplicationActionsE.SEND_NOC]
+      }
+    }
     await nextTick()
 
     expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(false)

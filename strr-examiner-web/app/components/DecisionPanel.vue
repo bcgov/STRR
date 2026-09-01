@@ -27,6 +27,9 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   customConditions.value = null
   minBookingDays.value = null
   decisionEmailFormRef?.value?.clear()
+  if (action === ApplicationActionsE.APPROVE) {
+    loadExistingConditions()
+  }
 }
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
@@ -134,7 +137,8 @@ const loadExistingConditions = () => {
     localConditions.value.push(...customConditions)
   }
 
-  if (minDays) {
+  if (minDays !== null && minDays !== undefined) {
+    localConditions.value.push('minBookingDays')
     minBookingDays.value = minDays
   }
 }
@@ -154,7 +158,6 @@ watch([localConditions, minBookingDays],
         if (!newMinBookingDays) { continue }
         const minBookingDaysText =
           t('approvalConditionsExpanded.minBookingDays', { minDays: newMinBookingDays })
-        conditions.value.push(condition)
         items.push(`\u2022 ${minBookingDaysText}`)
         continue
       }
@@ -188,7 +191,6 @@ onMounted(() => {
   resetDecision()
   if (!isApplication.value && activeReg.value?.status === RegistrationStatus.ACTIVE) {
     setDecisionIntent(ApplicationActionsE.APPROVE)
-    loadExistingConditions() // requirement: load conditions only for active registrations
   }
 })
 
@@ -261,7 +263,7 @@ onMounted(() => {
           </UTooltip>
 
           <ApprovalConditions
-            v-if="isApproveDecisionSelected && isAssignedToUser && !isApplication"
+            v-if="isApproveDecisionSelected && isAssignedToUser"
             v-model:conditions="localConditions"
             v-model:custom-condition="customCondition"
             v-model:min-booking-days="minBookingDays"

@@ -225,7 +225,9 @@ def create_application(application_number: Optional[str] = None):
         if not is_draft:
             [valid, errors] = validate(json_input, "registration")
             if not valid:
-                return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
+                return error_response(
+                    message=ErrorMessage.INVALID_REQUEST.value, http_status=HTTPStatus.BAD_REQUEST, errors=errors
+                )
             validate_request(json_input)
 
         application = ApplicationService.save_application(account_id, json_input, application)
@@ -798,10 +800,16 @@ def update_application_status(application_number):
 
     try:
         user = UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
-        json_input = request.get_json()
+        json_input = request.get_json(silent=True)
+        [valid, errors] = validate(json_input, "application_status_update")
+        if not valid:
+            return error_response(
+                message=ErrorMessage.INVALID_REQUEST.value, http_status=HTTPStatus.BAD_REQUEST, errors=errors
+            )
         status = json_input.get("status")
         custom_content = json_input.get("emailContent")
         decision = json_input.get("decision")
+        conditions_of_approval = json_input.get("conditionsOfApproval")
         if not status or status.upper() not in APPLICATION_STATES_STAFF_ACTION:
             return error_response(
                 message=ErrorMessage.INVALID_APPLICATION_STATUS.value,
@@ -844,7 +852,7 @@ def update_application_status(application_number):
                 )
 
         application = ApplicationService.update_application_status(
-            application, status.upper(), user, custom_content, decision
+            application, status.upper(), user, custom_content, decision, conditions_of_approval
         )
         return jsonify(ApplicationService.serialize(application)), HTTPStatus.OK
     except Exception as exception:
@@ -894,7 +902,9 @@ def update_unit_address(application_number):
 
         [valid, errors] = validate(json_input, "host_update_address")
         if not valid:
-            return error_response(message="Invalid request", http_status=HTTPStatus.BAD_REQUEST, errors=errors)
+            return error_response(
+                message=ErrorMessage.INVALID_REQUEST.value, http_status=HTTPStatus.BAD_REQUEST, errors=errors
+            )
 
         unit_address = json_input.get("unitAddress")
         application = ApplicationService.get_application(application_number)

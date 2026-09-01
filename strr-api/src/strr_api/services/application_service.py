@@ -229,10 +229,12 @@ class ApplicationService:
         reviewer: User,
         custom_content: Optional[str] = None,
         decision: Optional[str] = None,
+        conditions_of_approval: Optional[dict] = None,
     ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
         original_status = application.status
         was_set_aside = application.is_set_aside
+        registration = None
         application.is_set_aside = False
         application.status = application_status
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
@@ -283,6 +285,24 @@ class ApplicationService:
                     visible_to_applicant=True,
                     user_id=reviewer.id,
                 )
+
+        if application_status == Application.Status.PROVISIONALLY_APPROVED:
+            registration = application.registration
+
+        if (
+            application_status
+            in [
+                Application.Status.FULL_REVIEW_APPROVED,
+                Application.Status.PROVISIONALLY_APPROVED,
+            ]
+            and conditions_of_approval is not None
+            and registration
+        ):
+            RegistrationService._update_conditions_of_registration(
+                registration,
+                {"conditionsOfApproval": conditions_of_approval} if conditions_of_approval else {},
+                reviewer.id,
+            )
 
         if application_status == Application.Status.PROVISIONALLY_DECLINED and original_status in [
             Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
