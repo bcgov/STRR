@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Enum Utilities."""
+
 from enum import auto  # noqa: F401 pylint: disable=W0611
 from enum import Enum, EnumMeta
 from typing import Optional

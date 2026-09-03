@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Uses BC Gov Geocoder service to fetch latitude and longitude."""
+
 from urllib.parse import quote
 
 import requests

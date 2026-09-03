@@ -1,6 +1,7 @@
 """
 Registration response objects.
 """
+
 from typing import Optional
 
 from strr_api.enums.enum import RegistrationStatus, RegistrationType
@@ -349,9 +350,11 @@ class RegistrationSerializer:
             "firstName": primary_property_contact.contact.firstname,
             "middleName": primary_property_contact.contact.middlename,
             "lastName": primary_property_contact.contact.lastname,
-            "dateOfBirth": primary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
-            if primary_property_contact.contact.date_of_birth
-            else None,
+            "dateOfBirth": (
+                primary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
+                if primary_property_contact.contact.date_of_birth
+                else None
+            ),
             "socialInsuranceNumber": primary_property_contact.contact.social_insurance_number,
             "businessNumber": primary_property_contact.contact.business_number,
             "contactType": primary_property_contact.contact_type,
@@ -380,9 +383,11 @@ class RegistrationSerializer:
                 "firstName": secondary_property_contact.contact.firstname,
                 "middleName": secondary_property_contact.contact.middlename,
                 "lastName": secondary_property_contact.contact.lastname,
-                "dateOfBirth": secondary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
-                if secondary_property_contact.contact.date_of_birth
-                else None,
+                "dateOfBirth": (
+                    secondary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
+                    if secondary_property_contact.contact.date_of_birth
+                    else None
+                ),
                 "socialInsuranceNumber": secondary_property_contact.contact.social_insurance_number,
                 "contactType": secondary_property_contact.contact_type,
                 "businessNumber": secondary_property_contact.contact.business_number,
@@ -419,11 +424,11 @@ class RegistrationSerializer:
         registration_data["unitDetails"] = {
             "parcelIdentifier": registration.rental_property.parcel_identifier,
             "businessLicense": registration.rental_property.local_business_licence,
-            "businessLicenseExpiryDate": registration.rental_property.local_business_licence_expiry_date.strftime(
-                "%Y-%m-%d"
-            )
-            if registration.rental_property.local_business_licence_expiry_date
-            else None,
+            "businessLicenseExpiryDate": (
+                registration.rental_property.local_business_licence_expiry_date.strftime("%Y-%m-%d")
+                if registration.rental_property.local_business_licence_expiry_date
+                else None
+            ),
             "blExemptReason": registration.rental_property.bl_exempt_reason,
             "propertyType": registration.rental_property.property_type.name,
             "ownershipType": registration.rental_property.ownership_type,

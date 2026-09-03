@@ -1,4 +1,5 @@
 """Validator for registration requests."""
+
 import re
 
 from strr_api.enums.enum import RegistrationType

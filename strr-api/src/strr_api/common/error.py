@@ -37,6 +37,7 @@ Following best practices from:
 http://flask.pocoo.org/docs/1.0/errorhandling/
 http://flask.pocoo.org/docs/1.0/patterns/apierrors/
 """
+
 import logging
 import sys
 

@@ -1,4 +1,5 @@
 """Validator for document upload requests."""
+
 from strr_api.exceptions import ValidationException
 
 
