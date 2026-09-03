@@ -1,5 +1,8 @@
 .DS_Store
 
+# Terraform working directories
+.terraform/
+
 # Logs
 logs
 *.log

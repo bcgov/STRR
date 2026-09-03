@@ -1,0 +1,6 @@
+project_id                       = "bcrbk9-dev"
+region                           = "northamerica-northeast1"
+bulk_validation_requests_bucket  = "strr_bulk_validation_requests_dev"
+bulk_validation_listener_service = "batch-permit-listener-dev"
+eventarc_service_account         = "sa-eventarc@bcrbk9-dev.iam.gserviceaccount.com"
+email_push_service_account       = "sa-pubsub@bcrbk9-dev.iam.gserviceaccount.com"
