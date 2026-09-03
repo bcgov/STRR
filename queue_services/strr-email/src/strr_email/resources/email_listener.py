@@ -238,6 +238,7 @@ def _get_registration_update_email_content_for_host(
         noc_content=noc_content,
         noc_expiry_date=noc_expiry_date,
         expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        registration_url=_get_registration_deep_link(registration),
         tac_url=_get_registration_tac_url(registration),
     )
     subject_number = registration.registration_number
@@ -263,6 +264,7 @@ def _get_registration_update_email_content_for_platform(
         reg_num=registration.registration_number,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        registration_url=_get_registration_deep_link(registration),
         tac_url=_get_registration_tac_url(registration),
         service_provider=platform.legal_name,
     )
@@ -293,6 +295,7 @@ def _get_registration_update_email_content_for_strata_hotel(
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
         custom_content=email_info.custom_content,
+        registration_url=_get_registration_deep_link(registration),
         tac_url=_get_registration_tac_url(registration),
     )
     subject_number = registration.registration_number
@@ -500,6 +503,20 @@ def _get_registration_tac_url(registration: Registration) -> str:
         return current_app.config["TAC_URL_HOST"]
     if registration.registration_type == Registration.RegistrationType.PLATFORM:
         return current_app.config["TAC_URL_PLATFORM"]
+    return ""
+
+
+def _get_registration_deep_link(registration: Registration) -> str:
+    """Return the relevant app deep link for the registration."""
+    if registration.registration_type == Registration.RegistrationType.HOST:
+        route = f"/en-CA/dashboard/registration/{registration.registration_number}"
+        return f"{current_app.config['HOST_APP_URL'].rstrip('/')}{route}"
+    if registration.registration_type == Registration.RegistrationType.PLATFORM:
+        route = f"/en-CA/platform/dashboard/registration/{registration.registration_number}"
+        return f"{current_app.config['PLATFORM_APP_URL'].rstrip('/')}{route}"
+    if registration.registration_type == Registration.RegistrationType.STRATA_HOTEL:
+        route = f"/en-CA/strata-hotel/dashboard/registration/{registration.registration_number}"
+        return f"{current_app.config['STRATA_HOTEL_APP_URL'].rstrip('/')}{route}"
     return ""
 
 

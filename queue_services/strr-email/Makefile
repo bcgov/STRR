@@ -3,12 +3,14 @@
 .PHONY: test
 .PHONY: fmt
 .PHONY: fmt-check
+.PHONY: run
 
 MKFILE_PATH:=$(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_ABS_DIR:=$(patsubst %/,%,$(dir $(MKFILE_PATH)))
 
 PROJECT_NAME:=strr_email
 DOCKER_NAME:=strr-email
+PORT?=8081
 
 #################################################################################
 # COMMANDS -- Setup                                                             #
@@ -26,15 +28,15 @@ fmt-check: ## Check isort and black without changing files
 	poetry run black . --check
 
 pylint: ## Linting with pylint
-	pylint --rcfile=setup.cfg src/$(PROJECT_NAME)
+	poetry run pylint --rcfile=setup.cfg src/$(PROJECT_NAME)
 
 flake8: ## Linting with flake8 ## tests
-	flake8 src/$(PROJECT_NAME)
+	poetry run flake8 src/$(PROJECT_NAME)
 
 lint: fmt-check pylint flake8 ## isort/black check, pylint, and flake8
 
 test: ## Unit testing
-	pytest
+	poetry run pytest
 
 build: ## Build the docker container
 	docker build . -t $(DOCKER_NAME) \
@@ -48,6 +50,9 @@ build-nc: ## Build the docker container without caching
 #################################################################################
 # COMMANDS - Local                                                              #
 #################################################################################
+
+run: ## Start the email queue listener locally (PORT=8081)
+	PORT=$(PORT) poetry run flask --app wsgi:app run --host 0.0.0.0 --port $(PORT) --no-reload
 
 #################################################################################
 # Self Documenting Commands                                                     #

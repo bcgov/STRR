@@ -10,6 +10,7 @@ import RegistrationDashboard from '~/pages/dashboard/registration/[registrationN
 const {
   selectedRegistrationId,
   loadHostRegistrationData,
+  loadHostRegistrationDataByRegistrationNumber,
   readStoredSelectedRegistrationId,
   clearStoredSelectedRegistrationId,
   updatePaymentDetails,
@@ -18,6 +19,7 @@ const {
   return {
     selectedRegistrationId: { value: undefined, __v_isRef: true } as unknown as Ref<string | undefined>,
     loadHostRegistrationData: vi.fn().mockResolvedValue(undefined),
+    loadHostRegistrationDataByRegistrationNumber: vi.fn().mockResolvedValue(false),
     readStoredSelectedRegistrationId: vi.fn(),
     clearStoredSelectedRegistrationId: vi.fn(),
     updatePaymentDetails: vi.fn().mockResolvedValue(undefined),
@@ -34,7 +36,8 @@ vi.mock('@/stores/hostPermit', () => ({
     needsBusinessLicenseDocumentUpload: ref(false),
     readStoredSelectedRegistrationId,
     clearStoredSelectedRegistrationId,
-    loadHostRegistrationData
+    loadHostRegistrationData,
+    loadHostRegistrationDataByRegistrationNumber
   })
 }))
 
@@ -73,6 +76,7 @@ vi.mock('@/composables/useDashboardPage', () => ({
 mockNuxtImport('useStrrApi', () => () => ({ updatePaymentDetails }))
 mockNuxtImport('navigateTo', () => navigateTo)
 mockNuxtImport('useLocalePath', () => () => (path: string) => path)
+mockNuxtImport('useRoute', () => () => ({ params: { registrationNumber: 'H123456' } }))
 
 const mountRegistrationDashboard = () =>
   mountSuspended(RegistrationDashboard, {
@@ -85,12 +89,28 @@ describe('Registration dashboard page', () => {
     sessionStorage.clear()
     vi.clearAllMocks()
     readStoredSelectedRegistrationId.mockReturnValue(undefined)
+    loadHostRegistrationDataByRegistrationNumber.mockResolvedValue(false)
   })
 
   it('redirects to dashboard-new when no registration id is available', async () => {
     await mountRegistrationDashboard()
     await flushPromises()
+    expect(loadHostRegistrationDataByRegistrationNumber).toHaveBeenCalledWith('H123456')
     expect(navigateTo).toHaveBeenCalledWith('/dashboard-new')
+    expect(loadHostRegistrationData).not.toHaveBeenCalled()
+  })
+
+  it('loads registration from route registration number when no selected id is stored', async () => {
+    loadHostRegistrationDataByRegistrationNumber.mockImplementation(() => {
+      selectedRegistrationId.value = '308'
+      return Promise.resolve(true)
+    })
+
+    await mountRegistrationDashboard()
+    await flushPromises()
+
+    expect(loadHostRegistrationDataByRegistrationNumber).toHaveBeenCalledWith('H123456')
+    expect(navigateTo).not.toHaveBeenCalledWith('/dashboard-new')
     expect(loadHostRegistrationData).not.toHaveBeenCalled()
   })
 

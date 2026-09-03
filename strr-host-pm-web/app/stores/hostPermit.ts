@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { ApiHostApplication, HostApplicationResp, HostRegistrationResp } from '~/interfaces/host-api'
+import type { RegistrationRecord } from '~/interfaces/dashboard-tables'
 import { formatHostUnitAddressUI, formatHostUnitDetailsUI } from '~/utils/host-formatting'
 
 export const useHostPermitStore = defineStore('host/permit', () => {
@@ -29,6 +30,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     downloadApplicationReceipt,
     downloadRegistrationCert
   } = useStrrBasePermit<HostRegistrationResp, HostApplicationResp, ApiHostApplication>()
+  const { searchRegistrations } = useStrrApi()
 
   const { isBusinessLicenseDocumentUploadEnabled } = useHostFeatureFlags()
 
@@ -108,6 +110,26 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     $reset()
     await loadPermitRegistrationData(registrationId)
     await populateHostDetails(isRenewal)
+  }
+
+  const loadHostRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
+    const resp = await searchRegistrations<RegistrationRecord>(
+      undefined,
+      10,
+      1,
+      undefined,
+      registrationNumber,
+      ApplicationType.HOST
+    )
+    const matchedRegistration = resp?.registrations?.find(
+      registration => registration.registrationNumber === registrationNumber
+    )
+    if (!matchedRegistration?.id) {
+      return false
+    }
+    selectedRegistrationId.value = matchedRegistration.id.toString()
+    await loadHostRegistrationData(selectedRegistrationId.value)
+    return true
   }
 
   const loadHostData = async (applicationId: string, loadDraft = false, skipRegistration = false) => {
@@ -206,6 +228,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     downloadRegistrationCert,
     loadHostData,
     loadHostRegistrationData,
+    loadHostRegistrationDataByRegistrationNumber,
     $reset
   }
 })

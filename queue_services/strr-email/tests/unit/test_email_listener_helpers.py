@@ -17,6 +17,9 @@ def cfg_app():
         EMAIL_HOUSING_RECIPIENT_EMAIL="housing@test.gov",
         TAC_URL_HOST="https://host-tac.registry.gov.bc.ca",
         TAC_URL_PLATFORM="https://plat-tac.registry.gov.bc.ca",
+        HOST_APP_URL="https://host.test.registry.gov.bc.ca/",
+        PLATFORM_APP_URL="https://platform.test.registry.gov.bc.ca/",
+        STRATA_HOTEL_APP_URL="https://strata.test.registry.gov.bc.ca/",
         EMAIL_HOUSING_OPS_EMAIL="ops@test.gov",
         EMAIL_STRR_REQUEST_BY="STRR",
         EMAIL_SUBJECT_PREFIX="[TEST]",
@@ -166,6 +169,32 @@ def test_tac_urls(cfg_app):
             assert el._get_registration_tac_url(reg) == want
 
 
+@pytest.mark.parametrize(
+    "registration_type,registration_url",
+    [
+        (
+            Registration.RegistrationType.HOST,
+            "https://host.test.registry.gov.bc.ca/en-CA/dashboard/registration/R123456789",
+        ),
+        (
+            Registration.RegistrationType.PLATFORM,
+            "https://platform.test.registry.gov.bc.ca/en-CA/platform/dashboard/registration/R123456789",
+        ),
+        (
+            Registration.RegistrationType.STRATA_HOTEL,
+            "https://strata.test.registry.gov.bc.ca/en-CA/strata-hotel/dashboard/registration/R123456789",
+        ),
+    ],
+)
+def test_get_registration_deep_link(cfg_app, registration_type, registration_url):
+    reg = MagicMock(
+        registration_type=registration_type,
+        registration_number="R123456789",
+    )
+    with cfg_app.app_context():
+        assert el._get_registration_deep_link(reg) == registration_url
+
+
 @pytest.mark.parametrize("with_pm", [False, True])
 def test_get_registration_email_recipients(cfg_app, with_pm):
     primary_contact = MagicMock(is_primary=True, contact=MagicMock(email="primary@example.com"))
@@ -246,6 +275,10 @@ def test_get_registration_update_email_content_for_host_noc_pending(cfg_app):
     with cfg_app.app_context():
         email = el._get_registration_update_email_content_for_host(reg, email_info, jinja_template)
     assert "Pending NOC" in str(jinja_template.render.call_args)
+    assert (
+        jinja_template.render.call_args.kwargs["registration_url"]
+        == "https://host.test.registry.gov.bc.ca/en-CA/dashboard/registration/R-1"
+    )
     assert email["content"]["body"] == "<html>host</html>"
 
 

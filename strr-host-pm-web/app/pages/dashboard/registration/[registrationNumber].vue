@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
+const route = useRoute()
 const localePath = useLocalePath()
 const {
   loading,
@@ -36,6 +37,7 @@ const submittedApplications = computed(() => {
 
 onMounted(async () => {
   loading.value = true
+  let registrationLoaded = false
 
   // Use the registration ID stored before navigation (not the registration number in URL)
   // If not in store, try sessionStorage (survives external payment redirect)
@@ -60,11 +62,19 @@ onMounted(async () => {
   }
 
   if (!selectedRegistrationId.value) {
+    registrationLoaded = await permitStore.loadHostRegistrationDataByRegistrationNumber(
+      route.params.registrationNumber as string
+    )
+  }
+
+  if (!selectedRegistrationId.value) {
     // If still no ID, redirect to dashboard
     await navigateTo(localePath('/dashboard-new'))
     return
   }
-  await permitStore.loadHostRegistrationData(selectedRegistrationId.value)
+  if (!registrationLoaded) {
+    await permitStore.loadHostRegistrationData(selectedRegistrationId.value)
+  }
 
   addNocTodo()
   addBusinessLicenseTodo()

@@ -2,6 +2,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
   const contactStore = useStrrContactStore()
   const businessStore = useStrrPlatformBusiness()
   const detailsStore = useStrrPlatformDetails()
+  const { searchRegistrations } = useStrrApi()
   const { completingParty, primaryRep, secondaryRep, isCompletingPartyRep } = storeToRefs(contactStore)
   const { platformBusiness } = storeToRefs(businessStore)
   const { platformDetails } = storeToRefs(detailsStore)
@@ -25,6 +26,25 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     $reset()
     await loadPermitRegistrationData(registrationId)
     await populatePlatformDetails(false)
+  }
+
+  const loadPlatformRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
+    const resp = await searchRegistrations<PlatformRegistrationResp>(
+      undefined,
+      10,
+      1,
+      undefined,
+      registrationNumber,
+      ApplicationType.PLATFORM
+    )
+    const matchedRegistration = resp?.registrations?.find(
+      registration => registration.registrationNumber === registrationNumber
+    )
+    if (!matchedRegistration?.id) {
+      return false
+    }
+    await loadPlatformRegistrationData(matchedRegistration.id.toString())
+    return true
   }
 
   const loadPlatform = async (applicationId?: string, loadDraft = false) => {
@@ -97,6 +117,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
     downloadApplicationReceipt,
     loadPlatform,
     loadPlatformRegistrationData,
+    loadPlatformRegistrationDataByRegistrationNumber,
     $reset
   }
 })

@@ -63,6 +63,7 @@ const mockRegistrationRef = ref<HostRegistrationResp | undefined>(undefined)
 const mockShowPermitDetails = ref(false)
 const mockLoadPermitData = vi.fn()
 const mockLoadPermitRegistrationData = vi.fn()
+const mockSearchRegistrations = vi.fn()
 mockNuxtImport('useStrrBasePermit', () => () => ({
   application: mockApplicationRef,
   registration: mockRegistrationRef,
@@ -73,6 +74,9 @@ mockNuxtImport('useStrrBasePermit', () => () => ({
   loadPermitRegistrationData: mockLoadPermitRegistrationData,
   downloadApplicationReceipt: vi.fn(),
   downloadRegistrationCert: vi.fn()
+}))
+mockNuxtImport('useStrrApi', () => () => ({
+  searchRegistrations: mockSearchRegistrations
 }))
 
 const isBusinessLicenseDocumentUploadEnabled = ref(false)
@@ -322,6 +326,41 @@ describe('useHostPermitStore - loading host data', () => {
   it('should set storedDocuments to empty array for renewal', async () => {
     await useHostPermitStore().loadHostRegistrationData('H847293615', true)
     expect(storedDocuments.value).toHaveLength(0)
+  })
+
+  it('should load host registration data by registration number', async () => {
+    mockSearchRegistrations.mockResolvedValue({
+      registrations: [{ id: 308, registrationNumber: 'H847293615' }],
+      total: 1
+    })
+
+    const loaded = await useHostPermitStore().loadHostRegistrationDataByRegistrationNumber('H847293615')
+
+    expect(loaded).toBe(true)
+    expect(mockSearchRegistrations).toHaveBeenCalledWith(
+      undefined,
+      10,
+      1,
+      undefined,
+      'H847293615',
+      ApplicationType.HOST
+    )
+    expect(useHostPermitStore().selectedRegistrationId).toBe('308')
+    expect(mockLoadPermitRegistrationData).toHaveBeenCalledWith('308')
+  })
+
+  it('should not load host registration data when registration number does not match', async () => {
+    useHostPermitStore().selectedRegistrationId = undefined
+    mockSearchRegistrations.mockResolvedValue({
+      registrations: [{ id: 309, registrationNumber: 'H000000000' }],
+      total: 1
+    })
+
+    const loaded = await useHostPermitStore().loadHostRegistrationDataByRegistrationNumber('H847293615')
+
+    expect(loaded).toBe(false)
+    expect(useHostPermitStore().selectedRegistrationId).toBeUndefined()
+    expect(mockLoadPermitRegistrationData).not.toHaveBeenCalled()
   })
 })
 

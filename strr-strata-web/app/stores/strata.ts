@@ -7,7 +7,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   const businessStore = useStrrStrataBusinessStore()
   const detailsStore = useStrrStrataDetailsStore()
   const documentStore = useDocumentStore()
-  const { getAccountRegistrations } = useStrrApi()
+  const { getAccountRegistrations, searchRegistrations } = useStrrApi()
   const { completingParty, primaryRep, secondaryRep, isCompletingPartyRep } = storeToRefs(contactStore)
   const { strataBusiness } = storeToRefs(businessStore)
   const { strataDetails } = storeToRefs(detailsStore)
@@ -31,6 +31,25 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     $reset()
     await loadPermitRegistrationData(registrationId)
     populateStrataDetails()
+  }
+
+  const loadStrataRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
+    const resp = await searchRegistrations<StrataRegistrationResp>(
+      undefined,
+      10,
+      1,
+      undefined,
+      registrationNumber,
+      ApplicationType.STRATA_HOTEL
+    )
+    const matchedRegistration = resp?.registrations?.find(
+      registration => registration.registrationNumber === registrationNumber
+    )
+    if (!matchedRegistration?.id) {
+      return false
+    }
+    await loadStrataRegistrationData(matchedRegistration.id.toString())
+    return true
   }
 
   const loadStrata = async (applicationId: string, loadDraft: boolean = false) => {
@@ -123,6 +142,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
     showPermitDetails,
     downloadApplicationReceipt,
     loadStrataRegistrationData,
+    loadStrataRegistrationDataByRegistrationNumber,
     loadStrata,
     $reset
   }

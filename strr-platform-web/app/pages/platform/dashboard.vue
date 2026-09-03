@@ -1,11 +1,16 @@
 <script setup lang="ts">
 const localePath = useLocalePath()
+const route = useRoute()
 
 const { t } = useNuxtApp().$i18n
 const config = useRuntimeConfig().public
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadPlatform } = useStrrPlatformStore()
+const {
+  downloadApplicationReceipt,
+  loadPlatform,
+  loadPlatformRegistrationDataByRegistrationNumber
+} = useStrrPlatformStore()
 const {
   application,
   registration,
@@ -173,7 +178,12 @@ const setRegistrationHeaderDetails = () => {
 
 onMounted(async () => {
   loading.value = true
-  await loadPlatform()
+  const registrationNumber = route.params.registrationNumber as string | undefined
+  if (registrationNumber) {
+    await loadPlatformRegistrationDataByRegistrationNumber(registrationNumber)
+  } else {
+    await loadPlatform()
+  }
 
   // add application todo
   todos.value.push(...getApplicationTodo())

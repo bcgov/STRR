@@ -9,7 +9,7 @@ const {
   title,
   subtitles
 } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadStrata } = useStrrStrataStore()
+const { downloadApplicationReceipt, loadStrata, loadStrataRegistrationDataByRegistrationNumber } = useStrrStrataStore()
 const {
   application,
   registration,
@@ -134,7 +134,12 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
 onMounted(async () => {
   loading.value = true
   const applicationId = route.params.applicationId as string
-  await loadStrata(applicationId)
+  const registrationNumber = route.params.registrationNumber as string | undefined
+  if (registrationNumber) {
+    await loadStrataRegistrationDataByRegistrationNumber(registrationNumber)
+  } else {
+    await loadStrata(applicationId)
+  }
   // set header stuff
   todos.value = getTodoApplication(
     '/strata-hotel/application',

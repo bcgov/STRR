@@ -20,9 +20,11 @@ mockNuxtImport('useStrrBasePermit', () => () => ({
 }))
 
 const mockGetAccountRegistrations = vi.fn()
+const mockSearchRegistrations = vi.fn()
 
 mockNuxtImport('useStrrApi', () => () => ({
-  getAccountRegistrations: mockGetAccountRegistrations
+  getAccountRegistrations: mockGetAccountRegistrations,
+  searchRegistrations: mockSearchRegistrations
 }))
 
 const makeApplication = (headerOverrides: Record<string, unknown> = {}) => ({
@@ -43,6 +45,7 @@ describe('Strata Store functions', () => {
     mockLoadPermitData.mockReset()
     mockLoadPermitRegistrationData.mockReset()
     mockGetAccountRegistrations.mockReset()
+    mockSearchRegistrations.mockReset()
   })
 
   it('reset sub-stores to initial state', () => {
@@ -183,5 +186,41 @@ describe('Strata Store functions', () => {
     expect(mockLoadPermitRegistrationData).toHaveBeenCalledWith('H123456789')
     expect(businessStore.strataBusiness.legalName).toBe('Test Corp')
     expect(useStrrStrataDetailsStore().strataDetails.numberOfUnits).toBe(10)
+  })
+
+  it('loads strata registration data by registration number', async () => {
+    mockSearchRegistrations.mockResolvedValue({
+      registrations: [{ id: 308, registrationNumber: 'S123456789' }],
+      total: 1
+    })
+    mockLoadPermitRegistrationData.mockImplementation(() => {
+      mockPermitDetails.value = mockPermitDetailsData
+      mockShowPermitDetails.value = true
+    })
+
+    const loaded = await useStrrStrataStore().loadStrataRegistrationDataByRegistrationNumber('S123456789')
+
+    expect(loaded).toBe(true)
+    expect(mockSearchRegistrations).toHaveBeenCalledWith(
+      undefined,
+      10,
+      1,
+      undefined,
+      'S123456789',
+      ApplicationType.STRATA_HOTEL
+    )
+    expect(mockLoadPermitRegistrationData).toHaveBeenCalledWith('308')
+  })
+
+  it('does not load strata registration data when the search result does not match', async () => {
+    mockSearchRegistrations.mockResolvedValue({
+      registrations: [{ id: 308, registrationNumber: 'S000000000' }],
+      total: 1
+    })
+
+    const loaded = await useStrrStrataStore().loadStrataRegistrationDataByRegistrationNumber('S123456789')
+
+    expect(loaded).toBe(false)
+    expect(mockLoadPermitRegistrationData).not.toHaveBeenCalled()
   })
 })
