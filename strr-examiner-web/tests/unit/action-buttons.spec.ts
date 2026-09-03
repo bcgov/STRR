@@ -66,7 +66,8 @@ mockNuxtImport('useStrrModals', () => () => ({
   close: vi.fn()
 }))
 
-vi.mock('nuxt/app', () => ({
+vi.mock('nuxt/app', async importOriginal => ({
+  ...await importOriginal<typeof import('nuxt/app')>(),
   refreshNuxtData: mockRefreshNuxtData
 }))
 

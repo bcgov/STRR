@@ -25,7 +25,7 @@ const { getSplitDashboardEnabled, setSplitDashboardEnabled } = vi.hoisted(() => 
 // mock $strrApi accessed through useNuxtApp()
 const mockStrrApi = vi.fn().mockResolvedValue({})
 
-mockNuxtImport('useNuxtApp', () => () => ({
+mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
   $i18n: { t: (key: string) => key },
   $strrApi: mockStrrApi
 }))

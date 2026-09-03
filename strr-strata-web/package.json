@@ -24,9 +24,9 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
     "@faker-js/faker": "^10.1.0",
-    "@nuxt/devtools": "^3.1.1",
+    "@nuxt/devtools": "3.4.1",
     "@nuxt/image": "^2.0.0",
-    "@nuxt/test-utils": "3.21.0",
+    "@nuxt/test-utils": "4.1.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
     "@nuxtjs/eslint-module": "^4.1.0",
     "@pinia/testing": "^1.0.3",
@@ -34,7 +34,7 @@
     "@testing-library/vue": "^8.1.0",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^8.48.1",
-    "@vitest/coverage-v8": "3.2.4",
+    "@vitest/coverage-v8": "4.1.11",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^8.57.1",
     "eslint-plugin-tailwindcss": "^3.17.4",
@@ -43,13 +43,20 @@
     "playwright-core": "^1.49.1",
     "sass": "^1.97.0",
     "typescript": "^5.9.3",
-    "vitest": "3.2.4"
+    "vitest": "4.1.11"
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "country-codes-list": "^2.0.0",
-    "nuxt": "3.15.4",
+    "nuxt": "4.5.2",
     "vue-country-flag-next": "^2.3.2",
     "vue-router": "^4.6.4"
+  },
+  "packageManager": "pnpm@10.21.0+sha1.a2cb35d3f07a58fecfe050af9277c5dc43a1b2e7",
+  "pnpm": {
+    "patchedDependencies": {
+      "@vitejs/plugin-vue@6.0.8": "patches/@vitejs__plugin-vue@6.0.8.patch",
+      "vite@8.2.1": "patches/vite@8.2.1.patch"
+    }
   }
 }

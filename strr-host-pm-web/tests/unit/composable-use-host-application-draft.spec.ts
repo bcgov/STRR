@@ -11,7 +11,11 @@ const mockRoute = {
   meta: {} as Record<string, unknown>
 }
 
-mockNuxtImport('useRouter', () => () => ({ replace: replaceMock }))
+mockNuxtImport('useRouter', () => () => ({
+  afterEach: vi.fn(),
+  beforeResolve: vi.fn(),
+  replace: replaceMock
+}))
 mockNuxtImport('useRoute', () => () => mockRoute)
 
 vi.mock('@/composables/useRouterParams', () => ({
