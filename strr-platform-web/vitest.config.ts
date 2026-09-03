@@ -20,7 +20,6 @@ export default defineVitestConfig({
         'stores/**'
       ]
     },
-    includeSource: ['../pages/index.vue'],
     environmentOptions: {
       nuxt: {
         rootDir: fileURLToPath(new URL('./', import.meta.url)),
@@ -35,7 +34,7 @@ export default defineVitestConfig({
         // },
       }
     },
-    // setupFiles: './tests/setup/i18n.ts',
+    setupFiles: './tests/setup.ts',
     globals: true
   }
 })

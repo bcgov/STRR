@@ -20,7 +20,6 @@ export default defineVitestConfig({
         'stores/**'
       ]
     },
-    includeSource: ['../pages/index.vue'],
     environmentOptions: {
       nuxt: {
         rootDir: fileURLToPath(new URL('./', import.meta.url)),

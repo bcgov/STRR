@@ -1,3 +1,11 @@
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
+const localBase = fileURLToPath(new URL('../strr-base-web', import.meta.url))
+const baseWebLayer = existsSync(localBase)
+  ? '../strr-base-web'
+  : (['github:bcgov/STRR/strr-base-web', { install: true }] as [string, { install: boolean }])
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
@@ -35,8 +43,7 @@ export default defineNuxtConfig({
   },
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: true }]
-    // '../strr-base-web' // dev only
+    baseWebLayer
   ],
 
   imports: {
@@ -80,11 +87,6 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
       include: ['zod', 'uuid', 'vitest']
-    },
-    server: {
-      watch: {
-        usePolling: true
-      }
     }
   }
 })
