@@ -11,7 +11,7 @@ function buildAuthLoginUrl (publicBaseUrl: string, locale: string, invalidIdp: s
   return `${base}?invalidIdp=${encodeURIComponent(invalidIdp)}`
 }
 
-export default defineNuxtRouteMiddleware(() => {
+export default defineNuxtRouteMiddleware((to) => {
   const { isAuthenticated, kcUser, logout } = useKeycloak()
   const loginOptions = useAppConfig().strrBaseLayer.page.login.options
   const allowedIdps = unwrapAppConfigList<StrrLoginIdp>(loginOptions.idps)
@@ -19,7 +19,7 @@ export default defineNuxtRouteMiddleware(() => {
 
   if (!isAuthenticated.value) {
     const localePath = useLocalePath()
-    return navigateTo(localePath('/auth/login'))
+    return navigateTo({ path: localePath('/auth/login'), query: { return: to.fullPath } })
   }
 
   const loginSource = kcUser.value.loginSource.toLowerCase()
