@@ -358,6 +358,13 @@ def _get_application_update_email_content(application, email_info, jinja_templat
         province=_get_address_detail(app_dict, application.registration_type, "province"),
         postal_code=_get_address_detail(app_dict, application.registration_type, "postalCode"),
         expiry_date=_get_expiry_date(app_dict),
+        registration_url=_get_registration_deep_link_for_type(
+            application.registration_type,
+            app_dict.get("header", {}).get("registrationNumber"),
+        ),
+        application_url=_get_application_deep_link(
+            application.registration_type, application.application_number
+        ),
         service_provider=_get_service_provider(app_dict, application.registration_type),
         tac_url=_get_tac_url(application),
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
@@ -508,16 +515,46 @@ def _get_registration_tac_url(registration: Registration) -> str:
 
 def _get_registration_deep_link(registration: Registration) -> str:
     """Return the relevant app deep link for the registration."""
-    if registration.registration_type == Registration.RegistrationType.HOST:
-        route = f"/en-CA/dashboard/registration/{registration.registration_number}"
+    return _get_registration_deep_link_for_type(
+        registration.registration_type, registration.registration_number
+    )
+
+
+def _get_registration_deep_link_for_type(registration_type, registration_number: str | None) -> str:
+    """Return a deep link from a registration type and number."""
+    if not registration_number:
+        return ""
+    registration_type = getattr(registration_type, "value", registration_type)
+    if registration_type == Registration.RegistrationType.HOST.value:
+        route = f"/en-CA/dashboard/registration/{registration_number}"
         return f"{current_app.config['HOST_APP_URL'].rstrip('/')}{route}"
-    if registration.registration_type == Registration.RegistrationType.PLATFORM:
-        route = f"/en-CA/platform/dashboard/registration/{registration.registration_number}"
+    if registration_type == Registration.RegistrationType.PLATFORM.value:
+        route = f"/en-CA/platform/dashboard/registration/{registration_number}"
         return f"{current_app.config['PLATFORM_APP_URL'].rstrip('/')}{route}"
-    if registration.registration_type == Registration.RegistrationType.STRATA_HOTEL:
-        route = f"/en-CA/strata-hotel/dashboard/registration/{registration.registration_number}"
+    if registration_type == Registration.RegistrationType.STRATA_HOTEL.value:
+        route = f"/en-CA/strata-hotel/dashboard/registration/{registration_number}"
         return f"{current_app.config['STRATA_HOTEL_APP_URL'].rstrip('/')}{route}"
     return ""
+
+
+def _get_application_deep_link(registration_type, application_number: str | None) -> str:
+    """Return a deep link to an application in the relevant app."""
+    if not application_number:
+        return ""
+    registration_type = getattr(registration_type, "value", registration_type)
+    routes = {
+        Registration.RegistrationType.HOST.value: f"/en-CA/dashboard/application/{application_number}",
+        Registration.RegistrationType.PLATFORM.value: f"/en-CA/platform/application/{application_number}",
+        Registration.RegistrationType.STRATA_HOTEL.value: f"/en-CA/strata-hotel/application/{application_number}",
+    }
+    app_urls = {
+        Registration.RegistrationType.HOST.value: "HOST_APP_URL",
+        Registration.RegistrationType.PLATFORM.value: "PLATFORM_APP_URL",
+        Registration.RegistrationType.STRATA_HOTEL.value: "STRATA_HOTEL_APP_URL",
+    }
+    if registration_type not in routes:
+        return ""
+    return f"{current_app.config[app_urls[registration_type]].rstrip('/')}{routes[registration_type]}"
 
 
 def get_email_info(ce: SimpleCloudEvent) -> EmailInfo | None:
