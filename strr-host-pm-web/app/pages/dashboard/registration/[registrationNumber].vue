@@ -39,16 +39,13 @@ onMounted(async () => {
   loading.value = true
   let registrationLoaded = false
 
-  // Use the registration ID stored before navigation (not the registration number in URL)
-  // If not in store, try sessionStorage (survives external payment redirect)
+  // Check sessionStorage if returning from payment (survives external payment redirect)
   let returningFromPayment = false
-  if (!selectedRegistrationId.value) {
-    const storedId = permitStore.readStoredSelectedRegistrationId()
-    if (storedId) {
-      selectedRegistrationId.value = storedId
-      returningFromPayment = true
-      permitStore.clearStoredSelectedRegistrationId()
-    }
+  const storedId = permitStore.readStoredSelectedRegistrationId()
+  if (storedId) {
+    selectedRegistrationId.value = storedId
+    returningFromPayment = true
+    permitStore.clearStoredSelectedRegistrationId()
   }
 
   // If returning from payment, sync payment status before loading data
@@ -59,9 +56,8 @@ onMounted(async () => {
       await updatePaymentDetails(renewalAppNumber)
       sessionStorage.removeItem('renewalApplicationNumber')
     }
-  }
-
-  if (!selectedRegistrationId.value) {
+  } else if (route.params.registrationNumber) {
+    // Direct deep-link or route navigation: resolve from URL registration number
     registrationLoaded = await permitStore.loadHostRegistrationDataByRegistrationNumber(
       route.params.registrationNumber as string
     )

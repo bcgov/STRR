@@ -6,9 +6,18 @@ function realmRolesFromToken (): string[] {
   return parsed?.realm_access?.roles ?? []
 }
 
-function buildAuthLoginUrl (publicBaseUrl: string, locale: string, invalidIdp: string): string {
+function buildAuthLoginUrl (
+  publicBaseUrl: string,
+  locale: string,
+  invalidIdp: string,
+  returnPath?: string
+): string {
   const base = `${publicBaseUrl}${locale}/auth/login`
-  return `${base}?invalidIdp=${encodeURIComponent(invalidIdp)}`
+  const params = new URLSearchParams({ invalidIdp })
+  if (returnPath) {
+    params.set('return', returnPath)
+  }
+  return `${base}?${params.toString()}`
 }
 
 export default defineNuxtRouteMiddleware((to) => {
@@ -29,7 +38,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const allowedLower = new Set(allowedIdps.map(idp => idp.toLowerCase()))
   if (!allowedLower.has(loginSource)) {
     logout(
-      buildAuthLoginUrl(publicBaseUrl, locale, kcUser.value.loginSource)
+      buildAuthLoginUrl(publicBaseUrl, locale, kcUser.value.loginSource, to.fullPath)
     )
     return
   }
@@ -39,6 +48,7 @@ export default defineNuxtRouteMiddleware((to) => {
     requiredRealmRoles.length > 0 &&
     !requiredRealmRoles.every((role: string) => realmRoles.includes(role))
   ) {
-    logout(`${publicBaseUrl}${locale}/auth/login`)
+    const returnParam = to.fullPath ? `?return=${encodeURIComponent(to.fullPath)}` : ''
+    logout(`${publicBaseUrl}${locale}/auth/login${returnParam}`)
   }
 })

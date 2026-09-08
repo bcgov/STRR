@@ -195,6 +195,34 @@ def test_get_registration_deep_link(cfg_app, registration_type, registration_url
         assert el._get_registration_deep_link(reg) == registration_url
 
 
+@pytest.mark.parametrize(
+    "registration_type,application_number,expected_url",
+    [
+        (
+            Registration.RegistrationType.HOST,
+            "A123",
+            "https://host.test.registry.gov.bc.ca/en-CA/dashboard/application/A123",
+        ),
+        (
+            Registration.RegistrationType.PLATFORM,
+            "A123",
+            "https://platform.test.registry.gov.bc.ca/en-CA/platform/application/A123",
+        ),
+        (
+            Registration.RegistrationType.STRATA_HOTEL,
+            "A123",
+            "https://strata.test.registry.gov.bc.ca/en-CA/strata-hotel/application/A123",
+        ),
+        (Registration.RegistrationType.HOST, None, ""),
+        (Registration.RegistrationType.HOST, "", ""),
+        ("UNKNOWN", "A123", ""),
+    ],
+)
+def test_get_application_deep_link(cfg_app, registration_type, application_number, expected_url):
+    with cfg_app.app_context():
+        assert el._get_application_deep_link(registration_type, application_number) == expected_url
+
+
 @pytest.mark.parametrize("with_pm", [False, True])
 def test_get_registration_email_recipients(cfg_app, with_pm):
     primary_contact = MagicMock(is_primary=True, contact=MagicMock(email="primary@example.com"))

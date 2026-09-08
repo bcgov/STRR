@@ -34,6 +34,7 @@ export const useStrrStrataStore = defineStore('strr/strata', () => {
   }
 
   const loadStrataRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
+    $reset()
     const resp = await searchRegistrations<StrataRegistrationResp>(
       undefined,
       10,

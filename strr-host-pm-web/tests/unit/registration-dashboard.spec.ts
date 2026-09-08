@@ -128,12 +128,16 @@ describe('Registration dashboard page', () => {
     expect(loadHostRegistrationData).toHaveBeenCalledWith('308')
   })
 
-  it('loads registration when selectedRegistrationId is already set', async () => {
+  it('prioritizes route registration number over existing store selectedRegistrationId on direct navigation', async () => {
     selectedRegistrationId.value = '42'
+    loadHostRegistrationDataByRegistrationNumber.mockImplementation(() => {
+      selectedRegistrationId.value = '308'
+      return Promise.resolve(true)
+    })
     await mountRegistrationDashboard()
     await flushPromises()
-    expect(readStoredSelectedRegistrationId).not.toHaveBeenCalled()
-    expect(loadHostRegistrationData).toHaveBeenCalledWith('42')
+    expect(loadHostRegistrationDataByRegistrationNumber).toHaveBeenCalledWith('H123456')
+    expect(selectedRegistrationId.value).toBe('308')
     expect(updatePaymentDetails).not.toHaveBeenCalled()
   })
 })

@@ -8,7 +8,11 @@ definePageMeta({
 
 await navigateTo({
   path: localePath('/platform/application'),
-  query: { applicationId: route.params.applicationId as string }
+  query: {
+    ...route.query,
+    applicationId: route.params.applicationId as string,
+    override: 'true'
+  }
 })
 </script>
 

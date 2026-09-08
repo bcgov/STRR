@@ -113,6 +113,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   }
 
   const loadHostRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
+    $reset()
     const resp = await searchRegistrations<RegistrationRecord>(
       undefined,
       10,

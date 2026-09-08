@@ -8,7 +8,10 @@ definePageMeta({
 
 await navigateTo({
   path: localePath('/strata-hotel/application'),
-  query: { applicationId: route.params.applicationId as string }
+  query: {
+    ...route.query,
+    applicationId: route.params.applicationId as string
+  }
 })
 </script>
 

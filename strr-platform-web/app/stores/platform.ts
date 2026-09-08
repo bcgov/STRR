@@ -29,6 +29,7 @@ export const useStrrPlatformStore = defineStore('strr/platform', () => {
   }
 
   const loadPlatformRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
+    $reset()
     const resp = await searchRegistrations<PlatformRegistrationResp>(
       undefined,
       10,
