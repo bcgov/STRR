@@ -33,7 +33,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0911, R0912
 """This Module processes and sends email messages via the notify-api."""
-from dataclasses import dataclass
 from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path

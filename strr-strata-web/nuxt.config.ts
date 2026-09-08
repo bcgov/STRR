@@ -1,11 +1,3 @@
-import { existsSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-
-const localBase = fileURLToPath(new URL('../strr-base-web', import.meta.url))
-const baseWebLayer = existsSync(localBase)
-  ? '../strr-base-web'
-  : (['github:bcgov/STRR/strr-base-web', { install: true }] as [string, { install: boolean }])
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
@@ -43,7 +35,8 @@ export default defineNuxtConfig({
   },
 
   extends: [
-    baseWebLayer,
+    ['github:bcgov/STRR/strr-base-web', { install: true }],
+    // '../strr-base-web', // dev only
     '@daxiom/nuxt-core-layer-test' // extend again, this prevents the payApi plugin error
   ],
 
