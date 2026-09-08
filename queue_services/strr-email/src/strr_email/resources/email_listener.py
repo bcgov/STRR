@@ -554,7 +554,9 @@ def _get_application_deep_link(registration_type, application_number: str | None
     }
     if registration_type not in routes:
         return ""
-    return f"{current_app.config[app_urls[registration_type]].rstrip('/')}{routes[registration_type]}"
+    return (
+        f"{current_app.config[app_urls[registration_type]].rstrip('/')}{routes[registration_type]}"
+    )
 
 
 def get_email_info(ce: SimpleCloudEvent) -> EmailInfo | None:

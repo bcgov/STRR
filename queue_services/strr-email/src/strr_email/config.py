@@ -142,9 +142,7 @@ class Config:  # pylint: disable=too-few-public-methods
         "TAC_URL_PLATFORM",
         "https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/registry-toc-platforms",
     )
-    HOST_APP_URL = os.getenv(
-        "HOST_APP_URL", "https://host.shorttermrental.registry.gov.bc.ca"
-    )
+    HOST_APP_URL = os.getenv("HOST_APP_URL", "https://host.shorttermrental.registry.gov.bc.ca")
     PLATFORM_APP_URL = os.getenv(
         "PLATFORM_APP_URL", "https://platform.shorttermrental.registry.gov.bc.ca"
     )
