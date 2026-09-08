@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { ApiHostApplication, HostApplicationResp, HostRegistrationResp } from '~/interfaces/host-api'
-import type { RegistrationRecord } from '~/interfaces/dashboard-tables'
 import { formatHostUnitAddressUI, formatHostUnitDetailsUI } from '~/utils/host-formatting'
 
 export const useHostPermitStore = defineStore('host/permit', () => {
@@ -116,7 +115,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   const loadHostRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
     selectedRegistrationId.value = undefined
     $reset()
-    const resp = await searchRegistrations<RegistrationRecord>(
+    const resp = await searchRegistrations<ApiRegistrationResp>(
       undefined,
       10,
       1,
