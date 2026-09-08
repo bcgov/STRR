@@ -30,6 +30,9 @@ const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 const hasPermitDetails = computed(() => Boolean(permitDetails.value && showPermitDetails.value))
 
 const getApplicationTodo = () => {
+  if (registration.value && !application.value) {
+    return []
+  }
   return getTodoApplication(
     '/platform/application',
     '/platform/dashboard/' + application.value?.header.applicationNumber,
@@ -159,16 +162,17 @@ const setSidePanelDetails = () => {
 }
 
 const setRegistrationHeaderDetails = () => {
+  const receiptAction = isPaidApplication.value ? downloadApplicationReceipt : undefined
   if (!registration.value) {
     setHeaderDetails(
       application.value?.header.hostStatus,
       undefined,
-      isPaidApplication.value ? downloadApplicationReceipt : undefined)
+      receiptAction)
   } else {
     setHeaderDetails(
       registration.value.status,
       dateToStringPacific(registration.value.expiryDate, 'DDD'),
-      downloadApplicationReceipt)
+      receiptAction)
   }
   // add common side details
   setSideHeaderDetails(registration.value, application.value?.header)

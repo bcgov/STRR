@@ -160,16 +160,17 @@ const setStrataDashboardDetails = () => {
       linkHref: strataDetails.value.brand.website
     }
   ]
+  const receiptAction = isPaidApplication.value ? downloadApplicationReceipt : undefined
   if (!registration.value) {
     setHeaderDetails(
       application.value?.header.hostStatus,
       undefined,
-      isPaidApplication.value ? downloadApplicationReceipt : undefined)
+      receiptAction)
   } else {
     setHeaderDetails(
       registration.value.status,
       dateToStringPacific(registration.value.expiryDate, 'DDD'),
-      downloadApplicationReceipt)
+      receiptAction)
   }
   // strata side details
   setSideHeaderDetails(
@@ -201,11 +202,13 @@ onMounted(async () => {
     return
   }
   // set header stuff
-  todos.value = getTodoApplication(
-    '/strata-hotel/application',
-    '/strata-hotel/dashboard/' + application.value?.header.applicationNumber,
-    application.value?.header
-  )
+  if (application.value) {
+    todos.value = getTodoApplication(
+      '/strata-hotel/application',
+      '/strata-hotel/dashboard/' + application.value.header.applicationNumber,
+      application.value.header
+    )
+  }
 
   todos.value.push(...await getRenewalToDo())
 
