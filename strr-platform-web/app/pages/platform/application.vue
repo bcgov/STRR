@@ -19,9 +19,10 @@ const {
 } = useStrrPlatformApplication()
 const platformStore = useStrrPlatformStore()
 const {
+  application,
   renewalRegId,
   isRegistrationRenewal
-} = storeToRefs(useStrrPlatformStore())
+} = storeToRefs(platformStore)
 
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
