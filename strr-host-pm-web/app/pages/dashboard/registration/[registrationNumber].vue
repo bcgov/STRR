@@ -41,22 +41,19 @@ onMounted(async () => {
 
   // Check sessionStorage if returning from payment (survives external payment redirect)
   let returningFromPayment = false
-  const storedId = permitStore.readStoredSelectedRegistrationId()
-  if (storedId) {
-    selectedRegistrationId.value = storedId
-    returningFromPayment = true
-    permitStore.clearStoredSelectedRegistrationId()
+  const renewalAppNumber = sessionStorage.getItem('renewalApplicationNumber')
+  if (renewalAppNumber) {
+    const storedId = permitStore.readStoredSelectedRegistrationId()
+    if (storedId) {
+      selectedRegistrationId.value = storedId
+      returningFromPayment = true
+      permitStore.clearStoredSelectedRegistrationId()
+    }
+    await updatePaymentDetails(renewalAppNumber)
+    sessionStorage.removeItem('renewalApplicationNumber')
   }
 
-  // If returning from payment, sync payment status before loading data
-  // This prevents the "retry payment" todo from briefly showing due to race condition
-  if (returningFromPayment) {
-    const renewalAppNumber = sessionStorage.getItem('renewalApplicationNumber')
-    if (renewalAppNumber) {
-      await updatePaymentDetails(renewalAppNumber)
-      sessionStorage.removeItem('renewalApplicationNumber')
-    }
-  } else if (route.params.registrationNumber) {
+  if (!returningFromPayment && route.params.registrationNumber) {
     // Direct deep-link or route navigation: resolve from URL registration number
     selectedRegistrationId.value = undefined
     registrationLoaded = await permitStore.loadHostRegistrationDataByRegistrationNumber(

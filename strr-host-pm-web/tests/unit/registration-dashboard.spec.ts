@@ -157,4 +157,21 @@ describe('Registration dashboard page', () => {
       expect(loadHostRegistrationData).not.toHaveBeenCalled()
     }
   )
+
+  it(
+    'ignores stored selectedRegistrationId on direct navigation when renewalApplicationNumber is absent',
+    async () => {
+      readStoredSelectedRegistrationId.mockReturnValue('308')
+      loadHostRegistrationDataByRegistrationNumber.mockImplementation(() => {
+        selectedRegistrationId.value = '777'
+        return Promise.resolve(true)
+      })
+      await mountRegistrationDashboard()
+      await flushPromises()
+      expect(loadHostRegistrationDataByRegistrationNumber).toHaveBeenCalledWith('H123456')
+      expect(selectedRegistrationId.value).toBe('777')
+      expect(clearStoredSelectedRegistrationId).not.toHaveBeenCalled()
+      expect(updatePaymentDetails).not.toHaveBeenCalled()
+    }
+  )
 })
