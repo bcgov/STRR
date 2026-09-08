@@ -13,12 +13,15 @@ const returnUrl = typeof route.query.return === 'string' && route.query.return.s
   ? route.query.return
   : undefined
 
-const loginRedirectUrl = loginConfig.redirectPath
-  ? runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
-  : runtimeConfig.public.baseUrl + returnUrl
-const redirectUrl = returnUrl
-  ? `${loginRedirectUrl}?return=${encodeURIComponent(returnUrl)}`
-  : loginConfig.redirectPath ? loginRedirectUrl : undefined
+let redirectUrl: string | undefined
+if (returnUrl) {
+  const baseRedirect = loginConfig.redirectPath
+    ? runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
+    : runtimeConfig.public.baseUrl + returnUrl
+  redirectUrl = `${baseRedirect}?return=${encodeURIComponent(returnUrl)}`
+} else if (loginConfig.redirectPath) {
+  redirectUrl = runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
+}
 
 type RuntimeLoginOptions = typeof loginConfig.options & {
   idps?: StrrLoginIdp[] | (() => StrrLoginIdp[])
