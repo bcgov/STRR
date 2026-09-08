@@ -1,11 +1,16 @@
 <script setup lang="ts">
 const localePath = useLocalePath()
+const route = useRoute()
 
 const { t } = useNuxtApp().$i18n
 const config = useRuntimeConfig().public
 
 const { loading, title, subtitles } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadPlatform } = useStrrPlatformStore()
+const {
+  downloadApplicationReceipt,
+  loadPlatform,
+  loadPlatformRegistrationDataByRegistrationNumber
+} = useStrrPlatformStore()
 const {
   application,
   registration,
@@ -25,6 +30,9 @@ const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 const hasPermitDetails = computed(() => Boolean(permitDetails.value && showPermitDetails.value))
 
 const getApplicationTodo = () => {
+  if (registration.value && !application.value) {
+    return []
+  }
   return getTodoApplication(
     '/platform/application',
     '/platform/dashboard/' + application.value?.header.applicationNumber,
@@ -154,16 +162,17 @@ const setSidePanelDetails = () => {
 }
 
 const setRegistrationHeaderDetails = () => {
+  const receiptAction = isPaidApplication.value ? downloadApplicationReceipt : undefined
   if (!registration.value) {
     setHeaderDetails(
       application.value?.header.hostStatus,
       undefined,
-      isPaidApplication.value ? downloadApplicationReceipt : undefined)
+      receiptAction)
   } else {
     setHeaderDetails(
       registration.value.status,
       dateToStringPacific(registration.value.expiryDate, 'DDD'),
-      downloadApplicationReceipt)
+      receiptAction)
   }
   // add common side details
   setSideHeaderDetails(registration.value, application.value?.header)
@@ -173,7 +182,16 @@ const setRegistrationHeaderDetails = () => {
 
 onMounted(async () => {
   loading.value = true
-  await loadPlatform()
+  const registrationNumber = route.params.registrationNumber as string | undefined
+  if (registrationNumber) {
+    const isLoaded = await loadPlatformRegistrationDataByRegistrationNumber(registrationNumber)
+    if (!isLoaded) {
+      await navigateTo(localePath('/platform/dashboard'))
+      return
+    }
+  } else {
+    await loadPlatform()
+  }
 
   // add application todo
   todos.value.push(...getApplicationTodo())

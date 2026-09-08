@@ -7,10 +7,21 @@ const keycloak = useKeycloak()
 const { createAccountUrl } = useConnectNav()
 const runtimeConfig = useRuntimeConfig()
 const loginConfig = useAppConfig().strrBaseLayer.page.login
+const route = useRoute()
 
-const redirectUrl = loginConfig.redirectPath
-  ? runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
+const returnUrl = typeof route.query.return === 'string' && route.query.return.startsWith('/')
+  ? route.query.return
   : undefined
+
+let redirectUrl: string | undefined
+if (returnUrl) {
+  const baseRedirect = loginConfig.redirectPath
+    ? runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
+    : runtimeConfig.public.baseUrl + returnUrl
+  redirectUrl = `${baseRedirect}?return=${encodeURIComponent(returnUrl)}`
+} else if (loginConfig.redirectPath) {
+  redirectUrl = runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
+}
 
 type RuntimeLoginOptions = typeof loginConfig.options & {
   idps?: StrrLoginIdp[] | (() => StrrLoginIdp[])
@@ -98,7 +109,6 @@ async function runLoginFromIdpQuery () {
   if (idpQueryLoginStarted.value) {
     return
   }
-  const route = useRoute()
   const idp = parseIdpFromQuery(route.query as Record<string, unknown>)
   if (!idp || !allowedIdps.value.includes(idp)) {
     return
@@ -117,7 +127,6 @@ definePageMeta({
 })
 
 onMounted(() => {
-  const route = useRoute()
   const invalidIdp = route.query.invalidIdp
   if (invalidIdp && LoginSource[invalidIdp as LoginSource] !== undefined) {
     useToast().add({ title: t('toast.invalidIdp.generic') })

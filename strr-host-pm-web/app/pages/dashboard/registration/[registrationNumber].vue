@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
+const route = useRoute()
 const localePath = useLocalePath()
 const {
   loading,
@@ -36,27 +37,28 @@ const submittedApplications = computed(() => {
 
 onMounted(async () => {
   loading.value = true
+  let registrationLoaded = false
 
-  // Use the registration ID stored before navigation (not the registration number in URL)
-  // If not in store, try sessionStorage (survives external payment redirect)
+  // Check sessionStorage if returning from payment (survives external payment redirect)
   let returningFromPayment = false
-  if (!selectedRegistrationId.value) {
+  const renewalAppNumber = sessionStorage.getItem('renewalApplicationNumber')
+  if (renewalAppNumber) {
     const storedId = permitStore.readStoredSelectedRegistrationId()
     if (storedId) {
       selectedRegistrationId.value = storedId
       returningFromPayment = true
       permitStore.clearStoredSelectedRegistrationId()
     }
+    await updatePaymentDetails(renewalAppNumber)
+    sessionStorage.removeItem('renewalApplicationNumber')
   }
 
-  // If returning from payment, sync payment status before loading data
-  // This prevents the "retry payment" todo from briefly showing due to race condition
-  if (returningFromPayment) {
-    const renewalAppNumber = sessionStorage.getItem('renewalApplicationNumber')
-    if (renewalAppNumber) {
-      await updatePaymentDetails(renewalAppNumber)
-      sessionStorage.removeItem('renewalApplicationNumber')
-    }
+  if (!returningFromPayment && route.params.registrationNumber) {
+    // Direct deep-link or route navigation: resolve from URL registration number
+    selectedRegistrationId.value = undefined
+    registrationLoaded = await permitStore.loadHostRegistrationDataByRegistrationNumber(
+      route.params.registrationNumber as string
+    )
   }
 
   if (!selectedRegistrationId.value) {
@@ -64,7 +66,9 @@ onMounted(async () => {
     await navigateTo(localePath('/dashboard-new'))
     return
   }
-  await permitStore.loadHostRegistrationData(selectedRegistrationId.value)
+  if (!registrationLoaded) {
+    await permitStore.loadHostRegistrationData(selectedRegistrationId.value)
+  }
 
   addNocTodo()
   addBusinessLicenseTodo()

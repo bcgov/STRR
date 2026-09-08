@@ -12,6 +12,7 @@ Your application to register the short-term rental is **approved**.
 ---
 
 # Terms and Conditions
+
 {% if custom_content %}
 {{custom_content | escape }}
 
@@ -21,7 +22,8 @@ The registration is subject to the terms and conditions set out by the Registrar
 ---
 
 # Important Next Steps
-1. Log in to your [Short Term Rental Registry Dashboard](https://stratahotel.shorttermrental.registry.gov.bc.ca/en-CA/auth/login/).
+
+1. Open your [registration]({{ registration_url }}).
 
 2. Update each listing for this strata hotel with your **Registration Number**.
 

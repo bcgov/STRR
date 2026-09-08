@@ -9,7 +9,7 @@ const {
   title,
   subtitles
 } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadStrata } = useStrrStrataStore()
+const { downloadApplicationReceipt, loadStrata, loadStrataRegistrationDataByRegistrationNumber } = useStrrStrataStore()
 const {
   application,
   registration,
@@ -131,16 +131,84 @@ const getRenewalToDo = async (): Promise<Todo[]> => {
   return renewalTodos
 }
 
+const loadDashboardData = async () => {
+  const applicationId = route.params.applicationId as string
+  const registrationNumber = route.params.registrationNumber as string | undefined
+  if (registrationNumber) {
+    const isLoaded = await loadStrataRegistrationDataByRegistrationNumber(registrationNumber)
+    if (!isLoaded) {
+      await navigateTo(localePath('/strata-hotel/dashboard'))
+      return false
+    }
+    return true
+  }
+  await loadStrata(applicationId)
+  return true
+}
+
+const setStrataDashboardDetails = () => {
+  title.value = strataDetails.value.brand.name
+  const nonPlural = strataDetails.value.numberOfUnits === 1
+  const urlParts = strataDetails.value.brand.website.match(/^(https?:\/\/)(www\.)?(.+?(?=(\/)|$))/)
+  subtitles.value = [
+    { text: t(`strataHotelCategoryReview.${strataDetails.value.category}`) },
+    { text: `${strataDetails.value.numberOfUnits} ${t('strr.word.unit', nonPlural ? 1 : 2)}` },
+    {
+      text: urlParts && urlParts.length > 2 ? urlParts[3] || '' : '',
+      icon: 'i-mdi-web',
+      link: true,
+      linkHref: strataDetails.value.brand.website
+    }
+  ]
+  const receiptAction = isPaidApplication.value ? downloadApplicationReceipt : undefined
+  if (!registration.value) {
+    setHeaderDetails(
+      application.value?.header.hostStatus,
+      undefined,
+      receiptAction)
+  } else {
+    setHeaderDetails(
+      registration.value.status,
+      dateToStringPacific(registration.value.expiryDate, 'DDD'),
+      receiptAction)
+  }
+  // strata side details
+  setSideHeaderDetails(
+    registration.value,
+    application.value?.header)
+  // set sidebar accordion buildings
+  buildings.value = getDashboardBuildings()
+  // set sidebar accordion reps
+  representatives.value = getDashboardRepresentatives()
+  // set side bar completing party
+  completingParty.value = getDashboardCompParty()
+  // update breadcrumbs with strata business name
+  setBreadcrumbs([
+    {
+      label: t('label.bcregDash'),
+      to: config.registryHomeURL + 'dashboard',
+      appendAccountId: true,
+      external: true
+    },
+    { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
+    { label: strataBusiness.value.legalName }
+  ])
+}
+
 onMounted(async () => {
   loading.value = true
-  const applicationId = route.params.applicationId as string
-  await loadStrata(applicationId)
+  const isLoaded = await loadDashboardData()
+  if (!isLoaded) {
+    return
+  }
   // set header stuff
-  todos.value = getTodoApplication(
-    '/strata-hotel/application',
-    '/strata-hotel/dashboard/' + application.value?.header.applicationNumber,
-    application.value?.header
-  )
+  if (application.value) {
+    todos.value = getTodoApplication(
+      '/strata-hotel/application',
+      '/strata-hotel/dashboard/' + application.value.header.applicationNumber,
+      application.value.header
+    )
+  }
 
   todos.value.push(...await getRenewalToDo())
 
@@ -149,52 +217,7 @@ onMounted(async () => {
     title.value = t('strr.title.dashboard')
   } else {
     // existing registration or application under the account
-    // set left side of header
-    title.value = strataDetails.value.brand.name
-    const nonPlural = strataDetails.value.numberOfUnits === 1
-    const urlParts = strataDetails.value.brand.website.match(/^(https?:\/\/)(www\.)?(.+?(?=(\/)|$))/)
-    subtitles.value = [
-      { text: t(`strataHotelCategoryReview.${strataDetails.value.category}`) },
-      { text: `${strataDetails.value.numberOfUnits} ${t('strr.word.unit', nonPlural ? 1 : 2)}` },
-      {
-        text: urlParts && urlParts.length > 2 ? urlParts[3] || '' : '',
-        icon: 'i-mdi-web',
-        link: true,
-        linkHref: strataDetails.value.brand.website
-      }
-    ]
-    if (!registration.value) {
-      setHeaderDetails(
-        application.value?.header.hostStatus,
-        undefined,
-        isPaidApplication.value ? downloadApplicationReceipt : undefined)
-    } else {
-      setHeaderDetails(
-        registration.value.status,
-        dateToStringPacific(registration.value.expiryDate, 'DDD'),
-        downloadApplicationReceipt)
-    }
-    // strata side details
-    setSideHeaderDetails(
-      registration.value,
-      application.value?.header)
-    // set sidebar accordion buildings
-    buildings.value = getDashboardBuildings()
-    // set sidebar accordion reps
-    representatives.value = getDashboardRepresentatives()
-    // set side bar completing party
-    completingParty.value = getDashboardCompParty()
-    // update breadcrumbs with strata business name
-    setBreadcrumbs([
-      {
-        label: t('label.bcregDash'),
-        to: config.registryHomeURL + 'dashboard',
-        appendAccountId: true,
-        external: true
-      },
-      { label: t('strr.title.dashboard'), to: localePath('/strata-hotel/dashboard') },
-      { label: strataBusiness.value.legalName }
-    ])
+    setStrataDashboardDetails()
   }
 
   loading.value = false
