@@ -108,11 +108,13 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   // load Registration data (used for registration detail page and Renewals)
   const loadHostRegistrationData = async (registrationId: string, isRenewal: boolean = false) => {
     $reset()
+    selectedRegistrationId.value = registrationId
     await loadPermitRegistrationData(registrationId)
     await populateHostDetails(isRenewal)
   }
 
   const loadHostRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
+    selectedRegistrationId.value = undefined
     $reset()
     const resp = await searchRegistrations<RegistrationRecord>(
       undefined,
@@ -206,6 +208,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     application.value = undefined
     registration.value = undefined
     isRegistrationRenewal.value = false
+    selectedRegistrationId.value = undefined
   }
 
   return {

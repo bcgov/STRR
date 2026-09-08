@@ -128,16 +128,33 @@ describe('Registration dashboard page', () => {
     expect(loadHostRegistrationData).toHaveBeenCalledWith('308')
   })
 
-  it('prioritizes route registration number over existing store selectedRegistrationId on direct navigation', async () => {
-    selectedRegistrationId.value = '42'
-    loadHostRegistrationDataByRegistrationNumber.mockImplementation(() => {
-      selectedRegistrationId.value = '308'
-      return Promise.resolve(true)
-    })
-    await mountRegistrationDashboard()
-    await flushPromises()
-    expect(loadHostRegistrationDataByRegistrationNumber).toHaveBeenCalledWith('H123456')
-    expect(selectedRegistrationId.value).toBe('308')
-    expect(updatePaymentDetails).not.toHaveBeenCalled()
-  })
+  it(
+    'prioritizes route registration number over existing store selectedRegistrationId on direct navigation',
+    async () => {
+      selectedRegistrationId.value = '42'
+      loadHostRegistrationDataByRegistrationNumber.mockImplementation(() => {
+        selectedRegistrationId.value = '308'
+        return Promise.resolve(true)
+      })
+      await mountRegistrationDashboard()
+      await flushPromises()
+      expect(loadHostRegistrationDataByRegistrationNumber).toHaveBeenCalledWith('H123456')
+      expect(selectedRegistrationId.value).toBe('308')
+      expect(updatePaymentDetails).not.toHaveBeenCalled()
+    }
+  )
+
+  it(
+    'clears existing selectedRegistrationId and redirects to dashboard-new when route lookup fails',
+    async () => {
+      selectedRegistrationId.value = '42'
+      loadHostRegistrationDataByRegistrationNumber.mockResolvedValue(false)
+      await mountRegistrationDashboard()
+      await flushPromises()
+      expect(loadHostRegistrationDataByRegistrationNumber).toHaveBeenCalledWith('H123456')
+      expect(selectedRegistrationId.value).toBeUndefined()
+      expect(navigateTo).toHaveBeenCalledWith('/dashboard-new')
+      expect(loadHostRegistrationData).not.toHaveBeenCalled()
+    }
+  )
 })

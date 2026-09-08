@@ -58,6 +58,7 @@ onMounted(async () => {
     }
   } else if (route.params.registrationNumber) {
     // Direct deep-link or route navigation: resolve from URL registration number
+    selectedRegistrationId.value = undefined
     registrationLoaded = await permitStore.loadHostRegistrationDataByRegistrationNumber(
       route.params.registrationNumber as string
     )

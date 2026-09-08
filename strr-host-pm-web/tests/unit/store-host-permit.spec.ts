@@ -350,7 +350,7 @@ describe('useHostPermitStore - loading host data', () => {
   })
 
   it('should not load host registration data when registration number does not match', async () => {
-    useHostPermitStore().selectedRegistrationId = undefined
+    useHostPermitStore().selectedRegistrationId = '999'
     mockSearchRegistrations.mockResolvedValue({
       registrations: [{ id: 309, registrationNumber: 'H000000000' }],
       total: 1
