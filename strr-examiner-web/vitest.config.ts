@@ -2,25 +2,12 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import path from 'path'
 import { defineVitestConfig } from '@nuxt/test-utils/config'
+import { resolveVueAliases } from '../strr-base-web/vitest-vue-aliases.mjs'
 
-const require = createRequire(import.meta.url)
-
-// strr-base-web is extended as a local sibling layer, with its own fully
-// separate node_modules - `resolve.dedupe` can't reconcile that with this
-// app's own copy (dedupe only picks among candidates already reachable via
-// this project's own resolution; strr-base-web's node_modules is a wholly
-// separate, unrelated tree, not a nested/hoisted duplicate within it). A
-// component resolved from inside it (e.g. via @daxiom/nuxt-core-layer-test)
-// then pulls in a second, physically distinct copy of Vue's runtime, and
-// mounting a tree that spans both crashes on Vue's internal per-instance
-// checks ("Cannot read properties of null (reading 'ce')") since the two
-// copies don't share module-level state. Force every resolution of these
-// packages - regardless of which directory the importing file lives in - to
-// this app's own copy via an explicit alias instead.
-const vueAliases = Object.fromEntries(
-  ['vue', '@vue/runtime-core', '@vue/runtime-dom', '@vue/reactivity', '@vue/shared']
-    .map(pkg => [pkg, require.resolve(pkg)])
-)
+// Forces every resolution of vue/@vue/* to this app's own copy, regardless of
+// which directory the importing file lives in - see vitest-vue-aliases.mjs
+// for why this is needed.
+const vueAliases = resolveVueAliases(createRequire(import.meta.url))
 
 export default defineVitestConfig({
   resolve: {
