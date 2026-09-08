@@ -136,7 +136,11 @@ onMounted(async () => {
   const applicationId = route.params.applicationId as string
   const registrationNumber = route.params.registrationNumber as string | undefined
   if (registrationNumber) {
-    await loadStrataRegistrationDataByRegistrationNumber(registrationNumber)
+    const isLoaded = await loadStrataRegistrationDataByRegistrationNumber(registrationNumber)
+    if (!isLoaded) {
+      await navigateTo(localePath('/strata-hotel/dashboard'))
+      return
+    }
   } else {
     await loadStrata(applicationId)
   }

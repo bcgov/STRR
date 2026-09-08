@@ -180,7 +180,11 @@ onMounted(async () => {
   loading.value = true
   const registrationNumber = route.params.registrationNumber as string | undefined
   if (registrationNumber) {
-    await loadPlatformRegistrationDataByRegistrationNumber(registrationNumber)
+    const isLoaded = await loadPlatformRegistrationDataByRegistrationNumber(registrationNumber)
+    if (!isLoaded) {
+      await navigateTo(localePath('/platform/dashboard'))
+      return
+    }
   } else {
     await loadPlatform()
   }
