@@ -54,6 +54,41 @@ mockNuxtImport('useConnectFeeStore', () => () => ({
   setPlaceholderServiceFee: vi.fn()
 }))
 
+const mountApplication = async () => {
+  const wrapper = await mountSuspended(Application, {
+    global: {
+      plugins: [enI18n],
+      stubs: {
+        ConnectSpinner: true,
+        ConnectTypographyH1: true,
+        ModalGroupHelpAndInfo: true,
+        ConnectStepper: true,
+        FormContactInfo: true,
+        FormPlatformBusinessDetails: true,
+        FormPlatformDetails: true,
+        FormPlatformReviewConfirm: true
+      }
+    }
+  })
+  await flushPromises()
+  return wrapper
+}
+
+const setupApplicationData = (applicationType: string, id: string) => {
+  setMockRoute({ applicationId: id })
+  mockLoadPermitData.mockImplementation(() => {
+    mockApplication.value = {
+      header: {
+        applicationNumber: id,
+        applicationType,
+        status: 'DRAFT'
+      },
+      registration: mockPlatformPermitDetails
+    }
+    mockPermitDetails.value = mockPlatformPermitDetails
+  })
+}
+
 describe('Platform Application Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -64,23 +99,8 @@ describe('Platform Application Page', () => {
   })
 
   it('renders application page for new draft by default', async () => {
-    const wrapper = await mountSuspended(Application, {
-      global: {
-        plugins: [enI18n],
-        stubs: {
-          ConnectSpinner: true,
-          ConnectTypographyH1: true,
-          ModalGroupHelpAndInfo: true,
-          ConnectStepper: true,
-          FormContactInfo: true,
-          FormPlatformBusinessDetails: true,
-          FormPlatformDetails: true,
-          FormPlatformReviewConfirm: true
-        }
-      }
-    })
+    const wrapper = await mountApplication()
 
-    await flushPromises()
     expect(wrapper.exists()).toBe(true)
     const store = useStrrPlatformStore()
     expect(store.isRegistrationRenewal).toBe(false)
@@ -88,37 +108,10 @@ describe('Platform Application Page', () => {
   })
 
   it('sets isRegistrationRenewal to true when deep linked application is a renewal', async () => {
-    setMockRoute({ applicationId: '105' })
+    setupApplicationData('renewal', '105')
 
-    mockLoadPermitData.mockImplementation(() => {
-      mockApplication.value = {
-        header: {
-          applicationNumber: '105',
-          applicationType: 'renewal',
-          status: 'DRAFT'
-        },
-        registration: mockPlatformPermitDetails
-      }
-      mockPermitDetails.value = mockPlatformPermitDetails
-    })
+    const wrapper = await mountApplication()
 
-    const wrapper = await mountSuspended(Application, {
-      global: {
-        plugins: [enI18n],
-        stubs: {
-          ConnectSpinner: true,
-          ConnectTypographyH1: true,
-          ModalGroupHelpAndInfo: true,
-          ConnectStepper: true,
-          FormContactInfo: true,
-          FormPlatformBusinessDetails: true,
-          FormPlatformDetails: true,
-          FormPlatformReviewConfirm: true
-        }
-      }
-    })
-
-    await flushPromises()
     expect(wrapper.exists()).toBe(true)
     expect(mockLoadPermitData).toHaveBeenCalledWith('105', ApplicationType.PLATFORM)
     const store = useStrrPlatformStore()
@@ -126,37 +119,10 @@ describe('Platform Application Page', () => {
   })
 
   it('leaves isRegistrationRenewal false when deep linked application is not a renewal', async () => {
-    setMockRoute({ applicationId: '106' })
+    setupApplicationData('new', '106')
 
-    mockLoadPermitData.mockImplementation(() => {
-      mockApplication.value = {
-        header: {
-          applicationNumber: '106',
-          applicationType: 'new',
-          status: 'DRAFT'
-        },
-        registration: mockPlatformPermitDetails
-      }
-      mockPermitDetails.value = mockPlatformPermitDetails
-    })
+    const wrapper = await mountApplication()
 
-    const wrapper = await mountSuspended(Application, {
-      global: {
-        plugins: [enI18n],
-        stubs: {
-          ConnectSpinner: true,
-          ConnectTypographyH1: true,
-          ModalGroupHelpAndInfo: true,
-          ConnectStepper: true,
-          FormContactInfo: true,
-          FormPlatformBusinessDetails: true,
-          FormPlatformDetails: true,
-          FormPlatformReviewConfirm: true
-        }
-      }
-    })
-
-    await flushPromises()
     expect(wrapper.exists()).toBe(true)
     expect(mockLoadPermitData).toHaveBeenCalledWith('106', ApplicationType.PLATFORM)
     const store = useStrrPlatformStore()
