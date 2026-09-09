@@ -1,6 +1,7 @@
 import { chromium } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { loadTestCard, preparePlatformCheckout } from './platform-checkout.mjs'
+import { createStrataPayment } from './strata-checkout.mjs'
 
 // These existing CI credentials stay inside the runner. No traces, cookies,
 // storage state, response bodies, or credentials are uploaded.
@@ -29,7 +30,7 @@ const apps = [
 ]
 const report = {
   checkedAt: new Date().toISOString(),
-  scope: 'Live TEST account/fee checks and one non-zero Platform application through sandbox checkout.',
+  scope: 'Live TEST account/fee checks; paid Platform receipt/persistence; non-zero Strata sandbox checkout.',
   credentialsConfigured: Boolean(username && password && account),
   apps: []
 }
@@ -114,9 +115,10 @@ try {
     await Promise.all(pending)
     const fees = new Set(current.paymentRequests.filter(r => r.path.includes('/fees/STRR/') && r.status === 200).map(r => r.path))
     if (fees.size < app.feeCount || !current.paymentAccount) throw new Error('TEST payment account or required registration fees did not load successfully')
-    if (app.name === 'platform') await preparePlatformCheckout(page, current, card)
+    if (app.name === 'platform') await preparePlatformCheckout(page, current)
+    if (app.name === 'strata') await createStrataPayment(page, current, card)
     current.finalUrl = safeUrl(page.url())
-    current.result = 'passed'
+    current.result = current.receipt?.result === 'failed' ? 'payment_passed_receipt_failed' : 'passed'
     current.stage = 'complete'
     await page.close()
   }

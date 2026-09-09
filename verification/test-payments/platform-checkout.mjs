@@ -20,45 +20,33 @@ export function loadTestCard(secrets) {
   return { number, cvv, month, year }
 }
 
-// Resume the unpaid invoice created by run 34415112813; do not create another.
-export async function preparePlatformCheckout(page, result, card) {
-  result.testFixture = 'Nuxt4 Payment QA 34415112813'
-  result.applicationNumber = '99151191801944'
-  result.invoiceId = 771473
-  result.initialStatusFromCreation = 'PAYMENT_DUE'
+// Observe only status metadata for the explicitly created TEST application.
+export function observeApplication(page, result) {
   result.applicationResponses = []
   const pending = []
   page.on('response', response => {
     const url = new URL(response.url())
     if (url.hostname !== 'strr-api-test-166050292631.northamerica-northeast1.run.app' ||
-        !url.pathname.includes('/applications/' + result.applicationNumber)) return
+        !url.pathname.includes('/applications/' + result.applicationNumber) || url.pathname.endsWith('/receipt')) return
     const entry = { path: url.pathname, method: response.request().method(), status: response.status() }
     result.applicationResponses.push(entry)
-    if (response.ok() && !url.pathname.endsWith('/receipt')) {
-      pending.push(response.json().then(body => {
-        if (body.header) {
-          entry.applicationStatus = body.header.status
-          entry.paymentStatus = body.header.paymentStatus
-        }
-      }).catch(() => {}))
-    }
-    if (response.ok() && url.pathname.endsWith('/payment/receipt')) {
-      pending.push(response.body().then(body => {
-        result.receipt = { status: response.status(), bytes: body.length,
-          pdf: body.subarray(0,5).toString() === '%PDF-',
-          sha256: createHash('sha256').update(body).digest('hex') }
-      }))
-    }
+    if (response.ok()) pending.push(response.json().then(body => {
+      if (body.header) {
+        entry.applicationStatus = body.header.status
+        entry.paymentStatus = body.header.paymentStatus
+      }
+    }).catch(() => {}))
   })
-  result.stage = 'resume-platform-checkout'
-  await page.goto('https://test.account.bcregistry.gov.bc.ca/makepayment/771473/https%3A%2F%2Ftest.platform.shorttermrental.registry.gov.bc.ca%2Fen-CA%2Fplatform%2Fdashboard')
+  return pending
+}
+
+export async function paySandboxCard(page, result, card) {
+  result.stage = 'sandbox-checkout'
   await page.waitForURL(url => url.hostname === 'paytestp.gov.bc.ca', { timeout: 60000 })
   await page.getByRole('button', { name: 'Proceed To Pay', exact: true }).click()
   await page.waitForURL(url => url.hostname === 'web.na.bambora.com', { timeout: 60000 })
   await expect(page.getByText('Account paybc_testp is in test mode', { exact: true })).toBeVisible()
   result.gatewayTestModeVerified = true
-
-  // Field IDs and option values were observed at the actual Worldline TEST checkout.
   const amount = Number((await page.locator('#trnAmount').inputValue()).replace(/[^0-9.]/g,''))
   expect(amount).toBeGreaterThan(0)
   result.amount = amount
@@ -72,28 +60,64 @@ export async function preparePlatformCheckout(page, result, card) {
   await page.locator('#trnCardCvd').fill(card.cvv)
   result.cardSubmittedAt = new Date().toISOString()
   await page.locator('#submitButton').click()
+}
 
-  result.stage = 'verify-platform-return'
-  await page.waitForURL(url => url.origin === 'https://test.platform.shorttermrental.registry.gov.bc.ca' &&
-    url.pathname === '/en-CA/platform/dashboard', { timeout: 90000 })
+export async function verifyPaidApplication(page, result, dashboard, pending) {
+  result.stage = 'verify-payment-return'
+  await page.waitForURL(url => url.origin + url.pathname === dashboard, { timeout: 90000 })
   await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
   result.returnedToCorrectApplication = true
-  result.stage = 'verify-platform-receipt'
-  const receiptResponse = page.waitForResponse(response =>
-    new URL(response.url()).pathname === '/applications/' + result.applicationNumber + '/payment/receipt',
-    { timeout: 45000 })
-  await page.getByRole('button', { name: 'Download Receipt', exact: true }).click()
-  await receiptResponse
-  await Promise.all(pending)
-  expect(result.receipt?.status).toBe(200)
-  expect(result.receipt?.pdf).toBe(true)
-  expect(result.receipt?.bytes).toBeGreaterThan(500)
-
-  result.stage = 'verify-platform-persistence'
+  result.stage = 'verify-receipt'
+  const [response, download] = await Promise.all([
+    page.waitForResponse(response => new URL(response.url()).pathname ===
+      '/applications/' + result.applicationNumber + '/payment/receipt', { timeout: 45000 }),
+    page.waitForEvent('download', { timeout: 45000 }),
+    page.getByRole('button', { name: 'Download Receipt', exact: true }).click()
+  ])
+  const stream = await download.createReadStream()
+  const chunks = []
+  for await (const chunk of stream) chunks.push(chunk)
+  const file = Buffer.concat(chunks)
+  const body = await response.body()
+  result.receipt = {
+    status: response.status(), responseBytes: body.length, downloadBytes: file.length,
+    pdf: file.subarray(0,5).toString() === '%PDF-',
+    sha256: createHash('sha256').update(file).digest('hex'),
+    contentType: response.headers()['content-type'],
+    filename: download.suggestedFilename()
+  }
+  // If the downloaded file is empty, compare the exact API request without
+  // exporting its authenticated headers. This distinguishes server output from UI handling.
+  if (!result.receipt.pdf || file.length < 500) {
+    const headers = await response.request().allHeaders()
+    const apiResponse = await page.request.get(response.url(), { headers: {
+      authorization: headers.authorization, 'account-id': headers['account-id'], accept: 'application/pdf'
+    } })
+    const apiBody = await apiResponse.body()
+    result.receipt.directApi = { status: apiResponse.status(), bytes: apiBody.length,
+      pdf: apiBody.subarray(0,5).toString() === '%PDF-', contentType: apiResponse.headers()['content-type'] }
+  }
+  result.receipt.result = response.status() === 201 && result.receipt.pdf && file.length > 500 ? 'passed' : 'failed'
+  result.stage = 'verify-payment-persistence'
   await page.reload({ waitUntil: 'domcontentloaded' })
   await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
   await expect(page.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
   await Promise.all(pending)
+  expect(result.applicationResponses.some(r => r.applicationStatus === 'PAID' && r.paymentStatus === 'COMPLETED')).toBe(true)
   result.paymentResult = 'passed'
+  result.persistedAfterReload = true
   result.completedAt = new Date().toISOString()
+}
+
+// Read-only verification of the already paid invoice. Never resubmit its card.
+export async function preparePlatformCheckout(page, result) {
+  result.testFixture = 'Nuxt4 Payment QA 34415112813'
+  result.applicationNumber = '99151191801944'
+  result.invoiceId = 771473
+  result.amount = 601.5
+  result.cardPaidInRun = '34415657951'
+  const pending = observeApplication(page, result)
+  const dashboard = 'https://test.platform.shorttermrental.registry.gov.bc.ca/en-CA/platform/dashboard'
+  await page.goto(dashboard)
+  await verifyPaidApplication(page, result, dashboard, pending)
 }
