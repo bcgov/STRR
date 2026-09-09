@@ -112,8 +112,7 @@ jobs:
 
       - name: Check plan safety
         run: |
-          terraform -chdir="terraform/$TF_STACK" show -json tfplan > "terraform/$TF_STACK/tfplan.json"
-          python3 terraform/scripts/check_plan.py "terraform/$TF_STACK/tfplan.json"
+          terraform -chdir="terraform/$TF_STACK" show -json tfplan | python3 terraform/scripts/check_plan.py
 
       - name: Terraform apply
         if: inputs.action == 'apply'

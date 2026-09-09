@@ -1,7 +1,10 @@
 """Exercise plans that must never reach automatic apply."""
 
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
+import sys
 import unittest
 
 
@@ -72,6 +75,25 @@ class PlanPolicyTests(unittest.TestCase):
         for version in (None, "", "2.0"):
             with self.subTest(version=version), self.assertRaises(ValueError):
                 MODULE.check_plan(plan(format_version=version))
+
+    def test_cli_reads_plan_from_standard_input(self):
+        result = subprocess.run(
+            [sys.executable, SPEC.origin],
+            input=json.dumps(plan(resource(["no-op"], importing=True))),
+            text=True, capture_output=True, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Import-only adoption verified.", result.stdout)
+
+    def test_cli_rejects_invalid_or_unsafe_input(self):
+        for value in ("", "not json", json.dumps(plan(resource(["delete"])))):
+            with self.subTest(value=value):
+                result = subprocess.run(
+                    [sys.executable, SPEC.origin],
+                    input=value, text=True, capture_output=True, check=False,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("Terraform plan rejected:", result.stderr)
 
 
 if __name__ == "__main__":

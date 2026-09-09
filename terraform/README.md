@@ -106,8 +106,7 @@ For a read-only live plan with an appropriately authorized identity:
 ```bash
 terraform -chdir=terraform/email init -input=false -lockfile=readonly
 terraform -chdir=terraform/email plan -input=false -lock=false -out=tfplan
-terraform -chdir=terraform/email show -json tfplan > terraform/email/tfplan.json
-python3 terraform/scripts/check_plan.py terraform/email/tfplan.json
+terraform -chdir=terraform/email show -json tfplan | python3 terraform/scripts/check_plan.py
 ```
 
 Repeat for `api` and `validation`. Schema and mocked tests do not establish live

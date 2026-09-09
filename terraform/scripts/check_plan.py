@@ -2,7 +2,6 @@
 
 import json
 import sys
-from pathlib import Path
 
 
 def check_plan(plan):
@@ -34,7 +33,7 @@ def check_plan(plan):
 
 if __name__ == "__main__":
     try:
-        print(check_plan(json.loads(Path(sys.argv[1]).read_text())))
-    except (ValueError, KeyError, TypeError, IndexError, OSError) as error:
+        print(check_plan(json.load(sys.stdin)))
+    except (ValueError, KeyError, TypeError) as error:
         print(f"Terraform plan rejected: {error}", file=sys.stderr)
         sys.exit(1)
