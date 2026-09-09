@@ -1,0 +1,8 @@
+{
+  "name": "strr-test-payment-verification",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}
