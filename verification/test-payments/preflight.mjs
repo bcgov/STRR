@@ -116,12 +116,26 @@ try {
     await Promise.all(pending)
     const fees = new Set(current.paymentRequests.filter(r => r.path.includes('/fees/STRR/') && r.status === 200).map(r => r.path))
     if (fees.size < app.feeCount || !current.paymentAccount) throw new Error('TEST payment account or required registration fees did not load successfully')
-    if (app.name === 'host') await createHostPayment(page, current, card)
-    if (app.name === 'platform') await preparePlatformCheckout(page, current)
-    if (app.name === 'strata') await createStrataPayment(page, current, card)
+    try {
+      if (app.name === 'host') await createHostPayment(page, current, card)
+      if (app.name === 'platform') await preparePlatformCheckout(page, current)
+      if (app.name === 'strata') await createStrataPayment(page, current, card)
+      current.result = current.receipt?.result === 'failed' ? 'payment_passed_receipt_failed' : 'passed'
+      current.stage = 'complete'
+      if (current.result !== 'passed') process.exitCode = 1
+    } catch (error) {
+      current.paymentError = sanitize(error.message)
+      current.result = 'failed'
+      current.failureState = {
+        body: sanitize((await page.locator('body').innerText().catch(() => '')).slice(0,10000)),
+        buttons: (await page.getByRole('button').allTextContents().catch(() => [])).map(sanitize),
+        invalidFields: await page.locator('[aria-invalid="true"]').evaluateAll(elements =>
+          elements.map(element => ({ id: element.id, name: element.getAttribute('name') }))
+        ).catch(() => [])
+      }
+      process.exitCode = 1
+    }
     current.finalUrl = safeUrl(page.url())
-    current.result = current.receipt?.result === 'failed' ? 'payment_passed_receipt_failed' : 'passed'
-    current.stage = 'complete'
     await page.close()
   }
 } catch (error) {

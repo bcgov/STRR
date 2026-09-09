@@ -51,7 +51,7 @@ export async function createHostPayment(page, result, card) {
     page.waitForResponse(response => new URL(response.url()).hostname ===
       'strr-api-test-166050292631.northamerica-northeast1.run.app' &&
       new URL(response.url()).pathname === '/applications' && response.request().method() === 'POST', { timeout: 60000 }),
-    page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
+    page.getByRole('button', { name: 'Proceed to Payment', exact: true }).click()
   ])
   result.submissionStatus = response.status()
   if (!response.ok()) throw new Error('TEST Host submission returned HTTP ' + response.status())
