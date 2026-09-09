@@ -1,5 +1,6 @@
 import { chromium } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
+import { loadTestCard, preparePlatformCheckout } from './platform-checkout.mjs'
 
 // These existing CI credentials stay inside the runner. No traces, cookies,
 // storage state, response bodies, or credentials are uploaded.
@@ -11,7 +12,7 @@ const account = 'STRR_TEST_29'
 const secrets = [username, password].filter(Boolean)
 const sanitize = value => {
   let text = String(value)
-  for (const secret of secrets) text = text.split(secret).join('[redacted]')
+  for (const secret of secrets.filter(Boolean)) text = text.split(secret).join('[redacted]')
   return text
     .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, '[redacted-email]')
     .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[redacted-token]')
@@ -19,7 +20,7 @@ const sanitize = value => {
 }
 const safeUrl = value => {
   const url = new URL(value)
-  return url.origin + url.pathname
+  return sanitize(url.origin + url.pathname)
 }
 const apps = [
   { name: 'host', origin: 'https://test.host.shorttermrental.registry.gov.bc.ca', form: '/en-CA/application', feeCount: 3 },
@@ -28,7 +29,7 @@ const apps = [
 ]
 const report = {
   checkedAt: new Date().toISOString(),
-  scope: 'Deployed TEST login, Premium account selection and fee loading only. No application submission or payment.',
+  scope: 'Live TEST account/fee checks and one non-zero Platform application through sandbox checkout.',
   credentialsConfigured: Boolean(username && password && account),
   apps: []
 }
@@ -38,6 +39,8 @@ let page
 let current
 try {
   if (!report.credentialsConfigured) throw new Error('Required BCSC test credentials or Premium account are not configured')
+  loadTestCard(secrets)
+  report.sandboxCardFixtureUsable = true
   browser = await chromium.launch()
   const context = await browser.newContext()
   context.setDefaultTimeout(20000)
@@ -110,6 +113,7 @@ try {
     await Promise.all(pending)
     const fees = new Set(current.paymentRequests.filter(r => r.path.includes('/fees/STRR/') && r.status === 200).map(r => r.path))
     if (fees.size < app.feeCount || !current.paymentAccount) throw new Error('TEST payment account or required registration fees did not load successfully')
+    if (app.name === 'platform') await preparePlatformCheckout(page, current)
     current.finalUrl = safeUrl(page.url())
     current.result = 'passed'
     current.stage = 'complete'

@@ -21,11 +21,12 @@ jobs:
       - name: Install Chromium
         working-directory: verification/test-payments
         run: npx playwright install --with-deps chromium
-      - name: Check TEST login and payment account
+      - name: Check TEST login and Platform checkout
         working-directory: verification/test-payments
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
+          CYPRESS_CREDITCARD: ${{ secrets.CYPRESS_CREDITCARD }}
         run: node preflight.mjs
       - name: Upload sanitized results
         if: always()
