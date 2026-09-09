@@ -9,13 +9,9 @@ export async function createHostPayment(page, result, card) {
   result.fixtureCreatedInRun = '34417032570'
   const pending = observeApplication(page, result)
   result.stage = 'open-unpaid-host-application'
-  await page.goto('https://test.host.shorttermrental.registry.gov.bc.ca/en-CA/dashboard/' + result.applicationNumber)
-  await page.getByTestId('h1').waitFor({ state: 'visible' })
-  if (!(await page.getByTestId('h1').innerText()).includes(result.testFixture)) {
-    // The new dashboard feature redirects legacy detail links to its list.
-    const row = page.getByRole('row').filter({ hasText: result.testFixture })
-    await row.getByText('View', { exact: true }).click()
-  }
+  await page.goto('https://test.host.shorttermrental.registry.gov.bc.ca/en-CA/dashboard-new')
+  const row = page.getByRole('row').filter({ hasText: result.applicationNumber })
+  await row.getByRole('link', { name: 'View', exact: true }).click()
   await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
   await page.getByRole('button', { name: 'Pay Now', exact: true }).click()
 
