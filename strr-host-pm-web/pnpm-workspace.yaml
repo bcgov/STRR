@@ -1,0 +1,9 @@
+packages: []
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+patchedDependencies:
+  '@vitejs/plugin-vue@6.0.8': patches/@vitejs__plugin-vue@6.0.8.patch
+  vite@8.2.1: patches/vite@8.2.1.patch

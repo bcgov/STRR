@@ -1,10 +1,16 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { baseEnI18n } from '../mocks/i18n'
 import { ConnectFeeInfoAmount } from '#components'
 import { FeeInfo } from '#imports'
 
 const $t = baseEnI18n.global.t
+
+// ConnectFeeInfo.* strings live only in strr-base-web's own locale file, which
+// the real i18n module doesn't merge in under mountSuspended - stub the
+// auto-imported useI18n so the component resolves against the same messages
+// this test asserts against.
+mockNuxtImport('useI18n', () => () => ({ t: $t }))
 
 const mockFeeItem: ConnectFeeItem = {
   filingTypeCode: 'STRR',

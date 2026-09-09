@@ -1,3 +1,21 @@
+import { ensureStrrBaseWebPrepared } from '../strr-base-web/prepare.mjs'
+
+// strr-base-web is extended as a local sibling layer (not a published package),
+// so its own generated .nuxt/tsconfig.json may not exist yet in a fresh checkout
+// (e.g. CI, where only this app's own `nuxt prepare` runs). Without it, jiti fails
+// to resolve strr-base-web/tsconfig.json's "extends" while evaluating its
+// tailwind.config.ts, breaking the whole build. Prepare it eagerly if missing.
+//
+// strr-base-web itself is guaranteed to exist by this point: the official CD
+// deploy pipeline's Docker build context is scoped to this app's own directory
+// only, so a `preinstall` script (ensure-strr-base-web.mjs, run before pnpm
+// even resolves dependencies, well before this file is loaded) clones it fresh
+// from GitHub there if it's missing outright - see that file for why this
+// can't live here instead (jiti pre-resolves import()s before any of this
+// file's own runtime code executes, so a dynamic import can't depend on a
+// clone step that only just ran a few lines above it).
+ensureStrrBaseWebPrepared()
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: false },
@@ -35,8 +53,7 @@ export default defineNuxtConfig({
   },
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: true }],
-    // '../strr-base-web', // dev only
+    '../strr-base-web',
     '@daxiom/nuxt-core-layer-test' // extend again, this prevents the payApi plugin error
   ],
 
