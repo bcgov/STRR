@@ -26,7 +26,6 @@ jobs:
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
-          PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME }}
         run: node preflight.mjs
       - name: Upload sanitized results
         if: always()

@@ -5,9 +5,10 @@ import { mkdir, writeFile } from 'node:fs/promises'
 // storage state, response bodies, or credentials are uploaded.
 const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME
 const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD
-const rawAccount = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME
-const account = rawAccount?.trim()
-const secrets = [username, password, rawAccount, account].filter(Boolean)
+// Observed in the authenticated TEST account chooser; the older configured
+// Premium account name is absent from this identity's TEST memberships.
+const account = 'STRR_TEST_29'
+const secrets = [username, password].filter(Boolean)
 const sanitize = value => {
   let text = String(value)
   for (const secret of secrets) text = text.split(secret).join('[redacted]')
@@ -70,7 +71,12 @@ try {
     })
 
     await page.goto(app.origin + '/en-CA/auth/login', { waitUntil: 'domcontentloaded' })
-    await page.getByRole('button', { name: 'Continue with BC Services Card', exact: true }).click()
+    const loginButton = page.getByRole('button', { name: 'Continue with BC Services Card', exact: true })
+    await Promise.race([
+      loginButton.waitFor({ state: 'visible' }),
+      page.waitForURL(url => url.origin === app.origin && !url.pathname.endsWith('/auth/login'))
+    ])
+    if (await loginButton.isVisible()) await loginButton.click()
     if (app.name === 'host') {
       await page.getByRole('button', { name: 'Log in with Test with username and password', exact: true }).click()
       if (new URL(page.url()).hostname !== 'idtest.gov.bc.ca') {
@@ -89,6 +95,7 @@ try {
     )
     current.availableAccounts = current.availableAccounts.map(option => ({ ...option, label: sanitize(option.label) }))
     await page.getByRole('button', { name: 'Use this Account, ' + account, exact: true }).click()
+    delete current.availableAccounts
     current.stage = 'open-application'
     await page.goto(app.origin + app.form, { waitUntil: 'domcontentloaded' })
     await page.getByTestId('h1').waitFor({ state: 'visible' })
