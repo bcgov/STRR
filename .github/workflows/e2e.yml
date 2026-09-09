@@ -21,7 +21,7 @@ jobs:
       - name: Install Chromium
         working-directory: verification/test-payments
         run: npx playwright install --with-deps chromium
-      - name: Check TEST login and Platform checkout
+      - name: Verify deployed TEST payments
         working-directory: verification/test-payments
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
