@@ -79,6 +79,8 @@ export async function verifyPaidApplication(page, result, dashboard, pending) {
   for await (const chunk of stream) chunks.push(chunk)
   const file = Buffer.concat(chunks)
   const body = await response.body()
+  const receiptHeaders = await response.request().allHeaders()
+  const apiHeaders = { authorization: receiptHeaders.authorization, 'account-id': receiptHeaders['account-id'] }
   result.receipt = {
     status: response.status(), responseBytes: body.length, downloadBytes: file.length,
     pdf: file.subarray(0,5).toString() === '%PDF-',
@@ -89,10 +91,7 @@ export async function verifyPaidApplication(page, result, dashboard, pending) {
   // If the downloaded file is empty, compare the exact API request without
   // exporting its authenticated headers. This distinguishes server output from UI handling.
   if (!result.receipt.pdf || file.length < 500) {
-    const headers = await response.request().allHeaders()
-    const apiResponse = await page.request.get(response.url(), { headers: {
-      authorization: headers.authorization, 'account-id': headers['account-id'], accept: 'application/pdf'
-    } })
+    const apiResponse = await page.request.get(response.url(), { headers: { ...apiHeaders, accept: 'application/pdf' }, timeout: 60000 })
     const apiBody = await apiResponse.body()
     result.receipt.directApi = { status: apiResponse.status(), bytes: apiBody.length,
       pdf: apiBody.subarray(0,5).toString() === '%PDF-', contentType: apiResponse.headers()['content-type'] }
@@ -103,7 +102,16 @@ export async function verifyPaidApplication(page, result, dashboard, pending) {
   await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
   await expect(page.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
   await Promise.all(pending)
-  expect(result.applicationResponses.some(r => r.applicationStatus === 'PAID' && r.paymentStatus === 'COMPLETED')).toBe(true)
+  const applicationResponse = await page.request.get(
+    'https://strr-api-test-166050292631.northamerica-northeast1.run.app/applications/' + result.applicationNumber,
+    { headers: apiHeaders, timeout: 30000 }
+  )
+  expect(applicationResponse.status()).toBe(200)
+  const application = await applicationResponse.json()
+  result.persistedApplication = { status: application.header.status, paymentStatus: application.header.paymentStatus,
+    invoiceId: application.header.paymentToken, registrationNumber: application.header.registrationNumber }
+  expect(result.persistedApplication.paymentStatus).toBe('COMPLETED')
+  expect(Number(result.persistedApplication.invoiceId)).toBe(Number(result.invoiceId))
   result.paymentResult = 'passed'
   result.persistedAfterReload = true
   result.completedAt = new Date().toISOString()
