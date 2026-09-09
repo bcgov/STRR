@@ -1,10 +1,10 @@
 resource "google_eventarc_trigger" "bulk_permit_validation" {
   name     = "bulk-permit-validation-trigger"
-  location = var.region
-  project  = var.project_id
+  location = local.region
+  project  = local.project_id
 
   event_data_content_type = "application/json"
-  service_account         = var.eventarc_service_account
+  service_account         = "sa-eventarc@bcrbk9-dev.iam.gserviceaccount.com"
 
   matching_criteria {
     attribute = "type"
@@ -13,13 +13,13 @@ resource "google_eventarc_trigger" "bulk_permit_validation" {
 
   matching_criteria {
     attribute = "bucket"
-    value     = var.bulk_validation_requests_bucket
+    value     = google_storage_bucket.bulk_validation_requests.name
   }
 
   destination {
     cloud_run_service {
-      service = var.bulk_validation_listener_service
-      region  = var.region
+      service = "batch-permit-listener-dev"
+      region  = local.region
       path    = "/"
     }
   }

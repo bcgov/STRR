@@ -1,21 +1,16 @@
 resource "google_pubsub_topic" "emailer" {
   name    = "strr-emailer-dev"
-  project = var.project_id
+  project = local.project_id
 }
 
 resource "google_pubsub_topic" "emailer_dlq" {
   name    = "strr-emailer-dlq-dev"
-  project = var.project_id
-}
-
-resource "google_pubsub_topic" "bulk_validation_response" {
-  name    = "strr-bulk-validation-response-dev"
-  project = var.project_id
+  project = local.project_id
 }
 
 resource "google_pubsub_subscription" "emailer" {
   name    = "strr-emailer-sub-dev"
-  project = var.project_id
+  project = local.project_id
   topic   = google_pubsub_topic.emailer.id
 
   ack_deadline_seconds       = 10
@@ -34,8 +29,12 @@ resource "google_pubsub_subscription" "emailer" {
   push_config {
     push_endpoint = "https://strr-email-dev-i2rbretwta-nn.a.run.app"
 
+    attributes = {
+      x-goog-version = "v1"
+    }
+
     oidc_token {
-      service_account_email = var.email_push_service_account
+      service_account_email = "sa-pubsub@bcrbk9-dev.iam.gserviceaccount.com"
     }
   }
 
@@ -47,7 +46,7 @@ resource "google_pubsub_subscription" "emailer" {
 
 resource "google_pubsub_subscription" "emailer_dlq" {
   name    = "strr-emailer-dlq-sub-dev"
-  project = var.project_id
+  project = local.project_id
   topic   = google_pubsub_topic.emailer_dlq.id
 
   ack_deadline_seconds       = 60
@@ -61,7 +60,7 @@ resource "google_pubsub_subscription" "emailer_dlq" {
 
 # Pub/Sub needs these permissions for dead-letter forwarding and tracking.
 resource "google_pubsub_topic_iam_member" "emailer_dlq_publisher" {
-  project = var.project_id
+  project = local.project_id
   topic   = google_pubsub_topic.emailer_dlq.name
   role    = "roles/pubsub.publisher"
   member  = "serviceAccount:${local.pubsub_service_agent}"
@@ -81,11 +80,6 @@ import {
 import {
   to = google_pubsub_topic.emailer_dlq
   id = "projects/bcrbk9-dev/topics/strr-emailer-dlq-dev"
-}
-
-import {
-  to = google_pubsub_topic.bulk_validation_response
-  id = "projects/bcrbk9-dev/topics/strr-bulk-validation-response-dev"
 }
 
 import {
