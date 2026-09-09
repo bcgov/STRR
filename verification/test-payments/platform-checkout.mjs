@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test'
-
 export function loadTestCard(secrets) {
   let fixture
   try {
@@ -22,88 +20,46 @@ export function loadTestCard(secrets) {
   return { number, cvv, month, year }
 }
 
-// Creates one explicitly labelled non-production application through the UI.
-// A failed run retains the application/invoice IDs so checkout can be resumed.
+// Resume the unpaid invoice created by run 34415112813, without creating
+// another application. The URL was observed in that actual checkout redirect.
 export async function preparePlatformCheckout(page, result) {
-  const testName = 'Nuxt4 Payment QA ' + process.env.GITHUB_RUN_ID
-  const testEmail = 'strr-payment-qa@example.com'
-  result.testFixture = testName
-  result.stage = 'platform-contact-form'
-  await page.getByTestId('completing-party-radio-group').getByRole('radio', { name: 'Yes', exact: true }).check()
-  await page.getByTestId('platform-primary-rep-position').fill('TEST representative')
-  await page.getByTestId('phone-countryCode').fill('1')
-  await page.getByRole('option').first().click()
-  await page.getByTestId('phone-number').fill('2505550100')
-  await page.getByTestId('platform-primary-rep-party-email').fill(testEmail)
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-
-  result.stage = 'platform-business-form'
-  await page.getByTestId('platform-business-legal-name').fill(testName)
-  await page.getByTestId('platform-business-home-jur').fill('British Columbia')
-  // Selecting No is important: the existing smoke fixture uses CPBC exemption,
-  // which waives the fee and does not test a payment.
-  await page.getByTestId('platform-business-hasCpbc').getByRole('radio', { name: 'No', exact: true }).check()
-  await page.getByTestId('platform-business-address-country').click()
-  await page.getByRole('option', { name: 'Canada', exact: true }).click()
-  await page.getByTestId('platform-business-address-street').fill('123 Test Street')
-  await page.getByTestId('mailingAddress.city').fill('Victoria')
-  await page.getByTestId('address-region-select').click()
-  await page.getByRole('option', { name: 'British Columbia', exact: true }).click()
-  await page.getByTestId('mailingAddress.postalCode').fill('V8W 9P6')
-  await page.getByTestId('platform-business-hasRegOffAtt').getByRole('radio', { name: 'No', exact: true }).check()
-  await page.getByTestId('platform-business-noncompliance-email').fill(testEmail)
-  await page.getByTestId('platform-business-takedown-email').fill(testEmail)
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-
-  result.stage = 'platform-provider-form'
-  await page.getByTestId('platform-brand-name-0').fill(testName)
-  await page.getByTestId('platform-brand-site-0').fill('https://example.com/strr-payment-qa')
-  await page.getByTestId('platform-listingSize').getByRole('radio', { name: '249 or less', exact: true }).check()
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-  await page.getByTestId('confirmation-checkbox').check()
-
-  result.stage = 'platform-submit'
-  const [response] = await Promise.all([
-    page.waitForResponse(response =>
-      new URL(response.url()).hostname === 'strr-api-test-166050292631.northamerica-northeast1.run.app' &&
-      new URL(response.url()).pathname.endsWith('/applications') &&
-      response.request().method() === 'POST', { timeout: 60000 }),
-    page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
-  ])
-  result.submissionStatus = response.status()
-  if (!response.ok()) throw new Error('TEST application submission returned HTTP ' + response.status())
-  const application = await response.json()
-  result.applicationNumber = application.header.applicationNumber
-  result.invoiceId = application.header.paymentToken
-  result.applicationStatus = application.header.status
-  expect(result.applicationStatus).toBe('PAYMENT_DUE')
-  expect(Number(result.invoiceId)).toBeGreaterThan(0)
-
-  result.stage = 'inspect-payment-gateway'
-  await page.waitForURL(url => /^pay(dev|test)\.gov\.bc\.ca$/.test(url.hostname), { timeout: 60000 })
-  await page.locator('body').waitFor({ state: 'visible' })
-  result.gateway = {
-    origin: new URL(page.url()).origin,
-    path: new URL(page.url()).pathname,
-    title: await page.title(),
-    headings: await page.locator('h1,h2').allTextContents(),
-    buttons: await page.getByRole('button').allTextContents(),
-    fields: await page.locator('input:not([type=hidden]),select').evaluateAll(elements =>
-      elements.map(element => ({
-        tag: element.tagName,
-        type: element.getAttribute('type'),
-        id: element.id,
-        name: element.getAttribute('name'),
-        label: element.getAttribute('aria-label'),
-        labels: [...(element.labels || [])].map(label => label.innerText),
-        placeholder: element.getAttribute('placeholder'),
-        options: element.tagName === 'SELECT' ? [...element.options].map(option => ({ value: option.value, label: option.label })) : undefined
-      }))
-    ),
-    frames: page.frames().map(frame => {
-      const url = new URL(frame.url() || 'about:blank')
-      return { origin: url.origin, path: url.pathname }
+  result.testFixture = 'Nuxt4 Payment QA 34415112813'
+  result.applicationNumber = '99151191801944'
+  result.invoiceId = 771473
+  result.applicationStatus = 'PAYMENT_DUE'
+  result.stage = 'resume-platform-checkout'
+  await page.goto('https://test.account.bcregistry.gov.bc.ca/makepayment/771473/https%3A%2F%2Ftest.platform.shorttermrental.registry.gov.bc.ca%2Fen-CA%2Fplatform%2Fdashboard')
+  await page.waitForURL(url => url.hostname === 'paytestp.gov.bc.ca', { timeout: 60000 })
+  await page.getByRole('button', { name: 'Proceed To Pay', exact: true }).waitFor()
+  result.gatewayReview = (await page.locator('body').innerText()).slice(0,10000)
+  result.stage = 'inspect-card-entry'
+  await page.getByRole('button', { name: 'Proceed To Pay', exact: true }).click()
+  const deadline = Date.now() + 45000
+  while (Date.now() < deadline) {
+    const fields = await Promise.all(page.frames().map(frame => frame.locator('input:not([type=hidden]),select').count().catch(() => 0)))
+    if (fields.some(count => count >= 3)) break
+    await new Promise(resolve => setTimeout(resolve,250))
+  }
+  result.gateway = []
+  for (const frame of page.frames()) {
+    const url = new URL(frame.url() || 'about:blank')
+    result.gateway.push({
+      origin: url.origin,
+      path: url.pathname,
+      body: (await frame.locator('body').innerText().catch(() => '')).slice(0,10000),
+      fields: await frame.locator('input:not([type=hidden]),select').evaluateAll(elements =>
+        elements.map(element => ({
+          tag: element.tagName,
+          type: element.getAttribute('type'),
+          id: element.id,
+          name: element.getAttribute('name'),
+          label: element.getAttribute('aria-label'),
+          labels: [...(element.labels || [])].map(label => label.innerText),
+          placeholder: element.getAttribute('placeholder'),
+          options: element.tagName === 'SELECT' ? [...element.options].map(option => ({ value: option.value, label: option.label })) : undefined
+        }))
+      ).catch(() => [])
     })
   }
-  throw new Error('TEST invoice created and sandbox checkout reached; inspect gateway fields before entering the sandbox card')
+  throw new Error('Existing TEST invoice resumed; inspect card-entry fields before submitting the sandbox card')
 }

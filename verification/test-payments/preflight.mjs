@@ -137,6 +137,7 @@ try {
   process.exitCode = 1
 } finally {
   await browser?.close()
-  await writeFile('results/preflight.json', JSON.stringify(report, null, 2) + '\n')
-  console.log(JSON.stringify(report, null, 2))
+  const sanitizedReport = sanitize(JSON.stringify(report, null, 2))
+  await writeFile('results/preflight.json', sanitizedReport + '\n')
+  console.log(sanitizedReport)
 }
