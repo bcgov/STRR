@@ -1,10 +1,10 @@
+import { expect } from '@playwright/test'
+import { createHash } from 'node:crypto'
+
 export function loadTestCard(secrets) {
   let fixture
-  try {
-    fixture = JSON.parse(process.env.CYPRESS_CREDITCARD || '')
-  } catch {
-    throw new Error('The stored Cypress card fixture is missing or is not valid JSON')
-  }
+  try { fixture = JSON.parse(process.env.CYPRESS_CREDITCARD || '') }
+  catch { throw new Error('The stored Cypress card fixture is missing or is not valid JSON') }
   const number = String(fixture.ccnumber || '').replace(/\s/g, '')
   const cvv = String(fixture.cvv || '').trim()
   secrets.push(process.env.CYPRESS_CREDITCARD, String(fixture.ccnumber || ''), number, cvv)
@@ -20,46 +20,80 @@ export function loadTestCard(secrets) {
   return { number, cvv, month, year }
 }
 
-// Resume the unpaid invoice created by run 34415112813, without creating
-// another application. The URL was observed in that actual checkout redirect.
-export async function preparePlatformCheckout(page, result) {
+// Resume the unpaid invoice created by run 34415112813; do not create another.
+export async function preparePlatformCheckout(page, result, card) {
   result.testFixture = 'Nuxt4 Payment QA 34415112813'
   result.applicationNumber = '99151191801944'
   result.invoiceId = 771473
-  result.applicationStatus = 'PAYMENT_DUE'
+  result.initialStatusFromCreation = 'PAYMENT_DUE'
+  result.applicationResponses = []
+  const pending = []
+  page.on('response', response => {
+    const url = new URL(response.url())
+    if (url.hostname !== 'strr-api-test-166050292631.northamerica-northeast1.run.app' ||
+        !url.pathname.includes('/applications/' + result.applicationNumber)) return
+    const entry = { path: url.pathname, method: response.request().method(), status: response.status() }
+    result.applicationResponses.push(entry)
+    if (response.ok() && !url.pathname.endsWith('/receipt')) {
+      pending.push(response.json().then(body => {
+        if (body.header) {
+          entry.applicationStatus = body.header.status
+          entry.paymentStatus = body.header.paymentStatus
+        }
+      }).catch(() => {}))
+    }
+    if (response.ok() && url.pathname.endsWith('/payment/receipt')) {
+      pending.push(response.body().then(body => {
+        result.receipt = { status: response.status(), bytes: body.length,
+          pdf: body.subarray(0,5).toString() === '%PDF-',
+          sha256: createHash('sha256').update(body).digest('hex') }
+      }))
+    }
+  })
   result.stage = 'resume-platform-checkout'
   await page.goto('https://test.account.bcregistry.gov.bc.ca/makepayment/771473/https%3A%2F%2Ftest.platform.shorttermrental.registry.gov.bc.ca%2Fen-CA%2Fplatform%2Fdashboard')
   await page.waitForURL(url => url.hostname === 'paytestp.gov.bc.ca', { timeout: 60000 })
-  await page.getByRole('button', { name: 'Proceed To Pay', exact: true }).waitFor()
-  result.gatewayReview = (await page.locator('body').innerText()).slice(0,10000)
-  result.stage = 'inspect-card-entry'
   await page.getByRole('button', { name: 'Proceed To Pay', exact: true }).click()
-  const deadline = Date.now() + 45000
-  while (Date.now() < deadline) {
-    const fields = await Promise.all(page.frames().map(frame => frame.locator('input:not([type=hidden]),select').count().catch(() => 0)))
-    if (fields.some(count => count >= 3)) break
-    await new Promise(resolve => setTimeout(resolve,250))
-  }
-  result.gateway = []
-  for (const frame of page.frames()) {
-    const url = new URL(frame.url() || 'about:blank')
-    result.gateway.push({
-      origin: url.origin,
-      path: url.pathname,
-      body: (await frame.locator('body').innerText().catch(() => '')).slice(0,10000),
-      fields: await frame.locator('input:not([type=hidden]),select').evaluateAll(elements =>
-        elements.map(element => ({
-          tag: element.tagName,
-          type: element.getAttribute('type'),
-          id: element.id,
-          name: element.getAttribute('name'),
-          label: element.getAttribute('aria-label'),
-          labels: [...(element.labels || [])].map(label => label.innerText),
-          placeholder: element.getAttribute('placeholder'),
-          options: element.tagName === 'SELECT' ? [...element.options].map(option => ({ value: option.value, label: option.label })) : undefined
-        }))
-      ).catch(() => [])
-    })
-  }
-  throw new Error('Existing TEST invoice resumed; inspect card-entry fields before submitting the sandbox card')
+  await page.waitForURL(url => url.hostname === 'web.na.bambora.com', { timeout: 60000 })
+  await expect(page.getByText('Account paybc_testp is in test mode', { exact: true })).toBeVisible()
+  result.gatewayTestModeVerified = true
+
+  // Field IDs and option values were observed at the actual Worldline TEST checkout.
+  const amount = Number((await page.locator('#trnAmount').inputValue()).replace(/[^0-9.]/g,''))
+  expect(amount).toBeGreaterThan(0)
+  result.amount = amount
+  result.stage = 'submit-sandbox-card'
+  const cardType = card.number.startsWith('4') ? 'VI' : /^[25]/.test(card.number) ? 'MC' : /^3[47]/.test(card.number) ? 'AM' : undefined
+  if (!cardType) throw new Error('Stored sandbox card type is not supported by this verification')
+  await page.locator('#trnCardType').selectOption(cardType)
+  await page.locator('#trnCardNumber').fill(card.number)
+  await page.locator('#trnExpMonth').selectOption(String(card.month).padStart(2,'0'))
+  await page.locator('#trnExpYear').selectOption(String(card.year).slice(-2))
+  await page.locator('#trnCardCvd').fill(card.cvv)
+  result.cardSubmittedAt = new Date().toISOString()
+  await page.locator('#submitButton').click()
+
+  result.stage = 'verify-platform-return'
+  await page.waitForURL(url => url.origin === 'https://test.platform.shorttermrental.registry.gov.bc.ca' &&
+    url.pathname === '/en-CA/platform/dashboard', { timeout: 90000 })
+  await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
+  result.returnedToCorrectApplication = true
+  result.stage = 'verify-platform-receipt'
+  const receiptResponse = page.waitForResponse(response =>
+    new URL(response.url()).pathname === '/applications/' + result.applicationNumber + '/payment/receipt',
+    { timeout: 45000 })
+  await page.getByRole('button', { name: 'Download Receipt', exact: true }).click()
+  await receiptResponse
+  await Promise.all(pending)
+  expect(result.receipt?.status).toBe(200)
+  expect(result.receipt?.pdf).toBe(true)
+  expect(result.receipt?.bytes).toBeGreaterThan(500)
+
+  result.stage = 'verify-platform-persistence'
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
+  await expect(page.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
+  await Promise.all(pending)
+  result.paymentResult = 'passed'
+  result.completedAt = new Date().toISOString()
 }

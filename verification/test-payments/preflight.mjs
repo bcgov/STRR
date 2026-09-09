@@ -37,9 +37,10 @@ await mkdir('results', { recursive: true })
 let browser
 let page
 let current
+let card
 try {
   if (!report.credentialsConfigured) throw new Error('Required BCSC test credentials or Premium account are not configured')
-  loadTestCard(secrets)
+  card = loadTestCard(secrets)
   report.sandboxCardFixtureUsable = true
   browser = await chromium.launch()
   const context = await browser.newContext()
@@ -113,7 +114,7 @@ try {
     await Promise.all(pending)
     const fees = new Set(current.paymentRequests.filter(r => r.path.includes('/fees/STRR/') && r.status === 200).map(r => r.path))
     if (fees.size < app.feeCount || !current.paymentAccount) throw new Error('TEST payment account or required registration fees did not load successfully')
-    if (app.name === 'platform') await preparePlatformCheckout(page, current)
+    if (app.name === 'platform') await preparePlatformCheckout(page, current, card)
     current.finalUrl = safeUrl(page.url())
     current.result = 'passed'
     current.stage = 'complete'
@@ -126,6 +127,7 @@ try {
     if (current) current.finalUrl = safeUrl(page.url())
     report.visibleState = {
       title: sanitize(await page.title().catch(() => '')),
+      body: sanitize((await page.locator('body').innerText().catch(() => '')).slice(0,10000)),
       headings: (await page.locator('h1,h2').allTextContents().catch(() => [])).map(sanitize),
       alerts: (await page.getByRole('alert').allTextContents().catch(() => [])).map(sanitize),
       invalidFields: await page.locator('[aria-invalid="true"]').evaluateAll(elements =>
@@ -137,7 +139,11 @@ try {
   process.exitCode = 1
 } finally {
   await browser?.close()
-  const sanitizedReport = sanitize(JSON.stringify(report, null, 2))
+  const sanitizeValues = value => typeof value === 'string' ? sanitize(value)
+    : Array.isArray(value) ? value.map(sanitizeValues)
+      : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeValues(item)]))
+        : value
+  const sanitizedReport = JSON.stringify(sanitizeValues(report), null, 2)
   await writeFile('results/preflight.json', sanitizedReport + '\n')
   console.log(sanitizedReport)
 }
