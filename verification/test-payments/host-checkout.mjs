@@ -49,11 +49,13 @@ export async function createHostPayment(page, result, card) {
   await page.getByTestId('agreedToRentalAct-checkbox').check()
   await page.getByTestId('agreedToSubmit-checkbox').check()
   result.stage = 'host-submit'
+  await page.getByRole('button', { name: 'Proceed to Payment', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Leave application and proceed to payment?', exact: true })).toBeVisible()
   const [response] = await Promise.all([
     page.waitForResponse(response => new URL(response.url()).hostname ===
       'strr-api-test-166050292631.northamerica-northeast1.run.app' &&
       new URL(response.url()).pathname === '/applications' && response.request().method() === 'POST', { timeout: 60000 }),
-    page.getByRole('button', { name: 'Proceed to Payment', exact: true }).click()
+    page.getByRole('button', { name: 'Proceed to payment', exact: true }).click()
   ])
   result.submissionStatus = response.status()
   if (!response.ok()) throw new Error('TEST Host submission returned HTTP ' + response.status())
