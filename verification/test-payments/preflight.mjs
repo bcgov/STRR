@@ -5,8 +5,9 @@ import { mkdir, writeFile } from 'node:fs/promises'
 // storage state, response bodies, or credentials are uploaded.
 const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME
 const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD
-const account = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME
-const secrets = [username, password, account].filter(Boolean)
+const rawAccount = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME
+const account = rawAccount?.trim()
+const secrets = [username, password, rawAccount, account].filter(Boolean)
 const sanitize = value => {
   let text = String(value)
   for (const secret of secrets) text = text.split(secret).join('[redacted]')
@@ -82,7 +83,12 @@ try {
     await page.waitForURL(url => url.origin === app.origin && !url.pathname.endsWith('/auth/login'), { timeout: 45000 })
     current.stage = 'select-premium-account'
     await page.goto(app.origin + '/en-CA/auth/account/choose-existing', { waitUntil: 'domcontentloaded' })
-    await page.getByLabel('Use this Account, ' + account, { exact: true }).click()
+    await page.getByTestId('choose-existing-account-button').first().waitFor({ state: 'visible' })
+    current.availableAccounts = await page.getByTestId('choose-existing-account-button').evaluateAll(buttons =>
+      buttons.map(button => ({ label: button.getAttribute('aria-label'), disabled: button.disabled }))
+    )
+    current.availableAccounts = current.availableAccounts.map(option => ({ ...option, label: sanitize(option.label) }))
+    await page.getByRole('button', { name: 'Use this Account, ' + account, exact: true }).click()
     current.stage = 'open-application'
     await page.goto(app.origin + app.form, { waitUntil: 'domcontentloaded' })
     await page.getByTestId('h1').waitFor({ state: 'visible' })
