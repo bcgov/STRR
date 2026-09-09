@@ -35,7 +35,7 @@ export async function preparePlatformCheckout(page, result) {
   await page.getByRole('option').first().click()
   await page.getByTestId('phone-number').fill('2505550100')
   await page.getByTestId('platform-primary-rep-party-email').fill(testEmail)
-  await page.getByRole('button', { name: 'Add Business Details', exact: true }).click()
+  await page.getByRole('button', { name: 'Next', exact: true }).click()
 
   result.stage = 'platform-business-form'
   await page.getByTestId('platform-business-legal-name').fill(testName)
@@ -53,13 +53,13 @@ export async function preparePlatformCheckout(page, result) {
   await page.getByTestId('platform-business-hasRegOffAtt').getByRole('radio', { name: 'No', exact: true }).check()
   await page.getByTestId('platform-business-noncompliance-email').fill(testEmail)
   await page.getByTestId('platform-business-takedown-email').fill(testEmail)
-  await page.getByRole('button', { name: 'Add Provider Information', exact: true }).click()
+  await page.getByRole('button', { name: 'Next', exact: true }).click()
 
   result.stage = 'platform-provider-form'
   await page.getByTestId('platform-brand-name-0').fill(testName)
   await page.getByTestId('platform-brand-site-0').fill('https://example.com/strr-payment-qa')
   await page.getByTestId('platform-listingSize').getByRole('radio', { name: '249 or less', exact: true }).check()
-  await page.getByRole('button', { name: 'Review and Confirm', exact: true }).click()
+  await page.getByRole('button', { name: 'Next', exact: true }).click()
   await page.getByTestId('confirmation-checkbox').check()
 
   result.stage = 'platform-submit'

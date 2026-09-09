@@ -128,6 +128,9 @@ try {
       title: sanitize(await page.title().catch(() => '')),
       headings: (await page.locator('h1,h2').allTextContents().catch(() => [])).map(sanitize),
       alerts: (await page.getByRole('alert').allTextContents().catch(() => [])).map(sanitize),
+      invalidFields: await page.locator('[aria-invalid="true"]').evaluateAll(elements =>
+        elements.map(element => ({ id: element.id, name: element.getAttribute('name'), label: element.getAttribute('aria-label') }))
+      ).catch(() => []),
       buttons: (await page.getByRole('button').allTextContents().catch(() => [])).map(sanitize)
     }
   }
