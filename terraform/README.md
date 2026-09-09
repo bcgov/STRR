@@ -80,6 +80,27 @@ The first plans must report 1 API, 6 email, and 8 validation imports with
 during adoption. Reconcile any such difference in a reviewed change. After adoption,
 a second plan for each root should report no changes.
 
+## Bucket security findings for review
+
+Sonar reports `terraform:S6258` (logging) and `terraform:S6412` (Object Versioning)
+on each of the three existing buckets. Neither setting is enabled in their current
+bucket metadata. This adoption preserves that configuration; the findings remain
+open and need review before merge.
+
+All three buckets retain seven-day soft delete. Google recommends
+[soft delete for protection against accidental or malicious deletion](https://docs.cloud.google.com/storage/docs/object-versioning)
+instead of Object Versioning. This supports reviewing the versioning findings
+against the existing recovery control; it does not establish a requirement to
+retain readable historical versions.
+
+Google recommends [Cloud Audit Logs over bucket usage/access logs in most cases](https://docs.cloud.google.com/storage/docs/access-logs).
+The DEV project's IAM policy has no project-level `auditConfigs`. Inherited policy
+could not be inspected with the available identity, so Data Access logging is
+unverified. SRE should verify effective Cloud Storage `ADMIN_READ`, `DATA_READ`,
+and `DATA_WRITE` logging before assessing these findings. Any required logging or
+retention change needs a reviewed rollout separate from the unchanged imports.
+No scanner rule or finding has been suppressed or dismissed.
+
 ## Verification
 
 `STRR Terraform CI` runs on relevant pull requests without cloud authentication:

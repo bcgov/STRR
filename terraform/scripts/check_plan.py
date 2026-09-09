@@ -23,10 +23,12 @@ def check_plan(plan):
             raise ValueError(f"{resource['address']}: automatic deletion/replacement is not allowed.")
         if adopting and actions != ["no-op"]:
             raise ValueError(f"{resource['address']}: initial adoption must only import unchanged resources.")
-        for values in (change.get("before"), change.get("after")):
-            project = (values or {}).get("project")
-            if project is not None and project != "bcrbk9-dev":
-                raise ValueError(f"{resource['address']}: only bcrbk9-dev is allowed.")
+        projects = {
+            (values or {}).get("project")
+            for values in (change.get("before"), change.get("after"))
+        }
+        if projects - {None, "bcrbk9-dev"}:
+            raise ValueError(f"{resource['address']}: only bcrbk9-dev is allowed.")
 
     return "Import-only adoption verified." if adopting else "DEV plan contains no deletions or replacements."
 
