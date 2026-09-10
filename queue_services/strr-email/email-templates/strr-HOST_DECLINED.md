@@ -1,7 +1,7 @@
 # Short-Term Rental Application Refused
 
 **Application Number:**
-{{ application_num }}
+{% if application_url %}[{{ application_num }}]({{ application_url }}){% else %}{{ application_num }}{% endif %}
 
 {% if rental_nickname %}
 **Short-Term Rental Nickname:**
@@ -11,16 +11,16 @@
 {% if unit_number %}
 **Short-Term Rental Address:**
 **Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}
-**Street Number:**&nbsp;  {{street_number}}  
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{street_name}}  
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Street Number:**&nbsp; {{street_number}}
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
 **Province:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{province}}
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% else %}
 **Short-Term Rental Address:**
-**Street Number:**&nbsp;  {{street_number}}  
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;    {{street_name}}  
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Street Number:**&nbsp; {{street_number}}
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
 **Province:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{province}}
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% endif %}
@@ -44,14 +44,16 @@ Your short-term rental application has been refused. For more information, pleas
 ---
 
 # What Happens Next
-**Reapply:**  If you believe you can address the issues identified in your application, you can [reapply to register your short-term rental](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/host-registration). Before you do so, ensure you are in compliance with all local bylaws and have all required documents ready.
+
+**Reapply:** If you believe you can address the issues identified in your application, you can [reapply to register your short-term rental](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/host-registration). Before you do so, ensure you are in compliance with all local bylaws and have all required documents ready.
 
 **Request a Review:** If you choose to request a review of the refusal decision, please be aware that only **very limited** circumstances are eligible for a review.
 
 To learn more about next step options, visit our [website](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/host-registration#afteryouapply).
 
 ---
-*Under section 10(1) of the _Short-Term Rental Accommodations Act_ (the "Act"), the Registrar may cancel or suspend a registration if it does not meet the short-term rental offer registration requirements under section 6 of the Act.
+
+\*Under section 10(1) of the _Short-Term Rental Accommodations Act_ (the "Act"), the Registrar may cancel or suspend a registration if it does not meet the short-term rental offer registration requirements under section 6 of the Act.
 
 ---
 
