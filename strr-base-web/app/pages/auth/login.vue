@@ -8,20 +8,39 @@ const { createAccountUrl } = useConnectNav()
 const runtimeConfig = useRuntimeConfig()
 const loginConfig = useAppConfig().strrBaseLayer.page.login
 const route = useRoute()
+const baseUrl = runtimeConfig.public.baseUrl.replace(/\/$/, '')
 
-const returnUrl = typeof route.query.return === 'string' && route.query.return.startsWith('/')
+const returnUrl = typeof route.query.return === 'string' &&
+  route.query.return.startsWith('/') &&
+  !route.query.return.startsWith('//')
   ? route.query.return
   : undefined
 
-let redirectUrl: string | undefined
-if (returnUrl) {
-  const baseRedirect = loginConfig.redirectPath
-    ? runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
-    : runtimeConfig.public.baseUrl + returnUrl
-  redirectUrl = `${baseRedirect}?return=${encodeURIComponent(returnUrl)}`
-} else if (loginConfig.redirectPath) {
-  redirectUrl = runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
+function buildLoginRedirectUrl (): string | undefined {
+  if (!returnUrl) {
+    if (!loginConfig.redirectPath) {
+      return undefined
+    }
+    const redirectPath = loginConfig.redirectPath.replace(/^\/+/, '')
+    return new URL(`${locale.value}/${redirectPath}`, `${baseUrl}/`).toString()
+  }
+
+  const returnTarget = new URL(returnUrl, `${baseUrl}/`)
+  if (returnTarget.searchParams.has('accountId')) {
+    return returnTarget.toString()
+  }
+
+  if (!loginConfig.redirectPath) {
+    return returnTarget.toString()
+  }
+
+  const redirectPath = loginConfig.redirectPath.replace(/^\/+/, '')
+  const loginTarget = new URL(`${locale.value}/${redirectPath}`, `${baseUrl}/`)
+  loginTarget.searchParams.set('return', returnUrl)
+  return loginTarget.toString()
 }
+
+const redirectUrl = buildLoginRedirectUrl()
 
 type RuntimeLoginOptions = typeof loginConfig.options & {
   idps?: StrrLoginIdp[] | (() => StrrLoginIdp[])
@@ -93,6 +112,14 @@ function parseIdpFromQuery (query: Record<string, unknown>): StrrLoginIdp | null
   return s as StrrLoginIdp
 }
 
+function parseIdpFromReturnUrl (): StrrLoginIdp | null {
+  if (!returnUrl) {
+    return null
+  }
+  const returnQuery = Object.fromEntries(new URL(returnUrl, `${baseUrl}/`).searchParams.entries())
+  return parseIdpFromQuery(returnQuery)
+}
+
 function idpToKeycloakHint (idp: StrrLoginIdp) {
   switch (idp) {
     case 'bcsc':
@@ -109,7 +136,7 @@ async function runLoginFromIdpQuery () {
   if (idpQueryLoginStarted.value) {
     return
   }
-  const idp = parseIdpFromQuery(route.query as Record<string, unknown>)
+  const idp = parseIdpFromQuery(route.query as Record<string, unknown>) || parseIdpFromReturnUrl()
   if (!idp || !allowedIdps.value.includes(idp)) {
     return
   }

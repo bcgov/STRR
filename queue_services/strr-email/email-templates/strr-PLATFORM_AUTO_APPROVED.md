@@ -10,7 +10,7 @@ Your application to register as a short-term rental platform service provider is
 {{ service_provider }}
 
 **Registration Number:**
-{{ reg_num }}
+{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
 
 **Registration Expiry:**
 {{ expiry_date }}

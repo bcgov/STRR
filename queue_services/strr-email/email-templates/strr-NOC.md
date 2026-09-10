@@ -1,7 +1,7 @@
 # Notice of Consideration of Short-Term Rental Registration
 
 **Application Number:**
-{{application_num}}
+{% if application_url %}[{{ application_num }}]({{ application_url }}){% else %}{{ application_num }}{% endif %}
 
 {% if rental_nickname %}
 **Short-Term Rental Nickname:**
@@ -9,17 +9,17 @@
 {% endif %}
 
 {% if unit_number %}
-**Short-Term Rental Address:**  
-**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}  
-**Street Number:**&nbsp; {{street_number}}  
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}  
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Short-Term Rental Address:**
+**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}
+**Street Number:**&nbsp; {{street_number}}
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% else %}
-**Short-Term Rental Address:**  
-**Street Number:**&nbsp; {{street_number}}  
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}  
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Short-Term Rental Address:**
+**Street Number:**&nbsp; {{street_number}}
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% endif %}
 
@@ -53,6 +53,6 @@ Please be aware that we may not reach a final decision until after the deadline 
 
 ---
 
-**Short-Term Rental Branch**  
-Housing and Land Use Policy Division  
+**Short-Term Rental Branch**
+Housing and Land Use Policy Division
 Ministry of Housing and Municipal Affairs
