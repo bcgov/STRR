@@ -40,7 +40,8 @@ Flask backend for STRR. Source: `strr-api/`.
 
 - Alembic revisions: `strr-api/migrations/versions/`
 - When `POD_NAMESPACE == "migration"`, the app factory registers **only** Flask-Migrate (no normal HTTP routes) (`strr-api/src/strr_api/__init__.py`).
-- **Driver note:** Migrations may use `postgresql+pg8000` while runtime uses `postgresql`/psycopg2. See `config.py` and `migrations/env.py`.
+- Runtime and Flask migrations use the shared Cloud SQL Python Connector with pg8000; migration mode selects `DATABASE_MIGRATION_USERNAME`.
+- The migration job's runtime identity must match `DATABASE_MIGRATION_USERNAME` for automatic IAM database authentication.
 - Standalone Alembic (no Flask context) uses `DATABASE_URL` with `NullPool` in `migrations/env.py`.
 - Optional ownership handoff: set `DATABASE_OWNER_ROLE` so online Alembic migrations run with that DB role and new objects are owned by it. The migration user must be able to `SET ROLE`, and that role needs schema create privileges.
 
