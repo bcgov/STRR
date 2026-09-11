@@ -22,7 +22,7 @@ pg8000 = "^1.31.2"
 protobuf = "^5.29.0"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
-cloud-sql-connector = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/cloud-sql-connector", branch = "main" }
+cloud-sql-connector = { git = "https://github.com/Jacky-Pham/sbc-connect-common.git", subdirectory = "python/cloud-sql-connector", rev = "b8ee1d3568e99c0ac0530ebd839f474737f38680" }
 strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "main", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 

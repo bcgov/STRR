@@ -1,0 +1,36 @@
+name: STRR GCP IAM deployment contracts
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - ".github/workflows/strr-gcp-iam-deployment-contracts-ci.yaml"
+      - "tests/deployment/test_gcp_iam_vaults.py"
+      - "queue_services/strr-*/devops/vaults.gcp.env"
+      - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
+      - "jobs/*/devops/vaults.gcp.env"
+      - "jobs/*/devops/gcp/clouddeploy.yaml"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/strr-gcp-iam-deployment-contracts-ci.yaml"
+      - "tests/deployment/test_gcp_iam_vaults.py"
+      - "queue_services/strr-*/devops/vaults.gcp.env"
+      - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
+      - "jobs/*/devops/vaults.gcp.env"
+      - "jobs/*/devops/gcp/clouddeploy.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deployment-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check Cloud SQL IAM deployment contracts
+        run: python tests/deployment/test_gcp_iam_vaults.py

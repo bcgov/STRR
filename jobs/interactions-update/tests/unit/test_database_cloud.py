@@ -1,6 +1,33 @@
 from unittest.mock import patch
+from unittest.mock import sentinel
 
 from interactions_update import database
+
+
+@patch("interactions_update.database.create_engine")
+@patch("interactions_update.database.sqlalchemy_settings_from_env")
+def test_get_engine_uses_shared_cloud_sql_creator(
+    mock_settings, mock_create_engine, monkeypatch
+):
+    """Verify the shared Cloud SQL creator keeps this job's pool configuration."""
+    mock_settings.return_value = (
+        "postgresql+pg8000://",
+        {"creator": sentinel.creator},
+    )
+
+    monkeypatch.setenv("MAX_WORKERS", "12")
+
+    database.get_engine()
+
+    mock_settings.assert_called_once_with()
+    args, kwargs = mock_create_engine.call_args
+    assert args[0] == "postgresql+pg8000://"
+    assert kwargs["creator"] is sentinel.creator
+    assert kwargs["pool_size"] == 12
+    assert kwargs["max_overflow"] == 5
+    assert kwargs["pool_pre_ping"] is True
+    assert kwargs["pool_recycle"] == 3600
+    assert kwargs["pool_timeout"] == 30
 
 
 @patch("interactions_update.database.create_engine")
