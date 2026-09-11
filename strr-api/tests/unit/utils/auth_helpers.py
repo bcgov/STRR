@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Auth helper methods."""
+
 from flask_jwt_oidc import JwtManager
 
 SYSTEM_ROLE = "system"

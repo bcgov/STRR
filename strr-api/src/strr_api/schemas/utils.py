@@ -15,6 +15,7 @@
 
 Test helper functions to load and assert that a JSON payload validates against a defined schema.
 """
+
 import json
 import logging
 from os import listdir, path

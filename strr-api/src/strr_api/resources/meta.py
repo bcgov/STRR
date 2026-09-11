@@ -35,6 +35,7 @@
 """Meta information about the service.
 Currently this only provides API versioning information
 """
+
 from importlib.metadata import version as meta_version
 
 from flask import Blueprint, jsonify

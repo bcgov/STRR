@@ -34,6 +34,7 @@
 # pylint: disable=C0415
 
 """Snapshot service that helps take registration snapshots when required."""
+
 from datetime import datetime
 from typing import Optional
 

@@ -1,6 +1,7 @@
 """
 Document response object.
 """
+
 from datetime import datetime
 from typing import Optional
 

@@ -36,6 +36,7 @@
 # pylint: disable=R0915
 
 """Registration Application Model."""
+
 from __future__ import annotations
 
 import copy

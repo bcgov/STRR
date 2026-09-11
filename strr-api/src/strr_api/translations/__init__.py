@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Translations for the API messages, not for the content returned from the datastore or entered by users."""
+
 from flask_babel import Babel
 
 babel = Babel()

@@ -343,11 +343,14 @@ def test_get_registration_document_ok_patched_storage(
     fk = "integration-file-key-001"
     seed_registration_document(session, rid, file_key=fk, file_name="down.txt", file_type="text/plain")
     session.flush()
-    with patch.object(
-        RegistrationService,
-        "get_registration",
-        side_effect=_get_registration_coerce_header_account_id,
-    ), patch("strr_api.services.document_service.DocumentService.get_file_by_key", return_value=b"file-bytes"):
+    with (
+        patch.object(
+            RegistrationService,
+            "get_registration",
+            side_effect=_get_registration_coerce_header_account_id,
+        ),
+        patch("strr_api.services.document_service.DocumentService.get_file_by_key", return_value=b"file-bytes"),
+    ):
         rv = client.get(f"/registrations/{rid}/documents/{fk}", headers=headers_public_user())
     assert_status(rv, HTTPStatus.OK)
     assert rv.data == b"file-bytes"

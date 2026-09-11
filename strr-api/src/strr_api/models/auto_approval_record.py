@@ -1,6 +1,7 @@
 """
 ORM Mapping for Application Auto Approval Records
 """
+
 from __future__ import annotations
 
 from typing import List, Optional

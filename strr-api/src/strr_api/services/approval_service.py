@@ -39,6 +39,7 @@
 # pylint: disable=C0103
 
 """For a successfully paid registration, this service determines its auto-approval state."""
+
 from datetime import datetime
 from typing import Any, List, Tuple
 

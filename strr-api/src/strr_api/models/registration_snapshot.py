@@ -1,6 +1,7 @@
 """
 Registration Snapshot model
 """
+
 from __future__ import annotations
 
 from sqlalchemy.dialects.postgresql import JSONB
