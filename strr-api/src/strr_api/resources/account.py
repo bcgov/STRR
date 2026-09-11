@@ -67,7 +67,7 @@ def search_accounts():
                 message="Account Id is missing.",
                 http_status=HTTPStatus.BAD_REQUEST,
             )
-        return AuthService.search_accounts(account_name=account_name), HTTPStatus.OK
+        return jsonify(AuthService.search_accounts(account_name=account_name)), HTTPStatus.OK
     except ExternalServiceException as service_exception:
         return error_response(http_status=service_exception.status_code, message=service_exception.message)
 

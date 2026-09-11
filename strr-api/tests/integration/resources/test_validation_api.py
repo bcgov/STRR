@@ -3,6 +3,8 @@
 from http import HTTPStatus
 from unittest.mock import patch
 
+import pytest
+
 from tests.integration.helpers import assert_status, assert_unauthenticated_returns_401_for_protected_prefix
 
 
@@ -81,3 +83,25 @@ def test_validate_permit_v1_not_found_shape(mock_val, client, headers_public_use
         headers=headers_public_user(account_id=None),
     )
     assert_status(rv, HTTPStatus.NOT_FOUND)
+
+
+@pytest.mark.parametrize("path", ["/permits/:validatePermit", "/v1/permits/:validatePermit"])
+@pytest.mark.parametrize("status", [HTTPStatus.OK, HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND])
+@pytest.mark.parametrize("result_type", ["object", "string"])
+@patch("strr_api.resources.validation.ValidationService.validate_permit")
+def test_validate_permit_returns_json_for_html_content(
+    mock_val, client, headers_public_user, path, status, result_type
+):
+    identifier = 'Café <script>alert(1)</script> & "quoted"'
+    body = {"identifier": identifier, "address": {"streetNumber": "123", "postalCode": "V8V1A1"}}
+    result = body if result_type == "object" else identifier
+    mock_val.return_value = (result, status)
+    headers = headers_public_user(account_id=None)
+    headers["Accept"] = "text/html"
+
+    rv = client.post(path, json=body, headers=headers)
+
+    assert_status(rv, status)
+    assert rv.mimetype == "application/json"
+    assert rv.get_json() == result
+    mock_val.assert_called_once_with(body)

@@ -1,6 +1,7 @@
 """Integration tests for public/account ``/applications`` paths and auth smoke."""
 
 import copy
+import io
 from http import HTTPStatus
 from unittest.mock import patch
 
@@ -29,6 +30,31 @@ from tests.integration.registration_seed import seed_serializable_host_registrat
 
 def test_applications_routes_require_auth_without_bearer(client, app):
     assert_unauthenticated_returns_401_for_protected_prefix(client, app, "/applications")
+
+
+@pytest.mark.parametrize("result_type", ["object", "string"])
+@patch("strr_api.resources.application.DocumentService.upload_document")
+def test_upload_document_returns_json_for_html_content(
+    mock_upload, client, headers_public_user, serializable_application, result_type
+):
+    file_key = 'Café <img src=x onerror=alert(1)> & "quoted"'
+    document = {"fileName": "document.pdf", "fileType": "application/pdf", "fileKey": file_key}
+    result = document if result_type == "object" else file_key
+    mock_upload.return_value = result
+    headers = headers_public_user()
+    headers["Accept"] = "text/html"
+    application_number = serializable_application["application_number"]
+
+    rv = client.post(
+        f"/applications/{application_number}/documents",
+        data={"file": (io.BytesIO(b"test document"), "document.pdf", "application/pdf")},
+        headers=headers,
+    )
+
+    assert_status(rv, HTTPStatus.CREATED)
+    assert rv.mimetype == "application/json"
+    assert rv.get_json() == result
+    mock_upload.assert_called_once()
 
 
 @patch("strr_api.services.strr_pay.create_invoice")

@@ -98,7 +98,7 @@ def _get_address_requirements():
         str_data = ApprovalService.getSTRDataForAddress(address=address)
         if not str_data:
             return error_response(message=ErrorMessage.ADDRESS_NOT_FOUND.value, http_status=HTTPStatus.NOT_FOUND)
-        return ApprovalService.getSTRDataForAddress(address=address), HTTPStatus.OK
+        return jsonify(ApprovalService.getSTRDataForAddress(address=address)), HTTPStatus.OK
     except ExternalServiceException as service_exception:
         logger.error("Error while getting STR requirements", exc_info=service_exception)
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.SERVICE_UNAVAILABLE)

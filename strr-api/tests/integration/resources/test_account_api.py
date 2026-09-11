@@ -3,6 +3,8 @@
 from http import HTTPStatus
 from unittest.mock import patch
 
+import pytest
+
 from strr_api.exceptions import ExternalServiceException
 from tests.integration.helpers import (
     assert_json_keys,
@@ -43,6 +45,23 @@ def test_search_accounts_ok_shape_and_name_param(mock_search, client, headers_st
 def test_search_accounts_missing_name_bad_request(client, headers_strr_examiner):
     rv = client.get("/accounts/search", headers=headers_strr_examiner())
     assert_status(rv, HTTPStatus.BAD_REQUEST)
+
+
+@pytest.mark.parametrize("result_type", ["object", "list", "string"])
+@patch("strr_api.resources.account.AuthService.search_accounts")
+def test_search_accounts_returns_json_for_html_content(mock_search, client, headers_strr_examiner, result_type):
+    name = 'Café <script>alert(1)</script> & "quoted"'
+    results = {"object": {"orgs": [{"name": name}]}, "list": [{"name": name}], "string": name}
+    mock_search.return_value = results[result_type]
+    headers = headers_strr_examiner()
+    headers["Accept"] = "text/html"
+
+    rv = client.get("/accounts/search", query_string={"name": name}, headers=headers)
+
+    assert_status(rv, HTTPStatus.OK)
+    assert rv.mimetype == "application/json"
+    assert rv.get_json() == results[result_type]
+    mock_search.assert_called_once_with(account_name=name)
 
 
 @patch("strr_api.resources.account.AuthService.search_accounts")

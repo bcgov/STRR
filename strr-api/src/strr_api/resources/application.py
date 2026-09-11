@@ -987,7 +987,7 @@ def upload_registration_supporting_document(application_number):
                 "uploaded_by_login_source": token_info.get("loginSource"),
             },
         )
-        return document, HTTPStatus.CREATED
+        return jsonify(document), HTTPStatus.CREATED
     except AuthException as auth_exception:
         return exception_response(auth_exception)
     except ValidationException as auth_exception:
