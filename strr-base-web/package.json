@@ -31,6 +31,7 @@
     "@pinia/testing": "^1.0.3",
     "@playwright/test": "^1.49.1",
     "@testing-library/vue": "^8.1.0",
+    "@types/jsdom": "21.1.7",
     "@types/luxon": "^3.4.2",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^8.19.0",
@@ -47,8 +48,8 @@
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
-    "@vuepic/vue-datepicker": "^10.0.0",
     "@gtm-support/vue-gtm": "3.2.0",
+    "@vuepic/vue-datepicker": "^10.0.0",
     "country-codes-list": "^2.0.0",
     "luxon": "^3.5.0",
     "nuxt-gtag": "^3.0.3",
