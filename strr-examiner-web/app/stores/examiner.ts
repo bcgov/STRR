@@ -12,6 +12,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const tablePage = ref(1)
   const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)
   let activeRecordRequest = 0
+  let activePaymentRequest = 0
   const activePaymentTotal = ref<number | null>(null)
   const activePaymentDate = ref<string | null>(null)
   const isApplication = computed<boolean>(() => {
@@ -473,16 +474,18 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getApplicationPaymentInfo = async (): Promise<void> => {
+    const request = ++activePaymentRequest
     const header = activeHeader.value
     activePaymentTotal.value = null
     activePaymentDate.value = null
 
-    if (!header?.paymentToken || !header?.paymentAccount) {
+    if (!isApplication.value || !header?.paymentToken || !header?.paymentAccount) {
       return
     }
     try {
       const resp = await $payApi<PaymentInvoice>(`/payment-requests/${header.paymentToken}`, { method: 'GET' })
 
+      if (request !== activePaymentRequest) { return }
       activePaymentTotal.value = resp?.total ?? null
       activePaymentDate.value = resp?.paymentDate ?? null
     } catch (e) {
@@ -491,15 +494,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   watch(
-    () => activeHeader.value?.paymentToken,
-    (token) => {
-      if (isApplication.value && token) {
-        getApplicationPaymentInfo()
-      } else {
-        activePaymentTotal.value = null
-        activePaymentDate.value = null
-      }
-    },
+    [activeRecord, () => activeHeader.value?.paymentToken, () => activeHeader.value?.paymentAccount],
+    getApplicationPaymentInfo,
     { immediate: true }
   )
 
