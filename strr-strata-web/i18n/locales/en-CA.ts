@@ -182,7 +182,8 @@ export default {
     dashboardList: {
       title: 'Dashboard - My Short-Term Rental Registry',
       h1: 'My Short-Term Rental Registry',
-      subtitle: 'Register and keep your information up to date.'
+      subtitle: 'Register and keep your information up to date.',
+      loadError: 'Unable to load your strata-titled hotels and motels'
     }
   },
   text: {
