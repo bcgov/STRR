@@ -425,7 +425,7 @@ describe('Store - Examiner', () => {
     const updatedRegistration = { ...mockHostRegistration, unitAddress: updatedAddress }
     mockStrrApi.mockResolvedValueOnce(updatedRegistration)
 
-    store.activeRecord = mockHostRegistration
+    store.activeRecord = { ...mockHostRegistration }
     store.startEditRentalUnitAddress()
     store.hasUnsavedRentalUnitChanges = true
 
@@ -443,7 +443,11 @@ describe('Store - Examiner', () => {
 
     // application path uses applications endpoint
     mockStrrApi.mockClear()
-    mockStrrApi.mockResolvedValueOnce({})
+    store.activeRecord = { ...mockHostApplication, registration: { ...mockHostApplication.registration } }
+    mockStrrApi.mockResolvedValueOnce({
+      ...mockHostApplication,
+      registration: { ...mockHostApplication.registration, unitAddress: updatedAddress }
+    })
     await store.saveRentalUnitAddress(updatedAddress, '1234567890', true)
     expect(mockStrrApi).toHaveBeenCalledWith('/applications/1234567890/str-address', expect.anything())
   })
@@ -461,7 +465,7 @@ describe('Store - Examiner', () => {
       }
       mockStrrApi.mockResolvedValueOnce(updatedRegistration)
 
-      store.activeRecord = mockHostRegistration
+      store.activeRecord = { ...mockHostRegistration }
       store.startEditRegistrationEmail()
       store.hasUnsavedRegistrationEmailChanges = true
 
