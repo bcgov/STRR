@@ -1,12 +1,11 @@
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { baseEnI18n } from '../mocks/i18n'
 
 const strrApi = vi.fn()
 const openErrorModal = vi.fn()
 mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
-  $i18n: baseEnI18n.global,
+  $i18n: { t: (key: string) => key },
   $strrApi: strrApi
 }))
 mockNuxtImport('useStrrModals', () => () => ({ openErrorModal }))
