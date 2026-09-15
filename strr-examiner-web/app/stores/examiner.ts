@@ -864,29 +864,27 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * @param {Partial<EditStrAddress>} updatedAddress - The new address data to save
    * @param {string|number} identifier - The ID of the application or registration
    * @param {boolean} isApplication - Flag indicating if this is an application (true) or registration (false)
-   * @returns {Promise<void>}
+   * @returns Whether the response was applied to the current record.
    */
   const saveRentalUnitAddress = async (
     updatedAddress: Partial<EditStrAddress>,
     identifier: string | number,
     isApplication: boolean
-  ): Promise<void> => {
-    try {
-      const endpoint = isApplication
-        ? `/applications/${identifier}/str-address`
-        : `/registrations/${identifier}/str-address`
-      const resp = await $strrApi(endpoint, {
-        method: 'PATCH',
-        body: {
-          unitAddress: updatedAddress
-        }
-      })
-      activeRecord.value = resp
-      resetEditRentalUnitAddress()
-    } catch (e) {
-      logFetchError(e, t('error.saveAddress'))
-      strrModal.openErrorModal('Error', t('error.saveAddress'), false)
-    }
+  ): Promise<boolean> => {
+    const request = ++activeRecordRequest
+    const record = activeRecord.value
+    const endpoint = isApplication
+      ? `/applications/${identifier}/str-address`
+      : `/registrations/${identifier}/str-address`
+    const resp = await $strrApi<HousApplicationResponse | HousRegistrationResponse>(endpoint, {
+      method: 'PATCH',
+      body: {
+        unitAddress: updatedAddress
+      }
+    })
+    if (request !== activeRecordRequest || record !== activeRecord.value) { return false }
+    activeRecord.value = resp
+    return true
   }
 
   /**
@@ -894,27 +892,25 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    *
    * @param {number} registrationId - The registration ID to update.
    * @param {string} updatedEmail - The new primary contact email.
-   * @returns {Promise<void>}
+   * @returns Whether the response was applied to the current record.
    */
   const patchRegistration = async (
     registrationId: number,
     updatedEmail: string
-  ): Promise<void> => {
-    try {
-      const resp = await $strrApi(`/registrations/${registrationId}`, {
-        method: 'PATCH',
-        body: {
-          primaryContact: {
-            emailAddress: updatedEmail
-          }
+  ): Promise<boolean> => {
+    const request = ++activeRecordRequest
+    const record = activeRecord.value
+    const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
+      method: 'PATCH',
+      body: {
+        primaryContact: {
+          emailAddress: updatedEmail
         }
-      })
-      activeRecord.value = resp
-      resetEditRegistrationEmail()
-    } catch (e) {
-      logFetchError(e, t('error.saveAddress'))
-      strrModal.openErrorModal('Error', t('error.saveAddress'), false)
-    }
+      }
+    })
+    if (request !== activeRecordRequest || record !== activeRecord.value) { return false }
+    activeRecord.value = resp
+    return true
   }
 
   return {

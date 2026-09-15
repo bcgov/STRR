@@ -419,7 +419,7 @@ describe('Store - Examiner', () => {
     expect(response).toEqual(mockHostApplication)
   })
 
-  it('should call correct endpoint, update activeRecord, and clear edit state on saveRentalUnitAddress', async () => {
+  it('should call correct endpoint and update activeRecord on saveRentalUnitAddress', async () => {
     const store = useExaminerStore()
     const updatedAddress = { ...MOCK_UNIT_ADDRESS, city: 'Kelowna' }
     const updatedRegistration = { ...mockHostRegistration, unitAddress: updatedAddress }
@@ -429,7 +429,7 @@ describe('Store - Examiner', () => {
     store.startEditRentalUnitAddress()
     store.hasUnsavedRentalUnitChanges = true
 
-    await store.saveRentalUnitAddress(updatedAddress, 99, false)
+    expect(await store.saveRentalUnitAddress(updatedAddress, 99, false)).toBe(true)
 
     expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99/str-address',
       expect.objectContaining({
@@ -437,9 +437,9 @@ describe('Store - Examiner', () => {
         body: { unitAddress: updatedAddress }
       }))
     expect(store.activeRecord).toEqual(updatedRegistration)
-    expect(store.isEditingRentalUnit).toBe(false)
-    expect(store.rentalUnitAddressToEdit).toEqual({})
-    expect(store.hasUnsavedRentalUnitChanges).toBe(false)
+    expect(store.isEditingRentalUnit).toBe(true)
+    expect(store.rentalUnitAddressToEdit).toEqual(MOCK_UNIT_ADDRESS)
+    expect(store.hasUnsavedRentalUnitChanges).toBe(true)
 
     // application path uses applications endpoint
     mockStrrApi.mockClear()
@@ -449,7 +449,7 @@ describe('Store - Examiner', () => {
   })
 
   it(
-    'should call registration PATCH endpoint, update activeRecord, and clear edit state on patchRegistration',
+    'should call registration PATCH endpoint and update activeRecord on patchRegistration',
     async () => {
       const store = useExaminerStore()
       const updatedRegistration = {
@@ -465,7 +465,7 @@ describe('Store - Examiner', () => {
       store.startEditRegistrationEmail()
       store.hasUnsavedRegistrationEmailChanges = true
 
-      await store.patchRegistration(99, 'updated-host@example.com')
+      expect(await store.patchRegistration(99, 'updated-host@example.com')).toBe(true)
 
       expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99',
         expect.objectContaining({
@@ -477,9 +477,9 @@ describe('Store - Examiner', () => {
           }
         }))
       expect(store.activeRecord).toEqual(updatedRegistration)
-      expect(store.isEditingRegistrationEmail).toBe(false)
-      expect(store.registrationEmailToEdit).toBe('')
-      expect(store.hasUnsavedRegistrationEmailChanges).toBe(false)
+      expect(store.isEditingRegistrationEmail).toBe(true)
+      expect(store.registrationEmailToEdit).toBe(mockHostRegistration.primaryContact.emailAddress)
+      expect(store.hasUnsavedRegistrationEmailChanges).toBe(true)
     }
   )
 
