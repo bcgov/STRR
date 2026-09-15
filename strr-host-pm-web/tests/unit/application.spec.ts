@@ -1,5 +1,5 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import { baseEnI18n } from '../mocks/i18n'
 import { mockApplication, mockStoredDocuments } from '../mocks/mockedData'
@@ -21,6 +21,12 @@ import { PropertyHostType } from '~/enums/property-type'
 import { PrExemptionReason } from '~/enums/pr-exemption-reason'
 
 const unitDetails = ref(mockApplication.registration.unitDetails)
+const validForm = (returnBool = false) => returnBool ? true : [{ success: true, formId: 'test', errors: [] }]
+const submitApplication = vi.fn()
+const setButtonControl = vi.fn()
+const handlePaymentRedirect = vi.fn()
+const openErrorModal = vi.fn()
+const openConfirmProceedToPay = vi.fn()
 
 vi.mock('@/stores/hostProperty', () => ({
   useHostPropertyStore: () => ({
@@ -31,9 +37,9 @@ vi.mock('@/stores/hostProperty', () => ({
       businessLicenseExpiryDate: ''
     }),
     useManualAddressInput: ref(false),
-    validateUnitAddress: () => true,
-    validateUnitDetails: () => true,
-    validateBusinessLicense: () => true,
+    validateUnitAddress: validForm,
+    validateUnitDetails: validForm,
+    validateBusinessLicense: validForm,
     getUnitAddressSchema: () => ({ address: mockApplication.registration.unitAddress }),
     getUnitDetailsSchema: () => vi.fn(),
     getUnitAddressSchema2: () => vi.fn(),
@@ -70,8 +76,8 @@ vi.mock('@/stores/propertyRequirements', () => ({
     hasReqs: false,
     hasReqError: false,
     overrideApplicationWarning: ref(false),
-    validateBlExemption: () => true,
-    validatePrRequirements: () => true,
+    validateBlExemption: validForm,
+    validatePrRequirements: validForm,
     getPropertyReqs: vi.fn(),
     $reset: vi.fn()
   })
@@ -79,7 +85,7 @@ vi.mock('@/stores/propertyRequirements', () => ({
 
 vi.mock('@/stores/hostOwner', () => ({
   useHostOwnerStore: () => ({
-    validateOwners: () => true,
+    validateOwners: validForm,
     findCompPartyIndex: () => -1,
     hostOwners: ref([]),
     activeOwner: ref(undefined),
@@ -123,33 +129,32 @@ vi.mock('@/stores/document', () => ({
 
 vi.mock('@/stores/hostApplication', () => ({
   useHostApplicationStore: () => ({
-    submitApplication: vi.fn(),
+    submitApplication,
     userConfirmation: ref({
       agreedToRentalAct: false,
       agreedToSubmit: false
     }),
-    validateUserConfirmation: () => true,
+    validateUserConfirmation: validForm,
     $reset: vi.fn()
   })
 }))
 
-vi.mock('@/composables/useConnectNav', () => ({
-  useConnectNav: () => ({
-    handlePaymentRedirect: vi.fn()
-  })
+mockNuxtImport('useConnectNav', () => () => ({ handlePaymentRedirect }))
+
+mockNuxtImport('useButtonControl', () => () => ({
+  setButtonControl,
+  handleButtonLoading: vi.fn()
 }))
 
-vi.mock('@/composables/useButtonControl', () => ({
-  useButtonControl: () => ({
-    setButtonControl: vi.fn(),
-    handleButtonLoading: vi.fn()
-  })
+mockNuxtImport('useStrrModals', () => () => ({
+  openConfirmRestartApplicationModal: vi.fn(),
+  openAppSubmitError: vi.fn(),
+  openErrorModal
 }))
 
-vi.mock('@/composables/useStrrModals', () => ({
-  useStrrModals: () => ({
-    openConfirmRestartApplicationModal: vi.fn()
-  })
+mockNuxtImport('useHostPmModals', () => () => ({
+  openConfirmUnsavedChanges: vi.fn(),
+  openConfirmProceedToPay
 }))
 
 const isEnhancedDocumentUploadEnabled = ref(false)
@@ -162,15 +167,28 @@ vi.mock('@/composables/useHostFeatureFlags', () => ({
   })
 }))
 
-vi.mock('@/composables/useHostApplicationFee', () => ({
-  useHostApplicationFee: () => ({
-    fetchStrrFees: vi.fn().mockResolvedValue({
-      fee1: { amount: 100, feeCode: 'STR_HOST_1' },
-      fee2: { amount: 450, feeCode: 'STR_HOST_2' },
-      fee3: { amount: 100, feeCode: 'STR_HOST_3' }
-    }),
-    getApplicationFee: vi.fn().mockReturnValue({ amount: 100, feeCode: 'STR_HOST_1' })
-  })
+const hostFee: ConnectFeeItem = {
+  filingTypeCode: StrrFeeCode.STR_HOST_1,
+  filingType: 'Host registration',
+  filingFees: 100,
+  serviceFees: 1.5,
+  total: 101.5,
+  futureEffectiveFees: 0,
+  priorityFees: 0,
+  processingFees: 0,
+  tax: { gst: 0, pst: 0 }
+}
+const fetchedFees = {
+  fee1: hostFee,
+  fee2: { ...hostFee, filingTypeCode: StrrFeeCode.STR_HOST_2, filingFees: 450, total: 451.5 },
+  fee3: { ...hostFee, filingTypeCode: StrrFeeCode.STR_HOST_3 }
+}
+const fetchStrrFees = vi.fn().mockResolvedValue(fetchedFees)
+const getApplicationFee = vi.fn().mockReturnValue(hostFee)
+
+mockNuxtImport('useHostApplicationFee', () => () => ({
+  fetchStrrFees,
+  getApplicationFee
 }))
 
 describe('Application Page', () => {
@@ -480,5 +498,117 @@ describe('Rental Application - Step 3', () => {
     expect(formReview.exists()).toBe(true)
 
     expect(formReview.find('[data-testid="alert-leaving-application"]').exists()).toBe(true)
+  })
+})
+
+describe('Application fee failures', () => {
+  let wrapper: any
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    unitDetails.value = {
+      ...mockApplication.registration.unitDetails,
+      propertyType: PropertyType.SINGLE_FAMILY_HOME,
+      rentalUnitSetupOption: RentalUnitSetupOption.PRIMARY_RESIDENCE_OR_SHARED_SPACE
+    }
+    fetchStrrFees.mockResolvedValue(fetchedFees)
+    getApplicationFee.mockReturnValue(hostFee)
+    openConfirmProceedToPay.mockResolvedValue(true)
+    submitApplication.mockResolvedValue({
+      filingId: '12345678901234',
+      applicationStatus: ApplicationStatus.PAYMENT_DUE,
+      paymentToken: 12345
+    })
+    const feeStore = useConnectFeeStore()
+    feeStore.fees = {}
+    feeStore.setPlaceholderServiceFee(0)
+    vi.spyOn(feeStore, 'initAlternatePaymentMethod').mockResolvedValue(undefined)
+  })
+
+  afterEach(() => {
+    wrapper?.unmount()
+    vi.restoreAllMocks()
+  })
+
+  async function mountApplication () {
+    wrapper = await mountSuspended(Application, {
+      global: {
+        plugins: [baseEnI18n],
+        stubs: {
+          ConnectSpinner: true,
+          ModalGroupHelpAndInfo: true,
+          FormDefineYourRental: true,
+          FormAddOwners: true,
+          FormAddDocuments: true,
+          FormReview: { template: '<div />', methods: { validateConfirmation: vi.fn() } }
+        }
+      }
+    })
+    await flushPromises()
+  }
+
+  async function goToReview () {
+    const stepper = wrapper.findComponent(ConnectStepper)
+    stepper.vm.$emit('update:steps', stepper.props('steps').map((step: Step) => ({ ...step, isValid: true })))
+    stepper.vm.$emit('update:activeStepIndex', 3)
+    await nextTick()
+  }
+
+  it('does not overwrite the numeric placeholder service fee when its request fails', async () => {
+    fetchStrrFees.mockResolvedValue({ ...fetchedFees, fee1: undefined })
+    await mountApplication()
+    expect(useConnectFeeStore().placeholderFeeItem.serviceFees).toBe(0)
+  })
+
+  it('keeps an unavailable fee out of the review summary', async () => {
+    getApplicationFee.mockReturnValue(undefined)
+    await mountApplication()
+    useConnectFeeStore().addReplaceFee(hostFee)
+    await goToReview()
+    expect(useConnectFeeStore().fees).toEqual({})
+    expect(useConnectFeeStore().total).toBe(0)
+  })
+
+  it('shows a recovery message and does not submit or redirect when the fee is unavailable', async () => {
+    getApplicationFee.mockReturnValue(undefined)
+    await mountApplication()
+    await goToReview()
+    await setButtonControl.mock.lastCall![0].rightButtons.at(-1).action()
+
+    expect(openErrorModal).toHaveBeenCalledWith(
+      baseEnI18n.global.t('error.applicationFee.title'),
+      baseEnI18n.global.t('error.applicationFee.description'),
+      false
+    )
+    expect(openConfirmProceedToPay).not.toHaveBeenCalled()
+    expect(submitApplication).not.toHaveBeenCalled()
+    expect(handlePaymentRedirect).not.toHaveBeenCalled()
+  })
+
+  it('shows the loaded fee and proceeds to payment after confirmation', async () => {
+    await mountApplication()
+    await goToReview()
+    expect(useConnectFeeStore().fees[StrrFeeCode.STR_HOST_1]).toEqual(hostFee)
+    expect(useConnectFeeStore().total).toBe(101.5)
+
+    await setButtonControl.mock.lastCall![0].rightButtons.at(-1).action()
+    expect(openConfirmProceedToPay).toHaveBeenCalledOnce()
+    expect(submitApplication).toHaveBeenCalledWith(false, undefined)
+    expect(handlePaymentRedirect).toHaveBeenCalledWith(12345, '/dashboard/12345678901234')
+    expect(openErrorModal).not.toHaveBeenCalled()
+  })
+
+  it('still saves a draft when the fee is unavailable', async () => {
+    getApplicationFee.mockReturnValue(undefined)
+    await mountApplication()
+    await goToReview()
+
+    const saveButton = setButtonControl.mock.lastCall![0].leftButtons
+      .find((button: ConnectBtnControlItem) => button.label === useNuxtApp().$i18n.t('btn.save'))
+    await saveButton.action()
+    expect(submitApplication).toHaveBeenCalledWith(true, undefined)
+    expect(openConfirmProceedToPay).not.toHaveBeenCalled()
+    expect(handlePaymentRedirect).not.toHaveBeenCalled()
+    expect(openErrorModal).not.toHaveBeenCalled()
   })
 })
