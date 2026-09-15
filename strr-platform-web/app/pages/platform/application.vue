@@ -43,29 +43,33 @@ const {
   initAlternatePaymentMethod
 } = useConnectFeeStore()
 
-setPlaceholderFilingTypeCode(StrrFeeCode.STR_PLAT_SM)
+const registrationFeeCodes = {
+  small: StrrFeeCode.STR_PLAT_SM,
+  large: StrrFeeCode.STR_PLAT_LG,
+  waived: StrrFeeCode.STR_PLAT_WV
+}
+const renewalFeeCodes = { small: 'PLATRENEWM', large: 'PLATRENEWL', waived: 'PLATRENEWV' }
+const feeCodes = computed(() => isRegistrationRenewal.value ? renewalFeeCodes : registrationFeeCodes)
+const resetFees = () => {
+  for (const code of [...Object.values(registrationFeeCodes), ...Object.values(renewalFeeCodes)]) {
+    removeFee(code)
+  }
+}
 
 const platFeeSm = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeLg = ref<ConnectFeeItem | undefined>(undefined)
 const platFeeWv = ref<ConnectFeeItem | undefined>(undefined)
 onMounted(async () => {
   loading.value = true
+  resetFees()
+  isRegistrationRenewal.value = false
   await initAlternatePaymentMethod()
 
   applicationReset()
 
-  const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
-    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_SM),
-    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_LG),
-    getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_PLAT_WV)
-  ])
-  platFeeSm.value = smallFeeResp
-  platFeeLg.value = largeFeeResp
-  platFeeWv.value = waivedFeeResp
-
   if (isRegRenewalFlow.value) {
-    isRegistrationRenewal.value = true
     await platformStore.loadPlatformRegistrationData(renewalRegId.value!)
+    isRegistrationRenewal.value = true
   } else if (isRenewal.value && applicationId.value) {
     await platformStore.loadPlatform(applicationId.value, true)
     isRegistrationRenewal.value = true
@@ -75,6 +79,16 @@ onMounted(async () => {
       isRegistrationRenewal.value = true
     }
   }
+
+  setPlaceholderFilingTypeCode(feeCodes.value.small)
+  const [smallFeeResp, largeFeeResp, waivedFeeResp] = await Promise.all([
+    getFee(StrrFeeEntityType.STRR, feeCodes.value.small),
+    getFee(StrrFeeEntityType.STRR, feeCodes.value.large),
+    getFee(StrrFeeEntityType.STRR, feeCodes.value.waived)
+  ])
+  platFeeSm.value = smallFeeResp
+  platFeeLg.value = largeFeeResp
+  platFeeWv.value = waivedFeeResp
 
   setBreadcrumbs([
     {
@@ -99,33 +113,19 @@ onMounted(async () => {
   loading.value = false
 })
 
-watch(() => platformBusiness.value?.hasCpbc, (val) => {
-  if (val && platFeeWv.value) {
-    removeFee(StrrFeeCode.STR_PLAT_SM)
-    removeFee(StrrFeeCode.STR_PLAT_LG)
-    addReplaceFee(platFeeWv.value)
-  } else {
-    removeFee(StrrFeeCode.STR_PLAT_WV)
-    setFeeBasedOnListingSize(platformDetails.value.listingSize)
+const selectedFee = computed(() => {
+  if (platformBusiness.value?.hasCpbc) {
+    return platFeeWv.value
   }
+  const listingSize = platformDetails.value.listingSize
+  if (!listingSize) { return undefined }
+  return listingSize === ListingSize.THOUSAND_AND_ABOVE ? platFeeLg.value : platFeeSm.value
 })
 
-const setFeeBasedOnListingSize = (listingSize: ListingSize | undefined) => {
-  if (platFeeSm.value && platFeeLg.value && listingSize) {
-    if (listingSize === ListingSize.THOUSAND_AND_ABOVE) {
-      // large fee for greater than 1000
-      removeFee(StrrFeeCode.STR_PLAT_SM)
-      addReplaceFee(platFeeLg.value)
-    } else { // both listing size options under 1000 have the same fee
-      removeFee(StrrFeeCode.STR_PLAT_LG)
-      addReplaceFee(platFeeSm.value)
-    }
-  }
-}
-
-watch(() => platformDetails.value.listingSize, (val) => {
-  if (!platformBusiness.value?.hasCpbc) {
-    setFeeBasedOnListingSize(val)
+watch(selectedFee, (fee) => {
+  resetFees()
+  if (fee) {
+    addReplaceFee(fee)
   }
 })
 

@@ -598,6 +598,12 @@ describe('Application fee failures', () => {
     expect(openErrorModal).not.toHaveBeenCalled()
   })
 
+  it('clears fees from a previous renewal when starting an application', async () => {
+    useConnectFeeStore().addReplaceFee({ ...hostFee, filingTypeCode: 'HOSTREN_ON' })
+    await mountApplication()
+    expect(useConnectFeeStore().fees).toEqual({})
+  })
+
   it('still saves a draft when the fee is unavailable', async () => {
     getApplicationFee.mockReturnValue(undefined)
     await mountApplication()

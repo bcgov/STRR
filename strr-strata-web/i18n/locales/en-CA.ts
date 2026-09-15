@@ -231,7 +231,8 @@ export default {
   ConnectFeeWidget: {
     feeSummary: {
       itemLabels: {
-        STRATAREG: 'Strata Hotel Application Fee'
+        STRATAREG: 'Strata Hotel Application Fee',
+        STRATRENEW: 'Strata Hotel Renewal Fee'
       }
     }
   }

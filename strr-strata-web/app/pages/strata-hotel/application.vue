@@ -28,17 +28,22 @@ const loading = ref(false)
 const {
   addReplaceFee,
   getFee,
+  removeFee,
   setPlaceholderFilingTypeCode,
   initAlternatePaymentMethod
 } = useConnectFeeStore()
 
 const strataFee = ref<ConnectFeeItem | undefined>(undefined)
+const renewalFeeCode = 'STRATRENEW'
 
 const isRenewal = computed(() => route.query.renew === 'true')
 const isRegRenewalFlow = computed((): boolean => isRenewal.value && !!renewalRegId.value)
 
 onMounted(async () => {
   loading.value = true
+  removeFee(StrrFeeCode.STR_STRATA)
+  removeFee(renewalFeeCode)
+  isRegistrationRenewal.value = false
   await initAlternatePaymentMethod()
   applicationReset()
 
@@ -52,13 +57,11 @@ onMounted(async () => {
       isRegistrationRenewal.value = true
     }
   }
-  strataFee.value = await getFee(StrrFeeEntityType.STRR, StrrFeeCode.STR_STRATA)
+  const feeCode = isRegistrationRenewal.value ? renewalFeeCode : StrrFeeCode.STR_STRATA
+  setPlaceholderFilingTypeCode(feeCode)
+  strataFee.value = await getFee(StrrFeeEntityType.STRR, feeCode)
   if (strataFee.value) {
     addReplaceFee(strataFee.value)
-  } else {
-    // error getting fee info from api
-    // TODO: set fee to a static value or set an error in the fee summary?
-    setPlaceholderFilingTypeCode(StrrFeeCode.STR_STRATA)
   }
 
   setBreadcrumbs([

@@ -143,13 +143,15 @@ mockNuxtImport('useHostFeatureFlags', () => () => ({
   isEnhancedDocumentUploadEnabled: ref(false)
 }))
 
+const fetchStrrFees = vi.fn().mockResolvedValue({
+  fee1: { amount: 100, feeCode: 'STR_HOST_1', serviceFees: [] },
+  fee2: { amount: 450, feeCode: 'STR_HOST_2' },
+  fee3: { amount: 100, feeCode: 'STR_HOST_3' }
+})
+
 vi.mock('@/composables/useHostApplicationFee', () => ({
   useHostApplicationFee: () => ({
-    fetchStrrFees: vi.fn().mockResolvedValue({
-      fee1: { amount: 100, feeCode: 'STR_HOST_1', serviceFees: [] },
-      fee2: { amount: 450, feeCode: 'STR_HOST_2' },
-      fee3: { amount: 100, feeCode: 'STR_HOST_3' }
-    }),
+    fetchStrrFees,
     getApplicationFee: vi.fn().mockReturnValue({ amount: 100, feeCode: 'STR_HOST_1' })
   })
 }))
@@ -193,6 +195,7 @@ describe('Application page — renewal draft save', () => {
     registrationRef.value = undefined
     isRegistrationRenewalRef.value = false
     submitApplicationMock.mockReset()
+    fetchStrrFees.mockClear()
     openAppSubmitErrorMock.mockReset()
     submitApplicationMock.mockResolvedValue({
       paymentToken: '',
@@ -200,6 +203,23 @@ describe('Application page — renewal draft save', () => {
       applicationStatus: 'DRAFT',
       applicationType: 'renewal'
     })
+  })
+
+  it('loads the renewal fee schedule after resolving the registration context', async () => {
+    const wrapper = await mountRenewalApplication()
+    await flushPromises()
+    expect(isRegistrationRenewalRef.value).toBe(true)
+    expect(fetchStrrFees).toHaveBeenCalledWith(true)
+    wrapper.unmount()
+  })
+
+  it('loads the registration fee schedule for a new application', async () => {
+    mockRoute.query = {}
+    renewalRegId.value = ''
+    const wrapper = await mountRenewalApplication()
+    await flushPromises()
+    expect(fetchStrrFees).toHaveBeenCalledWith(false)
+    wrapper.unmount()
   })
 
   it('first save POSTs without id and syncs applicationId to query', async () => {
