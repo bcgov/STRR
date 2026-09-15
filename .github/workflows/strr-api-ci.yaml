@@ -123,7 +123,7 @@ jobs:
           echo "## 🧪 Unit Tests" >> $GITHUB_STEP_SUMMARY
 
           # Define common arguments
-          ARGS="tests/unit/services/test_application_concurrent_updates.py --no-cov --junitxml=concurrent-updates.xml"
+          ARGS="--cov-report=term --cov-report=xml --junitxml=concurrent-updates.xml"
 
           # Determine command based on tool
           case "$TOOL" in
