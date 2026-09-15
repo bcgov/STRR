@@ -1,4 +1,4 @@
-import type { RegistrationTodoType } from '~/enums/registration-todo-type'
+import type { RegistrationTodoType } from '#baseWeb/enums/registration-todo-type'
 
 export interface ApiPhone {
   phoneCountryCode: string
@@ -78,6 +78,13 @@ export interface ApiExtraRegistrationDetails {
   provisionalExtensionApplied?: boolean
 }
 
+export interface ApiSnapshot {
+  id: number
+  snapshotDateTime: string
+  snapshotEndpoint: string
+  version: number
+}
+
 export interface ApplicationHeader {
   applicationDateTime: Date
   applicationNumber: string
@@ -151,6 +158,6 @@ export interface ApiDocument {
 export interface ApiRegistrationTodoTaskResp {
   task: {
     type: RegistrationTodoType,
-    details?: string
+    detail?: string
   }
 }

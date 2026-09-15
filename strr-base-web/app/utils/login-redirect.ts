@@ -1,4 +1,4 @@
-import type { StrrLoginIdp } from '~/types/strr-base-app-config'
+import type { StrrLoginIdp } from '#baseWeb/types/strr-base-app-config'
 
 const LOGIN_IDPS = ['bcsc', 'bceid', 'idir'] as const satisfies readonly StrrLoginIdp[]
 

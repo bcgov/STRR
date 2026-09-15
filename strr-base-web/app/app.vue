@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { expansionInjectionKey } from '~/composables/useStrrExpansion'
+import { expansionInjectionKey } from '#baseWeb/composables/useStrrExpansion'
 
 const i18nHead = useLocaleHead({
   addDirAttribute: true,

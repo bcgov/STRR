@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { StrrLoginIdp } from '~/types/strr-base-app-config'
-import { unwrapAppConfigList } from '~/utils/unwrap-app-config'
-import { buildLoginRedirectUrl, getDirectLoginIdp } from '~/utils/login-redirect'
+import type { StrrLoginIdp } from '#baseWeb/types/strr-base-app-config'
+import { unwrapAppConfigList } from '#baseWeb/utils/unwrap-app-config'
+import { buildLoginRedirectUrl, getDirectLoginIdp } from '#baseWeb/utils/login-redirect'
 
 const { t, locale } = useNuxtApp().$i18n
 const keycloak = useKeycloak()
@@ -65,7 +65,7 @@ const loginOptionsMap: Record<
 
 const idpKeysForButtons = computed((): StrrLoginIdp[] => {
   const allowed = allowedIdps.value
-  const shown = unwrapAppConfigList(loginOpts().loginButtonIdps)
+  const shown = unwrapAppConfigList<StrrLoginIdp>(loginOpts().loginButtonIdps)
   if (shown.length === 0) {
     return [...allowed]
   }

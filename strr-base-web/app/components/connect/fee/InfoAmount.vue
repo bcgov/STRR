@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FeeInfo } from '~/enums/fee-info'
+import { FeeInfo } from '#baseWeb/enums/fee-info'
 
 const { t } = useI18n()
 const rtc = useRuntimeConfig().public

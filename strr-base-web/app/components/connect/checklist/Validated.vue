@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ConnectValidatedChecklist } from '~/interfaces/connect-checklist'
+import type { ConnectValidatedChecklist } from '#baseWeb/interfaces/connect-checklist'
 
 defineProps<ConnectValidatedChecklist>()
 

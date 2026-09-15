@@ -1,6 +1,6 @@
 // TODO: move to strr-base-web layer
 import { z } from 'zod'
-import { getRequiredNonEmptyString, getRequiredUrl } from '~/utils/connect-validation'
+import { getRequiredNonEmptyString, getRequiredUrl } from '#baseWeb/utils/connect-validation'
 
 export const useStrrBaseBrand = () => {
   const { t } = useNuxtApp().$i18n

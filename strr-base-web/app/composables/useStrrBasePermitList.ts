@@ -1,4 +1,4 @@
-import type { ApiApplicationBaseResp } from '~/interfaces/strr-api'
+import type { ApiApplicationBaseResp } from '#baseWeb/interfaces/strr-api'
 
 export const useStrrBasePermitList = <A extends ApiApplicationBaseResp>(
   setType?: ApplicationType, setStatus?: ApplicationStatus

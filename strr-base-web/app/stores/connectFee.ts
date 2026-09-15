@@ -1,5 +1,5 @@
-import { ConnectPaymentMethod } from '~/enums/connect-payment-method'
-import { FeeInfo } from '~/enums/fee-info'
+import { ConnectPaymentMethod } from '#baseWeb/enums/connect-payment-method'
+import { FeeInfo } from '#baseWeb/enums/fee-info'
 
 export const useConnectFeeStore = defineStore('connect/fee', () => {
   const { $payApi } = useNuxtApp()
