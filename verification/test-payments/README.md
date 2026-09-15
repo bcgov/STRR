@@ -18,3 +18,7 @@ resubmit a completed invoice or reuse historical invoice constants.
 
 The existing interactions-update workflow is made manually dispatchable on this
 QA branch so its original functional/load/benchmark checks can also be run.
+
+The QA ref also removes the default renewal-reminders load-test exclusion so
+the existing CI workflow can exercise all 32 tests, including 50,000-record
+fixtures in runner-local test databases. This test selection is not for merge.
