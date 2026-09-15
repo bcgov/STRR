@@ -108,24 +108,16 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
       uiDoc.uploadStep && formData.append('uploadStep', uiDoc.uploadStep)
       uiDoc.uploadDate && formData.append('uploadDate', uiDoc.uploadDate)
 
-      const res = await $strrApi<ApiDocument>(`/registrations/${registrationId}/documents`, {
+      const res = await $strrApi<{ documents: ApiDocument[] }>(`/registrations/${registrationId}/documents`, {
         method: 'POST',
         body: formData
       })
 
-      uiDoc.apiDoc = res
+      uiDoc.apiDoc = res.documents.find(doc =>
+        !exStore.activeReg?.documents?.some(stored => stored.fileKey === doc.fileKey))!
 
-      const documentForList = {
-        ...res,
-        documentType: uiDoc.type,
-        fileName: res.fileName || uiDoc.file.name,
-        fileType: res.fileType || uiDoc.file.type,
-        uploadDate: res.uploadDate || new Date().toISOString().split('T')[0],
-        addedOn: res.addedOn || new Date().toISOString().split('T')[0]
-      }
-
-      if (exStore.activeReg?.documents) {
-        exStore.activeReg.documents.push(documentForList)
+      if (exStore.activeReg) {
+        exStore.activeReg.documents = res.documents
       }
     } catch (e) {
       logFetchError(e, 'Error uploading document to registration')
@@ -162,9 +154,9 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
         body: formData
       })
 
-      uiDoc.apiDoc = res as any
-
       if (res?.registration) {
+        uiDoc.apiDoc = res.registration.documents!.find(doc =>
+          !exStore.activeReg?.documents?.some(stored => stored.fileKey === doc.fileKey))!
         exStore.activeRecord = res
       }
     } catch (e) {
