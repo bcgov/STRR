@@ -22,3 +22,6 @@ QA branch so its original functional/load/benchmark checks can also be run.
 The QA ref also removes the default renewal-reminders load-test exclusion so
 the existing CI workflow can exercise all 32 tests, including 50,000-record
 fixtures in runner-local test databases. This test selection is not for merge.
+
+
+Combined source checks: this QA ref also includes the reviewed changes from draft PRs #1799–#1802. On this ref only, the four applications extend the checked-out local base layer. The existing base CI workflow runs lint, unit tests, and builds across all five frontends after installing that local layer. This ensures the changed shared component is exercised rather than downloading main. The API workflow validates the snapshot tests together with the fixed container base. These workflow/config changes are QA-only and are not for merge. No payment workflow is dispatched as part of combined source validation.
