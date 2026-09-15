@@ -1,5 +1,11 @@
 /* eslint-disable max-len */
 export default {
+  error: {
+    applicationFee: {
+      title: 'Unable to load registration fee',
+      description: 'We could not load the registration fee. Save your application, then refresh the page and try again.'
+    }
+  },
   act: {
     fippa: 'Freedom of Information and Protection of Privacy Act'
   },
