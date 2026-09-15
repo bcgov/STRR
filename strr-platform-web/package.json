@@ -32,6 +32,7 @@
     "@pinia/testing": "^1.0.3",
     "@playwright/test": "^1.49.1",
     "@testing-library/vue": "^8.1.0",
+    "@types/jsdom": "21.1.7",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^8.19.0",
     "@vitest/coverage-v8": "4.1.11",
@@ -39,11 +40,11 @@
     "eslint": "^8.57.1",
     "eslint-plugin-tailwindcss": "^3.17.4",
     "happy-dom": "^20.0.11",
+    "otpauth": "^9.3.6",
     "playwright-core": "^1.49.1",
     "sass": "^1.77.6",
     "typescript": "^5.5.3",
-    "vitest": "4.1.11",
-    "otpauth": "^9.3.6"
+    "vitest": "4.1.11"
   },
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",

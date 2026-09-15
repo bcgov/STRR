@@ -1,34 +1,42 @@
 diff --git a/dist/runtime/components/elements/Alert.vue.d.ts b/dist/runtime/components/elements/Alert.vue.d.ts
 --- a/dist/runtime/components/elements/Alert.vue.d.ts
 +++ b/dist/runtime/components/elements/Alert.vue.d.ts
-@@ -59,8 +59,8 @@
+@@ -1,5 +1,6 @@
+-import type { PropType } from 'vue';
++import type { PropType, HTMLAttributes } from 'vue';
+ import type { Avatar, Button, AlertColor, AlertVariant, AlertAction, Strategy, DeepPartial } from '../../types/index.js';
++type AlertCloseButton = Button & Pick<HTMLAttributes, 'class'>;
+ declare const config: {
+     wrapper: string;
+     inner: string;
+@@ -59,8 +60,8 @@
          default: any;
      };
      closeButton: {
 -        type: PropType<Button>;
 -        default: () => Button;
-+        type: PropType<Button | null>;
-+        default: () => Button | null;
++        type: PropType<AlertCloseButton | null>;
++        default: () => AlertCloseButton | null;
      };
      actions: {
          type: PropType<AlertAction[]>;
-@@ -152,8 +152,8 @@
+@@ -152,8 +153,8 @@
          default: any;
      };
      closeButton: {
 -        type: PropType<Button>;
 -        default: () => Button;
-+        type: PropType<Button | null>;
-+        default: () => Button | null;
++        type: PropType<AlertCloseButton | null>;
++        default: () => AlertCloseButton | null;
      };
      actions: {
          type: PropType<AlertAction[]>;
-@@ -234,7 +234,7 @@
+@@ -234,7 +235,7 @@
      title: string;
      description: string;
      icon: string;
 -    closeButton: Button;
-+    closeButton: Button | null;
++    closeButton: AlertCloseButton | null;
      actions: AlertAction[];
  }, {}, {
      UIcon: import("vue").DefineComponent<import("vue").ExtractPropTypes<{
