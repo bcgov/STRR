@@ -24,12 +24,16 @@ const DocumentList = {
 }
 
 const mountUpload = async (uploadDocument: ReturnType<typeof vi.fn>) => {
+  const onUploading = vi.fn()
+  const onCloseUpload = vi.fn()
   const wrapper = await mountSuspended(AdditionalDocuments, {
     props: {
       component: FileSelector,
       appRegNumber: 'APP123',
       selectedDocType: DocumentUploadType.UTILITY_BILL,
-      uploadDocument
+      uploadDocument,
+      onUploading,
+      onCloseUpload
     },
     global: { plugins: [baseEnI18n], stubs: { DocumentListItem: DocumentList } }
   })
@@ -40,7 +44,7 @@ const mountUpload = async (uploadDocument: ReturnType<typeof vi.fn>) => {
   const button = (key: 'submit' | 'cancel') => wrapper.findAllComponents(UButton)
     .find(item => key === 'submit' ? item.props('type') === 'submit' : item.props('variant') === 'outline')!
   const queuedNames = () => wrapper.findComponent(DocumentList).props('documents').map((doc: UiDocument) => doc.name)
-  return { wrapper, select, button, queuedNames }
+  return { wrapper, select, button, queuedNames, onUploading, onCloseUpload }
 }
 
 describe('Additional document upload completion', () => {
@@ -117,6 +121,24 @@ describe('Additional document upload completion', () => {
     expect(upload).not.toHaveBeenCalled()
     expect(wrapper.emitted('closeUpload')).toBeUndefined()
     wrapper.unmount()
+  })
+
+  it.each(['success', 'failure'])('stops a disposed queue after upload %s', async (result) => {
+    const pending = Promise.withResolvers<void>()
+    const upload = vi.fn().mockReturnValueOnce(pending.promise).mockResolvedValue(undefined)
+    const { wrapper, select, button, onUploading, onCloseUpload } = await mountUpload(upload)
+    await select('one.pdf')
+    await select('two.pdf')
+    await button('submit').trigger('click')
+    await flushPromises()
+    expect(upload).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+
+    if (result === 'success') { pending.resolve() } else { pending.reject(new Error('Upload failed')) }
+    await flushPromises()
+    expect(upload).toHaveBeenCalledTimes(1)
+    expect(onCloseUpload).not.toHaveBeenCalled()
+    expect(onUploading.mock.calls).toEqual([[true]])
   })
 
   it.each([

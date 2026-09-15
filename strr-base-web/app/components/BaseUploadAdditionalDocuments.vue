@@ -9,6 +9,8 @@ const docFormRef = ref<Form<any>>()
 const showError = ref(false)
 const documentList = ref<UiDocument[]>([])
 const isUploading = ref(false)
+let isActive = true
+onScopeDispose(() => { isActive = false })
 
 const props = defineProps<{
     component: Component, // either DocumentUploadSelect (Host) or DocumentUploadButton (Strata)
@@ -57,7 +59,7 @@ const cancelDocumentsUpload = () => {
 }
 
 const submitDocuments = async () => {
-  if (isUploading.value) { return }
+  if (!isActive || isUploading.value) { return }
   if (documentList.value.length === 0) {
     showError.value = true
     return
@@ -68,6 +70,7 @@ const submitDocuments = async () => {
   try {
     while (documentList.value.length > 0) {
       await props.uploadDocument(documentList.value[0]!, props.appRegNumber)
+      if (!isActive) { return }
       documentList.value.shift()
     }
     emit('closeUpload')
@@ -75,7 +78,7 @@ const submitDocuments = async () => {
     // The upload handler displays the error; retain the remaining files for retry.
   } finally {
     isUploading.value = false
-    emit('uploading', false)
+    if (isActive) { emit('uploading', false) }
   }
 }
 
