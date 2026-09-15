@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@daxiom/nuxt-core-layer-test@0.0.29':
+    hash: d099d7e377e729bf40b5c549a56777940c4e3bde5091f665b0e918c66c47ad7a
+    path: patches/@daxiom__nuxt-core-layer-test@0.0.29.patch
   '@nuxt/ui@2.22.3':
     hash: d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53
     path: patches/@nuxt__ui@2.22.3.patch
@@ -15,7 +18,7 @@ importers:
     dependencies:
       '@daxiom/nuxt-core-layer-test':
         specifier: ^0.0.29
-        version: 0.0.29(6978517269e4075db9ad5d5cb4ec080f)
+        version: 0.0.29(patch_hash=d099d7e377e729bf40b5c549a56777940c4e3bde5091f665b0e918c66c47ad7a)(6978517269e4075db9ad5d5cb4ec080f)
       '@gtm-support/vue-gtm':
         specifier: 3.2.0
         version: 3.2.0(@vue/compiler-sfc@3.5.26)(esbuild@0.28.2)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.5)(rollup@4.62.4)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(webpack@5.104.1(esbuild@0.28.2))
@@ -7211,7 +7214,7 @@ snapshots:
     dependencies:
       postcss-selector-parser: 7.1.1
 
-  '@daxiom/nuxt-core-layer-test@0.0.29(6978517269e4075db9ad5d5cb4ec080f)':
+  '@daxiom/nuxt-core-layer-test@0.0.29(patch_hash=d099d7e377e729bf40b5c549a56777940c4e3bde5091f665b0e918c66c47ad7a)(6978517269e4075db9ad5d5cb4ec080f)':
     dependencies:
       '@iconify-json/mdi': 1.2.3
       '@nuxt/ui': 2.22.3(patch_hash=d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53)(magicast@0.5.4)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)
