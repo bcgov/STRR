@@ -318,7 +318,8 @@ definePageMeta({
           :app-reg-number="application!.header.applicationNumber"
           :selected-doc-type="documentStore.selectedDocType"
           class="p-3"
-          :upload-document="(doc, appNumber) => documentStore.addDocumentToApplication(doc, appNumber as string)"
+          :upload-document="(doc: UiDocument, appNumber: string | number) =>
+            documentStore.addDocumentToApplication(doc, appNumber as string)"
           @reset-doc-type="documentStore.selectedDocType = undefined"
           @close-upload="isFileUploadOpen = false"
         />
