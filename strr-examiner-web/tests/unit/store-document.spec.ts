@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { setActivePinia, createPinia } from 'pinia'
-import { mockHostRegistration, mockDocuments } from '../mocks/mockedData'
+import { mockHostApplication, mockHostRegistration, mockDocuments } from '../mocks/mockedData'
 import { DocumentUploadType } from '#imports'
 
 const mockStrrApi = vi.fn().mockResolvedValue({})
@@ -123,9 +123,14 @@ describe('Document Store', () => {
     const appNumber = 'APP12345'
 
     const apiDocResponse = {
-      header: { applicationNumber: appNumber },
-      registration: { documents: [{ fileKey: 'app-doc-key', documentType: DocumentUploadType.UTILITY_BILL }] }
+      ...mockHostApplication,
+      header: { ...mockHostApplication.header, applicationNumber: appNumber },
+      registration: {
+        ...mockHostApplication.registration,
+        documents: [{ fileKey: 'app-doc-key', documentType: DocumentUploadType.UTILITY_BILL }]
+      }
     }
+    exStore.activeRecord = { ...apiDocResponse, registration: { ...apiDocResponse.registration, documents: [] } }
     mockStrrApi.mockResolvedValueOnce(apiDocResponse)
 
     const uiDoc = {

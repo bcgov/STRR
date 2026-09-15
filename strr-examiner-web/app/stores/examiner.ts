@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { HostRegistrationResp } from '#baseWeb/interfaces/host/host-api'
 
 export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { getAccountApplications } = useStrrApi()
@@ -12,6 +13,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const tablePage = ref(1)
   const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)
   let activeRecordRequest = 0
+  let activeAddressRequest = 0
+  let activeEmailRequest = 0
   let activePaymentRequest = 0
   const activePaymentTotal = ref<number | null>(null)
   const activePaymentDate = ref<string | null>(null)
@@ -858,6 +861,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     tablePage.value = 1
   }
 
+  const updateRegistrationDate = (updatedDate: Date) => {
+    if (new Date(updatedDate) > new Date(activeReg.value.updatedDate)) {
+      activeReg.value.updatedDate = updatedDate
+    }
+  }
+
   /**
    * Saves the updated rental unit address for either an application or registration.
    *
@@ -871,19 +880,28 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     identifier: string | number,
     isApplication: boolean
   ): Promise<boolean> => {
-    const request = ++activeRecordRequest
+    const request = ++activeAddressRequest
+    const recordRequest = activeRecordRequest
     const record = activeRecord.value
     const endpoint = isApplication
       ? `/applications/${identifier}/str-address`
       : `/registrations/${identifier}/str-address`
-    const resp = await $strrApi<HousApplicationResponse | HousRegistrationResponse>(endpoint, {
+    const resp = await $strrApi<HostApplicationResp | HostRegistrationResp>(endpoint, {
       method: 'PATCH',
       body: {
         unitAddress: updatedAddress
       }
     })
-    if (request !== activeRecordRequest || record !== activeRecord.value) { return false }
-    activeRecord.value = resp
+    if (request !== activeAddressRequest || recordRequest !== activeRecordRequest || record !== activeRecord.value) {
+      return false
+    }
+    // Full responses may predate another edit or upload on this record.
+    const updatedReg = 'registration' in resp ? resp.registration : resp
+    activeReg.value.unitAddress = updatedReg.unitAddress
+    if ('updatedDate' in resp) {
+      activeReg.value.unitDetails = { ...activeReg.value.unitDetails, jurisdiction: resp.unitDetails.jurisdiction }
+      updateRegistrationDate(resp.updatedDate)
+    }
     return true
   }
 
@@ -898,9 +916,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     registrationId: number,
     updatedEmail: string
   ): Promise<boolean> => {
-    const request = ++activeRecordRequest
+    const request = ++activeEmailRequest
+    const recordRequest = activeRecordRequest
     const record = activeRecord.value
-    const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
+    const resp = await $strrApi<HostRegistrationResp>(`/registrations/${registrationId}`, {
       method: 'PATCH',
       body: {
         primaryContact: {
@@ -908,8 +927,13 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         }
       }
     })
-    if (request !== activeRecordRequest || record !== activeRecord.value) { return false }
-    activeRecord.value = resp
+    if (request !== activeEmailRequest || recordRequest !== activeRecordRequest || record !== activeRecord.value) {
+      return false
+    }
+    activeReg.value.primaryContact = {
+      ...activeReg.value.primaryContact, emailAddress: resp.primaryContact.emailAddress
+    }
+    updateRegistrationDate(resp.updatedDate)
     return true
   }
 

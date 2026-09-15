@@ -37,9 +37,10 @@ watch(
 watch(
   registrationEmailToEdit,
   (newValue) => {
-    currentState.emailAddress = newValue || ''
-    hasUnsavedRegistrationEmailChanges.value = false
-  }
+    if (!isLoading.value) { currentState.emailAddress = newValue || '' }
+    hasUnsavedRegistrationEmailChanges.value = currentState.emailAddress.trim() !== (newValue || '').trim()
+  },
+  { flush: 'sync' }
 )
 
 const updateRegistrationEmail = async () => {
@@ -51,8 +52,13 @@ const updateRegistrationEmail = async () => {
 
   try {
     isLoading.value = true
-    const saved = await patchRegistration(activeReg.value.id, currentState.emailAddress.trim())
+    const submittedEmail = currentState.emailAddress.trim()
+    const saved = await patchRegistration(activeReg.value.id, submittedEmail)
     if (!isActive || !saved) { return }
+    if (currentState.emailAddress.trim() !== submittedEmail) {
+      registrationEmailToEdit.value = submittedEmail
+      return
+    }
     resetEditRegistrationEmail()
     emit('close')
   } catch (e) {
