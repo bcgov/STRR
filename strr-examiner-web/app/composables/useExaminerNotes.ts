@@ -1,3 +1,5 @@
+import type { NavigationGuard } from 'vue-router'
+
 // Module-level singleton so noteContent is shared between ExaminerNotes.vue and any
 // component/page that needs to guard against navigating away with unsaved content.
 const noteContent = ref('')
@@ -34,7 +36,7 @@ export const useExaminerNotes = () => {
   }
 
   /**
-   * Registers a Vue Router leave guard on the calling page component.
+   * Registers Vue Router leave/update guards on the calling page component.
    * When the examiner tries to navigate away with unsaved note content the
    * Discard Note modal is shown. Confirming clears the note and completes
    * the original navigation; cancelling keeps them on the current page.
@@ -43,9 +45,13 @@ export const useExaminerNotes = () => {
    * all Vue lifecycle hooks).
    */
   const useNoteLeaveGuard = () => {
+    const { reset: resetModal } = useModal()
     // In-app navigation guard - shows the custom Discard Note modal.
-    onBeforeRouteLeave((to, _from, next) => {
+    const guardNavigation: NavigationGuard = (to, _from, next) => {
       if (!hasUnsavedNote.value) {
+        close()
+        // Remove confirmation callbacks immediately, without waiting for the closing transition.
+        resetModal()
         next()
         return
       }
@@ -64,6 +70,14 @@ export const useExaminerNotes = () => {
         },
         t('modal.discardNote.keepEditing')
       )
+    }
+    onBeforeRouteLeave(guardNavigation)
+    onBeforeRouteUpdate((to, from, next) => {
+      if (to.path === from.path) {
+        next()
+        return
+      }
+      return guardNavigation(to, from, next)
     })
 
     // Browser tab close / refresh / external navigation guard.
