@@ -5,7 +5,7 @@ const emit = defineEmits<{ newStep: [stepIndex: number] }>()
 
 const stepsModel = defineModel<Step[]>('steps', { default: () => [] })
 const activeStepIndexModel = defineModel<number>('activeStepIndex', { default: 0 })
-const activeStepModel = defineModel<Step>('activeStep', { default: () => {} })
+const activeStepModel = defineModel<Step>('activeStep', { default: () => ({ complete: false, isValid: false }) })
 
 const buttonRefs = ref<HTMLButtonElement[]>([])
 const stepperOlRef = ref<HTMLOListElement | null>(null)
@@ -108,11 +108,11 @@ useResizeObserver(stepperOlRef, () => {
 
 defineExpose({ setActiveStep, setNextStep, setPreviousStep, setStepValidity, buttonRefs })
 
-onMounted(() => {
-  if (stepsModel.value.length > 0) { // init first step based on activeStepIndexModel default value
-    activeStepModel.value = stepsModel.value[activeStepIndexModel.value] as Step
+watch(() => stepsModel.value[activeStepIndexModel.value], (step) => {
+  if (step) {
+    activeStepModel.value = step
   }
-})
+}, { immediate: true })
 </script>
 <template>
   <ol
