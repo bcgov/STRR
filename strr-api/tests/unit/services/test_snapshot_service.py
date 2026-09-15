@@ -33,39 +33,81 @@
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests to ensure that the snapshot service works as expected."""
 
-import json
-import os
-from http import HTTPStatus
-from unittest.mock import patch
-
 import pytest
 
-from strr_api.models import Application
-from tests.unit.utils.auth_helpers import PUBLIC_USER, create_header
-
-MOCK_INVOICE_RESPONSE = {"id": 123, "statusCode": "CREATED", "paymentAccount": {"accountId": 1234}}
-
-CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
-)
-
-ACCOUNT_ID = 1234
+from strr_api.enums.enum import RegistrationStatus
+from strr_api.models import Registration, RegistrationSnapshot
+from strr_api.services.snapshot_service import SnapshotService
+from tests.integration.registration_seed import seed_serializable_host_registration
 
 
-@pytest.mark.skip
-@patch("strr_api.resources.application.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
-def test_create_snapshot(session, client, jwt, random_string):
-    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
-        headers = create_header(jwt, [PUBLIC_USER], "Account-Id", idp_userid=random_string(), sub=random_string(36))
-        headers["Account-Id"] = ACCOUNT_ID
-        json_data = json.load(f)
+@pytest.fixture
+def registration_factory(session, random_string):
+    """Create persisted registrations that can be serialized without external services."""
 
-        rv = client.post("/applications", json=json_data, headers=headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
-        application_number = response_json.get("header").get("applicationNumber")
+    def create_registration():
+        seeded = seed_serializable_host_registration(
+            session, account_id=1234, registration_number=f"SNAP{random_string(10)}"
+        )
+        return session.get(Registration, seeded["registration_id"])
 
-        Application.find_by_application_number(application_number)
+    return create_registration
 
-        rv = client.put(f"/applications/{application_number}", json=json_data, headers=headers)
-        assert HTTPStatus.OK == rv.status_code
+
+def test_create_snapshot(session, registration_factory):
+    """Persist the full registration state and expose snapshot metadata."""
+    registration = registration_factory()
+    snapshot = SnapshotService.snapshot_registration(registration)
+    session.refresh(snapshot)
+
+    assert snapshot.id is not None
+    assert snapshot.registration_id == registration.id
+    assert snapshot.version == 1
+    assert snapshot.snapshot_datetime is not None
+    assert snapshot.snapshot_data["registrationNumber"] == registration.registration_number
+    assert snapshot.snapshot_data["status"] == "ACTIVE"
+    assert snapshot.snapshot_data["primaryContact"]["emailAddress"] == "host@example.test"
+    assert snapshot.snapshot_data["unitAddress"]["city"] == "Victoria"
+    assert SnapshotService.serialize(snapshot) == {
+        "id": snapshot.id,
+        "registrationId": registration.id,
+        "version": 1,
+        "snapshotDateTime": snapshot.snapshot_datetime.isoformat(),
+        "snapshotData": snapshot.snapshot_data,
+    }
+
+
+def test_new_snapshot_preserves_previous_registration_state(session, registration_factory):
+    """Subsequent snapshots capture changes without rewriting previous versions."""
+    registration = registration_factory()
+    first = SnapshotService.snapshot_registration(registration)
+
+    registration.status = RegistrationStatus.CANCELLED
+    registration.rental_property.nickname = "Updated rental"
+    session.flush()
+    second = SnapshotService.snapshot_registration(registration)
+    session.refresh(first)
+    session.refresh(second)
+
+    assert first.version == 1
+    assert second.version == 2
+    assert second.id != first.id
+    assert first.snapshot_data["status"] == "ACTIVE"
+    assert first.snapshot_data["unitAddress"]["nickname"] == "Integration Rental"
+    assert second.snapshot_data["status"] == "CANCELLED"
+    assert second.snapshot_data["unitAddress"]["nickname"] == "Updated rental"
+    assert RegistrationSnapshot.find_latest_snapshot(registration.id).id == second.id
+
+
+def test_snapshot_lookup_and_versions_are_scoped_to_registration(registration_factory):
+    """A snapshot cannot be fetched through a different registration's ID."""
+    first_registration = registration_factory()
+    first_snapshot = SnapshotService.snapshot_registration(first_registration)
+    second_registration = registration_factory()
+    second_snapshot = SnapshotService.snapshot_registration(second_registration)
+
+    assert second_snapshot.version == 1
+    assert SnapshotService.get_snapshot(first_registration.id, first_snapshot.id).id == first_snapshot.id
+    assert SnapshotService.get_snapshot(second_registration.id, first_snapshot.id) is None
+    assert SnapshotService.get_snapshot(first_registration.id, second_snapshot.id) is None
+    assert SnapshotService.get_snapshot(first_registration.id, -1) is None
