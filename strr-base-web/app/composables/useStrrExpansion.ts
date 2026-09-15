@@ -1,6 +1,6 @@
 import type { ShallowRef, Component } from 'vue'
 import { createSharedComposable } from '@vueuse/core'
-import type { ExpansionState, Expansion, ComponentProps } from '~/types/strr-expansion'
+import type { ExpansionState, Expansion, ComponentProps } from '#baseWeb/types/strr-expansion'
 
 export const expansionInjectionKey: InjectionKey<ShallowRef<ExpansionState>> = Symbol('strr-examiner-expansion')
 

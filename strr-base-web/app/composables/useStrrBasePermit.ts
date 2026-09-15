@@ -1,7 +1,7 @@
-import type { ApiApplicationBaseResp, ApiRegistrationResp } from '~/interfaces/strr-api'
-import { downloadFile } from '~/utils/download-file'
+import type { ApiApplicationBaseResp, ApiExtraRegistrationDetails } from '#baseWeb/interfaces/strr-api'
+import { downloadFile } from '#baseWeb/utils/download-file'
 
-export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationBaseResp, B>() => {
+export const useStrrBasePermit = <R extends ApiExtraRegistrationDetails, A extends ApiApplicationBaseResp, B>() => {
   const t = useNuxtApp().$i18n.t // this was casuing an issue when using the composable in route middleware
   const {
     getAccountApplication,
