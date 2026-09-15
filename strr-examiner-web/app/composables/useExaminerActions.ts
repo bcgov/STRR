@@ -3,7 +3,7 @@ import { ApplicationActionsE, RegistrationActionsE } from '@/enums/actions'
 export const useExaminerActions = () => {
   const strrModal = useStrrModals()
   const { t } = useNuxtApp().$i18n
-  const { handleButtonLoading } = useButtonControl()
+  const { getButtonControl, handleButtonLoading } = useButtonControl()
 
   /**
    * A generic utility function to be called from application and registration pages for
@@ -24,10 +24,14 @@ export const useExaminerActions = () => {
     actionFn: (id: T['id'], ...args: Args) => Promise<void>,
     buttonPosition: 'left' | 'right',
     buttonIndex: number,
-    refresh: () => void,
+    refresh: () => void | Promise<void>,
     additionalArgs: Args = [] as unknown as Args,
     validateFn?: () => Promise<boolean>
   ) => {
+    const controls = getButtonControl()
+    const buttonStates = [...(controls?.leftButtons ?? []), ...(controls?.rightButtons ?? [])]
+      .map(button => ({ button, disabled: button.disabled, loading: button.loading }))
+
     try {
       handleButtonLoading(false, buttonPosition, buttonIndex)
       if (validateFn && !(await validateFn())) {
@@ -35,13 +39,17 @@ export const useExaminerActions = () => {
       }
 
       await actionFn(item.id, ...additionalArgs)
-      refresh()
+      await refresh()
     } catch (error) {
       console.error(error)
       const errMsg = t(`error.action.${action.toLowerCase()}`)
       strrModal.openErrorModal('Error', errMsg, false)
     } finally {
-      handleButtonLoading(true)
+      // Restore only the original buttons; refreshed controls carry their own disabled state.
+      for (const { button, disabled, loading } of buttonStates) {
+        button.disabled = disabled
+        button.loading = loading
+      }
     }
   }
 
