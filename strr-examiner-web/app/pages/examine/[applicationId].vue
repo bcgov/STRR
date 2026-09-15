@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
 const route = useRoute()
+const localePath = useLocalePath()
+const { setButtonControl } = useButtonControl()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
 const {
@@ -142,8 +144,14 @@ const handleAssigneeAction = (
 
 // update route and bottom buttons when new application
 watch(
-  [application, error, isAssignedToUser],
+  [application, status, error, isAssignedToUser],
   () => {
+    if (status.value === 'pending') { return }
+    if (error.value || !application.value) {
+      initialMount.value = false
+      setButtonControl({ leftButtons: [], rightButtons: [] })
+      return
+    }
     // During initial loading, auto assign application to current examiner if no reviewer exists
     if (initialMount.value && activeHeader.value && !activeHeader.value.assignee?.username) {
       assignApplication(activeHeader.value.applicationNumber!).then(() => {
@@ -200,6 +208,10 @@ watch(
         refresh()
       }"
     />
+    <div v-else-if="!application" class="app-inner-container space-y-4 py-10">
+      <p>{{ t('page.examine.noApplications') }}</p>
+      <UButton :label="t('page.examine.returnToDashboard')" :to="localePath(RoutesE.DASHBOARD)" />
+    </div>
     <template v-else>
       <ApplicationDetailsView>
         <template #header>

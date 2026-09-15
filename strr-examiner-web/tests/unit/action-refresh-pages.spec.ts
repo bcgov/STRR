@@ -33,6 +33,7 @@ mockNuxtImport('useExaminerStore', () => () => ({
 mockNuxtImport('useExaminerRoute', () => () => ({
   updateRouteAndButtons: mockUpdateRouteAndButtons
 }))
+mockNuxtImport('useLocalePath', () => () => (path: string) => path)
 mockNuxtImport('useRoute', () => () => ({
   params: { applicationId: '1234567890', registrationId: '42' }
 }))
@@ -171,6 +172,6 @@ describe.each([
     expect(wrapper!.findComponent({ name: 'ExaminerErrorState' }).exists()).toBe(true)
     expect(mockOpenErrorModal).not.toHaveBeenCalled()
     expect(mockSendNotice).toHaveBeenCalledOnce()
-    expect(useButtonControl().getButtonControl()?.rightButtons[0]?.loading).toBe(false)
+    expect(useButtonControl().getButtonControl()).toEqual({ leftButtons: [], rightButtons: [] })
   })
 })
