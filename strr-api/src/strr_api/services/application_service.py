@@ -39,7 +39,7 @@ from typing import Optional
 from flask import current_app
 
 from strr_api.enums.enum import ApplicationType, PaymentStatus, RegistrationStatus
-from strr_api.models import Application, Events, NoticeOfConsideration, Registration, User
+from strr_api.models import Application, Events, NoticeOfConsideration, Registration, User, db
 from strr_api.models.application import ApplicationSerializer
 from strr_api.models.dataclass import ApplicationSearch
 from strr_api.models.rental import PropertyContact
@@ -432,6 +432,8 @@ class ApplicationService:
     @staticmethod
     def update_document_list(application: Application, document: str, user: User) -> Application:
         """Updates the document list of an application."""
+        # Preserve changes committed after this request first loaded the application.
+        db.session.refresh(application, attribute_names=["application_json"], with_for_update=True)
         application_json = copy.deepcopy(application.application_json)
         registration = application_json.get("registration", {})
         if "documents" not in registration:
@@ -484,6 +486,8 @@ class ApplicationService:
     @staticmethod
     def update_host_unit_address(application: Application, unit_address: dict, user: User) -> Application:
         """Updates the rental unit address for a host application."""
+        # Lock before reading both the previous address and the JSON to update.
+        db.session.refresh(application, attribute_names=["application_json"], with_for_update=True)
         original_address = application.application_json.get("registration", {}).get("unitAddress", {})
         previous_address_details = (
             f"Previous Address: Street Number={original_address.get('streetNumber', '')} "
