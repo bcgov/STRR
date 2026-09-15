@@ -1,36 +1,41 @@
 <script setup lang="ts">
+import type { PropType } from 'vue'
+
 const { t } = useNuxtApp().$i18n
 const { assignApplication, unassignApplication, assignRegistration, unassignRegistration } = useExaminerStore()
 const { activeHeader, activeReg, isAssignedToUser } = storeToRefs(useExaminerStore())
 const { updateRouteAndButtons } = useExaminerRoute()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
+const { runAction, isActionPending } = useExaminerActions()
 
 const props = defineProps({
   isRegistrationPage: {
     type: Boolean,
     default: false
+  },
+  refresh: {
+    type: Function as PropType<() => Promise<void>>,
+    required: true
   }
 })
 
-const emit = defineEmits(['refresh'])
-
-const handleAssign = async (applicationNumber: string) => {
+const handleAssign = (applicationNumber: string) => runAction(async () => {
   if (props.isRegistrationPage) {
     await assignRegistration(activeReg.value!.id)
   } else {
     await assignApplication(applicationNumber)
   }
-  emit('refresh')
-}
+  await props.refresh()
+}, 'right', 0)
 
-const handleUnassign = async (applicationNumber: string) => {
+const handleUnassign = (applicationNumber: string) => runAction(async () => {
   if (props.isRegistrationPage) {
     await unassignRegistration(activeReg.value!.id)
   } else {
     await unassignApplication(applicationNumber)
   }
-  emit('refresh')
-}
+  await props.refresh()
+}, 'right', 0)
 
 const updateAssignmentButtons = () => {
   if (!activeHeader.value?.applicationNumber) { return }
@@ -44,6 +49,7 @@ const updateAssignmentButtons = () => {
     },
     unassign: {
       action: async (id: string) => {
+        if (isActionPending.value) { return }
         // Check assignee status on btn click
         if (isAssignedToUser.value) {
           await handleUnassign(id)

@@ -213,7 +213,7 @@ watch(
         v-if="isExaminerNotesEnabled && isHostApplication"
         :is-readonly="isNotesReadonly"
       />
-      <AssignmentActions @refresh="refresh" />
+      <AssignmentActions :refresh="refresh" />
     </template>
   </div>
 </template>
