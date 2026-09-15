@@ -84,7 +84,7 @@ const handleApplicationAction = (
     actionFn = sendNoticeOfConsideration
     refreshFn = () => {
       emailContent.value.content = ''
-      refresh()
+      return refresh()
     }
     additionalArgs = [emailContent.value.content]
     validateFn = async () => await validateForm(emailFormRef.value, true).then(errors => !errors)
