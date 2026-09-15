@@ -1,5 +1,11 @@
 /* eslint-disable max-len */
 export default {
+  error: {
+    applicationFee: {
+      title: 'Unable to load registration fee',
+      description: 'We could not load the registration fee. Save your application, then refresh the page and try again.'
+    }
+  },
   breadcrumb: {
     str: {
       strataApplication: 'STR Strata-Titled Hotel or Motel Application',
