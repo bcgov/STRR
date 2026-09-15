@@ -22,6 +22,8 @@ const currentState = reactive<{ emailAddress: string }>({
 })
 
 const isLoading = ref(false)
+let isActive = true
+onScopeDispose(() => { isActive = false })
 
 watch(
   () => currentState.emailAddress,
@@ -41,6 +43,7 @@ watch(
 )
 
 const updateRegistrationEmail = async () => {
+  if (!isActive || isLoading.value) { return }
   if (!activeReg.value?.id) {
     openErrorModal('Error', t('error.saveAddress'), false)
     return
@@ -48,9 +51,12 @@ const updateRegistrationEmail = async () => {
 
   try {
     isLoading.value = true
-    await patchRegistration(activeReg.value.id, currentState.emailAddress.trim())
+    const saved = await patchRegistration(activeReg.value.id, currentState.emailAddress.trim())
+    if (!isActive || !saved) { return }
+    resetEditRegistrationEmail()
     emit('close')
   } catch (e) {
+    if (!isActive) { return }
     logFetchError(e, t('error.saveAddress'))
     openErrorModal('Error', t('error.saveAddress'), false)
   } finally {
