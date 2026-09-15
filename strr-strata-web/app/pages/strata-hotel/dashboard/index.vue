@@ -60,9 +60,13 @@ setBreadcrumbs([
   { label: t('page.dashboardList.h1') }
 ])
 
-const { data: strataHotelListResp, status, refresh } = await useAsyncData(
+const { data: strataHotelListResp, status, error, refresh } = await useAsyncData(
   'strata-hotel-list-resp',
-  getApplicationList,
+  async () => {
+    const response = await getApplicationList()
+    if (!response) { throw new Error(t('page.dashboardList.loadError')) }
+    return response
+  },
   {
     watch: [() => accountStore.currentAccount.id, limit, page],
     default: () => ({ applications: [], total: 0 })
@@ -207,7 +211,24 @@ async function handleItemSelect (row: any) {
             </div>
           </div>
         </template>
+        <UAlert
+          v-if="error"
+          role="alert"
+          :title="$t('page.dashboardList.loadError')"
+          icon="i-mdi-alert"
+          color="red"
+          variant="subtle"
+        >
+          <template #description>
+            <UButton
+              :label="$t('btn.tryAgain')"
+              :loading="status === 'pending'"
+              @click="refresh()"
+            />
+          </template>
+        </UAlert>
         <UTable
+          v-else
           ref="tableRef"
           :columns="selectedColumns"
           :rows="strataList"
