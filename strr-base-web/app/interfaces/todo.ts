@@ -1,7 +1,9 @@
+import type { BadgeColor, ButtonColor } from '#ui/types'
+
 export interface TodoButton {
   label: string
   action: Function
-  colour?: string
+  colour?: ButtonColor
   icon?: string
 }
 
@@ -14,5 +16,5 @@ export interface Todo {
   iconClass?: string
   detail?: string
   badge?: string
-  badgeColor?: string
+  badgeColor?: BadgeColor
 }

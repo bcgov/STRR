@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DropdownItem } from '#ui/types'
+import type { BadgeColor, ButtonColor, DropdownItem } from '#ui/types'
 
 const props = defineProps<{
   id: string,
@@ -8,11 +8,12 @@ const props = defineProps<{
   icon?: string,
   iconClass?: string,
   badge?: string,
-  badgeColor?: string,
+  // Preserve Vue's runtime String validation for this imported type.
+  badgeColor?: BadgeColor & string,
   buttons?: Array<{
     label: string,
     action: Function,
-    colour?: string,
+    colour?: ButtonColor,
     icon?: string
   }>
 }>()

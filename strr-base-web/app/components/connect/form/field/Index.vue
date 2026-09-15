@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { PropType } from 'vue'
+import type { InputSize } from '#ui/types'
+
 const model = defineModel<string | number>()
 
 defineProps({
@@ -8,7 +11,7 @@ defineProps({
   isInvalid: { type: Boolean, default: false },
   label: { type: String, default: '' },
   placeholder: { type: String, default: '' },
-  size: { type: String, default: 'lg' },
+  size: { type: String as PropType<InputSize>, default: 'lg' },
   helpId: { type: String, default: undefined },
   errorId: { type: String, default: undefined },
   ariaLabel: { type: String, default: undefined },
