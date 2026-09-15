@@ -108,7 +108,7 @@ export default defineNuxtConfig({
       version: `STRR Base UI v${process.env.npm_package_version}`,
       housingStrrUrl: process.env.NUXT_REGISTRY_HOME_URL, // TODO: update to NUXT_HOUSING_STRR_URL once we get the housing strr url set
       declineTosRedirectUrl: process.env.NUXT_DECLINE_TOS_REDIRECT_URL,
-      bcGovStrrUrl: process.env.NUXT_BCGOV_STRR_URL,
+      bcGovStrrUrl: process.env.NUXT_BCGOV_STRR_URL || 'https://www.gov.bc.ca/STRRegistry',
       genesysUrl: process.env.NUXT_GENESYS_URL,
       genesysEnvironmentKey: process.env.NUXT_GENESYS_ENVIRONMENT_KEY,
       genesysDeploymentKey: process.env.NUXT_GENESYS_DEPLOYMENT_KEY

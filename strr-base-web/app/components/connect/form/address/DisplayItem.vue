@@ -11,17 +11,17 @@ const columns = [
 ]
 
 const addressRows = computed(() => {
-  const addressFields = {
-    unitNumber: 'unitNumber',
-    streetNumber: 'streetNumber',
-    streetName: 'streetName',
-    streetAdditional: 'streetAdditional',
-    city: 'city',
-    region: 'province',
-    postalCode: 'postalCode'
-  }
+  const addressFields = [
+    ['unitNumber', 'unitNumber'],
+    ['streetNumber', 'streetNumber'],
+    ['streetName', 'streetName'],
+    ['streetAdditional', 'streetAdditional'],
+    ['city', 'city'],
+    ['region', 'province'],
+    ['postalCode', 'postalCode']
+  ] as const
 
-  return Object.entries(addressFields)
+  return addressFields
     .filter(([field]) => props.address[field])
     .map(([field, label]) => ({
       label: t(`label.${label}`),
