@@ -148,7 +148,7 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
         "
         :selected-doc-type="docStore.selectedDocType"
         :is-registration="isRegistration"
-        @upload-document="handleUploadDocument"
+        :upload-document="handleUploadDocument"
         @reset-doc-type="docStore.selectedDocType = undefined"
         @close-upload="isFileUploadOpen = false"
       />
