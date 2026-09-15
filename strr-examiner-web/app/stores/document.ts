@@ -114,7 +114,7 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
       })
 
       uiDoc.apiDoc = res.documents.find(doc =>
-        !exStore.activeReg?.documents?.some(stored => stored.fileKey === doc.fileKey))!
+        !exStore.activeReg?.documents?.some((stored: ApiDocument) => stored.fileKey === doc.fileKey))!
 
       if (exStore.activeReg) {
         exStore.activeReg.documents = res.documents
@@ -156,7 +156,7 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
 
       if (res?.registration) {
         uiDoc.apiDoc = res.registration.documents!.find(doc =>
-          !exStore.activeReg?.documents?.some(stored => stored.fileKey === doc.fileKey))!
+          !exStore.activeReg?.documents?.some((stored: ApiDocument) => stored.fileKey === doc.fileKey))!
         exStore.activeRecord = res
       }
     } catch (e) {
