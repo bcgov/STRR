@@ -172,3 +172,24 @@ diff --git a/app/composables/useConnectNav.ts b/app/composables/useConnectNav.ts
                    accountStore.switchCurrentAccount(account.id)
                  }
                } else {
+diff --git a/app/stores/connect-account.ts b/app/stores/connect-account.ts
+--- a/app/stores/connect-account.ts
++++ b/app/stores/connect-account.ts
+@@ -73,7 +73,7 @@
+     const authApiURL = useRuntimeConfig().public.authApiURL
+     try {
+       await updateAuthUserInfo() // update user roles before fetching user info
+-      const response = await $authApi(`/users/${identifier}`, {
++      const response = await $authApi<Partial<Pick<KCUser, 'firstName' | 'lastName'>>>(`/users/${identifier}`, {
+         headers: {
+           Authorization: `Bearer ${$keycloak.token}`
+         }
+@@ -104,7 +104,7 @@
+       // get from auth
+       const authUserInfo = await getAuthUserProfile('@me')
+       // firstName and lastName dont always exist it seems ?
+-      if (authUserInfo.firstName !== undefined && authUserInfo.lastName !== undefined) {
++      if (authUserInfo && authUserInfo.firstName !== undefined && authUserInfo.lastName !== undefined) {
+         userFirstName.value = authUserInfo.firstName
+         userLastName.value = authUserInfo.lastName
+       }
