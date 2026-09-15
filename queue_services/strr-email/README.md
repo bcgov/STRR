@@ -34,10 +34,35 @@ openshift/      - OpenShift-specific files
 └── templates   - application templates
 ```
 
-## Deployment (Local Development)
+## Local Development & Emulating Async Queue Pipeline
 
-* Developer Workstation Requirements/Setup
-* Application Specific Setup
+### Workflow 1: Single Command (All-in-One)
+```bash
+make run-with-emulator
+```
+*(Starts the emulator if not running, configures topics & push subscriptions, and launches the Flask listener on port 8081)*
+
+Or run via VS Code: `Cmd+Shift+P` $\rightarrow$ **Tasks: Run Task** $\rightarrow$ **`Email Service: Run with Emulator`**.
+
+---
+
+### Workflow 2: Separate Terminals
+1. **Terminal 1: Start and configure Pub/Sub Emulator**:
+   ```bash
+   make start-emulator
+   ```
+2. **Terminal 2: Start `strr-email`**:
+   ```bash
+   make run
+   ```
+
+3. **Configure `strr-api`**:
+   In `strr-api/.env`, ensure:
+   ```env
+   PUBSUB_EMULATOR_HOST=localhost:8085
+   GCP_EMAIL_TOPIC=projects/local-dev/topics/strr-email-topic
+   ```
+   Any email events triggered via `strr-api` (or examiner actions like suspend, approve, NOC) will automatically publish to the local emulator, push to `strr-email`, render the corresponding markdown template, and dispatch to Notify API.
 
 
 ## Getting Help or Reporting an Issue
