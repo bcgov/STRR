@@ -178,6 +178,10 @@ const handleStrataSubmit = async () => {
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
+      if (!strataFee.value) {
+        strrModal.openErrorModal(t('error.applicationFee.title'), t('error.applicationFee.description'), false)
+        return
+      }
       const { paymentToken, filingId, applicationStatus } = await submitStrataApplication(false, applicationId.value)
       const redirectPath = `/strata-hotel/dashboard/${filingId}`
       if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {

@@ -105,9 +105,11 @@ onMounted(async () => {
     }
   ])
 
-  if (platFeeWv.value && platFeeSm.value) {
+  if (platFeeWv.value) {
     // NOTE: setting 'waived' changes the text to 'No Fee' instead of $0.00
     platFeeWv.value.waived = true
+  }
+  if (platFeeSm.value) {
     setPlaceholderServiceFee(platFeeSm.value.serviceFees)
   }
   loading.value = false
@@ -217,6 +219,10 @@ const handlePlatformSubmit = async () => {
 
     // if all steps valid, submit form with store function
     if (isApplicationValid) {
+      if (!selectedFee.value) {
+        strrModal.openErrorModal(t('error.applicationFee.title'), t('error.applicationFee.description'), false)
+        return
+      }
       const { paymentToken, applicationStatus } = await submitPlatformApplication(false, applicationId.value)
       const redirectPath = '/platform/dashboard'
       if (applicationStatus === ApplicationStatus.PAYMENT_DUE) {
