@@ -8,6 +8,7 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
   const isBlUploadOpen = ref(false)
   const isPrUploadOpen = ref(false)
   const uploadSectionType = ref<'BL' | 'PR' | undefined>(undefined)
+  let activeUploadRequest = 0
 
   // All document type options available for examiner uploads
   const allDocTypeOptions = [
@@ -99,6 +100,9 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
    * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
    */
   async function addDocumentToRegistration (uiDoc: UiDocument, registrationId: number): Promise<void> {
+    const request = ++activeUploadRequest
+    const record = exStore.activeRecord
+    const existingFileKeys = new Set(exStore.activeReg?.documents?.map((doc: ApiDocument) => doc.fileKey))
     try {
       uiDoc.loading = true
 
@@ -113,15 +117,16 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
         body: formData
       })
 
-      uiDoc.apiDoc = res.documents.find(doc =>
-        !exStore.activeReg?.documents?.some((stored: ApiDocument) => stored.fileKey === doc.fileKey))!
+      uiDoc.apiDoc = res.documents.find(doc => !existingFileKeys.has(doc.fileKey))!
 
-      if (exStore.activeReg) {
+      if (request === activeUploadRequest && record === exStore.activeRecord && exStore.activeReg) {
         exStore.activeReg.documents = res.documents
       }
     } catch (e) {
-      logFetchError(e, 'Error uploading document to registration')
-      strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      if (request === activeUploadRequest && record === exStore.activeRecord) {
+        logFetchError(e, 'Error uploading document to registration')
+        strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      }
       throw e
     } finally {
       uiDoc.loading = false
@@ -136,6 +141,9 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
    * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
    */
   async function addDocumentToApplication (uiDoc: UiDocument, applicationNumber: string): Promise<void> {
+    const request = ++activeUploadRequest
+    const record = exStore.activeRecord
+    const existingFileKeys = new Set(exStore.activeReg?.documents?.map((doc: ApiDocument) => doc.fileKey))
     try {
       uiDoc.loading = true
 
@@ -155,13 +163,16 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
       })
 
       if (res?.registration) {
-        uiDoc.apiDoc = res.registration.documents!.find(doc =>
-          !exStore.activeReg?.documents?.some((stored: ApiDocument) => stored.fileKey === doc.fileKey))!
-        exStore.activeRecord = res
+        uiDoc.apiDoc = res.registration.documents!.find(doc => !existingFileKeys.has(doc.fileKey))!
+        if (request === activeUploadRequest && record === exStore.activeRecord) {
+          exStore.activeRecord = res
+        }
       }
     } catch (e) {
-      logFetchError(e, 'Error uploading document to application')
-      strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      if (request === activeUploadRequest && record === exStore.activeRecord) {
+        logFetchError(e, 'Error uploading document to application')
+        strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      }
       throw e
     } finally {
       uiDoc.loading = false
@@ -199,6 +210,7 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
    * Close document upload section.
    */
   function closeUpload (): void {
+    activeUploadRequest++
     isBlUploadOpen.value = false
     isPrUploadOpen.value = false
     uploadSectionType.value = undefined
