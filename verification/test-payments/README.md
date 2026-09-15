@@ -25,3 +25,5 @@ fixtures in runner-local test databases. This test selection is not for merge.
 
 
 Combined source checks: this QA ref also includes the reviewed changes from draft PRs #1799–#1802. On this ref only, the four applications extend the checked-out local base layer. The existing base CI workflow runs lint, unit tests, and builds across all five frontends after installing that local layer. This ensures the changed shared component is exercised rather than downloading main. The API workflow validates the snapshot tests together with the fixed container base. These workflow/config changes are QA-only and are not for merge. No payment workflow is dispatched as part of combined source validation.
+
+Runtime-version follow-up: the shared backend CI selects Python 3.14 from the broad Poetry range, while the four images changed by PR #1799 retain Python 3.12. The QA-only API workflow now reuses the standard unit-test environment/steps in a four-component matrix pinned explicitly to Python 3.12, with a runtime assertion. This checks the actual container language version without changing application dependency constraints or ignoring test failures.
