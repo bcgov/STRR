@@ -24,6 +24,7 @@ const { getSplitDashboardEnabled, setSplitDashboardEnabled } = vi.hoisted(() => 
 
 // mock $strrApi accessed through useNuxtApp()
 const mockStrrApi = vi.fn().mockResolvedValue({})
+const mockOpenErrorModal = vi.fn()
 
 mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
   $i18n: { t: (key: string) => key },
@@ -39,7 +40,7 @@ mockNuxtImport('useKeycloak', () => () => ({
 }))
 
 mockNuxtImport('useStrrModals', () => () => ({
-  openErrorModal: vi.fn()
+  openErrorModal: mockOpenErrorModal
 }))
 
 vi.mock('@/composables/useExaminerFeatureFlags', () => ({
@@ -52,6 +53,41 @@ describe('Store - Examiner', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
     mockStrrApi.mockResolvedValue({})
+  })
+
+  it.each([
+    {
+      name: 'assign application',
+      run: (store: ReturnType<typeof useExaminerStore>) => store.assignApplication('APP-123'),
+      path: '/applications/APP-123/assign',
+      message: 'error.assignApplication'
+    },
+    {
+      name: 'unassign application',
+      run: (store: ReturnType<typeof useExaminerStore>) => store.unassignApplication('APP-123'),
+      path: '/applications/APP-123/unassign',
+      message: 'error.unAssignApplication'
+    },
+    {
+      name: 'assign registration',
+      run: (store: ReturnType<typeof useExaminerStore>) => store.assignRegistration(42),
+      path: '/registrations/42/assign',
+      message: 'error.assignApplication'
+    },
+    {
+      name: 'unassign registration',
+      run: (store: ReturnType<typeof useExaminerStore>) => store.unassignRegistration(42),
+      path: '/registrations/42/unassign',
+      message: 'error.unAssignApplication'
+    }
+  ])('preserves the handled API failure contract for $name', async ({ run, path, message }) => {
+    mockStrrApi.mockRejectedValueOnce(new Error('synthetic assignment failure'))
+
+    await expect(run(useExaminerStore())).resolves.toBeUndefined()
+
+    expect(mockStrrApi).toHaveBeenCalledWith(path, { method: 'PUT' })
+    expect(mockOpenErrorModal).toHaveBeenCalledOnce()
+    expect(mockOpenErrorModal).toHaveBeenCalledWith('Error', message, false)
   })
 
   it('should have correct application and registration records', () => {
