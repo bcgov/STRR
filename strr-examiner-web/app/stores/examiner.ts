@@ -11,6 +11,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const tableLimit = ref(50)
   const tablePage = ref(1)
   const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)
+  let activeRecordRequest = 0
   const activePaymentTotal = ref<number | null>(null)
   const activePaymentDate = ref<string | null>(null)
   const isApplication = computed<boolean>(() => {
@@ -434,12 +435,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getNextApplication = async <T extends ApiApplicationBaseResp>(): Promise<T | undefined> => {
+    const request = ++activeRecordRequest
+    activeRecord.value = undefined
     const resp = await getAccountApplications<T>(
       undefined, undefined, ApplicationType.HOST, ApplicationStatus.FULL_REVIEW,
       ApplicationSortBy.APPLICATION_DATE, ApplicationSortOrder.ASC
     )
     const nextApplication = resp.applications[0]
-    activeRecord.value = nextApplication
+    if (request === activeRecordRequest) { activeRecord.value = nextApplication }
     return nextApplication
   }
 
@@ -538,10 +541,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getApplicationById = async (applicationNumber: string): Promise<HousApplicationResponse> => {
+    const request = ++activeRecordRequest
+    activeRecord.value = undefined
     const resp = await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}`, {
       method: 'GET'
     })
-    activeRecord.value = resp
+    if (request === activeRecordRequest) { activeRecord.value = resp }
     return resp
   }
 
@@ -717,10 +722,12 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * @param {number} registrationId - The registrationId for the registration.
    */
   const getRegistrationById = async (registrationId: string): Promise<HousRegistrationResponse> => {
+    const request = ++activeRecordRequest
+    activeRecord.value = undefined
     const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
       method: 'GET'
     })
-    activeRecord.value = resp
+    if (request === activeRecordRequest) { activeRecord.value = resp }
     return resp
   }
 
