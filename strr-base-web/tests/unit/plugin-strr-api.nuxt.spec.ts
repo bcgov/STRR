@@ -1,6 +1,6 @@
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import strrApiPlugin from '../../../strr-base-web/app/plugins/strr-api'
+import strrApiPlugin from '../../app/plugins/strr-api'
 
 const { accountStore, keycloak, navigate, transport } = vi.hoisted(() => ({
   accountStore: { currentAccount: { id: 'test-account-1' } },
