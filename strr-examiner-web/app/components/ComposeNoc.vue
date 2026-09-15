@@ -1,6 +1,7 @@
 <script setup lang="ts">
-const { sendNocSchema, sendEmailSchema } = useExaminerStore()
 const {
+  sendNocSchema,
+  sendEmailSchema,
   emailFormRef,
   showComposeEmail,
   emailContent,
