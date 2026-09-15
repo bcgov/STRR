@@ -95,7 +95,7 @@ describe('Document Store', () => {
       uploadDate: '2026-03-13',
       addedOn: '2026-03-13'
     }
-    mockStrrApi.mockResolvedValueOnce(apiDocResponse)
+    mockStrrApi.mockResolvedValueOnce({ ...mockHostRegistration, documents: [apiDocResponse, ...mockDocuments] })
 
     const uiDoc = {
       file: new File(['content'], 'utility-bill.pdf', { type: 'application/pdf' }),
@@ -110,10 +110,11 @@ describe('Document Store', () => {
       expect.objectContaining({ method: 'POST' })
     )
     expect(exStore.activeReg!.documents).toHaveLength(mockDocuments.length + 1)
-    expect(exStore.activeReg!.documents!.at(-1)).toMatchObject({
+    expect(exStore.activeReg!.documents!.find(doc => doc.fileKey === 'file-key-123')).toMatchObject({
       fileKey: 'file-key-123',
       documentType: DocumentUploadType.UTILITY_BILL
     })
+    expect(uiDoc.apiDoc).toEqual(apiDocResponse)
   })
 
   it('should call PUT /applications/{applicationNumber}/documents when adding document to application', async () => {
@@ -140,5 +141,6 @@ describe('Document Store', () => {
       expect.objectContaining({ method: 'PUT' })
     )
     expect(exStore.activeRecord).toEqual(apiDocResponse)
+    expect(uiDoc.apiDoc).toEqual(apiDocResponse.registration.documents[0])
   })
 })
