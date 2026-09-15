@@ -112,7 +112,7 @@ jobs:
               uv sync
               ;;
             "poetry")
-              poetry install 
+              poetry install
               ;;
             "pip")
               if [ -f "requirements-dev.txt" ]; then
@@ -168,4 +168,3 @@ jobs:
           path: |
             ${{ env.WORKING_DIR }}/coverage.xml
           retention-days: 1
-
