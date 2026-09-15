@@ -8,6 +8,7 @@ const { activeReg, isApplication, activeHeader } = storeToRefs(exStore)
 
 const { isBlUploadOpen, isPrUploadOpen } = storeToRefs(docStore)
 const showDocumentUpload = computed(() => isBlUploadOpen.value || isPrUploadOpen.value)
+const isUploading = ref(false)
 
 const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | number) => {
   if (isApplication.value) {
@@ -15,7 +16,6 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
   } else {
     await docStore.addDocumentToRegistration(uiDoc, appRegNumber as number)
   }
-  docStore.closeUpload()
 }
 </script>
 
@@ -33,7 +33,8 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
               :app-reg-number="isApplication ? activeHeader.applicationNumber : activeReg.id"
               :selected-doc-type="docStore.selectedDocType"
               :is-registration="!isApplication"
-              @upload-document="handleUploadDocument"
+              :upload-document="handleUploadDocument"
+              @uploading="isUploading = $event"
               @reset-doc-type="docStore.selectedDocType = undefined"
               @close-upload="docStore.closeUpload()"
             />
@@ -45,6 +46,7 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
             variant="ghost"
             size="sm"
             icon="i-mdi-close"
+            :disabled="isUploading"
             @click="docStore.closeUpload()"
           />
         </div>

@@ -421,19 +421,24 @@ export const useDocumentStore = defineStore('host/document', () => {
       }
 
       // submit file
-      const res = await $strrApi<ApiDocument>(`/${type}/${id}/documents`, {
-        method: type === 'applications' ? 'PUT' : 'POST',
-        body: formData
-      })
+      const res = await $strrApi<{ documents: ApiDocument[] } | { registration: { documents: ApiDocument[] } }>(
+        `/${type}/${id}/documents`, {
+          method: type === 'applications' ? 'PUT' : 'POST',
+          body: formData
+        })
 
-      uiDoc.apiDoc = res
-      if (uiDoc.uploadStep) { res.uploadStep = uiDoc.uploadStep }
-      if (uiDoc.uploadDate) { res.uploadDate = uiDoc.uploadDate }
+      // Upload endpoints return the updated record, including the new document's unique file key.
+      const documents = 'registration' in res ? res.registration.documents : res.documents
+      const uploadedDocument = documents.find(doc =>
+        !storedDocuments.value.some(stored => stored.apiDoc.fileKey === doc.fileKey))!
+      uiDoc.apiDoc = uploadedDocument
+      if (uiDoc.uploadStep) { uploadedDocument.uploadStep = uiDoc.uploadStep }
+      if (uiDoc.uploadDate) { uploadedDocument.uploadDate = uiDoc.uploadDate }
       storedDocuments.value.push(uiDoc)
     } catch (e) {
       logFetchError(e, 'Error uploading document')
       strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
-      await removeStoredDocument(uiDoc)
+      throw e
     } finally {
       // cleanup loading on ui object
       uiDoc.loading = false

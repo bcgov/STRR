@@ -94,6 +94,61 @@ const makeUiDoc = (
   }
 })
 
+describe('Additional document uploads', () => {
+  afterEach(() => {
+    mockPermitStore.application = null
+  })
+
+  it.each(['application', 'registration'])('stores document metadata from a %s upload response', async (target) => {
+    mockStrrApi.mockReset()
+    const store = useDocumentStore()
+    const existing = makeUiDoc('existing', DocumentUploadType.UTILITY_BILL)
+    const incoming = makeUiDoc('incoming', DocumentUploadType.UTILITY_BILL)
+    existing.apiDoc.fileName = incoming.name // duplicate names must not select an older document
+    const uploadedDocument = { ...incoming.apiDoc, uploadStep: incoming.uploadStep, uploadDate: incoming.uploadDate }
+    incoming.apiDoc = {} as ApiDocument
+    store.storedDocuments = [existing]
+    mockStrrApi.mockResolvedValueOnce(target === 'application'
+      ? { registration: { documents: [existing.apiDoc, uploadedDocument] } }
+      : { documents: [uploadedDocument, existing.apiDoc] })
+
+    if (target === 'application') {
+      await store.addDocumentToApplication(incoming, 'APP123')
+    } else {
+      await store.addDocumentToRegistration(incoming, 123)
+    }
+
+    expect(incoming.apiDoc).toEqual(uploadedDocument)
+    expect(store.apiDocuments).toEqual([existing.apiDoc, uploadedDocument])
+    expect(incoming.loading).toBe(false)
+  })
+
+  it.each(['application', 'registration'])('preserves existing documents when a %s upload fails', async (target) => {
+    mockStrrApi.mockReset()
+    mockSubmitApplication.mockReset().mockResolvedValue({})
+    mockOpenErrorModal.mockClear()
+    mockPermitStore.application = { header: { status: ApplicationStatus.NOC_PENDING, applicationNumber: 'APP123' } }
+    const store = useDocumentStore()
+    const existing = makeUiDoc('existing', DocumentUploadType.UTILITY_BILL)
+    const incoming = { ...makeUiDoc('incoming', DocumentUploadType.UTILITY_BILL), apiDoc: {} as ApiDocument }
+    store.storedDocuments = [existing]
+    const failure = new Error('Upload failed')
+    mockStrrApi.mockRejectedValueOnce(failure)
+
+    const upload = target === 'application'
+      ? store.addDocumentToApplication(incoming, 'APP123')
+      : store.addDocumentToRegistration(incoming, 123)
+    const result = await upload.then(() => undefined, error => error)
+
+    expect(store.storedDocuments).toEqual([existing])
+    expect(mockSubmitApplication).not.toHaveBeenCalled()
+    expect(mockStrrApi).toHaveBeenCalledTimes(1)
+    expect(mockOpenErrorModal).toHaveBeenCalledTimes(1)
+    expect(incoming.loading).toBe(false)
+    expect(result).toBe(failure)
+  })
+})
+
 describe('Validate PR Docs', () => {
   beforeEach(() => {
     unitDetails.hostType = PropertyHostType.OWNER
