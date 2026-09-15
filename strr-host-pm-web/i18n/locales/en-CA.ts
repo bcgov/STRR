@@ -707,7 +707,10 @@ export default {
       itemLabels: {
         HOSTREG_1: 'STR Application Fee',
         HOSTREG_2: 'STR Application Fee',
-        HOSTREG_3: 'STR Application Fee'
+        HOSTREG_3: 'STR Application Fee',
+        HOSTREN_ON: 'STR Renewal Fee',
+        HOSTRENOFF: 'STR Renewal Fee',
+        HOSTREN_BB: 'STR Renewal Fee'
       }
     }
   }

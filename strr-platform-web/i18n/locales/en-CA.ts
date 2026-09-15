@@ -144,7 +144,10 @@ export default {
       itemLabels: {
         PLATREG_SM: 'Platform Application Fee',
         PLATREG_LG: 'Platform Application Fee',
-        PLATREG_WV: 'Platform Application Fee'
+        PLATREG_WV: 'Platform Application Fee',
+        PLATRENEWM: 'Platform Renewal Fee',
+        PLATRENEWL: 'Platform Renewal Fee',
+        PLATRENEWV: 'Platform Renewal Fee'
       }
     }
   }
