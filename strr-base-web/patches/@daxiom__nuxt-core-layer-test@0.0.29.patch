@@ -1,0 +1,174 @@
+diff --git a/app/components/Connect/Header/AuthenticatedOptions.vue b/app/components/Connect/Header/AuthenticatedOptions.vue
+--- a/app/components/Connect/Header/AuthenticatedOptions.vue
++++ b/app/components/Connect/Header/AuthenticatedOptions.vue
+@@ -1,5 +1,5 @@
+ <script setup lang="ts">
+-import type { HeaderOptions } from '~/types/core-app-config'
++import type { HeaderOptions } from '../../../types/core-app-config'
+ 
+ const config = useAppConfig().connect.core.header.options as HeaderOptions
+ </script>
+diff --git a/app/components/Connect/Header/UnauthenticatedOptions.vue b/app/components/Connect/Header/UnauthenticatedOptions.vue
+--- a/app/components/Connect/Header/UnauthenticatedOptions.vue
++++ b/app/components/Connect/Header/UnauthenticatedOptions.vue
+@@ -1,5 +1,5 @@
+ <script setup lang="ts">
+-import type { HeaderOptions } from '~/types/core-app-config'
++import type { HeaderOptions } from '../../../types/core-app-config'
+ 
+ const config = useAppConfig().connect.core.header.options as HeaderOptions
+ </script>
+diff --git a/app/components/Connect/Header/index.vue b/app/components/Connect/Header/index.vue
+--- a/app/components/Connect/Header/index.vue
++++ b/app/components/Connect/Header/index.vue
+@@ -1,5 +1,5 @@
+ <script setup lang="ts">
+-import type { HeaderOptions } from '~/types/core-app-config'
++import type { HeaderOptions } from '../../../types/core-app-config'
+ 
+ const { isAuthenticated } = useKeycloak()
+ 
+diff --git a/app/interfaces/account.ts b/app/interfaces/account.ts
+--- a/app/interfaces/account.ts
++++ b/app/interfaces/account.ts
+@@ -1,6 +1,6 @@
+-import { AccountType } from '~/enums/account-type'
+-import { AccountStatus } from '~/enums/account-status'
+-import { UserSettingsType } from '~/enums/user-settings-type'
++import { AccountType } from '../enums/account-type'
++import { AccountStatus } from '../enums/account-status'
++import { UserSettingsType } from '../enums/user-settings-type'
+ 
+ export interface Account {
+   id: string
+diff --git a/app/interfaces/user-settings.ts b/app/interfaces/user-settings.ts
+--- a/app/interfaces/user-settings.ts
++++ b/app/interfaces/user-settings.ts
+@@ -1,6 +1,6 @@
+-import { AccountType } from '~/enums/account-type'
+-import { AccountStatus } from '~/enums/account-status'
+-import { UserSettingsType } from '~/enums/user-settings-type'
++import { AccountType } from '../enums/account-type'
++import { AccountStatus } from '../enums/account-status'
++import { UserSettingsType } from '../enums/user-settings-type'
+ 
+ export interface UserSettings {
+   id: string
+diff --git a/app/types/core-page-meta.d.ts b/app/types/core-page-meta.d.ts
+--- a/app/types/core-page-meta.d.ts
++++ b/app/types/core-page-meta.d.ts
+@@ -1,8 +1,11 @@
++import type { Account } from '../interfaces/account'
++import type { ConnectBreadcrumb } from '../interfaces/connect-breadcrumb'
++
+ declare module '#app' {
+   interface PageMeta {
+     breadcrumbs?: ConnectBreadcrumb[]
+     hideBreadcrumbs?: boolean | undefined
+-    onAccountChange?: (newVal: Account, oldVal: Account) => boolean
++    onAccountChange?: (oldAccount: Account, newAccount: Account) => boolean | Promise<boolean>
+     sessionExpiredFn?: () => void | Promise<void> // replace default functionality
+     onBeforeSessionExpired?: () => void | Promise<void> // do something right before the default session expiry is executed
+   }
+diff --git a/nuxt.config.ts b/nuxt.config.ts
+--- a/nuxt.config.ts
++++ b/nuxt.config.ts
+@@ -48,6 +48,15 @@
+ 
+   ui: {
+     icons: ['mdi']
++  },
++
++  hooks: {
++    'prepare:types' ({ references }) {
++      references.push(
++        { path: join(currentDir, './app/types/core-app-config.d.ts') },
++        { path: join(currentDir, './app/types/core-page-meta.d.ts') }
++      )
++    }
+   },
+ 
+   alias: {
+diff --git a/app/app.config.ts b/app/app.config.ts
+--- a/app/app.config.ts
++++ b/app/app.config.ts
+@@ -1,9 +1,11 @@
+-export default defineAppConfig({
++import type { LoginConfig } from './types/core-app-config'
++
++const coreAppConfig = {
+   connect: {
+     core: {
+       login: {
+         redirectPath: '',
+-        idps: ['bcsc', 'bceid', 'idir']
++        idps: ['bcsc', 'bceid', 'idir'] as LoginConfig['idps']
+       },
+       header: {
+         options: { // display/hide items
+@@ -333,5 +335,9 @@
+         rounded: 'before:rounded-none'
+       }
+     }
+-  }
+-})
++  } as const
++}
++
++const config: typeof coreAppConfig = defineAppConfig(coreAppConfig)
++
++export default config
+diff --git a/app/types/core-app-config.d.ts b/app/types/core-app-config.d.ts
+--- a/app/types/core-app-config.d.ts
++++ b/app/types/core-app-config.d.ts
+@@ -18,9 +18,11 @@
+ 
+ declare module '@nuxt/schema' {
+   interface AppConfigInput {
+-    connect: {
++    connect?: {
+       core: {
+-        login: LoginConfig,
++        login: Omit<LoginConfig, 'idps'> & {
++          idps: LoginConfig['idps'] | ((defaults: LoginConfig['idps']) => LoginConfig['idps'])
++        },
+         header: {
+           options: HeaderOptions
+         },
+@@ -41,7 +43,7 @@
+   }
+ }
+ 
+-declare module 'nuxt/schema' {
++declare module '@nuxt/schema' {
+   interface AppConfig {
+     connect: {
+       core: {
+diff --git a/app/composables/useConnectNav.ts b/app/composables/useConnectNav.ts
+--- a/app/composables/useConnectNav.ts
++++ b/app/composables/useConnectNav.ts
+@@ -73,6 +73,8 @@
+     return options
+   })
+ 
++  let accountChangeSequence = 0
++
+   const switchAccountOptions = computed<DropdownItem[]>(() => {
+     const options: DropdownItem[] = []
+ 
+@@ -83,11 +85,12 @@
+         const isActive = accountStore.currentAccount.id === account.id
+         options.push({
+           label: account.label,
+-          click: () => {
++          click: async () => {
++            const sequence = ++accountChangeSequence
+             if (!isActive && account.id) {
+               if (route.meta.onAccountChange) {
+-                const allowAccountChange = route.meta.onAccountChange(accountStore.currentAccount, account)
+-                if (allowAccountChange) {
++                const allowAccountChange = await route.meta.onAccountChange(accountStore.currentAccount, account)
++                if (allowAccountChange && sequence === accountChangeSequence) {
+                   accountStore.switchCurrentAccount(account.id)
+                 }
+               } else {

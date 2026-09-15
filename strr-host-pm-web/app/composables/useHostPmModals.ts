@@ -87,12 +87,12 @@ export const useHostPmModals = () => {
       const modalActions = [
         {
           label: t('modal.unsavedChanges.confirmBtn'),
-          variant: 'outline',
+          variant: 'outline' as const,
           handler: () => resolveAndClose(true)
         },
         {
           label: t('modal.unsavedChanges.closeBtn'),
-          variant: 'solid',
+          variant: 'solid' as const,
           handler: () => resolveAndClose(false)
         }
       ]

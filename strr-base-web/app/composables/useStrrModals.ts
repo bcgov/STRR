@@ -1,4 +1,5 @@
 // https://ui.nuxt.com/components/modal#control-programmatically
+import type { ButtonVariant } from '#ui/types'
 import {
   ModalBase,
   ModalHelpRegisterStr,
@@ -143,7 +144,7 @@ export const useStrrModals = () => {
     cancelButtonLabel: string = t('btn.cancel'),
     hideCancelButton?: boolean
   ) {
-    const modalActions: { label: string; variant?: string; handler: () => void }[] = [
+    const modalActions: { label: string; variant?: ButtonVariant; handler: () => void }[] = [
       { label: confirmButtonLabel, handler: () => confirmHandler() }
     ]
     if (!hideCancelButton) {

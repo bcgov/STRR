@@ -2,7 +2,7 @@ export type StrrLoginIdp = 'bcsc' | 'bceid' | 'idir'
 
 declare module 'nuxt/schema' {
   interface AppConfigInput {
-    strrBaseLayer: {
+    strrBaseLayer?: {
       page: {
         login: {
           redirectPath: string,
