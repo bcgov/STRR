@@ -184,7 +184,7 @@ watch(
       <ComposeNoc v-if="!showDecisionPanel" />
       <DecisionPanel />
       <ExaminerNotes v-if="isExaminerNotesEnabled && isHostApplication" />
-      <AssignmentActions :is-registration-page="true" @refresh="refresh" />
+      <AssignmentActions :is-registration-page="true" :refresh="refresh" />
       <HistoricalApplicationsTable
         v-if="!isApplication && isHistoricalApplicationsTableEnabled"
         :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"
