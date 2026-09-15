@@ -7,8 +7,7 @@ import {
   mockHostApplicationWithReviewer,
   mockHostApplicationWithoutReviewer,
   mockHostRegistration,
-  MOCK_UNIT_ADDRESS,
-  mockSnapshots
+  MOCK_UNIT_ADDRESS
 } from '../mocks/mockedData'
 import { ApplicationStatus, RegistrationStatus } from '#imports'
 
@@ -607,13 +606,22 @@ describe('Store - Examiner', () => {
 
   it('should have correct response for getSnapshotById', async () => {
     const store = useExaminerStore()
-    mockStrrApi.mockResolvedValueOnce(mockSnapshots[0])
+    const response = {
+      id: 17,
+      registrationId: 99,
+      version: 2,
+      snapshotDateTime: '2025-04-02T12:00:00',
+      snapshotData: { ...mockHostRegistration, id: 99 }
+    }
+    mockStrrApi.mockResolvedValueOnce(response)
 
-    const result = await store.getSnapshotById('99', 'snapshot-1')
+    const result = await store.getSnapshotById('99', '17')
 
-    expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99/snapshots/snapshot-1',
+    expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99/snapshots/17',
       expect.objectContaining({ method: 'GET' }))
-    expect(result).toEqual(mockSnapshots[0])
+    expect(result).toEqual(response)
+    expect(store.activeRecord).toEqual(response.snapshotData)
+    expect(store.snapshotInfo).toMatchObject({ id: 17, version: 2, snapshotDateTime: response.snapshotDateTime })
   })
 
   it('should correctly edit and reset rental unit address', () => {

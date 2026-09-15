@@ -6,6 +6,7 @@ const { snapshotInfo } = storeToRefs(exStore)
 
 <template>
   <div
+    v-if="snapshotInfo"
     class="flex flex-col gap-y-2 rounded-xl border-[3px] border-[#E2E8EE]
      bg-white px-4 py-3 text-sm md:absolute md:right-0 md:top-0"
     data-testid="snapshot-info"
@@ -14,7 +15,8 @@ const { snapshotInfo } = storeToRefs(exStore)
       <b>{{ t('strr.label.version') }}</b> {{ snapshotInfo.version }}
     </span>
     <span>
-      <b>{{ t('strr.label.date') }}</b> {{ dateToString(snapshotInfo.snapshotDateTime, 'y-MM-dd a', true) }}
+      <b>{{ t('strr.label.date') }}</b>
+      {{ snapshotInfo.snapshotDateTime ? dateToString(snapshotInfo.snapshotDateTime, 'y-MM-dd a', true) : '-' }}
     </span>
   </div>
 </template>
