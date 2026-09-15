@@ -3,8 +3,8 @@ const localePath = useLocalePath()
 
 defineProps<{
   error: {
-    statusCode: number
-    data: unknown
+    statusCode?: number
+    data?: unknown
   }
   itemType: string
   onRetry:() => void

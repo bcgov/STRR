@@ -2,7 +2,6 @@
 const { t } = useNuxtApp().$i18n
 const route = useRoute()
 const { getSnapshotById } = useExaminerStore()
-const { activeRecord, snapshotInfo } = storeToRefs(useExaminerStore())
 
 useHead({
   title: t('page.snapshot.title')
@@ -15,22 +14,19 @@ definePageMeta({
 
 const initialMount = ref(true)
 
-const { data: snapshot, status, error } = await useLazyAsyncData<
-  HousRegistrationResponse | undefined, ApplicationError
+const { data: snapshot, status, error, refresh } = await useLazyAsyncData<
+  ApiSnapshotResponse, ApplicationError
 >(
   'snapshot-details-view',
   async () => {
     const registrationId = route.params.registrationId as string
     const snapshotId = route.params.snapshotId as string
-    const resp = await getSnapshotById(registrationId, snapshotId)
-    activeRecord.value = resp.snapshotData // used for the data needed to render the details page
-    snapshotInfo.value = resp // used for data needed for snapshot info widget on details page
-    return resp
+    return await getSnapshotById(registrationId, snapshotId)
   }
 )
 
 watch(
-  [snapshot, error],
+  [snapshot, status, error],
   () => {
     initialMount.value = false
   }
@@ -42,6 +38,15 @@ watch(
     <ConnectSpinner
       v-if="initialMount || status === 'pending'"
       overlay
+    />
+    <ExaminerErrorState
+      v-else-if="error"
+      :error="error"
+      item-type="Snapshot"
+      :on-retry="() => {
+        initialMount = true
+        refresh()
+      }"
     />
     <template v-else>
       <ApplicationDetailsView>

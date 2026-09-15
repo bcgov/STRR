@@ -39,7 +39,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const isHostApplication = computed(() => activeReg.value?.registrationType === ApplicationType.HOST)
   const _isAssignedToUser = ref(false)
 
-  const snapshotInfo = ref<ApiSnapshot>({} as ApiSnapshot)
+  const snapshotInfo = ref<Pick<ApiSnapshotResponse, 'id' | 'version' | 'snapshotDateTime'>>()
+
+  const beginRecordRequest = () => {
+    const request = ++activeRecordRequest
+    activeRecord.value = undefined
+    snapshotInfo.value = undefined
+    return request
+  }
 
   watch(
     () => [
@@ -435,8 +442,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getNextApplication = async <T extends ApiApplicationBaseResp>(): Promise<T | undefined> => {
-    const request = ++activeRecordRequest
-    activeRecord.value = undefined
+    const request = beginRecordRequest()
     const resp = await getAccountApplications<T>(
       undefined, undefined, ApplicationType.HOST, ApplicationStatus.FULL_REVIEW,
       ApplicationSortBy.APPLICATION_DATE, ApplicationSortOrder.ASC
@@ -541,8 +547,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getApplicationById = async (applicationNumber: string): Promise<HousApplicationResponse> => {
-    const request = ++activeRecordRequest
-    activeRecord.value = undefined
+    const request = beginRecordRequest()
     const resp = await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}`, {
       method: 'GET'
     })
@@ -722,8 +727,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * @param {number} registrationId - The registrationId for the registration.
    */
   const getRegistrationById = async (registrationId: string): Promise<HousRegistrationResponse> => {
-    const request = ++activeRecordRequest
-    activeRecord.value = undefined
+    const request = beginRecordRequest()
     const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
       method: 'GET'
     })
@@ -812,11 +816,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const getSnapshotById = async (
     registrationId: string,
     snapshotId: string
-  ): Promise<any> => {
-    return await $strrApi<any>(
+  ): Promise<ApiSnapshotResponse> => {
+    const request = beginRecordRequest()
+    const resp = await $strrApi<ApiSnapshotResponse>(
       `/registrations/${registrationId}/snapshots/${snapshotId}`,
       { method: 'GET' }
     )
+    if (request === activeRecordRequest) {
+      activeRecord.value = resp.snapshotData
+      snapshotInfo.value = resp
+    }
+    return resp
   }
 
   const openDocInNewTab = async (

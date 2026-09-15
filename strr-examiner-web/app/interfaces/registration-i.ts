@@ -38,6 +38,14 @@ export interface ApiRegistrationListResp {
   total: number
 }
 
+export interface ApiSnapshotResponse {
+  id: number
+  registrationId: number
+  version: number
+  snapshotDateTime: string | null
+  snapshotData: HousRegistrationResponse
+}
+
 export interface HostRegistrationResp extends ApiExtraRegistrationDetails {
   header: ApiRegistrationHeader
   registrationType: ApplicationType
