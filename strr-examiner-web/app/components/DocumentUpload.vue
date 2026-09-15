@@ -9,6 +9,7 @@ const { activeReg, isApplication, activeHeader } = storeToRefs(exStore)
 const { isBlUploadOpen, isPrUploadOpen } = storeToRefs(docStore)
 const showDocumentUpload = computed(() => isBlUploadOpen.value || isPrUploadOpen.value)
 const isUploading = ref(false)
+onScopeDispose(() => docStore.closeUpload())
 
 const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | number) => {
   if (isApplication.value) {
