@@ -41,8 +41,6 @@ const {
   setPlaceholderServiceFee
 } = useConnectFeeStore()
 
-setPlaceholderFilingTypeCode(StrrFeeCode.STR_HOST_1)
-
 const hostFee1 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee2 = ref<ConnectFeeItem | undefined>(undefined)
 const hostFee3 = ref<ConnectFeeItem | undefined>(undefined)
@@ -67,13 +65,15 @@ onBeforeRouteLeave(async () => {
 
 onMounted(async () => {
   loading.value = true
+  resetFees()
   await initAlternatePaymentMethod()
   applicationReset()
   permitStore.$reset()
 
   await loadInitialPermitData()
 
-  const { fee1, fee2, fee3 } = await fetchStrrFees()
+  setPlaceholderFilingTypeCode(isRegistrationRenewal.value ? HostRenewalFeeCode.ONSITE : StrrFeeCode.STR_HOST_1)
+  const { fee1, fee2, fee3 } = await fetchStrrFees(isRegistrationRenewal.value)
 
   hostFee1.value = fee1 ? { ...fee1 } : undefined
   hostFee2.value = fee2 ? { ...fee2 } : undefined
@@ -105,6 +105,9 @@ const resetFees = () => {
   removeFee(StrrFeeCode.STR_HOST_1)
   removeFee(StrrFeeCode.STR_HOST_2)
   removeFee(StrrFeeCode.STR_HOST_3)
+  removeFee(HostRenewalFeeCode.ONSITE)
+  removeFee(HostRenewalFeeCode.OFFSITE)
+  removeFee(HostRenewalFeeCode.BED_AND_BREAKFAST)
 }
 
 // for new rental unit form - do not calculate the fees, it will be calculated on the last step
