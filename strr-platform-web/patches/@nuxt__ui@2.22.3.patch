@@ -1,0 +1,34 @@
+diff --git a/dist/runtime/components/elements/Alert.vue.d.ts b/dist/runtime/components/elements/Alert.vue.d.ts
+--- a/dist/runtime/components/elements/Alert.vue.d.ts
++++ b/dist/runtime/components/elements/Alert.vue.d.ts
+@@ -59,8 +59,8 @@
+         default: any;
+     };
+     closeButton: {
+-        type: PropType<Button>;
+-        default: () => Button;
++        type: PropType<Button | null>;
++        default: () => Button | null;
+     };
+     actions: {
+         type: PropType<AlertAction[]>;
+@@ -152,8 +152,8 @@
+         default: any;
+     };
+     closeButton: {
+-        type: PropType<Button>;
+-        default: () => Button;
++        type: PropType<Button | null>;
++        default: () => Button | null;
+     };
+     actions: {
+         type: PropType<AlertAction[]>;
+@@ -234,7 +234,7 @@
+     title: string;
+     description: string;
+     icon: string;
+-    closeButton: Button;
++    closeButton: Button | null;
+     actions: AlertAction[];
+ }, {}, {
+     UIcon: import("vue").DefineComponent<import("vue").ExtractPropTypes<{
