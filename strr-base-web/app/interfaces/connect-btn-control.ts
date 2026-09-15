@@ -1,3 +1,5 @@
+import type { ButtonVariant } from '#ui/types'
+
 export interface ConnectBtnControlItem {
   action: () => any
   label: string
@@ -5,7 +7,7 @@ export interface ConnectBtnControlItem {
   color?: string
   icon?: string
   loading?: boolean
-  variant?: string
+  variant?: ButtonVariant
   trailing?: boolean
   disabled?: boolean
 }
