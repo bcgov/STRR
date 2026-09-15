@@ -25,8 +25,24 @@ const {
   updateRegistrationStatus,
   sendNoticeOfConsiderationForRegistration
 } = useExaminerStore()
-const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
+const { openConfirmActionModal, openErrorModal, close: closeConfirmActionModal } = useStrrModals()
 const { withNoteCheck } = useExaminerNotes()
+
+type PendingAction = 'assign' | 'unassign' | 'setAside' | 'main'
+const pendingAction = ref<PendingAction>()
+
+const runAction = async (name: PendingAction, action: () => Promise<void>) => {
+  if (pendingAction.value) { return }
+  pendingAction.value = name
+  try {
+    await action()
+  } catch (error) {
+    console.error(error)
+    openErrorModal(t('error.reqFetch.unknown.title'), t('error.decisionAction'), false)
+  } finally {
+    pendingAction.value = undefined
+  }
+}
 
 const hasSetAsideAction = computed((): boolean =>
   activeHeader.value?.examinerActions?.includes(ApplicationActionsE.SET_ASIDE) ?? false)
@@ -227,15 +243,19 @@ const selectedAction = computed(() =>
   actionButtons.find(button => button.label === decisionIntent.value)
 )
 
-const assign = async () => {
+const assign = () => runAction('assign', async () => {
   await assignCurrentRecord()
   await refreshDecisionData()
-}
+})
 
 const unassign = async () => {
-  if (isAssignedToUser.value) {
+  if (pendingAction.value) { return }
+  const action = () => runAction('unassign', async () => {
     await unassignCurrentRecord()
     await refreshDecisionData()
+  })
+  if (isAssignedToUser.value) {
+    await action()
   } else {
     openConfirmActionModal(
       t('modal.unassign.title'),
@@ -243,8 +263,7 @@ const unassign = async () => {
       t('strr.label.unAssign'),
       async () => {
         closeConfirmActionModal()
-        await unassignCurrentRecord()
-        await refreshDecisionData()
+        await action()
       }
     )
   }
@@ -260,8 +279,17 @@ const setAside = async () => {
   await refreshDecisionData()
 }
 
-const handleSetAside = () => withNoteCheck(() => setAside())
-const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action())
+const handleSetAside = () => {
+  if (pendingAction.value) { return }
+  withNoteCheck(() => runAction('setAside', setAside))
+}
+const handleMainAction = () => {
+  if (pendingAction.value) { return }
+  withNoteCheck(() => {
+    const action = selectedAction.value?.action
+    if (action) { return runAction('main', action) }
+  })
+}
 </script>
 
 <template>
@@ -277,7 +305,8 @@ const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action(
               icon="i-mdi-rotate-left"
               class="max-w-fit px-7 py-3"
               color="primary"
-              :disabled="!isAssignedToUser"
+              :disabled="!isAssignedToUser || !!pendingAction"
+              :loading="pendingAction === 'setAside'"
               data-testid="action-button-set-aside"
               @click="handleSetAside"
             />
@@ -291,6 +320,8 @@ const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action(
               class="max-w-fit px-7 py-3"
               data-testid="action-button-unassign"
               variant="ghost"
+              :disabled="!!pendingAction"
+              :loading="pendingAction === 'unassign'"
               @click="unassign"
             />
             <UButton
@@ -299,6 +330,8 @@ const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action(
               class="max-w-fit px-7 py-3"
               data-testid="action-button-assign"
               variant="outline"
+              :disabled="!!pendingAction"
+              :loading="pendingAction === 'assign'"
               @click="assign"
             />
             <!-- main button -->
@@ -313,7 +346,8 @@ const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action(
                   : t(`btn.${selectedAction?.label}`)"
               :color="(selectedAction?.color || 'primary') as any"
               :icon="selectedAction?.icon"
-              :disabled="isMainActionDisabled"
+              :disabled="isMainActionDisabled || !!pendingAction"
+              :loading="pendingAction === 'main'"
               variant="outline"
               class="max-w-fit px-7 py-3"
               data-testid="main-action-button"

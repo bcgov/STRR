@@ -7,6 +7,9 @@ import ActionButtons from '~/components/ActionButtons.vue'
 import { ApplicationActionsE, RegistrationActionsE, RegistrationStatus } from '#imports'
 
 const mockAssignRegistration = vi.fn().mockResolvedValue(undefined)
+const mockAssignApplication = vi.fn().mockResolvedValue(undefined)
+const mockUnassignApplication = vi.fn().mockResolvedValue(undefined)
+const mockSetAsideApplication = vi.fn().mockResolvedValue(undefined)
 const mockUnassignRegistration = vi.fn().mockResolvedValue(undefined)
 const mockSetAsideRegistration = vi.fn().mockResolvedValue(undefined)
 const mockUpdateRegistrationStatus = vi.fn().mockResolvedValue(undefined)
@@ -16,6 +19,8 @@ const mockApproveApplication = vi.fn().mockResolvedValue(undefined)
 const mockProvisionallyApproveApplication = vi.fn().mockResolvedValue(undefined)
 const mockIsDecisionEmailValid = vi.fn().mockResolvedValue(true)
 const mockOpenConfirmActionModal = vi.fn()
+const mockOpenErrorModal = vi.fn()
+const mockWithNoteCheck = vi.fn((action: () => void) => action())
 const mockRefreshNuxtData = vi.hoisted(() => vi.fn())
 
 const activeHeader = ref<any>({ examinerActions: [], isSetAside: false, assignee: { username: '' } })
@@ -23,6 +28,7 @@ const activeReg = ref<any>({ id: 'reg-123', status: RegistrationStatus.ACTIVE, c
 const isApplication = ref(false)
 const isAssignedToUser = ref(true)
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
+const isMainActionDisabled = ref(false)
 const conditions = ref([])
 const customConditions = ref(null)
 const minBookingDays = ref<number | null>(null)
@@ -40,8 +46,9 @@ vi.mock('@/stores/examiner', () => ({
     sendNoticeOfConsideration: vi.fn().mockResolvedValue(undefined),
     approveApplication: mockApproveApplication,
     provisionallyApproveApplication: mockProvisionallyApproveApplication,
-    assignApplication: vi.fn().mockResolvedValue(undefined),
-    unassignApplication: vi.fn().mockResolvedValue(undefined),
+    assignApplication: mockAssignApplication,
+    unassignApplication: mockUnassignApplication,
+    setAsideApplication: mockSetAsideApplication,
     isApplication,
     isAssignedToUser,
     activeHeader,
@@ -56,13 +63,14 @@ vi.mock('@/stores/examiner', () => ({
 vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
     decisionIntent,
-    isMainActionDisabled: ref(false),
+    isMainActionDisabled,
     isDecisionEmailValid: mockIsDecisionEmailValid
   })
 }))
 
 mockNuxtImport('useStrrModals', () => () => ({
   openConfirmActionModal: mockOpenConfirmActionModal,
+  openErrorModal: mockOpenErrorModal,
   close: vi.fn()
 }))
 
@@ -71,12 +79,12 @@ vi.mock('nuxt/app', async importOriginal => ({
   refreshNuxtData: mockRefreshNuxtData
 }))
 
-// withNoteCheck passes the action straight through — note-guard logic is tested in use-examiner-notes.spec.ts
+// Note-guard logic is tested in use-examiner-notes.spec.ts; pending tests can defer its callback here.
 vi.mock('@/composables/useExaminerNotes', () => ({
   useExaminerNotes: () => ({
     noteContent: ref(''),
     hasUnsavedNote: ref(false),
-    withNoteCheck: vi.fn((action: () => void) => action()),
+    withNoteCheck: mockWithNoteCheck,
     useNoteLeaveGuard: vi.fn()
   })
 }))
@@ -94,11 +102,20 @@ describe('ActionButtons Component', () => {
     isAssignedToUser.value = true
     isApplication.value = false
     decisionIntent.value = null
+    isMainActionDisabled.value = false
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null
     decisionEmailContent.value = { content: '' }
-    mockRefreshNuxtData.mockClear()
+    for (const mock of [
+      mockAssignRegistration, mockAssignApplication, mockUnassignRegistration, mockUnassignApplication,
+      mockSetAsideRegistration, mockSetAsideApplication, mockUpdateRegistrationStatus, mockApproveApplication,
+      mockSendNotice, mockRefreshNuxtData
+    ]) {
+      mock.mockReset().mockResolvedValue(undefined)
+    }
+    mockIsDecisionEmailValid.mockReset().mockResolvedValue(true)
+    mockWithNoteCheck.mockReset().mockImplementation(action => action())
   })
 
   it('should show assign button when no assignee, and unassign button when assignee exists', async () => {
@@ -380,5 +397,166 @@ describe('ActionButtons Component', () => {
 
     expect(mockWithdrawApplication).toHaveBeenCalledWith('APP-005', false)
     expect(mockIsDecisionEmailValid).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { name: 'application approval', app: true, button: 'main-action-button', mutation: mockApproveApplication },
+    { name: 'registration approval', app: false, button: 'main-action-button', mutation: mockUpdateRegistrationStatus },
+    { name: 'application assignment', app: true, button: 'action-button-assign', mutation: mockAssignApplication },
+    { name: 'registration assignment', app: false, button: 'action-button-assign', mutation: mockAssignRegistration },
+    {
+      name: 'application unassignment',
+      app: true,
+      button: 'action-button-unassign',
+      mutation: mockUnassignApplication
+    },
+    {
+      name: 'registration unassignment',
+      app: false,
+      button: 'action-button-unassign',
+      mutation: mockUnassignRegistration
+    },
+    { name: 'application set-aside', app: true, button: 'action-button-set-aside', mutation: mockSetAsideApplication },
+    {
+      name: 'registration set-aside',
+      app: false,
+      button: 'action-button-set-aside',
+      mutation: mockSetAsideRegistration
+    }
+  ])('serializes $name through mutation and refresh', async ({ app, button, mutation }) => {
+    isApplication.value = app
+    activeHeader.value = {
+      applicationNumber: 'APP-123',
+      examinerActions: [ApplicationActionsE.SET_ASIDE],
+      assignee: { username: button === 'action-button-assign' ? '' : 'examiner1' }
+    }
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    const request = Promise.withResolvers<void>()
+    const reload = Promise.withResolvers<void>()
+    mutation.mockReturnValueOnce(request.promise)
+    mockRefreshNuxtData.mockReturnValueOnce(reload.promise)
+    const wrapper = await mount()
+    const selectedButton = wrapper.find<HTMLButtonElement>(`[data-testid="${button}"]`)
+
+    // Two native clicks before Vue patches the disabled attribute exercise the request guard.
+    selectedButton.element.click()
+    selectedButton.element.click()
+    await flushPromises()
+    expect(mutation).toHaveBeenCalledOnce()
+    expect(mockRefreshNuxtData).not.toHaveBeenCalled()
+    expect(wrapper.findAll('button').every(item => item.element.disabled)).toBe(true)
+
+    request.resolve()
+    await flushPromises()
+    expect(mockRefreshNuxtData).toHaveBeenCalledOnce()
+    expect(mockRefreshNuxtData).toHaveBeenCalledWith(app ? 'application-details-view' : 'registration-details-view')
+    expect(wrapper.findAll('button').every(item => item.element.disabled)).toBe(true)
+    selectedButton.element.click()
+    await flushPromises()
+    expect(mutation).toHaveBeenCalledOnce()
+
+    reload.resolve()
+    await flushPromises()
+    expect(selectedButton.element.disabled).toBe(false)
+    expect(mockOpenErrorModal).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('keeps the main action disabled after pending assignment clears', async () => {
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    isMainActionDisabled.value = true
+    const request = Promise.withResolvers<void>()
+    mockAssignRegistration.mockReturnValueOnce(request.promise)
+    const wrapper = await mount()
+
+    await wrapper.find('[data-testid="action-button-assign"]').trigger('click')
+    await flushPromises()
+    request.resolve()
+    await flushPromises()
+
+    expect(wrapper.find<HTMLButtonElement>('[data-testid="main-action-button"]').element.disabled).toBe(true)
+    expect(wrapper.find<HTMLButtonElement>('[data-testid="action-button-assign"]').element.disabled).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('guards a deferred note-discard callback when it is invoked more than once', async () => {
+    decisionIntent.value = RegistrationActionsE.CANCEL
+    let confirmDiscard: (() => void) | undefined
+    mockWithNoteCheck.mockImplementationOnce((action) => { confirmDiscard = action })
+    const request = Promise.withResolvers<void>()
+    mockUpdateRegistrationStatus.mockReturnValueOnce(request.promise)
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    expect(mockUpdateRegistrationStatus).not.toHaveBeenCalled()
+    expect(confirmDiscard).toBeDefined()
+    confirmDiscard!()
+    confirmDiscard!()
+    await flushPromises()
+
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledOnce()
+    request.resolve()
+    await flushPromises()
+    expect(wrapper.find<HTMLButtonElement>('[data-testid="main-action-button"]').element.disabled).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('guards confirmed unassignment and leaves controls free before confirmation', async () => {
+    isAssignedToUser.value = false
+    activeHeader.value = { ...activeHeader.value, assignee: { username: 'another-examiner' } }
+    const request = Promise.withResolvers<void>()
+    mockUnassignRegistration.mockReturnValueOnce(request.promise)
+    const wrapper = await mount()
+
+    await wrapper.find('[data-testid="action-button-unassign"]').trigger('click')
+    expect(mockUnassignRegistration).not.toHaveBeenCalled()
+    expect(wrapper.find<HTMLButtonElement>('[data-testid="action-button-unassign"]').element.disabled).toBe(false)
+    const confirm = mockOpenConfirmActionModal.mock.calls[0]![3]
+    const first = confirm()
+    const second = confirm()
+    await flushPromises()
+
+    expect(mockUnassignRegistration).toHaveBeenCalledOnce()
+    expect(wrapper.find<HTMLButtonElement>('[data-testid="action-button-unassign"]').element.disabled).toBe(true)
+    request.resolve()
+    await Promise.all([first, second])
+    await flushPromises()
+    expect(wrapper.find<HTMLButtonElement>('[data-testid="action-button-unassign"]').element.disabled).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('shows mutation errors, retains notice text and restores controls for recovery', async () => {
+    decisionIntent.value = RegistrationActionsE.SEND_NOC
+    decisionEmailContent.value.content = 'Notice to retain'
+    mockSendNotice.mockRejectedValueOnce(new Error('notice failed'))
+    const escapedError = vi.fn()
+    const wrapper = await mountSuspended(ActionButtons, {
+      global: { plugins: [enI18n], config: { errorHandler: escapedError } }
+    })
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockOpenErrorModal).toHaveBeenCalledOnce()
+    expect(escapedError).not.toHaveBeenCalled()
+    expect(mockRefreshNuxtData).not.toHaveBeenCalled()
+    expect(decisionEmailContent.value.content).toBe('Notice to retain')
+    expect(wrapper.find<HTMLButtonElement>('[data-testid="main-action-button"]').element.disabled).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('restores controls without submitting or reloading when email validation fails', async () => {
+    decisionIntent.value = RegistrationActionsE.CANCEL
+    mockIsDecisionEmailValid.mockResolvedValueOnce(false)
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockUpdateRegistrationStatus).not.toHaveBeenCalled()
+    expect(mockRefreshNuxtData).not.toHaveBeenCalled()
+    expect(mockOpenErrorModal).not.toHaveBeenCalled()
+    expect(wrapper.find<HTMLButtonElement>('[data-testid="main-action-button"]').element.disabled).toBe(false)
+    wrapper.unmount()
   })
 })
