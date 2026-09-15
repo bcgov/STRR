@@ -274,6 +274,10 @@ export default {
     viewReceipt: 'View Receipt'
   },
   error: {
+    applicationFee: {
+      title: 'Unable to load registration fee',
+      description: 'We could not load the registration fee. Save your application, then refresh the page and try again.'
+    },
     createAccount: {
       title: 'Error creating account',
       description: 'We could not create your account at this time. Please try again or if this issue persists, please contact us.'
