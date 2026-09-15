@@ -1,4 +1,4 @@
-import type { ButtonColor } from '#ui/types'
+import type { ButtonColor, ButtonVariant } from '#ui/types'
 
 export interface ConnectBtnControlItem {
   action: () => any
@@ -7,7 +7,7 @@ export interface ConnectBtnControlItem {
   color?: ButtonColor
   icon?: string
   loading?: boolean
-  variant?: string
+  variant?: ButtonVariant
   trailing?: boolean
   disabled?: boolean
 }
