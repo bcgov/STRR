@@ -488,6 +488,10 @@ export default {
     docUpload: 'File must be a PDF. Maximum 10 MB.'
   },
   page: {
+    examine: {
+      noApplications: 'No applications are available for examination.',
+      returnToDashboard: 'Return to Dashboard'
+    },
     snapshot: {
       title: 'Snapshot - My Short-Term Rental Registry'
     },

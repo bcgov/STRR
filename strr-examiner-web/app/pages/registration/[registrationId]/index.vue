@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
 const route = useRoute()
+const { setButtonControl } = useButtonControl()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
 const {
@@ -119,9 +120,14 @@ const handleAssigneeAction = (
 }
 
 watch(
-  [registration, error, isAssignedToUser],
+  [registration, status, error, isAssignedToUser],
   () => {
+    if (status.value === 'pending') { return }
     initialMount.value = false
+    if (error.value || !registration.value) {
+      setButtonControl({ leftButtons: [], rightButtons: [] })
+      return
+    }
 
     updateRouteAndButtons(RoutesE.REGISTRATION, {
       registrationSetAside: {
