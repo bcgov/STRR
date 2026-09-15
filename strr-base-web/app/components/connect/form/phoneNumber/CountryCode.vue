@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { customList } from 'country-codes-list'
+import { all } from 'country-codes-list'
 import type { ConnectPhoneCountry } from '#imports'
 
 defineProps<{
@@ -10,18 +10,20 @@ const countryCallingCode = defineModel<string | undefined>('countryCallingCode',
 watch(countryCallingCode, (val) => {
   // this is needed for when something outside this component changes the callingCode model value
   if (!val) {
-    countryIso2.value = undefined
+    selectedCountry.value = undefined
   } else if (selectedCountry.value?.callingCode !== val) {
-    countryIso2.value = search(val)[0]?.iso2
+    selectedCountry.value = getCountryForCallingCode(val)
   }
 })
 
 const countryIso2 = defineModel<string | undefined>('countryIso2', { required: false })
 watch(countryIso2, (val) => {
-  if (!val) {
-    selectedCountry.value = undefined
-  } else if (val && selectedCountry.value?.iso2 !== val) {
-    selectCountry(val)
+  if (selectedCountry.value?.iso2 !== val) {
+    if (val) {
+      selectCountry(val)
+    } else {
+      selectedCountry.value = undefined
+    }
   }
 })
 
@@ -35,35 +37,36 @@ watch(selectedCountry, (newVal) => {
   }
 })
 
-const _countryListOptions = customList(
-  // @ts-ignore
-  'countryCode', '{countryCallingCode},{countryNameEn},{countryNameLocal}')
-
 const manualInput = (event: any) => {
   selectedCountry.value = {
     callingCode: event.target.value
   }
 }
 
-const countryListOptions: Array<ConnectPhoneCountry> = Object.keys(_countryListOptions).map((key) => {
-  // @ts-ignore
-  const [callingCode, nameEn, nameLocal] = _countryListOptions[key].split(',')
-  return {
-    iso2: key,
-    callingCode,
-    label: `+${callingCode}`,
-    nameLocal,
-    nameEn
-  }
-}).sort((a, b) => a.callingCode.localeCompare(b.callingCode))
+const countriesByIso2 = new Map(all().map(country => [country.countryCode, country]))
+const countryListOptions: Array<ConnectPhoneCountry> = Array.from(countriesByIso2.values(), country => ({
+  iso2: country.countryCode,
+  callingCode: country.countryCallingCode,
+  label: `+${country.countryCallingCode}`,
+  nameLocal: country.countryNameLocal,
+  nameEn: country.countryNameEn
+})).sort((a, b) => a.callingCode.localeCompare(b.callingCode))
 
-const search = (q: string) => countryListOptions.filter((lo) => {
-  return lo.callingCode.includes(q) ||
-    lo.iso2?.includes(q) ||
-    lo.nameLocal?.includes(q) ||
-    lo.nameEn?.includes(q) ||
-    lo.label?.includes(q)
-})
+const search = (q: string) => {
+  const query = q.toLowerCase()
+  return countryListOptions.filter((lo) => {
+    return lo.callingCode.includes(query) ||
+      lo.iso2?.toLowerCase().includes(query) ||
+      lo.nameLocal?.toLowerCase().includes(query) ||
+      lo.nameEn?.toLowerCase().includes(query) ||
+      lo.label?.includes(query)
+  })
+}
+
+const getCountryForCallingCode = (callingCode: string): ConnectPhoneCountry => {
+  return countryListOptions.find(country => country.callingCode === callingCode) ||
+    { callingCode, label: `+${callingCode}` }
+}
 
 const selectCountry = (iso2: string) => {
   selectedCountry.value = countryListOptions.find(item => item.iso2 === iso2)
@@ -73,16 +76,7 @@ onMounted(() => {
   if (countryIso2.value !== undefined) {
     selectCountry(countryIso2.value)
   } else if (countryCallingCode.value) {
-    // Set a country based on the calling code if available
-    const iso2 = search(countryCallingCode.value)[0]?.iso2
-    if (iso2) {
-      selectCountry(iso2)
-    } else {
-      selectedCountry.value = {
-        callingCode: countryCallingCode.value,
-        label: `+${countryCallingCode.value}`
-      }
-    }
+    selectedCountry.value = getCountryForCallingCode(countryCallingCode.value)
   }
 })
 </script>
