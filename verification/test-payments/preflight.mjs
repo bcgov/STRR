@@ -28,7 +28,7 @@ const apps = [
   { name: 'host', origin: 'https://test.host.shorttermrental.registry.gov.bc.ca', form: '/en-CA/application', feeCount: 3 },
   { name: 'platform', origin: 'https://test.platform.shorttermrental.registry.gov.bc.ca', form: '/en-CA/platform/application?override=true', feeCount: 3 },
   { name: 'strata', origin: 'https://test.stratahotel.shorttermrental.registry.gov.bc.ca', form: '/en-CA/strata-hotel/application', feeCount: 1 }
-]
+].filter(app => !process.env.TEST_APP || app.name === process.env.TEST_APP)
 const report = {
   checkedAt: new Date().toISOString(),
   scope: 'Current deployed TEST BCSC login, account, fees, fresh Host/Platform/Strata sandbox payments, Host cancel/resume, receipts and persistence.',
@@ -43,8 +43,10 @@ let browser
 let page
 let current
 let card
+let signedIn = false
 try {
   if (!report.credentialsConfigured) throw new Error('Required BCSC test credentials are not configured')
+  if (!apps.length) throw new Error('No matching TEST app')
   card = loadTestCard(secrets)
   report.sandboxCardFixtureUsable = true
   browser = await chromium.launch()
@@ -86,7 +88,7 @@ try {
       page.waitForURL(url => url.origin === app.origin && !url.pathname.endsWith('/auth/login'))
     ])
     if (await loginButton.isVisible()) await loginButton.click()
-    if (app.name === 'host') {
+    if (!signedIn) {
       await page.getByRole('button', { name: 'Log in with Test with username and password', exact: true }).click()
       if (new URL(page.url()).hostname !== 'idtest.gov.bc.ca') {
         throw new Error('Refusing to enter the TEST credentials on an unexpected identity provider')
@@ -96,6 +98,7 @@ try {
       await page.getByRole('button', { name: 'Continue', exact: true }).click()
     }
     await page.waitForURL(url => url.origin === app.origin && !url.pathname.endsWith('/auth/login'), { timeout: 45000 })
+    signedIn = true
     current.stage = 'select-test-account'
     await page.goto(app.origin + '/en-CA/auth/account/choose-existing', { waitUntil: 'domcontentloaded' })
     await page.getByTestId('choose-existing-account-button').first().waitFor({ state: 'visible' })

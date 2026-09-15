@@ -2,6 +2,16 @@ name: main-e2e-tests
 
 on:
   workflow_dispatch:
+    inputs:
+      app:
+        description: TEST application to verify with a fresh fixture
+        type: choice
+        default: all
+        options:
+          - all
+          - host
+          - platform
+          - strata
 
 permissions:
   contents: read
@@ -24,6 +34,7 @@ jobs:
       - name: Verify deployed TEST payments
         working-directory: verification/test-payments
         env:
+          TEST_APP: ${{ inputs.app != 'all' && inputs.app || '' }}
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
           CYPRESS_CREDITCARD: ${{ secrets.CYPRESS_CREDITCARD }}
