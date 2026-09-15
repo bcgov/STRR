@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@nuxt/ui@2.22.3':
+    hash: d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53
+    path: patches/@nuxt__ui@2.22.3.patch
   '@vitejs/plugin-vue@6.0.8':
     hash: a86011b3380859cf6182f49871e0869110bcfb26546be5114b56cd3523cb5abc
     path: patches/@vitejs__plugin-vue@6.0.8.patch
@@ -7080,7 +7083,7 @@ snapshots:
   '@daxiom/nuxt-core-layer-test@0.0.29(fa24d88119f195bc8291349287f9b171)':
     dependencies:
       '@iconify-json/mdi': 1.2.3
-      '@nuxt/ui': 2.22.3(magic-string@1.2.0)(magicast@0.5.3)(oxc-parser@0.128.0)(rolldown@1.2.5)(unplugin@3.3.0(esbuild@0.28.0)(rolldown@1.2.5)(rollup@4.60.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(webpack@5.107.2(esbuild@0.28.0)(lightningcss@1.33.0)(postcss@8.5.26)))(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)
+      '@nuxt/ui': 2.22.3(patch_hash=d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53)(magic-string@1.2.0)(magicast@0.5.3)(oxc-parser@0.128.0)(rolldown@1.2.5)(unplugin@3.3.0(esbuild@0.28.0)(rolldown@1.2.5)(rollup@4.60.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(webpack@5.107.2(esbuild@0.28.0)(lightningcss@1.33.0)(postcss@8.5.26)))(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)
       '@nuxtjs/i18n': 10.4.0(@vue/compiler-dom@3.5.41)(db0@0.3.4)(esbuild@0.28.0)(eslint@8.57.1)(ioredis@5.11.0)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.5)(rollup@4.60.4)(typescript@5.9.3)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(webpack@5.107.2(esbuild@0.28.0)(lightningcss@1.33.0)(postcss@8.5.26))
       '@pinia/nuxt': 0.11.3(magic-string@1.2.0)(magicast@0.5.3)(oxc-parser@0.128.0)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.5)(unplugin@3.3.0(esbuild@0.28.0)(rolldown@1.2.5)(rollup@4.60.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(webpack@5.107.2(esbuild@0.28.0)(lightningcss@1.33.0)(postcss@8.5.26)))
       '@vueuse/nuxt': 13.9.0(magicast@0.5.3)(nuxt@4.5.2(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@oxc-project/types@0.146.0)(@parcel/watcher@2.5.6)(@types/node@25.9.1)(@vue/compiler-sfc@3.5.41)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.0)(eslint@8.57.1)(ioredis@5.11.0)(lightningcss@1.33.0)(magicast@0.5.3)(optionator@0.9.4)(oxc-parser@0.128.0)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.5)(rollup-plugin-visualizer@7.0.1(rolldown@1.2.5)(rollup@4.60.4))(rollup@4.60.4)(sass@1.100.0)(srvx@0.11.22)(terser@5.48.0)(typescript@5.9.3)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(webpack@5.107.2(esbuild@0.28.0)(lightningcss@1.33.0)(postcss@8.5.26))(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))
@@ -8191,7 +8194,7 @@ snapshots:
       - vite
       - webpack
 
-  '@nuxt/ui@2.22.3(magic-string@1.2.0)(magicast@0.5.3)(oxc-parser@0.128.0)(rolldown@1.2.5)(unplugin@3.3.0(esbuild@0.28.0)(rolldown@1.2.5)(rollup@4.60.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(webpack@5.107.2(esbuild@0.28.0)(lightningcss@1.33.0)(postcss@8.5.26)))(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)':
+  '@nuxt/ui@2.22.3(patch_hash=d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53)(magic-string@1.2.0)(magicast@0.5.3)(oxc-parser@0.128.0)(rolldown@1.2.5)(unplugin@3.3.0(esbuild@0.28.0)(rolldown@1.2.5)(rollup@4.60.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(webpack@5.107.2(esbuild@0.28.0)(lightningcss@1.33.0)(postcss@8.5.26)))(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)':
     dependencies:
       '@headlessui/tailwindcss': 0.2.2(tailwindcss@3.4.19(yaml@2.9.0))
       '@headlessui/vue': 1.7.23(vue@3.5.41(typescript@5.9.3))

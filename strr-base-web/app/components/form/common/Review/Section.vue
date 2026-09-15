@@ -33,7 +33,7 @@ defineEmits<{
         <div class="flex flex-col space-y-5 sm:flex-row sm:flex-wrap sm:gap-y-5 sm:space-y-0">
           <ConnectInfoBox
             v-for="(item, i) in items"
-            :key="item.title + i"
+            :key="(item.title ?? '') + i"
             :title="item.title"
             :title-class="item.titleClass || 'font-bold text-bcGovGray-900'"
             class="sm:w-1/3"
