@@ -45,9 +45,9 @@ watch(currentAddress, () => {
 }, { deep: true, immediate: true })
 
 watch(rentalUnitAddressToEdit, (newVal) => {
-  currentAddress.value = { ...newVal }
-  hasUnsavedRentalUnitChanges.value = false
-}, { deep: true })
+  if (!isLoading.value) { currentAddress.value = { ...newVal } }
+  hasUnsavedRentalUnitChanges.value = !isEqual(currentAddress.value, newVal)
+}, { deep: true, flush: 'sync' })
 
 watch(() => currentAddress.value.postalCode, (newVal) => {
   if (newVal) {
@@ -59,12 +59,18 @@ const updateStrAddress = async () => {
   if (!isActive || isLoading.value) { return }
   try {
     isLoading.value = true
+    const submittedAddress = { ...currentAddress.value }
     const saved = await saveRentalUnitAddress(
-      currentAddress.value,
+      submittedAddress,
       routeId.value!,
       isApplicationRoute.value
     )
     if (!isActive || !saved) { return }
+    if (!isEqual(currentAddress.value, submittedAddress)) {
+      rentalUnitAddressToEdit.value = submittedAddress
+      emit('addressUpdated')
+      return
+    }
     resetEditRentalUnitAddress()
     emit('addressUpdated')
     emit('close')

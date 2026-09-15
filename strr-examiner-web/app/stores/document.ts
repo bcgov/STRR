@@ -164,8 +164,8 @@ export const useExaminerDocumentStore = defineStore('examiner/document', () => {
 
       if (res?.registration) {
         uiDoc.apiDoc = res.registration.documents!.find(doc => !existingFileKeys.has(doc.fileKey))!
-        if (request === activeUploadRequest && record === exStore.activeRecord) {
-          exStore.activeRecord = res
+        if (request === activeUploadRequest && record === exStore.activeRecord && exStore.activeReg) {
+          exStore.activeReg.documents = res.registration.documents
         }
       }
     } catch (e) {
