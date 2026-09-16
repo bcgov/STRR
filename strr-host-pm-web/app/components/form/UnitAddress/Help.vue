@@ -1,10 +1,6 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
 
-const addressHelpRef = ref(null)
-
-const closeAddressHelp = () => addressHelpRef.value?.buttonRefs[0].close()
-
 defineProps<{
   helpTitle: string
   label?: string
@@ -13,7 +9,6 @@ defineProps<{
 
 <template>
   <UAccordion
-    ref="addressHelpRef"
     :items="[{ label: helpTitle, slot: 'help' }]"
     data-testid="address-help-toggle"
     :ui="{
@@ -33,7 +28,7 @@ defineProps<{
         />
       </div>
     </template>
-    <template #help>
+    <template #help="{ close }">
       <div class="mt-4 rounded border border-blue-500 bg-blue-50">
         <div class="px-3 py-2 text-bcGovColor-midGray md:px-8 md:py-5">
           <div class="space-y-8">
@@ -89,7 +84,7 @@ defineProps<{
             variant="link"
             color="primary"
             class="px-2 py-1 text-sm font-bold no-underline"
-            @click="closeAddressHelp"
+            @click="close()"
           >
             {{ t('help.address.hide') }}
           </UButton>
