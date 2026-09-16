@@ -41,6 +41,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
 
   async function removeStoredDocument (uiDoc: UiDocument) {
     const index = storedDocuments.value.findIndex(item => uiDoc.id === item.id)
+    if (index === -1) { return }
     storedDocuments.value.splice(index, 1)
     if (uiDoc.apiDoc.fileKey) {
       await deleteDocument(uiDoc.apiDoc.fileKey)
@@ -97,6 +98,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
   }
 
   async function postDocument (uiDoc: UiDocument): Promise<void> {
+    const documentContext = storedDocuments.value
     try {
       // create payload
       const formData = new FormData()
@@ -112,6 +114,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
       // update ui object with backend response
       updateStoredDocument(uiDoc.id, 'apiDoc', res)
     } catch (e) {
+      if (storedDocuments.value !== documentContext) { return }
       logFetchError(e, 'Error uploading document')
       strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
       await removeStoredDocument(uiDoc)
