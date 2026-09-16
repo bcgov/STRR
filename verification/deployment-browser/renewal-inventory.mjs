@@ -1,12 +1,15 @@
 import { chromium, expect } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
+import { verifyPlatformFeeGuard } from './platform-fee-guard.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
+const scenario = process.env.VERIFY_SCENARIO
+if (!['renewal-inventory', 'platform-fee-guard'].includes(scenario)) throw new Error('Unknown scenario')
 const report = {
-  checkedAt: new Date().toISOString(), environment, scenario: 'renewal-inventory',
+  checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
-  scope: 'Read-only synthetic-account renewal prerequisites and live registration fees. No application writes or payments.',
+  scope: 'Synthetic-account prerequisite/fee reads and optional browser-only fee guard controls. Application writes/payments are blocked; normal login sync is allowed.',
   apps: [], result: 'in_progress'
 }
 await mkdir('results', { recursive: true })
@@ -14,9 +17,9 @@ const browser = await chromium.launch()
 try {
   for (const app of [
     { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTRENOFF', 'HOSTREN_BB'] },
-    { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application', renewalCodes: ['PLATRENEWM', 'PLATRENEWL', 'PLATRENEWV'] },
+    { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application?override=true', renewalCodes: ['PLATRENEWM', 'PLATRENEWL', 'PLATRENEWV'] },
     { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application', renewalCodes: ['STRATRENEW'] }
-  ]) {
+  ].filter(app => scenario !== 'platform-fee-guard' || app.name === 'platform')) {
     const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, loginSyncRequests: 0, fees: [] }
     report.apps.push(result)
     const origin = `https://${environment}.${app.name}.shorttermrental.registry.gov.bc.ca`
@@ -141,6 +144,7 @@ try {
         fee.serviceFees = body.serviceFees
         fee.total = body.total
       }
+      if (scenario === 'platform-fee-guard') await verifyPlatformFeeGuard(page, result, environment)
       expect(result.blockedWrites).toBe(0)
       expect(result.browserErrors).toBe(0)
       result.stage = 'complete'
