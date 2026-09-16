@@ -7,8 +7,7 @@ import {
   mockHostApplicationWithReviewer,
   mockHostApplicationWithoutReviewer,
   mockHostRegistration,
-  MOCK_UNIT_ADDRESS,
-  mockSnapshots
+  MOCK_UNIT_ADDRESS
 } from '../mocks/mockedData'
 import { ApplicationStatus, RegistrationStatus } from '#imports'
 
@@ -24,6 +23,7 @@ const { getSplitDashboardEnabled, setSplitDashboardEnabled } = vi.hoisted(() => 
 
 // mock $strrApi accessed through useNuxtApp()
 const mockStrrApi = vi.fn().mockResolvedValue({})
+const mockOpenErrorModal = vi.fn()
 
 mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
   $i18n: { t: (key: string) => key },
@@ -39,7 +39,7 @@ mockNuxtImport('useKeycloak', () => () => ({
 }))
 
 mockNuxtImport('useStrrModals', () => () => ({
-  openErrorModal: vi.fn()
+  openErrorModal: mockOpenErrorModal
 }))
 
 vi.mock('@/composables/useExaminerFeatureFlags', () => ({
@@ -52,6 +52,41 @@ describe('Store - Examiner', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
     mockStrrApi.mockResolvedValue({})
+  })
+
+  it.each([
+    {
+      name: 'assign application',
+      run: (store: ReturnType<typeof useExaminerStore>) => store.assignApplication('APP-123'),
+      path: '/applications/APP-123/assign',
+      message: 'error.assignApplication'
+    },
+    {
+      name: 'unassign application',
+      run: (store: ReturnType<typeof useExaminerStore>) => store.unassignApplication('APP-123'),
+      path: '/applications/APP-123/unassign',
+      message: 'error.unAssignApplication'
+    },
+    {
+      name: 'assign registration',
+      run: (store: ReturnType<typeof useExaminerStore>) => store.assignRegistration(42),
+      path: '/registrations/42/assign',
+      message: 'error.assignApplication'
+    },
+    {
+      name: 'unassign registration',
+      run: (store: ReturnType<typeof useExaminerStore>) => store.unassignRegistration(42),
+      path: '/registrations/42/unassign',
+      message: 'error.unAssignApplication'
+    }
+  ])('preserves the handled API failure contract for $name', async ({ run, path, message }) => {
+    mockStrrApi.mockRejectedValueOnce(new Error('synthetic assignment failure'))
+
+    await expect(run(useExaminerStore())).resolves.toBeUndefined()
+
+    expect(mockStrrApi).toHaveBeenCalledWith(path, { method: 'PUT' })
+    expect(mockOpenErrorModal).toHaveBeenCalledOnce()
+    expect(mockOpenErrorModal).toHaveBeenCalledWith('Error', message, false)
   })
 
   it('should have correct application and registration records', () => {
@@ -384,7 +419,7 @@ describe('Store - Examiner', () => {
     expect(response).toEqual(mockHostApplication)
   })
 
-  it('should call correct endpoint, update activeRecord, and clear edit state on saveRentalUnitAddress', async () => {
+  it('should call correct endpoint and update activeRecord on saveRentalUnitAddress', async () => {
     const store = useExaminerStore()
     const updatedAddress = { ...MOCK_UNIT_ADDRESS, city: 'Kelowna' }
     const updatedRegistration = { ...mockHostRegistration, unitAddress: updatedAddress }
@@ -394,7 +429,7 @@ describe('Store - Examiner', () => {
     store.startEditRentalUnitAddress()
     store.hasUnsavedRentalUnitChanges = true
 
-    await store.saveRentalUnitAddress(updatedAddress, 99, false)
+    expect(await store.saveRentalUnitAddress(updatedAddress, 99, false)).toBe(true)
 
     expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99/str-address',
       expect.objectContaining({
@@ -402,9 +437,9 @@ describe('Store - Examiner', () => {
         body: { unitAddress: updatedAddress }
       }))
     expect(store.activeRecord).toEqual(updatedRegistration)
-    expect(store.isEditingRentalUnit).toBe(false)
-    expect(store.rentalUnitAddressToEdit).toEqual({})
-    expect(store.hasUnsavedRentalUnitChanges).toBe(false)
+    expect(store.isEditingRentalUnit).toBe(true)
+    expect(store.rentalUnitAddressToEdit).toEqual(MOCK_UNIT_ADDRESS)
+    expect(store.hasUnsavedRentalUnitChanges).toBe(true)
 
     // application path uses applications endpoint
     mockStrrApi.mockClear()
@@ -414,7 +449,7 @@ describe('Store - Examiner', () => {
   })
 
   it(
-    'should call registration PATCH endpoint, update activeRecord, and clear edit state on patchRegistration',
+    'should call registration PATCH endpoint and update activeRecord on patchRegistration',
     async () => {
       const store = useExaminerStore()
       const updatedRegistration = {
@@ -430,7 +465,7 @@ describe('Store - Examiner', () => {
       store.startEditRegistrationEmail()
       store.hasUnsavedRegistrationEmailChanges = true
 
-      await store.patchRegistration(99, 'updated-host@example.com')
+      expect(await store.patchRegistration(99, 'updated-host@example.com')).toBe(true)
 
       expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99',
         expect.objectContaining({
@@ -442,9 +477,9 @@ describe('Store - Examiner', () => {
           }
         }))
       expect(store.activeRecord).toEqual(updatedRegistration)
-      expect(store.isEditingRegistrationEmail).toBe(false)
-      expect(store.registrationEmailToEdit).toBe('')
-      expect(store.hasUnsavedRegistrationEmailChanges).toBe(false)
+      expect(store.isEditingRegistrationEmail).toBe(true)
+      expect(store.registrationEmailToEdit).toBe(mockHostRegistration.primaryContact.emailAddress)
+      expect(store.hasUnsavedRegistrationEmailChanges).toBe(true)
     }
   )
 
@@ -571,13 +606,22 @@ describe('Store - Examiner', () => {
 
   it('should have correct response for getSnapshotById', async () => {
     const store = useExaminerStore()
-    mockStrrApi.mockResolvedValueOnce(mockSnapshots[0])
+    const response = {
+      id: 17,
+      registrationId: 99,
+      version: 2,
+      snapshotDateTime: '2025-04-02T12:00:00',
+      snapshotData: { ...mockHostRegistration, id: 99 }
+    }
+    mockStrrApi.mockResolvedValueOnce(response)
 
-    const result = await store.getSnapshotById('99', 'snapshot-1')
+    const result = await store.getSnapshotById('99', '17')
 
-    expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99/snapshots/snapshot-1',
+    expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99/snapshots/17',
       expect.objectContaining({ method: 'GET' }))
-    expect(result).toEqual(mockSnapshots[0])
+    expect(result).toEqual(response)
+    expect(store.activeRecord).toEqual(response.snapshotData)
+    expect(store.snapshotInfo).toMatchObject({ id: 17, version: 2, snapshotDateTime: response.snapshotDateTime })
   })
 
   it('should correctly edit and reset rental unit address', () => {

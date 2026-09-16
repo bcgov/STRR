@@ -23,6 +23,7 @@ export const useHostExpansion = () => {
   } = storeToRefs(useExaminerStore())
   const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
   const { t } = useNuxtApp().$i18n
+  exp.close()
   isFilingHistoryOpen.value = false // reset so it's starts hidden by default
   resetEditRentalUnitAddress()
   resetEditRegistrationEmail()

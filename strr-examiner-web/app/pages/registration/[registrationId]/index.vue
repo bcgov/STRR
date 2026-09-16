@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
 const route = useRoute()
+const { setButtonControl } = useButtonControl()
 const { manageAction } = useExaminerActions()
 const { updateRouteAndButtons } = useExaminerRoute()
 const {
@@ -77,7 +78,7 @@ const handleRegistrationAction = (
     actionFn = sendNoticeOfConsiderationForRegistration
     refreshFn = () => {
       emailContent.value.content = ''
-      refresh()
+      return refresh()
     }
     additionalArgs = [emailContent.value.content]
     validateFn = async () => await validateForm(emailFormRef.value, true).then(errors => !errors)
@@ -119,9 +120,14 @@ const handleAssigneeAction = (
 }
 
 watch(
-  [registration, error, isAssignedToUser],
+  [registration, status, error, isAssignedToUser],
   () => {
+    if (status.value === 'pending') { return }
     initialMount.value = false
+    if (error.value || !registration.value) {
+      setButtonControl({ leftButtons: [], rightButtons: [] })
+      return
+    }
 
     updateRouteAndButtons(RoutesE.REGISTRATION, {
       registrationSetAside: {
@@ -184,7 +190,7 @@ watch(
       <ComposeNoc v-if="!showDecisionPanel" />
       <DecisionPanel />
       <ExaminerNotes v-if="isExaminerNotesEnabled && isHostApplication" />
-      <AssignmentActions :is-registration-page="true" @refresh="refresh" />
+      <AssignmentActions :is-registration-page="true" :refresh="refresh" />
       <HistoricalApplicationsTable
         v-if="!isApplication && isHistoricalApplicationsTableEnabled"
         :applications="(activeRecord as HousRegistrationResponse).header.applications ?? []"

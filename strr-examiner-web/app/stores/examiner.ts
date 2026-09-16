@@ -11,6 +11,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const tableLimit = ref(50)
   const tablePage = ref(1)
   const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)
+  let activeRecordRequest = 0
+  let activePaymentRequest = 0
   const activePaymentTotal = ref<number | null>(null)
   const activePaymentDate = ref<string | null>(null)
   const isApplication = computed<boolean>(() => {
@@ -38,7 +40,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const isHostApplication = computed(() => activeReg.value?.registrationType === ApplicationType.HOST)
   const _isAssignedToUser = ref(false)
 
-  const snapshotInfo = ref<ApiSnapshot>({} as ApiSnapshot)
+  const snapshotInfo = ref<Pick<ApiSnapshotResponse, 'id' | 'version' | 'snapshotDateTime'>>()
+
+  const beginRecordRequest = () => {
+    const request = ++activeRecordRequest
+    activeRecord.value = undefined
+    snapshotInfo.value = undefined
+    return request
+  }
 
   watch(
     () => [
@@ -434,12 +443,13 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getNextApplication = async <T extends ApiApplicationBaseResp>(): Promise<T | undefined> => {
+    const request = beginRecordRequest()
     const resp = await getAccountApplications<T>(
       undefined, undefined, ApplicationType.HOST, ApplicationStatus.FULL_REVIEW,
       ApplicationSortBy.APPLICATION_DATE, ApplicationSortOrder.ASC
     )
     const nextApplication = resp.applications[0]
-    activeRecord.value = nextApplication
+    if (request === activeRecordRequest) { activeRecord.value = nextApplication }
     return nextApplication
   }
 
@@ -464,16 +474,18 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getApplicationPaymentInfo = async (): Promise<void> => {
+    const request = ++activePaymentRequest
     const header = activeHeader.value
     activePaymentTotal.value = null
     activePaymentDate.value = null
 
-    if (!header?.paymentToken || !header?.paymentAccount) {
+    if (!isApplication.value || !header?.paymentToken || !header?.paymentAccount) {
       return
     }
     try {
       const resp = await $payApi<PaymentInvoice>(`/payment-requests/${header.paymentToken}`, { method: 'GET' })
 
+      if (request !== activePaymentRequest) { return }
       activePaymentTotal.value = resp?.total ?? null
       activePaymentDate.value = resp?.paymentDate ?? null
     } catch (e) {
@@ -482,15 +494,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   watch(
-    () => activeHeader.value?.paymentToken,
-    (token) => {
-      if (isApplication.value && token) {
-        getApplicationPaymentInfo()
-      } else {
-        activePaymentTotal.value = null
-        activePaymentDate.value = null
-      }
-    },
+    [activeRecord, () => activeHeader.value?.paymentToken, () => activeHeader.value?.paymentAccount],
+    getApplicationPaymentInfo,
     { immediate: true }
   )
 
@@ -538,10 +543,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   const getApplicationById = async (applicationNumber: string): Promise<HousApplicationResponse> => {
+    const request = beginRecordRequest()
     const resp = await $strrApi<HousApplicationResponse>(`/applications/${applicationNumber}`, {
       method: 'GET'
     })
-    activeRecord.value = resp
+    if (request === activeRecordRequest) { activeRecord.value = resp }
     return resp
   }
 
@@ -717,10 +723,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * @param {number} registrationId - The registrationId for the registration.
    */
   const getRegistrationById = async (registrationId: string): Promise<HousRegistrationResponse> => {
+    const request = beginRecordRequest()
     const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
       method: 'GET'
     })
-    activeRecord.value = resp
+    if (request === activeRecordRequest) { activeRecord.value = resp }
     return resp
   }
 
@@ -805,11 +812,17 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const getSnapshotById = async (
     registrationId: string,
     snapshotId: string
-  ): Promise<any> => {
-    return await $strrApi<any>(
+  ): Promise<ApiSnapshotResponse> => {
+    const request = beginRecordRequest()
+    const resp = await $strrApi<ApiSnapshotResponse>(
       `/registrations/${registrationId}/snapshots/${snapshotId}`,
       { method: 'GET' }
     )
+    if (request === activeRecordRequest) {
+      activeRecord.value = resp.snapshotData
+      snapshotInfo.value = resp
+    }
+    return resp
   }
 
   const openDocInNewTab = async (
@@ -851,29 +864,27 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * @param {Partial<EditStrAddress>} updatedAddress - The new address data to save
    * @param {string|number} identifier - The ID of the application or registration
    * @param {boolean} isApplication - Flag indicating if this is an application (true) or registration (false)
-   * @returns {Promise<void>}
+   * @returns Whether the response was applied to the current record.
    */
   const saveRentalUnitAddress = async (
     updatedAddress: Partial<EditStrAddress>,
     identifier: string | number,
     isApplication: boolean
-  ): Promise<void> => {
-    try {
-      const endpoint = isApplication
-        ? `/applications/${identifier}/str-address`
-        : `/registrations/${identifier}/str-address`
-      const resp = await $strrApi(endpoint, {
-        method: 'PATCH',
-        body: {
-          unitAddress: updatedAddress
-        }
-      })
-      activeRecord.value = resp
-      resetEditRentalUnitAddress()
-    } catch (e) {
-      logFetchError(e, t('error.saveAddress'))
-      strrModal.openErrorModal('Error', t('error.saveAddress'), false)
-    }
+  ): Promise<boolean> => {
+    const request = ++activeRecordRequest
+    const record = activeRecord.value
+    const endpoint = isApplication
+      ? `/applications/${identifier}/str-address`
+      : `/registrations/${identifier}/str-address`
+    const resp = await $strrApi<HousApplicationResponse | HousRegistrationResponse>(endpoint, {
+      method: 'PATCH',
+      body: {
+        unitAddress: updatedAddress
+      }
+    })
+    if (request !== activeRecordRequest || record !== activeRecord.value) { return false }
+    activeRecord.value = resp
+    return true
   }
 
   /**
@@ -881,27 +892,25 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    *
    * @param {number} registrationId - The registration ID to update.
    * @param {string} updatedEmail - The new primary contact email.
-   * @returns {Promise<void>}
+   * @returns Whether the response was applied to the current record.
    */
   const patchRegistration = async (
     registrationId: number,
     updatedEmail: string
-  ): Promise<void> => {
-    try {
-      const resp = await $strrApi(`/registrations/${registrationId}`, {
-        method: 'PATCH',
-        body: {
-          primaryContact: {
-            emailAddress: updatedEmail
-          }
+  ): Promise<boolean> => {
+    const request = ++activeRecordRequest
+    const record = activeRecord.value
+    const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
+      method: 'PATCH',
+      body: {
+        primaryContact: {
+          emailAddress: updatedEmail
         }
-      })
-      activeRecord.value = resp
-      resetEditRegistrationEmail()
-    } catch (e) {
-      logFetchError(e, t('error.saveAddress'))
-      strrModal.openErrorModal('Error', t('error.saveAddress'), false)
-    }
+      }
+    })
+    if (request !== activeRecordRequest || record !== activeRecord.value) { return false }
+    activeRecord.value = resp
+    return true
   }
 
   return {

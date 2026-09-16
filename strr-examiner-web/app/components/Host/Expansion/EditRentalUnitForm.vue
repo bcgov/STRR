@@ -36,6 +36,8 @@ type editAddressFormSchema = z.output<typeof rentalUnitAddressSchema.value>
 const editStrAddressForm = ref<Form<editAddressFormSchema>>()
 
 const isLoading = ref(false)
+let isActive = true
+onScopeDispose(() => { isActive = false })
 
 watch(currentAddress, () => {
   const hasChanges = !isEqual(currentAddress.value, rentalUnitAddressToEdit.value)
@@ -54,16 +56,20 @@ watch(() => currentAddress.value.postalCode, (newVal) => {
 })
 
 const updateStrAddress = async () => {
+  if (!isActive || isLoading.value) { return }
   try {
     isLoading.value = true
-    await saveRentalUnitAddress(
+    const saved = await saveRentalUnitAddress(
       currentAddress.value,
       routeId.value!,
       isApplicationRoute.value
     )
+    if (!isActive || !saved) { return }
+    resetEditRentalUnitAddress()
     emit('addressUpdated')
     emit('close')
   } catch (e) {
+    if (!isActive) { return }
     logFetchError(e, t('error.saveAddress'))
     openErrorModal('Error', t('error.saveAddress'), false)
   } finally {
