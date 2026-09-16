@@ -52,7 +52,7 @@ watch(
 )
 
 // address input fields to be disabled for Registration Renewals
-const renewalDisabledFields: AddressField[] = [
+const renewalDisabledFields: (keyof ConnectAddress)[] = [
   'country',
   'street',
   'streetName',

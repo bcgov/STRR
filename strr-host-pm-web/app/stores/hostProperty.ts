@@ -78,9 +78,9 @@ export const useHostPropertyStore = defineStore('host/property', () => {
       unitNumber: z
         .string()
         .max(6, { message: t('validation.maxChars', { maxLen: 6 }) })
-        .optional()
         .refine(val => val === '' || unitNumberRegex.test(val),
-          { message: t('validation.addressForm.unitNumberInvalid') }),
+          { message: t('validation.addressForm.unitNumberInvalid') })
+        .optional(),
       city: z
         .string()
         .min(2, { message: t('validation.addressForm.city') })
