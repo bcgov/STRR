@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@nuxt/ui@2.22.3':
+    hash: d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53
+    path: patches/@nuxt__ui@2.22.3.patch
+
 importers:
 
   .:
@@ -7209,7 +7214,7 @@ snapshots:
   '@daxiom/nuxt-core-layer-test@0.0.29(6978517269e4075db9ad5d5cb4ec080f)':
     dependencies:
       '@iconify-json/mdi': 1.2.3
-      '@nuxt/ui': 2.22.3(magicast@0.5.4)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)
+      '@nuxt/ui': 2.22.3(patch_hash=d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53)(magicast@0.5.4)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)
       '@nuxtjs/i18n': 10.2.1(@vue/compiler-dom@3.5.41)(db0@0.3.4)(eslint@8.57.1)(ioredis@5.11.1)(magicast@0.5.4)(rollup@4.62.4)(vue@3.5.41(typescript@5.9.3))
       '@pinia/nuxt': 0.11.3(magicast@0.5.4)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))
       '@vueuse/nuxt': 13.9.0(magicast@0.5.4)(nuxt@4.5.2(@babel/plugin-syntax-jsx@7.27.1(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@oxc-project/types@0.146.0)(@types/node@25.0.3)(@vue/compiler-sfc@3.5.26)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.2)(eslint@8.57.1)(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.4)(optionator@0.9.4)(oxc-parser@0.95.0)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.5)(rollup-plugin-visualizer@7.1.1(rolldown@1.2.5)(rollup@4.62.4))(rollup@4.62.4)(sass@1.97.1)(srvx@0.11.22)(terser@5.44.1)(typescript@5.9.3)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(webpack@5.104.1(esbuild@0.28.2))(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))
@@ -8314,7 +8319,7 @@ snapshots:
       - vite
       - webpack
 
-  '@nuxt/ui@2.22.3(magicast@0.5.4)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)':
+  '@nuxt/ui@2.22.3(patch_hash=d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53)(magicast@0.5.4)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)':
     dependencies:
       '@headlessui/tailwindcss': 0.2.2(tailwindcss@3.4.19(yaml@2.9.0))
       '@headlessui/vue': 1.7.23(vue@3.5.41(typescript@5.9.3))

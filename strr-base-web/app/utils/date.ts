@@ -85,7 +85,7 @@ export function dayCountdown (end: string, isElapsed: boolean = false): number {
   // get difference in days https://moment.github.io/luxon/#/math?id=diffs
   const diff = isElapsed
     ? startDate.diff(endDate, 'days').toObject().days ?? 0
-    : endDate.diff(startDate, 'days').toObject().days
+    : endDate.diff(startDate, 'days').as('days')
 
   // round difference down
   return Math.floor(diff)
