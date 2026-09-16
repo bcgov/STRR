@@ -10,7 +10,7 @@ const formBus = inject<UseEventBusReturn<any, string> | undefined>('form-events'
 const props = defineProps<{
   name: string
   help?: string,
-  initialDate?: Date,
+  initialDate?: Date | null,
   minDate?: Date,
   maxDate?: Date,
   placeholder?: string,
