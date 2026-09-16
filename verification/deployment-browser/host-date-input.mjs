@@ -50,14 +50,21 @@ export async function verifyHostDateInput(page, result) {
     const actual = await input.inputValue()
     result.dateInput.cases.push({ name, typed, expected, actual, passed: actual === expected })
   }
-  result.stage = 'date-calendar'
+  result.stage = 'date-calendar-open'
   await input.fill(bounds.anchor)
   await input.click()
-  const picker = page.getByTestId('date-picker')
+  const picker = page.locator('.connect-date-picker')
+  result.dateInput.calendarMarkup = {
+    wrapperCount: await picker.count(),
+    testIdCount: await page.getByTestId('date-picker').count(),
+    dayTexts: (await picker.locator('.connect-date-picker__calendar__day').allTextContents()).map(text => text.trim()).filter(text => /^\d{1,2}$/.test(text))
+  }
   await expect(picker).toBeVisible()
   // The day class is declared by the actual shared Picker.vue, not a mocked calendar.
   const day = picker.locator('.connect-date-picker__calendar__day').filter({ hasText: /^11$/ })
+  result.stage = 'date-calendar-day-target'
   await expect(day).toHaveCount(1)
+  result.stage = 'date-calendar-select'
   await day.click()
   const closedAfterSelection = await expect(picker).toHaveCount(0, { timeout: 1500 }).then(() => true, () => false)
   await remount()
