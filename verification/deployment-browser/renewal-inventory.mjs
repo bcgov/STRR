@@ -4,11 +4,12 @@ import { verifyPlatformFeeGuard, verifyPlatformFeeOptions } from './platform-fee
 import { verifyStrataFeeGuard } from './strata-fee-guard.mjs'
 import { verifyBusinessCheckout } from './business-checkout.mjs'
 import { verifyHostDateInput } from './host-date-input.mjs'
+import { inspectDocumentFixtures } from './document-inventory.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
-if (!['renewal-inventory', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input'].includes(scenario)) throw new Error('Unknown scenario')
+if (!['renewal-inventory', 'document-inventory', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input'].includes(scenario)) throw new Error('Unknown scenario')
 const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
 const scenarioApp = { 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
@@ -29,7 +30,7 @@ try {
     { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTRENOFF', 'HOSTREN_BB'] },
     { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application?override=true', renewalCodes: ['PLATRENEWM', 'PLATRENEWL', 'PLATRENEWV'] },
     { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application', renewalCodes: ['STRATRENEW'] }
-  ].filter(app => !scenarioApp || app.name === scenarioApp)) {
+  ].filter(app => scenario === 'document-inventory' ? app.name !== 'platform' : !scenarioApp || app.name === scenarioApp)) {
     const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, blockedRequestCategories: [], loginSyncRequests: 0, addressLookupStatuses: [], fees: [] }
     report.apps.push(result)
     const origin = `https://${environment}.${app.name}.shorttermrental.registry.gov.bc.ca`
@@ -141,6 +142,9 @@ try {
           id: registration.id, status: registration.status, expiryDate: registration.expiryDate,
           tasks: body.todos.map(item => item.task.type)
         })
+      }
+      if (scenario === 'document-inventory') {
+        await inspectDocumentFixtures(page, result, apiOrigin, apiHeaders, applications, registrations)
       }
       result.stage = 'live-registration-fees'
       await page.goto(origin + '/en-CA' + app.application, { waitUntil: 'domcontentloaded' })

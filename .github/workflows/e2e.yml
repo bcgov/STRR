@@ -14,7 +14,7 @@ on:
         type: choice
         required: true
         default: read-only
-        options: [read-only, strata-list, renewal-inventory, platform-fee-guard, platform-fee-options, platform-checkout, platform-draft-resume, strata-fee-guard, strata-checkout, host-renewal-fees, host-date-input, host-fee, host-fixture-state, host-resume]
+        options: [read-only, strata-list, renewal-inventory, document-inventory, platform-fee-guard, platform-fee-options, platform-checkout, platform-draft-resume, strata-fee-guard, strata-checkout, host-renewal-fees, host-date-input, host-fee, host-fixture-state, host-resume]
 
 permissions:
   contents: read
@@ -46,7 +46,7 @@ jobs:
         run: |
           if [ "$VERIFY_SCENARIO" = "strata-list" ]; then
             node strata-preflight.mjs
-          elif [ "$VERIFY_SCENARIO" = "renewal-inventory" ] || [ "$VERIFY_SCENARIO" = "platform-fee-guard" ] || [ "$VERIFY_SCENARIO" = "platform-fee-options" ] || [ "$VERIFY_SCENARIO" = "platform-checkout" ] || [ "$VERIFY_SCENARIO" = "platform-draft-resume" ] || [ "$VERIFY_SCENARIO" = "strata-fee-guard" ] || [ "$VERIFY_SCENARIO" = "strata-checkout" ] || [ "$VERIFY_SCENARIO" = "host-renewal-fees" ] || [ "$VERIFY_SCENARIO" = "host-date-input" ]; then
+          elif [ "$VERIFY_SCENARIO" = "renewal-inventory" ] || [ "$VERIFY_SCENARIO" = "document-inventory" ] || [ "$VERIFY_SCENARIO" = "platform-fee-guard" ] || [ "$VERIFY_SCENARIO" = "platform-fee-options" ] || [ "$VERIFY_SCENARIO" = "platform-checkout" ] || [ "$VERIFY_SCENARIO" = "platform-draft-resume" ] || [ "$VERIFY_SCENARIO" = "strata-fee-guard" ] || [ "$VERIFY_SCENARIO" = "strata-checkout" ] || [ "$VERIFY_SCENARIO" = "host-renewal-fees" ] || [ "$VERIFY_SCENARIO" = "host-date-input" ]; then
             node renewal-inventory.mjs
           else
             node preflight.mjs
