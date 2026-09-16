@@ -56,20 +56,20 @@ const getPhoneNumber = (phone: ConnectPhone) => {
 
 </script>
 <template>
-  <!-- NOTE: - expand-button / td: { padding: 'first:p-0' } are for hiding nuxt/uis default expand column  -->
+  <!-- NOTE: - expand-action / td: { padding: 'first:p-0' } are for hiding nuxt/uis default expand column  -->
   <!--       - looks like this can be changed in nuxt/ui 3.0 because they let you place the expand column yourself -->
   <UTable
     v-model:expand="expand"
     class="h-full rounded bg-white"
     :rows="hostOwners"
     :columns="columns"
-    :expand-button="{ class: 'hidden' }"
     :ui="{ td: { padding: 'first:p-0' } }"
     :empty-state="{
       label: $t('text.noIndividualsOrBusinesses'),
       icon: ''
     }"
   >
+    <template #expand-action />
     <template #name-data="{ row }: { row: HostOwner }">
       <ConnectInfoWithIcon :icon="getNameIcon(row)">
         <div class="*:space-y-3">

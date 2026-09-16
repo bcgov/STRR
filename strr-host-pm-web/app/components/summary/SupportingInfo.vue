@@ -35,6 +35,14 @@ const isNocPending = computed(() =>
 // Show upload button if NOC is pending OR business license is required
 const showUploadButton = computed(() => isNocPending.value || needsBusinessLicenseDocumentUpload.value)
 
+const appRegNumber = computed(() =>
+  isRegistration.value && (hasRegistrationNoc.value || needsBusinessLicenseDocumentUpload.value)
+    ? (registration.value?.id ?? application.value?.header.registrationId)
+    : application.value?.header.applicationNumber
+)
+
+watch(appRegNumber, () => { isFileUploadOpen.value = false }, { flush: 'sync' })
+
 // step 3 items
 const supportingInfo = computed(() => {
   const items = [
@@ -112,7 +120,7 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
             >
               <span class="text-sm font-bold">{{ t(`form.pr.docType.${doc.type}`) }}
                 <UBadge
-                  v-if="[DocumentUploadStep.NOC, DocumentUploadStep.REG_NOC].includes(doc.uploadStep)"
+                  v-if="doc.uploadStep && [DocumentUploadStep.NOC, DocumentUploadStep.REG_NOC].includes(doc.uploadStep)"
                   :label="`${ t('strr.label.added')} ` + doc.uploadDate"
                   size="sm"
                   class="ml-1 px-3 py-0 font-bold"
@@ -136,16 +144,12 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
       </div>
     </template>
     <template
-      v-if="isFileUploadOpen"
+      v-if="isFileUploadOpen && appRegNumber !== undefined"
       #info-upload
     >
       <BaseUploadAdditionalDocuments
         :component="Select"
-        :app-reg-number="
-          isRegistration && (hasRegistrationNoc || needsBusinessLicenseDocumentUpload)
-            ? (registration?.id ?? application?.header.registrationId)
-            : application?.header.applicationNumber
-        "
+        :app-reg-number="appRegNumber"
         :selected-doc-type="docStore.selectedDocType"
         :is-registration="isRegistration"
         :upload-document="handleUploadDocument"

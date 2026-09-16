@@ -31,6 +31,7 @@ export interface ApiPropertyManager {
 }
 
 export interface ApiUnitDetails {
+  jurisdiction?: string | null
   parcelIdentifier?: string
   businessLicense?: string
   businessLicenseExpiryDate?: string
