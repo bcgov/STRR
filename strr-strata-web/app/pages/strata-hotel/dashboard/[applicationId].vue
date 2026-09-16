@@ -29,6 +29,9 @@ const representatives = ref<ConnectAccordionItem[]>([])
 const completingParty = ref<ConnectAccordionItem | undefined>(undefined)
 
 const isFileUploadOpen = ref(false)
+const uploadApplicationNumber = computed(() => application.value?.header.applicationNumber)
+
+watch(uploadApplicationNumber, () => { isFileUploadOpen.value = false }, { flush: 'sync' })
 
 const getRenewalToDo = async (): Promise<Todo[]> => {
   if (!registration.value) { return [] }
@@ -312,10 +315,10 @@ definePageMeta({
           </div>
         </div>
         <BaseUploadAdditionalDocuments
-          v-if="isFileUploadOpen"
+          v-if="isFileUploadOpen && uploadApplicationNumber !== undefined"
           :component="Button"
           is-strata
-          :app-reg-number="application!.header.applicationNumber"
+          :app-reg-number="uploadApplicationNumber"
           :selected-doc-type="documentStore.selectedDocType"
           class="p-3"
           :upload-document="(doc: UiDocument, appNumber: string | number) =>
