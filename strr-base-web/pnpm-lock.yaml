@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@daxiom/nuxt-core-layer-test@0.0.29':
-    hash: ba6a68bb0ea9bae9df00896b4868121f4a342c7439483c2ecee836d79df564e7
+    hash: 9346cb61092ec66ef42e5493a442308d52bc6e96c8504915372796e2fd6c5b81
     path: patches/@daxiom__nuxt-core-layer-test@0.0.29.patch
   '@nuxt/ui@2.22.3':
     hash: 3cb6e5c3effdd0fa7e22cacbbe2a3dc0dc154e5d3c84fa68950a68ac29f45c57
@@ -18,7 +18,7 @@ importers:
     dependencies:
       '@daxiom/nuxt-core-layer-test':
         specifier: ^0.0.29
-        version: 0.0.29(patch_hash=ba6a68bb0ea9bae9df00896b4868121f4a342c7439483c2ecee836d79df564e7)(6978517269e4075db9ad5d5cb4ec080f)
+        version: 0.0.29(patch_hash=9346cb61092ec66ef42e5493a442308d52bc6e96c8504915372796e2fd6c5b81)(6978517269e4075db9ad5d5cb4ec080f)
       '@gtm-support/vue-gtm':
         specifier: 3.2.0
         version: 3.2.0(@vue/compiler-sfc@3.5.26)(esbuild@0.28.2)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.5)(rollup@4.62.4)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(webpack@5.104.1(esbuild@0.28.2))
@@ -7223,7 +7223,7 @@ snapshots:
     dependencies:
       postcss-selector-parser: 7.1.1
 
-  '@daxiom/nuxt-core-layer-test@0.0.29(patch_hash=ba6a68bb0ea9bae9df00896b4868121f4a342c7439483c2ecee836d79df564e7)(6978517269e4075db9ad5d5cb4ec080f)':
+  '@daxiom/nuxt-core-layer-test@0.0.29(patch_hash=9346cb61092ec66ef42e5493a442308d52bc6e96c8504915372796e2fd6c5b81)(6978517269e4075db9ad5d5cb4ec080f)':
     dependencies:
       '@iconify-json/mdi': 1.2.3
       '@nuxt/ui': 2.22.3(patch_hash=3cb6e5c3effdd0fa7e22cacbbe2a3dc0dc154e5d3c84fa68950a68ac29f45c57)(magicast@0.5.4)(vite@8.2.1(@types/node@25.0.3)(esbuild@0.28.2)(jiti@1.21.7)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)

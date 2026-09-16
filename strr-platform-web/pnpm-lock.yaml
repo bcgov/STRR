@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@daxiom/nuxt-core-layer-test@0.0.29':
-    hash: ba6a68bb0ea9bae9df00896b4868121f4a342c7439483c2ecee836d79df564e7
+    hash: 9346cb61092ec66ef42e5493a442308d52bc6e96c8504915372796e2fd6c5b81
     path: patches/@daxiom__nuxt-core-layer-test@0.0.29.patch
   '@nuxt/ui@2.22.3':
     hash: 3cb6e5c3effdd0fa7e22cacbbe2a3dc0dc154e5d3c84fa68950a68ac29f45c57
@@ -24,7 +24,7 @@ importers:
     dependencies:
       '@daxiom/nuxt-core-layer-test':
         specifier: ^0.0.29
-        version: 0.0.29(patch_hash=ba6a68bb0ea9bae9df00896b4868121f4a342c7439483c2ecee836d79df564e7)(9b0a865bbe91d8d4a49f6a21543a189a)
+        version: 0.0.29(patch_hash=9346cb61092ec66ef42e5493a442308d52bc6e96c8504915372796e2fd6c5b81)(9b0a865bbe91d8d4a49f6a21543a189a)
       country-codes-list:
         specifier: ^2.0.0
         version: 2.0.0
@@ -7206,7 +7206,7 @@ snapshots:
     dependencies:
       postcss-selector-parser: 7.1.1
 
-  '@daxiom/nuxt-core-layer-test@0.0.29(patch_hash=ba6a68bb0ea9bae9df00896b4868121f4a342c7439483c2ecee836d79df564e7)(9b0a865bbe91d8d4a49f6a21543a189a)':
+  '@daxiom/nuxt-core-layer-test@0.0.29(patch_hash=9346cb61092ec66ef42e5493a442308d52bc6e96c8504915372796e2fd6c5b81)(9b0a865bbe91d8d4a49f6a21543a189a)':
     dependencies:
       '@iconify-json/mdi': 1.2.3
       '@nuxt/ui': 2.22.3(patch_hash=3cb6e5c3effdd0fa7e22cacbbe2a3dc0dc154e5d3c84fa68950a68ac29f45c57)(magicast@0.5.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.0.3)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)

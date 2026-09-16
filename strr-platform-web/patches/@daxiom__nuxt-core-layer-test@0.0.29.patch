@@ -73,12 +73,10 @@ diff --git a/app/types/core-page-meta.d.ts b/app/types/core-page-meta.d.ts
 diff --git a/nuxt.config.ts b/nuxt.config.ts
 --- a/nuxt.config.ts
 +++ b/nuxt.config.ts
-@@ -48,6 +48,15 @@
- 
-   ui: {
+@@ -50,6 +50,15 @@
      icons: ['mdi']
-+  },
-+
+   },
+ 
 +  hooks: {
 +    'prepare:types' ({ references }) {
 +      references.push(
@@ -86,9 +84,26 @@ diff --git a/nuxt.config.ts b/nuxt.config.ts
 +        { path: join(currentDir, './app/types/core-page-meta.d.ts') }
 +      )
 +    }
++  },
++
+   alias: {
+     BCGovFonts: join(currentDir, './public/fonts/BCSans'),
+     BCGovLogoSmEn: join(currentDir, './public/BCGovLogo/gov_bc_logo_vert_en.png'),
+@@ -86,10 +95,10 @@
+       baseUrl: process.env.NUXT_BASE_URL,
+       paymentPortalUrl: process.env.NUXT_PAYMENT_PORTAL_URL,
+       payApiURL: `${process.env.NUXT_PAY_API_URL}${process.env.NUXT_PAY_API_VERSION}`,
+-      tokenRefreshInterval: process.env.NUXT_KEYCLOAK_REFRESH_INTERVAL || 30000, // default 30 seconds
+-      tokenMinValidity: process.env.NUXT_KEYCLOAK_MIN_TOKEN_VALIDITY || 120000, // default 2 mins
+-      sessionIdleTimeout: process.env.NUXT_CONNECT_SESSION_INACTIVITY_TIMEOUT || 1800000, // default 30 mins
+-      sessionExpiredModalTimeout: process.env.NUXT_CONNECT_SESSION_MODAL_TIMEOUT || 120000 // default 2 mins
++      tokenRefreshInterval: Number(process.env.NUXT_KEYCLOAK_REFRESH_INTERVAL || 30000), // default 30 seconds
++      tokenMinValidity: Number(process.env.NUXT_KEYCLOAK_MIN_TOKEN_VALIDITY || 120000), // default 2 mins
++      sessionIdleTimeout: Number(process.env.NUXT_CONNECT_SESSION_INACTIVITY_TIMEOUT || 1800000), // default 30 mins
++      sessionExpiredModalTimeout: Number(process.env.NUXT_CONNECT_SESSION_MODAL_TIMEOUT || 120000) // default 2 mins
+     }
    },
  
-   alias: {
 diff --git a/app/app.config.ts b/app/app.config.ts
 --- a/app/app.config.ts
 +++ b/app/app.config.ts
@@ -266,3 +281,23 @@ diff --git a/app/plugins/dompurify.ts b/app/plugins/dompurify.ts
  
      if (import.meta.server) {
        const { JSDOM } = await import('jsdom')
+diff --git a/app/components/Connect/Modal/Session/Expiring.vue b/app/components/Connect/Modal/Session/Expiring.vue
+--- a/app/components/Connect/Modal/Session/Expiring.vue
++++ b/app/components/Connect/Modal/Session/Expiring.vue
+@@ -9,7 +9,7 @@
+ }>()
+ 
+ const timeRemaining = ref(toValue((modalTimeout as number) / 1000))
+-setInterval(() => {
++const countdownInterval = setInterval(() => {
+   const value = timeRemaining.value - 1
+   timeRemaining.value = value < 0 ? 0 : value
+ }, 1000)
+@@ -42,6 +42,7 @@
+ })
+ onUnmounted(() => {
+   // cleanup
++  clearInterval(countdownInterval)
+   window.removeEventListener('keydown', closeModal)
+ })
+ </script>
