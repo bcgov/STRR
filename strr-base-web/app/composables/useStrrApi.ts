@@ -4,12 +4,24 @@ import type { ApiRegistrationTodoTaskResp } from '~/interfaces/strr-api'
 export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
 
-  const getAccountRegistrations = async <T extends ApiBaseRegistration>(
+  async function getAccountRegistrations<T extends object>(
+    id: number | string,
+    type?: ApplicationType,
+    limit?: number,
+    offset?: number
+  ): Promise<T | undefined>
+  async function getAccountRegistrations<T extends object>(
+    id?: undefined,
+    type?: ApplicationType,
+    limit?: number,
+    offset?: number
+  ): Promise<{ registrations: T[], total: number }>
+  async function getAccountRegistrations<T extends object> (
     id?: number | string,
     type?: ApplicationType,
     limit?: number,
     offset?: number
-  ) => {
+  ) {
     if (id) {
       return await $strrApi<T>(`/registrations/${id}`).catch((e) => {
         logFetchError(e, `Unable to get registration details for ${id}`)
@@ -143,7 +155,7 @@ export const useStrrApi = () => {
     })
   }
 
-  const searchRegistrations = async <T extends ApiBaseRegistration>(
+  const searchRegistrations = async <T extends object>(
     searchText?: string,
     limit = 50,
     page = 1,

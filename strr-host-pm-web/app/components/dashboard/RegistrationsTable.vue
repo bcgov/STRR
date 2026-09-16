@@ -193,7 +193,7 @@ const fetchRegistrations = async () => {
   let registrations: RegistrationRecord[] = []
   let total = 0
   if (isSearching.value) {
-    const resp = await searchRegistrations<ApiRegistrationResp>(
+    const resp = await searchRegistrations<RegistrationRecord>(
       searchText.value,
       props.registrationsLimit,
       registrationsPage.value,
@@ -206,7 +206,7 @@ const fetchRegistrations = async () => {
       total = resp.total || 0
     }
   } else {
-    const resp = await getAccountRegistrations<ApiRegistrationResp>(
+    const resp = await getAccountRegistrations<RegistrationRecord>(
       undefined,
       ApplicationType.HOST,
       props.registrationsLimit,
