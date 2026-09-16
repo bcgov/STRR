@@ -1,11 +1,13 @@
 import { chromium, expect } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { verifyPlatformFeeGuard } from './platform-fee-guard.mjs'
+import { verifyStrataFeeGuard } from './strata-fee-guard.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
-if (!['renewal-inventory', 'platform-fee-guard', 'host-renewal-fees'].includes(scenario)) throw new Error('Unknown scenario')
+if (!['renewal-inventory', 'platform-fee-guard', 'strata-fee-guard', 'host-renewal-fees'].includes(scenario)) throw new Error('Unknown scenario')
+const scenarioApp = { 'platform-fee-guard': 'platform', 'strata-fee-guard': 'stratahotel', 'host-renewal-fees': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
@@ -19,8 +21,8 @@ try {
     { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTRENOFF', 'HOSTREN_BB'] },
     { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application?override=true', renewalCodes: ['PLATRENEWM', 'PLATRENEWL', 'PLATRENEWV'] },
     { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application', renewalCodes: ['STRATRENEW'] }
-  ].filter(app => scenario === 'platform-fee-guard' ? app.name === 'platform' : scenario === 'host-renewal-fees' ? app.name === 'host' : true)) {
-    const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, loginSyncRequests: 0, fees: [] }
+  ].filter(app => !scenarioApp || app.name === scenarioApp)) {
+    const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, blockedRequestCategories: [], loginSyncRequests: 0, addressLookupStatuses: [], fees: [] }
     report.apps.push(result)
     const origin = `https://${environment}.${app.name}.shorttermrental.registry.gov.bc.ca`
     const context = await browser.newContext()
@@ -40,14 +42,18 @@ try {
       const payApi = url.hostname.startsWith(`pay-api-${environment}-`)
       // useTosStore.getTermsOfUse() requires this login sync before account selection.
       const loginSync = strrApi && url.pathname === '/users' && request.method() === 'POST'
+      // The address endpoint calculates requirements without saving an application.
+      const addressLookup = scenario === 'host-renewal-fees' && strrApi && url.pathname === '/address/requirements' && request.method() === 'POST'
       if (loginSync) result.loginSyncRequests++
-      if ((strrApi || payApi) && !loginSync && !['GET', 'OPTIONS'].includes(request.method())) {
+      if ((strrApi || payApi) && !loginSync && !addressLookup && !['GET', 'OPTIONS'].includes(request.method())) {
         result.blockedWrites++
+        result.blockedRequestCategories.push({ method: request.method(), resource: /^\/(applications|registrations|documents|address)(?:\/|$)/.exec(url.pathname)?.[1] || 'other' })
         await route.abort('blockedbyclient')
       } else await route.continue()
     })
     page.on('response', response => {
       const url = new URL(response.url())
+      if (url.hostname.startsWith(`strr-api-${environment}-`) && url.pathname === '/address/requirements') result.addressLookupStatuses.push(response.status())
       if (url.hostname.startsWith(`pay-api-${environment}-`) && url.pathname.startsWith('/api/v1/fees/STRR/')) {
         const fee = { code: url.pathname.split('/').at(-1), status: response.status() }
         result.fees.push(fee)
@@ -145,6 +151,7 @@ try {
         fee.total = body.total
       }
       if (scenario === 'platform-fee-guard') await verifyPlatformFeeGuard(page, result, environment)
+      if (scenario === 'strata-fee-guard') await verifyStrataFeeGuard(page, result, environment)
       if (scenario === 'host-renewal-fees') {
         result.stage = 'host-renewal-prerequisite'
         const eligible = result.registrations.find(registration => registration.tasks.includes('REGISTRATION_RENEWAL'))
@@ -170,6 +177,7 @@ try {
         result.renewalFlow.result = 'passed'
       }
       expect(result.blockedWrites).toBe(0)
+      expect(result.addressLookupStatuses.every(status => status === 200)).toBe(true)
       expect(result.browserErrors).toBe(0)
       result.stage = 'complete'
       result.result = 'passed'
