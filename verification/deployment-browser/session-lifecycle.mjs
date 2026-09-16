@@ -56,8 +56,19 @@ export async function prepareSessionClock(page, origin) {
 export async function verifySessionLifecycle(page, result, origin) {
   const checks = result.sessionLifecycle = {
     scope: 'Real login/dashboard and actual inactivity popup/controls/logout with accelerated browser time. Observes interval lifecycle. No API stubs, application writes or payments. Not a real-elapsed-time or server session-duration test.',
-    cases: [], timers: [], messages: [], consoleWarnings: 0, consoleErrors: 0
+    cases: [], timers: [], messages: [], errors: [], consoleWarnings: 0, consoleErrors: 0
   }
+  page.on('pageerror', error => {
+    const frames = [...(error.stack || '').matchAll(/https:\/\/[^\s)]+\/(_nuxt\/[A-Za-z0-9_.-]+\.js):(\d+):(\d+)/g)]
+      .slice(0, 3).map(match => ({ asset: match[1], line: Number(match[2]), column: Number(match[3]) }))
+    const category = /Cannot (read|set) properties of (undefined|null)/.test(error.message) ? 'null-property-access'
+      : /Cannot clear timer/.test(error.message) ? 'timer-kind-mismatch'
+      : /Nuxt instance|Nuxt context|useModal\(\) is called without provider/.test(error.message) ? 'missing-app-context'
+      : /fetch|network/i.test(error.message) ? 'network'
+      : /session|token|auth/i.test(error.message) ? 'session-or-auth'
+      : 'unclassified'
+    checks.errors.push({ name: error.name, stage: result.stage, category, frames })
+  })
   page.on('console', message => {
     const text = message.text()
     if (message.type() === 'warning') checks.consoleWarnings++
