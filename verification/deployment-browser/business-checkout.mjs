@@ -1,17 +1,25 @@
 import { expect } from '@playwright/test'
 import { writeFile } from 'node:fs/promises'
 import { fillStrataForm } from './strata-fee-guard.mjs'
+import { fillPlatformForm } from './platform-fee-guard.mjs'
 import { loadTestCard, observeApplication, paySandboxCard, verifyPaidApplication } from './payment-helpers.mjs'
 
 // One fresh synthetic application only. Never reuse a previous run's invoice.
-export async function verifyStrataCheckout(page, result, environment, accountId) {
+export async function verifyBusinessCheckout(page, result, environment, accountId, kind) {
   if (environment !== 'test') throw new Error('Sandbox checkout is TEST only')
   const card = loadTestCard([])
-  const origin = 'https://test.stratahotel.shorttermrental.registry.gov.bc.ca'
+  const config = {
+    strata: { app: 'stratahotel', type: 'STRATA_HOTEL', path: '/strata-hotel', fee: 'STRATAREG', fill: fillStrataForm, legalName: 'strata-business-legal-name', brand: 'strata-brand-name' },
+    platform: { app: 'platform', type: 'PLATFORM', path: '/platform', fee: 'PLATREG_SM', fill: fillPlatformForm, legalName: 'platform-business-legal-name', brand: 'platform-brand-name-0' }
+  }[kind]
+  if (!config) throw new Error('Unknown checkout app')
+  const origin = `https://test.${config.app}.shorttermrental.registry.gov.bc.ca`
+  const applicationUrl = new URL('/en-CA' + config.path + '/application', origin)
+  if (kind === 'platform') applicationUrl.searchParams.set('override', 'true')
   const apiHost = 'strr-api-test-166050292631.northamerica-northeast1.run.app'
-  const feePattern = '**/api/v1/fees/STRR/STRATAREG*'
+  const feePattern = '**/api/v1/fees/STRR/' + config.fee + '*'
   const checkout = result.checkout = { writeAttempts: [], failedFeeRequests: 0 }
-  const checkpoint = () => writeFile('results/strata-checkout-checkpoint.json', JSON.stringify({
+  const checkpoint = () => writeFile(`results/${kind}-checkout-checkpoint.json`, JSON.stringify({
     runId: process.env.GITHUB_RUN_ID, harnessCommit: process.env.GITHUB_SHA,
     testFixture: result.testFixture, stage: result.stage,
     applicationNumber: result.applicationNumber, invoiceId: result.invoiceId,
@@ -25,8 +33,8 @@ export async function verifyStrataCheckout(page, result, environment, accountId)
     if (url.hostname !== apiHost || ['GET', 'OPTIONS'].includes(request.method())) return route.fallback()
     if (result.applicationNumber && request.method() === 'PUT' &&
         url.pathname === `/applications/${result.applicationNumber}/payment-details`) return route.continue()
-    if (!['strata-save-draft', 'strata-submit-checkout'].includes(result.stage)) return route.fallback()
-    const draft = result.stage === 'strata-save-draft'
+    if (![`${kind}-save-draft`, `${kind}-submit-checkout`].includes(result.stage)) return route.fallback()
+    const draft = result.stage === `${kind}-save-draft`
     const expectedPath = !draft && result.draftApplicationNumber ? `/applications/${result.draftApplicationNumber}` : '/applications'
     const expectedMethod = expectedPath === '/applications' ? 'POST' : 'PUT'
     if (url.pathname !== expectedPath || request.method() !== expectedMethod) return route.fallback()
@@ -35,7 +43,7 @@ export async function verifyStrataCheckout(page, result, environment, accountId)
     const body = request.postDataJSON()
     expect(headers['account-id']).toBe(accountId)
     expect(headers.isdraft === 'true').toBe(draft)
-    expect(body.registration.registrationType).toBe('STRATA_HOTEL')
+    expect(body.registration.registrationType).toBe(config.type)
     expect(body.registration.businessDetails.legalName).toBe(result.testFixture)
     expect(body.header.paymentMethod).toBe('DIRECT_PAY')
     expect(body.header.applicationType).toBeUndefined()
@@ -78,9 +86,9 @@ export async function verifyStrataCheckout(page, result, environment, accountId)
   }
   await page.route(feePattern, failFee)
   page.on('dialog', dialog => dialog.type() === 'beforeunload' ? dialog.accept() : dialog.dismiss())
-  await page.goto(origin + '/en-CA/strata-hotel/application', { waitUntil: 'domcontentloaded' })
-  await fillStrataForm(page, result)
-  result.stage = 'strata-checkout-missing-fee'
+  await page.goto(applicationUrl.href, { waitUntil: 'domcontentloaded' })
+  await config.fill(page, result)
+  result.stage = `${kind}-checkout-missing-fee`
   await page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
   await expect(page.getByText('Unable to load registration fee', { exact: true })).toBeVisible()
   expect(checkout.failedFeeRequests).toBeGreaterThan(0)
@@ -90,35 +98,36 @@ export async function verifyStrataCheckout(page, result, environment, accountId)
   const save = page.getByRole('button', { name: 'Save', exact: true })
   checkout.saveDraftAvailable = await save.count() === 1 && await save.isVisible()
   if (checkout.saveDraftAvailable) {
-    result.stage = 'strata-save-draft'
+    result.stage = `${kind}-save-draft`
     await save.click()
     await expect.poll(() => checkout.savedWithoutInvoice, { timeout: 60000 }).toBe(true)
     await expect(save).toBeEnabled()
   }
-  result.stage = 'strata-checkout-fee-recovery'
+  result.stage = `${kind}-checkout-fee-recovery`
   const feeCount = result.fees.length
   await page.unroute(feePattern, failFee)
   if (result.draftApplicationNumber) {
-    await page.goto(origin + '/en-CA/strata-hotel/application?applicationId=' + result.draftApplicationNumber, { waitUntil: 'domcontentloaded' })
+    applicationUrl.searchParams.set('applicationId', result.draftApplicationNumber)
+    await page.goto(applicationUrl.href, { waitUntil: 'domcontentloaded' })
     await page.getByRole('button', { name: 'Next', exact: true }).click()
-    await expect(page.getByTestId('strata-business-legal-name')).toHaveValue(result.testFixture)
+    await expect(page.getByTestId(config.legalName)).toHaveValue(result.testFixture)
     await page.getByRole('button', { name: 'Next', exact: true }).click()
-    await expect(page.getByTestId('strata-brand-name')).toHaveValue(result.testFixture)
+    await expect(page.getByTestId(config.brand)).toHaveValue(result.testFixture)
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await page.getByTestId('confirmation-checkbox').check()
     checkout.draftResumed = true
   } else {
     await page.reload({ waitUntil: 'domcontentloaded' })
-    await fillStrataForm(page, result)
+    await config.fill(page, result)
   }
-  await expect.poll(() => result.fees.slice(feeCount).some(fee => fee.code === 'STRATAREG' && fee.status === 200 && fee.total > 0)).toBe(true)
-  const expectedAmount = result.fees.slice(feeCount).find(fee => fee.code === 'STRATAREG' && fee.status === 200).total
+  await expect.poll(() => result.fees.slice(feeCount).some(fee => fee.code === config.fee && fee.status === 200 && fee.total > 0)).toBe(true)
+  const expectedAmount = result.fees.slice(feeCount).find(fee => fee.code === config.fee && fee.status === 200).total
   const pending = observeApplication(page, result)
-  result.stage = 'strata-submit-checkout'
+  result.stage = `${kind}-submit-checkout`
   await page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
   await expect.poll(() => checkout.submissionCaptured, { timeout: 60000 }).toBe(true)
   await paySandboxCard(page, result, card, expectedAmount)
-  await verifyPaidApplication(page, result, origin + '/en-CA/strata-hotel/dashboard/' + result.applicationNumber, pending)
+  await verifyPaidApplication(page, result, origin + '/en-CA' + config.path + '/dashboard' + (kind === 'strata' ? '/' + result.applicationNumber : ''), pending)
   checkout.result = 'passed'
   await checkpoint()
 }
