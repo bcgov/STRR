@@ -13,7 +13,7 @@ await mkdir('results', { recursive: true })
 const browser = await chromium.launch()
 try {
   for (const app of [
-    { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTREN_OFF', 'HOSTREN_BB'] },
+    { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTRENOFF', 'HOSTREN_BB'] },
     { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application', renewalCodes: ['PLATRENEWM', 'PLATRENEWL', 'PLATRENEWV'] },
     { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application', renewalCodes: ['STRATRENEW'] }
   ]) {
