@@ -1,10 +1,6 @@
 <script setup lang="ts">
 const { t } = useNuxtApp().$i18n
 
-const addressHelpRef = ref(null)
-
-const closeAddressHelp = () => addressHelpRef.value?.buttonRefs[0].close()
-
 defineProps<{
   helpTitle: string
   label?: string
@@ -13,7 +9,6 @@ defineProps<{
 
 <template>
   <UAccordion
-    ref="addressHelpRef"
     :items="[{ label: helpTitle, slot: 'help' }]"
     data-testid="address-help-toggle"
     :ui="{
@@ -22,18 +17,21 @@ defineProps<{
     }"
   >
     <template #default="{ item, open }">
-      <div class="flex items-center justify-between">
-        <span v-if="label" class="text-base font-semibold">{{ label }}</span>
-        <UButton
-          variant="link"
-          class="justify-start px-0 text-blue-500 hover:text-blue-700"
+      <UButton
+        variant="link"
+        class="w-full justify-between px-0 text-blue-500 hover:text-blue-700 hover:no-underline"
+      >
+        <span v-if="label" class="text-base font-semibold text-bcGovColor-midGray">{{ label }}</span>
+        <span
+          class="inline-flex items-center gap-x-2.5 hover:underline"
           :class="open && 'font-bold'"
-          icon="i-mdi-help-circle-outline"
-          :label="open ? `${t('help.address.hide')} ${item.label}` : item.label"
-        />
-      </div>
+        >
+          <UIcon name="i-mdi-help-circle-outline" class="size-5" aria-hidden="true" />
+          {{ open ? `${t('help.address.hide')} ${item.label}` : item.label }}
+        </span>
+      </UButton>
     </template>
-    <template #help>
+    <template #help="{ close }">
       <div class="mt-4 rounded border border-blue-500 bg-blue-50">
         <div class="px-3 py-2 text-bcGovColor-midGray md:px-8 md:py-5">
           <div class="space-y-8">
@@ -89,7 +87,7 @@ defineProps<{
             variant="link"
             color="primary"
             class="px-2 py-1 text-sm font-bold no-underline"
-            @click="closeAddressHelp"
+            @click="close()"
           >
             {{ t('help.address.hide') }}
           </UButton>
