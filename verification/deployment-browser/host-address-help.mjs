@@ -55,6 +55,16 @@ export async function verifyHostAddressHelp(page, result) {
           }
           return layout
         })
+        if (name === 'keyboard-enter-space' && test.step === 'keyboard-space-closes') {
+          // The original closing assertion has already timed out. Check whether
+          // visually clipped help content still intercepts the next keyboard stop.
+          await toggle.press('Tab')
+          const checkbox = help.getByRole('checkbox', { name: 'I do not have a street address', exact: true })
+          test.focusAfterClosedTab = {
+            onManualAddressCheckbox: await checkbox.count() === 1 && await checkbox.evaluate(element => element === document.activeElement),
+            onHideButton: await hide.count() === 1 && await hide.evaluate(element => element === document.activeElement)
+          }
+        }
       }
     } finally {
       if (name === 'keyboard-enter-space' && await toggle.count()) {
