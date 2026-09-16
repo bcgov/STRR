@@ -12,14 +12,19 @@ export async function verifyHostAddressHelp(page, result) {
     if (url.hostname.startsWith('strr-api-') && url.pathname === '/address/requirements' && request.method() === 'POST') checks.addressLookups++
   }
   page.on('request', observeRequest)
-  const help = page.getByTestId('address-help-toggle')
-  const toggle = help.getByRole('button').first()
+  // UAccordion does not forward attrs when its default slot is replaced.
+  // Scope to the real manual form and use the help button's accessible name.
+  const help = page.getByTestId('new-address-form')
+  const toggle = help.getByRole('button', { name: /How to enter your address/ })
   const heading = help.getByRole('heading', { name: 'Street Address', exact: true })
   const hide = help.getByRole('button', { name: 'Hide', exact: true })
-  const prepare = async () => {
+  const prepare = async test => {
+    test.step = 'open-manual-form'
     await page.goto(origin + '/en-CA/application', { waitUntil: 'domcontentloaded' })
     await page.getByRole('button', { name: 'Enter the residential address manually', exact: true }).click()
+    test.step = 'find-help-controls'
     await expect(help).toHaveCount(1)
+    await expect(toggle).toHaveCount(1)
     await expect(toggle).toBeVisible()
     await expect(help.getByText('Address', { exact: true })).toBeVisible()
     await expect(heading).not.toBeVisible()
@@ -29,7 +34,8 @@ export async function verifyHostAddressHelp(page, result) {
     const test = { name, result: 'in_progress' }
     checks.cases.push(test)
     try {
-      await prepare()
+      await prepare(test)
+      test.step = 'check-behaviour'
       await action()
       test.result = 'passed'
     } catch (error) {
