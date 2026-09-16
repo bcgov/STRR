@@ -56,10 +56,18 @@ export async function prepareSessionClock(page, origin) {
 export async function verifySessionLifecycle(page, result, origin) {
   const checks = result.sessionLifecycle = {
     scope: 'Real login/dashboard and actual inactivity popup/controls/logout with accelerated browser time. Observes interval lifecycle. No API stubs, application writes or payments. Not a real-elapsed-time or server session-duration test.',
-    cases: [], timers: [], messages: []
+    cases: [], timers: [], messages: [], consoleWarnings: 0, consoleErrors: 0
   }
   page.on('console', message => {
     const text = message.text()
+    if (message.type() === 'warning') checks.consoleWarnings++
+    if (message.type() === 'error') checks.consoleErrors++
+    for (const [match, category] of [
+      ['useModal() is called without provider', 'modal-provider-unavailable'],
+      ['inject() can only be used', 'injection-outside-context'],
+      ['Unhandled error during execution of watcher', 'watcher-error'],
+      ['Failed to resolve component', 'component-resolution-error']
+    ]) if (text.includes(match)) checks.messages.push(category)
     if (['User unauthenticated or inactive, stopping token refresh schedule.',
       'Token set to expire soon. Refreshing token...', 'Token updated.',
       'Starting token refresh schedule.', 'Failed to refresh token on expiration; logging out.'].includes(text)) {
@@ -104,10 +112,19 @@ export async function verifySessionLifecycle(page, result, origin) {
     await page.clock.runFor(500)
     checks.afterAdvance = await page.evaluate(() => window.__strrSessionTimeouts())
     result.stage = 'session-open-' + cycle + '-visible'
-    checks.openState = { cycle, appOrigin: new URL(page.url()).origin === origin,
-      authRoute: new URL(page.url()).pathname.includes('/auth/'), modalCount: await modal.count(),
-      modalVisible: await modal.isVisible(), descriptionCount: await description.count(),
-      trackedIntervals: (await timers()).length }
+    try {
+      // Keep animation/timer callbacks moving while asynchronous rendering settles.
+      await expect.poll(async () => {
+        await page.clock.runFor(100)
+        return modal.isVisible()
+      }, { timeout: 10000 }).toBe(true)
+    } finally {
+      checks.openState = { cycle, appOrigin: new URL(page.url()).origin === origin,
+        authRoute: new URL(page.url()).pathname.includes('/auth/'), modalCount: await modal.count(),
+        modalVisible: await modal.isVisible(), descriptionCount: await description.count(),
+        trackedIntervals: (await timers()).length,
+        timeouts: await page.evaluate(() => window.__strrSessionTimeouts()) }
+    }
     await expect(modal).toBeVisible()
     await expect(description).toContainText('seconds')
     const added = (await timers()).filter(item => !before.some(old => old.id === item.id))
