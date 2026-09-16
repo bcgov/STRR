@@ -20,9 +20,11 @@ describe('address help controls', () => {
     expect(toggle.attributes('aria-expanded')).toBe('true')
     expect(wrapper.get('h4').isVisible()).toBe(true)
 
+    buttons[1]!.element.focus()
     await buttons[1]!.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('false')
     expect(wrapper.get('h4').isVisible()).toBe(false)
+    expect(document.activeElement).toBe(buttons[0]!.element)
 
     await buttons[0]!.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('true')
@@ -34,8 +36,10 @@ describe('address help controls', () => {
       attachTo: document.body,
       props: { helpTitle: 'Address help', label: 'Rental address' }
     })
-    const toggle = wrapper.get('[aria-expanded]')
+    const toggle = wrapper.get('button')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
     expect(wrapper.text()).toContain('Rental address')
+    toggle.element.focus()
     await toggle.trigger('keydown', { key: 'Enter' })
     expect(toggle.attributes('aria-expanded')).toBe('true')
     await toggle.trigger('keydown', { key: ' ' })
