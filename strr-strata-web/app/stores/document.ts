@@ -72,17 +72,18 @@ export const useDocumentStore = defineStore('strata/document', () => {
       }
 
       // submit file
-      const res = await $strrApi<ApiDocument>(`/applications/${applicationNumber}/documents`, {
+      const res = await $strrApi<StrataApplicationResp>(`/applications/${applicationNumber}/documents`, {
         method: 'PUT',
         body: formData
       })
 
-      uiDoc.apiDoc = res
+      uiDoc.apiDoc = res.registration.documents!.find(doc =>
+        !storedDocuments.value.some(stored => stored.apiDoc.fileKey === doc.fileKey))!
       storedDocuments.value.push(uiDoc)
     } catch (e) {
       logFetchError(e, 'Error uploading document')
       strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
-      await removeStoredDocument(uiDoc)
+      throw e
     } finally {
       // cleanup loading on ui object
       uiDoc.loading = false
