@@ -65,6 +65,21 @@ describe('recent-document-upload utils', () => {
         hasRecentDocumentUpload([{ addedOn: '2026-03-05' }, { addedOn: '2026-03-11' }], NOC_SENT_DATE)
       ).toBe(true)
     })
+
+    it('compares offset timestamps by their instant, including exact equality', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10T10:00:00-07:00' }], NOC_SENT_DATE)).toBe(false)
+      expect(hasRecentDocumentUpload([{ addedOn: '2026-03-10T10:00:01-07:00' }], NOC_SENT_DATE)).toBe(true)
+    })
+
+    it('supports a Date NOC timestamp and the uploadDate fallback', () => {
+      expect(hasRecentDocumentUpload([{ uploadDate: '2026-03-10T17:00:01Z' }], new Date(NOC_SENT_DATE)))
+        .toBe(true)
+    })
+
+    it('ignores invalid NOC and upload timestamps', () => {
+      expect(hasRecentDocumentUpload([{ addedOn: 'invalid' }], NOC_SENT_DATE)).toBe(false)
+      expect(hasRecentDocumentUpload([{ addedOn: NOC_SENT_DATE }], new Date('invalid'))).toBe(false)
+    })
   })
 
   describe('getDocumentsFromApplication', () => {
