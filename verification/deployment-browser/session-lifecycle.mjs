@@ -56,12 +56,20 @@ export async function verifySessionLifecycle(page, result, origin) {
   const timers = () => page.evaluate(() => window.__strrSessionTimers())
   await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100))
   const open = async cycle => {
-    result.stage = 'session-open-' + cycle
+    result.stage = 'session-open-' + cycle + '-activity'
     await page.mouse.move(10 + cycle, 10)
     await page.clock.runFor(200)
+    result.stage = 'session-open-' + cycle + '-timers'
+    checks.timerObserverAvailable = await page.evaluate(() => typeof window.__strrSessionTimers === 'function')
     const before = await timers()
+    result.stage = 'session-open-' + cycle + '-advance'
     await page.clock.fastForward(idle + 1)
     await page.clock.runFor(500)
+    result.stage = 'session-open-' + cycle + '-visible'
+    checks.openState = { cycle, appOrigin: new URL(page.url()).origin === origin,
+      authRoute: new URL(page.url()).pathname.includes('/auth/'), modalCount: await modal.count(),
+      modalVisible: await modal.isVisible(), descriptionCount: await description.count(),
+      trackedIntervals: (await timers()).length }
     await expect(modal).toBeVisible()
     await expect(description).toContainText('seconds')
     const added = (await timers()).filter(item => !before.some(old => old.id === item.id))
