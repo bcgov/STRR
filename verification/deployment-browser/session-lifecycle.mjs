@@ -96,6 +96,7 @@ export async function verifySessionLifecycle(page, result, origin) {
   const duration = Number(settings.sessionExpiredModalTimeout.value)
   expect(idle > 0 && idle <= 3600000 && duration >= 5000 && duration <= 300000).toBe(true)
   const modal = page.locator('#session-expired-dialog')
+  const title = page.locator('#session-expired-dialog-title')
   const description = page.locator('#session-expired-dialog-description')
   const timers = () => page.evaluate(() => window.__strrSessionTimers())
   await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100))
@@ -116,16 +117,20 @@ export async function verifySessionLifecycle(page, result, origin) {
       // Keep animation/timer callbacks moving while asynchronous rendering settles.
       await expect.poll(async () => {
         await page.clock.runFor(100)
-        return modal.isVisible()
+        return description.isVisible()
       }, { timeout: 10000 }).toBe(true)
     } finally {
       checks.openState = { cycle, appOrigin: new URL(page.url()).origin === origin,
         authRoute: new URL(page.url()).pathname.includes('/auth/'), modalCount: await modal.count(),
         modalVisible: await modal.isVisible(), descriptionCount: await description.count(),
+        descriptionVisible: await description.isVisible(),
+        modalBox: await modal.boundingBox(),
         trackedIntervals: (await timers()).length,
         timeouts: await page.evaluate(() => window.__strrSessionTimeouts()) }
     }
-    await expect(modal).toBeVisible()
+    await expect(modal).toHaveCount(1)
+    await expect(title).toBeVisible()
+    await expect(description).toBeVisible()
     await expect(description).toContainText('seconds')
     const added = (await timers()).filter(item => !before.some(old => old.id === item.id))
     checks.timers.push({ cycle, beforeCount: before.length, addedCount: added.length })
@@ -134,7 +139,8 @@ export async function verifySessionLifecycle(page, result, origin) {
   }
   const closed = async (cycle, id) => {
     await page.clock.runFor(1000)
-    await expect(modal).not.toBeVisible()
+    await expect(title).not.toBeVisible()
+    await expect(description).not.toBeVisible()
     const afterClose = (await timers()).find(item => item.id === id)
     await page.clock.runFor(2000)
     const later = (await timers()).find(item => item.id === id)
@@ -161,7 +167,8 @@ export async function verifySessionLifecycle(page, result, origin) {
   const second = await open(2)
   await verify('reopened-countdown-is-fresh', async () => {
     const value = Number((await description.innerText()).match(/(\d+) seconds?/)?.[1])
-    expect(value).toBeGreaterThanOrEqual(duration / 1000 - 1)
+    const timer = (await timers()).find(item => item.id === second)
+    expect(value).toBe(duration / 1000 - timer.ticks)
   })
   result.stage = 'session-button-continue'
   await modal.getByRole('button', { name: 'Your session is about to expire, press any key to continue your session.', exact: true }).click()
