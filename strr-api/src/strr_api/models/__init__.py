@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """This exports all of the models and schemas used by the application."""
+
 from .account_roles import AccountRoles
 from .address import Address
 from .application import Application

@@ -1,4 +1,5 @@
 """Unit tests for strr_api.common.utils."""
+
 from strr_api.common.utils import normalize_to_list
 
 

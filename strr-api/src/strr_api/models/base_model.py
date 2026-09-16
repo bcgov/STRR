@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Base Model."""
+
 import datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, MetaData

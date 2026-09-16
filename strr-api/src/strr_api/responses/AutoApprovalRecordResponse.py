@@ -1,6 +1,7 @@
 """
 AutoApprovalRecord response object.
 """
+
 from datetime import datetime
 
 from pydantic import BaseModel

@@ -1,6 +1,7 @@
 """
 ORM Mapping for Event Records
 """
+
 from __future__ import annotations
 
 from sqlalchemy.orm import relationship
