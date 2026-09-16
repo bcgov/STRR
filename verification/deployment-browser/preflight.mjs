@@ -28,8 +28,8 @@ try {
   page.on('response', response => {
     const url = new URL(response.url())
     let category
-    if (url.hostname.startsWith(`strr-api-${environment}-`) && /^\/api\/v1\/applications\/?$/.test(url.pathname)) category = 'applications'
-    if (url.hostname.startsWith(`strr-api-${environment}-`) && /^\/api\/v1\/registrations\/?$/.test(url.pathname)) category = 'registrations'
+    if (url.hostname.startsWith(`strr-api-${environment}-`) && /^(?:\/api\/v1)?\/applications\/?$/.test(url.pathname)) category = 'applications'
+    if (url.hostname.startsWith(`strr-api-${environment}-`) && /^(?:\/api\/v1)?\/registrations\/?$/.test(url.pathname)) category = 'registrations'
     if (url.hostname.startsWith(`pay-api-${environment}-`) && url.pathname.startsWith('/api/v1/fees/STRR/')) category = 'fees'
     if (url.hostname.startsWith(`pay-api-${environment}-`) && /^\/api\/v1\/accounts\/[^/]+\/?$/.test(url.pathname)) category = 'payment-account'
     if (!category || response.request().method() !== 'GET') return
@@ -59,6 +59,7 @@ try {
   report.accountSelected = true
   report.stage = 'dashboard'
   await page.waitForURL(url => url.origin === origin && !url.pathname.includes('/auth/'), { timeout: 45000 })
+  await page.goto(origin + '/en-CA/dashboard', { waitUntil: 'domcontentloaded' })
   await page.getByTestId('h1').waitFor({ state: 'visible' })
   await expect.poll(() => report.responses.some(item => item.category === 'applications' && item.status === 200), { timeout: 30000 }).toBe(true)
   await Promise.all(pending)
