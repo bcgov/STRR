@@ -7,14 +7,15 @@ import { verifyHostDateInput } from './host-date-input.mjs'
 import { inspectDocumentFixtures } from './document-inventory.mjs'
 import { verifyFormControls } from './form-controls.mjs'
 import { verifyHostAddressHelp } from './host-address-help.mjs'
+import { verifyReviewSections } from './review-sections.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
-if (!['renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
+if (!['review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
 const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
-const scenarioApp = { 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
+const scenarioApp = { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
@@ -54,7 +55,7 @@ try {
       // useTosStore.getTermsOfUse() requires this login sync before account selection.
       const loginSync = strrApi && url.pathname === '/users' && request.method() === 'POST'
       // The address endpoint calculates requirements without saving an application.
-      const addressLookup = ['host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario) && strrApi && url.pathname === '/address/requirements' && request.method() === 'POST'
+      const addressLookup = (scenario.endsWith('review-sections') || ['host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) && strrApi && url.pathname === '/address/requirements' && request.method() === 'POST'
       if (loginSync) result.loginSyncRequests++
       if ((strrApi || payApi) && !loginSync && !addressLookup && !['GET', 'OPTIONS'].includes(request.method())) {
         result.blockedWrites++
@@ -169,6 +170,7 @@ try {
       if (scenario === 'strata-fee-guard') await verifyStrataFeeGuard(page, result, environment)
       if (scenario === 'host-date-input') await verifyHostDateInput(page, result)
       if (scenario === 'host-address-help') await verifyHostAddressHelp(page, result)
+      if (scenario.endsWith('review-sections')) await verifyReviewSections(page, result, app.name)
       if (scenario.endsWith('form-controls')) await verifyFormControls(page, result, app)
       if (isCheckout) await verifyBusinessCheckout(page, result, environment, apiHeaders, scenario.split('-')[0],
         scenario === 'platform-draft-resume'
