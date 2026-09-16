@@ -17,6 +17,9 @@ export async function verifyReviewSections(page, result, app) {
   if (app === 'host') await fillHostForm(page, result)
   else if (app === 'platform') await fillPlatformForm(page, result)
   else await fillStrataForm(page, result)
+  result.stage = 'review-initial-state'
+  checks.initial = { stepCount: await steps.count(), reviewCount: await review.count(),
+    reviewVisible: await review.isVisible(), unfinishedSections: await errors.count() }
   await expect(steps).toHaveCount(4)
   await expect(review).toBeVisible()
   await expect(errors).toHaveCount(0)
