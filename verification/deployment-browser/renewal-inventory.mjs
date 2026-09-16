@@ -5,7 +5,7 @@ import { verifyPlatformFeeGuard } from './platform-fee-guard.mjs'
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
-if (!['renewal-inventory', 'platform-fee-guard'].includes(scenario)) throw new Error('Unknown scenario')
+if (!['renewal-inventory', 'platform-fee-guard', 'host-renewal-fees'].includes(scenario)) throw new Error('Unknown scenario')
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
@@ -19,7 +19,7 @@ try {
     { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTRENOFF', 'HOSTREN_BB'] },
     { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application?override=true', renewalCodes: ['PLATRENEWM', 'PLATRENEWL', 'PLATRENEWV'] },
     { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application', renewalCodes: ['STRATRENEW'] }
-  ].filter(app => scenario !== 'platform-fee-guard' || app.name === 'platform')) {
+  ].filter(app => scenario === 'platform-fee-guard' ? app.name === 'platform' : scenario === 'host-renewal-fees' ? app.name === 'host' : true)) {
     const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, loginSyncRequests: 0, fees: [] }
     report.apps.push(result)
     const origin = `https://${environment}.${app.name}.shorttermrental.registry.gov.bc.ca`
@@ -145,6 +145,30 @@ try {
         fee.total = body.total
       }
       if (scenario === 'platform-fee-guard') await verifyPlatformFeeGuard(page, result, environment)
+      if (scenario === 'host-renewal-fees') {
+        result.stage = 'host-renewal-prerequisite'
+        const eligible = result.registrations.find(registration => registration.tasks.includes('REGISTRATION_RENEWAL'))
+        expect(Boolean(eligible)).toBe(true)
+        const registration = registrations.registrations.find(item => item.id === eligible.id)
+        expect(Boolean(registration.registrationNumber)).toBe(true)
+        result.renewalFlow = { registrationId: eligible.id, scope: 'Open existing eligible renewal, verify live fee selection; no save, invoice or payment.' }
+        result.stage = 'host-renewal-navigation'
+        await page.goto(origin + '/en-CA/dashboard/registration/' + encodeURIComponent(registration.registrationNumber), { waitUntil: 'domcontentloaded' })
+        await expect(page.getByRole('button', { name: 'Renew', exact: true })).toBeVisible()
+        const previousFeeCount = result.fees.length
+        await page.getByRole('button', { name: 'Renew', exact: true }).click()
+        await page.waitForURL(url => url.pathname.endsWith('/application') && url.searchParams.get('renew') === 'true')
+        result.stage = 'host-renewal-fee-selection'
+        await expect.poll(() => result.fees.length - previousFeeCount, { timeout: 30000 }).toBeGreaterThanOrEqual(3)
+        await Promise.all(pending)
+        const renewalUiFees = result.fees.slice(previousFeeCount)
+        result.renewalFlow.uiFees = renewalUiFees
+        expect(renewalUiFees.map(fee => fee.code).sort()).toEqual([...app.renewalCodes].sort())
+        expect(renewalUiFees.every(fee => fee.status === 200)).toBe(true)
+        await expect(page.getByText('STR Renewal Fee', { exact: true })).toBeVisible()
+        await expect(page.getByTestId('h1')).toHaveText('Short-Term Rental Registration Renewal')
+        result.renewalFlow.result = 'passed'
+      }
       expect(result.blockedWrites).toBe(0)
       expect(result.browserErrors).toBe(0)
       result.stage = 'complete'
