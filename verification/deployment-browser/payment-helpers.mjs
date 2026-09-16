@@ -41,7 +41,7 @@ export function observeApplication(page, result) {
   return pending
 }
 
-export async function paySandboxCard(page, result, card) {
+export async function paySandboxCard(page, result, card, expectedAmount) {
   result.stage = 'sandbox-checkout'
   await page.waitForURL(url => url.hostname === 'paytestp.gov.bc.ca', { timeout: 60000 })
   await page.getByRole('button', { name: 'Proceed To Pay', exact: true }).click()
@@ -50,6 +50,7 @@ export async function paySandboxCard(page, result, card) {
   result.gatewayTestModeVerified = true
   const amount = Number((await page.locator('#trnAmount').inputValue()).replace(/[^0-9.]/g,''))
   expect(amount).toBeGreaterThan(0)
+  if (expectedAmount !== undefined) expect(amount).toBe(expectedAmount)
   result.amount = amount
   result.stage = 'submit-sandbox-card'
   const cardType = card.number.startsWith('4') ? 'VI' : /^[25]/.test(card.number) ? 'MC' : /^3[47]/.test(card.number) ? 'AM' : undefined
