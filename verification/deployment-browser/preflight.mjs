@@ -1,17 +1,21 @@
 import { chromium, expect } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
+import { verifyHostFee } from './host-fee.mjs'
 
-// Uses the established runner login route, without payments or application writes.
+// Read-only by default; the explicit TEST scenario allows one synthetic checkout.
 // Never export storage, credentials, response bodies, or raw error text.
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
+const scenario = process.env.VERIFY_SCENARIO || 'read-only'
+if (!['read-only', 'host-fee'].includes(scenario)) throw new Error('Unknown verification scenario')
+if (scenario === 'host-fee' && environment !== 'test') throw new Error('Checkout is TEST only')
 const origin = `https://${environment}.host.shorttermrental.registry.gov.bc.ca`
 const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME
 const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD
 const report = {
-  checkedAt: new Date().toISOString(), environment,
+  checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
-  scope: 'Read-only BCSC login, known synthetic account, dashboard, application list and fee calls.',
+  scope: scenario === 'read-only' ? 'Read-only BCSC login, known synthetic account, dashboard, application list and fee calls.' : 'Host missing-fee guard, draft recovery when enabled, and one fresh sandbox checkout with cancel/resume and receipt verification.',
   stage: 'setup', result: 'in_progress', responses: [], browserErrorCount: 0
 }
 await mkdir('results', { recursive: true })
@@ -64,16 +68,21 @@ try {
   await expect.poll(() => report.responses.some(item => item.category === 'applications' && item.status === 200), { timeout: 30000 }).toBe(true)
   await Promise.all(pending)
   report.dashboardLoaded = true
-  report.stage = 'registration-fees'
-  await page.goto(origin + '/en-CA/application', { waitUntil: 'domcontentloaded' })
-  await page.getByTestId('h1').waitFor({ state: 'visible' })
-  await expect.poll(() => report.responses.filter(item => item.category === 'fees' && item.status === 200).length, { timeout: 30000 }).toBeGreaterThanOrEqual(3)
-  expect(report.responses.some(item => item.category === 'payment-account' && item.status === 200)).toBe(true)
+  if (scenario === 'host-fee') {
+    report.stage = 'host-fee-verification'
+    await verifyHostFee(page, report)
+  } else {
+    report.stage = 'registration-fees'
+    await page.goto(origin + '/en-CA/application', { waitUntil: 'domcontentloaded' })
+    await page.getByTestId('h1').waitFor({ state: 'visible' })
+    await expect.poll(() => report.responses.filter(item => item.category === 'fees' && item.status === 200).length, { timeout: 30000 }).toBeGreaterThanOrEqual(3)
+    expect(report.responses.some(item => item.category === 'payment-account' && item.status === 200)).toBe(true)
+  }
   expect(report.browserErrorCount).toBe(0)
   report.stage = 'complete'
   report.result = 'passed'
 } catch (error) {
-  report.error = { name: error.name, stage: report.stage }
+  report.error = { name: error.name, stage: report.hostFee?.stage ?? report.stage }
   report.result = 'failed'
   process.exitCode = 1
 } finally {

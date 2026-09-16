@@ -4,11 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: Non-production environment for read-only verification
+        description: Non-production environment for verification
         type: choice
         required: true
         default: dev
         options: [dev, test]
+      scenario:
+        description: Read-only smoke check or one fresh TEST Host fee/checkout fixture
+        type: choice
+        required: true
+        default: read-only
+        options: [read-only, host-fee]
 
 permissions:
   contents: read
@@ -16,7 +22,7 @@ permissions:
 jobs:
   deployment-preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
         with:
@@ -29,12 +35,14 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit
           npx playwright install --with-deps chromium
-      - name: Verify login and existing synthetic test data
+      - name: Verify selected deployment scenario
         working-directory: verification/deployment-browser
         env:
           VERIFY_ENVIRONMENT: ${{ inputs.environment }}
+          VERIFY_SCENARIO: ${{ inputs.scenario }}
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
+          CYPRESS_CREDITCARD: ${{ inputs.scenario == 'host-fee' && secrets.CYPRESS_CREDITCARD || '' }}
         run: node preflight.mjs
       - uses: actions/upload-artifact@v4
         if: always()
