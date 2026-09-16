@@ -35,7 +35,7 @@ export default defineNuxtConfig({
   },
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web#d72545cf638b356d8840da3b797648fb706e9556', { install: true }]
+    ['github:bcgov/STRR/strr-base-web#af5476fbf41fb6fcca2c8f8e505e9e48dea37241', { install: true }]
     // '../strr-base-web' // dev only
   ],
 
