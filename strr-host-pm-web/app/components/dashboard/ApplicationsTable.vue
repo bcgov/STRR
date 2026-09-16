@@ -83,7 +83,7 @@ const paginationUI = {
 }
 
 // Data mapping
-const mapApplicationsList = (applications: HostApplicationResp['applications']): ApplicationRow[] => {
+const mapApplicationsList = (applications: HostApplicationResp[]): ApplicationRow[] => {
   if (!applications) {
     return []
   }
@@ -268,12 +268,12 @@ function handlePayNow (row: ApplicationRow) {
         <div class="flex flex-col">
           <span>
             {{
-              `${row.address.unitNumber ? row.address.unitNumber + '-' : ''}${
-                row.address.streetNumber
-              } ${row.address.streetName}`
+              `${row.address?.unitNumber ? row.address.unitNumber + '-' : ''}${
+                row.address?.streetNumber || ''
+              } ${row.address?.streetName || ''}`.trim() || t('text.notAvailable')
             }}
           </span>
-          <span>{{ row.address.city }}</span>
+          <span>{{ row.address?.city }}</span>
         </div>
       </template>
 
