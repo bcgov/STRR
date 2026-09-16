@@ -137,6 +137,27 @@ export async function verifyFormControls(page, result, app) {
     await expect(input).toHaveValue('+1')
     await expect(number).toHaveValue('(250) 555-0100')
   })
+  // Keep the failed immediate-Tab assertions above. These additional controls
+  // distinguish model persistence from Headless UI selecting an active option
+  // on Tab/blur before or after Nuxt UI's debounced results have updated.
+  for (const mode of ['settled-tab', 'escape-then-tab']) {
+    for (const code of ['44', '9999', '']) {
+      await runCase(mode + '-' + (code || 'clear'), async () => {
+        await selectCanada()
+        checks.action = mode + '-entry'
+        await input.fill(code)
+        await expect(input).toHaveValue(code)
+        await page.waitForTimeout(500)
+        if (mode === 'escape-then-tab') await input.press('Escape')
+        await input.press('Tab')
+        checks.action = mode + '-blur'
+        await expect(input).toHaveValue(code)
+        await remount()
+        checks.action = mode + '-remount'
+        await expect(input).toHaveValue(code ? '+' + code : '')
+      })
+    }
+  }
   result.stage = 'form-controls-results'
   expect(checks.cases.filter(test => test.result !== 'passed').map(test => test.name)).toEqual([])
   checks.result = 'passed'
