@@ -35,6 +35,7 @@
     "@testing-library/vue": "^8.1.0",
     "@types/jsdom": "21.1.7",
     "@types/lodash.uniqby": "^4.7.9",
+    "@types/luxon": "3.7.1",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^8.40.0",
     "@vitest/coverage-v8": "4.1.11",
@@ -53,6 +54,7 @@
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "country-codes-list": "^2.0.0",
     "lodash.uniqby": "^4.7.0",
+    "luxon": "3.7.2",
     "nuxt": "4.5.2",
     "uuid": "^11.1.0",
     "vue-country-flag-next": "^2.3.2"
