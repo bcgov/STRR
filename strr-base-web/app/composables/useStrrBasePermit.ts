@@ -56,12 +56,12 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     ) { // do not load registration for Provisional Pending NOC
       // Get linked registration if applicable
       registration.value = await getAccountRegistrations<R>(
-        application.value.header.registrationId) as R
+        application.value.header.registrationId)
     }
   }
 
   const loadPermitRegistrationData = async (registrationId: string) => {
-    registration.value = await getAccountRegistrations<R>(registrationId) as R
+    registration.value = await getAccountRegistrations<R>(registrationId)
   }
 
   const downloadApplicationReceipt = async () => {
