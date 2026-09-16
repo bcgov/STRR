@@ -137,12 +137,12 @@ function handleAccountSwitch (id: string) {
         icon="i-mdi-chevron-right"
         trailing
         :block="isSmallScreen"
-        :to="$keycloak.tokenParsed.loginSource === LoginSource.BCSC
+        :to="$keycloak.tokenParsed?.loginSource === LoginSource.BCSC
           ? localePath('/auth/account/create-new')
           : useConnectNav().createAccountUrl()
         "
-        :external="$keycloak.tokenParsed.loginSource !== LoginSource.BCSC"
-        :target="$keycloak.tokenParsed.loginSource === LoginSource.BCSC ? '_self' : '_blank'"
+        :external="$keycloak.tokenParsed?.loginSource !== LoginSource.BCSC"
+        :target="$keycloak.tokenParsed?.loginSource === LoginSource.BCSC ? '_self' : '_blank'"
       />
     </div>
   </div>
