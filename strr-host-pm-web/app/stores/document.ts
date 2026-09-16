@@ -403,6 +403,7 @@ export const useDocumentStore = defineStore('host/document', () => {
     id: string | number, // string for applications, number for registrations
     type: 'applications' | 'registrations'
   ): Promise<void> {
+    const documentContext = storedDocuments.value
     try {
       uiDoc.loading = true
 
@@ -427,6 +428,9 @@ export const useDocumentStore = defineStore('host/document', () => {
           body: formData
         })
 
+      // A record load or reset replaces the document list while this request is pending.
+      if (storedDocuments.value !== documentContext) { return }
+
       // Upload endpoints return the updated record, including the new document's unique file key.
       const documents = 'registration' in res ? res.registration.documents : res.documents
       const uploadedDocument = documents.find(doc =>
@@ -436,8 +440,10 @@ export const useDocumentStore = defineStore('host/document', () => {
       if (uiDoc.uploadDate) { uploadedDocument.uploadDate = uiDoc.uploadDate }
       storedDocuments.value.push(uiDoc)
     } catch (e) {
-      logFetchError(e, 'Error uploading document')
-      strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      if (storedDocuments.value === documentContext) {
+        logFetchError(e, 'Error uploading document')
+        strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      }
       throw e
     } finally {
       // cleanup loading on ui object
