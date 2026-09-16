@@ -228,14 +228,20 @@ const fetchRegistrations = async () => {
   return { registrations: registrationsWithTodos, total }
 }
 
-const { data: registrationsResp, status: registrationsStatus } = await useAsyncData(
+const registrationsData = useAsyncData(
   'host-registrations-list',
   useDebounceFn(fetchRegistrations, 500),
   {
-    watch: [() => accountStore.currentAccount.id, registrationsPage, searchText],
     default: () => ({ registrations: [], total: 0 })
   }
 )
+const { data: registrationsResp, status: registrationsStatus } = registrationsData
+// Refresh directly so account changes do not wait for an earlier watched request.
+watch([() => accountStore.currentAccount.id, registrationsPage, searchText], ([accountId], [previousAccountId]) => {
+  if (accountId !== previousAccountId) { registrationsData.clear() }
+  registrationsData.refresh()
+})
+await registrationsData
 
 const registrationsList = computed(() => mapRegistrationsList(registrationsResp.value?.registrations || []))
 
