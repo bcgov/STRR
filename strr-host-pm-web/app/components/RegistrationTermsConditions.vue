@@ -5,7 +5,9 @@ const { t } = useNuxtApp().$i18n
 const permitStore = useHostPermitStore()
 const { registration } = storeToRefs(permitStore)
 
-const conditionsOfApproval = computed<ConditionsOfApproval>(() => registration.value?.conditionsOfApproval || {})
+const conditionsOfApproval = computed<Partial<ConditionsOfApproval>>(
+  () => registration.value?.conditionsOfApproval || {}
+)
 
 const predefinedConditions = computed(() => conditionsOfApproval.value.predefinedConditions)
 const customConditions = computed(() => conditionsOfApproval.value.customConditions)
