@@ -1,4 +1,6 @@
 import { expect } from '@playwright/test'
+import { finishHostCheckout } from './host-checkout.mjs'
+import { loadTestCard } from './payment-helpers.mjs'
 
 // Read-only recovery audit for the fixture created by the failed QA run.
 export async function inspectHostFixture(page, report) {
@@ -27,4 +29,27 @@ export async function inspectHostFixture(page, report) {
   report.fixtureState.matchingListEntries = (list.applications ?? []).filter(item =>
     JSON.stringify(item).includes(JSON.stringify(fixture))).map(summarize)
   expect(report.fixtureState.application.fixtureMatches).toBe(true)
+}
+
+export async function resumeHostFixture(page, report) {
+  await inspectHostFixture(page, report)
+  const state = report.fixtureState.application
+  expect(state.applicationNumber).toBe('96898009237260')
+  expect(state.invoiceId).toBe(771759)
+  expect(state.status).toBe('PAYMENT_DUE')
+  expect(state.paymentStatus).toBe('CREATED')
+  expect(report.fixtureState.matchingListEntries).toHaveLength(1)
+  const result = report.hostFee = {
+    testFixture: 'Host Fee Guard QA 35136186664',
+    applicationNumber: state.applicationNumber, invoiceId: state.invoiceId,
+    resumedExistingUnpaidInvoice: true, submissionVerifiedByRead: true,
+    stage: 'open-existing-unpaid-application'
+  }
+  const card = loadTestCard([])
+  await page.goto('https://test.host.shorttermrental.registry.gov.bc.ca/en-CA/dashboard/' + state.applicationNumber,
+    { waitUntil: 'domcontentloaded' })
+  await expect(page.getByTestId('h1')).toContainText(result.testFixture)
+  await page.getByRole('button', { name: 'Pay Now', exact: true }).click()
+  await finishHostCheckout(page, result, card)
+  result.result = 'passed'
 }

@@ -71,6 +71,10 @@ export async function submitHostPayment(page, result, card) {
   result.stage = 'host-submission-identity'
   if (result.draftApplicationNumber) expect(result.applicationNumber).toBe(result.draftApplicationNumber)
   expect(result.initialStatus).toBe('PAYMENT_DUE')
+  await finishHostCheckout(page, result, card)
+}
+
+export async function finishHostCheckout(page, result, card) {
   const pending = observeApplication(page, result)
 
   // Cancel at the observed test merchant before entering card fields.

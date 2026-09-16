@@ -14,7 +14,7 @@ on:
         type: choice
         required: true
         default: read-only
-        options: [read-only, host-fee, host-fixture-state]
+        options: [read-only, host-fee, host-fixture-state, host-resume]
 
 permissions:
   contents: read
@@ -42,7 +42,7 @@ jobs:
           VERIFY_SCENARIO: ${{ inputs.scenario }}
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
-          CYPRESS_CREDITCARD: ${{ inputs.scenario == 'host-fee' && secrets.CYPRESS_CREDITCARD || '' }}
+          CYPRESS_CREDITCARD: ${{ (inputs.scenario == 'host-fee' || inputs.scenario == 'host-resume') && secrets.CYPRESS_CREDITCARD || '' }}
         run: node preflight.mjs
       - uses: actions/upload-artifact@v4
         if: always()
