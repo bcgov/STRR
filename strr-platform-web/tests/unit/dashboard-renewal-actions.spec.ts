@@ -2,7 +2,6 @@ import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getTodoRegistration as getLocalRegistrationTodos } from '../../../strr-base-web/app/utils/todoItems'
 import { mockPlatformPermitDetails } from '../mocks/mockedData'
 import Dashboard from '~/pages/platform/dashboard.vue'
 import { UDropdown } from '#components'
@@ -24,7 +23,6 @@ mockNuxtImport('useStrrApi', () => () => ({
   getRegistrationCert: vi.fn(),
   updatePaymentDetails: vi.fn()
 }))
-mockNuxtImport('getTodoRegistration', () => (id: number) => getLocalRegistrationTodos(id))
 mockNuxtImport('navigateTo', () => navigate)
 mockNuxtImport('useConnectNav', () => () => ({ handlePaymentRedirect: paymentRedirect }))
 
