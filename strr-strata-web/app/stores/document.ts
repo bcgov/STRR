@@ -57,6 +57,7 @@ export const useDocumentStore = defineStore('strata/document', () => {
    * @returns {Promise<void>} A promise that resolves when the document has been added or rejects if an error occurs.
    */
   async function addDocumentToApplication (uiDoc: UiDocument, applicationNumber: string): Promise<void> {
+    const documentContext = storedDocuments.value
     try {
       uiDoc.loading = true
 
@@ -75,12 +76,17 @@ export const useDocumentStore = defineStore('strata/document', () => {
         body: formData
       })
 
+      // A record load or reset replaces the document list while this request is pending.
+      if (storedDocuments.value !== documentContext) { return }
+
       uiDoc.apiDoc = res.registration.documents!.find(doc =>
         !storedDocuments.value.some(stored => stored.apiDoc.fileKey === doc.fileKey))!
       storedDocuments.value.push(uiDoc)
     } catch (e) {
-      logFetchError(e, 'Error uploading document')
-      strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      if (storedDocuments.value === documentContext) {
+        logFetchError(e, 'Error uploading document')
+        strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
+      }
       throw e
     } finally {
       // cleanup loading on ui object
