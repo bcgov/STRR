@@ -81,7 +81,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
       return false
     }
 
-    const jurisdiction = registration.value.unitDetails?.jurisdiction
+    const jurisdiction = registration.value.unitDetails?.jurisdiction ?? undefined
 
     const needsBusinessLicense = registration.value.status === RegistrationStatus.ACTIVE &&
       needsBusinessLicenseUpload(jurisdiction)

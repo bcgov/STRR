@@ -2,6 +2,8 @@
 defineProps<{ isComplete: boolean }>()
 
 const { t } = useNuxtApp().$i18n
+const { hostAccActUrl } = useRuntimeConfig().public
+const accommodationsActLink = typeof hostAccActUrl === 'string' ? hostAccActUrl : undefined
 const contactStore = useHostOwnerStore()
 const {
   activeOwner,
@@ -64,7 +66,7 @@ const checklistItems = computed<ConnectValidatedChecklistItem[]>(() => [
           <template #link>
             <UButton
               :label="$t('link.hostAccomodationsAct')"
-              :to="useRuntimeConfig().public.hostAccActUrl"
+              :to="accommodationsActLink"
               :padded="false"
               variant="link"
               target="_blank"
