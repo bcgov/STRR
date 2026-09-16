@@ -146,14 +146,20 @@ const fetchApplications = async () => {
   }
 }
 
-const { data: applicationsResp, status: applicationsStatus, refresh: refreshApplications } = await useAsyncData(
+const applicationsData = useAsyncData(
   'host-applications-list',
   useDebounceFn(fetchApplications, 500),
   {
-    watch: [() => accountStore.currentAccount.id, applicationsPage, searchText],
     default: () => ({ applications: [], total: 0, filteredCount: 0 })
   }
 )
+const { data: applicationsResp, status: applicationsStatus, refresh: refreshApplications } = applicationsData
+// Refresh directly so account changes do not wait for an earlier watched request.
+watch([() => accountStore.currentAccount.id, applicationsPage, searchText], ([accountId], [previousAccountId]) => {
+  if (accountId !== previousAccountId) { applicationsData.clear() }
+  refreshApplications()
+})
+await applicationsData
 
 const applicationsList = computed(() => mapApplicationsList(applicationsResp.value?.applications || []))
 const totalFilteredApplications = computed(() => applicationsResp.value?.filteredCount || 0)
