@@ -157,7 +157,10 @@ export interface ApiDocument {
 
 export interface ApiRegistrationTodoTaskResp {
   task: {
-    type: RegistrationTodoType,
-    detail?: string
+    type: RegistrationTodoType.REGISTRATION_RENEWAL
+  } | {
+    type: RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT |
+      RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING,
+    detail: string
   }
 }
