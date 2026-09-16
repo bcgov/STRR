@@ -36,13 +36,17 @@ export async function verifyHostAddressHelp(page, result) {
     try {
       await prepare(test)
       test.step = 'check-behaviour'
-      await action()
+      await action(test)
       test.result = 'passed'
     } catch (error) {
       test.result = 'failed'
       test.error = { name: error.name }
       test.buttonExpanded = await toggle.count() ? await toggle.getAttribute('aria-expanded') : null
       test.buttonFocused = await toggle.count() ? await toggle.evaluate(element => element === document.activeElement) : false
+    } finally {
+      if (name === 'keyboard-enter-space' && await toggle.count()) {
+        test.keyboardEvents = await toggle.evaluate(element => element.addressHelpKeyEvents || [])
+      }
     }
   }
   await runCase('native-button-expanded-state', async () => {
@@ -66,12 +70,27 @@ export async function verifyHostAddressHelp(page, result) {
     await expect(heading).not.toBeVisible()
     await expect(toggle).toBeFocused()
   })
-  await runCase('keyboard-enter-space', async () => {
+  await runCase('keyboard-enter-space', async test => {
+    await toggle.evaluate(element => {
+      element.addressHelpKeyEvents = []
+      for (const type of ['keydown', 'keyup', 'click']) {
+        element.addEventListener(type, event => queueMicrotask(() => {
+          element.addressHelpKeyEvents.push({
+            type, key: event.key === 'Enter' ? 'Enter' : event.key === ' ' ? 'Space' : null,
+            defaultPrevented: event.defaultPrevented,
+            expanded: element.getAttribute('aria-expanded')
+          })
+        }))
+      }
+    })
     await toggle.focus()
+    test.step = 'keyboard-enter-opens'
     await toggle.press('Enter')
     await expect(heading).toBeVisible()
+    test.step = 'keyboard-space-closes'
     await toggle.press('Space')
     await expect(heading).not.toBeVisible()
+    test.step = 'keyboard-retains-focus'
     await expect(toggle).toBeFocused()
   })
   for (const [unit, valid] of [['', true], ['A12', true], ['123ABC', true], ['123ABCD', false], ['A-12', false]]) {
