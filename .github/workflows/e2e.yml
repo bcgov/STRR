@@ -10,11 +10,11 @@ on:
         default: dev
         options: [dev, test]
       scenario:
-        description: Read-only smoke check or one fresh TEST Host fee/checkout fixture
+        description: Read-only Host/Strata checks or explicit TEST Host checkout
         type: choice
         required: true
         default: read-only
-        options: [read-only, host-fee, host-fixture-state, host-resume]
+        options: [read-only, strata-list, host-fee, host-fixture-state, host-resume]
 
 permissions:
   contents: read
@@ -43,7 +43,12 @@ jobs:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
           CYPRESS_CREDITCARD: ${{ (inputs.scenario == 'host-fee' || inputs.scenario == 'host-resume') && secrets.CYPRESS_CREDITCARD || '' }}
-        run: node preflight.mjs
+        run: |
+          if [ "$VERIFY_SCENARIO" = "strata-list" ]; then
+            node strata-preflight.mjs
+          else
+            node preflight.mjs
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
