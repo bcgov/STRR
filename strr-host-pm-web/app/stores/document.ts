@@ -354,8 +354,10 @@ export const useDocumentStore = defineStore('host/document', () => {
 
   async function removeStoredDocument (uiDoc: UiDocument) {
     // Remove document from local list to ensure createApplicationBody uses updated list
-    const index = storedDocuments.value.findIndex(item => uiDoc.id === item.id)
-    storedDocuments.value.splice(index, 1)
+    const documentContext = storedDocuments.value
+    const index = documentContext.findIndex(item => uiDoc.id === item.id)
+    if (index === -1) { return }
+    documentContext.splice(index, 1)
 
     // Save draft with updated document list
     const permitStore = useHostPermitStore()
@@ -366,6 +368,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       try {
         await hostApplicationStore.submitApplication(true, applicationId)
       } catch (e) {
+        if (storedDocuments.value !== documentContext) { return }
         // Restore document to list if draft save fails to prevent inconsistent state
         storedDocuments.value.splice(index, 0, uiDoc)
         logFetchError(e, 'Error saving draft when removing document')
@@ -452,6 +455,7 @@ export const useDocumentStore = defineStore('host/document', () => {
   }
 
   async function postDocument (uiDoc: UiDocument): Promise<void> {
+    const documentContext = storedDocuments.value
     try {
       // create payload
       const formData = new FormData()
@@ -472,6 +476,7 @@ export const useDocumentStore = defineStore('host/document', () => {
       // update ui object with backend response
       updateStoredDocument(uiDoc.id, 'apiDoc', res)
     } catch (e) {
+      if (storedDocuments.value !== documentContext) { return }
       logFetchError(e, 'Error uploading document')
       strrModal.openErrorModal(t('error.docUpload.generic.title'), t('error.docUpload.generic.description'), false)
       await removeStoredDocument(uiDoc)
