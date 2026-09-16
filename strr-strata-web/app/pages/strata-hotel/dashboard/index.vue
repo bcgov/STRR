@@ -60,7 +60,7 @@ setBreadcrumbs([
   { label: t('page.dashboardList.h1') }
 ])
 
-const { data: strataHotelListResp, status, error, refresh } = await useAsyncData(
+const applicationListData = useAsyncData(
   'strata-hotel-list-resp',
   async () => {
     const response = await getApplicationList()
@@ -68,10 +68,17 @@ const { data: strataHotelListResp, status, error, refresh } = await useAsyncData
     return response
   },
   {
-    watch: [() => accountStore.currentAccount.id, limit, page],
     default: () => ({ applications: [], total: 0 })
   }
 )
+const { data: strataHotelListResp, status, error, refresh } = applicationListData
+watch(() => accountStore.currentAccount.id, () => {
+  applicationListData.clear()
+  page.value = 1
+}, { flush: 'sync' })
+// Refresh directly so account changes do not wait for an earlier watched request.
+watch([() => accountStore.currentAccount.id, limit, page], () => { refresh() })
+await applicationListData
 
 const mapApplicationsList = () => {
   if (!strataHotelListResp.value?.applications) {

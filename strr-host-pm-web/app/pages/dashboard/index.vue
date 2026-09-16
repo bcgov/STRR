@@ -75,14 +75,21 @@ setBreadcrumbs([
   { label: t('page.dashboardList.h1') }
 ])
 
-const { data: hostPmListResp, status, refresh } = await useAsyncData(
+const applicationListData = useAsyncData(
   'host-pm-list-resp',
   getApplicationList,
   {
-    watch: [() => accountStore.currentAccount.id, limit, page],
     default: () => ({ applications: [], total: 0 })
   }
 )
+const { data: hostPmListResp, status, refresh } = applicationListData
+watch(() => accountStore.currentAccount.id, () => {
+  applicationListData.clear()
+  page.value = 1
+}, { flush: 'sync' })
+// Refresh directly so account changes do not wait for an earlier watched request.
+watch([() => accountStore.currentAccount.id, limit, page], () => { refresh() })
+await applicationListData
 
 const hasRegistrationNOC = (header: ApplicationHeader): boolean => {
   return header.registrationNocStatus === RegistrationNocStatus.NOC_PENDING ||
