@@ -5,9 +5,28 @@ export async function prepareSessionClock(page, origin) {
   await page.addInitScript(expectedOrigin => {
     if (location.origin !== expectedOrigin) return
     const intervals = new Map()
+    const timeouts = new Map()
+    const events = []
+    const record = item => { events.push(item); if (events.length > 80) events.shift() }
     const schedule = window.setInterval.bind(window)
+    const scheduleTimeout = window.setTimeout.bind(window)
     const cancel = window.clearInterval.bind(window)
     const cancelTimeout = window.clearTimeout.bind(window)
+    window.setTimeout = function (handler, delay, ...args) {
+      if (![30000, 120000, 1800000].includes(Number(delay)) || typeof handler !== 'function') {
+        return scheduleTimeout(handler, delay, ...args)
+      }
+      let id
+      const callback = function (...values) {
+        timeouts.delete(id)
+        record({ id, delay: Number(delay), action: 'fired', at: Date.now() })
+        return handler.apply(this, values)
+      }
+      id = scheduleTimeout(callback, delay, ...args)
+      timeouts.set(id, { id, delay: Number(delay), due: Date.now() + Number(delay) })
+      record({ id, delay: Number(delay), action: 'scheduled', at: Date.now() })
+      return id
+    }
     window.setInterval = function (handler, delay, ...args) {
       let id
       const callback = typeof handler === 'function' ? function (...values) {
@@ -20,16 +39,33 @@ export async function prepareSessionClock(page, origin) {
       return id
     }
     window.clearInterval = id => { intervals.delete(id); cancel(id) }
-    window.clearTimeout = id => { intervals.delete(id); cancelTimeout(id) }
+    window.clearTimeout = id => {
+      if (timeouts.has(id)) record({ id, delay: timeouts.get(id).delay, action: 'cleared', at: Date.now() })
+      timeouts.delete(id)
+      intervals.delete(id)
+      cancelTimeout(id)
+    }
     window.__strrSessionTimers = () => [...intervals.values()].map(item => ({ ...item }))
+    window.__strrSessionTimeouts = () => ({
+      pending: [...timeouts.values()].map(({ id, delay, due }) => ({ id, delay, remaining: due - Date.now() })),
+      events: events.map(({ at, ...item }) => ({ ...item, age: Date.now() - at }))
+    })
   }, origin)
 }
 
 export async function verifySessionLifecycle(page, result, origin) {
   const checks = result.sessionLifecycle = {
     scope: 'Real login/dashboard and actual inactivity popup/controls/logout with accelerated browser time. Observes interval lifecycle. No API stubs, application writes or payments. Not a real-elapsed-time or server session-duration test.',
-    cases: [], timers: []
+    cases: [], timers: [], messages: []
   }
+  page.on('console', message => {
+    const text = message.text()
+    if (['User unauthenticated or inactive, stopping token refresh schedule.',
+      'Token set to expire soon. Refreshing token...', 'Token updated.',
+      'Starting token refresh schedule.', 'Failed to refresh token on expiration; logging out.'].includes(text)) {
+      checks.messages.push(text)
+    }
+  })
   const verify = async (name, action) => {
     result.stage = 'session-' + name
     try {
@@ -62,9 +98,11 @@ export async function verifySessionLifecycle(page, result, origin) {
     result.stage = 'session-open-' + cycle + '-timers'
     checks.timerObserverAvailable = await page.evaluate(() => typeof window.__strrSessionTimers === 'function')
     const before = await timers()
+    checks.beforeAdvance = await page.evaluate(() => window.__strrSessionTimeouts())
     result.stage = 'session-open-' + cycle + '-advance'
     await page.clock.fastForward(idle + 1)
     await page.clock.runFor(500)
+    checks.afterAdvance = await page.evaluate(() => window.__strrSessionTimeouts())
     result.stage = 'session-open-' + cycle + '-visible'
     checks.openState = { cycle, appOrigin: new URL(page.url()).origin === origin,
       authRoute: new URL(page.url()).pathname.includes('/auth/'), modalCount: await modal.count(),
