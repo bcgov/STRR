@@ -1,10 +1,16 @@
 import { expect } from '@playwright/test'
 
 // Browser-only negative/positive controls. The application POST never reaches the API.
-export async function verifyPlatformFeeGuard(page, result, environment) {
+export async function verifyPlatformFeeGuard(page, result, environment, variant) {
   const origin = `https://${environment}.platform.shorttermrental.registry.gov.bc.ca`
   const guard = result.feeGuard = { failedFeeRequests: 0, interceptedSubmissions: 0, recoveredFeeStatuses: [] }
-  const feePattern = '**/api/v1/fees/STRR/PLATREG_SM*'
+  const feeCode = variant?.feeCode || 'PLATREG_SM'
+  if (variant) {
+    guard.variant = variant
+    result.feeVariants ??= []
+    result.feeVariants.push(guard)
+  }
+  const feePattern = '**/api/v1/fees/STRR/' + feeCode + '*'
   const failFee = async route => {
     expect(new URL(route.request().url()).hostname.startsWith(`pay-api-${environment}-`)).toBe(true)
     guard.failedFeeRequests++
@@ -20,7 +26,8 @@ export async function verifyPlatformFeeGuard(page, result, environment) {
   }
   await page.route('**/applications', stopSubmission)
   await page.route(feePattern, failFee)
-  page.on('dialog', dialog => dialog.type() === 'beforeunload' ? dialog.accept() : dialog.dismiss())
+  const dismissDialog = dialog => dialog.type() === 'beforeunload' ? dialog.accept() : dialog.dismiss()
+  page.on('dialog', dismissDialog)
 
   async function fillForm() {
     const fixture = 'Platform Fee Guard QA ' + process.env.GITHUB_RUN_ID
@@ -33,7 +40,8 @@ export async function verifyPlatformFeeGuard(page, result, environment) {
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await page.getByTestId('platform-business-legal-name').fill(fixture)
     await page.getByTestId('platform-business-home-jur').fill('British Columbia')
-    await page.getByTestId('platform-business-hasCpbc').getByRole('radio', { name: 'No', exact: true }).check()
+    await page.getByTestId('platform-business-hasCpbc').getByRole('radio', { name: variant?.waived ? 'Yes' : 'No', exact: true }).check()
+    if (variant?.waived) await page.getByTestId('platform-cpbc').fill('123456')
     await page.getByTestId('platform-business-address-country').click()
     await page.getByRole('option', { name: 'Canada', exact: true }).click()
     await page.getByTestId('platform-business-address-street').fill('123 Test Street')
@@ -47,7 +55,7 @@ export async function verifyPlatformFeeGuard(page, result, environment) {
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await page.getByTestId('platform-brand-name-0').fill(fixture)
     await page.getByTestId('platform-brand-site-0').fill('https://example.com/strr-payment-qa')
-    await page.getByTestId('platform-listingSize').getByRole('radio', { name: '249 or less', exact: true }).check()
+    await page.getByTestId('platform-listingSize').getByRole('radio', { name: variant?.listingLabel || '249 or less', exact: true }).check()
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await page.getByTestId('confirmation-checkbox').check()
   }
@@ -67,20 +75,43 @@ export async function verifyPlatformFeeGuard(page, result, environment) {
 
   result.stage = 'platform-fee-recovery'
   await page.unroute(feePattern, failFee)
-  page.on('response', response => {
+  const observeRecovery = response => {
     const url = new URL(response.url())
-    if (url.hostname.startsWith(`pay-api-${environment}-`) && url.pathname === '/api/v1/fees/STRR/PLATREG_SM') {
+    if (url.hostname.startsWith(`pay-api-${environment}-`) && url.pathname === '/api/v1/fees/STRR/' + feeCode) {
       guard.recoveredFeeStatuses.push(response.status())
     }
-  })
+  }
+  page.on('response', observeRecovery)
+  // The chosen fee must work even if a different, unused fee fails.
+  const unusedFeePattern = '**/api/v1/fees/STRR/' + (feeCode === 'PLATREG_SM' ? 'PLATREG_LG' : 'PLATREG_SM') + '*'
+  const failUnusedFee = async route => {
+    expect(new URL(route.request().url()).hostname.startsWith(`pay-api-${environment}-`)).toBe(true)
+    guard.unusedFeeFailures = (guard.unusedFeeFailures || 0) + 1
+    await route.fulfill({ status: 503, contentType: 'application/json', body: '{"message":"Synthetic unused fee outage"}' })
+  }
+  if (variant) await page.route(unusedFeePattern, failUnusedFee)
   await page.reload({ waitUntil: 'domcontentloaded' })
   await fillForm()
   expect(guard.recoveredFeeStatuses.includes(200)).toBe(true)
+  if (variant) expect(guard.unusedFeeFailures).toBeGreaterThan(0)
+  if (variant?.waived) await expect(page.getByText('No Fee', { exact: true })).toBeVisible()
   result.stage = 'platform-positive-submit-control'
   await page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
   await expect.poll(() => guard.interceptedSubmissions).toBe(1)
   await expect(page.getByText('Unable to load registration fee', { exact: true })).toHaveCount(0)
   guard.positiveControlReachedSubmission = true
   guard.result = 'passed'
-  guard.scope = 'New-registration small non-exempt fee guard and recovery; POST intercepted, no invoice or payment proof.'
+  guard.scope = `New-registration ${feeCode} fee guard and recovery; POST intercepted, no invoice or payment proof.`
+  await page.unroute('**/applications', stopSubmission)
+  if (variant) await page.unroute(unusedFeePattern, failUnusedFee)
+  page.off('response', observeRecovery)
+  page.off('dialog', dismissDialog)
+}
+
+export async function verifyPlatformFeeOptions(page, result, environment) {
+  for (const variant of [
+    { feeCode: 'PLATREG_SM', listingLabel: '250-999', waived: false },
+    { feeCode: 'PLATREG_LG', listingLabel: '1000 or more', waived: false },
+    { feeCode: 'PLATREG_WV', listingLabel: '249 or less', waived: true }
+  ]) await verifyPlatformFeeGuard(page, result, environment, variant)
 }

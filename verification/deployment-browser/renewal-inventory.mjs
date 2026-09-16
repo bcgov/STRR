@@ -1,15 +1,15 @@
 import { chromium, expect } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { verifyPlatformFeeGuard } from './platform-fee-guard.mjs'
+import { verifyPlatformFeeGuard, verifyPlatformFeeOptions } from './platform-fee-guard.mjs'
 import { verifyStrataFeeGuard } from './strata-fee-guard.mjs'
 import { verifyStrataCheckout } from './strata-checkout.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
-if (!['renewal-inventory', 'platform-fee-guard', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees'].includes(scenario)) throw new Error('Unknown scenario')
+if (!['renewal-inventory', 'platform-fee-guard', 'platform-fee-options', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees'].includes(scenario)) throw new Error('Unknown scenario')
 if (scenario === 'strata-checkout' && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
-const scenarioApp = { 'platform-fee-guard': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host' }[scenario]
+const scenarioApp = { 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
@@ -155,6 +155,7 @@ try {
         fee.total = body.total
       }
       if (scenario === 'platform-fee-guard') await verifyPlatformFeeGuard(page, result, environment)
+      if (scenario === 'platform-fee-options') await verifyPlatformFeeOptions(page, result, environment)
       if (scenario === 'strata-fee-guard') await verifyStrataFeeGuard(page, result, environment)
       if (scenario === 'strata-checkout') await verifyStrataCheckout(page, result, environment, apiHeaders['account-id'])
       if (scenario === 'host-renewal-fees') {
