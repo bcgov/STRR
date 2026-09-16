@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { computed, ref, reactive, toRef } from 'vue'
+import { computed, ref, reactive, toRef, nextTick } from 'vue'
 import { enI18n } from '../mocks/i18n'
 import DecisionPanel from '~/components/DecisionPanel.vue'
 import { ApplicationActionsE, RegistrationStatus } from '#imports'
@@ -167,5 +167,39 @@ describe('DecisionPanel', () => {
     })
 
     expect(wrapper.find('[data-testid="decision-panel"]').exists()).toBe(false)
+  })
+
+  it('should leave decision email content empty and enabled when SUSPEND action is selected', async () => {
+    isApplication.value = false
+    activeHeader.value = {
+      examinerActions: [RegistrationActionsE.SUSPEND],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    activeReg.value = {
+      status: RegistrationStatus.ACTIVE
+    }
+    decisionIntent.value = null
+    decisionEmailContent.value = { content: 'previous text' }
+
+    const wrapper = await mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })
+
+    const moreActionsButton = wrapper.find('[data-testid="decision-button-more-actions"]')
+    expect(moreActionsButton.exists()).toBe(true)
+
+    const dropdown = wrapper.findComponent({ name: 'UDropdown' })
+    const items = dropdown.props('items')
+    const suspendItem = items.flat().find((item: any) => item.label === 'Suspend Registration')
+    expect(suspendItem).toBeDefined()
+    suspendItem.click()
+    await nextTick()
+
+    expect(decisionIntent.value).toBe(RegistrationActionsE.SUSPEND)
+    expect(decisionEmailContent.value.content).toBe('')
+
+    const emailTextarea = wrapper.findComponent({ name: 'UTextarea' })
+    expect(emailTextarea.props('disabled')).toBe(false)
   })
 })

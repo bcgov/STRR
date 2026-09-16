@@ -81,6 +81,7 @@ _HOST_TPL = "\n".join(
         "{{ unit_number }}",
         "{{ street_name }}",
         "{{ city }}",
+        "{{ province }}",
         "{{ postal_code }}",
         "{{ ops_email }}",
         "{{ rental_nickname }}",
@@ -211,6 +212,27 @@ def test_worker_renewal_dispatch_success(app, mocker, ce_factory):
         resp = worker()
     assert resp[1] == HTTPStatus.OK and resp[0].get_json().get("interaction") == "uuid-1"
     log_mock.info.assert_any_call("completed ce (event_id=%s): %s", "e1", ce)
+
+
+def test_worker_host_registration_suspended_dispatch_success(app, mocker, ce_factory):
+    ce = ce_factory(
+        registrationNumber="H1",
+        emailType="HOST_REGISTRATION_SUSPENDED",
+        customContent="Please stop short term rental activities",
+    )
+    reg = _host_reg()
+    dispatch = mocker.patch(
+        "strr_email.resources.email_listener.InteractionService.dispatch",
+        return_value=MagicMock(interaction_uuid="uuid-suspended"),
+    )
+    _patch_read_pipeline(mocker, ce, reg, _HOST_TPL)
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        resp = worker()
+    assert resp[1] == HTTPStatus.OK and resp[0].get_json().get("interaction") == "uuid-suspended"
+    dispatch.assert_called_once()
+    payload = dispatch.call_args.kwargs["payload"]
+    assert "Short-Term Rental Registration Suspended" in payload.email["content"]["subject"]
+
 
 
 def test_worker_platform_renewal_dispatch_success(app, mocker, ce_factory):
