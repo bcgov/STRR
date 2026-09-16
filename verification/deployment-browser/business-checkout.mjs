@@ -5,7 +5,7 @@ import { fillPlatformForm } from './platform-fee-guard.mjs'
 import { loadTestCard, observeApplication, paySandboxCard, verifyPaidApplication } from './payment-helpers.mjs'
 
 // One fresh synthetic application only. Never reuse a previous run's invoice.
-export async function verifyBusinessCheckout(page, result, environment, accountId, kind) {
+export async function verifyBusinessCheckout(page, result, environment, apiHeaders, kind, resume) {
   if (environment !== 'test') throw new Error('Sandbox checkout is TEST only')
   const card = loadTestCard([])
   const config = {
@@ -17,6 +17,7 @@ export async function verifyBusinessCheckout(page, result, environment, accountI
   const applicationUrl = new URL('/en-CA' + config.path + '/application', origin)
   if (kind === 'platform') applicationUrl.searchParams.set('override', 'true')
   const apiHost = 'strr-api-test-166050292631.northamerica-northeast1.run.app'
+  const accountId = apiHeaders['account-id']
   const feePattern = '**/api/v1/fees/STRR/' + config.fee + '*'
   const checkout = result.checkout = { writeAttempts: [], failedFeeRequests: 0 }
   const checkpoint = () => writeFile(`results/${kind}-checkout-checkpoint.json`, JSON.stringify({
@@ -27,6 +28,24 @@ export async function verifyBusinessCheckout(page, result, environment, accountI
   }, null, 2) + '\n')
   let draftAttempted = false
   let submissionAttempted = false
+  if (resume) {
+    result.stage = `${kind}-verify-unpaid-draft`
+    const response = await page.request.get('https://' + apiHost + '/applications/' + resume.applicationNumber, { headers: apiHeaders })
+    expect(response.status()).toBe(200)
+    const application = await response.json()
+    result.resumePrerequisite = { status: response.status(), applicationStatus: application.header.status, invoiceId: application.header.paymentToken }
+    expect(application.header.applicationNumber).toBe(resume.applicationNumber)
+    expect(application.registration.registrationType).toBe(config.type)
+    expect(application.registration.businessDetails.legalName).toBe(resume.fixture)
+    expect(application.header.status).toBe('DRAFT')
+    expect(application.header.paymentToken == null).toBe(true)
+    result.testFixture = resume.fixture
+    result.applicationNumber = result.draftApplicationNumber = resume.applicationNumber
+    result.invoiceId = application.header.paymentToken
+    result.resumedFromRun = resume.runId
+    draftAttempted = true
+    await checkpoint()
+  }
   await page.route('**/*', async route => {
     const request = route.request()
     const url = new URL(request.url())
@@ -84,33 +103,44 @@ export async function verifyBusinessCheckout(page, result, environment, accountI
     checkout.failedFeeRequests++
     await route.fulfill({ status: 503, contentType: 'application/json', body: '{"message":"Synthetic QA fee outage"}' })
   }
-  await page.route(feePattern, failFee)
   page.on('dialog', dialog => dialog.type() === 'beforeunload' ? dialog.accept() : dialog.dismiss())
-  await page.goto(applicationUrl.href, { waitUntil: 'domcontentloaded' })
-  await config.fill(page, result)
-  result.stage = `${kind}-checkout-missing-fee`
-  await page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
-  await expect(page.getByText('Unable to load registration fee', { exact: true })).toBeVisible()
-  expect(checkout.failedFeeRequests).toBeGreaterThan(0)
-  expect(result.blockedWrites).toBe(0)
-  expect(checkout.writeAttempts).toHaveLength(0)
-  await page.getByRole('button', { name: 'Close', exact: true }).filter({ hasText: /^Close$/ }).click()
-  const save = page.getByRole('button', { name: 'Save', exact: true })
-  checkout.saveDraftAvailable = await save.count() === 1 && await save.isVisible()
-  if (checkout.saveDraftAvailable) {
-    result.stage = `${kind}-save-draft`
-    await save.click()
-    await expect.poll(() => checkout.savedWithoutInvoice, { timeout: 60000 }).toBe(true)
-    await expect(save).toBeEnabled()
+  if (!resume) {
+    await page.route(feePattern, failFee)
+    await page.goto(applicationUrl.href, { waitUntil: 'domcontentloaded' })
+    await config.fill(page, result)
+    result.stage = `${kind}-checkout-missing-fee`
+    await page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
+    await expect(page.getByText('Unable to load registration fee', { exact: true })).toBeVisible()
+    expect(checkout.failedFeeRequests).toBeGreaterThan(0)
+    expect(result.blockedWrites).toBe(0)
+    expect(checkout.writeAttempts).toHaveLength(0)
+    await page.getByRole('button', { name: 'Close', exact: true }).filter({ hasText: /^Close$/ }).click()
+    const save = page.getByRole('button', { name: 'Save', exact: true })
+    checkout.saveDraftAvailable = await save.count() === 1 && await save.isVisible()
+    if (checkout.saveDraftAvailable) {
+      result.stage = `${kind}-save-draft`
+      await save.click()
+      await expect.poll(() => checkout.savedWithoutInvoice, { timeout: 60000 }).toBe(true)
+      await expect(save).toBeEnabled()
+    }
   }
   result.stage = `${kind}-checkout-fee-recovery`
   const feeCount = result.fees.length
-  await page.unroute(feePattern, failFee)
+  if (!resume) await page.unroute(feePattern, failFee)
   if (result.draftApplicationNumber) {
     applicationUrl.searchParams.set('applicationId', result.draftApplicationNumber)
     await page.goto(applicationUrl.href, { waitUntil: 'domcontentloaded' })
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await expect(page.getByTestId(config.legalName)).toHaveValue(result.testFixture)
+    if (kind === 'platform') {
+      // populatePlatformDetails(loadDraft) resets these unsaved booleans.
+      for (const field of ['platform-business-hasCpbc', 'platform-business-hasRegOffAtt']) {
+        const answer = page.getByTestId(field).getByRole('radio', { name: 'No', exact: true })
+        await expect(answer).not.toBeChecked()
+        await answer.check()
+      }
+      checkout.reconfirmedDraftAnswers = true
+    }
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await expect(page.getByTestId(config.brand)).toHaveValue(result.testFixture)
     await page.getByRole('button', { name: 'Next', exact: true }).click()

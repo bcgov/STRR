@@ -7,14 +7,16 @@ import { verifyBusinessCheckout } from './business-checkout.mjs'
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
-if (!['renewal-inventory', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees'].includes(scenario)) throw new Error('Unknown scenario')
-const isCheckout = ['strata-checkout', 'platform-checkout'].includes(scenario)
+if (!['renewal-inventory', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees'].includes(scenario)) throw new Error('Unknown scenario')
+const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
-const scenarioApp = { 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host' }[scenario]
+const scenarioApp = { 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
-  scope: isCheckout
+  scope: scenario === 'platform-draft-resume'
+    ? 'Resume only the labelled draft from run 35145785986 after verifying DRAFT with no invoice; sandbox checkout and receipt, no replacement application.'
+    : isCheckout
     ? 'One fresh synthetic TEST business application: missing-fee guard, optional draft save, recovery and sandbox card payment/receipt. Unrelated application writes blocked.'
     : 'Synthetic-account prerequisite/fee reads and optional browser-only fee guard controls. Application writes/payments are blocked; normal login sync is allowed.',
   apps: [], result: 'in_progress'
@@ -158,7 +160,10 @@ try {
       if (scenario === 'platform-fee-guard') await verifyPlatformFeeGuard(page, result, environment)
       if (scenario === 'platform-fee-options') await verifyPlatformFeeOptions(page, result, environment)
       if (scenario === 'strata-fee-guard') await verifyStrataFeeGuard(page, result, environment)
-      if (isCheckout) await verifyBusinessCheckout(page, result, environment, apiHeaders['account-id'], scenario.split('-')[0])
+      if (isCheckout) await verifyBusinessCheckout(page, result, environment, apiHeaders, scenario.split('-')[0],
+        scenario === 'platform-draft-resume'
+          ? { applicationNumber: '09298572968127', fixture: 'Platform Fee Guard QA 35145785986', runId: '35145785986' }
+          : undefined)
       if (scenario === 'host-renewal-fees') {
         result.stage = 'host-renewal-prerequisite'
         const eligible = result.registrations.find(registration => registration.tasks.includes('REGISTRATION_RENEWAL'))
