@@ -13,9 +13,9 @@ await mkdir('results', { recursive: true })
 const browser = await chromium.launch()
 try {
   for (const app of [
-    { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application' },
-    { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application' },
-    { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application' }
+    { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTREN_OFF', 'HOSTREN_BB'] },
+    { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application', renewalCodes: ['PLATRENEWM', 'PLATRENEWL', 'PLATRENEWV'] },
+    { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application', renewalCodes: ['STRATRENEW'] }
   ]) {
     const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, loginSyncRequests: 0, fees: [] }
     report.apps.push(result)
@@ -26,6 +26,8 @@ try {
     const page = await context.newPage()
     let apiOrigin
     let apiHeaders
+    let payOrigin
+    let payHeaders
     const pending = []
     page.on('pageerror', () => result.browserErrors++)
     await page.route('**/*', async route => {
@@ -33,7 +35,7 @@ try {
       const url = new URL(request.url())
       const strrApi = url.hostname.startsWith(`strr-api-${environment}-`)
       const payApi = url.hostname.startsWith(`pay-api-${environment}-`)
-      // useTosStore.getTos() requires this existing login sync before account selection.
+      // useTosStore.getTermsOfUse() requires this login sync before account selection.
       const loginSync = strrApi && url.pathname === '/users' && request.method() === 'POST'
       if (loginSync) result.loginSyncRequests++
       if ((strrApi || payApi) && !loginSync && !['GET', 'OPTIONS'].includes(request.method())) {
@@ -54,6 +56,10 @@ try {
       if (url.hostname.startsWith(`pay-api-${environment}-`) && url.pathname.startsWith('/api/v1/fees/STRR/')) {
         const fee = { code: url.pathname.split('/').at(-1), status: response.status() }
         result.fees.push(fee)
+        pending.push(response.request().allHeaders().then(headers => {
+          payOrigin = url.origin
+          payHeaders = { authorization: headers.authorization, 'account-id': headers['account-id'] }
+        }))
         if (response.ok()) pending.push(response.json().then(body => {
           fee.filingFees = body.filingFees
           fee.serviceFees = body.serviceFees
@@ -99,11 +105,13 @@ try {
         paymentStatus: item.header.paymentStatus, registrationId: item.header.registrationId
       }))
       const registrationsResponse = await page.request.get(apiOrigin + '/registrations', {
-        headers: apiHeaders, params: { registration_type: app.type, limit: '100', offset: '0' }
+        headers: apiHeaders, params: { registration_type: app.type, limit: '100', offset: '1' }
       })
+      result.registrationListStatus = registrationsResponse.status()
       expect(registrationsResponse.status()).toBe(200)
       const registrations = await registrationsResponse.json()
       result.registrationTotal = registrations.total
+      expect(registrations.registrations.length).toBe(registrations.total)
       result.registrations = []
       for (const registration of registrations.registrations) {
         const response = await page.request.get(apiOrigin + `/registrations/${registration.id}/todos`, { headers: apiHeaders })
@@ -118,6 +126,18 @@ try {
       await page.goto(origin + '/en-CA' + app.application, { waitUntil: 'domcontentloaded' })
       await expect.poll(() => result.fees.filter(fee => fee.status === 200).length, { timeout: 30000 }).toBeGreaterThanOrEqual(app.name === 'stratahotel' ? 1 : 3)
       await Promise.all(pending)
+      result.stage = 'live-renewal-fee-availability'
+      result.renewalFees = []
+      for (const code of app.renewalCodes) {
+        const response = await page.request.get(payOrigin + '/api/v1/fees/STRR/' + code, { headers: payHeaders })
+        const fee = { code, status: response.status(), source: 'direct-read-only-api-not-ui-selection' }
+        result.renewalFees.push(fee)
+        expect(response.status()).toBe(200)
+        const body = await response.json()
+        fee.filingFees = body.filingFees
+        fee.serviceFees = body.serviceFees
+        fee.total = body.total
+      }
       expect(result.blockedWrites).toBe(0)
       expect(result.browserErrors).toBe(0)
       result.stage = 'complete'
