@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { HostActions } from '~/enums/host-actions'
+import { HostActions } from '#baseWeb/enums/host-actions'
 
 const RENEWAL_CLOSED_THRESHOLD_YEARS = 3
 

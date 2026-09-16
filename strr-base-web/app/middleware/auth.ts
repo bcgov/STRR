@@ -1,5 +1,5 @@
-import type { StrrLoginIdp } from '~/types/strr-base-app-config'
-import { unwrapAppConfigList } from '~/utils/unwrap-app-config'
+import type { StrrLoginIdp } from '#baseWeb/types/strr-base-app-config'
+import { unwrapAppConfigList } from '#baseWeb/utils/unwrap-app-config'
 
 function realmRolesFromToken (): string[] {
   const parsed = useNuxtApp().$keycloak?.tokenParsed as { realm_access?: { roles?: string[] } } | undefined
@@ -24,7 +24,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const { isAuthenticated, kcUser, logout } = useKeycloak()
   const loginOptions = useAppConfig().strrBaseLayer.page.login.options
   const allowedIdps = unwrapAppConfigList<StrrLoginIdp>(loginOptions.idps)
-  const requiredRealmRoles = unwrapAppConfigList(loginOptions.requiredRealmRoles).filter(Boolean)
+  const requiredRealmRoles = unwrapAppConfigList<string>(loginOptions.requiredRealmRoles).filter(Boolean)
 
   if (!isAuthenticated.value) {
     const localePath = useLocalePath()

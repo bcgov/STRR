@@ -76,10 +76,3 @@ export interface PlatformRegistrationResp extends ApiExtraRegistrationDetails {
   platformDetails?: ApiPlatformDetails
   documents?: ApiDocument[]
 }
-
-export interface ApiSnapshot {
-  id: number
-  snapshotDateTime: string
-  snapshotEndpoint: string
-  version: number
-}
