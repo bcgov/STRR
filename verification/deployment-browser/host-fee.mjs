@@ -51,7 +51,9 @@ export async function verifyHostFee(page, report) {
   expect(new URL(page.url()).origin).toBe(origin)
   expect(result.blockedSubmissionAttempts).toBe(0)
   result.missingFeeBlockedBeforeSubmission = true
-  await page.getByRole('button', { name: 'Close', exact: true }).click()
+  result.stage = 'close-fee-error'
+  // ModalBase has an icon Close and a text Close; use its text action.
+  await page.getByRole('button', { name: 'Close', exact: true }).filter({ hasText: /^Close$/ }).click()
   await expect(page.getByText('Unable to load registration fee', { exact: true })).toHaveCount(0)
   await page.unroute('**/applications**', preventApplicationWrite)
 
