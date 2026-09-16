@@ -134,6 +134,77 @@ describe('Dashboard Applications Table', () => {
     mockHandlePaymentRedirect.mockReset()
   })
 
+  it.each([
+    { label: 'omitted address', address: undefined },
+    { label: 'empty address', address: {} },
+    { label: 'city only', address: { city: 'Victoria' } },
+    { label: 'street name only', address: { streetName: 'Main St', city: 'Victoria' } }
+  ])('renders and resumes a draft with $label', async ({ address }) => {
+    const application = createApplication({ header: { status: ApplicationStatus.DRAFT } })
+    application.registration = { registrationType: ApplicationType.HOST, unitAddress: address }
+    asyncDataMocks['host-applications-list'] = { applications: [application], total: 1, filteredCount: 1 }
+
+    const wrapper = await mountSuspended(ApplicationsTable, {
+      global: { plugins: [baseEnI18n] }
+    })
+
+    const row = wrapper.find('tbody tr')
+    const addressCell = row.findAll('td')[2]!
+    expect(addressCell.text()).not.toContain('undefined')
+    expect(addressCell.text()).not.toContain('null')
+    if (address && 'streetName' in address) {
+      expect(addressCell.text()).toContain('Main St')
+    } else {
+      expect(addressCell.text()).toContain('N/A')
+    }
+    if (address && 'city' in address) {
+      expect(addressCell.text()).toContain('Victoria')
+    }
+    expect(row.text()).toContain(application.header.applicationNumber)
+    const resume = row.findAll('button').find(button => button.text().includes('label.resumeDraft'))!
+    await resume.trigger('click')
+    expect(mockNavigateTo).toHaveBeenCalledWith('/en-CA/application?applicationId=12345678901234')
+  })
+
+  it('renders complete and incomplete drafts together without dropping rows', async () => {
+    const incomplete = createApplication({ header: { status: ApplicationStatus.DRAFT } })
+    incomplete.registration = { registrationType: ApplicationType.HOST }
+    const complete = createApplication({
+      header: { applicationNumber: '23456789012345', status: ApplicationStatus.DRAFT },
+      registration: { unitAddress: { unitNumber: '12' } }
+    })
+    asyncDataMocks['host-applications-list'] = {
+      applications: [incomplete, complete], total: 2, filteredCount: 2
+    }
+
+    const wrapper = await mountSuspended(ApplicationsTable, {
+      global: { plugins: [baseEnI18n] }
+    })
+
+    const rows = wrapper.findAll('tbody tr')
+    expect(rows).toHaveLength(2)
+    expect(rows[0]!.text()).toContain('12345678901234')
+    expect(rows[1]!.text()).toContain('23456789012345')
+    expect(rows[1]!.findAll('td')[2]!.text()).toBe('12-123 Main StVictoria')
+  })
+
+  it('uses the linked registration address when a draft has no unit address', async () => {
+    const application = createApplication({
+      header: {
+        status: ApplicationStatus.DRAFT,
+        registrationAddress: { unitNumber: '8', streetNumber: '456', streetName: 'Douglas St', city: 'Victoria' }
+      }
+    })
+    application.registration = { registrationType: ApplicationType.HOST }
+    asyncDataMocks['host-applications-list'] = { applications: [application], total: 1, filteredCount: 1 }
+
+    const wrapper = await mountSuspended(ApplicationsTable, {
+      global: { plugins: [baseEnI18n] }
+    })
+
+    expect(wrapper.find('tbody tr').findAll('td')[2]!.text()).toBe('8-456 Douglas StVictoria')
+  })
+
   it('renders number as hyperlink for non-draft application', async () => {
     asyncDataMocks['host-applications-list'] = {
       applications: [createApplication()],

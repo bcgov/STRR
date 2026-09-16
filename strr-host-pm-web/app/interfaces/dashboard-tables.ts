@@ -3,7 +3,7 @@ export interface ApplicationRow {
   status?: string
   statusKey?: ApplicationStatus
   hostActions: HostActions[]
-  address: ApiUnitAddress
+  address?: ApiUnitAddress
   localGovernment: string
   dateSubmitted?: Date | string
   applicationNumber: string
