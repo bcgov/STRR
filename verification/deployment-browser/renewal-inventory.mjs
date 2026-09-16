@@ -3,14 +3,15 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { verifyPlatformFeeGuard, verifyPlatformFeeOptions } from './platform-fee-guard.mjs'
 import { verifyStrataFeeGuard } from './strata-fee-guard.mjs'
 import { verifyBusinessCheckout } from './business-checkout.mjs'
+import { verifyHostDateInput } from './host-date-input.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
-if (!['renewal-inventory', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees'].includes(scenario)) throw new Error('Unknown scenario')
+if (!['renewal-inventory', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input'].includes(scenario)) throw new Error('Unknown scenario')
 const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
-const scenarioApp = { 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host' }[scenario]
+const scenarioApp = { 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
@@ -50,7 +51,7 @@ try {
       // useTosStore.getTermsOfUse() requires this login sync before account selection.
       const loginSync = strrApi && url.pathname === '/users' && request.method() === 'POST'
       // The address endpoint calculates requirements without saving an application.
-      const addressLookup = scenario === 'host-renewal-fees' && strrApi && url.pathname === '/address/requirements' && request.method() === 'POST'
+      const addressLookup = ['host-renewal-fees', 'host-date-input'].includes(scenario) && strrApi && url.pathname === '/address/requirements' && request.method() === 'POST'
       if (loginSync) result.loginSyncRequests++
       if ((strrApi || payApi) && !loginSync && !addressLookup && !['GET', 'OPTIONS'].includes(request.method())) {
         result.blockedWrites++
@@ -160,6 +161,7 @@ try {
       if (scenario === 'platform-fee-guard') await verifyPlatformFeeGuard(page, result, environment)
       if (scenario === 'platform-fee-options') await verifyPlatformFeeOptions(page, result, environment)
       if (scenario === 'strata-fee-guard') await verifyStrataFeeGuard(page, result, environment)
+      if (scenario === 'host-date-input') await verifyHostDateInput(page, result)
       if (isCheckout) await verifyBusinessCheckout(page, result, environment, apiHeaders, scenario.split('-')[0],
         scenario === 'platform-draft-resume'
           ? { applicationNumber: '09298572968127', fixture: 'Platform Fee Guard QA 35145785986', runId: '35145785986' }
