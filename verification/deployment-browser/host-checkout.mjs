@@ -65,10 +65,11 @@ export async function submitHostPayment(page, result, card) {
   result.submissionStatus = response.status()
   if (!response.ok()) throw new Error('TEST Host submission returned HTTP ' + response.status())
   const application = await response.json()
-  if (result.draftApplicationNumber) expect(application.header.applicationNumber).toBe(result.draftApplicationNumber)
   result.applicationNumber = application.header.applicationNumber
   result.invoiceId = application.header.paymentToken
   result.initialStatus = application.header.status
+  result.stage = 'host-submission-identity'
+  if (result.draftApplicationNumber) expect(result.applicationNumber).toBe(result.draftApplicationNumber)
   expect(result.initialStatus).toBe('PAYMENT_DUE')
   const pending = observeApplication(page, result)
 

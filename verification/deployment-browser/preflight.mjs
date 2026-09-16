@@ -1,21 +1,22 @@
 import { chromium, expect } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { verifyHostFee } from './host-fee.mjs'
+import { inspectHostFixture } from './host-fixture-state.mjs'
 
 // Read-only by default; the explicit TEST scenario allows one synthetic checkout.
 // Never export storage, credentials, response bodies, or raw error text.
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO || 'read-only'
-if (!['read-only', 'host-fee'].includes(scenario)) throw new Error('Unknown verification scenario')
-if (scenario === 'host-fee' && environment !== 'test') throw new Error('Checkout is TEST only')
+if (!['read-only', 'host-fee', 'host-fixture-state'].includes(scenario)) throw new Error('Unknown verification scenario')
+if (scenario !== 'read-only' && environment !== 'test') throw new Error('Host fixture scenarios are TEST only')
 const origin = `https://${environment}.host.shorttermrental.registry.gov.bc.ca`
 const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME
 const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
-  scope: scenario === 'read-only' ? 'Read-only BCSC login, known synthetic account, dashboard, application list and fee calls.' : 'Host missing-fee guard, draft recovery when enabled, and one fresh sandbox checkout with cancel/resume and receipt verification.',
+  scope: scenario === 'host-fee' ? 'Host missing-fee guard, draft recovery when enabled, and one fresh sandbox checkout with cancel/resume and receipt verification.' : 'Read-only BCSC login, known synthetic account, dashboard and scoped synthetic fixture state.',
   stage: 'setup', result: 'in_progress', responses: [], browserErrorCount: 0
 }
 await mkdir('results', { recursive: true })
@@ -71,6 +72,9 @@ try {
   if (scenario === 'host-fee') {
     report.stage = 'host-fee-verification'
     await verifyHostFee(page, report)
+  } else if (scenario === 'host-fixture-state') {
+    report.stage = 'inspect-existing-fixture'
+    await inspectHostFixture(page, report)
   } else {
     report.stage = 'registration-fees'
     await page.goto(origin + '/en-CA/application', { waitUntil: 'domcontentloaded' })

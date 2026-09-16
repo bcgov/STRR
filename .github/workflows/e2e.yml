@@ -14,7 +14,7 @@ on:
         type: choice
         required: true
         default: read-only
-        options: [read-only, host-fee]
+        options: [read-only, host-fee, host-fixture-state]
 
 permissions:
   contents: read
