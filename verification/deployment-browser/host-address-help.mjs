@@ -43,6 +43,19 @@ export async function verifyHostAddressHelp(page, result) {
       test.error = { name: error.name }
       test.buttonExpanded = await toggle.count() ? await toggle.getAttribute('aria-expanded') : null
       test.buttonFocused = await toggle.count() ? await toggle.evaluate(element => element === document.activeElement) : false
+      if (name.startsWith('keyboard-') && await heading.count()) {
+        test.panelLayout = await heading.evaluate(element => {
+          const layout = []
+          for (let node = element; node && node.dataset.testid !== 'new-address-form'; node = node.parentElement) {
+            const style = getComputedStyle(node)
+            const box = node.getBoundingClientRect()
+            layout.push({ tag: node.tagName, display: style.display, visibility: style.visibility,
+              overflowY: style.overflowY, height: box.height, top: box.top, bottom: box.bottom,
+              inlineHeight: node.style.height, animations: node.getAnimations().map(animation => animation.playState) })
+          }
+          return layout
+        })
+      }
     } finally {
       if (name === 'keyboard-enter-space' && await toggle.count()) {
         test.keyboardEvents = await toggle.evaluate(element => element.addressHelpKeyEvents || [])
@@ -91,6 +104,19 @@ export async function verifyHostAddressHelp(page, result) {
     await toggle.press('Space')
     await expect(heading).not.toBeVisible()
     test.step = 'keyboard-retains-focus'
+    await expect(toggle).toBeFocused()
+  })
+  await runCase('keyboard-after-transition', async test => {
+    await toggle.focus()
+    test.step = 'keyboard-settled-enter-opens'
+    await toggle.press('Enter')
+    await expect(heading).toBeVisible()
+    await expect.poll(() => help.evaluate(element =>
+      element.getAnimations({ subtree: true }).filter(animation => animation.playState === 'running').length
+    )).toBe(0)
+    test.step = 'keyboard-settled-space-closes'
+    await toggle.press('Space')
+    await expect(heading).not.toBeVisible()
     await expect(toggle).toBeFocused()
   })
   for (const [unit, valid] of [['', true], ['A12', true], ['123ABC', true], ['123ABCD', false], ['A-12', false]]) {
