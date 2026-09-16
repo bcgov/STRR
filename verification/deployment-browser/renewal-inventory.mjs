@@ -45,14 +45,6 @@ try {
     })
     page.on('response', response => {
       const url = new URL(response.url())
-      if (url.hostname.startsWith(`strr-api-${environment}-`) && response.ok() && response.request().method() === 'GET') {
-        pending.push(response.request().allHeaders().then(headers => {
-          if (headers.authorization && headers['account-id']) {
-            apiOrigin = url.origin
-            apiHeaders = { authorization: headers.authorization, 'account-id': headers['account-id'] }
-          }
-        }))
-      }
       if (url.hostname.startsWith(`pay-api-${environment}-`) && url.pathname.startsWith('/api/v1/fees/STRR/')) {
         const fee = { code: url.pathname.split('/').at(-1), status: response.status() }
         result.fees.push(fee)
@@ -89,9 +81,20 @@ try {
       await account.click()
       await page.waitForURL(url => url.origin === origin && !url.pathname.includes('/auth/'), { timeout: 45000 })
       result.stage = 'dashboard'
-      await page.goto(origin + '/en-CA' + app.dashboard, { waitUntil: 'domcontentloaded' })
-      await expect.poll(() => Boolean(apiOrigin && apiHeaders), { timeout: 30000 }).toBe(true)
-      await Promise.all(pending)
+      const [listResponse] = await Promise.all([
+        page.waitForResponse(response => {
+          const url = new URL(response.url())
+          return url.hostname.startsWith(`strr-api-${environment}-`) &&
+            ['/applications', '/registrations', '/registrations/user/search'].includes(url.pathname) &&
+            response.request().method() === 'GET' && response.ok()
+        }, { timeout: 30000 }),
+        page.goto(origin + '/en-CA' + app.dashboard, { waitUntil: 'domcontentloaded' })
+      ])
+      // Use the selected dashboard's exact request, never a startup/default-account request.
+      const listHeaders = await listResponse.request().allHeaders()
+      expect(Boolean(listHeaders.authorization && listHeaders['account-id'])).toBe(true)
+      apiOrigin = new URL(listResponse.url()).origin
+      apiHeaders = { authorization: listHeaders.authorization, 'account-id': listHeaders['account-id'] }
 
       result.stage = 'renewal-prerequisites'
       const applicationsResponse = await page.request.get(apiOrigin + '/applications', {
