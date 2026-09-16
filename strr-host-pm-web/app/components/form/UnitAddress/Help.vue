@@ -17,16 +17,19 @@ defineProps<{
     }"
   >
     <template #default="{ item, open }">
-      <div class="flex items-center justify-between">
-        <span v-if="label" class="text-base font-semibold">{{ label }}</span>
-        <UButton
-          variant="link"
-          class="justify-start px-0 text-blue-500 hover:text-blue-700"
+      <UButton
+        variant="link"
+        class="w-full justify-between px-0 text-blue-500 hover:text-blue-700 hover:no-underline"
+      >
+        <span v-if="label" class="text-base font-semibold text-bcGovColor-midGray">{{ label }}</span>
+        <span
+          class="inline-flex items-center gap-x-2.5 hover:underline"
           :class="open && 'font-bold'"
-          icon="i-mdi-help-circle-outline"
-          :label="open ? `${t('help.address.hide')} ${item.label}` : item.label"
-        />
-      </div>
+        >
+          <UIcon name="i-mdi-help-circle-outline" class="size-5" aria-hidden="true" />
+          {{ open ? `${t('help.address.hide')} ${item.label}` : item.label }}
+        </span>
+      </UButton>
     </template>
     <template #help="{ close }">
       <div class="mt-4 rounded border border-blue-500 bg-blue-50">
