@@ -155,10 +155,12 @@ export const getTodoRegistration = async (regId: number) => {
 
   return {
     hasRenewalTodo: tasksByType.has(RegistrationTodoType.REGISTRATION_RENEWAL),
-    hasRenewalDraft: !!renewalDraftTask,
-    hasRenewalPaymentPending: !!renewalPaymentTask,
-    renewalDraftId: renewalDraftTask?.detail ?? null,
-    renewalPaymentPendingId: renewalPaymentTask?.detail ?? null
+    ...(renewalDraftTask?.type === RegistrationTodoType.REGISTRATION_RENEWAL_DRAFT
+      ? { hasRenewalDraft: true as const, renewalDraftId: renewalDraftTask.detail ?? null }
+      : { hasRenewalDraft: false as const, renewalDraftId: null }),
+    ...(renewalPaymentTask?.type === RegistrationTodoType.REGISTRATION_RENEWAL_PAYMENT_PENDING
+      ? { hasRenewalPaymentPending: true as const, renewalPaymentPendingId: renewalPaymentTask.detail ?? null }
+      : { hasRenewalPaymentPending: false as const, renewalPaymentPendingId: null })
   }
 }
 
