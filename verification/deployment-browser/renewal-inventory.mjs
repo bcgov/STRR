@@ -17,7 +17,7 @@ try {
     { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application' },
     { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application' }
   ]) {
-    const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, fees: [] }
+    const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, loginSyncRequests: 0, fees: [] }
     report.apps.push(result)
     const origin = `https://${environment}.${app.name}.shorttermrental.registry.gov.bc.ca`
     const context = await browser.newContext()
@@ -31,7 +31,12 @@ try {
     await page.route('**/*', async route => {
       const request = route.request()
       const url = new URL(request.url())
-      if (url.hostname.startsWith(`strr-api-${environment}-`) && !['GET', 'OPTIONS'].includes(request.method())) {
+      const strrApi = url.hostname.startsWith(`strr-api-${environment}-`)
+      const payApi = url.hostname.startsWith(`pay-api-${environment}-`)
+      // useTosStore.getTos() requires this existing login sync before account selection.
+      const loginSync = strrApi && url.pathname === '/users' && request.method() === 'POST'
+      if (loginSync) result.loginSyncRequests++
+      if ((strrApi || payApi) && !loginSync && !['GET', 'OPTIONS'].includes(request.method())) {
         result.blockedWrites++
         await route.abort('blockedbyclient')
       } else await route.continue()
