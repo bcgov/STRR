@@ -64,7 +64,9 @@ export const useDocumentStore = defineStore('strata/document', () => {
       const formData = new FormData()
       formData.append('file', uiDoc.file)
       formData.append('documentType', uiDoc.type)
-      formData.append('uploadStep', uiDoc.uploadStep)
+      if (uiDoc.uploadStep) {
+        formData.append('uploadStep', uiDoc.uploadStep)
+      }
       if (uiDoc.uploadDate) {
         formData.append('uploadDate', uiDoc.uploadDate)
       }
