@@ -57,11 +57,12 @@ export async function verifyHostDateInput(page, result) {
   result.dateInput.calendarMarkup = {
     wrapperCount: await picker.count(),
     testIdCount: await page.getByTestId('date-picker').count(),
-    dayTexts: (await picker.locator('.connect-date-picker__calendar__day').allTextContents()).map(text => text.trim()).filter(text => /^\d{1,2}$/.test(text))
+    dayTexts: (await picker.locator('.dp__cell_inner').allTextContents()).map(text => text.trim()).filter(text => /^\d{1,2}$/.test(text))
   }
   await expect(picker).toBeVisible()
-  // The day class is declared by the actual shared Picker.vue, not a mocked calendar.
-  const day = picker.locator('.connect-date-picker__calendar__day').filter({ hasText: /^11$/ })
+  // Verified in the installed @vuepic/vue-datepicker 10.0.0 renderer. The app's legacy
+  // calendar-cell-class-name prop does not add its requested class in this version.
+  const day = picker.locator('.dp__cell_inner').filter({ hasText: /^11$/ })
   result.stage = 'date-calendar-day-target'
   await expect(day).toHaveCount(1)
   result.stage = 'date-calendar-select'
