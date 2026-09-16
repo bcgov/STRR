@@ -157,26 +157,31 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     if (permitDetails.value.propertyManager) {
       hostOwners.value.push(formatOwnerPropertyManagerUI(permitDetails.value.propertyManager))
     }
-    unitDetails.value = formatHostUnitDetailsUI(permitDetails.value.unitDetails)
-    blInfo.value = formatHostUnitDetailsBlInfoUI(permitDetails.value.unitDetails)
-    unitAddress.value = { address: formatHostUnitAddressUI(permitDetails.value.unitAddress) }
+    const savedUnitDetails = permitDetails.value.unitDetails ?? {}
+    const savedUnitAddress = {
+      ...formatHostUnitAddressApi(unitAddress.value.address),
+      ...permitDetails.value.unitAddress
+    }
+    unitDetails.value = formatHostUnitDetailsUI(savedUnitDetails)
+    blInfo.value = formatHostUnitDetailsBlInfoUI(savedUnitDetails)
+    unitAddress.value = { address: formatHostUnitAddressUI(savedUnitAddress) }
     showUnitDetailsForm.value = !!unitAddress.value.address.street || !!unitAddress.value.address.streetAdditional
     // Normalize null/empty exemption reason so PR docs are required when not exempt
-    const prExemptReason = permitDetails.value.unitDetails.prExemptReason || undefined
+    const prExemptReason = savedUnitDetails.prExemptReason || undefined
     prRequirements.value.isPropertyPrExempt = !!prExemptReason
     prRequirements.value.prExemptionReason = prExemptReason
-    blRequirements.value.isBusinessLicenceExempt = !!permitDetails.value.unitDetails.blExemptReason
+    blRequirements.value.isBusinessLicenceExempt = !!savedUnitDetails.blExemptReason
 
     // populate BL Exempt radio buttons selection and reason
     blRequirements.value.blExemptType =
-      permitDetails.value.unitDetails.blExemptReason === t('label.blExemptionReasonOver30')
+      savedUnitDetails.blExemptReason === t('label.blExemptionReasonOver30')
         ? BlExemptionReason.OVER_30_DAYS
         : BlExemptionReason.OTHER
 
-    blRequirements.value.blExemptReason = permitDetails.value.unitDetails?.blExemptReason ?? ''
-    strataHotelCategory.value.category = permitDetails.value.unitDetails.strataHotelCategory
+    blRequirements.value.blExemptReason = savedUnitDetails.blExemptReason ?? ''
+    strataHotelCategory.value.category = savedUnitDetails.strataHotelCategory
     strataHotelCategory.value.strataHotelRegistrationNumber =
-      permitDetails.value.unitDetails.strataHotelRegistrationNumber ?? ''
+      savedUnitDetails.strataHotelRegistrationNumber ?? ''
     if (application.value?.registration.strRequirements && showUnitDetailsForm.value) {
       propertyReqs.value = application.value?.registration.strRequirements
       if (Object.keys(application.value.registration.strRequirements).length === 0) {
