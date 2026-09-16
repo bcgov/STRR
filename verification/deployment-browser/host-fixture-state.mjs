@@ -46,8 +46,10 @@ export async function resumeHostFixture(page, report) {
     stage: 'open-existing-unpaid-application'
   }
   const card = loadTestCard([])
-  await page.goto('https://test.host.shorttermrental.registry.gov.bc.ca/en-CA/dashboard/' + state.applicationNumber,
+  // The current TEST dashboard uses application-specific detail routes.
+  await page.goto('https://test.host.shorttermrental.registry.gov.bc.ca/en-CA/dashboard/application/' + state.applicationNumber,
     { waitUntil: 'domcontentloaded' })
+  result.openedApplicationPath = new URL(page.url()).pathname
   await expect(page.getByTestId('h1')).toContainText(result.testFixture)
   await page.getByRole('button', { name: 'Pay Now', exact: true }).click()
   await finishHostCheckout(page, result, card)
