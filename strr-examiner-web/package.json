@@ -35,6 +35,7 @@
     "@testing-library/vue": "^8.1.0",
     "@types/jsdom": "21.1.7",
     "@types/lodash": "^4.17.21",
+    "@types/luxon": "3.7.1",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/parser": "^8.50.1",
     "@vitest/coverage-v8": "4.1.11",
@@ -51,6 +52,7 @@
   "dependencies": {
     "@daxiom/nuxt-core-layer-test": "^0.0.29",
     "country-codes-list": "^2.0.0",
+    "luxon": "3.7.2",
     "nuxt": "4.5.2",
     "uuid": "^11.1.0",
     "v-calendar": "^3.1.2"

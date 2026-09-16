@@ -58,7 +58,7 @@ export interface ApiBaseApplication extends ApiBaseRegistration {
 }
 
 export interface ApiExtraRegistrationDetails {
-  expiryDate: Date
+  expiryDate: string
   id: number
   registrationNumber: string
   sbc_account_id: number
