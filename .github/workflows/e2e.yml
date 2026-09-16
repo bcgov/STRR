@@ -14,7 +14,7 @@ on:
         type: choice
         required: true
         default: read-only
-        options: [read-only, strata-list, host-fee, host-fixture-state, host-resume]
+        options: [read-only, strata-list, renewal-inventory, host-fee, host-fixture-state, host-resume]
 
 permissions:
   contents: read
@@ -46,6 +46,8 @@ jobs:
         run: |
           if [ "$VERIFY_SCENARIO" = "strata-list" ]; then
             node strata-preflight.mjs
+          elif [ "$VERIFY_SCENARIO" = "renewal-inventory" ]; then
+            node renewal-inventory.mjs
           else
             node preflight.mjs
           fi
