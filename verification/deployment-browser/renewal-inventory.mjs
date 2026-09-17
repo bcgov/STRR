@@ -12,6 +12,7 @@ import { prepareSessionClock, verifySessionLifecycle } from './session-lifecycle
 import { verifyStepperNavigation } from './stepper-navigation.mjs'
 import { verifyIncompleteHostDrafts } from './host-incomplete-drafts.mjs'
 import { verifyStrataRouting } from './strata-routing.mjs'
+import { prepareStrataRouteDiagnostics } from './strata-route-diagnostics.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
@@ -19,12 +20,13 @@ const scenario = process.env.VERIFY_SCENARIO
 const isHostDraftInventory = scenario === 'host-draft-inventory'
 const isHostDraftVerification = scenario === 'host-incomplete-drafts'
 const isSession = ['session-lifecycle', 'host-session-lifecycle', 'platform-session-lifecycle', 'strata-session-lifecycle'].includes(scenario)
-const isRouting = scenario === 'strata-routing'
+const isRoutingDiagnostic = scenario === 'strata-routing-diagnostics'
+const isRouting = isRoutingDiagnostic || scenario === 'strata-routing'
 const isStepper = isRouting || ['platform-stepper-navigation', 'strata-stepper-navigation'].includes(scenario)
 if (!isHostDraftVerification && !isHostDraftInventory && !isSession && !isStepper && !['account-inventory', 'review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
 const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
-const scenarioApp = ({ 'strata-routing': 'stratahotel', 'host-incomplete-drafts': 'host', 'host-draft-inventory': 'host', 'host-session-lifecycle': 'host', 'platform-session-lifecycle': 'platform', 'strata-session-lifecycle': 'stratahotel', 'platform-stepper-navigation': 'platform', 'strata-stepper-navigation': 'stratahotel' }[scenario]) || { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
+const scenarioApp = ({ 'strata-routing-diagnostics': 'stratahotel', 'strata-routing': 'stratahotel', 'host-incomplete-drafts': 'host', 'host-draft-inventory': 'host', 'host-session-lifecycle': 'host', 'platform-session-lifecycle': 'platform', 'strata-session-lifecycle': 'stratahotel', 'platform-stepper-navigation': 'platform', 'strata-stepper-navigation': 'stratahotel' }[scenario]) || { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
@@ -43,14 +45,20 @@ try {
     { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTRENOFF', 'HOSTREN_BB'] },
     { name: 'platform', type: 'PLATFORM', dashboard: '/platform/dashboard', application: '/platform/application?override=true', renewalCodes: ['PLATRENEWM', 'PLATRENEWL', 'PLATRENEWV'] },
     { name: 'stratahotel', type: 'STRATA_HOTEL', dashboard: '/strata-hotel/dashboard', application: '/strata-hotel/application', renewalCodes: ['STRATRENEW'] }
-  ].filter(app => scenario === 'document-inventory' ? app.name !== 'platform' : !scenarioApp || app.name === scenarioApp)) {
+  ].filter(app => scenario === 'document-inventory' ? app.name !== 'platform' : !scenarioApp || app.name === scenarioApp)
+    .flatMap(app => isRoutingDiagnostic ? [1, 2, 3].map(trial => ({ ...app, trial })) : [app])) {
+    // Fixed diagnostic trials, never retry unsuccessful authentication/account selection.
+    if (isRoutingDiagnostic && report.apps.some(item => !item.authenticated || !item.accountAvailable)) break
     const result = { app: app.name, stage: 'login', result: 'in_progress', browserErrors: 0, blockedWrites: 0, blockedRequestCategories: [], loginSyncRequests: 0, addressLookupStatuses: [], fees: [] }
+    if (isRoutingDiagnostic) result.trial = app.trial
     report.apps.push(result)
     const origin = `https://${environment}.${app.name}.shorttermrental.registry.gov.bc.ca`
     const context = await browser.newContext()
     context.setDefaultTimeout(20000)
     context.setDefaultNavigationTimeout(60000)
     const page = await context.newPage()
+    const attachRouterDiagnostics = isRoutingDiagnostic
+      ? await prepareStrataRouteDiagnostics(page, result, environment) : undefined
     if (isSession) await prepareSessionClock(page, origin)
     let apiOrigin
     let apiHeaders
@@ -188,6 +196,7 @@ try {
         continue
       }
 
+      if (attachRouterDiagnostics) await attachRouterDiagnostics()
       if (isRouting) await verifyStrataRouting(page, result)
       result.stage = 'renewal-prerequisites'
       const applicationsResponse = await page.request.get(apiOrigin + '/applications', {
