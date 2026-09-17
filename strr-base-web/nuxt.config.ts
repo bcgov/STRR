@@ -101,7 +101,7 @@ export default defineNuxtConfig({
       addressCompleteKey: process.env.NUXT_ADDRESS_COMPLETE_KEY,
       payApiURL: `${process.env.NUXT_PAY_API_URL}${process.env.NUXT_PAY_API_VERSION}`,
       legalApiURL: `${process.env.NUXT_LEGAL_API_URL}${process.env.NUXT_LEGAL_API_VERSION}`,
-      strrApiURL: process.env.NUXT_STRR_API_URL,
+      strrApiURL: process.env.NUXT_STRR_API_URL || '',
       paymentPortalUrl: process.env.NUXT_PAYMENT_PORTAL_URL,
       baseUrl: process.env.NUXT_BASE_URL,
       environment: process.env.NUXT_ENVIRONMENT_HEADER || '',
