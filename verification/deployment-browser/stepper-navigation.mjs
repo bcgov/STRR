@@ -52,5 +52,9 @@ export async function verifyStepperNavigation(page, result, app) {
   await expect(next).toHaveCount(0)
   await expect(back).toBeVisible()
   completed('next-back-and-final-step-controls')
+  result.stage = 'stepper-return-to-contact'
+  await steps.nth(0).click()
+  await selected(0)
+  await expect(page.getByTestId('completing-party-radio-group')).toBeVisible()
   checks.result = 'passed'
 }
