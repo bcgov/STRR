@@ -46,7 +46,10 @@ const selectedDateDisplay: ComputedRef<string> = computed(
 const handleManualDateEntry = (input: string) => {
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/
   const inputDate = dateStringToDate(input)
-  const validDate = inputDate && (!props.maxDate || inputDate < props.maxDate)
+  // Match the picker's inclusive calendar-day bounds, regardless of the bounds' time of day.
+  const validDate = inputDate &&
+    (!props.minDate || input >= dateToString(props.minDate)) &&
+    (!props.maxDate || input <= dateToString(props.maxDate))
   if (!input || (input.match(dateRegex) !== null && validDate)) {
     updateDate(inputDate)
     showDatePicker.value = false
@@ -100,7 +103,7 @@ const handleManualDateEntry = (input: string) => {
       :default-selected-date="selectedDate"
       :set-min-date="minDate"
       :set-max-date="maxDate"
-      @selected-date="updateDate($event); showDatePicker = false; hasDateChanged = true"
+      @selected-date="updateDate($event); showDatePicker = false"
     />
   </ConnectFormFieldGroup>
 </template>
