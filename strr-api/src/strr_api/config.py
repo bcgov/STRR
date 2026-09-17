@@ -44,11 +44,20 @@ Environment variables are used to store the necessary values for each setting.
 
 import os
 
+from cloud_sql_connector import sqlalchemy_settings_from_env
 from dotenv import find_dotenv, load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 load_dotenv(find_dotenv())
+
+
+def _deployment_env() -> str:
+    return os.getenv("DEPLOYMENT_ENV", "production")
+
+
+def _iam_username_env() -> str:
+    return "DATABASE_MIGRATION_USERNAME" if _deployment_env() == "migration" else "DATABASE_USERNAME"
 
 
 class Config:  # pylint: disable=too-few-public-methods
@@ -62,20 +71,12 @@ class Config:  # pylint: disable=too-few-public-methods
     CSRF_ENABLED = True
     SECRET_KEY = "this-really-needs-to-be-changed"
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-    POD_NAMESPACE = os.getenv("DEPLOYMENT_ENV", "production")
+    POD_NAMESPACE = _deployment_env()
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    DB_USER = os.getenv("DATABASE_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_NAME", "")
-    DB_HOST = os.getenv("DATABASE_HOST", "")
-    DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?host={DB_UNIX_SOCKET}"
-    else:
-        SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env(
+        iam_username_env=_iam_username_env()
+    )
 
     LD_SDK_KEY = os.getenv("LD_SDK_KEY", None)
 
@@ -159,19 +160,6 @@ class Migration(Config):  # pylint: disable=too-few-public-methods
     TESTING = False
     DEBUG = True
 
-    # POSTGRESQL
-    DB_USER = os.getenv("DATABASE_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_NAME", "")
-    DB_HOST = os.getenv("DATABASE_HOST", "")
-    DB_PORT = int(os.getenv("DATABASE_PORT", "5432"))  # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@/{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/.s.PGSQL.5432"
-        )
-    else:
-        SQLALCHEMY_DATABASE_URI = f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
 
 class Testing(Config):  # pylint: disable=too-few-public-methods
     """Testing class configuration that should override vars for Testing."""
@@ -188,6 +176,7 @@ class Testing(Config):  # pylint: disable=too-few-public-methods
         f"postgresql://{DATABASE_TEST_USERNAME}:{DATABASE_TEST_PASSWORD}@"
         f"{DATABASE_TEST_HOST}:{DATABASE_TEST_PORT}/{DATABASE_TEST_NAME}"
     )
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 
     AUTH_SVC_URL = "https://test-auth-svc-url"
     PAYMENT_SVC_URL = "https://test-pay-url"
