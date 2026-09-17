@@ -1,10 +1,10 @@
-import type { ApplicationSortBy, ApplicationSortOrder } from '~/enums/applications-sort-e'
-import type { ApiRegistrationTodoTaskResp } from '~/interfaces/strr-api'
+import type { ApplicationSortBy, ApplicationSortOrder } from '#baseWeb/enums/applications-sort-e'
+import type { ApiRegistrationTodoTaskResp } from '#baseWeb/interfaces/strr-api'
 
 export const useStrrApi = () => {
   const { $strrApi } = useNuxtApp()
 
-  const getAccountRegistrations = async <T extends ApiBaseRegistration>(
+  const getAccountRegistrations = async <T extends ApiExtraRegistrationDetails>(
     id?: number | string,
     type?: ApplicationType,
     limit?: number,

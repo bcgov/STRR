@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useStrrExpansion, expansionInjectionKey } from '~/composables/useStrrExpansion'
+import { useStrrExpansion, expansionInjectionKey } from '#baseWeb/composables/useStrrExpansion'
 
 const expansionState = inject(expansionInjectionKey)
 

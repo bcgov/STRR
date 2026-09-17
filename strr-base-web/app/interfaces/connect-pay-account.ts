@@ -1,4 +1,4 @@
-import type { ConnectPaymentMethod } from '~/enums/connect-payment-method'
+import type { ConnectPaymentMethod } from '#baseWeb/enums/connect-payment-method'
 
 export interface ConnectPayAccount {
   accountId: string

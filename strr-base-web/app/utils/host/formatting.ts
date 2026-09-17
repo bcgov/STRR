@@ -1,3 +1,7 @@
+import type { ApiUnitDetails } from '../../interfaces/host/host-api'
+import type { UiUnitDetails } from '../../interfaces/host/host-ui'
+import type { StrataHotelCategories } from '../../interfaces/host/strata-hotel-categories'
+
 export function formatOwnerHostAPI (owner: HostOwner): ApiHostContactPerson | ApiHostContactBusiness {
   return {
     ...formatParty(owner),
