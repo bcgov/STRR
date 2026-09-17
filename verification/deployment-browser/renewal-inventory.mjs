@@ -13,17 +13,19 @@ import { verifyStepperNavigation } from './stepper-navigation.mjs'
 import { verifyIncompleteHostDrafts } from './host-incomplete-drafts.mjs'
 import { verifyStrataRouting } from './strata-routing.mjs'
 import { prepareStrataRouteDiagnostics } from './strata-route-diagnostics.mjs'
+import { observeApiTransport } from './api-transport.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
+const isApiTransport = scenario === 'api-transport'
 const isHostDraftInventory = scenario === 'host-draft-inventory'
 const isHostDraftVerification = scenario === 'host-incomplete-drafts'
 const isSession = ['session-lifecycle', 'host-session-lifecycle', 'platform-session-lifecycle', 'strata-session-lifecycle'].includes(scenario)
 const isRoutingDiagnostic = scenario === 'strata-routing-diagnostics'
 const isRouting = isRoutingDiagnostic || scenario === 'strata-routing'
 const isStepper = isRouting || ['platform-stepper-navigation', 'strata-stepper-navigation'].includes(scenario)
-if (!isHostDraftVerification && !isHostDraftInventory && !isSession && !isStepper && !['account-inventory', 'review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
+if (!isApiTransport && !isHostDraftVerification && !isHostDraftInventory && !isSession && !isStepper && !['account-inventory', 'review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
 const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
 const scenarioApp = ({ 'strata-routing-diagnostics': 'stratahotel', 'strata-routing': 'stratahotel', 'host-incomplete-drafts': 'host', 'host-draft-inventory': 'host', 'host-session-lifecycle': 'host', 'platform-session-lifecycle': 'platform', 'strata-session-lifecycle': 'stratahotel', 'platform-stepper-navigation': 'platform', 'strata-stepper-navigation': 'stratahotel' }[scenario]) || { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
@@ -57,6 +59,7 @@ try {
     context.setDefaultTimeout(20000)
     context.setDefaultNavigationTimeout(60000)
     const page = await context.newPage()
+    const verifyApiTransport = isApiTransport ? observeApiTransport(page, result, environment) : undefined
     const attachRouterDiagnostics = isRoutingDiagnostic
       ? await prepareStrataRouteDiagnostics(page, result, environment) : undefined
     if (isSession) await prepareSessionClock(page, origin)
@@ -288,6 +291,7 @@ try {
       expect(result.blockedWrites).toBe(0)
       expect(result.addressLookupStatuses.every(status => status === 200)).toBe(true)
       expect(result.browserErrors).toBe(0)
+      if (verifyApiTransport) await verifyApiTransport()
       result.stage = 'complete'
       result.result = 'passed'
     } catch (error) {
