@@ -19,14 +19,33 @@ export async function verifyStrataRouting(page, result) {
   }
   const sameDocument = async () => expect(await page.evaluate(() => window.__strrQaRoutingMarker)).toBe('strata-route-check')
 
-  result.stage = 'strata-router-dashboard-link'
+  result.stage = 'strata-router-dashboard-path'
+  checks.dashboard = {
+    expectedPath: new URL(page.url()).pathname === dashboard,
+    unprefixedPath: new URL(page.url()).pathname === '/strata-hotel/dashboard'
+  }
   await expect.poll(() => new URL(page.url()).pathname).toBe(dashboard)
+  result.stage = 'strata-router-dashboard-table'
   await expect(page.getByRole('table')).toBeVisible()
   const link = page.getByRole('link', { name: 'Add a strata-titled hotel or motel', exact: true })
+  result.stage = 'strata-router-dashboard-link-target'
+  checks.dashboard.labelledLinkCount = await link.count()
+  checks.dashboard.applicationLinkCount = await page.locator('a').evaluateAll(anchors => anchors.filter(anchor => {
+    try { return new URL(anchor.href).pathname.endsWith('/strata-hotel/application') } catch { return false }
+  }).length)
+  if (await link.count() === 1) {
+    const href = await link.getAttribute('href')
+    checks.dashboard.relativeHrefMatches = href === application
+    checks.dashboard.targetPathMatches = new URL(href, origin).pathname === application
+    checks.dashboard.targetIsAbsolute = /^https?:/.test(href)
+  }
   await expect(link).toHaveAttribute('href', application)
   await page.evaluate(() => { window.__strrQaRoutingMarker = 'strata-route-check' })
+  result.stage = 'strata-router-dashboard-link-click'
   await link.click()
+  result.stage = 'strata-router-first-form-ready'
   await formReady()
+  result.stage = 'strata-router-first-same-document'
   await sameDocument()
   completed('dashboard-link-uses-client-router')
 
