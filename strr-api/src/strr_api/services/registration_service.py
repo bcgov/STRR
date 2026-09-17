@@ -812,13 +812,14 @@ class RegistrationService:
         if conditions_of_approval := json_input.get("conditionsOfApproval"):
             pre_defined_conditions = conditions_of_approval.get("predefinedConditions")
             custom_conditions = conditions_of_approval.get("customConditions")
-            if pre_defined_conditions or custom_conditions:
+            min_booking_days = conditions_of_approval.get("minBookingDays")
+            if pre_defined_conditions or custom_conditions or min_booking_days is not None:
                 if not registration_conditions:
                     registration_conditions = ConditionsOfApproval()
                     registration.conditionsOfApproval = registration_conditions
                 registration_conditions.preapproved_conditions = pre_defined_conditions
                 registration_conditions.custom_conditions = custom_conditions
-                registration_conditions.minBookingDays = conditions_of_approval.get("minBookingDays")
+                registration_conditions.minBookingDays = min_booking_days
                 registration_conditions.save()
                 EventsService.save_event(
                     event_type=Events.EventType.REGISTRATION,

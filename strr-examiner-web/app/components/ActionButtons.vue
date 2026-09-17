@@ -95,6 +95,12 @@ const hasDecisionChanges = computed(() =>
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
+const approvalConditions = computed<ConditionsOfApproval>(() => ({
+  predefinedConditions: conditions.value.filter(condition => condition !== 'minBookingDays'),
+  ...(customConditions.value && { customConditions: customConditions.value }),
+  ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+}))
+
 // Shared ACTIVE status update for approve actions
 const applyActiveApprovalStatus = async () => {
   if (isApplication?.value) {
@@ -102,7 +108,7 @@ const applyActiveApprovalStatus = async () => {
     const approve = activeHeader.value?.examinerActions?.includes(ApplicationActionsE.PROVISIONAL_APPROVE)
       ? provisionallyApproveApplication
       : approveApplication
-    await approve(applicationNumber.value)
+    await approve(applicationNumber.value, approvalConditions.value)
     await refreshDecisionData()
     return
   }
@@ -110,11 +116,7 @@ const applyActiveApprovalStatus = async () => {
     activeReg.value.id,
     RegistrationStatus.ACTIVE,
     decisionEmailContent.value.content,
-    {
-      predefinedConditions: conditions.value,
-      ...(customConditions.value && { customConditions: customConditions.value }),
-      ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-    }
+    approvalConditions.value
   )
   await refreshDecisionData()
 }
@@ -249,7 +251,12 @@ const unassign = async () => {
 }
 
 const setAside = async () => {
-  await setAsideRegistration(activeReg.value.id)
+  if (isApplication?.value) {
+    if (!applicationNumber.value) { return }
+    await useExaminerStore().setAsideApplication(applicationNumber.value)
+  } else {
+    await setAsideRegistration(activeReg.value.id)
+  }
   await refreshDecisionData()
 }
 
@@ -297,8 +304,13 @@ const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action(
             <!-- main button -->
             <UButton
               v-if="isMainActionButtonVisible"
-              :label="isRegApproved && isApproveDecisionSelected
-                ? t('btn.updateApproval') : t(`btn.${selectedAction?.label}`)"
+              :label="isApplication
+                ? selectedAction?.label === ApplicationActionsE.APPROVE
+                  ? t('btn.approveApplication')
+                  : t(`btn.${selectedAction?.label}`)
+                : isRegApproved && isApproveDecisionSelected
+                  ? t('btn.updateApproval')
+                  : t(`btn.${selectedAction?.label}`)"
               :color="(selectedAction?.color || 'primary') as any"
               :icon="selectedAction?.icon"
               :disabled="isMainActionDisabled"

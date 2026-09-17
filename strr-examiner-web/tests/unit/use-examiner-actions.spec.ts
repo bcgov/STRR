@@ -16,7 +16,7 @@ mockNuxtImport('useStrrModals', () => () => ({
   close: vi.fn()
 }))
 
-mockNuxtImport('useNuxtApp', () => () => ({
+mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
   $i18n: { t: mockTranslation }
 }))
 

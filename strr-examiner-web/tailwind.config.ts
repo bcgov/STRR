@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['**.{html,ts,js,vue}'],
-  presets: [require('@daxiom/nuxt-core-layer-test/tailwind.config')],
+  presets: [require('@daxiom/nuxt-core-layer-test/tailwind.config').default],
   theme: {
     extend: {
       maxWidth: {

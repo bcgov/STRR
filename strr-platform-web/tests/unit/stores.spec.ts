@@ -7,11 +7,13 @@ const mockRegistration = ref<any>(undefined)
 const mockPermitDetails = ref<any>(undefined)
 const mockShowPermitDetails = ref(false)
 const mockLoadPermitData = vi.fn()
-// const mockLoadPermitRegistrationData = vi.fn()
+const mockLoadPermitRegistrationData = vi.fn()
 const mockPostApplication = vi.fn()
+const mockSearchRegistrations = vi.fn()
 
 mockNuxtImport('useStrrApi', () => () => ({
-  postApplication: mockPostApplication
+  postApplication: mockPostApplication,
+  searchRegistrations: mockSearchRegistrations
 }))
 
 mockNuxtImport('useStrrBasePermit', () => () => ({
@@ -22,7 +24,7 @@ mockNuxtImport('useStrrBasePermit', () => () => ({
   isPaidApplication: ref(false),
   downloadApplicationReceipt: vi.fn(),
   loadPermitData: mockLoadPermitData,
-  loadPermitRegistrationData: vi.fn()
+  loadPermitRegistrationData: mockLoadPermitRegistrationData
 }))
 
 describe('useStrrPlatformDetails store', () => {
@@ -148,6 +150,8 @@ describe('useStrrPlatformStore', () => {
   beforeEach(() => {
     store = useStrrPlatformStore()
     store.$reset()
+    mockSearchRegistrations.mockReset()
+    mockLoadPermitRegistrationData.mockReset()
   })
 
   it('should start with no renewalRegId and isRegistrationRenewal as false', () => {
@@ -229,5 +233,41 @@ describe('useStrrPlatformStore', () => {
     await store.loadPlatform('0987654321')
 
     expect(useStrrContactStore().isCompletingPartyRep).toBe(true)
+  })
+
+  it('should load platform registration data by registration number', async () => {
+    mockSearchRegistrations.mockResolvedValue({
+      registrations: [{ id: 308, registrationNumber: 'P123456789' }],
+      total: 1
+    })
+    mockLoadPermitRegistrationData.mockImplementation(() => {
+      mockPermitDetails.value = mockPlatformPermitDetails
+      mockShowPermitDetails.value = true
+    })
+
+    const loaded = await store.loadPlatformRegistrationDataByRegistrationNumber('P123456789')
+
+    expect(loaded).toBe(true)
+    expect(mockSearchRegistrations).toHaveBeenCalledWith(
+      undefined,
+      10,
+      1,
+      undefined,
+      'P123456789',
+      ApplicationType.PLATFORM
+    )
+    expect(mockLoadPermitRegistrationData).toHaveBeenCalledWith('308')
+  })
+
+  it('should not load platform registration data when the search result does not match', async () => {
+    mockSearchRegistrations.mockResolvedValue({
+      registrations: [{ id: 308, registrationNumber: 'P000000000' }],
+      total: 1
+    })
+
+    const loaded = await store.loadPlatformRegistrationDataByRegistrationNumber('P123456789')
+
+    expect(loaded).toBe(false)
+    expect(mockLoadPermitRegistrationData).not.toHaveBeenCalled()
   })
 })

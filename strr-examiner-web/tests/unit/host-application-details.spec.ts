@@ -107,9 +107,9 @@ vi.mock('@/composables/useHostExpansion', () => ({
 
 const mockOpen = vi.fn()
 vi.stubGlobal('open', mockOpen)
-vi.stubGlobal('URL', {
-  createObjectURL: vi.fn().mockReturnValue('blob:url'),
-  revokeObjectURL: vi.fn()
+vi.stubGlobal('URL', class MockURL extends URL {
+  static createObjectURL = vi.fn().mockReturnValue('blob:url')
+  static revokeObjectURL = vi.fn()
 })
 
 describe('Examiner - Host Application Details Page', () => {

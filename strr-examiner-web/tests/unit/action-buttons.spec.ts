@@ -12,6 +12,8 @@ const mockSetAsideRegistration = vi.fn().mockResolvedValue(undefined)
 const mockUpdateRegistrationStatus = vi.fn().mockResolvedValue(undefined)
 const mockSendNotice = vi.fn().mockResolvedValue(undefined)
 const mockWithdrawApplication = vi.fn().mockResolvedValue(undefined)
+const mockApproveApplication = vi.fn().mockResolvedValue(undefined)
+const mockProvisionallyApproveApplication = vi.fn().mockResolvedValue(undefined)
 const mockIsDecisionEmailValid = vi.fn().mockResolvedValue(true)
 const mockOpenConfirmActionModal = vi.fn()
 const mockRefreshNuxtData = vi.hoisted(() => vi.fn())
@@ -36,8 +38,8 @@ vi.mock('@/stores/examiner', () => ({
     withdrawApplication: mockWithdrawApplication,
     rejectApplication: vi.fn().mockResolvedValue(undefined),
     sendNoticeOfConsideration: vi.fn().mockResolvedValue(undefined),
-    approveApplication: vi.fn().mockResolvedValue(undefined),
-    provisionallyApproveApplication: vi.fn().mockResolvedValue(undefined),
+    approveApplication: mockApproveApplication,
+    provisionallyApproveApplication: mockProvisionallyApproveApplication,
     assignApplication: vi.fn().mockResolvedValue(undefined),
     unassignApplication: vi.fn().mockResolvedValue(undefined),
     isApplication,
@@ -64,7 +66,8 @@ mockNuxtImport('useStrrModals', () => () => ({
   close: vi.fn()
 }))
 
-vi.mock('nuxt/app', () => ({
+vi.mock('nuxt/app', async importOriginal => ({
+  ...await importOriginal<typeof import('nuxt/app')>(),
   refreshNuxtData: mockRefreshNuxtData
 }))
 
@@ -131,6 +134,47 @@ describe('ActionButtons Component', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-testid="main-action-button"]').exists()).toBe(true)
+  })
+
+  it('should label the application approval action as Approve Application', async () => {
+    isApplication.value = true
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      applicationNumber: 'APP-123'
+    }
+
+    const wrapper = await mount()
+
+    expect(wrapper.find('[data-testid="main-action-button"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="main-action-button"]').text()).toContain('Approve Application')
+  })
+
+  it('should pass approval conditions when approving an application', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      applicationNumber: 'APP-123',
+      examinerActions: [ApplicationActionsE.APPROVE]
+    }
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    conditions.value = ['principalResidence', 'minBookingDays']
+    customConditions.value = ['Keep records available']
+    minBookingDays.value = 14
+
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockApproveApplication).toHaveBeenCalledOnce()
+    expect(mockApproveApplication).toHaveBeenCalledWith('APP-123', {
+      predefinedConditions: ['principalResidence'],
+      customConditions: ['Keep records available'],
+      minBookingDays: 14
+    })
   })
 
   it('should show main Approve action button only when conditions have changed', async () => {

@@ -229,10 +229,12 @@ class ApplicationService:
         reviewer: User,
         custom_content: Optional[str] = None,
         decision: Optional[str] = None,
+        conditions_of_approval: Optional[dict] = None,
     ) -> Application:
         """Updates the application status. If the application status is approved, a new registration is created."""
         original_status = application.status
         was_set_aside = application.is_set_aside
+        registration = None
         application.is_set_aside = False
         application.status = application_status
         if application_status == Application.Status.FULL_REVIEW_APPROVED:
@@ -283,6 +285,24 @@ class ApplicationService:
                     visible_to_applicant=True,
                     user_id=reviewer.id,
                 )
+
+        if application_status == Application.Status.PROVISIONALLY_APPROVED:
+            registration = application.registration
+
+        if (
+            application_status
+            in [
+                Application.Status.FULL_REVIEW_APPROVED,
+                Application.Status.PROVISIONALLY_APPROVED,
+            ]
+            and conditions_of_approval is not None
+            and registration
+        ):
+            RegistrationService._update_conditions_of_registration(
+                registration,
+                {"conditionsOfApproval": conditions_of_approval} if conditions_of_approval else {},
+                reviewer.id,
+            )
 
         if application_status == Application.Status.PROVISIONALLY_DECLINED and original_status in [
             Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
@@ -410,7 +430,7 @@ class ApplicationService:
         return application
 
     @staticmethod
-    def update_document_list(application: Application, document: str) -> Application:
+    def update_document_list(application: Application, document: str, user: User) -> Application:
         """Updates the document list of an application."""
         application_json = copy.deepcopy(application.application_json)
         registration = application_json.get("registration", {})
@@ -420,6 +440,15 @@ class ApplicationService:
         application_json["registration"] = registration
         application.application_json = application_json
         application.save()
+
+        EventsService.save_event(
+            event_type=Events.EventType.APPLICATION,
+            event_name=Events.EventName.APPLICATION_DOCUMENT_UPLOADED,
+            application_id=application.id,
+            details=f"Document uploaded: {document.get('fileName', '')}",
+            user_id=user.id,
+            visible_to_applicant=True,
+        )
         return application
 
     @staticmethod

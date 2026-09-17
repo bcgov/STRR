@@ -17,6 +17,7 @@ export const useExaminerDecision = () => {
   const {
     hasRegistrationNumber,
     isApplication,
+    activeHeader,
     conditions,
     customConditions,
     minBookingDays,
@@ -34,7 +35,11 @@ export const useExaminerDecision = () => {
   // ]
 
   const showDecisionPanel = computed(() =>
-    isExaminerDecisionsEnabled.value && (!isApplication.value || !hasRegistrationNumber.value)
+    isExaminerDecisionsEnabled.value && (
+      !isApplication.value ||
+      !hasRegistrationNumber.value ||
+      activeHeader.value?.examinerActions?.includes(ApplicationActionsE.PROVISIONAL_APPROVE)
+    )
   )
 
   // validate decision email for completing party

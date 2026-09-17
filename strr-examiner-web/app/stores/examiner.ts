@@ -443,17 +443,23 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return nextApplication
   }
 
-  const approveApplication = async (applicationNumber: string): Promise<void> => {
+  const approveApplication = async (
+    applicationNumber: string,
+    conditionsOfApproval?: ConditionsOfApproval
+  ): Promise<void> => {
     await $strrApi(`/applications/${applicationNumber}/status`, {
       method: 'PUT',
-      body: { status: ApplicationStatus.FULL_REVIEW_APPROVED }
+      body: { status: ApplicationStatus.FULL_REVIEW_APPROVED, conditionsOfApproval }
     })
   }
 
-  const provisionallyApproveApplication = async (applicationNumber: string): Promise<void> => {
+  const provisionallyApproveApplication = async (
+    applicationNumber: string,
+    conditionsOfApproval?: ConditionsOfApproval
+  ): Promise<void> => {
     await $strrApi(`/applications/${applicationNumber}/status`, {
       method: 'PUT',
-      body: { status: ApplicationStatus.PROVISIONALLY_APPROVED }
+      body: { status: ApplicationStatus.PROVISIONALLY_APPROVED, conditionsOfApproval }
     })
   }
 
