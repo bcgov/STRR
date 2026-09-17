@@ -16,14 +16,14 @@ if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST a
 const scenario = process.env.VERIFY_SCENARIO
 const isSession = ['session-lifecycle', 'host-session-lifecycle', 'platform-session-lifecycle', 'strata-session-lifecycle'].includes(scenario)
 const isStepper = ['platform-stepper-navigation', 'strata-stepper-navigation'].includes(scenario)
-if (!isSession && !isStepper && !['review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
+if (!isSession && !isStepper && !['account-inventory', 'review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
 const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
 const scenarioApp = ({ 'host-session-lifecycle': 'host', 'platform-session-lifecycle': 'platform', 'strata-session-lifecycle': 'stratahotel', 'platform-stepper-navigation': 'platform', 'strata-stepper-navigation': 'stratahotel' }[scenario]) || { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
-  scope: isSession ? 'Read-only authenticated session popup lifecycle with accelerated browser time. Application writes/payments blocked.' : isStepper
+  scope: scenario === 'account-inventory' ? 'Real login and read-only inventory of existing synthetic account choices. No account selection, creation, permission changes or application/payment writes.' : isSession ? 'Read-only authenticated session popup lifecycle with accelerated browser time. Application writes/payments blocked.' : isStepper
     ? 'Real login and unsaved form navigation/review controls. Application writes/payments blocked; normal login sync allowed.' : scenario === 'platform-draft-resume'
     ? 'Resume only the labelled draft from run 35145785986 after verifying DRAFT with no invoice; sandbox checkout and receipt, no replacement application.'
     : isCheckout
@@ -102,6 +102,21 @@ try {
       result.stage = 'select-synthetic-account'
       await page.goto(origin + '/en-CA/auth/account/choose-existing', { waitUntil: 'domcontentloaded' })
       await page.getByTestId('choose-existing-account-button').first().waitFor({ state: 'visible' })
+      if (scenario === 'account-inventory') {
+        result.stage = 'synthetic-account-inventory'
+        const choices = page.getByTestId('choose-existing-account-button')
+        result.accountChoices = await choices.count()
+        result.syntheticAccountChoices = await choices.evaluateAll(buttons => buttons.flatMap(button => {
+          const match = button.getAttribute('aria-label')?.match(/^Use this Account, (STRR_TEST_[0-9]+)$/)
+          return match ? [{ label: match[1], enabled: !button.disabled }] : []
+        }))
+        result.enabledSyntheticAccountCount = new Set(result.syntheticAccountChoices.filter(item => item.enabled).map(item => item.label)).size
+        expect(result.blockedWrites).toBe(0)
+        expect(result.browserErrors).toBe(0)
+        result.stage = 'complete'
+        result.result = 'passed'
+        continue
+      }
       const account = page.getByRole('button', { name: 'Use this Account, STRR_TEST_29', exact: true })
       result.accountAvailable = await account.count() === 1 && await account.isEnabled()
       if (!result.accountAvailable) throw new Error('Known synthetic account unavailable')
