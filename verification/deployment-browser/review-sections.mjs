@@ -22,7 +22,28 @@ export async function verifyReviewSections(page, result, app) {
     reviewVisible: await review.isVisible(), unfinishedSections: await errors.count() }
   await expect(steps).toHaveCount(4)
   await expect(review).toBeVisible()
-  await expect(errors).toHaveCount(0)
+  try {
+    await expect(errors).toHaveCount(0)
+  } catch (error) {
+    checks.initial.unfinishedChildIndexes = await review.evaluate(element => [...element.children]
+      .flatMap((child, index) => child.textContent.includes('This step is unfinished.') ? [index] : []))
+    checks.initial.invalidStepIndexes = await steps.evaluateAll(buttons => buttons.flatMap((button, index) =>
+      button.querySelector('img[src="/icons/invalid_step.svg"]') ? [index] : []))
+    if (app !== 'host') {
+      await steps.nth(0).click()
+      const phone = page.getByTestId('phone-number')
+      checks.contactDiagnostics = { phoneInputCount: await phone.count() }
+      if (await phone.count() === 1) {
+        const number = await phone.inputValue()
+        checks.contactDiagnostics.phoneDigitCount = number.replace(/\D/g, '').length
+        checks.contactDiagnostics.matchesSyntheticPhone = number.replace(/\D/g, '') === '2505550100'
+        checks.contactDiagnostics.matchesCountryCode = (await page.getByTestId('phone-countryCode').inputValue()) === '+1'
+        checks.contactDiagnostics.matchesPosition = (await page.getByTestId('platform-primary-rep-position').inputValue()) === 'TEST representative'
+        checks.contactDiagnostics.matchesEmail = (await page.getByTestId('platform-primary-rep-party-email').inputValue()) === 'strr-payment-qa@example.com'
+      }
+    }
+    throw error
+  }
 
   if (app === 'host') {
     result.stage = 'review-host-address-order'
