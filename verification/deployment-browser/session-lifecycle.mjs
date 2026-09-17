@@ -113,13 +113,16 @@ export async function verifySessionLifecycle(page, result, origin) {
   const description = page.locator('#session-expired-dialog-description')
   const timers = () => page.evaluate(() => window.__strrSessionTimers())
   const open = async cycle => {
-    result.stage = 'session-open-' + cycle + '-ready'
+    result.stage = 'session-open-' + cycle + '-resume-clock'
     await page.clock.resume()
     // A dashboard response can arrive before the new page's auth plugin finishes.
+    result.stage = 'session-open-' + cycle + '-idle-timer-ready'
     await expect.poll(() => page.evaluate(delay => window.__strrSessionTimeouts().pending.some(item => item.delay === delay), idle),
       { timeout: 20000 }).toBe(true)
     // Do not expire in-flight script/network load deadlines with the time jump.
+    result.stage = 'session-open-' + cycle + '-network-idle'
     await page.waitForLoadState('networkidle', { timeout: 15000 })
+    result.stage = 'session-open-' + cycle + '-pause-clock'
     await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100))
     result.stage = 'session-open-' + cycle + '-activity'
     await page.mouse.move(10 + cycle, 10)
