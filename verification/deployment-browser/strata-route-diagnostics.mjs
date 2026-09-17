@@ -3,7 +3,7 @@ export async function prepareStrataRouteDiagnostics(page, result, environment) {
   if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV/TEST diagnostics are allowed')
   const start = Date.now()
   const elapsed = () => Date.now() - start
-  const log = result.routeDiagnostics = { requests: [], navigations: [], routerEvents: [], inputEvents: [], omittedRequests: 0 }
+  const log = result.routeDiagnostics = { requests: [], assetRequests: [], navigations: [], routerEvents: [], inputEvents: [], omittedRequests: 0, omittedAssets: 0 }
   const entries = new WeakMap()
   const routeCategory = value => {
     const pathname = new URL(value).pathname
@@ -13,6 +13,15 @@ export async function prepareStrataRouteDiagnostics(page, result, environment) {
   }
   page.on('request', request => {
     const url = new URL(request.url())
+    if (url.origin === `https://${environment}.stratahotel.shorttermrental.registry.gov.bc.ca` &&
+        url.pathname.startsWith('/_nuxt/') && request.resourceType() === 'script' &&
+        result.stage.startsWith('strata-router-')) {
+      if (log.assetRequests.length >= 80) { log.omittedAssets++; return }
+      const entry = { sequence: log.assetRequests.length + 1, startedMs: elapsed(), stage: result.stage }
+      log.assetRequests.push(entry)
+      entries.set(request, entry)
+      return
+    }
     const api = ['auth', 'strr', 'pay'].find(name => url.hostname.startsWith(`${name}-api-${environment}-`))
     if (!api) return
     if (log.requests.length >= 120) { log.omittedRequests++; return }
