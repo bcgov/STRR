@@ -36,3 +36,76 @@ diff --git a/app/components/Connect/Modal/Session/Expiring.vue b/app/components/
    window.removeEventListener('keydown', closeModal)
  })
  </script>
+diff --git a/app/plugins/auth-api.ts b/app/plugins/auth-api.ts
+--- a/app/plugins/auth-api.ts
++++ b/app/plugins/auth-api.ts
+@@ -8,29 +8,15 @@
+   const api = $fetch.create({
+     baseURL: authApiUrl,
+     onRequest ({ options }) {
+-      const headers = options.headers ||= {}
++      const headers = options.headers
+ 
+       const accountStore = useConnectAccountStore()
+       const accountId = accountStore.currentAccount.id
+ 
+-      if (Array.isArray(headers)) {
+-        headers.push(['Authorization', `Bearer ${$keycloak.token}`])
+-        headers.push(['Account-Id', accountId])
+-        if (authApiKey) {
+-          headers.push(['X-Apikey', authApiKey])
+-        }
+-      } else if (headers instanceof Headers) {
+-        headers.set('Authorization', `Bearer ${$keycloak.token}`)
+-        headers.set('Account-Id', accountId)
+-        if (authApiKey) {
+-          headers.set('X-Apikey', authApiKey)
+-        }
+-      } else {
+-        headers.Authorization = `Bearer ${$keycloak.token}`
+-        headers['Account-Id'] = accountId
+-        if (authApiKey) {
+-          headers['X-Apikey'] = authApiKey
+-        }
++      headers.set('Authorization', `Bearer ${$keycloak.token}`)
++      headers.set('Account-Id', accountId)
++      if (authApiKey) {
++        headers.set('X-Apikey', authApiKey)
+       }
+     },
+     async onResponseError ({ response }) {
+diff --git a/app/plugins/pay-api.ts b/app/plugins/pay-api.ts
+--- a/app/plugins/pay-api.ts
++++ b/app/plugins/pay-api.ts
+@@ -7,14 +7,7 @@
+   const api = $fetch.create({
+     baseURL: payApiUrl,
+     onRequest ({ options }) {
+-      const headers = options.headers ||= {}
+-      if (Array.isArray(headers)) {
+-        headers.push(['Authorization', `Bearer ${$keycloak.token}`])
+-      } else if (headers instanceof Headers) {
+-        headers.set('Authorization', `Bearer ${$keycloak.token}`)
+-      } else {
+-        headers.Authorization = `Bearer ${$keycloak.token}`
+-      }
++      options.headers.set('Authorization', `Bearer ${$keycloak.token}`)
+     },
+     async onResponseError ({ response }) {
+       if (response.status === 401) {
+diff --git a/app/plugins/dompurify.ts b/app/plugins/dompurify.ts
+--- a/app/plugins/dompurify.ts
++++ b/app/plugins/dompurify.ts
+@@ -1,11 +1,10 @@
+ import DOMPurify from 'dompurify'
+-import type { DOMPurifyI } from 'dompurify'
+ 
+ export default defineNuxtPlugin({
+   name: 'core-dompurify-plugin',
+   parallel: true,
+   async setup () {
+-    let sanitize: DOMPurifyI['sanitize']
++    let sanitize: typeof DOMPurify.sanitize
+ 
+     if (import.meta.server) {
+       const { JSDOM } = await import('jsdom')

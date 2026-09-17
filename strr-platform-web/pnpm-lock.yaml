@@ -6,10 +6,10 @@ settings:
 
 patchedDependencies:
   '@daxiom/nuxt-core-layer-test@0.0.29':
-    hash: 199579f2e00a418bb6f89de2a720d7d5b10f9bc06124136c003c8b63eaacb7de
+    hash: 33c9692a3badb6b664366d2115c734b74d5a532b65b7053dd7758dab1f6acd3f
     path: patches/@daxiom__nuxt-core-layer-test@0.0.29.patch
   '@nuxt/ui@2.22.3':
-    hash: d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53
+    hash: 3cb6e5c3effdd0fa7e22cacbbe2a3dc0dc154e5d3c84fa68950a68ac29f45c57
     path: patches/@nuxt__ui@2.22.3.patch
   '@vitejs/plugin-vue@6.0.8':
     hash: a86011b3380859cf6182f49871e0869110bcfb26546be5114b56cd3523cb5abc
@@ -24,7 +24,7 @@ importers:
     dependencies:
       '@daxiom/nuxt-core-layer-test':
         specifier: ^0.0.29
-        version: 0.0.29(patch_hash=199579f2e00a418bb6f89de2a720d7d5b10f9bc06124136c003c8b63eaacb7de)(9b0a865bbe91d8d4a49f6a21543a189a)
+        version: 0.0.29(patch_hash=33c9692a3badb6b664366d2115c734b74d5a532b65b7053dd7758dab1f6acd3f)(9b0a865bbe91d8d4a49f6a21543a189a)
       country-codes-list:
         specifier: ^2.0.0
         version: 2.0.0
@@ -65,6 +65,9 @@ importers:
       '@testing-library/vue':
         specifier: ^8.1.0
         version: 8.1.0(@vue/compiler-sfc@3.5.26)(vue@3.5.41(typescript@5.9.3))
+      '@types/jsdom':
+        specifier: 21.1.7
+        version: 21.1.7
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -1839,6 +1842,9 @@ packages:
   '@types/istanbul-reports@3.0.4':
     resolution: {integrity: sha512-pk2B1NWalF9toCRu6gjBzR69syFjP4Od8WRAX+0mmf9lAjCRicLOWc+ZrxZHx/0XRjotgkF9t6iaMJ+aXcOdZQ==}
 
+  '@types/jsdom@21.1.7':
+    resolution: {integrity: sha512-yOriVnggzrnQ3a9OKOCxaVuSug3w3/SbOj5i7VwXWZEyUNl3bLF9V3MfxGbZKuwqJOQyRfqXyROBB1CoZLFWzA==}
+
   '@types/jsesc@2.5.1':
     resolution: {integrity: sha512-9VN+6yxLOPLOav+7PwjZbxiID2bVaeq0ED4qSQmdQTdjnXJSaCVKTR58t15oqH1H5t8Ng2ZX1SabJVoN9Q34bw==}
 
@@ -1862,6 +1868,9 @@ packages:
 
   '@types/semver@7.7.1':
     resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
+
+  '@types/tough-cookie@4.0.5':
+    resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
@@ -7197,10 +7206,10 @@ snapshots:
     dependencies:
       postcss-selector-parser: 7.1.1
 
-  '@daxiom/nuxt-core-layer-test@0.0.29(patch_hash=199579f2e00a418bb6f89de2a720d7d5b10f9bc06124136c003c8b63eaacb7de)(9b0a865bbe91d8d4a49f6a21543a189a)':
+  '@daxiom/nuxt-core-layer-test@0.0.29(patch_hash=33c9692a3badb6b664366d2115c734b74d5a532b65b7053dd7758dab1f6acd3f)(9b0a865bbe91d8d4a49f6a21543a189a)':
     dependencies:
       '@iconify-json/mdi': 1.2.3
-      '@nuxt/ui': 2.22.3(patch_hash=d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53)(magicast@0.5.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.0.3)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)
+      '@nuxt/ui': 2.22.3(patch_hash=3cb6e5c3effdd0fa7e22cacbbe2a3dc0dc154e5d3c84fa68950a68ac29f45c57)(magicast@0.5.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.0.3)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)
       '@nuxtjs/i18n': 10.2.1(@vue/compiler-dom@3.5.41)(db0@0.3.4)(eslint@8.57.1)(ioredis@5.11.1)(magicast@0.5.4)(rollup@4.62.4)(vue@3.5.41(typescript@5.9.3))
       '@pinia/nuxt': 0.11.3(magicast@0.5.4)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))
       '@vueuse/nuxt': 13.9.0(magicast@0.5.4)(nuxt@4.5.2(@babel/plugin-syntax-jsx@7.27.1(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@oxc-project/types@0.146.0)(@types/node@25.0.3)(@vue/compiler-sfc@3.5.26)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.2)(eslint@8.57.1)(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.4)(optionator@0.9.4)(oxc-parser@0.95.0)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.5)(rollup-plugin-visualizer@7.1.1(rolldown@1.2.5)(rollup@4.62.4))(rollup@4.62.4)(sass@1.97.1)(srvx@0.11.22)(terser@5.44.1)(typescript@5.9.3)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.0.3)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(webpack@5.104.1(esbuild@0.28.2))(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))
@@ -8193,7 +8202,7 @@ snapshots:
       - vite
       - webpack
 
-  '@nuxt/ui@2.22.3(patch_hash=d0b2e5b045ac0b5a0659545891e2032a05972f378d91c85730ba3cfae3e26e53)(magicast@0.5.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.0.3)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)':
+  '@nuxt/ui@2.22.3(patch_hash=3cb6e5c3effdd0fa7e22cacbbe2a3dc0dc154e5d3c84fa68950a68ac29f45c57)(magicast@0.5.4)(vite@8.2.1(patch_hash=72bc20609609e1effe76488e7b4e93ac6b9636b5f1fca9fff3cdcf576278b7d0)(@types/node@25.0.3)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.97.1)(terser@5.44.1)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(yaml@2.9.0)(zod@3.25.76)':
     dependencies:
       '@headlessui/tailwindcss': 0.2.2(tailwindcss@3.4.19(yaml@2.9.0))
       '@headlessui/vue': 1.7.23(vue@3.5.41(typescript@5.9.3))
@@ -8951,6 +8960,12 @@ snapshots:
     dependencies:
       '@types/istanbul-lib-report': 3.0.3
 
+  '@types/jsdom@21.1.7':
+    dependencies:
+      '@types/node': 25.0.3
+      '@types/tough-cookie': 4.0.5
+      parse5: 7.3.0
+
   '@types/jsesc@2.5.1': {}
 
   '@types/json-schema@7.0.15': {}
@@ -8970,6 +8985,8 @@ snapshots:
   '@types/resolve@1.20.2': {}
 
   '@types/semver@7.7.1': {}
+
+  '@types/tough-cookie@4.0.5': {}
 
   '@types/trusted-types@2.0.7':
     optional: true
