@@ -10,21 +10,23 @@ import { verifyHostAddressHelp } from './host-address-help.mjs'
 import { verifyReviewSections } from './review-sections.mjs'
 import { prepareSessionClock, verifySessionLifecycle } from './session-lifecycle.mjs'
 import { verifyStepperNavigation } from './stepper-navigation.mjs'
+import { verifyIncompleteHostDrafts } from './host-incomplete-drafts.mjs'
 
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
 const isHostDraftInventory = scenario === 'host-draft-inventory'
+const isHostDraftVerification = scenario === 'host-incomplete-drafts'
 const isSession = ['session-lifecycle', 'host-session-lifecycle', 'platform-session-lifecycle', 'strata-session-lifecycle'].includes(scenario)
 const isStepper = ['platform-stepper-navigation', 'strata-stepper-navigation'].includes(scenario)
-if (!isHostDraftInventory && !isSession && !isStepper && !['account-inventory', 'review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
+if (!isHostDraftVerification && !isHostDraftInventory && !isSession && !isStepper && !['account-inventory', 'review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
 const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
-const scenarioApp = ({ 'host-draft-inventory': 'host', 'host-session-lifecycle': 'host', 'platform-session-lifecycle': 'platform', 'strata-session-lifecycle': 'stratahotel', 'platform-stepper-navigation': 'platform', 'strata-stepper-navigation': 'stratahotel' }[scenario]) || { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
+const scenarioApp = ({ 'host-incomplete-drafts': 'host', 'host-draft-inventory': 'host', 'host-session-lifecycle': 'host', 'platform-session-lifecycle': 'platform', 'strata-session-lifecycle': 'stratahotel', 'platform-stepper-navigation': 'platform', 'strata-stepper-navigation': 'stratahotel' }[scenario]) || { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
-  scope: scenario === 'account-inventory' ? 'Real login and read-only inventory of existing synthetic account choices. No account selection, creation, permission changes or application/payment writes.' : isSession ? 'Read-only authenticated session popup lifecycle with accelerated browser time. Application writes/payments blocked.' : isStepper
+  scope: isHostDraftVerification ? 'Fresh synthetic incomplete Host drafts, actual dashboard/resume/unsaved-edit checks, then guarded cleanup of unchanged unpaid fixtures. No invoice or payment.' : scenario === 'account-inventory' ? 'Real login and read-only inventory of existing synthetic account choices. No account selection, creation, permission changes or application/payment writes.' : isSession ? 'Read-only authenticated session popup lifecycle with accelerated browser time. Application writes/payments blocked.' : isStepper
     ? 'Real login and unsaved form navigation/review controls. Application writes/payments blocked; normal login sync allowed.' : scenario === 'platform-draft-resume'
     ? 'Resume only the labelled draft from run 35145785986 after verifying DRAFT with no invoice; sandbox checkout and receipt, no replacement application.'
     : isCheckout
@@ -138,6 +140,15 @@ try {
       expect(Boolean(listHeaders.authorization && listHeaders['account-id'])).toBe(true)
       apiOrigin = new URL(listResponse.url()).origin
       apiHeaders = { authorization: listHeaders.authorization, 'account-id': listHeaders['account-id'] }
+
+      if (isHostDraftVerification) {
+        await verifyIncompleteHostDrafts(page, result, environment, apiOrigin, apiHeaders)
+        expect(result.browserErrors).toBe(0)
+        expect(result.blockedWrites).toBe(0)
+        result.stage = 'complete'
+        result.result = 'passed'
+        continue
+      }
 
       if (isHostDraftInventory) {
         result.stage = 'host-draft-inventory'
