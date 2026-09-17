@@ -238,16 +238,13 @@ class InteractionService:
         }
 
     @overload
-    def dispatch(*, application_id: int) -> None:
-        ...
+    def dispatch(*, application_id: int) -> None: ...
 
     @overload
-    def dispatch(*, registration_id: int) -> None:
-        ...
+    def dispatch(*, registration_id: int) -> None: ...
 
     @overload
-    def dispatch(*, customer_id: int) -> None:
-        ...
+    def dispatch(*, customer_id: int) -> None: ...
 
     @staticmethod
     @validate_mutex("application_id", "registration_id", "customer_id", min_count=1, max_count=1)

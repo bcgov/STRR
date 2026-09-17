@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Uses Registries LTSA wrapper service to fetch title for a PID."""
+
 import requests
 from flask import current_app
 
