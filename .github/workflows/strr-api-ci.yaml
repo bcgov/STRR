@@ -6,6 +6,14 @@ on:
       - "strr-api/**"
       - "tests/python-test-utils/**"
   workflow_dispatch:
+    inputs:
+      verification_scope:
+        description: QA-only verification scope
+        type: choice
+        default: api
+        options:
+          - api
+          - batch-images
 
 defaults:
   run:
@@ -14,6 +22,7 @@ defaults:
 
 jobs:
   strr-api-ci:
+    if: inputs.verification_scope != 'batch-images'
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
       app_name: "strr-api"
@@ -22,6 +31,7 @@ jobs:
       coverage_threshold: "80"
 
   python312:
+    if: inputs.verification_scope != 'batch-images'
     name: Full API suite on container Python version
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -88,6 +98,7 @@ jobs:
           retention-days: 7
 
   image-runtime:
+    if: inputs.verification_scope != 'batch-images'
     name: Upgraded libraries inside production image
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -101,3 +112,60 @@ jobs:
         run: docker build --build-arg VCS_REF="${GITHUB_SHA}" -t strr-python-verification .
       - name: Check installed libraries and PDF rendering
         run: docker run --rm -i strr-python-verification python < ../verification/api-image-smoke.py
+
+  batch-image-runtime:
+    if: inputs.verification_scope == 'batch-images'
+    name: Production runtime - ${{ matrix.component }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: batch-job
+            directory: jobs/batch-permit-validator
+          - component: backfiller
+            directory: jobs/strr-backfiller
+          - component: batch-listener
+            directory: queue_services/batch-permit-validator
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify exact original application source
+        run: |
+          git fetch --no-tags --depth=1 origin cbb8177d1d0ce218ac2d3fa348329e91cae65c5b
+          git diff --exit-code cbb8177d1d0ce218ac2d3fa348329e91cae65c5b HEAD -- jobs queue_services strr-api
+      - name: Build production image with locked runtime dependencies
+        run: |
+          docker build --build-arg VCS_REF="${GITHUB_SHA}" \
+            --build-arg APP_ENV=production --target production_build \
+            -t strr-batch-image-verification "${{ matrix.directory }}"
+          docker image inspect strr-batch-image-verification \
+            --format '{{json .Id}} {{json .Config.User}} {{json .Config.Cmd}}'
+      - name: Run isolated production runtime checks
+        run: |
+          set -o pipefail
+          docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges \
+            -e QA_COMPONENT="${{ matrix.component }}" \
+            -e SECRET_KEY=synthetic-local-only \
+            -e DATABASE_USERNAME=qa -e DATABASE_PASSWORD=qa -e DATABASE_NAME=qa \
+            -e DATABASE_HOST=127.0.0.1 -e DATABASE_PORT=5432 \
+            -e BACKFILL_REGISTRATION_SEARCH=false -e FLASK_ENV=production \
+            -e GCP_PROJECT_ID=synthetic-local-only \
+            -e GCP_CLOUD_RUN_JOB_LOCATION=synthetic-location \
+            -e GCP_CLOUD_RUN_JOB_NAME=synthetic-job \
+            -v "${GITHUB_WORKSPACE}/verification/batch-image-smoke.py:/qa-smoke.py:ro" \
+            strr-batch-image-verification python /qa-smoke.py \
+            2>&1 | tee "${{ matrix.component }}-runtime.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.component }}-runtime
+          path: ${{ matrix.component }}-runtime.log
+          retention-days: 7
