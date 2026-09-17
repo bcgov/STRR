@@ -75,10 +75,10 @@ onMounted(async () => {
 
   const { fee1, fee2, fee3 } = await fetchStrrFees()
 
-  hostFee1.value = { ...fee1 }
-  hostFee2.value = { ...fee2 }
-  hostFee3.value = { ...fee3 }
-  hostFee4.value = { ...fee1 } // TODO: expecting new fee code for this (hostFee4 - shared accommodation)
+  hostFee1.value = fee1 ? { ...fee1 } : undefined
+  hostFee2.value = fee2 ? { ...fee2 } : undefined
+  hostFee3.value = fee3 ? { ...fee3 } : undefined
+  hostFee4.value = fee1 ? { ...fee1 } : undefined // TODO: expecting new fee code for this (hostFee4 - shared accommodation)
   if (hostFee1.value) {
     setPlaceholderServiceFee(hostFee1.value.serviceFees)
   }
@@ -257,6 +257,17 @@ const handleSubmit = async () => {
       return
     }
 
+    const { propertyType, rentalUnitSetupOption } = unitDetails.value
+    const applicationFee = propertyType && rentalUnitSetupOption
+      ? getApplicationFee(propertyType, rentalUnitSetupOption)
+      : undefined
+    if (!applicationFee) {
+      shouldSkipConfirmModal = false
+      resetFees()
+      strrModal.openErrorModal(t('error.applicationFee.title'), t('error.applicationFee.description'), false)
+      return
+    }
+
     const confirmed = await openConfirmProceedToPay()
     if (!confirmed) {
       shouldSkipConfirmModal = false
@@ -371,7 +382,11 @@ watch(activeStepIndex, (val) => {
 
   if (propertyType && rentalUnitSetupOption && isReviewStep && hasValidSteps) {
     const applicationFee = getApplicationFee(propertyType, rentalUnitSetupOption) // get the fee from the fee matrix
-    addReplaceFee(applicationFee)
+    if (applicationFee) {
+      addReplaceFee(applicationFee)
+    } else {
+      resetFees()
+    }
   } else {
     resetFees()
   }

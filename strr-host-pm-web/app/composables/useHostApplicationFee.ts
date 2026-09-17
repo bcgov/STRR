@@ -81,8 +81,8 @@ export const useHostApplicationFee = () => {
   const getApplicationFee = (
     propertyType: PropertyType,
     rentalUnitSetupOption: RentalUnitSetupOption
-  ): ConnectFeeItem | {} => {
-    return APPLICATION_FEE_MATRIX[propertyType]?.[rentalUnitSetupOption] || {}
+  ): ConnectFeeItem | undefined => {
+    return APPLICATION_FEE_MATRIX[propertyType]?.[rentalUnitSetupOption]
   }
 
   return {
