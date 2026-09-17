@@ -14,12 +14,13 @@ import { verifyStepperNavigation } from './stepper-navigation.mjs'
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
+const isHostDraftInventory = scenario === 'host-draft-inventory'
 const isSession = ['session-lifecycle', 'host-session-lifecycle', 'platform-session-lifecycle', 'strata-session-lifecycle'].includes(scenario)
 const isStepper = ['platform-stepper-navigation', 'strata-stepper-navigation'].includes(scenario)
-if (!isSession && !isStepper && !['account-inventory', 'review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
+if (!isHostDraftInventory && !isSession && !isStepper && !['account-inventory', 'review-sections', 'host-review-sections', 'platform-review-sections', 'strata-review-sections', 'renewal-inventory', 'document-inventory', 'form-controls', 'host-form-controls', 'platform-form-controls', 'strata-form-controls', 'platform-fee-guard', 'platform-fee-options', 'platform-checkout', 'platform-draft-resume', 'strata-fee-guard', 'strata-checkout', 'host-renewal-fees', 'host-date-input', 'host-address-help'].includes(scenario)) throw new Error('Unknown scenario')
 const isCheckout = ['strata-checkout', 'platform-checkout', 'platform-draft-resume'].includes(scenario)
 if (isCheckout && environment !== 'test') throw new Error('Sandbox checkout is TEST only')
-const scenarioApp = ({ 'host-session-lifecycle': 'host', 'platform-session-lifecycle': 'platform', 'strata-session-lifecycle': 'stratahotel', 'platform-stepper-navigation': 'platform', 'strata-stepper-navigation': 'stratahotel' }[scenario]) || { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
+const scenarioApp = ({ 'host-draft-inventory': 'host', 'host-session-lifecycle': 'host', 'platform-session-lifecycle': 'platform', 'strata-session-lifecycle': 'stratahotel', 'platform-stepper-navigation': 'platform', 'strata-stepper-navigation': 'stratahotel' }[scenario]) || { 'host-review-sections': 'host', 'platform-review-sections': 'platform', 'strata-review-sections': 'stratahotel', 'host-address-help': 'host', 'host-form-controls': 'host', 'platform-form-controls': 'platform', 'strata-form-controls': 'stratahotel', 'platform-fee-guard': 'platform', 'platform-fee-options': 'platform', 'platform-checkout': 'platform', 'platform-draft-resume': 'platform', 'strata-fee-guard': 'stratahotel', 'strata-checkout': 'stratahotel', 'host-renewal-fees': 'host', 'host-date-input': 'host' }[scenario]
 const report = {
   checkedAt: new Date().toISOString(), environment, scenario,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
@@ -137,6 +138,33 @@ try {
       expect(Boolean(listHeaders.authorization && listHeaders['account-id'])).toBe(true)
       apiOrigin = new URL(listResponse.url()).origin
       apiHeaders = { authorization: listHeaders.authorization, 'account-id': listHeaders['account-id'] }
+
+      if (isHostDraftInventory) {
+        result.stage = 'host-draft-inventory'
+        const response = await page.request.get(apiOrigin + '/applications', {
+          headers: apiHeaders, params: { registrationType: 'HOST', limit: '100', page: '1', includeDraftRegistration: 'true' }
+        })
+        expect(response.status()).toBe(200)
+        const body = await response.json()
+        expect(body.applications.length).toBe(body.total)
+        result.draftInventory = {
+          dashboardPath: new URL(page.url()).pathname,
+          applicationCount: body.total,
+          drafts: body.applications.filter(item => item.header.status === 'DRAFT').map(item => ({
+            number: item.header.applicationNumber,
+            hasInvoice: item.header.paymentToken != null,
+            addressPresent: item.registration.unitAddress != null,
+            addressKeys: Object.keys(item.registration.unitAddress || {}).filter(key =>
+              ['city', 'streetNumber', 'streetName', 'country', 'province', 'nickname'].includes(key)),
+            unitDetailsPresent: item.registration.unitDetails != null
+          }))
+        }
+        expect(result.browserErrors).toBe(0)
+        expect(result.blockedWrites).toBe(0)
+        result.stage = 'complete'
+        result.result = 'passed'
+        continue
+      }
 
       if (isSession) {
         await verifySessionLifecycle(page, result, origin)
