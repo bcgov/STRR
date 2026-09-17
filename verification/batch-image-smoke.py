@@ -107,16 +107,22 @@ else:
     process = subprocess.Popen(['gunicorn', '--bind', '127.0.0.1:8080',
         '--config', '/code/gunicorn_config.py', 'wsgi:app'], cwd='/code',
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    readiness_attempts = []
+    ready_deadline = time.monotonic() + 15
     try:
-        for attempt in range(50):
+        while time.monotonic() < ready_deadline:
             if process.poll() is not None:
                 raise AssertionError('gunicorn exited: ' + process.stdout.read())
             try:
                 request = urllib.request.Request('http://127.0.0.1:8080/', data=b'', method='POST')
                 with urllib.request.urlopen(request, timeout=1) as response:
                     assert response.status == 200 and json.load(response) == {}
+                readiness_attempts.append('HTTP 200')
                 break
-            except urllib.error.URLError:
+            except urllib.error.HTTPError:
+                raise
+            except (urllib.error.URLError, TimeoutError) as error:
+                readiness_attempts.append(type(error).__name__)
                 time.sleep(0.2)
         else:
             raise AssertionError('gunicorn did not serve the empty-request control')
@@ -128,6 +134,8 @@ else:
         except subprocess.TimeoutExpired:
             process.kill()
             server_output, _ = process.communicate()
+        print(json.dumps({'gunicorn_startup_attempts': readiness_attempts,
+            'gunicorn_output': server_output}))
         assert 'Worker failed to boot' not in server_output, server_output
 
 print(json.dumps({'component': component, 'python': sys.version.split()[0],
