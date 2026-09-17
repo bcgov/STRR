@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import type { ButtonColor } from '#ui/types'
+
 const modalModel = defineModel({ type: Boolean, default: false })
 const isSmallScreen = useMediaQuery('(max-width: 640px)')
 
 defineProps<{
   title?: string
   content?: string
-  actions?: { label: string, handler:() => void, color?: string, variant?: string }[],
+  actions?: { label: string, handler:() => void, color?: ButtonColor, variant?: string }[],
   closeFn?: () => void
   error?: {
     title: string

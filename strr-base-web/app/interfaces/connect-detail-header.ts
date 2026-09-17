@@ -1,3 +1,5 @@
+import type { BadgeColor } from '#ui/types'
+
 export interface ConnectDetailHeaderSideDetail {
   label: string
   value: string
@@ -17,7 +19,7 @@ export interface ConnectDetailHeaderItem {
   icon?: string
   iconClass?: string
   chip?: boolean
-  chipColour?: string
+  chipColour?: BadgeColor
   link?: boolean
   linkHref?: string
 }
