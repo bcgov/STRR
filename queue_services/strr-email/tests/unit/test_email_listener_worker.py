@@ -234,7 +234,6 @@ def test_worker_host_registration_suspended_dispatch_success(app, mocker, ce_fac
     assert "Short-Term Rental Registration Suspended" in payload.email["content"]["subject"]
 
 
-
 def test_worker_platform_renewal_dispatch_success(app, mocker, ce_factory):
     ce = ce_factory(registrationNumber="P1", emailType="PLATFORM_RENEWAL_REMINDER")
     rep = MagicMock(contact=MagicMock(email="plat-rep@example.com"))
