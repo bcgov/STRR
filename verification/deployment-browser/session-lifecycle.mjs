@@ -67,7 +67,9 @@ export async function verifySessionLifecycle(page, result, origin) {
       : /fetch|network/i.test(error.message) ? 'network'
       : /session|token|auth/i.test(error.message) ? 'session-or-auth'
       : 'unclassified'
-    checks.errors.push({ name: error.name, stage: result.stage, category, frames })
+    const chunkUrl = error.name === 'ChunkLoadError' ? error.message.match(/https?:\/\/[^\s)]+/)?.[0] : undefined
+    checks.errors.push({ name: error.name, stage: result.stage, category, frames,
+      ...(chunkUrl ? { chunkHost: new URL(chunkUrl).hostname } : {}) })
   })
   page.on('console', message => {
     const text = message.text()
@@ -110,8 +112,15 @@ export async function verifySessionLifecycle(page, result, origin) {
   const title = page.locator('#session-expired-dialog-title')
   const description = page.locator('#session-expired-dialog-description')
   const timers = () => page.evaluate(() => window.__strrSessionTimers())
-  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100))
   const open = async cycle => {
+    result.stage = 'session-open-' + cycle + '-ready'
+    await page.clock.resume()
+    // A dashboard response can arrive before the new page's auth plugin finishes.
+    await expect.poll(() => page.evaluate(delay => window.__strrSessionTimeouts().pending.some(item => item.delay === delay), idle),
+      { timeout: 20000 }).toBe(true)
+    // Do not expire in-flight script/network load deadlines with the time jump.
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
+    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100))
     result.stage = 'session-open-' + cycle + '-activity'
     await page.mouse.move(10 + cycle, 10)
     await page.clock.runFor(200)
