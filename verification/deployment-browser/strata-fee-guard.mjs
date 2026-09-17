@@ -7,8 +7,13 @@ export async function fillStrataForm(page, result) {
   await page.getByTestId('platform-primary-rep-position').fill('TEST representative')
   await page.getByTestId('phone-countryCode').fill('1')
   await page.getByRole('option').first().click()
+  // Headless UI restores combobox focus on the next frame after option selection.
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve())))
+  await expect(page.getByTestId('phone-countryCode')).toBeFocused()
   await page.getByTestId('phone-number').fill('2505550100')
+  await expect(page.getByTestId('phone-number')).toHaveValue('(250) 555-0100')
   await page.getByTestId('platform-primary-rep-party-email').fill('strr-payment-qa@example.com')
+  await expect(page.getByTestId('phone-number')).toHaveValue('(250) 555-0100')
   await page.getByRole('button', { name: 'Next', exact: true }).click()
   result.stage = 'strata-business-form'
   await page.getByTestId('strata-business-legal-name').fill(result.testFixture)
