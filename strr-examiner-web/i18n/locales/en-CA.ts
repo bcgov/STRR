@@ -312,6 +312,7 @@ export default {
     save: 'Save'
   },
   error: {
+    decisionAction: 'An error occurred. Refresh the record to check its status before trying again.',
     action: {
       approve: 'An error occurred approving this application.',
       reject: 'An error occurred rejecting this application.',
