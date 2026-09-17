@@ -13,8 +13,30 @@ export async function verifyStrataRouting(page, result) {
   }
   const completed = name => checks.cases.push({ name, result: 'passed' })
   const formReady = async () => {
-    await expect.poll(() => new URL(page.url()).pathname).toBe(application)
+    const boundary = result.stage
+    result.stage = boundary + '-path'
+    try {
+      await expect.poll(() => new URL(page.url()).pathname).toBe(application)
+    } catch (error) {
+      const snapshot = async () => ({
+        onDashboard: new URL(page.url()).pathname === dashboard,
+        onApplication: new URL(page.url()).pathname === application,
+        onAuthRoute: new URL(page.url()).pathname.includes('/auth/'),
+        stepCount: await page.getByTestId('stepper').getByRole('button').count(),
+        contactVisible: await page.getByTestId('completing-party-radio-group').isVisible(),
+        documentPreserved: await page.evaluate(() => window.__strrQaRoutingMarker === 'strata-route-check')
+      })
+      checks.navigationFailure = { immediate: await snapshot() }
+      // Observe late navigation after the original assertion fails; never turn it into a pass or click again.
+      checks.navigationFailure.arrivedWithinAdditional30Seconds = await page.waitForURL(
+        url => url.origin === origin && url.pathname === application, { timeout: 30000 }
+      ).then(() => true, () => false)
+      checks.navigationFailure.later = await snapshot()
+      throw error
+    }
+    result.stage = boundary + '-steps'
     await expect(page.getByTestId('stepper').getByRole('button')).toHaveCount(4)
+    result.stage = boundary + '-contact'
     await expect(page.getByTestId('completing-party-radio-group')).toBeVisible()
   }
   const sameDocument = async () => expect(await page.evaluate(() => window.__strrQaRoutingMarker)).toBe('strata-route-check')
