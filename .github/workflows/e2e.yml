@@ -14,7 +14,7 @@ on:
         type: choice
         required: true
         default: read-only
-        options: [account-inventory, platform-stepper-navigation, strata-stepper-navigation, session-lifecycle, host-session-lifecycle, platform-session-lifecycle, strata-session-lifecycle, read-only, strata-list, review-sections, host-review-sections, platform-review-sections, strata-review-sections, renewal-inventory, document-inventory, form-controls, host-form-controls, platform-form-controls, strata-form-controls, platform-fee-guard, platform-fee-options, platform-checkout, platform-draft-resume, strata-fee-guard, strata-checkout, host-renewal-fees, host-date-input, host-address-help, host-fee, host-fixture-state, host-resume]
+        options: [credential-route-inventory, account-inventory, platform-stepper-navigation, strata-stepper-navigation, session-lifecycle, host-session-lifecycle, platform-session-lifecycle, strata-session-lifecycle, read-only, strata-list, review-sections, host-review-sections, platform-review-sections, strata-review-sections, renewal-inventory, document-inventory, form-controls, host-form-controls, platform-form-controls, strata-form-controls, platform-fee-guard, platform-fee-options, platform-checkout, platform-draft-resume, strata-fee-guard, strata-checkout, host-renewal-fees, host-date-input, host-address-help, host-fee, host-fixture-state, host-resume]
 
 permissions:
   contents: read
@@ -42,9 +42,12 @@ jobs:
           VERIFY_SCENARIO: ${{ inputs.scenario }}
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
+          LEGACY_CYPRESS_USERS: ${{ inputs.scenario == 'credential-route-inventory' && secrets.CYPRESS_USERS || '' }}
           CYPRESS_CREDITCARD: ${{ (inputs.scenario == 'host-fee' || inputs.scenario == 'host-resume' || inputs.scenario == 'strata-checkout' || inputs.scenario == 'platform-checkout' || inputs.scenario == 'platform-draft-resume') && secrets.CYPRESS_CREDITCARD || '' }}
         run: |
-          if [ "$VERIFY_SCENARIO" = "strata-list" ]; then
+          if [ "$VERIFY_SCENARIO" = "credential-route-inventory" ]; then
+            node credential-route-inventory.mjs
+          elif [ "$VERIFY_SCENARIO" = "strata-list" ]; then
             node strata-preflight.mjs
           elif [ "$VERIFY_SCENARIO" = "account-inventory" ] || [[ "$VERIFY_SCENARIO" == *stepper-navigation ]] || [[ "$VERIFY_SCENARIO" == *session-lifecycle ]] || [[ "$VERIFY_SCENARIO" == *review-sections ]] || [[ "$VERIFY_SCENARIO" == *form-controls ]] || [ "$VERIFY_SCENARIO" = "renewal-inventory" ] || [ "$VERIFY_SCENARIO" = "document-inventory" ] || [ "$VERIFY_SCENARIO" = "platform-fee-guard" ] || [ "$VERIFY_SCENARIO" = "platform-fee-options" ] || [ "$VERIFY_SCENARIO" = "platform-checkout" ] || [ "$VERIFY_SCENARIO" = "platform-draft-resume" ] || [ "$VERIFY_SCENARIO" = "strata-fee-guard" ] || [ "$VERIFY_SCENARIO" = "strata-checkout" ] || [ "$VERIFY_SCENARIO" = "host-renewal-fees" ] || [ "$VERIFY_SCENARIO" = "host-date-input" ] || [ "$VERIFY_SCENARIO" = "host-address-help" ]; then
             node renewal-inventory.mjs
