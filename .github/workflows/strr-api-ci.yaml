@@ -14,6 +14,7 @@ on:
         options:
           - api
           - batch-images
+          - pdf-diagnosis
 
 defaults:
   run:
@@ -22,7 +23,7 @@ defaults:
 
 jobs:
   strr-api-ci:
-    if: inputs.verification_scope != 'batch-images'
+    if: inputs.verification_scope == 'api' || github.event_name == 'pull_request'
     uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
     with:
       app_name: "strr-api"
@@ -31,7 +32,7 @@ jobs:
       coverage_threshold: "80"
 
   python312:
-    if: inputs.verification_scope != 'batch-images'
+    if: inputs.verification_scope == 'api' || github.event_name == 'pull_request'
     name: Full API suite on container Python version
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -98,7 +99,7 @@ jobs:
           retention-days: 7
 
   image-runtime:
-    if: inputs.verification_scope != 'batch-images'
+    if: inputs.verification_scope == 'api' || github.event_name == 'pull_request'
     name: Upgraded libraries inside production image
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -168,4 +169,58 @@ jobs:
         with:
           name: ${{ matrix.component }}-runtime
           path: ${{ matrix.component }}-runtime.log
+          retention-days: 7
+
+  pdf-dependency-diagnosis:
+    if: inputs.verification_scope == 'pdf-diagnosis'
+    name: Isolate PDF failure without changing application dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify original source and unchanged pre-PR dependencies
+        run: |
+          git fetch --no-tags --depth=1 origin cbb8177d1d0ce218ac2d3fa348329e91cae65c5b
+          git fetch --no-tags --depth=1 origin 8c05dde179de669d71e3706324ef381dcfdacbd0
+          git diff --exit-code cbb8177d1d0ce218ac2d3fa348329e91cae65c5b HEAD -- jobs queue_services strr-api
+          git diff --exit-code 8c05dde179de669d71e3706324ef381dcfdacbd0 cbb8177d1d0ce218ac2d3fa348329e91cae65c5b -- strr-api/poetry.lock strr-api/pyproject.toml
+      - name: Build unchanged production image
+        run: |
+          docker build --build-arg VCS_REF="${GITHUB_SHA}" --build-arg APP_ENV=production \
+            --target production_build -t strr-pdf-diagnosis ./strr-api
+          docker image inspect strr-pdf-diagnosis --format '{{json .Id}} {{json .Config.User}}'
+      - name: Install hash-checked diagnostic control outside the image
+        run: |
+          python3 -m pip install --only-binary=:all: --no-deps --no-compile --require-hashes \
+            --target ./pdf-control -r verification/pdf-control-requirements.txt
+      - name: Reproduce failure with original locked packages
+        run: |
+          set -o pipefail
+          docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges \
+            -v "${GITHUB_WORKSPACE}/verification/pdf-dependency-probe.py:/qa-probe.py:ro" \
+            strr-pdf-diagnosis python /qa-probe.py baseline | tee pdf-baseline.json
+      - name: Change only the imported pydyf package for comparison
+        run: |
+          set -o pipefail
+          docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges \
+            -e PYTHONPATH=/pdf-control -v "${GITHUB_WORKSPACE}/pdf-control:/pdf-control:ro" \
+            -v "${GITHUB_WORKSPACE}/verification/pdf-dependency-probe.py:/qa-probe.py:ro" \
+            strr-pdf-diagnosis python /qa-probe.py control | tee pdf-control.json
+      - name: Assert image input and all other package versions match
+        run: |
+          python3 -c 'import json; a=json.load(open("pdf-baseline.json")); b=json.load(open("pdf-control.json")); assert all(a[k] == b[k] for k in ("otherPackagesSha256", "lockSha256", "htmlSha256", "python", "weasyprint")); assert a["render"] == "expected-transform-failure"; assert b["render"] == "passed"; print("Only pydyf changed; locked baseline failed and isolated control rendered")'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pdf-dependency-diagnosis
+          path: |
+            pdf-baseline.json
+            pdf-control.json
           retention-days: 7

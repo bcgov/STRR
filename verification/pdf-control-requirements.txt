@@ -1,0 +1,2 @@
+# Diagnostic comparison only; not an application dependency recommendation.
+pydyf==0.11.0 --hash=sha256:0aaf9e2ebbe786ec7a78ec3fbffa4cdcecde53fd6f563221d53c6bc1328848a3
