@@ -75,7 +75,6 @@ EMAIL_SUBJECT = {
     "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
     "REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
-    "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
     "HOST_DECLINED": "Short-Term Rental Application Refused",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
     "HOST_REGISTRATION_SUSPENDED": "Short-Term Rental Registration Suspended",
