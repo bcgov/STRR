@@ -54,8 +54,7 @@ vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
     showDecisionPanel: computed(() =>
       !isApplication.value ||
-      !activeHeader.value.registrationNumber ||
-      activeHeader.value.examinerActions.includes(ApplicationActionsE.PROVISIONAL_APPROVE)
+      !activeHeader.value.registrationNumber
     ),
     decisionIntent,
     preDefinedConditions: ['principalResidence', 'validBL'],
@@ -137,10 +136,11 @@ describe('DecisionPanel', () => {
     expect(minBookingDays.value).toBe(14)
   })
 
-  it('should show the decision panel for provisional application approval', async () => {
+  it('should hide the decision panel for provisional application approval with a registration', async () => {
     isApplication.value = true
     activeHeader.value = {
       examinerActions: [ApplicationActionsE.PROVISIONAL_APPROVE],
+      registrationNumber: 'REG-123',
       isSetAside: false,
       assignee: { username: 'examiner1' }
     }
@@ -150,8 +150,8 @@ describe('DecisionPanel', () => {
       global: { plugins: [enI18n] }
     })
 
-    expect(wrapper.find('[data-testid="decision-panel"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="approval-conditions"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="decision-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="approval-conditions"]').exists()).toBe(false)
   })
 
   it('should hide the decision panel for a registered application without provisional approval', async () => {
