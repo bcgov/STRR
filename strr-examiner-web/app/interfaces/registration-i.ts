@@ -75,3 +75,25 @@ export interface ApiSnapshot {
   snapshotEndpoint: string
   version: number
 }
+
+export interface ExaminerActiveHeader extends
+  Partial<Omit<ApplicationHeader, 'applicationDateTime'>>,
+  Partial<Omit<ApiRegistrationHeader, 'applications'>> {
+  applicationDateTime?: Date | string
+  applications?: ApiApplicationEntry[]
+  applicationStatus?: ApplicationStatus
+  registrationNumber?: string
+  status?: ApplicationStatus
+}
+
+export interface ExaminerActiveRegistration extends
+  Partial<Omit<ApiHostApplication, 'header' | 'listingDetails'>>,
+  Partial<Omit<ApiBasePlatformApplication, 'header' | 'businessDetails'>>,
+  Partial<Omit<ApiBaseStrataApplication, 'header' | 'businessDetails'>>,
+  Partial<Omit<ApiExtraRegistrationDetails, 'header'>> {
+  header?: Partial<ApiRegistrationHeader> & { paymentMethod?: ConnectPaymentMethod }
+  conditionsOfApproval?: ConditionsOfApproval[]
+  registrationType?: ApplicationType
+  listingDetails?: string[] | { url: string }[]
+  businessDetails?: ApiBusinessDetails | ApiPlatformBusinessDetails
+}

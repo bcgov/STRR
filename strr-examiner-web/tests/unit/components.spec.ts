@@ -7,7 +7,7 @@ import {
   mockHostApplication, mockRegistrationFilingHistory
 } from '../mocks/mockedData'
 import SupportingDocuments from '~/components/SupportingDocuments.vue'
-import { ApplicationInfoHeader, HostExpansionFilingHistory, UBadge, UButton } from '#components'
+import { ApplicationInfoHeader, HostExpansionFilingHistory, HostSubHeader, UBadge, UButton } from '#components'
 
 const mockApplicationFilingHistoryWithEmail = [
   ...mockApplicationFilingHistory,
@@ -32,6 +32,9 @@ const mockApplicationFilingHistoryWithEmail = [
   }
 ]
 
+const mockFilingHistoryEvents = ref<any[]>([])
+const mockHighlightedFilingHistoryEvent = ref<any>(null)
+
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     isApplication: ref(true),
@@ -41,6 +44,8 @@ vi.mock('@/stores/examiner', () => ({
     getApplicationFilingHistory: vi.fn().mockResolvedValue(mockApplicationFilingHistoryWithEmail),
     getRegistrationFilingHistory: vi.fn().mockResolvedValue(mockRegistrationFilingHistory),
     isFilingHistoryOpen: ref(true),
+    filingHistoryEvents: mockFilingHistoryEvents,
+    highlightedFilingHistoryEvent: mockHighlightedFilingHistoryEvent,
     resetEditRentalUnitAddress: vi.fn(),
     resetEditRegistrationEmail: vi.fn(),
     activePaymentTotal: ref(150),
@@ -94,6 +99,74 @@ describe('ApplicationInfoHeader Component', () => {
     expect(appInfoHeaderWrapper.text()).toContain(mockHostApplication.header.assignee?.username)
     expect(appInfoHeaderWrapper.text()).toContain('$150.00')
     expect(appInfoHeaderWrapper.text()).toContain('2026-01-15')
+  })
+})
+
+describe('HostSubHeader Component', () => {
+  it('should display email delivery failure badge when email has failed delivery', async () => {
+    mockFilingHistoryEvents.value = [
+      {
+        createdDate: '2026-07-08T20:53:21.399598+00:00',
+        eventName: FilingHistoryEventName.EMAIL_FAILED,
+        eventType: FilingHistoryEventType.APPLICATION,
+        idir: null,
+        message: 'Email failed',
+        details: null,
+        structuredDetails: {
+          emailType: 'HOST_FULL_REVIEW_APPROVED',
+          interactionStatus: 'FAILED',
+          recipientStatuses: [
+            {
+              email_address: mockHostApplication.registration.primaryContact?.emailAddress,
+              status: 'FAILED',
+              provider_status: 'PERMANENT_FAILURE',
+              failure_reason: 'Mailbox unavailable'
+            }
+          ]
+        }
+      }
+    ]
+
+    const hostSubHeaderWrapper = await mountSuspended(HostSubHeader, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(hostSubHeaderWrapper.exists()).toBe(true)
+    const badge = hostSubHeaderWrapper.find('[data-testid="email-failed-badge"]')
+    expect(badge.exists()).toBe(true)
+    expect(badge.attributes('aria-label')).toBe('Delivery Failed')
+  })
+
+  it('should not display email delivery failure badge when email has successful delivery', async () => {
+    mockFilingHistoryEvents.value = [
+      {
+        createdDate: '2026-07-08T20:53:21.399598+00:00',
+        eventName: FilingHistoryEventName.EMAIL_DELIVERED,
+        eventType: FilingHistoryEventType.APPLICATION,
+        idir: null,
+        message: 'Email delivered',
+        details: null,
+        structuredDetails: {
+          emailType: 'HOST_FULL_REVIEW_APPROVED',
+          interactionStatus: 'DELIVERED',
+          recipientStatuses: [
+            {
+              email_address: mockHostApplication.registration.primaryContact?.emailAddress,
+              status: 'DELIVERED',
+              provider_status: 'DELIVERED'
+            }
+          ]
+        }
+      }
+    ]
+
+    const hostSubHeaderWrapper = await mountSuspended(HostSubHeader, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(hostSubHeaderWrapper.exists()).toBe(true)
+    const badge = hostSubHeaderWrapper.find('[data-testid="email-failed-badge"]')
+    expect(badge.exists()).toBe(false)
   })
 })
 

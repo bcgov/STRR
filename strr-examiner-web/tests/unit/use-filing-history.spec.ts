@@ -3,6 +3,7 @@ import {
   mockApplicationFilingHistory,
   mockRegistrationFilingHistory
 } from '../mocks/mockedData'
+import enCA from '../../i18n/locales/en-CA'
 import {
   FilingHistoryEventName,
   FilingHistoryEventType
@@ -10,6 +11,32 @@ import {
 
 describe('useFilingHistory helpers', () => {
   const t = vi.fn((key: string, params?: Record<string, string>) => {
+    if (key.startsWith('filingHistoryEmailTypes.') || key.startsWith('filingHistoryRecipientStatuses.')) {
+      const keys = key.split('.')
+      const root = (enCA as Record<string, unknown>)?.default || enCA
+      let current: unknown = root
+      for (const k of keys) {
+        if (current && typeof current === 'object') {
+          current = (current as Record<string, unknown>)[k]
+        } else {
+          current = undefined
+          break
+        }
+      }
+
+      let strValue: string | undefined
+      if (typeof current === 'string') {
+        strValue = current
+      } else if (current && typeof current === 'object') {
+        const ast = current as { loc?: { source?: string }; body?: { static?: string } }
+        strValue = ast.loc?.source || ast.body?.static
+      }
+
+      if (strValue) {
+        return strValue
+      }
+    }
+
     if (!params) {
       return key
     }
@@ -239,7 +266,7 @@ describe('useFilingHistory helpers', () => {
       }
     }
 
-    expect(getEmailFilingHistoryTypeLabel(event)).toBe('Host full review approved')
+    expect(getEmailFilingHistoryTypeLabel(event, t)).toBe('Host full review approved')
   })
 
   it('returns empty email type label for non-email events', async () => {

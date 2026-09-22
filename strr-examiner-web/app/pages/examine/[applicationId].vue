@@ -11,7 +11,8 @@ const {
   getApplicationById,
   sendNoticeOfConsideration,
   assignApplication,
-  setAsideApplication
+  setAsideApplication,
+  loadFilingHistoryEvents
 } = useExaminerStore()
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 const {
@@ -57,16 +58,19 @@ const { data: application, status, error, refresh } = await useLazyAsyncData<
   'application-details-view',
   async () => {
     const slug = route.params.applicationId as string | undefined
+    let res: HousApplicationResponse | undefined
     // On initial mount, if the applicationId is not 'startNew', try to fetch specific application by id
     if (initialMount.value && slug && slug !== 'startNew') {
-      return await getApplicationById(slug)
+      res = await getApplicationById(slug)
+    } else if (slug && slug === 'startNew') {
+      res = await getNextApplication<HousApplicationResponse>()
+    } else {
+      res = await getApplicationById(route.params.applicationId as string)
     }
-    // if slug is 'startNew' (navigated to Examine tab) - get next application
-    if (slug && slug === 'startNew') {
-      return await getNextApplication<HousApplicationResponse>()
+    if (typeof loadFilingHistoryEvents === 'function') {
+      loadFilingHistoryEvents().catch(() => {})
     }
-    // refresh the application with new data
-    return await getApplicationById(route.params.applicationId as string)
+    return res
   }
 )
 
