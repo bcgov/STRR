@@ -39,7 +39,15 @@ vi.mock('@/stores/examiner', () => ({
     isAssignedToUser,
     emailContent: ref({ content: '' }),
     activePaymentTotal: ref(null),
-    activePaymentDate: ref(null)
+    activePaymentDate: ref(null),
+    hasRegistrationNumber: ref(false),
+    decisionEmailContent: ref({ content: '' }),
+    decisionEmailFormRef: ref({
+      clear: vi.fn()
+    }),
+    conditions: ref([]),
+    customConditions: ref(null),
+    minBookingDays: ref(null)
   })
 }))
 

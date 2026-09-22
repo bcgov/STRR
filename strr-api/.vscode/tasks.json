@@ -60,6 +60,15 @@
         "group": "cloud-sql-proxy"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "sync repositories",
+      "type": "shell",
+      "command": "gh repo sync",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
     }
   ]
 }

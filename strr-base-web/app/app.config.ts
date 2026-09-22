@@ -7,6 +7,7 @@ export default defineAppConfig({
         options: {
           createAccount: true,
           idps: ['bcsc', 'bceid', 'idir'],
+          requiredRealmRoles: [],
           bcscSubtext: undefined,
           bceidSubtext: undefined,
           idirSubtext: undefined

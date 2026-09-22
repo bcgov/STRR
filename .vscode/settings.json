@@ -1,6 +1,8 @@
 {
   "makefile.configureOnOpen": false,
   "npm.packageManager": "pnpm",
+  "vitest.configSearchPatternInclude": "{strr-base-web,strr-examiner-web,strr-host-pm-web,strr-platform-web,strr-strata-web}/vitest.config.{ts,js,mjs,cjs,cts,mts}",
+  "vitest.filesWatcherInclude": "{strr-base-web,strr-examiner-web,strr-host-pm-web,strr-platform-web,strr-strata-web}/**/*",
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "editor.tabSize": 2,
@@ -33,17 +35,6 @@
       "source.organizeImports": "explicit"
     }
   },
-  "python.defaultInterpreterPath": "${workspaceFolder}/strr-api/.venv/bin/python",
-  "python.testing.pytestEnabled": true,
-  "python.testing.unittestEnabled": false,
-  "black-formatter.args": [
-    "--config",
-    "${workspaceFolder}/strr-api/pyproject.toml"
-  ],
-  "isort.args": [
-    "--settings-path",
-    "${workspaceFolder}/strr-api/pyproject.toml"
-  ],
   "isort.check": true,
   "[vue]": {
     "editor.formatOnSave": true,

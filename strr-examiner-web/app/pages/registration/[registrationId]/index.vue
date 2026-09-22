@@ -73,6 +73,8 @@ const handleRegistrationAction = (
   } else if (action === RegistrationActionsE.SUSPEND) {
     actionFn = updateRegistrationStatus
     additionalArgs = [RegistrationStatus.SUSPENDED, emailContent.value.content]
+    // validate email form
+    validateFn = async () => await validateForm(emailFormRef.value, true).then(errors => !errors)
   } else if (action === RegistrationActionsE.SEND_NOC) {
     actionFn = sendNoticeOfConsiderationForRegistration
     refreshFn = () => {

@@ -52,6 +52,49 @@
         "clear": false
       },
       "problemMatcher": []
+    },
+    {
+      "label": "sync repositories",
+      "type": "shell",
+      "command": "gh repo sync",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Email Service: Run with Emulator",
+      "type": "shell",
+      "command": "make run-with-emulator",
+      "options": {
+        "cwd": "${workspaceFolder}/queue_services/strr-email"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Email Service: Flask Run",
+      "type": "shell",
+      "command": "make run",
+      "options": {
+        "cwd": "${workspaceFolder}/queue_services/strr-email"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
     }
   ]
 }

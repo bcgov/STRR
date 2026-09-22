@@ -78,9 +78,7 @@ class DocumentService:
     def get_registration_document_by_key(cls, registration_id, file_key):
         """Get registration document by key."""
         return (
-            Document.query.filter(Document.registration_id == registration_id)
-            .filter(Document.path == file_key)
-            .one_or_none()
+            Document.query.filter(Document.registration_id == registration_id).filter(Document.path == file_key).first()
         )
 
     @classmethod

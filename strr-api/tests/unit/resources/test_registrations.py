@@ -1388,7 +1388,7 @@ def test_upload_registration_document(app, session, client, jwt):
                     data=data,
                     headers=headers,
                 )
-                assert rv.status_code == HTTPStatus.BAD_REQUEST
+                assert rv.status_code == HTTPStatus.CREATED
 
             with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
                 data = {"file": (df, MOCK_DOCUMENT_UPLOAD)}

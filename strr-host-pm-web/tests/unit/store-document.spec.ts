@@ -68,11 +68,9 @@ vi.mock('@/stores/hostApplication', () => ({
 }))
 
 const mockStrrApi = vi.fn().mockResolvedValue(undefined)
-vi.mock('#app', () => ({
-  useNuxtApp: () => ({
-    $strrApi: mockStrrApi,
-    $i18n: baseEnI18n
-  })
+mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
+  $strrApi: mockStrrApi,
+  $i18n: baseEnI18n.global
 }))
 
 // logFetchError is auto-imported, no need to mock

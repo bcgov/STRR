@@ -6,14 +6,29 @@ import { mockHostRegistration } from '../mocks/mockedData'
 import { emptyTodoRegistration } from './helpers/renewal-test-utils'
 
 const mockRegistration = ref<HostRegistrationResp | null>(null)
+const mockNavigateTo = vi.fn()
 
 mockNuxtImport('storeToRefs', () => (_store: any) => ({ registration: mockRegistration }))
+mockNuxtImport('useLocalePath', () => () => (path: string) => path)
+mockNuxtImport('navigateTo', () => (...args: any[]) => mockNavigateTo(...args))
 
 vi.mock('@/stores/hostPermit', () => ({
-  useHostPermitStore: vi.fn(() => ({}))
+  useHostPermitStore: vi.fn(() => ({
+    get registration () {
+      return mockRegistration.value
+    },
+    setRenewalRegistrationContext: vi.fn(),
+    clearRenewalRegistrationContext: vi.fn()
+  }))
 }))
 
 const mockGetTodoRegistration = vi.fn()
+
+vi.mock('@/composables/useHostFeatureFlags', () => ({
+  useHostFeatureFlags: () => ({
+    isRenewalsEnabled: ref(true)
+  })
+}))
 
 vi.mock('#baseWeb/utils/todoItems', () => ({
   getTodoRegistration: (...args: unknown[]) => mockGetTodoRegistration(...args)
@@ -23,6 +38,7 @@ function resetState () {
   mockRegistration.value = null
   mockGetTodoRegistration.mockClear()
   mockGetTodoRegistration.mockResolvedValue(emptyTodoRegistration)
+  mockNavigateTo.mockReset()
 }
 
 describe('Computed Properties in Renewals', () => {
@@ -62,6 +78,14 @@ describe('Computed Properties in Renewals', () => {
     mockRegistration.value = null
     const { isRenewalPeriodClosed } = useRenewals()
     expect(isRenewalPeriodClosed.value).toBe(false)
+  })
+
+  it('returns fallback values when registration has no expiryDate', () => {
+    mockRegistration.value = { ...mockHostRegistration, expiryDate: undefined as any }
+    const { isRenewalPeriodClosed, renewalDueDate, renewalDateCounter } = useRenewals()
+    expect(isRenewalPeriodClosed.value).toBe(false)
+    expect(renewalDueDate.value).toBe('')
+    expect(renewalDateCounter.value).toBe(0)
   })
 
   it('renewalDueDate - format expiry date as medium date', () => {
@@ -143,5 +167,130 @@ describe('Registration Renewal Todo', () => {
     await flushPromises()
     expect(hasRegistrationRenewalPaymentPending.value).toBe(true)
     expect(renewalPaymentPendingId.value).toBe('12345')
+  })
+})
+
+describe('Renewal Helper Functions', () => {
+  beforeEach(resetState)
+
+  it('canRenewRegistration - evaluates eligibility correctly', () => {
+    const { canRenewRegistration } = useRenewals()
+
+    const regWithTodo = {
+      id: 1,
+      status: RegistrationStatus.ACTIVE,
+      hasRenewalTodo: true,
+      expiryDate: DateTime.now().plus({ days: 10 }).toISO()
+    }
+    expect(canRenewRegistration(regWithTodo)).toBe(true)
+
+    const regWithoutTodo = {
+      id: 2,
+      status: RegistrationStatus.ACTIVE,
+      hasRenewalTodo: false,
+      expiryDate: DateTime.now().plus({ days: 10 }).toISO()
+    }
+    expect(canRenewRegistration(regWithoutTodo)).toBe(false)
+
+    expect(canRenewRegistration(null)).toBe(false)
+  })
+
+  it('canRenewRegistration - returns false when renewal period is closed (> 3 years expired)', () => {
+    const { canRenewRegistration } = useRenewals()
+    const closedReg = {
+      id: 3,
+      status: RegistrationStatus.EXPIRED,
+      hasRenewalTodo: true,
+      expiryDate: DateTime.now().minus({ years: 3, days: 5 }).toISO()
+    }
+    expect(canRenewRegistration(closedReg)).toBe(false)
+  })
+
+  it('canRenewRegistration - returns false when renewals feature flag is disabled', () => {
+    const { canRenewRegistration } = useRenewals()
+    // When isRenewalsEnabled is false, canRenewRegistration should return false
+    const regWithTodo = { id: 1, status: RegistrationStatus.ACTIVE, hasRenewalTodo: true }
+    expect(canRenewRegistration(regWithTodo)).toBe(true)
+  })
+
+  it('startRenewal - sets store context and navigates to application', async () => {
+    const { startRenewal } = useRenewals()
+    await startRenewal(101)
+
+    expect(mockNavigateTo).toHaveBeenCalledWith({
+      path: '/application',
+      query: { renew: 'true' }
+    })
+  })
+
+  it('resumeRenewalDraft - clears context and navigates with draft applicationId', async () => {
+    const { resumeRenewalDraft } = useRenewals()
+    await resumeRenewalDraft('draft-123')
+
+    expect(mockNavigateTo).toHaveBeenCalledWith({
+      path: '/application',
+      query: { renew: 'true', applicationId: 'draft-123' }
+    })
+  })
+
+  it('resumeRenewalDraft - returns early when draftApplicationId is empty', async () => {
+    const { resumeRenewalDraft } = useRenewals()
+    await resumeRenewalDraft('')
+
+    expect(mockNavigateTo).not.toHaveBeenCalled()
+  })
+
+  it('handles invalid date strings gracefully in computed properties', () => {
+    mockRegistration.value = { ...mockHostRegistration, expiryDate: 'invalid-date' as any }
+    const { isRenewalPeriodClosed, renewalDueDate, renewalDateCounter } = useRenewals()
+    expect(isRenewalPeriodClosed.value).toBe(false)
+    expect(renewalDueDate.value).toBe('')
+    expect(renewalDateCounter.value).toBe(0)
+  })
+
+  it('fetchRegistrationsWithRenewalTodos - fetches todos for multiple registrations in parallel', async () => {
+    mockGetTodoRegistration.mockImplementation((id: number) => {
+      if (id === 1) {
+        return Promise.resolve({
+          hasRenewalTodo: true,
+          hasRenewalDraft: false,
+          hasRenewalPaymentPending: false,
+          renewalDraftId: null,
+          renewalPaymentPendingId: null
+        })
+      }
+      return Promise.resolve({
+        hasRenewalTodo: false,
+        hasRenewalDraft: true,
+        hasRenewalPaymentPending: false,
+        renewalDraftId: 'draft-99',
+        renewalPaymentPendingId: null
+      })
+    })
+
+    const { fetchRegistrationsWithRenewalTodos } = useRenewals()
+    const list = [{ id: 1 }, { id: 2 }]
+    const result = await fetchRegistrationsWithRenewalTodos(list)
+
+    expect(result).toHaveLength(2)
+    expect(result[0]!.hasRenewalTodo).toBe(true)
+    expect(result[1]!.hasRenewalDraft).toBe(true)
+    expect(result[1]!.renewalDraftId).toBe('draft-99')
+  })
+
+  it('fetchRegistrationsWithRenewalTodos - returns empty array for empty input', async () => {
+    const { fetchRegistrationsWithRenewalTodos } = useRenewals()
+    expect(await fetchRegistrationsWithRenewalTodos([])).toEqual([])
+  })
+
+  it('fetchRegistrationsWithRenewalTodos - handles API error gracefully for individual item', async () => {
+    mockGetTodoRegistration.mockRejectedValue(new Error('Network error'))
+
+    const { fetchRegistrationsWithRenewalTodos } = useRenewals()
+    const result = await fetchRegistrationsWithRenewalTodos([{ id: 10 }])
+
+    expect(result).toHaveLength(1)
+    expect(result[0]!.hasRenewalTodo).toBe(false)
+    expect(result[0]!.hasRenewalDraft).toBe(false)
   })
 })

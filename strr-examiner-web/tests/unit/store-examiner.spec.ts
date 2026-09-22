@@ -25,7 +25,7 @@ const { getSplitDashboardEnabled, setSplitDashboardEnabled } = vi.hoisted(() => 
 // mock $strrApi accessed through useNuxtApp()
 const mockStrrApi = vi.fn().mockResolvedValue({})
 
-mockNuxtImport('useNuxtApp', () => () => ({
+mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
   $i18n: { t: (key: string) => key },
   $strrApi: mockStrrApi
 }))
@@ -556,6 +556,16 @@ describe('Store - Examiner', () => {
         status: ApplicationStatus.PROVISIONALLY_DECLINED,
         emailContent: 'email body'
       })
+    }))
+
+    mockStrrApi.mockClear()
+
+    await store.withdrawApplication('APP-005', false)
+    expect(mockStrrApi).toHaveBeenCalledWith('/applications/APP-005/status', expect.objectContaining({
+      body: {
+        status: ApplicationStatus.DECLINED,
+        decision: 'WITHDRAW'
+      }
     }))
   })
 

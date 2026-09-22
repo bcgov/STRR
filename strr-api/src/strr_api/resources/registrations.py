@@ -383,13 +383,16 @@ def upload_registration_document(registration_id):
         document_type = request.form.get("documentType", "OTHERS")
         if not UserService.is_strr_staff_or_system():
             is_bl_upload = document_type == Document.DocumentType.LOCAL_GOVT_BUSINESS_LICENSE.name
-            is_uploaded_from_affected_municipality = request.form.get("isUploadedFromAffectedMunicipality", False)
+            is_uploaded_from_affected_municipality = (
+                request.form.get("isUploadedFromAffectedMunicipality", "false").lower() == "true"
+            )
             is_active_registration = registration.status == RegistrationStatus.ACTIVE
 
             # Override NOC check for business license uploads
             if is_bl_upload and is_uploaded_from_affected_municipality and is_active_registration:
                 logger.info("Allowing business license upload for registration %s", registration.id)
-            elif noc_status != RegistrationNocStatus.NOC_PENDING:
+            elif noc_status not in (RegistrationNocStatus.NOC_PENDING, RegistrationNocStatus.NOC_EXPIRED):
+                logger.error("Registration %s has invalid NOC status %s", registration.id, noc_status)
                 return error_response(
                     message=ErrorMessage.REGISTRATION_DOCUMENT_UPLOAD_NOC_STATUS.value,
                     http_status=HTTPStatus.BAD_REQUEST,

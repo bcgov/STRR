@@ -1,5 +1,5 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, it, vi, expect } from 'vitest'
+import { beforeAll, describe, it, vi, expect } from 'vitest'
 import filter from 'lodash/filter'
 import { enI18n } from '../mocks/i18n'
 import {
@@ -48,9 +48,13 @@ vi.mock('@/stores/examiner', () => ({
   })
 }))
 
-describe('FilingHistory Component', async () => {
-  const filingHistoryWrapper = await mountSuspended(HostExpansionFilingHistory, {
-    global: { plugins: [enI18n] }
+describe('FilingHistory Component', () => {
+  let filingHistoryWrapper: Awaited<ReturnType<typeof mountSuspended>>
+
+  beforeAll(async () => {
+    filingHistoryWrapper = await mountSuspended(HostExpansionFilingHistory, {
+      global: { plugins: [enI18n] }
+    })
   })
 
   it('should display Filing History table', () => {

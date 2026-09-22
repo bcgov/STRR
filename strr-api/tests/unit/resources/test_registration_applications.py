@@ -1,17 +1,22 @@
 import copy
 import json
 import os
+from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import patch
 
 import pytest
 
 from strr_api.enums.enum import ChannelType, InteractionStatus, PaymentStatus, RegistrationStatus
-from strr_api.models import Application, CustomerInteraction, Events
+from strr_api.models import Application, CustomerInteraction, Events, Registration
 from strr_api.models.application import ApplicationSerializer
 from strr_api.services import ApplicationService
 from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE, MOCK_PAYMENT_COMPLETED_RESPONSE
-from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
+from tests.unit.utils.application_flow_helpers import (
+    assign_examiner_and_full_review_approve,
+    set_application_ready_for_examiner_review,
+)
+from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header, create_header_account
 
 CREATE_HOST_REGISTRATION_REQUEST = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "../../mocks/json/host_registration.json"
@@ -41,9 +46,13 @@ CREATE_REGISTRATION_BUSINESS_AS_COHOST = os.path.join(
 MOCK_DOCUMENT_UPLOAD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../mocks/file/document_upload.txt")
 
 
+def _load_json(request_path):
+    with open(request_path) as request_file:
+        return json.load(request_file)
+
+
 def test_standalone_supporting_document_upload_tags_metadata(client, jwt):
-    headers = create_header(jwt, [PUBLIC_USER])
-    headers["Account-Id"] = ACCOUNT_ID
+    headers = create_header_account(jwt, roles=[PUBLIC_USER], account_id=ACCOUNT_ID)
 
     with patch(
         "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
@@ -64,40 +73,71 @@ def test_standalone_supporting_document_upload_tags_metadata(client, jwt):
     assert metadata["uploaded_by_idp_userid"] == "123"
 
 
+def test_application_document_upload_event_is_visible_to_applicant(session, client, jwt):
+    headers = create_header_account(jwt, roles=[PUBLIC_USER], account_id=ACCOUNT_ID)
+    headers["isDraft"] = True
+    json_data = _load_json(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST)
+
+    create_response = client.post("/applications", json=json_data, headers=headers)
+    assert HTTPStatus.OK == create_response.status_code
+    application_number = create_response.json["header"]["applicationNumber"]
+    application = Application.find_by_application_number(application_number)
+
+    with patch(
+        "strr_api.services.gcp_storage_service.GCPStorageService.upload_registration_document",
+        return_value="application-upload-file-key",
+    ):
+        with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+            data = {
+                "file": (df, "supporting-doc.txt"),
+                "documentType": "OTHERS",
+                "uploadStep": "application_supporting_document",
+            }
+            upload_response = client.put(
+                f"/applications/{application_number}/documents",
+                content_type="multipart/form-data",
+                data=data,
+                headers=headers,
+            )
+
+    assert HTTPStatus.OK == upload_response.status_code
+    applicant_events = Events.fetch_application_events(application.id, applicant_visible_events_only=True)
+    assert any(
+        event.event_name == Events.EventName.APPLICATION_DOCUMENT_UPLOADED and event.visible_to_applicant is True
+        for event in applicant_events
+    )
+
+
 def test_save_and_resume_applications(session, client, jwt):
-    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
-        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-        headers["Account-Id"] = ACCOUNT_ID
-        headers["isDraft"] = True
-        json_data = json.load(f)
+    headers = create_header_account(jwt, roles=[PUBLIC_USER], account_id=ACCOUNT_ID)
+    headers["isDraft"] = True
+    json_data = _load_json(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST)
 
-        rv = client.post("/applications", json=json_data, headers=headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
-        application_number = response_json.get("header").get("applicationNumber")
+    rv = client.post("/applications", json=json_data, headers=headers)
+    assert HTTPStatus.OK == rv.status_code
+    response_json = rv.json
+    application_number = response_json.get("header").get("applicationNumber")
 
-        apl = Application.find_by_application_number(application_number)
+    Application.find_by_application_number(application_number)
 
-        rv = client.put(f"/applications/{application_number}", json=json_data, headers=headers)
-        assert HTTPStatus.OK == rv.status_code
+    rv = client.put(f"/applications/{application_number}", json=json_data, headers=headers)
+    assert HTTPStatus.OK == rv.status_code
 
 
 def test_delete_draft_applications(session, client, jwt):
-    with open(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST) as f:
-        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
-        headers["Account-Id"] = ACCOUNT_ID
-        headers["isDraft"] = True
-        json_data = json.load(f)
+    headers = create_header_account(jwt, roles=[PUBLIC_USER], account_id=ACCOUNT_ID)
+    headers["isDraft"] = True
+    json_data = _load_json(CREATE_REGISTRATION_INDIVIDUAL_AS_COHOST)
 
-        rv = client.post("/applications", json=json_data, headers=headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
-        application_number = response_json.get("header").get("applicationNumber")
+    rv = client.post("/applications", json=json_data, headers=headers)
+    assert HTTPStatus.OK == rv.status_code
+    response_json = rv.json
+    application_number = response_json.get("header").get("applicationNumber")
 
-        rv = client.delete(f"/applications/{application_number}", headers=headers)
-        response_json = {}
-        assert response_json == {}
-        assert HTTPStatus.NO_CONTENT == rv.status_code
+    rv = client.delete(f"/applications/{application_number}", headers=headers)
+    response_json = {}
+    assert response_json == {}
+    assert HTTPStatus.NO_CONTENT == rv.status_code
 
 
 def test_staff_cannot_access_draft_applications(session, client, jwt):
@@ -481,18 +521,8 @@ def test_examiner_approve_host_registration_application(
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
@@ -515,18 +545,8 @@ def test_examiner_approve_platform_registration_application(app, session, client
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
@@ -622,6 +642,16 @@ def test_put_application_documents_includes_added_on(session, client, jwt):
         doc_uploaded = next((d for d in docs if d.get("fileKey") == "put-doc-file-key-456"), None)
         assert doc_uploaded is not None
         assert doc_uploaded.get("addedOn") is not None
+
+        application = Application.find_by_application_number(application_number)
+        upload_events = Events.fetch_application_events(application.id, applicant_visible_events_only=False)
+        matching_events = [
+            event for event in upload_events if event.event_name == Events.EventName.APPLICATION_DOCUMENT_UPLOADED
+        ]
+        assert len(matching_events) == 1
+        assert matching_events[0].details.startswith("Document uploaded: ")
+        assert matching_events[0].details.endswith("document_upload.txt")
+        assert matching_events[0].user_id == 1
         assert doc_uploaded.get("uploadDate") is not None
 
         rv = client.get(f"/applications/{application_number}", headers=headers)
@@ -631,6 +661,42 @@ def test_put_application_documents_includes_added_on(session, client, jwt):
         doc_uploaded = next((d for d in docs if d.get("fileKey") == "put-doc-file-key-456"), None)
         assert doc_uploaded is not None
         assert doc_uploaded.get("addedOn") is not None
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_put_application_documents_rejected_when_registered(mock_invoice, session, client, jwt):
+    """PUT /applications/<id>/documents returns 400 when application has registration_id."""
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        application_number = rv.json.get("header").get("applicationNumber")
+        app = Application.find_by_application_number(application_number)
+        reg = Registration(
+            user_id=1,
+            sbc_account_id=ACCOUNT_ID,
+            status=RegistrationStatus.ACTIVE,
+            registration_number="REG123456",
+            start_date=datetime.now(),
+            expiry_date=datetime.now(),
+            registration_type=Registration.RegistrationType.HOST,
+            registration_json={},
+        )
+        reg.save()
+        app.registration_id = reg.id
+        app.save()
+
+        with open(MOCK_DOCUMENT_UPLOAD, "rb") as df:
+            data = {"file": (df, MOCK_DOCUMENT_UPLOAD), "documentType": "BC_DRIVERS_LICENSE"}
+            rv = client.put(
+                f"/applications/{application_number}/documents",
+                content_type="multipart/form-data",
+                data=data,
+                headers=headers,
+            )
+            assert rv.status_code == HTTPStatus.BAD_REQUEST
+            assert "linked to a registration" in rv.json.get("message", "")
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
@@ -808,18 +874,8 @@ def test_approve_registration_application_with_business_as_a_host(app, session, 
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
@@ -842,18 +898,8 @@ def test_examiner_approve_strata_hotel_registration_application(app, session, cl
         response_json = rv.json
         application_number = response_json.get("header").get("applicationNumber")
 
-        application = Application.find_by_application_number(application_number=application_number)
-        application.payment_status = PaymentStatus.COMPLETED.value
-        application.status = Application.Status.FULL_REVIEW
-        application.save()
-
-        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
-        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        status_update_request = {"status": Application.Status.FULL_REVIEW_APPROVED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
-        assert HTTPStatus.OK == rv.status_code
-        response_json = rv.json
+        set_application_ready_for_examiner_review(application_number)
+        response_json, _ = assign_examiner_and_full_review_approve(client, jwt, application_number)
         assert response_json.get("header").get("status") == Application.Status.FULL_REVIEW_APPROVED
         assert response_json.get("header").get("assignee").get("username") is not None
         assert response_json.get("header").get("registrationId") is not None
@@ -1035,7 +1081,7 @@ def test_examiner_send_notice_of_consideration(mock_noc, mock_invoice, session, 
         assert response_json.get("header").get("status") == Application.Status.NOC_PENDING
         assert response_json.get("header").get("hostStatus") == "Notice of Consideration"
         assert response_json.get("header").get("examinerStatus") == "NOC - Pending"
-        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT"]
+        assert response_json.get("header").get("examinerActions") == ["APPROVE", "REJECT", "WITHDRAW"]
         assert response_json.get("header").get("hostActions") == []
         assert response_json.get("header").get("nocStartDate") is not None
         assert response_json.get("header").get("nocEndDate") is not None
@@ -1315,7 +1361,11 @@ def test_send_notice_of_consideration_for_provisional_review(mock_noc, mock_invo
         assert response_json.get("header").get("status") == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
         assert response_json.get("header").get("hostStatus") == "Notice of Consideration"
         assert response_json.get("header").get("examinerStatus") == "NOC - Pending"
-        assert response_json.get("header").get("examinerActions") == ["PROVISIONAL_APPROVE", "REJECT"]
+        assert response_json.get("header").get("examinerActions") == [
+            "PROVISIONAL_APPROVE",
+            "REJECT",
+            "WITHDRAW",
+        ]
         assert response_json.get("header").get("hostActions") == []
         assert response_json.get("header").get("nocStartDate") is not None
         assert response_json.get("header").get("nocEndDate") is not None
@@ -1350,13 +1400,155 @@ def test_examiner_decline_application_registration_provisional_review(app, sessi
         application.status = Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
         application.save()
 
-        status_update_request = {"status": Application.Status.PROVISIONALLY_DECLINED}
-        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        status_update_request = {"status": Application.Status.PROVISIONALLY_DECLINED, "decision": "WITHDRAW"}
+        with patch("strr_api.services.email_service.EmailService.send_application_status_update_email") as mock_email:
+            rv = client.put(
+                f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers
+            )
+            mock_email.assert_not_called()
         assert HTTPStatus.OK == rv.status_code
 
         application = Application.find_by_application_number(application_number=application_number)
         assert application.status == Application.Status.PROVISIONALLY_DECLINED
         assert application.registration.status == RegistrationStatus.CANCELLED
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_approve_application_persists_conditions(app, session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        json_data = json.load(f)
+        rv = client.post("/applications", json=json_data, headers=headers)
+        application_number = rv.json["header"]["applicationNumber"]
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        status_update_request = {
+            "status": Application.Status.FULL_REVIEW_APPROVED,
+            "conditionsOfApproval": {
+                "predefinedConditions": ["principalResidence"],
+                "customConditions": ["Keep records available"],
+                "minBookingDays": 14,
+            },
+        }
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        approval_conditions = application.registration.conditionsOfApproval
+        assert approval_conditions.preapproved_conditions == ["principalResidence"]
+        assert approval_conditions.custom_conditions == ["Keep records available"]
+        assert approval_conditions.minBookingDays == 14
+
+        application.status = Application.Status.PROVISIONAL_REVIEW
+        application.save()
+        rv = client.put(
+            f"/applications/{application_number}/status",
+            json={"status": Application.Status.PROVISIONALLY_APPROVED},
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        approval_conditions = application.registration.conditionsOfApproval
+        assert approval_conditions.preapproved_conditions == ["principalResidence"]
+        assert approval_conditions.custom_conditions == ["Keep records available"]
+        assert approval_conditions.minBookingDays == 14
+
+
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_provisional_approve_application_persists_conditions(app, session, client, jwt):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json.load(f), headers=headers)
+        application_number = rv.json["header"]["applicationNumber"]
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.put(
+            f"/applications/{application_number}/status",
+            json={"status": Application.Status.FULL_REVIEW_APPROVED},
+            headers=staff_headers,
+        )
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        application.status = Application.Status.PROVISIONAL_REVIEW
+        application.save()
+
+        status_update_request = {
+            "status": Application.Status.PROVISIONALLY_APPROVED,
+            "conditionsOfApproval": {
+                "predefinedConditions": ["principalResidence"],
+                "customConditions": ["Keep records available"],
+                "minBookingDays": 14,
+            },
+        }
+        rv = client.put(f"/applications/{application_number}/status", json=status_update_request, headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        approval_conditions = application.registration.conditionsOfApproval
+        assert approval_conditions.preapproved_conditions == ["principalResidence"]
+        assert approval_conditions.custom_conditions == ["Keep records available"]
+        assert approval_conditions.minBookingDays == 14
+
+
+@pytest.mark.parametrize(
+    "conditions_of_approval",
+    [
+        "invalid",
+        {"predefinedConditions": ["unknownCondition"]},
+        {"predefinedConditions": [], "minBookingDays": 90},
+        [],
+    ],
+)
+@patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
+def test_examiner_approve_application_rejects_invalid_conditions(
+    mock_invoice, app, session, client, jwt, conditions_of_approval
+):
+    with open(CREATE_HOST_REGISTRATION_REQUEST) as f:
+        headers = create_header(jwt, [PUBLIC_USER], "Account-Id")
+        headers["Account-Id"] = ACCOUNT_ID
+        rv = client.post("/applications", json=json.load(f), headers=headers)
+        application_number = rv.json["header"]["applicationNumber"]
+        application = Application.find_by_application_number(application_number=application_number)
+        application.payment_status = PaymentStatus.COMPLETED.value
+        application.status = Application.Status.FULL_REVIEW
+        application.save()
+
+        staff_headers = create_header(jwt, [STRR_EXAMINER], "Account-Id")
+        rv = client.put(f"/applications/{application_number}/assign", headers=staff_headers)
+        assert HTTPStatus.OK == rv.status_code
+
+        rv = client.put(
+            f"/applications/{application_number}/status",
+            json={
+                "status": Application.Status.FULL_REVIEW_APPROVED,
+                "conditionsOfApproval": conditions_of_approval,
+            },
+            headers=staff_headers,
+        )
+        assert HTTPStatus.BAD_REQUEST == rv.status_code
+
+        application = Application.find_by_application_number(application_number=application_number)
+        assert application.status == Application.Status.FULL_REVIEW
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)
