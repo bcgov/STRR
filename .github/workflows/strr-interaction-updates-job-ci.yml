@@ -37,6 +37,16 @@ jobs:
       - name: Run Linting
         run: make lint
 
+  verify-build:
+    needs: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify container build
+        run: make build
+
   # --- STAGE 1: FAST FUNCTIONAL TESTS ---
   functional-tests:
     needs: lint
@@ -98,4 +108,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-benchmark-results
-          path: STRR/jobs/interactions-update/benchmark_results.json
+          path: jobs/interactions-update/benchmark_results.json
