@@ -43,14 +43,103 @@ QUERIES = {
 }
 
 
-def main():
-    from cloud_sql_connector import connector as helper
-    import google.auth
+def catalog_ready(row):
+    """Keep the conservative catalog gate separate from successful login."""
+    table = row["tables"][0]
+    sequence = row["sequences"][0]
+    return bool(
+        row["publicSchemaUsage"]
+        and table["total"] > 0
+        and table["missing_select"] == table["missing_dml"] == 0
+        and table["with_row_security"] == 0
+        and sequence["missing_privileges"] == 0
+        and any(role["rolname"] == "readwrite" and role["usable"] for role in row["roles"])
+    )
+
+
+def read_catalog(connection, username, row):
+    """Verify identity and inspect catalog metadata inside a read-only transaction."""
+    from sqlalchemy import text
+
+    transaction = connection.begin()
+    try:
+        connection.execute(text("SET TRANSACTION READ ONLY"))
+        connection.execute(text("SET LOCAL statement_timeout = '5s'"))
+        for label, query in QUERIES.items():
+            rows = [dict(value) for value in connection.execute(text(query)).mappings()]
+            if label == "identity":
+                identity = rows[0]
+                if not (
+                    identity["current_user"] == username
+                    and identity["session_user"] == username
+                    and identity["current_database"] == DATABASE
+                    and identity["read_only"] == "on"
+                ):
+                    raise ValueError("database_identity_mismatch")
+                row["loginVerified"] = True
+                row["readOnlyTransactionVerified"] = True
+                row["publicSchemaUsage"] = identity["schema_usage"]
+            else:
+                row[label] = rows
+        row["writeCatalogReady"] = catalog_ready(row)
+    finally:
+        transaction.rollback()
+
+
+def verify_principal(helper, source, name):
+    """Check one fixed DEV principal and always attempt connector cleanup."""
     from google.auth import impersonated_credentials
     from google.auth.transport.requests import Request
     from google.cloud.sql.connector import Connector
-    from sqlalchemy import create_engine, text
+    from sqlalchemy import create_engine
     from sqlalchemy.pool import NullPool
+
+    username = f"{name}@bcrbk9-dev.iam"
+    target = f"{name}@bcrbk9-dev.iam.gserviceaccount.com"
+    row = {"expectedDatabaseUser": username, "loginVerified": False, "writeCatalogReady": False}
+    engine = None
+    stage = "impersonation"
+    try:
+        credentials = impersonated_credentials.Credentials(
+            source_credentials=source, target_principal=target, target_scopes=SCOPES, lifetime=600
+        )
+        credentials.refresh(Request())
+        if credentials.service_account_email != target:
+            raise ValueError("target_identity_mismatch")
+        helper._connector = Connector(credentials=credentials, refresh_strategy="lazy", timeout=30)
+        uri, options = helper.sqlalchemy_settings_from_env(
+            {
+                "CLOUDSQL_INSTANCE_CONNECTION_NAME": INSTANCE,
+                "DATABASE_NAME": DATABASE,
+                "DATABASE_USERNAME": username,
+                "CLOUDSQL_IP_TYPE": "PUBLIC",
+            }
+        )
+        if uri != "postgresql+pg8000://" or set(options) != {"creator"}:
+            raise ValueError("unexpected_helper_settings")
+        engine = create_engine(uri, **options, poolclass=NullPool)
+        stage = "helper_iam_login"
+        with engine.connect() as connection:
+            stage = "catalog"
+            read_catalog(connection, username, row)
+    except Exception as error:
+        row.update(errorStage=stage, errorType=type(error).__name__)
+    finally:
+        try:
+            try:
+                if engine is not None:
+                    engine.dispose()
+            finally:
+                helper.close_connector()
+        except Exception as error:
+            row.update(cleanupErrorType=type(error).__name__)
+    return row
+
+
+def main():
+    from cloud_sql_connector import connector as helper
+    import google.auth
+    from google.auth.transport.requests import Request
 
     if hashlib.sha256(Path(helper.__file__).read_bytes()).hexdigest() != HELPER_SHA256:
         raise ValueError("helper_source_mismatch")
@@ -58,8 +147,8 @@ def main():
     source.refresh(Request())
     if project != BUILD_PROJECT or source.service_account_email != BUILD_IDENTITY:
         raise ValueError("build_identity_mismatch")
-
-    result = {
+    principals = [verify_principal(helper, source, name) for name in ("sa-api", "sa-job")]
+    return {
         "checkedAt": datetime.now(timezone.utc).isoformat(),
         "helperCommit": HELPER_COMMIT,
         "helperSourceVerified": True,
@@ -68,86 +157,15 @@ def main():
         "versions": {
             name: version(name) for name in ("cloud-sql-python-connector", "google-auth", "pg8000", "sqlalchemy")
         },
-        "principals": [],
+        "principals": principals,
+        "success": all(
+            row["loginVerified"]
+            and row["writeCatalogReady"]
+            and "errorType" not in row
+            and "cleanupErrorType" not in row
+            for row in principals
+        ),
     }
-    for name in ("sa-api", "sa-job"):
-        username = f"{name}@bcrbk9-dev.iam"
-        target = f"{name}@bcrbk9-dev.iam.gserviceaccount.com"
-        row = {"expectedDatabaseUser": username, "loginVerified": False, "writeCatalogReady": False}
-        engine = None
-        stage = "impersonation"
-        try:
-            credentials = impersonated_credentials.Credentials(
-                source_credentials=source, target_principal=target, target_scopes=SCOPES, lifetime=600
-            )
-            credentials.refresh(Request())
-            if credentials.service_account_email != target:
-                raise ValueError("target_identity_mismatch")
-            # Inject a real Connector; the exact helper still creates/uses getconn.
-            helper._connector = Connector(credentials=credentials, refresh_strategy="lazy", timeout=30)
-            uri, options = helper.sqlalchemy_settings_from_env(
-                {
-                    "CLOUDSQL_INSTANCE_CONNECTION_NAME": INSTANCE,
-                    "DATABASE_NAME": DATABASE,
-                    "DATABASE_USERNAME": username,
-                    "CLOUDSQL_IP_TYPE": "PUBLIC",
-                }
-            )
-            if uri != "postgresql+pg8000://" or set(options) != {"creator"}:
-                raise ValueError("unexpected_helper_settings")
-            engine = create_engine(uri, **options, poolclass=NullPool)
-            stage = "helper_iam_login"
-            with engine.connect() as connection:
-                transaction = connection.begin()
-                try:
-                    connection.execute(text("SET TRANSACTION READ ONLY"))
-                    connection.execute(text("SET LOCAL statement_timeout = '5s'"))
-                    stage = "catalog"
-                    for label, query in QUERIES.items():
-                        rows = [dict(value) for value in connection.execute(text(query)).mappings()]
-                        if label == "identity":
-                            identity = rows[0]
-                            if not (
-                                identity["current_user"] == username
-                                and identity["session_user"] == username
-                                and identity["current_database"] == DATABASE
-                                and identity["read_only"] == "on"
-                            ):
-                                raise ValueError("database_identity_mismatch")
-                            row["loginVerified"] = True
-                            row["readOnlyTransactionVerified"] = True
-                            row["publicSchemaUsage"] = identity["schema_usage"]
-                        else:
-                            row[label] = rows
-                    table = row["tables"][0]
-                    sequence = row["sequences"][0]
-                    row["writeCatalogReady"] = bool(
-                        row["publicSchemaUsage"]
-                        and table["total"] > 0
-                        and table["missing_select"] == table["missing_dml"] == 0
-                        and table["with_row_security"] == 0
-                        and sequence["missing_privileges"] == 0
-                        and any(role["rolname"] == "readwrite" and role["usable"] for role in row["roles"])
-                    )
-                finally:
-                    transaction.rollback()
-        except Exception as error:
-            row.update(errorStage=stage, errorType=type(error).__name__)
-        finally:
-            try:
-                try:
-                    if engine is not None:
-                        engine.dispose()
-                finally:
-                    helper.close_connector()
-            except Exception as error:
-                row.update(cleanupErrorType=type(error).__name__)
-            result["principals"].append(row)
-    result["success"] = all(
-        row["loginVerified"] and row["writeCatalogReady"] and "errorType" not in row and "cleanupErrorType" not in row
-        for row in result["principals"]
-    )
-    return result
 
 
 def run():

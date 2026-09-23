@@ -26,11 +26,18 @@ Before submission the workflow checks that the default worker is
 its actual ADC identity/project and the helper source before impersonating
 either fixed DEV runtime account for 600 seconds. A changed route fails closed.
 
-`make_build_config.py` embeds only the checked-out probe and hash-locked Python
-requirements in a no-source Cloud Build config. The Python image is pinned by
-digest. The helper archive is pinned by commit, installed without dependency or
-build-isolation resolution, then its connector module hash is checked. There
-is no application source archive, secret mount, storage upload or deployment.
+`prepare_helper.py` builds the commit/hash-pinned first-party helper in the
+validation job, which has no cloud credentials or OIDC permission. It uses the
+locked build tool without dependency/build-isolation resolution and verifies
+the connector module before installation. That job tests the wheel, then saves
+it with a checksum manifest as an immutable artifact of this workflow run.
+
+`make_build_config.py` checks that artifact's identity/checksum and embeds the
+wheel, checked-out probe and hash-locked requirements in a no-source build. The
+cloud job installs only wheels with mandatory hash checks; it does not execute
+source-package build scripts. The Python image and Google actions are pinned
+by digest/commit. No application source archive, secret mount, GCS upload or
+deployment is involved.
 The small build uses existing Cloud Build capacity and produces Cloud Logging
 output. Dependency errors and exceptions are reported without raw diagnostics,
 tokens, connection strings or tracebacks.
@@ -39,7 +46,8 @@ tokens, connection strings or tracebacks.
 
 Each connection explicitly starts a read-only transaction with a five-second
 statement timeout, verifies current/session user and database, and rolls back.
-The result reports `loginVerified`, server version, installed `postgis`/`anon`
+The helper uses PUBLIC IP, matching the current #1764 mappings; this is not a
+test of a future private-network route. The result reports `loginVerified`, server version, installed `postgis`/`anon`
 catalog versions and schema/role/table/sequence privilege counts per identity.
 
 `writeCatalogReady` conservatively requires the existing `readwrite` role,
@@ -57,10 +65,14 @@ itself authorize rollout or production-key removal.
 
 ## Local checks
 
-Use Python 3.12, install `requirements.txt` with `pip --require-hashes`, then
-install the pinned helper with `--no-deps --no-build-isolation` as in the workflow.
+Use Python 3.12 and install `requirements.txt` with
+`pip --only-binary :all: --require-hashes`. Run `prepare_helper.py` with an empty
+temporary wheel directory, then install that directory's `requirements.txt`
+using `pip --only-binary :all: --no-index --no-deps --require-hashes`.
 Run `python -m unittest discover -s verification/iam-dev -p 'test_*.py' -v`.
-Rendering `make_build_config.py` only prints JSON; it does not submit a build.
+Rendering `make_build_config.py` with that wheel directory only prints JSON;
+it does not submit a build. `helper-source.txt` pins the reviewed helper archive
+and its SHA-256; update both after common #77 merges.
 Regenerate the lock with `uv pip compile requirements.in --python-version 3.12
 --python-platform x86_64-unknown-linux-gnu --generate-hashes --no-annotate
 --no-header -o requirements.txt` and review the resolved versions/hashes.

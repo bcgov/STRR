@@ -1,13 +1,17 @@
 """Guard and failure-path tests; no live credentials or database connections."""
 
 import contextlib
+import hashlib
 import io
 import json
+from pathlib import Path
+import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import make_build_config
+import prepare_helper
 import probe
 
 
@@ -173,8 +177,24 @@ class ProbeTests(unittest.TestCase):
 
 
 class BuildConfigTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.directory = Path(temporary.name)
+        payload = b"wheel fixture"
+        (self.directory / prepare_helper.FILENAME).write_bytes(payload)
+        self.manifest = {
+            "filename": prepare_helper.FILENAME,
+            "helperCommit": probe.HELPER_COMMIT,
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        }
+        self.write_manifest()
+
+    def write_manifest(self):
+        (self.directory / "manifest.json").write_text(json.dumps(self.manifest))
+
     def test_render_is_no_source_and_contains_the_reviewed_probe(self):
-        config = make_build_config.build_config()
+        config = make_build_config.build_config(self.directory)
         self.assertNotIn("source", config)
         self.assertNotIn("availableSecrets", config)
         self.assertEqual(len(config["steps"]), 1)
@@ -182,7 +202,20 @@ class BuildConfigTests(unittest.TestCase):
         self.assertIn("@sha256:", step["name"])
         self.assertIn((make_build_config.DIRECTORY / "probe.py").read_text(), step["script"])
         self.assertIn("--require-hashes", step["script"])
-        self.assertIn("--no-deps --no-build-isolation", step["script"])
+        self.assertIn("--only-binary :all:", step["script"])
+        self.assertIn("--no-index --no-deps --require-hashes", step["script"])
+        self.assertNotIn("pip wheel", step["script"])
+
+    def test_changed_wheel_is_rejected_before_build_submission(self):
+        (self.directory / prepare_helper.FILENAME).write_bytes(b"changed wheel")
+        with self.assertRaisesRegex(ValueError, "helper_wheel_hash_mismatch"):
+            make_build_config.build_config(self.directory)
+
+    def test_unexpected_artifact_filename_is_rejected(self):
+        self.manifest["filename"] = "../unreviewed.whl"
+        self.write_manifest()
+        with self.assertRaisesRegex(ValueError, "unexpected_helper_manifest"):
+            make_build_config.build_config(self.directory)
 
 
 if __name__ == "__main__":

@@ -22,12 +22,23 @@ jobs:
           python-version: '3.12'
       - name: Install locked probe dependencies
         run: |
-          python -m pip install --require-hashes -r verification/iam-dev/requirements.txt
-          python -m pip install --no-deps --no-build-isolation 'https://github.com/bcgov/sbc-connect-common/archive/395a3bdd402d918f2ba3df6d6cf26a629872a121.tar.gz#subdirectory=python/cloud-sql-connector'
+          python -m pip install --only-binary :all: --require-hashes -r verification/iam-dev/requirements.txt
+      - name: Build the reviewed helper without cloud credentials
+        run: |
+          python verification/iam-dev/prepare_helper.py "$RUNNER_TEMP/helper-wheel"
+          python -m pip install --only-binary :all: --no-index --no-deps --require-hashes -r "$RUNNER_TEMP/helper-wheel/requirements.txt"
       - name: Test guards and render the build without submitting it
         run: |
           python -m unittest discover -s verification/iam-dev -p 'test_*.py' -v
-          python verification/iam-dev/make_build_config.py > "$RUNNER_TEMP/iam-build.json"
+          python verification/iam-dev/make_build_config.py "$RUNNER_TEMP/helper-wheel" > "$RUNNER_TEMP/iam-build.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-iam-helper
+          path: |
+            ${{ runner.temp }}/helper-wheel/*.whl
+            ${{ runner.temp }}/helper-wheel/manifest.json
+          if-no-files-found: error
+          retention-days: 7
 
   verify:
     if: >-
@@ -46,6 +57,10 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: verified-iam-helper
+          path: ${{ runner.temp }}/helper-wheel
       - name: Assert the existing authentication route
         env:
           PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
@@ -54,16 +69,16 @@ jobs:
           set -euo pipefail
           test "$PROVIDER" = 'projects/331250273634/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
           test "$ACCOUNT" = 'github-actions@c4hnrd-tools.iam.gserviceaccount.com'
-      - uses: google-github-actions/auth@v3
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           project_id: c4hnrd-tools
-      - uses: google-github-actions/setup-gcloud@v3
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
       - name: Verify the build identity and submit the catalog probe
         run: |
           set -euo pipefail
           worker="$(gcloud builds get-default-service-account --project=c4hnrd-tools --region=northamerica-northeast1 --format='value(serviceAccountEmail)')"
           test "$worker" = 'projects/331250273634/serviceAccounts/331250273634@cloudbuild.gserviceaccount.com'
-          python3 verification/iam-dev/make_build_config.py > "$RUNNER_TEMP/iam-build.json"
+          python3 verification/iam-dev/make_build_config.py "$RUNNER_TEMP/helper-wheel" > "$RUNNER_TEMP/iam-build.json"
           gcloud builds submit --no-source --project=c4hnrd-tools --region=northamerica-northeast1 --config="$RUNNER_TEMP/iam-build.json" --quiet

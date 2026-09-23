@@ -1,0 +1,1 @@
+cloud-sql-connector @ https://github.com/bcgov/sbc-connect-common/archive/395a3bdd402d918f2ba3df6d6cf26a629872a121.tar.gz#subdirectory=python/cloud-sql-connector --hash=sha256:db1693f4c39bae167495efbbe4fbb1423ab6511b85e14338eb9fda1883def8c1
