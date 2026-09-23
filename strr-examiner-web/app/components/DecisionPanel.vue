@@ -22,11 +22,11 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   decisionIntent.value = action
   // reset
   localConditions.value = []
-  decisionEmailContent.value.content = ''
   conditions.value = []
   customConditions.value = null
   minBookingDays.value = null
   decisionEmailFormRef?.value?.clear()
+  decisionEmailContent.value.content = ''
   if (action === ApplicationActionsE.APPROVE) {
     loadExistingConditions()
   }
@@ -146,6 +146,8 @@ const loadExistingConditions = () => {
 // update email content when conditions change
 watch([localConditions, minBookingDays],
   ([newConditions, newMinBookingDays]) => {
+    if (!isApproveDecisionSelected.value) { return }
+
     // reset conditions
     conditions.value = []
     customConditions.value = null
