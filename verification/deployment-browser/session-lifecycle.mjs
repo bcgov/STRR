@@ -9,13 +9,15 @@ export async function prepareSessionClock(page, origin) {
       : url.hostname.startsWith('strr-api-test-') ? 'strr-api'
       : url.hostname.startsWith('pay-api-test-') ? 'pay-api'
       : url.hostname === 'idtest.gov.bc.ca' ? 'test-identity' : 'other'
-    pending.set(request, { category, resourceType: request.resourceType(), startedAt: Date.now() })
+    pending.set(request, { category, resourceType: request.resourceType(), startedAt: Date.now(),
+      ...(category === 'other' && request.resourceType() === 'script' ? { host: url.hostname } : {}) })
   })
   const finish = request => {
     const item = pending.get(request)
     if (!item) return
     pending.delete(request)
-    completed.push({ category: item.category, resourceType: item.resourceType, finishedAt: Date.now() })
+    completed.push({ category: item.category, resourceType: item.resourceType, finishedAt: Date.now(),
+      ...(item.host ? { host: item.host } : {}) })
     if (completed.length > 20) completed.shift()
   }
   page.on('requestfinished', finish)
