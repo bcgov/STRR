@@ -1,5 +1,8 @@
 name: main-e2e-tests
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
     inputs:

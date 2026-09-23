@@ -1,5 +1,8 @@
 name: STRR EMAIL CI
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:

@@ -1,5 +1,8 @@
 name: STRR BACKFILLER JOB CD
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -36,6 +39,10 @@ on:
 
 jobs:
   strr-backfiller-cd:
+    # Match the reusable CD workflow contract, including GCP OIDC authentication.
+    permissions:
+      contents: write
+      id-token: write
     uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
     with:
       target: ${{ inputs.target }}

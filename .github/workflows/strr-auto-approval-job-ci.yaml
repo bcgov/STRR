@@ -1,5 +1,8 @@
 name: STRR APPLICATION AUTO APPROVAL JOB CI
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:

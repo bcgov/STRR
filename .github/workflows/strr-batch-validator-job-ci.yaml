@@ -1,5 +1,8 @@
 name: BATCH PERMIT JOB CI
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:
