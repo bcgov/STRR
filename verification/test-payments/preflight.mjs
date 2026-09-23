@@ -1,8 +1,6 @@
 import { chromium } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { loadTestCard, preparePlatformCheckout } from './platform-checkout.mjs'
-import { createStrataPayment } from './strata-checkout.mjs'
-import { createHostPayment } from './host-checkout.mjs'
+import { createHash } from 'node:crypto'
 
 // These existing CI credentials stay inside the runner. No traces, cookies,
 // storage state, response bodies, or credentials are uploaded.
@@ -31,7 +29,9 @@ const apps = [
 ]
 const report = {
   checkedAt: new Date().toISOString(),
-  scope: 'Live TEST account/fee checks; Host cancel/resume and Strata sandbox checkout; paid Platform receipt/persistence.',
+  scope: 'Read-only deployed TEST BCSC login, account selection, payment-account and fee checks for Host, Platform and Strata. No checkout or application submission.',
+  harnessCommit: process.env.GITHUB_SHA,
+  runId: process.env.GITHUB_RUN_ID,
   credentialsConfigured: Boolean(username && password && account),
   apps: []
 }
@@ -39,20 +39,29 @@ await mkdir('results', { recursive: true })
 let browser
 let page
 let current
-let card
 try {
-  if (!report.credentialsConfigured) throw new Error('Required BCSC test credentials or Premium account are not configured')
-  card = loadTestCard(secrets)
-  report.sandboxCardFixtureUsable = true
+  if (!report.credentialsConfigured) throw new Error('Required BCSC TEST credentials are not configured')
   browser = await chromium.launch()
   const context = await browser.newContext()
   context.setDefaultTimeout(20000)
   context.setDefaultNavigationTimeout(60000)
 
   for (const app of apps) {
-    current = { name: app.name, stage: 'login', paymentRequests: [], browserErrors: [], result: 'in_progress' }
+    current = { name: app.name, origin: app.origin, stage: 'login', paymentRequests: [], browserErrors: [], result: 'in_progress' }
     report.apps.push(current)
     const appResult = current
+    const publicHtml = await fetch(app.origin + '/en-CA/auth/login').then(r => { if (!r.ok) throw new Error('TEST entry page unavailable'); return r.text() })
+    const entryPaths = [...publicHtml.matchAll(/<script[^>]*type="module"[^>]*src="([^"]+)"/g)].map(m => m[1])
+    if (!entryPaths.length) throw new Error('No deployed TEST entry bundle found')
+    current.deployedEntryBundles = []
+    for (const entry of entryPaths) {
+      const url = new URL(entry, app.origin)
+      if (url.origin !== app.origin || !url.pathname.startsWith('/_nuxt/')) throw new Error('Unexpected TEST entry bundle origin or path')
+      const response = await fetch(url)
+      if (!response.ok) throw new Error('TEST entry bundle unavailable')
+      const bytes = Buffer.from(await response.arrayBuffer())
+      current.deployedEntryBundles.push({ path: url.pathname, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') })
+    }
     page = await context.newPage()
     const pending = []
     page.on('pageerror', error => appResult.browserErrors.push(sanitize(error.message)))
@@ -93,15 +102,15 @@ try {
       await page.getByRole('button', { name: 'Continue', exact: true }).click()
     }
     await page.waitForURL(url => url.origin === app.origin && !url.pathname.endsWith('/auth/login'), { timeout: 45000 })
-    current.stage = 'select-premium-account'
+    current.loginPassed = true
+    current.stage = 'select-test-account'
     await page.goto(app.origin + '/en-CA/auth/account/choose-existing', { waitUntil: 'domcontentloaded' })
     await page.getByTestId('choose-existing-account-button').first().waitFor({ state: 'visible' })
-    current.availableAccounts = await page.getByTestId('choose-existing-account-button').evaluateAll(buttons =>
-      buttons.map(button => ({ label: button.getAttribute('aria-label'), disabled: button.disabled }))
-    )
-    current.availableAccounts = current.availableAccounts.map(option => ({ ...option, label: sanitize(option.label) }))
-    await page.getByRole('button', { name: 'Use this Account, ' + account, exact: true }).click()
-    delete current.availableAccounts
+    const accountButton = page.getByRole('button', { name: 'Use this Account, ' + account, exact: true })
+    current.testAccountAvailable = await accountButton.isVisible() && await accountButton.isEnabled()
+    if (!current.testAccountAvailable) throw new Error('Expected authorized TEST account is unavailable')
+    await accountButton.click()
+    current.accountSelected = true
     current.stage = 'open-application'
     await page.goto(app.origin + app.form, { waitUntil: 'domcontentloaded' })
     await page.getByTestId('h1').waitFor({ state: 'visible' })
@@ -116,25 +125,15 @@ try {
     await Promise.all(pending)
     const fees = new Set(current.paymentRequests.filter(r => r.path.includes('/fees/STRR/') && r.status === 200).map(r => r.path))
     if (fees.size < app.feeCount || !current.paymentAccount) throw new Error('TEST payment account or required registration fees did not load successfully')
-    try {
-      if (app.name === 'host') await createHostPayment(page, current, card)
-      if (app.name === 'platform') await preparePlatformCheckout(page, current)
-      if (app.name === 'strata') await createStrataPayment(page, current, card)
-      current.result = current.receipt?.result === 'failed' ? 'payment_passed_receipt_failed' : 'passed'
-      current.stage = 'complete'
-      if (current.result !== 'passed') process.exitCode = 1
-    } catch (error) {
-      current.paymentError = sanitize(error.message)
-      current.result = 'failed'
-      current.failureState = {
-        body: sanitize((await page.locator('body').innerText().catch(() => '')).slice(0,10000)),
-        buttons: (await page.getByRole('button').allTextContents().catch(() => [])).map(sanitize),
-        invalidFields: await page.locator('[aria-invalid="true"]').evaluateAll(elements =>
-          elements.map(element => ({ id: element.id, name: element.getAttribute('name') }))
-        ).catch(() => [])
-      }
-      process.exitCode = 1
-    }
+    current.requiredFeeCount = app.feeCount
+    current.loadedFeeCount = fees.size
+    if (current.paymentAccount.paymentMethod !== 'DIRECT_PAY') throw new Error('TEST account payment method changed; checkout assumptions need review')
+    current.result = current.browserErrors.length ? 'failed_browser_errors' : 'passed'
+    current.stage = 'complete'
+    if (current.result !== 'passed') process.exitCode = 1
+    const finalHtml = await fetch(app.origin + '/en-CA/auth/login').then(r => r.text())
+    current.bundlePathsStable = current.deployedEntryBundles.every(b => finalHtml.includes(b.path))
+    if (!current.bundlePathsStable) { current.result = 'deployment_changed'; process.exitCode = 1 }
     current.finalUrl = safeUrl(page.url())
     await page.close()
   }
@@ -143,16 +142,9 @@ try {
   if (current) current.result = 'failed'
   if (page && !page.isClosed()) {
     if (current) current.finalUrl = safeUrl(page.url())
-    report.visibleState = {
-      title: sanitize(await page.title().catch(() => '')),
-      body: sanitize((await page.locator('body').innerText().catch(() => '')).slice(0,10000)),
-      headings: (await page.locator('h1,h2').allTextContents().catch(() => [])).map(sanitize),
-      alerts: (await page.getByRole('alert').allTextContents().catch(() => [])).map(sanitize),
-      invalidFields: await page.locator('[aria-invalid="true"]').evaluateAll(elements =>
-        elements.map(element => ({ id: element.id, name: element.getAttribute('name'), label: element.getAttribute('aria-label') }))
-      ).catch(() => []),
-      buttons: (await page.getByRole('button').allTextContents().catch(() => [])).map(sanitize)
-    }
+    // Deliberately omit raw DOM, arbitrary account labels, response bodies and traces.
+    report.failureStage = current?.stage
+
   }
   process.exitCode = 1
 } finally {

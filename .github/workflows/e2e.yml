@@ -21,18 +21,17 @@ jobs:
       - name: Install Chromium
         working-directory: verification/test-payments
         run: npx playwright install --with-deps chromium
-      - name: Verify deployed TEST payments
+      - name: Verify deployed TEST login, accounts and fees
         working-directory: verification/test-payments
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
-          CYPRESS_CREDITCARD: ${{ secrets.CYPRESS_CREDITCARD }}
         run: node preflight.mjs
       - name: Upload sanitized results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-payment-preflight
+          name: test-auth-fee-preflight
           path: verification/test-payments/results/*.json
           if-no-files-found: warn
           retention-days: 7
