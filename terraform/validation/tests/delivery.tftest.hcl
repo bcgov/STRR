@@ -49,6 +49,42 @@ run "preserve_dev_validation_pipeline" {
   }
 
   assert {
+    condition = alltrue([
+      for destination in [
+        { bucket = google_storage_bucket.bulk_validation_requests, prefix = "bulk-validation-requests/" },
+        { bucket = google_storage_bucket.bulk_validation_responses, prefix = "bulk-validation-responses/" },
+        ] : try(
+        destination.bucket.logging[0].log_bucket == "bcrbk9-dev-strr-access-logs" &&
+        destination.bucket.logging[0].log_object_prefix == destination.prefix,
+        false
+      )
+    ])
+    error_message = "Validation access logs must use the dedicated STRR DEV log bucket with separate request/response prefixes."
+  }
+
+  assert {
+    condition = alltrue([
+      for bucket in [google_storage_bucket.bulk_validation_requests, google_storage_bucket.bulk_validation_responses] :
+      try(bucket.versioning[0].enabled, false)
+    ])
+    error_message = "Both validation buckets must retain noncurrent versions."
+  }
+
+  assert {
+    condition = alltrue([
+      for bucket in [google_storage_bucket.bulk_validation_requests, google_storage_bucket.bulk_validation_responses] : try(
+        length(bucket.lifecycle_rule) == 1 &&
+        one(one(bucket.lifecycle_rule).action).type == "Delete" &&
+        one(one(bucket.lifecycle_rule).condition).with_state == "ARCHIVED" &&
+        one(one(bucket.lifecycle_rule).condition).days_since_noncurrent_time == 7 &&
+        !one(one(bucket.lifecycle_rule).condition).send_age_if_zero,
+        false
+      )
+    ])
+    error_message = "Only noncurrent validation versions may be cleaned up, after seven days; live files must not expire."
+  }
+
+  assert {
     condition = (
       google_storage_bucket.bulk_validation_requests.name == "strr_bulk_validation_requests_dev" &&
       google_storage_bucket.bulk_validation_responses.name == "strr_bulk_validation_responses_dev" &&

@@ -25,4 +25,30 @@ run "preserve_dev_document_storage" {
     )
     error_message = "Adoption must preserve private bucket access, seven-day recovery, and protection against deleting contents."
   }
+
+  assert {
+    condition = try(
+      google_storage_bucket.registration_documents.logging[0].log_bucket == "bcrbk9-dev-strr-access-logs" &&
+      google_storage_bucket.registration_documents.logging[0].log_object_prefix == "registration-documents/",
+      false
+    )
+    error_message = "Document access logs must use the dedicated STRR DEV log bucket and prefix."
+  }
+
+  assert {
+    condition     = try(google_storage_bucket.registration_documents.versioning[0].enabled, false)
+    error_message = "Document storage must retain noncurrent versions."
+  }
+
+  assert {
+    condition = try(
+      length(google_storage_bucket.registration_documents.lifecycle_rule) == 1 &&
+      one(one(google_storage_bucket.registration_documents.lifecycle_rule).action).type == "Delete" &&
+      one(one(google_storage_bucket.registration_documents.lifecycle_rule).condition).with_state == "ARCHIVED" &&
+      one(one(google_storage_bucket.registration_documents.lifecycle_rule).condition).days_since_noncurrent_time == 7 &&
+      !one(one(google_storage_bucket.registration_documents.lifecycle_rule).condition).send_age_if_zero,
+      false
+    )
+    error_message = "Only noncurrent document versions may be cleaned up, after seven days; live files must not expire."
+  }
 }

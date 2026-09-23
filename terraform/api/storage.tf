@@ -7,6 +7,26 @@ resource "google_storage_bucket" "registration_documents" {
   public_access_prevention    = "enforced"
   force_destroy               = false
 
+  logging {
+    log_bucket        = "bcrbk9-dev-strr-access-logs"
+    log_object_prefix = "registration-documents/"
+  }
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle_rule {
+    action {
+      type = "Delete"
+    }
+    condition {
+      with_state                 = "ARCHIVED"
+      days_since_noncurrent_time = 7
+      send_age_if_zero           = false
+    }
+  }
+
   soft_delete_policy {
     retention_duration_seconds = 604800
   }

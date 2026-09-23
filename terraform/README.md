@@ -61,6 +61,13 @@ be applied in the `dev` workspace **before this PR is merged**, because merging
 starts the automatic DEV workflows. It grants only bucket metadata get/update
 on the three named existing DEV buckets, without object or bucket-IAM access.
 
+The [STRR DEV bucket security setup](dev-bucket-security.md) must also be completed
+before merge: provision the dedicated access-log destination and its writer IAM,
+then enable the reviewed logging, versioning, and old-version cleanup settings on
+the three existing buckets. This draft does not provision the log bucket or grant
+the application deployment identity new permissions. The unchanged-import guard
+will reject adoption until live bucket settings match the Terraform definitions.
+
 All 15 imported resources, their Cloud Run destinations, and the runtime IAM must
 already exist. This change adopts existing DEV infrastructure; it is not a bootstrap
 for a new environment. App authentication, including existing key/ADC behavior,
@@ -80,26 +87,23 @@ The first plans must report 1 API, 6 email, and 8 validation imports with
 during adoption. Reconcile any such difference in a reviewed change. After adoption,
 a second plan for each root should report no changes.
 
-## Bucket security findings for review
+## Bucket security settings
 
 Sonar reports `terraform:S6258` (logging) and `terraform:S6412` (Object Versioning)
-on each of the three existing buckets. Neither setting is enabled in their current
-bucket metadata. This adoption preserves that configuration; the findings remain
-open and need review before merge.
+on each of the three existing buckets. Their definitions now enable both controls:
+access logs go to `bcrbk9-dev-strr-access-logs` under separate prefixes, and Object
+Versioning retains previous copies. Only noncurrent versions become eligible for
+cleanup after seven days; current application files have no age-based expiry.
+The existing seven-day soft-delete protection remains, including for versions
+deleted by the cleanup rule. Cleanup is asynchronous, not an exact purge deadline.
 
-All three buckets retain seven-day soft delete. Google recommends
-[soft delete for protection against accidental or malicious deletion](https://docs.cloud.google.com/storage/docs/object-versioning)
-instead of Object Versioning. This supports reviewing the versioning findings
-against the existing recovery control; it does not establish a requirement to
-retain readable historical versions.
-
-Google recommends [Cloud Audit Logs over bucket usage/access logs in most cases](https://docs.cloud.google.com/storage/docs/access-logs).
-The DEV project's IAM policy has no project-level `auditConfigs`. Inherited policy
-could not be inspected with the available identity, so Data Access logging is
-unverified. SRE should verify effective Cloud Storage `ADMIN_READ`, `DATA_READ`,
-and `DATA_WRITE` logging before assessing these findings. Any required logging or
-retention change needs a reviewed rollout separate from the unchanged imports.
-No scanner rule or finding has been suppressed or dismissed.
+The dedicated log bucket has a proposed 30-day log cleanup policy; its setup and
+security review remain an SRE prerequisite, not an additional automatically managed
+application resource. See [the draft settings and rollout](dev-bucket-security.md).
+These local changes are not evidence of a live rollout, successful log delivery,
+or a passing Sonar rescan. No rule, finding, or scanner scope is suppressed or
+changed. Cloud Audit Logs remain a separate control; inherited Data Access
+logging has not been verified.
 
 ## Verification
 
