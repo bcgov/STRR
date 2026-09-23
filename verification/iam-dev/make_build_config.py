@@ -4,7 +4,6 @@ import base64
 import hashlib
 import json
 from pathlib import Path
-import sys
 
 import prepare_helper
 import probe
@@ -58,4 +57,4 @@ python - <<'PROBE'
 
 
 if __name__ == "__main__":
-    print(json.dumps(build_config(Path(sys.argv[1]))))
+    print(json.dumps(build_config(prepare_helper.WHEEL_DIRECTORY)))

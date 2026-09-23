@@ -25,18 +25,18 @@ jobs:
           python -m pip install --only-binary :all: --require-hashes -r verification/iam-dev/requirements.txt
       - name: Build the reviewed helper without cloud credentials
         run: |
-          python verification/iam-dev/prepare_helper.py "$RUNNER_TEMP/helper-wheel"
-          python -m pip install --only-binary :all: --no-index --no-deps --require-hashes -r "$RUNNER_TEMP/helper-wheel/requirements.txt"
+          python verification/iam-dev/prepare_helper.py
+          python -m pip install --only-binary :all: --no-index --no-deps --require-hashes -r verification/iam-dev/dist/helper-wheel/requirements.txt
       - name: Test guards and render the build without submitting it
         run: |
           python -m unittest discover -s verification/iam-dev -p 'test_*.py' -v
-          python verification/iam-dev/make_build_config.py "$RUNNER_TEMP/helper-wheel" > "$RUNNER_TEMP/iam-build.json"
+          python verification/iam-dev/make_build_config.py > "$RUNNER_TEMP/iam-build.json"
       - uses: actions/upload-artifact@v4
         with:
           name: verified-iam-helper
           path: |
-            ${{ runner.temp }}/helper-wheel/*.whl
-            ${{ runner.temp }}/helper-wheel/manifest.json
+            verification/iam-dev/dist/helper-wheel/*.whl
+            verification/iam-dev/dist/helper-wheel/manifest.json
           if-no-files-found: error
           retention-days: 7
 
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: verified-iam-helper
-          path: ${{ runner.temp }}/helper-wheel
+          path: verification/iam-dev/dist/helper-wheel
       - name: Assert the existing authentication route
         env:
           PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
@@ -80,5 +80,5 @@ jobs:
           set -euo pipefail
           worker="$(gcloud builds get-default-service-account --project=c4hnrd-tools --region=northamerica-northeast1 --format='value(serviceAccountEmail)')"
           test "$worker" = 'projects/331250273634/serviceAccounts/331250273634@cloudbuild.gserviceaccount.com'
-          python3 verification/iam-dev/make_build_config.py "$RUNNER_TEMP/helper-wheel" > "$RUNNER_TEMP/iam-build.json"
+          python3 verification/iam-dev/make_build_config.py > "$RUNNER_TEMP/iam-build.json"
           gcloud builds submit --no-source --project=c4hnrd-tools --region=northamerica-northeast1 --config="$RUNNER_TEMP/iam-build.json" --quiet

@@ -66,11 +66,12 @@ itself authorize rollout or production-key removal.
 ## Local checks
 
 Use Python 3.12 and install `requirements.txt` with
-`pip --only-binary :all: --require-hashes`. Run `prepare_helper.py` with an empty
-temporary wheel directory, then install that directory's `requirements.txt`
+`pip install --only-binary :all: --require-hashes`. Run `prepare_helper.py` without
+arguments. It writes to the fixed, git-ignored `verification/iam-dev/dist/helper-wheel`
+directory; install that directory's `requirements.txt`
 using `pip --only-binary :all: --no-index --no-deps --require-hashes`.
 Run `python -m unittest discover -s verification/iam-dev -p 'test_*.py' -v`.
-Rendering `make_build_config.py` with that wheel directory only prints JSON;
+Running `make_build_config.py` without arguments reads that directory and only prints JSON;
 it does not submit a build. `helper-source.txt` pins the reviewed helper archive
 and its SHA-256; update both after common #77 merges.
 Regenerate the lock with `uv pip compile requirements.in --python-version 3.12
