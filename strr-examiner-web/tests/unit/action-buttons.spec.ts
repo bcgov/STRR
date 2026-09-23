@@ -363,6 +363,38 @@ describe('ActionButtons Component', () => {
     expect(mockRefreshNuxtData).toHaveBeenCalledWith('registration-details-view')
   })
 
+  it('should update registration status with SUSPENDED when suspend is clicked with valid email', async () => {
+    decisionIntent.value = RegistrationActionsE.SUSPEND
+    decisionEmailContent.value = { content: 'suspension notice reason' }
+
+    const wrapper = await mount()
+    expect(wrapper.find('[data-testid="main-action-button"]').text()).toContain('Suspend')
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockIsDecisionEmailValid).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledWith(
+      'reg-123',
+      RegistrationStatus.SUSPENDED,
+      'suspension notice reason'
+    )
+  })
+
+  it('should not update registration status with SUSPENDED when email is invalid', async () => {
+    mockIsDecisionEmailValid.mockResolvedValueOnce(false)
+    decisionIntent.value = RegistrationActionsE.SUSPEND
+    decisionEmailContent.value = { content: '' }
+
+    const wrapper = await mount()
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockIsDecisionEmailValid).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).not.toHaveBeenCalled()
+  })
+
   it('should withdraw an application without validating email content', async () => {
     isApplication.value = true
     activeHeader.value = {

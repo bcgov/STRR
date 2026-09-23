@@ -149,9 +149,13 @@ const withdrawApplicationAction = async () => {
 }
 
 const suspendRegistrationAction = async () => {
+  // validate email form
+  if (!await isDecisionEmailValid()) { return }
+
   await updateRegistrationStatus(
     activeReg.value.id,
-    RegistrationStatus.SUSPENDED
+    RegistrationStatus.SUSPENDED,
+    decisionEmailContent.value.content
   )
   await refreshDecisionData()
 }
