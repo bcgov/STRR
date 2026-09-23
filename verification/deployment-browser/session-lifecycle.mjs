@@ -1,6 +1,30 @@
 import { expect } from '@playwright/test'
 
 export async function prepareSessionClock(page, origin) {
+  const pending = new Map()
+  const completed = []
+  page.on('request', request => {
+    const url = new URL(request.url())
+    const category = url.origin === origin ? 'app'
+      : url.hostname.startsWith('strr-api-test-') ? 'strr-api'
+      : url.hostname.startsWith('pay-api-test-') ? 'pay-api'
+      : url.hostname === 'idtest.gov.bc.ca' ? 'test-identity' : 'other'
+    pending.set(request, { category, resourceType: request.resourceType(), startedAt: Date.now() })
+  })
+  const finish = request => {
+    const item = pending.get(request)
+    if (!item) return
+    pending.delete(request)
+    completed.push({ category: item.category, resourceType: item.resourceType(), finishedAt: Date.now() })
+    if (completed.length > 20) completed.shift()
+  }
+  page.on('requestfinished', finish)
+  page.on('requestfailed', finish)
+  const networkSnapshot = () => ({
+    pendingCount: pending.size,
+    pending: [...pending.values()].slice(0, 20).map(({ startedAt, ...item }) => ({ ...item, ageMs: Date.now() - startedAt })),
+    recent: completed.map(({ finishedAt, ...item }) => ({ ...item, ageMs: Date.now() - finishedAt }))
+  })
   await page.clock.install()
   await page.addInitScript(expectedOrigin => {
     if (location.origin !== expectedOrigin) return
@@ -51,9 +75,10 @@ export async function prepareSessionClock(page, origin) {
       events: events.map(({ at, ...item }) => ({ ...item, age: Date.now() - at }))
     })
   }, origin)
+  return networkSnapshot
 }
 
-export async function verifySessionLifecycle(page, result, origin) {
+export async function verifySessionLifecycle(page, result, origin, networkSnapshot) {
   const checks = result.sessionLifecycle = {
     scope: 'Real login/dashboard and actual inactivity popup/controls/logout with accelerated browser time. Observes interval lifecycle. No API stubs, application writes or payments. Not a real-elapsed-time or server session-duration test.',
     cases: [], timers: [], messages: [], errors: [], consoleWarnings: 0, consoleErrors: 0
@@ -121,7 +146,12 @@ export async function verifySessionLifecycle(page, result, origin) {
       { timeout: 20000 }).toBe(true)
     // Do not expire in-flight script/network load deadlines with the time jump.
     result.stage = 'session-open-' + cycle + '-network-idle'
-    await page.waitForLoadState('networkidle', { timeout: 15000 })
+    try {
+      await page.waitForLoadState('networkidle', { timeout: 15000 })
+    } finally {
+      checks.networkReadiness ||= []
+      checks.networkReadiness.push({ cycle, ...networkSnapshot() })
+    }
     result.stage = 'session-open-' + cycle + '-pause-clock'
     await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100))
     result.stage = 'session-open-' + cycle + '-activity'

@@ -62,7 +62,7 @@ try {
     const verifyApiTransport = isApiTransport ? observeApiTransport(page, result, environment) : undefined
     const attachRouterDiagnostics = isRoutingDiagnostic
       ? await prepareStrataRouteDiagnostics(page, result, environment) : undefined
-    if (isSession) await prepareSessionClock(page, origin)
+    const sessionNetworkSnapshot = isSession ? await prepareSessionClock(page, origin) : undefined
     let apiOrigin
     let apiHeaders
     let payOrigin
@@ -191,7 +191,7 @@ try {
       }
 
       if (isSession) {
-        await verifySessionLifecycle(page, result, origin)
+        await verifySessionLifecycle(page, result, origin, sessionNetworkSnapshot)
         expect(result.blockedWrites).toBe(0)
         expect(result.browserErrors).toBe(0)
         result.stage = 'complete'
