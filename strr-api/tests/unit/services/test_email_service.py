@@ -47,7 +47,7 @@ from gcp_queue.gcp_queue import GcpQueue
 from sqlalchemy import select
 
 from strr_api import create_app
-from strr_api.enums.enum import InteractionStatus
+from strr_api.enums.enum import InteractionStatus, RegistrationStatus
 from strr_api.models import Application, CustomerInteraction, Registration, User
 from strr_api.services import ApplicationService
 from strr_api.services.email_service import EmailService
@@ -276,6 +276,39 @@ def test_send_registration_status_update_email_publishes_payload(session, setup_
         "registrationNumber": registration.registration_number,
         "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
         "customContent": "message body",
+        "interaction": interaction,
+        "interaction_uuid": ANY,
+    }
+    _assert_queued_interaction(
+        session,
+        queue_message.payload,
+        registration_id=registration.id,
+        idempotency_key=interaction,
+    )
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_registration_status_update_email_publishes_payload_for_suspended(session, setup_parents, inject_config):
+    """Test that suspended registration emails publish the expected payload."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+    registration.status = RegistrationStatus.SUSPENDED
+    interaction = "2026:REGISTRATION_STATUS:42"
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_registration_status_update_email(
+            registration=registration,
+            email_content="suspension reason",
+            interaction=interaction,
+        )
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "registrationNumber": registration.registration_number,
+        "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
+        "customContent": "suspension reason",
         "interaction": interaction,
         "interaction_uuid": ANY,
     }

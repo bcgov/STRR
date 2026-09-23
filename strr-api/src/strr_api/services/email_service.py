@@ -164,7 +164,11 @@ class EmailService:
         interaction: str | None = None,
     ):
         """Send status update email for a registration."""
-        if registration.status in [RegistrationStatus.CANCELLED, RegistrationStatus.ACTIVE]:
+        if registration.status in [
+            RegistrationStatus.CANCELLED,
+            RegistrationStatus.ACTIVE,
+            RegistrationStatus.SUSPENDED,
+        ]:
             try:
                 registration_type = getattr(registration.registration_type, "value", registration.registration_type)
                 registration_status = getattr(registration.status, "name", registration.status)

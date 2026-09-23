@@ -138,7 +138,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW
   })
   const sendNocSchema = computed(() => z.object({
-    content: z.string().min(1, { message: t('validation.nocContent') })
+    content: z.string().trim().min(1, { message: t('validation.nocContent') })
   }))
 
   const emailFormRef = ref<Form<any>>()
@@ -726,7 +726,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const getApplicationFilingHistory = async (applicationNumber: string): Promise<FilingHistoryEvent[]> => {
     try {
-      return await $strrApi<FilingHistoryEvent[]>(`/applications/${applicationNumber}/events?include_interaction_delivery=true`, {
+      const endpoint = `/applications/${applicationNumber}/events?include_interaction_delivery=true`
+      return await $strrApi<FilingHistoryEvent[]>(endpoint, {
         method: 'GET'
       })
     } catch (e) {
@@ -737,7 +738,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const getRegistrationFilingHistory = async (registrationId: number): Promise<FilingHistoryEvent[]> => {
     try {
-      return await $strrApi<FilingHistoryEvent[]>(`/registrations/${registrationId}/events?include_interaction_delivery=true`, {
+      const endpoint = `/registrations/${registrationId}/events?include_interaction_delivery=true`
+      return await $strrApi<FilingHistoryEvent[]>(endpoint, {
         method: 'GET'
       })
     } catch (e) {
