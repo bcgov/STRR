@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """The email queue listener service."""
+
 from __future__ import annotations
 
 from cloud_sql_connector import setup_pg8000_close_event_listener

@@ -34,8 +34,8 @@
 
 # pylint: disable=logging-fstring-interpolation, W0612, W0511, W0718, W0212, C0103, R1710
 
-"""This Module handles messages related to bulk validation file upload.
-"""
+"""This Module handles messages related to bulk validation file upload."""
+
 from dataclasses import dataclass
 from http import HTTPStatus
 import re

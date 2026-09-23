@@ -35,6 +35,7 @@
 
 Provides the service that applies payments to applications.
 """
+
 from flask import Flask
 
 from .batch_permit_validator import bp as batch_permit_validator_endpoint
