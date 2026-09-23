@@ -36,8 +36,9 @@ RUN apt-get update && apt-get upgrade -y \
     # Install Poetry
     && curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSLo /tmp/install-poetry.py \
        'https://raw.githubusercontent.com/python-poetry/install.python-poetry.org/d7fd0502ef807e711f65204b1ab39c1a1e23c69c/install-poetry.py' \
-    && echo '75745ca71373a7b22fa150953543f03d826a52f8e4bc4350328a33bddd668026  /tmp/install-poetry.py' | sha256sum --check --status \
-    && python3 /tmp/install-poetry.py --version ${POETRY_VERSION} \
+    && echo '75745ca71373a7b22fa150953543f03d826a52f8e4bc4350328a33bddd668026  /tmp/install-poetry.py' \
+      | sha256sum --check --status \
+    && python3 /tmp/install-poetry.py --version "${POETRY_VERSION}" \
     && rm /tmp/install-poetry.py \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
