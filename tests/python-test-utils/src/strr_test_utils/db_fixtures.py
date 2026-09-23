@@ -67,7 +67,7 @@ def postgres_container(request):
     if not needed_by_test:
         return None
 
-    with PostgresContainer("postgres:16-alpine") as postgres:
+    with PostgresContainer("postgres:18-alpine") as postgres:
         os.environ["DATABASE_URL"] = postgres.get_connection_url()
         yield postgres
 

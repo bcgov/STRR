@@ -14,7 +14,7 @@ def test_alembic_runs_with_configured_owner_role(monkeypatch):
     migrations_path = api_root / "migrations"
     owner = "sa-api@bcrbk9-test.iam"
 
-    with PostgresContainer("postgres:16-alpine") as postgres:
+    with PostgresContainer("postgres:18-alpine") as postgres:
         db_url = postgres.get_connection_url()
         monkeypatch.setenv("DATABASE_URL", db_url)
         monkeypatch.setenv("DATABASE_OWNER_ROLE", owner)

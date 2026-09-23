@@ -19,6 +19,22 @@ Before using this library, ensure your environment meets the following requireme
 * **Docker:** You must have a Docker daemon running (Colima, Docker Desktop, Podman, or OrbStack) to support `testcontainers`.
 </details>
 
+### PostgreSQL version
+
+Database fixtures start an isolated `postgres:18-alpine` container and apply the
+API migrations, matching the PostgreSQL major version used in DEV. The standalone
+Alembic ownership test and the batch-permit-validator job's separate fixture use
+the same image. No existing local database is upgraded or reused.
+
+These Testcontainers databases run independently of the PostgreSQL service in the
+shared backend CI workflow. Changing that CI service image does not change the
+database used by these fixtures. CI must still be able to pull its service image
+before the job can start.
+
+The Alpine image does not include PostGIS or the anonymizer extension. Passing
+these tests does not verify DEV's PostGIS 3.6 behavior; extension-specific checks
+require a database with those extensions installed.
+
 📦 Setup a New Job
 To use these utilities in a new job (e.g., jobs/my-new-job):
 

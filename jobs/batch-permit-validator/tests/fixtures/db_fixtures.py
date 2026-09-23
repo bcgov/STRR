@@ -41,7 +41,7 @@ def ld():
 
 @pytest.fixture(scope="session")
 def postgres_container():
-    with PostgresContainer("postgres:16-alpine") as postgres:
+    with PostgresContainer("postgres:18-alpine") as postgres:
         yield postgres
 
 
