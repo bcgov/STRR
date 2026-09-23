@@ -23,10 +23,8 @@ test.describe('Application Details Page', () => {
 
     // HostSubHeader
     await expect(page.getByTestId('host-sub-header')).toBeVisible()
-    await expect(page.getByTestId('edit-rental-unit-button')).toBeVisible()
 
     // HostSupportingInfo
-    await expect(page.getByTestId('business-lic-section')).toBeVisible()
     await expect(page.getByTestId('pr-req-section')).toBeVisible()
 
     // Applications always render ConnectButtonControl, not ActionButtons

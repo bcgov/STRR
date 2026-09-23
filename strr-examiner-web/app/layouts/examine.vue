@@ -69,8 +69,8 @@ watch(
       </template>
     </NuxtErrorBoundary>
     <template v-if="!shouldHideBottomActions">
-      <ConnectButtonControl v-if="!isExaminerDecisionsEnabled || isApplication" />
-      <ActionButtons v-else-if="isExaminerDecisionsEnabled && !isSnapshotRoute" />
+      <ConnectButtonControl v-if="!isExaminerDecisionsEnabled" />
+      <ActionButtons v-else-if="!isSnapshotRoute" />
     </template>
     <ConnectFooter />
   </div>

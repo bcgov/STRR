@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
-import type { Form } from '#ui/types'
 import isEqual from 'lodash/isEqual'
+import type { Form } from '#ui/types'
 
 const { t } = useNuxtApp().$i18n
 const emit = defineEmits<{

@@ -7,8 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from strr_api.enums.enum import ErrorMessage, RegistrationNocStatus
-from strr_api.models import Events
+from strr_api.enums.enum import ChannelType, ErrorMessage, InteractionStatus, RegistrationNocStatus
+from strr_api.models import CustomerInteraction, Events
 from strr_api.models.rental import Document
 from tests.integration.helpers import (
     assert_json_keys,
@@ -208,6 +208,62 @@ def test_get_registration_events_item_shape(client, session, headers_public_user
     }
     assert seeded_event["details"] == "Integration seed event"
     assert seeded_event["structuredDetails"] is None
+
+
+@pytest.mark.parametrize(
+    "include_interaction_delivery, expected_present",
+    [
+        (False, False),
+        (True, True),
+    ],
+)
+def test_get_registration_events_include_interaction_delivery_toggle(
+    client,
+    session,
+    headers_public_user,
+    serializable_host_registration,
+    include_interaction_delivery,
+    expected_present,
+):
+    rid = serializable_host_registration["registration_id"]
+
+    interaction = CustomerInteraction(
+        channel=ChannelType.EMAIL,
+        status=InteractionStatus.FAILED,
+        registration_id=rid,
+        meta_data={
+            "email_type": "HOST_FULL_REVIEW_APPROVED",
+            "notify_delivery": {
+                "updated_at": "2026-07-08T20:53:21.399598+00:00",
+                "recipient_statuses": {
+                    "610067": {
+                        "email_address": "karim.jazzar@gov.bc.ca",
+                        "failure_reason": "Mailbox unavailable",
+                        "failure_type": "permanent",
+                        "notify_reference": "610067",
+                        "provider_reference": "610523",
+                        "request_date": "2026-06-09T22:23:11.634878",
+                        "sent_date": "2026-06-09T22:23:11.714837",
+                        "status": "FAILED",
+                    }
+                },
+            },
+        },
+    )
+    session.add(interaction)
+    session.flush()
+
+    query = "?include_interaction_delivery=true" if include_interaction_delivery else ""
+    rv = client.get(f"/registrations/{rid}/events{query}", headers=headers_public_user())
+    assert_status(rv, HTTPStatus.OK)
+    events = rv.get_json()
+    email_event = next((e for e in events if e.get("eventName") == "EMAIL_FAILED"), None)
+    assert (email_event is not None) is expected_present
+    if expected_present:
+        assert email_event["details"] is None
+        assert email_event["idir"] is None
+        assert email_event["structuredDetails"]["interactionStatus"] == "FAILED"
+        assert isinstance(email_event["structuredDetails"]["recipientStatuses"], list)
 
 
 def test_post_registration_document_rejected_without_noc(client, headers_public_user, serializable_host_registration):

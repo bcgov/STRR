@@ -5,7 +5,7 @@ import re
 import pytest
 import responses
 
-from interactions_update.job import run
+from interactions_update.services.interaction_processor import InteractionProcessor
 
 
 @pytest.mark.load
@@ -58,4 +58,4 @@ def test_benchmark_job_performance(
     @benchmark
     def result():
         # Change this to 1 to test sequential, then 10 to test parallel
-        run(max_workers=10)
+        InteractionProcessor(max_workers=10).run()

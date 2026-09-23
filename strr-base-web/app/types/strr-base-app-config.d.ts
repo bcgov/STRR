@@ -1,3 +1,5 @@
+export type StrrLoginIdp = 'bcsc' | 'bceid' | 'idir'
+
 declare module 'nuxt/schema' {
   interface AppConfigInput {
     strrBaseLayer: {
@@ -6,7 +8,12 @@ declare module 'nuxt/schema' {
           redirectPath: string,
           options: {
             createAccount: boolean,
-            idps: Array<'bcsc' | 'bceid' | 'idir'>,
+            /** Allowed Keycloak IdPs: auth middleware, `?idp=` deep link. May be `() => [...]` in app config. */
+            idps: Array<StrrLoginIdp>,
+            /** IdPs to show as buttons; each must appear in `idps`. Omit = show one button per allowed IdP. May be `() => [...]`. */
+            loginButtonIdps?: StrrLoginIdp[],
+            /** If set, the JWT must include every listed role in `realm_access.roles`. */
+            requiredRealmRoles?: string[],
             bcscSubtext: string | undefined,
             bceidSubtext: string | undefined,
             idirSubtext: string | undefined
@@ -34,7 +41,12 @@ declare module 'nuxt/schema' {
           redirectPath: string,
           options: {
             createAccount: boolean,
-            idps: Array<'bcsc' | 'bceid' | 'idir'>,
+            /** Allowed Keycloak IdPs: auth middleware, `?idp=` deep link. */
+            idps: Array<StrrLoginIdp>,
+            /** IdPs to show as buttons; each must appear in `idps`. */
+            loginButtonIdps?: StrrLoginIdp[],
+            /** If set, the JWT must include every listed role in `realm_access.roles`. */
+            requiredRealmRoles?: string[],
             bcscSubtext: string | undefined,
             bceidSubtext: string | undefined,
             idirSubtext: string | undefined

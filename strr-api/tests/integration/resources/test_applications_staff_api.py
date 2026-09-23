@@ -192,6 +192,9 @@ def test_post_application_document_ok_patched_upload(client, session, headers_pu
 
 def test_put_application_document_ok_patched_upload(client, session, headers_public_user, serializable_application):
     num = serializable_application["application_number"]
+    app_model = AppModel.find_by_application_number(num)
+    app_model.registration_id = None
+    session.commit()
     with patch(
         "strr_api.services.document_service.DocumentService.upload_document",
         return_value={

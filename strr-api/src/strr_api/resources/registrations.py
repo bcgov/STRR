@@ -70,7 +70,14 @@ from strr_api.models import Application, Document, User
 from strr_api.models.dataclass import RegistrationSearch
 from strr_api.responses import Events
 from strr_api.schemas.utils import validate
-from strr_api.services import DocumentService, EventsService, RegistrationService, SnapshotService, UserService
+from strr_api.services import (
+    DocumentService,
+    EventsService,
+    InteractionService,
+    RegistrationService,
+    SnapshotService,
+    UserService,
+)
 from strr_api.services.examiner_note_service import ExaminerNoteNotAllowedException, ExaminerNoteService
 from strr_api.services.registration_service import (
     REGISTRATION_STATES_STAFF_ACTION,
@@ -376,13 +383,16 @@ def upload_registration_document(registration_id):
         document_type = request.form.get("documentType", "OTHERS")
         if not UserService.is_strr_staff_or_system():
             is_bl_upload = document_type == Document.DocumentType.LOCAL_GOVT_BUSINESS_LICENSE.name
-            is_uploaded_from_affected_municipality = request.form.get("isUploadedFromAffectedMunicipality", False)
+            is_uploaded_from_affected_municipality = (
+                request.form.get("isUploadedFromAffectedMunicipality", "false").lower() == "true"
+            )
             is_active_registration = registration.status == RegistrationStatus.ACTIVE
 
             # Override NOC check for business license uploads
             if is_bl_upload and is_uploaded_from_affected_municipality and is_active_registration:
                 logger.info("Allowing business license upload for registration %s", registration.id)
-            elif noc_status != RegistrationNocStatus.NOC_PENDING:
+            elif noc_status not in (RegistrationNocStatus.NOC_PENDING, RegistrationNocStatus.NOC_EXPIRED):
+                logger.error("Registration %s has invalid NOC status %s", registration.id, noc_status)
                 return error_response(
                     message=ErrorMessage.REGISTRATION_DOCUMENT_UPLOAD_NOC_STATUS.value,
                     http_status=HTTPStatus.BAD_REQUEST,
@@ -456,6 +466,7 @@ def get_registration_events(registration_id):
     try:
         account_id = request.headers.get("Account-Id")
         user = User.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+        include_interaction_delivery = request.args.get("include_interaction_delivery", "false").lower() == "true"
         if not user:
             raise AuthException()
 
@@ -465,8 +476,12 @@ def get_registration_events(registration_id):
             raise AuthException()
 
         records = EventsService.fetch_registration_events(registration_id, only_show_visible_to_user)
+        response_events = [Events.from_db(record).model_dump(mode="json") for record in records]
+        if include_interaction_delivery:
+            response_events.extend(InteractionService.filing_history_rows_for_registration(registration_id))
+            response_events.sort(key=lambda event: event.get("createdDate") or "")
         return (
-            jsonify([Events.from_db(record).model_dump(mode="json") for record in records]),
+            jsonify(response_events),
             HTTPStatus.OK,
         )
     except AuthException as auth_exception:

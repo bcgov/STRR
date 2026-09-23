@@ -6,6 +6,12 @@ const accountStore = useConnectAccountStore()
 const permitStore = useHostPermitStore()
 const { getAccountRegistrations, searchRegistrations } = useStrrApi()
 const { isDashboardTableSortingEnabled, isHostSearchTextFieldsEnabled } = useHostFeatureFlags()
+const {
+  startRenewal,
+  resumeRenewalDraft,
+  canRenewRegistration,
+  fetchRegistrationsWithRenewalTodos
+} = useRenewals()
 
 const props = withDefaults(defineProps<{
   registrationsLimit?: number
@@ -102,9 +108,8 @@ const getRenewalDraftApplicationNumber = (registration: RegistrationRecord): str
 }
 
 /** Returns the renewal warning window in days by registration type. */
-const getRenewalWindowDays = (registrationType: ApplicationType): number => {
-  // Keep these values in sync with backend DAYS_BEFORE_EXPIRY_BY_TYPE.
-  // TODO: Remove hardcoded fallback values and let API provide the values so that they stay in sync.
+const getRenewalWindowDays = (registrationType?: ApplicationType): number => {
+  // Keep fallback values in sync with backend DAYS_BEFORE_EXPIRY_BY_TYPE.
   if (registrationType === ApplicationType.STRATA_HOTEL) {
     return 60
   }
@@ -112,7 +117,7 @@ const getRenewalWindowDays = (registrationType: ApplicationType): number => {
 }
 
 /** Calculates whole days remaining until the expiry date in Pacific time. */
-const getDaysUntilExpiry = (expiryDate: string): number | null => {
+const getDaysUntilExpiry = (expiryDate?: string): number | null => {
   if (!expiryDate) {
     return null
   }
@@ -127,7 +132,7 @@ const getDaysUntilExpiry = (expiryDate: string): number | null => {
 }
 
 /** Maps an expiry date to an expiry state used for UI styling and actions. */
-const getExpiryState = (registrationType: ApplicationType, expiryDate: string | undefined): ExpiryState => {
+const getExpiryState = (registrationType: ApplicationType | undefined, expiryDate: string | undefined): ExpiryState => {
   const daysUntilExpiry = getDaysUntilExpiry(expiryDate)
   if (daysUntilExpiry === null) {
     return ExpiryState.ACTIVE
@@ -150,28 +155,23 @@ const handleRegistrationLinkClick = (row: RegistrationRow) => {
   permitStore.selectedRegistrationId = row.registrationId?.toString()
 }
 
-/** Determines whether the Renew action should be shown for a row. */
-const canShowRenewAction = (
-  expiryState: ExpiryState,
-  renewalDraftExists: boolean,
-  renewalPaymentPending: boolean
-): boolean => {
-  return [ExpiryState.EXPIRED, ExpiryState.EXPIRING_SOON].includes(expiryState) &&
-    !renewalDraftExists &&
-    !renewalPaymentPending
-}
-
 // Data mapping
-const mapRegistrationsList = (registrations: RegistrationRecord[]): RegistrationRow[] => {
+const mapRegistrationsList = (registrations: RegistrationRecordWithTodos[]): RegistrationRow[] => {
   if (!registrations) {
     return []
   }
-  return registrations.map((registration: RegistrationRecord): RegistrationRow => {
+  return registrations.map((registration: RegistrationRecordWithTodos): RegistrationRow => {
     const displayAddress = registration.unitAddress
     const expiryState = getExpiryState(registration.registrationType, registration.expiryDate)
-    const renewalDraftExists = hasRenewalDraft(registration)
-    const renewalPaymentPending = hasRenewalPaymentPending(registration)
-    const renewalDraftApplicationNumber = getRenewalDraftApplicationNumber(registration)
+    const renewalDraftExists = registration.hasRenewalDraft !== undefined
+      ? registration.hasRenewalDraft
+      : hasRenewalDraft(registration)
+    const renewalPaymentPending = registration.hasRenewalPaymentPending !== undefined
+      ? registration.hasRenewalPaymentPending
+      : hasRenewalPaymentPending(registration)
+    const renewalDraftApplicationNumber = registration.hasRenewalDraft !== undefined
+      ? (registration.renewalDraftId ?? undefined)
+      : getRenewalDraftApplicationNumber(registration)
     return {
       number: registration.registrationNumber,
       status: registration.header?.hostStatus || registration.status,
@@ -181,7 +181,7 @@ const mapRegistrationsList = (registrations: RegistrationRecord[]): Registration
       expiryState,
       hasRenewalDraft: renewalDraftExists,
       renewalDraftApplicationNumber,
-      canRenew: canShowRenewAction(expiryState, renewalDraftExists, renewalPaymentPending),
+      canRenew: canRenewRegistration(registration, expiryState, renewalDraftExists, renewalPaymentPending),
       registrationId: registration.id
     }
   })
@@ -190,6 +190,8 @@ const mapRegistrationsList = (registrations: RegistrationRecord[]): Registration
 // Fetch Registrations
 /** Fetches registration rows from search or account list endpoints. */
 const fetchRegistrations = async () => {
+  let registrations: RegistrationRecord[] = []
+  let total = 0
   if (isSearching.value) {
     const resp = await searchRegistrations<ApiRegistrationResp>(
       searchText.value,
@@ -199,10 +201,10 @@ const fetchRegistrations = async () => {
       undefined,
       ApplicationType.HOST
     )
-    if (!resp) {
-      return { registrations: [], total: 0 }
+    if (resp) {
+      registrations = resp.registrations || []
+      total = resp.total || 0
     }
-    return { registrations: resp.registrations || [], total: resp.total || 0 }
   } else {
     const resp = await getAccountRegistrations<ApiRegistrationResp>(
       undefined,
@@ -212,10 +214,18 @@ const fetchRegistrations = async () => {
     )
     // Handle both array and object response formats
     if (Array.isArray(resp)) {
-      return { registrations: resp, total: resp.length }
+      registrations = resp
+      total = resp.length
+    } else {
+      registrations = resp?.registrations || []
+      total = resp?.total || 0
     }
-    return { registrations: resp?.registrations || [], total: resp?.total || 0 }
   }
+
+  // Fetch todos for all registrations in parallel using shared composable helper
+  const registrationsWithTodos = await fetchRegistrationsWithRenewalTodos(registrations)
+
+  return { registrations: registrationsWithTodos, total }
 }
 
 const { data: registrationsResp, status: registrationsStatus } = await useAsyncData(
@@ -231,27 +241,16 @@ const registrationsList = computed(() => mapRegistrationsList(registrationsResp.
 
 /** Starts a new renewal flow for the selected registration. */
 async function handleRenewRegistration (row: RegistrationRow) {
-  permitStore.renewalRegId = row.registrationId?.toString()
-  await navigateTo({
-    path: localePath('/application'),
-    query: { renew: 'true' }
-  })
+  if (row.registrationId) {
+    await startRenewal(row.registrationId)
+  }
 }
 
 /** Opens the existing renewal draft for the selected registration. */
 async function handleResumeRenewalDraft (row: RegistrationRow) {
-  if (!row.renewalDraftApplicationNumber) {
-    return
+  if (row.renewalDraftApplicationNumber) {
+    await resumeRenewalDraft(row.renewalDraftApplicationNumber)
   }
-
-  permitStore.renewalRegId = undefined
-  await navigateTo({
-    path: localePath('/application'),
-    query: {
-      renew: 'true',
-      applicationId: row.renewalDraftApplicationNumber
-    }
-  })
 }
 </script>
 

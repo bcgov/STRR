@@ -40,6 +40,7 @@ from typing import overload
 import requests
 from flask import current_app
 
+from strr_api.common.utils import normalize_to_list
 from strr_api.enums.enum import ChannelType, InteractionStatus
 from strr_api.exceptions import ExternalServiceException, ValidationException
 from strr_api.models import CustomerInteraction, Events
@@ -64,11 +65,177 @@ class EmailInfo:
 class InteractionService:
     """Service to handle interaction logic."""
 
+    DELIVERY_EVENT_NAME_BY_STATUS = {
+        InteractionStatus.QUEUED.value: "EMAIL_QUEUED",
+        InteractionStatus.SENT.value: "EMAIL_SENT",
+        InteractionStatus.DELIVERED.value: "EMAIL_DELIVERED",
+        InteractionStatus.FAILED.value: "EMAIL_FAILED",
+        InteractionStatus.OPENED.value: "EMAIL_OPENED",
+    }
+
+    RECIPIENT_DELIVERY_STATUS_MAP = {
+        "CREATED": "CREATED",
+        "QUEUED": "PENDING",
+        "SENDING": "IN_TRANSIT",
+        "SENT": "SENT",
+        "PENDING": "PENDING",
+        "DELIVERED": "DELIVERED",
+        "PENDING_VIRUS_CHECK": "PENDING",
+        "PERMANENT_FAILURE": "FAILED",
+        "TEMPORARY_FAILURE": "FAILED",
+        "TECHNICAL_FAILURE": "FAILED",
+        "VIRUS_SCAN_FAILED": "FAILED",
+        "FAILED": "FAILED",
+        "FAILURE": "FAILED",
+    }
+
     email_event_mapper = {
         "HOST_RENEWAL_REMINDER": Events.EventName.RENEWAL_REMINDER_SENT,
         "STRATA_HOTEL_RENEWAL_REMINDER": Events.EventName.RENEWAL_REMINDER_SENT,
         "PLATFORM_RENEWAL_REMINDER": Events.EventName.RENEWAL_REMINDER_SENT,
     }
+
+    @classmethod
+    def filing_history_rows_for_application(cls, application_id: int) -> list[dict]:
+        """Build filing-history rows from interaction delivery metadata for an application."""
+        interactions = CustomerInteraction.fetch_application_interactions(application_id)
+        return cls._build_delivery_rows(interactions, Events.EventType.APPLICATION.value)
+
+    @classmethod
+    def filing_history_rows_for_registration(cls, registration_id: int) -> list[dict]:
+        """Build filing-history rows from interaction delivery metadata for a registration."""
+        interactions = CustomerInteraction.fetch_registration_interactions(registration_id)
+        return cls._build_delivery_rows(interactions, Events.EventType.REGISTRATION.value)
+
+    @classmethod
+    def _build_delivery_rows(cls, interactions: list[CustomerInteraction], event_type: str) -> list[dict]:
+        rows: list[dict] = []
+        for interaction in interactions:
+            if row := cls._build_delivery_row(interaction, event_type):
+                rows.append(row)
+        return rows
+
+    @staticmethod
+    def _message_for_delivery_status(channel: str, status: str) -> str:
+        """Create a readable filing-history message for interaction delivery rows."""
+        channel_label = channel.capitalize()
+        status_label = status.capitalize()
+        return f"{channel_label} delivery status updated ({status_label})."
+
+    @classmethod
+    def _event_name_for_status(cls, status: str) -> str:
+        """Map persisted interaction status to filing-history event name."""
+        return cls.DELIVERY_EVENT_NAME_BY_STATUS.get(status, "EMAIL_SENT")
+
+    @classmethod
+    def _map_recipient_delivery_status(cls, status: str | None) -> str:
+        """Map provider delivery outcomes to internal recipient statuses."""
+        normalized = str(status).strip().upper().replace("-", "_") if status else ""
+        return cls.RECIPIENT_DELIVERY_STATUS_MAP.get(normalized, "UNKNOWN")
+
+    @staticmethod
+    def _normalize_recipient_statuses(recipient_statuses: dict) -> list[dict]:
+        """Normalize stored recipient statuses to API response array shape."""
+        normalized = []
+        for notify_reference, payload in recipient_statuses.items():
+            row = payload if isinstance(payload, dict) else {}
+            provider_status = row.get("status")
+            normalized.append(
+                {
+                    "email_address": row.get("email_address"),
+                    "failure_reason": row.get("failure_reason"),
+                    "failure_type": row.get("failure_type"),
+                    "notify_reference": row.get("notify_reference") or str(notify_reference),
+                    "provider_reference": row.get("provider_reference"),
+                    "request_date": row.get("request_date"),
+                    "sent_date": row.get("sent_date"),
+                    "status": InteractionService._map_recipient_delivery_status(provider_status),
+                    "provider_status": provider_status,
+                }
+            )
+        return normalized
+
+    @classmethod
+    def _fallback_recipient_statuses(
+        cls, meta_data: dict, default_status: str, default_created_at: str | None
+    ) -> list[dict]:
+        """Construct recipient status fallback rows from notify_response metadata when notify_delivery is missing."""
+        notify_response = meta_data.get("notify_response")
+        if not isinstance(notify_response, dict):
+            return []
+
+        recipients = normalize_to_list(notify_response.get("recipients"))
+        if not recipients:
+            return []
+
+        ref_list = normalize_to_list(
+            notify_response.get("ids") or meta_data.get("notify_references") or notify_response.get("id")
+        )
+
+        sent_date = notify_response.get("sentDate") or notify_response.get("requestDate") or default_created_at
+        request_date = notify_response.get("requestDate")
+        provider_status = notify_response.get("notifyStatus")
+        mapped_status = cls._map_recipient_delivery_status(provider_status or default_status)
+
+        return [
+            {
+                "email_address": recipient,
+                "failure_reason": None,
+                "failure_type": None,
+                "notify_reference": ref_list[i] if i < len(ref_list) else (ref_list[0] if ref_list else None),
+                "provider_reference": None,
+                "request_date": request_date,
+                "sent_date": sent_date,
+                "status": mapped_status,
+                "provider_status": provider_status,
+            }
+            for i, recipient in enumerate(recipients)
+        ]
+
+    @classmethod
+    def _build_delivery_row(cls, interaction: CustomerInteraction, event_type: str) -> dict | None:
+        """Convert a single interaction row into filing-history event shape."""
+        channel = interaction.channel.value if interaction.channel else ""
+        if channel != ChannelType.EMAIL.value:
+            return None
+
+        meta_data = interaction.meta_data if isinstance(interaction.meta_data, dict) else {}
+        notify_delivery = meta_data.get("notify_delivery") if isinstance(meta_data.get("notify_delivery"), dict) else {}
+        recipient_statuses_dict = (
+            notify_delivery.get("recipient_statuses")
+            if isinstance(notify_delivery.get("recipient_statuses"), dict)
+            else {}
+        )
+        status = interaction.status.value if interaction.status else ""
+        created_at_iso = interaction.created_at.isoformat() if interaction.created_at else None
+
+        recipient_statuses = cls._normalize_recipient_statuses(recipient_statuses_dict)
+        if not recipient_statuses:
+            recipient_statuses = cls._fallback_recipient_statuses(meta_data, status, created_at_iso)
+
+        notify_response = meta_data.get("notify_response") if isinstance(meta_data.get("notify_response"), dict) else {}
+        recipient_status_updated_at = (
+            notify_delivery.get("updated_at")
+            or notify_response.get("sentDate")
+            or notify_response.get("requestDate")
+            or created_at_iso
+        )
+
+        return {
+            "eventType": event_type,
+            "eventName": cls._event_name_for_status(status),
+            "message": cls._message_for_delivery_status(channel, status),
+            "createdDate": created_at_iso,
+            "details": None,
+            "structuredDetails": {
+                "channel": channel,
+                "emailType": meta_data.get("email_type"),
+                "interactionStatus": status,
+                "recipientStatusUpdatedAt": recipient_status_updated_at,
+                "recipientStatuses": recipient_statuses,
+            },
+            "idir": None,
+        }
 
     @overload
     def dispatch(*, application_id: int) -> None:

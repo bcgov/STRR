@@ -54,12 +54,13 @@ vi.mock('@/stores/examiner', () => ({
     activeRecord: ref(currentMockData),
     isApplication: ref(false),
     isAssignedToUser,
+    hasRegistrationNumber: ref(true),
     viewReceipt: mockViewReceipt,
     isFilingHistoryOpen: ref(false),
     isEditingRentalUnit,
     isEditingRegistrationEmail,
     conditions: ref([]),
-    customConditions: ref([]),
+    customConditions: ref(null),
     minBookingDays: ref(null),
     decisionEmailContent: ref({}),
     decisionEmailFormRef: ref({
@@ -339,6 +340,7 @@ describe('Examiner - Registration Details Page', () => {
       expect(button?.disabled).toBe(true)
     })
     isAssignedToUser.value = true
+    await nextTick()
   })
 
   it('displays Decision panel for Examiner', async () => {

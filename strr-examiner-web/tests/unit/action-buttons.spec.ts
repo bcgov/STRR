@@ -11,10 +11,16 @@ const mockUnassignRegistration = vi.fn().mockResolvedValue(undefined)
 const mockSetAsideRegistration = vi.fn().mockResolvedValue(undefined)
 const mockUpdateRegistrationStatus = vi.fn().mockResolvedValue(undefined)
 const mockSendNotice = vi.fn().mockResolvedValue(undefined)
+const mockWithdrawApplication = vi.fn().mockResolvedValue(undefined)
+const mockApproveApplication = vi.fn().mockResolvedValue(undefined)
+const mockProvisionallyApproveApplication = vi.fn().mockResolvedValue(undefined)
+const mockIsDecisionEmailValid = vi.fn().mockResolvedValue(true)
 const mockOpenConfirmActionModal = vi.fn()
+const mockRefreshNuxtData = vi.hoisted(() => vi.fn())
 
 const activeHeader = ref<any>({ examinerActions: [], isSetAside: false, assignee: { username: '' } })
 const activeReg = ref<any>({ id: 'reg-123', status: RegistrationStatus.ACTIVE, conditionsOfApproval: null })
+const isApplication = ref(false)
 const isAssignedToUser = ref(true)
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
 const conditions = ref([])
@@ -29,6 +35,14 @@ vi.mock('@/stores/examiner', () => ({
     setAsideRegistration: mockSetAsideRegistration,
     updateRegistrationStatus: mockUpdateRegistrationStatus,
     sendNoticeOfConsiderationForRegistration: mockSendNotice,
+    withdrawApplication: mockWithdrawApplication,
+    rejectApplication: vi.fn().mockResolvedValue(undefined),
+    sendNoticeOfConsideration: vi.fn().mockResolvedValue(undefined),
+    approveApplication: mockApproveApplication,
+    provisionallyApproveApplication: mockProvisionallyApproveApplication,
+    assignApplication: vi.fn().mockResolvedValue(undefined),
+    unassignApplication: vi.fn().mockResolvedValue(undefined),
+    isApplication,
     isAssignedToUser,
     activeHeader,
     activeReg,
@@ -43,7 +57,7 @@ vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
     decisionIntent,
     isMainActionDisabled: ref(false),
-    isDecisionEmailValid: vi.fn().mockResolvedValue(true)
+    isDecisionEmailValid: mockIsDecisionEmailValid
   })
 }))
 
@@ -52,8 +66,9 @@ mockNuxtImport('useStrrModals', () => () => ({
   close: vi.fn()
 }))
 
-vi.mock('nuxt/app', () => ({
-  refreshNuxtData: vi.fn()
+vi.mock('nuxt/app', async importOriginal => ({
+  ...await importOriginal<typeof import('nuxt/app')>(),
+  refreshNuxtData: mockRefreshNuxtData
 }))
 
 // withNoteCheck passes the action straight through — note-guard logic is tested in use-examiner-notes.spec.ts
@@ -77,11 +92,13 @@ describe('ActionButtons Component', () => {
     activeHeader.value = { examinerActions: [], isSetAside: false, assignee: { username: '' } }
     activeReg.value = { id: 'reg-123', status: RegistrationStatus.ACTIVE, conditionsOfApproval: null }
     isAssignedToUser.value = true
+    isApplication.value = false
     decisionIntent.value = null
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null
     decisionEmailContent.value = { content: '' }
+    mockRefreshNuxtData.mockClear()
   })
 
   it('should show assign button when no assignee, and unassign button when assignee exists', async () => {
@@ -117,6 +134,47 @@ describe('ActionButtons Component', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-testid="main-action-button"]').exists()).toBe(true)
+  })
+
+  it('should label the application approval action as Approve Application', async () => {
+    isApplication.value = true
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      applicationNumber: 'APP-123'
+    }
+
+    const wrapper = await mount()
+
+    expect(wrapper.find('[data-testid="main-action-button"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="main-action-button"]').text()).toContain('Approve Application')
+  })
+
+  it('should pass approval conditions when approving an application', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      applicationNumber: 'APP-123',
+      examinerActions: [ApplicationActionsE.APPROVE]
+    }
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    conditions.value = ['principalResidence', 'minBookingDays']
+    customConditions.value = ['Keep records available']
+    minBookingDays.value = 14
+
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockApproveApplication).toHaveBeenCalledOnce()
+    expect(mockApproveApplication).toHaveBeenCalledWith('APP-123', {
+      predefinedConditions: ['principalResidence'],
+      customConditions: ['Keep records available'],
+      minBookingDays: 14
+    })
   })
 
   it('should show main Approve action button only when conditions have changed', async () => {
@@ -238,6 +296,7 @@ describe('ActionButtons Component', () => {
       '',
       { predefinedConditions: conditions.value }
     )
+    expect(mockRefreshNuxtData).toHaveBeenCalledWith('registration-details-view')
   })
 
   it('should update registration status with CANCELLED directly when cancel is clicked', async () => {
@@ -301,5 +360,57 @@ describe('ActionButtons Component', () => {
     expect(mockSendNotice).toHaveBeenCalledOnce()
     expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'notice of consideration body')
     expect(decisionEmailContent.value.content).toBe('')
+    expect(mockRefreshNuxtData).toHaveBeenCalledWith('registration-details-view')
+  })
+
+  it('should update registration status with SUSPENDED when suspend is clicked with valid email', async () => {
+    decisionIntent.value = RegistrationActionsE.SUSPEND
+    decisionEmailContent.value = { content: 'suspension notice reason' }
+
+    const wrapper = await mount()
+    expect(wrapper.find('[data-testid="main-action-button"]').text()).toContain('Suspend')
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockIsDecisionEmailValid).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledWith(
+      'reg-123',
+      RegistrationStatus.SUSPENDED,
+      'suspension notice reason'
+    )
+  })
+
+  it('should not update registration status with SUSPENDED when email is invalid', async () => {
+    mockIsDecisionEmailValid.mockResolvedValueOnce(false)
+    decisionIntent.value = RegistrationActionsE.SUSPEND
+    decisionEmailContent.value = { content: '' }
+
+    const wrapper = await mount()
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockIsDecisionEmailValid).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).not.toHaveBeenCalled()
+  })
+
+  it('should withdraw an application without validating email content', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      applicationNumber: 'APP-005',
+      examinerActions: [ApplicationActionsE.WITHDRAW],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    decisionIntent.value = ApplicationActionsE.WITHDRAW
+
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockWithdrawApplication).toHaveBeenCalledWith('APP-005', false)
+    expect(mockIsDecisionEmailValid).not.toHaveBeenCalled()
   })
 })

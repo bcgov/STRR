@@ -15,6 +15,8 @@ export const useExaminerDecision = () => {
   const { isExaminerDecisionsEnabled } = useExaminerFeatureFlags()
 
   const {
+    hasRegistrationNumber,
+    isApplication,
     conditions,
     customConditions,
     minBookingDays,
@@ -31,11 +33,9 @@ export const useExaminerDecision = () => {
   //   ApplicationStatus.NOC_EXPIRED
   // ]
 
-  const { isApplication } = storeToRefs(useExaminerStore())
-
-  const showDecisionPanel = computed((): boolean => {
-    return isExaminerDecisionsEnabled.value && !isApplication.value
-  })
+  const showDecisionPanel = computed(() =>
+    isExaminerDecisionsEnabled.value && (!isApplication.value || !hasRegistrationNumber.value)
+  )
 
   // validate decision email for completing party
   const isDecisionEmailValid = async (): Promise<boolean> => {

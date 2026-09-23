@@ -1,3 +1,5 @@
+"""Entry point for interactions-update GCP Cloud Run job."""
+
 import logging
 import os
 import sys
@@ -5,7 +7,7 @@ import sys
 from dotenv import find_dotenv
 from dotenv import load_dotenv
 
-from interactions_update.job import run
+from interactions_update.services.interaction_processor import InteractionProcessor
 
 # 1. Setup Logging
 # Format for Google Cloud Logs compatibility (JSON-like or clear text)
@@ -18,7 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    """Entry point for the Job."""
+    """Entry point for the Interactions Update Job.
+
+    Initializes configuration from environment, sets up services with
+    dependency injection, and executes the interaction processing workflow.
+    """
     try:
         # 2. Load Environment Variables
         # This will look for a .env file if it exists (useful for local dev)
@@ -29,10 +35,10 @@ def main():
 
         logger.info("Starting Interactions Update Job...")
 
-        # 3. Execute the Job
-        # We pass the MAX_WORKERS env var into the run function
-        workers = int(os.getenv("MAX_WORKERS", "10"))
-        run(max_workers=workers)
+        # 3. Initialize and execute the processor
+        # Uses dependency injection for testability and configuration management
+        processor = InteractionProcessor()
+        processor.run()
 
         logger.info("Job completed successfully.")
         sys.exit(0)

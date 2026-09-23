@@ -138,7 +138,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW
   })
   const sendNocSchema = computed(() => z.object({
-    content: z.string().min(1, { message: t('validation.nocContent') })
+    content: z.string().trim().min(1, { message: t('validation.nocContent') })
   }))
 
   const emailFormRef = ref<Form<any>>()
@@ -443,17 +443,23 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return nextApplication
   }
 
-  const approveApplication = async (applicationNumber: string): Promise<void> => {
+  const approveApplication = async (
+    applicationNumber: string,
+    conditionsOfApproval?: ConditionsOfApproval
+  ): Promise<void> => {
     await $strrApi(`/applications/${applicationNumber}/status`, {
       method: 'PUT',
-      body: { status: ApplicationStatus.FULL_REVIEW_APPROVED }
+      body: { status: ApplicationStatus.FULL_REVIEW_APPROVED, conditionsOfApproval }
     })
   }
 
-  const provisionallyApproveApplication = async (applicationNumber: string): Promise<void> => {
+  const provisionallyApproveApplication = async (
+    applicationNumber: string,
+    conditionsOfApproval?: ConditionsOfApproval
+  ): Promise<void> => {
     await $strrApi(`/applications/${applicationNumber}/status`, {
       method: 'PUT',
-      body: { status: ApplicationStatus.PROVISIONALLY_APPROVED }
+      body: { status: ApplicationStatus.PROVISIONALLY_APPROVED, conditionsOfApproval }
     })
   }
 
@@ -514,6 +520,19 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       body: {
         status: isProvisional ? ApplicationStatus.PROVISIONALLY_DECLINED : ApplicationStatus.DECLINED,
         emailContent: content
+      }
+    })
+  }
+
+  const withdrawApplication = async (
+    applicationNumber: string,
+    isProvisional: boolean = false
+  ): Promise<void> => {
+    await $strrApi(`/applications/${applicationNumber}/status`, {
+      method: 'PUT',
+      body: {
+        status: isProvisional ? ApplicationStatus.PROVISIONALLY_DECLINED : ApplicationStatus.DECLINED,
+        decision: 'WITHDRAW'
       }
     })
   }
@@ -707,7 +726,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const getApplicationFilingHistory = async (applicationNumber: string): Promise<FilingHistoryEvent[]> => {
     try {
-      return await $strrApi<FilingHistoryEvent[]>(`/applications/${applicationNumber}/events`, {
+      const endpoint = `/applications/${applicationNumber}/events?include_interaction_delivery=true`
+      return await $strrApi<FilingHistoryEvent[]>(endpoint, {
         method: 'GET'
       })
     } catch (e) {
@@ -718,7 +738,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
 
   const getRegistrationFilingHistory = async (registrationId: number): Promise<FilingHistoryEvent[]> => {
     try {
-      return await $strrApi<FilingHistoryEvent[]>(`/registrations/${registrationId}/events`, {
+      const endpoint = `/registrations/${registrationId}/events?include_interaction_delivery=true`
+      return await $strrApi<FilingHistoryEvent[]>(endpoint, {
         method: 'GET'
       })
     } catch (e) {
@@ -928,6 +949,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     approveApplication,
     provisionallyApproveApplication,
     rejectApplication,
+    withdrawApplication,
     sendNoticeOfConsideration,
     sendNoticeOfConsiderationForRegistration,
     fetchApplications,

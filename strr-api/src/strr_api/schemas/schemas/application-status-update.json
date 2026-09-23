@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://strr.gov.bc.ca/.well_known/schemas/application_status_update",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string"
+    },
+    "emailContent": {
+      "type": "string",
+      "maxLength": 10000
+    },
+    "decision": {
+      "type": "string"
+    },
+    "conditionsOfApproval": {
+      "type": "object",
+      "properties": {
+        "predefinedConditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "principalResidence",
+              "validBL",
+              "class9FarmLand",
+              "partOfStrataHotel",
+              "fractionalOwnership"
+            ]
+          },
+          "maxItems": 5,
+          "uniqueItems": true
+        },
+        "customConditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "minBookingDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 89
+        }
+      },
+      "required": ["predefinedConditions"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["status"],
+  "additionalProperties": false
+}

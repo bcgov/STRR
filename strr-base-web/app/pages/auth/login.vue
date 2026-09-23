@@ -1,15 +1,48 @@
 <script setup lang="ts">
+import type { StrrLoginIdp } from '~/types/strr-base-app-config'
+import { unwrapAppConfigList } from '~/utils/unwrap-app-config'
+import { buildLoginRedirectUrl, getDirectLoginIdp } from '~/utils/login-redirect'
+
 const { t, locale } = useNuxtApp().$i18n
 const keycloak = useKeycloak()
 const { createAccountUrl } = useConnectNav()
 const runtimeConfig = useRuntimeConfig()
 const loginConfig = useAppConfig().strrBaseLayer.page.login
+const route = useRoute()
+const { isFeatureEnabled } = useFeatureFlags()
+const isDirectIdpLoginEnabled = isFeatureEnabled('enable-direct-idp-login')
 
-const redirectUrl = loginConfig.redirectPath
-  ? runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
+const returnUrl = typeof route.query.return === 'string' &&
+  route.query.return.startsWith('/') &&
+  !route.query.return.startsWith('//')
+  ? route.query.return
   : undefined
 
-const loginOptionsMap = {
+const redirectUrl = buildLoginRedirectUrl(
+  runtimeConfig.public.baseUrl,
+  locale.value,
+  loginConfig.redirectPath,
+  returnUrl
+)
+
+type RuntimeLoginOptions = typeof loginConfig.options & {
+  idps?: StrrLoginIdp[] | (() => StrrLoginIdp[])
+  loginButtonIdps?: StrrLoginIdp[] | (() => StrrLoginIdp[])
+}
+
+const loginOpts = (): RuntimeLoginOptions => loginConfig.options as RuntimeLoginOptions
+
+const allowedIdps = computed(() => unwrapAppConfigList<StrrLoginIdp>(loginOpts().idps))
+
+const loginOptionsMap: Record<
+  StrrLoginIdp,
+  {
+    label: string
+    subtext: string | undefined
+    icon: string
+    click: () => Promise<void>
+  }
+> = {
   bcsc: {
     label: t('label.continueBcsc'),
     subtext: loginConfig.options.bcscSubtext,
@@ -30,14 +63,55 @@ const loginOptionsMap = {
   }
 }
 
-const options = computed(() => {
-  const items = loginConfig.options.idps
-  return items.map(key => loginOptionsMap[key]) // order by idps array
+const idpKeysForButtons = computed((): StrrLoginIdp[] => {
+  const allowed = allowedIdps.value
+  const shown = unwrapAppConfigList(loginOpts().loginButtonIdps)
+  if (shown.length === 0) {
+    return [...allowed]
+  }
+  const filtered = shown.filter((k): k is StrrLoginIdp => allowed.includes(k))
+  return filtered.length > 0 ? filtered : [...allowed]
 })
+
+const options = computed(() =>
+  idpKeysForButtons.value.map(key => ({
+    ...loginOptionsMap[key]
+  }))
+)
 
 const isSessionExpired = sessionStorage.getItem(ConnectStorageKeys.CONNECT_SESSION_EXPIRED)
 
-// page stuff
+const idpQueryLoginStarted = ref(false)
+
+function idpToKeycloakHint (idp: StrrLoginIdp) {
+  switch (idp) {
+    case 'bcsc':
+      return IdpHint.BCSC
+    case 'bceid':
+      return IdpHint.BCEID
+    case 'idir':
+      return IdpHint.IDIR
+  }
+}
+
+/** Deep link: `?idp=bceid` when that IdP is in allowed `idps`. */
+async function runLoginFromIdpQuery () {
+  if (idpQueryLoginStarted.value) {
+    return
+  }
+  const idp = getDirectLoginIdp(
+    route.query as Record<string, unknown>,
+    returnUrl,
+    runtimeConfig.public.baseUrl,
+    isDirectIdpLoginEnabled.value
+  )
+  if (!idp || !allowedIdps.value.includes(idp)) {
+    return
+  }
+  idpQueryLoginStarted.value = true
+  await keycloak.login(idpToKeycloakHint(idp), redirectUrl)
+}
+
 useHead({
   title: t('page.login.h1')
 })
@@ -47,12 +121,12 @@ definePageMeta({
   hideBreadcrumbs: true
 })
 
-// show notification if user was redirected here with an invalid login
 onMounted(() => {
-  const invalidIdp = useRoute().query.invalidIdp
+  const invalidIdp = route.query.invalidIdp
   if (invalidIdp && LoginSource[invalidIdp as LoginSource] !== undefined) {
     useToast().add({ title: t('toast.invalidIdp.generic') })
   }
+  runLoginFromIdpQuery().catch(() => {})
 })
 </script>
 <template>

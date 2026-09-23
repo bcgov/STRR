@@ -163,6 +163,7 @@ class RegistrationType(Enum):
 class ErrorMessage(Enum):
     """STRR Error Messages."""
 
+    INVALID_REQUEST = "Invalid request"
     APPLICATION_NOT_FOUND = "Application not found."
     INVALID_APPLICATION_STATUS = "Invalid application status."
     APPLICATION_ASSIGN_STATUS = "Only FULL_REVIEW and PROVISIONAL_REVIEW applications can be assigned."
