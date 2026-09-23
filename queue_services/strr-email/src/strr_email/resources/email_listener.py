@@ -75,9 +75,9 @@ EMAIL_SUBJECT = {
     "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
     "REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
-    "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
     "HOST_DECLINED": "Short-Term Rental Application Refused",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
+    "HOST_REGISTRATION_SUSPENDED": "Short-Term Rental Registration Suspended",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "STRATA_HOTEL_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
@@ -232,6 +232,7 @@ def _get_registration_update_email_content_for_host(
         street_name=registration.rental_property.address.street_address
         or registration.rental_property.address.street_address_additional,
         city=registration.rental_property.address.city,
+        province=registration.rental_property.address.province,
         postal_code=registration.rental_property.address.postal_code,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         rental_nickname=registration.rental_property.nickname,
