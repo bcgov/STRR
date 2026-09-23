@@ -30,7 +30,7 @@ pydantic = {extras = ["email"], version = "^2.12.5"}
 google-auth = "^2.29.0"
 google-cloud-storage = "2.14.0"
 geoalchemy2 = "^0.15.1"
-weasyprint = "^69.0"
+weasyprint = "^70.0"
 sqlalchemy-utils = "^0.41.2"
 nanoid = "^2.0.0"
 sql-versioning = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/sql-versioning", branch = "main" }
