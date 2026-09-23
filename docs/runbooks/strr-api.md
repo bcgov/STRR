@@ -44,6 +44,8 @@ Flask backend for STRR. Source: `strr-api/`.
 - The migration job's runtime identity must match `DATABASE_MIGRATION_USERNAME` for automatic IAM database authentication.
 - Standalone Alembic (no Flask context) uses `DATABASE_URL` with `NullPool` in `migrations/env.py`.
 - Optional ownership handoff: set `DATABASE_OWNER_ROLE` so online Alembic migrations run with that DB role and new objects are owned by it. The migration user must be able to `SET ROLE`, and that role needs schema create privileges.
+- `update_db.sh` selects migration mode before running `flask db upgrade`. Verify the existing job's image, command, attached identity and IAM/owner-role settings before rollout; building the API image alone does not configure that job.
+- Alembic's concurrent-index migrations require explicit autocommit blocks. For pg8000 only, the migration connection ends the hidden transaction opened by Alembic's isolation-level query before entering those blocks. Ordinary migration transactions still roll back on failure; the API engine's transaction behavior is unchanged.
 
 ## Scaling (prod)
 
