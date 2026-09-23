@@ -15,7 +15,7 @@ export async function prepareSessionClock(page, origin) {
     const item = pending.get(request)
     if (!item) return
     pending.delete(request)
-    completed.push({ category: item.category, resourceType: item.resourceType(), finishedAt: Date.now() })
+    completed.push({ category: item.category, resourceType: item.resourceType, finishedAt: Date.now() })
     if (completed.length > 20) completed.shift()
   }
   page.on('requestfinished', finish)
