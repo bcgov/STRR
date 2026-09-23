@@ -33,11 +33,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0911, R0912
 """This Module processes and sends email messages via the notify-api."""
+
 from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 import re
 import traceback
+from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 from flask import Blueprint
@@ -73,9 +75,9 @@ EMAIL_SUBJECT = {
     "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
     "REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
-    "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
     "HOST_DECLINED": "Short-Term Rental Application Refused",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
+    "HOST_REGISTRATION_SUSPENDED": "Short-Term Rental Registration Suspended",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "STRATA_HOTEL_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
@@ -230,6 +232,7 @@ def _get_registration_update_email_content_for_host(
         street_name=registration.rental_property.address.street_address
         or registration.rental_property.address.street_address_additional,
         city=registration.rental_property.address.city,
+        province=registration.rental_property.address.province,
         postal_code=registration.rental_property.address.postal_code,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         rental_nickname=registration.rental_property.nickname,
@@ -360,9 +363,14 @@ def _get_application_update_email_content(application, email_info, jinja_templat
         registration_url=_get_registration_deep_link_for_type(
             application.registration_type,
             app_dict.get("header", {}).get("registrationNumber"),
+            application.payment_account,
+            getattr(application.submitter, "login_source", None),
         ),
         application_url=_get_application_deep_link(
-            application.registration_type, application.application_number
+            application.registration_type,
+            application.application_number,
+            application.payment_account,
+            getattr(application.submitter, "login_source", None),
         ),
         service_provider=_get_service_provider(app_dict, application.registration_type),
         tac_url=_get_tac_url(application),
@@ -515,28 +523,49 @@ def _get_registration_tac_url(registration: Registration) -> str:
 def _get_registration_deep_link(registration: Registration) -> str:
     """Return the relevant app deep link for the registration."""
     return _get_registration_deep_link_for_type(
-        registration.registration_type, registration.registration_number
+        registration.registration_type,
+        registration.registration_number,
+        registration.sbc_account_id,
+        getattr(registration.user, "login_source", None),
     )
 
 
-def _get_registration_deep_link_for_type(registration_type, registration_number: str | None) -> str:
+def _get_registration_deep_link_for_type(
+    registration_type,
+    registration_number: str | None,
+    account_id: int | str | None = None,
+    login_source: str | None = None,
+) -> str:
     """Return a deep link from a registration type and number."""
     if not registration_number:
         return ""
     registration_type = getattr(registration_type, "value", registration_type)
     if registration_type == Registration.RegistrationType.HOST.value:
         route = f"/en-CA/dashboard/registration/{registration_number}"
-        return f"{current_app.config['HOST_APP_URL'].rstrip('/')}{route}"
+        return _append_deep_link_params(
+            f"{current_app.config['HOST_APP_URL'].rstrip('/')}{route}", account_id, login_source
+        )
     if registration_type == Registration.RegistrationType.PLATFORM.value:
         route = f"/en-CA/platform/dashboard/registration/{registration_number}"
-        return f"{current_app.config['PLATFORM_APP_URL'].rstrip('/')}{route}"
+        return _append_deep_link_params(
+            f"{current_app.config['PLATFORM_APP_URL'].rstrip('/')}{route}", account_id, login_source
+        )
     if registration_type == Registration.RegistrationType.STRATA_HOTEL.value:
         route = f"/en-CA/strata-hotel/dashboard/registration/{registration_number}"
-        return f"{current_app.config['STRATA_HOTEL_APP_URL'].rstrip('/')}{route}"
+        return _append_deep_link_params(
+            f"{current_app.config['STRATA_HOTEL_APP_URL'].rstrip('/')}{route}",
+            account_id,
+            login_source,
+        )
     return ""
 
 
-def _get_application_deep_link(registration_type, application_number: str | None) -> str:
+def _get_application_deep_link(
+    registration_type,
+    application_number: str | None,
+    account_id: int | str | None = None,
+    login_source: str | None = None,
+) -> str:
     """Return a deep link to an application in the relevant app."""
     if not application_number:
         return ""
@@ -553,9 +582,26 @@ def _get_application_deep_link(registration_type, application_number: str | None
     }
     if registration_type not in routes:
         return ""
-    return (
-        f"{current_app.config[app_urls[registration_type]].rstrip('/')}{routes[registration_type]}"
+    return _append_deep_link_params(
+        f"{current_app.config[app_urls[registration_type]].rstrip('/')}{routes[registration_type]}",
+        account_id,
+        login_source,
     )
+
+
+def _append_deep_link_params(
+    url: str, account_id: int | str | None, login_source: str | None
+) -> str:
+    """Append safe account and supported login-provider hints to a deep link."""
+    params = {}
+    if account_id is not None and str(account_id).isdigit():
+        params["accountId"] = str(account_id)
+    login_hints = {"BCSC": "bcsc", "BCEID": "bceid", "IDIR": "idir", "STAFF": "idir"}
+    if isinstance(login_source, str) and login_source.upper() in login_hints:
+        params["idp"] = login_hints[login_source.upper()]
+    if not params:
+        return url
+    return f"{url}?{urlencode(params)}"
 
 
 def get_email_info(ce: SimpleCloudEvent) -> EmailInfo | None:

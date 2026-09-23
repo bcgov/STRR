@@ -1,7 +1,7 @@
 # Short-Term Rental Registration Renewal Reminder
 
-**Platform Service Provider:**&nbsp;&nbsp;&nbsp;&nbsp;{{ service_provider }}  
-**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{{reg_num}}  
+**Platform Service Provider:**&nbsp;&nbsp;&nbsp;&nbsp;{{ service_provider }}
+**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
 **Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
 
 **Renew your registration today** to keep your registration active and avoid any interruptions in your short-term rental services.
@@ -33,5 +33,5 @@ _**If your registration expires before submitting the renewal**, your registrati
 
 ---
 
-**Short-Term Rental Branch**  
+**Short-Term Rental Branch**
 Ministry of Housing and Municipal Affairs

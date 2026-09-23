@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { StrrLoginIdp } from '~/types/strr-base-app-config'
 import { unwrapAppConfigList } from '~/utils/unwrap-app-config'
+import { buildLoginRedirectUrl, getDirectLoginIdp } from '~/utils/login-redirect'
 
 const { t, locale } = useNuxtApp().$i18n
 const keycloak = useKeycloak()
@@ -8,20 +9,21 @@ const { createAccountUrl } = useConnectNav()
 const runtimeConfig = useRuntimeConfig()
 const loginConfig = useAppConfig().strrBaseLayer.page.login
 const route = useRoute()
+const { isFeatureEnabled } = useFeatureFlags()
+const isDirectIdpLoginEnabled = isFeatureEnabled('enable-direct-idp-login')
 
-const returnUrl = typeof route.query.return === 'string' && route.query.return.startsWith('/')
+const returnUrl = typeof route.query.return === 'string' &&
+  route.query.return.startsWith('/') &&
+  !route.query.return.startsWith('//')
   ? route.query.return
   : undefined
 
-let redirectUrl: string | undefined
-if (returnUrl) {
-  const baseRedirect = loginConfig.redirectPath
-    ? runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
-    : runtimeConfig.public.baseUrl + returnUrl
-  redirectUrl = `${baseRedirect}?return=${encodeURIComponent(returnUrl)}`
-} else if (loginConfig.redirectPath) {
-  redirectUrl = runtimeConfig.public.baseUrl + locale.value + loginConfig.redirectPath
-}
+const redirectUrl = buildLoginRedirectUrl(
+  runtimeConfig.public.baseUrl,
+  locale.value,
+  loginConfig.redirectPath,
+  returnUrl
+)
 
 type RuntimeLoginOptions = typeof loginConfig.options & {
   idps?: StrrLoginIdp[] | (() => StrrLoginIdp[])
@@ -79,19 +81,7 @@ const options = computed(() =>
 
 const isSessionExpired = sessionStorage.getItem(ConnectStorageKeys.CONNECT_SESSION_EXPIRED)
 
-const IDP_QUERY = 'idp'
 const idpQueryLoginStarted = ref(false)
-
-const STRR_LOGIN_IDPS = ['bcsc', 'bceid', 'idir'] as const satisfies readonly StrrLoginIdp[]
-
-function parseIdpFromQuery (query: Record<string, unknown>): StrrLoginIdp | null {
-  const raw = query[IDP_QUERY]
-  const s = (Array.isArray(raw) ? raw[0] : raw)?.toString().toLowerCase().trim()
-  if (!s || !(STRR_LOGIN_IDPS as readonly string[]).includes(s)) {
-    return null
-  }
-  return s as StrrLoginIdp
-}
 
 function idpToKeycloakHint (idp: StrrLoginIdp) {
   switch (idp) {
@@ -109,7 +99,12 @@ async function runLoginFromIdpQuery () {
   if (idpQueryLoginStarted.value) {
     return
   }
-  const idp = parseIdpFromQuery(route.query as Record<string, unknown>)
+  const idp = getDirectLoginIdp(
+    route.query as Record<string, unknown>,
+    returnUrl,
+    runtimeConfig.public.baseUrl,
+    isDirectIdpLoginEnabled.value
+  )
   if (!idp || !allowedIdps.value.includes(idp)) {
     return
   }

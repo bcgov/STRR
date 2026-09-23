@@ -1,6 +1,8 @@
 {
   "makefile.configureOnOpen": false,
   "npm.packageManager": "pnpm",
+  "vitest.configSearchPatternInclude": "{strr-base-web,strr-examiner-web,strr-host-pm-web,strr-platform-web,strr-strata-web}/vitest.config.{ts,js,mjs,cjs,cts,mts}",
+  "vitest.filesWatcherInclude": "{strr-base-web,strr-examiner-web,strr-host-pm-web,strr-platform-web,strr-strata-web}/**/*",
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "editor.tabSize": 2,

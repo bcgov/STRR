@@ -1,6 +1,6 @@
 # Short-Term Rental Registration Approved
 
-**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{{reg_num}}
+**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
 **Registration Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
 
 **Strata Hotel Address:**&nbsp;{{street_address}}

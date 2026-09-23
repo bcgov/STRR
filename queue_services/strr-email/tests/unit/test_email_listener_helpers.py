@@ -195,6 +195,36 @@ def test_get_registration_deep_link(cfg_app, registration_type, registration_url
         assert el._get_registration_deep_link(reg) == registration_url
 
 
+def test_get_registration_deep_link_includes_account_id(cfg_app):
+    reg = MagicMock(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number="H123456789",
+        sbc_account_id=2623,
+    )
+    with cfg_app.app_context():
+        assert el._get_registration_deep_link(reg).endswith(
+            "/en-CA/dashboard/registration/H123456789?accountId=2623"
+        )
+
+
+@pytest.mark.parametrize(
+    "login_source,login_hint", [("BCSC", "bcsc"), ("BCEID", "bceid"), ("IDIR", "idir")]
+)
+def test_get_registration_deep_link_includes_login_hint(cfg_app, login_source, login_hint):
+    reg = MagicMock(
+        registration_type=Registration.RegistrationType.HOST,
+        registration_number="H123456789",
+        sbc_account_id=2623,
+        user=MagicMock(login_source=login_source),
+    )
+    with cfg_app.app_context():
+        assert (
+            el._get_registration_deep_link(reg)
+            == f"https://host.test.registry.gov.bc.ca/en-CA/dashboard/registration/H123456789"
+            f"?accountId=2623&idp={login_hint}"
+        )
+
+
 @pytest.mark.parametrize(
     "registration_type,application_number,expected_url",
     [
