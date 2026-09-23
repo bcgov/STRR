@@ -1,0 +1,69 @@
+name: DEV Cloud SQL IAM verification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/dev-iam-verification.yml
+      - verification/iam-dev/**
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install locked probe dependencies
+        run: |
+          python -m pip install --require-hashes -r verification/iam-dev/requirements.txt
+          python -m pip install --no-deps --no-build-isolation 'https://github.com/bcgov/sbc-connect-common/archive/395a3bdd402d918f2ba3df6d6cf26a629872a121.tar.gz#subdirectory=python/cloud-sql-connector'
+      - name: Test guards and render the build without submitting it
+        run: |
+          python -m unittest discover -s verification/iam-dev -p 'test_*.py' -v
+          python verification/iam-dev/make_build_config.py > "$RUNNER_TEMP/iam-build.json"
+
+  verify:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'bcgov/STRR' &&
+      github.ref == 'refs/heads/main' && github.ref_protected == true
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: dev
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Assert the existing authentication route
+        env:
+          PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
+          ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+        run: |
+          set -euo pipefail
+          test "$PROVIDER" = 'projects/331250273634/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+          test "$ACCOUNT" = 'github-actions@c4hnrd-tools.iam.gserviceaccount.com'
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: c4hnrd-tools
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Verify the build identity and submit the catalog probe
+        run: |
+          set -euo pipefail
+          worker="$(gcloud builds get-default-service-account --project=c4hnrd-tools --region=northamerica-northeast1 --format='value(serviceAccountEmail)')"
+          test "$worker" = 'projects/331250273634/serviceAccounts/331250273634@cloudbuild.gserviceaccount.com'
+          python3 verification/iam-dev/make_build_config.py > "$RUNNER_TEMP/iam-build.json"
+          gcloud builds submit --no-source --project=c4hnrd-tools --region=northamerica-northeast1 --config="$RUNNER_TEMP/iam-build.json" --quiet
