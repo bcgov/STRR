@@ -40,6 +40,7 @@ import os
 
 import coloredlogs
 import sentry_sdk
+from cloud_sql_connector import setup_pg8000_close_event_listener
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -67,6 +68,9 @@ def create_app(environment: Config = Production, **kwargs) -> Flask:
     app.config.from_object(environment)
 
     db.init_app(app)
+    with app.app_context():
+        setup_pg8000_close_event_listener(db.engine)
+
     if app.config.get("POD_NAMESPACE", "production") == "migration":
         logger.info("Running in migration mode")
         Migrate(app, db)
