@@ -26,6 +26,9 @@ on:
         default: "80"
         type: string
 
+permissions:
+  contents: read
+
 env:
   WORKING_DIR: ${{ inputs.working_directory }}
 
