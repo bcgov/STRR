@@ -84,7 +84,12 @@ jobs:
           # index dependencies must use wheels; Git/path packages remain pinned
           # by poetry.lock or supplied by this checkout.
           poetry config installer.only-binary :all:
-          poetry config installer.no-binary flasgger,strict-rfc3339,lovely-pytest-docker
+          source_only="flasgger,strict-rfc3339"
+          case "$WORKING_DIR" in
+            */registration_expiry|*/strr-backfiller) source_only+=",lovely-pytest-docker" ;;
+            */strr-email|*/strr-pay) source_only+=",psycopg2" ;;
+          esac
+          poetry config installer.no-binary "$source_only"
           poetry install
 
           # Function to check if a library is installed
@@ -254,7 +259,12 @@ jobs:
           # index dependencies must use wheels; Git/path packages remain pinned
           # by poetry.lock or supplied by this checkout.
           poetry config installer.only-binary :all:
-          poetry config installer.no-binary flasgger,strict-rfc3339,lovely-pytest-docker
+          source_only="flasgger,strict-rfc3339"
+          case "$WORKING_DIR" in
+            */registration_expiry|*/strr-backfiller) source_only+=",lovely-pytest-docker" ;;
+            */strr-email|*/strr-pay) source_only+=",psycopg2" ;;
+          esac
+          poetry config installer.no-binary "$source_only"
           poetry install
           echo "Dependency installation completed."
 

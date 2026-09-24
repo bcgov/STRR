@@ -20,5 +20,7 @@ def test_config_uses_shared_sqlalchemy_settings():
 
     settings_from_env.assert_called_once_with()
     for config_name in ("_Config", "TestConfig", "UnitTestConfig"):
-        assert config_module[config_name].SQLALCHEMY_DATABASE_URI is sentinel.database_uri
+        assert (
+            config_module[config_name].SQLALCHEMY_DATABASE_URI is sentinel.database_uri
+        )
         assert config_module[config_name].SQLALCHEMY_ENGINE_OPTIONS is engine_options
