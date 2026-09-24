@@ -84,6 +84,57 @@ Terraform. Before rollout, verify that the attached `sa-job` identity (or
 the required database writes. A green build or a job that processes no records
 does not establish those permissions.
 
+## Read-only IAM smoke check
+
+Use `scripts/verify-cloud-sql-iam.py` to verify an IAM login through this checkout's
+shared utility and inspect PostgreSQL catalog privileges. It uses existing
+Application Default Credentials (ADC); `DATABASE_USERNAME` must match that
+credential's existing IAM database user. The command does not impersonate another
+identity or change permissions.
+
+From this package directory, after `poetry install`:
+
+```bash
+export CLOUDSQL_INSTANCE_CONNECTION_NAME="bcrbk9-dev:northamerica-northeast1:strr-db-dev"
+export DATABASE_NAME="strr-db"
+export DATABASE_USERNAME="your-existing-iam-database-user"
+
+poetry run python ../../../scripts/verify-cloud-sql-iam.py
+poetry run python ../../../scripts/verify-cloud-sql-iam.py \
+  --check-role sa-job@bcrbk9-dev.iam \
+  --check-role sa-api@bcrbk9-dev.iam \
+  --require-writes
+```
+
+The three IAM settings are mandatory, even outside Cloud Run. Legacy database
+password settings cannot select a fallback connection. JSON output reports the
+actual login identity, expected identity match, database, read-only transaction,
+inventory counts, and missing effective privileges. Error output includes the
+exception class, without its potentially sensitive message or connection URL.
+
+The default schema is `public`; use `--schema NAME` for another application schema.
+Without `--check-role`, the command inspects the logged-in identity. Repeated
+`--check-role` options select other catalog principals without logging in as them.
+`--require-writes` applies only to those selected principals and requires schema
+`USAGE`, table `SELECT`/`INSERT`/`UPDATE`/`DELETE`, and sequence `USAGE`. Any empty
+schema, table, or sequence inventory fails that gate. Ordinary and partitioned
+tables are included; views are not.
+
+Exit status is zero when the login identity/database match and inspection
+succeeds, one for connection or verification failures (including a failed write
+gate or missing role), and two for missing IAM configuration or invalid arguments.
+Every database query runs in an explicitly read-only transaction. The command
+reads catalogs, not application rows, and executes no grants or application DML.
+Catalog privilege checks do **not** prove another principal's IAM login, actual
+writes, row-level security behavior, or permission for future database objects.
+
+The focused tests use fake connections and need no credentials:
+
+```bash
+# From the repository root:
+python3 -m unittest discover -s tests/deployment -p test_verify_cloud_sql_iam.py
+```
+
 ## Attribution
 
 Adapted from the BC Registries
