@@ -66,9 +66,10 @@ jobs:
         run: pipx install poetry==2.3.2 --pip-args="--only-binary=:all:"
       - name: Install locked shared package and test tools
         working-directory: shared/python/cloud-sql-connector
-        run: |
-          poetry config installer.only-binary :all:
-          poetry install
+        env:
+          POETRY_INSTALLER_ONLY_BINARY: ":all:"
+          POETRY_INSTALLER_NO_BINARY: ":none:"
+        run: poetry install
       - name: Test shared Cloud SQL package
         working-directory: shared/python/cloud-sql-connector
         run: poetry run pytest

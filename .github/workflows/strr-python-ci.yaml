@@ -79,17 +79,19 @@ jobs:
 
       - name: Install dependencies and detect linting tools
         id: install
+        env:
+          POETRY_INSTALLER_ONLY_BINARY: ":all:"
         run: |
           # Locked source-only dependencies currently lack wheels. All other
           # index dependencies must use wheels; Git/path packages remain pinned
           # by poetry.lock or supplied by this checkout.
-          poetry config installer.only-binary :all:
+          # Environment settings take precedence over project/global config.
           source_only="flasgger,strict-rfc3339"
           case "$WORKING_DIR" in
             */registration_expiry|*/strr-backfiller) source_only+=",lovely-pytest-docker" ;;
             */strr-email|*/strr-pay) source_only+=",psycopg2" ;;
           esac
-          poetry config installer.no-binary "$source_only"
+          export POETRY_INSTALLER_NO_BINARY="$source_only"
           poetry install
 
           # Function to check if a library is installed
@@ -253,18 +255,20 @@ jobs:
             shared/python/cloud-sql-connector/**
 
       - name: Install dependencies
+        env:
+          POETRY_INSTALLER_ONLY_BINARY: ":all:"
         run: |
           echo "Installing dependencies using $TOOL..."
           # Locked source-only dependencies currently lack wheels. All other
           # index dependencies must use wheels; Git/path packages remain pinned
           # by poetry.lock or supplied by this checkout.
-          poetry config installer.only-binary :all:
+          # Environment settings take precedence over project/global config.
           source_only="flasgger,strict-rfc3339"
           case "$WORKING_DIR" in
             */registration_expiry|*/strr-backfiller) source_only+=",lovely-pytest-docker" ;;
             */strr-email|*/strr-pay) source_only+=",psycopg2" ;;
           esac
-          poetry config installer.no-binary "$source_only"
+          export POETRY_INSTALLER_NO_BINARY="$source_only"
           poetry install
           echo "Dependency installation completed."
 
