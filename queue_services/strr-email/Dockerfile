@@ -48,6 +48,7 @@ RUN groupadd -g 1000 -r web \
     && chown web:web -R '/code'
 
 # Copy dependency files first for layer caching
+COPY --chown=web:web ./_shared/python/cloud-sql-connector /shared/python/cloud-sql-connector
 COPY --chown=web:web ./poetry.lock ./pyproject.toml /code/
 
 # Install production dependencies only

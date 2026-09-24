@@ -116,7 +116,9 @@ class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
 
     DEBUG = True
     TESTING = True
-    SQLALCHEMY_ENGINE_OPTIONS = {}
+    # Cloud Run keeps IAM even when a test configuration is selected.
+    if "creator" not in Config.SQLALCHEMY_ENGINE_OPTIONS:
+        SQLALCHEMY_ENGINE_OPTIONS = {}
 
 
 class TestConfig(Config):  # pylint: disable=too-few-public-methods

@@ -8,6 +8,11 @@ on:
       - hotfix*
       - release*
     paths:
+      - ".github/workflows/strr-provisional-approval-job-cd.yaml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - "scripts/configure-iam-deployment.py"
+      - ".github/workflows/strr-python-job-cd.yaml"
       - "jobs/provisional-approval/**"
       - "src/strr_api/models/**"
       - "src/strr_api/services/**"
@@ -36,7 +41,7 @@ on:
 
 jobs:
   provisional-approval-job-cd:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
+    uses: ./.github/workflows/strr-python-job-cd.yaml
     with:
       target: ${{ inputs.target }}
       app_name: "provisional-approval-job"

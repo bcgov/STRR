@@ -3,6 +3,10 @@ name: STRR PAY CI
 on:
   pull_request:
     paths:
+      - ".github/workflows/strr-pay-ci.yaml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - ".github/workflows/strr-python-ci.yaml"
       - "queue_services/strr-pay/**"
       - "tests/python-test-utils/**"
   workflow_dispatch:
@@ -14,7 +18,7 @@ defaults:
 
 jobs:
   strr-pay-ci:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    uses: ./.github/workflows/strr-python-ci.yaml
     with:
       app_name: "strr-pay"
       working_directory: "./queue_services/strr-pay"

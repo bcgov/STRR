@@ -1,0 +1,146 @@
+# Based on bcgov/bcregistry-sre/.github/workflows/backend-cd.yaml at c43ff0020f9303301cdeeb833c6aee43add0a453.
+# STRR stages its shared package from the same checkout before building.
+name: STRR Python Service CD
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+      app_name:
+        required: true
+        type: string
+      cd_runner_version:
+        type: string
+        default: "1.2.1"
+      working_directory:
+        type: string
+        default: "."
+      redeploy:
+        type: string
+        default: "false"
+    secrets:
+      WORKLOAD_IDENTIFY_POOLS_PROVIDER:
+        required: true
+      GCP_SERVICE_ACCOUNT:
+        required: true
+
+jobs:
+  setup:
+    # Only allow run the CD flow in protected branch
+    if: github.ref_protected == true
+
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        shell: bash
+
+    # Allow add the tag in the repo.
+    # Add "id-token" with the intended permissions.
+    permissions:
+      contents: 'write'
+      id-token: 'none'
+
+    outputs:
+      TARGETS: ${{ steps.setenv.outputs.TARGETS }}
+      TARGET: ${{ steps.setenv.outputs.TARGET }}
+      TARGET_FROM: ${{ steps.setenv.outputs.TARGET_FROM }}
+      PIPELINE: ${{ steps.setenv.outputs.PIPELINE }}
+
+    steps:
+      # Checkout code
+      - name: Checkout out the code
+        uses: actions/checkout@v6
+
+      - name: Require a full IAM deployment
+        if: inputs.redeploy == 'true'
+        run: |
+          echo "IAM deployment requires a full deployment; select redeploy=false so legacy database variables are removed." >&2
+          exit 1
+
+      - name: Setup targets
+        uses: bcgov/bcregistry-sre/.github/actions/setup-deployment-target@main
+        with:
+          environment: ${{ inputs.target }}
+          app_name: ${{ inputs.app_name }}
+
+      - id: setenv
+        run: |
+          echo "TARGETS=${{ env.DEPLOY_TARGETS }}" >> "$GITHUB_OUTPUT"
+          echo "TARGET=${{ env.DEPLOY_TARGET }}" >> "$GITHUB_OUTPUT"
+          echo "TARGET_FROM=${{ env.DEPLOY_TARGET_FROM }}" >> "$GITHUB_OUTPUT"
+          echo "PIPELINE=${{ env.DEPLOY_PIPELINE }}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: setup
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: "${{ needs.setup.outputs.TARGET }}"
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working_directory }}
+
+    # Allow add the tag in the repo.
+    # Add "id-token" with the intended permissions.
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+
+    steps:
+      # Checkout code
+      - name: Checkout out the code
+        uses: actions/checkout@v6
+
+      # Copy cloud build, cloud deploy and skaffold yaml files to the build
+      - name: Copy deployment files
+        uses: bcgov/bcregistry-sre/.github/actions/backend-deploy@main
+        with:
+          working-directory: ${{ inputs.working_directory }}
+
+      - name: Configure Cloud SQL IAM deployment
+        run: python3 "$GITHUB_WORKSPACE/scripts/configure-iam-deployment.py" .
+
+      - name: Stage application and shared package
+        run: python3 "$GITHUB_WORKSPACE/scripts/prepare-python-build-context.py" . "$RUNNER_TEMP/strr-build"
+
+      # GCP authentication
+      - name: 'Authenticate to Google Cloud'
+        id: 'auth'
+        uses: 'google-github-actions/auth@v3'
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      # Setup gcloud CLI
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+
+      # Trigger Cloud Deploy
+      - name: Deployment
+        working-directory: ${{ runner.temp }}/strr-build
+        run: |-
+          SHORT_SHA=$(git -C "$GITHUB_WORKSPACE" rev-parse --short HEAD)
+
+          echo "SHORT_SHA: $SHORT_SHA"
+
+          TARGET_FROM="${{ needs.setup.outputs.TARGET_FROM }}"
+
+          if [ -z "$TARGET_FROM" ]; then
+            TARGET_FROM="${{ needs.setup.outputs.TARGET }}"
+          fi
+
+          echo "TARGET_FROM: $TARGET_FROM"
+
+          pwd
+          ls -la
+
+          gcloud builds submit \
+            --region=northamerica-northeast1 \
+            --substitutions _SHORT_SHA=$SHORT_SHA,_CD_RUNNER_VERSION="${{ inputs.cd_runner_version }}",_APP_NAME="${{ inputs.app_name }}",_DEPLOYMENT_ENVS="${{ needs.setup.outputs.TARGETS }}",_DEPLOYMENT_ENV="${{ needs.setup.outputs.TARGET }}",_DEPLOYMENT_ENV_FROM="$TARGET_FROM",_DEPLOYMENT_PIPELINE="${{ needs.setup.outputs.PIPELINE }}",_REDEPLOY="${{ inputs.redeploy}}" \
+            --config devops/gcp/cloudbuild.yaml \
+            --default-buckets-behavior=REGIONAL_USER_OWNED_BUCKET

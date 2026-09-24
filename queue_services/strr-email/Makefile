@@ -41,13 +41,19 @@ test: ## Unit testing
 	poetry run pytest
 
 build: ## Build the docker container
-	docker build . -t $(DOCKER_NAME) \
+	@set -eu; build_context=$$(mktemp -d); \
+	trap 'rm -rf "$$build_context"' EXIT; \
+	python3 ../../scripts/prepare-python-build-context.py . "$$build_context"; \
+	docker build "$$build_context" -t $(DOCKER_NAME) \
 	    --platform linux/amd64 \
 	    --build-arg VCS_REF=$(shell git rev-parse --short HEAD) \
 	    --build-arg BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 build-nc: ## Build the docker container without caching
-	docker build --no-cache -t $(DOCKER_NAME) .
+	@set -eu; build_context=$$(mktemp -d); \
+	trap 'rm -rf "$$build_context"' EXIT; \
+	python3 ../../scripts/prepare-python-build-context.py . "$$build_context"; \
+	docker build --no-cache -t $(DOCKER_NAME) "$$build_context"
 
 #################################################################################
 # COMMANDS - Local                                                              #

@@ -10,7 +10,7 @@ requires-python = ">=3.12.2,<3.15"
 
 # Leaving the local working api here as an example
 dependencies = [
-    "cloud-sql-connector @ git+https://github.com/Jacky-Pham/sbc-connect-common.git@395a3bdd402d918f2ba3df6d6cf26a629872a121#subdirectory=python/cloud-sql-connector",
+    "cloud-sql-connector (==0.2.3)",
     "google-auth (>=2.48.0,<3.0.0)",
     "sqlalchemy (>=2.0.47,<3.0.0)",
     "requests (>=2.32.5,<3.0.0)",
@@ -24,6 +24,9 @@ dependencies = [
 # Poetry-specific configuration lives here
 [tool.poetry]
 packages = [{include = "interactions_update", from = "src"}]
+
+[tool.poetry.dependencies]
+cloud-sql-connector = { path = "../../shared/python/cloud-sql-connector" }
 
 [tool.poetry.group.dev.dependencies]
 black = ">=26.1.0,<27.0.0"

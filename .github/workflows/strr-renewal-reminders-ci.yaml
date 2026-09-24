@@ -3,6 +3,10 @@ name: REGISTRATION RENEWAL REMINDERS JOB CI
 on:
   pull_request:
     paths:
+      - ".github/workflows/strr-renewal-reminders-ci.yaml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - ".github/workflows/strr-python-ci.yaml"
       - "jobs/renewal-reminders**"
       - "tests/python-test-utils/**"
       - "src/strr_api/models/**"
@@ -19,7 +23,7 @@ defaults:
 
 jobs:
   renewal-reminders-job-ci:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    uses: ./.github/workflows/strr-python-ci.yaml
     with:
       app_name: "renewal-reminders-job"
       working_directory: "./jobs/renewal-reminders"

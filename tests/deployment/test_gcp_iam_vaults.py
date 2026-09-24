@@ -5,28 +5,30 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-MIGRATED_GCP_VAULTS = (
-    "queue_services/strr-email/devops/vaults.gcp.env",
-    "queue_services/strr-pay/devops/vaults.gcp.env",
-    "jobs/auto-approval/devops/vaults.gcp.env",
-    "jobs/batch-permit-validator/devops/vaults.gcp.env",
-    "jobs/interactions-update/devops/vaults.gcp.env",
-    "jobs/noc_expiry/devops/vaults.gcp.env",
-    "jobs/provisional-approval/devops/vaults.gcp.env",
-    "jobs/registration_expiry/devops/vaults.gcp.env",
-    "jobs/renewal-reminders/devops/vaults.gcp.env",
-    "jobs/strr-backfiller/devops/vaults.gcp.env",
+# The batch listener only invokes a Cloud Run job; its job is a DB consumer.
+DB_FREE_CONSUMERS = {"queue_services/batch-permit-validator"}
+DB_CONSUMERS = tuple(
+    sorted(
+        project.parent
+        for parent in ("jobs", "queue_services")
+        for project in (REPO_ROOT / parent).glob("*/pyproject.toml")
+        if project.parent.relative_to(REPO_ROOT).as_posix() not in DB_FREE_CONSUMERS
+    )
+)
+MIGRATED_GCP_VAULTS = tuple(
+    (consumer / "devops/vaults.gcp.env").relative_to(REPO_ROOT).as_posix()
+    for consumer in DB_CONSUMERS
 )
 
 EXPECTED_DATABASE_MAPPINGS = {
-    "CLOUDSQL_INSTANCE_CONNECTION_NAME": (
-        "op://database/$APP_ENV/strr-db/DATABASE_INSTANCE_CONNECTION_NAME"
-    ),
     "CLOUDSQL_IP_TYPE": "PUBLIC",
     "DATABASE_NAME": "op://database/$APP_ENV/strr-db/DATABASE_NAME",
 }
 
 REMOVED_DEPLOYED_DB_VARS = (
+    # Non-secret IAM values now come from Cloud Deploy parameters.
+    "DATABASE_USERNAME",
+    "CLOUDSQL_INSTANCE_CONNECTION_NAME",
     "DATABASE_HOST",
     "DATABASE_PASSWORD",
     "DATABASE_PORT",
@@ -76,38 +78,44 @@ class GcpIamDeploymentContractTest(unittest.TestCase):
         for vault_file in MIGRATED_GCP_VAULTS:
             with self.subTest(vault_file=vault_file):
                 mappings = _active_env_mappings(vault_file)
-                expected_runtime_account = _expected_runtime_account(vault_file)
-                expected_username_field = (
-                    "DATABASE_JOB_IAM_USERNAME"
-                    if expected_runtime_account == "sa-job"
-                    else "DATABASE_IAM_USERNAME"
-                )
-                expected_mappings = {
-                    **EXPECTED_DATABASE_MAPPINGS,
-                    "DATABASE_USERNAME": (
-                        "op://database/$APP_ENV/strr-db/" + expected_username_field
-                    ),
-                }
-
                 self.assertEqual(
-                    {key: mappings.get(key) for key in expected_mappings},
-                    expected_mappings,
+                    {key: mappings.get(key) for key in EXPECTED_DATABASE_MAPPINGS},
+                    EXPECTED_DATABASE_MAPPINGS,
                 )
                 self.assertFalse(
                     set(REMOVED_DEPLOYED_DB_VARS) & mappings.keys(),
-                    f"Legacy database mappings remain active in {vault_file}",
+                    f"Legacy or duplicate IAM mappings remain active in {vault_file}",
                 )
 
-    def test_clouddeploy_runtime_accounts_match_vault_mappings(self):
+    def test_all_clouddeploy_targets_bind_iam_to_the_runtime_identity_and_instance(
+        self,
+    ):
         for vault_file in MIGRATED_GCP_VAULTS:
             with self.subTest(vault_file=vault_file):
                 project_ids = _clouddeploy_values(vault_file, "deploy-project-id")
-                self.assertTrue(project_ids)
+                self.assertEqual(len(project_ids), 5)
+                runtime_accounts = [
+                    f"{_expected_runtime_account(vault_file)}@{project_id}.iam.gserviceaccount.com"
+                    for project_id in project_ids
+                ]
                 self.assertEqual(
                     _clouddeploy_values(vault_file, "service-account"),
+                    runtime_accounts,
+                )
+                self.assertEqual(
+                    _clouddeploy_values(vault_file, "database-iam-username"),
                     [
-                        f"{_expected_runtime_account(vault_file)}@{project_id}.iam.gserviceaccount.com"
-                        for project_id in project_ids
+                        account.removesuffix(".gserviceaccount.com")
+                        for account in runtime_accounts
+                    ],
+                )
+                self.assertEqual(
+                    _clouddeploy_values(vault_file, "cloudsql-instances"),
+                    [
+                        f"{project}:northamerica-northeast1:strr-db-{environment}"
+                        for project, environment in zip(
+                            project_ids, ("dev", "test", "test", "sandbox", "prod")
+                        )
                     ],
                 )
 

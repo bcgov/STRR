@@ -8,6 +8,11 @@ on:
       - hotfix*
       - release*
     paths:
+      - ".github/workflows/strr-pay-cd.yaml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - "scripts/configure-iam-deployment.py"
+      - ".github/workflows/strr-python-service-cd.yaml"
       - "queue_services/strr-pay/**"
   workflow_dispatch:
     inputs:
@@ -31,7 +36,7 @@ on:
 
 jobs:
   strr-pay-cd:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-cd.yaml@main
+    uses: ./.github/workflows/strr-python-service-cd.yaml
     with:
       target: ${{ inputs.target }}
       app_name: "strr-pay"

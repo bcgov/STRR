@@ -149,14 +149,16 @@ class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
     Used by the py.test suite
     """
 
-    SQLALCHEMY_DATABASE_URI = database_uri_from_env(
-        username_env="DATABASE_TEST_USERNAME",
-        password_env="DATABASE_TEST_PASSWORD",
-        name_env="DATABASE_TEST_NAME",
-        host_env="DATABASE_TEST_HOST",
-        port_env="DATABASE_TEST_PORT",
-    )
-    SQLALCHEMY_ENGINE_OPTIONS = {}
+    # Cloud Run keeps IAM even when a test configuration is selected.
+    if "creator" not in Config.SQLALCHEMY_ENGINE_OPTIONS:
+        SQLALCHEMY_DATABASE_URI = database_uri_from_env(
+            username_env="DATABASE_TEST_USERNAME",
+            password_env="DATABASE_TEST_PASSWORD",
+            name_env="DATABASE_TEST_NAME",
+            host_env="DATABASE_TEST_HOST",
+            port_env="DATABASE_TEST_PORT",
+        )
+        SQLALCHEMY_ENGINE_OPTIONS = {}
 
     DEBUG = True
     TESTING = True

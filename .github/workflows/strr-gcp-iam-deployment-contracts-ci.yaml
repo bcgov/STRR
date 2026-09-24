@@ -5,7 +5,19 @@ on:
     branches: [main, develop]
     paths:
       - ".github/workflows/strr-gcp-iam-deployment-contracts-ci.yaml"
-      - "tests/deployment/test_gcp_iam_vaults.py"
+      - "tests/deployment/**"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - "scripts/configure-iam-deployment.py"
+      - ".github/workflows/strr-python-*.yaml"
+      - "jobs/*/pyproject.toml"
+      - "jobs/*/poetry.lock"
+      - "jobs/*/Dockerfile"
+      - "jobs/*/Makefile"
+      - "queue_services/strr-*/pyproject.toml"
+      - "queue_services/strr-*/poetry.lock"
+      - "queue_services/strr-*/Dockerfile"
+      - "queue_services/strr-*/Makefile"
       - "queue_services/strr-*/devops/vaults.gcp.env"
       - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
       - "jobs/*/devops/vaults.gcp.env"
@@ -14,7 +26,19 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/strr-gcp-iam-deployment-contracts-ci.yaml"
-      - "tests/deployment/test_gcp_iam_vaults.py"
+      - "tests/deployment/**"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - "scripts/configure-iam-deployment.py"
+      - ".github/workflows/strr-python-*.yaml"
+      - "jobs/*/pyproject.toml"
+      - "jobs/*/poetry.lock"
+      - "jobs/*/Dockerfile"
+      - "jobs/*/Makefile"
+      - "queue_services/strr-*/pyproject.toml"
+      - "queue_services/strr-*/poetry.lock"
+      - "queue_services/strr-*/Dockerfile"
+      - "queue_services/strr-*/Makefile"
       - "queue_services/strr-*/devops/vaults.gcp.env"
       - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
       - "jobs/*/devops/vaults.gcp.env"
@@ -33,4 +57,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check Cloud SQL IAM deployment contracts
-        run: python tests/deployment/test_gcp_iam_vaults.py
+        run: python -m unittest discover -s tests/deployment
+      - name: Install shared Cloud SQL package and test tools
+        run: python -m pip install ./shared/python/cloud-sql-connector pytest pytest-mock
+      - name: Test shared Cloud SQL package
+        run: python -m pytest shared/python/cloud-sql-connector/tests

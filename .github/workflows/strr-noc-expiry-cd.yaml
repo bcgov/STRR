@@ -8,6 +8,11 @@ on:
       - hotfix*
       - release*
     paths:
+      - ".github/workflows/strr-noc-expiry-cd.yaml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - "scripts/configure-iam-deployment.py"
+      - ".github/workflows/strr-python-job-cd.yaml"
       - "jobs/noc_expiry/**"
       - "src/strr_api/models/**"
       - "src/strr_api/services/**"
@@ -36,7 +41,7 @@ on:
 
 jobs:
   strr-noc-expiry-cd:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
+    uses: ./.github/workflows/strr-python-job-cd.yaml
     with:
       target: ${{ inputs.target }}
       app_name: "strr-noc-expiry"
