@@ -10,6 +10,7 @@ on:
       - "scripts/prepare-python-build-context.py"
       - "scripts/configure-iam-deployment.py"
       - "scripts/verify-cloud-sql-iam.py"
+      - "scripts/iam-smoke/**"
       - ".github/workflows/strr-python-*.yaml"
       - "jobs/*/pyproject.toml"
       - "jobs/*/poetry.lock"
@@ -32,6 +33,7 @@ on:
       - "scripts/prepare-python-build-context.py"
       - "scripts/configure-iam-deployment.py"
       - "scripts/verify-cloud-sql-iam.py"
+      - "scripts/iam-smoke/**"
       - ".github/workflows/strr-python-*.yaml"
       - "jobs/*/pyproject.toml"
       - "jobs/*/poetry.lock"
@@ -70,3 +72,10 @@ jobs:
       - name: Test shared Cloud SQL package
         working-directory: shared/python/cloud-sql-connector
         run: poetry run pytest
+      - name: Build standalone IAM verifier
+        run: docker build --platform linux/amd64 -f scripts/iam-smoke/Dockerfile -t strr-iam-smoke:ci .
+      - name: Verify container requires IAM settings
+        run: |
+          status=0
+          docker run --rm --network none strr-iam-smoke:ci || status=$?
+          test "$status" -eq 2

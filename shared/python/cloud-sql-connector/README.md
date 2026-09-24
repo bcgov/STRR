@@ -135,6 +135,28 @@ The focused tests use fake connections and need no credentials:
 python3 -m unittest discover -s tests/deployment -p test_verify_cloud_sql_iam.py
 ```
 
+### Smoke-check container
+
+Build the standalone verifier from the repository root:
+
+```bash
+docker build --platform linux/amd64 -f scripts/iam-smoke/Dockerfile \
+  -t strr-iam-smoke:local .
+docker run --rm strr-iam-smoke:local
+```
+
+The local run without IAM settings exits with status 2. The Dockerfile-specific
+ignore file allows only the verifier, shared utility source, metadata, licenses,
+and lockfile into the build context. The image installs locked main dependencies
+using wheels, runs as a non-root user, and has no business application entrypoint.
+
+The default command is `--require-writes`. An authorized DEV Cloud Run smoke job
+can use this image with its attached runtime service account and the three IAM
+environment variables above. ADC then uses that runtime identity; no credential
+file is needed in the image. A missing write privilege produces exit status 1
+with catalog evidence, while the database transaction remains read-only. Deploy
+and execute it as a separate temporary job, then remove that job after testing.
+
 ## Attribution
 
 Adapted from the BC Registries
