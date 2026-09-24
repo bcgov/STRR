@@ -12,6 +12,57 @@ export interface EmailDeliveryStatusResult {
   failedEvent: ComputedRef<FilingHistoryEvent | null>
 }
 
+const getEmailEventRecipients = (event: FilingHistoryEvent): EmailRecipientStatus[] => {
+  if (!EMAIL_EVENTS.has(event.eventName)) {
+    return []
+  }
+
+  if (!event.structuredDetails || Array.isArray(event.structuredDetails)) {
+    return []
+  }
+
+  const structured = event.structuredDetails as EmailStructuredDetails
+  return Array.isArray(structured.recipientStatuses) ? structured.recipientStatuses : []
+}
+
+const isTransientDeliveryFailure = (providerStatus: string, failureType: string): boolean => {
+  return (
+    providerStatus === 'TEMPORARY_FAILURE' ||
+    providerStatus === 'TECHNICAL_FAILURE' ||
+    failureType === 'temporary' ||
+    failureType === 'technical'
+  )
+}
+
+const isPermanentDeliveryFailure = (
+  recipient: EmailRecipientStatus,
+  event: FilingHistoryEvent
+): boolean => {
+  const status = (recipient.status || '').toUpperCase()
+  const providerStatus = (recipient.provider_status || '').toUpperCase()
+  const failureType = (recipient.failure_type || '').toLowerCase()
+
+  const isFailure =
+    status === 'FAILED' ||
+    event.eventName === FilingHistoryEventName.EMAIL_FAILED ||
+    providerStatus === 'PERMANENT_FAILURE' ||
+    failureType === 'permanent'
+
+  return isFailure && !isTransientDeliveryFailure(providerStatus, failureType)
+}
+
+const isSuccessfulDelivery = (
+  recipient: EmailRecipientStatus,
+  event: FilingHistoryEvent
+): boolean => {
+  const status = (recipient.status || '').toUpperCase()
+  return (
+    status === 'DELIVERED' ||
+    status === 'SENT' ||
+    event.eventName === FilingHistoryEventName.EMAIL_DELIVERED
+  )
+}
+
 /**
  * Pure evaluation function checking if a target email address has an unresolved delivery failure.
  *
@@ -43,16 +94,7 @@ export const evaluateEmailDeliveryStatus = (
   let hasResolved = true
 
   for (const event of sortedEvents) {
-    if (!EMAIL_EVENTS.has(event.eventName)) {
-      continue
-    }
-
-    if (!event.structuredDetails || Array.isArray(event.structuredDetails)) {
-      continue
-    }
-
-    const structured = event.structuredDetails as EmailStructuredDetails
-    const recipients = Array.isArray(structured.recipientStatuses) ? structured.recipientStatuses : []
+    const recipients = getEmailEventRecipients(event)
 
     for (const recipient of recipients) {
       const recipientEmail = recipient.email_address?.trim().toLowerCase()
@@ -60,35 +102,12 @@ export const evaluateEmailDeliveryStatus = (
         continue
       }
 
-      const status = (recipient.status || '').toUpperCase()
-      const providerStatus = (recipient.provider_status || '').toUpperCase()
-      const failureType = (recipient.failure_type || '').toLowerCase()
-
-      // Check if delivery failed
-      const isFailure =
-        status === 'FAILED' ||
-        event.eventName === FilingHistoryEventName.EMAIL_FAILED ||
-        providerStatus === 'PERMANENT_FAILURE' ||
-        failureType === 'permanent'
-
-      // Exclude temporary or technical delivery problems that do not indicate an invalid email
-      const isTransientFailure =
-        providerStatus === 'TEMPORARY_FAILURE' ||
-        providerStatus === 'TECHNICAL_FAILURE' ||
-        failureType === 'temporary' ||
-        failureType === 'technical'
-
-      if (isFailure && !isTransientFailure) {
+      if (isPermanentDeliveryFailure(recipient, event)) {
         hasResolved = false
         latestFailedEvent = event
         latestFailureReason = recipient.failure_reason || undefined
         latestFailureType = recipient.provider_status || recipient.failure_type || 'PERMANENT_FAILURE'
-      } else if (
-        status === 'DELIVERED' ||
-        status === 'SENT' ||
-        event.eventName === FilingHistoryEventName.EMAIL_DELIVERED
-      ) {
-        // Success after failure clears the flag
+      } else if (isSuccessfulDelivery(recipient, event)) {
         hasResolved = true
         latestFailedEvent = null
         latestFailureReason = undefined
@@ -105,6 +124,21 @@ export const evaluateEmailDeliveryStatus = (
   }
 }
 
+const extractFilingHistoryEvents = (rawEvents: unknown): FilingHistoryEvent[] => {
+  if (Array.isArray(rawEvents)) {
+    return rawEvents
+  }
+
+  if (rawEvents && typeof rawEvents === 'object' && 'value' in rawEvents) {
+    const value = (rawEvents as { value: unknown }).value
+    if (Array.isArray(value)) {
+      return value as FilingHistoryEvent[]
+    }
+  }
+
+  return []
+}
+
 /**
  * Reactive composable for tracking email delivery failure status from the examiner store.
  */
@@ -115,12 +149,7 @@ export const useEmailDeliveryStatus = (
 
   const matchingEvaluation = computed(() => {
     const rawEmail = toValue(emailAddress)
-    const rawEvents = examinerStore?.filingHistoryEvents
-    const events: FilingHistoryEvent[] = (
-      rawEvents && typeof rawEvents === 'object' && 'value' in rawEvents
-        ? (rawEvents as Ref<FilingHistoryEvent[]>).value
-        : Array.isArray(rawEvents) ? rawEvents : []
-    ) || []
+    const events = extractFilingHistoryEvents(examinerStore?.filingHistoryEvents)
 
     return evaluateEmailDeliveryStatus(rawEmail, events)
   })
