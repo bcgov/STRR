@@ -4,11 +4,17 @@ on:
   push:
     branches: [ main, develop ]
     paths:
+      - ".github/workflows/strr-interaction-updates-job-ci.yml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
       - "jobs/interactions-update/**"
       - "tests/python-test-utils/**"
   pull_request:
     branches: [ main ]
     paths:
+      - ".github/workflows/strr-interaction-updates-job-ci.yml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
       - "jobs/interactions-update/**"
       - "tests/python-test-utils/**"
 
@@ -31,11 +37,23 @@ jobs:
           python-version: '3.14'
           cache: 'poetry'
           # We need to point the cache to the specific lock file in the subdir
-          cache-dependency-path: jobs/interactions-update/poetry.lock
+          cache-dependency-path: |
+            jobs/interactions-update/poetry.lock
+            shared/python/cloud-sql-connector/**
       - name: Install dependencies
         run: poetry install
       - name: Run Linting
         run: make lint
+
+  verify-build:
+    needs: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify container build
+        run: make build
 
   # --- STAGE 1: FAST FUNCTIONAL TESTS ---
   functional-tests:
@@ -50,7 +68,9 @@ jobs:
         with:
           python-version: '3.14'
           cache: 'poetry'
-          cache-dependency-path: jobs/interactions-update/poetry.lock
+          cache-dependency-path: |
+            jobs/interactions-update/poetry.lock
+            shared/python/cloud-sql-connector/**
       - name: Install dependencies
         run: poetry install
       - name: Run Functional Tests
@@ -69,7 +89,9 @@ jobs:
         with:
           python-version: '3.14'
           cache: 'poetry'
-          cache-dependency-path: jobs/interactions-update/poetry.lock
+          cache-dependency-path: |
+            jobs/interactions-update/poetry.lock
+            shared/python/cloud-sql-connector/**
       - name: Install dependencies
         run: poetry install
       - name: Run Load Tests
@@ -88,7 +110,9 @@ jobs:
         with:
           python-version: '3.14'
           cache: 'poetry'
-          cache-dependency-path: jobs/interactions-update/poetry.lock
+          cache-dependency-path: |
+            jobs/interactions-update/poetry.lock
+            shared/python/cloud-sql-connector/**
       - name: Install dependencies
         run: poetry install
       - name: Run Benchmark
@@ -98,4 +122,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-benchmark-results
-          path: STRR/jobs/interactions-update/benchmark_results.json
+          path: jobs/interactions-update/benchmark_results.json

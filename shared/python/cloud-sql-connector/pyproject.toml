@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "cloud-sql-connector"
+version = "0.2.3"
+description = "Shared Cloud SQL IAM connection utilities for STRR jobs and queue services"
+authors = ["Andriy Bolyachevets <andriy.Bolyachevets@gov.bc.ca>"]
+readme = "README.md"
+packages = [{include = "cloud_sql_connector", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+cloud-sql-python-connector = "^1.16.0"
+sqlalchemy = "^2.0.0"
+pg8000 = "^1.30.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

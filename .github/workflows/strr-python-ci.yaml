@@ -1,0 +1,424 @@
+# Based on bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml at c43ff0020f9303301cdeeb833c6aee43add0a453.
+# STRR keeps the Poetry execution path and stages its shared package from the same checkout.
+name: STRR Python CI
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        required: true
+        type: string
+      working_directory:
+        type: string
+        default: "."
+      skip_isort:
+        type: boolean
+        default: false
+      skip_black:
+        type: boolean
+        default: false
+      codecov_flag:
+        type: string
+        default: ""
+      coverage_threshold:
+        description: "Required coverage threshold percentage (default: 80)"
+        required: false
+        default: "80"
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  WORKING_DIR: ${{ inputs.working_directory }}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      tool: ${{ steps.detect.outputs.tool }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Detect dependency management tool
+        id: detect
+        run: |
+          test -f poetry.lock
+          echo "tool=poetry" >> "$GITHUB_OUTPUT"
+
+      - name: Add setup information to summary
+        run: |
+          echo "## 🔧 Backend CI" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Dependency Tool: ${{ steps.detect.outputs.tool }}" >> $GITHUB_STEP_SUMMARY
+
+  linting:
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      TOOL: ${{ needs.setup.outputs.tool }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Poetry
+        run: pipx install poetry==2.3.2 --pip-args="--only-binary=:all:"
+
+      - name: Set up Python (with cache)
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ${{ env.WORKING_DIR }}/pyproject.toml
+          cache: poetry
+          cache-dependency-path: |
+            ${{ env.WORKING_DIR }}/poetry.lock
+            shared/python/cloud-sql-connector/**
+
+      - name: Install dependencies and detect linting tools
+        id: install
+        env:
+          POETRY_INSTALLER_ONLY_BINARY: ":all:"
+        run: |
+          # Locked source-only dependencies currently lack wheels. All other
+          # index dependencies must use wheels; Git/path packages remain pinned
+          # by poetry.lock or supplied by this checkout.
+          # Environment settings take precedence over project/global config.
+          source_only="flasgger,strict-rfc3339"
+          case "$WORKING_DIR" in
+            */registration_expiry|*/strr-backfiller) source_only+=",lovely-pytest-docker" ;;
+            */strr-email|*/strr-pay) source_only+=",psycopg2" ;;
+          esac
+          export POETRY_INSTALLER_NO_BINARY="$source_only"
+          poetry install
+
+          # Function to check if a library is installed
+          check_library_installed() {
+            if poetry show "$1" > /dev/null 2>&1; then
+              echo "true"
+            else
+              echo "false"
+            fi
+          }
+
+          # Check for linting tools
+          echo "ruff=$(check_library_installed ruff)" >> "$GITHUB_OUTPUT"
+          echo "isort=$(check_library_installed isort)" >> "$GITHUB_OUTPUT"
+          echo "black=$(check_library_installed black)" >> "$GITHUB_OUTPUT"
+          echo "pylint=$(check_library_installed pylint)" >> "$GITHUB_OUTPUT"
+          echo "flake8=$(check_library_installed flake8)" >> "$GITHUB_OUTPUT"
+          echo "pyright=$(check_library_installed pyright)" >> "$GITHUB_OUTPUT"
+
+      - name: Add linting summary
+        run: |
+          echo "## 🧹 Linting" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Linting Strategy:**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Run pyright
+        if: steps.install.outputs.pyright == 'true'
+        id: pyright_check
+        run: |
+          if poetry run pyright .; then
+            echo "- ✅ **pyright:** type checks passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **pyright:** type check issues found" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Run Ruff (preferred linter)
+        if: steps.install.outputs.ruff == 'true'
+        id: ruff_check
+        run: |
+          if poetry run ruff check; then
+            echo "- ✅ **Ruff:** All checks passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **Ruff:** Issues found" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Run isort
+        if: steps.install.outputs.ruff == 'false' && steps.install.outputs.isort == 'true' && !inputs.skip_isort
+        id: isort_check
+        run: |
+          if poetry run isort . --check -v; then
+            echo "- ✅ **isort:** Import sorting passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **isort:** Import sorting issues found" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Run black
+        if: steps.install.outputs.ruff == 'false' && steps.install.outputs.black == 'true' && !inputs.skip_black
+        id: black_check
+        run: |
+          if poetry run black . --check; then
+            echo "- ✅ **black:** Code formatting passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **black:** Code formatting issues found" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Run pylint
+        if: steps.install.outputs.ruff == 'false' && steps.install.outputs.pylint == 'true'
+        continue-on-error: true
+        id: pylint_check
+        run: |
+          if poetry run pylint .; then
+            echo "- ✅ **pylint:** Code analysis passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **pylint:** Code analysis issues found" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Run flake8
+        if: steps.install.outputs.ruff == 'false' && steps.install.outputs.flake8 == 'true'
+        id: flake8_check
+        run: |
+          if poetry run flake8 .; then
+            echo "- ✅ **flake8:** Style guide checks passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **flake8:** Style guide issues found" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+  unit-testing:
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      TOOL: ${{ needs.setup.outputs.tool }}
+      DATABASE_TEST_USERNAME: "postgres"
+      DATABASE_TEST_PASSWORD: "postgres"
+      DATABASE_TEST_NAME: "unittesting"
+      DATABASE_TEST_HOST: "localhost"
+      DATABASE_TEST_PORT: "5432"
+      FLASK_ENV: "testing"
+      DEPLOYMENT_ENV: "testing"
+      DATABASE_TEST_URL: "postgresql://postgres:postgres@localhost:5432/unittesting"
+      JWT_OIDC_TEST_ISSUER: "http://localhost:8081/auth/realms/demo"
+      JWT_OIDC_TEST_WELL_KNOWN_CONFIG: "http://localhost:8081/auth/realms/demo/.well-known/openid-configuration"
+      JWT_OIDC_TEST_ALGORITHMS: "RS256"
+      JWT_OIDC_TEST_AUDIENCE: "sbc-auth-web"
+      JWT_OIDC_TEST_CLIENT_SECRET: "1111111111"
+      JWT_OIDC_TEST_JWKS_CACHE_TIMEOUT: "6000"
+      KEYCLOAK_TEST_ADMIN_CLIENTID: "sbc-auth-admin"
+      KEYCLOAK_TEST_ADMIN_SECRET: "2222222222"
+      KEYCLOAK_TEST_AUTH_AUDIENCE: "sbc-auth-web"
+      KEYCLOAK_TEST_AUTH_CLIENT_SECRET: "1111111111"
+      KEYCLOAK_TEST_BASE_URL: "http://localhost:8081"
+      KEYCLOAK_TEST_REALMNAME: "demo"
+      TOKEN_EXPIRY_PERIOD: 7
+      EMAIL_SECURITY_PASSWORD_SALT: "my_pwd_salt"
+      EMAIL_TOKEN_SECRET_KEY: "mySecretKey"
+      USE_TEST_KEYCLOAK_DOCKER: "YES"
+      USE_DOCKER_MOCK: "YES"
+      STAFF_ADMIN_EMAIL: "test@test.com"
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.WORKING_DIR }}
+
+    services:
+      postgres:
+        image: ghcr.io/bcgov/postgres18-postgis-anon
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: unittesting
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use the runner's Docker Compose
+        run: |
+          docker compose version
+          mkdir -p "$RUNNER_TEMP/bin"
+          printf '#!/bin/sh\nexec docker compose "$@"\n' > "$RUNNER_TEMP/bin/docker-compose"
+          chmod +x "$RUNNER_TEMP/bin/docker-compose"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Install Poetry
+        run: pipx install poetry==2.3.2 --pip-args="--only-binary=:all:"
+
+      - name: Set up Python (with cache)
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ${{ env.WORKING_DIR }}/pyproject.toml
+          cache: poetry
+          cache-dependency-path: |
+            ${{ env.WORKING_DIR }}/poetry.lock
+            shared/python/cloud-sql-connector/**
+
+      - name: Install dependencies
+        env:
+          POETRY_INSTALLER_ONLY_BINARY: ":all:"
+        run: |
+          echo "Installing dependencies using $TOOL..."
+          # Locked source-only dependencies currently lack wheels. All other
+          # index dependencies must use wheels; Git/path packages remain pinned
+          # by poetry.lock or supplied by this checkout.
+          # Environment settings take precedence over project/global config.
+          source_only="flasgger,strict-rfc3339"
+          case "$WORKING_DIR" in
+            */registration_expiry|*/strr-backfiller) source_only+=",lovely-pytest-docker" ;;
+            */strr-email|*/strr-pay) source_only+=",psycopg2" ;;
+          esac
+          export POETRY_INSTALLER_NO_BINARY="$source_only"
+          poetry install
+          echo "Dependency installation completed."
+
+      - name: Run tests
+        run: |
+          echo "## 🧪 Unit Tests" >> $GITHUB_STEP_SUMMARY
+
+          # Define common arguments
+          ARGS="--cov-report=term --cov-report=xml"
+
+          # Determine command based on tool
+          CMD="poetry run pytest"
+
+          echo "Running tests: $CMD $ARGS"
+
+          # Run tests and capture exit code
+          set +e
+          $CMD $ARGS
+          EXIT_CODE=$?
+          set -e
+
+          # Report status
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "- ✅ Tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Tests failed" >> $GITHUB_STEP_SUMMARY
+            exit $EXIT_CODE
+          fi
+
+      - name: Upload coverage reports as artifacts
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.WORKING_DIR }}/coverage.xml
+          retention-days: 1
+
+  code-coverage:
+    needs: unit-testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate Coverage Report
+        uses: bcgov/bcregistry-sre/.github/actions/coverage-report@main
+        with:
+          run_id: ${{ github.run_id }}
+          run_attempt: ${{ github.run_attempt }}
+          coverage_threshold: ${{ inputs.coverage_threshold }}
+
+  verify-build:
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      TOOL: ${{ needs.setup.outputs.tool }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Collect build information
+        id: build_info
+        run: |
+          echo "## 🐳 Build Verification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Check for Dockerfile
+          if [ -f Dockerfile ]; then
+            echo "dockerfile_exists=true" >> "$GITHUB_OUTPUT"
+            echo "**Docker Configuration:**" >> $GITHUB_STEP_SUMMARY
+            echo "- **Dockerfile:** ✅ Found" >> $GITHUB_STEP_SUMMARY
+
+            # Extract Python version from Dockerfile if present
+            if grep -q "FROM python:" Dockerfile; then
+              PYTHON_VERSION=$(grep "FROM python:" Dockerfile | head -1 | sed 's/.*python:\([^-]*\).*/\1/')
+              echo "- **Base Python Version:** $PYTHON_VERSION" >> $GITHUB_STEP_SUMMARY
+              echo "python_version=$PYTHON_VERSION" >> "$GITHUB_OUTPUT"
+            elif grep -q "python" Dockerfile; then
+              echo "- **Python:** ✅ Detected in Dockerfile" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "dockerfile_exists=false" >> "$GITHUB_OUTPUT"
+            echo "**Docker Configuration:**" >> $GITHUB_STEP_SUMMARY
+            echo "- **Dockerfile:** ❌ Not found - skipping build verification" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Build Docker image
+        if: steps.build_info.outputs.dockerfile_exists == 'true'
+        run: |
+          echo "Building Docker image: ${{ inputs.app_name }}"
+
+          # Build with timing
+          start_time=$(date +%s)
+          python3 "$GITHUB_WORKSPACE/scripts/prepare-python-build-context.py" . "$RUNNER_TEMP/strr-build"
+          docker build --no-cache -t ${{ inputs.app_name }} "$RUNNER_TEMP/strr-build"
+          end_time=$(date +%s)
+          build_duration=$((end_time - start_time))
+
+          # Get image information
+          IMAGE_SIZE=$(docker image ls ${{ inputs.app_name }} --format "table {{.Size}}" | tail -1)
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Results:**" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ Build successful" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Duration:** ${build_duration}s" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Size:** $IMAGE_SIZE" >> $GITHUB_STEP_SUMMARY
+
+          # Test basic container functionality
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Container Runtime Verification:**" >> $GITHUB_STEP_SUMMARY
+
+          # Set the appropriate Python command based on the dependency tool
+          PYTHON_CMD="poetry run python"
+
+          if docker run --rm ${{ inputs.app_name }} $PYTHON_CMD -c "import sys; print(sys.version.split()[0])" 2>/dev/null; then
+            CONTAINER_PYTHON_VERSION=$(docker run --rm ${{ inputs.app_name }} $PYTHON_CMD -c "import sys; print(sys.version.split()[0])" 2>/dev/null)
+            echo "- **Python Runtime:** ✅ $CONTAINER_PYTHON_VERSION" >> $GITHUB_STEP_SUMMARY
+
+            # Check for Flask
+            if docker run --rm ${{ inputs.app_name }} $PYTHON_CMD -c "import importlib.metadata; print(importlib.metadata.version('flask'))" 2>/dev/null; then
+              FLASK_VERSION=$(docker run --rm ${{ inputs.app_name }} $PYTHON_CMD -c "import importlib.metadata; print(importlib.metadata.version('flask'))" 2>&1 | grep -E '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+              if [ -n "$FLASK_VERSION" ]; then
+                echo "- **Flask:** ✅ $FLASK_VERSION" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "- **Flask:** ✅ Installed (version unknown)" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+
+            # Check for SQLAlchemy
+            if docker run --rm ${{ inputs.app_name }} $PYTHON_CMD -c "import importlib.metadata; print(importlib.metadata.version('sqlalchemy'))" 2>/dev/null; then
+              SQLALCHEMY_VERSION=$(docker run --rm ${{ inputs.app_name }} $PYTHON_CMD -c "import importlib.metadata; print(importlib.metadata.version('sqlalchemy'))" 2>&1 | grep -E '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+              if [ -n "$SQLALCHEMY_VERSION" ]; then
+                echo "- **SQLAlchemy:** ✅ $SQLALCHEMY_VERSION" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "- **SQLAlchemy:** ✅ Installed (version unknown)" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+
+          else
+            echo "- **Python Runtime:** ❌ Unable to verify" >> $GITHUB_STEP_SUMMARY
+            echo "- **Framework Detection:** ❌ Skipped due to Python runtime failure" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Skip build notification
+        if: steps.build_info.outputs.dockerfile_exists == 'false'
+        run: |
+          echo "Dockerfile does not exist, skipping build verification."

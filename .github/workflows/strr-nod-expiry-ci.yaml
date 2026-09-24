@@ -3,6 +3,10 @@ name: STRR NOC EXPIRY JOB CI
 on:
   pull_request:
     paths:
+      - ".github/workflows/strr-nod-expiry-ci.yaml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - ".github/workflows/strr-python-ci.yaml"
       - "jobs/noc_expiry/**"
       - "tests/python-test-utils/**"
       - "src/strr_api/models/**"
@@ -19,7 +23,7 @@ defaults:
 
 jobs:
   strr-noc-expiry-ci:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    uses: ./.github/workflows/strr-python-ci.yaml
     with:
       app_name: "strr-noc-expiry"
       working_directory: "./jobs/noc_expiry"

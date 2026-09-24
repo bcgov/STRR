@@ -25,7 +25,10 @@ test: ## Run pytest suite
 
 build: ## Build the multi-stage docker container
 	@echo "Building Docker image: $(DOCKER_NAME)"
-	docker build . -t $(DOCKER_NAME) \
+	@set -eu; build_context=$$(mktemp -d); \
+	trap 'rm -rf "$$build_context"' EXIT; \
+	python3 ../../scripts/prepare-python-build-context.py . "$$build_context"; \
+	docker build "$$build_context" -t $(DOCKER_NAME) \
 		--platform linux/amd64 \
 		--build-arg VCS_REF=$(VCS_REF) \
 		--build-arg BUILD_DATE=$(BUILD_DATE)

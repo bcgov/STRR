@@ -8,6 +8,11 @@ on:
       - hotfix*
       - release*
     paths:
+      - ".github/workflows/strr-interaction-updates-job-cd.yaml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - "scripts/configure-iam-deployment.py"
+      - ".github/workflows/strr-python-job-cd.yaml"
       - 'jobs/interactions-update/**'
   workflow_dispatch:
     inputs:
@@ -31,7 +36,7 @@ on:
 
 jobs:
   strr-interaction-updates-job-cd:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
+    uses: ./.github/workflows/strr-python-job-cd.yaml
     with:
       target: ${{ inputs.target }}
       app_name: 'strr-interactions-update'

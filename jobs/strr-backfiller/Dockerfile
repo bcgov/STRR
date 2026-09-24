@@ -1,4 +1,4 @@
-FROM python:3.12.2-bullseye AS development_build
+FROM python:3.12.2-bookworm AS development_build
 
 USER root
 
@@ -63,6 +63,7 @@ RUN groupadd -g "${GID}" -r web \
   && chown web:web -R '/code'
 
 # Copy only requirements, to cache them in docker layer
+COPY --chown=web:web ./_shared/python/cloud-sql-connector /shared/python/cloud-sql-connector
 COPY --chown=web:web ./poetry.lock ./pyproject.toml /code/
 
 COPY --chown=web:web ./src /code/src

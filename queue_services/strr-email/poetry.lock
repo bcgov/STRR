@@ -763,7 +763,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 [[package]]
 name = "cloud-sql-connector"
 version = "0.2.3"
-description = "Cloud SQL connection utilities for database connectivity with authentication and schema management"
+description = "Shared Cloud SQL IAM connection utilities for STRR jobs and queue services"
 optional = false
 python-versions = "^3.12"
 groups = ["main"]
@@ -776,11 +776,8 @@ pg8000 = "^1.30.0"
 sqlalchemy = "^2.0.0"
 
 [package.source]
-type = "git"
-url = "https://github.com/bcgov/sbc-connect-common.git"
-reference = "main"
-resolved_reference = "9ba15bc19f01690185a46796c5d45c333e254bf8"
-subdirectory = "python/cloud-sql-connector"
+type = "directory"
+url = "../../shared/python/cloud-sql-connector"
 
 [[package]]
 name = "cloud-sql-python-connector"
@@ -4969,4 +4966,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12.2"
-content-hash = "ca3f7173bd37b6a9647893fab40551f91d7b304ba75f16833ac4dd77c7796417"
+content-hash = "591682ecd92a35e26111547f22ff2e5a6cebfe85716667fd2a90f826885bddd7"

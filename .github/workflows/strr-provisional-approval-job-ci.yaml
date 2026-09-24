@@ -3,6 +3,10 @@ name: PROVISIONAL APPROVAL JOB CI
 on:
   pull_request:
     paths:
+      - ".github/workflows/strr-provisional-approval-job-ci.yaml"
+      - "shared/python/cloud-sql-connector/**"
+      - "scripts/prepare-python-build-context.py"
+      - ".github/workflows/strr-python-ci.yaml"
       - "jobs/provisional-approval**"
       - "tests/python-test-utils/**"
       - "src/strr_api/models/**"
@@ -19,7 +23,7 @@ defaults:
 
 jobs:
   provisional-approval-job-ci:
-    uses: bcgov/bcregistry-sre/.github/workflows/backend-ci.yaml@main
+    uses: ./.github/workflows/strr-python-ci.yaml
     with:
       app_name: "provisional-approval-job"
       working_directory: "./jobs/provisional-approval"

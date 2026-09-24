@@ -42,3 +42,13 @@ test-unit: ## Run unit tests only (excludes @pytest.mark.integration)
 
 test-integration: ## Run integration tests only (@pytest.mark.integration; needs Docker Postgres)
 	poetry run pytest -m integration
+
+
+build: ## Build the Docker image with the STRR shared package
+	@set -eu; build_context=$$(mktemp -d); \
+	trap 'rm -rf "$$build_context"' EXIT; \
+	python3 ../../scripts/prepare-python-build-context.py . "$$build_context"; \
+	docker build "$$build_context" -t $(DOCKER_NAME) \
+		--platform linux/amd64 \
+		--build-arg VCS_REF=$(shell git rev-parse --short HEAD) \
+		--build-arg BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")

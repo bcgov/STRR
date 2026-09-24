@@ -39,6 +39,7 @@ RUN apt-get update && apt-get upgrade -y \
 WORKDIR /code
 
 # Copy dependency files
+COPY ./_shared/python/cloud-sql-connector /shared/python/cloud-sql-connector
 COPY ./poetry.lock ./pyproject.toml /code/
 
 # Install dependencies into .venv inside /code

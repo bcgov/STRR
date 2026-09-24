@@ -1,5 +1,6 @@
 import os
 
+from cloud_sql_connector import sqlalchemy_settings_from_env
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -7,27 +8,14 @@ from sqlalchemy.orm import sessionmaker
 _engine = None
 
 
-def _build_database_url_from_env() -> str:
-    """Build DB URL using the shared DATABASE_* env contract used by other jobs."""
-    db_user = os.getenv("DATABASE_USERNAME", "")
-    db_password = os.getenv("DATABASE_PASSWORD", "")
-    db_name = os.getenv("DATABASE_NAME", "")
-    db_host = os.getenv("DATABASE_HOST", "")
-    db_port = int(os.getenv("DATABASE_PORT", "5432"))
-    db_unix_socket = os.getenv("DATABASE_UNIX_SOCKET", "")
-
-    if db_unix_socket:
-        return (
-            f"postgresql+pg8000://{db_user}:{db_password}@/{db_name}"
-            f"?unix_sock={db_unix_socket}/.s.PGSQL.5432"
+def _has_local_database_env() -> bool:
+    return bool(
+        os.getenv("DATABASE_UNIX_SOCKET")
+        or all(
+            os.getenv(env_name)
+            for env_name in ("DATABASE_USERNAME", "DATABASE_NAME", "DATABASE_HOST")
         )
-
-    if db_user and db_name and db_host:
-        return (
-            f"postgresql+pg8000://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-        )
-
-    return ""
+    )
 
 
 def get_engine():
@@ -35,8 +23,6 @@ def get_engine():
     global _engine
     if _engine is not None:
         return _engine
-
-    url = os.getenv("DATABASE_URL") or _build_database_url_from_env()
 
     # 1. Determine pool size based on workers (default to 10)
     workers = int(os.getenv("MAX_WORKERS", "10"))
@@ -50,11 +36,17 @@ def get_engine():
         "pool_timeout": 30,  # Seconds to wait for a connection from the pool
     }
 
-    if url:
-        _engine = create_engine(url, **pool_params)
-        return _engine
+    url, engine_options = sqlalchemy_settings_from_env()
+    if "creator" not in engine_options:
+        if database_url := os.getenv("DATABASE_URL"):
+            url = database_url
+        elif not _has_local_database_env():
+            raise ValueError("Missing database connection environment variables.")
 
-    raise ValueError("Missing database connection environment variables.")
+    # Keep this job's existing pool sizing when the shared helper supplies a creator.
+    engine_options = {**engine_options, **pool_params}
+    _engine = create_engine(url, **engine_options)
+    return _engine
 
 
 def get_session():
