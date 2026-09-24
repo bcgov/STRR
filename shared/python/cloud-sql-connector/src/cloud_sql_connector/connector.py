@@ -50,7 +50,7 @@ class DBConfig:
     pool_recycle: int = 300
     pool_use_lifo: bool = True
     pool_pre_ping: bool = True
-    connect_args: dict = None
+    connect_args: dict | None = None
 
     def __post_init__(self):
         """Initialize default connect_args if not provided."""
@@ -98,9 +98,7 @@ def database_uri_from_env(
             f"?unix_sock={db_unix_socket}/.s.PGSQL.5432"
         )
 
-    return (
-        f"postgresql+pg8000://{db_user}:{db_password}@" f"{db_host}:{db_port}/{db_name}"
-    )
+    return f"postgresql+pg8000://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 
 def sqlalchemy_settings_from_env(
@@ -195,7 +193,7 @@ def getconn(db_config: DBConfig) -> object:
 
             return conn
 
-        except PermissionError as e:
+        except PermissionError:
             if attempt < 2:
                 time.sleep(1)
                 continue
