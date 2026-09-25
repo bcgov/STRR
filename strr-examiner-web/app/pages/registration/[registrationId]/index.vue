@@ -189,7 +189,7 @@ watch(
       </ApplicationDetailsView>
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
-      <DecisionPanel />
+      <DecisionPanel v-if="showDecisionPanel" />
       <ExaminerNotes v-if="isExaminerNotesEnabled && isHostApplication" />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
       <HistoricalApplicationsTable

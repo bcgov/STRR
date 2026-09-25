@@ -202,4 +202,21 @@ describe('DecisionPanel', () => {
     const emailTextarea = wrapper.findComponent({ name: 'UTextarea' })
     expect(emailTextarea.props('disabled')).toBe(false)
   })
+
+  it('should not throw when decisionEmailFormRef does not have a clear function', async () => {
+    decisionEmailFormRef.value = {} as any
+    isApplication.value = false
+    activeHeader.value = {
+      examinerActions: [RegistrationActionsE.SUSPEND],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    activeReg.value = {
+      status: RegistrationStatus.ACTIVE
+    }
+
+    await expect(mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })).resolves.not.toThrow()
+  })
 })
