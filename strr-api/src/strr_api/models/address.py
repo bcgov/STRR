@@ -1,6 +1,4 @@
-"""Registration model.
-
-"""
+"""Registration model."""
 
 from __future__ import annotations
 

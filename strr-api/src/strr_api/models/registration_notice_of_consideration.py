@@ -1,6 +1,7 @@
 """
 Model to store Registration Notice of consideration
 """
+
 from __future__ import annotations
 
 from sqlalchemy.sql import text

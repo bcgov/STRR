@@ -38,6 +38,7 @@ The module includes two routes, "/healthz", and "/readyz", which respond with st
 readiness of the API respectively.
 Health is determined by the ability to execute a simple SELECT 1 query on the connected database.
 """
+
 from http import HTTPStatus
 
 from flask import Blueprint, current_app

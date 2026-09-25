@@ -1,4 +1,5 @@
 """Common utility functions."""
+
 from typing import Any
 
 from strr_api.models import Address

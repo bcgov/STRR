@@ -114,8 +114,8 @@ class TestDocumentService:
 
         # Simulate database behavior where .first() picks the first element from matching results
         matching_results = [doc_1, doc_2]
-        mock_document_model.query.filter.return_value.filter.return_value.first.side_effect = (
-            lambda: matching_results[0] if matching_results else None
+        mock_document_model.query.filter.return_value.filter.return_value.first.side_effect = lambda: (
+            matching_results[0] if matching_results else None
         )
 
         result = DocumentService.get_registration_document_by_key(

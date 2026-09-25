@@ -13,6 +13,7 @@
 # limitations under the License.
 # pylint: disable=R0917
 """Service to invoke Rest services."""
+
 import json
 from collections.abc import Iterable
 from typing import Dict
