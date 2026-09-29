@@ -773,25 +773,6 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
-name = "cloud-sql-connector"
-version = "0.2.3"
-description = "Shared Cloud SQL IAM connection utilities for STRR jobs and queue services"
-optional = false
-python-versions = "^3.12"
-groups = ["main"]
-files = []
-develop = false
-
-[package.dependencies]
-cloud-sql-python-connector = "^1.16.0"
-pg8000 = "^1.30.0"
-sqlalchemy = "^2.0.0"
-
-[package.source]
-type = "directory"
-url = "../../shared/python/cloud-sql-connector"
-
-[[package]]
 name = "cloud-sql-python-connector"
 version = "1.20.4"
 description = "Google Cloud SQL Python Connector library"
@@ -4331,15 +4312,16 @@ files = [
 
 [[package]]
 name = "strr-api"
-version = "0.3.12"
+version = "0.3.33"
 description = ""
 optional = false
-python-versions = "^3.11"
+python-versions = "^3.12.2"
 groups = ["main"]
 files = []
 develop = false
 
 [package.dependencies]
+cloud-sql-python-connector = "^1.16.0"
 coloredlogs = "^15.0.1"
 flasgger = "^0.9.7.1"
 flask = "3.0.3"
@@ -4356,6 +4338,8 @@ google-cloud-storage = "2.14.0"
 gunicorn = "^21.2.0"
 jsonschema = {version = "^4.20.0", extras = ["format"]}
 launchdarkly-server-sdk = "^9.0.1"
+nanoid = "^2.0.0"
+pg8000 = "^1.30.0"
 psycopg2-binary = "^2.9.9"
 pycountry = "^23.12.11"
 pydantic = {version = "^2.12.5", extras = ["email"]}
@@ -4370,8 +4354,8 @@ weasyprint = "^62.3"
 [package.source]
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
-reference = "main"
-resolved_reference = "454ee5002ee4324417d9e49b1d067271b2debc74"
+reference = "054d57c3b2a491d3afda2fa9d20e5ae95669da3d"
+resolved_reference = "054d57c3b2a491d3afda2fa9d20e5ae95669da3d"
 subdirectory = "strr-api"
 
 [[package]]
@@ -5023,4 +5007,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.2,<3.15"
-content-hash = "fce17552ab45a0b43426c927d0bdb6f008bce99c4f7093b694c44aa0fa119ad4"
+content-hash = "1bf0e5370e5ac67a6bc81214a84f6026479f73c48b75a5c1f1e0be64861a7305"

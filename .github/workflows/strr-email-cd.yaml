@@ -9,10 +9,6 @@ on:
       - release*
     paths:
       - ".github/workflows/strr-email-cd.yaml"
-      - "shared/python/cloud-sql-connector/**"
-      - "scripts/prepare-python-build-context.py"
-      - "scripts/configure-iam-deployment.py"
-      - ".github/workflows/strr-python-service-cd.yaml"
       - "queue_services/strr-email/**"
   workflow_dispatch:
     inputs:
@@ -26,22 +22,16 @@ on:
           - "uat"
           - "sandbox"
           - "prod"
-      redeploy:
-        description: "Redeploy Application"
-        required: true
-        type: choice
-        options:
-          - "false"
-          - "true"
 
 jobs:
   strr-email-cd:
-    uses: ./.github/workflows/strr-python-service-cd.yaml
+    uses: bcgov/bcregistry-sre/.github/workflows/backend-cd.yaml@main
     with:
       target: ${{ inputs.target }}
       app_name: "strr-email"
       working_directory: "queue_services/strr-email"
-      redeploy: ${{ inputs.redeploy }}
+      # IAM parameters are resolved by Cloud Deploy during a full deployment.
+      redeploy: "false"
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}

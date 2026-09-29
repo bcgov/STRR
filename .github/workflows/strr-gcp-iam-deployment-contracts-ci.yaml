@@ -5,48 +5,38 @@ on:
     branches: [main, develop]
     paths:
       - ".github/workflows/strr-gcp-iam-deployment-contracts-ci.yaml"
+      - ".github/workflows/*-cd.yaml"
       - "tests/deployment/**"
-      - "shared/python/cloud-sql-connector/**"
-      - "scripts/prepare-python-build-context.py"
-      - "scripts/configure-iam-deployment.py"
-      - "scripts/verify-cloud-sql-iam.py"
-      - "scripts/iam-smoke/**"
-      - ".github/workflows/strr-python-*.yaml"
       - "jobs/*/pyproject.toml"
       - "jobs/*/poetry.lock"
-      - "jobs/*/Dockerfile"
-      - "jobs/*/Makefile"
       - "queue_services/strr-*/pyproject.toml"
       - "queue_services/strr-*/poetry.lock"
-      - "queue_services/strr-*/Dockerfile"
-      - "queue_services/strr-*/Makefile"
-      - "queue_services/strr-*/devops/vaults.gcp.env"
-      - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
+      - "strr-api/src/strr_api/common/cloud_sql.py"
+      - "jobs/*/src/**/config.py"
+      - "jobs/interactions-update/src/interactions_update/database.py"
+      - "queue_services/strr-*/src/**/config.py"
       - "jobs/*/devops/vaults.gcp.env"
       - "jobs/*/devops/gcp/clouddeploy.yaml"
+      - "queue_services/strr-*/devops/vaults.gcp.env"
+      - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
   pull_request:
     branches: [main]
     paths:
       - ".github/workflows/strr-gcp-iam-deployment-contracts-ci.yaml"
+      - ".github/workflows/*-cd.yaml"
       - "tests/deployment/**"
-      - "shared/python/cloud-sql-connector/**"
-      - "scripts/prepare-python-build-context.py"
-      - "scripts/configure-iam-deployment.py"
-      - "scripts/verify-cloud-sql-iam.py"
-      - "scripts/iam-smoke/**"
-      - ".github/workflows/strr-python-*.yaml"
       - "jobs/*/pyproject.toml"
       - "jobs/*/poetry.lock"
-      - "jobs/*/Dockerfile"
-      - "jobs/*/Makefile"
       - "queue_services/strr-*/pyproject.toml"
       - "queue_services/strr-*/poetry.lock"
-      - "queue_services/strr-*/Dockerfile"
-      - "queue_services/strr-*/Makefile"
-      - "queue_services/strr-*/devops/vaults.gcp.env"
-      - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
+      - "strr-api/src/strr_api/common/cloud_sql.py"
+      - "jobs/*/src/**/config.py"
+      - "jobs/interactions-update/src/interactions_update/database.py"
+      - "queue_services/strr-*/src/**/config.py"
       - "jobs/*/devops/vaults.gcp.env"
       - "jobs/*/devops/gcp/clouddeploy.yaml"
+      - "queue_services/strr-*/devops/vaults.gcp.env"
+      - "queue_services/strr-*/devops/gcp/clouddeploy.yaml"
   workflow_dispatch:
 
 permissions:
@@ -62,21 +52,3 @@ jobs:
           python-version: "3.12"
       - name: Check Cloud SQL IAM deployment contracts
         run: python -m unittest discover -s tests/deployment
-      - name: Install Poetry
-        run: pipx install poetry==2.3.2 --pip-args="--only-binary=:all:"
-      - name: Install locked shared package and test tools
-        working-directory: shared/python/cloud-sql-connector
-        env:
-          POETRY_INSTALLER_ONLY_BINARY: ":all:"
-          POETRY_INSTALLER_NO_BINARY: ":none:"
-        run: poetry install
-      - name: Test shared Cloud SQL package
-        working-directory: shared/python/cloud-sql-connector
-        run: poetry run pytest
-      - name: Build standalone IAM verifier
-        run: docker build --platform linux/amd64 -f scripts/iam-smoke/Dockerfile -t strr-iam-smoke:ci .
-      - name: Verify container requires IAM settings
-        run: |
-          status=0
-          docker run --rm --network none strr-iam-smoke:ci || status=$?
-          test "$status" -eq 2

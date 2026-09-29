@@ -1,8 +1,9 @@
 import os
 
-from cloud_sql_connector import sqlalchemy_settings_from_env
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from strr_api.common.cloud_sql import sqlalchemy_settings_from_env
 
 # Global singleton to hold the pooled engine
 _engine = None

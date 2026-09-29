@@ -1,5 +1,6 @@
 """Guard deployed STRR database mappings for Cloud SQL IAM authentication."""
 
+import re
 import unittest
 from pathlib import Path
 
@@ -23,12 +24,12 @@ MIGRATED_GCP_VAULTS = tuple(
 EXPECTED_DATABASE_MAPPINGS = {
     "CLOUDSQL_IP_TYPE": "PUBLIC",
     "DATABASE_NAME": "op://database/$APP_ENV/strr-db/DATABASE_NAME",
+    "CLOUDSQL_INSTANCE_CONNECTION_NAME": '"" # from-param: ${cloudsql-instances}',
+    "DATABASE_USERNAME": '"" # from-param: ${database-iam-username}',
 }
 
 REMOVED_DEPLOYED_DB_VARS = (
-    # Non-secret IAM values now come from Cloud Deploy parameters.
-    "DATABASE_USERNAME",
-    "CLOUDSQL_INSTANCE_CONNECTION_NAME",
+    # Cloud deployments must not retain password or socket fallbacks.
     "DATABASE_HOST",
     "DATABASE_PASSWORD",
     "DATABASE_PORT",
@@ -84,7 +85,7 @@ class GcpIamDeploymentContractTest(unittest.TestCase):
                 )
                 self.assertFalse(
                     set(REMOVED_DEPLOYED_DB_VARS) & mappings.keys(),
-                    f"Legacy or duplicate IAM mappings remain active in {vault_file}",
+                    f"Legacy database mappings remain active in {vault_file}",
                 )
 
     def test_all_clouddeploy_targets_bind_iam_to_the_runtime_identity_and_instance(
@@ -118,6 +119,25 @@ class GcpIamDeploymentContractTest(unittest.TestCase):
                         )
                     ],
                 )
+
+    def test_consumers_require_cloud_deploy_to_resolve_iam_parameters(self):
+        workflows = tuple((REPO_ROOT / ".github/workflows").glob("*-cd.yaml"))
+        for consumer in DB_CONSUMERS:
+            directory = consumer.relative_to(REPO_ROOT).as_posix()
+            with self.subTest(consumer=directory):
+                matching = [
+                    workflow.read_text()
+                    for workflow in workflows
+                    if re.search(
+                        rf"working_directory: ['\"](?:\./)?{re.escape(directory)}['\"]",
+                        workflow.read_text(),
+                    )
+                ]
+                self.assertEqual(len(matching), 1)
+                workflow = matching[0]
+                self.assertIn('redeploy: "false"', workflow)
+                self.assertNotIn("inputs.redeploy", workflow)
+                self.assertIn("uses: bcgov/bcregistry-sre/.github/workflows/", workflow)
 
     def test_strr_email_sandbox_uses_the_database_region(self):
         clouddeploy_file = (

@@ -41,9 +41,9 @@ or by accessing this configuration directly.
 """
 import os
 
-from cloud_sql_connector import sqlalchemy_settings_from_env
 from dotenv import find_dotenv
 from dotenv import load_dotenv
+from strr_api.common.cloud_sql import sqlalchemy_settings_from_env
 
 # this will load all the envars from a .env file located in the project root (api)
 load_dotenv(find_dotenv())
@@ -116,9 +116,6 @@ class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
 
     DEBUG = True
     TESTING = True
-    # Cloud Run keeps IAM even when a test configuration is selected.
-    if "creator" not in Config.SQLALCHEMY_ENGINE_OPTIONS:
-        SQLALCHEMY_ENGINE_OPTIONS = {}
 
 
 class TestConfig(Config):  # pylint: disable=too-few-public-methods

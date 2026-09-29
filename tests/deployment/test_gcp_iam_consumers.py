@@ -7,6 +7,7 @@ stubbed so they cannot contact Google, read local credentials, or open a DB.
 import ast
 import importlib.util
 import os
+import re
 import runpy
 import sys
 import tomllib
@@ -17,8 +18,8 @@ from unittest.mock import Mock, patch
 
 from test_gcp_iam_vaults import DB_CONSUMERS, DB_FREE_CONSUMERS, REPO_ROOT
 
-SHARED_PACKAGE = REPO_ROOT / "shared/python/cloud-sql-connector"
-SHARED_DEPENDENCY = "../../shared/python/cloud-sql-connector"
+SHARED_HELPER = REPO_ROOT / "strr-api/src/strr_api/common/cloud_sql.py"
+API_REPOSITORY = "https://github.com/bcgov/STRR.git"
 LEGACY_ENV = {
     "DATABASE_HOST": "legacy-host",
     "DATABASE_PASSWORD": "legacy-password",
@@ -80,17 +81,22 @@ class GcpIamConsumerTest(unittest.TestCase):
             )
         )
         spec = importlib.util.spec_from_file_location(
-            "cloud_sql_connector",
-            SHARED_PACKAGE / "src/cloud_sql_connector/__init__.py",
-            submodule_search_locations=[
-                str(SHARED_PACKAGE / "src/cloud_sql_connector")
-            ],
+            "strr_api.common.cloud_sql", SHARED_HELPER
         )
-        package = importlib.util.module_from_spec(spec)
-        # Force this checkout's implementation even if another package was imported.
-        sys.modules.pop("cloud_sql_connector.connector", None)
-        sys.modules["cloud_sql_connector"] = package
-        spec.loader.exec_module(package)
+        helper = importlib.util.module_from_spec(spec)
+        # Isolate transport contracts from the API's Flask application imports.
+        # Consumer image tests exercise the normal installed-package import.
+        self.stack.enter_context(
+            patch.dict(
+                sys.modules,
+                {
+                    "strr_api": ModuleType("strr_api"),
+                    "strr_api.common": ModuleType("strr_api.common"),
+                    "strr_api.common.cloud_sql": helper,
+                },
+            )
+        )
+        spec.loader.exec_module(helper)
 
     def load_connection_module(self, consumer, env):
         modules = _connection_modules(consumer)
@@ -117,28 +123,61 @@ class GcpIamConsumerTest(unittest.TestCase):
                 for config in configurations
             ]
 
-    def test_every_consumer_uses_the_same_local_package(self):
+    def test_every_consumer_uses_the_same_pinned_api_dependency(self):
         self.assertTrue(DB_CONSUMERS)
+        revisions = set()
         for consumer in DB_CONSUMERS:
             with self.subTest(consumer=consumer.relative_to(REPO_ROOT)):
                 project = tomllib.loads((consumer / "pyproject.toml").read_text())
-                dependency = project["tool"]["poetry"]["dependencies"][
-                    "cloud-sql-connector"
-                ]
-                self.assertEqual(dependency["path"], SHARED_DEPENDENCY)
-                self.assertEqual(
-                    (consumer / dependency["path"]).resolve(), SHARED_PACKAGE
-                )
+                dependencies = project["tool"]["poetry"].get("dependencies", {})
+                self.assertNotIn("cloud-sql-connector", dependencies)
+                if "strr-api" in dependencies:
+                    dependency = dependencies["strr-api"]
+                    revision = dependency["rev"]
+                    self.assertRegex(revision, r"^[0-9a-f]{40}$")
+                    self.assertEqual(
+                        dependency,
+                        {
+                            "git": API_REPOSITORY,
+                            "rev": revision,
+                            "subdirectory": "strr-api",
+                        },
+                    )
+                else:
+                    requirements = project["project"]["dependencies"]
+                    self.assertFalse(
+                        any(r.startswith("cloud-sql-connector") for r in requirements)
+                    )
+                    api_requirements = [r for r in requirements if r.startswith("strr-api ")]
+                    self.assertEqual(len(api_requirements), 1)
+                    match = re.fullmatch(
+                        rf"strr-api\s*@\s*git\+{re.escape(API_REPOSITORY)}"
+                        r"@([0-9a-f]{40})#subdirectory=strr-api",
+                        api_requirements[0],
+                    )
+                    self.assertIsNotNone(match, "The API Git dependency must pin a full commit")
+                    revision = match.group(1)
+                revisions.add(revision)
                 lock = tomllib.loads((consumer / "poetry.lock").read_text())
+                self.assertNotIn(
+                    "cloud-sql-connector", [p["name"] for p in lock["package"]]
+                )
                 packages = [
-                    p for p in lock["package"] if p["name"] == "cloud-sql-connector"
+                    p for p in lock["package"] if p["name"] == "strr-api"
                 ]
                 self.assertEqual(len(packages), 1)
                 self.assertEqual(
                     packages[0]["source"],
-                    {"type": "directory", "url": SHARED_DEPENDENCY},
+                    {
+                        "type": "git",
+                        "url": API_REPOSITORY,
+                        "reference": revision,
+                        "resolved_reference": revision,
+                        "subdirectory": "strr-api",
+                    },
                 )
                 self.assertEqual(len(_connection_modules(consumer)), 1)
+        self.assertEqual(len(revisions), 1, "Consumers must install one helper revision")
 
     def test_every_deployed_worker_is_classified(self):
         expected = set(DB_CONSUMERS) | {
@@ -228,7 +267,7 @@ class GcpIamConsumerTest(unittest.TestCase):
     def test_local_test_database_overrides_remain_available(self):
         for consumer in DB_CONSUMERS:
             with self.subTest(consumer=consumer.relative_to(REPO_ROOT)):
-                module, _ = self.load_connection_module(
+                module, settings = self.load_connection_module(
                     consumer,
                     {
                         **LEGACY_ENV,
@@ -236,13 +275,29 @@ class GcpIamConsumerTest(unittest.TestCase):
                         "DATABASE_NAME": "local-db",
                     },
                 )
-                config = module.get("TestConfig")
-                if config is not None and hasattr(config, "DATABASE_TEST_USERNAME"):
-                    self.assertIn(
-                        "test-user:test-password@test-host:5432/test-db",
+                for _, options in settings:
+                    self.assertNotIn("creator", options)
+                if "get_engine" in module:
+                    self.assertEqual(settings[0][0], LEGACY_ENV["DATABASE_URL"])
+                elif consumer.parent.name == "jobs":
+                    config = module["TestConfig"]
+                    self.assertEqual(
                         config.SQLALCHEMY_DATABASE_URI,
+                        "postgresql://test-user:test-password@test-host:5432/test-db",
                     )
-                    self.assertNotIn("creator", config.SQLALCHEMY_ENGINE_OPTIONS)
+                elif consumer.name == "strr-email":
+                    self.assertEqual(
+                        module["UnitTestConfig"].SQLALCHEMY_DATABASE_URI,
+                        "postgresql+pg8000://test-user:test-password@/test-db"
+                        "?unix_sock=/cloudsql/legacy-instance/.s.PGSQL.5432",
+                    )
+                else:
+                    for uri, _ in settings:
+                        self.assertEqual(
+                            uri,
+                            "postgresql+pg8000://local-user:legacy-password@/local-db"
+                            "?unix_sock=/cloudsql/legacy-instance/.s.PGSQL.5432",
+                        )
 
 
 if __name__ == "__main__":
