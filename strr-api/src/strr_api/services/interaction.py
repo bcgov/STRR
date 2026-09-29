@@ -196,12 +196,14 @@ class InteractionService:
         provider_status = notify_response.get("notifyStatus")
         mapped_status = cls._map_recipient_delivery_status(provider_status or default_status)
 
+        default_ref = ref_list[0] if ref_list else None
+
         return [
             cls._recipient_status_row(
                 email_address=recipient,
                 status=mapped_status,
                 provider_status=provider_status,
-                notify_reference=ref_list[i] if i < len(ref_list) else (ref_list[0] if ref_list else None),
+                notify_reference=ref_list[i] if i < len(ref_list) else default_ref,
                 request_date=request_date,
                 sent_date=sent_date,
             )
@@ -322,11 +324,12 @@ class InteractionService:
             raise ExternalServiceException(error="Email not sent", status_code=HTTPStatus.BAD_REQUEST)
 
         if event_name := InteractionService.email_event_mapper.get(payload.email_type):
-            event_type = (
-                Events.EventType.REGISTRATION
-                if registration_id
-                else (Events.EventType.APPLICATION if application_id else Events.EventType.USER)
-            )
+            if registration_id:
+                event_type = Events.EventType.REGISTRATION
+            elif application_id:
+                event_type = Events.EventType.APPLICATION
+            else:
+                event_type = Events.EventType.USER
             EventsService.save_event(
                 event_type=event_type,
                 event_name=event_name,
@@ -451,7 +454,12 @@ class InteractionService:
         notify_json: dict | None = None,
     ) -> dict:
         """Build searchable metadata for dashboards, alerts, and audit support."""
-        target_entity = "application" if application_id else ("registration" if registration_id else "customer")
+        if application_id:
+            target_entity = "application"
+        elif registration_id:
+            target_entity = "registration"
+        else:
+            target_entity = "customer"
         target_id = application_id or registration_id or customer_id
         metadata = {
             "status": status.value,
