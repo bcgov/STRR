@@ -3,7 +3,7 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import create_engine, pool, text
+from sqlalchemy import create_engine, event, pool, text
 
 # 1. Passive Detection: Don't create an app, just look for one
 try:
@@ -45,9 +45,19 @@ def get_metadata():
 config.set_main_option('sqlalchemy.url', get_engine_url())
 
 
+def prepare_pg8000_autocommit(connection, options):
+    # Alembic commits its transaction, then reads the isolation level. With
+    # pg8000 that SHOW starts a DBAPI transaction invisible to SQLAlchemy.
+    # End only that probe before entering an explicit autocommit block.
+    if options.get("isolation_level") == "AUTOCOMMIT" and not connection.in_transaction():
+        connection.connection.dbapi_connection.rollback()
+
+
 def run_migrations_online():
     connectable = get_engine()
     with connectable.connect() as connection:
+        if connection.dialect.driver == "pg8000":
+            event.listen(connection, "set_connection_execution_options", prepare_pg8000_autocommit)
         owner_role = os.getenv("DATABASE_OWNER_ROLE")
         if owner_role:
             safe_role = owner_role.replace('"', '""')  # Escape any quotes for SQL safety

@@ -36,6 +36,7 @@ nanoid = "^2.0.0"
 sql-versioning = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/sql-versioning", branch = "main" }
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 testcontainers = "^4.14.0"
+cloud-sql-connector = { git = "https://github.com/Jacky-Pham/sbc-connect-common.git", subdirectory = "python/cloud-sql-connector", rev = "395a3bdd402d918f2ba3df6d6cf26a629872a121" }
 
 [tool.poetry.group.test.dependencies]
 freezegun = "^1.2.2"
