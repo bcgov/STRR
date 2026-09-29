@@ -375,6 +375,31 @@ def test_dispatch_email_partial_recipient_failure(
     assert interaction.notify_reference == "111"
     assert interaction.meta_data["notify_references"] == "111,333"
     assert interaction.meta_data["notify_response"]["ids"] == "111,333"
+    assert interaction.meta_data["notify_response"]["recipients"] == "foo@foo.com,baz@baz.com"
+    assert interaction.meta_data["notify_response"]["failed_recipients"] == [
+        {
+            "email_address": "bas@ba$.com",
+            "status_code": HTTPStatus.BAD_REQUEST,
+            "error": {"message": "bad email"},
+        }
+    ]
+
+    # Events API verification
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == 1
+    event_recipients = rows[0]["structuredDetails"]["recipientStatuses"]
+    assert len(event_recipients) == 3
+
+    recipient_by_email = {r["email_address"]: r for r in event_recipients}
+    assert recipient_by_email["foo@foo.com"]["status"] == "SENT"
+    assert recipient_by_email["foo@foo.com"]["notify_reference"] == "111"
+
+    assert recipient_by_email["bas@ba$.com"]["status"] == "FAILED"
+    assert recipient_by_email["bas@ba$.com"]["failure_reason"] == "bad email"
+    assert recipient_by_email["bas@ba$.com"]["notify_reference"] is None
+
+    assert recipient_by_email["baz@baz.com"]["status"] == "SENT"
+    assert recipient_by_email["baz@baz.com"]["notify_reference"] == "333"
 
 
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
@@ -405,6 +430,20 @@ def test_dispatch_email_all_recipients_fail(mock_requests_post, mock_get_token, 
     assert mock_requests_post.call_count == 2
     assert excinfo.value.status_code == HTTPStatus.BAD_REQUEST
     assert excinfo.value.error == "'Email not sent', 400"
+
+    stored = session.query(CustomerInteraction).filter(
+        CustomerInteraction.application_id == setup_parents["application_id"]
+    ).one()
+    assert stored.status == InteractionStatus.FAILED
+    assert len(stored.meta_data["notify_response"]["failed_recipients"]) == 2
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert len(rows) == 1
+    assert rows[0]["eventName"] == "EMAIL_FAILED"
+    event_recipients = rows[0]["structuredDetails"]["recipientStatuses"]
+    assert len(event_recipients) == 2
+    assert all(r["status"] == "FAILED" for r in event_recipients)
+    assert all(r["failure_reason"] == "bad email" for r in event_recipients)
 
 
 @pytest.mark.parametrize(

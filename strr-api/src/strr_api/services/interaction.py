@@ -214,6 +214,22 @@ class InteractionService:
             recipient_statuses = cls._fallback_recipient_statuses(meta_data, status, created_at_iso)
 
         notify_response = meta_data.get("notify_response") if isinstance(meta_data.get("notify_response"), dict) else {}
+        for failed in notify_response.get("failed_recipients") or meta_data.get("failed_recipients") or []:
+            if isinstance(failed, dict):
+                recipient_statuses.append(
+                    {
+                        "email_address": failed.get("email_address"),
+                        "failure_reason": cls._extract_failure_reason(failed.get("error"), failed.get("status_code")),
+                        "failure_type": "PERMANENT_FAILURE",
+                        "notify_reference": None,
+                        "provider_reference": None,
+                        "request_date": notify_response.get("requestDate") or created_at_iso,
+                        "sent_date": None,
+                        "status": "FAILED",
+                        "provider_status": "PERMANENT_FAILURE",
+                    }
+                )
+
         recipient_status_updated_at = (
             notify_delivery.get("updated_at")
             or notify_response.get("sentDate")
@@ -238,16 +254,13 @@ class InteractionService:
         }
 
     @overload
-    def dispatch(*, application_id: int) -> None:
-        ...
+    def dispatch(*, application_id: int) -> None: ...
 
     @overload
-    def dispatch(*, registration_id: int) -> None:
-        ...
+    def dispatch(*, registration_id: int) -> None: ...
 
     @overload
-    def dispatch(*, customer_id: int) -> None:
-        ...
+    def dispatch(*, customer_id: int) -> None: ...
 
     @staticmethod
     @validate_mutex("application_id", "registration_id", "customer_id", min_count=1, max_count=1)
@@ -474,6 +487,8 @@ class InteractionService:
             metadata["notify_response"] = InteractionService._json_safe(notify_json)
             if notify_ids := notify_json.get("ids"):
                 metadata["notify_references"] = notify_ids
+            if failed_recipients := notify_json.get("failed_recipients"):
+                metadata["failed_recipients"] = InteractionService._json_safe(failed_recipients)
         return {key: value for key, value in metadata.items() if value is not None}
 
     @staticmethod
@@ -484,6 +499,21 @@ class InteractionService:
             return value
         except TypeError:
             return str(value)
+
+    @staticmethod
+    def _extract_failure_reason(error, status_code: int | None = None) -> str:
+        """Extract a readable failure reason from a Notify error payload."""
+        if isinstance(error, dict):
+            if "message" in error and error["message"]:
+                return str(error["message"])
+            if "error" in error and error["error"]:
+                return str(error["error"])
+            return json.dumps(error)
+        if error:
+            return str(error)
+        if status_code:
+            return f"HTTP error {status_code}"
+        return "Failed to send email via notify service"
 
     @staticmethod
     def _send_email_to_notify_service(email_info):
@@ -501,6 +531,8 @@ class InteractionService:
             return InteractionService._post_email_to_notify(email_info.email, email_info)
 
         success_ids: list = []
+        success_recipients: list = []
+        failed_recipients: list = []
         last_result: dict = {"id": -1}
         for recipient in recipients:
             single_email = {**email, "recipients": recipient}
@@ -508,13 +540,30 @@ class InteractionService:
             notify_id = result.get("id") if isinstance(result, dict) else None
             if InteractionService._valid_notify_id(notify_id):
                 success_ids.append(notify_id)
+                success_recipients.append(recipient)
                 last_result = result
+            else:
+                failed_recipients.append(
+                    {
+                        "email_address": recipient,
+                        "status_code": result.get("status_code") if isinstance(result, dict) else None,
+                        "error": result.get("error") if isinstance(result, dict) else None,
+                    }
+                )
 
         if not success_ids:
-            return {"id": -1}
+            return {"id": -1, "failed_recipients": failed_recipients}
 
         combined_ids = ",".join(str(i) for i in success_ids)[:100]
-        return {**last_result, "id": success_ids[0], "ids": combined_ids}
+        response = {
+            **last_result,
+            "id": success_ids[0],
+            "ids": combined_ids,
+            "recipients": ",".join(success_recipients),
+        }
+        if failed_recipients:
+            response["failed_recipients"] = failed_recipients
+        return response
 
     @staticmethod
     def _post_email_to_notify(email_payload, email_info: EmailInfo | None = None):
