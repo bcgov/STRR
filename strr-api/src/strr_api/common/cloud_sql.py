@@ -86,7 +86,7 @@ def database_uri_from_env(env: Mapping[str, str] | None = None) -> str:
     db_port = values.get("DATABASE_PORT", "5432")
 
     if db_unix_socket := values.get("DATABASE_UNIX_SOCKET"):
-        return f"postgresql+pg8000://{db_user}:{db_password}@/{db_name}" f"?unix_sock={db_unix_socket}/.s.PGSQL.5432"
+        return f"postgresql+pg8000://{db_user}:{db_password}@/{db_name}?unix_sock={db_unix_socket}/.s.PGSQL.5432"
 
     return f"postgresql+pg8000://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 

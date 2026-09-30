@@ -262,7 +262,10 @@ export default {
       hostAddressNotSame: 'PR requirement applies',
       hostIsBusiness: 'Host is a business',
       unitNumberMissing: 'Unit Number Missing',
-      notSameProperty: "Unit not on the same property as host's principal residence"
+      notSameProperty: "Unit not on the same property as host's principal residence",
+      emailDeliveryFailed: 'Delivery Failed',
+      emailDeliveryFailedTooltip: 'Email notification could not be delivered to this address. Click to view history.',
+      viewDeliveryDetails: 'View delivery failure details in history'
     }
   },
   text: {
@@ -735,6 +738,35 @@ export default {
     CONDITIONS_OF_APPROVAL_UPDATED: 'Registration - Updated conditions of approval',
     REGISTRATION_DOCUMENT_UPLOADED: 'Registration document uploaded',
     RENEWAL_REMINDER_SENT: 'Renewal reminder sent'
+  },
+  filingHistoryEmailTypes: {
+    HOST_AUTO_APPROVED: 'Host auto approved',
+    HOST_FULL_REVIEW_APPROVED: 'Host full review approved',
+    HOST_PROVISIONAL_REVIEW: 'Host provisional review',
+    HOST_PROVISIONALLY_APPROVED: 'Host registration fully approved',
+    HOST_REGISTRATION_ACTIVE: 'Host registration active',
+    HOST_REGISTRATION_CANCELLED: 'Host registration cancelled',
+    HOST_REGISTRATION_SUSPENDED: 'Host registration suspended',
+    HOST_RENEWAL_REMINDER: 'Host renewal reminder',
+    HOST_DECLINED: 'Host application refused',
+    NOC: 'Notice of consideration',
+    REGISTRATION_NOC: 'Notice of consideration',
+    PROVISIONAL_REVIEW_NOC: 'Notice of consideration',
+    STRATA_HOTEL_REGISTRATION_ACTIVE: 'Strata hotel registration active',
+    STRATA_HOTEL_REGISTRATION_CANCELLED: 'Strata hotel registration cancelled',
+    STRATA_HOTEL_RENEWAL_REMINDER: 'Strata hotel renewal reminder',
+    PLATFORM_AUTO_APPROVED: 'Platform auto approved',
+    PLATFORM_REGISTRATION_CANCELLED: 'Platform registration cancelled',
+    PLATFORM_RENEWAL_REMINDER: 'Platform renewal reminder'
+  },
+  filingHistoryRecipientStatuses: {
+    CREATED: 'Created',
+    IN_TRANSIT: 'In transit',
+    PENDING: 'Pending',
+    SENT: 'Sent',
+    DELIVERED: 'Delivered',
+    FAILED: 'Failed',
+    UNKNOWN: 'Unknown'
   },
   approvalConditions: {
     principalResidence: 'Principal Residence',
