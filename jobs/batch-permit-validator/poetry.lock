@@ -3687,7 +3687,7 @@ files = [
 
 [[package]]
 name = "strr-api"
-version = "0.3.29"
+version = "0.3.33"
 description = ""
 optional = false
 python-versions = "^3.12.2"
@@ -3727,8 +3727,8 @@ weasyprint = "^62.3"
 [package.source]
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
-reference = "main"
-resolved_reference = "e2c2f26d5a30bc60d2477dbca1754bdf14a4b56b"
+reference = "b3dd57ce3c1a4cb7f0694b5e06746302778a4433"
+resolved_reference = "b3dd57ce3c1a4cb7f0694b5e06746302778a4433"
 subdirectory = "strr-api"
 
 [[package]]
@@ -3736,14 +3736,14 @@ name = "strr-test-utils"
 version = "0.1.0"
 description = "Shared Test Utilities for STRR Jobs"
 optional = false
-python-versions = "^3.12"
+python-versions = ">=3.12.2,<4.0"
 groups = ["dev"]
 files = []
 develop = true
 
 [package.dependencies]
 flask-sqlalchemy = "*"
-pytest = "^8.0.0"
+pytest = ">=8.0.0,<10.0.0"
 sqlalchemy = "*"
 structlog = "*"
 testcontainers = {version = "^4.0.0", extras = ["postgres", "redis"]}
@@ -4260,4 +4260,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12.2"
-content-hash = "5f8e2f667868fde9e522a0a7bf27fc90cb03c69ff4abcd7f9b069f4322ee36ec"
+content-hash = "29499c514e2f8ef067957bf4beafbd3374768cfd61c75cee6ac1dffbde31a817"
