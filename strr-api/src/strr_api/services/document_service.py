@@ -34,6 +34,7 @@
 # pylint: disable=R0913
 # pylint: disable=E1102
 """Manages document model interactions."""
+
 from strr_api.models import Document
 from strr_api.services.gcp_storage_service import GCPStorageService
 

@@ -1,6 +1,7 @@
 """
 Model  for LTSA details of an application/registration.
 """
+
 from __future__ import annotations
 
 from typing import List, Optional

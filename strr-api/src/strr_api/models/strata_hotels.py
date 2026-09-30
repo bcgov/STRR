@@ -1,6 +1,5 @@
-"""Strata Hotels model.
+"""Strata Hotels model."""
 
-"""
 from __future__ import annotations
 
 from sql_versioning import Versioned

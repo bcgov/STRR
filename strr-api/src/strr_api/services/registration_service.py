@@ -37,6 +37,7 @@
 # pylint: disable=C0302
 # pylint: disable=R0904
 """Manages registration model interactions."""
+
 import json
 import logging
 import random
@@ -453,11 +454,11 @@ class RegistrationService:
             nickname=registration_request.unitAddress.nickname,
             parcel_identifier=registration_request.unitDetails.parcelIdentifier,
             local_business_licence=registration_request.unitDetails.businessLicense,
-            local_business_licence_expiry_date=datetime.strptime(
-                registration_request.unitDetails.businessLicenseExpiryDate, "%Y-%m-%d"
-            ).date()
-            if registration_request.unitDetails.businessLicenseExpiryDate
-            else None,
+            local_business_licence_expiry_date=(
+                datetime.strptime(registration_request.unitDetails.businessLicenseExpiryDate, "%Y-%m-%d").date()
+                if registration_request.unitDetails.businessLicenseExpiryDate
+                else None
+            ),
             bl_exempt_reason=registration_request.unitDetails.blExemptReason,
             space_type=registration_request.unitDetails.rentalUnitSpaceType,
             host_residence=registration_request.unitDetails.hostResidence,
@@ -523,16 +524,18 @@ class RegistrationService:
                 date_of_birth=registration_request.secondaryContact.dateOfBirth,
                 social_insurance_number=registration_request.secondaryContact.socialInsuranceNumber,
                 business_number=registration_request.secondaryContact.businessNumber,
-                address=Address(
-                    country=registration_request.secondaryContact.mailingAddress.country,
-                    street_address=registration_request.secondaryContact.mailingAddress.address,
-                    street_address_additional=registration_request.secondaryContact.mailingAddress.addressLineTwo,
-                    city=registration_request.secondaryContact.mailingAddress.city,
-                    province=registration_request.secondaryContact.mailingAddress.province,
-                    postal_code=registration_request.secondaryContact.mailingAddress.postalCode,
-                )
-                if registration_request.secondaryContact.mailingAddress
-                else None,
+                address=(
+                    Address(
+                        country=registration_request.secondaryContact.mailingAddress.country,
+                        street_address=registration_request.secondaryContact.mailingAddress.address,
+                        street_address_additional=registration_request.secondaryContact.mailingAddress.addressLineTwo,
+                        city=registration_request.secondaryContact.mailingAddress.city,
+                        province=registration_request.secondaryContact.mailingAddress.province,
+                        postal_code=registration_request.secondaryContact.mailingAddress.postalCode,
+                    )
+                    if registration_request.secondaryContact.mailingAddress
+                    else None
+                ),
             )
             rental_property.contacts.append(secondary_property_contact)
 

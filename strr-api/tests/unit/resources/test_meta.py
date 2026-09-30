@@ -35,15 +35,15 @@
 
 Test-Suite to ensure that the /meta endpoint is working as expected.
 """
+
 from importlib.metadata import version
 
 
 def test_meta_no_commit_hash(client):
     """Assert that the endpoint returns just the services __version__."""
-    from flask import __version__ as framework_version
-
     PACKAGE_NAME = "strr_api"
     ver = version(PACKAGE_NAME)
+    framework_version = version("flask")
 
     rv = client.get("/meta/info")
 
@@ -56,10 +56,9 @@ def test_meta_no_commit_hash(client):
 
 def test_meta_with_commit_hash(monkeypatch, client):
     """Assert that the endpoint return __version__ and the last git hash used to build the services image."""
-    from flask import __version__ as framework_version
-
     PACKAGE_NAME = "strr_api"
     ver = version(PACKAGE_NAME)
+    framework_version = version("flask")
 
     commit_hash = "deadbeef_ha"
     monkeypatch.setenv("VCS_REF", commit_hash)
