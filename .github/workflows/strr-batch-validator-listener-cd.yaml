@@ -9,6 +9,11 @@ on:
       - release*
     paths:
       - "queue_services/batch-permit-validator/**"
+      - "terraform/validation/**"
+      - "terraform/scripts/**"
+      - ".github/workflows/strr-terraform.yaml"
+      - ".github/scripts/application_changes.py"
+      - ".github/workflows/strr-batch-validator-listener-cd.yaml"
   workflow_dispatch:
     inputs:
       target:
@@ -30,7 +35,46 @@ on:
           - "true"
 
 jobs:
+  changes:
+    # Extra DEV infrastructure paths must not promote applications elsewhere.
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      application: ${{ steps.paths.outputs.application }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check application paths
+        id: paths
+        run: python3 .github/scripts/application_changes.py queue_services/batch-permit-validator
+
+  terraform:
+    # Application deployments outside main/DEV keep their existing behavior.
+    if: >-
+      github.ref_protected &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && inputs.target == 'dev'))
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/strr-terraform.yaml
+    with:
+      stack: validation
+      action: apply
+
   batch-permit-listener-cd:
+    needs: [terraform, changes]
+    if: >-
+      !cancelled() &&
+      (needs.terraform.result == 'success' || needs.terraform.result == 'skipped') &&
+      (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' ||
+       (needs.changes.result == 'success' && needs.changes.outputs.application == 'true'))
     uses: bcgov/bcregistry-sre/.github/workflows/backend-cd.yaml@main
     with:
       target: ${{ inputs.target }}

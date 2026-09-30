@@ -1,0 +1,119 @@
+name: STRR Terraform
+
+on:
+  workflow_call:
+    inputs:
+      stack:
+        description: Terraform root to manage (api, email, or validation)
+        required: true
+        type: string
+      action:
+        description: Terraform action for the dev environment
+        type: string
+        default: apply
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: Terraform root to manage
+        required: true
+        type: choice
+        options:
+          - api
+          - email
+          - validation
+      action:
+        description: Terraform action for the dev environment
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+        default: plan
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: strr-terraform-dev-${{ inputs.stack }}
+  queue: max
+  cancel-in-progress: false
+
+jobs:
+  terraform:
+    name: Terraform dev ${{ inputs.stack }} - ${{ inputs.action }}
+    runs-on: ubuntu-latest
+    environment: dev
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      TF_STACK: ${{ inputs.stack }}
+      TF_ACTION: ${{ inputs.action }}
+      TF_IN_AUTOMATION: "true"
+      REF_PROTECTED: ${{ github.ref_protected }}
+
+    steps:
+      - name: Validate inputs and apply branch
+        run: |
+          case "$TF_STACK" in
+            api|email|validation) ;;
+            *) echo "Unsupported Terraform stack: $TF_STACK" >&2; exit 1 ;;
+          esac
+          case "$TF_ACTION" in
+            plan|apply) ;;
+            *) echo "Unsupported Terraform action: $TF_ACTION" >&2; exit 1 ;;
+          esac
+          if [[ "$TF_ACTION" == "apply" && ( "$GITHUB_REF" != "refs/heads/main" || "$REF_PROTECTED" != "true" ) ]]; then
+            echo "Terraform apply requires protected main." >&2
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: projects/331250273634/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
+          service_account: sa-strr-infra@bcrbk9-tools.iam.gserviceaccount.com
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
+        with:
+          terraform_version: 1.10.5
+          terraform_wrapper: false
+
+      - name: Terraform init
+        run: terraform -chdir="terraform/$TF_STACK" init -input=false -lockfile=readonly
+
+      - name: Terraform format check
+        run: terraform -chdir="terraform/$TF_STACK" fmt -check -diff -recursive
+
+      - name: Terraform validate
+        run: terraform -chdir="terraform/$TF_STACK" validate
+
+      - name: Terraform plan
+        run: terraform -chdir="terraform/$TF_STACK" plan -input=false -lock-timeout=5m -out=tfplan
+
+      - name: Record plan summary
+        run: |
+          {
+            echo "### DEV Terraform: $TF_STACK"
+            echo '```terraform'
+            terraform -chdir="terraform/$TF_STACK" show -no-color tfplan
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check plan safety
+        run: |
+          terraform -chdir="terraform/$TF_STACK" show -json tfplan | python3 terraform/scripts/check_plan.py
+
+      - name: Terraform apply
+        if: inputs.action == 'apply'
+        run: terraform -chdir="terraform/$TF_STACK" apply -input=false -lock-timeout=5m tfplan
