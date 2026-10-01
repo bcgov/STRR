@@ -62,8 +62,8 @@ pre-commit run --all-files
 ## Shared database connections for jobs and queues
 
 Jobs and database queue services use `strr_api.common.cloud_sql` through their existing
-GitHub `strr-api` dependency. Pin that dependency to a commit containing the helper and
-regenerate the consumer lockfile when the helper changes. This keeps application-only
+GitHub `strr-api` dependency on `main`. Regenerate consumer lockfiles after merging
+helper changes into `main` and before deploying the consumers. This keeps application-only
 Docker builds working without an additional package or build-context staging step.
 The API's own connection configuration is unchanged.
 
