@@ -1,6 +1,6 @@
 import { chromium, expect } from '@playwright/test'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { resolve, sep } from 'node:path'
+import { extname, resolve, sep } from 'node:path'
 import { createHash } from 'node:crypto'
 import { loadTestCard, preparePlatformCheckout } from './platform-checkout.mjs'
 import { createStrataPayment } from './strata-checkout.mjs'
@@ -86,23 +86,40 @@ try {
       JSON.stringify(publicConfig).replace(/</g, '\\u003c') + '</script></body>')
     current.candidateAssets = { htmlSha256: createHash('sha256').update(candidateHtml).digest('hex'), documents: 0, served: {}, missing: [] }
     page = await context.newPage()
-    await page.route(app.origin + '/**', async route => {
-      if (route.request().isNavigationRequest()) {
+    // CDP handles each redirected request too; Playwright routes only the first
+    // request in a redirect chain, which can otherwise load the deployed UI.
+    const cdp = await context.newCDPSession(page)
+    const mimeTypes = { '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json',
+      '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon',
+      '.woff': 'font/woff', '.woff2': 'font/woff2', '.webp': 'image/webp' }
+    cdp.on('Fetch.requestPaused', async ({ requestId, request, resourceType }) => {
+      const pathname = decodeURIComponent(new URL(request.url).pathname)
+      let body
+      let contentType
+      let responseCode = 200
+      if (resourceType === 'Document') {
         appResult.candidateAssets.documents++
-        return route.fulfill({ status: 200, contentType: 'text/html', body: html })
+        body = Buffer.from(html)
+        contentType = 'text/html'
+      } else {
+        const filePath = resolve(assetRoot, '.' + pathname)
+        try {
+          if (!filePath.startsWith(assetRoot + sep)) throw new Error('Invalid asset path')
+          body = await readFile(filePath)
+          appResult.candidateAssets.served[pathname] = createHash('sha256').update(body).digest('hex')
+          contentType = mimeTypes[extname(filePath)] || 'application/octet-stream'
+        } catch {
+          appResult.candidateAssets.missing.push(pathname)
+          responseCode = 404
+          body = Buffer.alloc(0)
+          contentType = 'text/plain'
+        }
       }
-      const pathname = decodeURIComponent(new URL(route.request().url()).pathname)
-      const filePath = resolve(assetRoot, '.' + pathname)
-      if (!filePath.startsWith(assetRoot + sep)) return route.abort()
-      try {
-        const body = await readFile(filePath)
-        appResult.candidateAssets.served[pathname] = createHash('sha256').update(body).digest('hex')
-        await route.fulfill({ status: 200, path: filePath })
-      } catch {
-        appResult.candidateAssets.missing.push(pathname)
-        await route.fulfill({ status: 404, body: '' })
-      }
+      await cdp.send('Fetch.fulfillRequest', { requestId, responseCode,
+        responseHeaders: [{ name: 'content-type', value: contentType }, { name: 'cache-control', value: 'no-store' }],
+        body: body.toString('base64') }).catch(() => {})
     })
+    await cdp.send('Fetch.enable', { patterns: [{ urlPattern: app.origin + '/*', requestStage: 'Request' }] })
     current.stage = 'login'
     const pending = []
     page.on('pageerror', error => appResult.browserErrors.push({ name: error.name }))
@@ -191,6 +208,7 @@ try {
   }
 } catch (error) {
   report.error = { name: error.name, stage: current?.stage || 'setup' }
+  report.failureCallsite = error.stack?.split('\n').filter(line => /verification\/test-payments\/.*:\d+:\d+/.test(line)).map(line => line.slice(line.indexOf('verification/')))
   if (current) current.result = 'failed'
   if (page && !page.isClosed() && current) current.finalUrl = safeUrl(page.url())
   process.exitCode = 1
