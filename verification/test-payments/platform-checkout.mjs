@@ -120,7 +120,7 @@ export async function verifyPaidApplication(page, result, dashboard, pending) {
 // Creates one explicitly labelled non-production application through the UI.
 // A failed run retains the application/invoice IDs so checkout can be resumed.
 export async function preparePlatformCheckout(page, result, card) {
-  const testName = 'Nuxt4 Payment QA ' + process.env.GITHUB_RUN_ID
+  const testName = 'pnpm11 Platform Payment QA ' + process.env.GITHUB_RUN_ID
   const testEmail = 'strr-payment-qa@example.com'
   result.testFixture = testName
   result.stage = 'platform-contact-form'

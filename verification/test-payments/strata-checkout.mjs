@@ -2,7 +2,7 @@ import { expect } from '@playwright/test'
 import { observeApplication, paySandboxCard, verifyPaidApplication } from './platform-checkout.mjs'
 
 export async function createStrataPayment(page, result, card) {
-  result.testFixture = 'Nuxt4 Strata Payment QA ' + process.env.GITHUB_RUN_ID
+  result.testFixture = 'pnpm11 Strata Payment QA ' + process.env.GITHUB_RUN_ID
   result.stage = 'strata-contact-form'
   await page.getByTestId('completing-party-radio-group').getByRole('radio', { name: 'Yes', exact: true }).check()
   await page.getByTestId('platform-primary-rep-position').fill('TEST representative')

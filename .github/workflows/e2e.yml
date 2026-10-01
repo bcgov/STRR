@@ -9,24 +9,43 @@ permissions:
 jobs:
   test-payment-preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+    env:
+      CANDIDATE_COMMIT: dc10c472b0148f9ae4857402fd75e5eeb1d71d24
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.CANDIDATE_COMMIT }}
+          path: candidate
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+      - name: Build the exact pnpm PR frontend
+        run: |
+          test "$(git -C candidate rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          for app in strr-host-pm-web strr-platform-web strr-strata-web; do
+            cp "candidate/$app/.env.example" "candidate/$app/.env"
+            pnpm --dir "candidate/$app" install --frozen-lockfile
+            pnpm --dir "candidate/$app" build
+          done
       - name: Install browser test dependency
         working-directory: verification/test-payments
         run: npm ci --ignore-scripts --no-audit
       - name: Install Chromium
         working-directory: verification/test-payments
         run: npx playwright install --with-deps chromium
-      - name: Verify deployed TEST payments
+      - name: Verify candidate frontend against TEST auth and payments
         working-directory: verification/test-payments
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
           CYPRESS_CREDITCARD: ${{ secrets.CYPRESS_CREDITCARD }}
+          CANDIDATE_ROOT: ${{ github.workspace }}/candidate
         run: node preflight.mjs
       - name: Upload sanitized results
         if: always()

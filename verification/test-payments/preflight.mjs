@@ -1,5 +1,7 @@
 import { chromium, expect } from '@playwright/test'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { resolve, sep } from 'node:path'
+import { createHash } from 'node:crypto'
 import { loadTestCard, preparePlatformCheckout } from './platform-checkout.mjs'
 import { createStrataPayment } from './strata-checkout.mjs'
 import { createHostPayment } from './host-checkout.mjs'
@@ -31,8 +33,8 @@ const apps = [
 ]
 const report = {
   checkedAt: new Date().toISOString(),
-  scope: 'Current deployed TEST BCSC login, account, fees, fresh Host/Platform/Strata sandbox payments, Host cancel/resume, receipts and persistence.',
-  sourceCommit: '8c05dde179de669d71e3706324ef381dcfdacbd0',
+  scope: 'PR frontend assets served in the runner with live TEST public configuration, BCSC login, account, fees, fresh Host/Platform/Strata sandbox payments, Host cancel/resume, receipts and persistence. No deployment or API mocking.',
+  sourceCommit: process.env.CANDIDATE_COMMIT,
   harnessCommit: process.env.GITHUB_SHA,
   runId: process.env.GITHUB_RUN_ID,
   credentialsConfigured: Boolean(username && password && account),
@@ -48,15 +50,60 @@ try {
   card = loadTestCard(secrets)
   report.sandboxCardFixtureUsable = true
   browser = await chromium.launch()
-  const context = await browser.newContext()
+  const context = await browser.newContext({ serviceWorkers: 'block' })
   context.setDefaultTimeout(20000)
   context.setDefaultNavigationTimeout(60000)
 
   for (const app of apps) {
-    current = { name: app.name, stage: 'login', paymentRequests: [], browserErrors: [], result: 'in_progress' }
+    current = { name: app.name, stage: 'candidate-setup', paymentRequests: [], browserErrors: [], result: 'in_progress' }
     report.apps.push(current)
     const appResult = current
+    // Read public TEST configuration before routing candidate assets. All auth,
+    // application and payment requests continue to their real TEST services.
+    const seed = await browser.newPage({ serviceWorkers: 'block' })
+    const liveResponse = await seed.goto(app.origin + '/en-CA/auth/login', { waitUntil: 'domcontentloaded' })
+    await seed.waitForFunction(() => window.__NUXT__?.config?.public)
+    const publicConfig = await seed.evaluate(() => window.__NUXT__.config.public)
+    expect(new URL(publicConfig.payApiURL).hostname).toBe('pay-api-test-129641755850.northamerica-northeast1.run.app')
+    expect(new URL(publicConfig.strrApiURL).hostname).toBe('strr-api-test-166050292631.northamerica-northeast1.run.app')
+    expect(new URL(publicConfig.paymentPortalUrl).hostname).toBe('test.account.bcregistry.gov.bc.ca')
+    expect(new URL(publicConfig.keycloakAuthUrl).hostname).toBe('test.loginproxy.gov.bc.ca')
+    const liveHtml = await liveResponse.body()
+    const entryPath = await seed.locator('script[type="module"][src]').first().getAttribute('src')
+    const liveEntry = await context.request.get(new URL(entryPath, app.origin).href)
+    expect(liveEntry.ok()).toBe(true)
+    current.deployedTest = {
+      htmlSha256: createHash('sha256').update(liveHtml).digest('hex'),
+      entryPath, entrySha256: createHash('sha256').update(await liveEntry.body()).digest('hex'),
+      publicConfigSha256: createHash('sha256').update(JSON.stringify(publicConfig)).digest('hex')
+    }
+    await seed.close()
+    const appDirectory = { host: 'strr-host-pm-web', platform: 'strr-platform-web', strata: 'strr-strata-web' }[app.name]
+    const assetRoot = resolve(process.env.CANDIDATE_ROOT, appDirectory, '.output/public')
+    const candidateHtml = await readFile(resolve(assetRoot, '200.html'), 'utf8')
+    expect(candidateHtml).toContain('window.__NUXT__.config')
+    const html = candidateHtml.replace('</body>', '<script>window.__NUXT__.config.public=' +
+      JSON.stringify(publicConfig).replace(/</g, '\\u003c') + '</script></body>')
+    current.candidateAssets = { htmlSha256: createHash('sha256').update(candidateHtml).digest('hex'), documents: 0, served: {}, missing: [] }
     page = await context.newPage()
+    await page.route(app.origin + '/**', async route => {
+      if (route.request().isNavigationRequest()) {
+        appResult.candidateAssets.documents++
+        return route.fulfill({ status: 200, contentType: 'text/html', body: html })
+      }
+      const pathname = decodeURIComponent(new URL(route.request().url()).pathname)
+      const filePath = resolve(assetRoot, '.' + pathname)
+      if (!filePath.startsWith(assetRoot + sep)) return route.abort()
+      try {
+        const body = await readFile(filePath)
+        appResult.candidateAssets.served[pathname] = createHash('sha256').update(body).digest('hex')
+        await route.fulfill({ status: 200, path: filePath })
+      } catch {
+        appResult.candidateAssets.missing.push(pathname)
+        await route.fulfill({ status: 404, body: '' })
+      }
+    })
+    current.stage = 'login'
     const pending = []
     page.on('pageerror', error => appResult.browserErrors.push({ name: error.name }))
     page.on('response', response => {
@@ -106,6 +153,7 @@ try {
     current.stage = 'open-application'
     await page.goto(app.origin + app.form, { waitUntil: 'domcontentloaded' })
     await page.getByTestId('h1').waitFor({ state: 'visible' })
+    expect(await page.evaluate(() => window.__NUXT__.config.public.baseUrl)).toBe(publicConfig.baseUrl)
     current.stage = 'load-payment-account-and-fees'
     const deadline = Date.now() + 30000
     while (Date.now() < deadline) {
@@ -117,16 +165,21 @@ try {
     await Promise.all(pending)
     const fees = new Set(current.paymentRequests.filter(r => r.path.includes('/fees/STRR/') && r.status === 200).map(r => r.path))
     if (fees.size < app.feeCount || !current.paymentAccount) throw new Error('TEST payment account or required registration fees did not load successfully')
+    expect(current.paymentAccount.paymentMethod).toBe('DIRECT_PAY')
+    expect(Object.keys(current.candidateAssets.served).some(path => /^\/_nuxt\/.*\.js$/.test(path))).toBe(true)
+    expect(current.candidateAssets.missing).toHaveLength(0)
     try {
       if (app.name === 'host') await createHostPayment(page, current, card)
       if (app.name === 'platform') await preparePlatformCheckout(page, current, card)
       if (app.name === 'strata') await createStrataPayment(page, current, card)
       expect(current.browserErrors).toHaveLength(0)
+      expect(current.candidateAssets.missing).toHaveLength(0)
       current.result = current.receipt?.result === 'failed' ? 'payment_passed_receipt_failed' : 'passed'
       current.stage = 'complete'
       if (current.result !== 'passed') process.exitCode = 1
     } catch (error) {
       current.paymentError = { name: error.name, stage: current.stage }
+      current.failureCallsite = error.stack?.split('\n').filter(line => /verification\/test-payments\/.*:\d+:\d+/.test(line)).map(line => line.slice(line.indexOf('verification/')))
       current.result = 'failed'
       current.invalidFields = await page.locator('[aria-invalid="true"]').evaluateAll(elements =>
         elements.map(element => ({ id: element.id, name: element.getAttribute('name') }))

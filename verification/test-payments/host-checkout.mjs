@@ -2,7 +2,7 @@ import { expect } from '@playwright/test'
 import { observeApplication, paySandboxCard, verifyPaidApplication } from './platform-checkout.mjs'
 
 export async function createHostPayment(page, result, card) {
-  result.testFixture = 'Nuxt4 Host Payment QA ' + process.env.GITHUB_RUN_ID
+  result.testFixture = 'pnpm11 Host Payment QA ' + process.env.GITHUB_RUN_ID
   result.stage = 'host-property-form'
   await page.getByTestId('rental-unit-address-nickname').fill(result.testFixture)
   await page.getByRole('button', { name: 'Enter the residential address manually', exact: true }).click()
