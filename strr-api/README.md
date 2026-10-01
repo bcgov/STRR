@@ -62,10 +62,9 @@ pre-commit run --all-files
 ## Shared database connections for jobs and queues
 
 Jobs and database queue services use `strr_api.common.cloud_sql` through their existing
-GitHub `strr-api` dependency. The temporary commit pin includes the helper before it
-lands on `main`. After merge, switch the dependency back to `main`, refresh consumer
-lockfiles, and run CI before merging that follow-up. Application-only Docker builds
-continue to work without an additional package or build-context staging step.
+GitHub `strr-api` dependency on `main`. Refresh consumer lockfiles to pick up API
+changes. Application-only Docker builds continue to work without an additional
+package or build-context staging step.
 The API's own connection configuration is unchanged.
 
 `sqlalchemy_settings_from_env()` requires IAM when `CLOUD_RUN_JOB`, `K_SERVICE`, or
