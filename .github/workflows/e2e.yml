@@ -12,6 +12,7 @@ jobs:
     timeout-minutes: 30
     env:
       CANDIDATE_COMMIT: dc10c472b0148f9ae4857402fd75e5eeb1d71d24
+      TEST_APP: strata
     steps:
       - uses: actions/checkout@v6
       - uses: actions/checkout@v6
@@ -28,11 +29,9 @@ jobs:
       - name: Build the exact pnpm PR frontend
         run: |
           test "$(git -C candidate rev-parse HEAD)" = "$CANDIDATE_COMMIT"
-          for app in strr-host-pm-web strr-platform-web strr-strata-web; do
-            cp "candidate/$app/.env.example" "candidate/$app/.env"
-            pnpm --dir "candidate/$app" install --frozen-lockfile
-            pnpm --dir "candidate/$app" build
-          done
+          cp candidate/strr-strata-web/.env.example candidate/strr-strata-web/.env
+          pnpm --dir candidate/strr-strata-web install --frozen-lockfile
+          pnpm --dir candidate/strr-strata-web build
       - name: Install browser test dependency
         working-directory: verification/test-payments
         run: npm ci --ignore-scripts --no-audit

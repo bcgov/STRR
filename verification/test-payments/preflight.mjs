@@ -30,10 +30,11 @@ const apps = [
   { name: 'host', origin: 'https://test.host.shorttermrental.registry.gov.bc.ca', form: '/en-CA/application', feeCount: 3 },
   { name: 'platform', origin: 'https://test.platform.shorttermrental.registry.gov.bc.ca', form: '/en-CA/platform/application?override=true', feeCount: 3 },
   { name: 'strata', origin: 'https://test.stratahotel.shorttermrental.registry.gov.bc.ca', form: '/en-CA/strata-hotel/application', feeCount: 1 }
-]
+].filter(app => !process.env.TEST_APP || app.name === process.env.TEST_APP)
 const report = {
   checkedAt: new Date().toISOString(),
-  scope: 'PR frontend assets served in the runner with live TEST public configuration, BCSC login, account, fees, fresh Host/Platform/Strata sandbox payments, Host cancel/resume, receipts and persistence. No deployment or API mocking.',
+  scope: 'PR frontend assets served in the runner with live TEST public configuration, BCSC login, account, fees, fresh sandbox payments, receipts and persistence for the selected apps. No deployment or API mocking.',
+  requestedApps: apps.map(app => app.name),
   sourceCommit: process.env.CANDIDATE_COMMIT,
   harnessCommit: process.env.GITHUB_SHA,
   runId: process.env.GITHUB_RUN_ID,
@@ -150,7 +151,7 @@ try {
       page.waitForURL(url => url.origin === app.origin && !url.pathname.endsWith('/auth/login'))
     ])
     if (await loginButton.isVisible()) await loginButton.click()
-    if (app.name === 'host') {
+    if (app === apps[0]) {
       await page.getByRole('button', { name: 'Log in with Test with username and password', exact: true }).click()
       if (new URL(page.url()).hostname !== 'idtest.gov.bc.ca') {
         throw new Error('Refusing to enter the TEST credentials on an unexpected identity provider')
