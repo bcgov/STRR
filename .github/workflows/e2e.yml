@@ -35,9 +35,8 @@ jobs:
       - name: Install browser test dependency
         working-directory: verification/test-payments
         run: npm ci --ignore-scripts --no-audit
-      - name: Install Chromium
-        working-directory: verification/test-payments
-        run: npx playwright install --with-deps chromium
+      - name: Check runner Chrome
+        run: google-chrome --version
       - name: Verify candidate frontend against TEST auth and payments
         working-directory: verification/test-payments
         env:

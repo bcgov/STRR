@@ -50,7 +50,8 @@ try {
   if (!report.credentialsConfigured) throw new Error('Required BCSC test credentials are not configured')
   card = loadTestCard(secrets)
   report.sandboxCardFixtureUsable = true
-  browser = await chromium.launch()
+  browser = await chromium.launch({ channel: 'chrome' })
+  report.browserVersion = browser.version()
   const context = await browser.newContext({ serviceWorkers: 'block' })
   context.setDefaultTimeout(20000)
   context.setDefaultNavigationTimeout(60000)
