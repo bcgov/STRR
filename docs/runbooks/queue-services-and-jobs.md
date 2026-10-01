@@ -44,6 +44,30 @@ Typical jobs in `jobs/`:
 - **DB pool timeouts:** e.g. `interactions-update` (long-running DB work)
 - **Batch timeouts:** e.g. batch-permit-validator Cloud Run Job timeout (check `clouddeploy.yaml` / job template - historically long timeouts like 45 minutes mentioned in design docs)
 
+## Cloud SQL IAM deployments
+
+The eight database jobs and the email and payment queues use
+`strr_api.common.cloud_sql` from their Git-pinned STRR API dependency. Update each
+consumer's API revision and Poetry lock when changing that helper; an API source
+change alone does not update an already pinned consumer image.
+
+The existing SRE workflows generate the deployment manifests. Each consumer's
+`devops/vaults.gcp.env` includes two
+[Cloud Deploy parameters](https://docs.cloud.google.com/deploy/docs/parameters#add_placeholders_to_your_manifest):
+`CLOUDSQL_INSTANCE_CONNECTION_NAME` uses `cloudsql-instances`, and
+`DATABASE_USERNAME` uses `database-iam-username`. Their `# from-param:` comments
+must survive manifest generation. Per-target values stay in
+`devops/gcp/clouddeploy.yaml`; the IAM username is the runtime service account
+email without `.gserviceaccount.com`.
+
+These CD workflows require a full deployment (`redeploy: "false"`). The SRE
+configuration-only redeploy path bypasses Cloud Deploy parameter substitution and
+merges existing variables, so it cannot apply this IAM configuration safely.
+Full deployment also removes the old database password and socket variables.
+Before running a DEV job, check the deployed instance, username and runtime
+service account, then use a controlled job input to verify its database work.
+Local tests and image builds do not prove the deployed identity has database grants.
+
 ## Log diving: queue services
 
 strr-pay / strr-email use **JSON** logs (`jsonPayload.message`, `jsonPayload.severity`) when ingested as structured JSON.

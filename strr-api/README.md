@@ -59,6 +59,23 @@ You can pre-run the git hooks at the cmooand line
 pre-commit run --all-files
 ```
 
+## Shared database connections for jobs and queues
+
+Jobs and database queue services use `strr_api.common.cloud_sql` through their existing
+GitHub `strr-api` dependency. The temporary commit pin includes the helper before it
+lands on `main`. After merge, switch the dependency back to `main`, refresh consumer
+lockfiles, and run CI before merging that follow-up. Application-only Docker builds
+continue to work without an additional package or build-context staging step.
+The API's own connection configuration is unchanged.
+
+`sqlalchemy_settings_from_env()` requires IAM when `CLOUD_RUN_JOB`, `K_SERVICE`, or
+`CLOUDSQL_INSTANCE_CONNECTION_NAME` is set. It requires the instance connection name,
+`DATABASE_NAME`, and `DATABASE_USERNAME`; missing settings raise an error. Local
+`testing=True` uses `DATABASE_TEST_*` settings and preserves the consumer's test driver.
+Cloud Run always takes the IAM path, including when a test configuration is selected.
+
+The helper retains its Apache 2.0 license; see `LICENSE-APACHE` and its source header.
+
 ## How to Contribute
 
 If you would like to contribute, please see our [CONTRIBUTING](./CONTRIBUTING.md) guidelines.
