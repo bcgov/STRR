@@ -364,3 +364,126 @@ def test_platform_and_strata_notification_recipients(cfg_app, fn, email, extra):
     with cfg_app.app_context():
         out = fn(extra())
     assert "housing@test.gov" in out and email in out
+
+
+def test_get_registration_update_email_content_for_strata_hotel_noc(cfg_app):
+    noc = MagicMock(
+        content="Strata NOC Notice",
+        start_date=MagicMock(),
+        end_date=MagicMock(strftime=MagicMock(return_value="December 15, 2026")),
+    )
+    loc = MagicMock(
+        street_address="100 Main St",
+        street_address_additional="",
+        city="Kelowna",
+        postal_code="V1Y1Y1",
+    )
+    sh = MagicMock(
+        location=loc,
+        representatives=[MagicMock(contact=MagicMock(email="rep@strata.com"))],
+    )
+    reg = MagicMock(
+        registration_type=Registration.RegistrationType.STRATA_HOTEL,
+        registration_number="S-12345",
+        sbc_account_id=None,
+        user=None,
+        noc_status=RegistrationNocStatus.NOC_PENDING,
+        strata_hotel_registration=MagicMock(strata_hotel=sh),
+        nocs=[noc],
+        expiry_date=None,
+    )
+    jinja_template = MagicMock(render=MagicMock(return_value="<html>strata noc</html>"))
+    email_info = MagicMock(email_type="STRATA_HOTEL_REGISTRATION_NOC", custom_content="")
+
+    with cfg_app.app_context():
+        email = el._get_registration_update_email_content_for_strata_hotel(
+            reg, email_info, jinja_template
+        )
+
+    kwargs = jinja_template.render.call_args.kwargs
+    assert kwargs["reg_num"] == "S-12345"
+    assert kwargs["street_address"] == "100 Main St"
+    assert kwargs["city"] == "Kelowna"
+    assert kwargs["postal_code"] == "V1Y1Y1"
+    assert kwargs["noc_content"] == "Strata NOC Notice"
+    assert kwargs["noc_expiry_date"] == "December 15, 2026"
+    assert (
+        kwargs["registration_url"]
+        == "https://strata.test.registry.gov.bc.ca/en-CA/strata-hotel/dashboard/registration/S-12345"
+    )
+    assert email["content"]["body"] == "<html>strata noc</html>"
+
+
+@patch.object(el.ApplicationSerializer, "to_dict")
+def test_get_application_update_email_content_for_strata_hotel_noc(mock_to_dict, cfg_app):
+    mock_to_dict.return_value = {
+        "header": {"applicationNumber": "SH-9999"},
+        "registration": {
+            "registrationType": Registration.RegistrationType.STRATA_HOTEL.value,
+            "strataHotelDetails": {
+                "location": {
+                    "address": "200 Resort Way",
+                    "city": "Whistler",
+                    "province": "BC",
+                    "postalCode": "V0N1B2",
+                },
+                "representatives": [
+                    {"contact": {"email": "rep1@strata.com"}},
+                ],
+            },
+            "completingParty": {"emailAddress": "completing@strata.com"},
+        },
+    }
+    noc = MagicMock(
+        content="Application NOC details",
+        end_date=MagicMock(strftime=MagicMock(return_value="January 10, 2027")),
+        creation_date=MagicMock(strftime=MagicMock(return_value="December 10, 2026")),
+    )
+    application = MagicMock(
+        application_number="SH-9999",
+        registration_type=Registration.RegistrationType.STRATA_HOTEL,
+        payment_account=None,
+        submitter=None,
+        noc=noc,
+    )
+    jinja_template = MagicMock(render=MagicMock(return_value="<html>sh app noc</html>"))
+    email_info = MagicMock(email_type="STRATA_HOTEL_NOC", custom_content="")
+
+    with cfg_app.app_context():
+        email = el._get_application_update_email_content(
+            application, email_info, jinja_template
+        )
+
+    kwargs = jinja_template.render.call_args.kwargs
+    assert kwargs["street_address"] == "200 Resort Way"
+    assert kwargs["city"] == "Whistler"
+    assert kwargs["postal_code"] == "V0N1B2"
+    assert kwargs["noc_content"] == "Application NOC details"
+    assert kwargs["noc_expiry_date"] == "January 10, 2027"
+    assert (
+        kwargs["application_url"]
+        == "https://strata.test.registry.gov.bc.ca/en-CA/strata-hotel/application/SH-9999"
+    )
+    assert email["content"]["body"] == "<html>sh app noc</html>"
+
+
+def test_get_email_recipients_for_strata_hotel_app(cfg_app):
+    app_dict = {
+        "registration": {
+            "registrationType": Registration.RegistrationType.STRATA_HOTEL.value,
+            "strataHotelDetails": {
+                "representatives": [
+                    {"contact": {"email": "rep1@strata.com"}},
+                    {"contact": {"email": "rep2@strata.com"}},
+                ]
+            },
+            "completingParty": {"emailAddress": "completing@strata.com"},
+        }
+    }
+    with cfg_app.app_context():
+        recipients = el._get_email_recipients(app_dict)
+
+    assert "housing@test.gov" in recipients
+    assert "rep1@strata.com" in recipients
+    assert "rep2@strata.com" in recipients
+    assert "completing@strata.com" in recipients

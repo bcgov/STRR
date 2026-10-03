@@ -379,3 +379,75 @@ def test_strata_hotel_registration_active_email_posts_to_notify(
     assert stored.registration_id == registration.id
     assert stored.status == InteractionStatus.SENT
     assert stored.meta_data["email_type"] == "STRATA_HOTEL_REGISTRATION_ACTIVE"
+
+
+@pytest.mark.conf(
+    KEYCLOAK_AUTH_TOKEN_URL="https://my-auth-url",
+    NOTIFY_SVC_URL="https://my-notify-mock",
+    NOTIFY_API_TIMEOUT=30,
+    EMAIL_HOUSING_RECIPIENT_EMAIL="remove@gov.bc.ca",
+    EMAIL_SUBJECT_PREFIX="[TEST]",
+)
+@responses.activate
+def test_strata_hotel_registration_noc_email_posts_to_notify(
+    app,
+    client,
+    session,
+    simple_cloud_event,
+    queue_envelope,
+    setup_parents,
+    inject_config,
+):
+    """Test that strata hotel registration NOC emails are sent to Notify."""
+    notify_payloads = []
+
+    def notify_callback(request):
+        payload = json.loads(request.body)
+        notify_payloads.append(payload)
+        return (200, {}, json.dumps({"id": "notify-id-noc"}))
+
+    responses.add(
+        responses.POST,
+        app.config.get("KEYCLOAK_AUTH_TOKEN_URL"),
+        json={"access_token": "123"},
+        status=200,
+    )
+    responses.add_callback(
+        responses.POST,
+        app.config.get("NOTIFY_SVC_URL"),
+        callback=notify_callback,
+        content_type="application/json",
+    )
+
+    registration = create_strata_hotel_registration(session, setup_parents)
+    ce = simple_cloud_event(
+        data={
+            "registration_number": registration.registration_number,
+            "email_type": "STRATA_HOTEL_REGISTRATION_NOC",
+            "custom_content": "Notice of consideration reason details",
+        }
+    )
+
+    response = client.post("/", json=queue_envelope(cloud_event=ce))
+
+    assert response.status_code == HTTPStatus.OK
+    json_data = response.get_json()
+    interaction_uuid = json_data.get("interaction", None)
+
+    assert [payload["recipients"] for payload in notify_payloads] == [
+        "remove@gov.bc.ca",
+        "strata.rep@gov.bc.ca",
+    ]
+    assert notify_payloads[0]["content"]["subject"] == (
+        f"[TEST] {registration.registration_number} - Short-Term Rental Notice of Consideration"
+    )
+    assert "Notice of consideration reason details" in notify_payloads[0]["content"]["body"]
+    assert "100 Strata Way" in notify_payloads[0]["content"]["body"]
+
+    stored = session.scalar(
+        select(CustomerInteraction).where(CustomerInteraction.interaction_uuid == interaction_uuid)
+    )
+    assert stored.notify_reference == "notify-id-noc"
+    assert stored.registration_id == registration.id
+    assert stored.status == InteractionStatus.SENT
+    assert stored.meta_data["email_type"] == "STRATA_HOTEL_REGISTRATION_NOC"
