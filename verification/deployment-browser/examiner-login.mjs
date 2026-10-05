@@ -7,13 +7,14 @@ import { createHash } from 'node:crypto'
 const origin = 'https://dev.examiner-dashboard.shorttermrental.registry.gov.bc.ca'
 const identityOrigin = 'https://logontest7.gov.bc.ca'
 const identityPath = '/clp-cgi/int/logon.cgi'
+const expectedBundleHash = '50f79a2128575e61f13e903594be4d98315f2b24c4af945c65c7c7b2f4bed1f4'
 const report = {
   checkedAt: new Date().toISOString(), environment: process.env.VERIFY_ENVIRONMENT,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
   scope: 'Existing runner-only IDIR login and read-only DEV Examiner dashboard/API checks. No record actions or access changes.',
   stage: 'credential-configuration', result: 'in_progress', loginAttempts: 0,
   authenticated: false, dashboardLoaded: false, browserErrors: 0,
-  blockedWrites: 0, loginSyncRequests: 0, listResponses: []
+  blockedWrites: 0, loginSyncRequests: 0, listResponses: [], identityResponses: [], browserErrorCategories: []
 }
 let browser
 let page
@@ -37,8 +38,9 @@ try {
   expect(asset.status).toBe(200)
   const bytes = Buffer.from(await asset.arrayBuffer())
   report.build = { entry, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') }
+  expect(report.build.sha256).toBe(expectedBundleHash)
 
-  browser = await chromium.launch()
+  browser = await chromium.launch({ channel: 'chrome' })
   const context = await browser.newContext({ serviceWorkers: 'block' })
   context.setDefaultTimeout(20000)
   context.setDefaultNavigationTimeout(45000)
@@ -54,9 +56,18 @@ try {
     } else await route.continue()
   })
   page = await context.newPage()
-  page.on('pageerror', () => report.browserErrors++)
+  page.on('pageerror', error => {
+    report.browserErrors++
+    const category = /SyntaxError/.test(error.name) ? 'syntax'
+      : /TypeError/.test(error.name) ? 'type' : 'other'
+    if (!report.browserErrorCategories.includes(category)) report.browserErrorCategories.push(category)
+  })
   page.on('response', response => {
     const url = new URL(response.url())
+    if (url.origin === identityOrigin && response.request().method() === 'POST' &&
+        ['/clp-cgi/preLogon.cgi', identityPath].includes(url.pathname)) {
+      report.identityResponses.push({ path: url.pathname, status: response.status() })
+    }
     if (url.hostname.startsWith('strr-api-dev-') && response.request().method() === 'GET' &&
         ['/applications', '/applications/search', '/registrations/search'].includes(url.pathname)) {
       report.listResponses.push({ resource: url.pathname, status: response.status() })
@@ -89,6 +100,10 @@ try {
   report.dashboardLoaded = true
   expect(report.browserErrors).toBe(0)
   expect(report.blockedWrites).toBe(0)
+  const finalAsset = await context.request.get(new URL(entry, origin).href)
+  expect(finalAsset.status()).toBe(200)
+  report.finalBundleHash = createHash('sha256').update(await finalAsset.body()).digest('hex')
+  expect(report.finalBundleHash).toBe(expectedBundleHash)
   report.stage = 'complete'
   report.result = 'passed'
 } catch (error) {
@@ -97,6 +112,20 @@ try {
     const current = new URL(page.url())
     report.finalLocation = current.origin === origin ? 'examiner' : current.origin === identityOrigin ? 'test-idir' : 'other'
     report.loginFieldsStillVisible = await page.locator('#user').isVisible().catch(() => false)
+    // Classify visible failure text without exporting credentials, page text,
+    // provider query strings, or an unredacted browser error.
+    if ([origin, identityOrigin, 'https://dev.loginproxy.gov.bc.ca'].includes(current.origin)) {
+      const visible = await page.locator('body').innerText().catch(() => '')
+      report.visibleFailureCategories = Object.entries({
+        invalidCredentials: /invalid (?:user|username|password|credentials)|incorrect (?:user|username|password)|authentication failed|logon failed|log in failed|not recognized/i,
+        accountLocked: /account.{0,40}locked|locked.{0,40}account/i,
+        passwordExpired: /password.{0,40}expired|change your password/i,
+        mfaRequired: /multi.factor|verification code|one.time (?:code|password)|authenticator|approve.{0,30}sign.in/i,
+        browserRequirement: /enable (?:cookies|javascript)|browser.{0,30}not supported|cookies.{0,30}required/i,
+        missingInput: /(?:username|password).{0,25}required|enter your (?:username|password)/i,
+        accessDenied: /access denied|not authorized|unauthorized/i
+      }).filter(([, pattern]) => pattern.test(visible)).map(([category]) => category)
+    }
   }
   report.result = 'failed'
   process.exitCode = 1

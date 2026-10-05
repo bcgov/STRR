@@ -38,7 +38,7 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit
           case "$VERIFY_ENVIRONMENT:$VERIFY_SCENARIO" in
-            dev:api-transport|dev:platform-stepper-navigation|dev:strata-stepper-navigation|dev:host-review-sections)
+            dev:api-transport|dev:platform-stepper-navigation|dev:strata-stepper-navigation|dev:host-review-sections|dev:examiner-login)
               google-chrome --version ;;
             *) npx playwright install --with-deps chromium ;;
           esac
