@@ -1,76 +1,46 @@
 import { expect } from '@playwright/test'
 import { observeApplication, paySandboxCard, verifyPaidApplication, checkpoint } from './platform-checkout.mjs'
 
-export async function createHostPayment(page, result, card) {
-  result.testFixture = 'pnpm11 DEV Host QA ' + process.env.GITHUB_RUN_ID
-  result.stage = 'host-property-form'
-  await page.getByTestId('rental-unit-address-nickname').fill(result.testFixture)
-  await page.getByRole('button', { name: 'Enter the residential address manually', exact: true }).click()
-  // Existing repository Scenario 6: non-exempt Chetwynd fixture with no BL/PR documents required.
-  await page.getByTestId('rental-property-address-streetNumber').fill('5300')
-  await page.getByTestId('rental-property-address-streetName').fill('44A Ave NW')
-  await page.getByTestId('address.city').fill('Chetwynd')
-  await page.getByTestId('address.postalCode').fill('V0C 1J0')
-  await page.getByRole('button', { name: 'Done', exact: true }).click()
-  await expect(page.getByTestId('alert-pr-exempt')).toBeVisible({ timeout: 30000 })
-  await page.getByTestId('property-type-select').click()
-  await page.getByRole('option', { name: 'Single Family Home', exact: true }).click()
-  await page.locator('#host-type-radio-group input[value="OWNER"]').check()
-  await page.locator('#rental-unit-setup-radio-group input[value="PRIMARY_RESIDENCE_OR_SHARED_SPACE"]').check()
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-
-  result.stage = 'host-individual-form'
-  await page.getByRole('button', { name: 'Add an Individual', exact: true }).click()
-  const owner = page.getByTestId('host-owner')
-  await owner.getByTestId('completing-party-checkbox').check()
-  await owner.locator('input[type="radio"][value="HOST"]').check()
-  await owner.getByTestId('date-select').fill('1986-10-23')
-  await owner.getByRole('checkbox', { name: 'This individual does not have a CRA Tax Number', exact: true }).check()
-  await owner.getByTestId('host-owner-address-country').click()
-  await page.getByRole('option', { name: 'Canada', exact: true }).click()
-  await owner.getByTestId('host-owner-address-street').fill('123 Test Street')
-  await owner.getByTestId('mailingAddress.city').fill('Victoria')
-  await owner.getByTestId('address-region-select').click()
-  await page.getByRole('option', { name: 'British Columbia', exact: true }).click()
-  await owner.getByTestId('mailingAddress.postalCode').fill('V8W 9P6')
-  await owner.getByTestId('phone-countryCode').fill('1')
-  await page.getByRole('option', { name: /\+1\s*Canada/ }).click()
-  await owner.getByTestId('phone-number').pressSequentially('2505550100', { delay: 80 })
-  await owner.getByTestId('phone-number').press('Tab')
-  await expect(owner.getByTestId('phone-number')).toHaveValue('(250) 555-0100')
-  await owner.getByTestId('host-owner-email').fill('strr-payment-qa@example.com')
-  await owner.getByRole('button', { name: 'Done', exact: true }).click()
-  await expect(owner).not.toBeVisible()
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-
-  result.stage = 'host-supporting-information'
-  await expect(page.getByTestId('alert-no-docs-required')).toBeVisible()
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-  await page.getByTestId('agreedToRentalAct-checkbox').check()
-  await page.getByTestId('agreedToSubmit-checkbox').check()
-  result.stage = 'host-submit'
-  await page.getByRole('button', { name: 'Proceed to Payment', exact: true }).click()
-  await expect(page.getByText('Leave application and proceed to payment?', { exact: true })).toBeVisible()
-  const [submission] = await Promise.all([
-    page.waitForResponse(response => new URL(response.url()).hostname ===
-      'strr-api-dev-i2rbretwta-nn.a.run.app' &&
-      new URL(response.url()).pathname === '/applications' && response.request().method() === 'POST', { timeout: 60000 }).then(async response => {
-      result.submissionStatus = response.status()
-      if (!response.ok()) throw new Error('DEV application submission did not succeed')
-      // Read immediately, before the click finishes navigation to the gateway.
-      const { header } = await response.json()
-      result.applicationNumber = header.applicationNumber
-      result.invoiceId = header.paymentToken
-      result.initialStatus = header.status
-      await checkpoint(result)
-      return { status: response.status(), body: { applicationNumber: header.applicationNumber,
-        invoiceId: header.paymentToken, applicationStatus: header.status } }
-    }),
-    page.getByRole('button', { name: 'Proceed to payment', exact: true }).click()
-  ])
-  expect(submission.body.applicationStatus).toBe('PAYMENT_DUE')
-  expect(Number(submission.body.invoiceId)).toBeGreaterThan(0)
+// Recover only the Host fixture created by run 37346201028. Never create another.
+export async function resumeHostPayment(page, result, card, apiHeaders) {
+  result.testFixture = 'pnpm11 DEV Host QA 37346201028'
+  result.applicationNumber = '04320199152354'
+  result.invoiceId = 70909
+  result.createdInRun = '37346201028'
+  result.stage = 'host-inspect-existing-invoice'
+  if (!/^Bearer\s+\S+$/.test(apiHeaders?.authorization || '') || !apiHeaders?.['account-id']) {
+    throw new Error('Authenticated selected-account API headers unavailable')
+  }
+  const apiUrl = 'https://strr-api-dev-i2rbretwta-nn.a.run.app/applications/' + result.applicationNumber
+  const dashboard = 'https://dev.host.shorttermrental.registry.gov.bc.ca/en-CA/dashboard/application/' + result.applicationNumber
+  const inspectExisting = async () => {
+    const response = await page.request.get(apiUrl, { headers: apiHeaders, timeout: 30000 })
+    expect(response.status()).toBe(200)
+    const application = await response.json()
+    expect(application.header.applicationNumber).toBe(result.applicationNumber)
+    expect(Number(application.header.paymentToken)).toBe(result.invoiceId)
+    expect(application.registration.unitAddress.nickname).toBe(result.testFixture)
+    return { status: application.header.status, paymentStatus: application.header.paymentStatus,
+      invoiceId: application.header.paymentToken, fixtureMatches: true }
+  }
+  result.inspectedApplication = await inspectExisting()
+  result.initialStatus = result.inspectedApplication.status
+  const alreadyCompleted = result.inspectedApplication.paymentStatus === 'COMPLETED'
+  if (!alreadyCompleted) {
+    expect(result.inspectedApplication.status).toBe('PAYMENT_DUE')
+    expect(result.inspectedApplication.paymentStatus).toBe('CREATED')
+  }
+  await checkpoint(result)
   const pending = observeApplication(page, result)
+  await page.goto(dashboard, { waitUntil: 'domcontentloaded' })
+  await expect(page.getByTestId('h1')).toContainText(result.testFixture)
+  if (alreadyCompleted) {
+    result.previouslyCompleted = true
+    await verifyPaidApplication(page, result, dashboard, pending)
+    return
+  }
+  result.resumedExistingUnpaidInvoice = true
+  await page.getByRole('button', { name: 'Pay Now', exact: true }).click()
 
   // Cancel at the observed test merchant before entering card fields.
   result.stage = 'host-cancel-checkout'
@@ -84,17 +54,17 @@ export async function createHostPayment(page, result, card) {
   await expect(page.getByText('Payment Cancelled', { exact: true })).toBeVisible()
   result.cancellationConfirmedByPortal = true
   await page.getByText('Ok', { exact: true }).click()
-  await page.waitForURL(url => url.origin === 'https://dev.host.shorttermrental.registry.gov.bc.ca', { timeout: 60000 })
+  await page.waitForURL(url => url.origin + url.pathname === dashboard, { timeout: 60000 })
   await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
   await expect(page.getByRole('button', { name: 'Pay Now', exact: true })).toBeVisible()
-  await Promise.all(pending)
-  expect(result.applicationResponses.some(r => r.applicationStatus === 'PAYMENT_DUE' &&
-    r.paymentStatus === 'CREATED' && Number(r.invoiceId) === Number(result.invoiceId))).toBe(true)
+  result.cancelledApplication = await inspectExisting()
+  expect(result.cancelledApplication.status).toBe('PAYMENT_DUE')
+  expect(result.cancelledApplication.paymentStatus).toBe('CREATED')
   result.cancelReturnedUnpaid = true
-  result.cancelReturnUrl = new URL(page.url()).origin + new URL(page.url()).pathname
+  result.cancelReturnUrl = dashboard
   await checkpoint(result)
   result.stage = 'host-resume-checkout'
   await page.getByRole('button', { name: 'Pay Now', exact: true }).click()
   await paySandboxCard(page, result, card)
-  await verifyPaidApplication(page, result, result.cancelReturnUrl, pending)
+  await verifyPaidApplication(page, result, dashboard, pending)
 }
