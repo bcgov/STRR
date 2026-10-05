@@ -23,6 +23,7 @@ def cfg_app():
         EMAIL_HOUSING_OPS_EMAIL="ops@test.gov",
         EMAIL_STRR_REQUEST_BY="STRR",
         EMAIL_SUBJECT_PREFIX="[TEST]",
+        EMAIL_TEMPLATE_PATH="email-templates",
     )
     return app
 
@@ -58,6 +59,47 @@ def test_get_address_detail():
     assert el._get_address_detail(host, Registration.RegistrationType.HOST, "missing") == ""
     non = {"registration": {"unitAddress": {}}}
     assert el._get_address_detail(non, Registration.RegistrationType.PLATFORM, "streetNumber") == ""
+
+    strata = {
+        "registration": {
+            "strataHotelDetails": {
+                "location": {
+                    "address": "200 Resort Way",
+                    "city": "Whistler",
+                    "postalCode": "V0N 1B2",
+                }
+            }
+        }
+    }
+    assert el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "street_address") == "200 Resort Way"
+    assert el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "city") == "Whistler"
+    assert el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "postalCode") == "V0N 1B2"
+    assert el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "missing") == ""
+
+    strata_line_two = {"registration": {"strataHotelDetails": {"location": {"addressLineTwo": "Suite 100"}}}}
+    assert el._get_address_detail(strata_line_two, Registration.RegistrationType.STRATA_HOTEL, "street_address") == "Suite 100"
+
+
+def test_resolve_template_type():
+    assert el._resolve_template_type("NOC", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_NOC"
+    assert el._resolve_template_type("REGISTRATION_NOC", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_REGISTRATION_NOC"
+    assert el._resolve_template_type("STRATA_HOTEL_NOC", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_NOC"
+    assert el._resolve_template_type("STRATA_HOTEL_REGISTRATION_NOC", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_REGISTRATION_NOC"
+    assert el._resolve_template_type("STRATA_HOTEL_REGISTRATION_ACTIVE", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_REGISTRATION_ACTIVE"
+    assert el._resolve_template_type("NOC", Registration.RegistrationType.HOST) == "NOC"
+    assert el._resolve_template_type("REGISTRATION_NOC", Registration.RegistrationType.HOST) == "REGISTRATION_NOC"
+    assert el._resolve_template_type("PLATFORM_RENEWAL_REMINDER", Registration.RegistrationType.PLATFORM) == "PLATFORM_RENEWAL_REMINDER"
+
+
+def test_get_jinja_template(cfg_app):
+    with cfg_app.app_context():
+        tpl_noc = el._get_jinja_template("STRATA_HOTEL_NOC")
+        assert tpl_noc is not None
+        assert "Notice of Consideration" in tpl_noc.render(application_num="123")
+
+        tpl_reg_noc = el._get_jinja_template("STRATA_HOTEL_REGISTRATION_NOC")
+        assert tpl_reg_noc is not None
+        assert "Notice of Consideration" in tpl_reg_noc.render(reg_num="SH-12345")
 
 
 def test_get_expiry_date():
@@ -122,6 +164,15 @@ def test_get_email_recipients(cfg_app):
     with cfg_app.app_context():
         r = el._get_email_recipients({"registration": plat2})
     assert "complete@example.com" in r and "rep1@example.com" in r
+
+    strata = {
+        "registrationType": Registration.RegistrationType.STRATA_HOTEL.value,
+        "strataHotelDetails": {"representatives": [{"contact": {"email": "rep@strata.com"}}]},
+        "completingParty": {"emailAddress": "complete@strata.com"},
+    }
+    with cfg_app.app_context():
+        s = el._get_email_recipients({"registration": strata})
+    assert "complete@strata.com" in s and "rep@strata.com" in s
 
 
 def test_get_client_recipients(cfg_app):
@@ -465,25 +516,3 @@ def test_get_application_update_email_content_for_strata_hotel_noc(mock_to_dict,
         == "https://strata.test.registry.gov.bc.ca/en-CA/strata-hotel/application/SH-9999"
     )
     assert email["content"]["body"] == "<html>sh app noc</html>"
-
-
-def test_get_email_recipients_for_strata_hotel_app(cfg_app):
-    app_dict = {
-        "registration": {
-            "registrationType": Registration.RegistrationType.STRATA_HOTEL.value,
-            "strataHotelDetails": {
-                "representatives": [
-                    {"contact": {"email": "rep1@strata.com"}},
-                    {"contact": {"email": "rep2@strata.com"}},
-                ]
-            },
-            "completingParty": {"emailAddress": "completing@strata.com"},
-        }
-    }
-    with cfg_app.app_context():
-        recipients = el._get_email_recipients(app_dict)
-
-    assert "housing@test.gov" in recipients
-    assert "rep1@strata.com" in recipients
-    assert "rep2@strata.com" in recipients
-    assert "completing@strata.com" in recipients

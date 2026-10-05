@@ -3,8 +3,8 @@
 **Registration Number:**
 {% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
 
-**Strata Hotel Address:**&nbsp;{{street_address}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+**Strata Hotel Address:**&nbsp;{{street_address}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 
 You have received a notice of consideration in regards to your short-term rental. **Your action is required, please see details below**.
@@ -37,5 +37,5 @@ Please be aware that we may not reach a final decision until after the deadline 
 
 ---
 
-**Short-Term Rental Branch**
+**Short-Term Rental Branch**  
 Ministry of Housing and Municipal Affairs

@@ -3,8 +3,8 @@
 **Application Number:**
 {% if application_url %}[{{ application_num }}]({{ application_url }}){% else %}{{ application_num }}{% endif %}
 
-**Strata Hotel Address:**&nbsp;{{street_address}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+**Strata Hotel Address:**&nbsp;{{street_address}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 
 Your application to register the short-term rental is currently under review. **Your action is required**.
@@ -37,6 +37,6 @@ Please be aware that we may not reach a final decision until after the deadline 
 
 ---
 
-**Short-Term Rental Branch**
-Housing and Land Use Policy Division
+**Short-Term Rental Branch**  
+Housing and Land Use Policy Division  
 Ministry of Housing and Municipal Affairs
