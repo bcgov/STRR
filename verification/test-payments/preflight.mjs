@@ -11,6 +11,8 @@ const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME
 const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD
 const account = 'STRR_TEST_29'
 const configuredCiAccount = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME?.trim()
+// Real DEV account, enabled DIRECT_PAY in all three apps in run 37345830995.
+const verifiedDevCiAccountHash = 'f369e346b37d80239143529831179e3c89a904c1cd9684f04b837670a97d5f11'
 const mode = process.env.QA_MODE || 'read-only'
 const secrets = [username, password, process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME, configuredCiAccount].filter(Boolean)
 const sanitize = value => {
@@ -160,10 +162,10 @@ try {
       await page.getByTestId('choose-existing-account-button').first().waitFor({ state: 'visible' })
       let accountButton = page.getByRole('button', { name: 'Use this Account, ' + account, exact: true })
       current.syntheticAccountAvailable = await accountButton.count() === 1 && await accountButton.isEnabled()
-      if (current.syntheticAccountAvailable) current.accountFixtureSource = 'approved-synthetic'
+      if (current.syntheticAccountAvailable && mode !== 'checkout') current.accountFixtureSource = 'approved-synthetic'
       // The repository's existing Playwright helpers designate this CI account.
-      // It may be used for read-only checks only, never fixture creation/payment.
-      if (!current.syntheticAccountAvailable && mode === 'read-only') {
+      // Checkout is restricted to the exact fixture verified in DEV before this run.
+      if (!current.syntheticAccountAvailable || mode === 'checkout') {
         const configuredButton = configuredCiAccount
           ? page.getByRole('button', { name: 'Use this Account, ' + configuredCiAccount, exact: true }) : undefined
         const matchCount = configuredButton ? await configuredButton.count() : 0
@@ -171,6 +173,11 @@ try {
         current.configuredCiAccount = { configured: Boolean(configuredCiAccount), matchCount, enabled,
           labelSha256: configuredCiAccount ? createHash('sha256')
             .update(configuredCiAccount.replace(/\s+/g, ' ').toLowerCase()).digest('hex') : undefined }
+        if (mode === 'checkout') {
+          expect(current.configuredCiAccount.labelSha256).toBe(verifiedDevCiAccountHash)
+          expect(enabled).toBe(true)
+          current.checkoutFixtureVerified = true
+        }
         if (enabled) {
           accountButton = configuredButton
           current.accountFixtureSource = 'existing-playwright-ci-account'
@@ -223,7 +230,8 @@ try {
       await Promise.all(pending)
       current.registrationFormLoaded = true
       if (mode === 'checkout') {
-        expect(current.accountFixtureSource).toBe('approved-synthetic')
+        expect(current.accountFixtureSource).toBe('existing-playwright-ci-account')
+        expect(current.checkoutFixtureVerified).toBe(true)
         expect(current.paymentAccount.paymentMethod).toBe('DIRECT_PAY')
         if (app.name === 'host') await createHostPayment(page, current, card)
         if (app.name === 'platform') await preparePlatformCheckout(page, current, card)
