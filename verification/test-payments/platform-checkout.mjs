@@ -42,6 +42,56 @@ export function observeApplication(page, result) {
   return pending
 }
 
+// Preserve the real API response, recording its identity before the app redirects.
+export async function captureBusinessSubmission(page, result, submit) {
+  const registrationType = { platform: 'PLATFORM', strata: 'STRATA_HOTEL' }[result.name]
+  if (!registrationType) throw new Error('Unsupported business checkout')
+  let failure
+  let claimed = false
+  await page.route(url => url.origin === 'https://strr-api-dev-i2rbretwta-nn.a.run.app' &&
+    url.pathname === '/applications', async route => {
+    const request = route.request()
+    if (request.method() !== 'POST') return route.continue()
+    try {
+      if (claimed || result.submissionAttempted) throw new Error('Refusing a duplicate application submission')
+      claimed = true
+      const body = request.postDataJSON()
+      expect(result.stage).toBe(result.name + '-submit')
+      expect(body.registration.registrationType).toBe(registrationType)
+      expect(body.registration.businessDetails.legalName).toBe(result.testFixture)
+      expect(body.header.paymentMethod).toBe('DIRECT_PAY')
+      expect(body.header.applicationType).toBeUndefined()
+      expect(body.header.registrationId).toBeUndefined()
+      expect((await request.allHeaders()).isdraft).not.toBe('true')
+      result.submissionAttempted = true
+      await checkpoint(result)
+      const response = await route.fetch({ maxRetries: 0, maxRedirects: 0, timeout: 60000 })
+      result.submissionStatus = response.status()
+      await checkpoint(result)
+      expect(response.ok()).toBe(true)
+      const application = await response.json()
+      result.applicationNumber = application.header.applicationNumber
+      result.invoiceId = application.header.paymentToken
+      result.initialStatus = application.header.status
+      await checkpoint(result)
+      expect(application.registration.registrationType).toBe(registrationType)
+      expect(application.registration.businessDetails.legalName).toBe(result.testFixture)
+      expect(/^\d+$/.test(String(result.applicationNumber))).toBe(true)
+      expect(result.initialStatus).toBe('PAYMENT_DUE')
+      expect(Number(result.invoiceId)).toBeGreaterThan(0)
+      result.submissionCaptured = true
+      await checkpoint(result)
+      await route.fulfill({ response })
+    } catch (error) {
+      failure = error
+      await route.abort('failed').catch(() => {})
+    }
+  })
+  await submit()
+  await expect.poll(() => Boolean(failure || result.submissionCaptured), { timeout: 65000 }).toBe(true)
+  if (failure) throw failure
+}
+
 export async function paySandboxCard(page, result, card) {
   result.stage = 'sandbox-checkout'
   await checkpoint(result)
@@ -165,26 +215,8 @@ export async function preparePlatformCheckout(page, result, card) {
   await page.getByTestId('confirmation-checkbox').check()
 
   result.stage = 'platform-submit'
-  const [submission] = await Promise.all([
-    page.waitForResponse(response =>
-      new URL(response.url()).hostname === 'strr-api-dev-i2rbretwta-nn.a.run.app' &&
-      new URL(response.url()).pathname.endsWith('/applications') &&
-      response.request().method() === 'POST', { timeout: 60000 }).then(async response => {
-      result.submissionStatus = response.status()
-      if (!response.ok()) throw new Error('DEV application submission did not succeed')
-      // Read immediately, before the click finishes navigation to the gateway.
-      const { header } = await response.json()
-      result.applicationNumber = header.applicationNumber
-      result.invoiceId = header.paymentToken
-      result.initialStatus = header.status
-      await checkpoint(result)
-      return { status: response.status(), body: { applicationNumber: header.applicationNumber,
-        invoiceId: header.paymentToken, applicationStatus: header.status } }
-    }),
-    page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
-  ])
-  expect(submission.body.applicationStatus).toBe('PAYMENT_DUE')
-  expect(Number(submission.body.invoiceId)).toBeGreaterThan(0)
+  await captureBusinessSubmission(page, result,
+    () => page.getByRole('button', { name: 'Submit & Pay', exact: true }).click())
   const pending = observeApplication(page, result)
   await paySandboxCard(page, result, card)
   await verifyPaidApplication(page, result, 'https://dev.platform.shorttermrental.registry.gov.bc.ca/en-CA/platform/dashboard', pending)
@@ -193,7 +225,7 @@ export async function preparePlatformCheckout(page, result, card) {
 // Only allowlisted synthetic transaction metadata is persisted before risky steps.
 export async function checkpoint(result) {
   const keys = ['name', 'stage', 'testFixture', 'applicationNumber', 'invoiceId', 'initialStatus',
-    'submissionStatus', 'gatewayTestModeVerified', 'amount', 'cardSubmittedAt',
+    'submissionAttempted', 'submissionCaptured', 'submissionStatus', 'gatewayTestModeVerified', 'amount', 'cardSubmittedAt',
     'cancellationConfirmedByPortal', 'cancelReturnedUnpaid', 'paymentResult', 'completedAt']
   await writeFile(`results/${result.name}-transaction-checkpoint.json`, JSON.stringify(
     Object.fromEntries(keys.filter(key => result[key] !== undefined).map(key => [key, result[key]])), null, 2) + '\n')

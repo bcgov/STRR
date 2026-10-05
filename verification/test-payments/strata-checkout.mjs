@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test'
-import { observeApplication, paySandboxCard, verifyPaidApplication, checkpoint } from './platform-checkout.mjs'
+import { observeApplication, paySandboxCard, verifyPaidApplication, captureBusinessSubmission } from './platform-checkout.mjs'
 
 export async function createStrataPayment(page, result, card) {
   result.testFixture = 'pnpm11 DEV Strata QA ' + process.env.GITHUB_RUN_ID
@@ -40,25 +40,8 @@ export async function createStrataPayment(page, result, card) {
   await page.getByTestId('confirmation-checkbox').check()
 
   result.stage = 'strata-submit'
-  const [submission] = await Promise.all([
-    page.waitForResponse(response => new URL(response.url()).hostname ===
-      'strr-api-dev-i2rbretwta-nn.a.run.app' &&
-      new URL(response.url()).pathname === '/applications' && response.request().method() === 'POST', { timeout: 60000 }).then(async response => {
-      result.submissionStatus = response.status()
-      if (!response.ok()) throw new Error('DEV application submission did not succeed')
-      // Read immediately, before the click finishes navigation to the gateway.
-      const { header } = await response.json()
-      result.applicationNumber = header.applicationNumber
-      result.invoiceId = header.paymentToken
-      result.initialStatus = header.status
-      await checkpoint(result)
-      return { status: response.status(), body: { applicationNumber: header.applicationNumber,
-        invoiceId: header.paymentToken, applicationStatus: header.status } }
-    }),
-    page.getByRole('button', { name: 'Submit & Pay', exact: true }).click()
-  ])
-  expect(submission.body.applicationStatus).toBe('PAYMENT_DUE')
-  expect(Number(submission.body.invoiceId)).toBeGreaterThan(0)
+  await captureBusinessSubmission(page, result,
+    () => page.getByRole('button', { name: 'Submit & Pay', exact: true }).click())
   const pending = observeApplication(page, result)
   await paySandboxCard(page, result, card)
   const dashboard = 'https://dev.stratahotel.shorttermrental.registry.gov.bc.ca/en-CA/strata-hotel/dashboard/' + result.applicationNumber
