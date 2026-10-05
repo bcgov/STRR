@@ -18,6 +18,7 @@ const report = {
 }
 let browser
 let page
+const credentialValues = []
 try {
   if (process.env.VERIFY_ENVIRONMENT !== 'dev') throw new Error('DEV only')
   const users = JSON.parse(process.env.LEGACY_CYPRESS_USERS || 'null')
@@ -28,6 +29,7 @@ try {
   if (typeof username !== 'string' || !username.trim() || typeof password !== 'string' || !password) {
     throw new Error('Credential fields unavailable')
   }
+  credentialValues.push(username, password)
   report.stage = 'public-build'
   const response = await fetch(origin + '/en-CA/auth/login')
   expect(response.status).toBe(200)
@@ -87,6 +89,7 @@ try {
   expect(form).toEqual({ origin: identityOrigin, path: '/clp-cgi/preLogon.cgi', method: 'post' })
   report.credentialDestinationVerified = true
   report.stage = 'idir-authentication'
+  report.browserErrorsBeforeSubmission = report.browserErrors
   await page.locator('#user').fill(username)
   await page.locator('#password').fill(password)
   report.loginAttempts++
@@ -112,12 +115,22 @@ try {
     const current = new URL(page.url())
     report.finalLocation = current.origin === origin ? 'examiner' : current.origin === identityOrigin ? 'test-idir' : 'other'
     report.loginFieldsStillVisible = await page.locator('#user').isVisible().catch(() => false)
-    // Classify visible failure text without exporting credentials, page text,
-    // provider query strings, or an unredacted browser error.
-    if ([origin, identityOrigin, 'https://dev.loginproxy.gov.bc.ca'].includes(current.origin)) {
-      const visible = await page.locator('body').innerText().catch(() => '')
+    // The provider's .bg-error region was inspected on the public login page.
+    // Do not classify the standard "unauthorized use" footer as a login error.
+    if (current.origin === identityOrigin && report.loginFieldsStillVisible) {
+      const region = page.locator('.bg-error')
+      report.providerErrorVisible = await region.isVisible().catch(() => false)
+      let visible = await region.textContent().catch(() => '') || ''
+      for (const secret of credentialValues) {
+        for (const variant of [secret, secret.toUpperCase(), secret.toLowerCase()]) {
+          visible = visible.split(variant).join('[redacted]')
+        }
+      }
+      visible = visible.replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, '[redacted-email]')
+        .replace(/https?:\/\/\S+/g, '[redacted-url]')
+      report.providerErrorText = visible.slice(0, 600)
       report.visibleFailureCategories = Object.entries({
-        invalidCredentials: /invalid (?:user|username|password|credentials)|incorrect (?:user|username|password)|authentication failed|logon failed|log in failed|not recognized/i,
+        invalidCredentials: /invalid.{0,30}(?:user|username|password|credentials|IDIR)|incorrect (?:user|username|password)|(?:user|password).{0,40}incorrect|authentication failed|logon failed|log in failed|not recognized/i,
         accountLocked: /account.{0,40}locked|locked.{0,40}account/i,
         passwordExpired: /password.{0,40}expired|change your password/i,
         mfaRequired: /multi.factor|verification code|one.time (?:code|password)|authenticator|approve.{0,30}sign.in/i,
