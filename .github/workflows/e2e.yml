@@ -2,54 +2,60 @@ name: main-e2e-tests
 
 on:
   workflow_dispatch:
+    inputs:
+      app:
+        description: Deployed DEV app to verify
+        type: choice
+        required: true
+        default: all
+        options: [all, host, platform, strata]
+      mode:
+        description: Read-only login checks or fresh synthetic sandbox checkout
+        type: choice
+        required: true
+        default: read-only
+        options: [read-only, checkout]
+      expected_bundle_hashes:
+        description: JSON object of deployed entry SHA256 hashes keyed by host, platform, strata
+        type: string
+        required: true
 
 permissions:
   contents: read
 
 jobs:
-  test-payment-preflight:
+  deployed-payment-preflight:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       CANDIDATE_COMMIT: dc10c472b0148f9ae4857402fd75e5eeb1d71d24
-      TEST_APP: strata
+      TEST_APP: ${{ inputs.app }}
+      QA_MODE: ${{ inputs.mode }}
+      EXPECTED_BUNDLE_HASHES: ${{ inputs.expected_bundle_hashes }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
         with:
-          ref: ${{ env.CANDIDATE_COMMIT }}
-          path: candidate
           persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.9.0
-      - name: Build the exact pnpm PR frontend
-        run: |
-          test "$(git -C candidate rev-parse HEAD)" = "$CANDIDATE_COMMIT"
-          cp candidate/strr-strata-web/.env.example candidate/strr-strata-web/.env
-          pnpm --dir candidate/strr-strata-web install --frozen-lockfile
-          pnpm --dir candidate/strr-strata-web build
       - name: Install browser test dependency
         working-directory: verification/test-payments
         run: npm ci --ignore-scripts --no-audit
       - name: Check runner Chrome
         run: google-chrome --version
-      - name: Verify candidate frontend against TEST auth and payments
+      - name: Verify the deployed DEV apps
         working-directory: verification/test-payments
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
-          CYPRESS_CREDITCARD: ${{ secrets.CYPRESS_CREDITCARD }}
-          CANDIDATE_ROOT: ${{ github.workspace }}/candidate
+          CYPRESS_CREDITCARD: ${{ inputs.mode == 'checkout' && secrets.CYPRESS_CREDITCARD || '' }}
         run: node preflight.mjs
       - name: Upload sanitized results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-payment-preflight
+          name: dev-payment-preflight
           path: verification/test-payments/results/*.json
           if-no-files-found: warn
           retention-days: 7

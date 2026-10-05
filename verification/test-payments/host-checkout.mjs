@@ -1,8 +1,8 @@
 import { expect } from '@playwright/test'
-import { observeApplication, paySandboxCard, verifyPaidApplication } from './platform-checkout.mjs'
+import { observeApplication, paySandboxCard, verifyPaidApplication, checkpoint } from './platform-checkout.mjs'
 
 export async function createHostPayment(page, result, card) {
-  result.testFixture = 'pnpm11 Host Payment QA ' + process.env.GITHUB_RUN_ID
+  result.testFixture = 'pnpm11 DEV Host QA ' + process.env.GITHUB_RUN_ID
   result.stage = 'host-property-form'
   await page.getByTestId('rental-unit-address-nickname').fill(result.testFixture)
   await page.getByRole('button', { name: 'Enter the residential address manually', exact: true }).click()
@@ -51,19 +51,25 @@ export async function createHostPayment(page, result, card) {
   result.stage = 'host-submit'
   await page.getByRole('button', { name: 'Proceed to Payment', exact: true }).click()
   await expect(page.getByText('Leave application and proceed to payment?', { exact: true })).toBeVisible()
-  const [response] = await Promise.all([
+  const [submission] = await Promise.all([
     page.waitForResponse(response => new URL(response.url()).hostname ===
-      'strr-api-test-166050292631.northamerica-northeast1.run.app' &&
-      new URL(response.url()).pathname === '/applications' && response.request().method() === 'POST', { timeout: 60000 }),
+      'strr-api-dev-i2rbretwta-nn.a.run.app' &&
+      new URL(response.url()).pathname === '/applications' && response.request().method() === 'POST', { timeout: 60000 }).then(async response => {
+      result.submissionStatus = response.status()
+      if (!response.ok()) throw new Error('DEV application submission did not succeed')
+      // Read immediately, before the click finishes navigation to the gateway.
+      const { header } = await response.json()
+      result.applicationNumber = header.applicationNumber
+      result.invoiceId = header.paymentToken
+      result.initialStatus = header.status
+      await checkpoint(result)
+      return { status: response.status(), body: { applicationNumber: header.applicationNumber,
+        invoiceId: header.paymentToken, applicationStatus: header.status } }
+    }),
     page.getByRole('button', { name: 'Proceed to payment', exact: true }).click()
   ])
-  result.submissionStatus = response.status()
-  if (!response.ok()) throw new Error('TEST Host submission returned HTTP ' + response.status())
-  const application = await response.json()
-  result.applicationNumber = application.header.applicationNumber
-  result.invoiceId = application.header.paymentToken
-  result.initialStatus = application.header.status
-  expect(result.initialStatus).toBe('PAYMENT_DUE')
+  expect(submission.body.applicationStatus).toBe('PAYMENT_DUE')
+  expect(Number(submission.body.invoiceId)).toBeGreaterThan(0)
   const pending = observeApplication(page, result)
 
   // Cancel at the observed test merchant before entering card fields.
@@ -73,18 +79,20 @@ export async function createHostPayment(page, result, card) {
   await page.waitForURL(url => url.hostname === 'web.na.bambora.com', { timeout: 60000 })
   await expect(page.getByText('Account paybc_testp is in test mode', { exact: true })).toBeVisible()
   await page.locator('#cancelButton').click()
-  await page.waitForURL(url => url.hostname === 'test.account.bcregistry.gov.bc.ca' &&
+  await page.waitForURL(url => url.hostname === 'dev.account.bcregistry.gov.bc.ca' &&
     url.pathname.startsWith('/returnpayment/' + result.invoiceId + '/'), { timeout: 60000 })
   await expect(page.getByText('Payment Cancelled', { exact: true })).toBeVisible()
   result.cancellationConfirmedByPortal = true
   await page.getByText('Ok', { exact: true }).click()
-  await page.waitForURL(url => url.origin === 'https://test.host.shorttermrental.registry.gov.bc.ca', { timeout: 60000 })
+  await page.waitForURL(url => url.origin === 'https://dev.host.shorttermrental.registry.gov.bc.ca', { timeout: 60000 })
   await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
   await expect(page.getByRole('button', { name: 'Pay Now', exact: true })).toBeVisible()
   await Promise.all(pending)
-  expect(result.applicationResponses.some(r => r.applicationStatus === 'PAYMENT_DUE')).toBe(true)
+  expect(result.applicationResponses.some(r => r.applicationStatus === 'PAYMENT_DUE' &&
+    r.paymentStatus === 'CREATED' && Number(r.invoiceId) === Number(result.invoiceId))).toBe(true)
   result.cancelReturnedUnpaid = true
   result.cancelReturnUrl = new URL(page.url()).origin + new URL(page.url()).pathname
+  await checkpoint(result)
   result.stage = 'host-resume-checkout'
   await page.getByRole('button', { name: 'Pay Now', exact: true }).click()
   await paySandboxCard(page, result, card)

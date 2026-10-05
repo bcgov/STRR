@@ -1,20 +1,20 @@
-# STRR TEST regression, September 15, 2026
+# STRR deployed DEV verification, October 5, 2026
 
-This isolated QA branch verifies deployed TEST applications from main source
-`8c05dde179de669d71e3706324ef381dcfdacbd0`. It does not deploy application code.
-The shared helpers were recovered from the established qa/nuxt4-test-payments
-history and updated to create fresh synthetic applications on every initial run.
+This isolated QA branch verifies deployed DEV assets for pnpm PR #1860,
+source `dc10c472b0148f9ae4857402fd75e5eeb1d71d24`. It neither deploys nor
+overlays candidate frontend files. The dispatcher supplies each deployed entry
+bundle SHA256 from the independently verified deployment; the harness checks it
+before and after each app.
 
-Scope: BCSC login and account selection, live Pay API account/fees, fresh Host,
-Platform and Strata card checkout, Host cancellation/resume, correct application
-return, PDF receipt, and payment/invoice persistence after reload and API read.
-Test gateway and explicit test merchant checks precede all stored card entry.
-Credentials remain inside the CI test step. Only allowlisted result metadata is
-uploaded; no DOM dumps, traces, screenshots, session state or receipt contents.
+Run `read-only` first to verify BCSC login, the existing synthetic account,
+authenticated dashboards, registration forms, payment account and live fees.
+`checkout` creates one fresh synthetic Host, Platform or Strata application per
+selected app, verifies the test merchant before card entry, then checks return,
+receipt PDF and persisted payment/invoice state. Host also cancels and resumes
+the same invoice. The stored sandbox card is injected only in checkout mode.
 
-Do not rerun after an uncertain payment. Inspect the previous run result and its
-application/invoice state, then adapt a targeted read-only or resume check. Never
-resubmit a completed invoice or reuse historical invoice constants.
-
-The existing interactions-update workflow is made manually dispatchable on this
-QA branch so its original functional/load/benchmark checks can also be run.
+Only sanitized status and synthetic transaction metadata are uploaded. Credentials,
+headers, response bodies, screenshots, browser state and receipt contents stay
+inside the runner. Checkout reruns are refused: after an uncertain submission,
+inspect the retained application/invoice checkpoint before adapting any retry.
+Never reuse a completed invoice. Examiner authenticated verification is separate.
