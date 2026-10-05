@@ -64,29 +64,50 @@ try {
   context.setDefaultTimeout(20000)
   context.setDefaultNavigationTimeout(60000)
   for (const app of apps) {
-    current = { name: app.name, stage: 'deployed-build', paymentRequests: [], dashboardRequests: [], browserErrorCount: 0, consoleErrorCount: 0, failedAssetCount: 0, result: 'in_progress' }
+    current = { name: app.name, stage: 'deployed-build', paymentRequests: [], dashboardRequests: [], browserErrorCount: 0, consoleErrorCount: 0, failedAssetCount: 0, abortedAssetRequestCount: 0, assetEvents: [], omittedAssetEventCount: 0, result: 'in_progress' }
     report.apps.push(current)
     const item = current
     try {
       current.deployedBefore = await captureBuild(context, app, expectedBuilds[app.name])
       page = await context.newPage()
+      const observedPage = page
       const pending = []
+      const recordAssetEvent = (url, category) => {
+        if (category === 'aborted') item.abortedAssetRequestCount++
+        else item.failedAssetCount++
+        const path = /^\/_nuxt\/[A-Za-z0-9_./-]+\.(js|css)$/.test(url.pathname)
+          ? url.pathname.slice(0, 240) : '[other-same-origin-js-css]'
+        const existing = item.assetEvents.find(event => event.path === path && event.category === category)
+        if (existing) existing.count++
+        else if (item.assetEvents.length < 40) item.assetEvents.push({ path, category, count: 1 })
+        else item.omittedAssetEventCount++
+      }
       let observeSelectedAccount = false
       const selectedAccountRequests = new WeakSet()
       page.on('pageerror', () => item.browserErrorCount++)
       page.on('console', message => {
-        if (message.type() === 'error' && new URL(page.url()).origin === app.origin) item.consoleErrorCount++
+        if (message.type() === 'error' && new URL(observedPage.url()).origin === app.origin) item.consoleErrorCount++
       })
       page.on('request', request => {
         if (observeSelectedAccount) selectedAccountRequests.add(request)
       })
       page.on('requestfailed', request => {
         const url = new URL(request.url())
-        if (url.origin === app.origin && /\.(js|css)$/.test(url.pathname)) item.failedAssetCount++
+        if (url.origin !== app.origin || !/\.(js|css)$/.test(url.pathname)) return
+        const error = request.failure()?.errorText || ''
+        const category = error === 'net::ERR_ABORTED' ? 'aborted'
+          : /ERR_(NAME_NOT_RESOLVED|DNS_)/.test(error) ? 'dns'
+            : /ERR_CERT_|ERR_SSL_/.test(error) ? 'tls'
+              : /ERR_(TIMED_OUT|CONNECTION_TIMED_OUT)/.test(error) ? 'timeout'
+                : /ERR_CONNECTION_/.test(error) ? 'connection'
+                  : /ERR_BLOCKED_BY_/.test(error) ? 'blocked' : 'network'
+        recordAssetEvent(url, category)
       })
       page.on('response', response => {
         const url = new URL(response.url())
-        if (url.origin === app.origin && /\.(js|css)$/.test(url.pathname) && !response.ok()) item.failedAssetCount++
+        if (url.origin === app.origin && /\.(js|css)$/.test(url.pathname) && !response.ok()) {
+          recordAssetEvent(url, 'http-' + response.status())
+        }
         if (!selectedAccountRequests.has(response.request())) return
         if (url.hostname === 'strr-api-dev-i2rbretwta-nn.a.run.app' && response.request().method() === 'GET' &&
             ['/applications', '/registrations'].includes(url.pathname)) {
@@ -141,10 +162,23 @@ try {
         current.missingPrerequisite = 'approved-dev-synthetic-account'
         const choices = page.getByTestId('choose-existing-account-button')
         current.accountChoiceCount = await choices.count()
-        current.syntheticAccountChoices = await choices.evaluateAll(buttons => buttons.flatMap(button => {
-          const match = button.getAttribute('aria-label')?.match(/^Use this Account, (STRR_TEST_[0-9]+)$/)
-          return match ? [{ label: match[1], enabled: !button.disabled }] : []
-        }))
+        current.accountDiagnostics = await choices.evaluateAll(async buttons => {
+          let ariaLabelPresentCount = 0
+          const matches = []
+          for (const [index, button] of buttons.entries()) {
+            const ariaLabel = button.getAttribute('aria-label')?.trim()
+            if (ariaLabel) ariaLabelPresentCount++
+            const label = (ariaLabel?.replace(/^Use this Account,\s*/i, '') ||
+              button.closest('li')?.querySelector('span.text-lg')?.textContent || '').trim().replace(/\s+/g, ' ')
+            const categories = ['strr', 'test', 'qa'].filter(pattern => new RegExp(pattern, 'i').test(label))
+            if (!categories.length) continue
+            const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(label.toLowerCase()))
+            const labelSha256 = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+            matches.push({ choiceIndex: index, categories, labelSha256, enabled: !button.disabled })
+          }
+          return { ariaLabelPresentCount, matchingChoiceCount: matches.length,
+            matchingChoices: matches.slice(0, 50), omittedMatchingChoices: Math.max(0, matches.length - 50) }
+        })
         throw new Error('Approved DEV synthetic account unavailable')
       }
       await accountButton.click()
