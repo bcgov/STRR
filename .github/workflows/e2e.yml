@@ -49,6 +49,7 @@ jobs:
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
+          PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME: ${{ inputs.mode == 'read-only' && secrets.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME || '' }}
           CYPRESS_CREDITCARD: ${{ inputs.mode == 'checkout' && secrets.CYPRESS_CREDITCARD || '' }}
         run: node preflight.mjs
       - name: Upload sanitized results

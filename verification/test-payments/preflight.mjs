@@ -10,8 +10,9 @@ import { createHostPayment } from './host-checkout.mjs'
 const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME
 const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD
 const account = 'STRR_TEST_29'
+const configuredCiAccount = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME?.trim()
 const mode = process.env.QA_MODE || 'read-only'
-const secrets = [username, password].filter(Boolean)
+const secrets = [username, password, process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME, configuredCiAccount].filter(Boolean)
 const sanitize = value => {
   let text = String(value)
   for (const secret of secrets) text = text.split(secret).join('[redacted]')
@@ -64,7 +65,7 @@ try {
   context.setDefaultTimeout(20000)
   context.setDefaultNavigationTimeout(60000)
   for (const app of apps) {
-    current = { name: app.name, stage: 'deployed-build', paymentRequests: [], dashboardRequests: [], browserErrorCount: 0, consoleErrorCount: 0, failedAssetCount: 0, abortedAssetRequestCount: 0, assetEvents: [], omittedAssetEventCount: 0, result: 'in_progress' }
+    current = { name: app.name, stage: 'deployed-build', paymentRequests: [], dashboardRequests: [], browserErrorCount: 0, consoleErrorCount: 0, failedAssetCount: 0, cacheValidatedAssetCount: 0, abortedAssetRequestCount: 0, assetEvents: [], omittedAssetEventCount: 0, result: 'in_progress' }
     report.apps.push(current)
     const item = current
     try {
@@ -105,8 +106,9 @@ try {
       })
       page.on('response', response => {
         const url = new URL(response.url())
-        if (url.origin === app.origin && /\.(js|css)$/.test(url.pathname) && !response.ok()) {
-          recordAssetEvent(url, 'http-' + response.status())
+        if (url.origin === app.origin && /\.(js|css)$/.test(url.pathname)) {
+          if (response.status() === 304) item.cacheValidatedAssetCount++
+          else if (response.status() >= 400) recordAssetEvent(url, 'http-' + response.status())
         }
         if (!selectedAccountRequests.has(response.request())) return
         if (url.hostname === 'strr-api-dev-i2rbretwta-nn.a.run.app' && response.request().method() === 'GET' &&
@@ -156,10 +158,26 @@ try {
       current.stage = 'select-synthetic-account'
       await page.goto(app.origin + '/en-CA/auth/account/choose-existing', { waitUntil: 'domcontentloaded' })
       await page.getByTestId('choose-existing-account-button').first().waitFor({ state: 'visible' })
-      const accountButton = page.getByRole('button', { name: 'Use this Account, ' + account, exact: true })
+      let accountButton = page.getByRole('button', { name: 'Use this Account, ' + account, exact: true })
       current.syntheticAccountAvailable = await accountButton.count() === 1 && await accountButton.isEnabled()
-      if (!current.syntheticAccountAvailable) {
-        current.missingPrerequisite = 'approved-dev-synthetic-account'
+      if (current.syntheticAccountAvailable) current.accountFixtureSource = 'approved-synthetic'
+      // The repository's existing Playwright helpers designate this CI account.
+      // It may be used for read-only checks only, never fixture creation/payment.
+      if (!current.syntheticAccountAvailable && mode === 'read-only') {
+        const configuredButton = configuredCiAccount
+          ? page.getByRole('button', { name: 'Use this Account, ' + configuredCiAccount, exact: true }) : undefined
+        const matchCount = configuredButton ? await configuredButton.count() : 0
+        const enabled = matchCount === 1 && await configuredButton.isEnabled()
+        current.configuredCiAccount = { configured: Boolean(configuredCiAccount), matchCount, enabled,
+          labelSha256: configuredCiAccount ? createHash('sha256')
+            .update(configuredCiAccount.replace(/\s+/g, ' ').toLowerCase()).digest('hex') : undefined }
+        if (enabled) {
+          accountButton = configuredButton
+          current.accountFixtureSource = 'existing-playwright-ci-account'
+        }
+      }
+      if (!current.accountFixtureSource) {
+        current.missingPrerequisite = mode === 'checkout' ? 'approved-dev-synthetic-account' : 'available-designated-dev-test-account'
         const choices = page.getByTestId('choose-existing-account-button')
         current.accountChoiceCount = await choices.count()
         current.accountDiagnostics = await choices.evaluateAll(async buttons => {
@@ -203,9 +221,10 @@ try {
         { timeout: 30000 }).toBeGreaterThanOrEqual(app.feeCount)
       await expect.poll(() => Boolean(item.paymentAccount), { timeout: 30000 }).toBe(true)
       await Promise.all(pending)
-      expect(current.paymentAccount.paymentMethod).toBe('DIRECT_PAY')
       current.registrationFormLoaded = true
       if (mode === 'checkout') {
+        expect(current.accountFixtureSource).toBe('approved-synthetic')
+        expect(current.paymentAccount.paymentMethod).toBe('DIRECT_PAY')
         if (app.name === 'host') await createHostPayment(page, current, card)
         if (app.name === 'platform') await preparePlatformCheckout(page, current, card)
         if (app.name === 'strata') await createStrataPayment(page, current, card)
