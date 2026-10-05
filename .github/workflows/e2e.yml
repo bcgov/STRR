@@ -32,9 +32,16 @@ jobs:
           node-version: 24
       - name: Install browser verification dependencies
         working-directory: verification/deployment-browser
+        env:
+          VERIFY_ENVIRONMENT: ${{ inputs.environment }}
+          VERIFY_SCENARIO: ${{ inputs.scenario }}
         run: |
           npm ci --ignore-scripts --no-audit
-          npx playwright install --with-deps chromium
+          case "$VERIFY_ENVIRONMENT:$VERIFY_SCENARIO" in
+            dev:api-transport|dev:platform-stepper-navigation|dev:strata-stepper-navigation|dev:host-review-sections)
+              google-chrome --version ;;
+            *) npx playwright install --with-deps chromium ;;
+          esac
       - name: Verify selected deployment scenario
         working-directory: verification/deployment-browser
         env:
@@ -42,6 +49,7 @@ jobs:
           VERIFY_SCENARIO: ${{ inputs.scenario }}
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
+          PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME: ${{ inputs.environment == 'dev' && contains(fromJSON('["api-transport","platform-stepper-navigation","strata-stepper-navigation","host-review-sections"]'), inputs.scenario) && secrets.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME || '' }}
           LEGACY_CYPRESS_USERS: ${{ (inputs.scenario == 'credential-route-inventory' || inputs.scenario == 'examiner-login') && secrets.CYPRESS_USERS || '' }}
           CYPRESS_CREDITCARD: ${{ (inputs.scenario == 'host-fee' || inputs.scenario == 'host-resume' || inputs.scenario == 'strata-checkout' || inputs.scenario == 'platform-checkout' || inputs.scenario == 'platform-draft-resume') && secrets.CYPRESS_CREDITCARD || '' }}
         run: |

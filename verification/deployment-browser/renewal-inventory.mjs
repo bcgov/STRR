@@ -18,6 +18,9 @@ import { observeApiTransport } from './api-transport.mjs'
 const environment = process.env.VERIFY_ENVIRONMENT
 if (!['dev', 'test'].includes(environment)) throw new Error('Only DEV and TEST are allowed')
 const scenario = process.env.VERIFY_SCENARIO
+const useConfiguredCiAccount = environment === 'dev' && ['api-transport', 'platform-stepper-navigation', 'strata-stepper-navigation', 'host-review-sections'].includes(scenario)
+const accountName = useConfiguredCiAccount ? process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME?.trim() : 'STRR_TEST_29'
+if (!accountName) throw new Error('Designated CI account is not configured')
 const isApiTransport = scenario === 'api-transport'
 const isHostDraftInventory = scenario === 'host-draft-inventory'
 const isHostDraftVerification = scenario === 'host-incomplete-drafts'
@@ -41,7 +44,7 @@ const report = {
   apps: [], result: 'in_progress'
 }
 await mkdir('results', { recursive: true })
-const browser = await chromium.launch()
+const browser = await chromium.launch(useConfiguredCiAccount ? { channel: 'chrome' } : {})
 try {
   for (const app of [
     { name: 'host', type: 'HOST', dashboard: '/dashboard', application: '/application', renewalCodes: ['HOSTREN_ON', 'HOSTRENOFF', 'HOSTREN_BB'] },
@@ -133,9 +136,11 @@ try {
         result.result = 'passed'
         continue
       }
-      const account = page.getByRole('button', { name: 'Use this Account, STRR_TEST_29', exact: true })
-      result.accountAvailable = await account.count() === 1 && await account.isEnabled()
-      if (!result.accountAvailable) throw new Error('Known synthetic account unavailable')
+      const account = page.getByRole('button', { name: 'Use this Account, ' + accountName, exact: true })
+      result.accountMatchCount = await account.count()
+      result.accountAvailable = result.accountMatchCount === 1 && await account.isEnabled()
+      result.accountFixtureSource = useConfiguredCiAccount ? 'existing-playwright-ci-account' : 'approved-synthetic'
+      if (!result.accountAvailable) throw new Error('Designated CI account unavailable')
       await account.click()
       await page.waitForURL(url => url.origin === origin && !url.pathname.includes('/auth/'), { timeout: 45000 })
       result.stage = 'dashboard'
