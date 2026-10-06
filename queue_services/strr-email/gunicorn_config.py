@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """The configuration for gunicorn, which picks up the
-   runtime options from environment variables
+runtime options from environment variables
 """
 
 import os

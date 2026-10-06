@@ -154,7 +154,10 @@ scenario_all_idempotent = [
         "target_pct": 1,
     },
 ]
-scenario_names = [f"records_{s['records']}_pct_{s['target_pct']}" for s in scenario_all_idempotent]
+scenario_names = [
+    f"records_{s['records']}_days_{'-'.join(map(str, s['target_days']))}_pct_{s['target_pct']}"
+    for s in scenario_all_idempotent
+]
 
 
 @pytest.mark.load  # This test will now be skipped by default

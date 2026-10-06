@@ -35,6 +35,7 @@
 
 This module applied payments against applications and updates the application status to PAID.
 """
+
 from __future__ import annotations
 
 from flask import Flask
