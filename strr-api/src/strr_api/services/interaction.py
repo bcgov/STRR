@@ -32,7 +32,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 import json
-import uuid
 from dataclasses import dataclass
 from http import HTTPStatus
 from typing import overload
@@ -109,18 +108,12 @@ class InteractionService:
 
     @classmethod
     def _build_delivery_rows(cls, interactions: list[CustomerInteraction], event_type: str) -> list[dict]:
-        rows: list[dict] = []
-        for interaction in interactions:
-            if row := cls._build_delivery_row(interaction, event_type):
-                rows.append(row)
-        return rows
+        return [row for interaction in interactions if (row := cls._build_delivery_row(interaction, event_type))]
 
     @staticmethod
     def _message_for_delivery_status(channel: str, status: str) -> str:
         """Create a readable filing-history message for interaction delivery rows."""
-        channel_label = channel.capitalize()
-        status_label = status.capitalize()
-        return f"{channel_label} delivery status updated ({status_label})."
+        return f"{channel.capitalize()} delivery status updated ({status.capitalize()})."
 
     @classmethod
     def _event_name_for_status(cls, status: str) -> str:
@@ -134,26 +127,52 @@ class InteractionService:
         return cls.RECIPIENT_DELIVERY_STATUS_MAP.get(normalized, "UNKNOWN")
 
     @staticmethod
-    def _normalize_recipient_statuses(recipient_statuses: dict) -> list[dict]:
+    def _recipient_status_row(
+        email_address: str | None,
+        status: str,
+        provider_status: str | None = None,
+        *,
+        failure_reason: str | None = None,
+        failure_type: str | None = None,
+        notify_reference: str | None = None,
+        provider_reference: str | None = None,
+        request_date: str | None = None,
+        sent_date: str | None = None,
+    ) -> dict:
+        """Build a standardized recipient status entry for filing-history events."""
+        return {
+            "email_address": email_address,
+            "failure_reason": failure_reason,
+            "failure_type": failure_type,
+            "notify_reference": notify_reference,
+            "provider_reference": provider_reference,
+            "request_date": request_date,
+            "sent_date": sent_date,
+            "status": status,
+            "provider_status": provider_status,
+        }
+
+    @classmethod
+    def _normalize_recipient_statuses(cls, recipient_statuses: dict | None) -> list[dict]:
         """Normalize stored recipient statuses to API response array shape."""
-        normalized = []
-        for notify_reference, payload in recipient_statuses.items():
-            row = payload if isinstance(payload, dict) else {}
-            provider_status = row.get("status")
-            normalized.append(
-                {
-                    "email_address": row.get("email_address"),
-                    "failure_reason": row.get("failure_reason"),
-                    "failure_type": row.get("failure_type"),
-                    "notify_reference": row.get("notify_reference") or str(notify_reference),
-                    "provider_reference": row.get("provider_reference"),
-                    "request_date": row.get("request_date"),
-                    "sent_date": row.get("sent_date"),
-                    "status": InteractionService._map_recipient_delivery_status(provider_status),
-                    "provider_status": provider_status,
-                }
+        if not isinstance(recipient_statuses, dict):
+            return []
+
+        return [
+            cls._recipient_status_row(
+                email_address=row.get("email_address"),
+                status=cls._map_recipient_delivery_status(row.get("status")),
+                provider_status=row.get("status"),
+                failure_reason=row.get("failure_reason"),
+                failure_type=row.get("failure_type"),
+                notify_reference=row.get("notify_reference") or str(notify_reference),
+                provider_reference=row.get("provider_reference"),
+                request_date=row.get("request_date"),
+                sent_date=row.get("sent_date"),
             )
-        return normalized
+            for notify_reference, payload in recipient_statuses.items()
+            if (row := payload if isinstance(payload, dict) else {}) is not None
+        ]
 
     @classmethod
     def _fallback_recipient_statuses(
@@ -177,19 +196,39 @@ class InteractionService:
         provider_status = notify_response.get("notifyStatus")
         mapped_status = cls._map_recipient_delivery_status(provider_status or default_status)
 
+        default_ref = ref_list[0] if ref_list else None
+
         return [
-            {
-                "email_address": recipient,
-                "failure_reason": None,
-                "failure_type": None,
-                "notify_reference": ref_list[i] if i < len(ref_list) else (ref_list[0] if ref_list else None),
-                "provider_reference": None,
-                "request_date": request_date,
-                "sent_date": sent_date,
-                "status": mapped_status,
-                "provider_status": provider_status,
-            }
+            cls._recipient_status_row(
+                email_address=recipient,
+                status=mapped_status,
+                provider_status=provider_status,
+                notify_reference=ref_list[i] if i < len(ref_list) else default_ref,
+                request_date=request_date,
+                sent_date=sent_date,
+            )
             for i, recipient in enumerate(recipients)
+        ]
+
+    @classmethod
+    def _failed_recipient_statuses(cls, notify_response: dict, default_request_date: str | None) -> list[dict]:
+        """Construct recipient status rows for recipients that failed during initial dispatch."""
+        failed_recipients = notify_response.get("failed_recipients")
+        if not isinstance(failed_recipients, list):
+            return []
+
+        request_date = notify_response.get("requestDate") or default_request_date
+        return [
+            cls._recipient_status_row(
+                email_address=failed.get("email_address"),
+                status="FAILED",
+                provider_status="PERMANENT_FAILURE",
+                failure_reason=cls._extract_failure_reason(failed.get("error"), failed.get("status_code")),
+                failure_type="PERMANENT_FAILURE",
+                request_date=request_date,
+            )
+            for failed in failed_recipients
+            if isinstance(failed, dict)
         ]
 
     @classmethod
@@ -201,19 +240,15 @@ class InteractionService:
 
         meta_data = interaction.meta_data if isinstance(interaction.meta_data, dict) else {}
         notify_delivery = meta_data.get("notify_delivery") if isinstance(meta_data.get("notify_delivery"), dict) else {}
-        recipient_statuses_dict = (
-            notify_delivery.get("recipient_statuses")
-            if isinstance(notify_delivery.get("recipient_statuses"), dict)
-            else {}
-        )
+        notify_response = meta_data.get("notify_response") if isinstance(meta_data.get("notify_response"), dict) else {}
         status = interaction.status.value if interaction.status else ""
         created_at_iso = interaction.created_at.isoformat() if interaction.created_at else None
 
-        recipient_statuses = cls._normalize_recipient_statuses(recipient_statuses_dict)
-        if not recipient_statuses:
-            recipient_statuses = cls._fallback_recipient_statuses(meta_data, status, created_at_iso)
+        recipient_statuses = cls._normalize_recipient_statuses(
+            notify_delivery.get("recipient_statuses")
+        ) or cls._fallback_recipient_statuses(meta_data, status, created_at_iso)
+        recipient_statuses.extend(cls._failed_recipient_statuses(notify_response, created_at_iso))
 
-        notify_response = meta_data.get("notify_response") if isinstance(meta_data.get("notify_response"), dict) else {}
         recipient_status_updated_at = (
             notify_delivery.get("updated_at")
             or notify_response.get("sentDate")
@@ -257,40 +292,23 @@ class InteractionService:
         application_id: int | None = None,
         registration_id: int | None = None,
         customer_id: int | None = None,
-    ):
+    ) -> CustomerInteraction:
         """Dispatch interaction."""
         match channel_type:
             case ChannelType.EMAIL:
                 if not isinstance(payload, EmailInfo):
                     raise ValidationException(error="Invalid EmailInfo", status_code=HTTPStatus.BAD_REQUEST)
+                payload.interaction_uuid = payload.interaction_uuid or interaction_uuid
                 notify_json = InteractionService._send_email_to_notify_service(payload)
 
             case _:
                 raise ExternalServiceException(error="Unsupported channel type", status_code=HTTPStatus.BAD_REQUEST)
 
-        if (
-            not notify_json
-            or not isinstance(notify_json, dict)
-            or not InteractionService._valid_notify_id(notify_json.get("id"))
-        ):
-            InteractionService._save_interaction(
-                channel_type=channel_type,
-                payload=payload,
-                status=InteractionStatus.FAILED,
-                idempotency_key=idempotency_key,
-                interaction_uuid=interaction_uuid,
-                user_id=user_id,
-                application_id=application_id,
-                registration_id=registration_id,
-                customer_id=customer_id,
-                notify_json=notify_json if isinstance(notify_json, dict) else None,
-            )
-            raise ExternalServiceException(error="Email not sent", status_code=HTTPStatus.BAD_REQUEST)
-
+        is_sent = InteractionService._valid_notify_id(notify_json.get("id"))
         interaction = InteractionService._save_interaction(
             channel_type=channel_type,
             payload=payload,
-            status=InteractionStatus.SENT,
+            status=InteractionStatus.SENT if is_sent else InteractionStatus.FAILED,
             idempotency_key=idempotency_key,
             interaction_uuid=interaction_uuid,
             user_id=user_id,
@@ -299,6 +317,8 @@ class InteractionService:
             customer_id=customer_id,
             notify_json=notify_json,
         )
+        if not is_sent:
+            raise ExternalServiceException(error="Email not sent", status_code=HTTPStatus.BAD_REQUEST)
 
         if event_name := InteractionService.email_event_mapper.get(payload.email_type):
             if registration_id:
@@ -328,26 +348,17 @@ class InteractionService:
         application_id: int | None = None,
         registration_id: int | None = None,
         customer_id: int | None = None,
-    ):
-        interaction = CustomerInteraction(
-            channel=channel_type,
+    ) -> str:
+        return InteractionService._save_interaction(
+            channel_type=channel_type,
+            payload=payload,
             status=InteractionStatus.QUEUED,
+            idempotency_key=idempotency_key,
+            user_id=user_id,
             application_id=application_id,
             registration_id=registration_id,
             customer_id=customer_id,
-            user_id=user_id,
-            idempotency_key=idempotency_key,
-            body_content=InteractionService._body_content(payload),
-            meta_data=InteractionService._interaction_metadata(
-                payload=payload,
-                status=InteractionStatus.QUEUED,
-                application_id=application_id,
-                registration_id=registration_id,
-                customer_id=customer_id,
-            ),
-        )
-        interaction.save()
-        return interaction.interaction_uuid
+        ).interaction_uuid
 
     @staticmethod
     def _save_interaction(
@@ -361,7 +372,7 @@ class InteractionService:
         registration_id: int | None = None,
         customer_id: int | None = None,
         notify_json: dict | None = None,
-    ):
+    ) -> CustomerInteraction:
         """Create or update the tracked interaction row for an outbound message."""
         interaction = CustomerInteraction.find_by_uuid(interaction_uuid) if interaction_uuid else None
         if not interaction:
@@ -395,24 +406,22 @@ class InteractionService:
         )
         interaction.meta_data = meta_data
         interaction.save()
-        if status == InteractionStatus.FAILED:
-            notify_error = None
-            notify_status_code = None
-            if isinstance(notify_json, dict):
-                notify_error = notify_json.get("error")
-                notify_status_code = notify_json.get("status_code")
+        notify_dict = notify_json if isinstance(notify_json, dict) else {}
+        if status == InteractionStatus.FAILED or notify_dict.get("failed_recipients"):
             current_app.logger.warning(
-                "strr.interactions.failed_detected interaction_status=FAILED interaction_uuid=%s email_type=%s "
+                "strr.interactions.failed_detected interaction_status=%s interaction_uuid=%s email_type=%s "
                 "target_entity=%s target_id=%s application_number=%s registration_number=%s "
-                "notify_status_code=%s notify_error=%s",
+                "notify_status_code=%s notify_error=%s failed_recipients=%s",
+                status.value,
                 interaction.interaction_uuid,
                 meta_data.get("email_type"),
                 meta_data.get("target_entity"),
                 meta_data.get("target_id"),
                 meta_data.get("application_number"),
                 meta_data.get("registration_number"),
-                notify_status_code,
-                notify_error,
+                notify_dict.get("status_code"),
+                notify_dict.get("error"),
+                notify_dict.get("failed_recipients"),
             )
         return interaction
 
@@ -467,7 +476,7 @@ class InteractionService:
                     "requestBy": payload.email.get("requestBy"),
                     "subject": payload.email.get("content", {}).get("subject"),
                 }
-        if notify_json:
+        if isinstance(notify_json, dict) and notify_json:
             metadata["notify_response"] = InteractionService._json_safe(notify_json)
             if notify_ids := notify_json.get("ids"):
                 metadata["notify_references"] = notify_ids
@@ -483,7 +492,16 @@ class InteractionService:
             return str(value)
 
     @staticmethod
-    def _send_email_to_notify_service(email_info):
+    def _extract_failure_reason(error, status_code: int | None = None) -> str:
+        """Extract a readable failure reason from a Notify error payload."""
+        if isinstance(error, dict):
+            return str(error.get("message") or error.get("error") or json.dumps(error))
+        if error:
+            return str(error)
+        return f"HTTP error {status_code}" if status_code else "Failed to send email via notify service"
+
+    @staticmethod
+    def _send_email_to_notify_service(email_info: EmailInfo) -> dict:
         """Send an email via the notify-api.
 
         When the email has multiple recipients, dispatch a separate notify request
@@ -491,32 +509,60 @@ class InteractionService:
         rest of the recipients.
         """
         email = email_info.email if isinstance(email_info.email, dict) else None
-        raw_recipients = (email or {}).get("recipients") if email else None
-        recipients = [r.strip() for r in (raw_recipients or "").split(",") if r.strip()]
-
+        recipients = normalize_to_list((email or {}).get("recipients"))
         if len(recipients) <= 1:
             return InteractionService._post_email_to_notify(email_info.email, email_info)
 
         success_ids: list = []
-        last_result: dict = {"id": -1}
+        success_recipients: list[str] = []
+        failed_recipients: list[dict] = []
+        last_success_result: dict = {}
+        last_failure_result: dict = {"id": -1}
+
         for recipient in recipients:
-            single_email = {**email, "recipients": recipient}
-            result = InteractionService._post_email_to_notify(single_email, email_info)
-            notify_id = result.get("id") if isinstance(result, dict) else None
+            result = InteractionService._post_email_to_notify({**email, "recipients": recipient}, email_info)
+            notify_id = result.get("id")
+
             if InteractionService._valid_notify_id(notify_id):
                 success_ids.append(notify_id)
-                last_result = result
+                success_recipients.append(recipient)
+                last_success_result = result
+                continue
+
+            last_failure_result = result
+            failed_recipients.append(
+                {
+                    "email_address": recipient,
+                    "status_code": result.get("status_code"),
+                    "error": result.get("error"),
+                }
+            )
 
         if not success_ids:
-            return {"id": -1}
+            return {**last_failure_result, "id": -1, "failed_recipients": failed_recipients}
 
-        combined_ids = ",".join(str(i) for i in success_ids)[:100]
-        return {**last_result, "id": success_ids[0], "ids": combined_ids}
+        response = {
+            **last_success_result,
+            "id": success_ids[0],
+            "ids": ",".join(str(i) for i in success_ids)[:100],
+            "recipients": ",".join(success_recipients),
+        }
+        if failed_recipients:
+            response["failed_recipients"] = failed_recipients
+        return response
 
     @staticmethod
-    def _post_email_to_notify(email_payload, email_info: EmailInfo | None = None):
+    def _post_email_to_notify(email_payload: dict | None, email_info: EmailInfo | None = None) -> dict:
         """Post a single email payload to the notify-api."""
         token = AuthService.get_service_client_token()
+        recipients = email_payload.get("recipients") if isinstance(email_payload, dict) else None
+        log_context = (
+            getattr(email_info, "email_type", None),
+            getattr(email_info, "application_number", None),
+            getattr(email_info, "registration_number", None),
+            getattr(email_info, "interaction_uuid", None),
+            recipients,
+        )
         try:
             resp = requests.post(
                 current_app.config["NOTIFY_SVC_URL"],
@@ -530,11 +576,8 @@ class InteractionService:
         except Exception as err:
             current_app.logger.exception(
                 "strr.email.notify.failed Error posting email to notify-api "
-                "email_type=%s application_number=%s registration_number=%s interaction_uuid=%s",
-                getattr(email_info, "email_type", None),
-                getattr(email_info, "application_number", None),
-                getattr(email_info, "registration_number", None),
-                getattr(email_info, "interaction_uuid", None),
+                "email_type=%s application_number=%s registration_number=%s interaction_uuid=%s recipients=%s",
+                *log_context,
             )
             return {"id": -1, "error": str(err)}
 
@@ -543,15 +586,11 @@ class InteractionService:
                 response_body = resp.json()
             except Exception:  # pragma: no cover - defensive for malformed downstream responses
                 response_body = getattr(resp, "text", "")
-            current_app.logger.info(f"Error {resp.status_code} - {str(response_body)}")
             current_app.logger.error(
                 "strr.email.notify.failed Error posting email to notify-api "
-                "email_type=%s application_number=%s registration_number=%s interaction_uuid=%s status_code=%s "
-                "notify_error=%s",
-                getattr(email_info, "email_type", None),
-                getattr(email_info, "application_number", None),
-                getattr(email_info, "registration_number", None),
-                getattr(email_info, "interaction_uuid", None),
+                "email_type=%s application_number=%s registration_number=%s interaction_uuid=%s recipients=%s "
+                "status_code=%s notify_error=%s",
+                *log_context,
                 resp.status_code,
                 response_body,
             )

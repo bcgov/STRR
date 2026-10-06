@@ -3,6 +3,10 @@ name: PROVISIONAL APPROVAL JOB CI
 on:
   pull_request:
     paths:
+      - "strr-api/src/strr_api/common/cloud_sql.py"
+      - "strr-api/pyproject.toml"
+      - "strr-api/poetry.lock"
+      - ".github/workflows/strr-provisional-approval-job-ci.yaml"
       - "jobs/provisional-approval**"
       - "tests/python-test-utils/**"
       - "src/strr_api/models/**"

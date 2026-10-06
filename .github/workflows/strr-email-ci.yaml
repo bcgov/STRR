@@ -3,6 +3,10 @@ name: STRR EMAIL CI
 on:
   pull_request:
     paths:
+      - "strr-api/src/strr_api/common/cloud_sql.py"
+      - "strr-api/pyproject.toml"
+      - "strr-api/poetry.lock"
+      - ".github/workflows/strr-email-ci.yaml"
       - "queue_services/strr-email/**"
       - "tests/python-test-utils/**"
   workflow_dispatch:

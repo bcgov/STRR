@@ -8,6 +8,7 @@ on:
       - hotfix*
       - release*
     paths:
+      - ".github/workflows/strr-provisional-approval-job-cd.yaml"
       - "jobs/provisional-approval/**"
       - "src/strr_api/models/**"
       - "src/strr_api/services/**"
@@ -26,13 +27,6 @@ on:
           - "uat"
           - "sandbox"
           - "prod"
-      redeploy:
-        description: "Redeploy Application"
-        required: true
-        type: choice
-        options:
-          - "false"
-          - "true"
 
 jobs:
   provisional-approval-job-cd:
@@ -41,7 +35,8 @@ jobs:
       target: ${{ inputs.target }}
       app_name: "provisional-approval-job"
       working_directory: "./jobs/provisional-approval"
-      redeploy: ${{ inputs.redeploy }}
+      # IAM parameters are resolved by Cloud Deploy during a full deployment.
+      redeploy: "false"
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}

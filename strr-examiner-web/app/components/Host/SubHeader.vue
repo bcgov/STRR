@@ -10,12 +10,20 @@ const {
   isAssignedToUser
 } = storeToRefs(useExaminerStore())
 
-const { openEditRentalUnitForm, openEditRegistrationEmailForm } = useHostExpansion()
+const {
+  openEditRentalUnitForm,
+  openEditRegistrationEmailForm,
+  checkAndPerformAction,
+  openHostOwners,
+  openFilingHistory
+} = useHostExpansion()
 const { t } = useNuxtApp().$i18n
 const alertFlags = reactive(useFlags())
+const { isEmailFailed, failureReason, failedEvent } = useEmailDeliveryStatus(
+  () => activeReg.value?.primaryContact?.emailAddress
+)
 const { isFeatureEnabled } = useFeatureFlags()
 const canEditApplicationAddress = isFeatureEnabled('enable-examiner-edit-address-application')
-const { checkAndPerformAction, openHostOwners } = useHostExpansion()
 const { isSnapshotRoute } = useExaminerRoute()
 
 const isEditAddressDisabled = computed((): boolean => activeReg.value.status === RegistrationStatus.CANCELLED)
@@ -103,9 +111,30 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
             @click="checkAndPerformAction(() => openHostOwners('primaryContact'))"
           />
         </div>
-        <div>
-          <UIcon name="i-mdi-at" />
-          {{ activeReg.primaryContact?.emailAddress }}
+        <div class="flex items-center gap-1">
+          <UIcon name="i-mdi-at" :class="{ 'text-red-600': isEmailFailed }" />
+          <UTooltip
+            v-if="isEmailFailed"
+            :text="failureReason
+              ? `${t('strr.alertFlags.emailDeliveryFailed')}: ${failureReason}`
+              : t('strr.alertFlags.emailDeliveryFailedTooltip')"
+          >
+            <UButton
+              variant="link"
+              color="red"
+              :padded="false"
+              class="inline-flex items-center gap-1 font-semibold text-red-600 hover:text-red-700 hover:underline"
+              data-testid="email-failed-badge"
+              :aria-label="t('strr.alertFlags.emailDeliveryFailed')"
+              @click="checkAndPerformAction(() => openFilingHistory(failedEvent || undefined))"
+            >
+              <span>{{ activeReg.primaryContact?.emailAddress }}</span>
+              <UIcon name="i-mdi-alert-circle" class="size-4 shrink-0 text-red-600" />
+            </UButton>
+          </UTooltip>
+          <span v-else>
+            {{ activeReg.primaryContact?.emailAddress }}
+          </span>
         </div>
         <div v-if="activeReg.primaryContact?.contactType" class="flex gap-x-1">
           <strong>{{ t('strr.label.hostType') }}</strong>

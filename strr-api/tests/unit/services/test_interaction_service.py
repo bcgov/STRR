@@ -28,80 +28,39 @@ from strr_api.services import InteractionService
 from strr_api.services.interaction import EmailInfo
 
 
+def _mock_notify(status_code=HTTPStatus.OK, **json_body):
+    """Build a mock requests.post response for Notify API."""
+    return MagicMock(status_code=status_code, **{"json.return_value": json_body})
+
+
 def test_dispatch_valid_signature_mandatory():
     """Assert that mandatory parameters must be provided."""
-
-    # missing channel_type, 1st parameter
     with pytest.raises(TypeError) as excinfo:
         InteractionService.dispatch()
     assert excinfo._excinfo[1].args[0] == "missing a required argument: 'channel_type'"
 
-    # missing payload, 2nd paramter
     with pytest.raises(TypeError) as excinfo:
-        InteractionService.dispatch(
-            channel_type=ChannelType.SMS,
-        )
+        InteractionService.dispatch(channel_type=ChannelType.SMS)
     assert excinfo._excinfo[1].args[0] == "missing a required argument: 'payload'"
 
 
-def test_dispatch_valid_signature_optional(check):
-    """Assert that mandatory parameters must be provided."""
-    # Cannot have app/reg/customer
+@pytest.mark.parametrize(
+    "kwargs, found_count",
+    [
+        ({"customer_id": 1, "registration_id": 1, "application_id": 1}, 3),
+        ({"customer_id": 1, "registration_id": 1, "application_id": None}, 2),
+        ({"customer_id": 1, "registration_id": None, "application_id": 1}, 2),
+        ({"customer_id": None, "registration_id": 1, "application_id": 1}, 2),
+    ],
+)
+def test_dispatch_valid_signature_optional(kwargs, found_count):
+    """Assert that mutually exclusive parent parameters are validated."""
     with pytest.raises(ValueError) as excinfo:
-        InteractionService.dispatch(
-            channel_type=ChannelType.SMS,
-            payload={},
-            customer_id=1,
-            registration_id=1,
-            application_id=1,
-        )
-    with check:
-        assert (
-            excinfo.value.args[0]
-            == "Too many arguments provided. Allowed max: 1, Found: 3 (application_id, registration_id, customer_id)"
-        )
-
-    with pytest.raises(ValueError) as excinfo:
-        InteractionService.dispatch(
-            channel_type=ChannelType.SMS,
-            payload={},
-            customer_id=1,
-            registration_id=1,
-            application_id=None,
-        )
-    with check:
-        assert (
-            excinfo.value.args[0]
-            == "Too many arguments provided. Allowed max: 1, Found: 2 (application_id, registration_id, customer_id)"
-        )
-
-    with pytest.raises(ValueError) as excinfo:
-        InteractionService.dispatch(
-            channel_type=ChannelType.SMS,
-            payload={},
-            customer_id=1,
-            registration_id=None,
-            application_id=1,
-        )
-    with check:
-        assert (
-            excinfo.value.args[0]
-            == "Too many arguments provided. Allowed max: 1, Found: 2 (application_id, registration_id, customer_id)"
-        )
-
-    with pytest.raises(ValueError) as excinfo:
-        InteractionService.dispatch(
-            channel_type=ChannelType.SMS,
-            payload={},
-            customer_id=None,
-            registration_id=1,
-            application_id=1,
-        )
-    with check:
-        assert (
-            excinfo.value.args[0]
-            == "Too many arguments provided. Allowed max: 1, Found: 2 (application_id, registration_id, customer_id)"
-        )
+        InteractionService.dispatch(channel_type=ChannelType.SMS, payload={}, **kwargs)
+    assert excinfo.value.args[0] == (
+        f"Too many arguments provided. Allowed max: 1, Found: {found_count} "
+        "(application_id, registration_id, customer_id)"
+    )
 
 
 def test_dispatch_unsupported_channel():
@@ -317,19 +276,12 @@ def test_dispatch_email_interaction_failure(
 @patch("strr_api.services.interaction.requests.post")
 def test_dispatch_email_splits_recipients(mock_requests_post, mock_get_token, session, setup_parents, inject_config):
     """Assert that each recipient is sent to notify-api as a separate request."""
-    mock_responses = [
-        MagicMock(status_code=HTTPStatus.OK, **{"json.return_value": {"id": 111}}),
-        MagicMock(status_code=HTTPStatus.OK, **{"json.return_value": {"id": 222}}),
-        MagicMock(status_code=HTTPStatus.OK, **{"json.return_value": {"id": 333}}),
-    ]
-    mock_requests_post.side_effect = mock_responses
-
-    email_payload = {
-        "recipients": "foo@foo.com,bar@bar.com,baz@baz.com",
-        "requestBy": "STRR",
-        "content": {"subject": "s", "body": "b"},
-    }
-    email_info = EmailInfo(application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload)
+    mock_requests_post.side_effect = [_mock_notify(id=111), _mock_notify(id=222), _mock_notify(id=333)]
+    email_info = EmailInfo(
+        application_number="123",
+        email_type="HOST_RENEWAL_REMINDER",
+        email={"recipients": "foo@foo.com,bar@bar.com,baz@baz.com", "requestBy": "STRR", "content": {"subject": "s"}},
+    )
 
     interaction = InteractionService.dispatch(
         channel_type=ChannelType.EMAIL,
@@ -337,9 +289,11 @@ def test_dispatch_email_splits_recipients(mock_requests_post, mock_get_token, se
         application_id=setup_parents["application_id"],
     )
 
-    assert mock_requests_post.call_count == 3
-    posted_recipients = [call.kwargs["json"]["recipients"] for call in mock_requests_post.call_args_list]
-    assert posted_recipients == ["foo@foo.com", "bar@bar.com", "baz@baz.com"]
+    assert [c.kwargs["json"]["recipients"] for c in mock_requests_post.call_args_list] == [
+        "foo@foo.com",
+        "bar@bar.com",
+        "baz@baz.com",
+    ]
     assert interaction.notify_reference == "111"
     assert interaction.meta_data["notify_references"] == "111,222,333"
     assert interaction.meta_data["notify_response"]["ids"] == "111,222,333"
@@ -351,20 +305,22 @@ def test_dispatch_email_splits_recipients(mock_requests_post, mock_get_token, se
 def test_dispatch_email_partial_recipient_failure(
     mock_requests_post, mock_get_token, session, setup_parents, inject_config
 ):
-    """Assert that a malformed recipient does not block delivery to valid recipients."""
-    mock_responses = [
-        MagicMock(status_code=HTTPStatus.OK, **{"json.return_value": {"id": 111}}),
-        MagicMock(status_code=HTTPStatus.BAD_REQUEST, **{"json.return_value": {"message": "bad email"}}),
-        MagicMock(status_code=HTTPStatus.OK, **{"json.return_value": {"id": 333}}),
+    """Assert that malformed recipients (including trailing) do not block delivery or overwrite success metadata."""
+    mock_requests_post.side_effect = [
+        _mock_notify(id=111, notifyStatus="QUEUED", requestDate="2026-09-29T10:00:00"),
+        _mock_notify(HTTPStatus.BAD_REQUEST, message="bad email"),
+        _mock_notify(id=333, notifyStatus="SENT", requestDate="2026-09-29T10:00:01"),
+        _mock_notify(HTTPStatus.INTERNAL_SERVER_ERROR, error="server error"),
     ]
-    mock_requests_post.side_effect = mock_responses
-
-    email_payload = {
-        "recipients": "foo@foo.com,bas@ba$.com,baz@baz.com",
-        "requestBy": "STRR",
-        "content": {"subject": "s", "body": "b"},
-    }
-    email_info = EmailInfo(application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload)
+    email_info = EmailInfo(
+        application_number="123",
+        email_type="HOST_RENEWAL_REMINDER",
+        email={
+            "recipients": "foo@foo.com,bas@ba$.com,baz@baz.com,trailing@bad.com",
+            "requestBy": "STRR",
+            "content": {"subject": "s", "body": "b"},
+        },
+    )
 
     interaction = InteractionService.dispatch(
         channel_type=ChannelType.EMAIL,
@@ -372,10 +328,30 @@ def test_dispatch_email_partial_recipient_failure(
         application_id=setup_parents["application_id"],
     )
 
-    assert mock_requests_post.call_count == 3
+    assert mock_requests_post.call_count == 4
     assert interaction.notify_reference == "111"
     assert interaction.meta_data["notify_references"] == "111,333"
-    assert interaction.meta_data["notify_response"]["ids"] == "111,333"
+    notify_resp = interaction.meta_data["notify_response"]
+    assert notify_resp["ids"] == "111,333"
+    assert notify_resp["notifyStatus"] == "SENT"
+    assert notify_resp["recipients"] == "foo@foo.com,baz@baz.com"
+    assert notify_resp["failed_recipients"] == [
+        {"email_address": "bas@ba$.com", "status_code": HTTPStatus.BAD_REQUEST, "error": {"message": "bad email"}},
+        {
+            "email_address": "trailing@bad.com",
+            "status_code": HTTPStatus.INTERNAL_SERVER_ERROR,
+            "error": {"error": "server error"},
+        },
+    ]
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    recipients = rows[0]["structuredDetails"]["recipientStatuses"]
+    assert [(r["email_address"], r["status"], r["notify_reference"], r["failure_reason"]) for r in recipients] == [
+        ("foo@foo.com", "SENT", "111", None),
+        ("baz@baz.com", "SENT", "333", None),
+        ("bas@ba$.com", "FAILED", None, "bad email"),
+        ("trailing@bad.com", "FAILED", None, "server error"),
+    ]
 
 
 @pytest.mark.conf(NOTIFY_SVC_URL="dummy", NOTIFY_API_TIMEOUT=30)
@@ -383,18 +359,15 @@ def test_dispatch_email_partial_recipient_failure(
 @patch("strr_api.services.interaction.requests.post")
 def test_dispatch_email_all_recipients_fail(mock_requests_post, mock_get_token, session, setup_parents, inject_config):
     """Assert that if all recipient sends fail the dispatch raises an exception."""
-    mock_responses = [
-        MagicMock(status_code=HTTPStatus.BAD_REQUEST, **{"json.return_value": {"message": "bad email"}}),
-        MagicMock(status_code=HTTPStatus.BAD_REQUEST, **{"json.return_value": {"message": "bad email"}}),
+    mock_requests_post.side_effect = [
+        _mock_notify(HTTPStatus.BAD_REQUEST, message="bad email"),
+        _mock_notify(HTTPStatus.BAD_REQUEST, message="bad email"),
     ]
-    mock_requests_post.side_effect = mock_responses
-
-    email_payload = {
-        "recipients": "bas@ba$.com,also$bad.com",
-        "requestBy": "STRR",
-        "content": {"subject": "s", "body": "b"},
-    }
-    email_info = EmailInfo(application_number="123", email_type="HOST_RENEWAL_REMINDER", email=email_payload)
+    email_info = EmailInfo(
+        application_number="123",
+        email_type="HOST_RENEWAL_REMINDER",
+        email={"recipients": "bas@ba$.com,also$bad.com", "requestBy": "STRR", "content": {"subject": "s"}},
+    )
 
     with pytest.raises(ExternalServiceException) as excinfo:
         InteractionService.dispatch(
@@ -406,6 +379,20 @@ def test_dispatch_email_all_recipients_fail(mock_requests_post, mock_get_token, 
     assert mock_requests_post.call_count == 2
     assert excinfo.value.status_code == HTTPStatus.BAD_REQUEST
     assert excinfo.value.error == "'Email not sent', 400"
+
+    stored = session.query(CustomerInteraction).filter_by(application_id=setup_parents["application_id"]).one()
+    assert stored.status == InteractionStatus.FAILED
+    assert stored.meta_data["notify_response"]["status_code"] == HTTPStatus.BAD_REQUEST
+    assert stored.meta_data["notify_response"]["error"] == {"message": "bad email"}
+    assert len(stored.meta_data["notify_response"]["failed_recipients"]) == 2
+
+    rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
+    assert rows[0]["eventName"] == "EMAIL_FAILED"
+    event_recipients = rows[0]["structuredDetails"]["recipientStatuses"]
+    assert [(r["email_address"], r["status"], r["failure_reason"]) for r in event_recipients] == [
+        ("bas@ba$.com", "FAILED", "bad email"),
+        ("also$bad.com", "FAILED", "bad email"),
+    ]
 
 
 @pytest.mark.parametrize(
@@ -611,61 +598,78 @@ def test_filing_history_rows_fallback_when_notify_delivery_missing(session, setu
     assert recipients[0]["provider_status"] == "QUEUED"
 
 
-def test_filing_history_rows_fallback_multiple_recipients(session, setup_parents):
-    interaction = CustomerInteraction(
+@pytest.mark.parametrize(
+    "ids, recipients_val, notify_status, expected",
+    [
+        (
+            "2000001,2000002",
+            "first@example.com, second@example.com",
+            "SENT",
+            [("first@example.com", "2000001", "SENT"), ("second@example.com", "2000002", "SENT")],
+        ),
+        (
+            [3000001, 3000002],
+            ["list1@example.com", "list2@example.com"],
+            "DELIVERED",
+            [("list1@example.com", "3000001", "DELIVERED"), ("list2@example.com", "3000002", "DELIVERED")],
+        ),
+    ],
+)
+def test_filing_history_rows_fallback_multiple_recipients(
+    session, setup_parents, ids, recipients_val, notify_status, expected
+):
+    CustomerInteraction(
         channel=ChannelType.EMAIL,
         status=InteractionStatus.SENT,
         application_id=setup_parents["application_id"],
         meta_data={
             "email_type": "HOST_FULL_REVIEW_APPROVED",
             "notify_response": {
-                "id": 2000001,
-                "ids": "2000001,2000002",
+                "ids": ids,
                 "sentDate": "2026-07-05T10:00:00.000000",
-                "recipients": "first@example.com, second@example.com",
-                "notifyStatus": "SENT",
+                "recipients": recipients_val,
+                "notifyStatus": notify_status,
             },
-            "notify_references": "2000001,2000002",
         },
-    )
-    interaction.save()
+    ).save()
 
     rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
-    assert len(rows) == 1
     recipients = rows[0]["structuredDetails"]["recipientStatuses"]
-    assert len(recipients) == 2
-    assert recipients[0]["email_address"] == "first@example.com"
-    assert recipients[0]["notify_reference"] == "2000001"
-    assert recipients[0]["status"] == "SENT"
-    assert recipients[1]["email_address"] == "second@example.com"
-    assert recipients[1]["notify_reference"] == "2000002"
-    assert recipients[1]["status"] == "SENT"
+    assert [(r["email_address"], r["notify_reference"], r["status"]) for r in recipients] == expected
 
 
-def test_filing_history_rows_fallback_list_recipients_and_ids(session, setup_parents):
-    interaction = CustomerInteraction(
+def test_filing_history_rows_merges_notify_delivery_and_failed_recipients(session, setup_parents):
+    """Assert that once notify_delivery is populated by the job, failed_recipients are still appended."""
+    CustomerInteraction(
         channel=ChannelType.EMAIL,
-        status=InteractionStatus.SENT,
+        status=InteractionStatus.DELIVERED,
         application_id=setup_parents["application_id"],
         meta_data={
             "email_type": "HOST_FULL_REVIEW_APPROVED",
+            "notify_delivery": {
+                "updated_at": "2026-09-29T22:00:00+00:00",
+                "recipient_statuses": {
+                    "610066": {
+                        "email_address": "valid@gov.bc.ca",
+                        "notify_reference": "610066",
+                        "status": "DELIVERED",
+                    }
+                },
+            },
             "notify_response": {
-                "ids": [3000001, 3000002],
-                "sentDate": "2026-07-05T10:00:00.000000",
-                "recipients": ["list1@example.com", "list2@example.com"],
-                "notifyStatus": "DELIVERED",
+                "id": 610066,
+                "ids": "610066",
+                "recipients": "valid@gov.bc.ca",
+                "requestDate": "2026-09-29T21:59:00",
+                "failed_recipients": [{"email_address": "invalid@gov.bc.ca.ca", "status_code": 400, "error": None}],
             },
         },
-    )
-    interaction.save()
+    ).save()
 
     rows = InteractionService.filing_history_rows_for_application(setup_parents["application_id"])
-    assert len(rows) == 1
     recipients = rows[0]["structuredDetails"]["recipientStatuses"]
-    assert len(recipients) == 2
-    assert recipients[0]["email_address"] == "list1@example.com"
-    assert recipients[0]["notify_reference"] == "3000001"
-    assert recipients[0]["status"] == "DELIVERED"
-    assert recipients[1]["email_address"] == "list2@example.com"
-    assert recipients[1]["notify_reference"] == "3000002"
-    assert recipients[1]["status"] == "DELIVERED"
+    assert [(r["email_address"], r["status"], r["notify_reference"], r["failure_reason"]) for r in recipients] == [
+        ("valid@gov.bc.ca", "DELIVERED", "610066", None),
+        ("invalid@gov.bc.ca.ca", "FAILED", None, "HTTP error 400"),
+    ]
+    assert recipients[1]["request_date"] == "2026-09-29T21:59:00"
