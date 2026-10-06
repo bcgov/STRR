@@ -225,7 +225,11 @@ def test_send_renewal_reminder_logs_publish_failure(session, setup_parents_commi
 @pytest.mark.parametrize(
     ("registration_type", "status", "expected_email_type"),
     [
-        (Registration.RegistrationType.HOST, Application.Status.PROVISIONAL_REVIEW_NOC_PENDING, "PROVISIONAL_REVIEW_NOC"),
+        (
+            Registration.RegistrationType.HOST,
+            Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
+            "PROVISIONAL_REVIEW_NOC",
+        ),
         (Registration.RegistrationType.HOST, Application.Status.AUTO_APPROVED, "NOC"),
         (Registration.RegistrationType.STRATA_HOTEL, Application.Status.FULL_REVIEW, "STRATA_HOTEL_NOC"),
     ],
