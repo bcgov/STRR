@@ -71,24 +71,69 @@ def test_get_address_detail():
             }
         }
     }
-    assert el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "street_address") == "200 Resort Way"
-    assert el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "city") == "Whistler"
-    assert el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "postalCode") == "V0N 1B2"
-    assert el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "missing") == ""
+    assert (
+        el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "street_address")
+        == "200 Resort Way"
+    )
+    assert (
+        el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "city")
+        == "Whistler"
+    )
+    assert (
+        el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "postalCode")
+        == "V0N 1B2"
+    )
+    assert (
+        el._get_address_detail(strata, Registration.RegistrationType.STRATA_HOTEL, "missing") == ""
+    )
 
-    strata_line_two = {"registration": {"strataHotelDetails": {"location": {"addressLineTwo": "Suite 100"}}}}
-    assert el._get_address_detail(strata_line_two, Registration.RegistrationType.STRATA_HOTEL, "street_address") == "Suite 100"
+    strata_line_two = {
+        "registration": {"strataHotelDetails": {"location": {"addressLineTwo": "Suite 100"}}}
+    }
+    assert (
+        el._get_address_detail(
+            strata_line_two, Registration.RegistrationType.STRATA_HOTEL, "street_address"
+        )
+        == "Suite 100"
+    )
 
 
 def test_resolve_template_type():
-    assert el._resolve_template_type("NOC", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_NOC"
-    assert el._resolve_template_type("REGISTRATION_NOC", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_REGISTRATION_NOC"
-    assert el._resolve_template_type("STRATA_HOTEL_NOC", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_NOC"
-    assert el._resolve_template_type("STRATA_HOTEL_REGISTRATION_NOC", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_REGISTRATION_NOC"
-    assert el._resolve_template_type("STRATA_HOTEL_REGISTRATION_ACTIVE", Registration.RegistrationType.STRATA_HOTEL) == "STRATA_HOTEL_REGISTRATION_ACTIVE"
+    assert (
+        el._resolve_template_type("NOC", Registration.RegistrationType.STRATA_HOTEL)
+        == "STRATA_HOTEL_NOC"
+    )
+    assert (
+        el._resolve_template_type("REGISTRATION_NOC", Registration.RegistrationType.STRATA_HOTEL)
+        == "STRATA_HOTEL_REGISTRATION_NOC"
+    )
+    assert (
+        el._resolve_template_type("STRATA_HOTEL_NOC", Registration.RegistrationType.STRATA_HOTEL)
+        == "STRATA_HOTEL_NOC"
+    )
+    assert (
+        el._resolve_template_type(
+            "STRATA_HOTEL_REGISTRATION_NOC", Registration.RegistrationType.STRATA_HOTEL
+        )
+        == "STRATA_HOTEL_REGISTRATION_NOC"
+    )
+    assert (
+        el._resolve_template_type(
+            "STRATA_HOTEL_REGISTRATION_ACTIVE", Registration.RegistrationType.STRATA_HOTEL
+        )
+        == "STRATA_HOTEL_REGISTRATION_ACTIVE"
+    )
     assert el._resolve_template_type("NOC", Registration.RegistrationType.HOST) == "NOC"
-    assert el._resolve_template_type("REGISTRATION_NOC", Registration.RegistrationType.HOST) == "REGISTRATION_NOC"
-    assert el._resolve_template_type("PLATFORM_RENEWAL_REMINDER", Registration.RegistrationType.PLATFORM) == "PLATFORM_RENEWAL_REMINDER"
+    assert (
+        el._resolve_template_type("REGISTRATION_NOC", Registration.RegistrationType.HOST)
+        == "REGISTRATION_NOC"
+    )
+    assert (
+        el._resolve_template_type(
+            "PLATFORM_RENEWAL_REMINDER", Registration.RegistrationType.PLATFORM
+        )
+        == "PLATFORM_RENEWAL_REMINDER"
+    )
 
 
 def test_get_jinja_template(cfg_app):
@@ -501,9 +546,7 @@ def test_get_application_update_email_content_for_strata_hotel_noc(mock_to_dict,
     email_info = MagicMock(email_type="STRATA_HOTEL_NOC", custom_content="")
 
     with cfg_app.app_context():
-        email = el._get_application_update_email_content(
-            application, email_info, jinja_template
-        )
+        email = el._get_application_update_email_content(application, email_info, jinja_template)
 
     kwargs = jinja_template.render.call_args.kwargs
     assert kwargs["street_address"] == "200 Resort Way"

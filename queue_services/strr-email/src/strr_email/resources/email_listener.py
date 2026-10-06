@@ -161,7 +161,9 @@ def worker():
                 HTTPStatus.NOT_FOUND,
             )
 
-        template_type = _resolve_template_type(email_info.email_type, registration.registration_type)
+        template_type = _resolve_template_type(
+            email_info.email_type, registration.registration_type
+        )
         jinja_template = _get_jinja_template(template_type)
 
         if registration.registration_type == Registration.RegistrationType.HOST:
@@ -315,7 +317,8 @@ def _get_registration_update_email_content_for_strata_hotel(
     noc_content = ""
     noc_expiry_date = ""
     if registration.nocs and (
-        registration.noc_status in [RegistrationNocStatus.NOC_PENDING, RegistrationNocStatus.NOC_EXPIRED]
+        registration.noc_status
+        in [RegistrationNocStatus.NOC_PENDING, RegistrationNocStatus.NOC_EXPIRED]
         or "NOC" in email_info.email_type
     ):
         noc = max(
@@ -400,7 +403,9 @@ def _get_application_update_email_content(application, email_info, jinja_templat
     html_out = jinja_template.render(
         application_num=application.application_number,
         reg_num=app_dict.get("header", {}).get("registrationNumber"),
-        street_address=_get_address_detail(app_dict, application.registration_type, "street_address"),
+        street_address=_get_address_detail(
+            app_dict, application.registration_type, "street_address"
+        ),
         street_number=_get_address_detail(app_dict, application.registration_type, "streetNumber"),
         unit_number=_get_address_detail(app_dict, application.registration_type, "unitNumber"),
         street_name=_get_address_detail(app_dict, application.registration_type, "streetName")
@@ -464,10 +469,7 @@ def _get_address_detail(
         address = reg.get("unitAddress", {})
         return address.get(detail, "")
     if reg_type == Registration.RegistrationType.STRATA_HOTEL:
-        location = (
-            reg.get("strataHotelDetails", {})
-            .get("location", {})
-        )
+        location = reg.get("strataHotelDetails", {}).get("location", {})
         if detail == "street_address":
             return location.get("address") or location.get("addressLineTwo") or ""
         return location.get(detail, "")
@@ -511,45 +513,61 @@ def _get_registration_email_recipients(registration: Registration) -> str:
     return ",".join(recipients)
 
 
+def _get_host_client_recipients(reg: dict) -> list[str]:
+    recipients = [reg["primaryContact"]["emailAddress"]]
+    if property_manager := reg.get("propertyManager"):
+        email = (
+            property_manager.get("contact", {}).get("emailAddress")
+            or property_manager["business"]["primaryContact"]["emailAddress"]
+        )
+        recipients.append(email)
+    return recipients
+
+
+def _get_platform_client_recipients(reg: dict) -> list[str]:
+    recipients = [rep["emailAddress"] for rep in reg.get("platformRepresentatives", [])]
+    if (
+        comp_party := reg.get("completingParty", {}).get("emailAddress")
+    ) and comp_party not in recipients:
+        recipients.append(comp_party)
+    return recipients
+
+
+def _get_strata_hotel_client_recipients(reg: dict) -> list[str]:
+    recipients: list[str] = []
+    for rep in reg.get("strataHotelRepresentatives", []):
+        if (rep_email := rep.get("emailAddress")) and rep_email not in recipients:
+            recipients.append(rep_email)
+
+    for rep in reg.get("strataHotelDetails", {}).get("representatives", []):
+        rep_email = (
+            rep.get("emailAddress")
+            or rep.get("contact", {}).get("email")
+            or rep.get("contact", {}).get("emailAddress")
+        )
+        if rep_email and rep_email not in recipients:
+            recipients.append(rep_email)
+
+    if (
+        comp_party := reg.get("completingParty", {}).get("emailAddress")
+    ) and comp_party not in recipients:
+        recipients.append(comp_party)
+    return recipients
+
+
 def _get_client_recipients(app_dict: dict) -> str:
     "Return the client recipients in a string separated by commas."
-    recipients: list[str] = []
-
     reg = app_dict["registration"]
-    if reg["registrationType"] == Registration.RegistrationType.HOST.value:
-        # Host recipients - completing party is always the host or property manager
-        # the primary contact email should always be there (this is the primary host)
-        recipients.append(reg["primaryContact"]["emailAddress"])
-        if property_manager := reg.get("propertyManager"):
-            # will have a person or business email
-            email = (
-                property_manager.get("contact", {}).get("emailAddress")
-                or property_manager["business"]["primaryContact"]["emailAddress"]
-            )
-            recipients.append(email)
+    reg_type = reg.get("registrationType")
 
-    elif reg["registrationType"] == Registration.RegistrationType.PLATFORM.value:
-        # Platform recipients
-        for rep in reg.get("platformRepresentatives", []):
-            recipients.append(rep["emailAddress"])
-        if (comp_party_email := reg.get("completingParty", {}).get("emailAddress")) and comp_party_email not in recipients:
-            recipients.append(comp_party_email)
-
-    elif reg["registrationType"] == Registration.RegistrationType.STRATA_HOTEL.value:
-        # Strata Hotel recipients
-        for rep in reg.get("strataHotelRepresentatives", []):
-            if (rep_email := rep.get("emailAddress")) and rep_email not in recipients:
-                recipients.append(rep_email)
-        for rep in reg.get("strataHotelDetails", {}).get("representatives", []):
-            rep_email = (
-                rep.get("emailAddress")
-                or rep.get("contact", {}).get("email")
-                or rep.get("contact", {}).get("emailAddress")
-            )
-            if rep_email and rep_email not in recipients:
-                recipients.append(rep_email)
-        if (comp_party_email := reg.get("completingParty", {}).get("emailAddress")) and comp_party_email not in recipients:
-            recipients.append(comp_party_email)
+    if reg_type == Registration.RegistrationType.HOST.value:
+        recipients = _get_host_client_recipients(reg)
+    elif reg_type == Registration.RegistrationType.PLATFORM.value:
+        recipients = _get_platform_client_recipients(reg)
+    elif reg_type == Registration.RegistrationType.STRATA_HOTEL.value:
+        recipients = _get_strata_hotel_client_recipients(reg)
+    else:
+        recipients = []
 
     return ",".join(recipients) if recipients else ""
 
