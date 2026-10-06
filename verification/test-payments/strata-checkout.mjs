@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test'
-import { observeApplication, paySandboxCard, verifyPaidApplication, captureBusinessSubmission } from './platform-checkout.mjs'
+import { observeApplication, paySandboxCard, verifyPaidApplication, captureApplicationSubmission } from './platform-checkout.mjs'
 
 export async function createStrataPayment(page, result, card) {
   result.testFixture = 'pnpm11 DEV Strata QA ' + process.env.GITHUB_RUN_ID
@@ -40,7 +40,7 @@ export async function createStrataPayment(page, result, card) {
   await page.getByTestId('confirmation-checkbox').check()
 
   result.stage = 'strata-submit'
-  await captureBusinessSubmission(page, result,
+  await captureApplicationSubmission(page, result,
     () => page.getByRole('button', { name: 'Submit & Pay', exact: true }).click())
   const pending = observeApplication(page, result)
   await paySandboxCard(page, result, card)

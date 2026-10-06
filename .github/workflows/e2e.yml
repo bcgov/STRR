@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      CANDIDATE_COMMIT: dc10c472b0148f9ae4857402fd75e5eeb1d71d24
+      CANDIDATE_COMMIT: cd8b86c7beb033b3417e3b06762dc5d34a913b80
       TEST_APP: ${{ inputs.app }}
       QA_MODE: ${{ inputs.mode }}
       EXPECTED_BUNDLE_HASHES: ${{ inputs.expected_bundle_hashes }}

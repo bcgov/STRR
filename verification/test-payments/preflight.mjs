@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { loadTestCard, preparePlatformCheckout } from './platform-checkout.mjs'
 import { createStrataPayment } from './strata-checkout.mjs'
-import { resumeHostPayment } from './host-checkout.mjs'
+import { createHostPayment } from './host-checkout.mjs'
 
 // Real deployed DEV assets and services only. No routes, response bodies,
 // screenshots, traces, browser state, or secret values are exported.
@@ -75,7 +75,6 @@ try {
       page = await context.newPage()
       const observedPage = page
       const pending = []
-      let strrApiHeaders
       const recordAssetEvent = (url, category) => {
         if (category === 'aborted') item.abortedAssetRequestCount++
         else item.failedAssetCount++
@@ -117,9 +116,6 @@ try {
         if (url.hostname === 'strr-api-dev-i2rbretwta-nn.a.run.app' && response.request().method() === 'GET' &&
             ['/applications', '/registrations'].includes(url.pathname)) {
           item.dashboardRequests.push({ path: url.pathname, status: response.status() })
-          if (response.ok()) pending.push(response.request().allHeaders().then(headers => {
-            strrApiHeaders = { authorization: headers.authorization, 'account-id': headers['account-id'] }
-          }))
         }
         if (url.hostname !== 'pay-api-dev-142173140222.northamerica-northeast1.run.app' ||
             !/^\/api\/v1\/(fees\/STRR\/|accounts\/)/.test(url.pathname)) return
@@ -237,7 +233,7 @@ try {
         expect(current.accountFixtureSource).toBe('existing-playwright-ci-account')
         expect(current.checkoutFixtureVerified).toBe(true)
         expect(current.paymentAccount.paymentMethod).toBe('DIRECT_PAY')
-        if (app.name === 'host') await resumeHostPayment(page, current, card, strrApiHeaders)
+        if (app.name === 'host') await createHostPayment(page, current, card)
         if (app.name === 'platform') await preparePlatformCheckout(page, current, card)
         if (app.name === 'strata') await createStrataPayment(page, current, card)
         expect(current.receipt.result).toBe('passed')

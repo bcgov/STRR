@@ -43,9 +43,9 @@ export function observeApplication(page, result) {
 }
 
 // Preserve the real API response, recording its identity before the app redirects.
-export async function captureBusinessSubmission(page, result, submit) {
-  const registrationType = { platform: 'PLATFORM', strata: 'STRATA_HOTEL' }[result.name]
-  if (!registrationType) throw new Error('Unsupported business checkout')
+export async function captureApplicationSubmission(page, result, submit) {
+  const registrationType = { host: 'HOST', platform: 'PLATFORM', strata: 'STRATA_HOTEL' }[result.name]
+  if (!registrationType) throw new Error('Unsupported application checkout')
   let failure
   let claimed = false
   await page.route(url => url.origin === 'https://strr-api-dev-i2rbretwta-nn.a.run.app' &&
@@ -58,7 +58,7 @@ export async function captureBusinessSubmission(page, result, submit) {
       const body = request.postDataJSON()
       expect(result.stage).toBe(result.name + '-submit')
       expect(body.registration.registrationType).toBe(registrationType)
-      expect(body.registration.businessDetails.legalName).toBe(result.testFixture)
+      expect(result.name === 'host' ? body.registration.unitAddress.nickname : body.registration.businessDetails.legalName).toBe(result.testFixture)
       expect(body.header.paymentMethod).toBe('DIRECT_PAY')
       expect(body.header.applicationType).toBeUndefined()
       expect(body.header.registrationId).toBeUndefined()
@@ -75,7 +75,7 @@ export async function captureBusinessSubmission(page, result, submit) {
       result.initialStatus = application.header.status
       await checkpoint(result)
       expect(application.registration.registrationType).toBe(registrationType)
-      expect(application.registration.businessDetails.legalName).toBe(result.testFixture)
+      expect(result.name === 'host' ? application.registration.unitAddress.nickname : application.registration.businessDetails.legalName).toBe(result.testFixture)
       expect(/^\d+$/.test(String(result.applicationNumber))).toBe(true)
       expect(result.initialStatus).toBe('PAYMENT_DUE')
       expect(Number(result.invoiceId)).toBeGreaterThan(0)
@@ -215,7 +215,7 @@ export async function preparePlatformCheckout(page, result, card) {
   await page.getByTestId('confirmation-checkbox').check()
 
   result.stage = 'platform-submit'
-  await captureBusinessSubmission(page, result,
+  await captureApplicationSubmission(page, result,
     () => page.getByRole('button', { name: 'Submit & Pay', exact: true }).click())
   const pending = observeApplication(page, result)
   await paySandboxCard(page, result, card)
