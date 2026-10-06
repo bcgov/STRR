@@ -16,7 +16,7 @@ It supports two client use cases:
 Each returned registration is a complete current snapshot, not a field-level diff.
 
 > **NOTE**:
-> This document outlines the initial request/response contracts and workflow for early developer alignment. The full OpenAPI specification will be shared once finalized.
+> This document outlines the request/response contracts and integration workflow. See [`docs/oas/registration-export.yaml`](../oas/registration-export.yaml) for the complete OpenAPI 3.0 specification.
 
 ## HTTP method
 
@@ -133,6 +133,7 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
   "startDate": "2026-01-15T00:00:00Z",
   "expiryDate": "2027-01-15T00:00:00Z",
   "updatedDate": "2026-09-07T18:42:11.203000Z",
+  "cancelledDate": null,
   "primaryContact": {
     "contactType": "INDIVIDUAL",
     "firstName": "Jane",
@@ -154,7 +155,8 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
       "city": "Victoria",
       "province": "BC",
       "postalCode": "V8W 1W2",
-      "country": "CA"
+      "country": "CA",
+      "locationDescription": null
     }
   },
   "secondaryContact": {
@@ -163,10 +165,6 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
     "middleName": null,
     "lastName": "Doe",
     "preferredName": null,
-    "dateOfBirth": "1978-11-20",
-    "socialInsuranceNumber": "987 654 321",
-    "businessNumber": null,
-    "businessLegalName": null,
     "emailAddress": "john.doe@example.com",
     "phoneNumber": "250-555-0101",
     "phoneCountryCode": "001",
@@ -178,7 +176,8 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
       "city": "Victoria",
       "province": "BC",
       "postalCode": "V8W 1W2",
-      "country": "CA"
+      "country": "CA",
+      "locationDescription": null
     }
   },
   "unitAddress": {
@@ -198,12 +197,7 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
     "businessLicense": "BL-2026-001",
     "businessLicenseExpiryDate": "2026-12-31",
     "blExemptReason": null,
-    "propertyType": "CONDO_OR_APT",
-    "ownershipType": "OWN",
-    "rentalUnitSpaceType": "ENTIRE_HOME",
-    "hostResidence": "SAME_UNIT",
-    "isUnitOnPrincipalResidenceProperty": true,
-    "numberOfRoomsForRent": 2,
+    "propertyType": "MULTI_UNIT_HOUSING",
     "strataHotelRegistrationNumber": null,
     "prExemptReason": null,
     "strataHotelCategory": null,
@@ -220,34 +214,45 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
     "isStrProhibited": false,
     "isStraaExempt": null
   },
-  "listingDetails": [
-    {
-      "url": "https://www.airbnb.ca/rooms/12345678"
-    }
-  ],
   "propertyManager": {
     "propertyManagerType": "BUSINESS",
     "initiatedByPropertyManager": false,
-    "business": {
-      "legalName": "Island Property Management Ltd.",
-      "businessNumber": "987654321BC0001",
-      "mailingAddress": {
-        "address": "500 Douglas St",
-        "city": "Victoria",
-        "province": "BC",
-        "postalCode": "V8V 2P8",
-        "country": "CA"
-      },
-      "primaryContact": {
-        "firstName": "Robert",
-        "lastName": "Smith",
-        "emailAddress": "robert@islandpm.example.com",
-        "phoneNumber": "250-555-0199"
-      }
+    "businessLegalName": "Island Property Management Ltd.",
+    "businessNumber": "987654321BC0001",
+    "mailingAddress": {
+      "address": "500 Douglas St",
+      "addressLineTwo": "Suite 200",
+      "city": "Victoria",
+      "province": "BC",
+      "postalCode": "V8V 2P8",
+      "country": "CA",
+      "locationDescription": null
+    },
+    "contact": {
+      "firstName": "Robert",
+      "middleName": "James",
+      "lastName": "Smith",
+      "preferredName": "Bob",
+      "jobTitle": null,
+      "emailAddress": "robert@islandpm.example.com",
+      "phoneNumber": "250-555-0199",
+      "phoneCountryCode": "001",
+      "extension": "102",
+      "faxNumber": "250-555-0198"
     }
   }
 }
 ```
+
+#### `HOST` Payload Notes
+
+- **Roles & Completing Party (`initiatedByPropertyManager`):**
+  - `primaryContact` represents the **Property Host** (`INDIVIDUAL` or `BUSINESS`).
+  - `secondaryContact` represents the **Co-host** (`INDIVIDUAL`, or `null` when no Co-host is present).
+  - `propertyManager` represents the **Property Manager** (`null` when no Property Manager is assigned). It uses a single flat structure for both `BUSINESS` and `INDIVIDUAL` managers: when `propertyManagerType` is `"INDIVIDUAL"`, `businessLegalName` and `businessNumber` are `null`, `mailingAddress` is the individual manager's mailing address, and `contact` holds their contact details.
+  - `propertyManager.initiatedByPropertyManager` (`true`/`false`/`null`) indicates whether the Property Manager was the person completing the form (`null` for early registrations prior to form tracking). When `propertyManager` is `null` or `initiatedByPropertyManager` is `false`, the Property Host (`primaryContact`) is the person who completed the form.
+
+---
 
 ### 2. `PLATFORM` Registration Payload
 
@@ -260,6 +265,7 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
   "startDate": "2026-02-01T00:00:00Z",
   "expiryDate": "2027-02-01T00:00:00Z",
   "updatedDate": "2026-09-08T10:15:30.123000Z",
+  "cancelledDate": null,
   "businessDetails": {
     "legalName": "Global Booking Services Inc.",
     "homeJurisdiction": "BC, Canada",
@@ -296,6 +302,7 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
       "firstName": "Alice",
       "middleName": null,
       "lastName": "Wong",
+      "preferredName": null,
       "jobTitle": "Director of Regulatory Compliance",
       "emailAddress": "alice.wong@globalbooking.example.com",
       "phoneNumber": "604-555-0144",
@@ -316,7 +323,11 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
 }
 ```
 
+---
+
 ### 3. `STRATA_HOTEL` Registration Payload
+
+All fields collected for Strata Hotel registrations are included in the export snapshot:
 
 ```json
 {
@@ -327,6 +338,7 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
   "startDate": "2026-03-01T00:00:00Z",
   "expiryDate": "2027-03-01T00:00:00Z",
   "updatedDate": "2026-09-09T14:22:45.542000Z",
+  "cancelledDate": null,
   "businessDetails": {
     "legalName": "Whistler Peak Lodging Ltd.",
     "homeJurisdiction": "BC, Canada",
@@ -341,13 +353,13 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
       "locationDescription": null
     },
     "registeredOfficeOrAttorneyForServiceDetails": {
-      "attorneyName": "Mountain Law Group LLP",
+      "attorneyName": "Whistler Legal Counsel LLP",
       "mailingAddress": {
-        "address": "1000 Village Gate Blvd",
-        "addressLineTwo": "Suite 201",
+        "address": "4200 Mountain Square",
+        "addressLineTwo": "Suite 300",
         "city": "Whistler",
         "province": "BC",
-        "postalCode": "V8E 1A1",
+        "postalCode": "V8E 1B8",
         "country": "CA",
         "locationDescription": null
       }
@@ -358,6 +370,7 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
       "firstName": "David",
       "middleName": null,
       "lastName": "Miller",
+      "preferredName": null,
       "jobTitle": "General Manager",
       "emailAddress": "dmiller@whistlerpeak.example.com",
       "phoneNumber": "604-555-0188",
@@ -393,10 +406,29 @@ Every item in `items` contains top-level metadata (`registrationId`, `registrati
         "locationDescription": null
       }
     ],
-    "unitListings": "101, 102, 103, 104, 201, 202, 203"
+    "unitListings": {
+      "primary": [
+        "101",
+        "102",
+        "103",
+        "104"
+      ],
+      "additional": [
+        [
+          "201",
+          "202",
+          "203"
+        ]
+      ]
+    }
   }
 }
 ```
+
+#### `STRATA_HOTEL` Payload Notes
+
+- **`strataHotelRepresentatives`:** Contains 1 or 2 representative contacts (primary representative and optional secondary representative).
+- **`strataHotelDetails.unitListings`:** While the strata registration web form collects unit inputs via a multi-line `<textarea>` (where applicants have entered either newline-separated or comma-separated unit lists), the registration export endpoint **normalizes and sanitizes** all unit listings by splitting on newlines and commas (`[\r\n,]+`), trimming whitespace, and filtering out empty tokens (`primary: string[]` for the primary building `location`, and `additional: string[][]` aligned by index with `buildings`). Downstream clients (Ministry of Finance and Data Portal) receive clean JSON string arrays.
 
 ---
 
@@ -408,11 +440,10 @@ The following table lists the valid enum values used across the payload fields:
 | --- | --- | --- |
 | `registrationType` | `RegistrationType` | `HOST`, `PLATFORM`, `STRATA_HOTEL` |
 | `status` | `RegistrationStatus` | `ACTIVE`, `EXPIRED`, `SUSPENDED`, `CANCELLED` |
-| `primaryContact.contactType`, `secondaryContact.contactType` | `ContactType` | `INDIVIDUAL`, `BUSINESS` |
+| `primaryContact.contactType` | `ContactType` | `INDIVIDUAL`, `BUSINESS` |
+| `secondaryContact.contactType` | `ContactType` | `INDIVIDUAL` |
 | `unitDetails.propertyType` | `PropertyType` | `SINGLE_FAMILY_HOME`, `SECONDARY_SUITE`, `ACCESSORY_DWELLING`, `MULTI_UNIT_HOUSING`, `TOWN_HOME`, `CONDO_OR_APT`, `RECREATIONAL`, `BED_AND_BREAKFAST`, `STRATA_HOTEL`, `FLOAT_HOME` |
-| `unitDetails.ownershipType` | `OwnershipType` | `OWN`, `RENT`, `CO_OWN`, `OTHER` |
-| `unitDetails.rentalUnitSpaceType` | `RentalUnitSpaceType` | `ENTIRE_HOME`, `SHARED_ACCOMMODATION` |
-| `unitDetails.hostResidence` | `HostResidence` | `SAME_UNIT`, `ANOTHER_UNIT` |
+| `unitDetails.prExemptReason` | `PrExemptReason` | `STRATA_HOTEL`, `FARM_LAND`, `FRACTIONAL_OWNERSHIP` |
 | `unitDetails.hostType` | `HostType` | `OWNER`, `FRIEND_RELATIVE`, `LONG_TERM_TENANT` |
 | `unitDetails.rentalUnitSetupOption` | `RentalSpaceOption` | `PRIMARY_RESIDENCE_OR_SHARED_SPACE`, `SEPARATE_UNIT_SAME_PROPERTY`, `DIFFERENT_PROPERTY` |
 | `propertyManager.propertyManagerType` | `PropertyManagerType` | `INDIVIDUAL`, `BUSINESS` |
@@ -422,4 +453,4 @@ The following table lists the valid enum values used across the payload fields:
 ---
 
 > [!NOTE]
-> The full OpenAPI specification containing complete schema definitions, type constraints, and endpoint parameters will be shared once finalized.
+> See [`docs/oas/registration-export.yaml`](../oas/registration-export.yaml) for the complete OpenAPI 3.0 specification containing all schema definitions, discriminators, type constraints, and endpoint parameters.

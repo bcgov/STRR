@@ -49,7 +49,8 @@ Authorization: Bearer <system-role JWT>
           "city": "Victoria",
           "province": "BC",
           "postalCode": "V8W 1W2",
-          "country": "CA"
+          "country": "CA",
+          "locationDescription": null
         }
       },
       "secondaryContact": null,
@@ -70,12 +71,7 @@ Authorization: Bearer <system-role JWT>
         "businessLicense": "BL-2026-001",
         "businessLicenseExpiryDate": "2026-12-31",
         "blExemptReason": null,
-        "propertyType": "CONDO_OR_APT",
-        "ownershipType": "OWN",
-        "rentalUnitSpaceType": "ENTIRE_HOME",
-        "hostResidence": "SAME_UNIT",
-        "isUnitOnPrincipalResidenceProperty": true,
-        "numberOfRoomsForRent": 2,
+        "propertyType": "MULTI_UNIT_HOUSING",
         "strataHotelRegistrationNumber": null,
         "prExemptReason": null,
         "strataHotelCategory": null,
@@ -92,30 +88,31 @@ Authorization: Bearer <system-role JWT>
         "isStrProhibited": false,
         "isStraaExempt": null
       },
-      "listingDetails": [
-        {
-          "url": "https://www.airbnb.ca/rooms/12345678"
-        }
-      ],
       "propertyManager": {
         "propertyManagerType": "BUSINESS",
         "initiatedByPropertyManager": false,
-        "business": {
-          "legalName": "Island Property Management Ltd.",
-          "businessNumber": "987654321BC0001",
-          "mailingAddress": {
-            "address": "500 Douglas St",
-            "city": "Victoria",
-            "province": "BC",
-            "postalCode": "V8V 2P8",
-            "country": "CA"
-          },
-          "primaryContact": {
-            "firstName": "Robert",
-            "lastName": "Smith",
-            "emailAddress": "robert@islandpm.example.com",
-            "phoneNumber": "250-555-0199"
-          }
+        "businessLegalName": "Island Property Management Ltd.",
+        "businessNumber": "987654321BC0001",
+        "mailingAddress": {
+          "address": "500 Douglas St",
+          "addressLineTwo": "Suite 200",
+          "city": "Victoria",
+          "province": "BC",
+          "postalCode": "V8V 2P8",
+          "country": "CA",
+          "locationDescription": null
+        },
+        "contact": {
+          "firstName": "Robert",
+          "middleName": "James",
+          "lastName": "Smith",
+          "preferredName": "Bob",
+          "jobTitle": null,
+          "emailAddress": "robert@islandpm.example.com",
+          "phoneNumber": "250-555-0199",
+          "phoneCountryCode": "001",
+          "extension": "102",
+          "faxNumber": "250-555-0198"
         }
       }
     }
@@ -220,13 +217,13 @@ Clients must treat the cursor as opaque and resume with `nextCursor` rather than
 
 ## Payloads
 
-Every item contains `registrationId`, `registrationNumber`, `registrationType`, `status`, `startDate`, `expiryDate`, and `updatedDate`.
+Every item contains `registrationId`, `registrationNumber`, `registrationType`, `status`, `startDate`, `expiryDate`, `updatedDate`, and `cancelledDate`.
 
-- `HOST`: `primaryContact`, `secondaryContact` (co-host), `propertyManager`, `unitAddress`, `unitDetails`, `strRequirements`, and `listingDetails`.
-- `PLATFORM`: `businessDetails`, registered attorney/office, `platformRepresentatives`, and `platformDetails` (`brands`, `listingSize`).
-- `STRATA_HOTEL`: `businessDetails`, registered attorney/office, `strataHotelRepresentatives`, and `strataHotelDetails` (`brand`, `location`, `category`, `buildings`, `unitListings`).
-- Contact payloads contain name, preferred name, mailing address, phone, fax, email, date of birth (`dateOfBirth`), social insurance number (`socialInsuranceNumber`), and business number (`businessNumber`) where applicable.
-- All categorical/enum values (`PropertyType`, `RegistrationStatus`, `OwnershipType`, `ListingSize`, `StrataHotelCategory`, etc.) strictly align with the STRR database enums. The complete OpenAPI specification will be published once this RFC is finalized.
+- `HOST`: `primaryContact` (`INDIVIDUAL` or `BUSINESS`), `secondaryContact` (`INDIVIDUAL` co-host), `propertyManager` (a single flat object containing `propertyManagerType`, `initiatedByPropertyManager`, `businessLegalName`, `businessNumber`, `mailingAddress`, and `contact`), `unitAddress`, `unitDetails` (`parcelIdentifier`, `businessLicense`, `businessLicenseExpiryDate`, `blExemptReason`, `propertyType`, `strataHotelRegistrationNumber`, `prExemptReason`, `strataHotelCategory`, `jurisdiction`, `prRequired`, `blRequired`, `rentalUnitSetupOption`, `hostType`), and `strRequirements`.
+- `PLATFORM`: `businessDetails`, registered attorney/office (`registeredOfficeOrAttorneyForServiceDetails`), `platformRepresentatives`, and `platformDetails` (`brands`, `listingSize`).
+- `STRATA_HOTEL`: `businessDetails` (`legalName`, `homeJurisdiction`, `businessNumber`, `mailingAddress`, and `registeredOfficeOrAttorneyForServiceDetails`), `strataHotelRepresentatives`, and `strataHotelDetails` (`brand`, `location`, `numberOfUnits`, `category`, `buildings`, and `unitListings: { primary: string[], additional: string[][] }` normalized into clean string arrays by splitting internal form inputs on newlines and commas `[\r\n,]+`).
+- Person contact payloads (`propertyManager.contact`, `platformRepresentatives`, `strataHotelRepresentatives`) share a single unified `PersonContact` schema (`firstName`, `middleName`, `lastName`, `preferredName`, `jobTitle`, `emailAddress`, `phoneNumber`, `phoneCountryCode`, `extension`, `faxNumber`). `dateOfBirth`, `socialInsuranceNumber` (CRA Tax Number), `businessNumber`, and `businessLegalName` are included on `primaryContact` where applicable.
+- All categorical/enum values (`PropertyType`, `RegistrationStatus`, `PrExemptReason`, `HostType`, `RentalSpaceOption`, `ListingSize`, `StrataHotelCategory`, etc.) strictly align with the STRR database enums. See [`docs/oas/registration-export.yaml`](../docs/oas/registration-export.yaml) for the complete OpenAPI 3.0 specification.
 
 ## Indexes
 

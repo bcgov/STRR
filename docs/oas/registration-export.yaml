@@ -1,0 +1,1343 @@
+openapi: 3.0.3
+info:
+  title: BC Short-Term Rental Registry - Registration Export API
+  version: '1.0.0'
+  termsOfService: 'https://developer.connect.gov.bc.ca/shared/api-terms-of-use.pdf'
+  contact:
+    url: 'https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals'
+    name: BC Registries and Online Services
+  description: |-
+    System-to-system and authorized portal API providing complete current registration snapshots for `HOST`, `PLATFORM`, and `STRATA_HOTEL` registrations.
+
+    Supports two retrieval patterns:
+    1. **Incremental Polling (CDC)** for the Ministry of Finance using `updatedSince` and cursor-based pagination.
+    2. **Targeted Registration Lookup** for the STR Data Portal using a bounded `registrationNumbers` array.
+
+    > **HTTP Method Note:** `QUERY /registrations/export` is under consideration for a safe, idempotent body-based query. Where client libraries, gateways, or WAF infrastructure require standard OpenAPI 3.0 methods, `POST /registrations/export` uses the identical path, request body, authentication, and response contract.
+  license:
+    name: BSD-3-Clause
+    url: 'https://opensource.org/license/bsd-3-clause'
+servers:
+  - url: 'https://sandbox.api.connect.gov.bc.ca/strr/v1'
+    description: Sandbox / Test
+  - url: 'https://api.connect.gov.bc.ca/strr/v1'
+    description: Production
+tags:
+  - name: Registration Export
+    description: Incremental CDC polling and targeted registration snapshot retrieval.
+security:
+  - bearerAuth: []
+paths:
+  /registrations/export:
+    post:
+      tags:
+        - Registration Export
+      summary: Export current registration snapshots
+      operationId: exportRegistrations
+      description: |-
+        Returns a paginated list of complete current registration snapshots (`HOST`, `PLATFORM`, `STRATA_HOTEL`).
+        - Omit `updatedSince` and `cursor` for an initial full synchronization.
+        - Provide `nextCursor` as `cursor` on subsequent requests until `nextCursor` is `null`.
+        - Provide `registrationNumbers` for targeted Data Portal lookups.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationExportRequest'
+            examples:
+              MinistryOfFinanceInitialSync:
+                summary: Ministry of Finance - Initial Full Sync
+                value:
+                  limit: 500
+              MinistryOfFinanceIncrementalPoll:
+                summary: Ministry of Finance - Incremental CDC Poll
+                value:
+                  updatedSince: '2026-09-01T00:00:00Z'
+                  cursor: 'eyJ2ZXJzaW9uIjoxLCJwb3NpdGlvbiI6ey...'
+                  limit: 500
+              DataPortalTargetedLookup:
+                summary: Data Portal - Targeted Lookup by Registration Numbers
+                value:
+                  registrationNumbers:
+                    - H123456789
+                    - PL100000001
+                    - ST200000001
+                  limit: 100
+      responses:
+        '200':
+          description: Paginated list of current registration snapshots.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationExportResponse'
+              examples:
+                IncrementalExportPage:
+                  summary: Page containing HOST, PLATFORM, and STRATA_HOTEL snapshots
+                  value:
+                    items:
+                      - registrationId: 4821
+                        registrationNumber: H123456789
+                        registrationType: HOST
+                        status: ACTIVE
+                        startDate: '2026-01-15T00:00:00Z'
+                        expiryDate: '2027-01-15T00:00:00Z'
+                        updatedDate: '2026-09-07T18:42:11.203000Z'
+                        cancelledDate: null
+                        primaryContact:
+                          contactType: INDIVIDUAL
+                          firstName: Jane
+                          middleName: Marie
+                          lastName: Doe
+                          preferredName: Janey
+                          dateOfBirth: '1980-05-15'
+                          socialInsuranceNumber: '123 456 789'
+                          businessNumber: null
+                          businessLegalName: null
+                          emailAddress: jane.doe@example.com
+                          phoneNumber: 250-555-0100
+                          phoneCountryCode: '001'
+                          extension: null
+                          faxNumber: null
+                          mailingAddress:
+                            address: 100 Government St
+                            addressLineTwo: Unit 402
+                            city: Victoria
+                            province: BC
+                            postalCode: V8W 1W2
+                            country: CA
+                            locationDescription: null
+                        secondaryContact:
+                          contactType: INDIVIDUAL
+                          firstName: John
+                          middleName: null
+                          lastName: Doe
+                          preferredName: null
+                          emailAddress: john.doe@example.com
+                          phoneNumber: 250-555-0101
+                          phoneCountryCode: '001'
+                          extension: null
+                          faxNumber: null
+                          mailingAddress:
+                            address: 100 Government St
+                            addressLineTwo: Unit 402
+                            city: Victoria
+                            province: BC
+                            postalCode: V8W 1W2
+                            country: CA
+                            locationDescription: null
+                        unitAddress:
+                          unitNumber: '402'
+                          streetNumber: '100'
+                          streetName: Government St
+                          addressLineTwo: null
+                          city: Victoria
+                          province: BC
+                          postalCode: V8W 1W2
+                          country: CA
+                          nickname: Downtown Condo
+                          locationDescription: null
+                        unitDetails:
+                          parcelIdentifier: 001-234-567
+                          businessLicense: BL-2026-001
+                          businessLicenseExpiryDate: '2026-12-31'
+                          blExemptReason: null
+                          propertyType: MULTI_UNIT_HOUSING
+                          strataHotelRegistrationNumber: null
+                          prExemptReason: null
+                          strataHotelCategory: null
+                          jurisdiction: City of Victoria
+                          prRequired: true
+                          blRequired: true
+                          rentalUnitSetupOption: PRIMARY_RESIDENCE_OR_SHARED_SPACE
+                          hostType: OWNER
+                        strRequirements:
+                          organizationNm: City of Victoria
+                          isPrincipalResidenceRequired: true
+                          isBusinessLicenceRequired: true
+                          isStrProhibited: false
+                          isStraaExempt: null
+                        propertyManager:
+                          propertyManagerType: BUSINESS
+                          initiatedByPropertyManager: false
+                          businessLegalName: Island Property Management Ltd.
+                          businessNumber: 987654321BC0001
+                          mailingAddress:
+                            address: 500 Douglas St
+                            addressLineTwo: Suite 200
+                            city: Victoria
+                            province: BC
+                            postalCode: V8V 2P8
+                            country: CA
+                            locationDescription: null
+                          contact:
+                            firstName: Robert
+                            middleName: James
+                            lastName: Smith
+                            preferredName: Bob
+                            jobTitle: null
+                            emailAddress: robert@islandpm.example.com
+                            phoneNumber: 250-555-0199
+                            phoneCountryCode: '001'
+                            extension: '102'
+                            faxNumber: 250-555-0198
+                      - registrationId: 5100
+                        registrationNumber: PL100000001
+                        registrationType: PLATFORM
+                        status: ACTIVE
+                        startDate: '2026-02-01T00:00:00Z'
+                        expiryDate: '2027-02-01T00:00:00Z'
+                        updatedDate: '2026-09-08T10:15:30.123000Z'
+                        cancelledDate: null
+                        businessDetails:
+                          legalName: Global Booking Services Inc.
+                          homeJurisdiction: 'BC, Canada'
+                          businessNumber: 123456789BC0001
+                          consumerProtectionBCLicenceNumber: CPBC-99881
+                          noticeOfNonComplianceEmail: compliance@globalbooking.example.com
+                          noticeOfNonComplianceOptionalEmail: legal@globalbooking.example.com
+                          takeDownRequestEmail: takedown@globalbooking.example.com
+                          takeDownRequestOptionalEmail: null
+                          mailingAddress:
+                            address: 1200 Burrard St
+                            addressLineTwo: Suite 800
+                            city: Vancouver
+                            province: BC
+                            postalCode: V6Z 2C7
+                            country: CA
+                            locationDescription: null
+                          registeredOfficeOrAttorneyForServiceDetails:
+                            attorneyName: Pacific Corporate Legal Services
+                            mailingAddress:
+                              address: 1055 W Georgia St
+                              addressLineTwo: Suite 1500
+                              city: Vancouver
+                              province: BC
+                              postalCode: V6E 4N7
+                              country: CA
+                              locationDescription: null
+                        platformRepresentatives:
+                          - firstName: Alice
+                            middleName: null
+                            lastName: Wong
+                            preferredName: null
+                            jobTitle: Director of Regulatory Compliance
+                            emailAddress: alice.wong@globalbooking.example.com
+                            phoneNumber: 604-555-0144
+                            phoneCountryCode: '001'
+                            extension: null
+                            faxNumber: null
+                        platformDetails:
+                          listingSize: THOUSAND_AND_ABOVE
+                          brands:
+                            - name: GlobalStay
+                              website: 'https://www.globalstay.example.com'
+                      - registrationId: 6200
+                        registrationNumber: ST200000001
+                        registrationType: STRATA_HOTEL
+                        status: ACTIVE
+                        startDate: '2026-03-01T00:00:00Z'
+                        expiryDate: '2027-03-01T00:00:00Z'
+                        updatedDate: '2026-09-09T14:22:45.542000Z'
+                        cancelledDate: null
+                        businessDetails:
+                          legalName: Whistler Peak Lodging Ltd.
+                          homeJurisdiction: 'BC, Canada'
+                          businessNumber: 888777666BC0001
+                          mailingAddress:
+                            address: 4000 Whistler Way
+                            addressLineTwo: null
+                            city: Whistler
+                            province: BC
+                            postalCode: V8E 1J2
+                            country: CA
+                            locationDescription: null
+                          registeredOfficeOrAttorneyForServiceDetails:
+                            attorneyName: Whistler Legal Counsel LLP
+                            mailingAddress:
+                              address: 4200 Mountain Square
+                              addressLineTwo: Suite 300
+                              city: Whistler
+                              province: BC
+                              postalCode: V8E 1B8
+                              country: CA
+                              locationDescription: null
+                        strataHotelRepresentatives:
+                          - firstName: David
+                            middleName: null
+                            lastName: Miller
+                            preferredName: null
+                            jobTitle: General Manager
+                            emailAddress: dmiller@whistlerpeak.example.com
+                            phoneNumber: 604-555-0188
+                            phoneCountryCode: '001'
+                            extension: '101'
+                            faxNumber: null
+                        strataHotelDetails:
+                          brand:
+                            name: Whistler Peak Residences
+                            website: 'https://whistlerpeak.example.com'
+                          location:
+                            address: 4000 Whistler Way
+                            addressLineTwo: null
+                            city: Whistler
+                            province: BC
+                            postalCode: V8E 1J2
+                            country: CA
+                            locationDescription: null
+                          numberOfUnits: 120
+                          category: FULL_SERVICE
+                          buildings:
+                            - address: 4000 Whistler Way - North Tower
+                              addressLineTwo: null
+                              city: Whistler
+                              province: BC
+                              postalCode: V8E 1J2
+                              country: CA
+                              locationDescription: null
+                          unitListings:
+                            primary:
+                              - '101'
+                              - '102'
+                              - '103'
+                              - '104'
+                            additional:
+                              - - '201'
+                                - '202'
+                                - '203'
+                    nextCursor: 'eyJ2ZXJzaW9uIjoxLCJwb3NpdGlvbiI6ey...'
+                TargetedLookupWithErrors:
+                  summary: Targeted lookup response with per-item errors
+                  value:
+                    items: []
+                    errors:
+                      - registrationNumber: H999999999
+                        code: NOT_FOUND
+                    nextCursor: null
+        '400':
+          description: Invalid request parameters (e.g., invalid cursor, invalid timestamp, or `limit` outside `1..500`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Authenticated caller is not authorized to export registrations.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |-
+        Bearer JWT token:
+        - **Ministry of Finance:** Machine-to-machine client credentials token.
+        - **Data Portal:** Machine-to-machine token, or an IDIR user token with `ceu_staff` or `ceu_admin` role.
+
+  schemas:
+    RegistrationExportRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        updatedSince:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional ISO 8601 timestamp. Returns registrations changed after this timestamp. Omit on initial full synchronization.
+          example: '2026-09-01T00:00:00Z'
+        cursor:
+          type: string
+          nullable: true
+          description: Opaque pagination cursor returned as `nextCursor` by the previous page. Clients must treat this value as opaque and must not reuse cursors across different filter scopes.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 100
+          description: Maximum number of registration snapshots to return in a single page.
+          example: 100
+        registrationNumbers:
+          type: array
+          nullable: true
+          minItems: 1
+          maxItems: 500
+          description: Optional bounded list of registration numbers for targeted Data Portal lookups. Duplicate registration numbers are automatically deduplicated.
+          items:
+            type: string
+          example:
+            - H123456789
+            - H987654321
+
+    RegistrationExportResponse:
+      type: object
+      required:
+        - items
+        - nextCursor
+      properties:
+        items:
+          type: array
+          description: Complete current registration snapshots matching the query.
+          items:
+            $ref: '#/components/schemas/RegistrationSnapshot'
+        errors:
+          type: array
+          description: Per-item lookup failures (included only when `registrationNumbers` is specified in the request).
+          items:
+            $ref: '#/components/schemas/RegistrationLookupError'
+        nextCursor:
+          type: string
+          nullable: true
+          description: Opaque cursor for retrieving the next page. `null` when no further pages remain.
+
+    RegistrationLookupError:
+      type: object
+      required:
+        - registrationNumber
+        - code
+      properties:
+        registrationNumber:
+          type: string
+          description: The requested registration number that could not be returned.
+          example: H999999999
+        code:
+          $ref: '#/components/schemas/RegistrationLookupErrorCode'
+
+    RegistrationLookupErrorCode:
+      type: string
+      enum:
+        - INVALID_REGISTRATION_NUMBER
+        - NOT_FOUND
+        - NOT_AVAILABLE
+      description: |-
+        - `INVALID_REGISTRATION_NUMBER`: Format or structure of the registration number is invalid.
+        - `NOT_FOUND`: Registration number does not exist.
+        - `NOT_AVAILABLE`: Registration cannot be returned (used where authorization failure should not disclose whether a registration exists).
+
+    RegistrationSnapshot:
+      oneOf:
+        - $ref: '#/components/schemas/HostRegistrationSnapshot'
+        - $ref: '#/components/schemas/PlatformRegistrationSnapshot'
+        - $ref: '#/components/schemas/StrataHotelRegistrationSnapshot'
+      discriminator:
+        propertyName: registrationType
+        mapping:
+          HOST: '#/components/schemas/HostRegistrationSnapshot'
+          PLATFORM: '#/components/schemas/PlatformRegistrationSnapshot'
+          STRATA_HOTEL: '#/components/schemas/StrataHotelRegistrationSnapshot'
+
+    # -------------------------------------------------------------------------
+    # 1. HOST Registration Schemas
+    # -------------------------------------------------------------------------
+    HostRegistrationSnapshot:
+      type: object
+      required:
+        - registrationId
+        - registrationNumber
+        - registrationType
+        - status
+        - startDate
+        - expiryDate
+        - updatedDate
+        - cancelledDate
+        - primaryContact
+        - secondaryContact
+        - unitAddress
+        - unitDetails
+        - strRequirements
+        - propertyManager
+      properties:
+        registrationId:
+          type: integer
+          format: int64
+          description: Internal unique identifier of the registration.
+          example: 4821
+        registrationNumber:
+          type: string
+          description: Public registration number issued by the registry.
+          example: H123456789
+        registrationType:
+          $ref: '#/components/schemas/RegistrationType'
+          example: HOST
+        status:
+          $ref: '#/components/schemas/RegistrationStatus'
+        startDate:
+          type: string
+          format: date-time
+          description: Effective start timestamp of the registration.
+          example: '2026-01-15T00:00:00Z'
+        expiryDate:
+          type: string
+          format: date-time
+          description: Expiry timestamp of the registration.
+          example: '2027-01-15T00:00:00Z'
+        updatedDate:
+          type: string
+          format: date-time
+          description: Most recent change timestamp across the registration aggregate.
+          example: '2026-09-07T18:42:11.203000Z'
+        cancelledDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date and time when the registration was cancelled (`null` if not cancelled).
+          example: null
+        primaryContact:
+          $ref: '#/components/schemas/HostPrimaryContact'
+        secondaryContact:
+          allOf:
+            - $ref: '#/components/schemas/HostSecondaryContact'
+          nullable: true
+          description: Co-host contact details (`null` when no Co-host is present).
+        unitAddress:
+          $ref: '#/components/schemas/UnitAddress'
+        unitDetails:
+          $ref: '#/components/schemas/HostUnitDetails'
+        strRequirements:
+          allOf:
+            - $ref: '#/components/schemas/StrRequirements'
+          nullable: true
+        propertyManager:
+          allOf:
+            - $ref: '#/components/schemas/PropertyManager'
+          nullable: true
+          description: Property Manager details (`null` when no Property Manager is assigned).
+
+    HostPrimaryContact:
+      type: object
+      description: Property Host (`INDIVIDUAL` or `BUSINESS`). When `propertyManager` is `null` or `propertyManager.initiatedByPropertyManager` is `false`, `primaryContact` is also the person who completed the form.
+      required:
+        - contactType
+        - firstName
+        - middleName
+        - lastName
+        - preferredName
+        - dateOfBirth
+        - socialInsuranceNumber
+        - businessNumber
+        - businessLegalName
+        - emailAddress
+        - phoneNumber
+        - phoneCountryCode
+        - extension
+        - faxNumber
+        - mailingAddress
+      properties:
+        contactType:
+          $ref: '#/components/schemas/ContactType'
+        firstName:
+          type: string
+          nullable: true
+          example: Jane
+        middleName:
+          type: string
+          nullable: true
+          example: Marie
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        preferredName:
+          type: string
+          nullable: true
+          example: Janey
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+          description: Date of birth (`YYYY-MM-DD`). Present for `INDIVIDUAL` primary contacts.
+          example: '1980-05-15'
+        socialInsuranceNumber:
+          type: string
+          nullable: true
+          description: 9-digit Social Insurance Number (CRA Individual Tax Number). Present for `INDIVIDUAL` primary contacts.
+          example: '123 456 789'
+        businessNumber:
+          type: string
+          nullable: true
+          description: CRA Business Number. Optional for `INDIVIDUAL` hosts; present for `BUSINESS` hosts.
+          example: null
+        businessLegalName:
+          type: string
+          nullable: true
+          description: Legal business name when `contactType` is `BUSINESS`.
+          example: null
+        emailAddress:
+          type: string
+          format: email
+          example: jane.doe@example.com
+        phoneNumber:
+          type: string
+          example: 250-555-0100
+        phoneCountryCode:
+          type: string
+          nullable: true
+          example: '001'
+        extension:
+          type: string
+          nullable: true
+          example: null
+        faxNumber:
+          type: string
+          nullable: true
+          example: null
+        mailingAddress:
+          $ref: '#/components/schemas/MailingAddress'
+
+    HostSecondaryContact:
+      type: object
+      description: Co-host contact details (always an `INDIVIDUAL`).
+      required:
+        - contactType
+        - firstName
+        - middleName
+        - lastName
+        - preferredName
+        - emailAddress
+        - phoneNumber
+        - phoneCountryCode
+        - extension
+        - faxNumber
+        - mailingAddress
+      properties:
+        contactType:
+          type: string
+          enum:
+            - INDIVIDUAL
+          example: INDIVIDUAL
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        middleName:
+          type: string
+          nullable: true
+          example: null
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        preferredName:
+          type: string
+          nullable: true
+          example: null
+        emailAddress:
+          type: string
+          format: email
+          example: john.doe@example.com
+        phoneNumber:
+          type: string
+          example: 250-555-0101
+        phoneCountryCode:
+          type: string
+          nullable: true
+          example: '001'
+        extension:
+          type: string
+          nullable: true
+          example: null
+        faxNumber:
+          type: string
+          nullable: true
+          example: null
+        mailingAddress:
+          $ref: '#/components/schemas/MailingAddress'
+
+    UnitAddress:
+      type: object
+      description: Physical address of the short-term rental unit.
+      required:
+        - unitNumber
+        - streetNumber
+        - streetName
+        - addressLineTwo
+        - city
+        - province
+        - postalCode
+        - country
+        - nickname
+        - locationDescription
+      properties:
+        unitNumber:
+          type: string
+          nullable: true
+          example: '402'
+        streetNumber:
+          type: string
+          nullable: true
+          example: '100'
+        streetName:
+          type: string
+          nullable: true
+          example: Government St
+        addressLineTwo:
+          type: string
+          nullable: true
+          example: null
+        city:
+          type: string
+          example: Victoria
+        province:
+          type: string
+          example: BC
+        postalCode:
+          type: string
+          example: V8W 1W2
+        country:
+          type: string
+          example: CA
+        nickname:
+          type: string
+          nullable: true
+          example: Downtown Condo
+        locationDescription:
+          type: string
+          nullable: true
+          example: null
+
+    HostUnitDetails:
+      type: object
+      required:
+        - parcelIdentifier
+        - businessLicense
+        - businessLicenseExpiryDate
+        - blExemptReason
+        - propertyType
+        - strataHotelRegistrationNumber
+        - prExemptReason
+        - strataHotelCategory
+        - jurisdiction
+        - prRequired
+        - blRequired
+        - rentalUnitSetupOption
+        - hostType
+      properties:
+        parcelIdentifier:
+          type: string
+          nullable: true
+          description: 9-digit BC Land Title and Survey Authority Parcel Identifier (PID).
+          example: 001-234-567
+        businessLicense:
+          type: string
+          nullable: true
+          description: Local government business licence number.
+          example: BL-2026-001
+        businessLicenseExpiryDate:
+          type: string
+          format: date
+          nullable: true
+          description: Business licence expiry date (`YYYY-MM-DD`).
+          example: '2026-12-31'
+        blExemptReason:
+          type: string
+          nullable: true
+          description: Reason for business licence exemption, if exempt.
+          example: null
+        propertyType:
+          $ref: '#/components/schemas/PropertyType'
+        strataHotelRegistrationNumber:
+          type: string
+          nullable: true
+          description: Strata hotel registration number when the unit operates within a registered strata hotel.
+          example: null
+        prExemptReason:
+          allOf:
+            - $ref: '#/components/schemas/PrExemptReason'
+          nullable: true
+          description: Principal residence exemption reason (`STRATA_HOTEL`, `FARM_LAND`, `FRACTIONAL_OWNERSHIP`).
+          example: null
+        strataHotelCategory:
+          allOf:
+            - $ref: '#/components/schemas/StrataHotelCategory'
+          nullable: true
+        jurisdiction:
+          type: string
+          nullable: true
+          example: City of Victoria
+        prRequired:
+          type: boolean
+          nullable: true
+          example: true
+        blRequired:
+          type: boolean
+          nullable: true
+          example: true
+        rentalUnitSetupOption:
+          allOf:
+            - $ref: '#/components/schemas/RentalSpaceOption'
+          nullable: true
+        hostType:
+          allOf:
+            - $ref: '#/components/schemas/HostType'
+          nullable: true
+
+    StrRequirements:
+      type: object
+      required:
+        - organizationNm
+        - isPrincipalResidenceRequired
+        - isBusinessLicenceRequired
+        - isStrProhibited
+        - isStraaExempt
+      properties:
+        organizationNm:
+          type: string
+          nullable: true
+          example: City of Victoria
+        isPrincipalResidenceRequired:
+          type: boolean
+          nullable: true
+          example: true
+        isBusinessLicenceRequired:
+          type: boolean
+          nullable: true
+          example: true
+        isStrProhibited:
+          type: boolean
+          nullable: true
+          example: false
+        isStraaExempt:
+          type: boolean
+          nullable: true
+          example: null
+
+    PropertyManager:
+      type: object
+      description: |-
+        Property Manager details using a single flat structure for both `BUSINESS` and `INDIVIDUAL` managers.
+        When `propertyManagerType` is `INDIVIDUAL`, `businessLegalName` and `businessNumber` are `null`.
+      required:
+        - propertyManagerType
+        - initiatedByPropertyManager
+        - businessLegalName
+        - businessNumber
+        - mailingAddress
+        - contact
+      properties:
+        propertyManagerType:
+          $ref: '#/components/schemas/PropertyManagerType'
+        initiatedByPropertyManager:
+          type: boolean
+          nullable: true
+          description: '`true` if the Property Manager completed the registration form; `false` if the Property Host completed the form; `null` for early registrations prior to form tracking.'
+          example: false
+        businessLegalName:
+          type: string
+          nullable: true
+          description: Legal business name when `propertyManagerType` is `BUSINESS` (`null` for `INDIVIDUAL`).
+          example: Island Property Management Ltd.
+        businessNumber:
+          type: string
+          nullable: true
+          description: CRA Business Number when `propertyManagerType` is `BUSINESS` (`null` for `INDIVIDUAL`).
+          example: 987654321BC0001
+        mailingAddress:
+          $ref: '#/components/schemas/MailingAddress'
+        contact:
+          $ref: '#/components/schemas/PersonContact'
+
+    # -------------------------------------------------------------------------
+    # 2. PLATFORM Registration Schemas
+    # -------------------------------------------------------------------------
+    PlatformRegistrationSnapshot:
+      type: object
+      required:
+        - registrationId
+        - registrationNumber
+        - registrationType
+        - status
+        - startDate
+        - expiryDate
+        - updatedDate
+        - cancelledDate
+        - businessDetails
+        - platformRepresentatives
+        - platformDetails
+      properties:
+        registrationId:
+          type: integer
+          format: int64
+          description: Internal unique identifier of the registration.
+          example: 5100
+        registrationNumber:
+          type: string
+          description: Public registration number issued by the registry.
+          example: PL100000001
+        registrationType:
+          $ref: '#/components/schemas/RegistrationType'
+          example: PLATFORM
+        status:
+          $ref: '#/components/schemas/RegistrationStatus'
+        startDate:
+          type: string
+          format: date-time
+          description: Effective start timestamp of the registration.
+          example: '2026-02-01T00:00:00Z'
+        expiryDate:
+          type: string
+          format: date-time
+          description: Expiry timestamp of the registration.
+          example: '2027-02-01T00:00:00Z'
+        updatedDate:
+          type: string
+          format: date-time
+          description: Most recent change timestamp across the registration aggregate.
+          example: '2026-09-08T10:15:30.123000Z'
+        cancelledDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date and time when the registration was cancelled (`null` if not cancelled).
+          example: null
+        businessDetails:
+          $ref: '#/components/schemas/PlatformBusinessDetails'
+        platformRepresentatives:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PersonContact'
+        platformDetails:
+          $ref: '#/components/schemas/PlatformDetails'
+
+    PlatformBusinessDetails:
+      type: object
+      required:
+        - legalName
+        - homeJurisdiction
+        - businessNumber
+        - consumerProtectionBCLicenceNumber
+        - noticeOfNonComplianceEmail
+        - noticeOfNonComplianceOptionalEmail
+        - takeDownRequestEmail
+        - takeDownRequestOptionalEmail
+        - mailingAddress
+        - registeredOfficeOrAttorneyForServiceDetails
+      properties:
+        legalName:
+          type: string
+          example: Global Booking Services Inc.
+        homeJurisdiction:
+          type: string
+          nullable: true
+          example: 'BC, Canada'
+        businessNumber:
+          type: string
+          nullable: true
+          example: 123456789BC0001
+        consumerProtectionBCLicenceNumber:
+          type: string
+          nullable: true
+          example: CPBC-99881
+        noticeOfNonComplianceEmail:
+          type: string
+          format: email
+          example: compliance@globalbooking.example.com
+        noticeOfNonComplianceOptionalEmail:
+          type: string
+          format: email
+          nullable: true
+          example: legal@globalbooking.example.com
+        takeDownRequestEmail:
+          type: string
+          format: email
+          example: takedown@globalbooking.example.com
+        takeDownRequestOptionalEmail:
+          type: string
+          format: email
+          nullable: true
+          example: null
+        mailingAddress:
+          $ref: '#/components/schemas/MailingAddress'
+        registeredOfficeOrAttorneyForServiceDetails:
+          $ref: '#/components/schemas/RegisteredOfficeOrAttorneyForServiceDetails'
+
+    RegisteredOfficeOrAttorneyForServiceDetails:
+      type: object
+      required:
+        - attorneyName
+        - mailingAddress
+      properties:
+        attorneyName:
+          type: string
+          nullable: true
+          example: Pacific Corporate Legal Services
+        mailingAddress:
+          $ref: '#/components/schemas/MailingAddress'
+
+    PlatformDetails:
+      type: object
+      required:
+        - listingSize
+        - brands
+      properties:
+        listingSize:
+          $ref: '#/components/schemas/ListingSize'
+        brands:
+          type: array
+          items:
+            $ref: '#/components/schemas/Brand'
+
+    # -------------------------------------------------------------------------
+    # 3. STRATA_HOTEL Registration Schemas
+    # -------------------------------------------------------------------------
+    StrataHotelRegistrationSnapshot:
+      type: object
+      required:
+        - registrationId
+        - registrationNumber
+        - registrationType
+        - status
+        - startDate
+        - expiryDate
+        - updatedDate
+        - cancelledDate
+        - businessDetails
+        - strataHotelRepresentatives
+        - strataHotelDetails
+      properties:
+        registrationId:
+          type: integer
+          format: int64
+          description: Internal unique identifier of the registration.
+          example: 6200
+        registrationNumber:
+          type: string
+          description: Public registration number issued by the registry.
+          example: ST200000001
+        registrationType:
+          $ref: '#/components/schemas/RegistrationType'
+          example: STRATA_HOTEL
+        status:
+          $ref: '#/components/schemas/RegistrationStatus'
+        startDate:
+          type: string
+          format: date-time
+          description: Effective start timestamp of the registration.
+          example: '2026-03-01T00:00:00Z'
+        expiryDate:
+          type: string
+          format: date-time
+          description: Expiry timestamp of the registration.
+          example: '2027-03-01T00:00:00Z'
+        updatedDate:
+          type: string
+          format: date-time
+          description: Most recent change timestamp across the registration aggregate.
+          example: '2026-09-09T14:22:45.542000Z'
+        cancelledDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date and time when the registration was cancelled (`null` if not cancelled).
+          example: null
+        businessDetails:
+          $ref: '#/components/schemas/StrataHotelBusinessDetails'
+        strataHotelRepresentatives:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/PersonContact'
+        strataHotelDetails:
+          $ref: '#/components/schemas/StrataHotelDetails'
+
+    StrataHotelBusinessDetails:
+      type: object
+      required:
+        - legalName
+        - homeJurisdiction
+        - businessNumber
+        - mailingAddress
+        - registeredOfficeOrAttorneyForServiceDetails
+      properties:
+        legalName:
+          type: string
+          example: Whistler Peak Lodging Ltd.
+        homeJurisdiction:
+          type: string
+          nullable: true
+          example: 'BC, Canada'
+        businessNumber:
+          type: string
+          nullable: true
+          example: 888777666BC0001
+        mailingAddress:
+          $ref: '#/components/schemas/MailingAddress'
+        registeredOfficeOrAttorneyForServiceDetails:
+          allOf:
+            - $ref: '#/components/schemas/RegisteredOfficeOrAttorneyForServiceDetails'
+          nullable: true
+          description: Registered office or attorney for service details (`null` when not provided).
+
+    StrataHotelDetails:
+      type: object
+      required:
+        - brand
+        - location
+        - numberOfUnits
+        - category
+        - buildings
+        - unitListings
+      properties:
+        brand:
+          $ref: '#/components/schemas/Brand'
+        location:
+          $ref: '#/components/schemas/MailingAddress'
+        numberOfUnits:
+          type: integer
+          minimum: 1
+          example: 120
+        category:
+          allOf:
+            - $ref: '#/components/schemas/StrataHotelCategory'
+          nullable: true
+          description: Strata hotel category (`null` for registrations submitted prior to category classification).
+        buildings:
+          type: array
+          description: Additional strata hotel building addresses.
+          items:
+            $ref: '#/components/schemas/MailingAddress'
+        unitListings:
+          allOf:
+            - $ref: '#/components/schemas/StrataHotelUnitListings'
+          nullable: true
+          description: Structured unit number listings for the primary building (`location`) and additional buildings (`buildings`). `null` when no unit listings are provided.
+
+    StrataHotelUnitListings:
+      type: object
+      description: |-
+        Structured unit numbers for the primary building (`location`) and additional buildings (`buildings`).
+        The registration export API normalizes internal multi-line textarea inputs by splitting on newlines and commas (`[\r\n,]+`),
+        trimming whitespace, and filtering out empty tokens so downstream clients receive clean string arrays.
+      required:
+        - primary
+        - additional
+      properties:
+        primary:
+          type: array
+          description: Clean array of unit numbers belonging to the primary building (`strataHotelDetails.location`).
+          items:
+            type: string
+          example:
+            - '101'
+            - '102'
+            - '103'
+            - '104'
+        additional:
+          type: array
+          description: List of unit-number arrays aligned by index with `strataHotelDetails.buildings`.
+          items:
+            type: array
+            items:
+              type: string
+          example:
+            - - '201'
+              - '202'
+              - '203'
+
+    # -------------------------------------------------------------------------
+    # Shared Contact, Address & Brand Schemas
+    # -------------------------------------------------------------------------
+    PersonContact:
+      type: object
+      description: Unified person contact schema used across Property Manager `contact`, `platformRepresentatives`, and `strataHotelRepresentatives`.
+      required:
+        - firstName
+        - middleName
+        - lastName
+        - preferredName
+        - jobTitle
+        - emailAddress
+        - phoneNumber
+        - phoneCountryCode
+        - extension
+        - faxNumber
+      properties:
+        firstName:
+          type: string
+          nullable: true
+          example: Alice
+        middleName:
+          type: string
+          nullable: true
+          example: null
+        lastName:
+          type: string
+          nullable: true
+          example: Wong
+        preferredName:
+          type: string
+          nullable: true
+          example: null
+        jobTitle:
+          type: string
+          nullable: true
+          example: Director of Regulatory Compliance
+        emailAddress:
+          type: string
+          format: email
+          example: alice.wong@globalbooking.example.com
+        phoneNumber:
+          type: string
+          example: 604-555-0144
+        phoneCountryCode:
+          type: string
+          nullable: true
+          example: '001'
+        extension:
+          type: string
+          nullable: true
+          example: null
+        faxNumber:
+          type: string
+          nullable: true
+          example: null
+
+    MailingAddress:
+      type: object
+      required:
+        - address
+        - addressLineTwo
+        - city
+        - province
+        - postalCode
+        - country
+        - locationDescription
+      properties:
+        address:
+          type: string
+          example: 100 Government St
+        addressLineTwo:
+          type: string
+          nullable: true
+          example: Unit 402
+        city:
+          type: string
+          example: Victoria
+        province:
+          type: string
+          example: BC
+        postalCode:
+          type: string
+          example: V8W 1W2
+        country:
+          type: string
+          example: CA
+        locationDescription:
+          type: string
+          nullable: true
+          example: null
+
+    Brand:
+      type: object
+      required:
+        - name
+        - website
+      properties:
+        name:
+          type: string
+          example: GlobalStay
+        website:
+          type: string
+          format: uri
+          example: 'https://www.globalstay.example.com'
+
+    ApiError:
+      type: object
+      required:
+        - message
+      properties:
+        code:
+          type: string
+          example: INVALID_REQUEST
+        message:
+          type: string
+          example: limit must be an integer between 1 and 500.
+
+    # -------------------------------------------------------------------------
+    # Database Enums
+    # -------------------------------------------------------------------------
+    RegistrationType:
+      type: string
+      enum:
+        - HOST
+        - PLATFORM
+        - STRATA_HOTEL
+
+    RegistrationStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - EXPIRED
+        - SUSPENDED
+        - CANCELLED
+
+    ContactType:
+      type: string
+      enum:
+        - INDIVIDUAL
+        - BUSINESS
+
+    PropertyType:
+      type: string
+      enum:
+        - SINGLE_FAMILY_HOME
+        - SECONDARY_SUITE
+        - ACCESSORY_DWELLING
+        - MULTI_UNIT_HOUSING
+        - TOWN_HOME
+        - CONDO_OR_APT
+        - RECREATIONAL
+        - BED_AND_BREAKFAST
+        - STRATA_HOTEL
+        - FLOAT_HOME
+
+    PrExemptReason:
+      type: string
+      enum:
+        - STRATA_HOTEL
+        - FARM_LAND
+        - FRACTIONAL_OWNERSHIP
+
+    HostType:
+      type: string
+      enum:
+        - OWNER
+        - FRIEND_RELATIVE
+        - LONG_TERM_TENANT
+
+    RentalSpaceOption:
+      type: string
+      enum:
+        - PRIMARY_RESIDENCE_OR_SHARED_SPACE
+        - SEPARATE_UNIT_SAME_PROPERTY
+        - DIFFERENT_PROPERTY
+
+    PropertyManagerType:
+      type: string
+      enum:
+        - INDIVIDUAL
+        - BUSINESS
+
+    ListingSize:
+      type: string
+      enum:
+        - LESS_THAN_250
+        - BETWEEN_250_AND_999
+        - THOUSAND_AND_ABOVE
+
+    StrataHotelCategory:
+      type: string
+      enum:
+        - FULL_SERVICE
+        - MULTI_UNIT_NON_PR
+        - POST_DECEMBER_2023
