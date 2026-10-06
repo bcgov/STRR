@@ -751,6 +751,8 @@ export default {
     HOST_DECLINED: 'Host application refused',
     NOC: 'Notice of consideration',
     REGISTRATION_NOC: 'Notice of consideration',
+    STRATA_HOTEL_NOC: 'Notice of consideration',
+    STRATA_HOTEL_REGISTRATION_NOC: 'Notice of consideration',
     PROVISIONAL_REVIEW_NOC: 'Notice of consideration',
     STRATA_HOTEL_REGISTRATION_ACTIVE: 'Strata hotel registration active',
     STRATA_HOTEL_REGISTRATION_CANCELLED: 'Strata hotel registration cancelled',
