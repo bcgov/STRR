@@ -466,7 +466,8 @@ components:
           description: Public registration number issued by the registry.
           example: H123456789
         registrationType:
-          $ref: '#/components/schemas/RegistrationType'
+          allOf:
+            - $ref: '#/components/schemas/RegistrationType'
           example: HOST
         status:
           $ref: '#/components/schemas/RegistrationStatus'
@@ -873,7 +874,8 @@ components:
           description: Public registration number issued by the registry.
           example: PL100000001
         registrationType:
-          $ref: '#/components/schemas/RegistrationType'
+          allOf:
+            - $ref: '#/components/schemas/RegistrationType'
           example: PLATFORM
         status:
           $ref: '#/components/schemas/RegistrationStatus'
@@ -1014,7 +1016,8 @@ components:
           description: Public registration number issued by the registry.
           example: ST200000001
         registrationType:
-          $ref: '#/components/schemas/RegistrationType'
+          allOf:
+            - $ref: '#/components/schemas/RegistrationType'
           example: STRATA_HOTEL
         status:
           $ref: '#/components/schemas/RegistrationStatus'
