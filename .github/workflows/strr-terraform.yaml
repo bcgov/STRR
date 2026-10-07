@@ -112,7 +112,7 @@ jobs:
       - name: Terraform plan
         run: terraform -chdir="terraform/$TF_STACK" plan -input=false -lock-timeout=5m -out=tfplan
 
-      # Temporary state-only adoption. Remove with the bootstrap input after DEV verification.
+      # Existing DEV resources are missing from Terraform state, so bootstrap imports them before bucket updates.
       - name: Import existing resources
         if: env.TF_ACTION == 'bootstrap'
         run: |
