@@ -1,6 +1,11 @@
 name: STRR Terraform
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/strr-terraform.yaml"
   workflow_call:
     inputs:
       stack:
@@ -28,20 +33,25 @@ on:
         options:
           - plan
           - apply
+          # Remove bootstrap after all three DEV roots are adopted and verified.
+          - bootstrap
         default: plan
 
 permissions:
   contents: read
   id-token: write
 
-concurrency:
-  group: strr-terraform-dev-${{ inputs.stack }}
-  queue: max
-  cancel-in-progress: false
-
 jobs:
   terraform:
-    name: Terraform dev ${{ inputs.stack }} - ${{ inputs.action }}
+    name: Terraform dev ${{ matrix.stack }} - ${{ inputs.action || 'apply' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: ${{ fromJSON(inputs.stack && format('["{0}"]', inputs.stack) || '["api","email","validation"]') }}
+    concurrency:
+      group: strr-terraform-dev-${{ matrix.stack }}
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     environment: dev
     timeout-minutes: 30
@@ -51,8 +61,8 @@ jobs:
         shell: bash
 
     env:
-      TF_STACK: ${{ inputs.stack }}
-      TF_ACTION: ${{ inputs.action }}
+      TF_STACK: ${{ matrix.stack }}
+      TF_ACTION: ${{ inputs.action || 'apply' }}
       TF_IN_AUTOMATION: "true"
       REF_PROTECTED: ${{ github.ref_protected }}
 
@@ -65,10 +75,11 @@ jobs:
           esac
           case "$TF_ACTION" in
             plan|apply) ;;
+            bootstrap) [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]] || exit 1 ;;
             *) echo "Unsupported Terraform action: $TF_ACTION" >&2; exit 1 ;;
           esac
-          if [[ "$TF_ACTION" == "apply" && ( "$GITHUB_REF" != "refs/heads/main" || "$REF_PROTECTED" != "true" ) ]]; then
-            echo "Terraform apply requires protected main." >&2
+          if [[ "$TF_ACTION" != "plan" && ( "$GITHUB_REF" != "refs/heads/main" || "$REF_PROTECTED" != "true" ) ]]; then
+            echo "Terraform writes require protected main." >&2
             exit 1
           fi
 
@@ -101,6 +112,23 @@ jobs:
       - name: Terraform plan
         run: terraform -chdir="terraform/$TF_STACK" plan -input=false -lock-timeout=5m -out=tfplan
 
+      # Temporary state-only adoption. Remove with the bootstrap input after DEV verification.
+      - name: Import existing resources
+        if: env.TF_ACTION == 'bootstrap'
+        run: |
+          terraform -chdir="terraform/$TF_STACK" show -json tfplan | jq -r '
+            if .complete != true or .errored == true or
+              any(.resource_changes[]?; any(.change.before, .change.after;
+                .project != null and .project != "bcrbk9-dev"))
+            then error("Bootstrap needs a complete DEV plan") else
+              .resource_changes[]? | select(.change.importing) |
+              [.address, .change.importing.id] | @tsv
+            end' > "$RUNNER_TEMP/imports-$TF_STACK.tsv"
+          while IFS=$'\t' read -r address resource_id; do
+            terraform -chdir="terraform/$TF_STACK" import -input=false -lock-timeout=5m "$address" "$resource_id"
+          done < "$RUNNER_TEMP/imports-$TF_STACK.tsv"
+          terraform -chdir="terraform/$TF_STACK" plan -input=false -lock-timeout=5m -out=tfplan
+
       - name: Record plan summary
         run: |
           {
@@ -112,8 +140,22 @@ jobs:
 
       - name: Check plan safety
         run: |
-          terraform -chdir="terraform/$TF_STACK" show -json tfplan | python3 terraform/scripts/check_plan.py
+          terraform -chdir="terraform/$TF_STACK" show -json tfplan | jq -e --arg action "$TF_ACTION" '
+            (.format_version | startswith("1.")) and .complete == true and .errored != true and
+            all(.resource_changes[]? | select(.mode == "managed");
+              .change.importing == null and
+              (.change.actions == ["no-op"] or .change.actions == ["create"] or .change.actions == ["update"]) and
+              all(.change.before, .change.after; .project == null or .project == "bcrbk9-dev") and
+              ($action != "bootstrap" or .change.actions == ["no-op"] or
+                (.type == "google_storage_bucket" and .change.actions == ["update"] and
+                  ((.change.before | del(.logging, .versioning, .lifecycle_rule)) ==
+                   (.change.after | del(.logging, .versioning, .lifecycle_rule)))))
+            )'
 
       - name: Terraform apply
-        if: inputs.action == 'apply'
+        if: env.TF_ACTION != 'plan'
         run: terraform -chdir="terraform/$TF_STACK" apply -input=false -lock-timeout=5m tfplan
+
+      - name: Verify no remaining changes
+        if: env.TF_ACTION != 'plan'
+        run: terraform -chdir="terraform/$TF_STACK" plan -input=false -lock-timeout=5m -detailed-exitcode

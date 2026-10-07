@@ -1,113 +1,72 @@
 # STRR DEV infrastructure
 
-Each application deployment owns its related infrastructure through a separate
-Terraform root. All three roots are restricted to `bcrbk9-dev` and use Terraform
-1.10.5 with the checked-in Google provider 6.50.0 lockfiles.
+API uploads, email and bulk validation use separate Terraform roots in
+`bcrbk9-dev`. Terraform 1.10.5 and Google provider 6.50.0 are pinned.
 
-| Root | State prefix | Existing resources adopted | Deployment workflow |
-| --- | --- | --- | --- |
-| `api` | `strr/dev/api` | Registration-document bucket (1 import) | `strr-api-cd.yaml` |
-| `email` | `strr/dev/email` | Email and dead-letter topics, subscriptions, and dead-letter IAM (6 imports) | `strr-email-cd.yaml` |
-| `validation` | `strr/dev/validation` | Request/response buckets, Eventarc, callback and dead-letter topics, callback subscription, and dead-letter IAM (8 imports) | Both batch-validator CD workflows |
+| Root | State prefix in `strr-tools-terraform-state` | Existing resources |
+| --- | --- | --- |
+| `api` | `strr/dev/api` | Registration-document bucket (1) |
+| `email` | `strr/dev/email` | Email topics, subscriptions and dead-letter IAM (6) |
+| `validation` | `strr/dev/validation` | Request/response buckets, Eventarc, callback topics/subscription and dead-letter IAM (8) |
 
-The API produces validation request files, but the validation root owns that bucket.
-Both validation deployments call the same root and share one queued concurrency
-group; neither defines a second copy of the resources. State is stored in the
-existing `strr-tools-terraform-state` bucket. No routine `-target` operations are used.
+Both batch-validator deployments share the validation root and concurrency group.
+Eventarc owns its generated transport resources. Other environments, runtime
+identities, project IAM and the dedicated log bucket remain outside these roots.
 
-## Automatic deployment
+## Deployment
 
-On a push to protected `main`, or a manual application deployment from protected
-`main` targeting DEV, the corresponding CD workflow runs Terraform before deploying
-the application. Infrastructure-only changes also trigger their owning DEV workflow.
-Other application targets and feature/hotfix/release deployments retain their
-existing behavior and skip Terraform. Promotion to other environments needs a
-separate change with matching state, resource names, workflow routing, and IAM.
+On protected `main`, application deployments targeting DEV run their Terraform
+root first. Other application targets and feature/hotfix/release deployments
+retain their existing behavior. Infrastructure-only pushes to `main` run all three
+roots through [STRR Terraform](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/.github/workflows/strr-terraform.yaml), without deploying an application.
 
-The reusable `STRR Terraform` workflow:
+The workflow uses the existing `dev` GitHub environment and keyless WIF binding
+for `sa-strr-infra@bcrbk9-tools.iam.gserviceaccount.com`. It saves a plan, rejects
+pending imports, deletions, replacements and non-DEV changes, then applies that
+exact plan. A fresh plan must report no remaining changes. Failure blocks the
+calling application deployment. Plans and state are not uploaded as artifacts.
 
-1. Validates the selected root and action before authentication.
-2. Initializes the root, checks formatting, and validates the configuration.
-3. Saves a plan and adds its human-readable output to the job summary.
-4. Checks the plan with `scripts/check_plan.py`.
-5. For an apply run, applies that exact saved plan. Failure blocks the application deployment.
+## First DEV adoption
 
-While any resource is being imported, the plan must contain only imports and
-no-op actions: zero additions, changes, or deletions across the root. Once a root
-has been adopted, DEV creation and updates are allowed automatically; deletions
-and replacements are rejected. Buckets also use `prevent_destroy` and
-`force_destroy = false`. Existing public-access prevention, uniform access, and
-seven-day soft deletion are preserved. Terraform's default attribution label is
-disabled so adoption does not relabel existing resources.
+Before running bootstrap, confirm that no other Terraform state owns these 15
+resources. Do not import the same object into two states. Confirm the dedicated
+log destination using the
+[bucket setup](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/terraform/dev-bucket-security.md).
+SRE manages the destination writer binding; actual log delivery verifies that
+it works without requiring the operator to read bucket IAM. The three source buckets do not need their logging/versioning settings applied
+manually first. [SRE #399](https://github.com/bcgov/bcregistry-sre/pull/399) grants
+the workflow identity metadata get/update on those buckets.
 
-This is automatic deployment of code reviewed on `main`; it does not depend on a
-GitHub environment approval rule. A manual `STRR Terraform` plan can be run for an
-individual root on a branch once the workflow exists on the default branch.
-Manual applies are restricted to protected `main`. Raw saved plans and JSON plans
-are not uploaded as artifacts because they can contain sensitive values.
+After this workflow is reviewed and merged, run `STRR Terraform` from protected
+`main`, selecting `bootstrap` once for each root: `api`, `email`, `validation`.
+GitHub enables manual runs after the workflow reaches the default branch. Until
+bootstrap completes, ordinary apply runs stop on pending imports.
 
-## Prerequisites and first adoption
+Bootstrap first plans against the live resources, then uses `terraform import`
+to write their existing state without changing cloud resources. It imports only
+resources still missing from that root's state, so a failed run can be retried.
+A partial failure stops before applying changes; retain the imported
+state and rerun after resolving the failure.
 
-Authentication uses the existing keyless configuration:
+After import, bootstrap generates a fresh plan. Only updates to the existing
+buckets' logging, versioning and lifecycle fields are allowed; other resources
+must be unchanged. The workflow applies that saved plan and verifies a no-change
+plan. Only the fresh post-import plan is applied.
 
-- WIF provider: `projects/331250273634/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider`.
-- Infrastructure identity: `sa-strr-infra@bcrbk9-tools.iam.gserviceaccount.com`.
-- GitHub environment: `dev` (the existing WIF subject includes this environment).
+Verify log delivery and version recovery with fresh synthetic files before closing
+DEV verification. A no-change plan proves configuration convergence, not working
+log delivery or application behavior.
 
-SRE owns the service accounts, project IAM, WIF binding, state bucket, and runtime
-access. The original bootstrap was delivered in `bcgov/bcregistry-sre#386` and
-`#387`. The additional [SRE bucket-metadata permission change (#399)](https://github.com/bcgov/bcregistry-sre/pull/399) must
-be applied in the `dev` workspace **before this PR is merged**, because merging
-starts the automatic DEV workflows. It grants only bucket metadata get/update
-on the three named existing DEV buckets, without object or bucket-IAM access.
+## Remove the temporary setup
 
-The [STRR DEV bucket security setup](dev-bucket-security.md) must also be completed
-before merge: provision the dedicated access-log destination and its writer IAM,
-then enable the reviewed logging, versioning, and old-version cleanup settings on
-the three existing buckets. This draft does not provision the log bucket or grant
-the application deployment identity new permissions. The unchanged-import guard
-will reject adoption until live bucket settings match the Terraform definitions.
+After all three roots are adopted and DEV verification passes, remove the
+`bootstrap` choice, its validation branch, the `Import existing resources` step,
+and the bootstrap-only bucket-field restriction from the workflow. Remove the
+bootstrap-specific tests and these first-adoption instructions in the same change.
+Normal plan/apply, state, resource definitions and deployment checks stay. The
+import blocks can stay too; they are inert for addresses already in state.
 
-All 15 imported resources, their Cloud Run destinations, and the runtime IAM must
-already exist. This change adopts existing DEV infrastructure; it is not a bootstrap
-for a new environment. App authentication, including existing key/ADC behavior,
-is unchanged. Eventarc continues to own its generated transport topic and
-subscription. The upload-event dead-letter topic, malware-scanning buckets,
-unexplained validation DLQ storage buckets, and platform infrastructure are outside
-these roots.
-
-The state bucket was empty when inspected on 2026-09-09. Before first adoption,
-confirm that the earlier combined root has not since written state under `strr/dev`
-and that no other state owns these resources. Do not import the same resource into
-two states. If the old combined root has been applied, migrate its ownership
-explicitly before enabling these workflows; do not run the old and new roots in parallel.
-
-The first plans must report 1 API, 6 email, and 8 validation imports with
-`0 to add, 0 to change, 0 to destroy`. The workflow fails if it observes drift
-during adoption. Reconcile any such difference in a reviewed change. After adoption,
-a second plan for each root should report no changes.
-
-## Bucket security settings
-
-Sonar reports `terraform:S6258` (logging) and `terraform:S6412` (Object Versioning)
-on each of the three existing buckets. Their definitions now enable both controls:
-access logs go to `bcrbk9-dev-strr-access-logs` under separate prefixes, and Object
-Versioning retains previous copies. Only noncurrent versions become eligible for
-cleanup after seven days; current application files have no age-based expiry.
-The existing seven-day soft-delete protection remains, including for versions
-deleted by the cleanup rule. Cleanup is asynchronous, not an exact purge deadline.
-
-The dedicated log bucket has a proposed 30-day log cleanup policy; its setup and
-security review remain an SRE prerequisite, not an additional automatically managed
-application resource. See [the draft settings and rollout](dev-bucket-security.md).
-These local changes are not evidence of a live rollout, successful log delivery,
-or a passing Sonar rescan. No rule, finding, or scanner scope is suppressed or
-changed. Cloud Audit Logs remain a separate control; inherited Data Access
-logging has not been verified.
-
-## Verification
-
-`STRR Terraform CI` runs on relevant pull requests without cloud authentication:
+## Local checks
 
 ```bash
 terraform fmt -check -diff -recursive terraform
@@ -116,24 +75,10 @@ for stack in api email validation; do
   terraform -chdir="terraform/$stack" validate
   terraform -chdir="terraform/$stack" test
 done
-python3 -m unittest discover -s terraform/tests -v
-# Run in a virtual environment with PyYAML==6.0.2 installed:
+# Use a virtual environment with PyYAML==6.0.2 installed.
 python3 -m unittest discover -s tests/workflows -v
 ```
 
-Mock tests verify DEV resource relationships, routing, retention, and bucket
-protections. Workflow tests exercise the actual branch/target expressions and
-input validation. Plan-policy tests cover drift during import, cross-environment
-changes, incomplete plans, and deletion/replacement attempts.
-
-For a read-only live plan with an appropriately authorized identity:
-
-```bash
-terraform -chdir=terraform/email init -input=false -lockfile=readonly
-terraform -chdir=terraform/email plan -input=false -lock=false -out=tfplan
-terraform -chdir=terraform/email show -json tfplan | python3 terraform/scripts/check_plan.py
-```
-
-Repeat for `api` and `validation`. Schema and mocked tests do not establish live
-permissions or a drift-free import. A successful live plan is still required before
-the workflow applies, and no deployment is needed to run the PR checks.
+PR checks use mocked providers and no cloud credentials. Workflow tests cover
+branch/target routing, state-only import ordering, retry/failure behavior and
+rejection of unsafe plans. Live workflow access still needs a real run.

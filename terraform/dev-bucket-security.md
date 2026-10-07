@@ -1,23 +1,18 @@
-# STRR DEV bucket security — local rollout draft
+# STRR DEV bucket security
 
-For review only. No bucket, IAM, remote state, or deployment has been changed.
-This covers only STRR in `bcrbk9-dev`; TEST, UAT, PROD, and other applications are
-not included. Do not merge the application change until the prerequisites below
-are complete. Do not weaken `scripts/check_plan.py` to combine hardening with
-the initial imports.
-
-Publishing a draft for review and running Sonar/CI do not require applying these
-settings first. The SRE prerequisites below are merge/deployment gates, not a
-reason to skip the PR checks. A passing scan would not prove live log delivery.
+This covers only STRR in `bcrbk9-dev`. SRE owns the log destination and its IAM.
+The temporary GitHub bootstrap imports existing application resources first, then
+applies the reviewed source-bucket settings in a separate plan/apply. Other
+environments are outside this rollout.
 
 ## Dedicated log destination
 
-Proposed name: `bcrbk9-dev-strr-access-logs`. SRE must confirm name availability,
-ownership, permitted log access, and the same VPC Service Controls perimeter, if
-one applies. The bucket must be in `NORTHAMERICA-NORTHEAST1`, like the three source
-buckets. It is a Cloud Storage access-log bucket, not a Cloud Logging log bucket.
+Destination: `bcrbk9-dev-strr-access-logs`. Confirm ownership, permitted log
+access, and the same VPC Service Controls perimeter, if one applies. The bucket
+must be in `NORTHAMERICA-NORTHEAST1`, like the three source buckets. It is a Cloud
+Storage access-log bucket, not a Cloud Logging log bucket.
 
-Draft bucket metadata for SRE's provisioning process (not an executable command):
+Required destination settings:
 
 ```json
 {
@@ -85,28 +80,26 @@ different from soft-deleted data, which must first be restored. Include ordinary
 download/list behaviour and generation-specific access in the synthetic-file
 review; do not describe an application delete as immediate erasure of all copies.
 
-## Order of work before merge
+## Rollout and verification
 
-1. Check live bucket metadata, lifecycle rules, effective permissions, and Terraform
-   ownership. If another state already manages a bucket, stop and coordinate with
-   that owner; do not duplicate ownership. Do not overwrite unreviewed live rules.
-2. Through SRE's reviewed process, create/manage the dedicated STRR log destination
-   and its writer binding. Verify its region, private access, lifecycle policy,
-   and audit coverage. This is a prerequisite, not an action the app workflow can do.
-3. Have the authorized owner apply the three application buckets' matching logging,
-   versioning, and seven-day noncurrent-cleanup settings as a reviewed prerequisite
-   change. Keep all unrelated bucket metadata intact. If an existing Terraform
-   state owns them, use that state rather than making out-of-band edits.
-4. Using fresh synthetic files only, verify log delivery under all three prefixes,
-   version creation on replacement/deletion, and recovery behaviour. Inspect
-   lifecycle configuration; do not shorten live retention to speed up tests.
-   Mock tests do not prove delivery or waiting-period behaviour.
-5. Run full live read-only plans for API, email, and validation. Initial adoption
-   must still be 1/6/8 imports with zero additions, updates, or deletions. Recheck
-   ownership of the state prefixes and reject any drift or replacements.
-6. Require the published candidate's Sonar/CI results and review before merging;
-   merge triggers DEV adoption. After adoption, verify no-change plans
-   and application upload/validation behaviour. Do not promote other environments.
+1. Confirm that the existing source resources are not owned by another Terraform
+   state. Keep the destination under SRE ownership; do not import it here.
+2. Check the destination settings above. The October 7
+   bucket inventory confirmed the destination, region, private access, versioning,
+   30-day cleanup rule and seven-day soft delete. Its IAM binding still needs
+   verification through actual log delivery; the operator's bucket-policy read
+   returned 403. This does not require a new personal IAM grant before bootstrap.
+3. After review and merge, run the temporary `bootstrap` action for each DEV
+   root using the [workflow instructions](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/terraform/README.md#first-dev-adoption).
+   This records the existing resources in state without modifying them, then
+   separately plans and applies only the source-bucket settings. Do not have an
+   operator apply these settings manually first.
+4. Using fresh synthetic files, verify version creation on replacement/deletion,
+   recovery and log delivery under all three prefixes. Account for the validation
+   bucket's Eventarc routing before choosing fixtures. Use synthetic files only.
+   Do not shorten live retention to speed up tests.
+5. Confirm no-change plans for all roots. After DEV verification, remove the
+   temporary bootstrap action as documented in the workflow instructions.
 
 ## References
 

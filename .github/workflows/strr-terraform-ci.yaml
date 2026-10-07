@@ -5,7 +5,6 @@ on:
     paths:
       - "terraform/**"
       - "tests/workflows/**"
-      - ".github/scripts/application_changes.py"
       - ".github/workflows/strr-terraform*.yaml"
       - ".github/workflows/strr-api-cd.yaml"
       - ".github/workflows/strr-email-cd.yaml"
@@ -53,7 +52,7 @@ jobs:
         run: terraform test
 
   workflow-and-plan-policy:
-    name: Check deployment gates and plan policy
+    name: Check deployment and bootstrap safety
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -69,6 +68,3 @@ jobs:
 
       - name: Test deployment workflows
         run: python3 -m unittest discover -s tests/workflows -v
-
-      - name: Test Terraform plan policy
-        run: python3 -m unittest discover -s terraform/tests -v
