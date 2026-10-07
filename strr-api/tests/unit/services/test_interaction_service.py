@@ -15,6 +15,7 @@
 
 Test suite to ensure that the Interaction service routines are working as expected.
 """
+
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 

@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Services used by batch-permit-validator."""
+
 from gcp_queue import GcpQueue
 
 gcp_queue = GcpQueue()

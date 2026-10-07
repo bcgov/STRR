@@ -36,6 +36,7 @@ This module is responsible for registering the endpoints.
 
 The register_endpoints function registers the provided blueprints and URL prefixes to the Flask application.
 """
+
 from flasgger import Swagger
 from flask import Flask
 

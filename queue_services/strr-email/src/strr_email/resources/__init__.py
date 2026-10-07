@@ -35,6 +35,7 @@
 
 Provides the service that processes and sends email notifications for STRR.
 """
+
 from flask import Flask
 
 from .email_listener import bp as email_endpoint
