@@ -117,6 +117,37 @@ describe('Examiner - Registration Details Page', () => {
     expect(wrapper.findComponent(HostSubHeader).findTestId('edit-registration-email').exists()).toBe(true)
   })
 
+  it('renders edit email buttons for secondary contact and property manager in HostSubHeader', async () => {
+    currentMockData = {
+      ...mockHostRegistration,
+      secondaryContact: {
+        ...mockHostRegistration.primaryContact,
+        firstName: 'Bob',
+        lastName: 'Cohost',
+        emailAddress: 'cohost@example.com'
+      },
+      propertyManager: {
+        propertyManagerType: OwnerType.INDIVIDUAL,
+        contact: {
+          firstName: 'Sam',
+          lastName: 'Manager',
+          emailAddress: 'pm@example.com',
+          phoneNumber: '6041234567',
+          mailingAddress: mockHostRegistration.primaryContact.mailingAddress
+        }
+      }
+    }
+
+    const subHeaderWrapper = await mountSuspended(HostSubHeader, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(subHeaderWrapper.findTestId('edit-registration-email').exists()).toBe(true)
+    expect(subHeaderWrapper.findTestId('edit-secondary-contact-email').exists()).toBe(true)
+    expect(subHeaderWrapper.findTestId('edit-property-manager-email').exists()).toBe(true)
+    currentMockData = mockHostRegistration
+  })
+
   it('should show Required label in the PR section for registrations', () => {
     const prSection = wrapper.findComponent(HostSupportingInfo).findTestId('pr-req-section')
     expect(prSection.text()).toContain('Required')

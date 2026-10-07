@@ -79,6 +79,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const isEditingRegistrationEmail = ref(false)
   const hasUnsavedRegistrationEmailChanges = ref(false)
   const registrationEmailToEdit = ref<string>('')
+  const registrationEmailContactType = ref<'primaryContact' | 'secondaryContact' | 'propertyManager'>('primaryContact')
   const rentalUnitAddressSchema = computed(() => z.object({
     addressLineTwo: z.string().optional().default(''),
     city: z.string().min(1, t('validation.address.city')),
@@ -127,10 +128,30 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     emailAddress: z.string().trim().min(1, t('validation.required')).email(t('validation.email'))
   }))
 
-  const startEditRegistrationEmail = () => {
+  const getContactEmailByType = (
+    contactType: 'primaryContact' | 'secondaryContact' | 'propertyManager'
+  ): string => {
+    const reg = activeReg.value as HostRegistrationResp | undefined
+    if (contactType === 'secondaryContact') {
+      return reg?.secondaryContact?.emailAddress || ''
+    }
+    if (contactType === 'propertyManager') {
+      const pm = reg?.propertyManager
+      if (pm?.propertyManagerType === OwnerType.BUSINESS) {
+        return pm.business?.primaryContact?.emailAddress || ''
+      }
+      return pm?.contact?.emailAddress || pm?.business?.primaryContact?.emailAddress || ''
+    }
+    return reg?.primaryContact?.emailAddress || ''
+  }
+
+  const startEditRegistrationEmail = (
+    contactType: 'primaryContact' | 'secondaryContact' | 'propertyManager' = 'primaryContact'
+  ) => {
     resetEditRentalUnitAddress()
     isFilingHistoryOpen.value = false
-    registrationEmailToEdit.value = activeReg.value?.primaryContact?.emailAddress || ''
+    registrationEmailContactType.value = contactType
+    registrationEmailToEdit.value = getContactEmailByType(contactType)
     isEditingRegistrationEmail.value = true
     hasUnsavedRegistrationEmailChanges.value = false
   }
@@ -138,6 +159,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const resetEditRegistrationEmail = () => {
     isEditingRegistrationEmail.value = false
     registrationEmailToEdit.value = ''
+    registrationEmailContactType.value = 'primaryContact'
     hasUnsavedRegistrationEmailChanges.value = false
   }
 
@@ -909,21 +931,53 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * Patches registration data.
    *
    * @param {number} registrationId - The registration ID to update.
-   * @param {string} updatedEmail - The new primary contact email.
+   * @param {string} updatedEmail - The new contact email.
+   * @param {'primaryContact' | 'secondaryContact' | 'propertyManager'} [contactType] - The contact type to update.
    * @returns {Promise<void>}
    */
   const patchRegistration = async (
     registrationId: number,
-    updatedEmail: string
+    updatedEmail: string,
+    contactType: 'primaryContact' | 'secondaryContact' | 'propertyManager' = registrationEmailContactType.value
   ): Promise<void> => {
     try {
-      const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
-        method: 'PATCH',
-        body: {
-          primaryContact: {
+      const reg = activeReg.value as HostRegistrationResp | undefined
+      let body: Record<string, any> = {
+        primaryContact: {
+          emailAddress: updatedEmail
+        }
+      }
+
+      if (contactType === 'secondaryContact') {
+        body = {
+          secondaryContact: {
             emailAddress: updatedEmail
           }
         }
+      } else if (contactType === 'propertyManager') {
+        const isBusinessPm = reg?.propertyManager?.propertyManagerType === OwnerType.BUSINESS
+        body = isBusinessPm
+          ? {
+              propertyManager: {
+                business: {
+                  primaryContact: {
+                    emailAddress: updatedEmail
+                  }
+                }
+              }
+            }
+          : {
+              propertyManager: {
+                contact: {
+                  emailAddress: updatedEmail
+                }
+              }
+            }
+      }
+
+      const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
+        method: 'PATCH',
+        body
       })
       activeRecord.value = resp
       resetEditRegistrationEmail()
@@ -968,6 +1022,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     hasUnsavedRentalUnitChanges,
     isEditingRegistrationEmail,
     registrationEmailToEdit,
+    registrationEmailContactType,
     hasUnsavedRegistrationEmailChanges,
 
     applicationsOnlyStatuses,

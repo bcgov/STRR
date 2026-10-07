@@ -49,8 +49,10 @@ export const useHostExpansion = () => {
     })
   }
 
-  function openEditRegistrationEmailForm () {
-    startEditRegistrationEmail()
+  function openEditRegistrationEmailForm (
+    contactType: 'primaryContact' | 'secondaryContact' | 'propertyManager' = 'primaryContact'
+  ) {
+    startEditRegistrationEmail(contactType)
     exp.open(EditRegistrationEmailForm, {
       onClose () {
         exp.close()

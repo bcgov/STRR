@@ -150,6 +150,10 @@ export default {
       host: 'Host',
       editHostEmail: 'Edit Host Email',
       editHostEmailDescription: 'Update the host primary contact email for this registration.',
+      editSecondaryContactEmail: 'Edit Co-host Email',
+      editSecondaryContactEmailDescription: 'Update the co-host contact email for this registration.',
+      editPropertyManagerEmail: 'Edit Property Manager Email',
+      editPropertyManagerEmailDescription: 'Update the property manager contact email for this registration.',
       strataHotel: 'Strata Hotel',
       platform: 'Platform',
       townHome: 'Town Home',
@@ -690,7 +694,9 @@ export default {
     STRATA_HOTEL: 'Strata Hotel'
   },
   filingHistoryFields: {
-    primaryContactEmail: 'Primary Contact Email'
+    primaryContactEmail: 'Primary Contact Email',
+    secondaryContactEmail: 'Secondary Contact Email',
+    propertyManagerEmail: 'Property Manager Email'
   },
   filingHistoryChangeLog: {
     template: 'Changed {field} from "{old}" to "{new}"',

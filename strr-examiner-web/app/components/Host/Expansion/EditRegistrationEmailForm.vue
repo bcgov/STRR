@@ -11,9 +11,30 @@ const {
 const {
   activeReg,
   registrationEmailToEdit,
+  registrationEmailContactType,
   hasUnsavedRegistrationEmailChanges,
   registrationUpdateSchema
 } = storeToRefs(useExaminerStore())
+
+const formTitle = computed(() => {
+  if (registrationEmailContactType.value === 'secondaryContact') {
+    return t('strr.label.editSecondaryContactEmail')
+  }
+  if (registrationEmailContactType.value === 'propertyManager') {
+    return t('strr.label.editPropertyManagerEmail')
+  }
+  return t('strr.label.editHostEmail')
+})
+
+const formDescription = computed(() => {
+  if (registrationEmailContactType.value === 'secondaryContact') {
+    return t('strr.label.editSecondaryContactEmailDescription')
+  }
+  if (registrationEmailContactType.value === 'propertyManager') {
+    return t('strr.label.editPropertyManagerEmailDescription')
+  }
+  return t('strr.label.editHostEmailDescription')
+})
 
 const { openConfirmActionModal, close: closeConfirmActionModal, openErrorModal } = useStrrModals()
 
@@ -48,7 +69,11 @@ const updateRegistrationEmail = async () => {
 
   try {
     isLoading.value = true
-    await patchRegistration(activeReg.value.id, currentState.emailAddress.trim())
+    await patchRegistration(
+      activeReg.value.id,
+      currentState.emailAddress.trim(),
+      registrationEmailContactType.value
+    )
     emit('close')
   } catch (e) {
     logFetchError(e, t('error.saveAddress'))
@@ -85,10 +110,10 @@ const handleCancel = () => {
       <div class="grid grid-cols-12 space-y-4">
         <div class="col-span-12 mb-6 mt-4 md:col-span-4 md:mb-0">
           <h2 class="mb-2 text-lg font-semibold text-gray-900">
-            {{ t('strr.label.editHostEmail') }}
+            {{ formTitle }}
           </h2>
           <p class="pr-4 text-sm text-bcGovGray-700">
-            {{ t('strr.label.editHostEmailDescription') }}
+            {{ formDescription }}
           </p>
         </div>
 

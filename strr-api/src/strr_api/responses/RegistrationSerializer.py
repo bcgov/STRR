@@ -396,7 +396,9 @@ class RegistrationSerializer:
                 "phoneCountryCode": secondary_property_contact.contact.phone_country_code,
                 "extension": secondary_property_contact.contact.phone_extension,
                 "faxNumber": secondary_property_contact.contact.fax_number,
-                "emailAddress": secondary_property_contact.contact.email,
+                "emailAddress": cls._get_override_value(
+                    registration_json, "secondaryContact.emailAddress", secondary_property_contact.contact.email
+                ),
                 "mailingAddress": {
                     "address": secondary_property_contact.contact.address.street_address,
                     "addressLineTwo": secondary_property_contact.contact.address.street_address_additional,
@@ -460,6 +462,11 @@ class RegistrationSerializer:
             contact_dict = cls._build_primary_contact_dict(primary_contact)
 
             if property_manager.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
+                contact_dict["emailAddress"] = cls._get_override_value(
+                    registration_json,
+                    "propertyManager.business.primaryContact.emailAddress",
+                    contact_dict.get("emailAddress"),
+                )
                 registration_data["propertyManager"] = {
                     "business": {
                         "legalName": property_manager.business_legal_name,
@@ -475,6 +482,11 @@ class RegistrationSerializer:
                     }
                 }
             else:
+                contact_dict["emailAddress"] = cls._get_override_value(
+                    registration_json,
+                    "propertyManager.contact.emailAddress",
+                    contact_dict.get("emailAddress"),
+                )
                 registration_data["propertyManager"] = {"contact": contact_dict}
                 if primary_contact and (contact_mailing_address := primary_contact.address):
                     registration_data["propertyManager"]["contact"]["mailingAddress"] = {

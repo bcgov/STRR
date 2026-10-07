@@ -39,7 +39,16 @@ from datetime import datetime, timezone
 import pytest
 
 from strr_api.enums.enum import PropertyType, RegistrationStatus
-from strr_api.models import Address, Contact, Events, PropertyContact, Registration, RentalProperty, User
+from strr_api.models import (
+    Address,
+    Contact,
+    Events,
+    PropertyContact,
+    PropertyManager,
+    Registration,
+    RentalProperty,
+    User,
+)
 from strr_api.services import RegistrationService
 
 
@@ -141,6 +150,119 @@ def test_update_registration_host_email(session, host_registration):
     assert change["field"] == "primaryContact.emailAddress"
     assert change["oldValue"] == "old@example.com"
     assert change["newValue"] == "new@example.com"
+
+
+def test_update_registration_secondary_contact_email(session, host_registration):
+    """Test updating secondaryContact.emailAddress updates registration_json, Contact DB record, and audit event."""
+    registration = host_registration["registration"]
+    user = host_registration["user"]
+
+    secondary_contact = Contact(firstname="Jane", lastname="Cohost", email="old-cohost@example.com")
+    session.add(secondary_contact)
+    session.flush()
+
+    sec_pc = PropertyContact(
+        property_id=registration.rental_property.id,
+        contact_id=secondary_contact.id,
+        is_primary=False,
+        contact_type=PropertyContact.ContactType.INDIVIDUAL,
+    )
+    session.add(sec_pc)
+    registration.registration_json["secondaryContact"] = {"emailAddress": "old-cohost@example.com"}
+    session.flush()
+
+    update_data = {"secondaryContact": {"emailAddress": "new-cohost@example.com"}}
+    updated_reg = RegistrationService.update_registration(registration, update_data, user)
+
+    assert updated_reg.registration_json["secondaryContact"]["emailAddress"] == "new-cohost@example.com"
+    session.refresh(secondary_contact)
+    assert secondary_contact.email == "new-cohost@example.com"
+
+    events = Events.fetch_registration_events(registration.id, applicant_visible_events_only=False)
+    assert len(events) == 1
+    details = json.loads(events[0].details)
+    change = details["changes"][0]
+    assert change["field"] == "secondaryContact.emailAddress"
+    assert change["oldValue"] == "old-cohost@example.com"
+    assert change["newValue"] == "new-cohost@example.com"
+
+
+def test_update_registration_property_manager_individual_email(session, host_registration):
+    """Test updating propertyManager.contact.emailAddress updates registration_json, Contact DB record, and event."""
+    registration = host_registration["registration"]
+    user = host_registration["user"]
+
+    pm_contact = Contact(firstname="Alex", lastname="Manager", email="old-pm@example.com")
+    session.add(pm_contact)
+    session.flush()
+
+    pm = PropertyManager(
+        property_manager_type=PropertyManager.PropertyManagerType.INDIVIDUAL,
+        primary_contact_id=pm_contact.id,
+    )
+    session.add(pm)
+    session.flush()
+
+    registration.rental_property.property_manager_id = pm.id
+    registration.registration_json["propertyManager"] = {"contact": {"emailAddress": "old-pm@example.com"}}
+    session.flush()
+
+    update_data = {"propertyManager": {"contact": {"emailAddress": "new-pm@example.com"}}}
+    updated_reg = RegistrationService.update_registration(registration, update_data, user)
+
+    assert updated_reg.registration_json["propertyManager"]["contact"]["emailAddress"] == "new-pm@example.com"
+    session.refresh(pm_contact)
+    assert pm_contact.email == "new-pm@example.com"
+
+    events = Events.fetch_registration_events(registration.id, applicant_visible_events_only=False)
+    assert len(events) == 1
+    details = json.loads(events[0].details)
+    change = details["changes"][0]
+    assert change["field"] == "propertyManager.contact.emailAddress"
+    assert change["oldValue"] == "old-pm@example.com"
+    assert change["newValue"] == "new-pm@example.com"
+
+
+def test_update_registration_property_manager_business_email(session, host_registration):
+    """Test updating propertyManager.business.primaryContact.emailAddress."""
+    registration = host_registration["registration"]
+    user = host_registration["user"]
+
+    pm_contact = Contact(firstname="Biz", lastname="Manager", email="old-biz-pm@example.com")
+    session.add(pm_contact)
+    session.flush()
+
+    pm = PropertyManager(
+        property_manager_type=PropertyManager.PropertyManagerType.BUSINESS,
+        business_legal_name="PM Corp",
+        primary_contact_id=pm_contact.id,
+    )
+    session.add(pm)
+    session.flush()
+
+    registration.rental_property.property_manager_id = pm.id
+    registration.registration_json["propertyManager"] = {
+        "business": {"primaryContact": {"emailAddress": "old-biz-pm@example.com"}}
+    }
+    session.flush()
+
+    update_data = {"propertyManager": {"business": {"primaryContact": {"emailAddress": "new-biz-pm@example.com"}}}}
+    updated_reg = RegistrationService.update_registration(registration, update_data, user)
+
+    assert (
+        updated_reg.registration_json["propertyManager"]["business"]["primaryContact"]["emailAddress"]
+        == "new-biz-pm@example.com"
+    )
+    session.refresh(pm_contact)
+    assert pm_contact.email == "new-biz-pm@example.com"
+
+    events = Events.fetch_registration_events(registration.id, applicant_visible_events_only=False)
+    assert len(events) == 1
+    details = json.loads(events[0].details)
+    change = details["changes"][0]
+    assert change["field"] == "propertyManager.business.primaryContact.emailAddress"
+    assert change["oldValue"] == "old-biz-pm@example.com"
+    assert change["newValue"] == "new-biz-pm@example.com"
 
 
 def test_update_registration_no_change_no_event(session, host_registration):

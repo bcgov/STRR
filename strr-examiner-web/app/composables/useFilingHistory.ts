@@ -8,7 +8,10 @@ type FilingHistoryRecord = {
 
 // Maps structured-details field paths returned by the API to filing history i18n keys.
 export const FILING_HISTORY_FIELD_MAP: Record<string, string> = {
-  'primaryContact.emailAddress': 'filingHistoryFields.primaryContactEmail'
+  'primaryContact.emailAddress': 'filingHistoryFields.primaryContactEmail',
+  'secondaryContact.emailAddress': 'filingHistoryFields.secondaryContactEmail',
+  'propertyManager.contact.emailAddress': 'filingHistoryFields.propertyManagerEmail',
+  'propertyManager.business.primaryContact.emailAddress': 'filingHistoryFields.propertyManagerEmail'
 }
 
 const HIDDEN_EVENTS: Set<FilingHistoryEventName> = new Set([

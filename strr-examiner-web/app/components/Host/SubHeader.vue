@@ -91,7 +91,7 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
             data-testid="edit-registration-email"
             :aria-label="t('strr.label.editHostEmail')"
             class="flex items-center gap-1"
-            @click="checkAndPerformAction(openEditRegistrationEmailForm)"
+            @click="checkAndPerformAction(() => openEditRegistrationEmailForm('primaryContact'))"
           >
             <UIcon name="i-mdi-pencil-outline" class="size-4" />
             {{ t('btn.edit') }}
@@ -188,30 +188,62 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         id="additional-details"
         class="space-y-2 pl-5"
       >
-        <div v-if="activeReg?.secondaryContact" class="flex gap-1">
-          <UIcon name="i-mdi-account-multiple-outline" class="size-5 shrink-0 text-gray-700" />
+        <div v-if="activeReg?.secondaryContact" class="flex items-start justify-between gap-2">
+          <div class="flex gap-1">
+            <UIcon name="i-mdi-account-multiple-outline" class="size-5 shrink-0 text-gray-700" />
+            <UButton
+              :label="activeReg?.secondaryContact?.contactType === OwnerType.BUSINESS
+                ? activeReg?.secondaryContact?.businessLegalName
+                : displayContactFullName(activeReg?.secondaryContact)"
+              :padded="false"
+              class="w-full whitespace-normal text-left"
+              variant="link"
+              @click="checkAndPerformAction(() => openHostOwners('secondaryContact'))"
+            />
+          </div>
           <UButton
-            :label="activeReg?.secondaryContact?.contactType === OwnerType.BUSINESS
-              ? activeReg?.secondaryContact?.businessLegalName
-              : displayContactFullName(activeReg?.secondaryContact)"
-            :padded="false"
-            class="w-full whitespace-normal text-left"
+            v-if="!isApplication && !isSnapshotRoute"
             variant="link"
-            @click="checkAndPerformAction(() => openHostOwners('secondaryContact'))"
-          />
+            size="xs"
+            color="blue"
+            :disabled="isEditingRegistrationEmail || !isAssignedToUser"
+            data-testid="edit-secondary-contact-email"
+            :aria-label="t('strr.label.editSecondaryContactEmail')"
+            class="flex shrink-0 items-center gap-1"
+            @click="checkAndPerformAction(() => openEditRegistrationEmailForm('secondaryContact'))"
+          >
+            <UIcon name="i-mdi-pencil-outline" class="size-4" />
+            {{ t('btn.edit') }}
+          </UButton>
         </div>
 
-        <div v-if="activeReg?.propertyManager?.propertyManagerType" class="flex gap-1">
-          <UIcon name="i-mdi-at" class="size-5 shrink-0 text-gray-700" />
+        <div v-if="activeReg?.propertyManager?.propertyManagerType" class="flex items-start justify-between gap-2">
+          <div class="flex gap-1">
+            <UIcon name="i-mdi-at" class="size-5 shrink-0 text-gray-700" />
+            <UButton
+              :label="activeReg?.propertyManager?.propertyManagerType === OwnerType.INDIVIDUAL
+                ? displayContactFullName(activeReg?.propertyManager.contact)
+                : activeReg?.propertyManager?.business?.legalName"
+              :padded="false"
+              class="w-full whitespace-normal text-left"
+              variant="link"
+              @click="checkAndPerformAction(() => openHostOwners('propertyManager'))"
+            />
+          </div>
           <UButton
-            :label="activeReg?.propertyManager?.propertyManagerType === OwnerType.INDIVIDUAL
-              ? displayContactFullName(activeReg?.propertyManager.contact)
-              : activeReg?.propertyManager?.business?.legalName"
-            :padded="false"
-            class="w-full whitespace-normal text-left"
+            v-if="!isApplication && !isSnapshotRoute"
             variant="link"
-            @click="checkAndPerformAction(() => openHostOwners('propertyManager'))"
-          />
+            size="xs"
+            color="blue"
+            :disabled="isEditingRegistrationEmail || !isAssignedToUser"
+            data-testid="edit-property-manager-email"
+            :aria-label="t('strr.label.editPropertyManagerEmail')"
+            class="flex shrink-0 items-center gap-1"
+            @click="checkAndPerformAction(() => openEditRegistrationEmailForm('propertyManager'))"
+          >
+            <UIcon name="i-mdi-pencil-outline" class="size-4" />
+            {{ t('btn.edit') }}
+          </UButton>
         </div>
       </div>
     </div>

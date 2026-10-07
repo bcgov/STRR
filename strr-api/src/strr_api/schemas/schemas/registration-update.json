@@ -13,6 +13,54 @@
           "format": "email"
         }
       },
+      "required": ["emailAddress"],
+      "additionalProperties": false
+    },
+    "secondaryContact": {
+      "type": "object",
+      "properties": {
+        "emailAddress": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": ["emailAddress"],
+      "additionalProperties": false
+    },
+    "propertyManager": {
+      "type": "object",
+      "properties": {
+        "contact": {
+          "type": "object",
+          "properties": {
+            "emailAddress": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "required": ["emailAddress"],
+          "additionalProperties": false
+        },
+        "business": {
+          "type": "object",
+          "properties": {
+            "primaryContact": {
+              "type": "object",
+              "properties": {
+                "emailAddress": {
+                  "type": "string",
+                  "format": "email"
+                }
+              },
+              "required": ["emailAddress"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["primaryContact"],
+          "additionalProperties": false
+        }
+      },
+      "minProperties": 1,
       "additionalProperties": false
     }
   },
