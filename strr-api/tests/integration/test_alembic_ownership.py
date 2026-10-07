@@ -32,8 +32,7 @@ def test_alembic_runs_with_configured_owner_role(monkeypatch):
 
         with engine.connect() as conn:
             class_mismatches = conn.execute(
-                text(
-                    """
+                text("""
                     SELECT c.relkind, n.nspname, c.relname, pg_get_userbyid(c.relowner) AS owner
                     FROM pg_class c
                     JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -41,13 +40,11 @@ def test_alembic_runs_with_configured_owner_role(monkeypatch):
                       AND c.relkind IN ('r', 'p', 'S', 'v', 'm', 'f')
                       AND pg_get_userbyid(c.relowner) != :owner
                     ORDER BY c.relkind, c.relname
-                    """
-                ),
+                    """),
                 {"owner": owner},
             ).fetchall()
             type_mismatches = conn.execute(
-                text(
-                    """
+                text("""
                     SELECT n.nspname, t.typname, pg_get_userbyid(t.typowner) AS owner
                     FROM pg_type t
                     JOIN pg_namespace n ON n.oid = t.typnamespace
@@ -55,8 +52,7 @@ def test_alembic_runs_with_configured_owner_role(monkeypatch):
                       AND t.typtype IN ('d', 'e')
                       AND pg_get_userbyid(t.typowner) != :owner
                     ORDER BY t.typname
-                    """
-                ),
+                    """),
                 {"owner": owner},
             ).fetchall()
             current_role = conn.execute(text("SELECT current_user")).scalar_one()

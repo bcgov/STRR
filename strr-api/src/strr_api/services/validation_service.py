@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0914, R0915, C0207
 """Permit Validation Service."""
+
 import copy
 import json
 import re

@@ -7,7 +7,7 @@ import { DocumentUploadType } from '#imports'
 const mockStrrApi = vi.fn().mockResolvedValue({})
 const mockOpenErrorModal = vi.fn()
 
-mockNuxtImport('useNuxtApp', () => () => ({
+mockNuxtImport('useNuxtApp', original => () => Object.assign(Object.create(original()), {
   $i18n: { t: (key: string) => key },
   $strrApi: mockStrrApi
 }))

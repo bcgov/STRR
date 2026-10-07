@@ -29,6 +29,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     downloadApplicationReceipt,
     downloadRegistrationCert
   } = useStrrBasePermit<HostRegistrationResp, HostApplicationResp, ApiHostApplication>()
+  const { searchRegistrations } = useStrrApi()
 
   const { isBusinessLicenseDocumentUploadEnabled } = useHostFeatureFlags()
 
@@ -106,8 +107,31 @@ export const useHostPermitStore = defineStore('host/permit', () => {
   // load Registration data (used for registration detail page and Renewals)
   const loadHostRegistrationData = async (registrationId: string, isRenewal: boolean = false) => {
     $reset()
+    selectedRegistrationId.value = registrationId
     await loadPermitRegistrationData(registrationId)
     await populateHostDetails(isRenewal)
+  }
+
+  const loadHostRegistrationDataByRegistrationNumber = async (registrationNumber: string) => {
+    selectedRegistrationId.value = undefined
+    $reset()
+    const resp = await searchRegistrations<ApiRegistrationResp>(
+      undefined,
+      10,
+      1,
+      undefined,
+      registrationNumber,
+      ApplicationType.HOST
+    )
+    const matchedRegistration = resp?.registrations?.find(
+      registration => registration.registrationNumber === registrationNumber
+    )
+    if (!matchedRegistration?.id) {
+      return false
+    }
+    selectedRegistrationId.value = matchedRegistration.id.toString()
+    await loadHostRegistrationData(selectedRegistrationId.value)
+    return true
   }
 
   const loadHostData = async (applicationId: string, loadDraft = false, skipRegistration = false) => {
@@ -183,6 +207,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     application.value = undefined
     registration.value = undefined
     isRegistrationRenewal.value = false
+    selectedRegistrationId.value = undefined
   }
 
   return {
@@ -206,6 +231,7 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     downloadRegistrationCert,
     loadHostData,
     loadHostRegistrationData,
+    loadHostRegistrationDataByRegistrationNumber,
     $reset
   }
 })

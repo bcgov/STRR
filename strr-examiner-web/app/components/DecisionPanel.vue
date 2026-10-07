@@ -22,11 +22,14 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   decisionIntent.value = action
   // reset
   localConditions.value = []
-  decisionEmailContent.value.content = ''
   conditions.value = []
   customConditions.value = null
   minBookingDays.value = null
-  decisionEmailFormRef?.value?.clear()
+  decisionEmailFormRef?.value?.clear?.()
+  decisionEmailContent.value.content = ''
+  if (action === ApplicationActionsE.APPROVE) {
+    loadExistingConditions()
+  }
 }
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
@@ -134,7 +137,8 @@ const loadExistingConditions = () => {
     localConditions.value.push(...customConditions)
   }
 
-  if (minDays) {
+  if (minDays !== null && minDays !== undefined) {
+    localConditions.value.push('minBookingDays')
     minBookingDays.value = minDays
   }
 }
@@ -142,6 +146,8 @@ const loadExistingConditions = () => {
 // update email content when conditions change
 watch([localConditions, minBookingDays],
   ([newConditions, newMinBookingDays]) => {
+    if (!isApproveDecisionSelected.value) { return }
+
     // reset conditions
     conditions.value = []
     customConditions.value = null
@@ -154,7 +160,6 @@ watch([localConditions, minBookingDays],
         if (!newMinBookingDays) { continue }
         const minBookingDaysText =
           t('approvalConditionsExpanded.minBookingDays', { minDays: newMinBookingDays })
-        conditions.value.push(condition)
         items.push(`\u2022 ${minBookingDaysText}`)
         continue
       }
@@ -188,7 +193,6 @@ onMounted(() => {
   resetDecision()
   if (!isApplication.value && activeReg.value?.status === RegistrationStatus.ACTIVE) {
     setDecisionIntent(ApplicationActionsE.APPROVE)
-    loadExistingConditions() // requirement: load conditions only for active registrations
   }
 })
 
@@ -261,7 +265,7 @@ onMounted(() => {
           </UTooltip>
 
           <ApprovalConditions
-            v-if="isApproveDecisionSelected && isAssignedToUser && !isApplication"
+            v-if="isApproveDecisionSelected && isAssignedToUser"
             v-model:conditions="localConditions"
             v-model:custom-condition="customCondition"
             v-model:min-booking-days="minBookingDays"
@@ -299,7 +303,7 @@ onMounted(() => {
                     sm: 'p-4'
                   }
                 }"
-                @update:model-value="decisionEmailFormRef.clear()"
+                @update:model-value="decisionEmailFormRef?.clear?.()"
               />
             </UFormGroup>
           </UForm>

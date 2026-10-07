@@ -238,3 +238,80 @@ def test_updates_all_notify_references_and_failure_metadata(
         )
     finally:
         verify_session.close()
+
+
+@responses.activate
+@pytest.mark.parametrize("setup_bulk_interactions", [{"records": 1}], indirect=True)
+def test_preserves_failed_recipients_and_marks_failed_on_partial_dispatch_failure(
+    db_session, setup_bulk_interactions, notify_job_integration_env, monkeypatch
+):
+    """Preserve initial dispatch failed_recipients in notify_response and resolve to FAILED."""
+    notify_svc = notify_job_integration_env["notify_svc"]
+    auth_url = notify_job_integration_env["auth_url"]
+    monkeypatch.setenv("STRR_SERVICE_ACCOUNT_CLIENT_ID", "123")
+    monkeypatch.setenv("STRR_SERVICE_ACCOUNT_SECRET", "secret")
+
+    interaction_id = setup_bulk_interactions["interaction_ids"][0]
+    interaction = db_session.get(CustomerInteraction, interaction_id)
+    interaction.notify_reference = "ref-partial-primary"
+    interaction.meta_data = {
+        "notify_references": "ref-partial-primary",
+        "notify_response": {
+            "id": "ref-partial-primary",
+            "ids": "ref-partial-primary",
+            "recipients": "primary@example.com",
+            "failed_recipients": [
+                {
+                    "email_address": "invalid@example.com.ca",
+                    "status_code": 400,
+                    "error": {"message": "Invalid email address"},
+                }
+            ],
+        },
+    }
+    db_session.commit()
+
+    responses.add(
+        responses.POST, auth_url, json={"access_token": "mock-token"}, status=200
+    )
+    responses.add(
+        responses.GET,
+        f"{notify_svc}/notify/ref-partial-primary",
+        json={
+            "id": "provider-id-partial-primary",
+            "notifyStatus": "delivered",
+            "status_description": "Delivered",
+            "recipients": "primary@example.com",
+            "sentDate": "2026-07-07T10:00:00Z",
+            "requestDate": "2026-07-07T09:59:00Z",
+        },
+        status=200,
+    )
+
+    processor = InteractionProcessor(max_workers=1)
+    processor.run()
+
+    session_gen = get_session()
+    verify_session = next(session_gen)
+    try:
+        updated = verify_session.get(CustomerInteraction, interaction_id)
+
+        # Because an initial recipient failed, interaction should resolve to FAILED
+        assert updated.status == InteractionStatus.FAILED
+
+        # Verify failed_recipients was preserved in notify_response
+        assert updated.meta_data["notify_response"]["failed_recipients"] == [
+            {
+                "email_address": "invalid@example.com.ca",
+                "status_code": 400,
+                "error": {"message": "Invalid email address"},
+            }
+        ]
+        assert updated.meta_data["notify_response"]["ids"] == "ref-partial-primary"
+
+        # Verify notify_delivery contains the polled reference
+        recipient_statuses = updated.meta_data["notify_delivery"]["recipient_statuses"]
+        assert "ref-partial-primary" in recipient_statuses
+        assert recipient_statuses["ref-partial-primary"]["status"] == "DELIVERED"
+    finally:
+        verify_session.close()

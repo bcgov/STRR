@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Registration Renewal Reminder Job."""
+
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone

@@ -3,6 +3,10 @@ name: STRR BACKFILLER JOB CI
 on:
   pull_request:
     paths:
+      - "strr-api/src/strr_api/common/cloud_sql.py"
+      - "strr-api/pyproject.toml"
+      - "strr-api/poetry.lock"
+      - ".github/workflows/strr-backfiller-ci.yaml"
       - "jobs/strr-backfiller/**"
       - "tests/python-test-utils/**"
       - "src/strr_api/models/**"

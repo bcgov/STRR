@@ -25,7 +25,7 @@ const {
   updateRegistrationStatus,
   sendNoticeOfConsiderationForRegistration
 } = useExaminerStore()
-const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
+const { openConfirmActionModal, close: closeConfirmActionModal, openErrorModal } = useStrrModals()
 const { withNoteCheck } = useExaminerNotes()
 
 const hasSetAsideAction = computed((): boolean =>
@@ -95,6 +95,12 @@ const hasDecisionChanges = computed(() =>
 
 const isApproveDecisionSelected = computed((): boolean => decisionIntent.value === ApplicationActionsE.APPROVE)
 
+const approvalConditions = computed<ConditionsOfApproval>(() => ({
+  predefinedConditions: conditions.value.filter(condition => condition !== 'minBookingDays'),
+  ...(customConditions.value && { customConditions: customConditions.value }),
+  ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
+}))
+
 // Shared ACTIVE status update for approve actions
 const applyActiveApprovalStatus = async () => {
   if (isApplication?.value) {
@@ -102,7 +108,7 @@ const applyActiveApprovalStatus = async () => {
     const approve = activeHeader.value?.examinerActions?.includes(ApplicationActionsE.PROVISIONAL_APPROVE)
       ? provisionallyApproveApplication
       : approveApplication
-    await approve(applicationNumber.value)
+    await approve(applicationNumber.value, approvalConditions.value)
     await refreshDecisionData()
     return
   }
@@ -110,11 +116,7 @@ const applyActiveApprovalStatus = async () => {
     activeReg.value.id,
     RegistrationStatus.ACTIVE,
     decisionEmailContent.value.content,
-    {
-      predefinedConditions: conditions.value,
-      ...(customConditions.value && { customConditions: customConditions.value }),
-      ...(minBookingDays.value !== null && { minBookingDays: minBookingDays.value })
-    }
+    approvalConditions.value
   )
   await refreshDecisionData()
 }
@@ -147,9 +149,13 @@ const withdrawApplicationAction = async () => {
 }
 
 const suspendRegistrationAction = async () => {
+  // validate email form
+  if (!await isDecisionEmailValid()) { return }
+
   await updateRegistrationStatus(
     activeReg.value.id,
-    RegistrationStatus.SUSPENDED
+    RegistrationStatus.SUSPENDED,
+    decisionEmailContent.value.content
   )
   await refreshDecisionData()
 }
@@ -163,17 +169,22 @@ const sendNoticeAction = async () => {
   // validate email form
   if (!await isDecisionEmailValid()) { return }
 
-  if (isApplication?.value) {
-    if (!applicationNumber.value) { return }
-    await sendNoticeOfConsideration(applicationNumber.value, decisionEmailContent.value.content)
-  } else {
-    await sendNoticeOfConsiderationForRegistration(
-      activeReg.value!.id,
-      decisionEmailContent.value.content
-    )
+  try {
+    if (isApplication?.value) {
+      if (!applicationNumber.value) { return }
+      await sendNoticeOfConsideration(applicationNumber.value, decisionEmailContent.value.content)
+    } else {
+      await sendNoticeOfConsiderationForRegistration(
+        activeReg.value!.id,
+        decisionEmailContent.value.content
+      )
+    }
+    decisionEmailContent.value.content = ''
+    await refreshDecisionData()
+  } catch (error) {
+    console.error(error)
+    openErrorModal('Error', t('error.action.send_noc'), false)
   }
-  decisionEmailContent.value.content = ''
-  await refreshDecisionData()
 }
 
 const actionButtons: ConnectBtnControlItem[] = [

@@ -8,6 +8,7 @@ on:
       - hotfix*
       - release*
     paths:
+      - ".github/workflows/strr-batch-validator-job-cd.yaml"
       - "jobs/batch-permit-validator/**"
       - "src/strr_api/models/**"
       - "src/strr_api/services/**"
@@ -26,13 +27,6 @@ on:
           - "uat"
           - "sandbox"
           - "prod"
-      redeploy:
-        description: "Redeploy Application"
-        required: true
-        type: choice
-        options:
-          - "false"
-          - "true"
 
 jobs:
   batch-permit-job-cd:
@@ -41,7 +35,8 @@ jobs:
       target: ${{ inputs.target }}
       app_name: "batch-permit-job"
       working_directory: "./jobs/batch-permit-validator"
-      redeploy: ${{ inputs.redeploy }}
+      # IAM parameters are resolved by Cloud Deploy during a full deployment.
+      redeploy: "false"
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}

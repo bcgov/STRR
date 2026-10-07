@@ -35,11 +35,12 @@
 
 This module applied payments against applications and updates the application status to PAID.
 """
+
 from __future__ import annotations
 
-from cloud_sql_connector import setup_pg8000_close_event_listener
 from flask import Flask
 from strr_api import db
+from strr_api.common.cloud_sql import setup_pg8000_close_event_listener
 
 from .config import Config
 from .config import ProdConfig

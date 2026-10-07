@@ -11,9 +11,13 @@ const mockUnassignRegistration = vi.fn().mockResolvedValue(undefined)
 const mockSetAsideRegistration = vi.fn().mockResolvedValue(undefined)
 const mockUpdateRegistrationStatus = vi.fn().mockResolvedValue(undefined)
 const mockSendNotice = vi.fn().mockResolvedValue(undefined)
+const mockSendNoticeForApplication = vi.fn().mockResolvedValue(undefined)
 const mockWithdrawApplication = vi.fn().mockResolvedValue(undefined)
+const mockApproveApplication = vi.fn().mockResolvedValue(undefined)
+const mockProvisionallyApproveApplication = vi.fn().mockResolvedValue(undefined)
 const mockIsDecisionEmailValid = vi.fn().mockResolvedValue(true)
 const mockOpenConfirmActionModal = vi.fn()
+const mockOpenErrorModal = vi.fn()
 const mockRefreshNuxtData = vi.hoisted(() => vi.fn())
 
 const activeHeader = ref<any>({ examinerActions: [], isSetAside: false, assignee: { username: '' } })
@@ -35,9 +39,9 @@ vi.mock('@/stores/examiner', () => ({
     sendNoticeOfConsiderationForRegistration: mockSendNotice,
     withdrawApplication: mockWithdrawApplication,
     rejectApplication: vi.fn().mockResolvedValue(undefined),
-    sendNoticeOfConsideration: vi.fn().mockResolvedValue(undefined),
-    approveApplication: vi.fn().mockResolvedValue(undefined),
-    provisionallyApproveApplication: vi.fn().mockResolvedValue(undefined),
+    sendNoticeOfConsideration: mockSendNoticeForApplication,
+    approveApplication: mockApproveApplication,
+    provisionallyApproveApplication: mockProvisionallyApproveApplication,
     assignApplication: vi.fn().mockResolvedValue(undefined),
     unassignApplication: vi.fn().mockResolvedValue(undefined),
     isApplication,
@@ -61,10 +65,12 @@ vi.mock('@/composables/useExaminerDecision', () => ({
 
 mockNuxtImport('useStrrModals', () => () => ({
   openConfirmActionModal: mockOpenConfirmActionModal,
+  openErrorModal: mockOpenErrorModal,
   close: vi.fn()
 }))
 
-vi.mock('nuxt/app', () => ({
+vi.mock('nuxt/app', async importOriginal => ({
+  ...await importOriginal<typeof import('nuxt/app')>(),
   refreshNuxtData: mockRefreshNuxtData
 }))
 
@@ -146,6 +152,32 @@ describe('ActionButtons Component', () => {
 
     expect(wrapper.find('[data-testid="main-action-button"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="main-action-button"]').text()).toContain('Approve Application')
+  })
+
+  it('should pass approval conditions when approving an application', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      applicationNumber: 'APP-123',
+      examinerActions: [ApplicationActionsE.APPROVE]
+    }
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    conditions.value = ['principalResidence', 'minBookingDays']
+    customConditions.value = ['Keep records available']
+    minBookingDays.value = 14
+
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockApproveApplication).toHaveBeenCalledOnce()
+    expect(mockApproveApplication).toHaveBeenCalledWith('APP-123', {
+      predefinedConditions: ['principalResidence'],
+      customConditions: ['Keep records available'],
+      minBookingDays: 14
+    })
   })
 
   it('should show main Approve action button only when conditions have changed', async () => {
@@ -332,6 +364,99 @@ describe('ActionButtons Component', () => {
     expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'notice of consideration body')
     expect(decisionEmailContent.value.content).toBe('')
     expect(mockRefreshNuxtData).toHaveBeenCalledWith('registration-details-view')
+  })
+
+  it('should display error modal, log error, and not clear content when send notice fails for registration', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSendNotice.mockRejectedValueOnce(new Error('Network error'))
+
+    decisionIntent.value = ApplicationActionsE.SEND_NOC
+    decisionEmailContent.value = { content: 'notice of consideration body' }
+
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockSendNotice).toHaveBeenCalledOnce()
+    expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'notice of consideration body')
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error))
+    expect(mockOpenErrorModal).toHaveBeenCalledOnce()
+    expect(mockOpenErrorModal).toHaveBeenCalledWith(
+      'Error',
+      'An error occurred sending the Notice of Consideration for this application.',
+      false
+    )
+    expect(decisionEmailContent.value.content).toBe('notice of consideration body')
+    expect(mockRefreshNuxtData).not.toHaveBeenCalled()
+
+    consoleErrorSpy.mockRestore()
+  })
+
+  it('should display error modal, log error, and not clear content when send notice fails for application', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      applicationNumber: 'APP-100',
+      examinerActions: [ApplicationActionsE.SEND_NOC],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSendNoticeForApplication.mockRejectedValueOnce(new Error('API error'))
+
+    decisionIntent.value = ApplicationActionsE.SEND_NOC
+    decisionEmailContent.value = { content: 'app notice body' }
+
+    const wrapper = await mount()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockSendNoticeForApplication).toHaveBeenCalledOnce()
+    expect(mockSendNoticeForApplication).toHaveBeenCalledWith('APP-100', 'app notice body')
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error))
+    expect(mockOpenErrorModal).toHaveBeenCalledOnce()
+    expect(mockOpenErrorModal).toHaveBeenCalledWith(
+      'Error',
+      'An error occurred sending the Notice of Consideration for this application.',
+      false
+    )
+    expect(decisionEmailContent.value.content).toBe('app notice body')
+    expect(mockRefreshNuxtData).not.toHaveBeenCalled()
+
+    consoleErrorSpy.mockRestore()
+  })
+
+  it('should update registration status with SUSPENDED when suspend is clicked with valid email', async () => {
+    decisionIntent.value = RegistrationActionsE.SUSPEND
+    decisionEmailContent.value = { content: 'suspension notice reason' }
+
+    const wrapper = await mount()
+    expect(wrapper.find('[data-testid="main-action-button"]').text()).toContain('Suspend')
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockIsDecisionEmailValid).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).toHaveBeenCalledWith(
+      'reg-123',
+      RegistrationStatus.SUSPENDED,
+      'suspension notice reason'
+    )
+  })
+
+  it('should not update registration status with SUSPENDED when email is invalid', async () => {
+    mockIsDecisionEmailValid.mockResolvedValueOnce(false)
+    decisionIntent.value = RegistrationActionsE.SUSPEND
+    decisionEmailContent.value = { content: '' }
+
+    const wrapper = await mount()
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockIsDecisionEmailValid).toHaveBeenCalledOnce()
+    expect(mockUpdateRegistrationStatus).not.toHaveBeenCalled()
   })
 
   it('should withdraw an application without validating email content', async () => {

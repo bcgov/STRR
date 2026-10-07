@@ -1,6 +1,7 @@
 """
 SBC Account response objects.
 """
+
 from typing import Optional
 
 from pydantic import BaseModel

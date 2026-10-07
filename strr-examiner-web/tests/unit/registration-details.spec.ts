@@ -1,6 +1,7 @@
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import {
+  mockDocuments,
   mockHostRegistration,
   mockHostRegistrationNotRequired,
   mockPlatformRegistration,
@@ -22,12 +23,15 @@ import {
   RegistrationInfoHeader,
   SnapshotVersionsTable,
   SnapshotInfo,
-  StrataSubHeader
+  StrataSubHeader,
+  StrataSupportingInfo
 } from '#components'
 import ApprovalConditions from '~/components/ApprovalConditions.vue'
 
 const mockViewReceipt = vi.fn()
-let currentMockData = mockHostRegistration
+const mockOpenPrUpload = vi.fn()
+const isSnapshotRoute = ref(false)
+let currentMockData: any = mockHostRegistration
 const isAssignedToUser = ref(true)
 const isEditingRentalUnit = ref(false)
 const isEditingRegistrationEmail = ref(false)
@@ -40,7 +44,8 @@ vi.mock('@/composables/useExaminerRoute', () => ({
     getRouteConfig: () => ({
       rightButtons: mockRightButtons
     }),
-    updateRouteAndButtons: vi.fn()
+    updateRouteAndButtons: vi.fn(),
+    isSnapshotRoute
   })
 }))
 vi.mock('@/stores/examiner', () => ({
@@ -75,7 +80,7 @@ vi.mock('@/stores/document', () => ({
     isPrUploadOpen: ref(false),
     isBlUploadOpen: ref(false),
     selectedDocType: ref(undefined),
-    openPrUpload: vi.fn(),
+    openPrUpload: mockOpenPrUpload,
     openBlUpload: vi.fn(),
     closeUpload: vi.fn(),
     addDocumentToRegistration: vi.fn().mockResolvedValue({})
@@ -443,5 +448,63 @@ describe('Examiner - Registration Details Page', () => {
     expect(wrapper.text()).toContain('Version:')
     expect(wrapper.text()).toContain('1')
     expect(wrapper.text()).toContain('Date:')
+  })
+
+  it('displays Add Document button in StrataSupportingInfo for ACTIVE Strata registration', async () => {
+    currentMockData = {
+      ...mockStrataHotelRegistration,
+      status: RegistrationStatus.ACTIVE,
+      documents: []
+    }
+    isSnapshotRoute.value = false
+
+    const componentWrapper = await mountSuspended(StrataSupportingInfo, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(componentWrapper.findTestId('supporting-info-section').exists()).toBe(true)
+    const addDocBtn = componentWrapper.findTestId('add-pr-doc-btn')
+    expect(addDocBtn.exists()).toBe(true)
+    expect(addDocBtn.text()).toContain('Add Document')
+
+    await addDocBtn.trigger('click')
+    expect(mockOpenPrUpload).toHaveBeenCalled()
+  })
+
+  it('displays documents vertically in StrataSupportingInfo for Strata Hotel registration with documents', async () => {
+    currentMockData = {
+      ...mockStrataHotelRegistration,
+      status: RegistrationStatus.SUSPENDED,
+      documents: [...mockDocuments]
+    }
+    isSnapshotRoute.value = false
+
+    const componentWrapper = await mountSuspended(StrataSupportingInfo, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(componentWrapper.findTestId('supporting-info-documents').exists()).toBe(true)
+    const initialDocs = componentWrapper.findTestId('initial-app-documents')
+    expect(initialDocs.exists()).toBe(true)
+    expect(initialDocs.classes()).toContain('flex-col')
+    expect(initialDocs.classes()).toContain('gap-y-2')
+    expect(componentWrapper.findTestId('add-pr-doc-btn').exists()).toBe(true)
+  })
+
+  it('hides Add Document button in StrataSupportingInfo on snapshot route', async () => {
+    currentMockData = {
+      ...mockStrataHotelRegistration,
+      status: RegistrationStatus.ACTIVE,
+      documents: [...mockDocuments]
+    }
+    isSnapshotRoute.value = true
+
+    const componentWrapper = await mountSuspended(StrataSupportingInfo, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(componentWrapper.findTestId('supporting-info-section').exists()).toBe(true)
+    expect(componentWrapper.findTestId('add-pr-doc-btn').exists()).toBe(false)
+    isSnapshotRoute.value = false
   })
 })

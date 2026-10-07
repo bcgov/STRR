@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests to assure the approval service."""
+
 import json
 import os
 from unittest.mock import MagicMock, patch
@@ -66,7 +67,7 @@ def test_extract_longitude_and_latitude():
     with open(MOCK_GEOCODER_RESPONSE) as f:
         data = json.load(f)
 
-    (lat, long) = ApprovalService.extract_longitude_and_latitude(data)
+    lat, long = ApprovalService.extract_longitude_and_latitude(data)
 
     assert lat == -123.3709161
     assert long == 48.4177006

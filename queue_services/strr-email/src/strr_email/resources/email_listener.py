@@ -33,12 +33,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # pylint: disable=R0911, R0912
 """This Module processes and sends email messages via the notify-api."""
-from dataclasses import dataclass
+
 from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 import re
 import traceback
+from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 from flask import Blueprint
@@ -74,11 +75,13 @@ EMAIL_SUBJECT = {
     "PROVISIONAL_REVIEW_NOC": "Short-Term Rental Notice of Consideration",
     "REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_PROVISIONALLY_APPROVED": "Short-Term Rental Registration Fully Approved",
-    "HOST_PROVISIONALLY_DECLINED": "Short-Term Rental Registration Cancelled",
     "HOST_DECLINED": "Short-Term Rental Application Refused",
     "HOST_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
+    "HOST_REGISTRATION_SUSPENDED": "Short-Term Rental Registration Suspended",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "STRATA_HOTEL_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
+    "STRATA_HOTEL_NOC": "Short-Term Rental Notice of Consideration",
+    "STRATA_HOTEL_REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
     "STRATA_HOTEL_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
     "PLATFORM_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
@@ -110,16 +113,11 @@ def worker():
         # no email info or not an email event
         return {}, HTTPStatus.OK
 
-    template = Path(
-        f'{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{email_info.email_type}.md'
-    ).read_text("utf-8")
-    filled_template = substitute_template_parts(template)
-    jinja_template = Template(filled_template, autoescape=True)
     email = None
     application = None
     registration = None
 
-    # 3. Build email template for application updates
+    # 3. Lookup entity and build email content
     if email_info.application_number:
         if not (
             application := Application.find_by_application_number(email_info.application_number)
@@ -137,6 +135,9 @@ def worker():
                 HTTPStatus.NOT_FOUND,
             )
 
+        template_type = _resolve_template_type(email_info.email_type, application.registration_type)
+        jinja_template = _get_jinja_template(template_type)
+
         email = _get_application_update_email_content(application, email_info, jinja_template)
 
     elif email_info.registration_number:
@@ -145,7 +146,7 @@ def worker():
                 email_info.registration_number
             )
         ):
-            # no application matching the application number
+            # no registration matching the registration number
             logger.error(
                 "Error: Registration %s not found (event_id=%s)",
                 email_info.registration_number,
@@ -159,6 +160,12 @@ def worker():
                 ),
                 HTTPStatus.NOT_FOUND,
             )
+
+        template_type = _resolve_template_type(
+            email_info.email_type, registration.registration_type
+        )
+        jinja_template = _get_jinja_template(template_type)
+
         if registration.registration_type == Registration.RegistrationType.HOST:
             email = _get_registration_update_email_content_for_host(
                 registration, email_info, jinja_template
@@ -167,6 +174,9 @@ def worker():
             if email_info.email_type in (
                 "STRATA_HOTEL_REGISTRATION_ACTIVE",
                 "STRATA_HOTEL_RENEWAL_REMINDER",
+                "STRATA_HOTEL_REGISTRATION_NOC",
+                "STRATA_HOTEL_NOC",
+                "REGISTRATION_NOC",
             ):
                 email = _get_registration_update_email_content_for_strata_hotel(
                     registration, email_info, jinja_template
@@ -214,6 +224,25 @@ def worker():
         return jsonify({"message": "Error posting email to notify-api."}), HTTPStatus.BAD_REQUEST
 
 
+def _resolve_template_type(email_type: str, reg_type) -> str:
+    """Resolve the template type, mapping generic NOCs to Strata Hotel NOCs if needed."""
+    if reg_type == Registration.RegistrationType.STRATA_HOTEL:
+        if email_type in ("NOC", "STRATA_HOTEL_NOC"):
+            return "STRATA_HOTEL_NOC"
+        if email_type in ("REGISTRATION_NOC", "STRATA_HOTEL_REGISTRATION_NOC"):
+            return "STRATA_HOTEL_REGISTRATION_NOC"
+    return email_type
+
+
+def _get_jinja_template(template_type: str) -> Template:
+    """Load and prepare a Jinja template from a markdown file."""
+    template = Path(
+        f'{current_app.config["EMAIL_TEMPLATE_PATH"]}/strr-{template_type}.md'
+    ).read_text("utf-8")
+    filled_template = substitute_template_parts(template)
+    return Template(filled_template, autoescape=True)
+
+
 def _get_registration_update_email_content_for_host(
     registration: Registration, email_info, jinja_template
 ):
@@ -231,6 +260,7 @@ def _get_registration_update_email_content_for_host(
         street_name=registration.rental_property.address.street_address
         or registration.rental_property.address.street_address_additional,
         city=registration.rental_property.address.city,
+        province=registration.rental_property.address.province,
         postal_code=registration.rental_property.address.postal_code,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         rental_nickname=registration.rental_property.nickname,
@@ -238,6 +268,7 @@ def _get_registration_update_email_content_for_host(
         noc_content=noc_content,
         noc_expiry_date=noc_expiry_date,
         expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        registration_url=_get_registration_deep_link(registration),
         tac_url=_get_registration_tac_url(registration),
     )
     subject_number = registration.registration_number
@@ -263,6 +294,7 @@ def _get_registration_update_email_content_for_platform(
         reg_num=registration.registration_number,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
         expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        registration_url=_get_registration_deep_link(registration),
         tac_url=_get_registration_tac_url(registration),
         service_provider=platform.legal_name,
     )
@@ -282,8 +314,27 @@ def _get_registration_update_email_content_for_platform(
 def _get_registration_update_email_content_for_strata_hotel(
     registration: Registration, email_info, jinja_template
 ):
+    noc_content = ""
+    noc_expiry_date = ""
+    if registration.nocs and (
+        registration.noc_status
+        in [RegistrationNocStatus.NOC_PENDING, RegistrationNocStatus.NOC_EXPIRED]
+        or "NOC" in email_info.email_type
+    ):
+        noc = max(
+            registration.nocs,
+            key=lambda n: getattr(n, "start_date", None) or getattr(n, "created_date", None) or 0,
+        )
+        noc_content = getattr(noc, "content", "") or getattr(noc, "notice_of_consideration", "")
+        if end_date := getattr(noc, "end_date", None):
+            noc_expiry_date = end_date.strftime("%B %d, %Y")
+    noc_content = noc_content or email_info.custom_content or ""
+
     strata_hotel = registration.strata_hotel_registration.strata_hotel
     recipients = _get_strata_hotel_notification_recipients(strata_hotel)
+    expiry_date_str = (
+        registration.expiry_date.strftime("%B %d, %Y") if registration.expiry_date else ""
+    )
     html_out = jinja_template.render(
         reg_num=registration.registration_number,
         street_address=strata_hotel.location.street_address
@@ -291,8 +342,11 @@ def _get_registration_update_email_content_for_strata_hotel(
         city=strata_hotel.location.city,
         postal_code=strata_hotel.location.postal_code,
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
-        expiry_date=registration.expiry_date.strftime("%B %d, %Y"),
+        expiry_date=expiry_date_str,
         custom_content=email_info.custom_content,
+        noc_content=noc_content,
+        noc_expiry_date=noc_expiry_date,
+        registration_url=_get_registration_deep_link(registration),
         tac_url=_get_registration_tac_url(registration),
     )
     subject_number = registration.registration_number
@@ -316,7 +370,9 @@ def _get_strata_hotel_notification_recipients(strata_hotel: StrataHotel) -> str:
         recipients.append(housing_recipient_email)
 
     for representative in strata_hotel.representatives:
-        recipients.append(representative.contact.email)
+        if representative.contact and representative.contact.email:
+            if representative.contact.email not in recipients:
+                recipients.append(representative.contact.email)
 
     return ",".join(recipients)
 
@@ -347,6 +403,9 @@ def _get_application_update_email_content(application, email_info, jinja_templat
     html_out = jinja_template.render(
         application_num=application.application_number,
         reg_num=app_dict.get("header", {}).get("registrationNumber"),
+        street_address=_get_address_detail(
+            app_dict, application.registration_type, "street_address"
+        ),
         street_number=_get_address_detail(app_dict, application.registration_type, "streetNumber"),
         unit_number=_get_address_detail(app_dict, application.registration_type, "unitNumber"),
         street_name=_get_address_detail(app_dict, application.registration_type, "streetName")
@@ -355,6 +414,18 @@ def _get_application_update_email_content(application, email_info, jinja_templat
         province=_get_address_detail(app_dict, application.registration_type, "province"),
         postal_code=_get_address_detail(app_dict, application.registration_type, "postalCode"),
         expiry_date=_get_expiry_date(app_dict),
+        registration_url=_get_registration_deep_link_for_type(
+            application.registration_type,
+            app_dict.get("header", {}).get("registrationNumber"),
+            application.payment_account,
+            getattr(application.submitter, "login_source", None),
+        ),
+        application_url=_get_application_deep_link(
+            application.registration_type,
+            application.application_number,
+            application.payment_account,
+            getattr(application.submitter, "login_source", None),
+        ),
         service_provider=_get_service_provider(app_dict, application.registration_type),
         tac_url=_get_tac_url(application),
         ops_email=current_app.config["EMAIL_HOUSING_OPS_EMAIL"],
@@ -392,11 +463,17 @@ def _get_rental_nickname(app_dict, reg_type: Registration.RegistrationType) -> s
 def _get_address_detail(
     app_dict: dict, reg_type: Registration.RegistrationType, detail: str
 ) -> str | None:
-    """Return the unit, street number and street name of the application address as a string."""
-    if reg_type != Registration.RegistrationType.HOST:
-        return ""
-    address = app_dict["registration"]["unitAddress"]
-    return address.get(detail, "")
+    """Return address details for host or strata hotel."""
+    reg = app_dict.get("registration", {})
+    if reg_type == Registration.RegistrationType.HOST:
+        address = reg.get("unitAddress", {})
+        return address.get(detail, "")
+    if reg_type == Registration.RegistrationType.STRATA_HOTEL:
+        location = reg.get("strataHotelDetails", {}).get("location", {})
+        if detail == "street_address":
+            return location.get("address") or location.get("addressLineTwo") or ""
+        return location.get(detail, "")
+    return ""
 
 
 def _get_expiry_date(app_dict: dict) -> str:
@@ -436,6 +513,65 @@ def _get_registration_email_recipients(registration: Registration) -> str:
     return ",".join(recipients)
 
 
+def _get_host_client_recipients(reg: dict) -> list[str]:
+    recipients = [reg["primaryContact"]["emailAddress"]]
+    if property_manager := reg.get("propertyManager"):
+        email = (
+            property_manager.get("contact", {}).get("emailAddress")
+            or property_manager["business"]["primaryContact"]["emailAddress"]
+        )
+        recipients.append(email)
+    return recipients
+
+
+def _get_platform_client_recipients(reg: dict) -> list[str]:
+    recipients = [rep["emailAddress"] for rep in reg.get("platformRepresentatives", [])]
+    if (
+        comp_party := reg.get("completingParty", {}).get("emailAddress")
+    ) and comp_party not in recipients:
+        recipients.append(comp_party)
+    return recipients
+
+
+def _get_strata_hotel_client_recipients(reg: dict) -> list[str]:
+    recipients: list[str] = []
+    for rep in reg.get("strataHotelRepresentatives", []):
+        if (rep_email := rep.get("emailAddress")) and rep_email not in recipients:
+            recipients.append(rep_email)
+
+    for rep in reg.get("strataHotelDetails", {}).get("representatives", []):
+        rep_email = (
+            rep.get("emailAddress")
+            or rep.get("contact", {}).get("email")
+            or rep.get("contact", {}).get("emailAddress")
+        )
+        if rep_email and rep_email not in recipients:
+            recipients.append(rep_email)
+
+    if (
+        comp_party := reg.get("completingParty", {}).get("emailAddress")
+    ) and comp_party not in recipients:
+        recipients.append(comp_party)
+    return recipients
+
+
+def _get_client_recipients(app_dict: dict) -> str:
+    "Return the client recipients in a string separated by commas."
+    reg = app_dict["registration"]
+    reg_type = reg.get("registrationType")
+
+    if reg_type == Registration.RegistrationType.HOST.value:
+        recipients = _get_host_client_recipients(reg)
+    elif reg_type == Registration.RegistrationType.PLATFORM.value:
+        recipients = _get_platform_client_recipients(reg)
+    elif reg_type == Registration.RegistrationType.STRATA_HOTEL.value:
+        recipients = _get_strata_hotel_client_recipients(reg)
+    else:
+        recipients = []
+
+    return ",".join(recipients) if recipients else ""
+
+
 def _get_email_recipients(app_dict: dict) -> str:
     "Return the email recipients in a string separated by commas."
     recipients: list[str] = []
@@ -443,46 +579,12 @@ def _get_email_recipients(app_dict: dict) -> str:
     if housing_recipient_email := current_app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"]:
         recipients.append(housing_recipient_email)
 
-    reg = app_dict["registration"]
-    if reg["registrationType"] == Registration.RegistrationType.HOST.value:
-        # Host recipients - completing party is always the host or property manager
-        # the primary contact email should always be there (this is the primary host)
-        recipients.append(reg["primaryContact"]["emailAddress"])
-        if property_manager := reg.get("propertyManager"):
-            # will have a person or business email
-            email = (
-                property_manager.get("contact", {}).get("emailAddress")
-                or property_manager["business"]["primaryContact"]["emailAddress"]
-            )
-            recipients.append(email)
-
-    elif reg["registrationType"] == Registration.RegistrationType.PLATFORM.value:
-        # Platform recipients
-        for rep in reg["platformRepresentatives"]:
-            recipients.append(rep["emailAddress"])
-        if (comp_party_email := reg["completingParty"]["emailAddress"]) not in recipients:
-            recipients.append(comp_party_email)
+    if client_recipients := _get_client_recipients(app_dict):
+        for email in client_recipients.split(","):
+            if email not in recipients:
+                recipients.append(email)
 
     return ",".join(recipients)
-
-
-def _get_client_recipients(app_dict: dict) -> str:
-    "Return the client recipients in a string separated by commas."
-    recipients: list[str] = []
-
-    reg = app_dict["registration"]
-    if reg["registrationType"] == Registration.RegistrationType.HOST.value:
-        # Host recipients - completing party is always the host or property manager
-        # the primary contact email should always be there (this is the primary host)
-        recipients.append(reg["primaryContact"]["emailAddress"])
-        if property_manager := reg.get("propertyManager"):
-            # will have a person or business email
-            email = (
-                property_manager.get("contact", {}).get("emailAddress")
-                or property_manager["business"]["primaryContact"]["emailAddress"]
-            )
-            recipients.append(email)
-    return ",".join(recipients) if recipients else ""
 
 
 def _get_tac_url(application: Application) -> str:
@@ -501,6 +603,90 @@ def _get_registration_tac_url(registration: Registration) -> str:
     if registration.registration_type == Registration.RegistrationType.PLATFORM:
         return current_app.config["TAC_URL_PLATFORM"]
     return ""
+
+
+def _get_registration_deep_link(registration: Registration) -> str:
+    """Return the relevant app deep link for the registration."""
+    return _get_registration_deep_link_for_type(
+        registration.registration_type,
+        registration.registration_number,
+        registration.sbc_account_id,
+        getattr(registration.user, "login_source", None),
+    )
+
+
+def _get_registration_deep_link_for_type(
+    registration_type,
+    registration_number: str | None,
+    account_id: int | str | None = None,
+    login_source: str | None = None,
+) -> str:
+    """Return a deep link from a registration type and number."""
+    if not registration_number:
+        return ""
+    registration_type = getattr(registration_type, "value", registration_type)
+    if registration_type == Registration.RegistrationType.HOST.value:
+        route = f"/en-CA/dashboard/registration/{registration_number}"
+        return _append_deep_link_params(
+            f"{current_app.config['HOST_APP_URL'].rstrip('/')}{route}", account_id, login_source
+        )
+    if registration_type == Registration.RegistrationType.PLATFORM.value:
+        route = f"/en-CA/platform/dashboard/registration/{registration_number}"
+        return _append_deep_link_params(
+            f"{current_app.config['PLATFORM_APP_URL'].rstrip('/')}{route}", account_id, login_source
+        )
+    if registration_type == Registration.RegistrationType.STRATA_HOTEL.value:
+        route = f"/en-CA/strata-hotel/dashboard/registration/{registration_number}"
+        return _append_deep_link_params(
+            f"{current_app.config['STRATA_HOTEL_APP_URL'].rstrip('/')}{route}",
+            account_id,
+            login_source,
+        )
+    return ""
+
+
+def _get_application_deep_link(
+    registration_type,
+    application_number: str | None,
+    account_id: int | str | None = None,
+    login_source: str | None = None,
+) -> str:
+    """Return a deep link to an application in the relevant app."""
+    if not application_number:
+        return ""
+    registration_type = getattr(registration_type, "value", registration_type)
+    routes = {
+        Registration.RegistrationType.HOST.value: f"/en-CA/dashboard/application/{application_number}",
+        Registration.RegistrationType.PLATFORM.value: f"/en-CA/platform/application/{application_number}",
+        Registration.RegistrationType.STRATA_HOTEL.value: f"/en-CA/strata-hotel/application/{application_number}",
+    }
+    app_urls = {
+        Registration.RegistrationType.HOST.value: "HOST_APP_URL",
+        Registration.RegistrationType.PLATFORM.value: "PLATFORM_APP_URL",
+        Registration.RegistrationType.STRATA_HOTEL.value: "STRATA_HOTEL_APP_URL",
+    }
+    if registration_type not in routes:
+        return ""
+    return _append_deep_link_params(
+        f"{current_app.config[app_urls[registration_type]].rstrip('/')}{routes[registration_type]}",
+        account_id,
+        login_source,
+    )
+
+
+def _append_deep_link_params(
+    url: str, account_id: int | str | None, login_source: str | None
+) -> str:
+    """Append safe account and supported login-provider hints to a deep link."""
+    params = {}
+    if account_id is not None and str(account_id).isdigit():
+        params["accountId"] = str(account_id)
+    login_hints = {"BCSC": "bcsc", "BCEID": "bceid", "IDIR": "idir", "STAFF": "idir"}
+    if isinstance(login_source, str) and login_source.upper() in login_hints:
+        params["idp"] = login_hints[login_source.upper()]
+    if not params:
+        return url
+    return f"{url}?{urlencode(params)}"
 
 
 def get_email_info(ce: SimpleCloudEvent) -> EmailInfo | None:

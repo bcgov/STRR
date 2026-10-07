@@ -30,6 +30,7 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests for GCPStorageService."""
+
 import base64
 import json
 from datetime import datetime, timedelta, timezone

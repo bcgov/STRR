@@ -19,9 +19,10 @@ const {
 } = useStrrPlatformApplication()
 const platformStore = useStrrPlatformStore()
 const {
+  application,
   renewalRegId,
   isRegistrationRenewal
-} = storeToRefs(useStrrPlatformStore())
+} = storeToRefs(platformStore)
 
 const { platformDetails } = storeToRefs(useStrrPlatformDetails())
 const { platformBusiness } = storeToRefs(useStrrPlatformBusiness())
@@ -70,6 +71,9 @@ onMounted(async () => {
     isRegistrationRenewal.value = true
   } else if (applicationId.value) {
     await platformStore.loadPlatform(applicationId.value, true)
+    if (application.value?.header.applicationType === 'renewal') {
+      isRegistrationRenewal.value = true
+    }
   }
 
   setBreadcrumbs([

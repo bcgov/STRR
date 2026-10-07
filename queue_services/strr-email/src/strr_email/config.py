@@ -39,10 +39,12 @@ All modules and lookups get their configuration from the
 Flask config, rather than reading environment variables directly
 or by accessing this configuration directly.
 """
+
 import os
 
 from dotenv import find_dotenv
 from dotenv import load_dotenv
+from strr_api.common.cloud_sql import sqlalchemy_settings_from_env
 
 # this will load all the envars from a .env file located in the project root (api)
 load_dotenv(find_dotenv())
@@ -115,24 +117,7 @@ class Config:  # pylint: disable=too-few-public-methods
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # POSTGRESQL
-    DB_USER = os.getenv("DATABASE_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_NAME", "")
-    DB_HOST = os.getenv("DATABASE_HOST", "")
-    DB_PORT = os.getenv("DATABASE_PORT", "5432")
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://"
-            f"{DB_USER}:{DB_PASSWORD}@/"
-            f"{DB_NAME}?unix_sock={DB_UNIX_SOCKET}/"
-            f".s.PGSQL.5432"
-        )
-    else:
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env()
 
     TAC_URL_HOST = os.getenv(
         "TAC_URL_HOST",
@@ -141,6 +126,13 @@ class Config:  # pylint: disable=too-few-public-methods
     TAC_URL_PLATFORM = os.getenv(
         "TAC_URL_PLATFORM",
         "https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/registry-toc-platforms",
+    )
+    HOST_APP_URL = os.getenv("HOST_APP_URL", "https://host.shorttermrental.registry.gov.bc.ca")
+    PLATFORM_APP_URL = os.getenv(
+        "PLATFORM_APP_URL", "https://platform.shorttermrental.registry.gov.bc.ca"
+    )
+    STRATA_HOTEL_APP_URL = os.getenv(
+        "STRATA_HOTEL_APP_URL", "https://stratahotel.shorttermrental.registry.gov.bc.ca"
     )
 
 
@@ -157,25 +149,9 @@ class UnitTestConfig(Config):  # pylint: disable=too-few-public-methods
     Used by the py.test suite
     """
 
-    DB_USER = os.getenv("DATABASE_TEST_USERNAME", "")
-    DB_PASSWORD = os.getenv("DATABASE_TEST_PASSWORD", "")
-    DB_NAME = os.getenv("DATABASE_TEST_NAME", "")
-    DB_HOST = os.getenv("DATABASE_TEST_HOST", "")
-    DB_PORT = os.getenv("DATABASE_TEST_PORT", "5432")
-
-    # POSTGRESQL
-    if DB_UNIX_SOCKET := os.getenv("DATABASE_UNIX_SOCKET", None):
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://"
-            f"{DB_USER}:{DB_PASSWORD}@/"
-            f"{DB_NAME}"
-            f"?unix_sock={DB_UNIX_SOCKET}/"
-            f".s.PGSQL.5432"
-        )
-    else:
-        SQLALCHEMY_DATABASE_URI = (
-            f"postgresql+pg8000://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-        )
+    SQLALCHEMY_DATABASE_URI, SQLALCHEMY_ENGINE_OPTIONS = sqlalchemy_settings_from_env(
+        testing=True, test_driver="pg8000"
+    )
 
     DEBUG = True
     TESTING = True
