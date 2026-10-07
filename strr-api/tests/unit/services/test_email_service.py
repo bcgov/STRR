@@ -46,7 +46,7 @@ from gcp_queue.gcp_queue import GcpQueue
 from sqlalchemy import select
 
 from strr_api import create_app
-from strr_api.enums.enum import InteractionStatus
+from strr_api.enums.enum import InteractionStatus, RegistrationStatus
 from strr_api.models import Application, CustomerInteraction, Registration, User
 from strr_api.services import ApplicationService
 from strr_api.services.email_service import EmailService
@@ -223,18 +223,24 @@ def test_send_renewal_reminder_logs_publish_failure(session, setup_parents_commi
 
 
 @pytest.mark.parametrize(
-    ("status", "expected_email_type"),
+    ("registration_type", "status", "expected_email_type"),
     [
-        (Application.Status.PROVISIONAL_REVIEW_NOC_PENDING, "PROVISIONAL_REVIEW_NOC"),
-        (Application.Status.AUTO_APPROVED, "NOC"),
+        (
+            Registration.RegistrationType.HOST,
+            Application.Status.PROVISIONAL_REVIEW_NOC_PENDING,
+            "PROVISIONAL_REVIEW_NOC",
+        ),
+        (Registration.RegistrationType.HOST, Application.Status.AUTO_APPROVED, "NOC"),
+        (Registration.RegistrationType.STRATA_HOTEL, Application.Status.FULL_REVIEW, "STRATA_HOTEL_NOC"),
     ],
 )
 @pytest.mark.conf(GCP_EMAIL_TOPIC="test")
 def test_send_notice_of_consideration_for_application_publishes_payload(
-    session, setup_parents, status, expected_email_type, inject_config
+    session, setup_parents, registration_type, status, expected_email_type, inject_config
 ):
     """Test that application notice-of-consideration emails publish the expected payload."""
     application = session.get(Application, setup_parents["application_id"])
+    application.registration_type = registration_type
     application.application_number = "A-123456"
     application.status = status
     session.commit()
@@ -287,6 +293,39 @@ def test_send_registration_status_update_email_publishes_payload(session, setup_
 
 
 @pytest.mark.conf(GCP_EMAIL_TOPIC="test")
+def test_send_registration_status_update_email_publishes_payload_for_suspended(session, setup_parents, inject_config):
+    """Test that suspended registration emails publish the expected payload."""
+    registration = session.get(Registration, setup_parents["registration_id"])
+    registration.status = RegistrationStatus.SUSPENDED
+    interaction = "2026:REGISTRATION_STATUS:42"
+
+    with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
+        EmailService.send_registration_status_update_email(
+            registration=registration,
+            email_content="suspension reason",
+            interaction=interaction,
+        )
+
+    mock_publish.assert_called_once()
+    queue_message = mock_publish.call_args.args[0]
+
+    assert queue_message.topic == "test"
+    assert queue_message.payload == {
+        "registrationNumber": registration.registration_number,
+        "emailType": f"{registration.registration_type}_REGISTRATION_{registration.status.name}",
+        "customContent": "suspension reason",
+        "interaction": interaction,
+        "interaction_uuid": ANY,
+    }
+    _assert_queued_interaction(
+        session,
+        queue_message.payload,
+        registration_id=registration.id,
+        idempotency_key=interaction,
+    )
+
+
+@pytest.mark.conf(GCP_EMAIL_TOPIC="test")
 def test_send_registration_status_update_email_skips_non_notifiable_status(session, setup_parents, inject_config):
     """Test that non-notifiable registration statuses do not publish emails."""
     registration = session.get(Registration, setup_parents["registration_id"])
@@ -298,10 +337,21 @@ def test_send_registration_status_update_email_skips_non_notifiable_status(sessi
     mock_publish.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    ("registration_type", "expected_email_type"),
+    [
+        (Registration.RegistrationType.HOST, "REGISTRATION_NOC"),
+        (Registration.RegistrationType.STRATA_HOTEL, "STRATA_HOTEL_REGISTRATION_NOC"),
+    ],
+)
 @pytest.mark.conf(GCP_EMAIL_TOPIC="test")
-def test_send_notice_of_consideration_for_registration_publishes_payload(session, setup_parents, inject_config):
+def test_send_notice_of_consideration_for_registration_publishes_payload(
+    session, setup_parents, registration_type, expected_email_type, inject_config
+):
     """Test that registration NOC emails publish the expected payload."""
     registration = session.get(Registration, setup_parents["registration_id"])
+    registration.registration_type = registration_type
+    session.commit()
 
     with patch("strr_api.services.email_service.gcp_queue_publisher.publish_to_queue") as mock_publish:
         EmailService.send_notice_of_consideration_for_registration(registration=registration)
@@ -312,7 +362,7 @@ def test_send_notice_of_consideration_for_registration_publishes_payload(session
     assert queue_message.topic == "test"
     assert queue_message.payload == {
         "registrationNumber": registration.registration_number,
-        "emailType": "REGISTRATION_NOC",
+        "emailType": expected_email_type,
         "interaction_uuid": ANY,
     }
     _assert_queued_interaction(session, queue_message.payload, registration_id=registration.id)

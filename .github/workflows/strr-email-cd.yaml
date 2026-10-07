@@ -8,6 +8,7 @@ on:
       - hotfix*
       - release*
     paths:
+      - ".github/workflows/strr-email-cd.yaml"
       - "queue_services/strr-email/**"
       - "terraform/email/**"
       - "terraform/scripts/**"
@@ -26,13 +27,6 @@ on:
           - "uat"
           - "sandbox"
           - "prod"
-      redeploy:
-        description: "Redeploy Application"
-        required: true
-        type: choice
-        options:
-          - "false"
-          - "true"
 
 jobs:
   changes:
@@ -80,7 +74,8 @@ jobs:
       target: ${{ inputs.target }}
       app_name: "strr-email"
       working_directory: "queue_services/strr-email"
-      redeploy: ${{ inputs.redeploy }}
+      # IAM parameters are resolved by Cloud Deploy during a full deployment.
+      redeploy: "false"
     secrets:
       WORKLOAD_IDENTIFY_POOLS_PROVIDER: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}

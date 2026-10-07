@@ -16,16 +16,9 @@ const isStrataHotelRenewalApplication = computed(() => {
     header?.applicationType === 'renewal'
 })
 
-const isProvisionalApprovalApplication = computed(() =>
-  isApplication.value &&
-  hasRegistrationNumber.value &&
-  activeHeader.value?.examinerActions?.includes(ApplicationActionsE.PROVISIONAL_APPROVE)
-)
-
 /* hide the bottom action buttons for other applications */
 const shouldHideBottomActions = computed(() => {
-  return isApplication.value && hasRegistrationNumber.value &&
-    !isStrataHotelRenewalApplication.value && !isProvisionalApprovalApplication.value
+  return isApplication.value && hasRegistrationNumber.value && !isStrataHotelRenewalApplication.value
 })
 
 // clear buttons when switching between routes

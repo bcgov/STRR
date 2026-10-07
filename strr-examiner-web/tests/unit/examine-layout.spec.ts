@@ -50,12 +50,12 @@ describe('Examine Layout', () => {
     store = useExaminerStore()
   })
 
-  it('should show ActionButtons for provisional application approval with a registration number', async () => {
+  it('should hide actions for an application with a registration number', async () => {
     store.activeRecord = mockProvisionalReviewApplication
     await nextTick()
 
     expect(wrapper.findComponent(ConnectButtonControl).exists()).toBe(false)
-    expect(wrapper.findComponent(ActionButtons).exists()).toBe(true)
+    expect(wrapper.findComponent(ActionButtons).exists()).toBe(false)
   })
 
   it('should hide actions for a registered non-provisional application', async () => {

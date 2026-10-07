@@ -761,28 +761,6 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
-name = "cloud-sql-connector"
-version = "0.2.3"
-description = "Cloud SQL connection utilities for database connectivity with authentication and schema management"
-optional = false
-python-versions = "^3.12"
-groups = ["main"]
-files = []
-develop = false
-
-[package.dependencies]
-cloud-sql-python-connector = "^1.16.0"
-pg8000 = "^1.30.0"
-sqlalchemy = "^2.0.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/bcgov/sbc-connect-common.git"
-reference = "main"
-resolved_reference = "9ba15bc19f01690185a46796c5d45c333e254bf8"
-subdirectory = "python/cloud-sql-connector"
-
-[[package]]
 name = "cloud-sql-python-connector"
 version = "1.20.3"
 description = "Google Cloud SQL Python Connector library"
@@ -4294,7 +4272,7 @@ files = [
 
 [[package]]
 name = "strr-api"
-version = "0.3.20"
+version = "0.3.33"
 description = ""
 optional = false
 python-versions = "^3.12.2"
@@ -4303,6 +4281,7 @@ files = []
 develop = false
 
 [package.dependencies]
+cloud-sql-python-connector = "^1.16.0"
 coloredlogs = "^15.0.1"
 flasgger = "^0.9.7.1"
 flask = "3.0.3"
@@ -4320,6 +4299,7 @@ gunicorn = "^21.2.0"
 jsonschema = {version = "^4.20.0", extras = ["format"]}
 launchdarkly-server-sdk = "^9.0.1"
 nanoid = "^2.0.0"
+pg8000 = "^1.30.0"
 psycopg2-binary = "^2.9.9"
 pycountry = "^23.12.11"
 pydantic = {version = "^2.12.5", extras = ["email"]}
@@ -4335,7 +4315,7 @@ weasyprint = "^62.3"
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
 reference = "main"
-resolved_reference = "2d60677e0f7019cf00c89390e471fde5387dcca7"
+resolved_reference = "8ef0a315b5207ff98064cd69c97edf4638c643f9"
 subdirectory = "strr-api"
 
 [[package]]
@@ -4969,4 +4949,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12.2"
-content-hash = "ca3f7173bd37b6a9647893fab40551f91d7b304ba75f16833ac4dd77c7796417"
+content-hash = "13cbf1eba2820cdb67636a43a8ff62657afc2a7a8b5b7c1486d1e8e566c30234"

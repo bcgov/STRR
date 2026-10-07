@@ -102,6 +102,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
+.nuxtrc
 dist
 
 # Gatsby files

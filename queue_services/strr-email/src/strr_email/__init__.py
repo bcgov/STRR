@@ -34,12 +34,12 @@
 """The email queue listener service."""
 from __future__ import annotations
 
-from cloud_sql_connector import setup_pg8000_close_event_listener
 from flask import Flask
 from flask_migrate import Migrate
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from strr_api import db
+from strr_api.common.cloud_sql import setup_pg8000_close_event_listener
 
 from .config import Config
 from .config import ProdConfig

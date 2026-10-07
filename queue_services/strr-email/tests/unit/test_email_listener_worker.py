@@ -81,6 +81,7 @@ _HOST_TPL = "\n".join(
         "{{ unit_number }}",
         "{{ street_name }}",
         "{{ city }}",
+        "{{ province }}",
         "{{ postal_code }}",
         "{{ ops_email }}",
         "{{ rental_nickname }}",
@@ -213,6 +214,26 @@ def test_worker_renewal_dispatch_success(app, mocker, ce_factory):
     log_mock.info.assert_any_call("completed ce (event_id=%s): %s", "e1", ce)
 
 
+def test_worker_host_registration_suspended_dispatch_success(app, mocker, ce_factory):
+    ce = ce_factory(
+        registrationNumber="H1",
+        emailType="HOST_REGISTRATION_SUSPENDED",
+        customContent="Please stop short term rental activities",
+    )
+    reg = _host_reg()
+    dispatch = mocker.patch(
+        "strr_email.resources.email_listener.InteractionService.dispatch",
+        return_value=MagicMock(interaction_uuid="uuid-suspended"),
+    )
+    _patch_read_pipeline(mocker, ce, reg, _HOST_TPL)
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        resp = worker()
+    assert resp[1] == HTTPStatus.OK and resp[0].get_json().get("interaction") == "uuid-suspended"
+    dispatch.assert_called_once()
+    payload = dispatch.call_args.kwargs["payload"]
+    assert "Short-Term Rental Registration Suspended" in payload.email["content"]["subject"]
+
+
 def test_worker_platform_renewal_dispatch_success(app, mocker, ce_factory):
     ce = ce_factory(registrationNumber="P1", emailType="PLATFORM_RENEWAL_REMINDER")
     rep = MagicMock(contact=MagicMock(email="plat-rep@example.com"))
@@ -258,6 +279,102 @@ def test_worker_strata_renewal_dispatch_success(app, mocker, ce_factory):
     with app.test_request_context("/", method="POST", data=b"{}"):
         resp = worker()
     assert resp[0].get_json().get("interaction") == "uuid-strata"
+
+
+@pytest.mark.parametrize(
+    "email_type",
+    ["STRATA_HOTEL_REGISTRATION_NOC", "REGISTRATION_NOC"],
+)
+def test_worker_strata_registration_noc_dispatch_success(app, mocker, ce_factory, email_type):
+    ce = ce_factory(registrationNumber="S1", emailType=email_type)
+    loc = MagicMock(
+        street_address="50 Main", street_address_additional="", city="Vic", postal_code="V8V1A1"
+    )
+    sh = MagicMock(
+        location=loc,
+        representatives=[MagicMock(contact=MagicMock(email="strata-rep@example.com"))],
+    )
+    noc = MagicMock(
+        notice_of_consideration="noc reason content",
+        created_date=MagicMock(strftime=MagicMock(return_value="November 15, 2026")),
+    )
+    reg = MagicMock(
+        registration_type=Registration.RegistrationType.STRATA_HOTEL,
+        id=43,
+        strata_hotel_registration=MagicMock(strata_hotel=sh),
+        registration_number="S1",
+        expiry_date=None,
+        nocs=[noc],
+    )
+    dispatch = mocker.patch(
+        "strr_email.resources.email_listener.InteractionService.dispatch",
+        return_value=MagicMock(interaction_uuid="uuid-strata-noc"),
+    )
+    _patch_read_pipeline(mocker, ce, reg, _STRATA_TPL)
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        resp = worker()
+    assert resp[0].get_json().get("interaction") == "uuid-strata-noc"
+    dispatch.assert_called_once()
+    payload = dispatch.call_args.kwargs["payload"]
+    assert "Short-Term Rental Notice of Consideration" in payload.email["content"]["subject"]
+    assert "strata-rep@example.com" in payload.email["recipients"]
+    assert app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"] in payload.email["recipients"]
+
+
+@pytest.mark.parametrize(
+    "email_type",
+    ["STRATA_HOTEL_NOC", "NOC"],
+)
+def test_worker_strata_application_noc_dispatch_success(app, mocker, ce_factory, email_type):
+    ce = ce_factory(applicationNumber="SH-APP-1", emailType=email_type)
+    noc = MagicMock(
+        notice_of_consideration="app noc content",
+        created_date=MagicMock(strftime=MagicMock(return_value="December 1, 2026")),
+    )
+    app_obj = MagicMock(
+        application_number="SH-APP-1",
+        registration_type=Registration.RegistrationType.STRATA_HOTEL,
+        noc=noc,
+    )
+    _patch_legacy_application_flow(mocker, app_obj, ce)
+    sh_app_dict = {
+        "header": {"applicationNumber": "SH-APP-1"},
+        "registration": {
+            "registrationType": Registration.RegistrationType.STRATA_HOTEL.value,
+            "strataHotelDetails": {
+                "brand": {"name": "Grand Hotel"},
+                "location": {
+                    "address": "100 Ocean Blvd",
+                    "city": "Kelowna",
+                    "province": "BC",
+                    "postalCode": "V1Y1Y1",
+                },
+                "representatives": [
+                    {"contact": {"email": "rep1@hotel.com"}},
+                    {"contact": {"email": "rep2@hotel.com"}},
+                ],
+            },
+            "completingParty": {"emailAddress": "completing@hotel.com"},
+        },
+    }
+    mocker.patch(
+        "strr_email.resources.email_listener.ApplicationSerializer.to_dict",
+        return_value=sh_app_dict,
+    )
+    dispatch = mocker.patch(
+        "strr_email.resources.email_listener.InteractionService.dispatch",
+        return_value=MagicMock(interaction_uuid="uuid-sh-app-noc"),
+    )
+    with app.test_request_context("/", method="POST", data=b"{}"):
+        resp = worker()
+    assert resp[0].get_json().get("interaction") == "uuid-sh-app-noc"
+    dispatch.assert_called_once()
+    payload = dispatch.call_args.kwargs["payload"]
+    assert "Short-Term Rental Notice of Consideration" in payload.email["content"]["subject"]
+    assert "rep1@hotel.com" in payload.email["recipients"]
+    assert "rep2@hotel.com" in payload.email["recipients"]
+    assert "completing@hotel.com" in payload.email["recipients"]
+    assert app.config["EMAIL_HOUSING_RECIPIENT_EMAIL"] in payload.email["recipients"]
 
 
 def test_worker_renewal_dispatch_raises_returns_400(app, mocker, ce_factory):

@@ -18,6 +18,7 @@ serialPipeline:
       container-name: "strr-pay-dev"
       cloudsql-instances: "bcrbk9-dev:northamerica-northeast1:strr-db-dev"
       service-account: "sa-api@bcrbk9-dev.iam.gserviceaccount.com"
+      database-iam-username: "sa-api@bcrbk9-dev.iam"
  - targetId: bcrbk9-test
    profiles: [test]
    strategy:
@@ -31,6 +32,7 @@ serialPipeline:
       container-name: "strr-pay-test"
       cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
       service-account: "sa-api@bcrbk9-test.iam.gserviceaccount.com"
+      database-iam-username: "sa-api@bcrbk9-test.iam"
  - targetId: bcrbk9-uat
    profiles: [uat]
    strategy:
@@ -44,6 +46,7 @@ serialPipeline:
       container-name: "strr-pay-uat"
       cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
       service-account: "sa-api@bcrbk9-test.iam.gserviceaccount.com"
+      database-iam-username: "sa-api@bcrbk9-test.iam"
  - targetId: bcrbk9-sandbox
    profiles: [sandbox]
    strategy:
@@ -57,6 +60,7 @@ serialPipeline:
       container-name: "strr-pay-sandbox"
       cloudsql-instances: "bcrbk9-tools:northamerica-northeast1:strr-db-sandbox"
       service-account: "sa-api@bcrbk9-tools.iam.gserviceaccount.com"
+      database-iam-username: "sa-api@bcrbk9-tools.iam"
  - targetId: bcrbk9-prod
    profiles: [prod]
    strategy:
@@ -70,5 +74,6 @@ serialPipeline:
       container-name: "strr-pay-prod"
       cloudsql-instances: "bcrbk9-prod:northamerica-northeast1:strr-db-prod"
       service-account: "sa-api@bcrbk9-prod.iam.gserviceaccount.com"
+      database-iam-username: "sa-api@bcrbk9-prod.iam"
       max-scale: "10"
       container-concurrency: "20"

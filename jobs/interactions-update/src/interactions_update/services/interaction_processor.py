@@ -108,7 +108,23 @@ class InteractionProcessor:
         if not primary_payload:
             return
 
-        existing_meta_data["notify_response"] = primary_payload
+        existing_notify_response = (
+            existing_meta_data.get("notify_response")
+            if isinstance(existing_meta_data.get("notify_response"), dict)
+            else {}
+        )
+        merged_notify_response = {**existing_notify_response, **primary_payload}
+        if "failed_recipients" in existing_notify_response:
+            merged_notify_response["failed_recipients"] = existing_notify_response[
+                "failed_recipients"
+            ]
+        if "ids" in existing_notify_response:
+            merged_notify_response["ids"] = existing_notify_response["ids"]
+        if "recipients" in existing_notify_response:
+            merged_notify_response["recipients"] = existing_notify_response[
+                "recipients"
+            ]
+        existing_meta_data["notify_response"] = merged_notify_response
         transport_status = self.status_handler.normalize_transport_status(
             primary_payload
         )
@@ -127,14 +143,20 @@ class InteractionProcessor:
 
     @staticmethod
     def _resolve_new_status(
-        mapped_statuses: list[InteractionStatus], reference_count: int
+        mapped_statuses: list[InteractionStatus],
+        reference_count: int,
+        has_failed_recipients: bool = False,
     ) -> InteractionStatus | None:
         """Derive final interaction status from collected per-reference statuses."""
         if InteractionStatus.FAILED in mapped_statuses:
             return InteractionStatus.FAILED
         if mapped_statuses and len(mapped_statuses) == reference_count:
             if all(status == InteractionStatus.DELIVERED for status in mapped_statuses):
-                return InteractionStatus.DELIVERED
+                return (
+                    InteractionStatus.FAILED
+                    if has_failed_recipients
+                    else InteractionStatus.DELIVERED
+                )
         return None
 
     @staticmethod
@@ -308,8 +330,13 @@ class InteractionProcessor:
                 None,
             )
 
+            has_failed_recipients = bool(
+                existing_meta_data.get("notify_response", {}).get("failed_recipients")
+            )
             new_status = self._resolve_new_status(
-                mapped_statuses, len(notify_references)
+                mapped_statuses,
+                len(notify_references),
+                has_failed_recipients=has_failed_recipients,
             )
             did_change = self._apply_interaction_updates(
                 interaction,

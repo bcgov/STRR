@@ -27,30 +27,13 @@ const EXPANDABLE_EVENTS: Set<FilingHistoryEventName> = new Set([
   FilingHistoryEventName.EMAIL_OPENED
 ])
 
-const EMAIL_EVENTS: Set<FilingHistoryEventName> = new Set([
+export const EMAIL_EVENTS: Set<FilingHistoryEventName> = new Set([
   FilingHistoryEventName.EMAIL_QUEUED,
   FilingHistoryEventName.EMAIL_SENT,
   FilingHistoryEventName.EMAIL_DELIVERED,
   FilingHistoryEventName.EMAIL_FAILED,
   FilingHistoryEventName.EMAIL_OPENED
 ])
-
-type EmailRecipientStatus = {
-  email_address?: string
-  failure_reason?: string | null
-  failure_type?: string | null
-  notify_reference?: string
-  provider_reference?: string
-  request_date?: string
-  sent_date?: string
-  status?: string
-}
-
-type EmailStructuredDetails = {
-  emailType?: string
-  interactionStatus?: string
-  recipientStatuses?: EmailRecipientStatus[]
-}
 
 export type EmailRecipientAccordionDetail = {
   email: string
@@ -65,31 +48,22 @@ export type EmailAccordionDetail = {
   recipients: EmailRecipientAccordionDetail[]
 }
 
-const EMAIL_TYPE_LABELS: Record<string, string> = {
-  HOST_RENEWAL_REMINDER: 'Host renewal reminder',
-  STRATA_HOTEL_RENEWAL_REMINDER: 'Strata hotel renewal reminder',
-  PLATFORM_RENEWAL_REMINDER: 'Platform renewal reminder',
-  HOST_FULL_REVIEW_APPROVED: 'Host full review approved',
-  HOST_REGISTRATION_ACTIVE: 'Host registration active'
-}
+export type FilingHistoryTranslate = (key: string, params?: Record<string, string>) => string
 
-const RECIPIENT_STATUS_LABELS: Record<string, string> = {
-  CREATED: 'Created',
-  IN_TRANSIT: 'In transit',
-  PENDING: 'Pending',
-  SENT: 'Sent',
-  DELIVERED: 'Delivered',
-  FAILED: 'Failed',
-  UNKNOWN: 'Unknown'
-}
+const defaultTranslate: FilingHistoryTranslate = (key: string) => key
 
-const humanizeEmailType = (value: string | undefined): string => {
+const humanizeEmailType = (
+  value: string | undefined,
+  t: FilingHistoryTranslate = defaultTranslate
+): string => {
   if (!value) {
     return 'Unknown'
   }
 
-  if (EMAIL_TYPE_LABELS[value]) {
-    return EMAIL_TYPE_LABELS[value]
+  const key = `filingHistoryEmailTypes.${value}`
+  const translated = t(key)
+  if (translated && translated !== key) {
+    return translated
   }
 
   return value
@@ -99,14 +73,22 @@ const humanizeEmailType = (value: string | undefined): string => {
     .join(' ')
 }
 
-const humanizeRecipientStatus = (value: string | undefined): string => {
+const humanizeRecipientStatus = (
+  value: string | undefined,
+  t: FilingHistoryTranslate = defaultTranslate
+): string => {
   if (!value) {
-    return RECIPIENT_STATUS_LABELS.UNKNOWN || 'Unknown'
+    const fallbackUnknown = t('filingHistoryRecipientStatuses.UNKNOWN')
+    if (fallbackUnknown && fallbackUnknown !== 'filingHistoryRecipientStatuses.UNKNOWN') {
+      return fallbackUnknown
+    }
+    return 'Unknown'
   }
 
-  const mapped = RECIPIENT_STATUS_LABELS[value]
-  if (mapped) {
-    return mapped
+  const key = `filingHistoryRecipientStatuses.${value}`
+  const translated = t(key)
+  if (translated && translated !== key) {
+    return translated
   }
 
   return value
@@ -116,7 +98,10 @@ const humanizeRecipientStatus = (value: string | undefined): string => {
     .join(' ')
 }
 
-const getEmailAccordionDetails = (event: FilingHistoryEvent): string[] => {
+const getEmailAccordionDetails = (
+  event: FilingHistoryEvent,
+  t: FilingHistoryTranslate = defaultTranslate
+): string[] => {
   if (!event.structuredDetails || Array.isArray(event.structuredDetails)) {
     return []
   }
@@ -127,12 +112,12 @@ const getEmailAccordionDetails = (event: FilingHistoryEvent): string[] => {
     : []
 
   const lines: string[] = [
-    `Email type: ${humanizeEmailType(structured.emailType)}`
+    `Email type: ${humanizeEmailType(structured.emailType, t)}`
   ]
 
   for (const recipient of recipients) {
     const email = recipient.email_address || 'Unknown email'
-    const details: string[] = [`Status: ${humanizeRecipientStatus(recipient.status)}`]
+    const details: string[] = [`Status: ${humanizeRecipientStatus(recipient.status, t)}`]
 
     if (recipient.sent_date && (recipient.status === 'SENT' || recipient.status === 'DELIVERED')) {
       details.push(`Sent: ${recipient.sent_date}`)
@@ -156,10 +141,13 @@ export const isEmailFilingHistoryEvent = (event: FilingHistoryEvent): boolean =>
   return EMAIL_EVENTS.has(event.eventName)
 }
 
-export const getEmailFilingHistoryDetails = (event: FilingHistoryEvent): EmailAccordionDetail => {
+export const getEmailFilingHistoryDetails = (
+  event: FilingHistoryEvent,
+  t: FilingHistoryTranslate = defaultTranslate
+): EmailAccordionDetail => {
   if (!event.structuredDetails || Array.isArray(event.structuredDetails)) {
     return {
-      emailTypeLabel: humanizeEmailType(undefined),
+      emailTypeLabel: humanizeEmailType(undefined, t),
       recipients: []
     }
   }
@@ -170,12 +158,12 @@ export const getEmailFilingHistoryDetails = (event: FilingHistoryEvent): EmailAc
     : []
 
   return {
-    emailTypeLabel: humanizeEmailType(structured.emailType),
+    emailTypeLabel: humanizeEmailType(structured.emailType, t),
     recipients: recipients.map((recipient) => {
       return {
         email: recipient.email_address || 'Unknown email',
         status: recipient.status || 'UNKNOWN',
-        statusLabel: humanizeRecipientStatus(recipient.status),
+        statusLabel: humanizeRecipientStatus(recipient.status, t),
         sentDate: recipient.sent_date && (recipient.status === 'SENT' || recipient.status === 'DELIVERED')
           ? recipient.sent_date
           : undefined,
@@ -185,17 +173,20 @@ export const getEmailFilingHistoryDetails = (event: FilingHistoryEvent): EmailAc
   }
 }
 
-export const getEmailFilingHistoryTypeLabel = (event: FilingHistoryEvent): string => {
+export const getEmailFilingHistoryTypeLabel = (
+  event: FilingHistoryEvent,
+  t: FilingHistoryTranslate = defaultTranslate
+): string => {
   if (!isEmailFilingHistoryEvent(event)) {
     return ''
   }
 
-  return getEmailFilingHistoryDetails(event).emailTypeLabel
+  return getEmailFilingHistoryDetails(event, t).emailTypeLabel
 }
 
-const stringifyChangeValue = (value: unknown, translate: (key: string) => string): string => {
+const stringifyChangeValue = (value: unknown, t: FilingHistoryTranslate = defaultTranslate): string => {
   if (value === null || value === undefined || value === '') {
-    return translate('filingHistoryChangeLog.noValue')
+    return t('filingHistoryChangeLog.noValue')
   }
 
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -206,46 +197,46 @@ const stringifyChangeValue = (value: unknown, translate: (key: string) => string
     return JSON.stringify(value)
   } catch {
     if (Array.isArray(value)) {
-      return translate('filingHistoryChangeLog.unavailableValue')
+      return t('filingHistoryChangeLog.unavailableValue')
     }
 
     if (typeof value === 'object') {
-      return translate('filingHistoryChangeLog.unavailableValue')
+      return t('filingHistoryChangeLog.unavailableValue')
     }
 
     return String(value)
   }
 }
 
-const resolveFieldLabel = (fieldPath: string, translate: (key: string) => string): string => {
+const resolveFieldLabel = (fieldPath: string, t: FilingHistoryTranslate = defaultTranslate): string => {
   const i18nKey = FILING_HISTORY_FIELD_MAP[fieldPath]
-  return i18nKey ? translate(i18nKey) : fieldPath
+  return i18nKey ? t(i18nKey) : fieldPath
 }
 
 export const formatFilingHistoryChange = (
   fieldPath: string,
   oldValue: unknown,
   newValue: unknown,
-  translate: (key: string, params?: Record<string, string>) => string
+  t: FilingHistoryTranslate = defaultTranslate
 ): string => {
-  const field = resolveFieldLabel(fieldPath, translate)
+  const field = resolveFieldLabel(fieldPath, t)
   const hasOld = oldValue !== null && oldValue !== undefined && oldValue !== ''
   const hasNew = newValue !== null && newValue !== undefined && newValue !== ''
 
   if (hasOld || hasNew) {
-    return translate('filingHistoryChangeLog.template', {
+    return t('filingHistoryChangeLog.template', {
       field,
-      old: stringifyChangeValue(oldValue, translate),
-      new: stringifyChangeValue(newValue, translate)
+      old: stringifyChangeValue(oldValue, t),
+      new: stringifyChangeValue(newValue, t)
     })
   }
 
-  return translate('filingHistoryChangeLog.fallbackTemplate', { field })
+  return t('filingHistoryChangeLog.fallbackTemplate', { field })
 }
 
 const getRegistrationUpdateChanges = (
   event: FilingHistoryEvent,
-  translate: (key: string, params?: Record<string, string>) => string
+  t: FilingHistoryTranslate = defaultTranslate
 ): string[] => {
   if (!event.structuredDetails || Array.isArray(event.structuredDetails)) {
     return []
@@ -261,10 +252,10 @@ const getRegistrationUpdateChanges = (
 
   return structured.changes.map((change) => {
     return formatFilingHistoryChange(
-      change.field || translate('label.unknownField'),
+      change.field || t('label.unknownField'),
       change.oldValue,
       change.newValue,
-      translate
+      t
     )
   })
 }
@@ -319,24 +310,24 @@ export const buildFilingHistory = async (
 
 export const getFilingHistoryAccordionContent = (
   event: FilingHistoryEvent,
-  translate: (key: string, params?: Record<string, string>) => string
+  t: FilingHistoryTranslate = defaultTranslate
 ): string => {
   if (EMAIL_EVENTS.has(event.eventName)) {
-    const details = getEmailAccordionDetails(event)
+    const details = getEmailAccordionDetails(event, t)
     return details.join('\n')
   }
 
   if (event.eventName === FilingHistoryEventName.CONDITIONS_OF_APPROVAL_UPDATED) {
-    return event.details || translate('label.noApprovalConditions')
+    return event.details || t('label.noApprovalConditions')
   }
 
   if (event.eventName === FilingHistoryEventName.REGISTRATION_UPDATED) {
-    const changes = getRegistrationUpdateChanges(event, translate)
+    const changes = getRegistrationUpdateChanges(event, t)
     if (changes.length > 0) {
       return changes.join('\n\n')
     }
 
-    return event.details || translate('label.noRegistrationUpdateDetails')
+    return event.details || t('label.noRegistrationUpdateDetails')
   }
 
   return ''
@@ -348,10 +339,10 @@ export const shouldRenderFilingHistoryAccordion = (event: FilingHistoryEvent): b
 
 export const isEmptyFilingHistoryAccordion = (
   event: FilingHistoryEvent,
-  translate: (key: string, params?: Record<string, string>) => string
+  t: FilingHistoryTranslate = defaultTranslate
 ): boolean => {
   if (EMAIL_EVENTS.has(event.eventName)) {
-    return getEmailAccordionDetails(event).length === 0
+    return getEmailAccordionDetails(event, t).length === 0
   }
 
   if (event.eventName === FilingHistoryEventName.CONDITIONS_OF_APPROVAL_UPDATED) {
@@ -359,7 +350,7 @@ export const isEmptyFilingHistoryAccordion = (
   }
 
   if (event.eventName === FilingHistoryEventName.REGISTRATION_UPDATED) {
-    return getRegistrationUpdateChanges(event, translate).length === 0 && !event.details
+    return getRegistrationUpdateChanges(event, t).length === 0 && !event.details
   }
 
   return false
@@ -406,11 +397,11 @@ export const useFilingHistory = async () => {
     status,
     historyTableColumns,
     isEmailFilingHistoryEvent,
-    getEmailFilingHistoryDetails,
-    getEmailFilingHistoryTypeLabel,
+    getEmailFilingHistoryDetails: (event: FilingHistoryEvent) => getEmailFilingHistoryDetails(event, t),
+    getEmailFilingHistoryTypeLabel: (event: FilingHistoryEvent) => getEmailFilingHistoryTypeLabel(event, t),
     shouldRenderFilingHistoryAccordion,
-    getFilingHistoryAccordionContent,
-    isEmptyFilingHistoryAccordion,
+    getFilingHistoryAccordionContent: (event: FilingHistoryEvent) => getFilingHistoryAccordionContent(event, t),
+    isEmptyFilingHistoryAccordion: (event: FilingHistoryEvent) => isEmptyFilingHistoryAccordion(event, t),
     t
   }
 }

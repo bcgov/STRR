@@ -25,7 +25,7 @@ const {
   updateRegistrationStatus,
   sendNoticeOfConsiderationForRegistration
 } = useExaminerStore()
-const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
+const { openConfirmActionModal, close: closeConfirmActionModal, openErrorModal } = useStrrModals()
 const { withNoteCheck } = useExaminerNotes()
 
 const hasSetAsideAction = computed((): boolean =>
@@ -149,9 +149,13 @@ const withdrawApplicationAction = async () => {
 }
 
 const suspendRegistrationAction = async () => {
+  // validate email form
+  if (!await isDecisionEmailValid()) { return }
+
   await updateRegistrationStatus(
     activeReg.value.id,
-    RegistrationStatus.SUSPENDED
+    RegistrationStatus.SUSPENDED,
+    decisionEmailContent.value.content
   )
   await refreshDecisionData()
 }
@@ -165,17 +169,22 @@ const sendNoticeAction = async () => {
   // validate email form
   if (!await isDecisionEmailValid()) { return }
 
-  if (isApplication?.value) {
-    if (!applicationNumber.value) { return }
-    await sendNoticeOfConsideration(applicationNumber.value, decisionEmailContent.value.content)
-  } else {
-    await sendNoticeOfConsiderationForRegistration(
-      activeReg.value!.id,
-      decisionEmailContent.value.content
-    )
+  try {
+    if (isApplication?.value) {
+      if (!applicationNumber.value) { return }
+      await sendNoticeOfConsideration(applicationNumber.value, decisionEmailContent.value.content)
+    } else {
+      await sendNoticeOfConsiderationForRegistration(
+        activeReg.value!.id,
+        decisionEmailContent.value.content
+      )
+    }
+    decisionEmailContent.value.content = ''
+    await refreshDecisionData()
+  } catch (error) {
+    console.error(error)
+    openErrorModal('Error', t('error.action.send_noc'), false)
   }
-  decisionEmailContent.value.content = ''
-  await refreshDecisionData()
 }
 
 const actionButtons: ConnectBtnControlItem[] = [
