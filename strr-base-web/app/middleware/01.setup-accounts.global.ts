@@ -2,7 +2,7 @@
 const ACCOUNT_INFO_TTL_MS = 5 * 60 * 1000
 
 export default defineNuxtRouteMiddleware(async () => {
-  if (!import.meta.client) {
+  if (import.meta.server) {
     return
   }
   const { isAuthenticated, kcUser } = useKeycloak()

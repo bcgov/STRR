@@ -1,16 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { ref, reactive } from 'vue'
-import setupAccounts from '~/middleware/01.setup-accounts.global'
 
 const mockIsAuthenticated = ref(true)
 const mockKcUser = ref({ keycloakGuid: 'user-1' })
-
-mockNuxtImport('useKeycloak', () => () => ({
-  isAuthenticated: mockIsAuthenticated,
-  kcUser: mockKcUser
-}))
-
 const mockAccountStore = reactive({
   currentAccount: { id: '' },
   setAccountInfo: vi.fn(),
@@ -18,16 +10,26 @@ const mockAccountStore = reactive({
   checkAccountStatus: vi.fn(),
   getPendingApprovalCount: vi.fn()
 })
+const mockState = new Map<string, ReturnType<typeof ref>>()
 
-mockNuxtImport('useConnectAccountStore', () => () => mockAccountStore)
+vi.stubGlobal('defineNuxtRouteMiddleware', (fn: unknown) => fn)
+vi.stubGlobal('useKeycloak', () => ({ isAuthenticated: mockIsAuthenticated, kcUser: mockKcUser }))
+vi.stubGlobal('useConnectAccountStore', () => mockAccountStore)
+vi.stubGlobal('useState', (key: string, init: () => unknown) => {
+  if (!mockState.has(key)) {
+    mockState.set(key, ref(init()))
+  }
+  return mockState.get(key)
+})
 
+const { default: setupAccounts } = await import('../../app/middleware/01.setup-accounts.global')
 const runMiddleware = () => (setupAccounts as unknown as () => Promise<void>)()
 
 describe('01.setup-accounts.global middleware', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.clearAllMocks()
-    useState('account-info-last-fetch').value = null
+    mockState.clear()
     mockIsAuthenticated.value = true
     mockKcUser.value = { keycloakGuid: 'user-1' }
     mockAccountStore.currentAccount = { id: '' }
