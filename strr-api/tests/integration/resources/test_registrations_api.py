@@ -445,9 +445,18 @@ def test_patch_registration_email_rejects_non_host(
     "payload",
     [
         _email_update_payload("not-an-email"),
+        {"secondaryContact": {"emailAddress": "not-an-email"}},
+        {"propertyManager": {"contact": {"emailAddress": "not-an-email"}}},
+        {"propertyManager": {"business": {"primaryContact": {"emailAddress": "not-an-email"}}}},
         {},
     ],
-    ids=["invalid_email_format", "empty_body"],
+    ids=[
+        "invalid_primary_email",
+        "invalid_secondary_email",
+        "invalid_pm_contact_email",
+        "invalid_pm_business_email",
+        "empty_body",
+    ],
 )
 def test_patch_registration_bad_request_payloads(client, headers_public_user, serializable_host_registration, payload):
     """Test invalid registration PATCH payloads are rejected by schema validation."""
@@ -455,6 +464,93 @@ def test_patch_registration_bad_request_payloads(client, headers_public_user, se
     rv = client.patch(f"/registrations/{rid}", headers=headers_public_user(), json=payload)
 
     assert_status(rv, HTTPStatus.BAD_REQUEST)
+
+
+def test_patch_registration_secondary_contact_and_property_manager_email_ok(
+    client, session, headers_public_user, serializable_host_registration
+):
+    """Test updating secondary contact and property manager emails via PATCH endpoint."""
+    from datetime import datetime
+
+    from strr_api.models import Address, Contact, PropertyContact, PropertyManager
+    from strr_api.models.rental import Registration as RegistrationModel
+
+    rid = serializable_host_registration["registration_id"]
+    reg = session.get(RegistrationModel, rid)
+    assert reg is not None
+
+    # Seed secondary contact and property manager on the registration's rental property
+    mail_addr = Address(
+        country="CA",
+        street_address="300 CoHost St",
+        city="Victoria",
+        province="BC",
+        postal_code="V8V1C3",
+    )
+    session.add(mail_addr)
+    session.flush()
+
+    sec_contact = Contact(
+        firstname="Sec",
+        lastname="Host",
+        email="cohost-old@example.test",
+        phone_number="250-555-0200",
+        address_id=mail_addr.id,
+        date_of_birth=datetime(1990, 1, 1).date(),
+    )
+    pm_contact = Contact(
+        firstname="Prop",
+        lastname="Manager",
+        email="pm-old@example.test",
+        phone_number="250-555-0300",
+        address_id=mail_addr.id,
+    )
+    session.add_all([sec_contact, pm_contact])
+    session.flush()
+
+    sec_pc = PropertyContact(
+        property_id=reg.rental_property.id,
+        contact_id=sec_contact.id,
+        is_primary=False,
+        contact_type=PropertyContact.ContactType.INDIVIDUAL,
+    )
+    pm = PropertyManager(
+        property_manager_type=PropertyManager.PropertyManagerType.INDIVIDUAL,
+        primary_contact_id=pm_contact.id,
+    )
+    session.add_all([sec_pc, pm])
+    session.flush()
+    reg.rental_property.property_manager_id = pm.id
+    session.flush()
+
+    # Patch secondary contact email
+    rv_sec = client.patch(
+        f"/registrations/{rid}",
+        headers=headers_public_user(),
+        json={"secondaryContact": {"emailAddress": "cohost-new@example.com"}},
+    )
+    assert_status(rv_sec, HTTPStatus.OK)
+    data_sec = assert_json_keys(rv_sec, "id", "secondaryContact")
+    assert data_sec["secondaryContact"]["emailAddress"] == "cohost-new@example.com"
+    assert sec_contact.email == "cohost-new@example.com"
+
+    # Patch property manager email
+    rv_pm = client.patch(
+        f"/registrations/{rid}",
+        headers=headers_public_user(),
+        json={"propertyManager": {"contact": {"emailAddress": "pm-new@example.com"}}},
+    )
+    assert_status(rv_pm, HTTPStatus.OK)
+    data_pm = assert_json_keys(rv_pm, "id", "propertyManager")
+    assert data_pm["propertyManager"]["contact"]["emailAddress"] == "pm-new@example.com"
+    assert pm_contact.email == "pm-new@example.com"
+
+    # Verify audit events were recorded for both updates
+    events = Events.fetch_registration_events(rid, applicant_visible_events_only=False)
+    reg_updated_events = [e for e in events if e.event_name == Events.EventName.REGISTRATION_UPDATED]
+    assert len(reg_updated_events) == 2
+    recorded_fields = {json.loads(e.details)["changes"][0]["field"] for e in reg_updated_events}
+    assert recorded_fields == {"secondaryContact.emailAddress", "propertyManager.contact.emailAddress"}
 
 
 def test_patch_registration_no_change_no_event(client, session, headers_public_user, serializable_host_registration):

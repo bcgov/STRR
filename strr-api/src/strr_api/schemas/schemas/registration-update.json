@@ -4,8 +4,8 @@
   "type": "object",
   "title": "Registration Update",
   "description": "Schema for updating registration details. Supports partial updates to nested registration fields.",
-  "properties": {
-    "primaryContact": {
+  "definitions": {
+    "contactEmail": {
       "type": "object",
       "properties": {
         "emailAddress": {
@@ -13,6 +13,35 @@
           "format": "email"
         }
       },
+      "required": ["emailAddress"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "primaryContact": {
+      "$ref": "#/definitions/contactEmail"
+    },
+    "secondaryContact": {
+      "$ref": "#/definitions/contactEmail"
+    },
+    "propertyManager": {
+      "type": "object",
+      "properties": {
+        "contact": {
+          "$ref": "#/definitions/contactEmail"
+        },
+        "business": {
+          "type": "object",
+          "properties": {
+            "primaryContact": {
+              "$ref": "#/definitions/contactEmail"
+            }
+          },
+          "required": ["primaryContact"],
+          "additionalProperties": false
+        }
+      },
+      "minProperties": 1,
       "additionalProperties": false
     }
   },

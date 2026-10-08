@@ -111,6 +111,16 @@ describe('useFilingHistory helpers', () => {
               field: 'primaryContact.emailAddress',
               oldValue: 'old@example.com',
               newValue: 'new@example.com'
+            },
+            {
+              field: 'secondaryContact.emailAddress',
+              oldValue: 'old-cohost@example.com',
+              newValue: 'new-cohost@example.com'
+            },
+            {
+              field: 'propertyManager.contact.emailAddress',
+              oldValue: 'old-pm@example.com',
+              newValue: 'new-pm@example.com'
             }
           ]
         }
@@ -119,8 +129,15 @@ describe('useFilingHistory helpers', () => {
     )
 
     expect(content).toContain('filingHistoryChangeLog.template')
+    expect(content).toContain('filingHistoryFields.primaryContactEmail')
+    expect(content).toContain('filingHistoryFields.secondaryContactEmail')
+    expect(content).toContain('filingHistoryFields.propertyManagerEmail')
     expect(content).toContain('old@example.com')
     expect(content).toContain('new@example.com')
+    expect(content).toContain('old-cohost@example.com')
+    expect(content).toContain('new-cohost@example.com')
+    expect(content).toContain('old-pm@example.com')
+    expect(content).toContain('new-pm@example.com')
     expect(
       isEmptyFilingHistoryAccordion(
         {

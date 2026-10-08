@@ -448,6 +448,104 @@ describe('Store - Examiner', () => {
     }
   )
 
+  it(
+    'should call registration PATCH endpoint with secondaryContact and propertyManager payloads',
+    async () => {
+      const store = useExaminerStore()
+      const regWithContacts = {
+        ...mockHostRegistration,
+        secondaryContact: {
+          ...mockHostRegistration.primaryContact,
+          emailAddress: 'cohost@example.com'
+        },
+        propertyManager: {
+          propertyManagerType: OwnerType.INDIVIDUAL,
+          contact: {
+            firstName: 'Sam',
+            lastName: 'Manager',
+            emailAddress: 'pm-ind@example.com',
+            phoneNumber: '6041112222',
+            mailingAddress: mockHostRegistration.primaryContact.mailingAddress
+          }
+        }
+      } as any
+
+      store.activeRecord = regWithContacts
+      store.startEditRegistrationEmail('secondaryContact')
+      expect(store.registrationEmailContactType).toBe('secondaryContact')
+      expect(store.registrationEmailToEdit).toBe('cohost@example.com')
+
+      mockStrrApi.mockResolvedValueOnce(regWithContacts)
+      await store.patchRegistration(99, 'updated-cohost@example.com')
+      expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: {
+            secondaryContact: {
+              emailAddress: 'updated-cohost@example.com'
+            }
+          }
+        }))
+
+      // Individual property manager
+      mockStrrApi.mockClear()
+      store.startEditRegistrationEmail('propertyManager')
+      expect(store.registrationEmailContactType).toBe('propertyManager')
+      expect(store.registrationEmailToEdit).toBe('pm-ind@example.com')
+
+      mockStrrApi.mockResolvedValueOnce(regWithContacts)
+      await store.patchRegistration(99, 'updated-pm-ind@example.com')
+      expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: {
+            propertyManager: {
+              contact: {
+                emailAddress: 'updated-pm-ind@example.com'
+              }
+            }
+          }
+        }))
+
+      // Business property manager
+      mockStrrApi.mockClear()
+      store.activeRecord = {
+        ...regWithContacts,
+        propertyManager: {
+          propertyManagerType: OwnerType.BUSINESS,
+          business: {
+            legalName: 'PM Corp',
+            mailingAddress: mockHostRegistration.primaryContact.mailingAddress,
+            primaryContact: {
+              firstName: 'Biz',
+              lastName: 'Manager',
+              emailAddress: 'pm-biz@example.com',
+              phoneNumber: '6043334444'
+            }
+          }
+        }
+      } as any
+      store.startEditRegistrationEmail('propertyManager')
+      expect(store.registrationEmailToEdit).toBe('pm-biz@example.com')
+
+      mockStrrApi.mockResolvedValueOnce(store.activeRecord)
+      await store.patchRegistration(99, 'updated-pm-biz@example.com')
+      expect(mockStrrApi).toHaveBeenCalledWith('/registrations/99',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: {
+            propertyManager: {
+              business: {
+                primaryContact: {
+                  emailAddress: 'updated-pm-biz@example.com'
+                }
+              }
+            }
+          }
+        }))
+    }
+  )
+
   it('should call correct endpoint on updateRegistrationStatus', async () => {
     const store = useExaminerStore()
 

@@ -396,7 +396,9 @@ class RegistrationSerializer:
                 "phoneCountryCode": secondary_property_contact.contact.phone_country_code,
                 "extension": secondary_property_contact.contact.phone_extension,
                 "faxNumber": secondary_property_contact.contact.fax_number,
-                "emailAddress": secondary_property_contact.contact.email,
+                "emailAddress": cls._get_override_value(
+                    registration_json, "secondaryContact.emailAddress", secondary_property_contact.contact.email
+                ),
                 "mailingAddress": {
                     "address": secondary_property_contact.contact.address.street_address,
                     "addressLineTwo": secondary_property_contact.contact.address.street_address_additional,
@@ -458,8 +460,19 @@ class RegistrationSerializer:
         if property_manager := registration.rental_property.property_manager:
             primary_contact = property_manager.primary_contact
             contact_dict = cls._build_primary_contact_dict(primary_contact)
+            is_business_pm = property_manager.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS
+            email_override_path = (
+                "propertyManager.business.primaryContact.emailAddress"
+                if is_business_pm
+                else "propertyManager.contact.emailAddress"
+            )
+            contact_dict["emailAddress"] = cls._get_override_value(
+                registration_json,
+                email_override_path,
+                contact_dict.get("emailAddress"),
+            )
 
-            if property_manager.property_manager_type == PropertyManager.PropertyManagerType.BUSINESS:
+            if is_business_pm:
                 registration_data["propertyManager"] = {
                     "business": {
                         "legalName": property_manager.business_legal_name,

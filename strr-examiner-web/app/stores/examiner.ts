@@ -79,6 +79,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const isEditingRegistrationEmail = ref(false)
   const hasUnsavedRegistrationEmailChanges = ref(false)
   const registrationEmailToEdit = ref<string>('')
+  const registrationEmailContactType = ref<HostContactType>('primaryContact')
   const rentalUnitAddressSchema = computed(() => z.object({
     addressLineTwo: z.string().optional().default(''),
     city: z.string().min(1, t('validation.address.city')),
@@ -127,10 +128,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     emailAddress: z.string().trim().min(1, t('validation.required')).email(t('validation.email'))
   }))
 
-  const startEditRegistrationEmail = () => {
+  const startEditRegistrationEmail = (contactType: HostContactType = 'primaryContact') => {
     resetEditRentalUnitAddress()
     isFilingHistoryOpen.value = false
-    registrationEmailToEdit.value = activeReg.value?.primaryContact?.emailAddress || ''
+    registrationEmailContactType.value = contactType
+    registrationEmailToEdit.value = getHostContactEmail(
+      activeReg.value as HostRegistrationResp | undefined,
+      contactType
+    )
     isEditingRegistrationEmail.value = true
     hasUnsavedRegistrationEmailChanges.value = false
   }
@@ -138,6 +143,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const resetEditRegistrationEmail = () => {
     isEditingRegistrationEmail.value = false
     registrationEmailToEdit.value = ''
+    registrationEmailContactType.value = 'primaryContact'
     hasUnsavedRegistrationEmailChanges.value = false
   }
 
@@ -909,21 +915,23 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * Patches registration data.
    *
    * @param {number} registrationId - The registration ID to update.
-   * @param {string} updatedEmail - The new primary contact email.
+   * @param {string} updatedEmail - The new contact email.
+   * @param {HostContactType} [contactType] - The contact type to update.
    * @returns {Promise<void>}
    */
   const patchRegistration = async (
     registrationId: number,
-    updatedEmail: string
+    updatedEmail: string,
+    contactType: HostContactType = registrationEmailContactType.value
   ): Promise<void> => {
     try {
       const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
         method: 'PATCH',
-        body: {
-          primaryContact: {
-            emailAddress: updatedEmail
-          }
-        }
+        body: buildHostContactEmailPatchPayload(
+          contactType,
+          updatedEmail,
+          activeReg.value as HostRegistrationResp | undefined
+        )
       })
       activeRecord.value = resp
       resetEditRegistrationEmail()
@@ -968,6 +976,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     hasUnsavedRentalUnitChanges,
     isEditingRegistrationEmail,
     registrationEmailToEdit,
+    registrationEmailContactType,
     hasUnsavedRegistrationEmailChanges,
 
     applicationsOnlyStatuses,
