@@ -189,14 +189,14 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         class="space-y-2 pl-5"
       >
         <div v-if="activeReg?.secondaryContact" class="flex items-start justify-between gap-2">
-          <div class="flex gap-1">
+          <div class="flex min-w-0 gap-1">
             <UIcon name="i-mdi-account-multiple-outline" class="size-5 shrink-0 text-gray-700" />
             <UButton
               :label="activeReg?.secondaryContact?.contactType === OwnerType.BUSINESS
                 ? activeReg?.secondaryContact?.businessLegalName
                 : displayContactFullName(activeReg?.secondaryContact)"
               :padded="false"
-              class="w-full whitespace-normal text-left"
+              class="min-w-0 shrink whitespace-normal text-left"
               variant="link"
               @click="checkAndPerformAction(() => openHostOwners('secondaryContact'))"
             />
@@ -218,14 +218,14 @@ const isEditAddressDisabled = computed((): boolean => activeReg.value.status ===
         </div>
 
         <div v-if="activeReg?.propertyManager?.propertyManagerType" class="flex items-start justify-between gap-2">
-          <div class="flex gap-1">
+          <div class="flex min-w-0 gap-1">
             <UIcon name="i-mdi-at" class="size-5 shrink-0 text-gray-700" />
             <UButton
               :label="activeReg?.propertyManager?.propertyManagerType === OwnerType.INDIVIDUAL
                 ? displayContactFullName(activeReg?.propertyManager.contact)
                 : activeReg?.propertyManager?.business?.legalName"
               :padded="false"
-              class="w-full whitespace-normal text-left"
+              class="min-w-0 shrink whitespace-normal text-left"
               variant="link"
               @click="checkAndPerformAction(() => openHostOwners('propertyManager'))"
             />
