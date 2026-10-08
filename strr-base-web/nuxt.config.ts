@@ -34,6 +34,10 @@ export default defineNuxtConfig({
     'nuxt-gtag'
   ],
 
+  eslint: {
+    lintOnStart: false
+  },
+
   extends: ['@daxiom/nuxt-core-layer-test'],
 
   imports: {
