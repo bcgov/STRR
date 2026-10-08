@@ -16,25 +16,9 @@ const {
   registrationUpdateSchema
 } = storeToRefs(useExaminerStore())
 
-const formTitle = computed(() => {
-  if (registrationEmailContactType.value === 'secondaryContact') {
-    return t('strr.label.editSecondaryContactEmail')
-  }
-  if (registrationEmailContactType.value === 'propertyManager') {
-    return t('strr.label.editPropertyManagerEmail')
-  }
-  return t('strr.label.editHostEmail')
-})
-
-const formDescription = computed(() => {
-  if (registrationEmailContactType.value === 'secondaryContact') {
-    return t('strr.label.editSecondaryContactEmailDescription')
-  }
-  if (registrationEmailContactType.value === 'propertyManager') {
-    return t('strr.label.editPropertyManagerEmailDescription')
-  }
-  return t('strr.label.editHostEmailDescription')
-})
+const contactEmailI18n = computed(() => HOST_CONTACT_EMAIL_I18N_KEYS[registrationEmailContactType.value])
+const formTitle = computed(() => t(contactEmailI18n.value.title))
+const formDescription = computed(() => t(contactEmailI18n.value.description))
 
 const { openConfirmActionModal, close: closeConfirmActionModal, openErrorModal } = useStrrModals()
 

@@ -4,56 +4,37 @@
   "type": "object",
   "title": "Registration Update",
   "description": "Schema for updating registration details. Supports partial updates to nested registration fields.",
+  "definitions": {
+    "contactEmail": {
+      "type": "object",
+      "properties": {
+        "emailAddress": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": ["emailAddress"],
+      "additionalProperties": false
+    }
+  },
   "properties": {
     "primaryContact": {
-      "type": "object",
-      "properties": {
-        "emailAddress": {
-          "type": "string",
-          "format": "email"
-        }
-      },
-      "required": ["emailAddress"],
-      "additionalProperties": false
+      "$ref": "#/definitions/contactEmail"
     },
     "secondaryContact": {
-      "type": "object",
-      "properties": {
-        "emailAddress": {
-          "type": "string",
-          "format": "email"
-        }
-      },
-      "required": ["emailAddress"],
-      "additionalProperties": false
+      "$ref": "#/definitions/contactEmail"
     },
     "propertyManager": {
       "type": "object",
       "properties": {
         "contact": {
-          "type": "object",
-          "properties": {
-            "emailAddress": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "required": ["emailAddress"],
-          "additionalProperties": false
+          "$ref": "#/definitions/contactEmail"
         },
         "business": {
           "type": "object",
           "properties": {
             "primaryContact": {
-              "type": "object",
-              "properties": {
-                "emailAddress": {
-                  "type": "string",
-                  "format": "email"
-                }
-              },
-              "required": ["emailAddress"],
-              "additionalProperties": false
+              "$ref": "#/definitions/contactEmail"
             }
           },
           "required": ["primaryContact"],

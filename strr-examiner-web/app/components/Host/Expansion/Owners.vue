@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  display: 'primaryContact' | 'secondaryContact' | 'propertyManager'
+  display: HostContactType
 }>()
 defineEmits<{
   close: [void]
@@ -17,15 +17,7 @@ const { isSnapshotRoute } = useExaminerRoute()
 
 const { t } = useNuxtApp().$i18n
 
-const editEmailAriaLabel = computed(() => {
-  if (props.display === 'secondaryContact') {
-    return t('strr.label.editSecondaryContactEmail')
-  }
-  if (props.display === 'propertyManager') {
-    return t('strr.label.editPropertyManagerEmail')
-  }
-  return t('strr.label.editHostEmail')
-})
+const editEmailAriaLabel = computed(() => t(HOST_CONTACT_EMAIL_I18N_KEYS[props.display].title))
 
 const columns = [
   { key: 'name', label: t('label.name') },

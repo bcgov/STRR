@@ -29,7 +29,7 @@ export const useHostExpansion = () => {
   resetEditRentalUnitAddress()
   resetEditRegistrationEmail()
   function openHostOwners (
-    display: 'primaryContact' | 'secondaryContact' | 'propertyManager'
+    display: HostContactType
   ) {
     exp.open(HostExpansionOwners, {
       display,
@@ -50,7 +50,7 @@ export const useHostExpansion = () => {
   }
 
   function openEditRegistrationEmailForm (
-    contactType: 'primaryContact' | 'secondaryContact' | 'propertyManager' = 'primaryContact'
+    contactType: HostContactType = 'primaryContact'
   ) {
     startEditRegistrationEmail(contactType)
     exp.open(EditRegistrationEmailForm, {

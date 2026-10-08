@@ -943,6 +943,13 @@ class RegistrationService:
             )
         return registration
 
+    CONTACT_EMAIL_FIELD_PATHS = (
+        "primaryContact.emailAddress",
+        "secondaryContact.emailAddress",
+        "propertyManager.contact.emailAddress",
+        "propertyManager.business.primaryContact.emailAddress",
+    )
+
     @staticmethod
     def _get_nested_dict_value(data: dict, path: str):
         """Get a nested dictionary value using dot notation."""
@@ -968,26 +975,32 @@ class RegistrationService:
         curr[keys[-1]] = new_value
 
     @staticmethod
-    def _sync_contact_email_to_db(registration: Registration, field_path: str, new_email: str):
-        """Sync updated email address to the underlying Contact DB record when present."""
-        if not registration.rental_property:
-            return
+    def _resolve_contact_for_email_path(registration: Registration, field_path: str) -> Contact | None:
+        """Resolve the underlying Contact DB record corresponding to a registration email path."""
+        rental_property = registration.rental_property
+        if not rental_property:
+            return None
 
-        if field_path == "primaryContact.emailAddress":
-            primary_contacts = [pc for pc in registration.rental_property.contacts if pc.is_primary]
-            if primary_contacts and primary_contacts[0].contact:
-                primary_contacts[0].contact.email = new_email
-        elif field_path == "secondaryContact.emailAddress":
-            secondary_contacts = [pc for pc in registration.rental_property.contacts if not pc.is_primary]
-            if secondary_contacts and secondary_contacts[0].contact:
-                secondary_contacts[0].contact.email = new_email
-        elif field_path in (
+        if field_path in ("primaryContact.emailAddress", "secondaryContact.emailAddress"):
+            is_primary = field_path == "primaryContact.emailAddress"
+            return next(
+                (pc.contact for pc in rental_property.contacts if pc.is_primary is is_primary and pc.contact),
+                None,
+            )
+
+        if field_path in (
             "propertyManager.contact.emailAddress",
             "propertyManager.business.primaryContact.emailAddress",
         ):
-            property_manager = registration.rental_property.property_manager
-            if property_manager and property_manager.primary_contact:
-                property_manager.primary_contact.email = new_email
+            return rental_property.property_manager.primary_contact if rental_property.property_manager else None
+
+        return None
+
+    @staticmethod
+    def _sync_contact_email_to_db(registration: Registration, field_path: str, new_email: str):
+        """Sync updated email address to the underlying Contact DB record when present."""
+        if contact := RegistrationService._resolve_contact_for_email_path(registration, field_path):
+            contact.email = new_email
 
     @staticmethod
     def update_registration(registration: Registration, update_data: dict, user: User) -> Registration:
@@ -999,13 +1012,6 @@ class RegistrationService:
         """
         registration_json = deepcopy(registration.registration_json) if registration.registration_json else {}
 
-        supported_email_paths = (
-            "primaryContact.emailAddress",
-            "secondaryContact.emailAddress",
-            "propertyManager.contact.emailAddress",
-            "propertyManager.business.primaryContact.emailAddress",
-        )
-
         # Use serializer as source of truth for current values because registration_json can be partial overrides.
         serialized_reg = None
         try:
@@ -1013,17 +1019,14 @@ class RegistrationService:
         except Exception:
             serialized_reg = None
 
+        source_data = serialized_reg if serialized_reg is not None else registration_json
         changes = []
-        for field_path in supported_email_paths:
+        for field_path in RegistrationService.CONTACT_EMAIL_FIELD_PATHS:
             new_email = RegistrationService._get_nested_dict_value(update_data, field_path)
             if new_email is None:
                 continue
 
-            if serialized_reg is not None:
-                real_old_value = RegistrationService._get_nested_dict_value(serialized_reg, field_path)
-            else:
-                real_old_value = RegistrationService._get_nested_dict_value(registration_json, field_path)
-
+            real_old_value = RegistrationService._get_nested_dict_value(source_data, field_path)
             if real_old_value == new_email:
                 continue
 
