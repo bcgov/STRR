@@ -228,13 +228,17 @@ const fetchRegistrations = async () => {
   return { registrations: registrationsWithTodos, total }
 }
 
-const { data: registrationsResp, status: registrationsStatus } = await useAsyncData(
+const { data: registrationsResp, status: registrationsStatus, refresh: refreshRegistrations } = await useAsyncData(
   'host-registrations-list',
-  useDebounceFn(fetchRegistrations, 500),
-  {
-    watch: [() => accountStore.currentAccount.id, registrationsPage, searchText],
-    default: () => ({ registrations: [], total: 0 })
-  }
+  fetchRegistrations,
+  { default: () => ({ registrations: [], total: 0 }) }
+)
+
+// debounced so search typing doesn't refetch per keystroke; the initial fetch above runs immediately
+watchDebounced(
+  [() => accountStore.currentAccount.id, registrationsPage, searchText],
+  () => refreshRegistrations(),
+  { debounce: 500 }
 )
 
 const registrationsList = computed(() => mapRegistrationsList(registrationsResp.value?.registrations || []))

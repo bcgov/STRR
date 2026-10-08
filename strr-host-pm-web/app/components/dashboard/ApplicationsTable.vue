@@ -148,11 +148,15 @@ const fetchApplications = async () => {
 
 const { data: applicationsResp, status: applicationsStatus, refresh: refreshApplications } = await useAsyncData(
   'host-applications-list',
-  useDebounceFn(fetchApplications, 500),
-  {
-    watch: [() => accountStore.currentAccount.id, applicationsPage, searchText],
-    default: () => ({ applications: [], total: 0, filteredCount: 0 })
-  }
+  fetchApplications,
+  { default: () => ({ applications: [], total: 0, filteredCount: 0 }) }
+)
+
+// debounced so search typing doesn't refetch per keystroke; the initial fetch above runs immediately
+watchDebounced(
+  [() => accountStore.currentAccount.id, applicationsPage, searchText],
+  () => refreshApplications(),
+  { debounce: 500 }
 )
 
 const applicationsList = computed(() => mapApplicationsList(applicationsResp.value?.applications || []))

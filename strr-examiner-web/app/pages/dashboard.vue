@@ -455,29 +455,36 @@ watch(
   }
 )
 
-const { data: registrationListResp, status: regStatus } = await useAsyncData(
+// debounced so filter typing doesn't refetch per keystroke; the initial fetches below run immediately
+const LIST_REFETCH_DEBOUNCE_MS = 500
+// can watch () => exStore.tableFilters with deep: true once the rest of the table filters are added
+const sharedListWatchSources = [
+  () => isApplicationTab.value,
+  () => exStore.tablePage,
+  () => exStore.tableLimit,
+  () => exStore.tableFilters.registrationType,
+  () => exStore.tableFilters.status,
+  () => exStore.tableFilters.requirements,
+  () => exStore.tableFilters.registrationNumber,
+  () => exStore.tableFilters.searchText,
+  () => exStore.tableFilters.localGov,
+  () => exStore.tableFilters.adjudicator
+]
+
+const {
+  data: registrationListResp,
+  status: regStatus,
+  refresh: refreshRegistrations
+} = await useAsyncData(
   'registration-list-resp',
-  useDebounceFn(() => {
+  () => {
     // only fetch when on registrations tab
     if (isApplicationTab.value) {
-      return Promise.resolve({ applications: [], total: 0, limit: 0, page: 0 })
+      return Promise.resolve({ registrations: [], total: 0, limit: 0, page: 0 })
     }
     return exStore.fetchRegistrations()
-  }, 500),
+  },
   {
-    watch: [
-      () => isApplicationTab.value,
-      () => exStore.tablePage,
-      () => exStore.tableLimit,
-      () => exStore.tableFilters.registrationType,
-      () => exStore.tableFilters.status,
-      () => exStore.tableFilters.subStatus,
-      () => exStore.tableFilters.requirements,
-      () => exStore.tableFilters.registrationNumber,
-      () => exStore.tableFilters.searchText,
-      () => exStore.tableFilters.localGov,
-      () => exStore.tableFilters.adjudicator
-    ],
     default: () => ({ registrations: [], total: 0 }),
     transform: (res: ApiRegistrationListResp) => {
       if (res.registrations.length === 0) {
@@ -504,6 +511,12 @@ const { data: registrationListResp, status: regStatus } = await useAsyncData(
   }
 )
 
+watchDebounced(
+  [...sharedListWatchSources, () => exStore.tableFilters.subStatus],
+  () => refreshRegistrations(),
+  { debounce: LIST_REFETCH_DEBOUNCE_MS }
+)
+
 // Application statuses with an active NOC for which 'New Document' logic will run
 const NOC_APP_STATUSES = new Set([
   ApplicationStatus.NOC_PENDING,
@@ -515,29 +528,20 @@ const NOC_APP_STATUSES = new Set([
 // text currently matches anything, same as existing examiners app
 // cannot combine search and registration type at this point in time - so hacky if/else for the moment
 
-const { data: applicationListResp, status } = await useAsyncData(
+const {
+  data: applicationListResp,
+  status,
+  refresh: refreshApplications
+} = await useAsyncData(
   'application-list-resp',
-  useDebounceFn(() => {
+  () => {
     // only fetch when on applications tab
     if (!isApplicationTab.value) {
       return Promise.resolve({ applications: [], total: 0, limit: 0, page: 0 })
     }
     return exStore.fetchApplications()
-  }, 500),
+  },
   {
-    watch: [
-      () => isApplicationTab.value,
-      () => exStore.tableLimit,
-      () => exStore.tablePage,
-      () => exStore.tableFilters.registrationType,
-      () => exStore.tableFilters.status,
-      () => exStore.tableFilters.registrationNumber,
-      () => exStore.tableFilters.searchText,
-      () => exStore.tableFilters.adjudicator,
-      () => exStore.tableFilters.requirements,
-      () => exStore.tableFilters.localGov
-    ],
-    // deep: true, watch: [() => exStore.tableFilters] // can do this once the rest of the table filters are added
     default: () => ({ applications: [], total: 0 }),
     transform: (res: ApiApplicationsListResp) => {
       if (!res.applications.length) {
@@ -569,6 +573,12 @@ const { data: applicationListResp, status } = await useAsyncData(
       return { applications, total: res.total }
     }
   }
+)
+
+watchDebounced(
+  sharedListWatchSources,
+  () => refreshApplications(),
+  { debounce: LIST_REFETCH_DEBOUNCE_MS }
 )
 
 const applicationOrRegistrationList = computed(() => {
