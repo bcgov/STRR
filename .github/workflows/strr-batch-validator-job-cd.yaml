@@ -29,7 +29,26 @@ on:
           - "prod"
 
 jobs:
+  terraform:
+    # Application deployments outside main/DEV keep their existing behavior.
+    if: >-
+      github.ref_protected &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && inputs.target == 'dev'))
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/strr-terraform.yaml
+    with:
+      stack: validation
+      action: apply
+
   batch-permit-job-cd:
+    needs: terraform
+    if: >-
+      !cancelled() &&
+      (needs.terraform.result == 'success' || needs.terraform.result == 'skipped')
     uses: bcgov/bcregistry-sre/.github/workflows/backend-job-cd.yaml@main
     with:
       target: ${{ inputs.target }}
