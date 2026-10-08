@@ -398,7 +398,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     const { applicationStatuses, registrationStatuses } = processStatusFilters(tableFilters.status)
     const applicationsOnly = isSplitDashboardTableEnabled.value
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
-      return $strrApi('/applications/search', {
+      return $strrApi<ApiApplicationsListResp>('/applications/search', {
         query: {
           limit: tableLimit.value,
           page: tablePage.value,
@@ -416,7 +416,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         }
       })
     } else {
-      return $strrApi('/applications', {
+      return $strrApi<ApiApplicationsListResp>('/applications', {
         query: {
           limit: tableLimit.value,
           page: tablePage.value,
@@ -442,7 +442,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     const mappedSubStatuses = mapRegistrationSubStatuses(tableFilters.subStatus ?? [])
     const queryParams = buildRegistrationQueryParams(registrationStatuses, mappedSubStatuses)
 
-    return $strrApi('/registrations/search', {
+    return $strrApi<ApiRegistrationListResp>('/registrations/search', {
       query: queryParams
     })
   }
