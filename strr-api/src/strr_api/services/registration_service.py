@@ -943,9 +943,11 @@ class RegistrationService:
             )
         return registration
 
+    PRIMARY_CONTACT_EMAIL_PATH = "primaryContact.emailAddress"
+    SECONDARY_CONTACT_EMAIL_PATH = "secondaryContact.emailAddress"
     CONTACT_EMAIL_FIELD_PATHS = (
-        "primaryContact.emailAddress",
-        "secondaryContact.emailAddress",
+        PRIMARY_CONTACT_EMAIL_PATH,
+        SECONDARY_CONTACT_EMAIL_PATH,
         "propertyManager.contact.emailAddress",
         "propertyManager.business.primaryContact.emailAddress",
     )
@@ -981,8 +983,11 @@ class RegistrationService:
         if not rental_property:
             return None
 
-        if field_path in ("primaryContact.emailAddress", "secondaryContact.emailAddress"):
-            is_primary = field_path == "primaryContact.emailAddress"
+        if field_path in (
+            RegistrationService.PRIMARY_CONTACT_EMAIL_PATH,
+            RegistrationService.SECONDARY_CONTACT_EMAIL_PATH,
+        ):
+            is_primary = field_path == RegistrationService.PRIMARY_CONTACT_EMAIL_PATH
             return next(
                 (pc.contact for pc in rental_property.contacts if pc.is_primary is is_primary and pc.contact),
                 None,
