@@ -38,6 +38,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
+from google.auth.compute_engine import Credentials
 
 from strr_api.exceptions import ExternalServiceException
 from strr_api.services.gcp_storage_service import GCPStorageService
@@ -188,6 +189,7 @@ def test_file_upload_and_presigned_url_succeed(mock_get_bucket, mock_uuid):
     mock_blob = MagicMock()
     mock_blob.generate_signed_url.return_value = "https://signed-url"
     mock_get_bucket.return_value.blob.return_value = mock_blob
+    mock_get_bucket.return_value.client.configure_mock(_credentials=None)
 
     upload_key = GCPStorageService.upload_file("text/csv", b"file contents", "target-bucket")
     url = GCPStorageService.get_presigned_url("target-bucket", "file-key", 10)
@@ -195,7 +197,8 @@ def test_file_upload_and_presigned_url_succeed(mock_get_bucket, mock_uuid):
     assert upload_key == "file-key"
     assert url == "https://signed-url"
     mock_uuid.assert_called_once()
-    mock_get_bucket.assert_any_call("target-bucket")
+    assert mock_get_bucket.call_count == 2
+    mock_get_bucket.assert_called_with("target-bucket")
     mock_get_bucket.return_value.blob.assert_any_call("file-key")
     mock_blob.upload_from_string.assert_called_once_with(data=b"file contents", content_type="text/csv")
     mock_blob.generate_signed_url.assert_called_once_with(
@@ -203,6 +206,91 @@ def test_file_upload_and_presigned_url_succeed(mock_get_bucket, mock_uuid):
         expiration=timedelta(minutes=10),
         method="GET",
     )
+
+
+@patch("strr_api.services.gcp_storage_service.Request")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")
+def test_presigned_url_refreshes_invalid_adc_credentials(mock_get_bucket, mock_request):
+    """get_presigned_url supports keyless runtime credentials for signed URLs."""
+    mock_credentials = MagicMock()
+    mock_credentials.valid = False
+    mock_credentials.service_account_email = "sa-job@example.iam.gserviceaccount.com"
+    mock_credentials.token = "access-token"
+
+    mock_blob = MagicMock()
+    mock_blob.generate_signed_url.return_value = "https://signed-url"
+    mock_get_bucket.return_value.client.configure_mock(_credentials=mock_credentials)
+    mock_get_bucket.return_value.blob.return_value = mock_blob
+
+    url = GCPStorageService.get_presigned_url("target-bucket", "file-key", 10)
+
+    assert url == "https://signed-url"
+    mock_get_bucket.assert_called_once_with("target-bucket")
+    mock_credentials.refresh.assert_called_once_with(mock_request.return_value)
+    mock_blob.generate_signed_url.assert_called_once_with(
+        version="v4",
+        expiration=timedelta(minutes=10),
+        method="GET",
+        service_account_email="sa-job@example.iam.gserviceaccount.com",
+        access_token="access-token",
+    )
+
+
+@patch("strr_api.services.gcp_storage_service.Request")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")
+def test_presigned_url_reuses_valid_adc_credentials(mock_get_bucket, mock_request):
+    """get_presigned_url reuses a valid ADC access token."""
+    mock_credentials = MagicMock()
+    mock_credentials.valid = True
+    mock_credentials.service_account_email = "sa-job@example.iam.gserviceaccount.com"
+    mock_credentials.token = "access-token"
+
+    mock_blob = MagicMock()
+    mock_blob.generate_signed_url.return_value = "https://signed-url"
+    mock_get_bucket.return_value.client.configure_mock(_credentials=mock_credentials)
+    mock_get_bucket.return_value.blob.return_value = mock_blob
+
+    url = GCPStorageService.get_presigned_url("target-bucket", "file-key", 10)
+
+    assert url == "https://signed-url"
+    mock_credentials.refresh.assert_not_called()
+    mock_request.assert_not_called()
+    mock_blob.generate_signed_url.assert_called_once_with(
+        version="v4",
+        expiration=timedelta(minutes=10),
+        method="GET",
+        service_account_email="sa-job@example.iam.gserviceaccount.com",
+        access_token="access-token",
+    )
+
+
+@pytest.mark.parametrize("storage_token", [None, "storage-only-token"])
+@patch("google.auth.compute_engine.credentials._metadata.get_service_account_token")
+@patch("google.auth.compute_engine.credentials._metadata.get_service_account_info")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")
+def test_presigned_url_scopes_runtime_token_for_iam(mock_get_bucket, mock_info, mock_token, storage_token):
+    """Cloud Run signing needs an IAM token even when its storage token is valid."""
+    email = "sa-job@example.iam.gserviceaccount.com"
+    storage_scopes = ["https://www.googleapis.com/auth/devstorage.read_write"]
+    credentials = Credentials(service_account_email=email, scopes=storage_scopes)
+    credentials.token = storage_token
+    mock_info.return_value = {"email": email, "scopes": storage_scopes}
+    mock_token.return_value = ("iam-token", datetime.now(timezone.utc) + timedelta(hours=1))
+    mock_get_bucket.return_value.client.configure_mock(_credentials=credentials)
+
+    GCPStorageService.get_presigned_url("target-bucket", "file-key", 10)
+
+    mock_token.assert_called_once()
+    assert mock_token.call_args.kwargs["scopes"] == ["https://www.googleapis.com/auth/iam"]
+    mock_get_bucket.return_value.blob.return_value.generate_signed_url.assert_called_once_with(
+        version="v4",
+        expiration=timedelta(minutes=10),
+        method="GET",
+        service_account_email=email,
+        access_token="iam-token",
+    )
+    assert credentials.scopes == storage_scopes
+    assert credentials.token == storage_token
 
 
 @patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")

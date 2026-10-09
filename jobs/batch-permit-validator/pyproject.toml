@@ -21,7 +21,7 @@ pg8000 = "^1.31.2"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
 # strr-api = {git = "https://github.com/bcgov/STRR.git", branch = "feature-validator-updates", subdirectory = "strr-api"}
-strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "65eb97c9139aefb29c8223cea10ec909ed88ce7b", subdirectory = "strr-api"}
+strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "59fcb3f07e1a21e3fb7b2da1826accbe4c3fbc38", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 redis = "^7.0.0"
 
