@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Centralized setup of logging for the service."""
+
 import logging.config
 import sys
 from os import path

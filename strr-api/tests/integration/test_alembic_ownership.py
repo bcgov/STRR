@@ -92,8 +92,7 @@ def test_alembic_runs_with_configured_owner_role(monkeypatch, migration_mode):
         engine = create_engine(db_url)
         with engine.connect() as conn:
             class_mismatches = conn.execute(
-                text(
-                    """
+                text("""
                     SELECT c.relkind, n.nspname, c.relname, pg_get_userbyid(c.relowner) AS owner
                     FROM pg_class c
                     JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -101,13 +100,11 @@ def test_alembic_runs_with_configured_owner_role(monkeypatch, migration_mode):
                       AND c.relkind IN ('r', 'p', 'S', 'v', 'm', 'f')
                       AND pg_get_userbyid(c.relowner) != :owner
                     ORDER BY c.relkind, c.relname
-                    """
-                ),
+                    """),
                 {"owner": owner},
             ).fetchall()
             type_mismatches = conn.execute(
-                text(
-                    """
+                text("""
                     SELECT n.nspname, t.typname, pg_get_userbyid(t.typowner) AS owner
                     FROM pg_type t
                     JOIN pg_namespace n ON n.oid = t.typnamespace
@@ -115,23 +112,18 @@ def test_alembic_runs_with_configured_owner_role(monkeypatch, migration_mode):
                       AND t.typtype IN ('d', 'e')
                       AND pg_get_userbyid(t.typowner) != :owner
                     ORDER BY t.typname
-                    """
-                ),
+                    """),
                 {"owner": owner},
             ).fetchall()
             current_role = conn.execute(text("SELECT current_user")).scalar_one()
             is_superuser = conn.execute(text("SELECT rolsuper FROM pg_roles WHERE rolname = current_user")).scalar_one()
-            valid_indexes = conn.execute(
-                text(
-                    """
+            valid_indexes = conn.execute(text("""
                     SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid
                     WHERE i.indisvalid AND c.relname IN (
                         'ix_application_registration_id_date', 'ix_registrations_noc_status',
                         'ix_registrations_is_set_aside', 'ix_registrations_decider_id'
                     )
-                    """
-                )
-            ).scalar_one()
+                    """)).scalar_one()
         engine.dispose()
 
         assert class_mismatches == []

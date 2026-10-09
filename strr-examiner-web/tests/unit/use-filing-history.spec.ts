@@ -3,6 +3,7 @@ import {
   mockApplicationFilingHistory,
   mockRegistrationFilingHistory
 } from '../mocks/mockedData'
+import enCA from '../../i18n/locales/en-CA'
 import {
   FilingHistoryEventName,
   FilingHistoryEventType
@@ -10,6 +11,32 @@ import {
 
 describe('useFilingHistory helpers', () => {
   const t = vi.fn((key: string, params?: Record<string, string>) => {
+    if (key.startsWith('filingHistoryEmailTypes.') || key.startsWith('filingHistoryRecipientStatuses.')) {
+      const keys = key.split('.')
+      const root = (enCA as Record<string, unknown>)?.default || enCA
+      let current: unknown = root
+      for (const k of keys) {
+        if (current && typeof current === 'object') {
+          current = (current as Record<string, unknown>)[k]
+        } else {
+          current = undefined
+          break
+        }
+      }
+
+      let strValue: string | undefined
+      if (typeof current === 'string') {
+        strValue = current
+      } else if (current && typeof current === 'object') {
+        const ast = current as { loc?: { source?: string }; body?: { static?: string } }
+        strValue = ast.loc?.source || ast.body?.static
+      }
+
+      if (strValue) {
+        return strValue
+      }
+    }
+
     if (!params) {
       return key
     }
@@ -84,6 +111,16 @@ describe('useFilingHistory helpers', () => {
               field: 'primaryContact.emailAddress',
               oldValue: 'old@example.com',
               newValue: 'new@example.com'
+            },
+            {
+              field: 'secondaryContact.emailAddress',
+              oldValue: 'old-cohost@example.com',
+              newValue: 'new-cohost@example.com'
+            },
+            {
+              field: 'propertyManager.contact.emailAddress',
+              oldValue: 'old-pm@example.com',
+              newValue: 'new-pm@example.com'
             }
           ]
         }
@@ -92,8 +129,15 @@ describe('useFilingHistory helpers', () => {
     )
 
     expect(content).toContain('filingHistoryChangeLog.template')
+    expect(content).toContain('filingHistoryFields.primaryContactEmail')
+    expect(content).toContain('filingHistoryFields.secondaryContactEmail')
+    expect(content).toContain('filingHistoryFields.propertyManagerEmail')
     expect(content).toContain('old@example.com')
     expect(content).toContain('new@example.com')
+    expect(content).toContain('old-cohost@example.com')
+    expect(content).toContain('new-cohost@example.com')
+    expect(content).toContain('old-pm@example.com')
+    expect(content).toContain('new-pm@example.com')
     expect(
       isEmptyFilingHistoryAccordion(
         {
@@ -239,7 +283,7 @@ describe('useFilingHistory helpers', () => {
       }
     }
 
-    expect(getEmailFilingHistoryTypeLabel(event)).toBe('Host full review approved')
+    expect(getEmailFilingHistoryTypeLabel(event, t)).toBe('Host full review approved')
   })
 
   it('returns empty email type label for non-email events', async () => {

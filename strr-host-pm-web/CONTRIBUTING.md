@@ -58,14 +58,18 @@ This app `extends` the shared `strr-base-web` Nuxt layer straight from GitHub by
 
 ```ts
 // nuxt.config.ts
-extends: [
-  ['github:bcgov/STRR/strr-base-web', { install: true }],
-  // '../strr-base-web', // dev only
-  '@daxiom/nuxt-core-layer-test' // extend again, this prevents the payApi plugin error
-],
+const useLocalBaseWeb = process.env.STRR_LOCAL_BASE_WEB === 'true'; // local dev only, set in .env
+
+export default defineNuxtConfig({
+  extends: [
+    useLocalBaseWeb
+      ? '../strr-base-web'
+      : ['github:bcgov/STRR/strr-base-web#main', { install: true }],
+  ],
+});
 ```
 
-If you're also making changes in `strr-base-web`, comment out the `github:` line and uncomment the local path line, then restart the dev server to pick up local layer changes.
+If you're also making changes in `strr-base-web`, set `STRR_LOCAL_BASE_WEB=true` in your `.env` (and run `pnpm install` in `strr-base-web` once), then restart the dev server to pick up local layer changes. CI and deploys don't have a `.env`, so they always use the `github:` layer.
 
 Two things to keep in mind when changing the base layer:
 
@@ -187,7 +191,7 @@ Then include in the report:
 - Browser and version, OS, and device (the app is used on mobile and tablet as well as desktop — include screen size/orientation for layout issues)
 - Login method (BC Services Card or BCeID) and account type, and the Application or Registration number involved — but never the credentials themselves
 - Browser console and network errors (DevTools), if any
-- The *reproduction steps* someone else can follow to recreate the issue (actual vs expected results)
+- The _reproduction steps_ someone else can follow to recreate the issue (actual vs expected results)
 - Whether you can reliably reproduce it
 
 ### Suggesting Enhancements

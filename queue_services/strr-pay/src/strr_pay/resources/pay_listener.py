@@ -32,8 +32,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-"""This Module processes simple cloud event messages for possible strr application payments.
-"""
+"""This Module processes simple cloud event messages for possible strr application payments."""
+
 from dataclasses import dataclass
 from datetime import datetime
 from datetime import timezone

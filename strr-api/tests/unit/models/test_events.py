@@ -14,7 +14,7 @@ def test_renewal_reminder_event(client, session, sample_user):
     event = Events(
         event_type=Events.EventType.REGISTRATION,
         event_name=Events.EventName.RENEWAL_REMINDER_SENT,
-        details="final"
+        details="final",
         # registration_id = db.Column(db.Integer, db.ForeignKey("registrations.id"), nullable=True, index=True)
         # application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True, index=True)
         # user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)

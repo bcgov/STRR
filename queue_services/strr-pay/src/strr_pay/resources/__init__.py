@@ -35,6 +35,7 @@
 
 Provides the service that applies payments to applications.
 """
+
 from flask import Flask
 
 from .pay_listener import bp as pay_listener_endpoint

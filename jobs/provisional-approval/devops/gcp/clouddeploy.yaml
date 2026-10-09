@@ -18,6 +18,7 @@ serialPipeline:
             cloudsql-instances: "bcrbk9-dev:northamerica-northeast1:strr-db-dev"
             run-command: "./run.sh"
             service-account: "sa-job@bcrbk9-dev.iam.gserviceaccount.com"
+            database-iam-username: "sa-job@bcrbk9-dev.iam"
     - targetId: bcrbk9-test
       profiles: [test]
       strategy:
@@ -31,6 +32,7 @@ serialPipeline:
             cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
             run-command: "./run.sh"
             service-account: "sa-job@bcrbk9-test.iam.gserviceaccount.com"
+            database-iam-username: "sa-job@bcrbk9-test.iam"
     - targetId: bcrbk9-uat
       profiles: [uat]
       strategy:
@@ -44,6 +46,7 @@ serialPipeline:
             cloudsql-instances: "bcrbk9-test:northamerica-northeast1:strr-db-test"
             run-command: "./run.sh"
             service-account: "sa-job@bcrbk9-test.iam.gserviceaccount.com"
+            database-iam-username: "sa-job@bcrbk9-test.iam"
     - targetId: bcrbk9-sandbox
       profiles: [sandbox]
       strategy:
@@ -57,6 +60,7 @@ serialPipeline:
             cloudsql-instances: "bcrbk9-tools:northamerica-northeast1:strr-db-sandbox"
             run-command: "./run.sh"
             service-account: "sa-job@bcrbk9-tools.iam.gserviceaccount.com"
+            database-iam-username: "sa-job@bcrbk9-tools.iam"
     - targetId: bcrbk9-prod
       profiles: [prod]
       strategy:
@@ -70,3 +74,4 @@ serialPipeline:
             cloudsql-instances: "bcrbk9-prod:northamerica-northeast1:strr-db-prod"
             run-command: "./run.sh"
             service-account: "sa-job@bcrbk9-prod.iam.gserviceaccount.com"
+            database-iam-username: "sa-job@bcrbk9-prod.iam"

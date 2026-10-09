@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+const useLocalBaseWeb = process.env.STRR_LOCAL_BASE_WEB === 'true' // local dev only, set in .env
+
 export default defineNuxtConfig({
   devtools: { enabled: false },
   ssr: false,
@@ -35,8 +37,9 @@ export default defineNuxtConfig({
   },
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: true }]
-    // '../strr-base-web' // dev only
+    useLocalBaseWeb
+      ? '../strr-base-web'
+      : ['github:bcgov/STRR/strr-base-web#main', { install: true }]
   ],
 
   imports: {
@@ -79,7 +82,17 @@ export default defineNuxtConfig({
 
   vite: {
     optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
-      include: ['zod', 'uuid', 'vitest']
+      include: [
+        'zod',
+        'uuid',
+        'vitest',
+        'date-fns',
+        'v-calendar',
+        'lodash/isEmpty',
+        'lodash/isEqual',
+        'lodash/merge',
+        'lodash/orderBy'
+      ]
     },
     server: {
       watch: {

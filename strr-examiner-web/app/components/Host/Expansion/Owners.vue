@@ -1,14 +1,23 @@
 <script setup lang="ts">
 const props = defineProps<{
-  display: 'primaryContact' | 'secondaryContact' | 'propertyManager'
+  display: HostContactType
 }>()
 defineEmits<{
   close: [void]
 }>()
 const exStore = useExaminerStore()
-const { activeReg, isApplication } = storeToRefs(exStore)
+const {
+  activeReg,
+  isApplication,
+  isEditingRegistrationEmail,
+  isAssignedToUser
+} = storeToRefs(exStore)
+const { openEditRegistrationEmailForm, checkAndPerformAction } = useHostExpansion()
+const { isSnapshotRoute } = useExaminerRoute()
 
 const { t } = useNuxtApp().$i18n
+
+const editEmailAriaLabel = computed(() => t(HOST_CONTACT_EMAIL_I18N_KEYS[props.display].title))
 
 const columns = [
   { key: 'name', label: t('label.name') },
@@ -126,7 +135,23 @@ const hostOwners = computed<HostOwner[]>(() => {
           :content="getPhoneNumber(row.phone)"
         />
         <ConnectInfoWithIcon v-if="row.faxNumber" icon="i-mdi-fax" :content="row.faxNumber" />
-        <ConnectInfoWithIcon v-if="row.emailAddress" icon="i-mdi-at" :content="row.emailAddress" />
+        <div v-if="row.emailAddress" class="flex items-center gap-2">
+          <ConnectInfoWithIcon icon="i-mdi-at" :content="row.emailAddress" />
+          <UButton
+            v-if="!isApplication && !isSnapshotRoute"
+            variant="link"
+            size="xs"
+            color="blue"
+            :disabled="isEditingRegistrationEmail || !isAssignedToUser"
+            data-testid="edit-owner-email-btn"
+            :aria-label="editEmailAriaLabel"
+            class="flex items-center gap-1"
+            @click="checkAndPerformAction(() => openEditRegistrationEmailForm(props.display))"
+          >
+            <UIcon name="i-mdi-pencil-outline" class="size-4" />
+            {{ $t('btn.edit') }}
+          </UButton>
+        </div>
       </div>
     </template>
     <template #additionalInfo-data="{ row }: { row: HostOwner }">
@@ -162,7 +187,23 @@ const hostOwners = computed<HostOwner[]>(() => {
               :content="getPhoneNumber(row.phone)"
             />
             <ConnectInfoWithIcon v-if="row.faxNumber" icon="i-mdi-fax" :content="row.faxNumber" />
-            <ConnectInfoWithIcon v-if="row.emailAddress" icon="i-mdi-at" :content="row.emailAddress" />
+            <div v-if="row.emailAddress" class="flex items-center gap-2">
+              <ConnectInfoWithIcon icon="i-mdi-at" :content="row.emailAddress" />
+              <UButton
+                v-if="!isApplication && !isSnapshotRoute"
+                variant="link"
+                size="xs"
+                color="blue"
+                :disabled="isEditingRegistrationEmail || !isAssignedToUser"
+                data-testid="edit-owner-email-btn"
+                :aria-label="editEmailAriaLabel"
+                class="flex items-center gap-1"
+                @click="checkAndPerformAction(() => openEditRegistrationEmailForm(props.display))"
+              >
+                <UIcon name="i-mdi-pencil-outline" class="size-4" />
+                {{ $t('btn.edit') }}
+              </UButton>
+            </div>
           </div>
         </div>
       </div>

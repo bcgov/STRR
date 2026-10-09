@@ -150,6 +150,10 @@ export default {
       host: 'Host',
       editHostEmail: 'Edit Host Email',
       editHostEmailDescription: 'Update the host primary contact email for this registration.',
+      editSecondaryContactEmail: 'Edit Co-host Email',
+      editSecondaryContactEmailDescription: 'Update the co-host contact email for this registration.',
+      editPropertyManagerEmail: 'Edit Property Manager Email',
+      editPropertyManagerEmailDescription: 'Update the property manager contact email for this registration.',
       strataHotel: 'Strata Hotel',
       platform: 'Platform',
       townHome: 'Town Home',
@@ -262,7 +266,10 @@ export default {
       hostAddressNotSame: 'PR requirement applies',
       hostIsBusiness: 'Host is a business',
       unitNumberMissing: 'Unit Number Missing',
-      notSameProperty: "Unit not on the same property as host's principal residence"
+      notSameProperty: "Unit not on the same property as host's principal residence",
+      emailDeliveryFailed: 'Delivery Failed',
+      emailDeliveryFailedTooltip: 'Email notification could not be delivered to this address. Click to view history.',
+      viewDeliveryDetails: 'View delivery failure details in history'
     }
   },
   text: {
@@ -687,7 +694,9 @@ export default {
     STRATA_HOTEL: 'Strata Hotel'
   },
   filingHistoryFields: {
-    primaryContactEmail: 'Primary Contact Email'
+    primaryContactEmail: 'Primary Contact Email',
+    secondaryContactEmail: 'Secondary Contact Email',
+    propertyManagerEmail: 'Property Manager Email'
   },
   filingHistoryChangeLog: {
     template: 'Changed {field} from "{old}" to "{new}"',
@@ -735,6 +744,37 @@ export default {
     CONDITIONS_OF_APPROVAL_UPDATED: 'Registration - Updated conditions of approval',
     REGISTRATION_DOCUMENT_UPLOADED: 'Registration document uploaded',
     RENEWAL_REMINDER_SENT: 'Renewal reminder sent'
+  },
+  filingHistoryEmailTypes: {
+    HOST_AUTO_APPROVED: 'Host auto approved',
+    HOST_FULL_REVIEW_APPROVED: 'Host full review approved',
+    HOST_PROVISIONAL_REVIEW: 'Host provisional review',
+    HOST_PROVISIONALLY_APPROVED: 'Host registration fully approved',
+    HOST_REGISTRATION_ACTIVE: 'Host registration active',
+    HOST_REGISTRATION_CANCELLED: 'Host registration cancelled',
+    HOST_REGISTRATION_SUSPENDED: 'Host registration suspended',
+    HOST_RENEWAL_REMINDER: 'Host renewal reminder',
+    HOST_DECLINED: 'Host application refused',
+    NOC: 'Notice of consideration',
+    REGISTRATION_NOC: 'Notice of consideration',
+    STRATA_HOTEL_NOC: 'Notice of consideration',
+    STRATA_HOTEL_REGISTRATION_NOC: 'Notice of consideration',
+    PROVISIONAL_REVIEW_NOC: 'Notice of consideration',
+    STRATA_HOTEL_REGISTRATION_ACTIVE: 'Strata hotel registration active',
+    STRATA_HOTEL_REGISTRATION_CANCELLED: 'Strata hotel registration cancelled',
+    STRATA_HOTEL_RENEWAL_REMINDER: 'Strata hotel renewal reminder',
+    PLATFORM_AUTO_APPROVED: 'Platform auto approved',
+    PLATFORM_REGISTRATION_CANCELLED: 'Platform registration cancelled',
+    PLATFORM_RENEWAL_REMINDER: 'Platform renewal reminder'
+  },
+  filingHistoryRecipientStatuses: {
+    CREATED: 'Created',
+    IN_TRANSIT: 'In transit',
+    PENDING: 'Pending',
+    SENT: 'Sent',
+    DELIVERED: 'Delivered',
+    FAILED: 'Failed',
+    UNKNOWN: 'Unknown'
   },
   approvalConditions: {
     principalResidence: 'Principal Residence',

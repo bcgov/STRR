@@ -5,10 +5,14 @@ import { enI18n } from '../mocks/i18n'
 import ApplicationDetails from '~/pages/examine/[applicationId].vue'
 import {
   ApplicationInfoHeader, HostSubHeader, HostSupportingInfo,
-  StrataSubHeader, PlatformSubHeader, UBadge
+  StrataSubHeader, StrataSupportingInfo, SupportingDocuments,
+  PlatformSubHeader, UBadge
 } from '#components'
 
 const isAssignedToUser = ref(true)
+const hasRegistrationNumber = ref(false)
+const isSnapshotRoute = ref(false)
+const mockOpenPrUpload = vi.fn()
 const mockRightButtons = [
   { key: 'approve', disabled: false },
   { key: 'reject', disabled: false },
@@ -20,7 +24,8 @@ vi.mock('@/composables/useExaminerRoute', () => ({
     getRouteConfig: () => ({
       rightButtons: mockRightButtons
     }),
-    updateRouteAndButtons: vi.fn()
+    updateRouteAndButtons: vi.fn(),
+    isSnapshotRoute
   })
 }))
 
@@ -40,7 +45,7 @@ vi.mock('@/stores/examiner', () => ({
     emailContent: ref({ content: '' }),
     activePaymentTotal: ref(null),
     activePaymentDate: ref(null),
-    hasRegistrationNumber: ref(false),
+    hasRegistrationNumber,
     decisionEmailContent: ref({ content: '' }),
     decisionEmailFormRef: ref({
       clear: vi.fn()
@@ -48,6 +53,19 @@ vi.mock('@/stores/examiner', () => ({
     conditions: ref([]),
     customConditions: ref(null),
     minBookingDays: ref(null)
+  })
+}))
+
+vi.mock('@/stores/document', () => ({
+  useExaminerDocumentStore: () => ({
+    isPrUploadOpen: ref(false),
+    isBlUploadOpen: ref(false),
+    selectedDocType: ref(undefined),
+    openPrUpload: mockOpenPrUpload,
+    openBlUpload: vi.fn(),
+    closeUpload: vi.fn(),
+    addDocumentToRegistration: vi.fn().mockResolvedValue({}),
+    addDocumentToApplication: vi.fn().mockResolvedValue({})
   })
 }))
 
@@ -67,6 +85,8 @@ describe('Strata Application Details Page', () => {
     expect(wrapper.findComponent(HostSubHeader).exists()).toBe(false)
     expect(wrapper.findComponent(HostSupportingInfo).exists()).toBe(false)
     expect(wrapper.findComponent(StrataSubHeader).exists()).toBe(true)
+    expect(wrapper.findComponent(StrataSupportingInfo).exists()).toBe(true)
+    expect(wrapper.findComponent(SupportingDocuments).exists()).toBe(true)
     expect(wrapper.findComponent(PlatformSubHeader).exists()).toBe(false)
   })
 
@@ -116,6 +136,36 @@ describe('Strata Application Details Page', () => {
     const { location } = mockStrataApplication.registration.strataHotelDetails
     expect(primaryBuilding.text()).toContain(location.address)
     expect(primaryBuilding.text()).toContain(location.city)
+  })
+
+  it('should render Strata SupportingInfo with vertical document layout and Add Document button', async () => {
+    const strataSupportingInfo = wrapper.findComponent(StrataSupportingInfo)
+    expect(strataSupportingInfo.exists()).toBe(true)
+    expect(strataSupportingInfo.findTestId('supporting-info-section').exists()).toBe(true)
+    expect(strataSupportingInfo.findTestId('supporting-info-documents').exists()).toBe(true)
+
+    const initialDocs = strataSupportingInfo.findTestId('initial-app-documents')
+    expect(initialDocs.exists()).toBe(true)
+    expect(initialDocs.classes()).toContain('flex-col')
+    expect(initialDocs.classes()).toContain('gap-y-2')
+
+    const addDocBtn = strataSupportingInfo.findTestId('add-pr-doc-btn')
+    expect(addDocBtn.exists()).toBe(true)
+    expect(addDocBtn.text()).toContain('Add Document')
+
+    await addDocBtn.trigger('click')
+    expect(mockOpenPrUpload).toHaveBeenCalled()
+  })
+
+  it('should hide Add Document button on Strata application when registration already exists', async () => {
+    hasRegistrationNumber.value = true
+    await nextTick()
+
+    const strataSupportingInfo = wrapper.findComponent(StrataSupportingInfo)
+    expect(strataSupportingInfo.findTestId('add-pr-doc-btn').exists()).toBe(false)
+
+    hasRegistrationNumber.value = false
+    await nextTick()
   })
 
   it('should hide NOC email and disable action buttons when isAssignedToUser is false', async () => {

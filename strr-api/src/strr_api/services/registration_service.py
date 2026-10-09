@@ -37,6 +37,7 @@
 # pylint: disable=C0302
 # pylint: disable=R0904
 """Manages registration model interactions."""
+
 import json
 import logging
 import random
@@ -453,11 +454,11 @@ class RegistrationService:
             nickname=registration_request.unitAddress.nickname,
             parcel_identifier=registration_request.unitDetails.parcelIdentifier,
             local_business_licence=registration_request.unitDetails.businessLicense,
-            local_business_licence_expiry_date=datetime.strptime(
-                registration_request.unitDetails.businessLicenseExpiryDate, "%Y-%m-%d"
-            ).date()
-            if registration_request.unitDetails.businessLicenseExpiryDate
-            else None,
+            local_business_licence_expiry_date=(
+                datetime.strptime(registration_request.unitDetails.businessLicenseExpiryDate, "%Y-%m-%d").date()
+                if registration_request.unitDetails.businessLicenseExpiryDate
+                else None
+            ),
             bl_exempt_reason=registration_request.unitDetails.blExemptReason,
             space_type=registration_request.unitDetails.rentalUnitSpaceType,
             host_residence=registration_request.unitDetails.hostResidence,
@@ -523,16 +524,18 @@ class RegistrationService:
                 date_of_birth=registration_request.secondaryContact.dateOfBirth,
                 social_insurance_number=registration_request.secondaryContact.socialInsuranceNumber,
                 business_number=registration_request.secondaryContact.businessNumber,
-                address=Address(
-                    country=registration_request.secondaryContact.mailingAddress.country,
-                    street_address=registration_request.secondaryContact.mailingAddress.address,
-                    street_address_additional=registration_request.secondaryContact.mailingAddress.addressLineTwo,
-                    city=registration_request.secondaryContact.mailingAddress.city,
-                    province=registration_request.secondaryContact.mailingAddress.province,
-                    postal_code=registration_request.secondaryContact.mailingAddress.postalCode,
-                )
-                if registration_request.secondaryContact.mailingAddress
-                else None,
+                address=(
+                    Address(
+                        country=registration_request.secondaryContact.mailingAddress.country,
+                        street_address=registration_request.secondaryContact.mailingAddress.address,
+                        street_address_additional=registration_request.secondaryContact.mailingAddress.addressLineTwo,
+                        city=registration_request.secondaryContact.mailingAddress.city,
+                        province=registration_request.secondaryContact.mailingAddress.province,
+                        postal_code=registration_request.secondaryContact.mailingAddress.postalCode,
+                    )
+                    if registration_request.secondaryContact.mailingAddress
+                    else None
+                ),
             )
             rental_property.contacts.append(secondary_property_contact)
 
@@ -940,59 +943,117 @@ class RegistrationService:
             )
         return registration
 
+    PRIMARY_CONTACT_EMAIL_PATH = "primaryContact.emailAddress"
+    SECONDARY_CONTACT_EMAIL_PATH = "secondaryContact.emailAddress"
+    CONTACT_EMAIL_FIELD_PATHS = (
+        PRIMARY_CONTACT_EMAIL_PATH,
+        SECONDARY_CONTACT_EMAIL_PATH,
+        "propertyManager.contact.emailAddress",
+        "propertyManager.business.primaryContact.emailAddress",
+    )
+
+    @staticmethod
+    def _get_nested_dict_value(data: dict, path: str):
+        """Get a nested dictionary value using dot notation."""
+        if not data:
+            return None
+        value = data
+        for key in path.split("."):
+            if isinstance(value, dict) and key in value:
+                value = value[key]
+            else:
+                return None
+        return value
+
+    @staticmethod
+    def _set_nested_dict_value(data: dict, path: str, new_value):
+        """Set a nested dictionary value using dot notation, creating intermediate dicts as needed."""
+        keys = path.split(".")
+        curr = data
+        for key in keys[:-1]:
+            if key not in curr or not isinstance(curr[key], dict):
+                curr[key] = {}
+            curr = curr[key]
+        curr[keys[-1]] = new_value
+
+    @staticmethod
+    def _resolve_contact_for_email_path(registration: Registration, field_path: str) -> Contact | None:
+        """Resolve the underlying Contact DB record corresponding to a registration email path."""
+        rental_property = registration.rental_property
+        if not rental_property:
+            return None
+
+        if field_path in (
+            RegistrationService.PRIMARY_CONTACT_EMAIL_PATH,
+            RegistrationService.SECONDARY_CONTACT_EMAIL_PATH,
+        ):
+            is_primary = field_path == RegistrationService.PRIMARY_CONTACT_EMAIL_PATH
+            return next(
+                (pc.contact for pc in rental_property.contacts if pc.is_primary is is_primary and pc.contact),
+                None,
+            )
+
+        if field_path in (
+            "propertyManager.contact.emailAddress",
+            "propertyManager.business.primaryContact.emailAddress",
+        ):
+            return rental_property.property_manager.primary_contact if rental_property.property_manager else None
+
+        return None
+
+    @staticmethod
+    def _sync_contact_email_to_db(registration: Registration, field_path: str, new_email: str):
+        """Sync updated email address to the underlying Contact DB record when present."""
+        if contact := RegistrationService._resolve_contact_for_email_path(registration, field_path):
+            contact.email = new_email
+
     @staticmethod
     def update_registration(registration: Registration, update_data: dict, user: User) -> Registration:
         """
         Updates registration details and creates an event with change tracking.
 
-        Supports updating primaryContact.emailAddress.
+        Supports updating primaryContact.emailAddress, secondaryContact.emailAddress,
+        propertyManager.contact.emailAddress, and propertyManager.business.primaryContact.emailAddress.
         """
         registration_json = deepcopy(registration.registration_json) if registration.registration_json else {}
-        new_email = update_data.get("primaryContact", {}).get("emailAddress")
 
-        if new_email is None:
-            return registration
-
-        # Use serializer as source of truth for current value because registration_json can be partial overrides.
+        # Use serializer as source of truth for current values because registration_json can be partial overrides.
+        serialized_reg = None
         try:
-            from strr_api.responses import RegistrationSerializer
-
-            real_old_value = (
-                RegistrationSerializer.serialize(registration).get("primaryContact", {}).get("emailAddress")
-            )
+            serialized_reg = RegistrationSerializer.serialize(registration)
         except Exception:
-            real_old_value = registration_json.get("primaryContact", {}).get("emailAddress")
+            serialized_reg = None
 
-        if real_old_value == new_email:
+        source_data = serialized_reg if serialized_reg is not None else registration_json
+        changes = []
+        for field_path in RegistrationService.CONTACT_EMAIL_FIELD_PATHS:
+            new_email = RegistrationService._get_nested_dict_value(update_data, field_path)
+            if new_email is None:
+                continue
+
+            real_old_value = RegistrationService._get_nested_dict_value(source_data, field_path)
+            if real_old_value == new_email:
+                continue
+
+            RegistrationService._set_nested_dict_value(registration_json, field_path, new_email)
+            RegistrationService._sync_contact_email_to_db(registration, field_path, new_email)
+            changes.append(
+                {
+                    "field": field_path,
+                    "oldValue": real_old_value,
+                    "newValue": new_email,
+                }
+            )
+
+        if not changes:
             return registration
 
-        if "primaryContact" not in registration_json or not isinstance(registration_json["primaryContact"], dict):
-            registration_json["primaryContact"] = {}
-
-        registration_json["primaryContact"]["emailAddress"] = new_email
         registration.registration_json = registration_json
         registration.updated_date = datetime.now()
         flag_modified(registration, "registration_json")
-
-        # Sync primaryContact.emailAddress change to the Contact DB record.
-        if registration.rental_property:
-            primary_contacts = [pc for pc in registration.rental_property.contacts if pc.is_primary]
-            if primary_contacts:
-                primary_contacts[0].contact.email = new_email
-
         registration.save()
 
-        event_details = json.dumps(
-            {
-                "changes": [
-                    {
-                        "field": "primaryContact.emailAddress",
-                        "oldValue": real_old_value,
-                        "newValue": new_email,
-                    }
-                ]
-            }
-        )
+        event_details = json.dumps({"changes": changes})
 
         EventsService.save_event(
             event_type=Events.EventType.REGISTRATION,

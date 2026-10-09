@@ -35,6 +35,7 @@
 
 This module is the API for the Short-Term Rental Registry.
 """
+
 import logging.config
 import os
 

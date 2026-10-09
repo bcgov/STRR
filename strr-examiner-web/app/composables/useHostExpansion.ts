@@ -8,26 +8,28 @@ import EditRegistrationEmailForm from '~/components/Host/Expansion/EditRegistrat
 
 export const useHostExpansion = () => {
   const exp = useStrrExpansion()
+  const examinerStore = useExaminerStore()
   const {
     startEditRentalUnitAddress,
     resetEditRentalUnitAddress,
     startEditRegistrationEmail,
     resetEditRegistrationEmail
-  } = useExaminerStore()
+  } = examinerStore
   const {
     isFilingHistoryOpen,
+    highlightedFilingHistoryEvent,
     isEditingRentalUnit,
     hasUnsavedRentalUnitChanges,
     isEditingRegistrationEmail,
     hasUnsavedRegistrationEmailChanges
-  } = storeToRefs(useExaminerStore())
+  } = storeToRefs(examinerStore)
   const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
   const { t } = useNuxtApp().$i18n
   isFilingHistoryOpen.value = false // reset so it's starts hidden by default
   resetEditRentalUnitAddress()
   resetEditRegistrationEmail()
   function openHostOwners (
-    display: 'primaryContact' | 'secondaryContact' | 'propertyManager'
+    display: HostContactType
   ) {
     exp.open(HostExpansionOwners, {
       display,
@@ -47,8 +49,10 @@ export const useHostExpansion = () => {
     })
   }
 
-  function openEditRegistrationEmailForm () {
-    startEditRegistrationEmail()
+  function openEditRegistrationEmailForm (
+    contactType: HostContactType = 'primaryContact'
+  ) {
+    startEditRegistrationEmail(contactType)
     exp.open(EditRegistrationEmailForm, {
       onClose () {
         exp.close()
@@ -85,18 +89,29 @@ export const useHostExpansion = () => {
   function close () {
     exp.close()
     isFilingHistoryOpen.value = false
+    highlightedFilingHistoryEvent.value = null
+  }
+
+  const openFilingHistory = (targetEvent?: FilingHistoryEvent) => {
+    if (targetEvent) {
+      highlightedFilingHistoryEvent.value = targetEvent
+    }
+    isFilingHistoryOpen.value = true
+    exp.open(HostExpansionFilingHistory, {
+      onClose () {
+        exp.close()
+        isFilingHistoryOpen.value = false
+        highlightedFilingHistoryEvent.value = null
+      }
+    })
   }
 
   const toggleFilingHistory = () => {
-    isFilingHistoryOpen.value = !isFilingHistoryOpen.value
-    isFilingHistoryOpen.value
-      ? exp.open(HostExpansionFilingHistory, {
-        onClose () {
-          exp.close()
-          isFilingHistoryOpen.value = false
-        }
-      })
-      : exp.close()
+    if (isFilingHistoryOpen.value) {
+      close()
+    } else {
+      openFilingHistory()
+    }
   }
 
   return {
@@ -104,6 +119,7 @@ export const useHostExpansion = () => {
     openEditRentalUnitForm,
     openEditRegistrationEmailForm,
     checkAndPerformAction,
+    openFilingHistory,
     toggleFilingHistory,
     close
   }

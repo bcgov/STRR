@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+const useLocalBaseWeb = process.env.STRR_LOCAL_BASE_WEB === 'true' // local dev only, set in .env
+
 export default defineNuxtConfig({
   devtools: { enabled: false },
   ssr: false,
@@ -20,8 +22,9 @@ export default defineNuxtConfig({
   ],
 
   extends: [
-    ['github:bcgov/STRR/strr-base-web', { install: true }]
-    // '../strr-base-web' // dev only
+    useLocalBaseWeb
+      ? '../strr-base-web'
+      : ['github:bcgov/STRR/strr-base-web#main', { install: true }]
   ],
 
   imports: {

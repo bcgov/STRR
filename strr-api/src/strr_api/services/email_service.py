@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """This module provides Email type services."""
+
 import logging
 from typing import Optional
 
@@ -127,14 +128,18 @@ class EmailService:
     def send_notice_of_consideration_for_application(application: Application):
         """Send notice of consideration for the application."""
         try:
+            registration_type = getattr(application.registration_type, "value", application.registration_type)
+            if registration_type == Registration.RegistrationType.STRATA_HOTEL.value:
+                email_type = "STRATA_HOTEL_NOC"
+            elif application.status == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING:
+                email_type = "PROVISIONAL_REVIEW_NOC"
+            else:
+                email_type = "NOC"
+
             EmailService._publish_tracked_email(
                 payload_data={
                     "applicationNumber": application.application_number,
-                    "emailType": (
-                        "PROVISIONAL_REVIEW_NOC"
-                        if application.status == Application.Status.PROVISIONAL_REVIEW_NOC_PENDING
-                        else "NOC"
-                    ),
+                    "emailType": email_type,
                 },
                 application_id=application.id,
             )
@@ -186,10 +191,16 @@ class EmailService:
 
     @staticmethod
     def send_notice_of_consideration_for_registration(registration: Registration):
-        """Send notice of consideration for the application."""
+        """Send notice of consideration for the registration."""
         try:
+            registration_type = getattr(registration.registration_type, "value", registration.registration_type)
+            email_type = (
+                "STRATA_HOTEL_REGISTRATION_NOC"
+                if registration_type == Registration.RegistrationType.STRATA_HOTEL.value
+                else "REGISTRATION_NOC"
+            )
             EmailService._publish_tracked_email(
-                payload_data={"registrationNumber": registration.registration_number, "emailType": "REGISTRATION_NOC"},
+                payload_data={"registrationNumber": registration.registration_number, "emailType": email_type},
                 registration_id=registration.id,
             )
         except Exception as err:

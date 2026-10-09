@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { Form } from '#ui/types'
 
 export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const { getAccountApplications } = useStrrApi()
@@ -8,6 +9,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const strrModal = useStrrModals()
   const { kcUser } = useKeycloak()
   const isFilingHistoryOpen = ref(false) // track state of Filing History between different expansion panels
+  const filingHistoryEvents = ref<FilingHistoryEvent[]>([])
+  const highlightedFilingHistoryEvent = ref<FilingHistoryEvent | null>(null)
   const tableLimit = ref(50)
   const tablePage = ref(1)
   const activeRecord = ref<HousApplicationResponse | HousRegistrationResponse | undefined>(undefined)
@@ -17,19 +20,24 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     return !!activeRecord.value && 'registration' in activeRecord.value
   })
 
-  const activeReg = computed(() => {
+  const activeReg = computed<ExaminerActiveRegistration | undefined>(() => {
     return isApplication.value
-      ? activeRecord.value?.registration
-      : activeRecord.value
+      ? (activeRecord.value as HousApplicationResponse)?.registration
+      : (activeRecord.value as HousRegistrationResponse)
   })
-  const activeHeader = computed(() => {
+  const activeHeader = computed<ExaminerActiveHeader | undefined>(() => {
     const currentRecordHeader = activeRecord.value?.header
     if (!isApplication.value) {
-      const applicationHeader = currentRecordHeader?.applications?.[0]
-      if (applicationHeader && currentRecordHeader) {
+      const regHeader = currentRecordHeader as HousRegistrationResponse['header'] | undefined
+      const applicationHeader = regHeader?.applications?.[0]
+      if (applicationHeader && regHeader) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { applications, ...rest } = currentRecordHeader
-        return { ...applicationHeader, ...rest }
+        const { applications, ...rest } = regHeader
+        return {
+          ...applicationHeader,
+          ...rest,
+          registrationNumber: (activeRecord.value as HousRegistrationResponse)?.registrationNumber
+        }
       }
     }
     return currentRecordHeader
@@ -71,6 +79,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const isEditingRegistrationEmail = ref(false)
   const hasUnsavedRegistrationEmailChanges = ref(false)
   const registrationEmailToEdit = ref<string>('')
+  const registrationEmailContactType = ref<HostContactType>('primaryContact')
   const rentalUnitAddressSchema = computed(() => z.object({
     addressLineTwo: z.string().optional().default(''),
     city: z.string().min(1, t('validation.address.city')),
@@ -119,10 +128,14 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     emailAddress: z.string().trim().min(1, t('validation.required')).email(t('validation.email'))
   }))
 
-  const startEditRegistrationEmail = () => {
+  const startEditRegistrationEmail = (contactType: HostContactType = 'primaryContact') => {
     resetEditRentalUnitAddress()
     isFilingHistoryOpen.value = false
-    registrationEmailToEdit.value = activeReg.value?.primaryContact?.emailAddress || ''
+    registrationEmailContactType.value = contactType
+    registrationEmailToEdit.value = getHostContactEmail(
+      activeReg.value as HostRegistrationResp | undefined,
+      contactType
+    )
     isEditingRegistrationEmail.value = true
     hasUnsavedRegistrationEmailChanges.value = false
   }
@@ -130,6 +143,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   const resetEditRegistrationEmail = () => {
     isEditingRegistrationEmail.value = false
     registrationEmailToEdit.value = ''
+    registrationEmailContactType.value = 'primaryContact'
     hasUnsavedRegistrationEmailChanges.value = false
   }
 
@@ -148,11 +162,11 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING ||
       activeHeader.value?.status === ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED ||
        (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with suspend action btn
-        activeReg.value.header.examinerActions.includes(RegistrationActionsE.SUSPEND)) ||
+        !!activeReg.value?.header?.examinerActions?.includes(RegistrationActionsE.SUSPEND)) ||
        (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with cancel action btn
-        activeReg.value.header.examinerActions.includes(RegistrationActionsE.CANCEL)) ||
+        !!activeReg.value?.header?.examinerActions?.includes(RegistrationActionsE.CANCEL)) ||
        (activeReg.value?.status === RegistrationStatus.ACTIVE && // show compose email for active Reg with send NOC action btn
-        activeReg.value.header.examinerActions.includes(RegistrationActionsE.SEND_NOC))
+        !!activeReg.value?.header?.examinerActions?.includes(RegistrationActionsE.SEND_NOC))
   })
   const sendEmailSchema = computed(() => z.object({
     content: z.string()
@@ -384,7 +398,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     const { applicationStatuses, registrationStatuses } = processStatusFilters(tableFilters.status)
     const applicationsOnly = isSplitDashboardTableEnabled.value
     if (tableFilters.searchText && tableFilters.searchText.length > 2) {
-      return $strrApi('/applications/search', {
+      return $strrApi<ApiApplicationsListResp>('/applications/search', {
         query: {
           limit: tableLimit.value,
           page: tablePage.value,
@@ -402,7 +416,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
         }
       })
     } else {
-      return $strrApi('/applications', {
+      return $strrApi<ApiApplicationsListResp>('/applications', {
         query: {
           limit: tableLimit.value,
           page: tablePage.value,
@@ -428,7 +442,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     const mappedSubStatuses = mapRegistrationSubStatuses(tableFilters.subStatus ?? [])
     const queryParams = buildRegistrationQueryParams(registrationStatuses, mappedSubStatuses)
 
-    return $strrApi('/registrations/search', {
+    return $strrApi<ApiRegistrationListResp>('/registrations/search', {
       query: queryParams
     })
   }
@@ -749,6 +763,25 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   }
 
   /**
+   * Load filing history events for active record and cache in filingHistoryEvents ref.
+   */
+  const loadFilingHistoryEvents = async (): Promise<FilingHistoryEvent[]> => {
+    try {
+      const events = await buildFilingHistory(
+        isApplication.value,
+        activeRecord.value,
+        getApplicationFilingHistory,
+        getRegistrationFilingHistory
+      )
+      filingHistoryEvents.value = events
+      return events
+    } catch {
+      filingHistoryEvents.value = []
+      return []
+    }
+  }
+
+  /**
    * Get examiner notes for an application.
    *
    * @param {string} applicationNumber - Application number.
@@ -864,7 +897,7 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
       const endpoint = isApplication
         ? `/applications/${identifier}/str-address`
         : `/registrations/${identifier}/str-address`
-      const resp = await $strrApi(endpoint, {
+      const resp = await $strrApi<HousApplicationResponse | HousRegistrationResponse>(endpoint, {
         method: 'PATCH',
         body: {
           unitAddress: updatedAddress
@@ -882,21 +915,23 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
    * Patches registration data.
    *
    * @param {number} registrationId - The registration ID to update.
-   * @param {string} updatedEmail - The new primary contact email.
+   * @param {string} updatedEmail - The new contact email.
+   * @param {HostContactType} [contactType] - The contact type to update.
    * @returns {Promise<void>}
    */
   const patchRegistration = async (
     registrationId: number,
-    updatedEmail: string
+    updatedEmail: string,
+    contactType: HostContactType = registrationEmailContactType.value
   ): Promise<void> => {
     try {
-      const resp = await $strrApi(`/registrations/${registrationId}`, {
+      const resp = await $strrApi<HousRegistrationResponse>(`/registrations/${registrationId}`, {
         method: 'PATCH',
-        body: {
-          primaryContact: {
-            emailAddress: updatedEmail
-          }
-        }
+        body: buildHostContactEmailPatchPayload(
+          contactType,
+          updatedEmail,
+          activeReg.value as HostRegistrationResp | undefined
+        )
       })
       activeRecord.value = resp
       resetEditRegistrationEmail()
@@ -933,11 +968,15 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     showComposeEmail,
     showComposeNocEmail,
     isFilingHistoryOpen,
+    filingHistoryEvents,
+    highlightedFilingHistoryEvent,
+    loadFilingHistoryEvents,
     isEditingRentalUnit,
     rentalUnitAddressToEdit,
     hasUnsavedRentalUnitChanges,
     isEditingRegistrationEmail,
     registrationEmailToEdit,
+    registrationEmailContactType,
     hasUnsavedRegistrationEmailChanges,
 
     applicationsOnlyStatuses,

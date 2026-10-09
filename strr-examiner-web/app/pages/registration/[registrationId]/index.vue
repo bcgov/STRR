@@ -7,7 +7,8 @@ const {
   updateRegistrationStatus,
   getRegistrationById,
   setAsideRegistration,
-  sendNoticeOfConsiderationForRegistration
+  sendNoticeOfConsiderationForRegistration,
+  loadFilingHistoryEvents
 } = useExaminerStore()
 const {
   isAssignedToUser,
@@ -45,7 +46,11 @@ const { data: registration, status, error, refresh } = await useLazyAsyncData<
   async () => {
     // slug will be there, otherwise the route will not be rendered and redirected to dashboard
     const slug = route.params.registrationId as string
-    return await getRegistrationById(slug)
+    const res = await getRegistrationById(slug)
+    if (typeof loadFilingHistoryEvents === 'function') {
+      loadFilingHistoryEvents().catch(() => {})
+    }
+    return res
   }
 )
 
@@ -184,7 +189,7 @@ watch(
       </ApplicationDetailsView>
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
-      <DecisionPanel />
+      <DecisionPanel v-if="showDecisionPanel" />
       <ExaminerNotes v-if="isExaminerNotesEnabled && isHostApplication" />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
       <HistoricalApplicationsTable

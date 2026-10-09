@@ -1,6 +1,4 @@
-"""This set of fixtures relies heavily on code by convention for its configuration.
-
-"""
+"""This set of fixtures relies heavily on code by convention for its configuration."""
 
 import importlib
 import os
