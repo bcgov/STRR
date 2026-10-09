@@ -38,6 +38,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from flask import Flask
+from google.auth.compute_engine import Credentials
 
 from strr_api.exceptions import ExternalServiceException
 from strr_api.services.gcp_storage_service import GCPStorageService
@@ -261,6 +262,35 @@ def test_presigned_url_reuses_valid_adc_credentials(mock_get_bucket, mock_reques
         service_account_email="sa-job@example.iam.gserviceaccount.com",
         access_token="access-token",
     )
+
+
+@pytest.mark.parametrize("storage_token", [None, "storage-only-token"])
+@patch("google.auth.compute_engine.credentials._metadata.get_service_account_token")
+@patch("google.auth.compute_engine.credentials._metadata.get_service_account_info")
+@patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")
+def test_presigned_url_scopes_runtime_token_for_iam(mock_get_bucket, mock_info, mock_token, storage_token):
+    """Cloud Run signing needs an IAM token even when its storage token is valid."""
+    email = "sa-job@example.iam.gserviceaccount.com"
+    storage_scopes = ["https://www.googleapis.com/auth/devstorage.read_write"]
+    credentials = Credentials(service_account_email=email, scopes=storage_scopes)
+    credentials.token = storage_token
+    mock_info.return_value = {"email": email, "scopes": storage_scopes}
+    mock_token.return_value = ("iam-token", datetime.now(timezone.utc) + timedelta(hours=1))
+    mock_get_bucket.return_value.client.configure_mock(_credentials=credentials)
+
+    GCPStorageService.get_presigned_url("target-bucket", "file-key", 10)
+
+    mock_token.assert_called_once()
+    assert mock_token.call_args.kwargs["scopes"] == ["https://www.googleapis.com/auth/iam"]
+    mock_get_bucket.return_value.blob.return_value.generate_signed_url.assert_called_once_with(
+        version="v4",
+        expiration=timedelta(minutes=10),
+        method="GET",
+        service_account_email=email,
+        access_token="iam-token",
+    )
+    assert credentials.scopes == storage_scopes
+    assert credentials.token == storage_token
 
 
 @patch("strr_api.services.gcp_storage_service.GCPStorageService.get_bucket")

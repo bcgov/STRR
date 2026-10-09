@@ -41,6 +41,7 @@ import uuid
 from datetime import timedelta
 
 from flask import current_app, has_app_context
+from google.auth.credentials import Scoped
 from google.auth.transport.requests import Request
 from google.cloud import storage
 from google.oauth2 import service_account
@@ -198,6 +199,9 @@ class GCPStorageService:
 
         credentials = bucket.client._credentials  # pylint: disable=protected-access
         if credentials and not isinstance(credentials, service_account.Credentials):
+            # Storage scopes do not authorize IAM signing; leave the storage client unchanged.
+            if isinstance(credentials, Scoped):
+                credentials = credentials.with_scopes(["https://www.googleapis.com/auth/iam"])
             # IAM signBlob is called outside the storage client's authenticated transport,
             # so make sure ADC has a current access token before generating the URL.
             if not credentials.valid:
