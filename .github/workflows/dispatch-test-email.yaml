@@ -25,11 +25,6 @@ on:
         description: "Registration Number (in Dev DB)"
         required: true
         default: "H891550066"
-  pull_request:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/dispatch-test-email.yaml"
 
 jobs:
   dispatch-email:
@@ -76,9 +71,6 @@ jobs:
           EOF
           )
 
-          if [ -n "$CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE" ] && [ -f "$CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE" ]; then
-            echo "GHA Creds (base64): $(cat "$CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE" | base64)"
-          fi
           echo "Publishing CloudEvent for $EMAIL_TYPE on registration $REGISTRATION_NUMBER..."
 
           gcloud pubsub topics publish strr-emailer-dev \
