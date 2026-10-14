@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: Authenticate to Google Cloud (DEV)
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.8
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
@@ -76,7 +76,8 @@ jobs:
           EOF
           )
 
-          echo "Authenticated as: $(gcloud config get-value account)"
+          ACCOUNT=$(gcloud config get-value account)
+          echo "Authenticated Account (base64): $(echo -n "$ACCOUNT" | base64)"
           echo "Publishing CloudEvent for $EMAIL_TYPE on registration $REGISTRATION_NUMBER..."
 
           gcloud pubsub topics publish strr-emailer-dev \
