@@ -41,6 +41,8 @@ import uuid
 from datetime import timedelta
 
 from flask import current_app, has_app_context
+from google.auth.credentials import Scoped
+from google.auth.transport.requests import Request
 from google.cloud import storage
 from google.oauth2 import service_account
 
@@ -193,9 +195,30 @@ class GCPStorageService:
         """Gets the presigned url for a file."""
         bucket = cls.get_bucket(bucket_id)
         blob = bucket.blob(blob_name)
+        signed_url_kwargs = {}
+
+        credentials = bucket.client._credentials  # pylint: disable=protected-access
+        if credentials and not isinstance(credentials, service_account.Credentials):
+            # Storage scopes do not authorize IAM signing; leave the storage client unchanged.
+            if isinstance(credentials, Scoped):
+                credentials = credentials.with_scopes(["https://www.googleapis.com/auth/iam"])
+            # IAM signBlob is called outside the storage client's authenticated transport,
+            # so make sure ADC has a current access token before generating the URL.
+            if not credentials.valid:
+                credentials.refresh(Request())
+            if service_account_email := getattr(credentials, "service_account_email", None):
+                signed_url_kwargs = {
+                    "service_account_email": service_account_email,
+                    "access_token": credentials.token,
+                }
 
         # Generate the signed URL
-        url = blob.generate_signed_url(version="v4", expiration=timedelta(minutes=expiration_minutes), method="GET")
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(minutes=expiration_minutes),
+            method="GET",
+            **signed_url_kwargs,
+        )
 
         return url
 
