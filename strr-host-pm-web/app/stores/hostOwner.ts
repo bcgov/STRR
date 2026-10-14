@@ -7,7 +7,7 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
 
   const getHostOwnerSchema = (type: OwnerType, role?: OwnerRole) => {
     const { isRegistrationRenewal } = storeToRefs(useHostPermitStore())
-    return z.object({
+    const baseSchema = z.object({
       role: z.enum([OwnerRole.HOST, OwnerRole.CO_HOST, OwnerRole.PROPERTY_MANAGER], {
         errorMap: () => ({ message: t('validation.ownerRole') })
       }),
@@ -17,6 +17,7 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
       preferredName: optionalOrEmptyString,
       faxNumber: optionalOrEmptyString,
       emailAddress: getRequiredEmail(t('validation.email')),
+      confirmEmailAddress: optionalOrEmptyString,
       phone: getRequiredPhone(t('validation.required'), t('validation.phone.number')),
       mailingAddress: getRequiredAddress(
         t('validation.address.street'),
@@ -38,6 +39,12 @@ export const useHostOwnerStore = defineStore('host/owner', () => {
         ? getRequiredSin(t('validation.sin'))
         : optionalOrEmptyString
     })
+
+    if (role === OwnerRole.HOST) {
+      return withEmailConfirmation(baseSchema, t('validation.emailMatch'))
+    }
+
+    return baseSchema
   }
 
   const getNewHostOwner = (isActiveUser = false, ownerType: OwnerType): HostOwner => ({

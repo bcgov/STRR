@@ -6,6 +6,7 @@ export interface Contact {
   phone: ConnectPhone
   faxNumber?: string
   emailAddress: string
+  confirmEmailAddress?: string
 }
 
 export interface StrrContact extends Contact {

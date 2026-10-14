@@ -83,7 +83,8 @@ export default {
   label: {
     expiryDaysLeft: '{count} jours restants',
     expiryDaysAgo: 'il y a {count} jours',
-    expiryToday: "aujourd'hui"
+    expiryToday: "aujourd'hui",
+    confirmEmailAddress: "Confirmer l'adresse e-mail"
   },
   labels: {
     note: 'Note',
@@ -94,6 +95,7 @@ export default {
     citizenship: 'Citoyenneté',
     citizenshipPR: 'Citoyenneté/Résidence Permanente',
     emailAddress: 'Adresse e-mail',
+    confirmEmailAddress: "Confirmer l'adresse e-mail",
     fullName: 'Nom Légal Complet',
     preferredName: 'Nom Préféré',
     address: 'Adresse',
@@ -191,6 +193,9 @@ export default {
   },
   table: {},
   toast: {},
+  validation: {
+    emailMatch: "L'adresse e-mail ne correspond pas"
+  },
   widgets: {
     feeSummary: {
       title: 'Résumé des Frais',
