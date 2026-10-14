@@ -1,0 +1,90 @@
+name: Dispatch Test Email (DEV)
+
+on:
+  workflow_dispatch:
+    inputs:
+      notification_type:
+        description: "Notification Type"
+        required: true
+        type: choice
+        default: "RENEWAL_REMINDER"
+        options:
+          - "RENEWAL_REMINDER"
+          - "REGISTRATION_ACTIVE"
+          - "REGISTRATION_CANCELLED"
+      registration_type:
+        description: "Registration Type"
+        required: true
+        type: choice
+        default: "HOST"
+        options:
+          - "HOST"
+          - "STRATA_HOTEL"
+          - "PLATFORM"
+      registration_number:
+        description: "Registration Number (in Dev DB)"
+        required: true
+        default: "H891550066"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/dispatch-test-email.yaml"
+
+jobs:
+  dispatch-email:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Authenticate to Google Cloud (DEV)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Publish CloudEvent via gcloud
+        shell: bash
+        run: |
+          NOTIFICATION_TYPE="${{ inputs.notification_type || 'RENEWAL_REMINDER' }}"
+          REGISTRATION_TYPE="${{ inputs.registration_type || 'HOST' }}"
+          REGISTRATION_NUMBER="${{ inputs.registration_number || 'H891550066' }}"
+
+          EVENT_ID=$(uuidgen)
+          INTERACTION_UUID=$(uuidgen)
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          EMAIL_TYPE="${REGISTRATION_TYPE}_${NOTIFICATION_TYPE}"
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "specversion": "1.0",
+            "id": "$EVENT_ID",
+            "source": "strr-api",
+            "type": "strr.email",
+            "time": "$NOW",
+            "datacontenttype": "application/json",
+            "subject": null,
+            "data": {
+              "registrationNumber": "$REGISTRATION_NUMBER",
+              "emailType": "$EMAIL_TYPE",
+              "interaction": "$(date +%Y):TEST_NOTIFICATION:40",
+              "interaction_uuid": "$INTERACTION_UUID"
+            }
+          }
+          EOF
+          )
+
+          echo "Publishing CloudEvent for $EMAIL_TYPE on registration $REGISTRATION_NUMBER..."
+
+          gcloud pubsub topics publish strr-emailer-dev \
+            --project=bcrbk9-dev \
+            --message="$PAYLOAD"
+
+          echo "### 🚀 Test Email Dispatched" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Environment:** DEV (\`strr-emailer-dev\` in \`bcrbk9-dev\`)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Email Type:** \`$EMAIL_TYPE\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Registration:** \`$REGISTRATION_NUMBER\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **CloudEvent ID:** \`$EVENT_ID\`" >> $GITHUB_STEP_SUMMARY
