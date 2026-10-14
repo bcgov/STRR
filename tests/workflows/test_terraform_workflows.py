@@ -223,14 +223,47 @@ if args[0] == 'import' and os.environ.get('FAIL_IMPORT') == 'true':
         self.steps = {step["name"]: step for step in load_workflow("strr-terraform.yaml")["jobs"]["terraform"]["steps"]}
 
     def run_step(self, name, resources, action="bootstrap", fail_import=False, **metadata):
+        return self.run_script(self.steps[name]["run"], resources, action, fail_import, **metadata)
+
+    def run_script(self, script, resources, action="bootstrap", fail_import=False, **metadata):
         plan = {"format_version": "1.2", "complete": True, "resource_changes": resources, **metadata}
         (self.directory / "plan.json").write_text(json.dumps(plan))
         return subprocess.run(
-            ["bash", "-e", "-o", "pipefail", "-c", self.steps[name]["run"]],
+            ["bash", "-e", "-o", "pipefail", "-c", script],
             env={**os.environ, "PATH": f"{self.directory}:{os.environ['PATH']}", "RUNNER_TEMP": str(self.directory),
+                 "GITHUB_STEP_SUMMARY": str(self.directory / "summary.md"),
                  "TF_STACK": "api", "TF_ACTION": action, "FAIL_IMPORT": str(fail_import).lower()},
             capture_output=True, text=True,
         )
+
+    def apply_script(self, action):
+        names = list(self.steps)
+        steps = names[names.index("Terraform plan"):names.index("Terraform apply") + 1]
+        return "\n".join(self.steps[name]["run"] for name in steps
+                         if name != "Import existing resources" or action == "bootstrap")
+
+    def test_apply_uses_the_saved_plan_checked_in_the_same_run(self):
+        for action in ("apply", "bootstrap"):
+            with self.subTest(action=action):
+                (self.directory / "calls.jsonl").write_text("")
+                result = self.run_script(self.apply_script(action), [self.resource(["no-op"])], action)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                calls = [json.loads(line) for line in (self.directory / "calls.jsonl").read_text().splitlines()]
+                expected = ["plan", "show", "show", "apply"]
+                if action == "bootstrap":
+                    expected = ["plan", "show", "plan", "show", "show", "apply"]
+                self.assertEqual([call[0] for call in calls], expected)
+                self.assertEqual(calls[-2], ["show", "-json", "tfplan"])
+                self.assertEqual(calls[-1], ["apply", "-input=false", "-lock-timeout=5m", "tfplan"])
+
+    def test_rejected_plan_stops_the_workflow_before_apply(self):
+        for action in ("apply", "bootstrap"):
+            with self.subTest(action=action):
+                (self.directory / "calls.jsonl").write_text("")
+                result = self.run_script(self.apply_script(action), [self.resource(["delete"])], action)
+                self.assertNotEqual(result.returncode, 0)
+                calls = [json.loads(line)[0] for line in (self.directory / "calls.jsonl").read_text().splitlines()]
+                self.assertNotIn("apply", calls)
 
     @staticmethod
     def resource(actions, importing=False, project="bcrbk9-dev", **changes):

@@ -152,6 +152,7 @@ jobs:
                    (.change.after | del(.logging, .versioning, .lifecycle_rule)))))
             )'
 
+      # PR approval on protected main authorizes DEV apply; do not replan after the safety check.
       - name: Terraform apply
         if: env.TF_ACTION != 'plan'
         run: terraform -chdir="terraform/$TF_STACK" apply -input=false -lock-timeout=5m tfplan

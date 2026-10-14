@@ -20,11 +20,17 @@ root first. Other application targets and feature/hotfix/release deployments
 retain their existing behavior. Infrastructure-only pushes to `main` run all three
 roots through [STRR Terraform](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/.github/workflows/strr-terraform.yaml), without deploying an application.
 
-The workflow uses the existing `dev` GitHub environment and keyless WIF binding
-for `sa-strr-infra@bcrbk9-tools.iam.gserviceaccount.com`. It saves a plan, rejects
-pending imports, deletions, replacements and non-DEV changes, then applies that
-exact plan. A fresh plan must report no remaining changes. Failure blocks the
-calling application deployment. Plans and state are not uploaded as artifacts.
+PR approval and merge to protected `main` authorize automatic DEV apply. The `dev`
+GitHub environment has no required reviewers; there is no separate approval of
+the live plan. Each apply run creates and checks its own saved plan. An earlier
+plan-only run is a preview and is not reused by a later apply run.
+
+The workflow uses the existing `dev` keyless WIF binding for
+`sa-strr-infra@bcrbk9-tools.iam.gserviceaccount.com`. Its safety check rejects
+pending imports, deletions, replacements and non-DEV changes before applying that
+exact saved plan. Allowed creates and updates, including corrections to live drift,
+apply automatically. A fresh plan must report no remaining changes. Failure blocks
+the calling application deployment. Plans and state are not uploaded as artifacts.
 
 ## First DEV adoption
 
