@@ -1,8 +1,17 @@
-name: Dispatch Test Email (DEV)
+name: Dispatch Test Email
 
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: "Target Environment"
+        required: true
+        type: choice
+        default: "dev"
+        options:
+          - "dev"
+          - "test"
+          - "uat"
       notification_type:
         description: "Notification Type"
         required: true
@@ -22,7 +31,7 @@ on:
           - "STRATA_HOTEL"
           - "PLATFORM"
       registration_number:
-        description: "Registration Number (in Dev DB)"
+        description: "Registration Number (in target environment DB)"
         required: true
         default: "H891550066"
 
@@ -34,7 +43,7 @@ jobs:
       id-token: write
 
     steps:
-      - name: Authenticate to Google Cloud (DEV)
+      - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.8
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
@@ -43,9 +52,29 @@ jobs:
       - name: Publish CloudEvent via gcloud
         shell: bash
         run: |
+          ENVIRONMENT="${{ inputs.environment || 'dev' }}"
           NOTIFICATION_TYPE="${{ inputs.notification_type || 'RENEWAL_REMINDER' }}"
           REGISTRATION_TYPE="${{ inputs.registration_type || 'HOST' }}"
           REGISTRATION_NUMBER="${{ inputs.registration_number || 'H891550066' }}"
+
+          case "$ENVIRONMENT" in
+            dev)
+              PROJECT_ID="bcrbk9-dev"
+              TOPIC="strr-emailer-dev"
+              ;;
+            test)
+              PROJECT_ID="bcrbk9-test"
+              TOPIC="strr-emailer-test"
+              ;;
+            uat)
+              PROJECT_ID="bcrbk9-test"
+              TOPIC="strr-emailer-uat"
+              ;;
+            *)
+              echo "Error: Unsupported environment '$ENVIRONMENT'"
+              exit 1
+              ;;
+          esac
 
           EVENT_ID=$(uuidgen)
           INTERACTION_UUID=$(uuidgen)
@@ -71,14 +100,15 @@ jobs:
           EOF
           )
 
-          echo "Publishing CloudEvent for $EMAIL_TYPE on registration $REGISTRATION_NUMBER..."
+          echo "Publishing CloudEvent for $EMAIL_TYPE on registration $REGISTRATION_NUMBER to $TOPIC ($PROJECT_ID)..."
 
-          gcloud pubsub topics publish strr-emailer-dev \
-            --project=bcrbk9-dev \
+          gcloud pubsub topics publish "$TOPIC" \
+            --project="$PROJECT_ID" \
             --message="$PAYLOAD"
 
+          ENV_UPPER=$(echo "$ENVIRONMENT" | tr '[:lower:]' '[:upper:]')
           echo "### 🚀 Test Email Dispatched" >> $GITHUB_STEP_SUMMARY
-          echo "- **Target Environment:** DEV (\`strr-emailer-dev\` in \`bcrbk9-dev\`)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Environment:** $ENV_UPPER (\`$TOPIC\` in \`$PROJECT_ID\`)" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Email Type:** \`$EMAIL_TYPE\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Target Registration:** \`$REGISTRATION_NUMBER\`" >> $GITHUB_STEP_SUMMARY
