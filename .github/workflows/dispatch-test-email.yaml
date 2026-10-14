@@ -76,6 +76,7 @@ jobs:
           EOF
           )
 
+          echo "Authenticated as: $(gcloud config get-value account)"
           echo "Publishing CloudEvent for $EMAIL_TYPE on registration $REGISTRATION_NUMBER..."
 
           gcloud pubsub topics publish strr-emailer-dev \
