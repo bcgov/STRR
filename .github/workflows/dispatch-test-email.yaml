@@ -12,26 +12,32 @@ on:
           - "dev"
           - "test"
           - "uat"
-      notification_type:
-        description: "Notification Type"
+      email_type:
+        description: "Email Notification Type"
         required: true
         type: choice
-        default: "RENEWAL_REMINDER"
+        default: "HOST_RENEWAL_REMINDER"
         options:
-          - "RENEWAL_REMINDER"
-          - "REGISTRATION_ACTIVE"
-          - "REGISTRATION_CANCELLED"
-      registration_type:
-        description: "Registration Type"
-        required: true
-        type: choice
-        default: "HOST"
-        options:
-          - "HOST"
-          - "STRATA_HOTEL"
-          - "PLATFORM"
-      registration_number:
-        description: "Registration Number (in target environment DB)"
+          - "HOST_RENEWAL_REMINDER"
+          - "HOST_REGISTRATION_ACTIVE"
+          - "HOST_REGISTRATION_CANCELLED"
+          - "HOST_REGISTRATION_SUSPENDED"
+          - "REGISTRATION_NOC"
+          - "STRATA_HOTEL_RENEWAL_REMINDER"
+          - "STRATA_HOTEL_REGISTRATION_ACTIVE"
+          - "STRATA_HOTEL_REGISTRATION_NOC"
+          - "PLATFORM_RENEWAL_REMINDER"
+          - "HOST_AUTO_APPROVED"
+          - "HOST_FULL_REVIEW_APPROVED"
+          - "HOST_PROVISIONAL_REVIEW"
+          - "HOST_PROVISIONALLY_APPROVED"
+          - "HOST_DECLINED"
+          - "PLATFORM_AUTO_APPROVED"
+          - "NOC"
+          - "PROVISIONAL_REVIEW_NOC"
+          - "STRATA_HOTEL_NOC"
+      record_number:
+        description: "Registration Number (e.g. H891550066) or Application Number (e.g. 10728276082958)"
         required: true
         default: "H891550066"
 
@@ -53,9 +59,8 @@ jobs:
         shell: bash
         run: |
           ENVIRONMENT="${{ inputs.environment || 'dev' }}"
-          NOTIFICATION_TYPE="${{ inputs.notification_type || 'RENEWAL_REMINDER' }}"
-          REGISTRATION_TYPE="${{ inputs.registration_type || 'HOST' }}"
-          REGISTRATION_NUMBER="${{ inputs.registration_number || 'H891550066' }}"
+          EMAIL_TYPE="${{ inputs.email_type || 'HOST_RENEWAL_REMINDER' }}"
+          RECORD_NUMBER="${{ inputs.record_number || 'H891550066' }}"
 
           case "$ENVIRONMENT" in
             dev)
@@ -76,10 +81,26 @@ jobs:
               ;;
           esac
 
+          case "$EMAIL_TYPE" in
+            HOST_AUTO_APPROVED|\
+            HOST_FULL_REVIEW_APPROVED|\
+            HOST_PROVISIONAL_REVIEW|\
+            HOST_PROVISIONALLY_APPROVED|\
+            HOST_DECLINED|\
+            PLATFORM_AUTO_APPROVED|\
+            NOC|\
+            PROVISIONAL_REVIEW_NOC|\
+            STRATA_HOTEL_NOC)
+              RECORD_KEY="applicationNumber"
+              ;;
+            *)
+              RECORD_KEY="registrationNumber"
+              ;;
+          esac
+
           EVENT_ID=$(uuidgen)
           INTERACTION_UUID=$(uuidgen)
           NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          EMAIL_TYPE="${REGISTRATION_TYPE}_${NOTIFICATION_TYPE}"
 
           PAYLOAD=$(cat <<EOF
           {
@@ -91,7 +112,7 @@ jobs:
             "datacontenttype": "application/json",
             "subject": null,
             "data": {
-              "registrationNumber": "$REGISTRATION_NUMBER",
+              "$RECORD_KEY": "$RECORD_NUMBER",
               "emailType": "$EMAIL_TYPE",
               "interaction": "$(date +%Y):TEST_NOTIFICATION:40",
               "interaction_uuid": "$INTERACTION_UUID"
@@ -100,7 +121,7 @@ jobs:
           EOF
           )
 
-          echo "Publishing CloudEvent for $EMAIL_TYPE on registration $REGISTRATION_NUMBER to $TOPIC ($PROJECT_ID)..."
+          echo "Publishing CloudEvent for $EMAIL_TYPE ($RECORD_KEY: $RECORD_NUMBER) to $TOPIC ($PROJECT_ID)..."
 
           gcloud pubsub topics publish "$TOPIC" \
             --project="$PROJECT_ID" \
@@ -111,5 +132,5 @@ jobs:
           echo "- **Target Environment:** $ENV_UPPER (\`$TOPIC\` in \`$PROJECT_ID\`)" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Email Type:** \`$EMAIL_TYPE\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Target Registration:** \`$REGISTRATION_NUMBER\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Record ($RECORD_KEY):** \`$RECORD_NUMBER\`" >> $GITHUB_STEP_SUMMARY
           echo "- **CloudEvent ID:** \`$EVENT_ID\`" >> $GITHUB_STEP_SUMMARY
