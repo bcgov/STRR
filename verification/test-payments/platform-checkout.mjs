@@ -21,13 +21,13 @@ export function loadTestCard(secrets) {
   return { number, cvv, month, year }
 }
 
-// Observe only status metadata for the explicitly created DEV synthetic application.
+// Observe only status metadata for the explicitly created TEST synthetic application.
 export function observeApplication(page, result) {
   result.applicationResponses = []
   const pending = []
   page.on('response', response => {
     const url = new URL(response.url())
-    if (url.hostname !== 'strr-api-dev-i2rbretwta-nn.a.run.app' ||
+    if (url.hostname !== 'strr-api-test-166050292631.northamerica-northeast1.run.app' ||
         !url.pathname.includes('/applications/' + result.applicationNumber) || url.pathname.endsWith('/receipt')) return
     const entry = { path: url.pathname, method: response.request().method(), status: response.status() }
     result.applicationResponses.push(entry)
@@ -48,7 +48,7 @@ export async function captureApplicationSubmission(page, result, submit) {
   if (!registrationType) throw new Error('Unsupported application checkout')
   let failure
   let claimed = false
-  await page.route(url => url.origin === 'https://strr-api-dev-i2rbretwta-nn.a.run.app' &&
+  await page.route(url => url.origin === 'https://strr-api-test-166050292631.northamerica-northeast1.run.app' &&
     url.pathname === '/applications', async route => {
     const request = route.request()
     if (request.method() !== 'POST') return route.continue()
@@ -157,7 +157,7 @@ export async function verifyPaidApplication(page, result, dashboard, pending) {
   await expect(page.getByRole('button', { name: 'Download Receipt', exact: true })).toBeVisible()
   await Promise.all(pending)
   const applicationResponse = await page.request.get(
-    'https://strr-api-dev-i2rbretwta-nn.a.run.app/applications/' + result.applicationNumber,
+    'https://strr-api-test-166050292631.northamerica-northeast1.run.app/applications/' + result.applicationNumber,
     { headers: apiHeaders, timeout: 30000 }
   )
   expect(applicationResponse.status()).toBe(200)
@@ -175,7 +175,7 @@ export async function verifyPaidApplication(page, result, dashboard, pending) {
 // Creates one explicitly labelled non-production application through the UI.
 // A failed run retains the application/invoice IDs so checkout can be resumed.
 export async function preparePlatformCheckout(page, result, card) {
-  const testName = 'pnpm11 DEV Platform QA ' + process.env.GITHUB_RUN_ID
+  const testName = 'PG18 TEST REGBACKLOG-416 Platform QA ' + process.env.GITHUB_RUN_ID
   const testEmail = 'strr-payment-qa@example.com'
   result.testFixture = testName
   result.stage = 'platform-contact-form'
@@ -219,7 +219,7 @@ export async function preparePlatformCheckout(page, result, card) {
     () => page.getByRole('button', { name: 'Submit & Pay', exact: true }).click())
   const pending = observeApplication(page, result)
   await paySandboxCard(page, result, card)
-  await verifyPaidApplication(page, result, 'https://dev.platform.shorttermrental.registry.gov.bc.ca/en-CA/platform/dashboard', pending)
+  await verifyPaidApplication(page, result, 'https://test.platform.shorttermrental.registry.gov.bc.ca/en-CA/platform/dashboard', pending)
 }
 
 // Only allowlisted synthetic transaction metadata is persisted before risky steps.

@@ -5,16 +5,13 @@ import { loadTestCard, preparePlatformCheckout } from './platform-checkout.mjs'
 import { createStrataPayment } from './strata-checkout.mjs'
 import { createHostPayment } from './host-checkout.mjs'
 
-// Real deployed DEV assets and services only. No routes, response bodies,
+// Real deployed TEST assets and services only. No routes, response bodies,
 // screenshots, traces, browser state, or secret values are exported.
 const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME
 const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD
 const account = 'STRR_TEST_29'
-const configuredCiAccount = process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME?.trim()
-// Real DEV account, enabled DIRECT_PAY in all three apps in run 37345830995.
-const verifiedDevCiAccountHash = 'f369e346b37d80239143529831179e3c89a904c1cd9684f04b837670a97d5f11'
 const mode = process.env.QA_MODE || 'read-only'
-const secrets = [username, password, process.env.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME, configuredCiAccount].filter(Boolean)
+const secrets = [username, password].filter(Boolean)
 const sanitize = value => {
   let text = String(value)
   for (const secret of secrets) text = text.split(secret).join('[redacted]')
@@ -24,15 +21,14 @@ const sanitize = value => {
 }
 const safeUrl = value => { const url = new URL(value); return sanitize(url.origin + url.pathname) }
 const apps = [
-  { name: 'host', origin: 'https://dev.host.shorttermrental.registry.gov.bc.ca', form: '/en-CA/application', dashboard: '/en-CA/dashboard', feeCount: 3 },
-  { name: 'platform', origin: 'https://dev.platform.shorttermrental.registry.gov.bc.ca', form: '/en-CA/platform/application?override=true', dashboard: '/en-CA/platform/dashboard', feeCount: 3 },
-  { name: 'strata', origin: 'https://dev.stratahotel.shorttermrental.registry.gov.bc.ca', form: '/en-CA/strata-hotel/application', dashboard: '/en-CA/strata-hotel/dashboard', feeCount: 1 }
+  { name: 'host', origin: 'https://test.host.shorttermrental.registry.gov.bc.ca', form: '/en-CA/application', dashboard: '/en-CA/dashboard', feeCount: 3 },
+  { name: 'platform', origin: 'https://test.platform.shorttermrental.registry.gov.bc.ca', form: '/en-CA/platform/application?override=true', dashboard: '/en-CA/platform/dashboard', feeCount: 3 },
+  { name: 'strata', origin: 'https://test.stratahotel.shorttermrental.registry.gov.bc.ca', form: '/en-CA/strata-hotel/application', dashboard: '/en-CA/strata-hotel/dashboard', feeCount: 1 }
 ].filter(app => process.env.TEST_APP === 'all' || app.name === process.env.TEST_APP)
 const report = {
-  checkedAt: new Date().toISOString(), environment: 'dev', mode,
-  scope: 'Actual deployed DEV login, account, dashboards and fees. Checkout mode adds fresh synthetic sandbox payments, Host cancel/resume, receipts and persisted same-invoice status. No candidate asset overlay.',
+  checkedAt: new Date().toISOString(), environment: 'test', mode,
+  scope: 'Actual deployed TEST login, account, dashboards and fees. Checkout mode adds fresh synthetic sandbox payments, Host cancel/resume, receipts and persisted same-invoice status. No candidate asset overlay.',
   requestedApps: apps.map(app => app.name),
-  requestedSourceCommit: process.env.CANDIDATE_COMMIT,
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
   apps: []
 }
@@ -113,11 +109,11 @@ try {
           else if (response.status() >= 400) recordAssetEvent(url, 'http-' + response.status())
         }
         if (!selectedAccountRequests.has(response.request())) return
-        if (url.hostname === 'strr-api-dev-i2rbretwta-nn.a.run.app' && response.request().method() === 'GET' &&
+        if (url.hostname === 'strr-api-test-166050292631.northamerica-northeast1.run.app' && response.request().method() === 'GET' &&
             ['/applications', '/registrations'].includes(url.pathname)) {
           item.dashboardRequests.push({ path: url.pathname, status: response.status() })
         }
-        if (url.hostname !== 'pay-api-dev-142173140222.northamerica-northeast1.run.app' ||
+        if (url.hostname !== 'pay-api-test-129641755850.northamerica-northeast1.run.app' ||
             !/^\/api\/v1\/(fees\/STRR\/|accounts\/)/.test(url.pathname)) return
         item.paymentRequests.push({ method: response.request().method(),
           path: url.pathname.replace(/\/accounts\/[^/]+/, '/accounts/[account]'), status: response.status() })
@@ -130,10 +126,10 @@ try {
       await page.waitForFunction(() => window.__NUXT__?.config?.public)
       const config = await page.evaluate(() => window.__NUXT__.config.public)
       expect(new URL(config.baseUrl).origin).toBe(app.origin)
-      expect(new URL(config.payApiURL).hostname).toBe('pay-api-dev-142173140222.northamerica-northeast1.run.app')
-      expect(new URL(config.strrApiURL).hostname).toBe('strr-api-dev-i2rbretwta-nn.a.run.app')
-      expect(new URL(config.paymentPortalUrl).hostname).toBe('dev.account.bcregistry.gov.bc.ca')
-      expect(new URL(config.keycloakAuthUrl).hostname).toBe('dev.loginproxy.gov.bc.ca')
+      expect(new URL(config.payApiURL).hostname).toBe('pay-api-test-129641755850.northamerica-northeast1.run.app')
+      expect(new URL(config.strrApiURL).hostname).toBe('strr-api-test-166050292631.northamerica-northeast1.run.app')
+      expect(new URL(config.paymentPortalUrl).hostname).toBe('test.account.bcregistry.gov.bc.ca')
+      expect(new URL(config.keycloakAuthUrl).hostname).toBe('test.loginproxy.gov.bc.ca')
       current.publicConfigVerified = true
       current.stage = 'login'
       const loginButton = page.getByRole('button', { name: 'Continue with BC Services Card', exact: true })
@@ -160,52 +156,12 @@ try {
       current.stage = 'select-synthetic-account'
       await page.goto(app.origin + '/en-CA/auth/account/choose-existing', { waitUntil: 'domcontentloaded' })
       await page.getByTestId('choose-existing-account-button').first().waitFor({ state: 'visible' })
-      let accountButton = page.getByRole('button', { name: 'Use this Account, ' + account, exact: true })
-      current.syntheticAccountAvailable = await accountButton.count() === 1 && await accountButton.isEnabled()
-      if (current.syntheticAccountAvailable && mode !== 'checkout') current.accountFixtureSource = 'approved-synthetic'
-      // The repository's existing Playwright helpers designate this CI account.
-      // Checkout is restricted to the exact fixture verified in DEV before this run.
-      if (!current.syntheticAccountAvailable || mode === 'checkout') {
-        const configuredButton = configuredCiAccount
-          ? page.getByRole('button', { name: 'Use this Account, ' + configuredCiAccount, exact: true }) : undefined
-        const matchCount = configuredButton ? await configuredButton.count() : 0
-        const enabled = matchCount === 1 && await configuredButton.isEnabled()
-        current.configuredCiAccount = { configured: Boolean(configuredCiAccount), matchCount, enabled,
-          labelSha256: configuredCiAccount ? createHash('sha256')
-            .update(configuredCiAccount.replace(/\s+/g, ' ').toLowerCase()).digest('hex') : undefined }
-        if (mode === 'checkout') {
-          expect(current.configuredCiAccount.labelSha256).toBe(verifiedDevCiAccountHash)
-          expect(enabled).toBe(true)
-          current.checkoutFixtureVerified = true
-        }
-        if (enabled) {
-          accountButton = configuredButton
-          current.accountFixtureSource = 'existing-playwright-ci-account'
-        }
-      }
-      if (!current.accountFixtureSource) {
-        current.missingPrerequisite = mode === 'checkout' ? 'approved-dev-synthetic-account' : 'available-designated-dev-test-account'
-        const choices = page.getByTestId('choose-existing-account-button')
-        current.accountChoiceCount = await choices.count()
-        current.accountDiagnostics = await choices.evaluateAll(async buttons => {
-          let ariaLabelPresentCount = 0
-          const matches = []
-          for (const [index, button] of buttons.entries()) {
-            const ariaLabel = button.getAttribute('aria-label')?.trim()
-            if (ariaLabel) ariaLabelPresentCount++
-            const label = (ariaLabel?.replace(/^Use this Account,\s*/i, '') ||
-              button.closest('li')?.querySelector('span.text-lg')?.textContent || '').trim().replace(/\s+/g, ' ')
-            const categories = ['strr', 'test', 'qa'].filter(pattern => new RegExp(pattern, 'i').test(label))
-            if (!categories.length) continue
-            const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(label.toLowerCase()))
-            const labelSha256 = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
-            matches.push({ choiceIndex: index, categories, labelSha256, enabled: !button.disabled })
-          }
-          return { ariaLabelPresentCount, matchingChoiceCount: matches.length,
-            matchingChoices: matches.slice(0, 50), omittedMatchingChoices: Math.max(0, matches.length - 50) }
-        })
-        throw new Error('Approved DEV synthetic account unavailable')
-      }
+      const accountButton = page.getByRole('button', { name: 'Use this Account, ' + account, exact: true })
+      expect(await accountButton.count()).toBe(1)
+      expect(await accountButton.isEnabled()).toBe(true)
+      current.syntheticAccountAvailable = true
+      current.accountFixtureSource = 'STRR_TEST_29'
+      current.checkoutFixtureVerified = true
       await accountButton.click()
       await page.waitForURL(url => url.origin === app.origin && !url.pathname.includes('/auth/'), { timeout: 45000 })
       await Promise.all(pending)
@@ -230,7 +186,7 @@ try {
       await Promise.all(pending)
       current.registrationFormLoaded = true
       if (mode === 'checkout') {
-        expect(current.accountFixtureSource).toBe('existing-playwright-ci-account')
+        expect(current.accountFixtureSource).toBe('STRR_TEST_29')
         expect(current.checkoutFixtureVerified).toBe(true)
         expect(current.paymentAccount.paymentMethod).toBe('DIRECT_PAY')
         if (app.name === 'host') await createHostPayment(page, current, card)

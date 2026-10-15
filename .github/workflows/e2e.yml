@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       app:
-        description: Deployed DEV app to verify
+        description: Deployed TEST app to verify
         type: choice
         required: true
         default: all
@@ -28,7 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      CANDIDATE_COMMIT: cd8b86c7beb033b3417e3b06762dc5d34a913b80
       TEST_APP: ${{ inputs.app }}
       QA_MODE: ${{ inputs.mode }}
       EXPECTED_BUNDLE_HASHES: ${{ inputs.expected_bundle_hashes }}
@@ -44,19 +43,18 @@ jobs:
         run: npm ci --ignore-scripts --no-audit
       - name: Check runner Chrome
         run: google-chrome --version
-      - name: Verify the deployed DEV apps
+      - name: Verify the deployed TEST apps
         working-directory: verification/test-payments
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
           PLAYWRIGHT_TEST_BCSC_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PASSWORD }}
-          PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_PREMIUM_ACCOUNT_NAME }}
           CYPRESS_CREDITCARD: ${{ inputs.mode == 'checkout' && secrets.CYPRESS_CREDITCARD || '' }}
         run: node preflight.mjs
       - name: Upload sanitized results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dev-payment-preflight
+          name: pg18-test-payment-preflight
           path: verification/test-payments/results/*.json
           if-no-files-found: warn
           retention-days: 7

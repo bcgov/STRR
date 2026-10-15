@@ -2,7 +2,7 @@ import { expect } from '@playwright/test'
 import { observeApplication, paySandboxCard, verifyPaidApplication, captureApplicationSubmission } from './platform-checkout.mjs'
 
 export async function createStrataPayment(page, result, card) {
-  result.testFixture = 'pnpm11 DEV Strata QA ' + process.env.GITHUB_RUN_ID
+  result.testFixture = 'PG18 TEST REGBACKLOG-416 Strata QA ' + process.env.GITHUB_RUN_ID
   result.stage = 'strata-contact-form'
   await page.getByTestId('completing-party-radio-group').getByRole('radio', { name: 'Yes', exact: true }).check()
   await page.getByTestId('platform-primary-rep-position').fill('TEST representative')
@@ -44,6 +44,6 @@ export async function createStrataPayment(page, result, card) {
     () => page.getByRole('button', { name: 'Submit & Pay', exact: true }).click())
   const pending = observeApplication(page, result)
   await paySandboxCard(page, result, card)
-  const dashboard = 'https://dev.stratahotel.shorttermrental.registry.gov.bc.ca/en-CA/strata-hotel/dashboard/' + result.applicationNumber
+  const dashboard = 'https://test.stratahotel.shorttermrental.registry.gov.bc.ca/en-CA/strata-hotel/dashboard/' + result.applicationNumber
   await verifyPaidApplication(page, result, dashboard, pending)
 }

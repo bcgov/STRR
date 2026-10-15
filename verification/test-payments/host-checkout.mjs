@@ -2,7 +2,7 @@ import { expect } from '@playwright/test'
 import { observeApplication, captureApplicationSubmission, paySandboxCard, verifyPaidApplication, checkpoint } from './platform-checkout.mjs'
 
 export async function createHostPayment(page, result, card) {
-  result.testFixture = 'pnpm11 DEV Host QA ' + process.env.GITHUB_RUN_ID
+  result.testFixture = 'PG18 TEST REGBACKLOG-416 Host QA ' + process.env.GITHUB_RUN_ID
   result.stage = 'host-property-form'
   await page.getByTestId('rental-unit-address-nickname').fill(result.testFixture)
   await page.getByRole('button', { name: 'Enter the residential address manually', exact: true }).click()
@@ -62,12 +62,12 @@ export async function createHostPayment(page, result, card) {
   await page.waitForURL(url => url.hostname === 'web.na.bambora.com', { timeout: 60000 })
   await expect(page.getByText('Account paybc_testp is in test mode', { exact: true })).toBeVisible()
   await page.locator('#cancelButton').click()
-  await page.waitForURL(url => url.hostname === 'dev.account.bcregistry.gov.bc.ca' &&
+  await page.waitForURL(url => url.hostname === 'test.account.bcregistry.gov.bc.ca' &&
     url.pathname.startsWith('/returnpayment/' + result.invoiceId + '/'), { timeout: 60000 })
   await expect(page.getByText('Payment Cancelled', { exact: true })).toBeVisible()
   result.cancellationConfirmedByPortal = true
   await page.getByText('Ok', { exact: true }).click()
-  await page.waitForURL(url => url.origin === 'https://dev.host.shorttermrental.registry.gov.bc.ca', { timeout: 60000 })
+  await page.waitForURL(url => url.origin === 'https://test.host.shorttermrental.registry.gov.bc.ca', { timeout: 60000 })
   await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
   await expect(page.getByRole('button', { name: 'Pay Now', exact: true })).toBeVisible()
   await Promise.all(pending)
