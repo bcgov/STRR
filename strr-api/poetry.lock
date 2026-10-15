@@ -831,6 +831,28 @@ files = [
 ]
 
 [[package]]
+name = "cloud-sql-connector"
+version = "0.2.3"
+description = "Cloud SQL connection utilities for database connectivity with authentication and schema management"
+optional = false
+python-versions = "^3.12"
+groups = ["main"]
+files = []
+develop = false
+
+[package.dependencies]
+cloud-sql-python-connector = "^1.16.0"
+pg8000 = "^1.30.0"
+sqlalchemy = "^2.0.0"
+
+[package.source]
+type = "git"
+url = "https://github.com/Jacky-Pham/sbc-connect-common.git"
+reference = "395a3bdd402d918f2ba3df6d6cf26a629872a121"
+resolved_reference = "395a3bdd402d918f2ba3df6d6cf26a629872a121"
+subdirectory = "python/cloud-sql-connector"
+
+[[package]]
 name = "cloud-sql-python-connector"
 version = "1.22.0"
 description = "Google Cloud SQL Python Connector library"
@@ -5186,4 +5208,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12.2"
-content-hash = "337435f9655f2c96d12c14bfd17760e013dd16d0cf90232902a875c7822e21b7"
+content-hash = "269b088ff5d5fc9acf3a7c1803a2c04288c08105c9a7498d0570403d7a9ad80b"
