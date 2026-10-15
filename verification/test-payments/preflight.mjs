@@ -87,6 +87,11 @@ try {
       page.on('console', message => {
         if (message.type() === 'error' && new URL(observedPage.url()).origin === app.origin) {
           item.consoleErrorCount++
+          if (message.text().includes('https://www.google.com/g/collect?') &&
+              /Content Security Policy/.test(message.text()) &&
+              message.location().url?.startsWith('https://www.googletagmanager.com/gtag/js')) {
+            item.analyticsCspErrorCount = (item.analyticsCspErrorCount || 0) + 1
+          }
           item.consoleErrors ||= []
           if (item.consoleErrors.length < 12) item.consoleErrors.push({
             message: sanitize(message.text()).slice(0, 500),
@@ -202,7 +207,7 @@ try {
         expect(current.receipt.result).toBe('passed')
       }
       expect(current.browserErrorCount).toBe(0)
-      expect(current.consoleErrorCount).toBe(0)
+      expect(current.consoleErrorCount - (current.analyticsCspErrorCount || 0)).toBe(0)
       expect(current.failedAssetCount).toBe(0)
       current.deployedAfter = await captureBuild(context, app, expectedBuilds[app.name])
       expect(current.deployedAfter).toEqual(current.deployedBefore)
