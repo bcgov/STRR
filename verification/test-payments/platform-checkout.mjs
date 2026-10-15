@@ -268,6 +268,7 @@ export async function openOwnedPayment(page, result, app) {
     await verifyPaidApplication(page, result, dashboard, pending)
     return { alreadyPaid: true, pending, dashboard }
   }
+  if (app.name !== 'host') throw new Error('Prior card submission requires investigation; refusing another payment')
   expect(application.header.status).toBe('PAYMENT_DUE')
   expect(application.header.paymentStatus).toBe('CREATED')
   await checkpoint(result)
