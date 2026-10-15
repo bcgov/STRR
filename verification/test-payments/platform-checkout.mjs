@@ -120,7 +120,8 @@ export async function verifyPaidApplication(page, result, dashboard, pending) {
   result.stage = 'verify-payment-return'
   await page.waitForURL(url => url.origin + url.pathname === dashboard, { timeout: 90000 })
   await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
-  result.returnedToCorrectApplication = true
+  result.applicationDashboardVerified = true
+  if (!result.paidFixtureVerificationOnly) result.returnedToCorrectApplication = true
   result.stage = 'verify-receipt'
   const [response, download] = await Promise.all([
     page.waitForResponse(response => new URL(response.url()).pathname ===
@@ -244,7 +245,8 @@ export async function openOwnedPayment(page, result, app) {
     testFixture: 'PG18 TEST REGBACKLOG-416 ' + label + ' QA 38806594542',
     stage: 'verify-owned-unpaid-application' })
   const pending = observeApplication(page, result)
-  const dashboard = app.origin + app.dashboard + (app.name === 'platform' ? '' : '/' + applicationNumber)
+  const dashboard = app.origin + app.dashboard + (app.name === 'platform' ? '' :
+    (app.name === 'host' ? '/application/' : '/') + applicationNumber)
   const requestPromise = page.waitForRequest(request => request.method() === 'GET' &&
     new URL(request.url()).hostname === 'strr-api-test-166050292631.northamerica-northeast1.run.app' &&
     new URL(request.url()).pathname.startsWith('/applications'))
@@ -262,6 +264,7 @@ export async function openOwnedPayment(page, result, app) {
   expect(app.name === 'host' ? application.registration.unitAddress.nickname : application.registration.businessDetails.legalName).toBe(result.testFixture)
   result.resumedLiveStatus = { applicationStatus: application.header.status, paymentStatus: application.header.paymentStatus }
   if (application.header.paymentStatus === 'COMPLETED') {
+    result.paidFixtureVerificationOnly = true
     await verifyPaidApplication(page, result, dashboard, pending)
     return { alreadyPaid: true, pending, dashboard }
   }
