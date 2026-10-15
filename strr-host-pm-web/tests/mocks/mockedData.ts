@@ -129,6 +129,7 @@ export const mockHostOwner: HostOwner = {
   lastName: 'Smith',
   faxNumber: '555-987-6543',
   emailAddress: 'jane.smith@example.com',
+  confirmEmailAddress: 'jane.smith@example.com',
   phone: {
     number: '555-123-4567'
   }

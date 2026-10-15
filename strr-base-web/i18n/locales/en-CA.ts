@@ -167,6 +167,7 @@ export default {
     citizenshipPR: 'Citizenship/Permanent Residency',
     emailAddress: 'Email Address',
     emailAddressOpt: 'Email Address (Optional)',
+    confirmEmailAddress: 'Confirm Email Address',
     firstName: 'First Name',
     middleName: 'Middle Name',
     middleNameOpt: 'Middle Name (Optional)',
@@ -491,6 +492,7 @@ export default {
       cpbc: 'Please enter a valid CPBC number'
     },
     email: 'Please enter a valid email',
+    emailMatch: 'Email address does not match',
     name: {
       first: 'Please enter a first name',
       last: 'Please enter a last name',

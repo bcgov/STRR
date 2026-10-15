@@ -10,6 +10,7 @@ const lastName = defineModel<string>('lastName', { required: false })
 const position = defineModel<string>('position', { required: false })
 const faxNumber = defineModel<string>('faxNumber', { required: false })
 const emailAddress = defineModel<string>('emailAddress', { required: false })
+const confirmEmailAddress = defineModel<string>('confirmEmailAddress', { required: false })
 const phone = defineModel<ConnectPhone>('phone', { required: false })
 
 defineProps<{
@@ -19,6 +20,7 @@ defineProps<{
   sectionInfo?: string
   nameDivider?: boolean
   emailWarning?: boolean
+  showConfirmEmail?: boolean
   errorName?: boolean
   errorDetails?: boolean
 }>()
@@ -127,6 +129,16 @@ defineProps<{
           :aria-label="t('label.emailAddress')"
           name="emailAddress"
           :placeholder="t('label.emailAddress')"
+          :is-required="true"
+          type="email"
+        />
+        <ConnectFormFieldGroup
+          v-if="showConfirmEmail && confirmEmailAddress !== undefined"
+          :id="idPrefix + '-party-confirm-email'"
+          v-model="confirmEmailAddress"
+          :aria-label="t('label.confirmEmailAddress')"
+          name="confirmEmailAddress"
+          :placeholder="t('label.confirmEmailAddress')"
           :is-required="true"
           type="email"
         />

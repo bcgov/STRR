@@ -56,6 +56,7 @@ export function formatPartyUI <T extends ApiParty> (party: T): Contact {
     lastName: party.lastName || '',
     middleName: party.middleName || '',
     emailAddress: party.emailAddress,
+    confirmEmailAddress: party.emailAddress || '',
     phone: formatPhoneNumberUI(party),
     ...(party.preferredName ? { preferredName: party.preferredName } : {}),
     ...(party.faxNumber ? { faxNumber: party.faxNumber } : {})
