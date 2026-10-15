@@ -56,11 +56,15 @@ export async function createHostPayment(page, result, card) {
     () => page.getByRole('button', { name: 'Proceed to payment', exact: true }).click())
   const pending = observeApplication(page, result)
 
+  await cancelResumeHostPayment(page, result, card, pending)
+}
+
+export async function cancelResumeHostPayment(page, result, card, pending) {
   // Cancel at the observed test merchant before entering card fields.
   result.stage = 'host-cancel-checkout'
   await page.waitForURL(url => url.hostname === 'paytestp.gov.bc.ca', { timeout: 60000 })
   await page.getByRole('button', { name: 'Proceed To Pay', exact: true }).click()
-  await page.waitForURL(url => url.hostname === 'web.na.bambora.com', { timeout: 60000 })
+  await page.waitForURL(url => url.hostname === 'checkout.bam.shift4api.net', { timeout: 60000 })
   await expect(page.getByText('Account paybc_testp is in test mode', { exact: true })).toBeVisible()
   await page.locator('#cancelButton').click()
   await page.waitForURL(url => url.hostname === 'test.account.bcregistry.gov.bc.ca' &&

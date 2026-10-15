@@ -10,7 +10,7 @@ on:
         default: all
         options: [all, host, platform, strata]
       mode:
-        description: Read-only login checks or fresh synthetic sandbox checkout
+        description: Read-only login checks or resume the QA416 synthetic invoices
         type: choice
         required: true
         default: read-only

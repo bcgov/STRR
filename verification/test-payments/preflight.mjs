@@ -1,9 +1,8 @@
 import { chromium, expect } from '@playwright/test'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
-import { loadTestCard, preparePlatformCheckout } from './platform-checkout.mjs'
-import { createStrataPayment } from './strata-checkout.mjs'
-import { createHostPayment } from './host-checkout.mjs'
+import { loadTestCard, openOwnedPayment, paySandboxCard, verifyPaidApplication } from './platform-checkout.mjs'
+import { cancelResumeHostPayment } from './host-checkout.mjs'
 
 // Real deployed TEST assets and services only. No routes, response bodies,
 // screenshots, traces, browser state, or secret values are exported.
@@ -27,7 +26,7 @@ const apps = [
 ].filter(app => process.env.TEST_APP === 'all' || app.name === process.env.TEST_APP)
 const report = {
   checkedAt: new Date().toISOString(), environment: 'test', mode,
-  scope: 'Actual deployed TEST login, account, dashboards and fees. Checkout mode adds fresh synthetic sandbox payments, Host cancel/resume, receipts and persisted same-invoice status. No candidate asset overlay.',
+  scope: 'Actual deployed TEST login, account, dashboards and fees. Checkout mode resumes the task-owned synthetic sandbox payments, Host cancel/resume, receipts and persisted same-invoice status. No candidate asset overlay.',
   requestedApps: apps.map(app => app.name),
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
   apps: []
@@ -201,9 +200,14 @@ try {
         expect(current.accountFixtureSource).toBe('STRR_TEST_29')
         expect(current.checkoutFixtureVerified).toBe(true)
         expect(current.paymentAccount.paymentMethod).toBe('DIRECT_PAY')
-        if (app.name === 'host') await createHostPayment(page, current, card)
-        if (app.name === 'platform') await preparePlatformCheckout(page, current, card)
-        if (app.name === 'strata') await createStrataPayment(page, current, card)
+        const owned = await openOwnedPayment(page, current, app)
+        if (!owned.alreadyPaid) {
+          if (app.name === 'host') await cancelResumeHostPayment(page, current, card, owned.pending)
+          else {
+            await paySandboxCard(page, current, card)
+            await verifyPaidApplication(page, current, owned.dashboard, owned.pending)
+          }
+        }
         expect(current.receipt.result).toBe('passed')
       }
       expect(current.browserErrorCount).toBe(0)

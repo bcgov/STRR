@@ -97,7 +97,7 @@ export async function paySandboxCard(page, result, card) {
   await checkpoint(result)
   await page.waitForURL(url => url.hostname === 'paytestp.gov.bc.ca', { timeout: 60000 })
   await page.getByRole('button', { name: 'Proceed To Pay', exact: true }).click()
-  await page.waitForURL(url => url.hostname === 'web.na.bambora.com', { timeout: 60000 })
+  await page.waitForURL(url => url.hostname === 'checkout.bam.shift4api.net', { timeout: 60000 })
   await expect(page.getByText('Account paybc_testp is in test mode', { exact: true })).toBeVisible()
   result.gatewayTestModeVerified = true
   const amount = Number((await page.locator('#trnAmount').inputValue()).replace(/[^0-9.]/g,''))
@@ -230,4 +230,44 @@ export async function checkpoint(result) {
     'cancellationConfirmedByPortal', 'cancelReturnedUnpaid', 'paymentResult', 'completedAt']
   await writeFile(`results/${result.name}-transaction-checkpoint.json`, JSON.stringify(
     Object.fromEntries(keys.filter(key => result[key] !== undefined).map(key => [key, result[key]])), null, 2) + '\n')
+}
+
+// Resume only the unpaid fixtures created by this task, after checking live state.
+export async function openOwnedPayment(page, result, app) {
+  const fixtures = {
+    host: ['47021554040476', 773270, 'Host'],
+    platform: ['13228613755181', 773271, 'Platform'],
+    strata: ['05840311059168', 773272, 'Strata']
+  }
+  const [applicationNumber, invoiceId, label] = fixtures[app.name]
+  Object.assign(result, { applicationNumber, invoiceId,
+    testFixture: 'PG18 TEST REGBACKLOG-416 ' + label + ' QA 38806594542',
+    stage: 'verify-owned-unpaid-application' })
+  const pending = observeApplication(page, result)
+  const dashboard = app.origin + app.dashboard + (app.name === 'platform' ? '' : '/' + applicationNumber)
+  const requestPromise = page.waitForRequest(request => request.method() === 'GET' &&
+    new URL(request.url()).hostname === 'strr-api-test-166050292631.northamerica-northeast1.run.app' &&
+    new URL(request.url()).pathname.startsWith('/applications'))
+  await page.goto(dashboard, { waitUntil: 'domcontentloaded' })
+  await expect(page.getByTestId('h1')).toContainText(result.testFixture, { timeout: 30000 })
+  const request = await requestPromise
+  const headers = await request.allHeaders()
+  const response = await page.request.get(
+    'https://strr-api-test-166050292631.northamerica-northeast1.run.app/applications/' + applicationNumber,
+    { headers: { authorization: headers.authorization, 'account-id': headers['account-id'] }, timeout: 30000 })
+  expect(response.status()).toBe(200)
+  const application = await response.json()
+  expect(application.header.applicationNumber).toBe(applicationNumber)
+  expect(Number(application.header.paymentToken)).toBe(invoiceId)
+  expect(app.name === 'host' ? application.registration.unitAddress.nickname : application.registration.businessDetails.legalName).toBe(result.testFixture)
+  result.resumedLiveStatus = { applicationStatus: application.header.status, paymentStatus: application.header.paymentStatus }
+  if (application.header.paymentStatus === 'COMPLETED') {
+    await verifyPaidApplication(page, result, dashboard, pending)
+    return { alreadyPaid: true, pending, dashboard }
+  }
+  expect(application.header.status).toBe('PAYMENT_DUE')
+  expect(application.header.paymentStatus).toBe('CREATED')
+  await checkpoint(result)
+  await page.getByRole('button', { name: 'Pay Now', exact: true }).click()
+  return { alreadyPaid: false, pending, dashboard }
 }
