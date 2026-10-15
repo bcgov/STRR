@@ -39,6 +39,7 @@ export async function createHostPayment(page, result, card) {
   await owner.getByTestId('phone-number').press('Tab')
   await expect(owner.getByTestId('phone-number')).toHaveValue('(250) 555-0100')
   await owner.getByTestId('host-owner-email').fill('strr-payment-qa@example.com')
+  await owner.getByTestId('host-owner-confirm-email').fill('strr-payment-qa@example.com')
   await owner.getByRole('button', { name: 'Done', exact: true }).click()
   await expect(owner).not.toBeVisible()
   await page.getByRole('button', { name: 'Next', exact: true }).click()

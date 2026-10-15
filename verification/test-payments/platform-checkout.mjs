@@ -187,6 +187,7 @@ export async function preparePlatformCheckout(page, result, card) {
   await page.getByTestId('phone-number').press('Tab')
   await expect(page.getByTestId('phone-number')).toHaveValue('(250) 555-0100')
   await page.getByTestId('platform-primary-rep-party-email').fill(testEmail)
+  await page.getByTestId('platform-primary-rep-party-confirm-email').fill(testEmail)
   await page.getByRole('button', { name: 'Next', exact: true }).click()
 
   result.stage = 'platform-business-form'
