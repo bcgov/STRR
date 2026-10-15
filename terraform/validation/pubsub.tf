@@ -1,15 +1,17 @@
 resource "google_pubsub_topic" "bulk_validation_response" {
-  name    = "strr-bulk-validation-response-dev"
+  name    = "strr-bulk-validation-response-${var.environment}"
   project = local.project_id
 }
 
 resource "google_pubsub_topic" "bulk_validation_response_dlq" {
-  name    = "strr-bulk-validation-response-dlq-dev"
+  name    = "strr-bulk-validation-response-dlq-${var.environment}"
   project = local.project_id
 }
 
 resource "google_pubsub_subscription" "bulk_validation_response" {
-  name    = "strr-bulk-validation-response-dev-sub"
+  count = local.config.validation.response_subscription == null ? 0 : 1
+
+  name    = local.config.validation.response_subscription
   project = local.project_id
   topic   = google_pubsub_topic.bulk_validation_response.id
 
@@ -27,14 +29,14 @@ resource "google_pubsub_subscription" "bulk_validation_response" {
   }
 
   push_config {
-    push_endpoint = "https://batch-permit-listener-dev-382361722867.northamerica-northeast1.run.app/bulk-validation-response"
+    push_endpoint = local.config.validation.push_endpoint
 
     attributes = {
       x-goog-version = "v1"
     }
 
     oidc_token {
-      service_account_email = "sa-pubsub@bcrbk9-dev.iam.gserviceaccount.com"
+      service_account_email = "sa-pubsub@${local.project_id}.iam.gserviceaccount.com"
     }
   }
 
@@ -53,32 +55,46 @@ resource "google_pubsub_topic_iam_member" "bulk_validation_response_dlq_publishe
 }
 
 resource "google_pubsub_subscription_iam_member" "bulk_validation_response_subscriber" {
-  subscription = google_pubsub_subscription.bulk_validation_response.id
+  count = local.config.validation.response_subscription == null ? 0 : 1
+
+  subscription = google_pubsub_subscription.bulk_validation_response[0].id
   role         = "roles/pubsub.subscriber"
   member       = "serviceAccount:${local.pubsub_service_agent}"
 }
 
 import {
   to = google_pubsub_topic.bulk_validation_response
-  id = "projects/bcrbk9-dev/topics/strr-bulk-validation-response-dev"
+  id = "projects/${local.project_id}/topics/strr-bulk-validation-response-${var.environment}"
 }
 
 import {
   to = google_pubsub_topic.bulk_validation_response_dlq
-  id = "projects/bcrbk9-dev/topics/strr-bulk-validation-response-dlq-dev"
+  id = "projects/${local.project_id}/topics/strr-bulk-validation-response-dlq-${var.environment}"
 }
 
 import {
-  to = google_pubsub_subscription.bulk_validation_response
-  id = "projects/bcrbk9-dev/subscriptions/strr-bulk-validation-response-dev-sub"
+  for_each = local.config.validation.response_subscription == null ? [] : ["existing"]
+  to       = google_pubsub_subscription.bulk_validation_response[0]
+  id       = "projects/${local.project_id}/subscriptions/${local.config.validation.response_subscription}"
 }
 
 import {
   to = google_pubsub_topic_iam_member.bulk_validation_response_dlq_publisher
-  id = "projects/bcrbk9-dev/topics/strr-bulk-validation-response-dlq-dev roles/pubsub.publisher serviceAccount:service-382361722867@gcp-sa-pubsub.iam.gserviceaccount.com"
+  id = "projects/${local.project_id}/topics/strr-bulk-validation-response-dlq-${var.environment} roles/pubsub.publisher serviceAccount:${local.pubsub_service_agent}"
 }
 
 import {
-  to = google_pubsub_subscription_iam_member.bulk_validation_response_subscriber
-  id = "projects/bcrbk9-dev/subscriptions/strr-bulk-validation-response-dev-sub roles/pubsub.subscriber serviceAccount:service-382361722867@gcp-sa-pubsub.iam.gserviceaccount.com"
+  for_each = local.config.validation.response_subscription == null ? [] : ["existing"]
+  to       = google_pubsub_subscription_iam_member.bulk_validation_response_subscriber[0]
+  id       = "projects/${local.project_id}/subscriptions/${local.config.validation.response_subscription} roles/pubsub.subscriber serviceAccount:${local.pubsub_service_agent}"
+}
+
+moved {
+  from = google_pubsub_subscription.bulk_validation_response
+  to   = google_pubsub_subscription.bulk_validation_response[0]
+}
+
+moved {
+  from = google_pubsub_subscription_iam_member.bulk_validation_response_subscriber
+  to   = google_pubsub_subscription_iam_member.bulk_validation_response_subscriber[0]
 }

@@ -1,5 +1,5 @@
 resource "google_storage_bucket" "registration_documents" {
-  name                        = "strr_registration_documents_dev"
+  name                        = local.config.api.bucket
   project                     = local.project_id
   location                    = upper(local.region)
   storage_class               = "STANDARD"
@@ -8,7 +8,7 @@ resource "google_storage_bucket" "registration_documents" {
   force_destroy               = false
 
   logging {
-    log_bucket        = "bcrbk9-dev-strr-access-logs"
+    log_bucket        = local.config.log_bucket
     log_object_prefix = "registration-documents/"
   }
 
@@ -38,5 +38,5 @@ resource "google_storage_bucket" "registration_documents" {
 
 import {
   to = google_storage_bucket.registration_documents
-  id = "bcrbk9-dev/strr_registration_documents_dev"
+  id = "${local.project_id}/${local.config.api.bucket}"
 }

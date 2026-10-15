@@ -31,12 +31,13 @@ on:
 
 jobs:
   terraform:
-    # Application deployments outside main/DEV keep their existing behavior.
+    # Enable each target after its Terraform bootstrap and verification.
     if: >-
       github.ref_protected &&
       github.ref == 'refs/heads/main' &&
-      (github.event_name == 'push' ||
-       (github.event_name == 'workflow_dispatch' && inputs.target == 'dev'))
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      contains(fromJSON(vars.STRR_TERRAFORM_ENVIRONMENTS || '["dev"]'), inputs.target || 'dev') &&
+      inputs.target != 'sandbox'
     permissions:
       contents: read
       id-token: write
@@ -44,6 +45,7 @@ jobs:
     with:
       stack: api
       action: apply
+      target: ${{ inputs.target || 'dev' }}
 
   strr-api-cd:
     needs: terraform

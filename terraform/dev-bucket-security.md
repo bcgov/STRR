@@ -3,7 +3,8 @@
 This covers only STRR in `bcrbk9-dev`. SRE owns the log destination and its IAM.
 The temporary GitHub bootstrap imports existing application resources first, then
 applies the reviewed source-bucket settings in a separate plan/apply. Other
-environments are outside this rollout.
+environments follow after DEV verification using their configured source and log
+buckets; see the [rollout instructions](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/terraform/README.md#deployment-and-rollout).
 
 ## Dedicated log destination
 
@@ -90,7 +91,7 @@ review; do not describe an application delete as immediate erasure of all copies
    verification through actual log delivery; the operator's bucket-policy read
    returned 403. This does not require a new personal IAM grant before bootstrap.
 3. After review and merge, run the temporary `bootstrap` action for each DEV
-   root using the [workflow instructions](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/terraform/README.md#first-dev-adoption).
+   root using the [workflow instructions](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/terraform/README.md#first-adoption).
    This records the existing resources in state without modifying them, then
    separately plans and applies only the source-bucket settings. Do not have an
    operator apply these settings manually first.
@@ -98,8 +99,8 @@ review; do not describe an application delete as immediate erasure of all copies
    recovery and log delivery under all three prefixes. Account for the validation
    bucket's Eventarc routing before choosing fixtures. Use synthetic files only.
    Do not shorten live retention to speed up tests.
-5. Confirm no-change plans for all roots. After DEV verification, remove the
-   temporary bootstrap action as documented in the workflow instructions.
+5. Confirm no-change plans for all roots. Remove the temporary bootstrap action after all configured roots are adopted
+   and verified, as documented in the workflow instructions.
 
 ## References
 

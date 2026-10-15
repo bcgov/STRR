@@ -6,7 +6,7 @@ override_resource {
 }
 
 override_resource {
-  target = google_pubsub_subscription.emailer_dlq
+  target = google_pubsub_subscription.emailer_dlq[0]
 }
 
 override_resource {
@@ -46,12 +46,12 @@ run "preserve_dev_email_delivery" {
     condition = (
       google_pubsub_subscription.emailer.topic == google_pubsub_topic.emailer.id &&
       google_pubsub_subscription.emailer.dead_letter_policy[0].dead_letter_topic == google_pubsub_topic.emailer_dlq.id &&
-      google_pubsub_subscription.emailer_dlq.topic == google_pubsub_topic.emailer_dlq.id &&
+      google_pubsub_subscription.emailer_dlq[0].topic == google_pubsub_topic.emailer_dlq.id &&
       google_pubsub_subscription.emailer.dead_letter_policy[0].max_delivery_attempts == 5 &&
       google_pubsub_subscription.emailer.expiration_policy[0].ttl == "" &&
-      google_pubsub_subscription.emailer_dlq.expiration_policy[0].ttl == "" &&
+      google_pubsub_subscription.emailer_dlq[0].expiration_policy[0].ttl == "" &&
       google_pubsub_subscription.emailer.message_retention_duration == "604800s" &&
-      google_pubsub_subscription.emailer_dlq.message_retention_duration == "604800s"
+      google_pubsub_subscription.emailer_dlq[0].message_retention_duration == "604800s"
     )
     error_message = "Preserve email dead-letter routing, delivery attempts, retention, and non-expiring subscriptions."
   }

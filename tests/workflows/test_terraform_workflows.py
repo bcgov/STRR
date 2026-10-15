@@ -32,41 +32,30 @@ def evaluate_gate(expression, **contexts):
     expression = " ".join(expression.split())
     expression = expression.replace("&&", " and ").replace("||", " or ")
     expression = expression.replace("!cancelled()", "not cancelled()")
-    return bool(eval(expression, {"__builtins__": {}}, contexts))
+    return bool(eval(expression, {"__builtins__": {}}, {"contains": lambda items, item: item in items, "fromJSON": json.loads, **contexts}))
 
 
 class DeploymentGatesTest(unittest.TestCase):
-    def test_only_protected_main_dev_runs_terraform(self):
-        for filename in CALLERS:
+    def test_only_enabled_supported_targets_on_protected_main_run_terraform(self):
+        for filename, (_, stack) in CALLERS.items():
             gate = load_workflow(filename)["jobs"]["terraform"]["if"]
-            for protected in (False, True):
-                for branch in ("main", "feature-example", "hotfix-example", "release-example", "Jacky/example"):
-                    for event, target in (
-                        ("push", ""),
-                        ("workflow_dispatch", "dev"),
-                        ("workflow_dispatch", "test"),
-                        ("workflow_dispatch", "uat"),
-                        ("workflow_dispatch", "sandbox"),
-                        ("workflow_dispatch", "prod"),
-                        ("workflow_dispatch", ""),
-                        ("pull_request", "dev"),
-                    ):
-                        with self.subTest(file=filename, protected=protected, branch=branch, event=event, target=target):
-                            actual = evaluate_gate(
-                                gate,
-                                github=SimpleNamespace(
-                                    ref_protected=protected,
-                                    ref=f"refs/heads/{branch}",
-                                    event_name=event,
-                                ),
-                                inputs=SimpleNamespace(target=target),
-                            )
-                            expected = (
-                                protected
-                                and branch == "main"
-                                and (event, target) in (("push", ""), ("workflow_dispatch", "dev"))
-                            )
-                            self.assertEqual(actual, expected)
+            for enabled in ("", '["dev","test","uat","sandbox","prod"]'):
+                for protected in (False, True):
+                    for branch in ("main", "feature-example", "hotfix-example", "release-example"):
+                        for event, target in (("push", ""), ("pull_request", "dev"), *[
+                            ("workflow_dispatch", value) for value in ("dev", "test", "uat", "sandbox", "prod", "invalid")
+                        ]):
+                            with self.subTest(file=filename, target=target, enabled=enabled, branch=branch):
+                                actual = evaluate_gate(
+                                    gate,
+                                    github=SimpleNamespace(ref_protected=protected, ref=f"refs/heads/{branch}", event_name=event),
+                                    inputs=SimpleNamespace(target=target),
+                                    vars=SimpleNamespace(STRR_TERRAFORM_ENVIRONMENTS=enabled),
+                                )
+                                supported = target != ("uat" if stack == "validation" else "sandbox")
+                                expected = (protected and branch == "main" and event in ("push", "workflow_dispatch")
+                                            and (target or "dev") in json.loads(enabled or '["dev"]') and supported)
+                                self.assertEqual(actual, expected)
 
     def test_deployment_requires_success_or_intentional_skip(self):
         for filename, (job_name, _) in CALLERS.items():
@@ -141,6 +130,7 @@ class TerraformRunnerTest(unittest.TestCase):
                             env={
                                 **os.environ,
                                 "TF_STACK": stack,
+                                "TF_TARGET": "dev",
                                 "TF_ACTION": action,
                                 "GITHUB_EVENT_NAME": "workflow_dispatch",
                                 "GITHUB_REF": f"refs/heads/{branch}",
@@ -156,6 +146,41 @@ class TerraformRunnerTest(unittest.TestCase):
                             and (action == "plan" or (branch == "main" and protected == "true"))
                         )
                         self.assertEqual(result.returncode == 0, expected, result.stderr)
+
+    def test_environment_state_and_approval_routing(self):
+        workflow = load_workflow("strr-terraform.yaml")
+        job = workflow["jobs"]["terraform"]
+        steps = {step["name"]: step for step in job["steps"]}
+        self.assertEqual(job["environment"], "${{ inputs.target || 'dev' }}")
+        self.assertEqual(workflow["on"]["workflow_call"]["inputs"]["target"]["default"], "dev")
+        self.assertEqual(workflow["on"]["workflow_dispatch"]["inputs"]["target"]["options"],
+                         ["dev", "test", "uat", "sandbox", "prod"])
+        owner = job["env"]["TF_VAR_environment"]
+        self.assertEqual(owner, "${{ inputs.target == 'uat' && 'test' || inputs.target || 'dev' }}")
+        self.assertEqual(job["concurrency"]["group"], "strr-terraform-" + owner + "-${{ matrix.stack }}")
+        self.assertIn('-backend-config="prefix=strr/$TF_VAR_environment/$TF_STACK"', steps["Terraform init"]["run"])
+        # The same file selects the provider project and the policy's allowed project.
+        self.assertIn('terraform/environments/$TF_VAR_environment.json', steps["Select environment configuration"]["run"])
+        for stack in ("api", "email", "validation"):
+            versions = (REPOSITORY / "terraform" / stack / "versions.tf").read_text()
+            self.assertIn(f'prefix = \"strr/dev/{stack}\"', versions)
+            self.assertIn('../environments/${var.environment}.json', versions)
+        for filename in CALLERS:
+            self.assertEqual(load_workflow(filename)["jobs"]["terraform"]["with"]["target"], "${{ inputs.target || 'dev' }}")
+
+    def test_unsupported_environment_stacks_stop_before_authentication(self):
+        step = load_workflow("strr-terraform.yaml")["jobs"]["terraform"]["steps"][0]
+        for target in ("dev", "test", "uat", "sandbox", "prod", "../dev", "", "DEV"):
+            for stack in ("api", "email", "validation"):
+                result = subprocess.run(
+                    ["bash", "-e", "-o", "pipefail", "-c", step["run"]],
+                    env={**os.environ, "TF_TARGET": target, "TF_STACK": stack, "TF_ACTION": "plan"},
+                    capture_output=True, text=True,
+                )
+                expected = (target in ("dev", "test", "prod") or
+                            (target == "uat" and stack in ("api", "email")) or
+                            (target == "sandbox" and stack == "validation"))
+                self.assertEqual(result.returncode == 0, expected, (target, stack, result.stderr))
 
     def test_plan_policy_gates_the_saved_plan_apply(self):
         steps = load_workflow("strr-terraform.yaml")["jobs"]["terraform"]["steps"]
@@ -182,7 +207,7 @@ class TerraformRunnerTest(unittest.TestCase):
         for event in ("push", "pull_request", "workflow_call"):
             result = subprocess.run(
                 ["bash", "-e", "-o", "pipefail", "-c", steps[0]["run"]],
-                env={**os.environ, "TF_STACK": "api", "TF_ACTION": "bootstrap",
+                env={**os.environ, "TF_STACK": "api", "TF_TARGET": "dev", "TF_ACTION": "bootstrap",
                      "GITHUB_EVENT_NAME": event, "GITHUB_REF": "refs/heads/main", "REF_PROTECTED": "true"},
                 capture_output=True, text=True,
             )
@@ -203,6 +228,7 @@ class TerraformRunnerTest(unittest.TestCase):
 
 class BootstrapSafetyTest(unittest.TestCase):
     def setUp(self):
+        self.project = "bcrbk9-dev"
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.directory = Path(self.temporary.name)
@@ -232,7 +258,7 @@ if args[0] == 'import' and os.environ.get('FAIL_IMPORT') == 'true':
             ["bash", "-e", "-o", "pipefail", "-c", script],
             env={**os.environ, "PATH": f"{self.directory}:{os.environ['PATH']}", "RUNNER_TEMP": str(self.directory),
                  "GITHUB_STEP_SUMMARY": str(self.directory / "summary.md"),
-                 "TF_STACK": "api", "TF_ACTION": action, "FAIL_IMPORT": str(fail_import).lower()},
+                 "TF_STACK": "api", "TF_TARGET": "dev", "TF_PROJECT": self.project, "TF_ACTION": action, "FAIL_IMPORT": str(fail_import).lower()},
             capture_output=True, text=True,
         )
 
@@ -322,6 +348,15 @@ if args[0] == 'import' and os.environ.get('FAIL_IMPORT') == 'true':
             for item in unsafe:
                 with self.subTest(action=action, item=item):
                     self.assertNotEqual(self.run_step("Check plan safety", [item], action=action).returncode, 0)
+
+    def test_selected_project_is_required_for_import_and_apply(self):
+        for selected in ("bcrbk9-dev", "bcrbk9-test", "bcrbk9-tools", "bcrbk9-prod"):
+            self.project = selected
+            for resource_project in ("bcrbk9-dev", "bcrbk9-test", "bcrbk9-tools", "bcrbk9-prod"):
+                for step in ("Import existing resources", "Check plan safety"):
+                    with self.subTest(selected=selected, resource_project=resource_project, step=step):
+                        result = self.run_step(step, [self.resource(["no-op"], project=resource_project)])
+                        self.assertEqual(result.returncode == 0, selected == resource_project, result.stderr)
 
     def test_normal_dev_plans_and_noops_are_allowed(self):
         for action in (["create"], ["update"], ["no-op"]):

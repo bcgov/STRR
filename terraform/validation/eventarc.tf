@@ -1,10 +1,12 @@
 resource "google_eventarc_trigger" "bulk_permit_validation" {
-  name     = "bulk-permit-validation-trigger"
+  count = local.config.validation.eventarc_trigger == null ? 0 : 1
+
+  name     = local.config.validation.eventarc_trigger
   location = local.region
   project  = local.project_id
 
   event_data_content_type = "application/json"
-  service_account         = "sa-eventarc@bcrbk9-dev.iam.gserviceaccount.com"
+  service_account         = "sa-eventarc@${local.project_id}.iam.gserviceaccount.com"
 
   matching_criteria {
     attribute = "type"
@@ -18,7 +20,7 @@ resource "google_eventarc_trigger" "bulk_permit_validation" {
 
   destination {
     cloud_run_service {
-      service = "batch-permit-listener-dev"
+      service = "batch-permit-listener-${var.environment}"
       region  = local.region
       path    = "/"
     }
@@ -26,6 +28,12 @@ resource "google_eventarc_trigger" "bulk_permit_validation" {
 }
 
 import {
-  to = google_eventarc_trigger.bulk_permit_validation
-  id = "projects/bcrbk9-dev/locations/northamerica-northeast1/triggers/bulk-permit-validation-trigger"
+  for_each = local.config.validation.eventarc_trigger == null ? [] : ["existing"]
+  to       = google_eventarc_trigger.bulk_permit_validation[0]
+  id       = "projects/${local.project_id}/locations/northamerica-northeast1/triggers/${local.config.validation.eventarc_trigger}"
+}
+
+moved {
+  from = google_eventarc_trigger.bulk_permit_validation
+  to   = google_eventarc_trigger.bulk_permit_validation[0]
 }

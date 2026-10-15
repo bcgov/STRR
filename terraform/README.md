@@ -1,76 +1,80 @@
-# STRR DEV infrastructure
+# STRR infrastructure
 
-API uploads, email and bulk validation use separate Terraform roots in
-`bcrbk9-dev`. Terraform 1.10.5 and Google provider 6.50.0 are pinned.
+API uploads, email and bulk validation use three Terraform roots. Terraform
+1.10.5 and Google provider 6.50.0 are pinned. Existing names and delivery settings
+come from the [environment configuration](https://github.com/bcgov/STRR/tree/Jacky/regbacklog-336-terraform/terraform/environments).
 
-| Root | State prefix in `strr-tools-terraform-state` | Existing resources |
-| --- | --- | --- |
-| `api` | `strr/dev/api` | Registration-document bucket (1) |
-| `email` | `strr/dev/email` | Email topics, subscriptions and dead-letter IAM (6) |
-| `validation` | `strr/dev/validation` | Request/response buckets, Eventarc, callback topics/subscription and dead-letter IAM (8) |
+| Target | Project | State owner | Configured roots |
+| --- | --- | --- | --- |
+| DEV | `bcrbk9-dev` | `dev` | api, email, validation |
+| TEST | `bcrbk9-test` | `test` | api, email, validation |
+| UAT | `bcrbk9-test` | `test` | api, email (shared with TEST) |
+| Sandbox | `bcrbk9-tools` | `sandbox` | validation |
+| PROD | `bcrbk9-prod` | `prod` | api, email, validation |
 
-Both batch-validator deployments share the validation root and concurrency group.
-Eventarc owns its generated transport resources. Other environments, runtime
-identities, project IAM and the dedicated log bucket remain outside these roots.
+State stays in `strr-tools-terraform-state`, under `strr/<owner>/<root>`.
+Existing DEV prefixes are unchanged. UAT uses TEST's document bucket and email
+topic, so both targets use the same state and concurrency lock. They continue
+routing email to the TEST service. UAT's unconfigured batch resources and
+sandbox's unconfigured document/email resources are not provisioned here.
 
-## Deployment
+Both batch-validator deployments share the validation root. Optional resources
+preserve existing differences: only DEV has an email DLQ receiver; TEST and
+sandbox have no response callback subscription configured here. TEST Eventarc is
+not configured. Sandbox/PROD trigger names are identified from their existing
+Eventarc transport topics; confirm their full trigger settings in a live plan
+before adoption. Eventarc retains ownership of its generated transport resources.
+Runtime identities, project IAM and dedicated log buckets remain under SRE ownership.
 
-On protected `main`, application deployments targeting DEV run their Terraform
-root first. Other application targets and feature/hotfix/release deployments
-retain their existing behavior. Infrastructure-only pushes to `main` run all three
-roots through [STRR Terraform](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/.github/workflows/strr-terraform.yaml), without deploying an application.
+## Deployment and rollout
 
-PR approval and merge to protected `main` authorize automatic DEV apply. The `dev`
-GitHub environment has no required reviewers; there is no separate approval of
-the live plan. Each apply run creates and checks its own saved plan. An earlier
-plan-only run is a preview and is not reused by a later apply run.
+[STRR Terraform](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/.github/workflows/strr-terraform.yaml)
+accepts a target and root for manual plan, bootstrap or apply. Every write requires
+protected `main` and uses the selected GitHub environment, including PROD's
+existing reviewer gate. Each run checks and applies the same saved plan, rejects
+deletions, replacements, pending imports and resources in another project, then
+requires a no-change plan. Plans and state are not uploaded as artifacts.
 
-The workflow uses the existing `dev` keyless WIF binding for
-`sa-strr-infra@bcrbk9-tools.iam.gserviceaccount.com`. Its safety check rejects
-pending imports, deletions, replacements and non-DEV changes before applying that
-exact saved plan. Allowed creates and updates, including corrections to live drift,
-apply automatically. A fresh plan must report no remaining changes. Failure blocks
-the calling application deployment. Plans and state are not uploaded as artifacts.
+PR approval and merge authorize automatic DEV apply without another live-plan
+approval. Infrastructure-only pushes run the three DEV roots. Application CD
+runs Terraform first for enabled targets on protected `main`; a Terraform failure
+blocks that deployment. Feature/hotfix/release deployment behavior is unchanged.
 
-## First DEV adoption
+Validate DEV first. After each target's access, bootstrap and runtime checks pass,
+add it to the repository variable `STRR_TERRAFORM_ENVIRONMENTS` (a JSON array,
+default `["dev"]`). For example, `["dev","test","uat"]` enables those application
+CD targets. Enabling UAT covers its shared API/email resources only. Unsupported
+root/target combinations are skipped by application CD and rejected by manual
+Terraform runs. This setting enables routing; it does not grant cloud access.
 
-Before running bootstrap, confirm that no other Terraform state owns these 15
-resources. Do not import the same object into two states. Confirm the dedicated
-log destination using the
-[bucket setup](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/terraform/dev-bucket-security.md).
-SRE manages the destination writer binding; actual log delivery verifies that
-it works without requiring the operator to read bucket IAM. The three source buckets do not need their logging/versioning settings applied
-manually first. [SRE #399](https://github.com/bcgov/bcregistry-sre/pull/399) grants
-the workflow identity metadata get/update on those buckets.
+The workflow identity is `sa-strr-infra@bcrbk9-tools.iam.gserviceaccount.com`.
+Its current WIF trust is DEV-only. Before adopting another target, SRE must
+configure trust for that GitHub environment and resource/state access through the
+existing IAM process. Do not use the DEV environment to bypass PROD approval.
 
-After this workflow is reviewed and merged, run `STRR Terraform` from protected
-`main`, selecting `bootstrap` once for each root: `api`, `email`, `validation`.
-GitHub enables manual runs after the workflow reaches the default branch. Until
-bootstrap completes, ordinary apply runs stop on pending imports.
+## First adoption
 
-Bootstrap first plans against the live resources, then uses `terraform import`
-to write their existing state without changing cloud resources. It imports only
-resources still missing from that root's state, so a failed run can be retried.
-A partial failure stops before applying changes; retain the imported
-state and rerun after resolving the failure.
+1. Confirm no other Terraform state owns the selected resources. Check the
+   dedicated log destination and writer access using the
+   [bucket setup](https://github.com/bcgov/STRR/blob/Jacky/regbacklog-336-terraform/terraform/dev-bucket-security.md),
+   substituting the selected environment's configured log bucket. Confirm
+   environment-specific routing against a live plan before bootstrap.
+2. After review and merge, run `STRR Terraform` from protected `main`, selecting
+   the target, root and `bootstrap`. Repeat for each configured root. UAT shares
+   TEST's state, so do not adopt those resources a second time elsewhere.
+3. Bootstrap imports missing resources into state without changing them, then
+   replans. Only bucket logging, versioning and lifecycle updates are allowed;
+   other resources must be unchanged. A failed import stops before apply and can
+   be retried without discarding imported state. Ordinary apply stops on pending imports.
+4. Verify log delivery, version recovery and application behavior with fresh
+   synthetic files before enabling the target in application CD. A no-change
+   plan proves configuration convergence, not runtime behavior.
 
-After import, bootstrap generates a fresh plan. Only updates to the existing
-buckets' logging, versioning and lifecycle fields are allowed; other resources
-must be unchanged. The workflow applies that saved plan and verifies a no-change
-plan. Only the fresh post-import plan is applied.
-
-Verify log delivery and version recovery with fresh synthetic files before closing
-DEV verification. A no-change plan proves configuration convergence, not working
-log delivery or application behavior.
-
-## Remove the temporary setup
-
-After all three roots are adopted and DEV verification passes, remove the
-`bootstrap` choice, its validation branch, the `Import existing resources` step,
-and the bootstrap-only bucket-field restriction from the workflow. Remove the
-bootstrap-specific tests and these first-adoption instructions in the same change.
-Normal plan/apply, state, resource definitions and deployment checks stay. The
-import blocks can stay too; they are inert for addresses already in state.
+After all configured roots are adopted and verified, remove the temporary
+`bootstrap` choice, validation branch, import step, bootstrap-only policy/tests
+and these first-adoption instructions. Keep normal plan/apply and resource
+configuration. Import blocks may remain; they are inert for resources already
+in state. The moved blocks preserve previously adopted DEV resource addresses.
 
 ## Local checks
 
@@ -85,6 +89,6 @@ done
 python3 -m unittest discover -s tests/workflows -v
 ```
 
-PR checks use mocked providers and no cloud credentials. Workflow tests cover
-branch/target routing, state-only import ordering, retry/failure behavior and
-rejection of unsafe plans. Live workflow access still needs a real run.
+PR checks use mocked providers without cloud credentials. They cover environment
+names/routing, shared state, deployment gates and import/apply safety. Actual
+workflow access and runtime behavior require verification in each target.

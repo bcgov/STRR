@@ -1,24 +1,24 @@
 resource "google_pubsub_topic" "emailer" {
-  name    = "strr-emailer-dev"
+  name    = "strr-emailer-${var.environment}"
   project = local.project_id
 }
 
 resource "google_pubsub_topic" "emailer_dlq" {
-  name    = "strr-emailer-dlq-dev"
+  name    = "strr-emailer-dlq-${var.environment}"
   project = local.project_id
 }
 
 resource "google_pubsub_subscription" "emailer" {
-  name    = "strr-emailer-sub-dev"
+  name    = local.config.email.subscription
   project = local.project_id
   topic   = google_pubsub_topic.emailer.id
 
-  ack_deadline_seconds       = 10
+  ack_deadline_seconds       = local.config.email.ack_deadline_seconds
   message_retention_duration = "604800s"
   retain_acked_messages      = false
 
   expiration_policy {
-    ttl = ""
+    ttl = local.config.email.expiration_ttl
   }
 
   dead_letter_policy {
@@ -27,14 +27,14 @@ resource "google_pubsub_subscription" "emailer" {
   }
 
   push_config {
-    push_endpoint = "https://strr-email-dev-i2rbretwta-nn.a.run.app"
+    push_endpoint = local.config.email.push_endpoint
 
     attributes = {
       x-goog-version = "v1"
     }
 
     oidc_token {
-      service_account_email = "sa-pubsub@bcrbk9-dev.iam.gserviceaccount.com"
+      service_account_email = "sa-pubsub@${local.project_id}.iam.gserviceaccount.com"
     }
   }
 
@@ -45,7 +45,9 @@ resource "google_pubsub_subscription" "emailer" {
 }
 
 resource "google_pubsub_subscription" "emailer_dlq" {
-  name    = "strr-emailer-dlq-sub-dev"
+  count = local.config.email.dlq_subscription == null ? 0 : 1
+
+  name    = local.config.email.dlq_subscription
   project = local.project_id
   topic   = google_pubsub_topic.emailer_dlq.id
 
@@ -74,30 +76,36 @@ resource "google_pubsub_subscription_iam_member" "emailer_subscriber" {
 
 import {
   to = google_pubsub_topic.emailer
-  id = "projects/bcrbk9-dev/topics/strr-emailer-dev"
+  id = "projects/${local.project_id}/topics/strr-emailer-${var.environment}"
 }
 
 import {
   to = google_pubsub_topic.emailer_dlq
-  id = "projects/bcrbk9-dev/topics/strr-emailer-dlq-dev"
+  id = "projects/${local.project_id}/topics/strr-emailer-dlq-${var.environment}"
 }
 
 import {
   to = google_pubsub_subscription.emailer
-  id = "projects/bcrbk9-dev/subscriptions/strr-emailer-sub-dev"
+  id = "projects/${local.project_id}/subscriptions/${local.config.email.subscription}"
 }
 
 import {
-  to = google_pubsub_subscription.emailer_dlq
-  id = "projects/bcrbk9-dev/subscriptions/strr-emailer-dlq-sub-dev"
+  for_each = local.config.email.dlq_subscription == null ? [] : ["existing"]
+  to       = google_pubsub_subscription.emailer_dlq[0]
+  id       = "projects/${local.project_id}/subscriptions/${local.config.email.dlq_subscription}"
 }
 
 import {
   to = google_pubsub_topic_iam_member.emailer_dlq_publisher
-  id = "projects/bcrbk9-dev/topics/strr-emailer-dlq-dev roles/pubsub.publisher serviceAccount:service-382361722867@gcp-sa-pubsub.iam.gserviceaccount.com"
+  id = "projects/${local.project_id}/topics/strr-emailer-dlq-${var.environment} roles/pubsub.publisher serviceAccount:${local.pubsub_service_agent}"
 }
 
 import {
   to = google_pubsub_subscription_iam_member.emailer_subscriber
-  id = "projects/bcrbk9-dev/subscriptions/strr-emailer-sub-dev roles/pubsub.subscriber serviceAccount:service-382361722867@gcp-sa-pubsub.iam.gserviceaccount.com"
+  id = "projects/${local.project_id}/subscriptions/${local.config.email.subscription} roles/pubsub.subscriber serviceAccount:${local.pubsub_service_agent}"
+}
+
+moved {
+  from = google_pubsub_subscription.emailer_dlq
+  to   = google_pubsub_subscription.emailer_dlq[0]
 }

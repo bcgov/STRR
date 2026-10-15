@@ -14,8 +14,20 @@ terraform {
   }
 }
 
+variable "environment" {
+  description = "Resource-owning environment; UAT shares TEST resources."
+  type        = string
+  default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "test", "sandbox", "prod"], var.environment)
+    error_message = "Use a configured resource-owning environment."
+  }
+}
+
 locals {
-  project_id = "bcrbk9-dev"
+  config     = jsondecode(file("${path.module}/../environments/${var.environment}.json"))
+  project_id = local.config.project_id
   region     = "northamerica-northeast1"
 }
 

@@ -1,5 +1,5 @@
 resource "google_storage_bucket" "bulk_validation_requests" {
-  name                        = "strr_bulk_validation_requests_dev"
+  name                        = "strr_bulk_validation_requests_${var.environment}"
   project                     = local.project_id
   location                    = upper(local.region)
   storage_class               = "STANDARD"
@@ -8,7 +8,7 @@ resource "google_storage_bucket" "bulk_validation_requests" {
   force_destroy               = false
 
   logging {
-    log_bucket        = "bcrbk9-dev-strr-access-logs"
+    log_bucket        = local.config.log_bucket
     log_object_prefix = "bulk-validation-requests/"
   }
 
@@ -37,7 +37,7 @@ resource "google_storage_bucket" "bulk_validation_requests" {
 }
 
 resource "google_storage_bucket" "bulk_validation_responses" {
-  name                        = "strr_bulk_validation_responses_dev"
+  name                        = "strr_bulk_validation_responses_${var.environment}"
   project                     = local.project_id
   location                    = upper(local.region)
   storage_class               = "STANDARD"
@@ -46,7 +46,7 @@ resource "google_storage_bucket" "bulk_validation_responses" {
   force_destroy               = false
 
   logging {
-    log_bucket        = "bcrbk9-dev-strr-access-logs"
+    log_bucket        = local.config.log_bucket
     log_object_prefix = "bulk-validation-responses/"
   }
 
@@ -76,10 +76,10 @@ resource "google_storage_bucket" "bulk_validation_responses" {
 
 import {
   to = google_storage_bucket.bulk_validation_requests
-  id = "bcrbk9-dev/strr_bulk_validation_requests_dev"
+  id = "${local.project_id}/strr_bulk_validation_requests_${var.environment}"
 }
 
 import {
   to = google_storage_bucket.bulk_validation_responses
-  id = "bcrbk9-dev/strr_bulk_validation_responses_dev"
+  id = "${local.project_id}/strr_bulk_validation_responses_${var.environment}"
 }
