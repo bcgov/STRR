@@ -85,7 +85,14 @@ try {
       const selectedAccountRequests = new WeakSet()
       page.on('pageerror', () => item.browserErrorCount++)
       page.on('console', message => {
-        if (message.type() === 'error' && new URL(observedPage.url()).origin === app.origin) item.consoleErrorCount++
+        if (message.type() === 'error' && new URL(observedPage.url()).origin === app.origin) {
+          item.consoleErrorCount++
+          item.consoleErrors ||= []
+          if (item.consoleErrors.length < 12) item.consoleErrors.push({
+            message: sanitize(message.text()).slice(0, 500),
+            location: message.location().url ? safeUrl(message.location().url) : undefined
+          })
+        }
       })
       page.on('request', request => {
         if (observeSelectedAccount) selectedAccountRequests.add(request)
