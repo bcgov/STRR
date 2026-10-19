@@ -9,6 +9,11 @@ import { cancelResumeHostPayment } from './host-checkout.mjs'
 const username = process.env.PLAYWRIGHT_TEST_BCSC_USERNAME
 const password = process.env.PLAYWRIGHT_TEST_BCSC_PASSWORD
 const account = 'STRR_TEST_29'
+const environment = process.env.QA_ENVIRONMENT || 'test'
+const apiHostname = {
+  test: 'strr-api-test-166050292631.northamerica-northeast1.run.app',
+  uat: 'strr-api-uat-5g4775umoq-nn.a.run.app'
+}[environment]
 const mode = process.env.QA_MODE || 'read-only'
 const secrets = [username, password].filter(Boolean)
 const sanitize = value => {
@@ -20,13 +25,13 @@ const sanitize = value => {
 }
 const safeUrl = value => { const url = new URL(value); return sanitize(url.origin + url.pathname) }
 const apps = [
-  { name: 'host', origin: 'https://test.host.shorttermrental.registry.gov.bc.ca', form: '/en-CA/application', dashboard: '/en-CA/dashboard', feeCount: 3 },
-  { name: 'platform', origin: 'https://test.platform.shorttermrental.registry.gov.bc.ca', form: '/en-CA/platform/application?override=true', dashboard: '/en-CA/platform/dashboard', feeCount: 3 },
-  { name: 'strata', origin: 'https://test.stratahotel.shorttermrental.registry.gov.bc.ca', form: '/en-CA/strata-hotel/application', dashboard: '/en-CA/strata-hotel/dashboard', feeCount: 1 }
+  { name: 'host', origin: `https://${environment}.host.shorttermrental.registry.gov.bc.ca`, form: '/en-CA/application', dashboard: '/en-CA/dashboard', feeCount: 3 },
+  { name: 'platform', origin: `https://${environment}.platform.shorttermrental.registry.gov.bc.ca`, form: '/en-CA/platform/application?override=true', dashboard: '/en-CA/platform/dashboard', feeCount: 3 },
+  { name: 'strata', origin: `https://${environment}.stratahotel.shorttermrental.registry.gov.bc.ca`, form: '/en-CA/strata-hotel/application', dashboard: '/en-CA/strata-hotel/dashboard', feeCount: 1 }
 ].filter(app => process.env.TEST_APP === 'all' || app.name === process.env.TEST_APP)
 const report = {
-  checkedAt: new Date().toISOString(), environment: 'test', mode,
-  scope: 'Actual deployed TEST login, account, dashboards and fees. Checkout mode resumes the task-owned synthetic sandbox payments, Host cancel/resume, receipts and persisted same-invoice status. No candidate asset overlay.',
+  checkedAt: new Date().toISOString(), environment, mode,
+  scope: 'Actual deployed environment login, account, dashboards and fees. Checkout mode resumes the task-owned synthetic sandbox payments, Host cancel/resume, receipts and persisted same-invoice status. No candidate asset overlay.',
   requestedApps: apps.map(app => app.name),
   harnessCommit: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
   apps: []
@@ -49,6 +54,7 @@ const captureBuild = async (context, app, expected) => {
   return { entryPath, sha256, bytes: body.length }
 }
 try {
+  if (!apiHostname || (environment === 'uat' && mode !== 'read-only')) throw new Error('UAT verification must be read-only')
   if (!['read-only', 'checkout'].includes(mode) || !apps.length) throw new Error('Invalid verification scope')
   if (!username || !password) throw new Error('Required BCSC test credentials are not configured')
   if (mode === 'checkout' && Number(process.env.GITHUB_RUN_ATTEMPT || '1') !== 1) throw new Error('Refusing checkout on a rerun; inspect existing invoices first')
@@ -120,7 +126,7 @@ try {
           else if (response.status() >= 400) recordAssetEvent(url, 'http-' + response.status())
         }
         if (!selectedAccountRequests.has(response.request())) return
-        if (url.hostname === 'strr-api-test-166050292631.northamerica-northeast1.run.app' && response.request().method() === 'GET' &&
+        if (url.hostname === apiHostname && response.request().method() === 'GET' &&
             ['/applications', '/registrations'].includes(url.pathname)) {
           item.dashboardRequests.push({ path: url.pathname, status: response.status() })
         }
@@ -138,7 +144,7 @@ try {
       const config = await page.evaluate(() => window.__NUXT__.config.public)
       expect(new URL(config.baseUrl).origin).toBe(app.origin)
       expect(new URL(config.payApiURL).hostname).toBe('pay-api-test-129641755850.northamerica-northeast1.run.app')
-      expect(new URL(config.strrApiURL).hostname).toBe('strr-api-test-166050292631.northamerica-northeast1.run.app')
+      expect(new URL(config.strrApiURL).hostname).toBe(apiHostname)
       expect(new URL(config.paymentPortalUrl).hostname).toBe('test.account.bcregistry.gov.bc.ca')
       expect(new URL(config.keycloakAuthUrl).hostname).toBe('test.loginproxy.gov.bc.ca')
       current.publicConfigVerified = true

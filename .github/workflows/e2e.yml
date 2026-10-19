@@ -3,8 +3,14 @@ name: main-e2e-tests
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: Deployed environment to verify
+        type: choice
+        required: true
+        default: test
+        options: [test, uat]
       app:
-        description: Deployed TEST app to verify
+        description: Deployed app to verify
         type: choice
         required: true
         default: all
@@ -16,7 +22,7 @@ on:
         default: read-only
         options: [read-only, checkout]
       expected_bundle_hashes:
-        description: JSON object of deployed entry SHA256 hashes keyed by host, platform, strata
+        description: JSON object of selected environment entry SHA256 hashes keyed by host, platform, strata
         type: string
         required: true
 
@@ -28,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      QA_ENVIRONMENT: ${{ inputs.environment || 'test' }}
       TEST_APP: ${{ inputs.app }}
       QA_MODE: ${{ inputs.mode }}
       EXPECTED_BUNDLE_HASHES: ${{ inputs.expected_bundle_hashes }}
@@ -43,7 +50,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit
       - name: Check runner Chrome
         run: google-chrome --version
-      - name: Verify the deployed TEST apps
+      - name: Verify the deployed apps
         working-directory: verification/test-payments
         env:
           PLAYWRIGHT_TEST_BCSC_USERNAME: ${{ secrets.PLAYWRIGHT_TEST_BCSC_USERNAME }}
