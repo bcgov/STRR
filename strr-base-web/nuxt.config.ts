@@ -10,6 +10,7 @@ const isGtmIdEmpty = !(process.env.NUXT_GTM_ID?.trim() || '')
 const isGtmEnabled = !(isTestOrDev || isGtmIdEmpty)
 
 export default defineNuxtConfig({
+  compatibilityDate: '2026-10-15',
   devtools: { enabled: false },
   ssr: false,
 
@@ -28,14 +29,13 @@ export default defineNuxtConfig({
   },
 
   modules: [
-    '@nuxtjs/eslint-module',
-    '@nuxt/test-utils/module',
     '@nuxt/image',
     'nuxt-gtag'
   ],
 
-  eslint: {
-    lintOnStart: false
+  tailwindcss: {
+    viewer: false,
+    exposeConfig: false
   },
 
   extends: ['@daxiom/nuxt-core-layer-test'],
@@ -125,12 +125,6 @@ export default defineNuxtConfig({
       // registryHomeURL - NUXT_REGISTRY_HOME_URL
       // ldClientId - NUXT_LD_CLIENT_ID
       // appName - npm_package_name
-    }
-  },
-
-  vite: {
-    optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
-      include: ['zod', 'uuid', 'vitest', 'luxon', 'country-codes-list']
     }
   }
 })

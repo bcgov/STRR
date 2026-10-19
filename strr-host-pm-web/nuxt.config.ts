@@ -2,6 +2,7 @@
 const useLocalBaseWeb = process.env.STRR_LOCAL_BASE_WEB === 'true' // local dev only, set in .env
 
 export default defineNuxtConfig({
+  compatibilityDate: '2026-10-15',
   devtools: { enabled: false },
   ssr: false,
 
@@ -9,11 +10,10 @@ export default defineNuxtConfig({
     compatibilityVersion: 4
   },
 
-  modules: [
-    '@nuxtjs/eslint-module',
-    '@nuxt/test-utils/module',
-    '@nuxt/image'
-  ],
+  tailwindcss: {
+    viewer: false,
+    exposeConfig: false
+  },
 
   i18n: {
     locales: [
@@ -85,12 +85,7 @@ export default defineNuxtConfig({
 
   vite: {
     optimizeDeps: { // optimize immediately instead of after visiting page, prevents page reload in dev when initially visiting a page with these deps
-      include: ['zod', 'uuid', 'vitest', 'lodash.uniqby']
-    },
-    server: {
-      watch: {
-        usePolling: true
-      }
+      include: ['zod', 'uuid', 'lodash.uniqby']
     }
   }
 })

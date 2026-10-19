@@ -283,6 +283,9 @@ export default {
     viewSnapshot: 'View Snapshot',
     edit: 'Edit',
     done: 'Done',
+    expand: 'Expand',
+    collapse: 'Collapse',
+    openInDialog: 'Full View',
     showDetails: 'Show Details',
     hideDetails: 'Hide Details',
     decline: 'Refuse',
@@ -551,7 +554,9 @@ export default {
     emailTitle: 'Email to Completing party',
     emailBodyPlaceholder: 'Enter text here...',
     emailBodyIntro: 'Approval Conditions',
-    noConditionsPlaceholder: 'No conditions added'
+    noConditionsPlaceholder: 'No conditions added',
+    expandEmail: 'Expand email field',
+    collapseEmail: 'Collapse email field'
   },
   validation: {
     accountName: {

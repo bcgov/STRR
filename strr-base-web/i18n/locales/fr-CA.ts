@@ -47,7 +47,10 @@ export default {
     fileNowNoFee: 'Déposer maintenant (sans frais)',
     reviewConfirm: 'Réviser et Confirmer',
     save: 'Sauvegarder',
-    saveExit: 'Sauvegarder et Reprendre Plus Tard'
+    saveExit: 'Sauvegarder et Reprendre Plus Tard',
+    expand: 'Développer',
+    collapse: 'Réduire',
+    openInDialog: 'Vue complète'
   },
   contactInfo: {
     bcRegGeneral: {

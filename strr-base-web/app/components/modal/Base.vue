@@ -1,21 +1,33 @@
 <script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
+
 const modalModel = defineModel({ type: Boolean, default: false })
 const isSmallScreen = useMediaQuery('(max-width: 640px)')
 
-defineProps<{
+const props = withDefaults(defineProps<{
   title?: string
   content?: string
-  actions?: { label: string, handler:() => void, color?: string, variant?: string }[],
+  actions?: { label: string, handler:() => void, color?: string, variant?: string }[]
   closeFn?: () => void
   error?: {
     title: string
     description: string
     showContactInfo?: boolean
     hideIcon?: boolean
-  },
-  fullscreen?: boolean,
+  }
+  fullscreen?: boolean
   persist?: boolean
-}>()
+  width?: string
+}>(), {
+  title: undefined,
+  content: undefined,
+  actions: undefined,
+  closeFn: undefined,
+  error: undefined,
+  fullscreen: false,
+  persist: false,
+  width: 'w-full sm:max-w-lg md:min-w-min'
+})
 
 defineEmits<{
   afterLeave: [void]
@@ -27,7 +39,7 @@ defineEmits<{
     :fullscreen
     :prevent-close="!!persist"
     :ui="{
-      width: 'w-full sm:max-w-lg md:min-w-min'
+      width: props.width
     }"
     @after-leave="$emit('afterLeave')"
   >

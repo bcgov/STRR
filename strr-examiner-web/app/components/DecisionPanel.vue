@@ -289,21 +289,17 @@ onMounted(() => {
                 error: 'text-xs/5 mt-1 absolute'
               }"
             >
-              <UTextarea
+              <ConnectFormExpandableTextarea
                 v-model="decisionEmailContent.content"
                 :placeholder="decisionEmailPlaceholder"
                 :aria-label="decisionEmailPlaceholder"
+                :dialog-title="t('decision.emailTitle')"
                 data-testid="decision-email"
-                color="gray"
-                auto-resize
+                toggle-testid="toggle-expand-decision-email"
                 :disabled="isDecisionEmailDisabled"
-                :ui="{
-                  base: 'h-[290px] !bg-str-bgGray focus:ring-0',
-                  padding: {
-                    sm: 'p-4'
-                  }
-                }"
-                @update:model-value="decisionEmailFormRef?.clear?.()"
+                :initial-height="290"
+                :expanded-min-height="560"
+                @change="decisionEmailFormRef?.clear?.()"
               />
             </UFormGroup>
           </UForm>
