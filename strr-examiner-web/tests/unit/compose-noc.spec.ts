@@ -13,6 +13,8 @@ const mockState = {
   applicationType: 'registration'
 }
 
+const emailContent = ref({ content: '' })
+
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => ({
     hasRegistrationNumber: ref(mockState.hasRegistrationNumber),
@@ -21,7 +23,7 @@ vi.mock('@/stores/examiner', () => ({
     isAssignedToUser: ref(mockState.isAssignedToUser),
     isApplication: ref(mockState.isApplication),
     activeReg: ref({ registrationType: mockState.registrationType }),
-    emailContent: ref({ content: '' }),
+    emailContent,
     activeHeader: ref({ applicationType: mockState.applicationType }),
     sendNocSchema: ref({}),
     sendEmailSchema: ref({})
@@ -63,5 +65,38 @@ describe('ComposeNoc Component', () => {
       global: { plugins: [enI18n] }
     })
     expect(wrapper.find('[data-testid="compose-email"]').exists()).toBe(true)
+  })
+
+  it('should hide expand button when empty and toggle rows when long content is present', async () => {
+    emailContent.value = { content: '' }
+    const wrapper = await mountSuspended(ComposeNoc, {
+      global: { plugins: [enI18n] }
+    })
+
+    const textarea = wrapper.findComponent({ name: 'UTextarea' })
+    expect(textarea.exists()).toBe(true)
+    expect(textarea.props('resize')).toBe(true)
+    expect(textarea.props('rows')).toBe(3)
+
+    // Button should not exist when empty
+    expect(wrapper.find('[data-testid="toggle-expand-noc-email"]').exists()).toBe(false)
+
+    // Add long multi-line content
+    emailContent.value.content = Array(12).fill('Notice of consideration details').join('\n')
+    await nextTick()
+
+    const toggleBtn = wrapper.find('[data-testid="toggle-expand-noc-email"]')
+    expect(toggleBtn.exists()).toBe(true)
+    expect(toggleBtn.text()).toContain('Expand')
+
+    await toggleBtn.trigger('click')
+    expect(toggleBtn.text()).toContain('Collapse')
+    const textareaEl = wrapper.find('textarea')
+    expect((textareaEl.element as HTMLTextAreaElement).style.height).toBe('400px')
+    expect(textareaEl.classes()).not.toContain('max-h-[80vh]')
+
+    await toggleBtn.trigger('click')
+    expect(toggleBtn.text()).toContain('Expand')
+    expect((textareaEl.element as HTMLTextAreaElement).style.height).toBe('110px')
   })
 })

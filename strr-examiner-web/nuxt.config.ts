@@ -2,6 +2,7 @@
 const useLocalBaseWeb = process.env.STRR_LOCAL_BASE_WEB === 'true' // local dev only, set in .env
 
 export default defineNuxtConfig({
+  compatibilityDate: '2026-10-15',
   devtools: { enabled: false },
   ssr: false,
 
@@ -9,11 +10,10 @@ export default defineNuxtConfig({
     compatibilityVersion: 4
   },
 
-  modules: [
-    '@nuxtjs/eslint-module',
-    '@nuxt/test-utils/module',
-    '@nuxt/image'
-  ],
+  tailwindcss: {
+    viewer: false,
+    exposeConfig: false
+  },
 
   i18n: {
     locales: [
@@ -85,7 +85,6 @@ export default defineNuxtConfig({
       include: [
         'zod',
         'uuid',
-        'vitest',
         'date-fns',
         'v-calendar',
         'lodash/isEmpty',
@@ -93,11 +92,6 @@ export default defineNuxtConfig({
         'lodash/merge',
         'lodash/orderBy'
       ]
-    },
-    server: {
-      watch: {
-        usePolling: true
-      }
     }
   }
 })

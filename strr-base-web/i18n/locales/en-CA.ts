@@ -68,7 +68,10 @@ export default {
       main: 'Accept Terms of Use',
       aria: 'Accept Terms of Use (scroll and check the box before)'
     },
-    createAnAccount: 'Create an Account'
+    createAnAccount: 'Create an Account',
+    expand: 'Expand',
+    collapse: 'Collapse',
+    openInDialog: 'Full View'
   },
   contactInfo: {
     bcRegGeneral: {

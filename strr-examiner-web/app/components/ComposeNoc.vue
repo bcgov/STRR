@@ -67,16 +67,17 @@ onMounted(() => {
           </div>
           <div class="flex-auto pr-10">
             <UFormGroup name="content">
-              <UTextarea
+              <ConnectFormExpandableTextarea
                 v-model="emailContent.content"
                 :placeholder="t('modal.noc.placeholder')"
                 :aria-label="t('modal.noc.placeholder')"
-                :color="'gray'"
-                class="text-bcGovColor-midGray focus:ring-0"
-                auto-resize
-                resize
-                :rows="3"
-                @update:model-value="handleInput"
+                :dialog-title="t('modal.noc.title')"
+                data-testid="compose-email-textarea"
+                toggle-testid="toggle-expand-noc-email"
+                :initial-height="110"
+                :expanded-min-height="400"
+                bg-class="text-bcGovColor-midGray focus:ring-0"
+                @change="handleInput"
               />
             </UFormGroup>
           </div>
