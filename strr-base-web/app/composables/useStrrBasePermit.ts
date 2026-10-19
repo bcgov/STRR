@@ -1,5 +1,6 @@
-import type { ApiApplicationBaseResp, ApiRegistrationResp } from '~/interfaces/strr-api'
 import { downloadFile } from '~/utils/download-file'
+import type { ApiApplicationBaseResp, ApiDocument, ApiRegistrationResp } from '~/interfaces/strr-api'
+import type { UiDocument } from '~/interfaces/ui-document'
 
 export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationBaseResp, B>() => {
   const t = useNuxtApp().$i18n.t // this was casuing an issue when using the composable in route middleware
@@ -7,6 +8,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     getAccountApplication,
     getAccountRegistrations,
     getApplicationReceipt,
+    getDocument,
     getRegistrationCert,
     updatePaymentDetails
   } = useStrrApi()
@@ -78,6 +80,77 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     }
   }
 
+  const openDocInNewTab = async (
+    supportingDocument: ApiDocument | UiDocument,
+    appRegNumberOverride?: string | number,
+    typeOverride?: 'applications' | 'registrations'
+  ) => {
+    const apiDoc = 'apiDoc' in supportingDocument ? supportingDocument.apiDoc : supportingDocument
+    const uiDoc = 'loading' in supportingDocument ? supportingDocument : undefined
+
+    if (uiDoc) {
+      uiDoc.loading = true
+    }
+
+    try {
+      if (uiDoc?.file instanceof File && uiDoc.file.size > 0) {
+        const url = URL.createObjectURL(uiDoc.file)
+        window.open(url, '_blank')
+        URL.revokeObjectURL(url)
+        return
+      }
+
+      const fileKey = apiDoc?.fileKey
+      if (!fileKey) {
+        throw new Error('Missing fileKey')
+      }
+
+      const isReg = typeOverride
+        ? typeOverride === 'registrations'
+        : (!!registration.value?.registrationNumber || !!registration.value?.id)
+      const type = typeOverride ?? (isReg ? 'registrations' : 'applications')
+      const appRegNumber = appRegNumberOverride ?? (
+        isReg ? registration.value?.id : application.value?.header?.applicationNumber
+      )
+
+      if (!appRegNumber) {
+        throw new Error('Missing applicationNumber or registrationId')
+      }
+
+      let file: Blob | undefined
+      try {
+        file = await getDocument(appRegNumber, fileKey, type)
+      } catch (firstErr) {
+        if (type === 'registrations' && application.value?.header?.applicationNumber) {
+          file = await getDocument(
+            application.value.header.applicationNumber,
+            fileKey,
+            'applications'
+          )
+        } else {
+          throw firstErr
+        }
+      }
+
+      if (!file) {
+        throw new Error('Document content is empty or unavailable')
+      }
+
+      const blob = new Blob([file], { type: apiDoc?.fileType || 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      logFetchError(e, t('error.openDocument.description'))
+      const strrModal = useStrrModals()
+      strrModal.openErrorModal(t('error.openDocument.title'), t('error.openDocument.description'), false)
+    } finally {
+      if (uiDoc) {
+        uiDoc.loading = false
+      }
+    }
+  }
+
   return {
     application,
     registration,
@@ -87,6 +160,8 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     showPermitDetails,
     downloadApplicationReceipt,
     downloadRegistrationCert,
+    openDocInNewTab,
+    getDocument,
     isApplicationStatus,
     loadPermitData,
     loadPermitRegistrationData

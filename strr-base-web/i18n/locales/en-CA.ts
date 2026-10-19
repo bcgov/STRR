@@ -134,6 +134,10 @@ export default {
         title: 'Error Uploading Document',
         description: 'Something went wrong when uploading the file, only pdfs, jpeg, or jpg and files less than 10mb are accepted.'
       }
+    },
+    openDocument: {
+      title: 'Error Opening Document',
+      description: 'We could not open the document at this time. If the error persists, please contact us.'
     }
   },
   imageAlt: {

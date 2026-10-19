@@ -9,6 +9,9 @@ const mockShowPermitDetails = ref(false)
 const mockLoadPermitData = vi.fn()
 const mockLoadPermitRegistrationData = vi.fn()
 
+const mockOpenDocInNewTab = vi.fn()
+const mockGetDocument = vi.fn()
+
 mockNuxtImport('useStrrBasePermit', () => () => ({
   application: mockApplication,
   registration: mockRegistration,
@@ -16,7 +19,9 @@ mockNuxtImport('useStrrBasePermit', () => () => ({
   showPermitDetails: mockShowPermitDetails,
   isPaidApplication: ref(false),
   loadPermitData: mockLoadPermitData,
-  loadPermitRegistrationData: mockLoadPermitRegistrationData
+  loadPermitRegistrationData: mockLoadPermitRegistrationData,
+  openDocInNewTab: mockOpenDocInNewTab,
+  getDocument: mockGetDocument
 }))
 
 const mockGetAccountRegistrations = vi.fn()
@@ -222,5 +227,15 @@ describe('Strata Store functions', () => {
 
     expect(loaded).toBe(false)
     expect(mockLoadPermitRegistrationData).not.toHaveBeenCalled()
+  })
+
+  it('exposes openDocInNewTab and getDocument from useStrrBasePermit', async () => {
+    const store = useStrrStrataStore()
+    expect(typeof store.openDocInNewTab).toBe('function')
+    expect(typeof store.getDocument).toBe('function')
+    await store.openDocInNewTab({} as any)
+    expect(mockOpenDocInNewTab).toHaveBeenCalledWith({} as any)
+    await store.getDocument('1', 'key', 'registrations')
+    expect(mockGetDocument).toHaveBeenCalledWith('1', 'key', 'registrations')
   })
 })

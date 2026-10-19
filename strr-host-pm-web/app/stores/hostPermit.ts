@@ -27,7 +27,9 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     loadPermitData,
     loadPermitRegistrationData,
     downloadApplicationReceipt,
-    downloadRegistrationCert
+    downloadRegistrationCert,
+    openDocInNewTab,
+    getDocument
   } = useStrrBasePermit<HostRegistrationResp, HostApplicationResp, ApiHostApplication>()
   const { searchRegistrations } = useStrrApi()
 
@@ -229,6 +231,8 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     checkBusinessLicenseRequirement,
     downloadApplicationReceipt,
     downloadRegistrationCert,
+    openDocInNewTab,
+    getDocument,
     loadHostData,
     loadHostRegistrationData,
     loadHostRegistrationDataByRegistrationNumber,

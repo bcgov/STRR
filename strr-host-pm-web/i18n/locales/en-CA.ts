@@ -291,7 +291,11 @@ export default {
         title: 'Internal Server Error.',
         description: 'Please refresh the page or try again later. If error persists, please contact us.'
       }
-    } // TODO: other errors???
+    },
+    openDocument: {
+      title: 'Error Opening Document',
+      description: 'We could not open the document at this time. If the error persists, please contact us.'
+    }
   },
   label: {
     hotelName: 'Hotel Name',

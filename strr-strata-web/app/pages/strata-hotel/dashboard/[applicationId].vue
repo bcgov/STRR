@@ -9,7 +9,7 @@ const {
   title,
   subtitles
 } = storeToRefs(useConnectDetailsHeaderStore())
-const { downloadApplicationReceipt, loadStrata, loadStrataRegistrationDataByRegistrationNumber } = useStrrStrataStore()
+const { downloadApplicationReceipt, loadStrata, loadStrataRegistrationDataByRegistrationNumber, openDocInNewTab } = useStrrStrataStore()
 const {
   application,
   registration,
@@ -22,6 +22,12 @@ const { strataBusiness } = storeToRefs(useStrrStrataBusinessStore())
 const { strataDetails } = storeToRefs(useStrrStrataDetailsStore())
 const documentStore = useDocumentStore()
 const { deleteApplication, getAccountApplication } = useStrrApi()
+
+const isDocumentPreviewable = (doc: UiDocument): boolean => {
+  const hasLocalFile = doc.file instanceof File && doc.file.size > 0
+  const hasApiDoc = !!doc.apiDoc?.fileKey && !!(registration.value?.id || application.value?.header?.applicationNumber)
+  return hasLocalFile || hasApiDoc
+}
 
 const todos = ref<Todo[]>([])
 const buildings = ref<ConnectAccordionItem[]>([])
@@ -281,10 +287,20 @@ definePageMeta({
                 name="i-mdi-paperclip"
                 class="size-5 shrink-0 text-blue-500"
               />
-              <div class="flex gap-1">
+              <div class="flex items-center gap-1">
                 <!-- TODO: can we leave out the name since there is only 1 document type? -->
                 <!-- <span class="text-sm font-bold">{{ $t(`docType.${doc.type}`) }}</span> -->
-                <span>{{ doc.name }}</span>
+                <UButton
+                  v-if="isDocumentPreviewable(doc)"
+                  variant="link"
+                  class="p-0 text-left font-normal underline"
+                  data-test-id="preview-document-btn"
+                  :loading="doc.loading"
+                  @click="openDocInNewTab(doc)"
+                >
+                  {{ doc.name }}
+                </UButton>
+                <span v-else>{{ doc.name }}</span>
                 <UBadge
                   v-if="doc.uploadStep === DocumentUploadStep.NOC"
                   :label="`${ t('strr.label.added')} ` + doc.uploadDate"
