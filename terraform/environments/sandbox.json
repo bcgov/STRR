@@ -1,0 +1,12 @@
+{
+  "project_id": "bcrbk9-tools",
+  "project_number": "865508335279",
+  "log_bucket": "bcrbk9-sandbox-strr-access-logs",
+  "api": null,
+  "email": null,
+  "validation": {
+    "response_subscription": null,
+    "push_endpoint": null,
+    "eventarc_trigger": "bulk-permit-validation-trigger"
+  }
+}
