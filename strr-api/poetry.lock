@@ -4515,7 +4515,7 @@ name = "strr-test-utils"
 version = "0.1.0"
 description = "Shared Test Utilities for STRR Jobs"
 optional = false
-python-versions = ">=3.12.2,<4.0"
+python-versions = ">=3.12.2,<3.15"
 groups = ["dev"]
 files = []
 develop = true
@@ -5185,5 +5185,5 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.12.2"
-content-hash = "337435f9655f2c96d12c14bfd17760e013dd16d0cf90232902a875c7822e21b7"
+python-versions = ">=3.12.2,<3.15"
+content-hash = "03c0e6e499b05c42fbc4ff2f4e7316bd44eafc0df39986b6e2ab81942832788d"
