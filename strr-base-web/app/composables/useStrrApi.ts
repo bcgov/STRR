@@ -167,12 +167,24 @@ export const useStrrApi = () => {
     })
   }
 
+  const getDocument = async (
+    appRegNumber: string | number,
+    fileKey: string,
+    type: 'applications' | 'registrations'
+  ): Promise<Blob> => {
+    return await $strrApi<Blob>(`/${type}/${appRegNumber}/documents/${fileKey}`, {
+      method: 'GET',
+      responseType: 'blob'
+    })
+  }
+
   return {
     deleteApplication,
     getAccountRegistrations,
     getAccountApplication,
     getAccountApplications,
     getApplicationReceipt,
+    getDocument,
     getRegistrationCert,
     getRegistrationToDos,
     postApplication,

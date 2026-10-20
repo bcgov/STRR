@@ -80,6 +80,10 @@ export default {
     generic: {
       title: "Quelque Chose S'est Mal Passé",
       description: "Une erreur s'est produite, veuillez réessayer. Si cette erreur persiste, veuillez nous contacter."
+    },
+    openDocument: {
+      title: "Erreur lors de l'ouverture du document",
+      description: "Nous n'avons pas pu ouvrir le document pour le moment. Si l'erreur persiste, veuillez nous contacter."
     }
   },
   form: {},

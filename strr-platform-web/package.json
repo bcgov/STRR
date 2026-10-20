@@ -2,7 +2,7 @@
   "name": "strr-platform-web",
   "private": true,
   "type": "module",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "engines": {
     "node": ">=24"
   },
@@ -17,6 +17,8 @@
     "lint:fix": "pnpm lint --fix",
     "test": "vitest --dir tests/unit --passWithNoTests --coverage && cp ./tests/coverage/clover.xml ./coverage.xml",
     "test:unit": "vitest --dir tests/unit",
+    "test:unit:bun": "bunx --bun vitest --dir tests/unit",
+    "test:bun": "bunx --bun vitest --dir tests/unit",
     "test:unit:cov": "vitest run --dir tests/unit --coverage",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui"

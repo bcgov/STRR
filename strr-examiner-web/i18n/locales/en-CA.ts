@@ -337,6 +337,10 @@ export default {
     downloadReceipt: {
       description: 'We could not download the receipt at this time. If error persists, please contact us.'
     },
+    openDocument: {
+      title: 'Error Opening Document',
+      description: 'We could not open the document at this time. If the error persists, please contact us.'
+    },
     fetchInvoiceInfo: 'An error occurred while fetching invoice information.',
     checkAssignee: {
       description: 'We could not verify if you are the assignee for this application. If error persists, please contact us.'

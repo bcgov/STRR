@@ -49,6 +49,14 @@ vi.mock('@/stores/strataApplication', () => ({
   })
 }))
 
+vi.mock('@/stores/strata', () => ({
+  useStrrStrataStore: () => ({
+    openDocInNewTab: vi.fn(),
+    application: ref(undefined),
+    registration: ref(undefined)
+  })
+}))
+
 const mountComponent = () =>
   mountSuspended(ReviewConfirm, { props: { isComplete: false } })
 

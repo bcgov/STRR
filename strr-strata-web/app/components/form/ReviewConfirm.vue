@@ -11,7 +11,16 @@ const businessStore = useStrrStrataBusinessStore()
 const detailsStore = useStrrStrataDetailsStore()
 const applicationStore = useStrrStrataApplicationStore()
 const documentStore = useDocumentStore()
+const strataStore = useStrrStrataStore()
+const { openDocInNewTab } = strataStore
+const { application, registration } = storeToRefs(strataStore)
 const modal = useModal()
+
+const isDocumentPreviewable = (doc: UiDocument): boolean => {
+  const hasLocalFile = doc.file instanceof File && doc.file.size > 0
+  const hasApiDoc = !!doc.apiDoc?.fileKey && !!(registration.value?.id || application.value?.header?.applicationNumber)
+  return hasLocalFile || hasApiDoc
+}
 
 const strataConfirmationFormRef = ref<Form<z.output<typeof applicationStore.confirmationSchema>>>()
 const sectionErrors = ref<MultiFormValidationResult>([])
@@ -365,7 +374,17 @@ const completingPartyFullName = kcUser.value.loginSource === LoginSource.BCEID
               <div class="flex flex-col">
                 <!-- TODO: can we leave out the name since there is only 1 document type? -->
                 <!-- <span class="text-sm font-bold">{{ $t(`docType.${doc.type}`) }}</span> -->
-                <span>{{ doc.name }}</span>
+                <UButton
+                  v-if="isDocumentPreviewable(doc)"
+                  variant="link"
+                  class="p-0 text-left font-normal underline"
+                  data-test-id="preview-document-btn"
+                  :loading="doc.loading"
+                  @click="openDocInNewTab(doc)"
+                >
+                  {{ doc.name }}
+                </UButton>
+                <span v-else>{{ doc.name }}</span>
               </div>
             </div>
           </div>

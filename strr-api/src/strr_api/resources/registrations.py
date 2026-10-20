@@ -306,8 +306,9 @@ def get_registration_file_by_id(registration_id, file_key):
     """
 
     try:
-        # only allow upload for registrations that belong to the user
-        registration = RegistrationService.get_registration(g.jwt_oidc_token_info, registration_id)
+        # only allow download for registrations that belong to the user
+        account_id = request.headers.get("Account-Id")
+        registration = RegistrationService.get_registration(account_id, registration_id)
         if not registration:
             raise AuthException()
 
