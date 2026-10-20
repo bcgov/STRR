@@ -2,7 +2,7 @@
   "name": "strr-base-web",
   "private": true,
   "type": "module",
-  "version": "0.0.56",
+  "version": "0.0.57",
   "engines": {
     "node": ">=24"
   },
