@@ -80,6 +80,44 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     }
   }
 
+  const openBlobUrl = (blob: Blob | File) => {
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    URL.revokeObjectURL(url)
+  }
+
+  const resolveDocumentTarget = (
+    typeOverride?: 'applications' | 'registrations',
+    appRegNumberOverride?: string | number
+  ) => {
+    const isReg = typeOverride
+      ? typeOverride === 'registrations'
+      : (Boolean(registration.value?.registrationNumber) || Boolean(registration.value?.id))
+
+    const type = typeOverride ?? (isReg ? 'registrations' : 'applications')
+    const appRegNumber = appRegNumberOverride ?? (
+      isReg ? registration.value?.id : application.value?.header?.applicationNumber
+    )
+
+    return { type, appRegNumber }
+  }
+
+  const fetchDocumentBlob = async (
+    appRegNumber: string | number,
+    fileKey: string,
+    type: 'applications' | 'registrations'
+  ) => {
+    try {
+      return await getDocument(appRegNumber, fileKey, type)
+    } catch (firstErr) {
+      const appNumber = application.value?.header?.applicationNumber
+      if (type === 'registrations' && appNumber) {
+        return await getDocument(appNumber, fileKey, 'applications')
+      }
+      throw firstErr
+    }
+  }
+
   const openDocInNewTab = async (
     supportingDocument: ApiDocument | UiDocument,
     appRegNumberOverride?: string | number,
@@ -94,52 +132,26 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
 
     try {
       if (uiDoc?.file instanceof File && uiDoc.file.size > 0) {
-        const url = URL.createObjectURL(uiDoc.file)
-        window.open(url, '_blank')
-        URL.revokeObjectURL(url)
+        openBlobUrl(uiDoc.file)
         return
       }
 
-      const fileKey = apiDoc?.fileKey
-      if (!fileKey) {
+      if (!apiDoc?.fileKey) {
         throw new Error('Missing fileKey')
       }
 
-      const isReg = typeOverride
-        ? typeOverride === 'registrations'
-        : (!!registration.value?.registrationNumber || !!registration.value?.id)
-      const type = typeOverride ?? (isReg ? 'registrations' : 'applications')
-      const appRegNumber = appRegNumberOverride ?? (
-        isReg ? registration.value?.id : application.value?.header?.applicationNumber
-      )
-
+      const { type, appRegNumber } = resolveDocumentTarget(typeOverride, appRegNumberOverride)
       if (!appRegNumber) {
         throw new Error('Missing applicationNumber or registrationId')
       }
 
-      let file: Blob | undefined
-      try {
-        file = await getDocument(appRegNumber, fileKey, type)
-      } catch (firstErr) {
-        if (type === 'registrations' && application.value?.header?.applicationNumber) {
-          file = await getDocument(
-            application.value.header.applicationNumber,
-            fileKey,
-            'applications'
-          )
-        } else {
-          throw firstErr
-        }
-      }
-
+      const file = await fetchDocumentBlob(appRegNumber, apiDoc.fileKey, type)
       if (!file) {
         throw new Error('Document content is empty or unavailable')
       }
 
-      const blob = new Blob([file], { type: apiDoc?.fileType || 'application/pdf' })
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
-      URL.revokeObjectURL(url)
+      const blob = new Blob([file], { type: apiDoc.fileType || 'application/pdf' })
+      openBlobUrl(blob)
     } catch (e) {
       logFetchError(e, t('error.openDocument.description'))
       const strrModal = useStrrModals()
