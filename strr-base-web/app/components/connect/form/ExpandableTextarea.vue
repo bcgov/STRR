@@ -43,6 +43,7 @@ const emit = defineEmits<{
 
 const model = defineModel<string>({ default: '' })
 const { t } = useI18n()
+const { metaSymbol } = useShortcuts()
 
 const textareaRef = ref<{ textarea?: HTMLTextAreaElement, $el?: HTMLElement } | null>(null)
 const [isExpanded, toggleExpandState] = useToggle(false)
@@ -82,8 +83,6 @@ const resolvedFadeClass = computed(() => {
     ? 'from-white via-white/85'
     : 'from-str-bgGray via-str-bgGray/85'
 })
-
-const { metaSymbol } = useShortcuts()
 
 const shortcutModifierLabel = computed(() => {
   if (metaSymbol.value === '⌘') { return 'Cmd' }
