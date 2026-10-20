@@ -4,6 +4,7 @@ import path from 'path'
 import { defineVitestConfig } from '@nuxt/test-utils/config'
 
 export default defineVitestConfig({
+  cacheDir: 'node_modules/.vite',
   resolve: {
     alias: {
       'bun:test': fileURLToPath(new URL('./vitest.config.ts', import.meta.url)),
