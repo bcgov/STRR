@@ -83,6 +83,23 @@ const resolvedFadeClass = computed(() => {
     : 'from-str-bgGray via-str-bgGray/85'
 })
 
+const { metaSymbol } = useShortcuts()
+
+const shortcutModifierLabel = computed(() => {
+  if (metaSymbol.value === '⌘') { return 'Cmd' }
+  return metaSymbol.value?.trim() || 'Cmd/Ctrl'
+})
+
+defineShortcuts({
+  meta_enter: {
+    usingInput: true,
+    whenever: [isDialogOpen],
+    handler: () => {
+      isDialogOpen.value = false
+    }
+  }
+})
+
 onMounted(() => {
   setHeight(props.initialHeight)
 })
@@ -151,13 +168,14 @@ onMounted(() => {
         :disabled="Boolean($attrs.disabled)"
         :color="color as any"
         :data-testid="`${dataTestid}-dialog-textarea`"
+        autofocus
         resize
         :ui="{
           base: `w-full min-h-[60vh] resize-y focus:ring-0 ${bgClass}`,
           padding: { sm: 'p-4' }
         }"
-        @keydown.meta.enter="isDialogOpen = false"
-        @keydown.ctrl.enter="isDialogOpen = false"
+        @keydown.meta.enter.prevent="isDialogOpen = false"
+        @keydown.ctrl.enter.prevent="isDialogOpen = false"
         @update:model-value="emit('change', $event)"
       />
 
@@ -174,7 +192,7 @@ onMounted(() => {
             <kbd
               class="rounded border border-gray-300 bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-600"
             >
-              ⌘/Ctrl + Enter
+              {{ shortcutModifierLabel }} + Enter
             </kbd>
             <span>to exit</span>
           </div>

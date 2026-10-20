@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import ConnectFormExpandableTextarea from '../../app/components/connect/form/ExpandableTextarea.vue'
 
 const translate = (key: string) => {
@@ -17,6 +17,22 @@ const translate = (key: string) => {
 vi.stubGlobal('useI18n', () => ({
   t: translate
 }))
+
+vi.stubGlobal('useShortcuts', () => ({
+  metaSymbol: ref('⌘')
+}))
+
+vi.stubGlobal('defineShortcuts', (config: Record<string, any>) => {
+  window.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      const shortcut = config.meta_enter || config.ctrl_enter
+      if (shortcut?.whenever?.[0]?.value) {
+        e.preventDefault()
+        shortcut.handler()
+      }
+    }
+  })
+})
 
 describe('ConnectFormExpandableTextarea Component', () => {
   const globalMocks = {
@@ -217,20 +233,43 @@ describe('ConnectFormExpandableTextarea Component', () => {
     expect(wrapper.find('.u-modal-stub').exists()).toBe(false)
   })
 
-  it('closes the modal on Cmd+Enter / Ctrl+Enter keyboard shortcuts', async () => {
+  it('closes the modal on Cmd+Enter / Ctrl+Enter keyboard shortcuts from textarea and window', async () => {
     const wrapper = mount(ConnectFormExpandableTextarea, {
       props: { modelValue: 'Test message' },
       global: globalMocks
     })
 
+    // Open dialog
     await wrapper.findAll('.u-button-stub')[1]!.trigger('click')
     await nextTick()
     expect(wrapper.find('.u-modal-stub').exists()).toBe(true)
 
+    // Close via Cmd+Enter on textarea
     const dialogTextarea = wrapper.find('.u-modal-stub textarea')
     await dialogTextarea.trigger('keydown', { key: 'Enter', metaKey: true })
     await nextTick()
     expect(wrapper.find('.u-modal-stub').exists()).toBe(false)
+
+    // Reopen dialog
+    await wrapper.findAll('.u-button-stub')[1]!.trigger('click')
+    await nextTick()
+    expect(wrapper.find('.u-modal-stub').exists()).toBe(true)
+
+    // Close via Ctrl+Enter on textarea
+    await wrapper.find('.u-modal-stub textarea').trigger('keydown', { key: 'Enter', ctrlKey: true })
+    await nextTick()
+    expect(wrapper.find('.u-modal-stub').exists()).toBe(false)
+
+    // Reopen dialog and test window-level keydown (when focus is outside textarea)
+    await wrapper.findAll('.u-button-stub')[1]!.trigger('click')
+    await nextTick()
+    expect(wrapper.find('.u-modal-stub').exists()).toBe(true)
+
+    const event = new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, cancelable: true })
+    window.dispatchEvent(event)
+    await nextTick()
+    expect(wrapper.find('.u-modal-stub').exists()).toBe(false)
+    expect(event.defaultPrevented).toBe(true)
   })
 
   it('dynamically adapts gradient fade when white background is passed', () => {
@@ -243,5 +282,18 @@ describe('ConnectFormExpandableTextarea Component', () => {
     })
 
     expect(wrapper.find('.from-white.via-white\\/85').exists()).toBe(true)
+  })
+
+  it('displays Cmd + Enter shortcut label on Mac platform', async () => {
+    const wrapper = mount(ConnectFormExpandableTextarea, {
+      props: { modelValue: 'Some content' },
+      global: globalMocks
+    })
+
+    await wrapper.findAll('.u-button-stub')[1]!.trigger('click')
+    await nextTick()
+
+    const kbds = wrapper.findAll('.u-modal-stub kbd')
+    expect(kbds[1]!.text()).toBe('Cmd + Enter')
   })
 })
