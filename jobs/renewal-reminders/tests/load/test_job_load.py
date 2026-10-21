@@ -90,7 +90,7 @@ def test_40_validation_scan(mocker, app, session, setup_bulk_parents):
 
 scenario_idempotent = {
     "records": 1,
-    "target_days": [0],
+    "target_days": [3],
     "target_pct": 1,
 }
 
@@ -99,10 +99,10 @@ scenario_idempotent = {
 @pytest.mark.parametrize("setup_bulk_parents", [scenario_idempotent], indirect=True)
 def test_single_idempotent_skip(mocker, app, session, setup_bulk_parents):
     """Test that the record is skipped if the interaction shows the job has already captured this record."""
-    # setup_bulk_parents created 1 record that expires in 0 days
+    # setup_bulk_parents created 1 record that expires in 3 days
     graph_info, scenario = setup_bulk_parents
     assert graph_info["record_count"] == scenario["records"]
-    expected_day_ids = graph_info["target_reg_ids"][0]
+    expected_day_ids = graph_info["target_reg_ids"][3]
     assert len(expected_day_ids) == scenario["records"]
 
     mock_service = mocker.patch(
@@ -115,7 +115,7 @@ def test_single_idempotent_skip(mocker, app, session, setup_bulk_parents):
     interaction = CustomerInteraction(
         registration_id=expected_day_ids[0],
         channel=ChannelType.EMAIL,
-        idempotency_key=renewal_job_key(),
+        idempotency_key=renewal_job_key(days=3),
     )
     session.add(interaction)
     session.flush()
@@ -135,7 +135,7 @@ def test_single_idempotent_skip(mocker, app, session, setup_bulk_parents):
 scenario_all_idempotent = [
     {
         "records": 1,
-        "target_days": [0],
+        "target_days": [3],
         "target_pct": 1,
     },
     {
@@ -150,7 +150,7 @@ scenario_all_idempotent = [
     },
     {
         "records": 12,
-        "target_days": [0, 14, 40],
+        "target_days": [3, 14, 40],
         "target_pct": 1,
     },
 ]

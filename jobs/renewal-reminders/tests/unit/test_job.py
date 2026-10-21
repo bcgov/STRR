@@ -22,6 +22,7 @@ from renewal_reminders.job import send_forty_days_reminder
 from renewal_reminders.job import send_fourteen_days_reminder
 from renewal_reminders.job import send_sixty_days_reminder_for_strata_hotels
 from renewal_reminders.job import send_thirty_days_reminder_for_strata_hotels
+from renewal_reminders.job import send_three_days_reminder
 
 
 @pytest.fixture
@@ -114,7 +115,7 @@ def test_send_forty_days_reminder_no_registrations(job_app, mocker):
     ("handler", "registration_type_arg"),
     [
         (send_fourteen_days_reminder, Registration.RegistrationType.HOST),
-        (send_final_day_reminder, Registration.RegistrationType.PLATFORM),
+        (send_three_days_reminder, Registration.RegistrationType.PLATFORM),
     ],
 )
 @freeze_time("2026-06-01 12:00:00+00:00")
@@ -146,11 +147,16 @@ def test_send_reminder_skips_when_renewal_application_not_draft_or_payment_due(
     mock_email.assert_not_called()
 
 
+def test_send_final_day_reminder_is_alias():
+    """Verify that send_final_day_reminder aliases send_three_days_reminder for backwards compatibility."""
+    assert send_final_day_reminder is send_three_days_reminder
+
+
 @pytest.mark.parametrize(
     ("handler", "registration_type_arg", "expected_days_suffix"),
     [
         (send_fourteen_days_reminder, Registration.RegistrationType.HOST, "14"),
-        (send_final_day_reminder, Registration.RegistrationType.HOST, "0"),
+        (send_three_days_reminder, Registration.RegistrationType.HOST, "3"),
     ],
 )
 @freeze_time("2026-06-01 12:00:00+00:00")
@@ -179,6 +185,37 @@ def test_send_reminder_sends_when_no_renewal_application(
     expected_key = f"2026:RENEWAL_REMINDER:{expected_days_suffix}"
     mock_email.assert_called_once_with(registration=reg, interaction=expected_key)
     mock_events.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "status",
+    [Application.Status.DRAFT, Application.Status.PAYMENT_DUE],
+)
+@freeze_time("2026-06-01 12:00:00+00:00")
+def test_send_three_days_sends_when_renewal_in_draft_or_payment_due(job_app, mocker, status):
+    reg = MagicMock()
+    reg.id = 89
+
+    renewal_app = MagicMock()
+    renewal_app.status = status
+
+    mock_email = mocker.patch(
+        "renewal_reminders.job.EmailService.send_renewal_reminder_for_registration"
+    )
+    mocker.patch("renewal_reminders.job.EventsService.save_event")
+
+    with job_app.app_context():
+        with patch(
+            "renewal_reminders.job.Registration.query",
+            _registration_query_mock([reg]),
+        ):
+            with patch(
+                "renewal_reminders.job.Application.query",
+                _application_query_first_mock(renewal_app),
+            ):
+                send_three_days_reminder(job_app, Registration.RegistrationType.HOST)
+
+    mock_email.assert_called_once()
 
 
 @pytest.mark.parametrize(
@@ -289,7 +326,7 @@ def test_send_thirty_days_strata_sends_when_eligible(job_app, mocker):
 def test_run_invokes_all_reminder_steps(mocker, mock_flask_app_for_run):
     m40 = mocker.patch("renewal_reminders.job.send_forty_days_reminder")
     m14 = mocker.patch("renewal_reminders.job.send_fourteen_days_reminder")
-    mfinal = mocker.patch("renewal_reminders.job.send_final_day_reminder")
+    m3 = mocker.patch("renewal_reminders.job.send_three_days_reminder")
     m60 = mocker.patch("renewal_reminders.job.send_sixty_days_reminder_for_strata_hotels")
     m30 = mocker.patch("renewal_reminders.job.send_thirty_days_reminder_for_strata_hotels")
 
@@ -310,7 +347,7 @@ def test_run_invokes_all_reminder_steps(mocker, mock_flask_app_for_run):
             call(mock_flask_app_for_run, registration_type=platform),
         ]
     )
-    mfinal.assert_called_once_with(mock_flask_app_for_run, registration_type=host)
+    m3.assert_called_once_with(mock_flask_app_for_run, registration_type=host)
     m60.assert_called_once_with(mock_flask_app_for_run)
     m30.assert_called_once_with(mock_flask_app_for_run)
 
@@ -321,7 +358,7 @@ def test_run_creates_app_when_none(mocker, mock_flask_app_for_run):
     )
     mocker.patch("renewal_reminders.job.send_forty_days_reminder")
     mocker.patch("renewal_reminders.job.send_fourteen_days_reminder")
-    mocker.patch("renewal_reminders.job.send_final_day_reminder")
+    mocker.patch("renewal_reminders.job.send_three_days_reminder")
     mocker.patch("renewal_reminders.job.send_sixty_days_reminder_for_strata_hotels")
     mocker.patch("renewal_reminders.job.send_thirty_days_reminder_for_strata_hotels")
 
