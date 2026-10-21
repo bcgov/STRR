@@ -24,10 +24,10 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
         <b>{{ $t('strr.label.primaryBuilding').toUpperCase() }}</b>
         <ConnectInfoWithIcon
           icon="i-mdi-map-marker-outline"
-          :content="displayFullAddress(activeReg?.strataHotelDetails.location)"
+          :content="displayFullAddress(activeReg?.strataHotelDetails?.location)"
         />
         <UButton
-          v-if="activeReg?.strataHotelDetails.buildings.length > 0"
+          v-if="(activeReg?.strataHotelDetails?.buildings?.length ?? 0) > 0"
           :label="$t('strr.label.viewAllBuildings')"
           :padded="false"
           variant="link"
@@ -140,18 +140,31 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
         </div>
       </div>
 
-      <div class="space-y-2 pl-5">
+      <div
+        data-testid="strata-additional-info"
+        class="space-y-2 pl-5"
+      >
         <b>{{ $t('strr.label.additionalInformation').toUpperCase() }}</b>
-        <div>
+        <div data-testid="strata-number-of-rental-units">
           <b>{{ $t('strr.label.numberOfRentalUnits') }}</b>
-          {{ activeReg.strataHotelDetails.numberOfUnits }}
+          {{ activeReg?.strataHotelDetails?.numberOfUnits ?? '' }}
         </div>
         <div>
           <b>{{ $t('label.strataHotelCategory') }}:</b>
-          {{ activeReg.strataHotelDetails.category
+          {{ activeReg?.strataHotelDetails?.category
             ? $t(`strataHotelCategoryReview.${activeReg.strataHotelDetails.category}`)
             : $t('strataHotelCategoryReview.undefined')
           }}
+        </div>
+        <div
+          data-testid="strata-rental-units"
+          class="border-t border-gray-200 pt-2.5"
+        >
+          <ConnectItemListDisplay
+            :label="$t('strr.label.rentalUnitsInBuilding')"
+            :items="formatStrataUnitGroups(activeReg?.strataHotelDetails?.unitListings)"
+            data-testid="strata-rental-units-list"
+          />
         </div>
       </div>
     </div>

@@ -109,3 +109,28 @@ export function displayPhoneAndExt (
   const extension = phoneExt ? `, ${t('label.phoneExt')} ${phoneExt}` : ''
   return countryCode + displayFormattedPhone(phoneNumber) + extension
 }
+
+/**
+ * Parses strata hotel unitListings (primary and additional buildings) into ItemListDisplay groups.
+ * @param listings strata unit listings from API
+ * @returns array of unit groups per building
+ */
+export function formatStrataUnitGroups (
+  listings?: ApiStrataUnitListings | null
+): Array<{ label?: string, items: string[] }> {
+  if (!listings) {
+    return []
+  }
+
+  const splitUnits = (val?: string) => val?.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean) || []
+  const primary = splitUnits(listings.primary)
+  const additional = (listings.additional || [])
+    .map((u, i) => ({ label: `Building ${i + 2}`, items: splitUnits(u) }))
+    .filter(g => g.items.length > 0)
+
+  if (!additional.length) {
+    return primary.length ? [{ items: primary }] : []
+  }
+
+  return [...(primary.length ? [{ label: 'Building 1', items: primary }] : []), ...additional]
+}

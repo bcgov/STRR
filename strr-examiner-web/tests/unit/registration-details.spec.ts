@@ -38,6 +38,17 @@ const isEditingRegistrationEmail = ref(false)
 const mockRightButtons = [
   { key: 'cancel', disabled: false }
 ]
+const strataUnitListStub = {
+  props: ['items', 'label', 'dataTestid'],
+  template: `
+    <div
+      data-testid="connect-item-list-display-stub"
+      :data-label="label"
+      :data-items="JSON.stringify(items)"
+      :data-component-testid="dataTestid"
+    />
+  `
+}
 
 vi.mock('@/composables/useExaminerRoute', () => ({
   useExaminerRoute: () => ({
@@ -262,14 +273,48 @@ describe('Examiner - Registration Details Page', () => {
     expect(nameElement.text()).toContain('Doe Enterprises')
   })
 
-  it('does not render HostSubHeader edit email affordance for STRATA registrations', async () => {
+  it('does not render HostSubHeader edit email affordance for STRATA and displays rental units', async () => {
     currentMockData = mockStrataHotelRegistration
 
     const componentWrapper = await mountSuspended(StrataSubHeader, {
-      global: { plugins: [enI18n] }
+      global: {
+        plugins: [enI18n],
+        stubs: { ConnectItemListDisplay: strataUnitListStub }
+      }
     })
 
+    const expectedUnits = mockStrataHotelRegistration.strataHotelDetails.numberOfUnits.toString()
     expect(componentWrapper.findTestId('edit-registration-email').exists()).toBe(false)
+    expect(componentWrapper.findTestId('strata-number-of-rental-units').exists()).toBe(true)
+    expect(componentWrapper.findTestId('strata-number-of-rental-units').text()).toContain(expectedUnits)
+    expect(componentWrapper.findTestId('strata-rental-units').exists()).toBe(true)
+    const unitList = componentWrapper.find('[data-testid="connect-item-list-display-stub"]')
+    expect(unitList.attributes('data-label')).toBe('Rental Units in Building:')
+    expect(JSON.parse(unitList.attributes('data-items')!)).toEqual([{ items: ['Unit 101'] }])
+  })
+
+  it('displays only Rental Units in Building label when unitListings is empty', async () => {
+    currentMockData = {
+      ...mockStrataHotelRegistration,
+      strataHotelDetails: {
+        ...mockStrataHotelRegistration.strataHotelDetails,
+        unitListings: undefined
+      }
+    }
+
+    const componentWrapper = await mountSuspended(StrataSubHeader, {
+      global: {
+        plugins: [enI18n],
+        stubs: { ConnectItemListDisplay: strataUnitListStub }
+      }
+    })
+
+    const rentalUnits = componentWrapper.findTestId('strata-rental-units')
+    expect(rentalUnits.exists()).toBe(true)
+    const unitList = componentWrapper.find('[data-testid="connect-item-list-display-stub"]')
+    expect(unitList.attributes('data-label')).toBe('Rental Units in Building:')
+    expect(JSON.parse(unitList.attributes('data-items')!)).toEqual([])
+    currentMockData = mockStrataHotelRegistration
   })
 
   it('displays website button for STRATA_HOTEL type', async () => {

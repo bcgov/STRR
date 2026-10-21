@@ -206,6 +206,7 @@ export default {
       additionalInformation: 'Additional Information',
       strataCategory: 'Category:',
       numberOfRentalUnits: 'Number of Rental Units:',
+      rentalUnitsInBuilding: 'Rental Units in Building:',
       cpbcLicenseNum: 'CPBC Licence #',
       listingSize: {
         THOUSAND_AND_ABOVE: '1,000 or more',
