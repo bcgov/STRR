@@ -135,10 +135,6 @@ def send_three_days_reminder(app, registration_type):
         app.logger.info("Finished sending 3 days renewal notifications.")
 
 
-# Backward compatibility alias
-send_final_day_reminder = send_three_days_reminder
-
-
 def send_fourteen_days_reminder(app, registration_type):
     """Send the reminder before 14 days."""
     with app.app_context():

@@ -17,7 +17,6 @@ from strr_api.services.events_service import Events
 from renewal_reminders.job import create_app
 from renewal_reminders.job import renewal_job_key
 from renewal_reminders.job import run
-from renewal_reminders.job import send_final_day_reminder
 from renewal_reminders.job import send_forty_days_reminder
 from renewal_reminders.job import send_fourteen_days_reminder
 from renewal_reminders.job import send_sixty_days_reminder_for_strata_hotels
@@ -145,11 +144,6 @@ def test_send_reminder_skips_when_renewal_application_not_draft_or_payment_due(
                 handler(job_app, registration_type_arg)
 
     mock_email.assert_not_called()
-
-
-def test_send_final_day_reminder_is_alias():
-    """Verify that send_final_day_reminder aliases send_three_days_reminder for backwards compatibility."""
-    assert send_final_day_reminder is send_three_days_reminder
 
 
 @pytest.mark.parametrize(
