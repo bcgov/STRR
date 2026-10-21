@@ -1,4 +1,5 @@
 name: BATCH PERMIT LISTENER CD
+run-name: ${{ github.workflow }} -> [${{ inputs.target || 'dev' }}] by @${{ github.actor }}
 
 on:
   push:
