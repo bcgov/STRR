@@ -133,8 +133,6 @@ describe('Examiner - Host Application Details Page', () => {
     expect(wrapper.findComponent(HostSupportingInfo).exists()).toBe(true)
     expect(wrapper.findComponent(SupportingDocuments).exists()).toBe(true)
     expect(wrapper.findComponent(StrataSubHeader).exists()).toBe(false)
-    expect(wrapper.findTestId('strata-rental-units').exists()).toBe(false)
-    expect(wrapper.text()).not.toContain('Rental Units in Building')
     expect(wrapper.findComponent(StrataSupportingInfo).exists()).toBe(false)
     expect(wrapper.findComponent(PlatformSubHeader).exists()).toBe(false)
   })

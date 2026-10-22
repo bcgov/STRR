@@ -38,17 +38,6 @@ const isEditingRegistrationEmail = ref(false)
 const mockRightButtons = [
   { key: 'cancel', disabled: false }
 ]
-const strataUnitListStub = {
-  props: ['items', 'label', 'dataTestid'],
-  template: `
-    <div
-      data-testid="connect-item-list-display-stub"
-      :data-label="label"
-      :data-items="JSON.stringify(items)"
-      :data-component-testid="dataTestid"
-    />
-  `
-}
 
 vi.mock('@/composables/useExaminerRoute', () => ({
   useExaminerRoute: () => ({
@@ -98,13 +87,20 @@ vi.mock('@/stores/document', () => ({
   })
 }))
 
-const { mockGetExpiryCountdown } = vi.hoisted(() => {
+const { mockGetExpiryCountdown, mockOpenRentalUnits } = vi.hoisted(() => {
   const mockGetExpiryCountdown = vi.fn((endDate: string | undefined) =>
     endDate ? { label: '0 days left', value: 0 } : { label: '', value: Number.NaN }
   )
-  return { mockGetExpiryCountdown }
+  return { mockGetExpiryCountdown, mockOpenRentalUnits: vi.fn() }
 })
 mockNuxtImport('getExpiryCountdown', () => mockGetExpiryCountdown)
+
+mockNuxtImport('useStrataExpansion', () => () => ({
+  openBusiness: vi.fn(),
+  openIndividuals: vi.fn(),
+  openAllBuildings: vi.fn(),
+  openRentalUnits: mockOpenRentalUnits
+}))
 
 mockNuxtImport('useConnectLaunchdarklyStore', () => {
   return () => ({
@@ -277,23 +273,21 @@ describe('Examiner - Registration Details Page', () => {
     currentMockData = mockStrataHotelRegistration
 
     const componentWrapper = await mountSuspended(StrataSubHeader, {
-      global: {
-        plugins: [enI18n],
-        stubs: { ConnectItemListDisplay: strataUnitListStub }
-      }
+      global: { plugins: [enI18n] }
     })
 
     const expectedUnits = mockStrataHotelRegistration.strataHotelDetails.numberOfUnits.toString()
     expect(componentWrapper.findTestId('edit-registration-email').exists()).toBe(false)
     expect(componentWrapper.findTestId('strata-number-of-rental-units').exists()).toBe(true)
     expect(componentWrapper.findTestId('strata-number-of-rental-units').text()).toContain(expectedUnits)
-    expect(componentWrapper.findTestId('strata-rental-units').exists()).toBe(true)
-    const unitList = componentWrapper.find('[data-testid="connect-item-list-display-stub"]')
-    expect(unitList.attributes('data-label')).toBe('Rental Units in Building:')
-    expect(JSON.parse(unitList.attributes('data-items')!)).toEqual([{ items: ['Unit 101'] }])
+
+    const viewUnitsBtn = componentWrapper.findTestId('strata-view-rental-units')
+    expect(viewUnitsBtn.text()).toBe('View rental units')
+    await viewUnitsBtn.trigger('click')
+    expect(mockOpenRentalUnits).toHaveBeenCalledOnce()
   })
 
-  it('displays only Rental Units in Building label when unitListings is empty', async () => {
+  it('hides the view rental units link when unitListings is empty', async () => {
     currentMockData = {
       ...mockStrataHotelRegistration,
       strataHotelDetails: {
@@ -303,17 +297,11 @@ describe('Examiner - Registration Details Page', () => {
     }
 
     const componentWrapper = await mountSuspended(StrataSubHeader, {
-      global: {
-        plugins: [enI18n],
-        stubs: { ConnectItemListDisplay: strataUnitListStub }
-      }
+      global: { plugins: [enI18n] }
     })
 
-    const rentalUnits = componentWrapper.findTestId('strata-rental-units')
-    expect(rentalUnits.exists()).toBe(true)
-    const unitList = componentWrapper.find('[data-testid="connect-item-list-display-stub"]')
-    expect(unitList.attributes('data-label')).toBe('Rental Units in Building:')
-    expect(JSON.parse(unitList.attributes('data-items')!)).toEqual([])
+    expect(componentWrapper.findTestId('strata-number-of-rental-units').exists()).toBe(true)
+    expect(componentWrapper.findTestId('strata-view-rental-units').exists()).toBe(false)
     currentMockData = mockStrataHotelRegistration
   })
 

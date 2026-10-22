@@ -44,8 +44,8 @@ export function displayFullUnitAddress (mailingAddress?: ApiUnitAddress): string
   const displayUnitNumber = unitNumber ? `${unitNumber}-` : ''
 
   return `
-        ${displayUnitNumber}${streetNumber} ${streetName}, 
-        ${city || '-'} ${province} ${postalCode || '-'}, 
+        ${displayUnitNumber}${streetNumber} ${streetName},
+        ${city || '-'} ${province} ${postalCode || '-'},
         ${country || '-'}
       `
 }
@@ -60,8 +60,8 @@ export function displayFullAddress (mailingAddress?: ApiAddress): string | undef
   const addressPartTwo = address && addressLineTwo ? `, ${addressLineTwo}` : addressLineTwo || ''
 
   return `
-      ${address || '-'}${addressPartTwo}, 
-      ${city || '-'} ${province} ${postalCode || '-'}, 
+      ${address || '-'}${addressPartTwo},
+      ${city || '-'} ${province} ${postalCode || '-'},
       ${country ?? '-'}
     `
 }
@@ -110,27 +110,27 @@ export function displayPhoneAndExt (
   return countryCode + displayFormattedPhone(phoneNumber) + extension
 }
 
+const unitCollator = new Intl.Collator(undefined, { numeric: true })
+
 /**
- * Parses strata hotel unitListings (primary and additional buildings) into ItemListDisplay groups.
+ * Splits strata hotel unitListings into naturally sorted unit groups, one per building.
  * @param listings strata unit listings from API
- * @returns array of unit groups per building
+ * @returns groups where building 0 is the primary location and N is the (N - 1)th additional building
  */
 export function formatStrataUnitGroups (
   listings?: ApiStrataUnitListings | null
-): Array<{ label?: string, items: string[] }> {
+): Array<{ building: number, items: string[] }> {
   if (!listings) {
     return []
   }
 
-  const splitUnits = (val?: string) => val?.split(/\r?\n|,/).map(s => s.trim()).filter(Boolean) || []
-  const primary = splitUnits(listings.primary)
-  const additional = (listings.additional || [])
-    .map((u, i) => ({ label: `Building ${i + 2}`, items: splitUnits(u) }))
-    .filter(g => g.items.length > 0)
+  const splitUnits = (val?: string) => val
+    ?.split(/\r?\n|,/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .sort(unitCollator.compare) || []
 
-  if (!additional.length) {
-    return primary.length ? [{ items: primary }] : []
-  }
-
-  return [...(primary.length ? [{ label: 'Building 1', items: primary }] : []), ...additional]
+  return [listings.primary, ...(listings.additional || [])]
+    .map((units, building) => ({ building, items: splitUnits(units) }))
+    .filter(group => group.items.length > 0)
 }

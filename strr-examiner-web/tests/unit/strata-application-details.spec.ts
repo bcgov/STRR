@@ -18,17 +18,6 @@ const mockRightButtons = [
   { key: 'reject', disabled: false },
   { key: 'sendNotice', disabled: false }
 ]
-const strataUnitListStub = {
-  props: ['items', 'label', 'dataTestid'],
-  template: `
-    <div
-      data-testid="connect-item-list-display-stub"
-      :data-label="label"
-      :data-items="JSON.stringify(items)"
-      :data-component-testid="dataTestid"
-    />
-  `
-}
 
 vi.mock('@/composables/useExaminerRoute', () => ({
   useExaminerRoute: () => ({
@@ -85,10 +74,7 @@ describe('Strata Application Details Page', () => {
 
   beforeAll(async () => {
     wrapper = await mountSuspended(ApplicationDetails, {
-      global: {
-        plugins: [enI18n],
-        stubs: { ConnectItemListDisplay: strataUnitListStub }
-      }
+      global: { plugins: [enI18n] }
     })
     await nextTick()
   })
@@ -138,12 +124,7 @@ describe('Strata Application Details Page', () => {
     expect(strataSubHeaderText).toContain('Number of Rental Units:')
     expect(strataSubHeaderText).toContain(strataHotelDetails!.numberOfUnits!.toString())
     expect(strataSubHeaderText).toContain(strataHotelDetails!.category)
-    const unitList = strataSubHeader.find('[data-testid="connect-item-list-display-stub"]')
-    expect(unitList.attributes('data-label')).toBe('Rental Units in Building:')
-    expect(JSON.parse(unitList.attributes('data-items')!)).toEqual([
-      { items: ['101', '102', '103'] }
-    ])
-    expect(unitList.attributes('data-component-testid')).toBe('strata-rental-units-list')
+    expect(strataSubHeader.findTestId('strata-view-rental-units').text()).toBe('View rental units')
   })
 
   it('should render Strata SubHeader with correct structure and primary building location', () => {
@@ -154,8 +135,7 @@ describe('Strata Application Details Page', () => {
     expect(strataSubHeader.findTestId('strata-attorney').exists()).toBe(true)
     expect(strataSubHeader.findTestId('strata-additional-info').exists()).toBe(true)
     expect(strataSubHeader.findTestId('strata-number-of-rental-units').exists()).toBe(true)
-    expect(strataSubHeader.findTestId('strata-rental-units').exists()).toBe(true)
-    expect(strataSubHeader.findTestId('connect-item-list-display-stub').exists()).toBe(true)
+    expect(strataSubHeader.findTestId('strata-view-rental-units').exists()).toBe(true)
 
     const primaryBuilding = strataSubHeader.findTestId('strata-primary-building')
     const { location } = mockStrataApplication.registration.strataHotelDetails
