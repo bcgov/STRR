@@ -125,7 +125,7 @@ def sqlalchemy_settings_from_env(
         ip_type=ip_type,
         schema=schema,
     )
-    return "postgresql+pg8000://", {"creator": lambda: getconn(config)}
+    return "postgresql+pg8000://", config.get_engine_options()
 
 
 def _test_database_uri_from_env(values: Mapping[str, str], driver: str) -> str:
