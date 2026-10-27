@@ -5,6 +5,9 @@ const { activeReg, isApplication } = storeToRefs(exStore)
 
 const businessDetails = activeReg.value?.businessDetails
 const strataExpansion = useStrataExpansion()
+const hasRentalUnits = computed(() =>
+  formatStrataUnitGroups(activeReg.value?.strataHotelDetails?.unitListings).length > 0
+)
 
 const attorney = businessDetails?.registeredOfficeOrAttorneyForServiceDetails || {}
 const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mailingAddress).some(Boolean) : false
@@ -140,12 +143,11 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
         </div>
       </div>
 
-      <div class="space-y-2 pl-5">
+      <div
+        data-testid="strata-additional-info"
+        class="space-y-2 pl-5"
+      >
         <b>{{ $t('strr.label.additionalInformation').toUpperCase() }}</b>
-        <div>
-          <b>{{ $t('strr.label.numberOfRentalUnits') }}</b>
-          {{ activeReg.strataHotelDetails.numberOfUnits }}
-        </div>
         <div>
           <b>{{ $t('label.strataHotelCategory') }}:</b>
           {{ activeReg.strataHotelDetails.category
@@ -153,6 +155,18 @@ const hasAttorneyAddress = attorney.mailingAddress ? Object.values(attorney.mail
             : $t('strataHotelCategoryReview.undefined')
           }}
         </div>
+        <div data-testid="strata-number-of-rental-units">
+          <b>{{ $t('strr.label.numberOfRentalUnits') }}</b>
+          {{ activeReg.strataHotelDetails.numberOfUnits }}
+        </div>
+        <UButton
+          v-if="hasRentalUnits"
+          data-testid="strata-view-rental-units"
+          :label="$t('strr.label.viewRentalUnits')"
+          :padded="false"
+          variant="link"
+          @click="strataExpansion.openRentalUnits()"
+        />
       </div>
     </div>
   </div>

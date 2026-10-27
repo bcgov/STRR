@@ -121,8 +121,10 @@ describe('Strata Application Details Page', () => {
     expect(strataSubHeaderText).toContain(rep.emailAddress)
     expect(strataSubHeaderText).toContain(completingParty!.firstName)
     expect(strataSubHeaderText).toContain(completingParty!.lastName)
+    expect(strataSubHeaderText).toContain('Number of Rental Units:')
     expect(strataSubHeaderText).toContain(strataHotelDetails!.numberOfUnits!.toString())
     expect(strataSubHeaderText).toContain(strataHotelDetails!.category)
+    expect(strataSubHeader.findTestId('strata-view-rental-units').text()).toBe('View rental units')
   })
 
   it('should render Strata SubHeader with correct structure and primary building location', () => {
@@ -131,6 +133,9 @@ describe('Strata Application Details Page', () => {
     expect(strataSubHeader.findTestId('strata-primary-building').exists()).toBe(true)
     expect(strataSubHeader.findTestId('strata-business').exists()).toBe(true)
     expect(strataSubHeader.findTestId('strata-attorney').exists()).toBe(true)
+    expect(strataSubHeader.findTestId('strata-additional-info').exists()).toBe(true)
+    expect(strataSubHeader.findTestId('strata-number-of-rental-units').exists()).toBe(true)
+    expect(strataSubHeader.findTestId('strata-view-rental-units').exists()).toBe(true)
 
     const primaryBuilding = strataSubHeader.findTestId('strata-primary-building')
     const { location } = mockStrataApplication.registration.strataHotelDetails

@@ -87,13 +87,20 @@ vi.mock('@/stores/document', () => ({
   })
 }))
 
-const { mockGetExpiryCountdown } = vi.hoisted(() => {
+const { mockGetExpiryCountdown, mockOpenRentalUnits } = vi.hoisted(() => {
   const mockGetExpiryCountdown = vi.fn((endDate: string | undefined) =>
     endDate ? { label: '0 days left', value: 0 } : { label: '', value: Number.NaN }
   )
-  return { mockGetExpiryCountdown }
+  return { mockGetExpiryCountdown, mockOpenRentalUnits: vi.fn() }
 })
 mockNuxtImport('getExpiryCountdown', () => mockGetExpiryCountdown)
+
+mockNuxtImport('useStrataExpansion', () => () => ({
+  openBusiness: vi.fn(),
+  openIndividuals: vi.fn(),
+  openAllBuildings: vi.fn(),
+  openRentalUnits: mockOpenRentalUnits
+}))
 
 mockNuxtImport('useConnectLaunchdarklyStore', () => {
   return () => ({
@@ -262,14 +269,40 @@ describe('Examiner - Registration Details Page', () => {
     expect(nameElement.text()).toContain('Doe Enterprises')
   })
 
-  it('does not render HostSubHeader edit email affordance for STRATA registrations', async () => {
+  it('does not render HostSubHeader edit email affordance for STRATA and displays rental units', async () => {
     currentMockData = mockStrataHotelRegistration
 
     const componentWrapper = await mountSuspended(StrataSubHeader, {
       global: { plugins: [enI18n] }
     })
 
+    const expectedUnits = mockStrataHotelRegistration.strataHotelDetails.numberOfUnits.toString()
     expect(componentWrapper.findTestId('edit-registration-email').exists()).toBe(false)
+    expect(componentWrapper.findTestId('strata-number-of-rental-units').exists()).toBe(true)
+    expect(componentWrapper.findTestId('strata-number-of-rental-units').text()).toContain(expectedUnits)
+
+    const viewUnitsBtn = componentWrapper.findTestId('strata-view-rental-units')
+    expect(viewUnitsBtn.text()).toBe('View rental units')
+    await viewUnitsBtn.trigger('click')
+    expect(mockOpenRentalUnits).toHaveBeenCalledOnce()
+  })
+
+  it('hides the view rental units link when unitListings is empty', async () => {
+    currentMockData = {
+      ...mockStrataHotelRegistration,
+      strataHotelDetails: {
+        ...mockStrataHotelRegistration.strataHotelDetails,
+        unitListings: undefined
+      }
+    }
+
+    const componentWrapper = await mountSuspended(StrataSubHeader, {
+      global: { plugins: [enI18n] }
+    })
+
+    expect(componentWrapper.findTestId('strata-number-of-rental-units').exists()).toBe(true)
+    expect(componentWrapper.findTestId('strata-view-rental-units').exists()).toBe(false)
+    currentMockData = mockStrataHotelRegistration
   })
 
   it('displays website button for STRATA_HOTEL type', async () => {

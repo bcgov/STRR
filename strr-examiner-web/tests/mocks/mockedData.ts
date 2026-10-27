@@ -300,7 +300,11 @@ export const mockStrataApplication: StrataApplicationResp =
       location: MOCK_HOTEL_ADDRESS,
       numberOfUnits: 10,
       category: StrataHotelCategory.FULL_SERVICE,
-      documents: []
+      documents: [],
+      unitListings: {
+        primary: '101\n102\n103',
+        additional: []
+      }
     },
     strataHotelRepresentatives: [MOCK_STRATA_REP] as ApiRep[]
   }
@@ -501,7 +505,11 @@ export const mockStrataHotelRegistration: StrataHotelRegistrationResp = {
     location: MOCK_HOTEL_ADDRESS,
     numberOfUnits: 1,
     category: StrataHotelCategory.FULL_SERVICE,
-    documents: []
+    documents: [],
+    unitListings: {
+      primary: 'Unit 101',
+      additional: []
+    }
   },
   strataHotelRepresentatives: [MOCK_STRATA_REP] as ApiRep[],
   sbc_account_id: 12345,
