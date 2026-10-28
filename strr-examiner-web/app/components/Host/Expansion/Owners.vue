@@ -10,12 +10,17 @@ const {
   activeReg,
   isApplication,
   isEditingRegistrationEmail,
-  isAssignedToUser
+  isAssignedToUser,
+  filingHistoryEvents
 } = storeToRefs(exStore)
-const { openEditRegistrationEmailForm, checkAndPerformAction } = useHostExpansion()
+const { openEditRegistrationEmailForm, checkAndPerformAction, openFilingHistory } = useHostExpansion()
 const { isSnapshotRoute } = useExaminerRoute()
 
 const { t } = useNuxtApp().$i18n
+
+const getEmailDeliveryStatus = (email: string | undefined | null) => {
+  return evaluateEmailDeliveryStatus(email, filingHistoryEvents.value)
+}
 
 const editEmailAriaLabel = computed(() => t(HOST_CONTACT_EMAIL_I18N_KEYS[props.display].title))
 
@@ -136,7 +141,35 @@ const hostOwners = computed<HostOwner[]>(() => {
         />
         <ConnectInfoWithIcon v-if="row.faxNumber" icon="i-mdi-fax" :content="row.faxNumber" />
         <div v-if="row.emailAddress" class="flex items-center gap-2">
-          <ConnectInfoWithIcon icon="i-mdi-at" :content="row.emailAddress" />
+          <div class="flex items-center gap-1">
+            <UIcon
+              name="i-mdi-at"
+              :class="[
+                'size-5 shrink-0',
+                { 'text-red-600': getEmailDeliveryStatus(row.emailAddress).isFailed }
+              ]"
+            />
+            <UTooltip
+              v-if="getEmailDeliveryStatus(row.emailAddress).isFailed"
+              :text="t('strr.alertFlags.emailDeliveryFailedTooltip')"
+            >
+              <UButton
+                variant="link"
+                color="red"
+                :padded="false"
+                class="inline-flex items-center gap-1 font-semibold text-red-600 hover:text-red-700 hover:underline"
+                data-testid="owner-email-failed-badge"
+                :aria-label="t('strr.alertFlags.emailDeliveryFailed')"
+                @click="checkAndPerformAction(
+                  () => openFilingHistory(getEmailDeliveryStatus(row.emailAddress).event || undefined)
+                )"
+              >
+                <span>{{ row.emailAddress }}</span>
+                <UIcon name="i-mdi-alert-circle" class="size-4 shrink-0 text-red-600" />
+              </UButton>
+            </UTooltip>
+            <span v-else>{{ row.emailAddress }}</span>
+          </div>
           <UButton
             v-if="!isApplication && !isSnapshotRoute"
             variant="link"
@@ -188,7 +221,35 @@ const hostOwners = computed<HostOwner[]>(() => {
             />
             <ConnectInfoWithIcon v-if="row.faxNumber" icon="i-mdi-fax" :content="row.faxNumber" />
             <div v-if="row.emailAddress" class="flex items-center gap-2">
-              <ConnectInfoWithIcon icon="i-mdi-at" :content="row.emailAddress" />
+              <div class="flex items-center gap-1">
+                <UIcon
+                  name="i-mdi-at"
+                  :class="[
+                    'size-5 shrink-0',
+                    { 'text-red-600': getEmailDeliveryStatus(row.emailAddress).isFailed }
+                  ]"
+                />
+                <UTooltip
+                  v-if="getEmailDeliveryStatus(row.emailAddress).isFailed"
+                  :text="t('strr.alertFlags.emailDeliveryFailedTooltip')"
+                >
+                  <UButton
+                    variant="link"
+                    color="red"
+                    :padded="false"
+                    class="inline-flex items-center gap-1 font-semibold text-red-600 hover:text-red-700 hover:underline"
+                    data-testid="owner-email-failed-badge"
+                    :aria-label="t('strr.alertFlags.emailDeliveryFailed')"
+                    @click="checkAndPerformAction(
+                      () => openFilingHistory(getEmailDeliveryStatus(row.emailAddress).event || undefined)
+                    )"
+                  >
+                    <span>{{ row.emailAddress }}</span>
+                    <UIcon name="i-mdi-alert-circle" class="size-4 shrink-0 text-red-600" />
+                  </UButton>
+                </UTooltip>
+                <span v-else>{{ row.emailAddress }}</span>
+              </div>
               <UButton
                 v-if="!isApplication && !isSnapshotRoute"
                 variant="link"

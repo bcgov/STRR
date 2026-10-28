@@ -108,7 +108,7 @@ describe('useEmailDeliveryStatus Composable', () => {
     expect(failedEvent.value).toBeNull()
   })
 
-  it('should NOT flag on transient failures (TEMPORARY_FAILURE / TECHNICAL_FAILURE)', () => {
+  it('should flag on delivery failures including TEMPORARY_FAILURE and TECHNICAL_FAILURE (AC4, AC5)', () => {
     const store = useExaminerStore()
     store.filingHistoryEvents = [
       createEmailEvent(
@@ -127,9 +127,40 @@ describe('useEmailDeliveryStatus Composable', () => {
     ]
 
     const targetEmail = ref('temp-issue@example.com')
-    const { isEmailFailed } = useEmailDeliveryStatus(targetEmail)
+    const { isEmailFailed, failureType } = useEmailDeliveryStatus(targetEmail)
 
-    expect(isEmailFailed.value).toBe(false)
+    expect(isEmailFailed.value).toBe(true)
+    expect(failureType.value).toBe('TEMPORARY_FAILURE')
+  })
+
+  it('should NOT flag property host when delivery only failed for property manager (AC1)', () => {
+    const store = useExaminerStore()
+    store.filingHistoryEvents = [
+      createEmailEvent(
+        FilingHistoryEventName.EMAIL_FAILED,
+        '2026-10-22T15:10:00Z',
+        [
+          {
+            email_address: 'host@example.com',
+            status: 'DELIVERED',
+            provider_status: 'DELIVERED'
+          },
+          {
+            email_address: 'pm@example.com',
+            status: 'FAILED',
+            provider_status: 'PERMANENT_FAILURE',
+            failure_reason: 'Domain not found'
+          }
+        ]
+      )
+    ]
+
+    const hostStatus = useEmailDeliveryStatus('host@example.com')
+    expect(hostStatus.isEmailFailed.value).toBe(false)
+
+    const pmStatus = useEmailDeliveryStatus('pm@example.com')
+    expect(pmStatus.isEmailFailed.value).toBe(true)
+    expect(pmStatus.failureReason.value).toBe('Domain not found')
   })
 
   it('should clear the flag when a subsequent event for the same email is DELIVERED', () => {
