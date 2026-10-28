@@ -1,10 +1,10 @@
 # Short-Term Rental Registration Approved
 
-**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
+**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}  
 **Registration Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
 
-**Strata Hotel Address:**&nbsp;{{street_address}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+**Strata Hotel Address:**&nbsp;{{street_address}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 
 Your application to register the short-term rental is **approved**.

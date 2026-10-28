@@ -1,0 +1,138 @@
+name: Dispatch Test Email
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target Environment"
+        required: true
+        type: choice
+        default: "dev"
+        options:
+          - "dev"
+          - "test"
+          - "uat"
+      email_type:
+        description: "Email Notification Type"
+        required: true
+        type: choice
+        default: "HOST_RENEWAL_REMINDER"
+        options:
+          - "HOST_RENEWAL_REMINDER"
+          - "HOST_REGISTRATION_ACTIVE"
+          - "HOST_REGISTRATION_CANCELLED"
+          - "HOST_REGISTRATION_SUSPENDED"
+          - "REGISTRATION_NOC"
+          - "STRATA_HOTEL_RENEWAL_REMINDER"
+          - "STRATA_HOTEL_REGISTRATION_ACTIVE"
+          - "STRATA_HOTEL_REGISTRATION_CANCELLED"
+          - "STRATA_HOTEL_REGISTRATION_SUSPENDED"
+          - "STRATA_HOTEL_REGISTRATION_NOC"
+          - "PLATFORM_RENEWAL_REMINDER"
+          - "HOST_AUTO_APPROVED"
+          - "HOST_FULL_REVIEW_APPROVED"
+          - "HOST_PROVISIONAL_REVIEW"
+          - "HOST_PROVISIONALLY_APPROVED"
+          - "HOST_DECLINED"
+          - "PLATFORM_AUTO_APPROVED"
+          - "NOC"
+          - "PROVISIONAL_REVIEW_NOC"
+          - "STRATA_HOTEL_NOC"
+      record_number:
+        description: "Registration Number (e.g. H891550066) or Application Number (e.g. 10728276082958)"
+        required: true
+        default: "H891550066"
+
+jobs:
+  dispatch-email:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.8
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTIFY_POOLS_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Publish CloudEvent via gcloud
+        shell: bash
+        run: |
+          ENVIRONMENT="${{ inputs.environment || 'dev' }}"
+          EMAIL_TYPE="${{ inputs.email_type || 'HOST_RENEWAL_REMINDER' }}"
+          RECORD_NUMBER="${{ inputs.record_number || 'H891550066' }}"
+
+          case "$ENVIRONMENT" in
+            dev)
+              PROJECT_ID="bcrbk9-dev"
+              TOPIC="strr-emailer-dev"
+              ;;
+            test)
+              PROJECT_ID="bcrbk9-test"
+              TOPIC="strr-emailer-test"
+              ;;
+            uat)
+              PROJECT_ID="bcrbk9-test"
+              TOPIC="strr-emailer-uat"
+              ;;
+            *)
+              echo "Error: Unsupported environment '$ENVIRONMENT'"
+              exit 1
+              ;;
+          esac
+
+          case "$EMAIL_TYPE" in
+            HOST_AUTO_APPROVED|\
+            HOST_FULL_REVIEW_APPROVED|\
+            HOST_PROVISIONAL_REVIEW|\
+            HOST_PROVISIONALLY_APPROVED|\
+            HOST_DECLINED|\
+            PLATFORM_AUTO_APPROVED|\
+            NOC|\
+            PROVISIONAL_REVIEW_NOC|\
+            STRATA_HOTEL_NOC)
+              RECORD_KEY="applicationNumber"
+              ;;
+            *)
+              RECORD_KEY="registrationNumber"
+              ;;
+          esac
+
+          EVENT_ID=$(uuidgen)
+          INTERACTION_UUID=$(uuidgen)
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "specversion": "1.0",
+            "id": "$EVENT_ID",
+            "source": "strr-api",
+            "type": "strr.email",
+            "time": "$NOW",
+            "datacontenttype": "application/json",
+            "subject": null,
+            "data": {
+              "$RECORD_KEY": "$RECORD_NUMBER",
+              "emailType": "$EMAIL_TYPE",
+              "interaction": "$(date +%Y):TEST_NOTIFICATION:40",
+              "interaction_uuid": "$INTERACTION_UUID"
+            }
+          }
+          EOF
+          )
+
+          echo "Publishing CloudEvent for $EMAIL_TYPE ($RECORD_KEY: $RECORD_NUMBER) to $TOPIC ($PROJECT_ID)..."
+
+          gcloud pubsub topics publish "$TOPIC" \
+            --project="$PROJECT_ID" \
+            --message="$PAYLOAD"
+
+          ENV_UPPER=$(echo "$ENVIRONMENT" | tr '[:lower:]' '[:upper:]')
+          echo "### 🚀 Test Email Dispatched" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Environment:** $ENV_UPPER (\`$TOPIC\` in \`$PROJECT_ID\`)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Email Type:** \`$EMAIL_TYPE\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Record ($RECORD_KEY):** \`$RECORD_NUMBER\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **CloudEvent ID:** \`$EVENT_ID\`" >> $GITHUB_STEP_SUMMARY

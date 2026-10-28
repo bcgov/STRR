@@ -241,6 +241,27 @@ class TestEnvironmentSettings:
             schema="",
         )
 
+    def test_cloud_sqlalchemy_settings_apply_db_config_pool(self):
+        """Apply the DBConfig pool settings instead of SQLAlchemy defaults."""
+        uri, engine_options = sqlalchemy_settings_from_env(
+            {
+                "CLOUDSQL_INSTANCE_CONNECTION_NAME": "project:region:instance",
+                "DATABASE_NAME": "database",
+                "DATABASE_USERNAME": "service-account",
+            }
+        )
+
+        engine = create_engine(uri, **engine_options)
+        try:
+            assert engine.pool.size() == 5
+            assert engine.pool._max_overflow == 2
+            assert engine.pool._timeout == 10
+            assert engine.pool._recycle == 300
+            assert engine.pool._pre_ping is True
+            assert engine.pool._pool.use_lifo is True
+        finally:
+            engine.dispose()
+
     @pytest.mark.parametrize("runtime_variable", ["K_SERVICE", "CLOUD_RUN_JOB"])
     def test_cloud_sqlalchemy_settings_require_values(self, runtime_variable):
         """Report every required Cloud SQL IAM value that is absent."""

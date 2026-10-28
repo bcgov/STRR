@@ -852,11 +852,19 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     supportingDocument: ApiDocument,
     type: 'applications' | 'registrations'
   ) => {
-    const file = await getDocument(appRegNumber, supportingDocument.fileKey, type)
-    const blob = new Blob([file], { type: supportingDocument.fileType })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
-    URL.revokeObjectURL(url)
+    try {
+      const file = await getDocument(appRegNumber, supportingDocument.fileKey, type)
+      if (!file) {
+        throw new Error('Document content is empty or unavailable')
+      }
+      const blob = new Blob([file], { type: supportingDocument.fileType })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      logFetchError(e, t('error.openDocument.description'))
+      strrModal.openErrorModal(t('error.openDocument.title'), t('error.openDocument.description'), false)
+    }
   }
 
   const resetFilters = () => {

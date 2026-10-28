@@ -1,5 +1,6 @@
-import type { ApiApplicationBaseResp, ApiRegistrationResp } from '~/interfaces/strr-api'
 import { downloadFile } from '~/utils/download-file'
+import type { ApiApplicationBaseResp, ApiDocument, ApiRegistrationResp } from '~/interfaces/strr-api'
+import type { UiDocument } from '~/interfaces/ui-document'
 
 export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiApplicationBaseResp, B>() => {
   const t = useNuxtApp().$i18n.t // this was casuing an issue when using the composable in route middleware
@@ -7,6 +8,7 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     getAccountApplication,
     getAccountRegistrations,
     getApplicationReceipt,
+    getDocument,
     getRegistrationCert,
     updatePaymentDetails
   } = useStrrApi()
@@ -78,6 +80,89 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     }
   }
 
+  const openBlobUrl = (blob: Blob | File) => {
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    URL.revokeObjectURL(url)
+  }
+
+  const resolveDocumentTarget = (
+    typeOverride?: 'applications' | 'registrations',
+    appRegNumberOverride?: string | number
+  ) => {
+    const isReg = typeOverride
+      ? typeOverride === 'registrations'
+      : (Boolean(registration.value?.registrationNumber) || Boolean(registration.value?.id))
+
+    const type = typeOverride ?? (isReg ? 'registrations' : 'applications')
+    const appRegNumber = appRegNumberOverride ?? (
+      isReg ? registration.value?.id : application.value?.header?.applicationNumber
+    )
+
+    return { type, appRegNumber }
+  }
+
+  const fetchDocumentBlob = async (
+    appRegNumber: string | number,
+    fileKey: string,
+    type: 'applications' | 'registrations'
+  ) => {
+    try {
+      return await getDocument(appRegNumber, fileKey, type)
+    } catch (firstErr) {
+      const appNumber = application.value?.header?.applicationNumber
+      if (type === 'registrations' && appNumber) {
+        return await getDocument(appNumber, fileKey, 'applications')
+      }
+      throw firstErr
+    }
+  }
+
+  const openDocInNewTab = async (
+    supportingDocument: ApiDocument | UiDocument,
+    appRegNumberOverride?: string | number,
+    typeOverride?: 'applications' | 'registrations'
+  ) => {
+    const apiDoc = 'apiDoc' in supportingDocument ? supportingDocument.apiDoc : supportingDocument
+    const uiDoc = 'loading' in supportingDocument ? supportingDocument : undefined
+
+    if (uiDoc) {
+      uiDoc.loading = true
+    }
+
+    try {
+      if (uiDoc?.file instanceof File && uiDoc.file.size > 0) {
+        openBlobUrl(uiDoc.file)
+        return
+      }
+
+      if (!apiDoc?.fileKey) {
+        throw new Error('Missing fileKey')
+      }
+
+      const { type, appRegNumber } = resolveDocumentTarget(typeOverride, appRegNumberOverride)
+      if (!appRegNumber) {
+        throw new Error('Missing applicationNumber or registrationId')
+      }
+
+      const file = await fetchDocumentBlob(appRegNumber, apiDoc.fileKey, type)
+      if (!file) {
+        throw new Error('Document content is empty or unavailable')
+      }
+
+      const blob = new Blob([file], { type: apiDoc.fileType || 'application/pdf' })
+      openBlobUrl(blob)
+    } catch (e) {
+      logFetchError(e, t('error.openDocument.description'))
+      const strrModal = useStrrModals()
+      strrModal.openErrorModal(t('error.openDocument.title'), t('error.openDocument.description'), false)
+    } finally {
+      if (uiDoc) {
+        uiDoc.loading = false
+      }
+    }
+  }
+
   return {
     application,
     registration,
@@ -87,6 +172,8 @@ export const useStrrBasePermit = <R extends ApiRegistrationResp, A extends ApiAp
     showPermitDetails,
     downloadApplicationReceipt,
     downloadRegistrationCert,
+    openDocInNewTab,
+    getDocument,
     isApplicationStatus,
     loadPermitData,
     loadPermitRegistrationData

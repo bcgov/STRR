@@ -106,7 +106,7 @@ onMounted(async () => {
             name-divider
             :prepopulate-name="!isLoggedInAsBCeid"
             :prepopulate-type="$keycloak.tokenParsed?.loginSource"
-            :error-details="hasFormErrors(compPartyFormRef, ['phone.countryCode', 'phone.number', 'email'])"
+            :error-details="hasFormErrors(compPartyFormRef, ['phone.countryCode', 'phone.number', 'emailAddress'])"
           />
         </UForm>
       </ConnectPageSection>
@@ -126,6 +126,7 @@ onMounted(async () => {
             v-model:last-name="primaryRep.lastName"
             v-model:phone="primaryRep.phone"
             v-model:email-address="primaryRep.emailAddress"
+            v-model:confirm-email-address="primaryRep.confirmEmailAddress"
             v-model:fax-number="primaryRep.faxNumber"
             v-model:position="primaryRep.position"
             data-testid="primary-rep"
@@ -133,11 +134,18 @@ onMounted(async () => {
             name-divider
             :prepopulate-name="isCompletingPartyRep && !isLoggedInAsBCeid"
             :prepopulate-type="$keycloak.tokenParsed?.loginSource"
+            show-confirm-email
             email-warning
             :section-info="isCompletingPartyRep ? undefined : $t('strr.text.primaryContact')"
             :error-name="hasFormErrors(primaryRepFormRef, ['firstName', 'middleName', 'lastName'])"
             :error-details="
-              hasFormErrors(primaryRepFormRef, ['position', 'phone.countryCode', 'phone.number', 'email'])
+              hasFormErrors(primaryRepFormRef, [
+                'position',
+                'phone.countryCode',
+                'phone.number',
+                'emailAddress',
+                'confirmEmailAddress'
+              ])
             "
           />
         </UForm>

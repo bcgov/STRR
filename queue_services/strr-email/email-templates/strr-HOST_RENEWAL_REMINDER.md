@@ -1,54 +1,59 @@
-# Short-Term Rental Registration Renewal Reminder
+# Reminder: Renew your short-term rental registration
 
 {% if rental_nickname %}
 
 ## {{rental_nickname}} {% endif %}
 
-**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
+**Registration Number:**&nbsp;&nbsp;&nbsp;&nbsp;{% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}  
 **Expiry Date:**&nbsp;&nbsp;&nbsp;&nbsp;{{ expiry_date }}
 
 {% if unit_number %}
-**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}
-**Street Number:**&nbsp; {{street_number}}
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+**Unit Number:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{unit_number}}  
+**Street Number:**&nbsp; {{street_number}}  
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 {% else %}
-**Street Number:**&nbsp; {{street_number}}
-**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
-**Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
+**Street Number:**&nbsp; {{street_number}}  
+**Street Name:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{street_name}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
+**Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}  
 {% endif %}
 
-**Renew your registration today** to keep your registration active and avoid any interruptions in your short-term rental services.
+## Your registration is expiring soon
 
----
+Keep your registration active and avoid interruptions to your short-term rental business. Please submit your renewal application before your registration expires.
 
-# How to Renew Your Registration
+## What you need to do
 
-Ensure all your business documents **are up to date and ready to upload** before starting the renewal process.
+Complete the following steps to submit your renewal on time:
 
-1. Log in to your [Short-Term Rental Registry Dashboard]({{ registration_url }}) and submit your renewal **application and documents** before your **registration expires**.
-2. Make sure to **check [our website](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry) for any updates** to your type of registration.
-3. Make sure to **check with your local government** if there has been any changes to the local bylaws or requirements in the area.
+1. Review the [Short-Term Rental Registry website](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry) for updates that may apply to you
+2. Check with your local government to confirm the latest local bylaws or requirements
+3. Collect your [renewal documents](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/renew-short-term-rental-registration#FAQS) to make sure they are current and ready to upload
+4. Sign in to your [Short-Term Rental Registry Dashboard]({{ registration_url }}) 
+5. Complete and submit your renewal application
 
----
+## If you do not submit your renewal on time
 
-# ** WARNING **
+If you do not submit your renewal by **{{ expiry_date }}**:
 
-_**If your registration expires before submitting the renewal**, your registration number will become inactive and your listings will be removed and future bookings will be cancelled._
+- Your registration will expire
+- Your registration number will become inactive
+- Your short-term rental listings may be removed from booking platforms
+- Future bookings may be cancelled
 
----
+Payment must be received before your renewal is complete. Start your renewal early to ensure we receive your funds on time.
 
-**For general information**,visit our [website](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/host-registration#afteryouapply) or contact [STRbranch@gov.bc.ca](mailto:STRbranch@gov.bc.ca).
+## Need help?
 
-**For specific questions about your current registration**, contact [{{ ops_email }}](mailto:{{ ops_email }}) and include your registration number in the subject.
+For information about renewals and registration requirements:
 
----
+- Visit the [Short-Term Rental Registration Renewals page](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/renew-short-term-rental-registration)
+- Follow our [step-by-step guide to renew your registration](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/renew-short-term-rental-registration/renewal-guide)
+- Review the [Terms and Conditions of Short-Term Rental Offer Registration](https://www2.gov.bc.ca/gov/content/housing-tenancy/short-term-rentals/registry/registry-toc-hosts)
+- Contact the Service BC Contact Centre at [1-833-828-2240](tel:+18338282240)
+- Email: [STRregistry@sbc.gov.bc.ca](mailto:STRbranch@gov.bc.ca) (include your registration number in the subject line)
 
-\*Under section 10(1) of the _Short-Term Rental Accommodations Act_ (the "Act"), the Registrar may refuse to grant a renewal of a registration if it does not meet the short-term rental offer registration requirements under section 6 of the Act.
-
----
-
-**Short-Term Rental Branch**
+**Short-Term Rental Branch**  
 Ministry of Housing and Municipal Affairs

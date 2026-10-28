@@ -78,3 +78,28 @@ export const getOptionalEmail = (message: string) =>
     }
     return true
   }, message)
+
+/**
+ * Refines a Zod schema to enforce that an email and its confirmation field match exactly.
+ * Attaches the validation error to the confirmation field path.
+ */
+export const withEmailConfirmation = <T extends z.ZodTypeAny>(
+  schema: T,
+  message: string,
+  emailKey: string = 'emailAddress',
+  confirmEmailKey: string = 'confirmEmailAddress'
+) => {
+  return schema.refine(
+    (data: Record<string, any>) => {
+      // If neither is entered, allow the required email validator to report on the primary field
+      if (!data[emailKey] && !data[confirmEmailKey]) {
+        return true
+      }
+      return data[emailKey] === data[confirmEmailKey]
+    },
+    {
+      message,
+      path: [confirmEmailKey]
+    }
+  )
+}

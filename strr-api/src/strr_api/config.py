@@ -44,8 +44,9 @@ Environment variables are used to store the necessary values for each setting.
 
 import os
 
-from cloud_sql_connector import sqlalchemy_settings_from_env
 from dotenv import find_dotenv, load_dotenv
+
+from strr_api.common.cloud_sql import sqlalchemy_settings_from_env
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 

@@ -26,7 +26,7 @@ def test_production_config_uses_shared_database_settings(environment, expected_n
         patch.dict(os.environ, environment, clear=True),
         patch("dotenv.load_dotenv"),
         patch(
-            "cloud_sql_connector.sqlalchemy_settings_from_env",
+            "strr_api.common.cloud_sql.sqlalchemy_settings_from_env",
             return_value=(sentinel.database_uri, sentinel.engine_options),
         ) as settings_from_env,
     ):

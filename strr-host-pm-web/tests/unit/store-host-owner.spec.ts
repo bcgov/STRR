@@ -101,6 +101,7 @@ const validOwner = {
   preferredName: '',
   faxNumber: '',
   emailAddress: 'test@example.com',
+  confirmEmailAddress: 'test@example.com',
   phone: { countryCode: '1', number: '5551234567' },
   mailingAddress: { street: '123 Main St', city: 'Victoria', region: 'BC', postalCode: 'V8V1A1', country: 'CA' },
   businessLegalName: '',
@@ -169,6 +170,39 @@ describe('useHostOwnerStore - getHostOwnerSchema', () => {
     expect(store.getHostOwnerSchema(OwnerType.INDIVIDUAL, OwnerRole.HOST).safeParse({
       ...validOwner, lastName: ''
     }).success).toBe(false)
+
+    // INDIVIDUAL + HOST: email confirmation must match email address exactly
+    expect(store.getHostOwnerSchema(OwnerType.INDIVIDUAL, OwnerRole.HOST).safeParse({
+      ...validOwner,
+      emailAddress: 'host@example.com',
+      confirmEmailAddress: 'host@example.com'
+    }).success).toBe(true)
+
+    expect(store.getHostOwnerSchema(OwnerType.INDIVIDUAL, OwnerRole.HOST).safeParse({
+      ...validOwner,
+      emailAddress: 'host@example.com',
+      confirmEmailAddress: 'different@example.com'
+    }).success).toBe(false)
+
+    expect(store.getHostOwnerSchema(OwnerType.INDIVIDUAL, OwnerRole.HOST).safeParse({
+      ...validOwner,
+      emailAddress: 'host@example.com',
+      confirmEmailAddress: 'Host@example.com' // character for character match
+    }).success).toBe(false)
+
+    expect(store.getHostOwnerSchema(OwnerType.INDIVIDUAL, OwnerRole.HOST).safeParse({
+      ...validOwner,
+      emailAddress: 'host@example.com',
+      confirmEmailAddress: ''
+    }).success).toBe(false)
+
+    // CO_HOST / PROPERTY_MANAGER: email confirmation is not required for non-host
+    expect(store.getHostOwnerSchema(OwnerType.INDIVIDUAL, OwnerRole.CO_HOST).safeParse({
+      ...validOwner,
+      role: OwnerRole.CO_HOST,
+      emailAddress: 'cohost@example.com',
+      confirmEmailAddress: ''
+    }).success).toBe(true)
   })
 })
 

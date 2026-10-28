@@ -63,11 +63,12 @@ def test_get_registrations_401(client):
 @patch("strr_api.models.user.User.find_by_jwt_token", new=fake_user_from_token)
 @patch("flask_jwt_oidc.JwtManager.get_token_auth_header", new=fake_get_token_auth_header)
 @patch("flask_jwt_oidc.JwtManager._validate_token", new=no_op)
-@patch("strr_api.services.registration_service.RegistrationService.get_registration", new=fake_registration)
+@patch("strr_api.services.registration_service.RegistrationService.get_registration")
 @patch("strr_api.services.document_service.DocumentService.get_registration_document_by_key")
 @patch("strr_api.services.document_service.DocumentService.get_file_by_key")
-def test_get_registration_file_by_id_200(mock_get_file, mock_get_document, client, authed_g):
+def test_get_registration_file_by_id_200(mock_get_file, mock_get_document, mock_get_registration, client, authed_g):
     # Manually seed the context that flask-jwt-oidc is looking for
+    mock_get_registration.return_value = fake_registration()
     mock_document = fake_document()
     mock_document.file_name = "test.pdf"
     mock_document.file_type = "application/pdf"
@@ -75,11 +76,12 @@ def test_get_registration_file_by_id_200(mock_get_file, mock_get_document, clien
     mock_file_content = b"test file content"
     mock_get_file.return_value = mock_file_content
 
-    rv = client.get("/registrations/1/documents/test-key")
+    rv = client.get("/registrations/1/documents/test-key", headers={"Account-Id": "123"})
     assert rv.status_code == HTTPStatus.OK
     assert rv.data == mock_file_content
     assert rv.headers["Content-Disposition"] == "attachment; filename=test.pdf"
     assert rv.headers["Content-Type"] == "application/pdf"
+    mock_get_registration.assert_called_once_with("123", "1")
 
 
 def test_get_registration_file_by_id_401(client):

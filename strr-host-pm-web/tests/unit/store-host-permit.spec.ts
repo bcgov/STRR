@@ -64,6 +64,8 @@ const mockShowPermitDetails = ref(false)
 const mockLoadPermitData = vi.fn()
 const mockLoadPermitRegistrationData = vi.fn()
 const mockSearchRegistrations = vi.fn()
+const mockOpenDocInNewTab = vi.fn()
+const mockGetDocument = vi.fn()
 mockNuxtImport('useStrrBasePermit', () => () => ({
   application: mockApplicationRef,
   registration: mockRegistrationRef,
@@ -73,7 +75,9 @@ mockNuxtImport('useStrrBasePermit', () => () => ({
   loadPermitData: mockLoadPermitData,
   loadPermitRegistrationData: mockLoadPermitRegistrationData,
   downloadApplicationReceipt: vi.fn(),
-  downloadRegistrationCert: vi.fn()
+  downloadRegistrationCert: vi.fn(),
+  openDocInNewTab: mockOpenDocInNewTab,
+  getDocument: mockGetDocument
 }))
 mockNuxtImport('useStrrApi', () => () => ({
   searchRegistrations: mockSearchRegistrations
@@ -421,5 +425,15 @@ describe('useHostPermitStore - renewal registration context', () => {
     expect(store.readStoredSelectedRegistrationId()).toBe('777')
     store.clearStoredSelectedRegistrationId()
     expect(sessionStorage.getItem(storageKey)).toBeNull()
+  })
+
+  it('exposes openDocInNewTab and getDocument from useStrrBasePermit', async () => {
+    const store = useHostPermitStore()
+    expect(typeof store.openDocInNewTab).toBe('function')
+    expect(typeof store.getDocument).toBe('function')
+    await store.openDocInNewTab({} as any)
+    expect(mockOpenDocInNewTab).toHaveBeenCalledWith({} as any)
+    await store.getDocument('1', 'key', 'registrations')
+    expect(mockGetDocument).toHaveBeenCalledWith('1', 'key', 'registrations')
   })
 })

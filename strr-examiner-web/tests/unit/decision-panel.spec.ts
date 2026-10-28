@@ -219,4 +219,89 @@ describe('DecisionPanel', () => {
       global: { plugins: [enI18n] }
     })).resolves.not.toThrow()
   })
+
+  it('should have resize enabled on the decision email field for applications', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      examinerActions: [ApplicationActionsE.REJECT],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    decisionIntent.value = ApplicationActionsE.REJECT
+
+    const wrapper = await mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })
+
+    const emailTextarea = wrapper.findComponent({ name: 'UTextarea' })
+    expect(emailTextarea.exists()).toBe(true)
+    expect(emailTextarea.props('resize')).toBe(true)
+
+    const textareaEl = wrapper.find('[data-testid="decision-email"]')
+    expect(textareaEl.classes()).not.toContain('resize-none')
+  })
+
+  it('should have resize enabled on the decision email field for registrations and preserve content', async () => {
+    isApplication.value = false
+    activeHeader.value = {
+      examinerActions: [RegistrationActionsE.SUSPEND],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    activeReg.value = {
+      status: RegistrationStatus.ACTIVE
+    }
+    decisionIntent.value = RegistrationActionsE.SUSPEND
+    const wrapper = await mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })
+
+    const emailTextarea = wrapper.findComponent({ name: 'UTextarea' })
+    expect(emailTextarea.exists()).toBe(true)
+    expect(emailTextarea.props('resize')).toBe(true)
+
+    const textareaEl = wrapper.find('[data-testid="decision-email"]')
+    expect(textareaEl.classes()).not.toContain('resize-none')
+
+    decisionEmailContent.value.content = 'Preserved email text for registration'
+    await nextTick()
+    expect((textareaEl.element as HTMLTextAreaElement).value).toBe('Preserved email text for registration')
+  })
+
+  it('should hide expand button when content is empty and show it when long text is present', async () => {
+    isApplication.value = true
+    activeHeader.value = {
+      examinerActions: [ApplicationActionsE.REJECT],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    decisionIntent.value = ApplicationActionsE.REJECT
+
+    const wrapper = await mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })
+
+    // When empty, expand button should not be shown
+    expect(wrapper.find('[data-testid="toggle-expand-decision-email"]').exists()).toBe(false)
+
+    // Add long multi-line text
+    decisionEmailContent.value.content = Array(12).fill('Line of reason text for decision email').join('\n')
+    await nextTick()
+
+    const toggleBtn = wrapper.find('[data-testid="toggle-expand-decision-email"]')
+    expect(toggleBtn.exists()).toBe(true)
+    expect(toggleBtn.text()).toContain('Expand')
+
+    const textareaEl = wrapper.find('[data-testid="decision-email"]')
+    expect((textareaEl.element as HTMLTextAreaElement).style.height).toBe('290px')
+
+    await toggleBtn.trigger('click')
+    expect(toggleBtn.text()).toContain('Collapse')
+    expect((textareaEl.element as HTMLTextAreaElement).style.height).toBe('560px')
+    expect(textareaEl.classes()).not.toContain('max-h-[80vh]')
+
+    await toggleBtn.trigger('click')
+    expect(toggleBtn.text()).toContain('Expand')
+    expect((textareaEl.element as HTMLTextAreaElement).style.height).toBe('290px')
+  })
 })

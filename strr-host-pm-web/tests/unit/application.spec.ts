@@ -133,6 +133,15 @@ vi.mock('@/stores/hostApplication', () => ({
   })
 }))
 
+vi.mock('@/stores/hostPermit', () => ({
+  useHostPermitStore: () => ({
+    isRegistrationRenewal: ref(false),
+    openDocInNewTab: vi.fn(),
+    getDocument: vi.fn(),
+    $reset: vi.fn()
+  })
+}))
+
 vi.mock('@/composables/useConnectNav', () => ({
   useConnectNav: () => ({
     handlePaymentRedirect: vi.fn()

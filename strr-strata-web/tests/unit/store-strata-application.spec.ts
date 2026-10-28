@@ -1,4 +1,12 @@
-import { describe, beforeEach, it, expect } from 'vitest'
+import { describe, beforeEach, it, expect, vi } from 'vitest'
+
+vi.mock('@/stores/strata', () => ({
+  useStrrStrataStore: () => ({
+    isRegistrationRenewal: ref(false),
+    registration: ref(undefined),
+    application: ref(undefined)
+  })
+}))
 
 describe('Strata Application Store - validate strata confirmation', () => {
   beforeEach(() => {

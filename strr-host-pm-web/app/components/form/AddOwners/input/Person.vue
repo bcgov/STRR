@@ -279,7 +279,7 @@ const renewalDisabledFields: AddressField[] = [
       </ConnectFormSection>
       <ConnectFormSection
         :title="$t('strr.section.subTitle.emailAddress')"
-        :error="showErrors && hasFormErrors(ownerFormRef, ['emailAddress'])"
+        :error="showErrors && hasFormErrors(ownerFormRef, ['emailAddress', 'confirmEmailAddress'])"
       >
         <div class="space-y-5">
           <ConnectFormFieldGroup
@@ -288,6 +288,16 @@ const renewalDisabledFields: AddressField[] = [
             :aria-label="$t('label.emailAddress')"
             name="emailAddress"
             :placeholder="$t('label.emailAddress')"
+            :is-required="true"
+            type="email"
+          />
+          <ConnectFormFieldGroup
+            v-if="owner.role === OwnerRole.HOST"
+            id="host-owner-confirm-email"
+            v-model="owner.confirmEmailAddress"
+            :aria-label="$t('label.confirmEmailAddress')"
+            name="confirmEmailAddress"
+            :placeholder="$t('label.confirmEmailAddress')"
             :is-required="true"
             type="email"
           />

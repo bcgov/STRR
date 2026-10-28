@@ -4189,10 +4189,10 @@ files = [
 
 [[package]]
 name = "strr-api"
-version = "0.3.33"
+version = "0.3.35"
 description = ""
 optional = false
-python-versions = "^3.12.2"
+python-versions = ">=3.12.2,<3.15"
 groups = ["main"]
 files = []
 develop = false
@@ -4231,8 +4231,8 @@ weasyprint = "^70.0"
 [package.source]
 type = "git"
 url = "https://github.com/bcgov/STRR.git"
-reference = "65eb97c9139aefb29c8223cea10ec909ed88ce7b"
-resolved_reference = "65eb97c9139aefb29c8223cea10ec909ed88ce7b"
+reference = "6a31a888e9c7a659031570b1a92e5f39bc41d27a"
+resolved_reference = "6a31a888e9c7a659031570b1a92e5f39bc41d27a"
 subdirectory = "strr-api"
 
 [[package]]
@@ -4240,7 +4240,7 @@ name = "strr-test-utils"
 version = "0.1.0"
 description = "Shared Test Utilities for STRR Jobs"
 optional = false
-python-versions = ">=3.12.2,<4.0"
+python-versions = ">=3.12.2,<3.15"
 groups = ["dev"]
 files = []
 develop = true
@@ -4873,4 +4873,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12.2,<3.15"
-content-hash = "9e14985031334051a853bf8e20c04fdeffaf5cd97e4338adb4763735e6c94160"
+content-hash = "0c25143004c142281f4854c283ce7007389b7e7b13c644be880fee95e12dd37b"

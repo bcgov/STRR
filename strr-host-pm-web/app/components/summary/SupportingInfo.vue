@@ -15,9 +15,17 @@ const { requiredDocs, storedDocuments } = storeToRefs(useDocumentStore())
 const isFileUploadOpen = ref(false)
 
 const docStore = useDocumentStore()
-const { application, registration, needsBusinessLicenseDocumentUpload } = storeToRefs(useHostPermitStore())
+const hostPermitStore = useHostPermitStore()
+const { application, registration, needsBusinessLicenseDocumentUpload } = storeToRefs(hostPermitStore)
+const { openDocInNewTab } = hostPermitStore
 
 const isRegistration = computed((): boolean => !!registration.value?.registrationNumber)
+
+const isDocumentPreviewable = (doc: UiDocument): boolean => {
+  const hasLocalFile = doc.file instanceof File && doc.file.size > 0
+  const hasApiDoc = !!doc.apiDoc?.fileKey && !!(registration.value?.id || application.value?.header?.applicationNumber)
+  return hasLocalFile || hasApiDoc
+}
 const hasRegistrationNoc = computed(() =>
   registration.value?.nocStatus === RegistrationNocStatus.NOC_PENDING ||
   registration.value?.nocStatus === RegistrationNocStatus.NOC_EXPIRED
@@ -117,7 +125,17 @@ const handleUploadDocument = async (uiDoc: UiDocument, appRegNumber: string | nu
                   size="sm"
                   class="ml-1 px-3 py-0 font-bold"
                 /></span>
-              <span>{{ doc.name }}</span>
+              <UButton
+                v-if="isDocumentPreviewable(doc)"
+                variant="link"
+                class="p-0 text-left font-normal underline"
+                data-test-id="preview-document-btn"
+                :loading="doc.loading"
+                @click="openDocInNewTab(doc)"
+              >
+                {{ doc.name }}
+              </UButton>
+              <span v-else>{{ doc.name }}</span>
             </div>
           </div>
         </div>

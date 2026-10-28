@@ -206,6 +206,11 @@ export default {
       additionalInformation: 'Additional Information',
       strataCategory: 'Category:',
       numberOfRentalUnits: 'Number of Rental Units:',
+      rentalUnits: 'Rental Units',
+      unitCount: '{count} unit | {count} units',
+      searchUnits: 'Search units',
+      noMatchingUnits: 'No units match your search',
+      viewRentalUnits: 'View rental units',
       cpbcLicenseNum: 'CPBC Licence #',
       listingSize: {
         THOUSAND_AND_ABOVE: '1,000 or more',
@@ -283,6 +288,9 @@ export default {
     viewSnapshot: 'View Snapshot',
     edit: 'Edit',
     done: 'Done',
+    expand: 'Expand',
+    collapse: 'Collapse',
+    openInDialog: 'Full View',
     showDetails: 'Show Details',
     hideDetails: 'Hide Details',
     decline: 'Refuse',
@@ -333,6 +341,10 @@ export default {
     },
     downloadReceipt: {
       description: 'We could not download the receipt at this time. If error persists, please contact us.'
+    },
+    openDocument: {
+      title: 'Error Opening Document',
+      description: 'We could not open the document at this time. If the error persists, please contact us.'
     },
     fetchInvoiceInfo: 'An error occurred while fetching invoice information.',
     checkAssignee: {
@@ -551,7 +563,9 @@ export default {
     emailTitle: 'Email to Completing party',
     emailBodyPlaceholder: 'Enter text here...',
     emailBodyIntro: 'Approval Conditions',
-    noConditionsPlaceholder: 'No conditions added'
+    noConditionsPlaceholder: 'No conditions added',
+    expandEmail: 'Expand email field',
+    collapseEmail: 'Collapse email field'
   },
   validation: {
     accountName: {

@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "strr-email"
-version = "1.2.2"
+version = "1.2.3"
 description = "BC Registries - strr-email"
 authors = []
 license = "BSD-3-Clause"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12.2"
+python = ">=3.12.2,<3.15"
 flask = "^3.1.3"
 flask-sqlalchemy = "^3.1.1"
 flask-migrate = "^4.0.4"
@@ -25,7 +25,7 @@ isort = "^5.13.2"
 pylint = "^3.0.3"
 gcp-queue = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/gcp-queue", branch = "main" }
 structured-logging = { git = "https://github.com/bcgov/sbc-connect-common.git", subdirectory = "python/structured-logging", branch = "main" }
-strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "65eb97c9139aefb29c8223cea10ec909ed88ce7b", subdirectory = "strr-api"}
+strr-api = {git = "https://github.com/bcgov/STRR.git", rev = "6a31a888e9c7a659031570b1a92e5f39bc41d27a", subdirectory = "strr-api"}
 nanoid = "^2.0.0"
 # strr-api = {path = "/workspaces/STRR/strr-api", develop = true}
 

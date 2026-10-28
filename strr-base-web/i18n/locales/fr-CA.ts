@@ -47,7 +47,10 @@ export default {
     fileNowNoFee: 'Déposer maintenant (sans frais)',
     reviewConfirm: 'Réviser et Confirmer',
     save: 'Sauvegarder',
-    saveExit: 'Sauvegarder et Reprendre Plus Tard'
+    saveExit: 'Sauvegarder et Reprendre Plus Tard',
+    expand: 'Développer',
+    collapse: 'Réduire',
+    openInDialog: 'Vue complète'
   },
   contactInfo: {
     bcRegGeneral: {
@@ -77,13 +80,18 @@ export default {
     generic: {
       title: "Quelque Chose S'est Mal Passé",
       description: "Une erreur s'est produite, veuillez réessayer. Si cette erreur persiste, veuillez nous contacter."
+    },
+    openDocument: {
+      title: "Erreur lors de l'ouverture du document",
+      description: "Nous n'avons pas pu ouvrir le document pour le moment. Si l'erreur persiste, veuillez nous contacter."
     }
   },
   form: {},
   label: {
     expiryDaysLeft: '{count} jours restants',
     expiryDaysAgo: 'il y a {count} jours',
-    expiryToday: "aujourd'hui"
+    expiryToday: "aujourd'hui",
+    confirmEmailAddress: "Confirmer l'adresse e-mail"
   },
   labels: {
     note: 'Note',
@@ -94,6 +102,7 @@ export default {
     citizenship: 'Citoyenneté',
     citizenshipPR: 'Citoyenneté/Résidence Permanente',
     emailAddress: 'Adresse e-mail',
+    confirmEmailAddress: "Confirmer l'adresse e-mail",
     fullName: 'Nom Légal Complet',
     preferredName: 'Nom Préféré',
     address: 'Adresse',
@@ -191,6 +200,9 @@ export default {
   },
   table: {},
   toast: {},
+  validation: {
+    emailMatch: "L'adresse e-mail ne correspond pas"
+  },
   widgets: {
     feeSummary: {
       title: 'Résumé des Frais',

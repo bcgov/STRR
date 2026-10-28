@@ -41,13 +41,13 @@ import os
 
 import coloredlogs
 import sentry_sdk
-from cloud_sql_connector import setup_pg8000_close_event_listener
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from .common.auth import jwt
+from .common.cloud_sql import setup_pg8000_close_event_listener
 from .common.log_sanitization import install_log_injection_filter
 from .common.run_version import get_run_version
 from .config import Config, Production

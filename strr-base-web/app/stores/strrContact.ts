@@ -5,16 +5,23 @@ import type { Contact, StrrContact } from '#imports'
 export const useStrrContactStore = defineStore('strr/contact', () => {
   const { t } = useNuxtApp().$i18n
   const { kcUser } = useKeycloak()
-  const getContactSchema = (completingParty = false) => {
-    return z.object({
+  const getContactSchema = (completingParty = false, requireEmailConfirmation = false) => {
+    const schema = z.object({
       firstName: optionalOrEmptyString,
       middleName: optionalOrEmptyString,
       lastName: getRequiredNonEmptyString(t('validation.name.last')),
       position: completingParty ? optionalOrEmptyString : getRequiredNonEmptyString(t('validation.position')),
       phone: getRequiredPhone(t('validation.required'), t('validation.phone.number')),
       faxNumber: optionalOrEmptyString,
-      emailAddress: getRequiredEmail(t('validation.email'))
+      emailAddress: getRequiredEmail(t('validation.email')),
+      confirmEmailAddress: optionalOrEmptyString
     })
+
+    if (!requireEmailConfirmation) {
+      return schema
+    }
+
+    return withEmailConfirmation(schema, t('validation.emailMatch'))
   }
 
   const getNewContact = (isActiveUser = false): Contact => {
@@ -29,7 +36,8 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
         extension: ''
       },
       faxNumber: '',
-      emailAddress: ''
+      emailAddress: '',
+      confirmEmailAddress: ''
     }
   }
 
@@ -51,6 +59,7 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
   watch(primaryRep, (val) => {
     if (val && isCompletingPartyRep.value) {
       completingParty.value.emailAddress = val?.emailAddress
+      completingParty.value.confirmEmailAddress = val?.confirmEmailAddress
       completingParty.value.phone = val?.phone
 
       // for BCeID users we need to copy the names over from primary rep to completing party
@@ -64,9 +73,9 @@ export const useStrrContactStore = defineStore('strr/contact', () => {
 
   const secondaryRep = ref<StrrContact | undefined>(undefined)
 
-  const compPartySchema = getContactSchema(true)
-  const primaryRepSchema = getContactSchema(false)
-  const secondaryRepSchema = getContactSchema(false)
+  const compPartySchema = getContactSchema(true, false)
+  const primaryRepSchema = getContactSchema(false, true)
+  const secondaryRepSchema = getContactSchema(false, false)
 
   const validateContact = async (returnBool = false): Promise<MultiFormValidationResult | boolean> => {
     const validations = [

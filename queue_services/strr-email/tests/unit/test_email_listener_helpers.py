@@ -146,6 +146,14 @@ def test_get_jinja_template(cfg_app):
         assert tpl_reg_noc is not None
         assert "Notice of Consideration" in tpl_reg_noc.render(reg_num="SH-12345")
 
+        tpl_reg_suspended = el._get_jinja_template("STRATA_HOTEL_REGISTRATION_SUSPENDED")
+        assert tpl_reg_suspended is not None
+        assert "Suspended" in tpl_reg_suspended.render(reg_num="SH-12345")
+
+        tpl_reg_cancelled = el._get_jinja_template("STRATA_HOTEL_REGISTRATION_CANCELLED")
+        assert tpl_reg_cancelled is not None
+        assert "Cancelled" in tpl_reg_cancelled.render(reg_num="SH-12345")
+
 
 def test_get_expiry_date():
     assert "2026" in el._get_expiry_date(

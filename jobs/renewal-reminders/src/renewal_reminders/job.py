@@ -89,12 +89,12 @@ def send_forty_days_reminder(app, registration_type):
         app.logger.info("Finished sending 40 days renewal notifications")
 
 
-def send_final_day_reminder(app, registration_type):
-    """Send the reminder on the last day of the permit before expiry."""
+def send_three_days_reminder(app, registration_type):
+    """Send the reminder 3 days before expiry."""
     with app.app_context():
-        app.logger.info("Starting final day renewal notifications")
+        app.logger.info("Starting 3 days renewal notifications")
 
-        days = 0
+        days = 3
         target_date = (datetime.now(timezone.utc) + timedelta(days=days)).date()
         job_key = renewal_job_key(target_date, days)
 
@@ -109,7 +109,7 @@ def send_final_day_reminder(app, registration_type):
             func.date(Registration.expiry_date) == target_date,
             ~interaction_exists,
         ).all()
-        app.logger.info(f"Found {len(registrations)} active registrations expiring in 1 day.")
+        app.logger.info(f"Found {len(registrations)} active registrations expiring in 3 days.")
         for reg in registrations:
             renewal_application = (
                 Application.query.filter(
@@ -132,7 +132,7 @@ def send_final_day_reminder(app, registration_type):
                     event_name=Events.EventName.RENEWAL_REMINDER_SENT,
                     registration_id=reg.id,
                 )
-        app.logger.info("Finished sending final day renewal notifications.")
+        app.logger.info("Finished sending 3 days renewal notifications.")
 
 
 def send_fourteen_days_reminder(app, registration_type):
@@ -272,7 +272,7 @@ def run(app: Flask = None):
             app.logger.info("Starting renewal reminder job")
             send_forty_days_reminder(app, registration_type=Registration.RegistrationType.HOST)
             send_fourteen_days_reminder(app, registration_type=Registration.RegistrationType.HOST)
-            send_final_day_reminder(app, registration_type=Registration.RegistrationType.HOST)
+            send_three_days_reminder(app, registration_type=Registration.RegistrationType.HOST)
             send_forty_days_reminder(app, registration_type=Registration.RegistrationType.PLATFORM)
             send_fourteen_days_reminder(
                 app, registration_type=Registration.RegistrationType.PLATFORM
