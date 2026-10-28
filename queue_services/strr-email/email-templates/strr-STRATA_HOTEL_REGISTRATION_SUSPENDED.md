@@ -3,8 +3,8 @@
 **Registration Number:**
 {% if registration_url %}[{{ reg_num }}]({{ registration_url }}){% else %}{{ reg_num }}{% endif %}
 
-**Strata Hotel Address:**&nbsp;{{street_address}}
-**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}
+**Strata Hotel Address:**&nbsp;{{street_address}}  
+**City:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{city}}  
 **Postal Code:**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{postal_code}}
 
 Your short-term rental registration has been **suspended**.
