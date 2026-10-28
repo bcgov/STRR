@@ -8,21 +8,10 @@ defineEmits<{
 const exStore = useExaminerStore()
 const {
   activeReg,
-  isApplication,
-  isEditingRegistrationEmail,
-  isAssignedToUser,
-  filingHistoryEvents
+  isApplication
 } = storeToRefs(exStore)
-const { openEditRegistrationEmailForm, checkAndPerformAction, openFilingHistory } = useHostExpansion()
-const { isSnapshotRoute } = useExaminerRoute()
 
 const { t } = useNuxtApp().$i18n
-
-const getEmailDeliveryStatus = (email: string | undefined | null) => {
-  return evaluateEmailDeliveryStatus(email, filingHistoryEvents.value)
-}
-
-const editEmailAriaLabel = computed(() => t(HOST_CONTACT_EMAIL_I18N_KEYS[props.display].title))
 
 const columns = [
   { key: 'name', label: t('label.name') },
@@ -46,16 +35,6 @@ const getNameIcon = (owner: HostOwner) => {
 
 const getFullName = (owner: HostOwner) => {
   return `${owner.firstName || ''} ${owner.middleName || ''} ${owner.lastName || ''}`.replaceAll('  ', ' ').trim()
-}
-
-// TODO: move to common fn for strr-base-web
-const getPhoneNumber = (phone: ConnectPhone) => {
-  const code = phone.countryCode ? `+${phone.countryCode}` : ''
-  const number = phone.countryCode === '1'
-    ? phone.number.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
-    : phone.number
-  const extension = phone.extension ? `Ext. ${phone.extension}` : ''
-  return `${code} ${number} ${extension}`.replaceAll('  ', ' ').trim()
 }
 
 const hostOwners = computed<HostOwner[]>(() => {
@@ -133,59 +112,12 @@ const hostOwners = computed<HostOwner[]>(() => {
       >
         <ConnectFormAddressDisplay v-if="row.mailingAddress?.country" :address="row.mailingAddress" />
       </ConnectInfoWithIcon>
-      <div v-if="row.ownerType === OwnerType.INDIVIDUAL" class="mt-3 space-y-3">
-        <ConnectInfoWithIcon
-          v-if="getPhoneNumber(row.phone)"
-          icon="i-mdi-phone"
-          :content="getPhoneNumber(row.phone)"
-        />
-        <ConnectInfoWithIcon v-if="row.faxNumber" icon="i-mdi-fax" :content="row.faxNumber" />
-        <div v-if="row.emailAddress" class="flex items-center gap-2">
-          <div class="flex items-center gap-1">
-            <UIcon
-              name="i-mdi-at"
-              :class="[
-                'size-5 shrink-0',
-                { 'text-red-600': getEmailDeliveryStatus(row.emailAddress).isFailed }
-              ]"
-            />
-            <UTooltip
-              v-if="getEmailDeliveryStatus(row.emailAddress).isFailed"
-              :text="t('strr.alertFlags.emailDeliveryFailedTooltip')"
-            >
-              <UButton
-                variant="link"
-                color="red"
-                :padded="false"
-                class="inline-flex items-center gap-1 font-semibold text-red-600 hover:text-red-700 hover:underline"
-                data-testid="owner-email-failed-badge"
-                :aria-label="t('strr.alertFlags.emailDeliveryFailed')"
-                @click="checkAndPerformAction(
-                  () => openFilingHistory(getEmailDeliveryStatus(row.emailAddress).event || undefined)
-                )"
-              >
-                <span>{{ row.emailAddress }}</span>
-                <UIcon name="i-mdi-alert-circle" class="size-4 shrink-0 text-red-600" />
-              </UButton>
-            </UTooltip>
-            <span v-else>{{ row.emailAddress }}</span>
-          </div>
-          <UButton
-            v-if="!isApplication && !isSnapshotRoute"
-            variant="link"
-            size="xs"
-            color="blue"
-            :disabled="isEditingRegistrationEmail || !isAssignedToUser"
-            data-testid="edit-owner-email-btn"
-            :aria-label="editEmailAriaLabel"
-            class="flex items-center gap-1"
-            @click="checkAndPerformAction(() => openEditRegistrationEmailForm(props.display))"
-          >
-            <UIcon name="i-mdi-pencil-outline" class="size-4" />
-            {{ $t('btn.edit') }}
-          </UButton>
-        </div>
-      </div>
+      <HostExpansionOwnerContactInfo
+        v-if="row.ownerType === OwnerType.INDIVIDUAL"
+        class="mt-3"
+        :owner="row"
+        :display="props.display"
+      />
     </template>
     <template #additionalInfo-data="{ row }: { row: HostOwner }">
       <div class="*:space-y-3">
@@ -212,60 +144,10 @@ const hostOwners = computed<HostOwner[]>(() => {
             :title="$t('label.preferredName')"
             :content="row.preferredName"
           />
-          <!-- <div class="-ml-8 space-y-3"> -->
-          <div class="space-y-3">
-            <ConnectInfoWithIcon
-              v-if="getPhoneNumber(row.phone)"
-              icon="i-mdi-phone"
-              :content="getPhoneNumber(row.phone)"
-            />
-            <ConnectInfoWithIcon v-if="row.faxNumber" icon="i-mdi-fax" :content="row.faxNumber" />
-            <div v-if="row.emailAddress" class="flex items-center gap-2">
-              <div class="flex items-center gap-1">
-                <UIcon
-                  name="i-mdi-at"
-                  :class="[
-                    'size-5 shrink-0',
-                    { 'text-red-600': getEmailDeliveryStatus(row.emailAddress).isFailed }
-                  ]"
-                />
-                <UTooltip
-                  v-if="getEmailDeliveryStatus(row.emailAddress).isFailed"
-                  :text="t('strr.alertFlags.emailDeliveryFailedTooltip')"
-                >
-                  <UButton
-                    variant="link"
-                    color="red"
-                    :padded="false"
-                    class="inline-flex items-center gap-1 font-semibold text-red-600 hover:text-red-700 hover:underline"
-                    data-testid="owner-email-failed-badge"
-                    :aria-label="t('strr.alertFlags.emailDeliveryFailed')"
-                    @click="checkAndPerformAction(
-                      () => openFilingHistory(getEmailDeliveryStatus(row.emailAddress).event || undefined)
-                    )"
-                  >
-                    <span>{{ row.emailAddress }}</span>
-                    <UIcon name="i-mdi-alert-circle" class="size-4 shrink-0 text-red-600" />
-                  </UButton>
-                </UTooltip>
-                <span v-else>{{ row.emailAddress }}</span>
-              </div>
-              <UButton
-                v-if="!isApplication && !isSnapshotRoute"
-                variant="link"
-                size="xs"
-                color="blue"
-                :disabled="isEditingRegistrationEmail || !isAssignedToUser"
-                data-testid="edit-owner-email-btn"
-                :aria-label="editEmailAriaLabel"
-                class="flex items-center gap-1"
-                @click="checkAndPerformAction(() => openEditRegistrationEmailForm(props.display))"
-              >
-                <UIcon name="i-mdi-pencil-outline" class="size-4" />
-                {{ $t('btn.edit') }}
-              </UButton>
-            </div>
-          </div>
+          <HostExpansionOwnerContactInfo
+            :owner="row"
+            :display="props.display"
+          />
         </div>
       </div>
     </template>
