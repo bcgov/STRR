@@ -80,6 +80,8 @@ EMAIL_SUBJECT = {
     "HOST_REGISTRATION_SUSPENDED": "Short-Term Rental Registration Suspended",
     "HOST_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
     "STRATA_HOTEL_REGISTRATION_ACTIVE": "Short-Term Rental Registration Approved",
+    "STRATA_HOTEL_REGISTRATION_SUSPENDED": "Short-Term Rental Registration Suspended",
+    "STRATA_HOTEL_REGISTRATION_CANCELLED": "Short-Term Rental Registration Cancelled",
     "STRATA_HOTEL_NOC": "Short-Term Rental Notice of Consideration",
     "STRATA_HOTEL_REGISTRATION_NOC": "Short-Term Rental Notice of Consideration",
     "HOST_RENEWAL_REMINDER": "Short-Term Rental Registration Renewal Reminder",
@@ -173,6 +175,8 @@ def worker():
         elif registration.registration_type == Registration.RegistrationType.STRATA_HOTEL:
             if email_info.email_type in (
                 "STRATA_HOTEL_REGISTRATION_ACTIVE",
+                "STRATA_HOTEL_REGISTRATION_SUSPENDED",
+                "STRATA_HOTEL_REGISTRATION_CANCELLED",
                 "STRATA_HOTEL_RENEWAL_REMINDER",
                 "STRATA_HOTEL_REGISTRATION_NOC",
                 "STRATA_HOTEL_NOC",
