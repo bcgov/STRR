@@ -49,22 +49,43 @@ describe('login redirect helpers', () => {
       'http://localhost:3000/',
       'en-CA',
       '/auth/account/choose-existing',
-      '/en-CA/dashboard/registration/H1?accountId=2866'
+      '/en-CA/dashboard/registration/H1?accountId=2866',
+      true
     )).toBe('http://localhost:3000/en-CA/dashboard/registration/H1?accountId=2866')
   })
 
   it('uses the configured redirect path when no return URL exists', () => {
-    expect(buildLoginRedirectUrl('http://localhost:3000/', 'en-CA', '/auth/login', undefined))
+    expect(buildLoginRedirectUrl('http://localhost:3000/', 'en-CA', '/auth/login', undefined, true))
       .toBe('http://localhost:3000/en-CA/auth/login')
   })
 
   it('returns no callback URL when no redirect is configured', () => {
-    expect(buildLoginRedirectUrl('http://localhost:3000', 'en-CA', '', undefined)).toBeUndefined()
+    expect(buildLoginRedirectUrl('http://localhost:3000', 'en-CA', '', undefined, true)).toBeUndefined()
   })
 
   it('returns the original path when no account-aware redirect is configured', () => {
-    expect(buildLoginRedirectUrl('http://localhost:3000', 'en-CA', '', '/en-CA/dashboard'))
+    expect(buildLoginRedirectUrl('http://localhost:3000', 'en-CA', '', '/en-CA/dashboard', true))
       .toBe('http://localhost:3000/en-CA/dashboard')
+  })
+
+  it('returns the return URL directly when account choice is disabled', () => {
+    expect(buildLoginRedirectUrl(
+      'http://localhost:3000',
+      'en-CA',
+      '/dashboard',
+      '/en-CA/registration/1',
+      false
+    )).toBe('http://localhost:3000/en-CA/registration/1')
+  })
+
+  it('uses the configured redirect path when account choice is disabled and no return URL exists', () => {
+    expect(buildLoginRedirectUrl(
+      'http://localhost:3000',
+      'en-CA',
+      '/dashboard',
+      undefined,
+      false
+    )).toBe('http://localhost:3000/en-CA/dashboard')
   })
 
   it('builds a return-preserving account-choice callback without accountId', () => {
@@ -72,7 +93,8 @@ describe('login redirect helpers', () => {
       'https://dev.host.shorttermrental.registry.gov.bc.ca',
       'en-CA',
       '/auth/account/choose-existing',
-      '/en-CA/dashboard/registration/H1'
+      '/en-CA/dashboard/registration/H1',
+      true
     )
     expect(result).toBe(
       'https://dev.host.shorttermrental.registry.gov.bc.ca/en-CA/auth/account/choose-existing' +
