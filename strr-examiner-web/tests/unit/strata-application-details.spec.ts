@@ -6,7 +6,7 @@ import ApplicationDetails from '~/pages/examine/[applicationId].vue'
 import {
   ApplicationInfoHeader, HostSubHeader, HostSupportingInfo,
   StrataSubHeader, StrataSupportingInfo, SupportingDocuments,
-  PlatformSubHeader, UBadge
+  PlatformSubHeader, UBadge, ExaminerNotes
 } from '#components'
 
 const isAssignedToUser = ref(true)
@@ -46,6 +46,9 @@ vi.mock('@/stores/examiner', () => ({
     activePaymentTotal: ref(null),
     activePaymentDate: ref(null),
     hasRegistrationNumber,
+    isHostApplication: ref(false),
+    isStrataHotelApplication: ref(true),
+    isNotesSupported: ref(true),
     decisionEmailContent: ref({ content: '' }),
     decisionEmailFormRef: ref({
       clear: vi.fn()
@@ -68,6 +71,12 @@ vi.mock('@/stores/document', () => ({
     addDocumentToApplication: vi.fn().mockResolvedValue({})
   })
 }))
+
+mockNuxtImport('useConnectLaunchdarklyStore', () => {
+  return () => ({
+    getStoredFlag: vi.fn().mockReturnValue(true)
+  })
+})
 
 describe('Strata Application Details Page', () => {
   let wrapper: any
@@ -188,5 +197,9 @@ describe('Strata Application Details Page', () => {
       expect(button?.disabled).toBe(true)
     })
     isAssignedToUser.value = true
+  })
+
+  it('should render ExaminerNotes on Strata application', () => {
+    expect(wrapper.findComponent(ExaminerNotes).exists()).toBe(true)
   })
 })

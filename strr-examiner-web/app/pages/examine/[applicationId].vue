@@ -20,7 +20,7 @@ const {
   emailFormRef,
   activeHeader,
   isAssignedToUser,
-  isHostApplication
+  isNotesSupported
 } = storeToRefs(useExaminerStore())
 const { isExaminerNotesEnabled } = useExaminerFeatureFlags()
 const { showDecisionPanel } = useExaminerDecision()
@@ -214,7 +214,7 @@ watch(
       <ComposeNoc v-if="!showDecisionPanel" />
       <DecisionPanel v-if="showDecisionPanel" />
       <ExaminerNotes
-        v-if="isExaminerNotesEnabled && isHostApplication"
+        v-if="isExaminerNotesEnabled && isNotesSupported"
         :is-readonly="isNotesReadonly"
       />
       <AssignmentActions @refresh="refresh" />

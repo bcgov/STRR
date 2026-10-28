@@ -7,6 +7,8 @@ import {
   mockHostApplicationWithReviewer,
   mockHostApplicationWithoutReviewer,
   mockHostRegistration,
+  mockStrataApplication,
+  mockPlatformRegistration,
   MOCK_UNIT_ADDRESS,
   mockSnapshots
 } from '../mocks/mockedData'
@@ -206,6 +208,28 @@ describe('Store - Examiner', () => {
     store.activeRecord = mockHostApplicationWithoutReviewer
     await nextTick()
     expect(store.isAssignedToUser).toBe(false)
+  })
+
+  it('should correctly determine isHostApplication, isStrataHotelApplication, and isNotesSupported', async () => {
+    const store = useExaminerStore()
+
+    store.activeRecord = mockHostApplication
+    await nextTick()
+    expect(store.isHostApplication).toBe(true)
+    expect(store.isStrataHotelApplication).toBe(false)
+    expect(store.isNotesSupported).toBe(true)
+
+    store.activeRecord = mockStrataApplication
+    await nextTick()
+    expect(store.isHostApplication).toBe(false)
+    expect(store.isStrataHotelApplication).toBe(true)
+    expect(store.isNotesSupported).toBe(true)
+
+    store.activeRecord = mockPlatformRegistration
+    await nextTick()
+    expect(store.isHostApplication).toBe(false)
+    expect(store.isStrataHotelApplication).toBe(false)
+    expect(store.isNotesSupported).toBe(false)
   })
 
   it('should clear all table filters and reset to defaults', () => {
