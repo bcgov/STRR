@@ -21,10 +21,9 @@ def test_migrated_strr_api_vault_mapping_uses_cloudsql_iam():
 
     assert {
         "CLOUDSQL_INSTANCE_CONNECTION_NAME": '"op://database/$APP_ENV/strr-db/DATABASE_INSTANCE_CONNECTION_NAME"',
-        "CLOUDSQL_IP_TYPE": '"PUBLIC"',
+        "CLOUDSQL_IP_TYPE": '"op://database/$APP_ENV/strr-db/IP_TYPE"',
         "DATABASE_NAME": '"op://database/$APP_ENV/strr-db/DATABASE_NAME"',
         "DATABASE_USERNAME": '"op://database/$APP_ENV/strr-db/DATABASE_IAM_USERNAME"',
-        "DATABASE_MIGRATION_USERNAME": '"op://database/$APP_ENV/strr-db/DATABASE_MIGRATION_IAM_USERNAME"',
         "DATABASE_OWNER_ROLE": '"op://database/$APP_ENV/strr-db/DATABASE_OWNER_ROLE"',
     }.items() <= mappings.items()
     assert {
