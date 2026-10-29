@@ -47,6 +47,7 @@ from flask_migrate import Migrate
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 from .common.auth import jwt
+from .common.cloud_sql import setup_pg8000_close_event_listener
 from .common.log_sanitization import install_log_injection_filter
 from .common.run_version import get_run_version
 from .config import Config, Production
@@ -68,6 +69,9 @@ def create_app(environment: Config = Production, **kwargs) -> Flask:
     app.config.from_object(environment)
 
     db.init_app(app)
+    with app.app_context():
+        setup_pg8000_close_event_listener(db.engine)
+
     if app.config.get("POD_NAMESPACE", "production") == "migration":
         logger.info("Running in migration mode")
         Migrate(app, db)
