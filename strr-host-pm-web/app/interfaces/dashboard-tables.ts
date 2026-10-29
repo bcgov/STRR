@@ -11,7 +11,6 @@ export interface ApplicationRow {
   disabled?: boolean
   class?: string
 }
-
 export interface RegistrationApplicationSummary {
   applicationType?: string
   applicationStatus?: ApplicationStatus
@@ -56,3 +55,35 @@ export interface RenewalTodoDetails {
 }
 
 export interface RegistrationRecordWithTodos extends RegistrationRecord, RenewalTodoDetails {}
+
+export type TreeRowType = 'registration' | 'application' | 'standalone_application'
+
+export interface TreeTableRow {
+  id: string
+  rowType: TreeRowType
+  number: string
+  nickname?: string
+  status?: string
+  statusKey?: ApplicationStatus | RegistrationStatus
+  hostActions?: HostActions[]
+  address?: ApiUnitAddress
+  localGovernment?: string
+  dateSubmitted?: Date | string
+  expiryDate?: string
+  expiryState?: ExpiryState
+  applicationNumber?: string
+  applicationType?: string
+  paymentToken?: number
+  hasRenewalDraft?: boolean
+  renewalDraftApplicationNumber?: string
+  canRenew?: boolean
+  registrationId?: number
+  isExpanded?: boolean
+  children?: TreeTableRow[]
+  isChild?: boolean
+  isParent?: boolean
+  parentId?: string
+  level?: number
+  disabled?: boolean
+  class?: string
+}

@@ -212,6 +212,150 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     selectedRegistrationId.value = undefined
   }
 
+  // Dashboard state cached in store to prevent redundant network requests on view switches
+  const dashboardRegistrations = ref<RegistrationRecordWithTodos[]>([])
+  const dashboardRegistrationsTotal = ref<number>(0)
+  const dashboardApplications = ref<HostApplicationResp['applications']>([])
+  const dashboardApplicationsTotal = ref<number>(0)
+  const isDashboardLoading = ref<boolean>(false)
+  const dashboardDataLoaded = ref<boolean>(false)
+
+  const loadDashboardData = async (force = false, search?: string) => {
+    if (!force && !search && dashboardDataLoaded.value) {
+      return {
+        registrations: dashboardRegistrations.value,
+        totalRegistrations: dashboardRegistrationsTotal.value,
+        applications: dashboardApplications.value,
+        totalApplications: dashboardApplicationsTotal.value
+      }
+    }
+
+    isDashboardLoading.value = true
+    try {
+      const allowedStatuses = [
+        ApplicationStatus.DRAFT,
+        ApplicationStatus.PAYMENT_DUE,
+        ApplicationStatus.PAID,
+        ApplicationStatus.ADDITIONAL_INFO_REQUESTED,
+        ApplicationStatus.FULL_REVIEW,
+        ApplicationStatus.DECLINED,
+        ApplicationStatus.PROVISIONALLY_DECLINED,
+        ApplicationStatus.PROVISIONAL,
+        ApplicationStatus.NOC_PENDING,
+        ApplicationStatus.NOC_EXPIRED,
+        ApplicationStatus.PROVISIONAL_REVIEW_NOC_PENDING,
+        ApplicationStatus.PROVISIONAL_REVIEW_NOC_EXPIRED
+      ]
+
+      const api = useStrrApi()
+      const { fetchRegistrationsWithRenewalTodos } = useRenewals()
+
+      const fetchRegs = async () => {
+        let rawRegs: RegistrationRecord[] = []
+        let total = 0
+        if (search && search.length >= 3) {
+          const resp = await api.searchRegistrations<ApiRegistrationResp>(
+            search,
+            100,
+            1,
+            undefined,
+            undefined,
+            ApplicationType.HOST
+          )
+          if (resp) {
+            rawRegs = resp.registrations || []
+            total = resp.total || 0
+          }
+        } else if (api.getAccountRegistrations) {
+          const resp = await api.getAccountRegistrations<ApiRegistrationResp>(
+            undefined,
+            ApplicationType.HOST,
+            100,
+            1
+          )
+          if (Array.isArray(resp)) {
+            rawRegs = resp
+            total = resp.length
+          } else {
+            rawRegs = resp?.registrations || []
+            total = resp?.total || 0
+          }
+        }
+        const withTodos = fetchRegistrationsWithRenewalTodos
+          ? await fetchRegistrationsWithRenewalTodos(rawRegs)
+          : rawRegs
+        return { registrations: withTodos, total }
+      }
+
+      const fetchApps = async () => {
+        if (search && search.length >= 3) {
+          if (api.searchApplications) {
+            const resp = await api.searchApplications<HostApplicationResp>(
+              search,
+              100,
+              1,
+              allowedStatuses,
+              undefined,
+              undefined,
+              ApplicationType.HOST
+            )
+            return {
+              applications: resp?.applications || [],
+              total: resp?.total || 0
+            }
+          }
+          return { applications: [], total: 0 }
+        } else if (api.getAccountApplications) {
+          const resp = await api.getAccountApplications<HostApplicationResp>(
+            100,
+            1,
+            ApplicationType.HOST,
+            allowedStatuses,
+            undefined,
+            undefined,
+            true,
+            true
+          )
+          return {
+            applications: resp?.applications || [],
+            total: resp?.total || 0
+          }
+        }
+        return { applications: [], total: 0 }
+      }
+
+      const [regsResult, appsResult] = await Promise.all([fetchRegs(), fetchApps()])
+      dashboardRegistrations.value = regsResult.registrations
+      dashboardRegistrationsTotal.value = regsResult.total
+      dashboardApplications.value = appsResult.applications
+      dashboardApplicationsTotal.value = appsResult.total
+      if (!search) {
+        dashboardDataLoaded.value = true
+      }
+      return {
+        registrations: dashboardRegistrations.value,
+        totalRegistrations: dashboardRegistrationsTotal.value,
+        applications: dashboardApplications.value,
+        totalApplications: dashboardApplicationsTotal.value
+      }
+    } finally {
+      isDashboardLoading.value = false
+    }
+  }
+
+  const refreshDashboardData = () => {
+    return loadDashboardData(true)
+  }
+
+  const clearDashboardData = () => {
+    dashboardRegistrations.value = []
+    dashboardRegistrationsTotal.value = 0
+    dashboardApplications.value = []
+    dashboardApplicationsTotal.value = 0
+    dashboardDataLoaded.value = false
+    isDashboardLoading.value = false
+  }
+
   return {
     application,
     registration,
@@ -236,6 +380,15 @@ export const useHostPermitStore = defineStore('host/permit', () => {
     loadHostData,
     loadHostRegistrationData,
     loadHostRegistrationDataByRegistrationNumber,
+    dashboardRegistrations,
+    dashboardRegistrationsTotal,
+    dashboardApplications,
+    dashboardApplicationsTotal,
+    isDashboardLoading,
+    dashboardDataLoaded,
+    loadDashboardData,
+    refreshDashboardData,
+    clearDashboardData,
     $reset
   }
 })

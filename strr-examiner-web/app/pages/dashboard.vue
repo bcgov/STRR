@@ -490,21 +490,43 @@ const {
       if (res.registrations.length === 0) {
         return { registrations: [], total: 0 }
       }
-      const registrations = res.registrations.map((reg: HousRegistrationResponse) => ({
-        id: reg.id,
-        registrationNumber: reg.registrationNumber,
-        status: reg.status,
-        subStatus: getRegistrationSubStatus(reg),
-        registrationType: t(`registrationType.${reg.registrationType}`),
-        requirements: getConditionsColumnForRegistration(reg),
-        applicantName: getApplicantNameColumnForRegistration(reg),
-        propertyAddress: getPropertyAddressColumnForRegistration(reg),
-        localGov: getLocalGovColumnForRegistration(reg),
-        adjudicator: getAdjudicatorColumn(reg.header),
-        showRenewalBadge: shouldShowRenewalBadge(reg),
-        hasRecentDocumentUpload: reg.status !== RegistrationStatus.EXPIRED &&
-          hasRecentDocumentUpload(getDocumentsFromRegistration(reg), reg.nocSentDate)
-      }))
+      const registrations = res.registrations.map((reg: HousRegistrationResponse) => {
+        const directApplications = (reg.header?.applications || []).map((app: any) => ({
+          id: `app_${app.applicationNumber}`,
+          parentId: reg.id,
+          applicationNumber: app.applicationNumber,
+          registrationNumber: reg.registrationNumber,
+          registrationId: reg.id,
+          status: app.applicationStatus,
+          applicationType: app.applicationType,
+          registrationType: t(`registrationType.${reg.registrationType}`),
+          requirements: '-',
+          applicantName: getApplicantNameColumnForRegistration(reg),
+          propertyAddress: getPropertyAddressColumnForRegistration(reg),
+          localGov: getLocalGovColumnForRegistration(reg),
+          adjudicator: app.assignee?.username || '-',
+          submissionDate: app.applicationDateTime,
+          lastModified: app.lastUpdate || app.applicationDateTime,
+          isChild: true
+        }))
+
+        return {
+          id: reg.id,
+          registrationNumber: reg.registrationNumber,
+          status: reg.status,
+          subStatus: getRegistrationSubStatus(reg),
+          registrationType: t(`registrationType.${reg.registrationType}`),
+          requirements: getConditionsColumnForRegistration(reg),
+          applicantName: getApplicantNameColumnForRegistration(reg),
+          propertyAddress: getPropertyAddressColumnForRegistration(reg),
+          localGov: getLocalGovColumnForRegistration(reg),
+          adjudicator: getAdjudicatorColumn(reg.header),
+          showRenewalBadge: shouldShowRenewalBadge(reg),
+          hasRecentDocumentUpload: reg.status !== RegistrationStatus.EXPIRED &&
+            hasRecentDocumentUpload(getDocumentsFromRegistration(reg), reg.nocSentDate),
+          children: directApplications
+        }
+      })
 
       return { registrations, total: res.total }
     }
@@ -674,6 +696,31 @@ function handleColumnSort (column: string) {
           ? 'desc'
           : 'asc'
         : 'desc'
+  }
+}
+
+// Tree Table Expansion state for Registrations tab
+const expandedIds = ref<Set<string | number>>(new Set())
+
+const areAllExpanded = computed(() => {
+  const regsWithApps = registrationListResp.value?.registrations?.filter(
+    (r: any) => r.children && r.children.length > 0
+  ) || []
+  if (regsWithApps.length === 0) {
+    return false
+  }
+  return regsWithApps.every((r: any) => expandedIds.value.has(r.id))
+})
+
+const handleToggleExpandAll = () => {
+  if (areAllExpanded.value) {
+    expandedIds.value.clear()
+  } else {
+    registrationListResp.value?.registrations?.forEach((r: any) => {
+      if (r.children && r.children.length > 0) {
+        expandedIds.value.add(r.id)
+      }
+    })
   }
 }
 
@@ -856,6 +903,16 @@ const tabLinks = computed(() => [
               data-testid="clear-filters-button"
               @click="exStore.resetFilters()"
             />
+            <UButton
+              v-if="!isApplicationTab"
+              size="xs"
+              color="gray"
+              variant="outline"
+              :icon="areAllExpanded ? 'i-mdi-unfold-less-horizontal' : 'i-mdi-unfold-more-horizontal'"
+              :label="areAllExpanded ? 'Collapse All' : 'Expand All'"
+              class="h-8"
+              @click="handleToggleExpandAll"
+            />
           </div>
           <div class="flex flex-wrap items-center gap-3 text-gray-900">
             <UPagination
@@ -926,7 +983,7 @@ const tabLinks = computed(() => [
           </div>
         </div>
       </template>
-      <UTable
+      <ConnectTreeTable
         ref="tableRef"
         :key="isApplicationTab ? 'applications-table' : 'registrations-table'"
         v-model:sort="sort"
@@ -934,11 +991,13 @@ const tabLinks = computed(() => [
         :rows="isApplicationTab ? applicationListResp.applications : registrationListResp.registrations"
         :loading="isApplicationTab ? status === 'pending' : regStatus === 'pending'"
         sort-mode="manual"
+        tree-column-key="registrationNumber"
+        :expanded-ids="expandedIds"
         :empty-state="{
           icon: '',
           label: 'No matching applications or registrations found.'
         }"
-        :ui="{
+        :table-ui="{
           wrapper: 'relative bg-white overflow-auto h-auto min-h-[calc(50svh)] max-h-[calc(74svh)]',
           thead: 'sticky top-0 bg-white z-10 shadow-sm',
           th: {
@@ -954,6 +1013,7 @@ const tabLinks = computed(() => [
           }
         }"
         data-testid="applications-table"
+        @update:expanded-ids="expandedIds = $event"
         @select="handleRowSelect"
       >
         <template v-if="enableTableFilters" #registrationNumber-header="{ column }">
@@ -1091,10 +1151,9 @@ const tabLinks = computed(() => [
           />
         </template>
 
-        <template #registrationNumber-data="{ row }">
-          <div
-            v-if="isSplitDashboardTableEnabled"
-          >
+        <template #registrationNumber-data="{ row, isChild, isExpanded, toggleExpand, hasChildren, isLastChild }">
+          <div v-if="isSplitDashboardTableEnabled">
+            <!-- Applications Tab: standard flat application row -->
             <div v-if="isApplicationTab" class="flex flex-col gap-1">
               <div class="flex flex-wrap items-center gap-2">
                 <UTooltip
@@ -1119,51 +1178,136 @@ const tabLinks = computed(() => [
                 </UTooltip>
                 <span>{{ row.applicationNumber }}</span>
               </div>
+              <UButton
+                v-if="row.registrationNumber"
+                icon="i-mdi-check-circle"
+                variant="link"
+                :padded="false"
+                :ui="{ gap: { sm: 'gap-x-1' }, icon: { base: 'text-green-700 text-xs' } }"
+                class="text-sm"
+                @click.stop="goToRegistration(row.registrationId)"
+              >
+                {{ row.registrationNumber }}
+              </UButton>
             </div>
-            <div v-else class="flex flex-col gap-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <UTooltip
-                  v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
-                  :text="t('label.recentDocumentUploadHint')"
-                  :popper="{ placement: 'top', offsetDistance: 8 }"
-                >
-                  <div
-                    class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
-                      text-xs font-semibold text-amber-900"
-                    data-testid="recent-document-indicator"
-                    :aria-label="t('label.recentDocumentUploadHint')"
-                    @click.stop
+
+            <!-- Registrations Tab: Tree hierarchy with expandable filings -->
+            <div v-else class="relative -my-2 flex size-full min-h-[72px] items-center">
+              <!-- Case A: Child Application nested under a registration -->
+              <div v-if="isChild" class="relative flex size-full min-h-[72px] items-center py-2 pl-14">
+                <!-- Continuous Vertical Trunk Line: connects from row above to row below -->
+                <div
+                  class="pointer-events-none absolute left-[15px] w-[2px] bg-gray-300"
+                  :class="isLastChild ? '-top-px bottom-1/2' : '-top-px -bottom-px'"
+                />
+                <!-- Horizontal Branch Line: extends right to meet child application icon -->
+                <div
+                  class="pointer-events-none absolute left-[15px] top-1/2 -mt-px h-[2px] w-8 rounded-bl-sm bg-gray-300"
+                />
+
+                <div class="mr-2 shrink-0 rounded bg-slate-200/80 p-1 text-gray-700">
+                  <UIcon
+                    :name="row.applicationType === 'renewal' ? 'i-mdi-autorenew' : 'i-mdi-file-document-outline'"
+                    class="size-4"
+                  />
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="font-medium text-bcGovColor-activeBlue hover:underline">
+                    {{ row.applicationNumber }}
+                  </span>
+                  <UBadge
+                    size="xs"
+                    :color="row.applicationType === 'renewal' ? 'purple' : 'gray'"
+                    variant="outline"
+                    class="text-[10px] font-semibold uppercase"
+                  >
+                    {{ row.applicationType === 'renewal' ? t('label.renewal') : 'Initial' }}
+                  </UBadge>
+                </div>
+              </div>
+
+              <!-- Case B: Parent Registration -->
+              <div v-else class="relative flex size-full min-h-[72px] items-center gap-2 py-2">
+                <!-- Continuous Vertical Trunk Line: extends downward from chevron when expanded -->
+                <div
+                  v-if="isExpanded && hasChildren"
+                  class="pointer-events-none absolute -bottom-px left-[15px] top-1/2 w-[2px] bg-gray-300"
+                />
+
+                <!-- Fixed width Toggle Chevron Button Container (centered at x=16px) -->
+                <div class="relative flex size-8 shrink-0 items-center justify-center">
+                  <button
+                    v-if="hasChildren"
+                    type="button"
+                    class="focus:outline-hidden rounded-md p-1 text-gray-600 transition-all
+                      hover:bg-gray-200/80 hover:text-gray-900 focus:ring-2 focus:ring-blue-500"
+                    :aria-label="isExpanded ? 'Collapse' : 'Expand'"
+                    data-testid="toggle-expand-btn"
+                    @click.stop="toggleExpand()"
                   >
                     <UIcon
-                      name="i-mdi-attachment"
-                      class="size-4 shrink-0 text-amber-800"
-                      aria-hidden="true"
+                      :name="isExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right'"
+                      class="size-5 transition-transform"
                     />
-                    {{ t('label.recentDocumentBadge') }}
-                  </div>
-                </UTooltip>
-                <span>{{ row.registrationNumber }}</span>
+                  </button>
+                </div>
+
+                <div class="shrink-0 rounded bg-blue-100/70 p-1 text-bcGovColor-activeBlue">
+                  <UIcon name="i-mdi-home-city-outline" class="size-4" />
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                  <UTooltip
+                    v-if="isNewDocumentIndicatorEnabled && row.hasRecentDocumentUpload"
+                    :text="t('label.recentDocumentUploadHint')"
+                    :popper="{ placement: 'top', offsetDistance: 8 }"
+                  >
+                    <div
+                      class="inline-flex shrink-0 items-center gap-1 rounded bg-amber-100 px-2 py-0.5
+                        text-xs font-semibold text-amber-900"
+                      data-testid="recent-document-indicator"
+                      :aria-label="t('label.recentDocumentUploadHint')"
+                      @click.stop
+                    >
+                      <UIcon
+                        name="i-mdi-attachment"
+                        class="size-4 shrink-0 text-amber-800"
+                        aria-hidden="true"
+                      />
+                      {{ t('label.recentDocumentBadge') }}
+                    </div>
+                  </UTooltip>
+                  <span class="font-medium text-gray-900">{{ row.registrationNumber }}</span>
+
+                  <!-- Child filings count pill -->
+                  <button
+                    v-if="hasChildren"
+                    type="button"
+                    class="inline-flex cursor-pointer items-center space-x-1 rounded-full bg-gray-100 px-2 py-0.5
+                      text-[11px] font-medium text-gray-600 transition-colors hover:bg-gray-200
+                      hover:text-bcGovColor-activeBlue"
+                    @click.stop="toggleExpand()"
+                  >
+                    <UIcon name="i-mdi-file-tree" class="size-3 text-gray-500" />
+                    <span>{{ row.children.length }} {{ row.children.length === 1 ? 'filing' : 'filings' }}</span>
+                    <UIcon
+                      :name="isExpanded ? 'i-mdi-chevron-up' : 'i-mdi-chevron-down'"
+                      class="size-3 text-gray-400"
+                    />
+                  </button>
+
+                  <UBadge
+                    v-if="row.showRenewalBadge"
+                    :label="t('label.renewal')"
+                    color="primary"
+                    variant="solid"
+                    class="w-fit text-xs font-bold uppercase"
+                    data-testid="renewal-badge"
+                  />
+                </div>
               </div>
-              <UBadge
-                v-if="row.showRenewalBadge"
-                :label="t('label.renewal')"
-                color="primary"
-                variant="solid"
-                class="w-fit text-xs font-bold uppercase"
-                data-testid="renewal-badge"
-              />
             </div>
-            <UButton
-              v-if="row.registrationNumber && isApplicationTab"
-              icon="i-mdi-check-circle"
-              variant="link"
-              :padded="false"
-              :ui="{ gap: { sm: 'gap-x-1' }, icon: { base: 'text-green-700 text-xs' } }"
-              class="text-sm"
-              @click="goToRegistration(row.registrationId)"
-            >
-              {{ row.registrationNumber }}
-            </UButton>
           </div>
           <div v-else class="flex flex-col gap-1">
             <div class="flex flex-wrap items-center gap-2">
@@ -1211,29 +1355,53 @@ const tabLinks = computed(() => [
           </div>
         </template>
 
-        <template #propertyAddress-data="{ row }">
-          <ConnectFormAddressDisplay
-            :address="row.propertyAddress"
-            omit-country
-          />
+        <template #applicantName-data="{ row, isChild }">
+          <span :class="isChild ? 'text-gray-500 font-normal' : 'text-gray-900 font-medium'">
+            {{ row.applicantName }}
+          </span>
+        </template>
+
+        <template #propertyAddress-data="{ row, isChild }">
+          <div :class="isChild ? 'text-gray-500 text-xs' : ''">
+            <ConnectFormAddressDisplay
+              :address="row.propertyAddress"
+              omit-country
+            />
+          </div>
+        </template>
+
+        <template #localGov-data="{ row, isChild }">
+          <span :class="isChild ? 'text-gray-500' : 'text-gray-900'">
+            {{ row.localGov }}
+          </span>
         </template>
 
         <template #submissionDate-data="{ row }">
           <div class="flex flex-col">
-            <span>{{ dateToStringPacific(row.submissionDate) }}</span>
-            <span>{{ dateToString(row.submissionDate, 'a', true) }}</span>
+            <span>{{ row.submissionDate ? dateToStringPacific(row.submissionDate) : '-' }}</span>
+            <span v-if="row.submissionDate">{{ dateToString(row.submissionDate, 'a', true) }}</span>
           </div>
         </template>
 
         <template #lastModified-data="{ row }">
           <div class="flex flex-col">
-            <span>{{ dateToStringPacific(row.lastModified) }}</span>
-            <span>{{ dateToString(row.lastModified, 'a', true) }}</span>
+            <span>{{ row.lastModified ? dateToStringPacific(row.lastModified) : '-' }}</span>
+            <span v-if="row.lastModified">{{ dateToString(row.lastModified, 'a', true) }}</span>
           </div>
         </template>
 
-        <template #status-data="{ row }">
-          <div class="flex flex-col">
+        <template #status-data="{ row, isChild }">
+          <div v-if="isChild" class="flex items-center">
+            <UBadge
+              size="xs"
+              color="blue"
+              variant="subtle"
+              class="text-xs font-semibold"
+            >
+              {{ row.status }}
+            </UBadge>
+          </div>
+          <div v-else class="flex flex-col">
             <span>{{ row.status }}</span>
             <!-- NOC Status takes priority: show when registration is ACTIVE and has a NOC status -->
             <UButton
@@ -1271,7 +1439,7 @@ const tabLinks = computed(() => [
         <template #subStatus-data="{ row }">
           <span>{{ row.subStatus || '-' }}</span>
         </template>
-      </UTable>
+      </ConnectTreeTable>
     </ConnectPageSection>
   </div>
 </template>

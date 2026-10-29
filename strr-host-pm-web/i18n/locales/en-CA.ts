@@ -542,6 +542,30 @@ export default {
       noRegistrationsFound: 'No registrations found',
       noApplicationsInProgress: 'No applications in progress'
     },
+    treeTable: {
+      title: 'Short-Term Rentals & Associated Applications',
+      viewModeTree: 'Unified Tree View',
+      viewModeSplit: 'Split Tables View',
+      expandAll: 'Expand All',
+      collapseAll: 'Collapse All',
+      filterAll: 'All Items',
+      filterRentals: 'Rentals',
+      filterInProgress: 'In Progress',
+      filterActionRequired: 'Action Needed',
+      searchPlaceholder: 'Search by registration #, application #, nickname, or address...',
+      emptyTitle: 'No records found',
+      emptySearch: 'No registrations or applications match your search "{search}".',
+      emptyAll: 'No short-term rental registrations or applications found.',
+      standaloneInitialApp: 'Initial Application',
+      inProgressBadge: 'In Progress',
+      awaitingApproval: 'Awaiting Approval',
+      linkedApplications: '{count} application | {count} applications',
+      noLinkedApplications: 'No linked applications',
+      parentRental: 'Rental Property',
+      renewalApplication: 'Renewal Application',
+      initialApplication: 'Initial Application',
+      viewMode: 'View:'
+    },
     dashboardBadges: {
       renewalDraft: 'Renewal Draft',
       renewalInProgress: 'Renewal In Progress'

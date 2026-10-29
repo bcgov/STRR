@@ -79,8 +79,18 @@ mockNuxtImport('useStrrBasePermit', () => () => ({
   openDocInNewTab: mockOpenDocInNewTab,
   getDocument: mockGetDocument
 }))
+const mockGetAccountRegistrations = vi.fn().mockResolvedValue([mockHostRegistration])
+const mockGetAccountApplications = vi.fn().mockResolvedValue({ applications: [mockApplication], total: 1 })
 mockNuxtImport('useStrrApi', () => () => ({
-  searchRegistrations: mockSearchRegistrations
+  searchRegistrations: mockSearchRegistrations,
+  getAccountRegistrations: mockGetAccountRegistrations,
+  getAccountApplications: mockGetAccountApplications
+}))
+
+vi.mock('@/composables/useRenewals', () => ({
+  useRenewals: () => ({
+    fetchRegistrationsWithRenewalTodos: vi.fn(regs => Promise.resolve(regs))
+  })
 }))
 
 const isBusinessLicenseDocumentUploadEnabled = ref(false)
@@ -435,5 +445,35 @@ describe('useHostPermitStore - renewal registration context', () => {
     expect(mockOpenDocInNewTab).toHaveBeenCalledWith({} as any)
     await store.getDocument('1', 'key', 'registrations')
     expect(mockGetDocument).toHaveBeenCalledWith('1', 'key', 'registrations')
+  })
+
+  describe('dashboard data caching and management', () => {
+    it('loads dashboard data and caches it to prevent redundant network requests', async () => {
+      const store = useHostPermitStore()
+      store.clearDashboardData()
+      expect(store.dashboardDataLoaded).toBe(false)
+      expect(store.dashboardRegistrations).toEqual([])
+
+      // First call loads from API
+      await store.loadDashboardData()
+      expect(store.dashboardDataLoaded).toBe(true)
+      expect(store.dashboardRegistrations.length).toBe(1)
+      expect(store.dashboardApplications.length).toBe(1)
+      expect(mockGetAccountRegistrations).toHaveBeenCalledTimes(1)
+
+      // Subsequent call reuses cached data without re-fetching
+      await store.loadDashboardData()
+      expect(mockGetAccountRegistrations).toHaveBeenCalledTimes(1)
+
+      // Forced refresh fetches fresh data
+      await store.refreshDashboardData()
+      expect(mockGetAccountRegistrations).toHaveBeenCalledTimes(2)
+
+      // Clearing dashboard data resets state
+      store.clearDashboardData()
+      expect(store.dashboardDataLoaded).toBe(false)
+      expect(store.dashboardRegistrations).toEqual([])
+      expect(store.dashboardApplications).toEqual([])
+    })
   })
 })
