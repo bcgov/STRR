@@ -184,16 +184,39 @@ History sources include:
 
 The history query identifies changed registration IDs. The response is then built from the current live aggregate tables, so each item is a full upsert snapshot rather than a field-level diff.
 
+## API Gateway and Authentication
+
+STRR is hosted in GCP; therefore, access to the new registration data APIs will be exposed through the **BC Registries Apigee API Gateway** (`api.connect.gov.bc.ca`) rather than directly exposing the STRR Cloud Run service to consuming applications.
+
+The gateway supports both machine-to-machine and authenticated UI access while allowing STRR to use a consistent JWT-based authorization model:
+
+- **Machine-to-machine integrations (Ministry of Finance & Data Portal backend):** A consuming system is issued a B2B API key (`x-apikey`). The gateway uses the account associated with that key to obtain a service-account JWT and forwards the JWT to STRR (`Authorization: Bearer <jwt>`). STRR validates the JWT and applies the appropriate role/account-based authorization.
+- **Authenticated UI integrations (STR Data Portal UI):** The user authenticates using IDIR and obtains a bearer token. Requests to the gateway include the user's bearer token together with an **application API key** (`x-apikey: <api-key>` and `Authorization: Bearer <jwt>`). When a bearer token is supplied, the gateway passes that token through to STRR rather than exchanging the application API key for another JWT. The application API key identifies/authorizes the calling application and is not treated as a secret credential.
+- **Consistent downstream authentication:** In both cases, STRR receives a bearer JWT and uses its existing JWT validation (`@jwt.requires_auth`) and role-based access-control model. This avoids introducing separate authentication mechanisms within STRR for B2B and interactive users.
+- **Gateway controls:** Apigee provides gateway-level access control, IP whitelisting, and rate limiting. The same gateway model is available across environments (Sandbox, Production).
+- **Deployment consideration:** Because STRR is hosted in GCP, routing consumers through Apigee is the preferred architecture. Keeping traffic internal without Apigee would be more applicable where the API itself is hosted internally in OpenShift.
+
+```bash
+curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/export' \
+--header 'x-apikey: <api-key>' \
+--header 'Authorization: Bearer <jwt>' \
+--header 'Content-Type: application/json' \
+--data '{
+    "updatedSince": "2026-09-01T00:00:00Z",
+    "limit": 100
+}'
+```
+
 ## API contract
 
-| Field              | Value                                                                                                                       |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| Method / path      | To be confirmed; `QUERY /registrations/export` is under consideration, with `POST /registrations/export` provided if needed |
-| Auth               | Machine-to-machine credential, or approved IDIR role for portal UI access: `ceu_staff` or `ceu_admin`                       |
-| Query content      | JSON body: `updatedSince`, opaque `cursor`, optional `limit` (default 100, maximum 500), and optional `registrationNumbers` |
-| Registration types | `HOST`, `PLATFORM`, `STRATA_HOTEL`                                                                                          |
-| Ordering           | `changed ASC, registration_id ASC`                                                                                          |
-| Response           | `{ "items": [...], "nextCursor": "..." }` (and optional `"errors": [...]` for targeted queries) |
+| Field              | Value                                                                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Method / path      | `POST` (path TBD pending final routing alignment; candidates include `/v1/registrations/feed` or `/v1/registrations:export`)       |
+| Gateway / Auth     | BC Registries Apigee API Gateway (`x-apikey`); origin enforces Bearer JWT (`@jwt.requires_auth`) via service account or IDIR token |
+| Query content      | JSON body: `updatedSince`, opaque `cursor`, optional `limit` (default 100, maximum 500), and optional `registrationNumbers`         |
+| Registration types | `HOST`, `PLATFORM`, `STRATA_HOTEL`                                                                                                  |
+| Ordering           | `changed ASC, registration_id ASC`                                                                                                  |
+| Response           | `{ "items": [...], "nextCursor": "..." }` (and optional `"errors": [...]` for targeted queries)                                     |
 
 The cursor is an opaque, versioned, URL-safe token. A recommended stateless representation is a Base64URL-encoded payload with an HMAC signature, for example:
 

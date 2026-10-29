@@ -18,33 +18,41 @@ Each returned registration is a complete current snapshot, not a field-level dif
 > **NOTE**:
 > This document outlines the request/response contracts and integration workflow. See [`docs/oas/registration-export.yaml`](../oas/registration-export.yaml) for the complete OpenAPI 3.0 specification.
 
-## HTTP method
+## API Gateway and Authentication Architecture
 
-`QUERY` is under consideration for a safe, idempotent body-based request. If client libraries, gateways, WAFs, or other infrastructure do not support it, an equivalent `POST` endpoint will be provided as needed. Method availability will be confirmed before integration begins.
+STRR is hosted in GCP; therefore, access to the registration data APIs is exposed through the **BC Registries Apigee API Gateway** rather than directly exposing the STRR service to consuming applications.
 
-Potential request:
+The gateway supports both machine-to-machine and authenticated UI access while allowing STRR to use a consistent JWT-based authorization model:
 
-```http
-QUERY /registrations/export HTTP/1.1
-Content-Type: application/json
-Accept: application/json
-Authorization: Bearer <token>
+- **Machine-to-machine integrations (Ministry of Finance & Data Portal backend):**
+  - A consuming system is issued a B2B API key (`x-apikey`).
+  - The gateway uses the account associated with that key to obtain a service-account JWT and forwards the JWT to STRR (`Authorization: Bearer <jwt>`).
+  - STRR validates the JWT and applies the appropriate role/account-based authorization.
+- **Authenticated UI integrations (STR Data Portal UI):**
+  - The user authenticates using IDIR and obtains a bearer token.
+  - Requests to the gateway include the user's bearer token together with an **application API key** (`x-apikey: <api-key>` and `Authorization: Bearer <jwt>`).
+  - When a bearer token is supplied, the gateway passes that token through to STRR rather than exchanging the application API key for another JWT. The application API key identifies/authorizes the calling application and is not treated as a secret credential.
+- **Consistent downstream authentication:**
+  - In both cases, STRR receives a bearer JWT and uses its existing JWT validation (`@jwt.requires_auth`) and role-based access-control model. This avoids introducing separate authentication mechanisms within STRR for B2B and interactive users.
+- **Gateway controls:**
+  - Apigee provides gateway-level access control, IP whitelisting, and rate limiting. The same gateway model is available across environments (Sandbox, Production).
+- **Deployment consideration:**
+  - Because STRR is hosted in GCP, routing consumers through Apigee is the preferred architecture. Keeping traffic internal without Apigee would be more applicable where the API itself is hosted internally in OpenShift.
+
+### Example Apigee Gateway Request
+
+```bash
+curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/export' \
+--header 'x-apikey: <api-key>' \
+--header 'Authorization: Bearer <jwt>' \
+--header 'Content-Type: application/json' \
+--data '{
+    "updatedSince": "2026-09-01T00:00:00Z",
+    "limit": 100
+}'
 ```
 
-If provided, the POST compatibility endpoint will use the same path, JSON body, authentication, and response contract.
-
-## Authentication
-
-### Ministry of Fin. authentication
-
-The Ministry integration uses a machine-to-machine credential for unattended incremental polling.
-
-### Data Portal authentication
-
-The Data Portal may access the API using either:
-
-- A machine-to-machine credential for backend and unattended requests.
-- An IDIR user token for portal UI requests when the user has `ceu_staff` or `ceu_admin`.
+*(Note: Endpoint path is TBD pending final routing alignment with Architecture; `POST` is specified for gateway/proxy compatibility).*
 
 ## Common request fields
 

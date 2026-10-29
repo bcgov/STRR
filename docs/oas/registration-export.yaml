@@ -26,7 +26,10 @@ tags:
   - name: Registration Export
     description: Incremental CDC polling and targeted registration snapshot retrieval.
 security:
+  - apiKeyAuth: []
   - bearerAuth: []
+  - apiKeyAuth: []
+    bearerAuth: []
 paths:
   /registrations/export:
     post:
@@ -335,14 +338,22 @@ paths:
 
 components:
   securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-apikey
+      description: |-
+        BC Registries Apigee API Gateway Key (`x-apikey`).
+        - **B2B M2M Integrations:** B2B API Key. Apigee exchanges the key's associated account for a service-account JWT forwarded to STRR.
+        - **Authenticated UI Integrations:** Application API Key sent alongside the user's IDIR Bearer JWT.
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
       description: |-
-        Bearer JWT token:
-        - **Ministry of Finance:** Machine-to-machine client credentials token.
-        - **Data Portal:** Machine-to-machine token, or an IDIR user token with `ceu_staff` or `ceu_admin` role.
+        Bearer JWT token validated by STRR origin:
+        - **B2B M2M:** Service-account JWT forwarded by Apigee.
+        - **Authenticated UI (Data Portal):** User's IDIR JWT passed through by Apigee (with `ceu_staff` or `ceu_admin` role).
 
   schemas:
     RegistrationExportRequest:
