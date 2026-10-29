@@ -44,6 +44,10 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
   })
   const hasRegistrationNumber = computed(() => !!activeHeader.value?.registrationNumber)
   const isHostApplication = computed(() => activeReg.value?.registrationType === ApplicationType.HOST)
+  const isStrataHotelApplication = computed(() =>
+    activeReg.value?.registrationType === ApplicationType.STRATA_HOTEL
+  )
+  const isNotesSupported = computed(() => isHostApplication.value || isStrataHotelApplication.value)
   const _isAssignedToUser = ref(false)
 
   const snapshotInfo = ref<ApiSnapshot>({} as ApiSnapshot)
@@ -959,6 +963,8 @@ export const useExaminerStore = defineStore('strr/examiner-store', () => {
     activeHeader,
     hasRegistrationNumber,
     isHostApplication,
+    isStrataHotelApplication,
+    isNotesSupported,
     isAssignedToUser,
     sendNocSchema,
     emailContent,

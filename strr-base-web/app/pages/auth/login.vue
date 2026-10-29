@@ -22,7 +22,8 @@ const redirectUrl = buildLoginRedirectUrl(
   runtimeConfig.public.baseUrl,
   locale.value,
   loginConfig.redirectPath,
-  returnUrl
+  returnUrl,
+  loginConfig.options.createAccount
 )
 
 type RuntimeLoginOptions = typeof loginConfig.options & {

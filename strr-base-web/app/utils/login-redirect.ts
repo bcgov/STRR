@@ -32,7 +32,8 @@ export function buildLoginRedirectUrl (
   baseUrl: string,
   locale: string,
   redirectPath: string,
-  returnUrl: string | undefined
+  returnUrl: string | undefined,
+  accountAware: boolean
 ): string | undefined {
   const normalizedBaseUrl = baseUrl.replace(/\/$/, '')
   if (!returnUrl) {
@@ -43,7 +44,7 @@ export function buildLoginRedirectUrl (
   }
 
   const returnTarget = new URL(returnUrl, `${normalizedBaseUrl}/`)
-  if (returnTarget.searchParams.has('accountId')) {
+  if (!accountAware || returnTarget.searchParams.has('accountId')) {
     return returnTarget.toString()
   }
 

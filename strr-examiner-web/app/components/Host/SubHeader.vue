@@ -19,7 +19,7 @@ const {
 } = useHostExpansion()
 const { t } = useNuxtApp().$i18n
 const alertFlags = reactive(useFlags())
-const { isEmailFailed, failureReason, failedEvent } = useEmailDeliveryStatus(
+const { isEmailFailed, failedEvent } = useEmailDeliveryStatus(
   () => activeReg.value?.primaryContact?.emailAddress
 )
 const { isFeatureEnabled } = useFeatureFlags()
@@ -148,9 +148,7 @@ const additionalContacts = computed(() => {
           <UIcon name="i-mdi-at" :class="{ 'text-red-600': isEmailFailed }" />
           <UTooltip
             v-if="isEmailFailed"
-            :text="failureReason
-              ? `${t('strr.alertFlags.emailDeliveryFailed')}: ${failureReason}`
-              : t('strr.alertFlags.emailDeliveryFailedTooltip')"
+            :text="t('strr.alertFlags.emailDeliveryFailedTooltip')"
           >
             <UButton
               variant="link"

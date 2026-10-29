@@ -16,7 +16,7 @@ const {
   emailFormRef,
   activeRecord,
   isApplication,
-  isHostApplication
+  isNotesSupported
 } = storeToRefs(useExaminerStore())
 const { openConfirmActionModal, close: closeConfirmActionModal } = useStrrModals()
 const { showDecisionPanel } = useExaminerDecision()
@@ -190,7 +190,7 @@ watch(
       <DocumentUpload />
       <ComposeNoc v-if="!showDecisionPanel" />
       <DecisionPanel v-if="showDecisionPanel" />
-      <ExaminerNotes v-if="isExaminerNotesEnabled && isHostApplication" />
+      <ExaminerNotes v-if="isExaminerNotesEnabled && isNotesSupported" />
       <AssignmentActions :is-registration-page="true" @refresh="refresh" />
       <HistoricalApplicationsTable
         v-if="!isApplication && isHistoricalApplicationsTableEnabled"

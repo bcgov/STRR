@@ -25,41 +25,35 @@ const getEmailEventRecipients = (event: FilingHistoryEvent): EmailRecipientStatu
   return Array.isArray(structured.recipientStatuses) ? structured.recipientStatuses : []
 }
 
-const isTransientDeliveryFailure = (providerStatus: string, failureType: string): boolean => {
+const isDeliveryFailure = (recipient: EmailRecipientStatus): boolean => {
+  const status = (recipient.status || '').toUpperCase()
+  const providerStatus = (recipient.provider_status || '').toUpperCase()
+  const failureType = (recipient.failure_type || '').toUpperCase()
+
   return (
+    status === 'FAILED' ||
+    providerStatus === 'PERMANENT_FAILURE' ||
     providerStatus === 'TEMPORARY_FAILURE' ||
     providerStatus === 'TECHNICAL_FAILURE' ||
-    failureType === 'temporary' ||
-    failureType === 'technical'
+    providerStatus === 'VIRUS_SCAN_FAILED' ||
+    failureType === 'PERMANENT' ||
+    failureType === 'TEMPORARY' ||
+    failureType === 'TECHNICAL' ||
+    failureType === 'PERMANENT_FAILURE' ||
+    failureType === 'TEMPORARY_FAILURE' ||
+    failureType === 'TECHNICAL_FAILURE'
   )
 }
 
-const isPermanentDeliveryFailure = (
-  recipient: EmailRecipientStatus,
-  event: FilingHistoryEvent
-): boolean => {
+const isSuccessfulDelivery = (recipient: EmailRecipientStatus): boolean => {
   const status = (recipient.status || '').toUpperCase()
   const providerStatus = (recipient.provider_status || '').toUpperCase()
-  const failureType = (recipient.failure_type || '').toLowerCase()
 
-  const isFailure =
-    status === 'FAILED' ||
-    event.eventName === FilingHistoryEventName.EMAIL_FAILED ||
-    providerStatus === 'PERMANENT_FAILURE' ||
-    failureType === 'permanent'
-
-  return isFailure && !isTransientDeliveryFailure(providerStatus, failureType)
-}
-
-const isSuccessfulDelivery = (
-  recipient: EmailRecipientStatus,
-  event: FilingHistoryEvent
-): boolean => {
-  const status = (recipient.status || '').toUpperCase()
   return (
     status === 'DELIVERED' ||
     status === 'SENT' ||
-    event.eventName === FilingHistoryEventName.EMAIL_DELIVERED
+    providerStatus === 'DELIVERED' ||
+    providerStatus === 'SENT'
   )
 }
 
@@ -102,12 +96,12 @@ export const evaluateEmailDeliveryStatus = (
         continue
       }
 
-      if (isPermanentDeliveryFailure(recipient, event)) {
+      if (isDeliveryFailure(recipient)) {
         hasResolved = false
         latestFailedEvent = event
         latestFailureReason = recipient.failure_reason || undefined
-        latestFailureType = recipient.provider_status || recipient.failure_type || 'PERMANENT_FAILURE'
-      } else if (isSuccessfulDelivery(recipient, event)) {
+        latestFailureType = recipient.provider_status || recipient.failure_type || 'FAILED'
+      } else if (isSuccessfulDelivery(recipient)) {
         hasResolved = true
         latestFailedEvent = null
         latestFailureReason = undefined

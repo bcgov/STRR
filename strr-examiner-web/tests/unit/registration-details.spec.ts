@@ -24,7 +24,8 @@ import {
   SnapshotVersionsTable,
   SnapshotInfo,
   StrataSubHeader,
-  StrataSupportingInfo
+  StrataSupportingInfo,
+  ExaminerNotes
 } from '#components'
 import ApprovalConditions from '~/components/ApprovalConditions.vue'
 
@@ -60,6 +61,9 @@ vi.mock('@/stores/examiner', () => ({
     isApplication: ref(false),
     isAssignedToUser,
     hasRegistrationNumber: ref(true),
+    isHostApplication: ref(true),
+    isStrataHotelApplication: ref(false),
+    isNotesSupported: ref(true),
     viewReceipt: mockViewReceipt,
     isFilingHistoryOpen: ref(false),
     isEditingRentalUnit,
@@ -570,5 +574,9 @@ describe('Examiner - Registration Details Page', () => {
     expect(componentWrapper.findTestId('supporting-info-section').exists()).toBe(true)
     expect(componentWrapper.findTestId('add-pr-doc-btn').exists()).toBe(false)
     isSnapshotRoute.value = false
+  })
+
+  it('displays ExaminerNotes on registration details page', () => {
+    expect(wrapper.findComponent(ExaminerNotes).exists()).toBe(true)
   })
 })

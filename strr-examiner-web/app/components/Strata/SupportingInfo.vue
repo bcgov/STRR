@@ -71,7 +71,7 @@ const canAddDocument = computed(() => {
         </div>
         <div
           v-if="canAddDocument"
-          class="col-span-1 flex justify-end"
+          class="col-span-1 flex justify-end py-4"
         >
           <UButton
             label="Add Document"
