@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Registration Query API (`POST /v1/registrations/query`) provides complete, current registration snapshots for:
+The Registration Query API (`POST /v1/registrations:query`) provides complete, current registration snapshots for:
 
 - `HOST`
 - `PLATFORM`
@@ -22,22 +22,28 @@ Each returned registration is a complete current snapshot, not a field-level dif
 
 STRR is hosted in GCP; therefore, access to the registration data APIs is exposed through the **BC Registries Apigee API Gateway** (`api.connect.gov.bc.ca`) rather than directly exposing the STRR Cloud Run service to consuming applications.
 
-Both consumers—the **Ministry of Finance** and the **STR Data Portal**—interact with the API exclusively via **backend machine-to-machine (M2M) integrations**:
+The integration follows the identical gateway pattern used by STRR's external permit validation APIs (`/v1/permits/:validatePermit` and `/v1/permits/:batchValidate`):
 
-- **B2B API Key Authentication (`x-apikey`):**
-  - Both consuming systems call the Apigee API Gateway from their backend services using their provisioned B2B API key (`x-apikey: <api-key>`).
-  - No client-side Bearer JWT or user token is required by the consumers.
-  - Apigee validates the API key, enforces client-specific rate limiting and access quotas, and proxies the request to STRR.
+- **Client-to-Gateway (B2B API Key):**
+  - Both the **Ministry of Finance** and the **STR Data Portal** call the Apigee API Gateway from their backend services using their provisioned B2B API key (`x-apikey: <api-key>`).
+  - No client-side JWT is required by either consumer.
+- **Gateway-to-Origin Proxy (Keycloak Token Exchange):**
+  - Apigee validates the incoming `x-apikey`.
+  - Apigee maps the API key to its associated client registered in **Keycloak** (`bcregistry` realm).
+  - Apigee obtains a signed Keycloak service-account JWT and attaches it as `Authorization: Bearer <jwt>` on the proxy forward request to the `strr-api` Cloud Run container.
+  - STRR verifies the JWT via standard `@jwt.requires_auth` and enforces role/account authorization.
+- **Google AIP Colon Syntax (`:query`):**
+  - The endpoint adheres to the Google AIP custom method convention (`/v1/registrations:query`), matching the existing Apigee gateway routes (`/v1/permits/:validatePermit`, `/v1/permits/:batchValidate`).
 - **Data Minimization & Privilege Separation:**
-  - The Ministry of Finance's API key is authorized to access full ISA Appendix D registration snapshots (including `socialInsuranceNumber` and `dateOfBirth`) and perform global CDC synchronization.
-  - The Data Portal's API key is authorized to perform targeted lookups (`registrationNumbers`); sensitive tax and date of birth attributes are automatically masked (`null`).
+  - The Ministry of Finance's Keycloak service account is authorized to access full ISA Appendix D registration snapshots (including `socialInsuranceNumber` and `dateOfBirth`) and perform global CDC synchronization.
+  - The Data Portal's Keycloak service account is authorized to perform targeted lookups (`registrationNumbers`); sensitive tax and date of birth attributes are automatically masked (`null`).
 - **Gateway Controls:**
-  - Apigee provides centralized API key management, IP filtering, request throttling, and quota tracking across environments (Sandbox, Production).
+  - Apigee provides centralized API key validation, client quota enforcement, and rate limiting across environments (Sandbox, Production).
 
 ### Example Apigee Gateway Request
 
 ```bash
-curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/query' \
+curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations:query' \
 --header 'x-apikey: <api-key>' \
 --header 'Content-Type: application/json' \
 --data '{

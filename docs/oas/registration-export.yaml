@@ -26,7 +26,7 @@ tags:
 security:
   - apiKeyAuth: []
 paths:
-  /registrations/query:
+  /registrations:query:
     post:
       tags:
         - Registration Query
@@ -37,6 +37,7 @@ paths:
         - **CDC Sync Feed:** Provide `updatedSince` (or omit on initial baseline sync) and `cursor`.
         - **Targeted Lookup:** Provide `registrationNumbers` for direct lookup (max 500).
         - Both Ministry of Finance and Data Portal call through the Apigee API Gateway from their backend services using their provisioned B2B API key (`x-apikey`).
+        - Apigee validates the API key, exchanges it for an internal Keycloak service-account JWT, and attaches it as `Authorization: Bearer <jwt>` to Cloud Run.
         - Caller account context determines field projections; sensitive tax attributes (`socialInsuranceNumber`, `dateOfBirth`) are masked for non-Finance callers.
       requestBody:
         required: true
@@ -341,7 +342,7 @@ components:
       description: |-
         BC Registries Apigee API Gateway Key (`x-apikey`).
         Both Ministry of Finance and STR Data Portal authenticate backend machine-to-machine requests using their provisioned B2B API key.
-        No client bearer JWT is required. Apigee validates the API key, enforces rate limiting, and forwards the authenticated account identity to STRR.
+        Apigee validates the API key, maps it to a Keycloak client, and forwards the request to STRR with the exchanged JWT attached as `Authorization: Bearer <jwt>`.
 
   schemas:
     RegistrationQueryRequest:

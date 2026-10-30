@@ -26,13 +26,14 @@ This document formally captures our response, details where the design has been 
 
 **Response & Resolution:**
 - **Clarification:** STRR is hosted in GCP (Cloud Run); therefore, access to the new registration data APIs is exposed through the **BC Registries Apigee API Gateway** (`api.connect.gov.bc.ca`) rather than directly exposing the STRR Cloud Run service to consuming applications.
-- **Backend Machine-to-Machine API Key Model:** Both clients—the **Ministry of Finance** and the **STR Data Portal**—interact with the API exclusively via backend services using their provisioned B2B API key (`x-apikey`).
+- **Backend Machine-to-Machine API Key Model:** Both clients—the **Ministry of Finance** and the **STR Data Portal**—interact with the API exclusively via backend services using their provisioned B2B API key (`x-apikey`), matching the architecture of STRR's existing permit validation APIs (`:validatePermit`, `:batchValidate`):
   1. **Direct API Key Authentication:** Consumers pass `x-apikey: <api-key>`. No client-side Bearer JWT or user token is required by the clients.
-  2. **Gateway Responsibility:** Apigee validates the API key, enforces rate limiting and quotas, and forwards the authenticated account identity to STRR.
-  3. **Gateway Controls:** Apigee provides gateway-level access control, IP filtering, and quota tracking across all environments.
+  2. **Apigee Keycloak Token Exchange:** Apigee verifies the API key, maps it to a Keycloak client (`bcregistry` realm), obtains a service-account JWT, and attaches it as `Authorization: Bearer <jwt>` on the proxy forward request to Cloud Run.
+  3. **Origin Enforcement:** STRR validates the Bearer JWT via standard `@jwt.requires_auth`.
+  4. **Gateway Controls:** Apigee provides gateway-level access control, IP filtering, and quota tracking across all environments.
 
 ```bash
-curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/query' \
+curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations:query' \
 --header 'x-apikey: <api-key>' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -49,9 +50,9 @@ curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/que
 
 **Response & Resolution:**
 - **Agreed on Data Minimization:** While the Ministry of Finance has explicit legislative and ISA authority (under STRAA and ISA Appendix D) to collect SIN and Date of Birth for tax compliance and enforcement, STR Data Portal staff (`ceu_staff`/`ceu_admin`) do not require SIN or Date of Birth for operational short-term rental compliance lookups.
-- **Unified Query Endpoint with Role-Based Field Masking:** Rather than splitting into artificial RPC sub-paths, we standardize on the RESTful collection query endpoint: `POST /v1/registrations/query`.
-  - **Single REST Endpoint:** `POST /v1/registrations/query` handles both CDC synchronization (via `updatedSince`/`cursor`) and targeted batch lookups (via `registrationNumbers`).
-  - **Dynamic Field Projection:** The backend serializer inspects the caller's verified JWT token. For Ministry of Finance B2B M2M callers, full ISA snapshots are returned. For Data Portal and non-Finance callers, `socialInsuranceNumber` and `dateOfBirth` are automatically masked (`null`).
+- **Unified Query Endpoint with Role-Based Field Masking:** Rather than splitting into artificial RPC sub-paths, we standardize on the Google AIP collection query endpoint: `POST /v1/registrations:query`.
+  - **Single AIP Endpoint:** `POST /v1/registrations:query` handles both CDC synchronization (via `updatedSince`/`cursor`) and targeted batch lookups (via `registrationNumbers`).
+  - **Dynamic Field Projection:** The backend serializer inspects the caller's verified JWT token forwarded by Apigee. For Ministry of Finance B2B M2M callers, full ISA snapshots are returned. For Data Portal and non-Finance callers, `socialInsuranceNumber` and `dateOfBirth` are automatically masked (`null`).
   - **Mutual Exclusivity & Broad Sync Guard:** The endpoint enforces that non-Finance callers cannot omit `registrationNumbers` to trigger a full registry dump, returning `403 Forbidden` if an unauthorized consumer attempts a global sync.
      - Authorized for Data Portal workloads / IDIR staff.
      - Requires an explicit array of `registrationNumbers` (max 500).

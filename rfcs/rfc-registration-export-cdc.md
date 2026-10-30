@@ -188,13 +188,15 @@ The history query identifies changed registration IDs. The response is then buil
 
 STRR is hosted in GCP; therefore, access to the new registration data APIs will be exposed through the **BC Registries Apigee API Gateway** (`api.connect.gov.bc.ca`) rather than directly exposing the STRR Cloud Run service to consuming applications.
 
-The gateway provides secure B2B authentication and rate limiting for both consumers:
+The gateway provides secure B2B authentication and rate limiting for both consumers, matching the architecture of STRR's existing permit validation APIs (`:validatePermit`, `:batchValidate`):
 
-- **Machine-to-machine integrations (Ministry of Finance & Data Portal backend):** Both systems call Apigee directly from their backend services with their assigned B2B API key (`x-apikey: <api-key>`). No client-side JWT is required.
-- **Gateway controls & privilege separation:** Apigee validates the API key, enforces rate limiting, and forwards the authenticated consumer identity to STRR. Ministry of Finance keys have access to full ISA snapshots and CDC sync, while Data Portal keys access targeted lookups with sensitive tax/identity fields masked.
+- **Client B2B API Key (`x-apikey`):** Both systems call Apigee directly from their backend services with their assigned B2B API key (`x-apikey: <api-key>`). No client-side JWT is required.
+- **Apigee Keycloak Token Exchange:** Apigee validates the API key, maps it to a Keycloak client (`bcregistry` realm), obtains a service-account JWT, and attaches it as `Authorization: Bearer <jwt>` to the Cloud Run request.
+- **Google AIP Custom Method Convention (`:query`):** Aligns with existing Apigee gateway routes using the Google AIP custom method convention (`/v1/registrations:query`).
+- **Gateway controls & privilege separation:** Apigee enforces rate limiting and quota controls. Ministry of Finance keys have access to full ISA snapshots and CDC sync, while Data Portal keys access targeted lookups with sensitive tax/identity fields masked.
 
 ```bash
-curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/query' \
+curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations:query' \
 --header 'x-apikey: <api-key>' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -207,8 +209,8 @@ curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/que
 
 | Field              | Value                                                                                                                               |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Method / path      | `POST /v1/registrations/query`                                                                                                      |
-| Gateway / Auth     | BC Registries Apigee API Gateway (`x-apikey` header); backend machine-to-machine integration (no client JWT required)               |
+| Method / path      | `POST /v1/registrations:query`                                                                                                      |
+| Gateway / Auth     | BC Registries Apigee API Gateway (`x-apikey` header); Apigee exchanges for Keycloak Bearer JWT before proxying to Cloud Run origin  |
 | Query content      | JSON body: `updatedSince`, opaque `cursor`, optional `limit` (default 100, maximum 500), and optional `registrationNumbers`         |
 | Registration types | `HOST`, `PLATFORM`, `STRATA_HOTEL`                                                                                                  |
 | Ordering           | `changed ASC, registration_id ASC`                                                                                                  |
