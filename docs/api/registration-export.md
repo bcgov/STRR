@@ -1,26 +1,26 @@
-# Registration Export API
+# Registration Query API
 
 ## Purpose
 
-The Registration Export API provides current registration snapshots for:
+The Registration Query API (`POST /v1/registrations/query`) provides complete, current registration snapshots for:
 
 - `HOST`
 - `PLATFORM`
 - `STRATA_HOTEL`
 
-It supports two client use cases:
+It supports two distinct consumer patterns through a unified, parameterized query:
 
-- Incremental polling (CDC) for the Ministry of Finance.
-- Targeted registration lookup for the Data Portal.
+- **Incremental polling (CDC feed)** for the Ministry of Finance using `updatedSince` and keyset cursor pagination.
+- **Targeted batch lookup** for the STR Data Portal using a bounded list of `registrationNumbers`.
 
-Each returned registration is a complete current snapshot, not a field-level diff.
+Each returned registration is a complete current snapshot, not a field-level diff. Sensitive tax and identity attributes (`socialInsuranceNumber`, `dateOfBirth`) are masked (returned as `null`) based on caller role/authorization for data minimization.
 
 > **NOTE**:
 > This document outlines the request/response contracts and integration workflow. See [`docs/oas/registration-export.yaml`](../oas/registration-export.yaml) for the complete OpenAPI 3.0 specification.
 
 ## API Gateway and Authentication Architecture
 
-STRR is hosted in GCP; therefore, access to the registration data APIs is exposed through the **BC Registries Apigee API Gateway** rather than directly exposing the STRR service to consuming applications.
+STRR is hosted in GCP; therefore, access to the registration data APIs is exposed through the **BC Registries Apigee API Gateway** (`api.connect.gov.bc.ca`) rather than directly exposing the STRR Cloud Run service to consuming applications.
 
 The gateway supports both machine-to-machine and authenticated UI access while allowing STRR to use a consistent JWT-based authorization model:
 
@@ -42,7 +42,7 @@ The gateway supports both machine-to-machine and authenticated UI access while a
 ### Example Apigee Gateway Request
 
 ```bash
-curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/export' \
+curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/query' \
 --header 'x-apikey: <api-key>' \
 --header 'Authorization: Bearer <jwt>' \
 --header 'Content-Type: application/json' \
@@ -51,8 +51,6 @@ curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/exp
     "limit": 100
 }'
 ```
-
-*(Note: Endpoint path is TBD pending final routing alignment with Architecture; `POST` is specified for gateway/proxy compatibility).*
 
 ## Common request fields
 

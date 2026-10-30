@@ -197,7 +197,7 @@ The gateway supports both machine-to-machine and authenticated UI access while a
 - **Deployment consideration:** Because STRR is hosted in GCP, routing consumers through Apigee is the preferred architecture. Keeping traffic internal without Apigee would be more applicable where the API itself is hosted internally in OpenShift.
 
 ```bash
-curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/export' \
+curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/query' \
 --header 'x-apikey: <api-key>' \
 --header 'Authorization: Bearer <jwt>' \
 --header 'Content-Type: application/json' \
@@ -211,7 +211,7 @@ curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/exp
 
 | Field              | Value                                                                                                                               |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Method / path      | `POST` (path TBD pending final routing alignment; candidates include `/v1/registrations/feed` or `/v1/registrations:export`)       |
+| Method / path      | `POST /v1/registrations/query`                                                                                                      |
 | Gateway / Auth     | BC Registries Apigee API Gateway (`x-apikey`); origin enforces Bearer JWT (`@jwt.requires_auth`) via service account or IDIR token |
 | Query content      | JSON body: `updatedSince`, opaque `cursor`, optional `limit` (default 100, maximum 500), and optional `registrationNumbers`         |
 | Registration types | `HOST`, `PLATFORM`, `STRATA_HOTEL`                                                                                                  |

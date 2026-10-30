@@ -34,7 +34,7 @@ This document formally captures our response, details where the design has been 
   5. **Deployment consideration:** Because STRR is hosted in GCP, routing consumers through Apigee is the preferred architecture. Keeping traffic internal without Apigee would be more applicable where the API itself is hosted internally in OpenShift.
 
 ```bash
-curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/export' \
+curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/query' \
 --header 'x-apikey: <api-key>' \
 --header 'Authorization: Bearer <jwt>' \
 --header 'Content-Type: application/json' \
@@ -51,13 +51,11 @@ curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/exp
 > **Review Finding:** A single snapshot schema sharing host `socialInsuranceNumber` and `dateOfBirth` across both the Ministry of Finance and the STR Data Portal violates data minimization.
 
 **Response & Resolution:**
-- **Agreed.** While the Ministry of Finance has explicit legislative and ISA authority (under STRAA and ISA Appendix D) to collect SIN and Date of Birth for tax compliance and enforcement, the STR Data Portal staff (`ceu_staff`/`ceu_admin`) do not require SIN or Date of Birth for operational short-term rental compliance lookups.
-- **Action Taken:** We are decoupling the single generic export endpoint into **two dedicated operations with distinct privilege boundaries and schemas**:
-  1. `POST /registrations/export` **(Finance CDC Feed):**
-     - Authorized exclusively for the Ministry of Finance service account.
-     - Supports incremental polling via `updatedSince` and signed cursors.
-     - Projects the complete ISA Appendix D dataset, including authorized tax and date of birth attributes.
-  2. `POST /registrations/lookup` **(Data Portal Targeted Query):**
+- **Agreed on Data Minimization:** While the Ministry of Finance has explicit legislative and ISA authority (under STRAA and ISA Appendix D) to collect SIN and Date of Birth for tax compliance and enforcement, STR Data Portal staff (`ceu_staff`/`ceu_admin`) do not require SIN or Date of Birth for operational short-term rental compliance lookups.
+- **Unified Query Endpoint with Role-Based Field Masking:** Rather than splitting into artificial RPC sub-paths, we standardize on the RESTful collection query endpoint: `POST /v1/registrations/query`.
+  - **Single REST Endpoint:** `POST /v1/registrations/query` handles both CDC synchronization (via `updatedSince`/`cursor`) and targeted batch lookups (via `registrationNumbers`).
+  - **Dynamic Field Projection:** The backend serializer inspects the caller's verified JWT token. For Ministry of Finance B2B M2M callers, full ISA snapshots are returned. For Data Portal and non-Finance callers, `socialInsuranceNumber` and `dateOfBirth` are automatically masked (`null`).
+  - **Mutual Exclusivity & Broad Sync Guard:** The endpoint enforces that non-Finance callers cannot omit `registrationNumbers` to trigger a full registry dump, returning `403 Forbidden` if an unauthorized consumer attempts a global sync.
      - Authorized for Data Portal workloads / IDIR staff.
      - Requires an explicit array of `registrationNumbers` (max 500).
      - **Projects a privacy-minimized schema that completely excludes `socialInsuranceNumber` and `dateOfBirth`.**

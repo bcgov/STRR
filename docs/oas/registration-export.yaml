@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: BC Short-Term Rental Registry - Registration Export API
+  title: BC Short-Term Rental Registry - Registration Query API
   version: '1.0.0'
   termsOfService: 'https://developer.connect.gov.bc.ca/shared/api-terms-of-use.pdf'
   contact:
@@ -9,11 +9,9 @@ info:
   description: |-
     System-to-system and authorized portal API providing complete current registration snapshots for `HOST`, `PLATFORM`, and `STRATA_HOTEL` registrations.
 
-    Supports two retrieval patterns:
+    Supports two retrieval patterns via a unified parameterized query:
     1. **Incremental Polling (CDC)** for the Ministry of Finance using `updatedSince` and cursor-based pagination.
     2. **Targeted Registration Lookup** for the STR Data Portal using a bounded `registrationNumbers` array.
-
-    > **HTTP Method Note:** `QUERY /registrations/export` is under consideration for a safe, idempotent body-based query. Where client libraries, gateways, or WAF infrastructure require standard OpenAPI 3.0 methods, `POST /registrations/export` uses the identical path, request body, authentication, and response contract.
   license:
     name: BSD-3-Clause
     url: 'https://opensource.org/license/bsd-3-clause'
@@ -23,7 +21,7 @@ servers:
   - url: 'https://api.connect.gov.bc.ca/strr/v1'
     description: Production
 tags:
-  - name: Registration Export
+  - name: Registration Query
     description: Incremental CDC polling and targeted registration snapshot retrieval.
 security:
   - apiKeyAuth: []
@@ -31,23 +29,23 @@ security:
   - apiKeyAuth: []
     bearerAuth: []
 paths:
-  /registrations/export:
+  /registrations/query:
     post:
       tags:
-        - Registration Export
-      summary: Export current registration snapshots
-      operationId: exportRegistrations
+        - Registration Query
+      summary: Query current registration snapshots
+      operationId: queryRegistrations
       description: |-
         Returns a paginated list of complete current registration snapshots (`HOST`, `PLATFORM`, `STRATA_HOTEL`).
-        - Omit `updatedSince` and `cursor` for an initial full synchronization.
-        - Provide `nextCursor` as `cursor` on subsequent requests until `nextCursor` is `null`.
-        - Provide `registrationNumbers` for targeted Data Portal lookups.
+        - **CDC Sync Feed:** Provide `updatedSince` (or omit on initial baseline sync) and `cursor`.
+        - **Targeted Lookup:** Provide `registrationNumbers` for direct lookup (max 500).
+        - Role-based field masking automatically nullifies sensitive tax attributes (`socialInsuranceNumber`, `dateOfBirth`) for non-Finance callers.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegistrationExportRequest'
+              $ref: '#/components/schemas/RegistrationQueryRequest'
             examples:
               MinistryOfFinanceInitialSync:
                 summary: Ministry of Finance - Initial Full Sync
@@ -73,7 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegistrationExportResponse'
+                $ref: '#/components/schemas/RegistrationQueryResponse'
               examples:
                 IncrementalExportPage:
                   summary: Page containing HOST, PLATFORM, and STRATA_HOTEL snapshots
@@ -356,7 +354,7 @@ components:
         - **Authenticated UI (Data Portal):** User's IDIR JWT passed through by Apigee (with `ceu_staff` or `ceu_admin` role).
 
   schemas:
-    RegistrationExportRequest:
+    RegistrationQueryRequest:
       type: object
       additionalProperties: false
       properties:
@@ -389,7 +387,7 @@ components:
             - H123456789
             - H987654321
 
-    RegistrationExportResponse:
+    RegistrationQueryResponse:
       type: object
       required:
         - items
