@@ -55,6 +55,7 @@ def create_jwt(
     login_source: str = None,
     sub: str = None,
     idp_userid: str = None,
+    additional_claims: dict = None,
 ) -> str:
     """Create a jwt bearer token with the correct keys, roles and username."""
     token_header = {"alg": "RS256", "typ": "JWT", "kid": "flask-jwt-oidc-test-client"}
@@ -74,6 +75,8 @@ def create_jwt(
         "idp_userid": idp_userid,
         "realm_access": {"roles": [] + roles},
     }
+    if additional_claims:
+        claims.update(additional_claims)
     return jwt_manager.create_jwt(claims, token_header)
 
 
@@ -87,6 +90,7 @@ def create_header(
     login_source: str = None,
     sub: str = "43e6a245-0bf7-4ccf-9bd0-e7fb85fd18cc",
     idp_userid: str = "123",
+    additional_claims: dict = None,
     **kwargs,
 ):
     """Return a header containing a JWT bearer token."""
@@ -100,6 +104,7 @@ def create_header(
         login_source=login_source,
         idp_userid=idp_userid,
         sub=sub,
+        additional_claims=additional_claims,
     )
     headers = {**kwargs, **{"Authorization": "Bearer " + token}}
     return headers

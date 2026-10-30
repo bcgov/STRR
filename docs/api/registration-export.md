@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Registration Query API (`POST /v1/registrations:query`) provides complete, current registration snapshots for:
+The Registration Query API (`POST` / `QUERY` `/v1/registrations:query`) provides complete, current registration snapshots for:
 
 - `HOST`
 - `PLATFORM`
@@ -34,9 +34,13 @@ The integration follows the identical gateway pattern used by STRR's external pe
   - STRR verifies the JWT via standard `@jwt.requires_auth` and enforces role/account authorization.
 - **Google AIP Colon Syntax (`:query`):**
   - The endpoint adheres to the Google AIP custom method convention (`/v1/registrations:query`), matching the existing Apigee gateway routes (`/v1/permits/:validatePermit`, `/v1/permits/:batchValidate`).
-- **Data Minimization & Privilege Separation:**
-  - The Ministry of Finance's Keycloak service account is authorized to access full ISA Appendix D registration snapshots (including `socialInsuranceNumber` and `dateOfBirth`) and perform global CDC synchronization.
-  - The Data Portal's Keycloak service account is authorized to perform targeted lookups (`registrationNumbers`); sensitive tax and date of birth attributes are automatically masked (`null`).
+- **Capability-Based Authorization (OAuth2 Scopes):**
+  - **`strr.registrations:read`**: Permits targeted batch lookups by specific `registrationNumbers` (1–500 IDs).
+  - **`strr.registrations:export`**: Permits unconstrained provincial CDC feed synchronization (`updatedSince` / `cursor`) without specifying registration numbers.
+  - **`strr.registrations.pii:read`**: Permits projection of unmasked tax and personal identity fields (`socialInsuranceNumber`, `dateOfBirth`). Callers lacking this scope receive privacy-minimized snapshots (`null` for SIN/DOB).
+  - Clients with `strr.registrations:export` and `strr.registrations.pii:read` (e.g. Ministry of Finance) access full provincial synchronization with PII.
+  - Clients with `strr.registrations:read` only (e.g. STR Data Portal) query specific `registrationNumbers` with PII automatically masked.
+  - Future clients can be granted any combination of these three capabilities independently via Keycloak Client Scopes mapped to their API key.
 - **Gateway Controls:**
   - Apigee provides centralized API key validation, client quota enforcement, and rate limiting across environments (Sandbox, Production).
 

@@ -34,11 +34,14 @@ paths:
       operationId: queryRegistrations
       description: |-
         Returns a paginated list of complete current registration snapshots (`HOST`, `PLATFORM`, `STRATA_HOTEL`).
+        - **Supported HTTP Methods:** Supports both `POST` and safe `QUERY` methods.
         - **CDC Sync Feed:** Provide `updatedSince` (or omit on initial baseline sync) and `cursor`.
         - **Targeted Lookup:** Provide `registrationNumbers` for direct lookup (max 500).
-        - Both Ministry of Finance and Data Portal call through the Apigee API Gateway from their backend services using their provisioned B2B API key (`x-apikey`).
+        - Consuming applications call through the Apigee API Gateway from their backend services using their provisioned B2B API key (`x-apikey`).
         - Apigee validates the API key, exchanges it for an internal Keycloak service-account JWT, and attaches it as `Authorization: Bearer <jwt>` to Cloud Run.
-        - Caller account context determines field projections; sensitive tax attributes (`socialInsuranceNumber`, `dateOfBirth`) are masked for non-Finance callers.
+        - **Capability-Based Authorization (Scopes & Roles):**
+          - `registration.export` (scope or role `strr_registration_export`): Authorizes broad CDC feed synchronization without specifying registration numbers.
+          - `registration.pii` (scope or role `strr_registration_pii`): Authorizes projection of unmasked tax and personal identity fields (`socialInsuranceNumber`, `dateOfBirth`). Callers lacking this capability receive privacy-minimized snapshots (`null` for SIN/DOB).
       requestBody:
         required: true
         content:

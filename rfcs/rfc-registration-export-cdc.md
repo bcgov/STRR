@@ -193,7 +193,9 @@ The gateway provides secure B2B authentication and rate limiting for both consum
 - **Client B2B API Key (`x-apikey`):** Both systems call Apigee directly from their backend services with their assigned B2B API key (`x-apikey: <api-key>`). No client-side JWT is required.
 - **Apigee Keycloak Token Exchange:** Apigee validates the API key, maps it to a Keycloak client (`bcregistry` realm), obtains a service-account JWT, and attaches it as `Authorization: Bearer <jwt>` to the Cloud Run request.
 - **Google AIP Custom Method Convention (`:query`):** Aligns with existing Apigee gateway routes using the Google AIP custom method convention (`/v1/registrations:query`).
-- **Gateway controls & privilege separation:** Apigee enforces rate limiting and quota controls. Ministry of Finance keys have access to full ISA snapshots and CDC sync, while Data Portal keys access targeted lookups with sensitive tax/identity fields masked.
+- **Capability-Based Access Control:** Dual inspection of OAuth2 scopes and Keycloak roles decouples client identity from permission logic:
+  - `registration.export` (scope or role `strr_registration_export`): Permits broad CDC feed synchronization without specifying registration numbers.
+  - `registration.pii` (scope or role `strr_registration_pii`): Permits projection of unmasked tax and personal identity fields (`socialInsuranceNumber`, `dateOfBirth`). Callers lacking this capability receive privacy-minimized snapshots.
 
 ```bash
 curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations:query' \
@@ -209,7 +211,7 @@ curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations:que
 
 | Field              | Value                                                                                                                               |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Method / path      | `POST /v1/registrations:query`                                                                                                      |
+| Method / path      | `POST` / `QUERY` `/v1/registrations:query`                                                                                          |
 | Gateway / Auth     | BC Registries Apigee API Gateway (`x-apikey` header); Apigee exchanges for Keycloak Bearer JWT before proxying to Cloud Run origin  |
 | Query content      | JSON body: `updatedSince`, opaque `cursor`, optional `limit` (default 100, maximum 500), and optional `registrationNumbers`         |
 | Registration types | `HOST`, `PLATFORM`, `STRATA_HOTEL`                                                                                                  |

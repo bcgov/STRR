@@ -18,7 +18,7 @@ from typing import Dict
 
 from flask import g, request
 
-from strr_api.enums.enum import LoginSource, Role
+from strr_api.enums.enum import LoginSource, OAuthScope, Role
 
 
 def _get_context():
@@ -26,7 +26,7 @@ def _get_context():
     return UserContext()
 
 
-class UserContext:  # pylint: disable=too-many-instance-attributes
+class UserContext:  # pylint: disable=too-many-instance-attributes,too-many-public-methods
     """Object to hold request scoped user context."""
 
     def __init__(self):
@@ -103,6 +103,28 @@ class UserContext:  # pylint: disable=too-many-instance-attributes
     def is_automation_tester(self) -> bool:
         """Return True if the user has strr_automation_tester role."""
         return Role.STRR_AUTOMATION_TESTER.value in self._roles if self._roles else False
+
+    @property
+    def scopes(self) -> set[str]:
+        """Return the set of OAuth 2.0 scopes from the token."""
+        raw_scope = self._token_info.get("scope", "")
+        if isinstance(raw_scope, str):
+            return set(raw_scope.split())
+        if isinstance(raw_scope, (list, set, tuple)):
+            return set(raw_scope)
+        return set()
+
+    def can_read_registrations(self) -> bool:
+        """Return True if caller has 'strr.registrations:read' or export scope for registration lookups."""
+        return OAuthScope.REGISTRATIONS_READ.value in self.scopes or self.can_export_registrations()
+
+    def can_export_registrations(self) -> bool:
+        """Return True if caller has 'strr.registrations:export' scope for broad CDC synchronization."""
+        return OAuthScope.REGISTRATIONS_EXPORT.value in self.scopes
+
+    def can_read_registration_pii(self) -> bool:
+        """Return True if caller has 'strr.registrations.pii:read' scope for sensitive PII."""
+        return OAuthScope.REGISTRATIONS_PII_READ.value in self.scopes
 
     @property
     def name(self) -> str:
