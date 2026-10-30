@@ -25,9 +25,6 @@ tags:
     description: Incremental CDC polling and targeted registration snapshot retrieval.
 security:
   - apiKeyAuth: []
-  - bearerAuth: []
-  - apiKeyAuth: []
-    bearerAuth: []
 paths:
   /registrations/query:
     post:
@@ -39,7 +36,8 @@ paths:
         Returns a paginated list of complete current registration snapshots (`HOST`, `PLATFORM`, `STRATA_HOTEL`).
         - **CDC Sync Feed:** Provide `updatedSince` (or omit on initial baseline sync) and `cursor`.
         - **Targeted Lookup:** Provide `registrationNumbers` for direct lookup (max 500).
-        - Role-based field masking automatically nullifies sensitive tax attributes (`socialInsuranceNumber`, `dateOfBirth`) for non-Finance callers.
+        - Both Ministry of Finance and Data Portal call through the Apigee API Gateway from their backend services using their provisioned B2B API key (`x-apikey`).
+        - Caller account context determines field projections; sensitive tax attributes (`socialInsuranceNumber`, `dateOfBirth`) are masked for non-Finance callers.
       requestBody:
         required: true
         content:
@@ -322,13 +320,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
         '401':
-          description: Missing or invalid bearer token.
+          description: Missing or invalid API key (`x-apikey`).
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
         '403':
-          description: Authenticated caller is not authorized to export registrations.
+          description: Authenticated caller is not authorized to access this resource or requested query scope.
           content:
             application/json:
               schema:
@@ -342,16 +340,8 @@ components:
       name: x-apikey
       description: |-
         BC Registries Apigee API Gateway Key (`x-apikey`).
-        - **B2B M2M Integrations:** B2B API Key. Apigee exchanges the key's associated account for a service-account JWT forwarded to STRR.
-        - **Authenticated UI Integrations:** Application API Key sent alongside the user's IDIR Bearer JWT.
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: |-
-        Bearer JWT token validated by STRR origin:
-        - **B2B M2M:** Service-account JWT forwarded by Apigee.
-        - **Authenticated UI (Data Portal):** User's IDIR JWT passed through by Apigee (with `ceu_staff` or `ceu_admin` role).
+        Both Ministry of Finance and STR Data Portal authenticate backend machine-to-machine requests using their provisioned B2B API key.
+        No client bearer JWT is required. Apigee validates the API key, enforces rate limiting, and forwards the authenticated account identity to STRR.
 
   schemas:
     RegistrationQueryRequest:

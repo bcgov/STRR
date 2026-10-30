@@ -25,18 +25,15 @@ This document formally captures our response, details where the design has been 
 > **Review Finding:** The draft specification declared an HTTP Bearer JWT scheme, whereas public BC Registries documentation describes an account-linked gateway API key (`x-apikey` + `Account-Id`).
 
 **Response & Resolution:**
-- **Clarification:** STRR is hosted in GCP (Cloud Run); therefore, access to the new registration data APIs will be exposed through the **BC Registries Apigee API Gateway** (`api.connect.gov.bc.ca`) rather than directly exposing the STRR Cloud Run service to consuming applications.
-- **Unified Gateway Authentication Model:** Apigee supports both machine-to-machine and authenticated UI access while allowing STRR to use a consistent JWT-based authorization model (`@jwt.requires_auth`):
-  1. **Machine-to-machine integrations (Ministry of Finance & Data Portal backend):** The consuming system is issued a B2B API key (`x-apikey`). The gateway uses the account associated with that key to obtain a service-account JWT and forwards the JWT to STRR. STRR validates the JWT and applies the appropriate role/account-based authorization.
-  2. **Authenticated UI integrations (STR Data Portal UI):** The user authenticates using IDIR and obtains a bearer token. Requests to the gateway include the user's bearer token together with an **application API key** (`x-apikey: <api-key>` and `Authorization: Bearer <jwt>`). When a bearer token is supplied, the gateway passes that token through to STRR rather than exchanging the application API key for another JWT. The application API key identifies/authorizes the calling application and is not treated as a secret credential.
-  3. **Consistent downstream authentication:** In both cases, STRR receives a bearer JWT and uses its existing JWT validation and role-based access-control model. This avoids introducing separate authentication mechanisms within STRR for B2B and interactive users.
-  4. **Gateway controls:** Apigee provides gateway-level access control, IP filtering, and rate limiting across all environments.
-  5. **Deployment consideration:** Because STRR is hosted in GCP, routing consumers through Apigee is the preferred architecture. Keeping traffic internal without Apigee would be more applicable where the API itself is hosted internally in OpenShift.
+- **Clarification:** STRR is hosted in GCP (Cloud Run); therefore, access to the new registration data APIs is exposed through the **BC Registries Apigee API Gateway** (`api.connect.gov.bc.ca`) rather than directly exposing the STRR Cloud Run service to consuming applications.
+- **Backend Machine-to-Machine API Key Model:** Both clients—the **Ministry of Finance** and the **STR Data Portal**—interact with the API exclusively via backend services using their provisioned B2B API key (`x-apikey`).
+  1. **Direct API Key Authentication:** Consumers pass `x-apikey: <api-key>`. No client-side Bearer JWT or user token is required by the clients.
+  2. **Gateway Responsibility:** Apigee validates the API key, enforces rate limiting and quotas, and forwards the authenticated account identity to STRR.
+  3. **Gateway Controls:** Apigee provides gateway-level access control, IP filtering, and quota tracking across all environments.
 
 ```bash
 curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations/query' \
 --header 'x-apikey: <api-key>' \
---header 'Authorization: Bearer <jwt>' \
 --header 'Content-Type: application/json' \
 --data '{
     "updatedSince": "2026-09-01T00:00:00Z",
