@@ -31,7 +31,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-# pylint: disable=too-many-locals,too-many-arguments,too-many-positional-arguments,too-many-branches
+# pylint: disable=too-many-locals,too-many-arguments,too-many-positional-arguments
 """
 Registration Query Service.
 
@@ -55,6 +55,7 @@ from flask import current_app
 from sqlalchemy import and_, func, or_, select, union_all
 from sqlalchemy.orm import selectinload
 
+from strr_api.enums.enum import OAuthScope
 from strr_api.exceptions import ValidationException
 from strr_api.models import (
     Contact,
@@ -93,58 +94,35 @@ class RegistrationQueryService:
         can_read_pii: bool = False,
         can_read: bool = True,
     ) -> dict[str, Any]:
-        """
-        Execute registration query request.
-
-        :param payload: Parsed JSON request payload.
-        :param can_export: Whether caller is authorized for unconstrained bulk/CDC export.
-        :param can_read_pii: Whether caller is authorized to view unmasked PII.
-        :param can_read: Whether caller is authorized for targeted registration lookup.
-        :return: Response dictionary with items, nextCursor, and optional errors.
-        """
+        """Execute registration query request."""
         registration_numbers = payload.get("registrationNumbers")
         updated_since_raw = payload.get("updatedSince")
         cursor_raw = payload.get("cursor")
         limit = payload.get("limit") or DEFAULT_PAGE_LIMIT
 
-        # Validate limit range
         if not isinstance(limit, int) or limit < 1 or limit > MAX_PAGE_LIMIT:
             raise ValidationException(f"Page limit must be an integer between 1 and {MAX_PAGE_LIMIT}.")
 
-        # Parse updatedSince timestamp if provided
-        updated_since: Optional[datetime] = None
-        if updated_since_raw:
-            try:
-                updated_since = parser.isoparse(updated_since_raw)
-                if updated_since.tzinfo is None:
-                    updated_since = updated_since.replace(tzinfo=timezone.utc)
-            except Exception as e:
-                raise ValidationException(f"Invalid 'updatedSince' timestamp format: {e}") from e
-
-        # Compute scope hash for cursor binding
+        updated_since = cls._parse_timestamp(updated_since_raw) if updated_since_raw else None
         scope_hash = cls.compute_scope_hash(updated_since, registration_numbers)
+        cursor_position = cls.decode_and_validate_cursor(cursor_raw, scope_hash) if cursor_raw else None
 
-        # Decode and validate cursor if provided
-        cursor_position: Optional[dict[str, Any]] = None
-        if cursor_raw:
-            cursor_position = cls.decode_and_validate_cursor(cursor_raw, scope_hash)
-
-        # Route to appropriate query mode
         if registration_numbers is not None:
             if not can_read:
-                raise ValidationException("Targeted registration lookup requires 'strr.registrations:read' capability.")
+                raise ValidationException(
+                    f"Targeted registration lookup requires '{OAuthScope.REGISTRATIONS_READ.value}' capability."
+                )
             return cls._execute_targeted_lookup(
-                registration_numbers=registration_numbers,
-                cursor_position=cursor_position,
+                numbers=registration_numbers,
+                cursor=cursor_position,
                 limit=limit,
                 scope_hash=scope_hash,
                 include_pii=can_read_pii,
             )
 
-        # Full CDC synchronization requires export capability
         if not can_export:
             raise ValidationException(
-                "Full synchronization feed requires 'strr.registrations:export' capability. "
+                f"Full synchronization feed requires '{OAuthScope.REGISTRATIONS_EXPORT.value}' capability. "
                 "Provide 'registrationNumbers' for targeted lookup."
             )
 
@@ -156,81 +134,59 @@ class RegistrationQueryService:
             include_pii=can_read_pii,
         )
 
-    # -------------------------------------------------------------------------
-    # Targeted Batch Lookup
-    # -------------------------------------------------------------------------
     @classmethod
     def _execute_targeted_lookup(
         cls,
-        registration_numbers: list[str],
-        cursor_position: Optional[dict[str, Any]],
+        numbers: list[str],
+        cursor: Optional[dict[str, Any]],
         limit: int,
         scope_hash: str,
         include_pii: bool,
     ) -> dict[str, Any]:
         """Execute targeted lookup for specific registration numbers."""
-        if not registration_numbers:
+        if not numbers:
             return {"items": [], "errors": [], "nextCursor": None}
-
-        if len(registration_numbers) > MAX_PAGE_LIMIT:
+        if len(numbers) > MAX_PAGE_LIMIT:
             raise ValidationException(f"Maximum allowed registrationNumbers per request is {MAX_PAGE_LIMIT}.")
 
-        # Deduplicate preserving order
-        seen = set()
-        deduped: list[str] = []
-        for reg_num in registration_numbers:
-            trimmed = reg_num.strip() if isinstance(reg_num, str) else ""
-            if trimmed and trimmed not in seen:
-                seen.add(trimmed)
-                deduped.append(trimmed)
+        seen: set[str] = set()
+        deduped = [
+            seen.add(n.strip()) or n.strip()
+            for n in numbers
+            if isinstance(n, str) and n.strip() and n.strip() not in seen
+        ]
 
-        # Validate syntax
-        valid_numbers: list[str] = []
-        format_errors: list[dict[str, str]] = []
-        for reg_num in deduped:
-            if REG_NUM_REGEX.match(reg_num):
-                valid_numbers.append(reg_num)
+        valid_nums: list[str] = []
+        errors: list[dict[str, str]] = []
+        for n in deduped:
+            if REG_NUM_REGEX.match(n):
+                valid_nums.append(n)
             else:
-                format_errors.append({"registrationNumber": reg_num, "code": "INVALID_REGISTRATION_NUMBER"})
+                errors.append({"registrationNumber": n, "code": "INVALID_REGISTRATION_NUMBER"})
 
-        offset = cursor_position.get("offset", 0) if cursor_position else 0
-        page_numbers = valid_numbers[offset : offset + limit]
+        offset = cursor.get("offset", 0) if cursor else 0
+        page_nums = valid_nums[offset : offset + limit]
 
-        # Fetch registrations matching page numbers
-        registrations: list[Registration] = []
-        if page_numbers:
-            query = cls._build_eager_loaded_query().filter(Registration.registration_number.in_(page_numbers))
-            registrations = query.all()
-
-        reg_map = {r.registration_number: r for r in registrations}
+        reg_map = {}
+        if page_nums:
+            regs = cls._build_eager_loaded_query().filter(Registration.registration_number.in_(page_nums)).all()
+            reg_map = {r.registration_number: r for r in regs}
 
         items: list[dict[str, Any]] = []
-        not_found_errors: list[dict[str, str]] = []
-
-        for reg_num in page_numbers:
-            if reg_num in reg_map:
-                items.append(RegistrationQuerySerializer.serialize(reg_map[reg_num], include_pii=include_pii))
+        for n in page_nums:
+            if n in reg_map:
+                items.append(RegistrationQuerySerializer.serialize(reg_map[n], include_pii=include_pii))
             else:
-                not_found_errors.append({"registrationNumber": reg_num, "code": "NOT_FOUND"})
+                errors.append({"registrationNumber": n, "code": "NOT_FOUND"})
 
-        # Determine nextCursor
-        next_cursor = None
-        if offset + limit < len(valid_numbers):
-            next_cursor = cls.generate_cursor(
-                position={"offset": offset + limit},
-                scope_hash=scope_hash,
-            )
-
-        errors = format_errors + not_found_errors
-        response: dict[str, Any] = {"items": items, "nextCursor": next_cursor}
+        next_cursor = (
+            cls.generate_cursor({"offset": offset + limit}, scope_hash) if offset + limit < len(valid_nums) else None
+        )
+        res: dict[str, Any] = {"items": items, "nextCursor": next_cursor}
         if errors:
-            response["errors"] = errors
+            res["errors"] = errors
+        return res
 
-        return response
-
-    # -------------------------------------------------------------------------
-    # CDC Incremental Synchronization
-    # -------------------------------------------------------------------------
     @classmethod
     def _execute_cdc_query(
         cls,
@@ -241,194 +197,126 @@ class RegistrationQueryService:
         include_pii: bool,
     ) -> dict[str, Any]:
         """Execute CDC synchronization query ordered by (changed ASC, registration_id ASC)."""
-        cursor_changed: Optional[datetime] = None
-        cursor_reg_id: Optional[int] = None
+        cursor_changed, cursor_reg_id = None, None
         if cursor_position:
-            changed_str = cursor_position.get("changed")
-            if changed_str:
-                cursor_changed = parser.isoparse(changed_str)
-                if cursor_changed.tzinfo is None:
-                    cursor_changed = cursor_changed.replace(tzinfo=timezone.utc)
+            if c_str := cursor_position.get("changed"):
+                cursor_changed = cls._parse_timestamp(c_str)
             cursor_reg_id = cursor_position.get("registrationId")
 
-        # Build union query of changes across tables
-        union_subquery = cls._build_cdc_changes_subquery()
-
-        # Aggregate latest change per registration
-        agg_subquery = (
-            select(
-                union_subquery.c.registration_id,
-                func.max(union_subquery.c.changed).label("max_changed"),
-            )
-            .group_by(union_subquery.c.registration_id)
+        union_sub = cls._build_cdc_changes_subquery()
+        agg_sub = (
+            select(union_sub.c.registration_id, func.max(union_sub.c.changed).label("max_changed"))
+            .group_by(union_sub.c.registration_id)
             .subquery("agg_changes")
         )
 
-        query = select(
-            agg_subquery.c.registration_id,
-            agg_subquery.c.max_changed,
-        )
-
-        # Apply keyset or updatedSince filtering
-        if cursor_changed is not None and cursor_reg_id is not None:
-            # Strip timezone if db column is naive
+        query = select(agg_sub.c.registration_id, agg_sub.c.max_changed)
+        if cursor_changed and cursor_reg_id:
             query = query.filter(
                 or_(
-                    agg_subquery.c.max_changed > cursor_changed,
-                    and_(
-                        agg_subquery.c.max_changed == cursor_changed,
-                        agg_subquery.c.registration_id > cursor_reg_id,
-                    ),
+                    agg_sub.c.max_changed > cursor_changed,
+                    and_(agg_sub.c.max_changed == cursor_changed, agg_sub.c.registration_id > cursor_reg_id),
                 )
             )
-        elif updated_since is not None:
-            query = query.filter(agg_subquery.c.max_changed >= updated_since)
+        elif updated_since:
+            query = query.filter(agg_sub.c.max_changed >= updated_since)
 
-        # Ordering and limit + 1
-        query = query.order_by(agg_subquery.c.max_changed.asc(), agg_subquery.c.registration_id.asc()).limit(limit + 1)
-
-        results = db.session.execute(query).fetchall()
+        results = db.session.execute(
+            query.order_by(agg_sub.c.max_changed.asc(), agg_sub.c.registration_id.asc()).limit(limit + 1)
+        ).fetchall()
 
         has_more = len(results) > limit
-        page_results = results[:limit]
+        page = results[:limit]
+        reg_ids = [r[0] for r in page]
 
-        reg_ids = [row[0] for row in page_results]
-
-        # Fetch eager loaded registration models
-        registrations: list[Registration] = []
+        items = []
         if reg_ids:
-            reg_query = cls._build_eager_loaded_query().filter(Registration.id.in_(reg_ids))
-            models = reg_query.all()
-            models_by_id = {m.id: m for m in models}
-            registrations = [models_by_id[r_id] for r_id in reg_ids if r_id in models_by_id]
+            models = cls._build_eager_loaded_query().filter(Registration.id.in_(reg_ids)).all()
+            m_map = {m.id: m for m in models}
+            items = [
+                RegistrationQuerySerializer.serialize(m_map[r_id], include_pii=include_pii)
+                for r_id in reg_ids
+                if r_id in m_map
+            ]
 
-        items = [RegistrationQuerySerializer.serialize(reg, include_pii=include_pii) for reg in registrations]
-
-        # Determine nextCursor
         next_cursor = None
-        if has_more and page_results:
-            last_row = page_results[-1]
-            last_id, last_changed = last_row[0], last_row[1]
-            changed_iso = last_changed.isoformat() if hasattr(last_changed, "isoformat") else str(last_changed)
-            if not changed_iso.endswith("Z") and "+" not in changed_iso:
-                changed_iso = f"{changed_iso}Z"
-
-            next_cursor = cls.generate_cursor(
-                position={"changed": changed_iso, "registrationId": last_id},
-                scope_hash=scope_hash,
-            )
+        if has_more and page:
+            last_id, last_dt = page[-1][0], page[-1][1]
+            iso = last_dt.isoformat() if hasattr(last_dt, "isoformat") else str(last_dt)
+            if not iso.endswith("Z") and "+" not in iso:
+                iso = f"{iso}Z"
+            next_cursor = cls.generate_cursor({"changed": iso, "registrationId": last_id}, scope_hash)
 
         return {"items": items, "nextCursor": next_cursor}
 
-    # -------------------------------------------------------------------------
-    # SQL Query Builders
-    # -------------------------------------------------------------------------
     @classmethod
     def _build_cdc_changes_subquery(cls):
-        """Construct a unified changes subquery from registrations and available history tables."""
-        subqueries = [
-            select(
-                Registration.id.label("registration_id"),
-                Registration.updated_date.label("changed"),
-            )
-        ]
-
+        """Construct unified changes subquery from registrations and historical tables."""
+        subqueries = [select(Registration.id.label("registration_id"), Registration.updated_date.label("changed"))]
         meta = db.metadata.tables
-
-        # Check registrations_history
-        if "registrations_history" in meta:
-            t = meta["registrations_history"]
-            subqueries.append(
-                select(t.c.id.label("registration_id"), t.c.changed.label("changed")).filter(t.c.changed.isnot(None))
-            )
-
-        # Check rental_properties_history
-        if "rental_properties_history" in meta:
-            t = meta["rental_properties_history"]
-            subqueries.append(
-                select(t.c.registration_id.label("registration_id"), t.c.changed.label("changed")).filter(
-                    t.c.registration_id.isnot(None),
-                    t.c.changed.isnot(None),
+        history_tables = (
+            ("registrations_history", "id"),
+            ("rental_properties_history", "registration_id"),
+            ("platform_registration_history", "registration_id"),
+            ("strata_hotel_registration_history", "registration_id"),
+        )
+        for tbl_name, col_name in history_tables:
+            if tbl_name in meta:
+                t = meta[tbl_name]
+                col = getattr(t.c, col_name)
+                subqueries.append(
+                    select(col.label("registration_id"), t.c.changed.label("changed")).filter(
+                        col.isnot(None), t.c.changed.isnot(None)
+                    )
                 )
-            )
-
-        # Check platform_registration_history
-        if "platform_registration_history" in meta:
-            t = meta["platform_registration_history"]
-            subqueries.append(
-                select(t.c.registration_id.label("registration_id"), t.c.changed.label("changed")).filter(
-                    t.c.registration_id.isnot(None),
-                    t.c.changed.isnot(None),
-                )
-            )
-
-        # Check strata_hotel_registration_history
-        if "strata_hotel_registration_history" in meta:
-            t = meta["strata_hotel_registration_history"]
-            subqueries.append(
-                select(t.c.registration_id.label("registration_id"), t.c.changed.label("changed")).filter(
-                    t.c.registration_id.isnot(None),
-                    t.c.changed.isnot(None),
-                )
-            )
-
         return union_all(*subqueries).subquery("changes")
 
     @classmethod
     def _build_eager_loaded_query(cls):
-        """Build Registration ORM query with optimized eager loading to avoid N+1 queries."""
+        """Build Registration query with optimized eager loading to avoid N+1 queries."""
+        rp = Registration.rental_property
+        plat = Registration.platform_registration
+        sh = Registration.strata_hotel_registration
+
         return Registration.query.options(
-            # Rental property & contacts
-            selectinload(Registration.rental_property)
+            selectinload(rp)
             .selectinload(RentalProperty.contacts)
             .selectinload(PropertyContact.contact)
             .selectinload(Contact.address),
-            selectinload(Registration.rental_property).selectinload(RentalProperty.address),
-            # Property manager
-            selectinload(Registration.rental_property)
+            selectinload(rp).selectinload(RentalProperty.address),
+            selectinload(rp)
             .selectinload(RentalProperty.property_manager)
             .selectinload(PropertyManager.primary_contact)
             .selectinload(Contact.address),
-            selectinload(Registration.rental_property)
+            selectinload(rp)
             .selectinload(RentalProperty.property_manager)
             .selectinload(PropertyManager.business_mailing_address),
-            # Platform details
-            selectinload(Registration.platform_registration)
-            .selectinload(PlatformRegistration.platform)
-            .selectinload(Platform.mailingAddress),
-            selectinload(Registration.platform_registration)
+            selectinload(plat).selectinload(PlatformRegistration.platform).selectinload(Platform.mailingAddress),
+            selectinload(plat)
             .selectinload(PlatformRegistration.platform)
             .selectinload(Platform.registered_office_attorney_mailing_address),
-            selectinload(Registration.platform_registration)
+            selectinload(plat)
             .selectinload(PlatformRegistration.platform)
             .selectinload(Platform.representatives)
             .selectinload(PlatformRepresentative.contact),
-            selectinload(Registration.platform_registration)
-            .selectinload(PlatformRegistration.platform)
-            .selectinload(Platform.brands),
-            # Strata hotel details
-            selectinload(Registration.strata_hotel_registration)
+            selectinload(plat).selectinload(PlatformRegistration.platform).selectinload(Platform.brands),
+            selectinload(sh)
             .selectinload(StrataHotelRegistration.strata_hotel)
             .selectinload(StrataHotel.mailingAddress),
-            selectinload(Registration.strata_hotel_registration)
-            .selectinload(StrataHotelRegistration.strata_hotel)
-            .selectinload(StrataHotel.location),
-            selectinload(Registration.strata_hotel_registration)
+            selectinload(sh).selectinload(StrataHotelRegistration.strata_hotel).selectinload(StrataHotel.location),
+            selectinload(sh)
             .selectinload(StrataHotelRegistration.strata_hotel)
             .selectinload(StrataHotel.registered_office_attorney_mailing_address),
-            selectinload(Registration.strata_hotel_registration)
+            selectinload(sh)
             .selectinload(StrataHotelRegistration.strata_hotel)
             .selectinload(StrataHotel.representatives)
             .selectinload(StrataHotelRepresentative.contact),
-            selectinload(Registration.strata_hotel_registration)
+            selectinload(sh)
             .selectinload(StrataHotelRegistration.strata_hotel)
             .selectinload(StrataHotel.buildings)
             .selectinload(StrataHotelBuilding.address),
         )
 
-    # -------------------------------------------------------------------------
-    # Cursor Utilities (HMAC-SHA256, Stateless, Scoped)
-    # -------------------------------------------------------------------------
     @classmethod
     def compute_scope_hash(
         cls,
@@ -436,37 +324,27 @@ class RegistrationQueryService:
         registration_numbers: Optional[list[str]],
     ) -> str:
         """Compute 16-character SHA-256 hash of normalized query parameters."""
-        ts_part = updated_since.isoformat() if updated_since else ""
-        nums_part = ",".join(sorted(registration_numbers)) if registration_numbers else ""
-        scope_str = f"ts={ts_part}|nums={nums_part}"
-        return hashlib.sha256(scope_str.encode("utf-8")).hexdigest()[:16]
+        ts = updated_since.isoformat() if updated_since else ""
+        nums = ",".join(sorted(registration_numbers)) if registration_numbers else ""
+        return hashlib.sha256(f"ts={ts}|nums={nums}".encode("utf-8")).hexdigest()[:16]
 
     @classmethod
     def generate_cursor(cls, position: dict[str, Any], scope_hash: str) -> str:
         """Generate HMAC-signed, Base64URL-encoded cursor token."""
-        expires_at = datetime.now(timezone.utc) + timedelta(days=CURSOR_TTL_DAYS)
+        exp = datetime.now(timezone.utc) + timedelta(days=CURSOR_TTL_DAYS)
         payload = {
             "version": CURSOR_VERSION,
             "position": position,
             "scopeHash": scope_hash,
-            "expiresAt": expires_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "expiresAt": exp.strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
-
-        secret = cls._get_secret_key()
-        payload_bytes = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
-        b64_payload = base64.urlsafe_b64encode(payload_bytes).decode("ascii").rstrip("=")
-
-        sig = hmac.new(secret, b64_payload.encode("ascii"), hashlib.sha256).digest()
-        b64_sig = base64.urlsafe_b64encode(sig).decode("ascii").rstrip("=")
-
-        return f"{b64_payload}.{b64_sig}"
+        b64_payload = cls._b64_encode(json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8"))
+        sig = hmac.new(cls._get_secret_key(), b64_payload.encode("ascii"), hashlib.sha256).digest()
+        return f"{b64_payload}.{cls._b64_encode(sig)}"
 
     @classmethod
     def decode_and_validate_cursor(cls, cursor_str: str, expected_scope_hash: str) -> dict[str, Any]:
-        """
-        Validate HMAC signature, expiration, and scopeHash, returning cursor position.
-        Raises ValidationException if invalid, tampered, or expired.
-        """
+        """Validate HMAC signature, expiration, and scopeHash, returning cursor position."""
         if not cursor_str or "." not in cursor_str:
             raise ValidationException("Invalid cursor format.")
 
@@ -475,53 +353,55 @@ class RegistrationQueryService:
             raise ValidationException("Invalid cursor structure.")
 
         b64_payload, b64_sig = parts[0], parts[1]
-
-        # Verify HMAC signature
-        secret = cls._get_secret_key()
-        expected_sig = hmac.new(secret, b64_payload.encode("ascii"), hashlib.sha256).digest()
-        expected_b64_sig = base64.urlsafe_b64encode(expected_sig).decode("ascii").rstrip("=")
-
-        if not hmac.compare_digest(b64_sig, expected_b64_sig):
+        exp_sig = hmac.new(cls._get_secret_key(), b64_payload.encode("ascii"), hashlib.sha256).digest()
+        if not hmac.compare_digest(b64_sig, cls._b64_encode(exp_sig)):
             raise ValidationException("Invalid cursor signature or tampered token.")
 
-        # Decode payload
         try:
-            # Re-pad base64
-            padded_b64 = b64_payload + "=" * ((4 - len(b64_payload) % 4) % 4)
-            payload_data = json.loads(base64.urlsafe_b64decode(padded_b64).decode("utf-8"))
+            data = json.loads(cls._b64_decode(b64_payload).decode("utf-8"))
         except Exception as e:
             raise ValidationException(f"Failed to decode cursor payload: {e}") from e
 
-        # Validate version
-        if payload_data.get("version") != CURSOR_VERSION:
-            raise ValidationException(f"Unsupported cursor version: {payload_data.get('version')}.")
+        if data.get("version") != CURSOR_VERSION:
+            raise ValidationException(f"Unsupported cursor version: {data.get('version')}.")
 
-        # Validate expiration
-        expires_at_str = payload_data.get("expiresAt")
-        if expires_at_str:
+        if exp_str := data.get("expiresAt"):
             try:
-                expires_at = parser.isoparse(expires_at_str)
-                if expires_at.tzinfo is None:
-                    expires_at = expires_at.replace(tzinfo=timezone.utc)
-                if datetime.now(timezone.utc) > expires_at:
+                if datetime.now(timezone.utc) > cls._parse_timestamp(exp_str):
                     raise ValidationException("Cursor has expired. Please re-run your query.")
+            except ValidationException:
+                raise
             except Exception as e:
-                if isinstance(e, ValidationException):
-                    raise
                 raise ValidationException("Invalid cursor expiry timestamp.") from e
 
-        # Validate scope hash
-        if payload_data.get("scopeHash") != expected_scope_hash:
+        if data.get("scopeHash") != expected_scope_hash:
             raise ValidationException("Cursor filter scope does not match current request parameters.")
 
-        position = payload_data.get("position")
-        if not isinstance(position, dict):
+        pos = data.get("position")
+        if not isinstance(pos, dict):
             raise ValidationException("Invalid cursor position payload.")
+        return pos
 
-        return position
+    @staticmethod
+    def _parse_timestamp(ts_str: str) -> datetime:
+        """Parse ISO timestamp ensuring UTC timezone."""
+        try:
+            dt = parser.isoparse(ts_str)
+            return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
+        except Exception as e:
+            raise ValidationException(f"Invalid timestamp format: {e}") from e
+
+    @staticmethod
+    def _b64_encode(data: bytes) -> str:
+        """URL-safe Base64 encode without padding."""
+        return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+    @staticmethod
+    def _b64_decode(s: str) -> bytes:
+        """URL-safe Base64 decode with automatic padding calculation."""
+        return base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
 
     @staticmethod
     def _get_secret_key() -> bytes:
         """Retrieve signing secret key."""
-        secret_str = current_app.config.get("SECRET_KEY", "default-strr-export-signing-secret")
-        return secret_str.encode("utf-8")
+        return current_app.config.get("SECRET_KEY", "default-strr-export-signing-secret").encode("utf-8")
