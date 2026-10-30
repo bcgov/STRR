@@ -47,7 +47,6 @@ from .documents import bp as documents_endpoint
 from .meta import bp as meta_endpoint
 from .ops import bp as ops_endpoint
 from .registrations import bp as registrations_endpoint
-from .registrations import bp_with_version as registrations_endpoint_with_version
 from .registrations import query_registrations
 from .str_address_requirements import bp as str_address_requirements
 from .str_address_requirements import bp_with_version as str_address_requirements_with_version
@@ -89,11 +88,6 @@ def register_endpoints(app: Flask):
     )
 
     app.register_blueprint(
-        url_prefix="/v1/registrations",
-        blueprint=registrations_endpoint_with_version,
-    )
-
-    app.register_blueprint(
         url_prefix="/applications",
         blueprint=application_endpoint,
     )
@@ -131,12 +125,6 @@ def register_endpoints(app: Flask):
     app.add_url_rule(
         "/registrations:query",
         endpoint="registrations_query_no_slash",
-        view_func=query_registrations,
-        methods=("POST", "QUERY"),
-    )
-    app.add_url_rule(
-        "/v1/registrations:query",
-        endpoint="v1_registrations_query_no_slash",
         view_func=query_registrations,
         methods=("POST", "QUERY"),
     )

@@ -391,7 +391,7 @@ def test_roles_alone_without_scope_rejected_403(client, jwt, host_registration):
     """Caller with roles but without required OAuth2 scopes is rejected with 403."""
     headers = create_header(jwt, ["staff", "strr_examiner"], username="staff-user")
     body = {"registrationNumbers": ["H123456789"]}
-    rv = client.post("/v1/registrations:query", json=body, headers=headers)
+    rv = client.post("/registrations:query", json=body, headers=headers)
     assert rv.status_code == HTTPStatus.FORBIDDEN
     assert "strr.registrations:read" in rv.json.get("message", "")
 
@@ -406,7 +406,7 @@ def test_oauth2_scopes_cdc_full_query_with_pii(client, jwt, host_registration, s
     )
     body = {"updatedSince": "2026-01-01T00:00:00Z", "limit": 10}
 
-    rv = client.post("/v1/registrations:query", json=body, headers=headers)
+    rv = client.post("/registrations:query", json=body, headers=headers)
     assert rv.status_code == HTTPStatus.OK
     data = rv.json
     assert "items" in data
@@ -426,7 +426,7 @@ def test_bulk_export_without_pii_masked(client, jwt, host_registration, strata_h
     )
     body = {"updatedSince": "2026-01-01T00:00:00Z", "limit": 10}
 
-    rv = client.post("/v1/registrations:query", json=body, headers=headers)
+    rv = client.post("/registrations:query", json=body, headers=headers)
     assert rv.status_code == HTTPStatus.OK
     data = rv.json
     assert len(data["items"]) >= 2
@@ -447,7 +447,7 @@ def test_targeted_lookup_with_pii_capability(client, jwt, host_registration):
     )
     # 1. Targeted lookup succeeds with PII
     body_targeted = {"registrationNumbers": ["H123456789"]}
-    rv1 = client.post("/v1/registrations:query", json=body_targeted, headers=headers)
+    rv1 = client.post("/registrations:query", json=body_targeted, headers=headers)
     assert rv1.status_code == HTTPStatus.OK
     item = rv1.json["items"][0]
     assert item["primaryContact"]["socialInsuranceNumber"] == "123 456 789"
@@ -455,7 +455,7 @@ def test_targeted_lookup_with_pii_capability(client, jwt, host_registration):
 
     # 2. Attempting bulk sync without export capability is rejected with 403
     body_bulk = {"updatedSince": "2026-01-01T00:00:00Z"}
-    rv2 = client.post("/v1/registrations:query", json=body_bulk, headers=headers)
+    rv2 = client.post("/registrations:query", json=body_bulk, headers=headers)
     assert rv2.status_code == HTTPStatus.FORBIDDEN
     assert "strr.registrations:export" in rv2.json.get("message", "")
 
@@ -469,7 +469,7 @@ def test_caller_without_read_scope_blocked_from_targeted_lookup(client, jwt):
         additional_claims={"scope": "unrelated.service:read"},
     )
     body = {"registrationNumbers": ["H123456789"]}
-    rv = client.post("/v1/registrations:query", json=body, headers=headers)
+    rv = client.post("/registrations:query", json=body, headers=headers)
     assert rv.status_code == HTTPStatus.FORBIDDEN
     assert "strr.registrations:read" in rv.json.get("message", "")
 
@@ -487,7 +487,7 @@ def test_data_portal_targeted_query_masked_pii(client, jwt, host_registration):
         "limit": 10,
     }
 
-    rv = client.post("/v1/registrations:query", json=body, headers=headers)
+    rv = client.post("/registrations:query", json=body, headers=headers)
     assert rv.status_code == HTTPStatus.OK
     data = rv.json
     assert len(data["items"]) == 1
@@ -521,7 +521,7 @@ def test_broad_sync_forbidden_without_export_capability(client, jwt):
         "limit": 10,
     }
 
-    rv = client.post("/v1/registrations:query", json=body, headers=headers)
+    rv = client.post("/registrations:query", json=body, headers=headers)
     assert rv.status_code == HTTPStatus.FORBIDDEN
     assert "registrations:export" in rv.json.get("message", "")
 
@@ -537,9 +537,6 @@ def test_routing_variations_and_compatibility(client, jwt, host_registration):
     body = {"registrationNumbers": ["H123456789"]}
 
     routes = [
-        "/v1/registrations:query",
-        "/v1/registrations/:query",
-        "/v1/registrations/query",
         "/registrations:query",
         "/registrations/:query",
         "/registrations/query",
@@ -567,7 +564,7 @@ def test_query_method_cdc_success(client, jwt, host_registration):
     )
     body = {"updatedSince": "2026-01-01T00:00:00Z", "limit": 10}
 
-    rv = client.open("/v1/registrations:query", method="QUERY", json=body, headers=headers)
+    rv = client.open("/registrations:query", method="QUERY", json=body, headers=headers)
     assert rv.status_code == HTTPStatus.OK
     data = rv.json
     assert "items" in data
@@ -582,7 +579,7 @@ def test_invalid_limit_rejected(client, jwt):
         username="test-client",
         additional_claims={"scope": EXPORT_SCOPE},
     )
-    rv = client.post("/v1/registrations:query", json={"limit": 501}, headers=headers)
+    rv = client.post("/registrations:query", json={"limit": 501}, headers=headers)
     assert rv.status_code == HTTPStatus.BAD_REQUEST
 
 
@@ -596,7 +593,7 @@ def test_finance_cdc_pagination_traversal(client, jwt, host_registration, strata
     )
 
     # Page 1 with limit 1
-    rv1 = client.post("/v1/registrations:query", json={"limit": 1}, headers=headers)
+    rv1 = client.post("/registrations:query", json={"limit": 1}, headers=headers)
     assert rv1.status_code == HTTPStatus.OK
     page1 = rv1.json
     assert len(page1["items"]) == 1
@@ -604,7 +601,7 @@ def test_finance_cdc_pagination_traversal(client, jwt, host_registration, strata
     assert cursor1 is not None
 
     # Page 2 with cursor1 and limit 1
-    rv2 = client.post("/v1/registrations:query", json={"limit": 1, "cursor": cursor1}, headers=headers)
+    rv2 = client.post("/registrations:query", json={"limit": 1, "cursor": cursor1}, headers=headers)
     assert rv2.status_code == HTTPStatus.OK
     page2 = rv2.json
     assert len(page2["items"]) == 1
@@ -624,7 +621,7 @@ def test_targeted_lookup_deduplication_and_pagination(client, jwt, host_registra
 
     # Page 1 with limit 1
     rv1 = client.post(
-        "/v1/registrations:query",
+        "/registrations:query",
         json={"registrationNumbers": reg_nums, "limit": 1},
         headers=headers,
     )
@@ -637,7 +634,7 @@ def test_targeted_lookup_deduplication_and_pagination(client, jwt, host_registra
 
     # Page 2 with cursor1
     rv2 = client.post(
-        "/v1/registrations:query",
+        "/registrations:query",
         json={"registrationNumbers": reg_nums, "limit": 1, "cursor": cursor1},
         headers=headers,
     )

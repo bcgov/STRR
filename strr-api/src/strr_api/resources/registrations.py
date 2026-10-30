@@ -89,7 +89,6 @@ from strr_api.validators.DocumentUploadValidator import validate_document_upload
 
 logger = logging.getLogger("api")
 bp = Blueprint("registrations", __name__)
-bp_with_version = Blueprint("registrations_with_version", __name__)
 
 # Days before expiry when renewal todos should appear
 DAYS_BEFORE_EXPIRY_BY_TYPE = {
@@ -1397,8 +1396,6 @@ def user_search_registrations():
 
 @bp.route("/:query", methods=("POST", "QUERY"))
 @bp.route("/query", methods=("POST", "QUERY"))
-@bp_with_version.route("/:query", methods=("POST", "QUERY"))
-@bp_with_version.route("/query", methods=("POST", "QUERY"))
 @cross_origin(origin="*")
 @jwt.requires_auth
 def query_registrations():
