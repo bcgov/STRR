@@ -4,9 +4,9 @@
 **In Response To:** Solution Architecture and Authentication Review (Christian, 2026-10-23)  
 **Authors:** STRR API Engineering Team  
 **Relevant Artifacts:**
-- OpenAPI 3.0 Contract: [`docs/oas/registration-export.yaml`](../oas/registration-export.yaml)
-- Export API Guide: [`docs/api/registration-export.md`](./registration-export.md)
-- CDC Change Tracking RFC: [`rfcs/rfc-registration-export-cdc.md`](../../rfcs/rfc-registration-export-cdc.md)
+- OpenAPI 3.0 Contract: [`docs/oas/registration-query.yaml`](../oas/registration-query.yaml)
+- Query API Guide: [`docs/api/registration-query.md`](./registration-query.md)
+- CDC Change Tracking RFC: [`rfcs/rfc-registration-query-cdc.md`](../../rfcs/rfc-registration-query-cdc.md)
 
 ---
 
@@ -92,7 +92,7 @@ curl --location 'https://sandbox.api.connect.gov.bc.ca/strr/v1/registrations:que
 > **Review Finding:** Incremental synchronization must define a stable high-water mark, tie-break ordering, and handling for nested entity updates without missing concurrent changes.
 
 **Response & Resolution:**
-Our design specification and RFC ([`rfcs/rfc-registration-export-cdc.md`](../../rfcs/rfc-registration-export-cdc.md)) already specify this lossless architecture:
+Our design specification and RFC ([`rfcs/rfc-registration-query-cdc.md`](../../rfcs/rfc-registration-query-cdc.md)) already specify this lossless architecture:
 - **Change Data Capture across Child Tables:** The query unions `MAX(changed)` across `registrations_history` and all child history tables (`addresses_history`, `contacts_history`, `rental_properties_history`, `property_manager_history`, `platforms_history`, `strata_hotels_history`). Updates to nested entities trigger inclusion in the CDC stream.
 - **Deterministic Keyset Ordering:** Records are sorted strictly by `(changed ASC, registration_id ASC)`. This guarantees that concurrent database writes never cause rows to shift or be silently skipped across pagination boundaries.
 - **Tamper-Proof, Scoped Cursors:** Cursors are opaque, HMAC-signed, Base64URL tokens containing `(changed, registrationId)`, an expiration timestamp (`expiresAt`), and a `scopeHash` binding the cursor to the normalized request parameters. Cursors cannot be reused across different filter scopes or consumer privileges.
@@ -105,7 +105,7 @@ Our design specification and RFC ([`rfcs/rfc-registration-export-cdc.md`](../../
 > **Review Finding:** OpenAPI 3.0.3 `nullable` rules on `$ref` / `allOf` must be respected, and registration number examples/prefixes aligned.
 
 **Response & Resolution:**
-- **Resolved:** We updated [`docs/oas/registration-export.yaml`](../oas/registration-export.yaml) to eliminate all `$ref` sibling warnings, wrapping references in `allOf` where overrides exist to maintain strict Swagger/OpenAPI 3.0.3 validator compliance.
+- **Resolved:** We updated [`docs/oas/registration-query.yaml`](../oas/registration-query.yaml) to eliminate all `$ref` sibling warnings, wrapping references in `allOf` where overrides exist to maintain strict Swagger/OpenAPI 3.0.3 validator compliance.
 - **Prefix Alignment:** Reconciled registration prefixes against production data: `H` for Host registrations (`H123456789`), `PL` for Platform registrations (`PL100000001`), and `ST` for Strata Hotel registrations (`ST200000001`).
 - **Normalized Unit Listings:** Strata hotel unit numbers are normalized by splitting on `[\r\n,]+`, trimming whitespace, and returning clean arrays (`primary: string[]`, `additional: string[][]`), freeing downstream clients from multi-line textarea parsing.
 - **HTTP Method:** Standard `POST` is specified for immediate production compatibility, avoiding gateway/WAF compatibility hurdles with `QUERY`.

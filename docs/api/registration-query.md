@@ -16,7 +16,7 @@ It supports two distinct consumer patterns through a unified, parameterized quer
 Each returned registration is a complete current snapshot, not a field-level diff. Sensitive tax and identity attributes (`socialInsuranceNumber`, `dateOfBirth`) are masked (returned as `null`) based on caller role/authorization for data minimization.
 
 > **NOTE**:
-> This document outlines the request/response contracts and integration workflow. See [`docs/oas/registration-export.yaml`](../oas/registration-export.yaml) for the complete OpenAPI 3.0 specification.
+> This document outlines the request/response contracts and integration workflow. See [`docs/oas/registration-query.yaml`](../oas/registration-query.yaml) for the complete OpenAPI 3.0 specification.
 
 ## API Gateway and Authentication Architecture
 
@@ -463,4 +463,4 @@ The following table lists the valid enum values used across the payload fields:
 ---
 
 > [!NOTE]
-> See [`docs/oas/registration-export.yaml`](../oas/registration-export.yaml) for the complete OpenAPI 3.0 specification containing all schema definitions, discriminators, type constraints, and endpoint parameters.
+> See [`docs/oas/registration-query.yaml`](../oas/registration-query.yaml) for the complete OpenAPI 3.0 specification containing all schema definitions, discriminators, type constraints, and endpoint parameters.
