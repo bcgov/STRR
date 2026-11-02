@@ -2,10 +2,12 @@
 Registration response objects.
 """
 
-from typing import Optional
+import re
+from datetime import date, datetime
+from typing import Any, Optional
 
 from strr_api.enums.enum import RegistrationStatus, RegistrationType
-from strr_api.models import Application, Platform, PropertyManager, Registration, StrataHotel
+from strr_api.models import Address, Application, Contact, Platform, PropertyManager, Registration, StrataHotel
 
 
 class RegistrationSerializer:
@@ -567,3 +569,268 @@ class RegistrationSerializer:
         if not latest_application.application_json:
             return None
         return latest_application.application_json.get("registration", {}).get("strRequirements", {})
+
+    @classmethod
+    def serialize_for_query(cls, registration: Registration, include_pii: bool = False) -> dict[str, Any]:
+        """Serialize a registration into an OpenAPI-compliant query snapshot."""
+        reg_type = cls._enum_val(registration.registration_type)
+        snapshot: dict[str, Any] = {
+            "registrationId": registration.id,
+            "registrationNumber": registration.registration_number,
+            "registrationType": reg_type,
+            "status": cls._enum_val(registration.status),
+            "startDate": cls._to_iso_z(registration.start_date),
+            "expiryDate": cls._to_iso_z(registration.expiry_date),
+            "updatedDate": cls._to_iso_z(registration.updated_date),
+            "cancelledDate": cls._to_iso_z(registration.cancelled_date),
+        }
+
+        if reg_type == RegistrationType.HOST.value:
+            cls._populate_query_host(snapshot, registration, include_pii)
+        elif reg_type == RegistrationType.PLATFORM.value:
+            cls._populate_query_platform(snapshot, registration)
+        elif reg_type == RegistrationType.STRATA_HOTEL.value:
+            cls._populate_query_strata_hotel(snapshot, registration)
+
+        return snapshot
+
+    @classmethod
+    def _populate_query_host(cls, snapshot: dict[str, Any], reg: Registration, include_pii: bool):
+        rental = reg.rental_property
+        if not rental:
+            return
+
+        contacts = rental.contacts or []
+        primary_c = next((c for c in contacts if c.is_primary is True), contacts[0] if contacts else None)
+        secondary_c = next((c for c in contacts if c.is_primary is False), None)
+        reg_json = reg.registration_json or {}
+
+        snapshot["primaryContact"] = cls._serialize_query_host_contact(
+            primary_c, reg_json=reg_json, include_pii=include_pii, is_primary=True
+        )
+        snapshot["secondaryContact"] = cls._serialize_query_host_contact(secondary_c, is_primary=False)
+
+        addr = rental.address
+        snapshot["unitAddress"] = {
+            "unitNumber": addr.unit_number if addr else None,
+            "streetNumber": addr.street_number if addr else None,
+            "streetName": addr.street_address if addr else None,
+            "addressLineTwo": addr.street_address_additional if addr else None,
+            "city": addr.city if addr else None,
+            "province": addr.province if addr else None,
+            "postalCode": addr.postal_code if addr else None,
+            "country": addr.country if addr else None,
+            "nickname": rental.nickname,
+            "locationDescription": addr.location_description if addr else None,
+        }
+
+        app_jurisdiction, str_req = cls._get_query_application_data(reg.id)
+        bl_exp = rental.local_business_licence_expiry_date
+
+        snapshot["unitDetails"] = {
+            "parcelIdentifier": rental.parcel_identifier,
+            "businessLicense": rental.local_business_licence,
+            "businessLicenseExpiryDate": bl_exp.strftime("%Y-%m-%d") if bl_exp else None,
+            "blExemptReason": rental.bl_exempt_reason,
+            "propertyType": cls._enum_val(rental.property_type),
+            "strataHotelRegistrationNumber": rental.strata_hotel_registration_number,
+            "prExemptReason": cls._enum_val(rental.pr_exempt_reason),
+            "strataHotelCategory": cls._enum_val(rental.strata_hotel_category),
+            "jurisdiction": rental.jurisdiction or app_jurisdiction,
+            "prRequired": rental.pr_required,
+            "blRequired": rental.bl_required,
+            "rentalUnitSetupOption": cls._enum_val(rental.rental_space_option),
+            "hostType": cls._enum_val(rental.host_type),
+        }
+        snapshot["strRequirements"] = str_req
+        snapshot["propertyManager"] = cls._serialize_query_property_manager(rental.property_manager, reg_json)
+
+    @classmethod
+    def _populate_query_platform(cls, snapshot: dict[str, Any], reg: Registration):
+        platform: Optional[Platform] = reg.platform_registration.platform if reg.platform_registration else None
+        if not platform:
+            return
+
+        business = cls._serialize_query_business_details(platform)
+        business.update({
+            "consumerProtectionBCLicenceNumber": platform.cpbc_licence_number,
+            "noticeOfNonComplianceEmail": platform.primary_non_compliance_notice_email,
+            "noticeOfNonComplianceOptionalEmail": platform.secondary_non_compliance_notice_email,
+            "takeDownRequestEmail": platform.primary_take_down_request_email,
+            "takeDownRequestOptionalEmail": platform.secondary_take_down_request_email,
+        })
+        snapshot["businessDetails"] = business
+        snapshot["platformRepresentatives"] = [
+            cls._serialize_person_contact(r.contact) for r in (platform.representatives or []) if r.contact
+        ]
+        snapshot["platformDetails"] = {
+            "listingSize": cls._enum_val(platform.listing_size),
+            "brands": [{"name": b.name, "website": b.website} for b in (platform.brands or [])],
+        }
+
+    @classmethod
+    def _populate_query_strata_hotel(cls, snapshot: dict[str, Any], reg: Registration):
+        sh: Optional[StrataHotel] = reg.strata_hotel_registration.strata_hotel if reg.strata_hotel_registration else None
+        if not sh:
+            return
+
+        snapshot["businessDetails"] = cls._serialize_query_business_details(sh)
+        snapshot["strataHotelRepresentatives"] = [
+            cls._serialize_person_contact(r.contact) for r in (sh.representatives or []) if r.contact
+        ]
+        snapshot["strataHotelDetails"] = {
+            "brand": {"name": sh.brand_name, "website": sh.website},
+            "location": cls._serialize_mailing_address(sh.location),
+            "numberOfUnits": sh.number_of_units,
+            "category": cls._enum_val(sh.category),
+            "buildings": [cls._serialize_mailing_address(b.address) for b in (sh.buildings or []) if b.address],
+            "unitListings": cls._normalize_unit_listings(sh.unit_listings),
+        }
+
+    @classmethod
+    def _serialize_query_business_details(cls, entity: Any) -> dict[str, Any]:
+        """Serialize shared business details for platform and strata hotel."""
+        attorney = None
+        if getattr(entity, "registered_office_attorney_mailing_address_id", None):
+            attorney = {
+                "attorneyName": entity.attorney_name,
+                "mailingAddress": cls._serialize_mailing_address(entity.registered_office_attorney_mailing_address),
+            }
+        return {
+            "legalName": entity.legal_name,
+            "homeJurisdiction": entity.home_jurisdiction,
+            "businessNumber": entity.business_number,
+            "mailingAddress": cls._serialize_mailing_address(entity.mailingAddress),
+            "registeredOfficeOrAttorneyForServiceDetails": attorney,
+        }
+
+    @classmethod
+    def _serialize_query_host_contact(
+        cls, prop_contact, reg_json: Optional[dict] = None, include_pii: bool = False, is_primary: bool = True
+    ) -> Optional[dict[str, Any]]:
+        """Serialize primary or secondary host contact reusing person contact fields."""
+        if not prop_contact:
+            return None
+        c = prop_contact.contact
+        person = cls._serialize_person_contact(c) or {}
+        person.pop("jobTitle", None)
+        email = (
+            cls._get_override_value(reg_json, "primaryContact.emailAddress", c.email if c else None)
+            if is_primary
+            else (c.email if c else None)
+        )
+        dob = c.date_of_birth.strftime("%Y-%m-%d") if (is_primary and include_pii and c and c.date_of_birth) else None
+        sin = c.social_insurance_number if (is_primary and include_pii and c) else None
+
+        return {
+            "contactType": cls._enum_val(prop_contact.contact_type) or "INDIVIDUAL",
+            **person,
+            "dateOfBirth": dob,
+            "socialInsuranceNumber": sin,
+            "businessNumber": c.business_number if (is_primary and c) else None,
+            "businessLegalName": prop_contact.business_legal_name if is_primary else None,
+            "emailAddress": email,
+            "mailingAddress": cls._serialize_mailing_address(c.address if c else None),
+        }
+
+    @classmethod
+    def _serialize_query_property_manager(cls, pm: Optional[PropertyManager], reg_json: dict) -> Optional[dict[str, Any]]:
+        """Serialize property manager using single flat representation."""
+        if not pm:
+            return None
+        pm_type = cls._enum_val(pm.property_manager_type) or "INDIVIDUAL"
+        is_biz = pm_type == "BUSINESS"
+        initiated = (reg_json.get("propertyManager") or {}).get("initiatedByPropertyManager")
+        c = pm.primary_contact
+        contact = cls._serialize_person_contact(c) or {
+            k: None for k in (
+                "firstName", "middleName", "lastName", "preferredName", "jobTitle",
+                "emailAddress", "phoneNumber", "phoneCountryCode", "extension", "faxNumber"
+            )
+        }
+        return {
+            "propertyManagerType": pm_type,
+            "initiatedByPropertyManager": bool(initiated) if initiated is not None else None,
+            "businessLegalName": pm.business_legal_name if is_biz else None,
+            "businessNumber": pm.business_number if is_biz else None,
+            "mailingAddress": cls._serialize_mailing_address(
+                pm.business_mailing_address if is_biz else (c.address if c else None)
+            ),
+            "contact": contact,
+        }
+
+    @classmethod
+    def _serialize_mailing_address(cls, addr: Optional[Address]) -> Optional[dict[str, Any]]:
+        """Serialize Address model to MailingAddress dictionary."""
+        if not addr:
+            return None
+        return {
+            "address": addr.street_address,
+            "addressLineTwo": addr.street_address_additional,
+            "city": addr.city,
+            "province": addr.province,
+            "postalCode": addr.postal_code,
+            "country": addr.country,
+            "locationDescription": addr.location_description,
+        }
+
+    @classmethod
+    def _serialize_person_contact(cls, c: Optional[Contact]) -> Optional[dict[str, Any]]:
+        """Serialize Contact model to PersonContact dictionary."""
+        if not c:
+            return None
+        return {
+            "firstName": c.firstname,
+            "middleName": c.middlename,
+            "lastName": c.lastname,
+            "preferredName": c.preferredname,
+            "jobTitle": c.job_title,
+            "emailAddress": c.email,
+            "phoneNumber": c.phone_number,
+            "phoneCountryCode": c.phone_country_code,
+            "extension": c.phone_extension,
+            "faxNumber": c.fax_number,
+        }
+
+    @classmethod
+    def _normalize_unit_listings(cls, raw: Any) -> Optional[dict[str, Any]]:
+        """Normalize and sanitize strata hotel unit listings."""
+        if not isinstance(raw, dict):
+            return None
+
+        def clean(val: Any) -> list[str]:
+            items = val if isinstance(val, (list, tuple)) else [val] if val else []
+            return [t.strip() for item in items for t in re.split(r"[\r\n,]+", str(item)) if t.strip()]
+
+        return {"primary": clean(raw.get("primary")), "additional": [clean(u) for u in (raw.get("additional") or [])]}
+
+    @classmethod
+    def _get_query_application_data(cls, reg_id: int) -> tuple[Optional[str], Optional[dict[str, Any]]]:
+        """Fetch latest application and extract jurisdiction and strRequirements in a single pass."""
+        apps = Application.get_all_by_registration_id(reg_id)
+        if not apps:
+            return None, None
+        latest = max(apps, key=lambda a: a.application_date)
+        req = (latest.application_json or {}).get("registration", {}).get("strRequirements")
+        if not isinstance(req, dict):
+            return None, None
+        return req.get("organizationNm"), {
+            "organizationNm": req.get("organizationNm"),
+            "isPrincipalResidenceRequired": req.get("isPrincipalResidenceRequired"),
+            "isBusinessLicenceRequired": req.get("isBusinessLicenceRequired"),
+            "isStrProhibited": req.get("isStrProhibited"),
+            "isStraaExempt": req.get("isStraaExempt"),
+        }
+
+    @staticmethod
+    def _enum_val(val: Any) -> Optional[str]:
+        return getattr(val, "value", getattr(val, "name", str(val))) if val is not None else None
+
+    @staticmethod
+    def _to_iso_z(dt: Optional[datetime | date]) -> Optional[str]:
+        if not dt:
+            return None
+        if isinstance(dt, datetime):
+            iso = dt.isoformat()
+            return f"{iso}Z" if not iso.endswith("Z") and "+" not in iso and "-" not in iso[-6:] else iso
+        return dt.strftime("%Y-%m-%d")

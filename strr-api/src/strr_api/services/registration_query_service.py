@@ -72,7 +72,7 @@ from strr_api.models import (
     StrataHotelRepresentative,
     db,
 )
-from strr_api.responses.RegistrationQuerySerializer import RegistrationQuerySerializer
+from strr_api.responses.RegistrationSerializer import RegistrationSerializer
 
 logger = logging.getLogger("api")
 
@@ -175,7 +175,7 @@ class RegistrationQueryService:
         items: list[dict[str, Any]] = []
         for n in page_nums:
             if n in reg_map:
-                items.append(RegistrationQuerySerializer.serialize(reg_map[n], include_pii=include_pii))
+                items.append(RegistrationSerializer.serialize_for_query(reg_map[n], include_pii=include_pii))
             else:
                 errors.append({"registrationNumber": n, "code": "NOT_FOUND"})
 
@@ -234,7 +234,7 @@ class RegistrationQueryService:
             models = cls._build_eager_loaded_query().filter(Registration.id.in_(reg_ids)).all()
             m_map = {m.id: m for m in models}
             items = [
-                RegistrationQuerySerializer.serialize(m_map[r_id], include_pii=include_pii)
+                RegistrationSerializer.serialize_for_query(m_map[r_id], include_pii=include_pii)
                 for r_id in reg_ids
                 if r_id in m_map
             ]

@@ -58,7 +58,7 @@ from strr_api.models import (
     User,
     db,
 )
-from strr_api.responses.RegistrationQuerySerializer import RegistrationQuerySerializer
+from strr_api.responses.RegistrationSerializer import RegistrationSerializer
 from strr_api.services.registration_query_service import RegistrationQueryService
 from tests.unit.utils.auth_helpers import create_header
 
@@ -287,7 +287,7 @@ def platform_registration(session, test_user):
 def test_host_serializer_pii_handling(host_registration):
     """Verify that PII (SIN & DOB) is present when include_pii=True and masked when False."""
     # Finance view (with PII)
-    snapshot_finance = RegistrationQuerySerializer.serialize(host_registration, include_pii=True)
+    snapshot_finance = RegistrationSerializer.serialize_for_query(host_registration, include_pii=True)
     assert snapshot_finance["registrationNumber"] == "H123456789"
     assert snapshot_finance["registrationType"] == "HOST"
     assert snapshot_finance["status"] == "ACTIVE"
@@ -298,7 +298,7 @@ def test_host_serializer_pii_handling(host_registration):
     assert primary_contact["lastName"] == "Doe"
 
     # Data Portal view (PII masked)
-    snapshot_portal = RegistrationQuerySerializer.serialize(host_registration, include_pii=False)
+    snapshot_portal = RegistrationSerializer.serialize_for_query(host_registration, include_pii=False)
     primary_contact_masked = snapshot_portal["primaryContact"]
     assert primary_contact_masked["dateOfBirth"] is None
     assert primary_contact_masked["socialInsuranceNumber"] is None
@@ -319,7 +319,7 @@ def test_host_serializer_pii_handling(host_registration):
 
 def test_strata_hotel_serializer_unit_listings_normalization(strata_hotel_registration):
     """Verify that multi-line and comma-separated unit listings are sanitized into clean arrays."""
-    snapshot = RegistrationQuerySerializer.serialize(strata_hotel_registration, include_pii=False)
+    snapshot = RegistrationSerializer.serialize_for_query(strata_hotel_registration, include_pii=False)
     assert snapshot["registrationNumber"] == "ST200000001"
     assert snapshot["registrationType"] == "STRATA_HOTEL"
 
@@ -335,7 +335,7 @@ def test_strata_hotel_serializer_unit_listings_normalization(strata_hotel_regist
 
 def test_platform_serializer(platform_registration):
     """Verify PLATFORM registration serialization."""
-    snapshot = RegistrationQuerySerializer.serialize(platform_registration, include_pii=False)
+    snapshot = RegistrationSerializer.serialize_for_query(platform_registration, include_pii=False)
     assert snapshot["registrationNumber"] == "PL100000001"
     assert snapshot["registrationType"] == "PLATFORM"
     assert snapshot["businessDetails"]["legalName"] == "Global Booking Services Inc."
