@@ -79,7 +79,6 @@ from strr_api.services import (
     UserService,
 )
 from strr_api.services.examiner_note_service import ExaminerNoteNotAllowedException, ExaminerNoteService
-from strr_api.services.registration_query_service import RegistrationQueryService
 from strr_api.services.registration_service import (
     REGISTRATION_STATES_STAFF_ACTION,
     REGISTRATION_STATES_STAFF_ASSIGNABLE,
@@ -1455,7 +1454,7 @@ def query_registrations():
                 "Provide 'registrationNumbers' for targeted lookup.",
             )
 
-        response_data = RegistrationQueryService.execute_query(
+        response_data = RegistrationService.execute_query(
             payload=request_json,
             can_export=can_export,
             can_read_pii=can_read_pii,

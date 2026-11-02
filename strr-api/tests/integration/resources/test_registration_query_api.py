@@ -54,7 +54,7 @@ from strr_api.models import (
     StrataHotelRepresentative,
     User,
 )
-from strr_api.services.registration_query_service import RegistrationQueryService
+from strr_api.services.registration_service import RegistrationService
 from tests.integration.helpers import assert_json_keys, assert_status
 from tests.integration.registration_seed import seed_serializable_host_registration
 from tests.unit.utils.auth_helpers import create_header
@@ -562,8 +562,8 @@ def test_query_tampered_cursor_rejected(client, auth_header_export_pii):
 def test_query_cursor_scope_mismatch_rejected(client, app, auth_header_export_pii):
     """Reusing cursor generated for different filter scope is rejected with 400 Bad Request."""
     with app.app_context():
-        scope_hash_a = RegistrationQueryService.compute_scope_hash(datetime(2026, 1, 1, tzinfo=timezone.utc), None)
-        cursor_a = RegistrationQueryService.generate_cursor(
+        scope_hash_a = RegistrationService.compute_scope_hash(datetime(2026, 1, 1, tzinfo=timezone.utc), None)
+        cursor_a = RegistrationService.generate_cursor(
             position={"changed": "2026-01-01T00:00:00Z", "registrationId": 1},
             scope_hash=scope_hash_a,
         )

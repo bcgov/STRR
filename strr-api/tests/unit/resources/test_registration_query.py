@@ -59,7 +59,7 @@ from strr_api.models import (
     db,
 )
 from strr_api.responses.RegistrationSerializer import RegistrationSerializer
-from strr_api.services.registration_query_service import RegistrationQueryService
+from strr_api.services.registration_service import RegistrationService
 from tests.unit.utils.auth_helpers import create_header
 
 READ_SCOPE = OAuthScope.REGISTRATIONS_READ.value
@@ -354,32 +354,32 @@ def test_platform_serializer(platform_registration):
 def test_cursor_generation_and_tampering(app):
     """Verify HMAC cursor generation, verification, and tamper resistance."""
     with app.app_context():
-        scope_hash = RegistrationQueryService.compute_scope_hash(
+        scope_hash = RegistrationService.compute_scope_hash(
             updated_since=datetime(2026, 9, 1, tzinfo=timezone.utc),
             registration_numbers=None,
         )
         position = {"changed": "2026-09-07T18:42:11.203000Z", "registrationId": 4821}
-        cursor = RegistrationQueryService.generate_cursor(position, scope_hash)
+        cursor = RegistrationService.generate_cursor(position, scope_hash)
         assert cursor is not None
         assert "." in cursor
 
         # Successful decode
-        decoded = RegistrationQueryService.decode_and_validate_cursor(cursor, scope_hash)
+        decoded = RegistrationService.decode_and_validate_cursor(cursor, scope_hash)
         assert decoded["registrationId"] == 4821
         assert decoded["changed"] == "2026-09-07T18:42:11.203000Z"
 
         # Tampered signature
         tampered_sig_cursor = cursor[:-3] + "xyz"
         with pytest.raises(ValidationException, match="Invalid cursor signature or tampered token"):
-            RegistrationQueryService.decode_and_validate_cursor(tampered_sig_cursor, scope_hash)
+            RegistrationService.decode_and_validate_cursor(tampered_sig_cursor, scope_hash)
 
         # Mismatched scope hash (e.g. reused with different filters)
-        different_scope_hash = RegistrationQueryService.compute_scope_hash(
+        different_scope_hash = RegistrationService.compute_scope_hash(
             updated_since=datetime(2026, 9, 2, tzinfo=timezone.utc),
             registration_numbers=None,
         )
         with pytest.raises(ValidationException, match="Cursor filter scope does not match"):
-            RegistrationQueryService.decode_and_validate_cursor(cursor, different_scope_hash)
+            RegistrationService.decode_and_validate_cursor(cursor, different_scope_hash)
 
 
 # =============================================================================

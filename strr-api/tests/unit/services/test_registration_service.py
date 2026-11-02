@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests for registration service methods."""
+# pylint: disable=redefined-outer-name,protected-access
 
 import json
 from datetime import datetime, timezone
@@ -39,6 +40,7 @@ from datetime import datetime, timezone
 import pytest
 
 from strr_api.enums.enum import PropertyType, RegistrationStatus
+from strr_api.exceptions import ValidationException
 from strr_api.models import (
     Address,
     Contact,
@@ -387,3 +389,90 @@ def test_create_host_registration_with_cohost_address(session):
     assert secondary_pc.contact.address.street_address_additional == "Suite 5"
     assert secondary_pc.contact.address.city == "Victoria"
     assert secondary_pc.contact.address.postal_code == "V8V 2B2"
+
+
+def test_registration_query_cursor_lifecycle_and_tampering(app):
+    """Test cursor generation, validation, tampering, and scope matching in RegistrationService."""
+    with app.app_context():
+        scope_hash = RegistrationService.compute_scope_hash(
+            updated_since=datetime(2026, 9, 1, tzinfo=timezone.utc),
+            registration_numbers=None,
+        )
+        position = {"changed": "2026-09-07T18:42:11.203000Z", "registrationId": 4821}
+        cursor = RegistrationService.generate_cursor(position, scope_hash)
+        assert cursor is not None
+        assert "." in cursor
+
+        # Decode valid cursor
+        decoded = RegistrationService.decode_and_validate_cursor(cursor, scope_hash)
+        assert decoded["registrationId"] == 4821
+        assert decoded["changed"] == "2026-09-07T18:42:11.203000Z"
+
+        # Tampered signature
+        tampered = cursor[:-4] + "abcd"
+        with pytest.raises(ValidationException, match="Invalid cursor signature or tampered token"):
+            RegistrationService.decode_and_validate_cursor(tampered, scope_hash)
+
+        # Mismatched scope hash
+        other_scope = RegistrationService.compute_scope_hash(
+            updated_since=datetime(2026, 9, 2, tzinfo=timezone.utc),
+            registration_numbers=None,
+        )
+        with pytest.raises(ValidationException, match="Cursor filter scope does not match"):
+            RegistrationService.decode_and_validate_cursor(cursor, other_scope)
+
+        # Malformed cursor
+        with pytest.raises(ValidationException, match="Invalid cursor format"):
+            RegistrationService.decode_and_validate_cursor("not-a-valid-cursor", scope_hash)
+
+
+def test_registration_query_execute_query_validations(app):
+    """Test parameter validations on RegistrationService.execute_query."""
+    with app.app_context():
+        # Invalid limit
+        with pytest.raises(ValidationException, match="Page limit must be an integer"):
+            RegistrationService.execute_query({"limit": 0}, can_export=True)
+        with pytest.raises(ValidationException, match="Page limit must be an integer"):
+            RegistrationService.execute_query({"limit": 501}, can_export=True)
+
+        # Missing export capability for broad sync
+        with pytest.raises(ValidationException, match="Full synchronization feed requires"):
+            RegistrationService.execute_query({}, can_export=False)
+
+        # Missing read capability for targeted lookup
+        with pytest.raises(ValidationException, match="Targeted registration lookup requires"):
+            RegistrationService.execute_query({"registrationNumbers": ["REG-123"]}, can_read=False)
+
+
+def test_registration_query_execute_query_targeted_lookup(app, session, host_registration):
+    """Test targeted lookup execution through RegistrationService.execute_query."""
+    with app.app_context():
+        reg = host_registration["registration"]
+        payload = {
+            "registrationNumbers": [
+                reg.registration_number,
+                "NOT-EXIST-999",
+                "INV!@",
+            ]
+        }
+        res = RegistrationService.execute_query(payload, can_read=True)
+        assert "items" in res
+        assert len(res["items"]) == 1
+        assert res["items"][0]["registrationNumber"] == reg.registration_number
+
+        assert "errors" in res
+        error_codes = {e["code"] for e in res["errors"]}
+        assert "NOT_FOUND" in error_codes
+        assert "INVALID_REGISTRATION_NUMBER" in error_codes
+
+
+def test_registration_query_execute_query_cdc(app, session, host_registration):
+    """Test CDC query execution through RegistrationService.execute_query."""
+    with app.app_context():
+        reg = host_registration["registration"]
+        res = RegistrationService.execute_query({}, can_export=True)
+        assert "items" in res
+        assert any(
+            item["registrationNumber"] == reg.registration_number
+            for item in res["items"]
+        )
