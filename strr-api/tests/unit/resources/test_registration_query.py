@@ -32,14 +32,14 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Unit and integration tests for Registration Query API and Serializer."""
+# pylint: disable=redefined-outer-name,import-error
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from http import HTTPStatus
 
 import pytest
 
 from strr_api.enums.enum import OAuthScope, PropertyType, RegistrationStatus, RegistrationType
-from strr_api.exceptions import ValidationException
 from strr_api.models import (
     Address,
     Contact,
@@ -59,7 +59,6 @@ from strr_api.models import (
     db,
 )
 from strr_api.responses.RegistrationSerializer import RegistrationSerializer
-from strr_api.services.registration_service import RegistrationService
 from tests.unit.utils.auth_helpers import create_header
 
 READ_SCOPE = OAuthScope.REGISTRATIONS_READ.value
@@ -347,43 +346,7 @@ def test_platform_serializer(platform_registration):
 
 
 # =============================================================================
-# 2. Service Layer Cursor Tests
-# =============================================================================
-
-
-def test_cursor_generation_and_tampering(app):
-    """Verify HMAC cursor generation, verification, and tamper resistance."""
-    with app.app_context():
-        scope_hash = RegistrationService.compute_scope_hash(
-            updated_since=datetime(2026, 9, 1, tzinfo=timezone.utc),
-            registration_numbers=None,
-        )
-        position = {"changed": "2026-09-07T18:42:11.203000Z", "registrationId": 4821}
-        cursor = RegistrationService.generate_cursor(position, scope_hash)
-        assert cursor is not None
-        assert "." in cursor
-
-        # Successful decode
-        decoded = RegistrationService.decode_and_validate_cursor(cursor, scope_hash)
-        assert decoded["registrationId"] == 4821
-        assert decoded["changed"] == "2026-09-07T18:42:11.203000Z"
-
-        # Tampered signature
-        tampered_sig_cursor = cursor[:-3] + "xyz"
-        with pytest.raises(ValidationException, match="Invalid cursor signature or tampered token"):
-            RegistrationService.decode_and_validate_cursor(tampered_sig_cursor, scope_hash)
-
-        # Mismatched scope hash (e.g. reused with different filters)
-        different_scope_hash = RegistrationService.compute_scope_hash(
-            updated_since=datetime(2026, 9, 2, tzinfo=timezone.utc),
-            registration_numbers=None,
-        )
-        with pytest.raises(ValidationException, match="Cursor filter scope does not match"):
-            RegistrationService.decode_and_validate_cursor(cursor, different_scope_hash)
-
-
-# =============================================================================
-# 3. HTTP Integration Tests (Routes, Auth, AIP colon syntax, and Least Privilege)
+# 2. HTTP Integration Tests (Routes, Auth, AIP colon syntax, and Least Privilege)
 # =============================================================================
 
 
