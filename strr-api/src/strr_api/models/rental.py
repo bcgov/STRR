@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
@@ -26,6 +27,8 @@ from .db import db
 # Avoid Circular Import Error
 if TYPE_CHECKING:
     from strr_api.models.dataclass import RegistrationSearch
+
+logger = logging.getLogger("api")
 
 
 class Registration(Versioned, BaseModel):
@@ -132,18 +135,35 @@ class Registration(Versioned, BaseModel):
     @classmethod
     def search_registrations(cls, filter_criteria: RegistrationSearch):
         """Returns the registrations matching the search criteria."""
+        import time
+        from strr_api.models.user import Contact
+        from strr_api.models.platforms import Platform, PlatformRegistration
+        from strr_api.models.strata_hotels import (
+            StrataHotel,
+            StrataHotelBuilding,
+            StrataHotelRegistration,
+            StrataHotelRepresentative,
+        )
+
         query = cls.query.options(
-            selectinload(Registration.rental_property).selectinload(RentalProperty.contacts).selectinload(PropertyContact.contact),
+            selectinload(Registration.rental_property).selectinload(RentalProperty.contacts).selectinload(PropertyContact.contact).selectinload(Contact.address),
             selectinload(Registration.rental_property).selectinload(RentalProperty.address),
-            selectinload(Registration.rental_property).selectinload(RentalProperty.property_manager),
+            selectinload(Registration.rental_property).selectinload(RentalProperty.property_listings),
+            selectinload(Registration.rental_property).selectinload(RentalProperty.property_manager).selectinload(PropertyManager.primary_contact).selectinload(Contact.address),
+            selectinload(Registration.rental_property).selectinload(RentalProperty.property_manager).selectinload(PropertyManager.business_mailing_address),
             selectinload(Registration.documents),
             selectinload(Registration.nocs),
             selectinload(Registration.conditionsOfApproval),
             selectinload(Registration.snapshots),
             selectinload(Registration.reviewer),
             selectinload(Registration.decider),
-            selectinload(Registration.platform_registration),
-            selectinload(Registration.strata_hotel_registration),
+            selectinload(Registration.platform_registration).selectinload(PlatformRegistration.platform).selectinload(Platform.mailingAddress),
+            selectinload(Registration.platform_registration).selectinload(PlatformRegistration.platform).selectinload(Platform.registered_office_attorney_mailing_address),
+            selectinload(Registration.strata_hotel_registration).selectinload(StrataHotelRegistration.strata_hotel).selectinload(StrataHotel.representatives).selectinload(StrataHotelRepresentative.contact).selectinload(Contact.address),
+            selectinload(Registration.strata_hotel_registration).selectinload(StrataHotelRegistration.strata_hotel).selectinload(StrataHotel.buildings).selectinload(StrataHotelBuilding.address),
+            selectinload(Registration.strata_hotel_registration).selectinload(StrataHotelRegistration.strata_hotel).selectinload(StrataHotel.location),
+            selectinload(Registration.strata_hotel_registration).selectinload(StrataHotelRegistration.strata_hotel).selectinload(StrataHotel.mailingAddress),
+            selectinload(Registration.strata_hotel_registration).selectinload(StrataHotelRegistration.strata_hotel).selectinload(StrataHotel.registered_office_attorney_mailing_address),
         )
         query = cls._apply_base_search_filters(query, filter_criteria)
         if filter_criteria.requirements:
@@ -160,7 +180,17 @@ class Registration(Versioned, BaseModel):
             query = query.order_by(sort_column.asc())
         else:
             query = query.order_by(sort_column.desc())
+
+        start_time = time.perf_counter()
         paginated_result = query.paginate(per_page=filter_criteria.limit, page=filter_criteria.page)
+        query_duration_ms = (time.perf_counter() - start_time) * 1000
+        logger.info(
+            "Registration search SQL query executed in %.2f ms [total=%d, page=%d, limit=%d]",
+            query_duration_ms,
+            paginated_result.total,
+            filter_criteria.page,
+            filter_criteria.limit,
+        )
         return paginated_result
 
     @classmethod

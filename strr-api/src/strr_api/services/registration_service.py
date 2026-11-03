@@ -1276,16 +1276,21 @@ class RegistrationService:
     @staticmethod
     def search_registrations(filter_criteria: RegistrationSearch) -> dict:
         """List all registrations matching the search criteria."""
+        import time
         from collections import defaultdict
         from sqlalchemy.orm import selectinload
         from strr_api.models.application import Application
 
+        total_start = time.perf_counter()
         paginated_result = Registration.search_registrations(filter_criteria)
+        sql_duration_ms = (time.perf_counter() - total_start) * 1000
+
         search_results = []
         noc_reg_dicts = []
         all_file_keys = []
 
         # Batch-fetch applications to eliminate N+1 subqueries during serialization
+        apps_start = time.perf_counter()
         registration_ids = [item.id for item in paginated_result.items]
         applications_by_reg_id = defaultdict(list)
         if registration_ids:
@@ -1300,7 +1305,9 @@ class RegistrationService:
             )
             for app in batch_apps:
                 applications_by_reg_id[app.registration_id].append(app)
+        apps_duration_ms = (time.perf_counter() - apps_start) * 1000
 
+        serialize_start = time.perf_counter()
         for item in paginated_result.items:
             reg_dict = RegistrationService.serialize(
                 item, applications=applications_by_reg_id.get(item.id, [])
@@ -1315,6 +1322,21 @@ class RegistrationService:
         timestamps = GCPStorageService.get_batch_registration_document_creation_times(all_file_keys)
         for reg_dict in noc_reg_dicts:
             RegistrationService._apply_document_timestamps(reg_dict, timestamps)
+        serialize_duration_ms = (time.perf_counter() - serialize_start) * 1000
+        total_duration_ms = (time.perf_counter() - total_start) * 1000
+
+        logger.info(
+            "Registration search finished in %.2f ms (sql_query=%.2f ms, batch_apps=%.2f ms, serialize=%.2f ms) "
+            "[returned=%d, total=%d, page=%d, limit=%d]",
+            total_duration_ms,
+            sql_duration_ms,
+            apps_duration_ms,
+            serialize_duration_ms,
+            len(search_results),
+            paginated_result.total,
+            filter_criteria.page,
+            filter_criteria.limit,
+        )
 
         return {
             "page": filter_criteria.page,

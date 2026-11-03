@@ -84,6 +84,14 @@ def create_app(environment: Config = Production, **kwargs) -> Flask:
         register_endpoints(app)
         setup_jwt_manager(app, jwt)
 
+        @app.url_value_preprocessor
+        def auto_coerce_int_url_params(endpoint, values):  # pylint: disable=unused-argument
+            """Coerce numeric ID URL parameters from string to integer for typed DB drivers (e.g. pg8000)."""
+            if values:
+                for key, val in values.items():
+                    if (key == "id" or key.endswith("_id")) and isinstance(val, str) and val.isdigit():
+                        values[key] = int(val)
+
         @app.after_request
         def add_version(response):  # pylint: disable=unused-variable
             version = get_run_version()
