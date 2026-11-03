@@ -688,7 +688,11 @@ class RegistrationService:
     def get_registration(cls, account_id, registration_id):
         """Get registration by id for current user. Examiners are exempted from user_id check."""
         UserService.get_or_create_user_in_context()
-        query = Registration.query.filter_by(id=registration_id)
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return None
+        query = Registration.query.filter_by(id=reg_id)
         if not UserService.is_strr_staff_or_system():
             query = query.filter_by(sbc_account_id=account_id)
         return query.one_or_none()
@@ -696,7 +700,11 @@ class RegistrationService:
     @classmethod
     def get_registration_by_id(cls, registration_id):
         """Get registration by id."""
-        return Registration.query.filter_by(id=registration_id).one_or_none()
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return None
+        return Registration.query.filter_by(id=reg_id).one_or_none()
 
     @classmethod
     def find_by_registration_number(cls, registration_number):

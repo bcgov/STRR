@@ -260,7 +260,11 @@ class Application(BaseModel):
     @classmethod
     def get_all_by_registration_id(cls, registration_id: int) -> list[Application]:
         """Return all applications associated with a given registration_id."""
-        return cls.query.filter_by(registration_id=registration_id).all()
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return []
+        return cls.query.filter_by(registration_id=reg_id).all()
 
     @classmethod
     def find_non_terminal_renewal_for_payment_account(
