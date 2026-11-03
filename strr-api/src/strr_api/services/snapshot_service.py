@@ -61,7 +61,12 @@ class SnapshotService:
     @staticmethod
     def get_snapshot(registration_id: int, snapshot_id: int) -> Optional[RegistrationSnapshot]:
         """Fetch a snapshot belonging to a registration."""
-        return RegistrationSnapshot.query.filter_by(registration_id=registration_id, id=snapshot_id).one_or_none()
+        try:
+            reg_id = int(registration_id)
+            snap_id = int(snapshot_id)
+        except (ValueError, TypeError):
+            return None
+        return RegistrationSnapshot.query.filter_by(registration_id=reg_id, id=snap_id).one_or_none()
 
     @staticmethod
     def serialize(snapshot: RegistrationSnapshot) -> dict:

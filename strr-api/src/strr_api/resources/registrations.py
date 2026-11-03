@@ -196,7 +196,7 @@ def get_registration(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<int:registration_id>/snapshots/<snapshot_id>", methods=("GET",))
+@bp.route("/<int:registration_id>/snapshots/<int:snapshot_id>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
