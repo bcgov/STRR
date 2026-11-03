@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: BC Short-Term Rental Registry - Registration Query API
   version: '1.0.0'
@@ -27,14 +27,15 @@ security:
   - apiKeyAuth: []
 paths:
   /registrations:query:
-    post:
+    post: &query_operation
       tags:
         - Registration Query
-      summary: Query current registration snapshots
-      operationId: queryRegistrations
+      summary: Query current registration snapshots via POST (AIP-136 custom method)
+      operationId: queryRegistrationsPost
       description: |-
         Returns a paginated list of complete current registration snapshots (`HOST`, `PLATFORM`, `STRATA_HOTEL`).
-        - **Supported HTTP Methods:** Supports both `POST` and safe `QUERY` methods.
+        - **Supported URI Styles:** Both AIP-136 custom method syntax (`/registrations:query`) and standard REST hierarchical syntax (`/registrations/query`) are fully supported and interchangeable.
+        - **Supported HTTP Verbs:** Accepts standard `POST` and safe/idempotent `QUERY` methods (IETF draft-ietf-httpbis-safe-method-w-body).
         - **CDC Sync Feed:** Provide `updatedSince` (or omit on initial baseline sync) and `cursor`.
         - **Targeted Lookup:** Provide `registrationNumbers` for direct lookup (max 500).
         - Consuming applications call through the Apigee API Gateway from their backend services using their provisioned B2B API key (`x-apikey`).
@@ -335,6 +336,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
+
+    query:
+      <<: *query_operation
+      tags:
+        - Registration Query
+      summary: Query current registration snapshots via QUERY (AIP-136 custom method)
+      operationId: queryRegistrationsQuery
+
+  /registrations/query:
+    post:
+      <<: *query_operation
+      tags:
+        - Registration Query
+      summary: Query current registration snapshots via POST (REST endpoint)
+      operationId: queryRegistrationsRestPost
+      description: |-
+        Equivalent REST-style alias for `/registrations:query`.
+        Supports identical request payloads, query parameters, authentication, authorization, and response contracts.
+        - **Supported URI Styles:** Both AIP-136 custom method syntax (`/registrations:query`) and standard REST hierarchical syntax (`/registrations/query`) are fully supported and interchangeable.
+        - **Supported HTTP Verbs:** Accepts standard `POST` and safe/idempotent `QUERY` methods (IETF draft-ietf-httpbis-safe-method-w-body).
+    query:
+      <<: *query_operation
+      tags:
+        - Registration Query
+      summary: Query current registration snapshots via QUERY (REST endpoint)
+      operationId: queryRegistrationsRestQuery
+      description: |-
+        Equivalent REST-style alias for `/registrations:query`.
+        Supports identical request payloads, query parameters, authentication, authorization, and response contracts.
+        - **Supported URI Styles:** Both AIP-136 custom method syntax (`/registrations:query`) and standard REST hierarchical syntax (`/registrations/query`) are fully supported and interchangeable.
+        - **Supported HTTP Verbs:** Accepts standard `POST` and safe/idempotent `QUERY` methods (IETF draft-ietf-httpbis-safe-method-w-body).
 
 components:
   securitySchemes:
