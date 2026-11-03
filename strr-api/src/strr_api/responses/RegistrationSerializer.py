@@ -39,7 +39,7 @@ class RegistrationSerializer:
     }
 
     @classmethod
-    def serialize(cls, registration: Registration):
+    def serialize(cls, registration: Registration, applications: list[Application] | None = None):
         """Return a Registration object from a database model."""
         registration_data = {
             "id": registration.id,
@@ -81,7 +81,7 @@ class RegistrationSerializer:
                 for snapshot in sorted(registration.snapshots, key=lambda s: s.version, reverse=True)
             ]
 
-        RegistrationSerializer._populate_header_data(registration_data, registration)
+        RegistrationSerializer._populate_header_data(registration_data, registration, applications=applications)
 
         documents = []
         if registration.documents:
@@ -100,7 +100,9 @@ class RegistrationSerializer:
         registration_data["documents"] = documents
 
         if registration.registration_type == RegistrationType.HOST.value:
-            RegistrationSerializer.populate_host_registration_details(registration_data, registration)
+            RegistrationSerializer.populate_host_registration_details(
+                registration_data, registration, applications=applications
+            )
 
         elif registration.registration_type == RegistrationType.PLATFORM.value:
             RegistrationSerializer.populate_platform_registration_details(registration_data, registration)
@@ -111,7 +113,9 @@ class RegistrationSerializer:
         return registration_data
 
     @classmethod
-    def _populate_header_data(cls, registration_data: dict, registration: Registration):
+    def _populate_header_data(
+        cls, registration_data: dict, registration: Registration, applications: list[Application] | None = None
+    ):
         """Populates header data into response object."""
         registration_data["header"] = {}
         registration_data["header"]["isSetAside"] = registration.is_set_aside
@@ -125,7 +129,7 @@ class RegistrationSerializer:
         registration_data["header"]["examinerActions"] = cls._get_examiner_actions(registration)
         registration_data["header"]["assignee"] = cls._get_user_info(registration.reviewer_id, registration.reviewer)
         registration_data["header"]["decider"] = cls._get_user_info(registration.decider_id, registration.decider)
-        cls._populate_applications(registration_data, registration)
+        cls._populate_applications(registration_data, registration, applications=applications)
 
     @classmethod
     def _get_examiner_actions(cls, registration: Registration) -> list:
@@ -157,9 +161,12 @@ class RegistrationSerializer:
         return user_info
 
     @classmethod
-    def _populate_applications(cls, registration_data: dict, registration: Registration):
+    def _populate_applications(
+        cls, registration_data: dict, registration: Registration, applications: list[Application] | None = None
+    ):
         """Populate applications data."""
-        applications = Application.get_all_by_registration_id(registration.id)
+        if applications is None:
+            applications = Application.get_all_by_registration_id(registration.id)
         if not applications:
             return
 
@@ -239,7 +246,9 @@ class RegistrationSerializer:
         return value
 
     @classmethod
-    def populate_host_registration_details(cls, registration_data: dict, registration: Registration):
+    def populate_host_registration_details(
+        cls, registration_data: dict, registration: Registration, applications: list[Application] | None = None
+    ):
         """Populates host registration details into response object."""
         contacts = registration.rental_property.contacts or []
         primary_property_contact = next(
@@ -256,7 +265,7 @@ class RegistrationSerializer:
         )
         registration_data["unitAddress"] = cls._serialize_unit_address(registration.rental_property)
 
-        str_requirements = cls.get_str_requirements_from_application(registration)
+        str_requirements = cls.get_str_requirements_from_application(registration, applications=applications)
         bl_exp = registration.rental_property.local_business_licence_expiry_date
 
         registration_data["unitDetails"] = {
@@ -363,9 +372,12 @@ class RegistrationSerializer:
         return str_req.get("organizationNm") if str_req else None
 
     @classmethod
-    def get_str_requirements_from_application(cls, registration: Registration) -> Optional[dict]:
+    def get_str_requirements_from_application(
+        cls, registration: Registration, applications: list[Application] | None = None
+    ) -> Optional[dict]:
         """Returns the strRequirements from the most recent application."""
-        applications = Application.get_all_by_registration_id(registration.id)
+        if applications is None:
+            applications = Application.get_all_by_registration_id(registration.id)
         if not applications:
             return None
 

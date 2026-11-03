@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from sql_versioning import Versioned
 from sqlalchemy import Boolean, Enum, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy_utils.types.ts_vector import TSVectorType
 
 from strr_api.common.enum import BaseEnum, auto
@@ -132,7 +132,19 @@ class Registration(Versioned, BaseModel):
     @classmethod
     def search_registrations(cls, filter_criteria: RegistrationSearch):
         """Returns the registrations matching the search criteria."""
-        query = cls.query
+        query = cls.query.options(
+            selectinload(Registration.rental_property).selectinload(RentalProperty.contacts).selectinload(PropertyContact.contact),
+            selectinload(Registration.rental_property).selectinload(RentalProperty.address),
+            selectinload(Registration.rental_property).selectinload(RentalProperty.property_manager),
+            selectinload(Registration.documents),
+            selectinload(Registration.nocs),
+            selectinload(Registration.conditionsOfApproval),
+            selectinload(Registration.snapshots),
+            selectinload(Registration.reviewer),
+            selectinload(Registration.decider),
+            selectinload(Registration.platform_registration),
+            selectinload(Registration.strata_hotel_registration),
+        )
         query = cls._apply_base_search_filters(query, filter_criteria)
         if filter_criteria.requirements:
             query = cls._filter_by_registration_requirement(filter_criteria.requirements, query)
@@ -156,24 +168,27 @@ class Registration(Versioned, BaseModel):
         """Apply common registration filters before specialized filters."""
         if filter_criteria.account_id:
             query = query.filter(Registration.sbc_account_id == filter_criteria.account_id)
-        if filter_criteria.search_text:
+        if filter_criteria.search_text and filter_criteria.search_text.strip():
+            clean_search = filter_criteria.search_text.strip()
             query = query.filter(
                 db.or_(
-                    Registration.registration_tsv.match(filter_criteria.search_text),
-                    Registration.registration_number.ilike(f"%{filter_criteria.search_text}%"),
+                    Registration.registration_tsv.match(clean_search),
+                    Registration.registration_number.ilike(f"%{clean_search}%"),
                 )
             )
         if filter_criteria.statuses:
             query = query.filter(Registration.status.in_(filter_criteria.statuses))
         if filter_criteria.registration_types:
             query = query.filter(Registration.registration_type.in_(filter_criteria.registration_types))
-        if filter_criteria.record_number:
-            query = query.filter(Registration.registration_number.ilike(f"%{filter_criteria.record_number}%"))
-        if filter_criteria.assignee:
+        if filter_criteria.record_number and filter_criteria.record_number.strip():
+            clean_record_number = filter_criteria.record_number.strip()
+            query = query.filter(Registration.registration_number.ilike(f"%{clean_record_number}%"))
+        if filter_criteria.assignee and filter_criteria.assignee.strip():
             from strr_api.models import User  # pylint: disable=import-outside-toplevel
 
+            clean_assignee = filter_criteria.assignee.strip()
             query = query.join(User, Registration.reviewer_id == User.id).filter(
-                User.username.ilike(f"%{filter_criteria.assignee}%")
+                User.username.ilike(f"%{clean_assignee}%")
             )
         return query
 
@@ -543,18 +558,51 @@ class Registration(Versioned, BaseModel):
         - no registration level or latest application decision exists yet
         - latest application is still in provisional review queue
         """
+        from strr_api.enums.enum import ApplicationType
         from strr_api.models.application import Application
 
         provisional_statuses = [
             Application.Status.PROVISIONALLY_APPROVED.value,
             Application.Status.PROVISIONAL_REVIEW.value,
         ]
-        latest_app_decider_subq = cls._latest_application_field_subquery(Application, Application.decider_id)
+
+        # Use set-based DISTINCT ON (registration_id) subquery to evaluate the latest
+        # application in a single pass instead of per-row correlated scalar subqueries.
+        latest_app_subq = (
+            select(
+                Application.registration_id.label("app_reg_id"),
+                Application.status.label("latest_status"),
+                Application.decider_id.label("latest_decider_id"),
+            )
+            .distinct(Application.registration_id)
+            .order_by(Application.registration_id, Application.application_date.desc())
+            .subquery("latest_app")
+        )
+
+        has_renewal_subq = (
+            select(Application.registration_id.label("renewal_reg_id"))
+            .where(
+                Application.type == ApplicationType.RENEWAL.value,
+                Application.status.notin_(
+                    [
+                        Application.Status.DRAFT.value,
+                        Application.Status.PAYMENT_DUE.value,
+                    ]
+                ),
+            )
+            .distinct()
+            .subquery("has_renewal")
+        )
+
         return db.and_(
-            cls._has_renewal_filed_condition(),
+            Registration.id.in_(select(has_renewal_subq.c.renewal_reg_id)),
             Registration.decider_id.is_(None),
-            latest_app_decider_subq.is_(None),
-            cls._approval_method_condition(provisional_statuses),
+            Registration.id.in_(
+                select(latest_app_subq.c.app_reg_id).where(
+                    latest_app_subq.c.latest_decider_id.is_(None),
+                    latest_app_subq.c.latest_status.in_(provisional_statuses),
+                )
+            ),
         )
 
     @classmethod

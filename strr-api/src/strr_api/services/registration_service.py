@@ -757,9 +757,9 @@ class RegistrationService:
         return query.order_by(Certificate.issued_date.desc()).limit(1).one_or_none()
 
     @classmethod
-    def serialize(cls, registration: Registration) -> dict:
+    def serialize(cls, registration: Registration, applications: list = None) -> dict:
         """Returns registration JSON."""
-        return RegistrationSerializer.serialize(registration=registration)
+        return RegistrationSerializer.serialize(registration=registration, applications=applications)
 
     @classmethod
     def enrich_document_added_on_from_gcp(cls, registration_dict: dict) -> None:
@@ -1268,12 +1268,35 @@ class RegistrationService:
     @staticmethod
     def search_registrations(filter_criteria: RegistrationSearch) -> dict:
         """List all registrations matching the search criteria."""
+        from collections import defaultdict
+        from sqlalchemy.orm import selectinload
+        from strr_api.models.application import Application
+
         paginated_result = Registration.search_registrations(filter_criteria)
         search_results = []
         noc_reg_dicts = []
         all_file_keys = []
+
+        # Batch-fetch applications to eliminate N+1 subqueries during serialization
+        registration_ids = [item.id for item in paginated_result.items]
+        applications_by_reg_id = defaultdict(list)
+        if registration_ids:
+            batch_apps = (
+                Application.query
+                .filter(Application.registration_id.in_(registration_ids))
+                .options(
+                    selectinload(Application.reviewer),
+                    selectinload(Application.decider),
+                )
+                .all()
+            )
+            for app in batch_apps:
+                applications_by_reg_id[app.registration_id].append(app)
+
         for item in paginated_result.items:
-            reg_dict = RegistrationService.serialize(item)
+            reg_dict = RegistrationService.serialize(
+                item, applications=applications_by_reg_id.get(item.id, [])
+            )
             search_results.append(reg_dict)
             if item.noc_status:
                 noc_reg_dicts.append(reg_dict)
