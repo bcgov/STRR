@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Tests for registration service methods."""
+
 # pylint: disable=redefined-outer-name,protected-access
 
 import json
@@ -472,7 +473,4 @@ def test_registration_query_execute_query_cdc(app, session, host_registration):
         reg = host_registration["registration"]
         res = RegistrationService.execute_query({}, can_export=True)
         assert "items" in res
-        assert any(
-            item["registrationNumber"] == reg.registration_number
-            for item in res["items"]
-        )
+        assert any(item["registrationNumber"] == reg.registration_number for item in res["items"])

@@ -189,13 +189,9 @@ class RegistrationSerializer:
         strata_hotel: StrataHotel = registration.strata_hotel_registration.strata_hotel
         registration_data["businessDetails"] = cls._serialize_query_business_details(strata_hotel)
         registration_data["strataHotelRepresentatives"] = [
-            cls._serialize_person_contact(representative.contact)
-            for representative in strata_hotel.representatives
+            cls._serialize_person_contact(representative.contact) for representative in strata_hotel.representatives
         ]
-        buildings = [
-            cls._serialize_mailing_address(building.address)
-            for building in strata_hotel.buildings
-        ]
+        buildings = [cls._serialize_mailing_address(building.address) for building in strata_hotel.buildings]
         registration_data["strataHotelDetails"] = {
             "brand": {"name": strata_hotel.brand_name, "website": strata_hotel.website},
             "location": cls._serialize_mailing_address(strata_hotel.location),
@@ -219,8 +215,7 @@ class RegistrationSerializer:
         registration_data["businessDetails"] = business_details
 
         registration_data["platformRepresentatives"] = [
-            cls._serialize_person_contact(representative.contact)
-            for representative in platform.representatives
+            cls._serialize_person_contact(representative.contact) for representative in platform.representatives
         ]
         platform_brands = [{"name": brand.name, "website": brand.website} for brand in platform.brands]
         registration_data["platformDetails"] = {"brands": platform_brands, "listingSize": platform.listing_size}
@@ -246,87 +241,28 @@ class RegistrationSerializer:
     @classmethod
     def populate_host_registration_details(cls, registration_data: dict, registration: Registration):
         """Populates host registration details into response object."""
-
-        primary_property_contact = list(filter(lambda x: x.is_primary is True, registration.rental_property.contacts))[
-            0
-        ]
-        secondary_property_contacts = list(
-            filter(lambda x: x.is_primary is False, registration.rental_property.contacts)
+        contacts = registration.rental_property.contacts or []
+        primary_property_contact = next(
+            (x for x in contacts if x.is_primary is True), contacts[0] if contacts else None
         )
-        secondary_property_contact = secondary_property_contacts[0] if secondary_property_contacts else None
-
+        secondary_property_contact = next((x for x in contacts if x.is_primary is False), None)
         registration_json = registration.registration_json or {}
 
-        registration_data["primaryContact"] = {
-            "firstName": primary_property_contact.contact.firstname,
-            "middleName": primary_property_contact.contact.middlename,
-            "lastName": primary_property_contact.contact.lastname,
-            "dateOfBirth": (
-                primary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
-                if primary_property_contact.contact.date_of_birth
-                else None
-            ),
-            "socialInsuranceNumber": primary_property_contact.contact.social_insurance_number,
-            "businessNumber": primary_property_contact.contact.business_number,
-            "contactType": primary_property_contact.contact_type,
-            "businessLegalName": primary_property_contact.business_legal_name,
-            "preferredName": primary_property_contact.contact.preferredname,
-            "phoneNumber": primary_property_contact.contact.phone_number,
-            "phoneCountryCode": primary_property_contact.contact.phone_country_code,
-            "extension": primary_property_contact.contact.phone_extension,
-            "faxNumber": primary_property_contact.contact.fax_number,
-            "emailAddress": cls._get_override_value(
-                registration_json, "primaryContact.emailAddress", primary_property_contact.contact.email
-            ),
-            "mailingAddress": cls._serialize_mailing_address(primary_property_contact.contact.address),
-        }
+        registration_data["primaryContact"] = cls._serialize_query_host_contact(
+            primary_property_contact, reg_json=registration_json, include_pii=True, is_primary=True
+        )
+        registration_data["secondaryContact"] = cls._serialize_query_host_contact(
+            secondary_property_contact, reg_json=registration_json, include_pii=True, is_primary=False
+        )
+        registration_data["unitAddress"] = cls._serialize_unit_address(registration.rental_property)
 
-        registration_data["secondaryContact"] = None
-        if secondary_property_contact:
-            registration_data["secondaryContact"] = {
-                "firstName": secondary_property_contact.contact.firstname,
-                "middleName": secondary_property_contact.contact.middlename,
-                "lastName": secondary_property_contact.contact.lastname,
-                "dateOfBirth": (
-                    secondary_property_contact.contact.date_of_birth.strftime("%Y-%m-%d")
-                    if secondary_property_contact.contact.date_of_birth
-                    else None
-                ),
-                "socialInsuranceNumber": secondary_property_contact.contact.social_insurance_number,
-                "contactType": secondary_property_contact.contact_type,
-                "businessNumber": secondary_property_contact.contact.business_number,
-                "preferredName": secondary_property_contact.contact.preferredname,
-                "phoneNumber": secondary_property_contact.contact.phone_number,
-                "phoneCountryCode": secondary_property_contact.contact.phone_country_code,
-                "extension": secondary_property_contact.contact.phone_extension,
-                "faxNumber": secondary_property_contact.contact.fax_number,
-                "emailAddress": cls._get_override_value(
-                    registration_json, "secondaryContact.emailAddress", secondary_property_contact.contact.email
-                ),
-                "mailingAddress": cls._serialize_mailing_address(secondary_property_contact.contact.address),
-            }
-
-        registration_data["unitAddress"] = {
-            "unitNumber": registration.rental_property.address.unit_number,
-            "streetNumber": registration.rental_property.address.street_number,
-            "streetName": registration.rental_property.address.street_address,
-            "addressLineTwo": registration.rental_property.address.street_address_additional,
-            "city": registration.rental_property.address.city,
-            "postalCode": registration.rental_property.address.postal_code,
-            "province": registration.rental_property.address.province,
-            "country": registration.rental_property.address.country,
-            "nickname": registration.rental_property.nickname,
-            "locationDescription": registration.rental_property.address.location_description,
-        }
+        str_requirements = cls.get_str_requirements_from_application(registration)
+        bl_exp = registration.rental_property.local_business_licence_expiry_date
 
         registration_data["unitDetails"] = {
             "parcelIdentifier": registration.rental_property.parcel_identifier,
             "businessLicense": registration.rental_property.local_business_licence,
-            "businessLicenseExpiryDate": (
-                registration.rental_property.local_business_licence_expiry_date.strftime("%Y-%m-%d")
-                if registration.rental_property.local_business_licence_expiry_date
-                else None
-            ),
+            "businessLicenseExpiryDate": bl_exp.strftime("%Y-%m-%d") if bl_exp else None,
             "blExemptReason": registration.rental_property.bl_exempt_reason,
             "propertyType": registration.rental_property.property_type.name,
             "ownershipType": registration.rental_property.ownership_type,
@@ -337,15 +273,14 @@ class RegistrationSerializer:
             "strataHotelRegistrationNumber": registration.rental_property.strata_hotel_registration_number,
             "prExemptReason": registration.rental_property.pr_exempt_reason,
             "strataHotelCategory": registration.rental_property.strata_hotel_category,
-            "jurisdiction": RegistrationSerializer.get_jurisdiction_from_application(registration),
+            "jurisdiction": registration.rental_property.jurisdiction
+            or (str_requirements.get("organizationNm") if str_requirements else None),
             "prRequired": registration.rental_property.pr_required,
             "blRequired": registration.rental_property.bl_required,
             "rentalUnitSetupOption": registration.rental_property.rental_space_option,
             "hostType": registration.rental_property.host_type,
         }
 
-        # Add strRequirements from application (source of truth)
-        str_requirements = RegistrationSerializer.get_str_requirements_from_application(registration)
         if str_requirements:
             registration_data["strRequirements"] = str_requirements
 
@@ -385,7 +320,6 @@ class RegistrationSerializer:
                     )
 
             registration_data["propertyManager"]["propertyManagerType"] = property_manager.property_manager_type
-            # Preserve initiatedByPropertyManager flag in registrations
             registration_data["propertyManager"]["initiatedByPropertyManager"] = cls._get_initiated_by_property_manager(
                 registration
             )
@@ -402,28 +336,23 @@ class RegistrationSerializer:
     @classmethod
     def _build_primary_contact_dict(cls, primary_contact) -> dict:
         """Build a dictionary of primary contact information, handling None safely."""
-        if not primary_contact:
-            return {
-                "firstName": None,
-                "lastName": None,
-                "middleName": None,
-                "preferredName": None,
-                "phoneNumber": None,
-                "phoneCountryCode": None,
-                "extension": None,
-                "faxNumber": None,
-                "emailAddress": None,
-            }
+        person = cls._serialize_person_contact(primary_contact)
+        if person:
+            person.pop("jobTitle", None)
+            return person
         return {
-            "firstName": primary_contact.firstname,
-            "lastName": primary_contact.lastname,
-            "middleName": primary_contact.middlename,
-            "preferredName": primary_contact.preferredname,
-            "phoneNumber": primary_contact.phone_number,
-            "phoneCountryCode": primary_contact.phone_country_code,
-            "extension": primary_contact.phone_extension,
-            "faxNumber": primary_contact.fax_number,
-            "emailAddress": primary_contact.email,
+            k: None
+            for k in (
+                "firstName",
+                "lastName",
+                "middleName",
+                "preferredName",
+                "phoneNumber",
+                "phoneCountryCode",
+                "extension",
+                "faxNumber",
+                "emailAddress",
+            )
         }
 
     @classmethod
@@ -464,9 +393,14 @@ class RegistrationSerializer:
         if reg_type == RegistrationType.HOST.value:
             cls._populate_query_host(snapshot, registration, include_pii)
         elif reg_type == RegistrationType.PLATFORM.value:
-            cls._populate_query_platform(snapshot, registration)
+            if registration.platform_registration and registration.platform_registration.platform:
+                cls.populate_platform_registration_details(snapshot, registration)
         elif reg_type == RegistrationType.STRATA_HOTEL.value:
-            cls._populate_query_strata_hotel(snapshot, registration)
+            if registration.strata_hotel_registration and registration.strata_hotel_registration.strata_hotel:
+                cls.populate_strata_hotel_registration_details(snapshot, registration)
+                snapshot["strataHotelDetails"]["unitListings"] = cls._normalize_unit_listings(
+                    snapshot["strataHotelDetails"].get("unitListings")
+                )
 
         return snapshot
 
@@ -485,20 +419,7 @@ class RegistrationSerializer:
             primary_c, reg_json=reg_json, include_pii=include_pii, is_primary=True
         )
         snapshot["secondaryContact"] = cls._serialize_query_host_contact(secondary_c, is_primary=False)
-
-        addr = rental.address
-        snapshot["unitAddress"] = {
-            "unitNumber": addr.unit_number if addr else None,
-            "streetNumber": addr.street_number if addr else None,
-            "streetName": addr.street_address if addr else None,
-            "addressLineTwo": addr.street_address_additional if addr else None,
-            "city": addr.city if addr else None,
-            "province": addr.province if addr else None,
-            "postalCode": addr.postal_code if addr else None,
-            "country": addr.country if addr else None,
-            "nickname": rental.nickname,
-            "locationDescription": addr.location_description if addr else None,
-        }
+        snapshot["unitAddress"] = cls._serialize_unit_address(rental)
 
         str_req = cls.get_str_requirements_from_application(reg)
         app_jurisdiction = str_req.get("organizationNm") if str_req else None
@@ -519,55 +440,34 @@ class RegistrationSerializer:
             "rentalUnitSetupOption": cls._enum_val(rental.rental_space_option),
             "hostType": cls._enum_val(rental.host_type),
         }
-        snapshot["strRequirements"] = {
-            "organizationNm": str_req.get("organizationNm"),
-            "isPrincipalResidenceRequired": str_req.get("isPrincipalResidenceRequired"),
-            "isBusinessLicenceRequired": str_req.get("isBusinessLicenceRequired"),
-            "isStrProhibited": str_req.get("isStrProhibited"),
-            "isStraaExempt": str_req.get("isStraaExempt"),
-        } if str_req else None
-        snapshot["propertyManager"] = cls._serialize_query_property_manager(rental.property_manager, reg_json)
+        snapshot["strRequirements"] = (
+            {
+                "organizationNm": str_req.get("organizationNm"),
+                "isPrincipalResidenceRequired": str_req.get("isPrincipalResidenceRequired"),
+                "isBusinessLicenceRequired": str_req.get("isBusinessLicenceRequired"),
+                "isStrProhibited": str_req.get("isStrProhibited"),
+                "isStraaExempt": str_req.get("isStraaExempt"),
+            }
+            if str_req
+            else None
+        )
+        snapshot["propertyManager"] = cls._serialize_query_property_manager(rental.property_manager, reg)
 
     @classmethod
-    def _populate_query_platform(cls, snapshot: dict[str, Any], reg: Registration):
-        platform: Optional[Platform] = reg.platform_registration.platform if reg.platform_registration else None
-        if not platform:
-            return
-
-        business = cls._serialize_query_business_details(platform)
-        business.update({
-            "consumerProtectionBCLicenceNumber": platform.cpbc_licence_number,
-            "noticeOfNonComplianceEmail": platform.primary_non_compliance_notice_email,
-            "noticeOfNonComplianceOptionalEmail": platform.secondary_non_compliance_notice_email,
-            "takeDownRequestEmail": platform.primary_take_down_request_email,
-            "takeDownRequestOptionalEmail": platform.secondary_take_down_request_email,
-        })
-        snapshot["businessDetails"] = business
-        snapshot["platformRepresentatives"] = [
-            cls._serialize_person_contact(r.contact) for r in (platform.representatives or []) if r.contact
-        ]
-        snapshot["platformDetails"] = {
-            "listingSize": cls._enum_val(platform.listing_size),
-            "brands": [{"name": b.name, "website": b.website} for b in (platform.brands or [])],
-        }
-
-    @classmethod
-    def _populate_query_strata_hotel(cls, snapshot: dict[str, Any], reg: Registration):
-        sh: Optional[StrataHotel] = reg.strata_hotel_registration.strata_hotel if reg.strata_hotel_registration else None
-        if not sh:
-            return
-
-        snapshot["businessDetails"] = cls._serialize_query_business_details(sh)
-        snapshot["strataHotelRepresentatives"] = [
-            cls._serialize_person_contact(r.contact) for r in (sh.representatives or []) if r.contact
-        ]
-        snapshot["strataHotelDetails"] = {
-            "brand": {"name": sh.brand_name, "website": sh.website},
-            "location": cls._serialize_mailing_address(sh.location),
-            "numberOfUnits": sh.number_of_units,
-            "category": cls._enum_val(sh.category),
-            "buildings": [cls._serialize_mailing_address(b.address) for b in (sh.buildings or []) if b.address],
-            "unitListings": cls._normalize_unit_listings(sh.unit_listings),
+    def _serialize_unit_address(cls, rental) -> dict[str, Any]:
+        """Serialize rental property unit address."""
+        addr = rental.address
+        return {
+            "unitNumber": addr.unit_number if addr else None,
+            "streetNumber": addr.street_number if addr else None,
+            "streetName": addr.street_address if addr else None,
+            "addressLineTwo": addr.street_address_additional if addr else None,
+            "city": addr.city if addr else None,
+            "postalCode": addr.postal_code if addr else None,
+            "province": addr.province if addr else None,
+            "country": addr.country if addr else None,
+            "nickname": rental.nickname,
+            "locationDescription": addr.location_description if addr else None,
         }
 
     @classmethod
@@ -597,43 +497,50 @@ class RegistrationSerializer:
         c = prop_contact.contact
         person = cls._serialize_person_contact(c) or {}
         person.pop("jobTitle", None)
-        email = (
-            cls._get_override_value(reg_json, "primaryContact.emailAddress", c.email if c else None)
-            if is_primary
-            else (c.email if c else None)
-        )
-        dob = c.date_of_birth.strftime("%Y-%m-%d") if (is_primary and include_pii and c and c.date_of_birth) else None
-        sin = c.social_insurance_number if (is_primary and include_pii and c) else None
+        override_path = "primaryContact.emailAddress" if is_primary else "secondaryContact.emailAddress"
+        email = cls._get_override_value(reg_json, override_path, c.email if c else None)
+        dob = c.date_of_birth.strftime("%Y-%m-%d") if (include_pii and c and c.date_of_birth) else None
+        sin = c.social_insurance_number if (include_pii and c) else None
 
         return {
             "contactType": cls._enum_val(prop_contact.contact_type) or "INDIVIDUAL",
             **person,
             "dateOfBirth": dob,
             "socialInsuranceNumber": sin,
-            "businessNumber": c.business_number if (is_primary and c) else None,
+            "businessNumber": c.business_number if (c and (is_primary or include_pii)) else None,
             "businessLegalName": prop_contact.business_legal_name if is_primary else None,
             "emailAddress": email,
             "mailingAddress": cls._serialize_mailing_address(c.address if c else None),
         }
 
     @classmethod
-    def _serialize_query_property_manager(cls, pm: Optional[PropertyManager], reg_json: dict) -> Optional[dict[str, Any]]:
+    def _serialize_query_property_manager(
+        cls, pm: Optional[PropertyManager], reg: Registration
+    ) -> Optional[dict[str, Any]]:
         """Serialize property manager using single flat representation."""
         if not pm:
             return None
         pm_type = cls._enum_val(pm.property_manager_type) or "INDIVIDUAL"
         is_biz = pm_type == "BUSINESS"
-        initiated = (reg_json.get("propertyManager") or {}).get("initiatedByPropertyManager")
         c = pm.primary_contact
         contact = cls._serialize_person_contact(c) or {
-            k: None for k in (
-                "firstName", "middleName", "lastName", "preferredName", "jobTitle",
-                "emailAddress", "phoneNumber", "phoneCountryCode", "extension", "faxNumber"
+            k: None
+            for k in (
+                "firstName",
+                "middleName",
+                "lastName",
+                "preferredName",
+                "jobTitle",
+                "emailAddress",
+                "phoneNumber",
+                "phoneCountryCode",
+                "extension",
+                "faxNumber",
             )
         }
         return {
             "propertyManagerType": pm_type,
-            "initiatedByPropertyManager": bool(initiated) if initiated is not None else None,
+            "initiatedByPropertyManager": cls._get_initiated_by_property_manager(reg),
             "businessLegalName": pm.business_legal_name if is_biz else None,
             "businessNumber": pm.business_number if is_biz else None,
             "mailingAddress": cls._serialize_mailing_address(

@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Unit and integration tests for Registration Query API and Serializer."""
+
 # pylint: disable=redefined-outer-name,import-error
 
 from datetime import date, datetime, timezone

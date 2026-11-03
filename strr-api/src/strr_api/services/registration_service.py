@@ -40,8 +40,6 @@
 """Manages registration model interactions."""
 
 import base64
-from copy import deepcopy
-from datetime import date, datetime, time, timedelta, timezone
 import hashlib
 import hmac
 import json
@@ -49,6 +47,8 @@ import logging
 import random
 import re
 import traceback
+from copy import deepcopy
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Any, Optional
 
 from dateutil import parser
@@ -1480,47 +1480,27 @@ class RegistrationService:
     @classmethod
     def _build_eager_loaded_query(cls):
         """Build Registration query with optimized eager loading to avoid N+1 queries."""
-        rp = Registration.rental_property
-        plat = Registration.platform_registration
-        sh = Registration.strata_hotel_registration
+        rp = selectinload(Registration.rental_property)
+        pm = rp.selectinload(RentalProperty.property_manager)
+        plat = selectinload(Registration.platform_registration).selectinload(PlatformRegistration.platform)
+        sh = selectinload(Registration.strata_hotel_registration).selectinload(StrataHotelRegistration.strata_hotel)
 
         return Registration.query.options(
-            selectinload(rp)
-            .selectinload(RentalProperty.contacts)
+            rp.selectinload(RentalProperty.contacts)
             .selectinload(PropertyContact.contact)
             .selectinload(Contact.address),
-            selectinload(rp).selectinload(RentalProperty.address),
-            selectinload(rp)
-            .selectinload(RentalProperty.property_manager)
-            .selectinload(PropertyManager.primary_contact)
-            .selectinload(Contact.address),
-            selectinload(rp)
-            .selectinload(RentalProperty.property_manager)
-            .selectinload(PropertyManager.business_mailing_address),
-            selectinload(plat).selectinload(PlatformRegistration.platform).selectinload(Platform.mailingAddress),
-            selectinload(plat)
-            .selectinload(PlatformRegistration.platform)
-            .selectinload(Platform.registered_office_attorney_mailing_address),
-            selectinload(plat)
-            .selectinload(PlatformRegistration.platform)
-            .selectinload(Platform.representatives)
-            .selectinload(PlatformRepresentative.contact),
-            selectinload(plat).selectinload(PlatformRegistration.platform).selectinload(Platform.brands),
-            selectinload(sh)
-            .selectinload(StrataHotelRegistration.strata_hotel)
-            .selectinload(StrataHotel.mailingAddress),
-            selectinload(sh).selectinload(StrataHotelRegistration.strata_hotel).selectinload(StrataHotel.location),
-            selectinload(sh)
-            .selectinload(StrataHotelRegistration.strata_hotel)
-            .selectinload(StrataHotel.registered_office_attorney_mailing_address),
-            selectinload(sh)
-            .selectinload(StrataHotelRegistration.strata_hotel)
-            .selectinload(StrataHotel.representatives)
-            .selectinload(StrataHotelRepresentative.contact),
-            selectinload(sh)
-            .selectinload(StrataHotelRegistration.strata_hotel)
-            .selectinload(StrataHotel.buildings)
-            .selectinload(StrataHotelBuilding.address),
+            rp.selectinload(RentalProperty.address),
+            pm.selectinload(PropertyManager.primary_contact).selectinload(Contact.address),
+            pm.selectinload(PropertyManager.business_mailing_address),
+            plat.selectinload(Platform.mailingAddress),
+            plat.selectinload(Platform.registered_office_attorney_mailing_address),
+            plat.selectinload(Platform.representatives).selectinload(PlatformRepresentative.contact),
+            plat.selectinload(Platform.brands),
+            sh.selectinload(StrataHotel.mailingAddress),
+            sh.selectinload(StrataHotel.location),
+            sh.selectinload(StrataHotel.registered_office_attorney_mailing_address),
+            sh.selectinload(StrataHotel.representatives).selectinload(StrataHotelRepresentative.contact),
+            sh.selectinload(StrataHotel.buildings).selectinload(StrataHotelBuilding.address),
         )
 
     @classmethod
@@ -1544,27 +1524,23 @@ class RegistrationService:
             "scopeHash": scope_hash,
             "expiresAt": exp.strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
-        b64_payload = cls._b64_encode(json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8"))
-        sig = hmac.new(cls._get_secret_key(), b64_payload.encode("ascii"), hashlib.sha256).digest()
-        return f"{b64_payload}.{cls._b64_encode(sig)}"
+        raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+        b64_payload = base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+        return f"{b64_payload}.{cls._sign_cursor_payload(b64_payload)}"
 
     @classmethod
     def decode_and_validate_cursor(cls, cursor_str: str, expected_scope_hash: str) -> dict[str, Any]:
         """Validate HMAC signature, expiration, and scopeHash, returning cursor position."""
-        if not cursor_str or "." not in cursor_str:
+        if not cursor_str or cursor_str.count(".") != 1:
             raise ValidationException("Invalid cursor format.")
 
-        parts = cursor_str.split(".")
-        if len(parts) != 2:
-            raise ValidationException("Invalid cursor structure.")
-
-        b64_payload, b64_sig = parts[0], parts[1]
-        exp_sig = hmac.new(cls._get_secret_key(), b64_payload.encode("ascii"), hashlib.sha256).digest()
-        if not hmac.compare_digest(b64_sig, cls._b64_encode(exp_sig)):
+        b64_payload, b64_sig = cursor_str.split(".")
+        if not hmac.compare_digest(b64_sig, cls._sign_cursor_payload(b64_payload)):
             raise ValidationException("Invalid cursor signature or tampered token.")
 
         try:
-            data = json.loads(cls._b64_decode(b64_payload).decode("utf-8"))
+            padded = b64_payload + "=" * (-len(b64_payload) % 4)
+            data = json.loads(base64.urlsafe_b64decode(padded).decode("utf-8"))
         except Exception as e:
             raise ValidationException(f"Failed to decode cursor payload: {e}") from e
 
@@ -1598,16 +1574,8 @@ class RegistrationService:
             raise ValidationException(f"Invalid timestamp format: {e}") from e
 
     @staticmethod
-    def _b64_encode(data: bytes) -> str:
-        """URL-safe Base64 encode without padding."""
-        return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
-
-    @staticmethod
-    def _b64_decode(s: str) -> bytes:
-        """URL-safe Base64 decode with automatic padding calculation."""
-        return base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
-
-    @staticmethod
-    def _get_secret_key() -> bytes:
-        """Retrieve signing secret key."""
-        return current_app.config.get("SECRET_KEY", "default-strr-export-signing-secret").encode("utf-8")
+    def _sign_cursor_payload(b64_payload: str) -> str:
+        """Compute URL-safe Base64 HMAC-SHA256 signature for cursor payload."""
+        secret = current_app.config.get("SECRET_KEY", "default-strr-export-signing-secret").encode("utf-8")
+        sig = hmac.new(secret, b64_payload.encode("ascii"), hashlib.sha256).digest()
+        return base64.urlsafe_b64encode(sig).decode("ascii").rstrip("=")

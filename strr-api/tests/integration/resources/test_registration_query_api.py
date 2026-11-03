@@ -32,6 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 """Integration tests for machine-to-machine /registrations:query endpoint."""
+
 # pylint: disable=redefined-outer-name,too-many-arguments,too-many-positional-arguments
 
 from datetime import datetime, timedelta, timezone
