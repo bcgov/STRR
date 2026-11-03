@@ -1,4 +1,4 @@
-openapi: 3.2.0
+openapi: 3.0.3
 info:
   title: BC Short-Term Rental Registry - Registration Query API
   version: '1.0.0'
@@ -27,14 +27,14 @@ security:
   - apiKeyAuth: []
 paths:
   /registrations/query:
-    post: &query_operation
+    post:
       tags:
         - Registration Query
-      summary: Query current registration snapshots via POST
-      operationId: queryRegistrationsPost
+      summary: Query current registration snapshots
+      operationId: queryRegistrations
       description: |-
         Returns a paginated list of complete current registration snapshots (`HOST`, `PLATFORM`, `STRATA_HOTEL`).
-        - **Supported HTTP Verbs:** Accepts standard `POST` and safe/idempotent `QUERY` methods (IETF draft-ietf-httpbis-safe-method-w-body).
+        - **HTTP Method:** `POST` with a JSON query payload.
         - **CDC Sync Feed:** Provide `updatedSince` (or omit on initial baseline sync) and `cursor`.
         - **Targeted Lookup:** Provide `registrationNumbers` for direct lookup (max 500).
         - Consuming applications call through the Apigee API Gateway from their backend services using their provisioned B2B API key (`x-apikey`).
@@ -335,13 +335,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
-
-    query:
-      <<: *query_operation
-      tags:
-        - Registration Query
-      summary: Query current registration snapshots via QUERY
-      operationId: queryRegistrationsQuery
 
 components:
   securitySchemes:
