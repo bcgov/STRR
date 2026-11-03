@@ -1341,6 +1341,27 @@ class RegistrationService:
         )
 
     @classmethod
+    def _validate_and_partition_reg_numbers(cls, numbers: list[str]) -> tuple[list[str], list[dict[str, str]]]:
+        """Deduplicate and validate registration numbers into valid list and invalid errors."""
+        seen: set[str] = set()
+        valid_nums: list[str] = []
+        errors: list[dict[str, str]] = []
+
+        for n in numbers:
+            if not isinstance(n, str):
+                continue
+            cleaned = n.strip()
+            if not cleaned or cleaned in seen:
+                continue
+            seen.add(cleaned)
+            if REG_NUM_REGEX.match(cleaned):
+                valid_nums.append(cleaned)
+            else:
+                errors.append({"registrationNumber": cleaned, "code": "INVALID_REGISTRATION_NUMBER"})
+
+        return valid_nums, errors
+
+    @classmethod
     def _execute_targeted_lookup(
         cls,
         numbers: list[str],
@@ -1355,21 +1376,7 @@ class RegistrationService:
         if len(numbers) > MAX_PAGE_LIMIT:
             raise ValidationException(f"Maximum allowed registrationNumbers per request is {MAX_PAGE_LIMIT}.")
 
-        seen: set[str] = set()
-        deduped = [
-            seen.add(n.strip()) or n.strip()
-            for n in numbers
-            if isinstance(n, str) and n.strip() and n.strip() not in seen
-        ]
-
-        valid_nums: list[str] = []
-        errors: list[dict[str, str]] = []
-        for n in deduped:
-            if REG_NUM_REGEX.match(n):
-                valid_nums.append(n)
-            else:
-                errors.append({"registrationNumber": n, "code": "INVALID_REGISTRATION_NUMBER"})
-
+        valid_nums, errors = cls._validate_and_partition_reg_numbers(numbers)
         offset = cursor.get("offset", 0) if cursor else 0
         page_nums = valid_nums[offset : offset + limit]
 

@@ -1470,5 +1470,5 @@ def query_registrations():
             message=str(ve),
         )
     except Exception as e:
-        logger.error("Unhandled error in registration query: %s", e, exc_info=True)
+        logger.exception("Unhandled error in registration query: %s", e)
         return exception_response(e)

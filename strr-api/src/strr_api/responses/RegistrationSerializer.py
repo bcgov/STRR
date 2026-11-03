@@ -340,9 +340,8 @@ class RegistrationSerializer:
         if person:
             person.pop("jobTitle", None)
             return person
-        return {
-            k: None
-            for k in (
+        return dict.fromkeys(
+            (
                 "firstName",
                 "lastName",
                 "middleName",
@@ -353,7 +352,7 @@ class RegistrationSerializer:
                 "faxNumber",
                 "emailAddress",
             )
-        }
+        )
 
     @classmethod
     def get_jurisdiction_from_application(cls, registration: Registration) -> Optional[str]:
@@ -523,9 +522,8 @@ class RegistrationSerializer:
         pm_type = cls._enum_val(pm.property_manager_type) or "INDIVIDUAL"
         is_biz = pm_type == "BUSINESS"
         c = pm.primary_contact
-        contact = cls._serialize_person_contact(c) or {
-            k: None
-            for k in (
+        contact = cls._serialize_person_contact(c) or dict.fromkeys(
+            (
                 "firstName",
                 "middleName",
                 "lastName",
@@ -537,15 +535,20 @@ class RegistrationSerializer:
                 "extension",
                 "faxNumber",
             )
-        }
+        )
+        if is_biz:
+            mailing_addr = pm.business_mailing_address
+        elif c:
+            mailing_addr = c.address
+        else:
+            mailing_addr = None
+
         return {
             "propertyManagerType": pm_type,
             "initiatedByPropertyManager": cls._get_initiated_by_property_manager(reg),
             "businessLegalName": pm.business_legal_name if is_biz else None,
             "businessNumber": pm.business_number if is_biz else None,
-            "mailingAddress": cls._serialize_mailing_address(
-                pm.business_mailing_address if is_biz else (c.address if c else None)
-            ),
+            "mailingAddress": cls._serialize_mailing_address(mailing_addr),
             "contact": contact,
         }
 
@@ -589,7 +592,9 @@ class RegistrationSerializer:
             return None
 
         def clean(val: Any) -> list[str]:
-            items = val if isinstance(val, (list, tuple)) else [val] if val else []
+            if not val:
+                return []
+            items = val if isinstance(val, (list, tuple)) else [val]
             return [t.strip() for item in items for t in re.split(r"[\r\n,]+", str(item)) if t.strip()]
 
         return {"primary": clean(raw.get("primary")), "additional": [clean(u) for u in (raw.get("additional") or [])]}
