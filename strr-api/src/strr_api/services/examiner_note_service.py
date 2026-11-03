@@ -114,7 +114,11 @@ class ExaminerNoteService:
     @classmethod
     def list_by_registration_id(cls, registration_id: int) -> tuple[list[ExaminerNote], bool]:
         """Return registration-owned notes newest first and whether truncated."""
-        return cls._list_notes(ExaminerNote.registration_id == registration_id)
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return [], False
+        return cls._list_notes(ExaminerNote.registration_id == reg_id)
 
     @classmethod
     def _list_notes(cls, filter_clause) -> tuple[list[ExaminerNote], bool]:

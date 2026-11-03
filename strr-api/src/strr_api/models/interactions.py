@@ -136,4 +136,8 @@ class CustomerInteraction(Versioned, SimpleBaseModel):
     @classmethod
     def fetch_registration_interactions(cls, registration_id: int) -> list[CustomerInteraction]:
         """Return interactions for a registration sorted by create time."""
-        return cls.query.filter(cls.registration_id == registration_id).order_by(cls.created_at).all()
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return []
+        return cls.query.filter(cls.registration_id == reg_id).order_by(cls.created_at).all()

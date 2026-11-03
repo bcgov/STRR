@@ -64,13 +64,21 @@ class DocumentService:
     @classmethod
     def get_registration_documents(cls, registration_id):
         """Get registration documents by registration id."""
-        return Document.query.filter(Document.registration_id == registration_id).all()
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return []
+        return Document.query.filter(Document.registration_id == reg_id).all()
 
     @classmethod
     def get_registration_document(cls, registration_id, document_id):
         """Get registration document by id."""
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return None
         return (
-            Document.query.filter(Document.registration_id == registration_id)
+            Document.query.filter(Document.registration_id == reg_id)
             .filter(Document.id == document_id)
             .one_or_none()
         )
@@ -78,8 +86,12 @@ class DocumentService:
     @classmethod
     def get_registration_document_by_key(cls, registration_id, file_key):
         """Get registration document by key."""
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return None
         return (
-            Document.query.filter(Document.registration_id == registration_id).filter(Document.path == file_key).first()
+            Document.query.filter(Document.registration_id == reg_id).filter(Document.path == file_key).first()
         )
 
     @classmethod

@@ -157,7 +157,7 @@ def get_registrations():
     )
 
 
-@bp.route("/<registration_id>", methods=("GET",))
+@bp.route("/<int:registration_id>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -196,7 +196,7 @@ def get_registration(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/snapshots/<snapshot_id>", methods=("GET",))
+@bp.route("/<int:registration_id>/snapshots/<snapshot_id>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -272,7 +272,7 @@ def validate_registration(registration_number):
         return error_response(ErrorMessage.PROCESSING_ERROR.value, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/documents/<file_key>", methods=("GET",))
+@bp.route("/<int:registration_id>/documents/<file_key>", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -326,7 +326,7 @@ def get_registration_file_by_id(registration_id, file_key):
         return exception_response(external_exception)
 
 
-@bp.route("/<registration_id>/documents", methods=("POST",))
+@bp.route("/<int:registration_id>/documents", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -440,7 +440,7 @@ def upload_registration_document(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/events", methods=("GET",))
+@bp.route("/<int:registration_id>/events", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -490,7 +490,7 @@ def get_registration_events(registration_id):
         return exception_response(auth_exception)
 
 
-@bp.route("/<registration_id>/notes", methods=("GET",))
+@bp.route("/<int:registration_id>/notes", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -538,7 +538,7 @@ def get_registration_notes(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/notes", methods=("POST",))
+@bp.route("/<int:registration_id>/notes", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -606,7 +606,7 @@ def create_registration_note(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/status", methods=("PUT",))
+@bp.route("/<int:registration_id>/status", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -659,7 +659,7 @@ def update_registration_status(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/todos", methods=("GET",))
+@bp.route("/<int:registration_id>/todos", methods=("GET",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -766,7 +766,7 @@ def get_todos(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/str-address", methods=("PATCH",))
+@bp.route("/<int:registration_id>/str-address", methods=("PATCH",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -803,7 +803,7 @@ def update_registration_unit_address(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>", methods=("PATCH",))
+@bp.route("/<int:registration_id>", methods=("PATCH",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -936,7 +936,7 @@ def update_expiry_date_for_registration(registration_number):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/decision/set-aside", methods=("POST",))
+@bp.route("/<int:registration_id>/decision/set-aside", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -980,7 +980,7 @@ def set_aside_decision(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/notice-of-consideration", methods=("POST",))
+@bp.route("/<int:registration_id>/notice-of-consideration", methods=("POST",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -1039,7 +1039,7 @@ def send_notice_of_consideration(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/assign", methods=("PUT",))
+@bp.route("/<int:registration_id>/assign", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth
@@ -1087,7 +1087,7 @@ def assign_registration(registration_id):
         return error_response(message=ErrorMessage.PROCESSING_ERROR.value, http_status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@bp.route("/<registration_id>/unassign", methods=("PUT",))
+@bp.route("/<int:registration_id>/unassign", methods=("PUT",))
 @swag_from({"security": [{"Bearer": []}]})
 @cross_origin(origin="*")
 @jwt.requires_auth

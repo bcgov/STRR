@@ -78,7 +78,11 @@ class Events(SimpleBaseModel):
     @classmethod
     def fetch_registration_events(cls, registration_id: int, applicant_visible_events_only: bool = True):
         """Get events for a given registration."""
-        query = cls.query.filter_by(registration_id=registration_id)
+        try:
+            reg_id = int(registration_id)
+        except (ValueError, TypeError):
+            return []
+        query = cls.query.filter_by(registration_id=reg_id)
         if applicant_visible_events_only:
             query = query.filter_by(visible_to_applicant=True)  # noqa
         return query.order_by(Events.created_date).all()
