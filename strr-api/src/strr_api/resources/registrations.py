@@ -83,6 +83,7 @@ from strr_api.services.registration_service import (
     REGISTRATION_STATES_STAFF_ACTION,
     REGISTRATION_STATES_STAFF_ASSIGNABLE,
 )
+from strr_api.utils.user_context import UserContext
 from strr_api.validators.DocumentUploadValidator import validate_document_upload
 
 logger = logging.getLogger("api")
@@ -1390,3 +1391,84 @@ def user_search_registrations():
         return jsonify(registration_list), HTTPStatus.OK
     except ExternalServiceException as external_exception:
         return exception_response(external_exception)
+
+
+@bp.route("/:query", methods=("POST", "QUERY"))
+@bp.route("/query", methods=("POST", "QUERY"))
+@cross_origin(origin="*")
+@jwt.requires_auth
+def query_registrations():
+    """
+    Query registration snapshots.
+    Supports incremental CDC synchronization for authorized callers (registration.export capability),
+    and targeted batch lookups with capability-based PII masking (registration.pii capability).
+    ---
+    tags:
+      - registrations
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+    responses:
+      200:
+        description: List of registration snapshots with nextCursor.
+      400:
+        description: Invalid request parameters or cursor token.
+      401:
+        description: Authentication required.
+      403:
+        description: Full CDC export forbidden without registration.export capability.
+    """
+    try:
+        UserService.get_or_create_user_by_jwt(g.jwt_oidc_token_info)
+
+        request_json = request.get_json(silent=True) or {}
+
+        # Validate against JSON schema
+        valid, schema_errors = validate(request_json, "registration_query")
+        if not valid:
+            return error_response(
+                http_status=HTTPStatus.BAD_REQUEST,
+                message="Invalid request payload structure.",
+                errors=schema_errors,
+            )
+
+        user_context = UserContext()
+        can_export = user_context.can_export_registrations()
+        can_read_pii = user_context.can_read_registration_pii()
+        can_read = user_context.can_read_registrations()
+
+        # If targeted lookup requested but caller lacks read permission
+        if "registrationNumbers" in request_json and not can_read:
+            return error_response(
+                http_status=HTTPStatus.FORBIDDEN,
+                message="Targeted registration lookup requires 'strr.registrations:read' capability.",
+            )
+
+        # If not authorized for global export and registrationNumbers not provided, reject broad sync
+        if not can_export and "registrationNumbers" not in request_json:
+            return error_response(
+                http_status=HTTPStatus.FORBIDDEN,
+                message="Full synchronization feed requires 'strr.registrations:export' capability. "
+                "Provide 'registrationNumbers' for targeted lookup.",
+            )
+
+        response_data = RegistrationService.execute_query(
+            payload=request_json,
+            can_export=can_export,
+            can_read_pii=can_read_pii,
+            can_read=can_read,
+        )
+
+        return jsonify(response_data), HTTPStatus.OK
+
+    except ValidationException as ve:
+        logger.warning("Registration query validation error: %s", ve)
+        return error_response(
+            http_status=HTTPStatus.BAD_REQUEST,
+            message=str(ve),
+        )
+    except Exception as e:
+        logger.exception("Unhandled error in registration query: %s", e)
+        return exception_response(e)

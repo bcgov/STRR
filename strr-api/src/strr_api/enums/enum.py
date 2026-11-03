@@ -90,6 +90,14 @@ class Role(Enum):
     STRR_TESTER = "strr_tester"
 
 
+class OAuthScope(str, Enum):
+    """OAuth 2.0 Scopes for M2M API authorization."""
+
+    REGISTRATIONS_READ = "strr.registrations:read"
+    REGISTRATIONS_EXPORT = "strr.registrations:export"
+    REGISTRATIONS_PII_READ = "strr.registrations.pii:read"
+
+
 class RegistrationStatus(Enum):
     """STRR Registration Status."""
 

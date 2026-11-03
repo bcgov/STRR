@@ -87,7 +87,7 @@ def unauthenticated_request(client, method: str, path: str):
         return client.delete(path)
     if method == "POST" and path == "/documents":
         return client.post(path, data={}, content_type="multipart/form-data")
-    if method in ("POST", "PUT", "PATCH"):
+    if method in ("POST", "PUT", "PATCH", "QUERY"):
         return client.open(path, method=method, json={})
     raise ValueError(method)
 
