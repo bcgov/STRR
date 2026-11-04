@@ -17,8 +17,7 @@ import sys
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
-from sqlalchemy import Integer, column, create_engine, select
-from sqlalchemy.dialects.postgresql import pg8000 as pg8000_dialect
+from sqlalchemy import create_engine
 
 from strr_api.common.cloud_sql import (
     DBConfig,
@@ -29,13 +28,6 @@ from strr_api.common.cloud_sql import (
     setup_search_path_event_listener,
     sqlalchemy_settings_from_env,
 )
-
-
-def test_pg8000_str_params_are_not_cast_to_varchar():
-    """Str params compared with Integer columns must be sent untyped, not as ::VARCHAR."""
-    stmt = select(column("id", Integer)).where(column("id", Integer) == "5")
-
-    assert "::VARCHAR" not in str(stmt.compile(dialect=pg8000_dialect.dialect()))
 
 
 class TestDBConfig:

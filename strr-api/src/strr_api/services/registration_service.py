@@ -629,7 +629,7 @@ class RegistrationService:
         query = Registration.query
 
         if not UserService.is_strr_staff_or_system():
-            query = query.filter(Registration.sbc_account_id == account_id)
+            query = query.filter(Registration.sbc_account_id == (int(account_id) if account_id else None))
         if status:
             query = query.filter(Registration.status == status.upper())
         if registration_type:
@@ -690,7 +690,7 @@ class RegistrationService:
         UserService.get_or_create_user_in_context()
         query = Registration.query.filter_by(id=registration_id)
         if not UserService.is_strr_staff_or_system():
-            query = query.filter_by(sbc_account_id=account_id)
+            query = query.filter_by(sbc_account_id=int(account_id) if account_id else None)
         return query.one_or_none()
 
     @classmethod

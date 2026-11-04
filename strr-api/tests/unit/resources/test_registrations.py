@@ -81,7 +81,7 @@ def test_get_registration_file_by_id_200(mock_get_file, mock_get_document, mock_
     assert rv.data == mock_file_content
     assert rv.headers["Content-Disposition"] == "attachment; filename=test.pdf"
     assert rv.headers["Content-Type"] == "application/pdf"
-    mock_get_registration.assert_called_once_with("123", "1")
+    mock_get_registration.assert_called_once_with("123", 1)
 
 
 def test_get_registration_file_by_id_401(client):

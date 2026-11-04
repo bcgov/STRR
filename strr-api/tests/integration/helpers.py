@@ -39,9 +39,9 @@ def resolve_path(rule: str) -> str:
     # Distinct paths so parametrized test ids stay unique for string vs default converter.
     path = path.replace("<string:application_number>", "9000002")
     path = path.replace("<application_number>", "9000001")
-    path = path.replace("<registration_id>", "1")
+    path = path.replace("<int:registration_id>", "1")
     path = path.replace("<registration_number>", "R9000001")
-    path = path.replace("<snapshot_id>", "1")
+    path = path.replace("<int:snapshot_id>", "1")
     path = path.replace("<file_key>", "fake-file-key")
     return path
 
