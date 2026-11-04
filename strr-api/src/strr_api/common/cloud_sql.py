@@ -23,6 +23,12 @@ from urllib.parse import quote
 
 from google.cloud.sql.connector import Connector
 from sqlalchemy import event
+from sqlalchemy.dialects.postgresql import pg8000 as pg8000_dialect
+
+# SQLAlchemy's pg8000 dialect casts str params to ::VARCHAR, so comparing an Integer column with a str
+# (path ids, Account-Id header) fails with "operator does not exist: integer = character varying".
+# Send them untyped like psycopg2 so Postgres coerces them.
+pg8000_dialect._PGString.render_bind_cast = False  # pylint: disable=protected-access
 
 _CONNECTOR = None
 _LOCK = threading.Lock()

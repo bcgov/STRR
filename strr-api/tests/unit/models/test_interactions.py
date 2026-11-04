@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DatabaseError, IntegrityError
 from sqlalchemy.orm import Session
 
 from strr_api.enums.enum import ChannelType, InteractionStatus, RegistrationStatus
@@ -161,7 +161,8 @@ def test_constraint_fails_if_multiple_parents(session, interaction_parents):
     )
     session.add(interaction)
 
-    with pytest.raises(IntegrityError) as excinfo:
+    # pg8000 raises check constraint violations as ProgrammingError
+    with pytest.raises(DatabaseError) as excinfo:
         session.commit()
 
     # Verify it was the specific check constraint
@@ -176,7 +177,7 @@ def test_constraint_fails_if_zero_parents(session):
     interaction = generate_interaction_data(customer_id=None, application_id=None, registration_id=None)
     session.add(interaction)
 
-    with pytest.raises(IntegrityError) as excinfo:
+    with pytest.raises(DatabaseError) as excinfo:
         session.commit()
 
     assert "check_exclusive_owner_interaction" in str(excinfo.value)
