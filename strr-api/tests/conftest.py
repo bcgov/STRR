@@ -94,7 +94,8 @@ def app(ld, db_engine):
     from strr_api import create_app
 
     # str(engine.url) masks the password; Flask needs the real credentials.
-    db_url = db_engine.url.render_as_string(hide_password=False)
+    # Use pg8000 to match the deployed driver.
+    db_url = db_engine.url.set(drivername="postgresql+pg8000").render_as_string(hide_password=False)
     Testing.SQLALCHEMY_DATABASE_URI = db_url
     Testing.POD_NAMESPACE = "Testing"
     os.environ["DATABASE_URL"] = db_url
