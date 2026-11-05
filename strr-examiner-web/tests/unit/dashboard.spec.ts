@@ -87,12 +87,17 @@ vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => mockStore
 }))
 
-vi.stubGlobal('useAsyncData', () => ({
+const defaultAsyncData = () => ({
   data: {
     applications: mockApplications,
     total: mockApplications.length
-  }
-}))
+  },
+  status: ref('idle'),
+  refresh: vi.fn()
+})
+
+vi.stubGlobal('useAsyncData', defaultAsyncData)
+vi.stubGlobal('useLazyAsyncData', defaultAsyncData)
 
 const { mockUseExaminerFeatureFlags } = vi.hoisted(() => ({
   mockUseExaminerFeatureFlags: vi.fn()

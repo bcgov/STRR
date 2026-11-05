@@ -7,7 +7,7 @@ const {
   decisionIntent,
   preDefinedConditions,
   resetDecision,
-  isMainActionDisabled
+  selectDecisionIntent
 } = useExaminerDecision()
 const {
   isApplication,
@@ -23,20 +23,10 @@ const {
 } = storeToRefs(useExaminerStore())
 
 const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) => {
-  // do not reset anything for same actions
   if (decisionIntent.value === action) { return }
-  decisionIntent.value = action
-  // reset
+  selectDecisionIntent(action)
   localConditions.value = []
-  conditions.value = []
-  customConditions.value = null
-  minBookingDays.value = null
   customCondition.value = ''
-  if (isMainActionDisabled) {
-    isMainActionDisabled.value = false
-  }
-  decisionEmailFormRef?.value?.clear?.()
-  decisionEmailContent.value.content = ''
   if (action === ApplicationActionsE.APPROVE) {
     loadExistingConditions()
   }

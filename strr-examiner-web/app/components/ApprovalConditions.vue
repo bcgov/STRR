@@ -2,7 +2,7 @@
 import { onUnmounted } from 'vue'
 
 const { t } = useNuxtApp().$i18n
-const { preDefinedConditions, isMainActionDisabled } = useExaminerDecision()
+const { preDefinedConditions, hasOpenConditionForm } = useExaminerDecision()
 
 const selectedConditions = defineModel<string[]>('conditions', { required: true })
 const customCondition = defineModel<string>('customCondition', { required: true })
@@ -96,15 +96,14 @@ const getConditionLabel = (item: string) => {
 }
 
 watch([isCustomConditionOpen, isMinBookingDaysOpen], () => {
-  // disable main action when Custom Condition or Minimum Booking Days is open
-  if (isMainActionDisabled) {
-    isMainActionDisabled.value = isCustomConditionOpen.value || isMinBookingDaysOpen.value
+  if (hasOpenConditionForm) {
+    hasOpenConditionForm.value = isCustomConditionOpen.value || isMinBookingDaysOpen.value
   }
 })
 
 onUnmounted(() => {
-  if (isMainActionDisabled) {
-    isMainActionDisabled.value = false
+  if (hasOpenConditionForm) {
+    hasOpenConditionForm.value = false
   }
 })
 

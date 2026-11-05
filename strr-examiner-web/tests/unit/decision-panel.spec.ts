@@ -51,6 +51,14 @@ vi.mock('@/stores/examiner', () => ({
   })
 }))
 
+const selectDecisionIntent = vi.fn((action: any) => {
+  decisionIntent.value = action
+  isMainActionDisabled.value = false
+  conditions.value = []
+  customConditions.value = null
+  minBookingDays.value = null
+})
+
 vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
     showDecisionPanel: computed(() =>
@@ -60,6 +68,7 @@ vi.mock('@/composables/useExaminerDecision', () => ({
     decisionIntent,
     preDefinedConditions: ['principalResidence', 'validBL'],
     isMainActionDisabled,
+    selectDecisionIntent,
     resetDecision: vi.fn(),
     isDecisionEmailValid: vi.fn().mockResolvedValue(true)
   })

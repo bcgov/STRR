@@ -475,7 +475,7 @@ const {
   data: registrationListResp,
   status: regStatus,
   refresh: refreshRegistrations
-} = useAsyncData(
+} = useLazyAsyncData(
   'registration-list-resp',
   () => {
     // only fetch when on registrations tab
@@ -485,7 +485,6 @@ const {
     return exStore.fetchRegistrations()
   },
   {
-    lazy: true,
     default: () => ({ registrations: [], total: 0 }),
     transform: (res: ApiRegistrationListResp) => {
       if (res.registrations.length === 0) {
@@ -533,7 +532,7 @@ const {
   data: applicationListResp,
   status,
   refresh: refreshApplications
-} = useAsyncData(
+} = useLazyAsyncData(
   'application-list-resp',
   () => {
     // only fetch when on applications tab
@@ -543,7 +542,6 @@ const {
     return exStore.fetchApplications()
   },
   {
-    lazy: true,
     default: () => ({ applications: [], total: 0 }),
     transform: (res: ApiApplicationsListResp) => {
       if (!res.applications.length) {
