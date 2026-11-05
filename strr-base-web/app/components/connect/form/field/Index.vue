@@ -25,7 +25,7 @@ defineExpose({ model })
 <template>
   <UInput
     :id="id"
-    v-model.trim="model"
+    v-model="model"
     v-maska:model.unmasked="mask"
     :data-testid="id"
     v-bind="$attrs"
