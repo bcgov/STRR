@@ -20,6 +20,7 @@ from strr_api.enums.enum import (
 from strr_api.exceptions import ExternalServiceException
 from strr_api.models import Application, CustomerInteraction, Document, Events, Registration, User
 from strr_api.responses import RegistrationSerializer
+from strr_api.schemas.utils import validate
 from tests.shared_test_constants import ACCOUNT_ID, MOCK_INVOICE_RESPONSE
 from tests.unit.utils.auth_helpers import PUBLIC_USER, STRR_EXAMINER, create_header
 from tests.unit.utils.mocks import (
@@ -422,6 +423,13 @@ def test_get_host_registration_by_id(app, session, client, jwt):
         registration_id = response_json.get("header").get("registrationId")
         rv = client.get(f"/registrations/{registration_id}", headers=headers)
         assert rv.status_code == HTTPStatus.OK
+
+        # Renewals echo these addresses back; a null locationDescription fails the registration schema.
+        renewal_json = json.loads(json.dumps(json_data))
+        for contact in ("primaryContact", "secondaryContact"):
+            renewal_json["registration"][contact]["mailingAddress"] = rv.json[contact]["mailingAddress"]
+        valid, errors = validate(renewal_json, "registration")
+        assert valid, errors
 
 
 @patch("strr_api.services.strr_pay.create_invoice", return_value=MOCK_INVOICE_RESPONSE)

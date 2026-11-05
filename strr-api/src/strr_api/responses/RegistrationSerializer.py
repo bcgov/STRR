@@ -324,6 +324,17 @@ class RegistrationSerializer:
                 registration
             )
 
+        # The host UI echoes these addresses back on renewal and the schema rejects a null locationDescription.
+        property_manager_data = registration_data.get("propertyManager") or {}
+        for address in (
+            (registration_data.get("primaryContact") or {}).get("mailingAddress"),
+            (registration_data.get("secondaryContact") or {}).get("mailingAddress"),
+            (property_manager_data.get("contact") or {}).get("mailingAddress"),
+            (property_manager_data.get("business") or {}).get("mailingAddress"),
+        ):
+            if address and address.get("locationDescription") is None:
+                address.pop("locationDescription", None)
+
     @classmethod
     def _get_initiated_by_property_manager(cls, registration: Registration) -> bool | None:
         """Get initiatedByPropertyManager from registration_json (populated at create/renewal and by backfiller)."""
