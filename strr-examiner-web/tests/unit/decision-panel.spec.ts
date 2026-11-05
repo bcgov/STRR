@@ -22,6 +22,7 @@ const customConditions = ref<string[] | null>(null)
 const minBookingDays = ref<number | null>(null)
 const decisionEmailContent = ref({ content: '' })
 const decisionEmailFormRef = ref({ clear: vi.fn() })
+const isMainActionDisabled = ref(false)
 
 vi.mock('@/stores/examiner', () => ({
   useExaminerStore: () => reactive({
@@ -58,6 +59,7 @@ vi.mock('@/composables/useExaminerDecision', () => ({
     ),
     decisionIntent,
     preDefinedConditions: ['principalResidence', 'validBL'],
+    isMainActionDisabled,
     resetDecision: vi.fn(),
     isDecisionEmailValid: vi.fn().mockResolvedValue(true)
   })
@@ -68,6 +70,7 @@ describe('DecisionPanel', () => {
     decisionIntent.value = null
     isApplication.value = true
     isAssignedToUser.value = true
+    isMainActionDisabled.value = false
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null
@@ -303,5 +306,41 @@ describe('DecisionPanel', () => {
     await toggleBtn.trigger('click')
     expect(toggleBtn.text()).toContain('Expand')
     expect((textareaEl.element as HTMLTextAreaElement).style.height).toBe('290px')
+  })
+
+  it('should clear conditions and reset isMainActionDisabled when switching to Send Notice', async () => {
+    activeHeader.value = {
+      examinerActions: [ApplicationActionsE.APPROVE, ApplicationActionsE.SEND_NOC],
+      isSetAside: false,
+      assignee: { username: 'examiner1' }
+    }
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    isMainActionDisabled.value = true
+    conditions.value = ['principalResidence']
+    minBookingDays.value = 14
+
+    const wrapper = await mountSuspended(DecisionPanel, {
+      global: { plugins: [enI18n] }
+    })
+
+    // Email field should be disabled when Approve is selected
+    expect(wrapper.find('[data-testid="decision-email"]').attributes('disabled')).toBeDefined()
+
+    // Examiner clicks 'Send Notice' button
+    const sendNoticeBtn = wrapper.find('[data-testid="decision-button-send_noc"]')
+    expect(sendNoticeBtn.exists()).toBe(true)
+    await sendNoticeBtn.trigger('click')
+    await nextTick()
+
+    // Decision intent updated to SEND_NOC
+    expect(decisionIntent.value).toBe(ApplicationActionsE.SEND_NOC)
+    // isMainActionDisabled should be reset
+    expect(isMainActionDisabled.value).toBe(false)
+    // conditions should be cleared
+    expect(conditions.value).toEqual([])
+    expect(minBookingDays.value).toBeNull()
+    expect(customConditions.value).toBeNull()
+    // Email field should now be enabled for Completing Party input
+    expect(wrapper.find('[data-testid="decision-email"]').attributes('disabled')).toBeUndefined()
   })
 })

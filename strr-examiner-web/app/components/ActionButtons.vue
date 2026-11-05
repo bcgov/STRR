@@ -322,7 +322,7 @@ const handleMainAction = () => withNoteCheck(() => selectedAction.value?.action(
                   : t(`btn.${selectedAction?.label}`)"
               :color="(selectedAction?.color || 'primary') as any"
               :icon="selectedAction?.icon"
-              :disabled="isMainActionDisabled"
+              :disabled="isApproveDecisionSelected && isMainActionDisabled"
               variant="outline"
               class="max-w-fit px-7 py-3"
               data-testid="main-action-button"

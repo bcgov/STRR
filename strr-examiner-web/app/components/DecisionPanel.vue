@@ -2,7 +2,13 @@
 import { onMounted } from 'vue'
 
 const { t } = useNuxtApp().$i18n
-const { showDecisionPanel, decisionIntent, preDefinedConditions, resetDecision } = useExaminerDecision()
+const {
+  showDecisionPanel,
+  decisionIntent,
+  preDefinedConditions,
+  resetDecision,
+  isMainActionDisabled
+} = useExaminerDecision()
 const {
   isApplication,
   isAssignedToUser,
@@ -25,6 +31,10 @@ const setDecisionIntent = (action: ApplicationActionsE | RegistrationActionsE) =
   conditions.value = []
   customConditions.value = null
   minBookingDays.value = null
+  customCondition.value = ''
+  if (isMainActionDisabled) {
+    isMainActionDisabled.value = false
+  }
   decisionEmailFormRef?.value?.clear?.()
   decisionEmailContent.value.content = ''
   if (action === ApplicationActionsE.APPROVE) {

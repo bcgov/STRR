@@ -49,6 +49,7 @@ export const useExaminerDecision = () => {
     conditions.value = []
     customConditions.value = null
     minBookingDays.value = null
+    isMainActionDisabled.value = false
   }
 
   return {

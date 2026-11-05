@@ -25,6 +25,7 @@ const activeReg = ref<any>({ id: 'reg-123', status: RegistrationStatus.ACTIVE, c
 const isApplication = ref(false)
 const isAssignedToUser = ref(true)
 const decisionIntent = ref<ApplicationActionsE | RegistrationActionsE | null>(null)
+const isMainActionDisabled = ref(false)
 const conditions = ref([])
 const customConditions = ref(null)
 const minBookingDays = ref<number | null>(null)
@@ -58,7 +59,7 @@ vi.mock('@/stores/examiner', () => ({
 vi.mock('@/composables/useExaminerDecision', () => ({
   useExaminerDecision: () => ({
     decisionIntent,
-    isMainActionDisabled: ref(false),
+    isMainActionDisabled,
     isDecisionEmailValid: mockIsDecisionEmailValid
   })
 }))
@@ -95,6 +96,7 @@ describe('ActionButtons Component', () => {
     activeHeader.value = { examinerActions: [], isSetAside: false, assignee: { username: '' } }
     activeReg.value = { id: 'reg-123', status: RegistrationStatus.ACTIVE, conditionsOfApproval: null }
     isAssignedToUser.value = true
+    isMainActionDisabled.value = false
     isApplication.value = false
     decisionIntent.value = null
     conditions.value = []
@@ -476,5 +478,65 @@ describe('ActionButtons Component', () => {
 
     expect(mockWithdrawApplication).toHaveBeenCalledWith('APP-005', false)
     expect(mockIsDecisionEmailValid).not.toHaveBeenCalled()
+  })
+
+  it('should disable main action button when Approve is selected and isMainActionDisabled is true', async () => {
+    isApplication.value = true
+    decisionIntent.value = ApplicationActionsE.APPROVE
+    isMainActionDisabled.value = true
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      applicationNumber: 'APP-123'
+    }
+
+    const wrapper = await mount()
+
+    const mainBtn = wrapper.find('[data-testid="main-action-button"]')
+    expect(mainBtn.exists()).toBe(true)
+    expect(mainBtn.attributes('disabled')).toBeDefined()
+  })
+
+  it('should not disable Send Notice main button even if isMainActionDisabled was true', async () => {
+    isApplication.value = false
+    decisionIntent.value = ApplicationActionsE.SEND_NOC
+    isMainActionDisabled.value = true // simulates leftover approval condition flag
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      examinerActions: [ApplicationActionsE.SEND_NOC]
+    }
+
+    const wrapper = await mount()
+
+    const mainBtn = wrapper.find('[data-testid="main-action-button"]')
+    expect(mainBtn.exists()).toBe(true)
+    expect(mainBtn.text()).toContain('Send Notice')
+    // Send Notice must NOT be disabled by isMainActionDisabled
+    expect(mainBtn.attributes('disabled')).toBeUndefined()
+  })
+
+  it('should successfully execute send notice when Send Notice button is clicked', async () => {
+    isApplication.value = false
+    decisionIntent.value = ApplicationActionsE.SEND_NOC
+    decisionEmailContent.value = { content: 'Please review registration conditions.' }
+    activeHeader.value = {
+      ...activeHeader.value,
+      assignee: { username: 'examiner1' },
+      examinerActions: [ApplicationActionsE.SEND_NOC]
+    }
+
+    const wrapper = await mount()
+
+    const mainBtn = wrapper.find('[data-testid="main-action-button"]')
+    expect(mainBtn.exists()).toBe(true)
+    expect(mainBtn.attributes('disabled')).toBeUndefined()
+
+    await clickMainButton(wrapper)
+    await flushPromises()
+
+    expect(mockIsDecisionEmailValid).toHaveBeenCalledOnce()
+    expect(mockSendNotice).toHaveBeenCalledOnce()
+    expect(mockSendNotice).toHaveBeenCalledWith('reg-123', 'Please review registration conditions.')
   })
 })

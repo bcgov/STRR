@@ -333,5 +333,21 @@ describe('Approval Conditions Component', () => {
       await flushPromises()
       expect(mockIsMainActionDisabled.value).toBe(false)
     })
+
+    it('should reset isMainActionDisabled to false on unmount when an incomplete condition was open', async () => {
+      const wrapper = await mountSuspended(ApprovalConditions, {
+        global: { plugins: [enI18n] },
+        props: defaultProps()
+      })
+      await flushPromises()
+
+      await wrapper.find('[data-testid="open-min-book-days-button"]').trigger('click')
+      await flushPromises()
+      expect(mockIsMainActionDisabled.value).toBe(true)
+
+      wrapper.unmount()
+      await flushPromises()
+      expect(mockIsMainActionDisabled.value).toBe(false)
+    })
   })
 })
