@@ -19,6 +19,12 @@ defineProps({
   max: { type: Number, default: undefined }
 })
 
+const onBlur = () => {
+  if (typeof model.value === 'string') {
+    model.value = model.value.trim()
+  }
+}
+
 defineExpose({ model })
 </script>
 
@@ -43,6 +49,7 @@ defineExpose({ model })
     :maxlength
     :min
     :max
+    @blur="onBlur"
   />
   <!-- :aria-errormessage="errorId" -->
   <!-- Doesnt look like aria-errormessage is well supported, need to look into this more -->
